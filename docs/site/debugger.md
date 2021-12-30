@@ -185,7 +185,6 @@ clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version,"0.8.3"},cider/cider-nrepl {:m
 There are times when clojure debugging tools are not enough or not right for the job.
 This is usually true when use an (open source) Java library and you want to set some brake points in Java code.
 For those cases and others, you need to start the JVM in debug mode.
-And for that you nee
 
 Typical use cases:
 
@@ -195,13 +194,13 @@ Typical use cases:
 Calva supports passing environment variables via `jacInEnv`.
 You can set that option inside VSCode `settings.json` file.
 
-You can configre global `settings.json` file or a project wide version.
-I think it's best to put these options inside your project, inside `<project-root>/.vscode/settings.json`.
-This is because we don't know how the changes will impact other VSCode projects that start a JVM.
+You can configre global `settings.json` file or a project wide version, inside `<project-root>/.vscode/settings.json`.
+
+Configuring the global option will impact all projects you work on using Calva, so be aware.
 See documentation for `settings.json` here: https://code.visualstudio.com/docs/getstarted/settings .
 
 The bellow snippet configures `JAVA_TOOL_OPTIONS` environment variable.
-This variable is read by the JVM and the configuration is applied accordingly.
+We configure slf4j-simple logging level via java system property (`-D`) and JVM specific options (`-X`).
 
 NOTE: You can of course pass other env variables here.
 
@@ -214,11 +213,12 @@ NOTE: You can of course pass other env variables here.
 }
 ```
 
-Once you saved the file, the next time you `Jack in` the project, you should see something like:
+Once you saved the file, the next time you `Jack in` the project, this variable is read by the JVM and the configuration is applied accordingly.
+
+ You should see something like the message bellow in the Calva terminal output window:
 
 ```shell
 clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version,"0.8.3"},cider/cider-nrepl {:mvn/version,"0.26.0"}}}' -A:debug -m nrepl.cmdline --middleware "[cider.nrepl/cider-middleware]"
-WARNING: Implicit use of clojure.main with options is deprecated, use -M
 Picked up JAVA_TOOL_OPTIONS:  -Dorg.slf4j.simpleLogger.defaultLogLevel=TRACE -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7896
 Listening for transport dt_socket at address: 7896
 nREPL server started on port 46691 on host localhost - nrepl://localhost:46691
