@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ad3c33ca.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f8ad3a65.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
@@ -1781,13 +1781,13 @@
 <h3 id="changing-the-version-of-clojure-lsp-used-by-calva">Changing the Version of Clojure-lsp Used by Calva</h3>
 <p>By default, Calva will use the latest released <strong>clojure-lsp</strong>. You can change the version of clojure-lsp used by Calva by setting the <code>calva.clojureLspVersion</code> property to a version of clojure-lsp found in its GitHub <a href="https://github.com/clojure-lsp/clojure-lsp/releases">releases</a>. This can be helpful if you're debugging an issue with clojure-lsp or you want to try out a feature of a new release that Calva does not yet use. However, you must remember to reset this setting in order for Calva to automatically use newer versions of clojure-lsp that are released with new versions of Calva.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.clojureLspVersion&quot;</span><span class="p">:</span> <span class="s2">&quot;2021.04.07-16.34.10&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.clojureLspVersion&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2021.04.07-16.34.10&quot;</span><span class="w"></span>
 </code></pre></div>
 <p>If you have specified a version and want to use the latest release, either remove the setting, or set it to <code>latest</code>.</p>
 <h3 id="using-a-custom-clojure-lsp-native-binary">Using a Custom Clojure-lsp Native Binary</h3>
 <p>You can set a path to a clojure-lsp binary to be used by Calva by setting the <code>calva.clojureLspPath</code> setting. This should be an absolute path. When this is set, the binary at the path will be used and the <code>calva.clojureLspVersion</code> setting will be ignored.</p>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.clojureLspPath&quot;</span><span class="p">:</span> <span class="s2">&quot;/usr/local/bin/clojure-lsp&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.clojureLspPath&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/usr/local/bin/clojure-lsp&quot;</span><span class="w"></span>
 </code></pre></div>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <h3 id="viewing-the-logs-between-the-client-and-server">Viewing the Logs Between the Client and Server</h3>

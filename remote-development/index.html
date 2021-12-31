@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ad3c33ca.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f8ad3a65.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
@@ -1712,9 +1712,9 @@
 <div class="highlight"><pre><span></span><code><span class="c"># ...</span>
 
 <span class="c"># Install Clojure - see https://github.com/Quantisan/docker-clojure/blob/master/target/openjdk-14-slim-buster/tools-deps/Dockerfile</span>
-<span class="k">ENV</span> <span class="nv">CLOJURE_VERSION</span><span class="o">=</span><span class="m">1</span>.10.1.619
-<span class="k">WORKDIR</span><span class="s"> /tmp</span>
-<span class="k">RUN</span> <span class="se">\</span>
+<span class="k">ENV</span><span class="w"> </span><span class="nv">CLOJURE_VERSION</span><span class="o">=</span><span class="m">1</span>.10.1.619
+<span class="k">WORKDIR</span><span class="w"> </span><span class="s">/tmp</span>
+<span class="k">RUN</span><span class="w"> </span><span class="se">\</span>
 apt-get update <span class="o">&amp;&amp;</span> <span class="se">\</span>
 apt-get install -y curl make rlwrap wget <span class="o">&amp;&amp;</span> <span class="se">\</span>
 rm -rf /var/lib/apt/lists/* <span class="o">&amp;&amp;</span> <span class="se">\</span>
@@ -1723,25 +1723,25 @@ sha256sum linux-install-<span class="nv">$CLOJURE_VERSION</span>.sh <span class=
 <span class="nb">echo</span> <span class="s2">&quot;28b1652686426cdf856f83551b8ca01ff949b03bc9a533d270204d6511a8ca9d *linux-install-</span><span class="nv">$CLOJURE_VERSION</span><span class="s2">.sh&quot;</span> <span class="p">|</span> sha256sum -c - <span class="o">&amp;&amp;</span> <span class="se">\</span>
 chmod +x linux-install-<span class="nv">$CLOJURE_VERSION</span>.sh <span class="o">&amp;&amp;</span> <span class="se">\</span>
 ./linux-install-<span class="nv">$CLOJURE_VERSION</span>.sh
-<span class="k">RUN</span> <span class="se">\</span>
+<span class="k">RUN</span><span class="w"> </span><span class="se">\</span>
 su vscode -c <span class="s2">&quot;clojure -e &#39;(clojure-version)&#39;&quot;</span> <span class="o">&amp;&amp;</span> <span class="se">\</span>
 rm ./linux-install-<span class="nv">$CLOJURE_VERSION</span>.sh
 
 <span class="c"># Install Lein</span>
-<span class="k">RUN</span> <span class="se">\</span>
+<span class="k">RUN</span><span class="w"> </span><span class="se">\</span>
 wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /bin/lein <span class="o">&amp;&amp;</span> <span class="se">\</span>
 chmod uog+x /bin/lein
-<span class="k">RUN</span> su vscode -c <span class="s2">&quot;/bin/lein&quot;</span>
+<span class="k">RUN</span><span class="w"> </span>su vscode -c <span class="s2">&quot;/bin/lein&quot;</span>
 
 <span class="c"># Cleanup</span>
-<span class="k">RUN</span> apt-get purge -y --auto-remove curl wget
+<span class="k">RUN</span><span class="w"> </span>apt-get purge -y --auto-remove curl wget
 
 <span class="c"># ...</span>
 </code></pre></div>
 <h3 id="modify-devcontainerjson">Modify devcontainer.json</h3>
 <p>Add Calva and, optionally, forward some ports to the host::</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;extensions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;betterthantomorrow.calva&quot;</span><span class="p">],</span>
-<span class="nt">&quot;forwardPorts&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">8088</span><span class="p">,</span> <span class="mi">52162</span><span class="p">],</span> <span class="err">//</span> <span class="err">example</span><span class="p">:</span> <span class="err">your</span> <span class="err">webapp</span><span class="p">,</span> <span class="err">your</span> <span class="kc">n</span><span class="err">REPL</span>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;extensions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;betterthantomorrow.calva&quot;</span><span class="p">],</span><span class="w"></span>
+<span class="nt">&quot;forwardPorts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">8088</span><span class="p">,</span><span class="w"> </span><span class="mi">52162</span><span class="p">],</span><span class="w"> </span><span class="err">//</span><span class="w"> </span><span class="err">example</span><span class="p">:</span><span class="w"> </span><span class="err">your</span><span class="w"> </span><span class="err">webapp</span><span class="p">,</span><span class="w"> </span><span class="err">your</span><span class="w"> </span><span class="kc">n</span><span class="err">REPL</span><span class="w"></span>
 </code></pre></div>
 <h3 id="build-and-start">Build and start</h3>
 <p>Run <em>Remote-Containers: Rebuild and Reopen in container</em></p>

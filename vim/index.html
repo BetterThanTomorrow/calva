@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ad3c33ca.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f8ad3a65.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
@@ -1731,28 +1731,28 @@ nmap cqc :call VSCodeNotify(&#39;calva.evalCurrentFormInREPLWindow&#39;)&lt;CR&g
 <li>Open the Keyboard Shortcuts JSON file from the Command Palette</li>
 <li>Disable <code>clearInlineResults</code> and remap the command e.g.</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="err">//</span> <span class="err">Place</span> <span class="err">your</span> <span class="err">key</span> <span class="err">bi</span><span class="kc">n</span><span class="err">di</span><span class="kc">n</span><span class="err">gs</span> <span class="err">i</span><span class="kc">n</span> <span class="kc">t</span><span class="err">his</span> <span class="kc">f</span><span class="err">ile</span> <span class="kc">t</span><span class="err">o</span> <span class="err">override</span> <span class="kc">t</span><span class="err">he</span> <span class="err">de</span><span class="kc">faults</span>
-<span class="p">[</span>
-  <span class="p">{</span>
-    <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;escape&quot;</span><span class="p">,</span>
-    <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;-calva.clearInlineResults&quot;</span>
-  <span class="p">},</span>
-  <span class="p">{</span>
-    <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;shift+escape&quot;</span><span class="p">,</span>
-    <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;calva.clearInlineResults&quot;</span><span class="p">,</span>
-    <span class="nt">&quot;when&quot;</span><span class="p">:</span> <span class="s2">&quot;editorTextFocus &amp;&amp; !editorHasMultipleSelections &amp;&amp; !editorReadOnly &amp;&amp; !hasOtherSuggestions &amp;&amp; !suggestWidgetVisible &amp;&amp; editorLangId == &#39;clojure&#39;&quot;</span>
-  <span class="p">}</span>
-<span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span class="err">//</span><span class="w"> </span><span class="err">Place</span><span class="w"> </span><span class="err">your</span><span class="w"> </span><span class="err">key</span><span class="w"> </span><span class="err">bi</span><span class="kc">n</span><span class="err">di</span><span class="kc">n</span><span class="err">gs</span><span class="w"> </span><span class="err">i</span><span class="kc">n</span><span class="w"> </span><span class="kc">t</span><span class="err">his</span><span class="w"> </span><span class="kc">f</span><span class="err">ile</span><span class="w"> </span><span class="kc">t</span><span class="err">o</span><span class="w"> </span><span class="err">override</span><span class="w"> </span><span class="kc">t</span><span class="err">he</span><span class="w"> </span><span class="err">de</span><span class="kc">faults</span><span class="w"></span>
+<span class="p">[</span><span class="w"></span>
+<span class="w">  </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;escape&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-calva.clearInlineResults&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shift+escape&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.clearInlineResults&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;editorTextFocus &amp;&amp; !editorHasMultipleSelections &amp;&amp; !editorReadOnly &amp;&amp; !hasOtherSuggestions &amp;&amp; !suggestWidgetVisible &amp;&amp; editorLangId == &#39;clojure&#39;&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">]</span><span class="w"></span>
 </code></pre></div>
 <p>If you run into issues, refer to the commands in the default Keyboard Shortcuts JSON file.</p>
 <h4 id="remap-vims-insert-mode">Remap Vim's Insert Mode</h4>
 <p>Remap vim's insert mode keybinding to go into command mode by adding the following to your user settings:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;vim.insertModeKeyBindings&quot;</span><span class="p">:</span> <span class="p">[</span>
-    <span class="p">{</span>
-        <span class="nt">&quot;before&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;j&quot;</span><span class="p">,</span> <span class="s2">&quot;k&quot;</span><span class="p">],</span>
-        <span class="nt">&quot;after&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&lt;esc&gt;&quot;</span><span class="p">]</span>
-    <span class="p">}</span>
-<span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;vim.insertModeKeyBindings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;before&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;j&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;k&quot;</span><span class="p">],</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;after&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;&lt;esc&gt;&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">]</span><span class="w"></span>
 </code></pre></div>
 <p>(Change <code>before</code> to whatever keybinding you are comfortable with!)</p>
 

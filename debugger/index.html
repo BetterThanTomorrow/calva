@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ad3c33ca.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f8ad3a65.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
@@ -906,6 +906,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#passing-options-to-the-repl-jvm" class="md-nav__link">
+    Passing options to the REPL JVM
+  </a>
   
 </li>
       
@@ -1922,6 +1929,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#passing-options-to-the-repl-jvm" class="md-nav__link">
+    Passing options to the REPL JVM
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2059,6 +2073,37 @@
 <p>If you get an error like this, it's likely that you connected to a REPL instead of jacking in, and you don't have the proper depednencies loaded in your REPL. You can run the command "Copy Jack-in Command to Clipboard" to see what command would be run if you jacked in.</p>
 <p>Most importantly, make sure you have <code>cider/cider-nrepl</code> as a dependency, and <code>cider.nrepl/cider-middleware</code> as middleware loaded in your REPL. For example, this is a jack-in command for a deps.edn project:</p>
 <div class="highlight"><pre><span></span><code>clojure -Sdeps <span class="s1">&#39;{:deps {nrepl/nrepl {:mvn/version,&quot;0.8.3&quot;},cider/cider-nrepl {:mvn/version,&quot;0.25.8&quot;}}}&#39;</span> -m nrepl.cmdline --middleware <span class="s2">&quot;[cider.nrepl/cider-middleware]&quot;</span>
+</code></pre></div>
+<h2 id="passing-options-to-the-repl-jvm">Passing options to the REPL JVM</h2>
+<p>There are times when Clojure debugging tools are not enough or not right for the job.
+This is usually true when use an (open source) Java library and you want to set some breakpoints in Java code.
+For those cases and others, you need to start the JVM in debug mode.</p>
+<p>Typical use cases:</p>
+<ul>
+<li>Change Java logger configuration for the REPL via java system properties: e.g <code>-Dorg.slf4j.simpleLogger.defaultLogLevel=TRACE</code></li>
+<li>Enable JVM debugger, change VM memory size, etc.</li>
+</ul>
+<p>Calva supports passing environment variables via <code>jackInEnv</code>.
+You can set that option inside VSCode <code>settings.json</code> file.</p>
+<p>You can configre global <code>settings.json</code> file or a project wide version, inside <code>&lt;project-root&gt;/.vscode/settings.json</code>.</p>
+<p>Configuring the global option will impact all projects you work on using Calva, so be aware.
+See <a href="https://code.visualstudio.com/docs/getstarted/settings">the documentation for <code>settings.json</code></a> for more information.</p>
+<p>The bellow snippet configures <code>JAVA_TOOL_OPTIONS</code> environment variable.
+We configure slf4j-simple logging level via a Java system property (<code>-D</code>) and JVM specific options (<code>-X</code>).</p>
+<p>NOTE: You can of course pass other env variables here.</p>
+<p>.vscode/settings.json</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;calva.jackInEnv&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;JAVA_TOOL_OPTIONS&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${env:JAVA_TOOL_OPTIONS} -Dorg.slf4j.simpleLogger.defaultLogLevel=TRACE -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7896&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+<p>Once you saved the file, the next time you <code>Jack in</code> the project, this variable is read by the JVM and the configuration is applied accordingly.</p>
+<p>You should see something like the message below in the Calva terminal output window:</p>
+<div class="highlight"><pre><span></span><code>clojure -Sdeps <span class="s1">&#39;{:deps {nrepl/nrepl {:mvn/version,&quot;0.8.3&quot;},cider/cider-nrepl {:mvn/version,&quot;0.26.0&quot;}}}&#39;</span> -A:debug -m nrepl.cmdline --middleware <span class="s2">&quot;[cider.nrepl/cider-middleware]&quot;</span>
+Picked up JAVA_TOOL_OPTIONS:  -Dorg.slf4j.simpleLogger.defaultLogLevel<span class="o">=</span>TRACE -Xdebug -Xrunjdwp:transport<span class="o">=</span>dt_socket,server<span class="o">=</span>y,suspend<span class="o">=</span>n,address<span class="o">=</span><span class="m">7896</span>
+Listening <span class="k">for</span> transport dt_socket at address: <span class="m">7896</span>
+nREPL server started on port <span class="m">46691</span> on host localhost - nrepl://localhost:46691
 </code></pre></div>
 
   

@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ad3c33ca.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f8ad3a65.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
@@ -1670,21 +1670,21 @@
             <span class="ss">:main-opts</span> <span class="p">[</span><span class="s">&quot;-e&quot;</span> <span class="s">&quot;((requiring-resolve,&#39;cognitect.rebl/ui))&quot;</span> <span class="s">&quot;-m&quot;</span> <span class="s">&quot;nrepl.cmdline&quot;</span> <span class="s">&quot;--middleware&quot;</span> <span class="s">&quot;[nrebl.middleware/wrap-nrebl]&quot;</span> <span class="s">&quot;-I&quot;</span><span class="p">]}</span>
 </code></pre></div>
 <p>Create a Calva custom connect sequence for your VSCode editor. (Read <a href="../connect-sequences/">Custom REPL Connect Sequences</a> if you haven't.) Add the following to your vscode settings.json:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-    <span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Rebl Connect&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;projectType&quot;</span><span class="p">:</span> <span class="s2">&quot;deps.edn&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;menuSelections&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="nt">&quot;cljAliases&quot;</span><span class="p">:</span> <span class="p">[</span>
-                    <span class="s2">&quot;rebl&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;rebl-12&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;nrebl&quot;</span>
-                <span class="p">]</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-    <span class="p">]</span>
-<span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Rebl Connect&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deps.edn&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;menuSelections&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="nt">&quot;cljAliases&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">                    </span><span class="s2">&quot;rebl&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                    </span><span class="s2">&quot;rebl-12&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                    </span><span class="s2">&quot;nrebl&quot;</span><span class="w"></span>
+<span class="w">                </span><span class="p">]</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">]</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </code></pre></div>
 <h2 id="leiningen">Leiningen</h2>
 <p>Add rebl profiles to your <a href="https://github.com/technomancy/leiningen/blob/stable/doc/PROFILES.md#declaring-profiles">user-wide profiles</a> so that they will be available for all your projects. Here's a sample user profile (located at <code>~/.lein/profiles.clj</code> on mac):</p>
@@ -1713,18 +1713,18 @@
 </code></pre></div>
 <a href="https://github.com/eccentric-j/lein-rebl-example">More info here</a></p>
 <p>Create a Calva custom connect sequence for your VSCode editor. (Read <a href="../connect-sequences/">Custom REPL Connect Sequences</a> if you haven't.) Add the following to your vscode settings.json:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-    <span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Lein REBL&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;projectType&quot;</span><span class="p">:</span> <span class="s2">&quot;Leiningen&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;menuSelections&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="nt">&quot;leinProfiles&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;rebl&quot;</span><span class="p">,</span> <span class="s2">&quot;rebl-12&quot;</span><span class="p">,</span> <span class="s2">&quot;:nrebl&quot;</span><span class="p">]</span>
-            <span class="p">},</span>
-            <span class="nt">&quot;afterCLJReplJackInCode&quot;</span><span class="p">:</span> <span class="s2">&quot;((requiring-resolve &#39;cognitect.rebl/ui))&quot;</span>
-        <span class="p">}</span>
-    <span class="p">]</span>
-<span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Lein REBL&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Leiningen&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;menuSelections&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="nt">&quot;leinProfiles&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;rebl&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;rebl-12&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;:nrebl&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">            </span><span class="p">},</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;afterCLJReplJackInCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;((requiring-resolve &#39;cognitect.rebl/ui))&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">]</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </code></pre></div>
 <h2 id="shadow-cljs-tbd">shadow-cljs (TBD)</h2>
 <p>TBD. If you know how to do it, please update this page.</p>
