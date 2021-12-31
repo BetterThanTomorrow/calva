@@ -473,7 +473,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
         ...serverPrinterDependencies
     };
     const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
-    const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
+    const aliasesOption = aliases.length > 0 ? `-M${aliases.join("")}` : '-M';
     const q = isWin ? '"' : "'";
     const dQ = isWin ? '""' : '"';
     for (let dep in dependencies)
