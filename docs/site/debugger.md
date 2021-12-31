@@ -182,29 +182,30 @@ clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version,"0.8.3"},cider/cider-nrepl {:m
 
 ## Passing options to the REPL JVM
 
-There are times when clojure debugging tools are not enough or not right for the job.
-This is usually true when use an (open source) Java library and you want to set some brake points in Java code.
+There are times when Clojure debugging tools are not enough or not right for the job.
+This is usually true when use an (open source) Java library and you want to set some breakpoints in Java code.
 For those cases and others, you need to start the JVM in debug mode.
 
 Typical use cases:
 
-* Change java logger configuration for the REPL via java system properties: e.g `-Dorg.slf4j.simpleLogger.defaultLogLevel=TRACE`
-* Enable JVM debugger, change VM memory size, etc
+* Change Java logger configuration for the REPL via java system properties: e.g `-Dorg.slf4j.simpleLogger.defaultLogLevel=TRACE`
+* Enable JVM debugger, change VM memory size, etc.
 
-Calva supports passing environment variables via `jacInEnv`.
+Calva supports passing environment variables via `jackInEnv`.
 You can set that option inside VSCode `settings.json` file.
 
 You can configre global `settings.json` file or a project wide version, inside `<project-root>/.vscode/settings.json`.
 
 Configuring the global option will impact all projects you work on using Calva, so be aware.
-See documentation for `settings.json` here: https://code.visualstudio.com/docs/getstarted/settings .
+See [the documentation for `settings.json`](https://code.visualstudio.com/docs/getstarted/settings) for more information.
 
 The bellow snippet configures `JAVA_TOOL_OPTIONS` environment variable.
-We configure slf4j-simple logging level via java system property (`-D`) and JVM specific options (`-X`).
+We configure slf4j-simple logging level via a Java system property (`-D`) and JVM specific options (`-X`).
 
 NOTE: You can of course pass other env variables here.
 
 .vscode/settings.json
+
 ```json
 {
     "calva.jackInEnv": {
@@ -215,7 +216,7 @@ NOTE: You can of course pass other env variables here.
 
 Once you saved the file, the next time you `Jack in` the project, this variable is read by the JVM and the configuration is applied accordingly.
 
- You should see something like the message bellow in the Calva terminal output window:
+You should see something like the message below in the Calva terminal output window:
 
 ```shell
 clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version,"0.8.3"},cider/cider-nrepl {:mvn/version,"0.26.0"}}}' -A:debug -m nrepl.cmdline --middleware "[cider.nrepl/cider-middleware]"
