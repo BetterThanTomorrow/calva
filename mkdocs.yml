@@ -50,10 +50,13 @@ nav:
     - evaluation.md
     - rich-comments.md
     - clojuredocs.md
-    - output.md
-    - formatting.md
-    - paredit.md
+    - Structural Editing:
+      - paredit.md
+      - parinfer.md
+      - formatting.md
+      - highlight.md
     - debugger.md
+    - output.md
     - pprint.md
     - refactoring.md
     - test-runner.md
@@ -78,7 +81,6 @@ nav:
     - krell.md
     - rebl.md
     - static-only.md
-    - parinfer.md
   - Etcetera:
     - emacs-keybindings.md
     - workspace-layouts.md

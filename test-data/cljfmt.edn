@@ -1,0 +1,11 @@
+{:remove-surrounding-whitespace? true
+ :remove-trailing-whitespace? true
+ :remove-consecutive-blank-lines? false
+ :insert-missing-whitespace? true
+ :align-associative? false
+ ;:indents ^:replace {#".*" [[:inner 0]]}
+ :test-code
+ (concat [2]
+         (map #(inc (* % 2))
+              (filter #(aget sieved %)
+                      (range 1 hn))))}

@@ -1,7 +1,7 @@
 {
     "name": "calva",
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
-    "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
+    "description": "A complete Clojure IDE. Integrated REPL, formatter, Paredit, Parinfer, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
     "version": "2.0.233",
     "publisher": "betterthantomorrow",
@@ -110,6 +110,7 @@
             "[clojure]": {
                 "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
                 "editor.autoClosingBrackets": "always",
+                "editor.autoClosingOvertype": "always",
                 "editor.autoClosingQuotes": "always",
                 "editor.formatOnType": true,
                 "editor.autoIndent": "full",
@@ -225,11 +226,6 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Enable/disable references CodeLens in Clojure(Script) files. "
-                    },
-                    "clojure.format.enable": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Enable/disable calva-fmt as Clojure formatter"
                     },
                     "calva.evalOnSave": {
                         "type": "boolean",
@@ -638,32 +634,33 @@
                         "default": true,
                         "scope": "window"
                     },
-                    "calva.paredit.strictPreventUnmatchedClosingBracket": {
-                        "type": "boolean",
-                        "markdownDescription": "Experimental: Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
-                        "default": false,
-                        "scope": "window"
-                    },
                     "calva.paredit.killAlsoCutsToClipboard": {
                         "type": "boolean",
                         "markdownDescription": "When enabled, replaces the clipboard content with the deleted code.",
                         "default": false,
                         "scope": "window"
+                    },
+                    "calva.paredit.strictPreventUnmatchedClosingBracket": {
+                        "type": "boolean",
+                        "markdownDescription": "Prevents you from entering unmatched closing brackets when in `strict` mode.",
+                        "default": true,
+                        "scope": "window"
+                    },
+                    "calva.paredit.strictAutoClosingBrackets": {
+                        "type": "boolean",
+                        "default": true,
+                        "markdownDescription": "In `strict` mode, will add a closing bracket when an open bracket is typed.",
+                        "scope": "window"
                     }
                 }
             },
             {
-                "title": "Calva-fmt",
+                "title": "Calva Formatter",
                 "type": "object",
                 "properties": {
                     "calva.fmt.configPath": {
                         "type": "string",
                         "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Absolute or relative to the project root directory."
-                    },
-                    "calva.fmt.formatAsYouType": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Auto-adjust indentation and format as you enter new lines."
                     },
                     "calva.fmt.newIndentEngine": {
                         "type": "boolean",
@@ -674,6 +671,21 @@
                         "type": "boolean",
                         "default": true,
                         "markdownDescription": "Treat `(comment...)` forms special and keep its closing paren on a line of its own."
+                    },
+                    "calva.fmt.experimental.fullFormatOnType": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "_Experimental_. Keeps the code formatted as you enter or delete text (as opposed to only doing indentation). _NB: When `calva.fmt.experimental.inferParensAsYouType` is enabled this setting will be treated as enabled, regardless._"
+                    },
+                    "calva.fmt.experimental.inferParensAsYouType": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "_Experimental_. Parinfer **indent mode**. Infers brackets from indentation when you type spaces or brackets."
+                    },
+                    "calva.fmt.experimental.alertOnParinferProblems": {
+                        "type": "boolean",
+                        "default": true,
+                        "markdownDescription": "_Experimental_. When Parinfer **indent mode** is on, show alert when structure or indents do not allow inference. (This is always indicated in the statusbar.)"
                     }
                 }
             },
@@ -1295,14 +1307,26 @@
             },
             {
                 "category": "Calva Paredit",
+                "command": "paredit.forceDeleteForward",
+                "title": "Force Delete Forward",
+                "enablement": "editorLangId == clojure"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.nonStrictDeleteForward",
+                "title": "Delete Forward Non Strict",
+                "enablement": "editorLangId == clojure"
+            },
+            {
+                "category": "Calva Paredit",
                 "command": "paredit.deleteBackward",
                 "title": "Delete Backward",
                 "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
-                "command": "paredit.forceDeleteForward",
-                "title": "Force Delete Forward",
+                "command": "paredit.nonStrictDeleteBackward",
+                "title": "Delete Backward Non Strict",
                 "enablement": "editorLangId == clojure"
             },
             {
@@ -1372,22 +1396,10 @@
                 "enablement": "editorLangId == clojure"
             },
             {
-                "command": "calva-fmt.inferParens",
-                "title": "Infer Parens (from the indentation)",
-                "category": "Calva Format",
-                "enablement": "editorLangId == clojure"
-            },
-            {
-                "command": "calva-fmt.tabIndent",
-                "title": "Indent Line",
-                "category": "Calva Format",
-                "enablement": "editorLangId == clojure"
-            },
-            {
-                "command": "calva-fmt.tabDedent",
-                "title": "Dedent Line",
-                "category": "Calva Format",
-                "enablement": "editorLangId == clojure"
+                "command": "calva-fmt.fixDocumentIndentation",
+                "title": "Fix Document Indentation",
+                "category": "Calva Parinfer",
+                "enablement": "editorLangId == clojure && !parinfer:isIndentationHealthy"
             },
             {
                 "category": "Calva",
@@ -2018,14 +2030,19 @@
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
             },
             {
+                "command": "paredit.forceDeleteForward",
+                "key": "alt+delete",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+            },
+            {
                 "command": "paredit.deleteBackward",
                 "key": "backspace",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
             },
             {
-                "command": "paredit.forceDeleteForward",
-                "key": "alt+delete",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "command": "paredit.nonStrictDeleteBackward",
+                "key": "backspace",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap != strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
             },
             {
                 "command": "paredit.forceDeleteBackward",
@@ -2040,21 +2057,6 @@
             {
                 "command": "calva-fmt.alignCurrentForm",
                 "key": "ctrl+alt+l",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
-            },
-            {
-                "command": "calva-fmt.inferParens",
-                "key": "shift+tab",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
-            },
-            {
-                "command": "calva-fmt.tabIndent",
-                "key": "ctrl+i",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
-            },
-            {
-                "command": "calva-fmt.tabDedent",
-                "key": "shift+ctrl+i",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
@@ -2567,7 +2569,7 @@
         "net": "1.0.2",
         "npm": "^7.0.7",
         "open": "^6.3.0",
-        "parinfer": "^3.12.0",
+        "@chrisoakman/parinfer": "^3.13.1",
         "tree-kill": "^1.2.2",
         "universal-analytics": "^0.4.20",
         "uuidv4": "6.2.12",
