@@ -49,7 +49,7 @@ describe('test result processing', () => {
             index: 0,
             var: 'test',
             message: ''
-        })).toBe('');
+        })).toBe(null);
 
         expect(cider.detailedMessage({
             type: 'fail',

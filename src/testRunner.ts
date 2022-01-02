@@ -28,11 +28,11 @@ function reportTests(results: cider.TestResults[]) {
             let resultSet = result.results[ns];
             for (const test in resultSet) {
                 for (const a of resultSet[test]) {
-
                     cider.cleanUpWhiteSpace(a);
-
-                    outputWindow.append(cider.detailedMessage(a));
-
+                    const messages = cider.detailedMessage(a);
+                    if (messages) {
+                        outputWindow.append(messages);
+                    }
                     if (a.type === "fail") {
                         recordDiagnostic(a);
                     }
