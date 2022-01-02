@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Maintenance: [Upgrade dependencies to attempt to fix Dependabot security alert](https://github.com/BetterThanTomorrow/calva/pull/1447)
 - Fix: [Update nrepl and cider-nrepl versions in jack-in dependencies](https://github.com/BetterThanTomorrow/calva/issues/1444)
 
 ## [2.0.232] - 2021-12-31
