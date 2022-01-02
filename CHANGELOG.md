@@ -3,6 +3,9 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add experimental support for Test Explorer](https://github.com/BetterThanTomorrow/calva/issues/953).
+
+## [2.0.232] - 2021-12-31
 - [Prevent warning during deps.edn jack-in](https://github.com/BetterThanTomorrow/calva/issues/1355)
 - Fix: [Connecting to an out-of-process nREPL server and a merged Figwheel-main build](https://github.com/BetterThanTomorrow/calva/issues/1386)
 - Fix: [Empty lines in output.calva-repl when running tests](https://github.com/BetterThanTomorrow/calva/issues/1448)
