@@ -2544,7 +2544,6 @@
         "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
         "integration-test": "node ./out/extension-test/integration/runTests.js",
         "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
-        "download-lsp": "node ./download-lsp.js",
         "publish": "bb publish.clj"
     },
     "dependencies": {
