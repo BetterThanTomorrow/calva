@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/openjdk:11.0.4-stretch-node
+      - image: cimg/openjdk:17.0.1
     working_directory: ~/calva
     steps:
       - attach_workspace:
