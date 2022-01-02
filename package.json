@@ -2544,7 +2544,6 @@
         "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
         "integration-test": "node ./out/extension-test/integration/runTests.js",
         "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
-        "download-lsp": "node ./download-lsp.js",
         "publish": "bb publish.clj"
     },
     "dependencies": {
@@ -2565,11 +2564,10 @@
         "lodash": "^4.17.19",
         "lodash.isequal": "4.5.0",
         "net": "1.0.2",
-        "npm": "^7.0.7",
         "open": "^6.3.0",
         "parinfer": "^3.12.0",
         "tree-kill": "^1.2.2",
-        "universal-analytics": "^0.4.20",
+        "universal-analytics": "^0.5.3",
         "uuidv4": "6.2.12",
         "vscode-debugadapter": "1.38.0",
         "vscode-extension-telemetry": "0.0.15",
@@ -2600,7 +2598,7 @@
         "mocha": "^9.1.3",
         "mocha-junit-reporter": "^2.0.2",
         "mocha-multi-reporters": "^1.1.7",
-        "node-gyp": "^5.0.5",
+        "node-gyp": "^8.4.1",
         "nodemon": "^2.0.3",
         "ovsx": "^0.2.1",
         "rimraf": "^2.7.1",
@@ -2613,7 +2611,7 @@
         "tslint": "^5.20.1",
         "typescript": "^3.7.2",
         "url-loader": "^4.1.1",
-        "vsce": "1.97.0",
+        "vsce": "2.5.3",
         "vscode-test": "^1.3.0",
         "webpack": "^5.27.1",
         "webpack-cli": "^4.5.0"
