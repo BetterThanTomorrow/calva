@@ -12,7 +12,7 @@
 !package.json
 !README.md
 !CHANGELOG.md
-!LICENSE.txt
+!LICENSE
 !clojure-lsp.jar
 !deps.clj.jar
 !bundled/**
