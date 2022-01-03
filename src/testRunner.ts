@@ -12,17 +12,6 @@ import * as getText from './util/get-text';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
-// Given a Clojure namespace name, in the form `foo.bar-baz` find a URI for the
-// matching source file in the workflows. We do this by:
-// - replacing . with /
-// - replace - with _
-// - search for .clj or cljs files that match.
-async function uriForNamespace(namespace: string): Promise<vscode.Uri> {
-    const path = namespace.replace(/\./g, "/").replace(/-/g, "_");
-    const uris = await vscode.workspace.findFiles('**/' + path + ".{clj,cljs}", null, 1);
-    return uris[0];
-}
-
 async function uriForFile(fileName: string): Promise<vscode.Uri> {
     if (fileName.startsWith('/')) {
         return vscode.Uri.file(fileName);
@@ -75,11 +64,16 @@ export function assertionName(result: cider.TestResult): string {
     return "assertion";
 }
 
-async function onTestResult(controller: vscode.TestController, run: vscode.TestRun, nsName: string, varName: string, assertions: cider.TestResult[]) {
+function existingUriForNameSpace(controller: vscode.TestController, nsName: string): vscode.Uri | null {
+    return controller.items.get(nsName)?.uri;
+}
 
-    const uri = await uriForNamespace(nsName);
+async function onTestResult(controller: vscode.TestController, session: NReplSession, run: vscode.TestRun, nsName: string, varName: string, assertions: cider.TestResult[]) {
 
-    // TODO - where is the best place to log?
+    let uri = existingUriForNameSpace(controller, nsName);
+    if (!uri) {
+        uri = await namespace.getUriForNamespace(session, nsName);
+    }
     if (!uri) {
         console.warn('Test Runner: Unable to find file corresponding to namespace: ' + nsName);
     }
@@ -129,30 +123,24 @@ async function onTestResult(controller: vscode.TestController, run: vscode.TestR
     });
 }
 
-function onTestResults(controller: vscode.TestController, results: cider.TestResults[]) {
+async function onTestResults(controller: vscode.TestController, session: NReplSession, results: cider.TestResults[]) {
     const run = controller.createTestRun(new vscode.TestRunRequest(), "Clojure", false);
-    const promises: Promise<unknown>[] = []
     for (const result of results) {
         for (const namespace in result.results) {
             const tests = result.results[namespace];
             for (const test in tests) {
-                promises.push(onTestResult(controller, run, namespace, test, tests[test]));
+                await onTestResult(controller, session, run, namespace, test, tests[test]);
             }
         }
     }
-    Promise.all(promises).then( x => {
-        run.end();
-    }).catch( ex => {
-        vscode.window.showErrorMessage("Error in test explorer: " + ex);
-        run.end();
-    });
+    run.end();
 }
 
 function useTestExplorer(): boolean {
     return vscode.workspace.getConfiguration('calva').get('useTestExplorer');
 }
 
-function reportTests(controller: vscode.TestController, results: cider.TestResults[]) {
+function reportTests(controller: vscode.TestController, session: NReplSession, results: cider.TestResults[]) {
     let diagnostics: { [key: string]: vscode.Diagnostic[] } = {};
     diagnosticCollection.clear();
 
@@ -165,7 +153,7 @@ function reportTests(controller: vscode.TestController, results: cider.TestResul
     }
 
     if (useTestExplorer()) {
-        onTestResults(controller, results);
+        onTestResults(controller, session, results);
     }
 
     for (let result of results) {
@@ -205,7 +193,7 @@ async function runAllTests(controller: vscode.TestController, document = {}) {
     const session = getSession(util.getFileType(document));
     outputWindow.append("; Running all project tests…");
     try {
-        reportTests(controller, [await session.testAll()]);
+        reportTests(controller, session, [await session.testAll()]);
     } catch (e) {
         outputWindow.append('; ' + e)
     }
@@ -260,7 +248,7 @@ async function runNamespaceTestsImpl(controller: vscode.TestController, document
         return session.testNs(ns);
     });
     try {
-        reportTests(controller, await Promise.all(resultPromises));
+        reportTests(controller, session, await Promise.all(resultPromises));
     } catch (e) {
         outputWindow.append('; ' + e)
     }
@@ -298,7 +286,7 @@ async function runTestUnderCursor(controller: vscode.TestController) {
         await evaluate.loadFile(doc, disabledPrettyPrinter);
         outputWindow.append(`; Running test: ${test}…`);
         try {
-            reportTests(controller, [await session.test(ns, test)]);
+            reportTests(controller, session, [await session.test(ns, test)]);
         } catch (e) {
             outputWindow.append('; ' + e)
         }
@@ -334,7 +322,7 @@ async function rerunTests(controller: vscode.TestController, document = {}) {
     outputWindow.append("; Running previously failed tests…");
 
     try {
-        reportTests(controller, [await session.retest()]);
+        reportTests(controller, session, [await session.retest()]);
     } catch (e) {
         outputWindow.append('; ' + e)
     }

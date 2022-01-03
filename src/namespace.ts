@@ -6,6 +6,7 @@ import { Token } from './cursor-doc/clojure-lexer';
 import * as outputWindow from './results-output/results-doc'
 import * as utilities from './utilities';
 import * as replSession from './nrepl/repl-session';
+import { NReplSession } from './nrepl';
 
 export function getNamespace(doc: vscode.TextDocument) {
     if (outputWindow.isResultsDoc(doc)) {
@@ -84,4 +85,9 @@ export function getDocumentNamespace(document = {}) {
     let doc = utilities.getDocument(document);
 
     return getNamespace(doc);
+}
+
+export async function getUriForNamespace(session: NReplSession, ns: string): Promise<vscode.Uri> {
+    const info = await session.info(ns, ns);
+    return vscode.Uri.parse(info.file, true);
 }

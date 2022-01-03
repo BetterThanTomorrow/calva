@@ -88,7 +88,7 @@ async function activate(context: vscode.ExtensionContext) {
     status.updateNeedReplUi(false, context);
 
 
-    const controller = vscode.tests.createTestController('calvaTestController', 'Clojure Cider')
+    const controller = vscode.tests.createTestController('calvaTestController', 'Calva')
     context.subscriptions.push(controller);
     testRunner.initialize(controller);
 

@@ -325,7 +325,7 @@ async function startClient(clojureLspPath: string, context: vscode.ExtensionCont
     const client = createClient(clojureLspPath);
     console.log('Starting clojure-lsp at', clojureLspPath);
 
-    const testTree : StaticFeature =new TestTreeFeature();
+    const testTree : StaticFeature = new TestTreeFeature();
     client.registerFeature(testTree);
 
     const onReadyPromise = client.onReady();
