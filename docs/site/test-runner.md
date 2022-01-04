@@ -26,9 +26,9 @@ You can enable the Calva setting "Test on Save" to have tests for the current na
 
 ## Test Explorer
 
-Calva has experimental support for showing test results in the VSCode Test Explorer UI. You can enable this support by setting `calva.useTestExplorer` to `true`. When you enable this setting, the Testing icon will appear in the VSCode Activilty Bar.
+Calva has experimental support for showing test results in the [VSCode Test Explorer UI](https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-test-explorer). You can enable this support by setting `calva.useTestExplorer` to `true`. When you enable this setting, the Testing icon will appear in the VSCode Activilty Bar.
 
-With this feature you will be able to browse and run tests directly from the Testing tab.
+With this feature (and the TestExplorer UI extension installed) you will be able to browse and run tests directly from the Testing tab.
 
 Please join the [#calva channel](https://clojurians.slack.com/messages/calva) on the Clojurians Slack if you have any feedback on this new feature.
 
