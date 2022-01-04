@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add experimental support for Test Explorer](https://github.com/BetterThanTomorrow/calva/issues/953).
 - Maintenance: [Upgrade dependencies to attempt to fix Dependabot security alert](https://github.com/BetterThanTomorrow/calva/pull/1447)
 - Fix: [Update nrepl and cider-nrepl versions in jack-in dependencies](https://github.com/BetterThanTomorrow/calva/issues/1444)
 

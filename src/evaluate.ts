@@ -271,7 +271,7 @@ async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
     if (doc && doc.languageId == "clojure" && fileType != "edn" && getStateValue('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         const docUri = outputWindow.isResultsDoc(doc) ?
-            await outputWindow.getUriForCurrentNamespace() :
+            await namespace.getUriForNamespace(session, ns) :
             doc.uri;
         const fileName = path.basename(docUri.path);
         const fileContents = await util.getFileContents(docUri.path);

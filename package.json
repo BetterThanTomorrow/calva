@@ -139,6 +139,11 @@
                 "type": "object",
                 "title": "Calva",
                 "properties": {
+                    "calva.useTestExplorer": {
+                        "type": "boolean",
+                        "description": "Enable experimental support for the VSCode Test Explorer",
+                        "default": false
+                    },
                     "calva.prettyPrintingOptions": {
                         "type": "object",
                         "description": "Settings for Calva's pretty printing",
