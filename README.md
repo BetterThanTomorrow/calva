@@ -186,6 +186,7 @@ Patrons, Gold, and Silver sponsors are also displayed here: https://calva.io/#sp
 [<img src="https://avatars.githubusercontent.com/u/45542" width="32" alt="Bertrand Cachet">](https://github.com/bcachet)
 [<img src="https://avatars.githubusercontent.com/u/293162" width="32" alt="José Diaz Seng">](https://github.com/joseds)
 [<img src="https://avatars.githubusercontent.com/u/647669" width="32" alt="Nick Cernis">](https://github.com/nickcernis)
+[<img src="https://avatars.githubusercontent.com/u/1523536" width="32" alt="Steve Ashton">](https://github.com/sashton)
 
 ## The Calva Team
 
