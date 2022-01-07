@@ -810,6 +810,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#test-explorer" class="md-nav__link">
+    Test Explorer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     Troubleshooting
   </a>
@@ -1636,6 +1643,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#test-explorer" class="md-nav__link">
+    Test Explorer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     Troubleshooting
   </a>
@@ -1725,6 +1739,10 @@
 </table>
 <h2 id="test-on-save">Test on Save</h2>
 <p>You can enable the Calva setting "Test on Save" to have tests for the current namespace run on file save.</p>
+<h2 id="test-explorer">Test Explorer</h2>
+<p>Calva has experimental support for showing test results in the <a href="https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-test-explorer">VSCode Test Explorer UI</a>. You can enable this support by setting <code>calva.useTestExplorer</code> to <code>true</code>. When you enable this setting, the Testing icon will appear in the VSCode Activilty Bar.</p>
+<p>With this feature (and the TestExplorer UI extension installed) you will be able to browse and run tests directly from the Testing tab.</p>
+<p>Please join the <a href="https://clojurians.slack.com/messages/calva">#calva channel</a> on the Clojurians Slack if you have any feedback on this new feature.</p>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <h3 id="tests-are-not-found">Tests Are Not Found</h3>
 <p>If you have tests in a test directory separate from your source directory, and those tests are not being found by the test runner, make sure the test directory is included in your paths. This will not be the case by default with a tools.deps (deps.edn) project. If your project is a tools.deps project, you can create an alias in your deps.edn file with <code>:extra-paths</code> that includes <code>"test"</code> (or the name of your test directory).</p>
@@ -1811,7 +1829,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.e72f9a50.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.896fff97.min.js"></script>
+      <script src="../assets/javascripts/bundle.568b24b3.min.js"></script>
       
     
   </body>
