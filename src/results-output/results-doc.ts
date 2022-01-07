@@ -297,9 +297,9 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                         onAppended(new vscode.Location(DOC_URI(), insertPosition),
                             new vscode.Location(DOC_URI(), doc.positionAt(Infinity)));
                     }
-                    
+
                     if (editQueue.length > 0) {
-                        const [textBatch, remainingEditQueue] = splitEditQueueForTextBatching(editQueue, 1000);                    
+                        const [textBatch, remainingEditQueue] = splitEditQueueForTextBatching(editQueue, 1000);
                         if (textBatch.length > 0) {
                             editQueue = remainingEditQueue;
                             return append(textBatch.join('\n'));
@@ -372,8 +372,6 @@ export function appendPrompt(onAppended?: OnAppendedCallback) {
     append(getPrompt(), onAppended);
 }
 
-export async function getUriForCurrentNamespace(): Promise<vscode.Uri> {
-    const ns = getNs();
-    const info = await getSession().info(ns, ns);
-    return vscode.Uri.parse(info.file, true);
+function getUriForCurrentNamespace(): Promise<vscode.Uri> {
+    return namespace.getUriForNamespace(getSession(), getNs());
 }
