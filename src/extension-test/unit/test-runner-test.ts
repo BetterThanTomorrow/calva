@@ -2,6 +2,39 @@ import * as expect from 'expect';
 import * as cider from '../../nrepl/cider';
 
 describe('test result processing', () => {
+
+    it('handles absent line data nicely', () => {
+
+        const result: cider.TestResult = {
+                type: 'pass',
+                ns: 'core',
+                context: 'ctx',
+                index: 0,
+                var: 'test',
+                message: ''
+            };
+
+        expect(cider.lineInformation(result)).toBe("");
+
+        expect(cider.lineInformation({
+            ...result,
+            file: "socks.clj"
+        })).toBe(" (socks.clj)");
+
+        expect(cider.lineInformation({
+            ...result,
+            line: 19
+        })).toBe(" (line 19)");
+
+        expect(cider.lineInformation({
+            ...result,
+            line: 17,
+            file: "tree.clj"
+
+        })).toBe(" (tree.clj:17)");
+
+    });
+
     it('shows a summary', () => {
 
         expect(cider.summaryMessage({
@@ -84,9 +117,9 @@ orange`);
             line: 9,
             message: 'an extra message'
         })).toBe(
-            `; ERROR in core/test (line 9):
+            `; ERROR in core/test (impl.clj:9):
 ; ctx: an extra message
-; error: shoes fell off (impl.clj)
+; error: shoes fell off (impl.clj:9)
 ; expected:
 apple`);
 
