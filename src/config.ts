@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { customREPLCommandSnippet } from './evaluate';
 import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
+import { parseEdn } from '../out/cljs-lib/cljs-lib';
+import * as state from './state';
 
 const REPL_FILE_EXT = 'calva-repl';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
@@ -28,10 +30,30 @@ const documentSelector = [
     return name.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
 }
 
+async function readEdnConfig() {    
+    try {
+        const file = vscode.Uri.file(state.resolvePath('.calva/config.edn'));
+        const data = await vscode.workspace.fs.readFile(file);
+        const parsed = parseEdn(new TextDecoder("utf-8").decode(data));
+        state.setProjectConfig(parsed);
+    } catch (error) {
+        return error;
+    }
+}
+var watcher = vscode.workspace.createFileSystemWatcher("**/.calva/**/config.edn", false, false, false);
+
+watcher.onDidChange(() => {
+    readEdnConfig(); 
+});
+
 // TODO find a way to validate the configs
 function getConfig() {
     const configOptions = vscode.workspace.getConfiguration('calva');
     const pareditOptions = vscode.workspace.getConfiguration('calva.paredit');
+
+    const w = configOptions.inspect("customREPLCommandSnippets").workspaceValue as customREPLCommandSnippet[] ?? [];
+    const commands = w.concat(state.getProjectConfig()?.customREPLCommandSnippets as customREPLCommandSnippet[] ?? []);
+
     return {
         format: configOptions.get("formatOnSave"),
         evaluate: configOptions.get("evalOnSave"),
@@ -49,7 +71,7 @@ function getConfig() {
         asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string,
         customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []),
         customREPLCommandSnippetsGlobal: configOptions.inspect("customREPLCommandSnippets").globalValue as customREPLCommandSnippet[],
-        customREPLCommandSnippetsWorkspace: configOptions.inspect("customREPLCommandSnippets").workspaceValue as customREPLCommandSnippet[],
+        customREPLCommandSnippetsWorkspace: commands,
         customREPLCommandSnippetsWorkspaceFolder: configOptions.inspect("customREPLCommandSnippets").workspaceFolderValue as customREPLCommandSnippet[],
         prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions,
         enableJSCompletions: configOptions.get("enableJSCompletions") as boolean,
@@ -63,6 +85,7 @@ function getConfig() {
 }
 
 export {
+    readEdnConfig,
     REPL_FILE_EXT,
     KEYBINDINGS_ENABLED_CONFIG_KEY,
     KEYBINDINGS_ENABLED_CONTEXT_KEY,

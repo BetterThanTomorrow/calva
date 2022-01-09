@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add custom commands from libraries](https://github.com/BetterThanTomorrow/calva/pull/1442)
 - [Improve LSP startup feedback on status bar](https://github.com/BetterThanTomorrow/calva/pull/1454)
 
 ## [2.0.233] - 2022-01-07

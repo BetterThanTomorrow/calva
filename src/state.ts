@@ -44,11 +44,22 @@ function analytics(): Analytics {
 
 const PROJECT_DIR_KEY = "connect.projectDir";
 const PROJECT_DIR_URI_KEY = "connect.projectDirNew";
+const PROJECT_CONFIG_MAP = "config";
 
 export function getProjectRootLocal(useCache = true): string {
     if (useCache) {
         return getStateValue(PROJECT_DIR_KEY);
     }
+}
+
+export function getProjectConfig(useCache = true) {
+    if (useCache) {
+        return getStateValue(PROJECT_CONFIG_MAP);
+    }
+}
+
+export function setProjectConfig(config) {
+    return setStateValue(PROJECT_CONFIG_MAP, config);
 }
 
 export function getProjectRootUri(useCache = true): vscode.Uri {
