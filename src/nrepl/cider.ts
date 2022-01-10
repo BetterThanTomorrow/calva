@@ -25,6 +25,28 @@ export interface TestResult {
     file?: string;
 }
 
+// https://github.com/clojure-emacs/orchard/blob/febf8169675af1b11a8c00cfe1155ed40db8be42/src/orchard/query.clj#L10-L15
+export interface NamespaceQuery {
+    'exactly': string[]
+    'project?'?: boolean
+    'load-project-ns?'?: boolean
+    'has-tests?'?: boolean
+    'include-regexps'?: string[]
+    'exclude-regexps'?: string[]
+}
+
+// https://github.com/clojure-emacs/orchard/blob/febf8169675af1b11a8c00cfe1155ed40db8be42/src/orchard/query.clj#L45-L52
+export interface VarQuery {
+    'ns-query'?: NamespaceQuery
+    'private?'?: boolean
+    'test?'?: boolean
+    'include-meta-key'?: string[]
+    'exclude-meta-key'?: string[]
+    'search'?: string
+    'search-property'?: 'doc' | 'name'
+    'manipulate-vars'?: unknown
+}
+
 // https://github.com/clojure-emacs/cider-nrepl/blob/a740583c3aa8b582f3097611787a276775131d32/src/cider/nrepl/middleware/test.clj#L45-L46
 export interface TestResults {
     summary: TestSummary;
