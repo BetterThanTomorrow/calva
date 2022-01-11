@@ -17,6 +17,36 @@ import * as calvaDebug from './debugger/calva-debug';
 import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 import * as replSession from './nrepl/repl-session';
 import * as clojureDocs from './clojuredocs';
+import * as jszip from 'jszip';
+import { addEdnConfig } from './config';
+
+async function readJarContent(uri: string) {
+    console.log(uri);
+    try {
+        const rawData = await vscode.workspace.fs.readFile(vscode.Uri.parse(uri));
+        const zipData = await jszip.loadAsync(rawData);
+        
+        const conf = await zipData.file('calva.exports/config.edn')?.async('string');
+        return [uri, conf];
+    } catch (error) {
+        return [uri, null]
+    }
+}
+
+async function readRuntimeConfigs() {
+    const classpath = await nClient.session.classpath();
+    console.log(classpath.classpath);
+    const files = await Promise.all(classpath.classpath.map((element: string) => {
+        if (element.endsWith('.jar')) {
+            return readJarContent(element);
+        }
+
+        return Promise.resolve([element, null]);
+    }));
+    console.log(files.filter(([_, config]) => config));
+    
+    return files.filter(([_, config]) => config).map(([_, config]) => addEdnConfig(config));
+}
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -100,6 +130,8 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     }
 
     liveShareSupport.didConnectRepl(port);
+
+    await readRuntimeConfigs();
 
     return true;
 }

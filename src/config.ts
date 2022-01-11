@@ -4,6 +4,7 @@ import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
 import { parseEdn } from '../out/cljs-lib/cljs-lib';
 import * as state from './state';
+const { fromJS } = require('immutable');
 
 const REPL_FILE_EXT = 'calva-repl';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
@@ -30,12 +31,26 @@ const documentSelector = [
     return name.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
 }
 
-async function readEdnConfig() {    
+async function readEdnWorkspaceConfig() {
     try {
         const file = vscode.Uri.file(state.resolvePath('.calva/config.edn'));
         const data = await vscode.workspace.fs.readFile(file);
-        const parsed = parseEdn(new TextDecoder("utf-8").decode(data));
-        state.setProjectConfig(parsed);
+        return addEdnConfig(new TextDecoder("utf-8").decode(data));
+    } catch (error) {
+        return error;
+    }
+}
+
+async function addEdnConfig(data:string) {    
+    try {
+        const parsed = parseEdn(data);
+        const old = state.getProjectConfig();
+        if (old && old.customREPLCommandSnippets) {
+            state.setProjectConfig({customREPLCommandSnippets: old.customREPLCommandSnippets.concat(parsed?.customREPLCommandSnippets ?? [])});
+        } else {
+            state.setProjectConfig({customREPLCommandSnippets: (parsed?.customREPLCommandSnippets ?? [])});
+        }
+        
     } catch (error) {
         return error;
     }
@@ -43,7 +58,7 @@ async function readEdnConfig() {
 var watcher = vscode.workspace.createFileSystemWatcher("**/.calva/**/config.edn", false, false, false);
 
 watcher.onDidChange(() => {
-    readEdnConfig(); 
+    readEdnWorkspaceConfig(); 
 });
 
 // TODO find a way to validate the configs
@@ -85,7 +100,8 @@ function getConfig() {
 }
 
 export {
-    readEdnConfig,
+    readEdnWorkspaceConfig,
+    addEdnConfig,
     REPL_FILE_EXT,
     KEYBINDINGS_ENABLED_CONFIG_KEY,
     KEYBINDINGS_ENABLED_CONTEXT_KEY,
