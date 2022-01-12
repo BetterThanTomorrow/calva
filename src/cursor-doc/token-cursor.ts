@@ -229,6 +229,7 @@ export class LispTokenCursor extends TokenCursor {
         if (this.getToken().type === 'close') {
             return false;
         }
+        const initialToken = this.getToken();
         if (this.tokenBeginsMetadata()) {
             isMetadata = true;
         }
@@ -258,7 +259,15 @@ export class LispTokenCursor extends TokenCursor {
                     if (skipMetadata && this.getToken().raw.startsWith('^')) {
                         this.next();
                     } else {
-                        this.next();
+                        this.forwardWhitespace(skipComments);
+                        // If the cursor is still pointed at the original token,
+                        // or if the cursor is inside a nested sexp, move the cursor forward by one.
+                        // Otherwise, the cursor has already moved past
+                        // the original token, and should not be moved again 
+                        // for this invocation of forwardSexp.
+                        if (token == initialToken || stack.length > 0) {
+                          this.next();
+                        }
                         if (stack.length <= 0) {
                             return true;
                         }
