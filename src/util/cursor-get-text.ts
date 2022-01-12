@@ -14,6 +14,11 @@ export function currentTopLevelFunction(doc: EditableDocument): RangeAndText {
         cursor.forwardWhitespace();
         while (cursor.forwardSexp(true, true, true)) {
             cursor.forwardWhitespace();
+            // skip over metadata, if present
+            while (cursor.getToken().raw.startsWith('^')) {
+              cursor.forwardSexp(true, false, true);
+              cursor.forwardWhitespace();
+            }
             const symbol = cursor.getToken();
             if (symbol.type === 'id') {
                 return [[cursor.offsetStart, cursor.offsetEnd], symbol.raw];
