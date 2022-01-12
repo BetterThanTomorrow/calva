@@ -35,7 +35,6 @@ async function readJarContent(uri: string) {
 
 async function readRuntimeConfigs() {
     const classpath = await nClient.session.classpath();
-    console.log(classpath.classpath);
     const files = await Promise.all(classpath.classpath.map((element: string) => {
         if (element.endsWith('.jar')) {
             return readJarContent(element);
@@ -43,7 +42,6 @@ async function readRuntimeConfigs() {
 
         return Promise.resolve([element, null]);
     }));
-    console.log(files.filter(([_, config]) => config));
     
     return files.filter(([_, config]) => config).map(([_, config]) => addEdnConfig(config));
 }

@@ -4,7 +4,6 @@ import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
 import { parseEdn } from '../out/cljs-lib/cljs-lib';
 import * as state from './state';
-const { fromJS } = require('immutable');
 
 const REPL_FILE_EXT = 'calva-repl';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
@@ -31,16 +30,21 @@ const documentSelector = [
     return name.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
 }
 
-async function readEdnWorkspaceConfig() {
+async function readEdnWorkspaceConfig(uri?: vscode.Uri) {
     try {
-        const file = vscode.Uri.file(state.resolvePath('.calva/config.edn'));
-        const data = await vscode.workspace.fs.readFile(file);
+        const data = await vscode.workspace.fs.readFile(uri ?? vscode.Uri.file(state.resolvePath('.calva/config.edn')));
         return addEdnConfig(new TextDecoder("utf-8").decode(data));
     } catch (error) {
         return error;
     }
 }
 
+/**
+ * Saves the EDN config in the state to be merged into the actual vsconfig.
+ * Currently only `:customREPLCommandSnippets` is supported and the `:snippet` has to be a string.
+ * @param {string} data a string representation of a clojure map
+ * @returns an error of one was thrown
+ */
 async function addEdnConfig(data:string) {    
     try {
         const parsed = parseEdn(data);
@@ -57,8 +61,8 @@ async function addEdnConfig(data:string) {
 }
 var watcher = vscode.workspace.createFileSystemWatcher("**/.calva/**/config.edn", false, false, false);
 
-watcher.onDidChange(() => {
-    readEdnWorkspaceConfig(); 
+watcher.onDidChange((uri: vscode.Uri) => {
+    readEdnWorkspaceConfig(uri); 
 });
 
 // TODO find a way to validate the configs
