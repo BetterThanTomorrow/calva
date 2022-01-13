@@ -409,52 +409,41 @@ export class NReplSession {
         })
     }
 
-    test(ns: string, test: string): Promise<cider.TestResults> {
+    testVarQuery(query: cider.VarQuery): Promise<cider.TestResults> {
         return new Promise<any>((resolve, reject) => {
             const id = this.client.nextId;
             this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({
                 op: "test-var-query",
-                ns,
                 id,
                 session: this.sessionId,
-                "var-query": {
-                    "ns-query": {
-                        exactly: [ns]
-                    },
-                    search: util.escapeStringRegexp(test),
-                    'test?': true
-                }
+                "var-query": query
             });
         });
     }
 
+    test(ns: string, test: string) {
+        return this.testVarQuery({
+            "ns-query": {
+                exactly: [ns]
+            },
+            search: util.escapeStringRegexp(test),
+            'test?': true
+        });
+    }
+
     testNs(ns: string) {
-        return new Promise<cider.TestResults>((resolve, reject) => {
-            let id = this.client.nextId;
-            this.messageHandlers[id] = resultHandler(resolve, reject);
-            this.client.write({
-                op: "test-var-query", ns, id, session: this.sessionId, "var-query": {
-                    "ns-query": {
-                        exactly: [ns]
-                    }
-                }
-            });
-        })
+        return this.testVarQuery({
+            "ns-query": {
+                exactly: [ns]
+            },
+        });
     }
 
     testAll() {
-        return new Promise<cider.TestResults>((resolve, reject) => {
-            let id = this.client.nextId;
-            this.messageHandlers[id] = resultHandler(resolve, reject);
-            this.client.write({
-                op: "test-var-query", id, session: this.sessionId, "var-query": {
-                    "ns-query": {
-                        'test?': true
-                    }
-                }
-            });
-        })
+        return this.testVarQuery({
+            'test?': true
+        });
     }
 
     retest() {
