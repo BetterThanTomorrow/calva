@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Improve LSP startup feedback on status bar](https://github.com/BetterThanTomorrow/calva/pull/1454)
+- [Fix errors in test output when fixtures throw exceptions](https://github.com/BetterThanTomorrow/calva/issues/1456).
 - Fix: [Snippet in custom command doesn't work with function metadata] (https://github.com/BetterThanTomorrow/calva/issues/1463)
 
 

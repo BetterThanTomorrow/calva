@@ -87,7 +87,7 @@ async function onTestResult(controller: vscode.TestController, session: NReplSes
     // range. If the LSP subsequently scans the file, upsertTest will be called,
     // which will set the range correctly.
     if (!test.range || test.range.isEmpty) {
-        const lines = assertions.map(a => a.line).filter(x => x).sort();
+        const lines = assertions.filter(cider.hasLineNumber).map(a => a.line).sort();
         if (lines.length > 0) {
             test.range = new vscode.Range(lines[0] - 1, 0, lines[lines.length - 1], 1000);
         }
@@ -109,7 +109,10 @@ async function onTestResult(controller: vscode.TestController, session: NReplSes
         let assertionId = test.id + '/' + result.index;
         const assertion = controller.createTestItem(assertionId, assertionName(result), uri);
         test.children.add(assertion);
-        assertion.range = new vscode.Range(result.line - 1, 0, result.line - 1, 1000);
+
+        if (cider.hasLineNumber(result)) {
+            assertion.range = new vscode.Range(result.line - 1, 0, result.line - 1, 1000);
+        }
 
         switch (result.type) {
             case "error":
