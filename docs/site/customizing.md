@@ -92,13 +92,25 @@ Jack-in and Connect are very customizable through [Custom Connect Sequences](con
 
 ## Jack-in Dependency Versions
 
-The versions of the dependencies [Calva Jack-in](jack-in-guide.md) injects in order for the REPL session to support IDE features are configurable via the VS Code settings `calva.jackInDependencyVersions`. At the time of this writing the default versions are:
+[Calva Jack-in](jack-in-guide.md) injects the following dependencies in order for the REPL session to support IDE features
 
-Dependency | Version | Description
----------- | ------- | -----------
-[nrepl](https://github.com/nrepl/nrepl) | 0.8.3 | nREPL is the wonderful piece of software that gives Calva a structured and extensible connection to the REPL in your Clojure and ClojureScript projects.
-[cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) | 0.25.8 | cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.
-[cider/piggieback](https://github.com/nrepl/piggieback) | 0.5.2 | Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with [shadow-cljs](http://shadow-cljs.org) projects though, which provides its own middleware for this.)
+- [nrepl](https://github.com/nrepl/nrepl): nREPL is the wonderful piece of software that gives Calva a structured and extensible connection to the REPL in your Clojure and ClojureScript projects.
+- [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl): cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.
+- [cider/piggieback](https://github.com/nrepl/piggieback): Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with [shadow-cljs](http://shadow-cljs.org) projects though, which provides its own middleware for this.)
+
+The versions used are configurable via the VS Code settings `calva.jackInDependencyVersions`, e.g. 
+
+```json
+"calva.jackInDependencyVersions": {
+    "nrepl": "0.9.0",
+    "cider-nrepl": "0.27.4",
+    "cider-piggieback": "0.5.3"
+}
+```
+
+Current default versions can be found in [package.json](https://github.com/BetterThanTomorrow/calva/blob/published/package.json) at the following path: 
+
+`$['contributes']['configuration']['properties']['calva.jackInDependencyVersions']['defaults']`
 
 ## Key bindings
 
