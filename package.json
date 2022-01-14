@@ -246,6 +246,11 @@
                         "default": false,
                         "description": "Run load-file when opening a new file and on file save"
                     },
+                    "calva.showEvalCode": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Show code for All Evaluations"
+                    },
                     "calva.testOnSave": {
                         "type": "boolean",
                         "default": false,
@@ -820,6 +825,12 @@
             {
                 "command": "calva.togglePrettyPrint",
                 "title": "Toggle Pretty Printing for All Evaluations",
+                "category": "Calva",
+                "enablement": "calva:connected"
+            },
+            {
+                "command": "calva.toggleShowEvalCode",
+                "title": "Toggle showing code for All Evaluations",
                 "category": "Calva",
                 "enablement": "calva:connected"
             },
@@ -1696,6 +1707,11 @@
                 "when": "editorLangId == clojure && calva:keybindingsEnabled"
             },
             {
+                "command": "calva.toggleShowEvalCode",
+                "key": "ctrl+alt+c ctrl+p",
+                "when": "editorLangId == clojure && calva:keybindingsEnabled"
+            },
+            {
                 "command": "calva.requireREPLUtilities",
                 "key": "ctrl+alt+c ctrl+u",
                 "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
@@ -2508,6 +2524,11 @@
                 {
                     "when": "editorLangId == clojure && calva:showReplUi",
                     "command": "calva.togglePrettyPrint",
+                    "group": "calva/b-eval"
+                },
+                {
+                    "when": "editorLangId == clojure && calva:showReplUi",
+                    "command": "calva.toggleShowEvalCode",
                     "group": "calva/b-eval"
                 },
                 {

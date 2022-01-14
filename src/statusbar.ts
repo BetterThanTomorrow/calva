@@ -10,6 +10,7 @@ const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlign
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const cljsBuildStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const prettyPrintToggle = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1);
+const showEvalCodeToggle = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1);
 const color = {
     active: "white",
     inactive: "#b3b3b3"
@@ -48,6 +49,12 @@ function update(context = state.extensionContext) {
     prettyPrintToggle.color = pprint ? undefined : color.inactive;
     prettyPrintToggle.tooltip = `Turn pretty printing ${pprint ? 'off' : 'on'}`
     prettyPrintToggle.command = "calva.togglePrettyPrint"
+
+    const showEvalCode = config.getConfig().showEvalCode;
+    showEvalCodeToggle.text = "->code";
+    showEvalCodeToggle.color = showEvalCode ? undefined : color.inactive;
+    showEvalCodeToggle.tooltip = `Turn showing code to eval ${showEvalCode ? 'off' : 'on'}`
+    showEvalCodeToggle.command = "calva.toggleShowEvalCode"
 
     typeStatus.command = null;
     typeStatus.text = "Disconnected";
@@ -110,11 +117,13 @@ function update(context = state.extensionContext) {
             cljsBuildStatus.hide();
         }
         prettyPrintToggle.show();
+        showEvalCodeToggle.show();
     } else {
         connectionStatus.hide();
         typeStatus.hide();
         cljsBuildStatus.hide();
         prettyPrintToggle.hide();
+        showEvalCodeToggle.hide();
     }
 }
 

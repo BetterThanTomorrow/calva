@@ -48,6 +48,7 @@ async function addAsComment(c: number, result: string, codeSelection: vscode.Sel
 
 async function evaluateCode(code: string, options, selection?: vscode.Selection): Promise<void> {
     const pprintOptions = options.pprintOptions || getConfig().prettyPrintingOptions;
+    const showEvalCode = options.showEvalCode === undefined && getConfig().showEvalCode;
     const line = options.line;
     const column = options.column;
     const filePath = options.filePath;
@@ -76,6 +77,11 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
         try {
             let value = await context.value;
             value = util.stripAnsi(context.pprintOut || value);
+
+            if (showEvalCode) {
+                outputWindow.append(code);
+            }
+
             outputWindow.append(value, async (resultLocation) => {
                 if (selection) {
                     const c = selection.start.character;
@@ -373,6 +379,12 @@ async function togglePrettyPrint() {
     statusbar.update();
 };
 
+async function toggleShowEvalCode() {
+    const config = vscode.workspace.getConfiguration('calva');
+    await config.update('showEvalCode', !config.get('showEvalCode'), vscode.ConfigurationTarget.Global);
+    statusbar.update();
+};
+
 async function instrumentTopLevelForm() {
     evaluateSelection({}, {
         pprintOptions: getConfig().prettyPrintingOptions,
@@ -393,7 +405,7 @@ export async function evaluateInOutputWindow(code: string, sessionType: string, 
             outputWindow.setSession(session, ns);
             outputWindow.appendPrompt();
         }
-        outputWindow.append(code);
+
         await evaluateCode(code, {
             filePath: outputDocument.fileName,
             session,
@@ -432,6 +444,7 @@ export default {
     copyLastResultCommand,
     requireREPLUtilitiesCommand,
     togglePrettyPrint,
+    toggleShowEvalCode,
     instrumentTopLevelForm,
     evaluateInOutputWindow
 };
