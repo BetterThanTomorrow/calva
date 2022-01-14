@@ -98,19 +98,7 @@ Jack-in and Connect are very customizable through [Custom Connect Sequences](con
 - [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl): cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.
 - [cider/piggieback](https://github.com/nrepl/piggieback): Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with [shadow-cljs](http://shadow-cljs.org) projects though, which provides its own middleware for this.)
 
-The versions used are configurable via the VS Code settings `calva.jackInDependencyVersions`, e.g. 
-
-```json
-"calva.jackInDependencyVersions": {
-    "nrepl": "0.9.0",
-    "cider-nrepl": "0.27.4",
-    "cider-piggieback": "0.5.3"
-}
-```
-
-Current default versions can be found in [package.json](https://github.com/BetterThanTomorrow/calva/blob/published/package.json) at the following path: 
-
-`$['contributes']['configuration']['properties']['calva.jackInDependencyVersions']['defaults']`
+The versions used are configurable via the VS Code settings `calva.jackInDependencyVersions`.
 
 ## Key bindings
 
