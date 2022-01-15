@@ -2562,7 +2562,7 @@
         "escape-html": "^1.0.3",
         "extract-zip": "^2.0.1",
         "find": "0.2.9",
-        "follow-redirects": "^1.10.0",
+        "follow-redirects": "^1.14.7",
         "get-port": "^5.1.1",
         "immutable": "3.8.1",
         "immutable-cursor": "2.0.1",
