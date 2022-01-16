@@ -18,7 +18,7 @@ import * as cider from '../nrepl/cider'
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
 const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE = 'The clojure-lsp server is not running or has not finished intializing.'
-const lspStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, -1);
+const lspStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
 let serverVersion: string;
 
 // The Node LSP client requires the client code to jump through a few hoops in
@@ -55,6 +55,7 @@ function createClient(clojureLspPath: string): LanguageClient {
             configurationSection: 'clojure-lsp',
             fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
         },
+        progressOnInitialization: true,
         initializationOptions: {
             "dependency-scheme": "jar",
             "auto-add-ns-to-new-files?": true,
@@ -329,7 +330,7 @@ async function startClient(clojureLspPath: string, context: vscode.ExtensionCont
     client.registerFeature(testTree);
 
     const onReadyPromise = client.onReady();
-    lspStatus.text = '$(sync~spin) Initializing Clojure language features via clojure-lsp';
+    lspStatus.text = '$(rocket) clojure-lsp';
     lspStatus.show();
     client.start();
     await onReadyPromise;

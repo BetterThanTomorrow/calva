@@ -6,10 +6,10 @@ import status from './status';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getSession, getReplSessionTypeFromState } from './nrepl/repl-session';
 
-const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-const cljsBuildStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-const prettyPrintToggle = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
+const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
+const cljsBuildStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
+const prettyPrintToggle = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1);
 const color = {
     active: "white",
     inactive: "#b3b3b3"

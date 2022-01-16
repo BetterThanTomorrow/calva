@@ -25,6 +25,28 @@ export interface TestResult {
     file?: string;
 }
 
+// https://github.com/clojure-emacs/orchard/blob/febf8169675af1b11a8c00cfe1155ed40db8be42/src/orchard/query.clj#L10-L15
+export interface NamespaceQuery {
+    'exactly': string[]
+    'project?'?: boolean
+    'load-project-ns?'?: boolean
+    'has-tests?'?: boolean
+    'include-regexps'?: string[]
+    'exclude-regexps'?: string[]
+}
+
+// https://github.com/clojure-emacs/orchard/blob/febf8169675af1b11a8c00cfe1155ed40db8be42/src/orchard/query.clj#L45-L52
+export interface VarQuery {
+    'ns-query'?: NamespaceQuery
+    'private?'?: boolean
+    'test?'?: boolean
+    'include-meta-key'?: string[]
+    'exclude-meta-key'?: string[]
+    'search'?: string
+    'search-property'?: 'doc' | 'name'
+    'manipulate-vars'?: unknown
+}
+
 // https://github.com/clojure-emacs/cider-nrepl/blob/a740583c3aa8b582f3097611787a276775131d32/src/cider/nrepl/middleware/test.clj#L45-L46
 export interface TestResults {
     summary: TestSummary;
@@ -97,6 +119,34 @@ export function totalSummary(summaries: TestSummary[]): TestSummary {
     return result;
 }
 
+
+// Returns the file and line number information of an error, if the data is provided.
+// If there is no information, the empty string is returned.
+// Otherwise, returns a string like:
+// ` (line 7)`
+// ` (core.clj)`
+// ` (core.clj:7)`
+// There is a leading space in these messages so that the return value can be
+// easily spliced into other messages without having to check deal with padding.
+export function lineInformation(result: TestResult): string {
+    let hasFile = (typeof result.file === 'string');
+    let hasLine = (typeof result.line === 'number');
+
+    if (!hasFile && !hasLine) {
+        return "";
+    }
+
+    if (!hasFile) {
+        return ` (line ${result.line})`;
+    }
+
+    if (!hasLine) {
+        return ` (${result.file})`
+    }
+
+    return ` (${result.file}:${result.line})`;
+}
+
 // Return a detailed message about why a test failed.
 // If the test passed, return the empty string.
 // The message contains "comment" lines that are prepended with ;
@@ -104,20 +154,31 @@ export function totalSummary(summaries: TestSummary[]): TestSummary {
 export function detailedMessage(result: TestResult): string {
     const messages = [];
     const message = resultMessage(result);
+    const location = lineInformation(result);
+
     if (result.type === "error") {
-        messages.push(`; ERROR in ${result.ns}/${result.var} (line ${result.line}):`)
+        messages.push(`; ERROR in ${result.ns}/${result.var}${location}:`)
         if (message) {
             messages.push(`; ${message}`);
         }
-        messages.push(`; error: ${result.error} (${result.file})`);
-        messages.push("; expected:");
-        messages.push(result.expected);
+        messages.push(`; error: ${result.error}${location}`);
+
+        if (result.expected) {
+            messages.push("; expected:");
+            messages.push(result.expected);
+        }
+
     } else if (result.type === 'fail') {
-        messages.push(`; FAIL in ${result.ns}/${result.var} (${result.file}:${result.line}):`);
+        messages.push(`; FAIL in ${result.ns}/${result.var}${location}:`);
         if (message) {
             messages.push(`; ${message}`);
         }
-        messages.push(`; expected:\n${result.expected}\n; actual:\n${result.actual}`);
+        if (result.expected) {
+            messages.push(`; expected:\n${result.expected}`)
+        }
+        if (result.actual) {
+            messages.push(`; actual:\n${result.actual}`);
+        }
     }
     return messages.length > 0 ? messages.join("\n") : null;
 }
@@ -140,4 +201,8 @@ export function shortMessage(result: TestResult): string {
                 return result.message + ' expected ' + result.expected + ' actual ' + result.actual;
             }
     }
+}
+
+export function hasLineNumber(result: TestResult): boolean {
+    return typeof result.line === 'number';
 }
