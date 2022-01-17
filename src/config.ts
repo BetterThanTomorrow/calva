@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { customREPLCommandSnippet } from './evaluate';
 import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
+import { parseEdn } from '../out/cljs-lib/cljs-lib';
+import * as state from './state';
 
 const REPL_FILE_EXT = 'calva-repl';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
@@ -28,10 +30,49 @@ const documentSelector = [
     return name.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
 }
 
+async function readEdnWorkspaceConfig(uri?: vscode.Uri) {
+    try {
+        const data = await vscode.workspace.fs.readFile(uri ?? vscode.Uri.file(state.resolvePath('.calva/config.edn')));
+        return addEdnConfig(new TextDecoder("utf-8").decode(data));
+    } catch (error) {
+        return error;
+    }
+}
+
+/**
+ * Saves the EDN config in the state to be merged into the actual vsconfig.
+ * Currently only `:customREPLCommandSnippets` is supported and the `:snippet` has to be a string.
+ * @param {string} data a string representation of a clojure map
+ * @returns an error of one was thrown
+ */
+async function addEdnConfig(data:string) {    
+    try {
+        const parsed = parseEdn(data);
+        const old = state.getProjectConfig();
+        if (old && old.customREPLCommandSnippets) {
+            state.setProjectConfig({customREPLCommandSnippets: old.customREPLCommandSnippets.concat(parsed?.customREPLCommandSnippets ?? [])});
+        } else {
+            state.setProjectConfig({customREPLCommandSnippets: (parsed?.customREPLCommandSnippets ?? [])});
+        }
+        
+    } catch (error) {
+        return error;
+    }
+}
+var watcher = vscode.workspace.createFileSystemWatcher("**/.calva/**/config.edn", false, false, false);
+
+watcher.onDidChange((uri: vscode.Uri) => {
+    readEdnWorkspaceConfig(uri); 
+});
+
 // TODO find a way to validate the configs
 function getConfig() {
     const configOptions = vscode.workspace.getConfiguration('calva');
     const pareditOptions = vscode.workspace.getConfiguration('calva.paredit');
+
+    const w = configOptions.inspect("customREPLCommandSnippets").workspaceValue as customREPLCommandSnippet[] ?? [];
+    const commands = w.concat(state.getProjectConfig()?.customREPLCommandSnippets as customREPLCommandSnippet[] ?? []);
+
     return {
         format: configOptions.get("formatOnSave"),
         evaluate: configOptions.get("evalOnSave"),
@@ -49,7 +90,7 @@ function getConfig() {
         asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string,
         customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []),
         customREPLCommandSnippetsGlobal: configOptions.inspect("customREPLCommandSnippets").globalValue as customREPLCommandSnippet[],
-        customREPLCommandSnippetsWorkspace: configOptions.inspect("customREPLCommandSnippets").workspaceValue as customREPLCommandSnippet[],
+        customREPLCommandSnippetsWorkspace: commands,
         customREPLCommandSnippetsWorkspaceFolder: configOptions.inspect("customREPLCommandSnippets").workspaceFolderValue as customREPLCommandSnippet[],
         prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions,
         enableJSCompletions: configOptions.get("enableJSCompletions") as boolean,
@@ -63,6 +104,8 @@ function getConfig() {
 }
 
 export {
+    readEdnWorkspaceConfig,
+    addEdnConfig,
     REPL_FILE_EXT,
     KEYBINDINGS_ENABLED_CONFIG_KEY,
     KEYBINDINGS_ENABLED_CONTEXT_KEY,

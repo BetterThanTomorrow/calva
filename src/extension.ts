@@ -84,6 +84,7 @@ function initializeState() {
 
 async function activate(context: vscode.ExtensionContext) {
     initializeState();
+    await config.readEdnWorkspaceConfig();
 
     status.updateNeedReplUi(false, context);
 

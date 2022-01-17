@@ -17,6 +17,37 @@ import * as calvaDebug from './debugger/calva-debug';
 import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 import * as replSession from './nrepl/repl-session';
 import * as clojureDocs from './clojuredocs';
+import * as jszip from 'jszip';
+import { addEdnConfig } from './config';
+import { getJarContents } from './utilities';
+
+async function readJarContent(uri: string) {
+    try {
+        const rawData = await vscode.workspace.fs.readFile(vscode.Uri.parse(uri));
+        const zipData = await jszip.loadAsync(rawData);
+        
+        const conf = await zipData.file('calva.exports/config.edn')?.async('string');
+        return [uri, conf];
+    } catch (error) {
+        return [uri, null]
+    }
+}
+
+async function readRuntimeConfigs() {
+    const classpath = await nClient.session.classpath();
+    const configs = classpath.classpath.map(async (element: string) => {
+        if (element.endsWith('.jar')) {
+            const edn = await getJarContents(element.concat("!/calva.exports/config.edn"));
+            return [element, edn];
+        }
+
+        return [element, null];
+    });
+    const files = await Promise.all(configs);
+    
+    // maybe we don't need to keep uri -> edn association, but it would make showing errors easier later
+    return files.filter(([_, config]) => util.isNonEmptyString(config)).map(([_, config]) => addEdnConfig(config));
+}
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -100,6 +131,8 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     }
 
     liveShareSupport.didConnectRepl(port);
+
+    await readRuntimeConfigs();
 
     return true;
 }

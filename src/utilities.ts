@@ -324,6 +324,11 @@ function jarFilePathComponents(uri: vscode.Uri | string) {
     return rawPath.replace(replaceRegex, '').split('!/');
 }
 
+/**
+ * Gets the contents of a file in a zip
+ * @param uri url to jar file, followed by "!/" and than the url inside the jar
+ * @returns contents of the file or an empty string
+ */
 async function getJarContents(uri: vscode.Uri | string) {
     return new Promise<string>((resolve, _reject) => {
         const [pathToJar, pathToFileInJar] = jarFilePathComponents(uri);
@@ -331,10 +336,18 @@ async function getJarContents(uri: vscode.Uri | string) {
         fs.readFile(pathToJar, (err, data) => {
             let zip = new JSZip();
             zip.loadAsync(data).then((new_zip) => {
-                new_zip.file(pathToFileInJar).async("string").then((value) => {
-                    resolve(value);
-                })
-            })
+                const fileInJar = new_zip.file(pathToFileInJar);
+
+                if (fileInJar) {
+                    return fileInJar.async("string").then((value) => {
+                        resolve(value);
+                    });
+                }
+                
+                return resolve("");
+            }).catch(_ => {
+                return resolve("");
+            });
         });
     });
 }

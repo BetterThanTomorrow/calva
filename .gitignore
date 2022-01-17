@@ -2,6 +2,7 @@
 /*.vsix
 # .vscode/settings.json
 .vscode-test
+.lh
 
 # Logs
 logs
