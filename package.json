@@ -118,7 +118,11 @@
                 "files.trimTrailingWhitespace": false,
                 "editor.matchBrackets": "never",
                 "editor.guides.indentation": false,
-                "editor.parameterHints.enabled": false
+                "editor.parameterHints.enabled": false,
+                "editor.unicodeHighlight.allowedCharacters": {
+                    " ": true,
+                    "꞉": true
+                }            
             }
         },
         "semanticTokenScopes": [
