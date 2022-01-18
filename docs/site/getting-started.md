@@ -62,7 +62,7 @@ The browser REPL app looks like so:
 
 ## You have a Project?
 
-If you are new to Calva, please consider the above option first. Then when it it will be time to get [Calva connected to the REPL of your project](connect.md).
+If you are new to Calva, please consider the above option first. Then when it will be time to get [Calva connected to the REPL of your project](connect.md).
 
 ## Clojure Resources
 
