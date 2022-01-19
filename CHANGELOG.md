@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Add custom commands from libraries](https://github.com/BetterThanTomorrow/calva/pull/1442)
+- [Clojure-lsp not starting when offline](https://github.com/BetterThanTomorrow/calva/issues/1299)
 - Workaround: [VS Code highlights characters in the output/REPL window prompt](https://github.com/BetterThanTomorrow/calva/pull/1475)
 
 ## [2.0.234] - 2022-01-16
