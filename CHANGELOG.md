@@ -6,6 +6,8 @@ Changes to Calva.
 - [Add custom commands from libraries](https://github.com/BetterThanTomorrow/calva/pull/1442)
 - Workaround: [VS Code highlights characters in the output/REPL window prompt](https://github.com/BetterThanTomorrow/calva/pull/1475)
 
+- [Exclude REPL output window from LSP analysis](https://github.com/BetterThanTomorrow/calva/issues/1250)
+
 ## [2.0.234] - 2022-01-16
 - [Improve LSP startup feedback on status bar](https://github.com/BetterThanTomorrow/calva/pull/1454)
 - [Fix errors in test output when fixtures throw exceptions](https://github.com/BetterThanTomorrow/calva/issues/1456).
