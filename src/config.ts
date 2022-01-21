@@ -99,7 +99,10 @@ function getConfig() {
         referencesCodeLensEnabled: configOptions.get('referencesCodeLens.enabled') as boolean,
         hideReplUi: configOptions.get('hideReplUi') as boolean,
         strictPreventUnmatchedClosingBracket: pareditOptions.get('strictPreventUnmatchedClosingBracket'),
-        showCalvaSaysOnStart: configOptions.get("showCalvaSaysOnStart") as boolean
+        showCalvaSaysOnStart: configOptions.get("showCalvaSaysOnStart") as boolean,
+        jackIn: {
+          useDeprecatedAliasFlag: configOptions.get("jackIn.useDeprecatedAliasFlag") as boolean,
+        }
     };
 }
 
