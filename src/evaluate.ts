@@ -48,7 +48,10 @@ async function addAsComment(c: number, result: string, codeSelection: vscode.Sel
 
 async function evaluateCode(code: string, options, selection?: vscode.Selection): Promise<void> {
     const pprintOptions = options.pprintOptions || getConfig().prettyPrintingOptions;
-    const showEvalCode = options.showEvalCode === undefined && getConfig().showEvalCode;
+    // passed options overwrite config options
+    const evaluationSendCodeToOutputWindow = (options.evaluationSendCodeToOutputWindow === undefined || options.evaluationSendCodeToOutputWindow === true)
+        && getConfig().evaluationSendCodeToOutputWindow;
+    const addToHistory = evaluationSendCodeToOutputWindow;
     const line = options.line;
     const column = options.column;
     const filePath = options.filePath;
@@ -57,6 +60,11 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
     const editor = vscode.window.activeTextEditor;
 
     if (code.length > 0) {
+        if (addToHistory) {
+            replHistory.addToReplHistory(session.replType, code);
+            replHistory.resetState();
+        }
+
         let err: string[] = [];
 
         if (outputWindow.getNs() !== ns) {
@@ -78,7 +86,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             let value = await context.value;
             value = util.stripAnsi(context.pprintOut || value);
 
-            if (showEvalCode) {
+            if (evaluationSendCodeToOutputWindow) {
                 outputWindow.append(code);
             }
 
@@ -162,11 +170,6 @@ async function evaluateSelection(document: {}, options) {
         const filePath = doc.fileName;
         const session = replSession.getSession(util.getFileType(doc));
 
-        if (outputWindow.isResultsDoc(doc)) {
-            replHistory.addToReplHistory(session.replType, code);
-            replHistory.resetState();
-        }
-
         if (code.length > 0) {
             if (options.debug) {
                 code = '#dbg\n' + code;
@@ -229,6 +232,14 @@ function evaluateTopLevelForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
         pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: getText.currentTopLevelFormText
+    })).catch(printWarningForError);
+}
+
+function evaluateOutputWindowForm(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: getText.currentTopLevelFormText,
+        evaluationSendCodeToOutputWindow: false
     })).catch(printWarningForError);
 }
 
@@ -379,9 +390,9 @@ async function togglePrettyPrint() {
     statusbar.update();
 };
 
-async function toggleShowEvalCode() {
+async function toggleEvaluationSendCodeToOutputWindow() {
     const config = vscode.workspace.getConfiguration('calva');
-    await config.update('showEvalCode', !config.get('showEvalCode'), vscode.ConfigurationTarget.Global);
+    await config.update('evaluationSendCodeToOutputWindow', !config.get('evaluationSendCodeToOutputWindow'), vscode.ConfigurationTarget.Global);
     statusbar.update();
 };
 
@@ -394,7 +405,7 @@ async function instrumentTopLevelForm() {
     state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM).send();
 }
 
-export async function evaluateInOutputWindow(code: string, sessionType: string, ns: string) {
+export async function evaluateInOutputWindow(code: string, sessionType: string, ns: string, options) {
     const outputDocument = await outputWindow.openResultsDoc();
     const evalPos = outputDocument.positionAt(outputDocument.getText().length);
     try {
@@ -407,6 +418,7 @@ export async function evaluateInOutputWindow(code: string, sessionType: string, 
         }
 
         await evaluateCode(code, {
+            ...options,
             filePath: outputDocument.fileName,
             session,
             ns,
@@ -444,7 +456,8 @@ export default {
     copyLastResultCommand,
     requireREPLUtilitiesCommand,
     togglePrettyPrint,
-    toggleShowEvalCode,
+    toggleEvaluationSendCodeToOutputWindow,
     instrumentTopLevelForm,
-    evaluateInOutputWindow
+    evaluateInOutputWindow,
+    evaluateOutputWindowForm
 };

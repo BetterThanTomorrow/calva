@@ -246,10 +246,10 @@
                         "default": false,
                         "description": "Run load-file when opening a new file and on file save"
                     },
-                    "calva.showEvalCode": {
+                    "calva.evaluationSendCodeToOutputWindow": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Show code for All Evaluations"
+                        "description": "Also send evaluated code to the REPL Window"
                     },
                     "calva.testOnSave": {
                         "type": "boolean",
@@ -829,8 +829,8 @@
                 "enablement": "calva:connected"
             },
             {
-                "command": "calva.toggleShowEvalCode",
-                "title": "Toggle showing code for All Evaluations",
+                "command": "calva.toggleEvaluationSendCodeToOutputWindow",
+                "title": "Toggle also sending evaluated code to the REPL Window",
                 "category": "Calva",
                 "enablement": "calva:connected"
             },
@@ -1667,7 +1667,7 @@
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
-                "command": "calva.evaluateCurrentTopLevelForm",
+                "command": "calva.evaluateOutputWindowForm",
                 "key": "enter",
                 "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
             },
@@ -1707,8 +1707,8 @@
                 "when": "editorLangId == clojure && calva:keybindingsEnabled"
             },
             {
-                "command": "calva.toggleShowEvalCode",
-                "key": "ctrl+alt+c ctrl+p",
+                "command": "calva.toggleEvaluationSendCodeToOutputWindow",
+                "key": "ctrl+alt+o ctrl+s",
                 "when": "editorLangId == clojure && calva:keybindingsEnabled"
             },
             {
@@ -2528,7 +2528,7 @@
                 },
                 {
                     "when": "editorLangId == clojure && calva:showReplUi",
-                    "command": "calva.toggleShowEvalCode",
+                    "command": "calva.toggleEvaluationSendCodeToOutputWindow",
                     "group": "calva/b-eval"
                 },
                 {

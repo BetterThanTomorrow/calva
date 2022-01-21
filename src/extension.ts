@@ -193,11 +193,12 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateStartOfFileToCursor', eval.evaluateStartOfFileToCursor));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateUser', eval.evaluateUser));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', eval.evaluateTopLevelForm));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateOutputWindowForm', eval.evaluateOutputWindowForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', eval.evaluateSelectionReplace));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', eval.evaluateSelectionAsComment));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateTopLevelFormAsComment', eval.evaluateTopLevelFormAsComment));
     context.subscriptions.push(vscode.commands.registerCommand('calva.togglePrettyPrint', eval.togglePrettyPrint));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.toggleShowEvalCode', eval.toggleShowEvalCode));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.toggleEvaluationSendCodeToOutputWindow', eval.toggleEvaluationSendCodeToOutputWindow));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runTestUnderCursor', () => { testRunner.runTestUnderCursorCommand(controller) }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', () => { testRunner.runNamespaceTestsCommand(controller) }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', () => { testRunner.runAllTestsCommand(controller) }));
