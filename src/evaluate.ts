@@ -69,7 +69,7 @@ async function evaluateCode(
     code: string,
     options,
     selection?: vscode.Selection
-): Promise<void> {
+): Promise<string | null> {
     const pprintOptions =
         options.pprintOptions || getConfig().prettyPrintingOptions;
     // passed options overwrite config options
@@ -87,6 +87,7 @@ async function evaluateCode(
     const session: NReplSession = options.session;
     const ns = options.ns;
     const editor = vscode.window.activeTextEditor;
+    let result = null;
 
     if (code.length > 0) {
         if (addToHistory) {
@@ -119,6 +120,7 @@ async function evaluateCode(
                 outputWindow.append(code);
             }
 
+            result = value;
             outputWindow.append(value, async (resultLocation) => {
                 if (selection) {
                     const c = selection.start.character;
@@ -230,6 +232,8 @@ async function evaluateCode(
         outputWindow.setSession(session, context.ns || ns);
         replSession.updateReplSessionType();
     }
+
+    return result;
 }
 
 async function evaluateSelection(document: {}, options) {
@@ -604,7 +608,7 @@ export async function evaluateInOutputWindow(
             outputWindow.appendPrompt();
         }
 
-        await evaluateCode(code, {
+        return await evaluateCode(code, {
             ...options,
             filePath: outputDocument.fileName,
             session,

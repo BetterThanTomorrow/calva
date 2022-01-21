@@ -63,6 +63,18 @@ async function addEdnConfig(data: string) {
                     parsed?.customREPLCommandSnippets ?? [],
             });
         }
+
+        if (old && old.customHoverSnippets) {
+            state.setProjectConfig({
+                customHoverSnippets: old.customHoverSnippets.concat(
+                    parsed?.customHoverSnippets ?? []
+                ),
+            });
+        } else {
+            state.setProjectConfig({
+                customHoverSnippets: parsed?.customHoverSnippets ?? [],
+            });
+        }
     } catch (error) {
         return error;
     }
@@ -131,6 +143,9 @@ function getConfig() {
         customREPLCommandSnippetsWorkspaceFolder: configOptions.inspect(
             'customREPLCommandSnippets'
         ).workspaceFolderValue as customREPLCommandSnippet[],
+        customHoverSnippets:
+            (state.getProjectConfig()
+                ?.customHoverSnippets as customREPLCommandSnippet[]) ?? [],
         prettyPrintingOptions: configOptions.get(
             'prettyPrintingOptions'
         ) as PrettyPrintingOptions,
