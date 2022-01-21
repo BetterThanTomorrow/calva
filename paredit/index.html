@@ -10,13 +10,14 @@
       
       
       
+      
         <link rel="canonical" href="https://calva.io/paredit/">
       
       
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.7+insiders-4.6.1">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6+insiders-3.2.0">
     
     
       
@@ -24,13 +25,13 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.005db8a3.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.f60820f2.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.1d832a92.min.css">
         
       
-      <link rel="preload" as="style" href="../assets/stylesheets/vendor/mermaid.9c0dc1da.min.css">
+      <link rel="preload" as="style" href="../assets/stylesheets/vendor/mermaid.733f213f.min.css">
       
     
     
@@ -39,55 +40,32 @@
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
-        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
       
+    
     
     
       <link rel="stylesheet" href="../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>function __md_scope(e,t,_){return new URL(_||(t===localStorage?"..":".."),location).pathname+"."+e}function __md_get(e,t=localStorage,_){return JSON.parse(t.getItem(__md_scope(e,t,_)))}function __md_set(e,t,_=localStorage,o){try{_.setItem(__md_scope(e,_,o),JSON.stringify(t))}catch(e){}}</script>
     
       
+
+  
+
+
+  
+
   
 
 
-  
-  
-
-
-  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-69796730-5","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){if(document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document.forms.feedback){var e,a=document.forms.feedback;for(e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}"undefined"!=typeof location$&&location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-69796730-5","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){if(document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document.forms.feedback){var a,n=document.forms.feedback;for(a of n.querySelectorAll("[type=submit]"))a.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=a.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),n.firstElementChild.disabled=!0;e=n.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),n.hidden=!1}"undefined"!=typeof location$&&location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
 
   
     <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
   
 
     
-    
-      
-        <meta  property="og:type"  content="website" >
-      
-        <meta  property="og:title"  content="Paredit, a Visual Guide - Calva User Guide" >
-      
-        <meta  property="og:description"  content="Learn how to leverage Clojure and ClojureScript structural editing, navigation, and selection" >
-      
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/paredit.png" >
-      
-        <meta  property="og:image:type"  content="image/png" >
-      
-        <meta  property="og:image:width"  content="1200" >
-      
-        <meta  property="og:image:height"  content="630" >
-      
-        <meta  property="og:url"  content="https://calva.io/paredit/" >
-      
-        <meta  name="twitter:card"  content="summary_large_image" >
-      
-        <meta  name="twitter:title"  content="Paredit, a Visual Guide - Calva User Guide" >
-      
-        <meta  name="twitter:description"  content="Learn how to leverage Clojure and ClojureScript structural editing, navigation, and selection" >
-      
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/paredit.png" >
-      
     
     
   </head>
@@ -100,104 +78,6 @@
     
     <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
   
-    
-    
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
-    
-      
     
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -250,7 +130,8 @@
       <label class="md-header__button md-icon" for="__search">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
       </label>
-      <div class="md-search" data-md-component="search" role="dialog">
+      
+<div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
@@ -286,7 +167,8 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source" data-md-component="source">
+        
+<a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
@@ -330,7 +212,8 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source" data-md-component="source">
+      
+<a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
@@ -347,18 +230,12 @@
       
       
 
-
   
   
   
     <li class="md-nav__item">
       <a href=".." class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Clojure Interactive Programming for Visual Studio Code
-  </span>
-
+        Clojure Interactive Programming for Visual Studio Code
       </a>
     </li>
   
@@ -367,7 +244,6 @@
       
       
       
-
 
   
   
@@ -382,12 +258,7 @@
       
       
         <label class="md-nav__link" for="__nav_2">
-          
-  
-  <span class="md-ellipsis">
-    Start Here
-  </span>
-
+          Start Here
           <span class="md-nav__icon md-icon"></span>
         </label>
       
@@ -405,12 +276,7 @@
   
     <li class="md-nav__item">
       <a href="../getting-started/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Get Started with Calva
-  </span>
-
+        Get Started with Calva
       </a>
     </li>
   
@@ -424,12 +290,7 @@
   
     <li class="md-nav__item">
       <a href="../connect/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Connect the REPL
-  </span>
-
+        Connect the REPL
       </a>
     </li>
   
@@ -443,12 +304,7 @@
   
     <li class="md-nav__item">
       <a href="../try-first/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Try this First
-  </span>
-
+        Try this First
       </a>
     </li>
   
@@ -462,12 +318,7 @@
   
     <li class="md-nav__item">
       <a href="../finding-commands/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Finding Calva Commands
-  </span>
-
+        Finding Calva Commands
       </a>
     </li>
   
@@ -481,12 +332,7 @@
   
     <li class="md-nav__item">
       <a href="../eval-tips/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Evaluate Clojure Code
-  </span>
-
+        Evaluate Clojure Code
       </a>
     </li>
   
@@ -503,18 +349,12 @@
       
       
 
-
   
   
   
     <li class="md-nav__item">
       <a href="../why-calva/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Why you should consider Calva
-  </span>
-
+        Why you should consider Calva
       </a>
     </li>
   
@@ -523,7 +363,6 @@
       
       
       
-
 
   
   
@@ -540,12 +379,7 @@
       
       
         <label class="md-nav__link" for="__nav_4">
-          
-  
-  <span class="md-ellipsis">
-    Features
-  </span>
-
+          Features
           <span class="md-nav__icon md-icon"></span>
         </label>
       
@@ -563,12 +397,7 @@
   
     <li class="md-nav__item">
       <a href="../commands-top10/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    The Top 10 Commands
-  </span>
-
+        The Top 10 Commands
       </a>
     </li>
   
@@ -582,12 +411,7 @@
   
     <li class="md-nav__item">
       <a href="../evaluation/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Evaluate Clojure Code
-  </span>
-
+        Evaluate Clojure Code
       </a>
     </li>
   
@@ -601,12 +425,7 @@
   
     <li class="md-nav__item">
       <a href="../rich-comments/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Rich Comments Support
-  </span>
-
+        Rich Comments Support
       </a>
     </li>
   
@@ -620,12 +439,7 @@
   
     <li class="md-nav__item">
       <a href="../clojuredocs/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    ClojureDocs Integration
-  </span>
-
+        ClojureDocs Integration
       </a>
     </li>
   
@@ -639,12 +453,7 @@
   
     <li class="md-nav__item">
       <a href="../output/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    The Output/REPL Window
-  </span>
-
+        The Output/REPL Window
       </a>
     </li>
   
@@ -658,12 +467,7 @@
   
     <li class="md-nav__item">
       <a href="../formatting/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Clojure Formatting
-  </span>
-
+        Clojure Formatting
       </a>
     </li>
   
@@ -686,25 +490,16 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Paredit, a Visual Guide
-  </span>
-
+          Paredit, a Visual Guide
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  <span class="md-ellipsis">
-    Paredit, a Visual Guide
-  </span>
-
+        Paredit, a Visual Guide
       </a>
       
         
+
 
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
@@ -817,12 +612,7 @@
   
     <li class="md-nav__item">
       <a href="../debugger/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Debugger
-  </span>
-
+        Debugger
       </a>
     </li>
   
@@ -836,12 +626,7 @@
   
     <li class="md-nav__item">
       <a href="../pprint/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Pretty Printing
-  </span>
-
+        Pretty Printing
       </a>
     </li>
   
@@ -855,12 +640,7 @@
   
     <li class="md-nav__item">
       <a href="../refactoring/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Refactoring
-  </span>
-
+        Refactoring
       </a>
     </li>
   
@@ -874,12 +654,7 @@
   
     <li class="md-nav__item">
       <a href="../test-runner/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Test Runner
-  </span>
-
+        Test Runner
       </a>
     </li>
   
@@ -893,12 +668,7 @@
   
     <li class="md-nav__item">
       <a href="../connect-sequences/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Custom REPL Connect Sequences
-  </span>
-
+        Custom REPL Connect Sequences
       </a>
     </li>
   
@@ -912,12 +682,7 @@
   
     <li class="md-nav__item">
       <a href="../custom-commands/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Custom REPL Commands
-  </span>
-
+        Custom REPL Commands
       </a>
     </li>
   
@@ -931,12 +696,7 @@
   
     <li class="md-nav__item">
       <a href="../linting/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Superb Clojure Linting
-  </span>
-
+        Superb Clojure Linting
       </a>
     </li>
   
@@ -950,12 +710,7 @@
   
     <li class="md-nav__item">
       <a href="../namespace-form-auto-creation/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Namespace Form Auto-creation
-  </span>
-
+        Namespace Form Auto-creation
       </a>
     </li>
   
@@ -972,18 +727,12 @@
       
       
 
-
   
   
   
     <li class="md-nav__item">
       <a href="../clojure-lsp/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    clojure-lsp
-  </span>
-
+        clojure-lsp
       </a>
     </li>
   
@@ -992,19 +741,13 @@
       
       
       
-
 
   
   
   
     <li class="md-nav__item">
       <a href="../nrepl_and_cider-nrepl/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    nREPL and cider-nrepl
-  </span>
-
+        nREPL and cider-nrepl
       </a>
     </li>
   
@@ -1013,19 +756,13 @@
       
       
       
-
 
   
   
   
     <li class="md-nav__item">
       <a href="../customizing/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Customizing Calva
-  </span>
-
+        Customizing Calva
       </a>
     </li>
   
@@ -1034,7 +771,6 @@
       
       
       
-
 
   
   
@@ -1049,12 +785,7 @@
       
       
         <label class="md-nav__link" for="__nav_8">
-          
-  
-  <span class="md-ellipsis">
-    Using Calva with X
-  </span>
-
+          Using Calva with X
           <span class="md-nav__icon md-icon"></span>
         </label>
       
@@ -1072,12 +803,7 @@
   
     <li class="md-nav__item">
       <a href="../wsl/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    WSL
-  </span>
-
+        WSL
       </a>
     </li>
   
@@ -1091,12 +817,7 @@
   
     <li class="md-nav__item">
       <a href="../remote-development/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    VS Code Remote Development
-  </span>
-
+        VS Code Remote Development
       </a>
     </li>
   
@@ -1110,12 +831,7 @@
   
     <li class="md-nav__item">
       <a href="../live-share/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Live Share
-  </span>
-
+        Live Share
       </a>
     </li>
   
@@ -1129,12 +845,7 @@
   
     <li class="md-nav__item">
       <a href="../vim/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    VIM
-  </span>
-
+        VIM
       </a>
     </li>
   
@@ -1148,12 +859,7 @@
   
     <li class="md-nav__item">
       <a href="../reveal/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Reveal
-  </span>
-
+        Reveal
       </a>
     </li>
   
@@ -1167,12 +873,7 @@
   
     <li class="md-nav__item">
       <a href="../babashka/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Babashka
-  </span>
-
+        Babashka
       </a>
     </li>
   
@@ -1186,12 +887,7 @@
   
     <li class="md-nav__item">
       <a href="../nbb/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    nbb
-  </span>
-
+        nbb
       </a>
     </li>
   
@@ -1205,12 +901,7 @@
   
     <li class="md-nav__item">
       <a href="../luminus/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Luminus
-  </span>
-
+        Luminus
       </a>
     </li>
   
@@ -1224,12 +915,7 @@
   
     <li class="md-nav__item">
       <a href="../re-frame-template/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    The re-frame template
-  </span>
-
+        The re-frame template
       </a>
     </li>
   
@@ -1243,12 +929,7 @@
   
     <li class="md-nav__item">
       <a href="../polylith/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Polylith
-  </span>
-
+        Polylith
       </a>
     </li>
   
@@ -1262,12 +943,7 @@
   
     <li class="md-nav__item">
       <a href="../krell/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Krell
-  </span>
-
+        Krell
       </a>
     </li>
   
@@ -1281,12 +957,7 @@
   
     <li class="md-nav__item">
       <a href="../rebl/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    REBL
-  </span>
-
+        REBL
       </a>
     </li>
   
@@ -1300,12 +971,7 @@
   
     <li class="md-nav__item">
       <a href="../static-only/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Static Calva
-  </span>
-
+        Static Calva
       </a>
     </li>
   
@@ -1319,12 +985,7 @@
   
     <li class="md-nav__item">
       <a href="../parinfer/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Parinfer
-  </span>
-
+        Parinfer
       </a>
     </li>
   
@@ -1341,7 +1002,6 @@
       
       
 
-
   
   
   
@@ -1355,12 +1015,7 @@
       
       
         <label class="md-nav__link" for="__nav_9">
-          
-  
-  <span class="md-ellipsis">
-    Etcetera
-  </span>
-
+          Etcetera
           <span class="md-nav__icon md-icon"></span>
         </label>
       
@@ -1378,12 +1033,7 @@
   
     <li class="md-nav__item">
       <a href="../emacs-keybindings/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Emacs Keybindings
-  </span>
-
+        Emacs Keybindings
       </a>
     </li>
   
@@ -1397,12 +1047,7 @@
   
     <li class="md-nav__item">
       <a href="../workspace-layouts/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Workspace Layouts
-  </span>
-
+        Workspace Layouts
       </a>
     </li>
   
@@ -1416,12 +1061,7 @@
   
     <li class="md-nav__item">
       <a href="../quirks/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Quirks
-  </span>
-
+        Quirks
       </a>
     </li>
   
@@ -1438,7 +1078,6 @@
       
       
 
-
   
   
   
@@ -1452,12 +1091,7 @@
       
       
         <label class="md-nav__link" for="__nav_10">
-          
-  
-  <span class="md-ellipsis">
-    In Depth
-  </span>
-
+          In Depth
           <span class="md-nav__icon md-icon"></span>
         </label>
       
@@ -1475,12 +1109,7 @@
   
     <li class="md-nav__item">
       <a href="../jack-in-guide/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    The Jack-in Academy
-  </span>
-
+        The Jack-in Academy
       </a>
     </li>
   
@@ -1497,7 +1126,6 @@
       
       
 
-
   
   
   
@@ -1511,12 +1139,7 @@
       
       
         <label class="md-nav__link" for="__nav_11">
-          
-  
-  <span class="md-ellipsis">
-    Guides
-  </span>
-
+          Guides
           <span class="md-nav__icon md-icon"></span>
         </label>
       
@@ -1534,12 +1157,7 @@
   
     <li class="md-nav__item">
       <a href="../get-started-with-clojure/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Get Started with Clojure
-  </span>
-
+        Get Started with Clojure
       </a>
     </li>
   
@@ -1556,18 +1174,12 @@
       
       
 
-
   
   
   
     <li class="md-nav__item">
       <a href="../tao/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    The Tao of Calva
-  </span>
-
+        The Tao of Calva
       </a>
     </li>
   
@@ -1576,19 +1188,13 @@
       
       
       
-
 
   
   
   
     <li class="md-nav__item">
       <a href="../contribute/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Contribute to Calva
-  </span>
-
+        Contribute to Calva
       </a>
     </li>
   
@@ -1597,19 +1203,13 @@
       
       
       
-
 
   
   
   
     <li class="md-nav__item">
       <a href="../sponsors/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Calva Sponsors
-  </span>
-
+        Calva Sponsors
       </a>
     </li>
   
@@ -1619,18 +1219,12 @@
       
       
 
-
   
   
   
     <li class="md-nav__item">
       <a href="../merch/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Calva T-shirts!
-  </span>
-
+        Calva T-shirts!
       </a>
     </li>
   
@@ -1648,6 +1242,7 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
+
 
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
@@ -1756,13 +1351,13 @@
             <article class="md-content__inner md-typeset">
               
                 
-<a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/paredit.md" title="Edit this page" class="md-content__button md-icon">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
-</a>
-
-
-
-<h1 id="paredit-a-visual-guide">Paredit – a Visual Guide</h1>
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/paredit.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                
+                <h1 id="paredit-a-visual-guide">Paredit – a Visual Guide</h1>
 <p>Structural editing and navigation for Clojure.</p>
 <h2 id="what-is-paredit">What is Paredit?</h2>
 <p>Calva Paredit helps you navigate, select and edit Clojure code in a structural way. LISP isn't line or character oriented, it is based around <a href="https://en.wikipedia.org/wiki/S-expression">S-expressions</a>, a.k.a forms. We strongly recommend that you take advantage of the structural nature of Clojure, and have therefore put a lot of work into making Calva Paredit extra awesome.</p>
@@ -2112,10 +1707,16 @@
 <p><em>The Nuclear Option</em>: You can choose to disable all default key bindings by configuring <code>calva.paredit.defaultKeyMap</code> to <code>none</code>. (Then you probably also want to register your own shortcuts for the commands you often use.)</p>
 <p>In some instances built-in command defaults are the same as Paredit's defaults, and Paredit's functionality in a particular case is less than what the default is. This is true of <em>Expand Selection</em> and <em>Shrink Selection</em> for Windows/Linux when multiple lines are selected. In this particular case adding <code>!editorHasMultipleSelections</code> to the <code>when</code> clause of the binding makes for a better workflow. The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right <code>when</code> clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.</p>
 <p>Happy Editing! ❤️</p>
-
+                
+                  
   
 
 
+                
+                
+              
+              
+                
 
 
               
@@ -2126,7 +1727,8 @@
         
       </main>
       
-        <footer class="md-footer">
+        
+<footer class="md-footer">
   
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
@@ -2165,15 +1767,16 @@
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
-      <div class="md-copyright">
-  
-  
-    Made with
-    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-      Material for MkDocs Insiders
-    </a>
-  
-</div>
+      <div class="md-footer-copyright">
+        
+        
+          Made with
+          <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+            Material for MkDocs Insiders
+          </a>
+        
+        
+      </div>
       
     </div>
   </div>
@@ -2184,10 +1787,10 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.f7fe2898.min.js"}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.d5944110.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d3a5db87.min.js"></script>
+      <script src="../assets/javascripts/bundle.4b1ed6f7.min.js"></script>
       
     
   </body>
