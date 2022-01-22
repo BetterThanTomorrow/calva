@@ -27,6 +27,13 @@ describe('get text', () => {
             expect(getText.currentTopLevelFunction(a)).toEqual([range, b.model.getText(...range)]);
         });
 
+        it('Finds top level function when function has metadata', () => {
+          const a = docFromTextNotation('(foo bar)•(deftest ^{:some :thing} a-test•  (baz |gaz))');
+          const b = docFromTextNotation('(foo bar)•(deftest ^{:some :thing} |a-test|•  (baz gaz))');
+          const range: [number, number] = [b.selectionLeft, b.selectionRight];
+          expect(getText.currentTopLevelFunction(a)).toEqual([range, b.model.getText(...range)]);
+      });
+
     });
 
     describe('getTopLevelForm', () => {

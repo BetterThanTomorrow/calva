@@ -12,6 +12,8 @@ Changes to Calva.
 ## [2.0.234] - 2022-01-16
 - [Improve LSP startup feedback on status bar](https://github.com/BetterThanTomorrow/calva/pull/1454)
 - [Fix errors in test output when fixtures throw exceptions](https://github.com/BetterThanTomorrow/calva/issues/1456).
+- Fix: [Snippet in custom command doesn't work with function metadata] (https://github.com/BetterThanTomorrow/calva/issues/1463)
+
 
 ## [2.0.233] - 2022-01-07
 - [Add experimental support for Test Explorer](https://github.com/BetterThanTomorrow/calva/issues/953)
