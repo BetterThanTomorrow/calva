@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Continue to support -Aalias for jack-in](https://github.com/BetterThanTomorrow/calva/issues/1474)
 - [Add custom commands from libraries](https://github.com/BetterThanTomorrow/calva/pull/1442)
 - Workaround: [VS Code highlights characters in the output/REPL window prompt](https://github.com/BetterThanTomorrow/calva/pull/1475)
 - [Exclude REPL output window from LSP analysis](https://github.com/BetterThanTomorrow/calva/issues/1250)
