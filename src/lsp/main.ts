@@ -13,7 +13,7 @@ import * as path from 'path';
 import * as state from '../state';
 import { provideHover } from '../providers/hover';
 import { provideSignatureHelp } from '../providers/signature';
-import * as cider from '../nrepl/cider'
+import { isResultsDoc } from '../results-output/results-doc';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
@@ -64,6 +64,24 @@ function createClient(clojureLspPath: string): LanguageClient {
             "keep-require-at-start?": true,
         },
         middleware: {
+            didOpen: async (document, next) => {
+                if (isResultsDoc(document)) {
+                    return;
+                }
+                return next(document);
+            },
+            didSave: async (document, next) => {
+                if (isResultsDoc(document)) {
+                    return;
+                }
+                return next(document);
+            },
+            didChange: async (change, next) => {
+                if (isResultsDoc(change.document)) {
+                    return;
+                }
+                return next(change);
+            },
             provideLinkedEditingRange: async (_document, _position, _token, _next): Promise<vscode.LinkedEditingRanges> => {
                 return null;
             },
@@ -383,7 +401,7 @@ async function activate(context: vscode.ExtensionContext, handler: TestTreeHandl
     if (userConfiguredClojureLspPath === '') {
         const configuredVersion: string = config.getConfig().clojureLspVersion;
         const downloadVersion = ['', 'latest'].includes(configuredVersion) ? await getLatestVersion() : configuredVersion;
-        if (currentVersion !== downloadVersion) {
+        if (currentVersion !== downloadVersion && downloadVersion !== '') {
             const downloadPromise = downloadClojureLsp(context.extensionPath, downloadVersion);
             lspStatus.text = '$(sync~spin) Downloading clojure-lsp';
             lspStatus.show();

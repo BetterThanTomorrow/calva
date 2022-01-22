@@ -4,6 +4,14 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.235] - 2022-01-22
+- [Continue to support -Aalias for jack-in](https://github.com/BetterThanTomorrow/calva/issues/1474)
+- [Add custom commands from libraries](https://github.com/BetterThanTomorrow/calva/pull/1442)
+- [Clojure-lsp not starting when offline](https://github.com/BetterThanTomorrow/calva/issues/1299)
+- Workaround: [VS Code highlights characters in the output/REPL window prompt](https://github.com/BetterThanTomorrow/calva/pull/1475)
+- [Exclude REPL output window from LSP analysis](https://github.com/BetterThanTomorrow/calva/issues/1250)
+- Fix: [Snippet in custom command doesn't work with function metadata] (https://github.com/BetterThanTomorrow/calva/issues/1463)
+
 ## [2.0.234] - 2022-01-16
 - [Improve LSP startup feedback on status bar](https://github.com/BetterThanTomorrow/calva/pull/1454)
 - [Fix errors in test output when fixtures throw exceptions](https://github.com/BetterThanTomorrow/calva/issues/1456).

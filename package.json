@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.234",
+    "version": "2.0.235",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -118,7 +118,11 @@
                 "files.trimTrailingWhitespace": false,
                 "editor.matchBrackets": "never",
                 "editor.guides.indentation": false,
-                "editor.parameterHints.enabled": false
+                "editor.parameterHints.enabled": false,
+                "editor.unicodeHighlight.allowedCharacters": {
+                    " ": true,
+                    "꞉": true
+                }            
             }
         },
         "semanticTokenScopes": [
@@ -326,6 +330,11 @@
                     },
                     "calva.customCljsRepl": {
                         "deprecationMessage": "This settings is deprecated. Use `cljsType` in a `calva.replConnectSequences` item instead."
+                    },
+                    "calva.jackIn.useDeprecatedAliasFlag": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "Use the `-A` flag instead of `-M` for Clojure CLI versions < `1.10.697`."
                     },
                     "calva.jackInEnv": {
                         "type": "object",
