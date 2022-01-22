@@ -401,7 +401,7 @@ async function activate(context: vscode.ExtensionContext, handler: TestTreeHandl
     if (userConfiguredClojureLspPath === '') {
         const configuredVersion: string = config.getConfig().clojureLspVersion;
         const downloadVersion = ['', 'latest'].includes(configuredVersion) ? await getLatestVersion() : configuredVersion;
-        if (currentVersion !== downloadVersion) {
+        if (currentVersion !== downloadVersion && downloadVersion !== '') {
             const downloadPromise = downloadClojureLsp(context.extensionPath, downloadVersion);
             lspStatus.text = '$(sync~spin) Downloading clojure-lsp';
             lspStatus.show();
