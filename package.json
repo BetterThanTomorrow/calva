@@ -1708,7 +1708,7 @@
             },
             {
                 "command": "calva.toggleEvaluationSendCodeToOutputWindow",
-                "key": "ctrl+alt+o ctrl+s",
+                "key": "ctrl+alt+o s",
                 "when": "editorLangId == clojure && calva:keybindingsEnabled"
             },
             {
