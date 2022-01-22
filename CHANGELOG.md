@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.235] - 2022-01-22
 - [Continue to support -Aalias for jack-in](https://github.com/BetterThanTomorrow/calva/issues/1474)
 - [Add custom commands from libraries](https://github.com/BetterThanTomorrow/calva/pull/1442)
 - [Clojure-lsp not starting when offline](https://github.com/BetterThanTomorrow/calva/issues/1299)
