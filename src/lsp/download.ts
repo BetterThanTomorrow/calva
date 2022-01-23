@@ -9,7 +9,6 @@ import * as extractZip from 'extract-zip';
 async function getLatestVersion(): Promise<string> {
     try {
         const releasesJSON = await util.fetchFromUrl('https://api.github.com/repos/clojure-lsp/clojure-lsp/releases');
-        console.log("loaded latest Json" + releasesJSON);
         const releases = JSON.parse(releasesJSON);
         return releases[0].tag_name;
     } catch (err) {
