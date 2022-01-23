@@ -299,11 +299,6 @@ const generalCommands = [
         handler: codeLensReferencesHandler
     },
     {
-        // The title of this command is dictated by clojure-lsp and is executed when the user executes the Resolve Macro As code action
-        name: RESOLVE_MACRO_AS_COMMAND,
-        handler: resolveMacroAsCodeActionCommandHandler
-    },
-    {
         name: 'calva.linting.resolveMacro',
         handler: resolveMacroAsCommandHandler
     }
