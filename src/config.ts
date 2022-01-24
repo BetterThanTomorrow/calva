@@ -93,6 +93,7 @@ function getConfig() {
         customREPLCommandSnippetsWorkspace: commands,
         customREPLCommandSnippetsWorkspaceFolder: configOptions.inspect("customREPLCommandSnippets").workspaceFolderValue as customREPLCommandSnippet[],
         prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions,
+        evaluationSendCodeToOutputWindow: configOptions.get("evaluationSendCodeToOutputWindow") as boolean,
         enableJSCompletions: configOptions.get("enableJSCompletions") as boolean,
         autoOpenREPLWindow: configOptions.get("autoOpenREPLWindow") as boolean,
         autoOpenJackInTerminal: configOptions.get("autoOpenJackInTerminal") as boolean,

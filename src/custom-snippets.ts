@@ -98,6 +98,13 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
         replace(/\$top-level-defined-symbol/g, getText.currentTopLevelFunction(editor)[1]).
         replace(/\$head/g, getText.toStartOfList(editor)[1]).
         replace(/\$tail/g, getText.toEndOfList(editor)[1]);
-    await evaluate.evaluateInOutputWindow(interpolatedCode, repl, ns);
+
+    const options = {};
+
+    if (pick !== undefined) {
+        options['evaluationSendCodeToOutputWindow'] = snippetsDict[pick].evaluationSendCodeToOutputWindow;
+    }
+
+    await evaluate.evaluateInOutputWindow(interpolatedCode, repl, ns, options);
     outputWindow.appendPrompt();
 }
