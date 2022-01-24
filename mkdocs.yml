@@ -21,13 +21,13 @@ repo_url: https://github.com/BetterThanTomorrow/calva
 edit_uri: edit/published/docs/site
 strict: true
 plugins:
-  - search:
-      separator: '[\s\-\._]'
-  - social:
-      cards: !ENV [MKDOCS_SOCIAL_CARDS, false]
-      cards_color:
-        fill: "#db9550"
-        text: "#fafafa"
+ - search:
+     separator: '[\s\-\._]'
+ - social:
+     cards: !ENV [MKDOCS_SOCIAL_CARDS, false]
+     cards_color:
+       fill: "#db9550"
+       text: "#fafafa"
 markdown_extensions:
   - meta
   - attr_list
@@ -79,10 +79,11 @@ nav:
     - rebl.md
     - static-only.md
     - parinfer.md
-  - Etcetera:
+  - Tips and Tricks:
     - emacs-keybindings.md
     - workspace-layouts.md
     - quirks.md
+    - async-out.md
   - In Depth:
     - jack-in-guide.md
   - Guides:
