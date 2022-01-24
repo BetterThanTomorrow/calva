@@ -2,6 +2,7 @@
     "restructuredtext.confPath": "${workspaceFolder}\\docs\\readthedocs\\source",
     "mochaExplorer.files": "src/extension-test/unit/**/*-test.ts",
     "mochaExplorer.require": "ts-node/register",
+    "testExplorer.useNativeTesting": true,
     "cSpell.words": [
         "ahlbrecht",
         "alnum",
