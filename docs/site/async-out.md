@@ -14,5 +14,4 @@ When working on Node projects with `shadow-cljs` and Calva, async output does no
 
 If you use an integrated VSCode terminal to start shadow-cljs, all `stdut` will appear in the Calva window with your code. Alternatively, you can use an external terminal, which is especially nice when using a second monitor.
 
-
 For discussion of this problem and other connection options, see issue #1468.
