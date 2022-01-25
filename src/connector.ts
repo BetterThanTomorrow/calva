@@ -96,7 +96,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
 
         if (connectSequence.afterCLJReplJackInCode) {
             outputWindow.append(`\n; Evaluating 'afterCLJReplJackInCode'`);
-            await evaluate.evaluateInOutputWindow(connectSequence.afterCLJReplJackInCode, 'clj', outputWindow.getNs());
+            await evaluate.evaluateInOutputWindow(connectSequence.afterCLJReplJackInCode, 'clj', outputWindow.getNs(), {});
         }
 
         outputWindow.appendPrompt();
