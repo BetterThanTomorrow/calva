@@ -30,7 +30,7 @@ class TestTreeFeature implements StaticFeature {
     }
 
     fillClientCapabilities(capabilities: ClientCapabilities): void {
-        capabilities.experimental = {testTree: true };
+        capabilities.experimental = { testTree: true };
     }
 
     dispose(): void {
@@ -110,7 +110,7 @@ function createClient(clojureLspPath: string): LanguageClient {
                 let hover: vscode.Hover;
                 try {
                     hover = await provideHover(document, position);
-                } catch (e) {}
+                } catch (e) { }
 
                 if (hover) {
                     return null;
@@ -256,39 +256,12 @@ async function codeLensReferencesHandler(_, line, character): Promise<void> {
     await vscode.commands.executeCommand('editor.action.referenceSearch.trigger');
 }
 
-
-async function resolveMacroAsCodeActionCommandHandler(document: string, line: number, character: number): Promise<void> {
-    const macroToResolveAs = await vscode.window.showQuickPick([
-        'clojure.core/def',
-        'clojure.core/defn',
-        'clojure.core/let',
-        'clojure.core/for',
-        'clojure.core/->',
-        'clojure.core/->>',
-        'clj-kondo.lint-as/def-catch-all'
-    ]);
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    const rootWorkspaceFolder = workspaceFolders && workspaceFolders[0];
-    const homeDirectory = os.homedir();
-    const cljKondoUserConfig = path.join(homeDirectory, '.config', 'clj-kondo', 'config.edn');
-    const configPaths = [cljKondoUserConfig];
-    if (rootWorkspaceFolder) {
-        const cljKondoProjectConfig = path.join(rootWorkspaceFolder.uri.fsPath, '.clj-kondo', 'config.edn');
-        configPaths.push(cljKondoProjectConfig);
-    }
-    const cljKondoConfigPath = await vscode.window.showQuickPick(configPaths, { placeHolder: 'Select where this setting should be saved:' });
-    if (macroToResolveAs && cljKondoConfigPath) {
-        const args = [document, line, character, macroToResolveAs, cljKondoConfigPath];
-        sendCommandRequest(RESOLVE_MACRO_AS_COMMAND, args);
-    }
-}
-
 function resolveMacroAsCommandHandler(): void {
     const activeTextEditor = vscode.window.activeTextEditor;
     if (activeTextEditor && activeTextEditor.document && activeTextEditor.document.languageId === 'clojure') {
         const documentUri = decodeURIComponent(activeTextEditor.document.uri.toString());
         const { line, character } = activeTextEditor.selection.active;
-        resolveMacroAsCodeActionCommandHandler(documentUri, line + 1, character + 1);
+        sendCommandRequest(RESOLVE_MACRO_AS_COMMAND, [documentUri, line + 1, character + 1]);
     }
 }
 
@@ -299,12 +272,7 @@ const generalCommands = [
         handler: codeLensReferencesHandler
     },
     {
-        // The title of this command is dictated by clojure-lsp and is executed when the user executes the Resolve Macro As code action
-        name: RESOLVE_MACRO_AS_COMMAND,
-        handler: resolveMacroAsCodeActionCommandHandler
-    },
-    {
-        name: 'calva.linting.resolveMacro',
+        name: 'calva.linting.resolveMacroAs',
         handler: resolveMacroAsCommandHandler
     }
 ];
@@ -344,7 +312,7 @@ async function startClient(clojureLspPath: string, context: vscode.ExtensionCont
     const client = createClient(clojureLspPath);
     console.log('Starting clojure-lsp at', clojureLspPath);
 
-    const testTree : StaticFeature = new TestTreeFeature();
+    const testTree: StaticFeature = new TestTreeFeature();
     client.registerFeature(testTree);
 
     const onReadyPromise = client.onReady();

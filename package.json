@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.235",
+    "version": "2.0.236",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -122,7 +122,7 @@
                 "editor.unicodeHighlight.allowedCharacters": {
                     " ": true,
                     "꞉": true
-                }            
+                }
             }
         },
         "semanticTokenScopes": [
@@ -245,6 +245,11 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Run load-file when opening a new file and on file save"
+                    },
+                    "calva.evaluationSendCodeToOutputWindow": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Also send evaluated code to the REPL Window"
                     },
                     "calva.testOnSave": {
                         "type": "boolean",
@@ -820,6 +825,12 @@
             {
                 "command": "calva.togglePrettyPrint",
                 "title": "Toggle Pretty Printing for All Evaluations",
+                "category": "Calva",
+                "enablement": "calva:connected"
+            },
+            {
+                "command": "calva.toggleEvaluationSendCodeToOutputWindow",
+                "title": "Toggle also sending evaluated code to the REPL Window",
                 "category": "Calva",
                 "enablement": "calva:connected"
             },
@@ -1656,7 +1667,7 @@
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
-                "command": "calva.evaluateCurrentTopLevelForm",
+                "command": "calva.evaluateOutputWindowForm",
                 "key": "enter",
                 "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
             },
@@ -1693,6 +1704,11 @@
             {
                 "command": "calva.togglePrettyPrint",
                 "key": "ctrl+alt+c p",
+                "when": "editorLangId == clojure && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.toggleEvaluationSendCodeToOutputWindow",
+                "key": "ctrl+alt+o s",
                 "when": "editorLangId == clojure && calva:keybindingsEnabled"
             },
             {
@@ -2508,6 +2524,11 @@
                 {
                     "when": "editorLangId == clojure && calva:showReplUi",
                     "command": "calva.togglePrettyPrint",
+                    "group": "calva/b-eval"
+                },
+                {
+                    "when": "editorLangId == clojure && calva:showReplUi",
+                    "command": "calva.toggleEvaluationSendCodeToOutputWindow",
                     "group": "calva/b-eval"
                 },
                 {
