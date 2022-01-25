@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+Fix: [Exception thrown when registering "resolve-macro-as" command](https://github.com/BetterThanTomorrow/calva/issues/1495)
 - [Show code eval in repl option](https://github.com/BetterThanTomorrow/calva/issues/1465)
 
 ## [2.0.235] - 2022-01-22
