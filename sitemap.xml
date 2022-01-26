@@ -2,247 +2,247 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://calva.io/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/async-out/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/babashka/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/clojure-lsp/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/clojuredocs/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/commands-top10/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/connect-sequences/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/connect/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/contribute/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/custom-commands/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/customizing/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/debugger/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/emacs-keybindings/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/eval-tips/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/evaluation/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/finding-commands/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/formatting/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/get-started-with-clojure/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/getting-started/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/jack-in-guide/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/krell/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/linting/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/live-share/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/luminus/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/merch/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/namespace-form-auto-creation/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/nbb/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/nrepl_and_cider-nrepl/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/output/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/paredit/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/parinfer/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/polylith/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/pprint/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/quirks/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/re-frame-template/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/rebl/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/refactoring/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/remote-development/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/reveal/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/rich-comments/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/sponsors/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/static-only/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/tao/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/test-runner/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/try-first/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/vim/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/why-calva/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/workspace-layouts/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://calva.io/wsl/</loc>
-         <lastmod>2022-01-25</lastmod>
+         <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
