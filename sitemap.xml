@@ -6,11 +6,6 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://calva.io/async-out/</loc>
-         <lastmod>2022-01-26</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://calva.io/babashka/</loc>
          <lastmod>2022-01-26</lastmod>
          <changefreq>daily</changefreq>
