@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import Analytics from './analytics';
 import * as util from './utilities';
+import * as filesCache from './files-cache'
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
@@ -151,14 +152,20 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
     }
 }
 
-async function findLocalProjectRoot(projectFileNames, doc, workspaceFolder): Promise<void> {
+function isNamespace(path: string): boolean {
+    const content = filesCache.content(path);
+    const hasNsDecl = /^\(ns /.test(content);
+    return hasNsDecl;
+}
+
+async function findLocalProjectRoot(projectFileNames: string[], doc: vscode.TextDocument, workspaceFolder: vscode.WorkspaceFolder): Promise<void> {
     if (workspaceFolder) {
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
         setStateValue(PROJECT_DIR_KEY, rootPath);
         setStateValue(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
 
-        let d = null;
-        let prev = null;
+        let d: string = null;
+        let prev: string = null;
         if (doc && path.dirname(doc.uri.fsPath) !== '.') {
             d = path.dirname(doc.uri.fsPath);
         } else {
@@ -167,7 +174,7 @@ async function findLocalProjectRoot(projectFileNames, doc, workspaceFolder): Pro
         while (d !== prev) {
             for (let projectFile in projectFileNames) {
                 const p = path.resolve(d, projectFileNames[projectFile]);
-                if (fs.existsSync(p)) {
+                if (fs.existsSync(p) && !isNamespace(p)) {
                     rootPath = d;
                     break;
                 }
@@ -203,8 +210,10 @@ async function findProjectRootUri(projectFileNames, doc, workspaceFolder): Promi
                     const u = vscode.Uri.joinPath(searchUri, projectFileNames[projectFile]);
                     try {
                         await vscode.workspace.fs.stat(u);
-                        setStateValue(PROJECT_DIR_URI_KEY, searchUri);
-                        return;
+                        if (!isNamespace(u.fsPath)) {
+                            setStateValue(PROJECT_DIR_URI_KEY, searchUri);
+                            return;
+                        }
                     }
                     catch { }
                 }
