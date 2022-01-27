@@ -51,7 +51,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
     // passed options overwrite config options
     const evaluationSendCodeToOutputWindow = (options.evaluationSendCodeToOutputWindow === undefined || options.evaluationSendCodeToOutputWindow === true)
         && getConfig().evaluationSendCodeToOutputWindow;
-    const addToHistory = evaluationSendCodeToOutputWindow;
+    const addToHistory = options.addToHistory === true || evaluationSendCodeToOutputWindow;
     const line = options.line;
     const column = options.column;
     const filePath = options.filePath;
@@ -239,7 +239,8 @@ function evaluateOutputWindowForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
         pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: getText.currentTopLevelFormText,
-        evaluationSendCodeToOutputWindow: false
+        evaluationSendCodeToOutputWindow: false,
+        addToHistory: true
     })).catch(printWarningForError);
 }
 
