@@ -84,6 +84,7 @@ nav:
     - workspace-layouts.md
     - quirks.md
     - async-out.md
+    - clj-java-decompiler.md
   - In Depth:
     - jack-in-guide.md
   - Guides:
