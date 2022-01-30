@@ -6,12 +6,12 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="How Calva supports and promotes a Rich Comments powered workflow. The REPL is not a prompt!">
+        <meta name="description" content="Tips on using Calva to create Node scripts using shadow-cljs">
       
       
       
       
-        <link rel="canonical" href="https://calva.io/rich-comments/">
+        <link rel="canonical" href="https://calva.io/async-out/">
       
       
         
@@ -21,7 +21,7 @@
     
     
       
-        <title>Rich Comments Support - Calva User Guide</title>
+        <title>Viewing Async Output with Shadow-CLJS and Node - Calva User Guide</title>
       
     
     
@@ -86,7 +86,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#rich-comments-support" class="md-skip">
+        <a href="#viewing-async-output-while-working-on-node-projects-with-shadow-cljs" class="md-skip">
           Skip to content
         </a>
       
@@ -118,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Rich Comments Support
+              Viewing Async Output with Shadow-CLJS and Node
             
           </span>
         </div>
@@ -366,14 +366,12 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
       
       
       
@@ -422,114 +420,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Rich Comments Support
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../rich-comments/" class="md-nav__link">
         Rich Comments Support
       </a>
-      
-        
-
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#things-in-comment-are-not-evaluated" class="md-nav__link">
-    Things in comment are not evaluated
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#calva-encourages-rich-comments" class="md-nav__link">
-    Calva encourages Rich comments
-  </a>
-  
-    <nav class="md-nav" aria-label="Calva encourages Rich comments">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#comment-is-top-level" class="md-nav__link">
-    comment is top-level
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#special-formatting" class="md-nav__link">
-    Special formatting
-  </a>
-  
-    <nav class="md-nav" aria-label="Special formatting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#thinking-space-is-kept" class="md-nav__link">
-    Thinking space is kept
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#fold-when-done" class="md-nav__link">
-    Fold when done
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#enabled-by-default" class="md-nav__link">
-    Enabled by default
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#only-for-the-current-form" class="md-nav__link">
-    Only for the Current Form
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -990,12 +885,14 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9" type="checkbox" id="__nav_9" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9" type="checkbox" id="__nav_9" checked>
       
       
       
@@ -1058,11 +955,21 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../async-out/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Viewing Async Output with Shadow-CLJS and Node
       </a>
+      
     </li>
   
 
@@ -1265,82 +1172,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#things-in-comment-are-not-evaluated" class="md-nav__link">
-    Things in comment are not evaluated
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#calva-encourages-rich-comments" class="md-nav__link">
-    Calva encourages Rich comments
-  </a>
-  
-    <nav class="md-nav" aria-label="Calva encourages Rich comments">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#comment-is-top-level" class="md-nav__link">
-    comment is top-level
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#special-formatting" class="md-nav__link">
-    Special formatting
-  </a>
-  
-    <nav class="md-nav" aria-label="Special formatting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#thinking-space-is-kept" class="md-nav__link">
-    Thinking space is kept
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#fold-when-done" class="md-nav__link">
-    Fold when done
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#enabled-by-default" class="md-nav__link">
-    Enabled by default
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#only-for-the-current-form" class="md-nav__link">
-    Only for the Current Form
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1351,106 +1182,22 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/rich-comments.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/async-out.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
                 
-                <h1 id="rich-comments-support">Rich Comments Support</h1>
-<p>Why bother with <strong>Rich comments</strong>? Read on. Consider watching <a href="https://www.youtube.com/watch?v=d0K1oaFGvuQ">this Youtube video</a> for a demo of the workflow using the (in?)famous FizzBuzz problem as an example.</p>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/d0K1oaFGvuQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
-<h2 id="things-in-comment-are-not-evaluated">Things in <code>comment</code> are not evaluated</h2>
-<p>The Clojure <code>comment</code> macro is defined like so:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defmacro </span><span class="nv">comment</span>
-  <span class="s">&quot;Ignores body, yields nil&quot;</span>
-  <span class="p">{</span><span class="ss">:added</span> <span class="s">&quot;1.0&quot;</span><span class="p">}</span>
-  <span class="p">[</span><span class="o">&amp;</span> <span class="nv">body</span><span class="p">])</span>
-</code></pre></div>
-<p>It has no forms in its body and will therefore always (as long as the Clojure Reader can read it) evaluate to <code>nil</code>. That is: <em>nothing in the <code>(comment ...)</code> form will get evaluated when the file is loaded</em>.</p>
-<p>This makes it a very good ”place” where you can develop code, experiment with code, and keep example code. Since you will be able to load/evaluate the current file without worrying that the code in the <code>comment</code> form will get evaluated. This also holds true when using tools that hot-reload the code on save, such as <a href="https://figwheel.org">Figwheel</a>, <a href="https://github.com/thheller/shadow-cljs">shadow-cljs</a> and <a href="https://calva.io/krell/">Krell</a>.</p>
-<p>To develop or refine a function you might:</p>
+                <h1 id="viewing-async-output-while-working-on-node-projects-with-shadow-cljs">Viewing Async Output While Working On Node Projects with <code>shadow-cljs</code></h1>
+<p>When working on Node projects with <code>shadow-cljs</code> and Calva, async output does not always appear in the Calva output window. To work around this problem, follow these steps:</p>
 <ol>
-<li>Open up a <code>(comment ...)</code> form</li>
-<li>Inside this form, type a first, super simple, version (or refinement) of your function and evaluate it</li>
-<li>Inside the same <code>comment</code> form, type some code to test your function and evaluate that<ul>
-<li>Or type and evaluate some code you might need for your function</li>
-</ul>
-</li>
-<li>Repeat from <em>2.</em>, until the function does what you want it to do</li>
-<li>Move the function definition out of the <code>comment</code> form</li>
-<li>Clean up the <code>comment</code> form to keep some of the test code as example use, or ”design decision log” for the function.</li>
+<li>In a terminal run <code>npx shadow-cljs -d cider/cider-nrepl:0.27.4 node-repl</code></li>
+<li>Wait for the message <code>shadow-cljs - nREPL server started on port &lt;some-port&gt;</code></li>
+<li>Issue the command <strong>Calva: Connect to a running REPL server in your project</strong>, <code>ctrl+alt+c ctrl+alt+c</code>. For project type select <code>shadow-cljs</code>, accepted the proposed <code>localhost:&lt;some-port&gt;</code>, and for <code>build</code> select <code>node-repl</code>.</li>
+<li>Load a file from your project with the command <code>ctrl+alt+c Enter.</code> Evaluating forms in Calva will show results in the output window. Synchronous <code>stdout</code> ouput will be printed in both the output window and in the terminal where you started the repl. Some asynchronous output may show up in the output window, but all will appear in the terminal.</li>
 </ol>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Using <code>(comment ...)</code> forms for developing code is very common among Clojure coders. Rich Hickey is known for using it, which is why they are called <strong>Rich comments</strong> to begin with (even if it also is a very rich experience).</p>
-</div>
-<h2 id="calva-encourages-rich-comments">Calva encourages Rich comments</h2>
-<p>Calva has several features to facilitate the Rich comments workflow, e.g.</p>
-<ol>
-<li>A command that helps you create a new Rich comment form quickly: <strong>Calva: Add Rich Comment</strong>, <kbd>ctrl+alt+r c</kbd></li>
-<li>Special <a href="../customizing/#calva-highlight">Syntax highlight</a>. By default <code>comment</code> forms are rendered in <em>italics</em></li>
-<li>Special <a href="../evaluation/#current-top-level-form">top-level form</a> context</li>
-<li>Special formatting</li>
-</ol>
-<h3 id="comment-is-top-level"><code>comment</code> is top-level</h3>
-<p>To make it easy to evaluate forms in <code>(comment ...)</code> forms, they create a new top-level context. Instead of you having to place the cursor with precision before evaluating the <strong>current form</strong>, you can have the cursor anywhere within a <code>comment</code> enclosed form and <a href="../evaluation/#current-top-level-form"><strong>Evaluate Top-Level Form</strong></a>.</p>
-<p>This carries over to all commands in Calva which deal with the top level form. Including <a href="../custom-commands/">custom command snippets</a>.</p>
-<h3 id="special-formatting">Special formatting</h3>
-<p>To invite a <strong>Rich comments</strong> workflow, the Calva command <strong>Format Current Form</strong> will not fold the closing bracket of the <code>(comment ...)</code> form. Instead it will place this bracket on a line of its own (or keep it there).</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">)</span>
-</code></pre></div>
-<p>With the cursor somewhere directly inside the comment form (denoted with a <code>|</code>):</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="ss">:foo</span><span class="p">)</span><span class="nv">|</span><span class="p">)</span>
-</code></pre></div>
-<p><kbd>tab</kbd></p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-    <span class="ss">:foo</span><span class="p">)</span>
-  <span class="nv">|</span><span class="p">)</span>
-</code></pre></div>
-<h4 id="thinking-space-is-kept">Thinking space is kept</h4>
-<p>The formatter will not remove newlines between the cursor and the closing bracket. So if you have entered a few lines to get ”thinking” room:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="ss">:foo</span><span class="p">)</span>
-
-<span class="nv">|</span>
-
-<span class="p">)</span>
-</code></pre></div>
-<p><kbd>tab</kbd></p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-    <span class="ss">:foo</span><span class="p">)</span>
-
-  <span class="nv">|</span>
-
-  <span class="p">)</span>
-</code></pre></div>
-<h4 id="fold-when-done">Fold when done</h4>
-<p>To fold the trailing paren automatically, place the cursor immediately outside (before or after) the form:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="ss">:foo</span><span class="p">))</span><span class="nv">|</span>
-</code></pre></div>
-<p><kbd>tab</kbd></p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-    <span class="ss">:foo</span><span class="p">))</span><span class="nv">|</span>
-</code></pre></div>
-<h4 id="enabled-by-default">Enabled by default</h4>
-<p>You can disable this behavior with the setting: <code>calva.fmt.keepCommentTrailParenOnOwnLine</code>.</p>
-<p>But why would you? It is awesome! 😄</p>
-<h4 id="only-for-the-current-form">Only for the Current Form</h4>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This treatment only applies to formatting of <a href="../evaluation/#current-form">the current form</a>. With <a href="#fold-when-done">fold when done</a> as an exception.</p>
-</div>
+<p>If you use an integrated VSCode terminal to start shadow-cljs, all <code>stdout</code> will appear in the Calva window with your code. Alternatively, you can use an external terminal, which is especially nice when using a second monitor.</p>
+<p>For discussion of this problem and other connection options, see issue #1468.</p>
                 
                   
   
@@ -1477,7 +1224,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../evaluation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Evaluate Clojure Code" rel="prev">
+        <a href="../quirks/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Quirks" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1486,20 +1233,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Evaluate Clojure Code
+              Quirks
             </div>
           </div>
         </a>
       
       
         
-        <a href="../clojuredocs/" class="md-footer__link md-footer__link--next" aria-label="Next: ClojureDocs Integration" rel="next">
+        <a href="../clj-java-decompiler/" class="md-footer__link md-footer__link--next" aria-label="Next: Add custom commands for decompiling generated Clojure code" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              ClojureDocs Integration
+              Add custom commands for decompiling generated Clojure code
             </div>
           </div>
           <div class="md-footer__button md-icon">
