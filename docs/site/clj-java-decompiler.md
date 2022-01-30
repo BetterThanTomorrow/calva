@@ -9,7 +9,7 @@ If you need some piece of Clojure code to execute as fast as possible you will o
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/sPP4LCpBic8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-## Prerequistes
+## Prerequisites
 
 Add `com.clojure-goes-fast/clj-java-decompiler` as a dependency to the project.
 
