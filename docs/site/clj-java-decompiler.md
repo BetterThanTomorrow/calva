@@ -40,8 +40,8 @@ You can add some Calva custom commands configuration to be able to decompile or 
     ],
 ```
 
-Now, with the cursor anywhere in a top level defined function, you can spit out a file with the Java code generated for that function by pressing `ctrl+alt+space d`. For the byte code, press `ctrl+alt+space b`.
+Now, with the cursor anywhere in a top level defined function, you can spit out a file with the Java code generated for that function by pressing `ctrl+alt+space d`. For the byte code, press `ctrl+alt+space b`. The files will be generated in the same folder as the Clojure file and be named `decompiled-<function name>.java` and `bytecode-<function name>.class`, respectively. 
 
-To decompile or disassemble the current form (or selection) press `ctrl+alt+space space` and pick the desired command from the quick pick menu that pops up. You can add `key` to these too if you want even quicker access, of course.
+To decompile or disassemble the current form (or selection) press `ctrl+alt+space space` and pick the desired command from the quick pick menu that pops up. You can add `key` to these too if you want even quicker access, of course. The filenames for the results will here be named without any function name suffix, because there is often no function name that can be used.
 
 See [this video](https://www.youtube.com/watch?v=sPP4LCpBic8) for a demo.
