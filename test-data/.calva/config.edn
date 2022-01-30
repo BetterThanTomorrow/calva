@@ -1,0 +1,6 @@
+{
+ :customHoverSnippets
+ [{:name "edn hover"
+   :snippet "(str $hover-text)"}]
+ }
+

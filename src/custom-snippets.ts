@@ -123,15 +123,26 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
         ns,
         repl,
         selection: editor.document.getText(editor.selection),
-        currentForm: getText.currentFormText(editor)[1],
-        enclosingForm: getText.currentEnclosingFormText(editor)[1],
-        topLevelForm: getText.currentTopLevelFormText(editor)[1],
-        currentFn: getText.currentFunction(editor)[1],
-        topLevelDefinedForm: getText.currentTopLevelFunction(editor)[1],
-        head: getText.toStartOfList(editor)[1],
-        tail: getText.toEndOfList(editor)[1],
+        currentForm: getText.currentFormText(
+            editor?.document,
+            editor?.selection.active
+        )[1],
+        enclosingForm: getText.currentEnclosingFormText(
+            editor.document,
+            editor?.selection.active
+        )[1],
+        topLevelForm: getText.currentTopLevelFormText(
+            editor?.document,
+            editor?.selection.active
+        )[1],
+        currentFn: getText.currentFunction(editor?.document)[1],
+        topLevelDefinedForm: getText.currentTopLevelFunction(
+            editor?.document
+        )[1],
+        head: getText.toStartOfList(editor?.document)[1],
+        tail: getText.toEndOfList(editor?.document)[1],
     };
-    const result = await evaluateSnippet({ snippet: code }, context, options);
+    let result = await evaluateSnippet({ snippet: code }, context, options);
 
     outputWindow.appendPrompt();
 

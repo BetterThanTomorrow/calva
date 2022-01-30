@@ -44,20 +44,25 @@ export async function provideHover(
                 hoverFilename: document.fileName,
             };
 
-            await Promise.all(
-                customHoverSnippets.map(async (snippet) => {
+            await Promise.all(customHoverSnippets.map(async snippet => {
+                try {
                     const text = await evaluateSnippet(snippet, context, {
                         evaluationSendCodeToOutputWindow: false,
+                        showErrorMessage: false,
+                        showResult: false
                     });
-
+                
                     if (text) {
                         const hover = new vscode.MarkdownString();
                         hover.isTrusted = true;
                         hover.appendMarkdown(text);
                         hovers.push(hover);
-                    }
-                })
-            );
+                    }    
+                } catch (error) {
+                    console.log("custom hover exploded");                    
+                }
+                            
+            }));
             if (hovers.length) {
                 return new vscode.Hover(hovers);
             }
