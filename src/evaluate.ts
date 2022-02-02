@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as state from './state';
 import annotations from './providers/annotations';
 import * as path from 'path';
+import * as fs from 'fs';
 import * as util from './utilities';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
@@ -15,6 +16,8 @@ import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
+import * as projectRoot from './project-root';
+import { file } from 'jszip';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
@@ -324,6 +327,37 @@ async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
     }
 }
 
+function shouldLoadFile(file) {
+    if ((file.endsWith('clj') || file.endsWith('cljs')) && !file.endsWith('project.clj')) {
+        return true
+    }
+    return false
+}
+
+function walkSync(dir, callback) {
+    const files = fs.readdirSync(dir);
+    files.forEach((file) => {
+        var filepath = path.join(dir, file);
+        const stats = fs.statSync(filepath);
+        if (stats.isDirectory()) {
+            walkSync(filepath, callback);
+        } else if (stats.isFile()) {
+            callback(filepath, stats);
+        }
+    });
+}
+
+async function loadFilesFromDirectory(document, pprintOptions: PrettyPrintingOptions) {
+    const projectRootUri = await projectRoot.getProjectRootUri();
+    const projectRootPath = projectRootUri.fsPath;
+    const directory = await vscode.window.showInputBox({ prompt: 'Enter the directory from which you want to load all the files',
+                                                         value: projectRootPath });
+    
+    walkSync(directory, async (file) => {
+        if (shouldLoadFile(file))
+            await loadFile({ fileName: file, languageId: 'clojure', uri: vscode.Uri.file(file) }, pprintOptions)})
+}
+
 async function evaluateUser(code: string) {
     const fileType = util.getFileType(util.getDocument({})),
         session = replSession.getSession(fileType);
@@ -443,6 +477,7 @@ export type customREPLCommandSnippet = {
 export default {
     interruptAllEvaluations,
     loadFile,
+    loadFilesFromDirectory,
     evaluateCurrentForm,
     evaluateEnclosingForm,
     evaluateTopLevelForm,
