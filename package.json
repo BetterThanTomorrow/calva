@@ -427,6 +427,45 @@
                             ]
                         }
                     },
+                    "calva.customREPLHoverSnippets": {
+                        "type": "array",
+                        "default": [],
+                        "description": "Configuration for snippets that get called on hover",
+                        "$schema": "http://json-schema.org/draft-06/schema#",
+                        "items": {
+                            "title": "replHover",
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "markDownDescription": "The name of the snippet will show inside the hover text."
+                                },
+                                "snippet": {
+                                    "type": [
+                                        "string",
+                                        "array"
+                                    ],
+                                    "description": "Snippet to send to the REPL"
+                                },
+                                "ns": {
+                                    "type": "string",
+                                    "description": "(optional) Namespace to evaluate the snippet in. If omitted the snippet will be executed in the namespace of the current file."
+                                },
+                                "repl": {
+                                    "type": "string",
+                                    "description": "Choose which REPL should the code should be evaluated in. If omitted, the same REPL as for the current file will be used.",
+                                    "enum": [
+                                        "clj",
+                                        "cljs"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "snippet"
+                            ]
+                        }
+                    },
                     "calva.myLeinProfiles": {
                         "type": "array",
                         "description": "At Jack in, any profiles listed here will be added to the profiles found in the `project.clj` file.",
