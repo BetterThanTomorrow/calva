@@ -1,10 +1,10 @@
 {
- :customHoverSnippets
+ :customREPLHoverSnippets
  [{:name "edn hover symbol"
    :snippet "(str $hover-text)"}
   {:name "edn hover hover-current-form"
    :snippet "(str \"$hover-current-form\")"}
   {:name "edn hover current-form"
-   :snippet "(str \"current-form\")"}]
+   :snippet "(str \"$current-form\")"}]
  }
 

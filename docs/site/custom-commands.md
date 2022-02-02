@@ -99,7 +99,8 @@ There are three ways to bind shortcuts to custom commands:
 
 ## Custom REPL hover snippets
 
-Calva supports custom snippets that will display their result inside the tooltip. This is mostly useful for tooling authors that want to integrate with calva.
+Calva supports custom snippets that will display their result inside the tooltip. They will only work when connected to a repl, since they eval code in it.
+This is mostly useful for tooling authors that want to integrate with calva.
 Be careful with these, since they will be executed anytime Calva displays a tooltip. So they should be fast and probably not have any sideeffects.
 
 The hover snippets accept the same inputs as the Custom REPL Commands, except for the hotkey:
@@ -118,6 +119,11 @@ The hover snippets accept the same inputs as the Custom REPL Commands, except fo
 With this setting anything the mouse is over will be also shown inside it's tooltip.
 There are now also `hover-` versions of most substitutions. Those currently only work inside the hover snippets.
 
+## config.edn
+
+Your project can have a `.calva/config.edn` file that holds a map with calva configs. Currently only `:customREPLCommandSnippets` and `:customREPLHoverSnippets` get loaded.
+These will not get synced through vscode settings sync.
+
 ## Snippets inside deps
 
 A new experimental feature lets library authors ship snippets inside their jar files. These accept the same options as above but should be placed in "resources/calva.exports/config.edn" inside the jar.
@@ -127,7 +133,7 @@ A new experimental feature lets library authors ship snippets inside their jar f
  [{:name "edn test"
    :key "a"
    :snippet "($current-form)"}]
- :customHoverSnippets
+ :customREPLHoverSnippets
  [{:name "edn hover"
    :snippet "(str \"$hover-tex\")"}]
  }

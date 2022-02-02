@@ -63,16 +63,15 @@ async function addEdnConfig(data: string) {
                     parsed?.customREPLCommandSnippets ?? [],
             });
         }
-
-        if (old && old.customHoverSnippets) {
+        if (old && old.customREPLHoverSnippets) {
             state.setProjectConfig({
-                customHoverSnippets: old.customHoverSnippets.concat(
-                    parsed?.customHoverSnippets ?? []
+                customREPLHoverSnippets: old.customREPLHoverSnippets.concat(
+                    parsed?.customREPLHoverSnippets ?? []
                 ),
             });
         } else {
             state.setProjectConfig({
-                customHoverSnippets: parsed?.customHoverSnippets ?? [],
+                customREPLHoverSnippets: parsed?.customREPLHoverSnippets ?? [],
             });
         }
     } catch (error) {
@@ -101,6 +100,13 @@ function getConfig() {
     const commands = w.concat(
         (state.getProjectConfig()
             ?.customREPLCommandSnippets as customREPLCommandSnippet[]) ?? []
+    );
+    const hoverSnippets = (
+        (configOptions.inspect('customREPLHoverSnippets')
+            .workspaceValue as customREPLCommandSnippet[]) ?? []
+    ).concat(
+        (state.getProjectConfig()
+            ?.customREPLHoverSnippets as customREPLCommandSnippet[]) ?? []
     );
 
     return {
@@ -143,9 +149,7 @@ function getConfig() {
         customREPLCommandSnippetsWorkspaceFolder: configOptions.inspect(
             'customREPLCommandSnippets'
         ).workspaceFolderValue as customREPLCommandSnippet[],
-        customHoverSnippets:
-            (state.getProjectConfig()
-                ?.customHoverSnippets as customREPLCommandSnippet[]) ?? [],
+        customREPLHoverSnippets: hoverSnippets,
         prettyPrintingOptions: configOptions.get(
             'prettyPrintingOptions'
         ) as PrettyPrintingOptions,
