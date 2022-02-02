@@ -141,6 +141,7 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
         )[1],
         head: getText.toStartOfList(editor?.document)[1],
         tail: getText.toEndOfList(editor?.document)[1],
+        ...getText.currentContext(editor.document, editor.selection.active),
     };
     let result = await evaluateSnippet({ snippet: code }, context, options);
 
@@ -180,7 +181,17 @@ function interpolateCode(code: string, context): string {
         .replace(/\$current-fn/g, context.currentFn)
         .replace(/\$top-level-defined-symbol/g, context.topLevelDefinedForm)
         .replace(/\$head/g, context.head)
-        .replace(/\$tail/g, context.tail);
+        .replace(/\$tail/g, context.tail)
+        .replace(/\$hover-current-form/g, context.hovercurrentForm)
+        .replace(/\$hover-enclosing-form/g, context.hoverenclosingForm)
+        .replace(/\$hover-top-level-form/g, context.hovertopLevelForm)
+        .replace(/\$hover-current-fn/g, context.hovercurrentFn)
+        .replace(
+            /\$hover-top-level-defined-symbol/g,
+            context.hovertopLevelDefinedForm
+        )
+        .replace(/\$hover-head/g, context.hoverhead)
+        .replace(/\$hover-tail/g, context.hovertail);
 }
 
 export { evaluateCustomCodeSnippetCommand, evaluateSnippet };

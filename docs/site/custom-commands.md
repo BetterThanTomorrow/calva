@@ -116,6 +116,7 @@ The hover snippets accept the same inputs as the Custom REPL Commands, except fo
 ```
 
 With this setting anything the mouse is over will be also shown inside it's tooltip.
+There are now also `hover-` versions of most substitutions. Those currently only work inside the hover snippets.
 
 ## Snippets inside deps
 

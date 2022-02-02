@@ -6,6 +6,7 @@ import * as replSession from '../nrepl/repl-session';
 import * as clojureDocs from '../clojuredocs';
 import { getConfig } from '../config';
 import { evaluateSnippet } from '../custom-snippets';
+import * as getText from '../util/get-text';
 
 export async function provideHover(
     document: vscode.TextDocument,
@@ -32,6 +33,8 @@ export async function provideHover(
 
                 hovers.push(docsMd, clojureDocsMd);
             }
+            const editor = vscode.window.activeTextEditor;
+
             const context = {
                 ns,
                 repl:
@@ -42,27 +45,37 @@ export async function provideHover(
                 hoverLine: position.line + 1,
                 hoverColumn: position.character + 1,
                 hoverFilename: document.fileName,
+                currentLine: editor.selection.active.line,
+                currentColumn: editor.selection.active.character,
+                currentFilename: editor.document.fileName,
+                selection: editor.document.getText(editor.selection),
+                ...getText.currentContext(
+                    editor.document,
+                    editor.selection.active
+                ),
+                ...getText.currentContext(document, position, 'hover'),
             };
 
-            await Promise.all(customHoverSnippets.map(async snippet => {
-                try {
-                    const text = await evaluateSnippet(snippet, context, {
-                        evaluationSendCodeToOutputWindow: false,
-                        showErrorMessage: false,
-                        showResult: false
-                    });
-                
-                    if (text) {
-                        const hover = new vscode.MarkdownString();
-                        hover.isTrusted = true;
-                        hover.appendMarkdown(text);
-                        hovers.push(hover);
-                    }    
-                } catch (error) {
-                    console.log("custom hover exploded");                    
-                }
-                            
-            }));
+            await Promise.all(
+                customHoverSnippets.map(async (snippet) => {
+                    try {
+                        const text = await evaluateSnippet(snippet, context, {
+                            evaluationSendCodeToOutputWindow: false,
+                            showErrorMessage: false,
+                            showResult: false,
+                        });
+
+                        if (text) {
+                            const hover = new vscode.MarkdownString();
+                            hover.isTrusted = true;
+                            hover.appendMarkdown(text);
+                            hovers.push(hover);
+                        }
+                    } catch (error) {
+                        console.log('custom hover exploded');
+                    }
+                })
+            );
             if (hovers.length) {
                 return new vscode.Hover(hovers);
             }
