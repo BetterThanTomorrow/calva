@@ -108,6 +108,7 @@ function setViewColumn(column: vscode.ViewColumn) {
 }
 
 export function setContextForOutputWindowActive(isActive: boolean): void {
+    state.extensionContext.workspaceState.update(`outputWindowActive`, isActive);
     vscode.commands.executeCommand("setContext", "calva:outputWindowActive", isActive);
 }
 

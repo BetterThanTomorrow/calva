@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: ['Add to history' not working on eval in repl](https://github.com/BetterThanTomorrow/calva/issues/1594)
 
 ## [2.0.237] - 2022-01-30
 - Fix: ['Show Previous REPL History Entry' command not working on v.2.0.236](https://github.com/BetterThanTomorrow/calva/issues/1594)
