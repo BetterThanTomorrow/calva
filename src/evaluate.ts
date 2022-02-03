@@ -325,6 +325,24 @@ function _currentSelectionElseCurrentForm(
     }
 }
 
+function _currentTopLevelFormText(
+    editor: vscode.TextEditor
+): getText.SelectionAndText {
+    return getText.currentEnclosingFormText(
+        editor?.document,
+        editor?.selection.active
+    );
+}
+
+function _currentEnclosingFormText(
+    editor: vscode.TextEditor
+): getText.SelectionAndText {
+    return getText.currentEnclosingFormText(
+        editor?.document,
+        editor?.selection.active
+    );
+}
+
 function evaluateSelectionReplace(document = {}, options = {}) {
     evaluateSelection(
         document,
@@ -353,7 +371,7 @@ function evaluateTopLevelFormAsComment(document = {}, options = {}) {
         Object.assign({}, options, {
             comment: true,
             pprintOptions: getConfig().prettyPrintingOptions,
-            selectionFn: getText.currentTopLevelFormText,
+            selectionFn: _currentTopLevelFormText,
         })
     ).catch(printWarningForError);
 }
@@ -363,7 +381,7 @@ function evaluateTopLevelForm(document = {}, options = {}) {
         document,
         Object.assign({}, options, {
             pprintOptions: getConfig().prettyPrintingOptions,
-            selectionFn: getText.currentTopLevelFormText,
+            selectionFn: _currentTopLevelFormText,
         })
     ).catch(printWarningForError);
 }
@@ -373,8 +391,9 @@ function evaluateOutputWindowForm(document = {}, options = {}) {
         document,
         Object.assign({}, options, {
             pprintOptions: getConfig().prettyPrintingOptions,
-            selectionFn: getText.currentTopLevelFormText,
+            selectionFn: _currentTopLevelFormText,
             evaluationSendCodeToOutputWindow: false,
+            addToHistory: true,
         })
     ).catch(printWarningForError);
 }
@@ -394,7 +413,7 @@ function evaluateEnclosingForm(document = {}, options = {}) {
         document,
         Object.assign({}, options, {
             pprintOptions: getConfig().prettyPrintingOptions,
-            selectionFn: getText.currentEnclosingFormText,
+            selectionFn: _currentEnclosingFormText,
         })
     ).catch(printWarningForError);
 }
