@@ -617,7 +617,7 @@ async function instrumentTopLevelForm() {
         {
             pprintOptions: getConfig().prettyPrintingOptions,
             debug: true,
-            selectionFn: getText.currentTopLevelFormText,
+            selectionFn: _currentTopLevelFormText,
         }
     ).catch(printWarningForError);
     state
