@@ -328,7 +328,7 @@ function _currentSelectionElseCurrentForm(
 function _currentTopLevelFormText(
     editor: vscode.TextEditor
 ): getText.SelectionAndText {
-    return getText.currentEnclosingFormText(
+    return getText.currentTopLevelFormText(
         editor?.document,
         editor?.selection.active
     );
