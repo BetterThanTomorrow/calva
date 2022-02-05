@@ -143,7 +143,8 @@ function useTestExplorer(): boolean {
     return vscode.workspace.getConfiguration('calva').get('useTestExplorer');
 }
 
-function reportTests(controller: vscode.TestController, session: NReplSession, results: cider.TestResults[]) {
+function reportTests(controller: vscode.TestController, session: NReplSession, possibleResults: cider.TestResults[]) {
+    const results = possibleResults.filter(pr => pr.results);
     let diagnostics: { [key: string]: vscode.Diagnostic[] } = {};
     diagnosticCollection.clear();
 
