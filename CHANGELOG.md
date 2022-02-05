@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: ['Add to history' not working on eval in repl](https://github.com/BetterThanTomorrow/calva/issues/1594)
+- Fix: [TypeError when "Run Tests for Current Namespace" in non "-test" namespace](https://github.com/BetterThanTomorrow/calva/issues/1516)
 
 ## [2.0.237] - 2022-01-30
 - Fix: ['Show Previous REPL History Entry' command not working on v.2.0.236](https://github.com/BetterThanTomorrow/calva/issues/1594)
