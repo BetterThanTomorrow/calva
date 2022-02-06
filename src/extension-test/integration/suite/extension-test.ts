@@ -48,15 +48,18 @@ suite('Extension Test Suite', () => {
     // qps = quickPickSingle
     const saveAs = `qps-${uri.toString()}/jack-in-type`;
     state.extensionContext.workspaceState.update(saveAs, 'deps.edn');
-    // const res = "";
+
 		const res = commands.executeCommand('calva.jackIn');
     await sleep(2000);
     console.log("called jacking + sleep");
     await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
     
     await res;
-    await sleep(20000);
-    assert(util.getConnectedState());
+    while (!util.getConnectedState()) {
+      await sleep(500);
+    }
+    // will not be run if timed out
+    assert(true);
 	});
 
   // TODO: Add more smoke tests for the extension
