@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.239] - 2022-02-06
+- Maintenance: [Update dependencies to fix security vulnerabilities](https://github.com/BetterThanTomorrow/calva/pull/1520)
+
 ## [2.0.238] - 2022-02-06
 - Fix: ['Add to history' not working on eval in repl](https://github.com/BetterThanTomorrow/calva/issues/1594)
 - Fix: [TypeError when "Run Tests for Current Namespace" in non "-test" namespace](https://github.com/BetterThanTomorrow/calva/issues/1516)
