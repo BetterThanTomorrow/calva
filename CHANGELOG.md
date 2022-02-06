@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Maintenance: Update dependencies to fix security vulnerabilities
 
 ## [2.0.238] - 2022-02-06
 - Fix: ['Add to history' not working on eval in repl](https://github.com/BetterThanTomorrow/calva/issues/1594)
