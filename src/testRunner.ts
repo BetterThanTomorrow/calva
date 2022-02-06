@@ -144,6 +144,7 @@ function useTestExplorer(): boolean {
 }
 
 function reportTests(controller: vscode.TestController, session: NReplSession, possibleResults: cider.TestResults[]) {
+    // Results can sometimes not be actual test results, such as when a namespace is not found: https://github.com/BetterThanTomorrow/calva/issues/1516.
     const results = possibleResults.filter(pr => pr.results);
     let diagnostics: { [key: string]: vscode.Diagnostic[] } = {};
     diagnosticCollection.clear();
