@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.240] - 2022-02-06
 - Maintenance: [Update dependencies to fix security vulnerabilities](https://github.com/BetterThanTomorrow/calva/pull/1520)
 
 ## [2.0.239] - 2022-02-06
