@@ -8,6 +8,7 @@ import { customREPLCommandSnippet } from './evaluate';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as evaluate from './evaluate';
+import * as state from './state';
 
 export async function evaluateCustomCodeSnippetCommand(codeOrKey?: string) {
     await evaluateCustomCodeSnippet(codeOrKey);
@@ -103,6 +104,8 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
 
     if (pick !== undefined) {
         options['evaluationSendCodeToOutputWindow'] = snippetsDict[pick].evaluationSendCodeToOutputWindow;
+        // don't allow addToHistory if we don't show the code but are inside the repl
+        options['addToHistory'] = state.extensionContext.workspaceState.get('outputWindowActive') && !snippetsDict[pick].evaluationSendCodeToOutputWindow ? false : undefined;
     }
 
     await evaluate.evaluateInOutputWindow(interpolatedCode, repl, ns, options);
