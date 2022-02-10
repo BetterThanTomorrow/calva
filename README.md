@@ -155,6 +155,7 @@ Patrons, Gold, and Silver sponsors are also displayed here: https://calva.io/#sp
 ### Calva Super Fans
 
 [<img src="https://avatars.githubusercontent.com/u/71524" width="32" alt="Aram Zadikian">](https://github.com/brancusi)
+[<img src="https://avatars.githubusercontent.com/u/75583439" width="32" alt="180° Insurance">](https://github.com/180seg)
 
 ### Calva Fans
 
