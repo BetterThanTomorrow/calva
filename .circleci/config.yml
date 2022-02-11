@@ -198,7 +198,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: "Publish Release on GitHub"
           command: |
