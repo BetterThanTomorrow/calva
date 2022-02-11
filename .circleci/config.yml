@@ -137,7 +137,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build .
       - run:
           name: Run prettier format check
           command: npm run prettier-check
