@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as state from '../state';
-import { highlight } from '../highlight/src/extension'
+import { highlight } from '../highlight/src/extension';
 import { NReplSession } from '../nrepl';
 import * as util from '../utilities';
 import select from '../select';
@@ -10,7 +10,7 @@ import * as namespace from '../namespace';
 import * as config from '../config';
 import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
-import * as docMirror from '../doc-mirror/index'
+import * as docMirror from '../doc-mirror/index';
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 import * as replSession from '../nrepl/repl-session';
 import { splitEditQueueForTextBatching } from './util';
@@ -19,13 +19,15 @@ const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
 const PROMPT_HINT = '; Use `alt+enter` to evaluate';
 
-const START_GREETINGS = '; This is the Calva evaluation results output window.\n\
+const START_GREETINGS =
+    '; This is the Calva evaluation results output window.\n\
 ; TIPS: The keyboard shortcut `ctrl+alt+o o` shows and focuses this window\n\
 ;   when connected to a REPL session.\n\
 ; Please see https://calva.io/output/ for more info.\n\
 ; Happy coding! ♥️';
 
-export const CLJ_CONNECT_GREETINGS = '; TIPS: \n\
+export const CLJ_CONNECT_GREETINGS =
+    '; TIPS: \n\
 ;   - You can edit the contents here. Use it as a REPL if you like.\n\
 ;   - `alt+enter` evaluates the current top level form.\n\
 ;   - `ctrl+enter` evaluates the current form.\n\
@@ -33,39 +35,41 @@ export const CLJ_CONNECT_GREETINGS = '; TIPS: \n\
 ;      when the cursor is after the last contents at the prompt\n\
 ;   - Clojure lines in stack traces are peekable and clickable.';
 
-export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use (clj or cljs):\n\
+export const CLJS_CONNECT_GREETINGS =
+    '; TIPS: You can choose which REPL to use (clj or cljs):\n\
 ;    *Calva: Toggle REPL connection*\n\
 ;    (There is a button in the status bar for this)';
-
 
 function outputFileDir() {
     let projectRoot = state.getProjectRootUri();
     try {
-        return vscode.Uri.joinPath(projectRoot, ".calva", "output-window");
+        return vscode.Uri.joinPath(projectRoot, '.calva', 'output-window');
     } catch {
-        return vscode.Uri.file(path.join(projectRoot.fsPath, ".calva", "output-window"));
+        return vscode.Uri.file(
+            path.join(projectRoot.fsPath, '.calva', 'output-window')
+        );
     }
-};
+}
 
 const DOC_URI = () => {
     return vscode.Uri.joinPath(outputFileDir(), RESULTS_DOC_NAME);
 };
 
-let _sessionType: ReplSessionType = "clj";
-let _sessionInfo: { [id: string]: { ns?: string, session?: NReplSession } } = {
+let _sessionType: ReplSessionType = 'clj';
+let _sessionInfo: { [id: string]: { ns?: string; session?: NReplSession } } = {
     clj: {},
-    cljs: {}
+    cljs: {},
 };
 let showPrompt: { [id: string]: boolean } = {
     clj: true,
-    cljs: true
+    cljs: true,
 };
 
 export function getPrompt(): string {
     let prompt = `${_sessionType}꞉${getNs()}꞉> `;
     if (showPrompt[_sessionType]) {
         showPrompt[_sessionType] = false;
-        prompt = `${prompt} ${PROMPT_HINT}`
+        prompt = `${prompt} ${PROMPT_HINT}`;
     }
     return prompt;
 }
@@ -99,17 +103,29 @@ export function isResultsDoc(doc: vscode.TextDocument): boolean {
 }
 
 function getViewColumn(): vscode.ViewColumn {
-    const column: vscode.ViewColumn = state.extensionContext.workspaceState.get(`outputWindowViewColumn`);
+    const column: vscode.ViewColumn = state.extensionContext.workspaceState.get(
+        `outputWindowViewColumn`
+    );
     return column ? column : vscode.ViewColumn.Two;
 }
 
 function setViewColumn(column: vscode.ViewColumn) {
-    return state.extensionContext.workspaceState.update(`outputWindowViewColumn`, column);
+    return state.extensionContext.workspaceState.update(
+        `outputWindowViewColumn`,
+        column
+    );
 }
 
 export function setContextForOutputWindowActive(isActive: boolean): void {
-    state.extensionContext.workspaceState.update(`outputWindowActive`, isActive);
-    vscode.commands.executeCommand("setContext", "calva:outputWindowActive", isActive);
+    state.extensionContext.workspaceState.update(
+        `outputWindowActive`,
+        isActive
+    );
+    vscode.commands.executeCommand(
+        'setContext',
+        'calva:outputWindowActive',
+        isActive
+    );
 }
 
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
@@ -123,57 +139,85 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     }
     const greetings = `${START_GREETINGS}\n\n`;
     const edit = new vscode.WorkspaceEdit();
-    const fullRange = new vscode.Range(resultsDoc.positionAt(0), resultsDoc.positionAt(Infinity));
+    const fullRange = new vscode.Range(
+        resultsDoc.positionAt(0),
+        resultsDoc.positionAt(Infinity)
+    );
     edit.replace(DOC_URI(), fullRange, greetings);
     await vscode.workspace.applyEdit(edit);
     resultsDoc.save();
 
     if (config.getConfig().autoOpenREPLWindow) {
-        const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
+        const resultsEditor = await vscode.window.showTextDocument(
+            resultsDoc,
+            getViewColumn(),
+            true
+        );
         const firstPos = resultsEditor.document.positionAt(0);
         const lastPos = resultsDoc.positionAt(Infinity);
         resultsEditor.selection = new vscode.Selection(lastPos, lastPos);
         resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
     }
     // For some reason onDidChangeTextEditorViewColumn won't fire
-    state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
-        if (event) {
-            const isOutputWindow = isResultsDoc(event.document);
-            setContextForOutputWindowActive(isOutputWindow);
-            if (isOutputWindow) {
-                setViewColumn(event.viewColumn);
-            }
-        }
-    }));
-    state.extensionContext.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {
-        let submitOnEnter = false;
-        if (event.textEditor) {
-            const document = event.textEditor.document;
-            if (isResultsDoc(document)) {
-                const idx = document.offsetAt(event.selections[0].active);
-                const mirrorDoc = docMirror.getDocument(document);
-                const selectionCursor = mirrorDoc.getTokenCursor(idx);
-                selectionCursor.forwardWhitespace();
-                if (selectionCursor.atEnd()) {
-                    const promptCursor = mirrorDoc.getTokenCursor(idx);
-                    do {
-                        promptCursor.previous();
-                    } while (promptCursor.getPrevToken().type !== 'prompt' && !promptCursor.atStart());
-                    const submitRange = selectionCursor.rangeForCurrentForm(idx);
-                    submitOnEnter = submitRange &&
-                        submitRange[1] > promptCursor.offsetStart;
+    state.extensionContext.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor((event) => {
+            if (event) {
+                const isOutputWindow = isResultsDoc(event.document);
+                setContextForOutputWindowActive(isOutputWindow);
+                if (isOutputWindow) {
+                    setViewColumn(event.viewColumn);
                 }
             }
-        }
-        vscode.commands.executeCommand("setContext", "calva:outputWindowSubmitOnEnter", submitOnEnter);
-    }));
-    vscode.languages.registerCodeLensProvider(config.documentSelector, new PrintStackTraceCodelensProvider());
+        })
+    );
+    state.extensionContext.subscriptions.push(
+        vscode.window.onDidChangeTextEditorSelection((event) => {
+            let submitOnEnter = false;
+            if (event.textEditor) {
+                const document = event.textEditor.document;
+                if (isResultsDoc(document)) {
+                    const idx = document.offsetAt(event.selections[0].active);
+                    const mirrorDoc = docMirror.getDocument(document);
+                    const selectionCursor = mirrorDoc.getTokenCursor(idx);
+                    selectionCursor.forwardWhitespace();
+                    if (selectionCursor.atEnd()) {
+                        const promptCursor = mirrorDoc.getTokenCursor(idx);
+                        do {
+                            promptCursor.previous();
+                        } while (
+                            promptCursor.getPrevToken().type !== 'prompt' &&
+                            !promptCursor.atStart()
+                        );
+                        const submitRange =
+                            selectionCursor.rangeForCurrentForm(idx);
+                        submitOnEnter =
+                            submitRange &&
+                            submitRange[1] > promptCursor.offsetStart;
+                    }
+                }
+            }
+            vscode.commands.executeCommand(
+                'setContext',
+                'calva:outputWindowSubmitOnEnter',
+                submitOnEnter
+            );
+        })
+    );
+    vscode.languages.registerCodeLensProvider(
+        config.documentSelector,
+        new PrintStackTraceCodelensProvider()
+    );
 
     // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
     // until the next time it's focused
-    if (vscode.window.activeTextEditor && isResultsDoc(vscode.window.activeTextEditor.document)) {
+    if (
+        vscode.window.activeTextEditor &&
+        isResultsDoc(vscode.window.activeTextEditor.document)
+    ) {
         setContextForOutputWindowActive(true);
-        replHistory.setReplHistoryCommandsActiveContext(vscode.window.activeTextEditor);
+        replHistory.setReplHistoryCommandsActiveContext(
+            vscode.window.activeTextEditor
+        );
     }
     replHistory.resetState();
     return resultsDoc;
@@ -185,23 +229,25 @@ export async function openResultsDoc(): Promise<vscode.TextDocument> {
 }
 
 export function revealResultsDoc(preserveFocus: boolean = true) {
-    openResultsDoc().then(doc => {
+    openResultsDoc().then((doc) => {
         vscode.window.showTextDocument(doc, getViewColumn(), preserveFocus);
     });
 }
 
 export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
     const uri = await getUriForCurrentNamespace();
-    vscode.workspace.openTextDocument(uri).then(doc => vscode.window.showTextDocument(doc, {
-        preserveFocus
-    }));
+    vscode.workspace.openTextDocument(uri).then((doc) =>
+        vscode.window.showTextDocument(doc, {
+            preserveFocus,
+        })
+    );
 }
 
 export async function setNamespaceFromCurrentFile() {
     const session = replSession.getSession();
     const ns = namespace.getNamespace(util.getDocument({}));
     if (getNs() !== ns) {
-        await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
+        await session.eval("(in-ns '" + ns + ')', session.client.ns).value;
     }
     setSession(session, ns);
     replSession.updateReplSessionType();
@@ -213,19 +259,23 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
     const editor = vscode.window.activeTextEditor;
     const doc = editor.document;
     const selection = editor.selection;
-    let code = "";
+    let code = '';
     if (selection.isEmpty) {
-        const formSelection = select.getFormSelection(doc, selection.active, topLevel);
+        const formSelection = select.getFormSelection(
+            doc,
+            selection.active,
+            topLevel
+        );
         code = formatCode(doc.getText(formSelection), doc.eol);
     } else {
         code = formatCode(doc.getText(selection), doc.eol);
     }
-    if (code != "") {
+    if (code != '') {
         if (getNs() !== ns) {
-            await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
+            await session.eval("(in-ns '" + ns + ')', session.client.ns).value;
         }
         setSession(session, ns);
-        append(code, _ => revealResultsDoc(false));
+        append(code, (_) => revealResultsDoc(false));
     }
 }
 
@@ -239,7 +289,7 @@ export function appendCurrentTopLevelForm() {
 
 let scrollToBottomSub: vscode.Disposable;
 export interface OnAppendedCallback {
-    (insertLocation: vscode.Location, newPosition?: vscode.Location): any
+    (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
 }
 let editQueue: [string, OnAppendedCallback][] = [];
 let applyingEdit = false;
@@ -255,52 +305,64 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
         editQueue.push([text, onAppended]);
     } else {
         applyingEdit = true;
-        vscode.workspace.openTextDocument(DOC_URI()).then(doc => {
+        vscode.workspace.openTextDocument(DOC_URI()).then((doc) => {
             const ansiStrippedText = util.stripAnsi(text);
             if (doc) {
                 const edit = new vscode.WorkspaceEdit();
                 const currentContent = doc.getText();
-                const lastLineEmpty = currentContent.match(/\n$/) || currentContent === '';
-                const appendText = `${lastLineEmpty ? '' : '\n'}${ansiStrippedText}\n`;
+                const lastLineEmpty =
+                    currentContent.match(/\n$/) || currentContent === '';
+                const appendText = `${
+                    lastLineEmpty ? '' : '\n'
+                }${ansiStrippedText}\n`;
                 insertPosition = doc.positionAt(Infinity);
                 edit.insert(DOC_URI(), insertPosition, `${appendText}`);
                 if (scrollToBottomSub) {
                     scrollToBottomSub.dispose();
                 }
                 let visibleResultsEditors: vscode.TextEditor[] = [];
-                vscode.window.visibleTextEditors.forEach(editor => {
+                vscode.window.visibleTextEditors.forEach((editor) => {
                     if (isResultsDoc(editor.document)) {
                         visibleResultsEditors.push(editor);
                     }
                 });
                 if (visibleResultsEditors.length == 0) {
-                    scrollToBottomSub = vscode.window.onDidChangeActiveTextEditor((editor) => {
-                        if (isResultsDoc(editor.document)) {
-                            util.scrollToBottom(editor);
-                            scrollToBottomSub.dispose();
-                        }
-                    });
-                    state.extensionContext.subscriptions.push(scrollToBottomSub);
+                    scrollToBottomSub =
+                        vscode.window.onDidChangeActiveTextEditor((editor) => {
+                            if (isResultsDoc(editor.document)) {
+                                util.scrollToBottom(editor);
+                                scrollToBottomSub.dispose();
+                            }
+                        });
+                    state.extensionContext.subscriptions.push(
+                        scrollToBottomSub
+                    );
                 }
 
-                vscode.workspace.applyEdit(edit).then(success => {
+                vscode.workspace.applyEdit(edit).then((success) => {
                     applyingEdit = false;
                     doc.save();
                     if (success) {
                         if (visibleResultsEditors.length > 0) {
-                            visibleResultsEditors.forEach(editor => {
+                            visibleResultsEditors.forEach((editor) => {
                                 util.scrollToBottom(editor);
                                 highlight(editor);
                             });
                         }
                     }
                     if (onAppended) {
-                        onAppended(new vscode.Location(DOC_URI(), insertPosition),
-                            new vscode.Location(DOC_URI(), doc.positionAt(Infinity)));
+                        onAppended(
+                            new vscode.Location(DOC_URI(), insertPosition),
+                            new vscode.Location(
+                                DOC_URI(),
+                                doc.positionAt(Infinity)
+                            )
+                        );
                     }
 
                     if (editQueue.length > 0) {
-                        const [textBatch, remainingEditQueue] = splitEditQueueForTextBatching(editQueue, 1000);
+                        const [textBatch, remainingEditQueue] =
+                            splitEditQueueForTextBatching(editQueue, 1000);
                         if (textBatch.length > 0) {
                             editQueue = remainingEditQueue;
                             return append(textBatch.join('\n'));
@@ -311,7 +373,7 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                 });
             }
         });
-    };
+    }
 }
 
 export function discardPendingPrints(): void {
@@ -319,7 +381,7 @@ export function discardPendingPrints(): void {
     appendPrompt();
 }
 
-export type OutputStacktraceEntry = { uri: vscode.Uri, line: number };
+export type OutputStacktraceEntry = { uri: vscode.Uri; line: number };
 
 let _lastStacktrace: any[] = [];
 let _lastStackTraceRange: vscode.Range;
@@ -337,20 +399,26 @@ function stackEntryString(entry: any): string {
 
 export async function saveStacktrace(stacktrace: any[]): Promise<void> {
     _lastStacktrace = [];
-    stacktrace.filter(entry => {
-        return !entry.flags.includes('dup')
-            && !['clojure.lang.RestFn', 'clojure.lang.AFn'].includes(entry.class);
-    }).forEach(entry => {
-        entry.string = stackEntryString(entry);
-        _lastStacktrace.push(entry);
-        const fileUrl = entry['file-url'];
-        if (typeof fileUrl === 'string') {
-            _stacktraceEntries[entry.string] = {
-                uri: vscode.Uri.parse(fileUrl),
-                line: entry.line
-            };
-        }
-    });
+    stacktrace
+        .filter((entry) => {
+            return (
+                !entry.flags.includes('dup') &&
+                !['clojure.lang.RestFn', 'clojure.lang.AFn'].includes(
+                    entry.class
+                )
+            );
+        })
+        .forEach((entry) => {
+            entry.string = stackEntryString(entry);
+            _lastStacktrace.push(entry);
+            const fileUrl = entry['file-url'];
+            if (typeof fileUrl === 'string') {
+                _stacktraceEntries[entry.string] = {
+                    uri: vscode.Uri.parse(fileUrl),
+                    line: entry.line,
+                };
+            }
+        });
 }
 
 export function markLastStacktraceRange(location: vscode.Location): void {
@@ -362,7 +430,7 @@ export function getLastStackTraceRange(): vscode.Range {
 }
 
 export function printLastStacktrace(): void {
-    const text = _lastStacktrace.map(entry => entry.string).join("\n");
+    const text = _lastStacktrace.map((entry) => entry.string).join('\n');
     append(text, (_location) => {
         _lastStackTraceRange = undefined;
     });

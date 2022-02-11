@@ -1,6 +1,16 @@
 import * as vscode from 'vscode';
-import { LanguageClient, ServerOptions, LanguageClientOptions, DocumentSymbol, Position, StaticFeature, ClientCapabilities, ServerCapabilities, DocumentSelector } from 'vscode-languageclient/node';
-import * as util from '../utilities'
+import {
+    LanguageClient,
+    ServerOptions,
+    LanguageClientOptions,
+    DocumentSymbol,
+    Position,
+    StaticFeature,
+    ClientCapabilities,
+    ServerCapabilities,
+    DocumentSelector,
+} from 'vscode-languageclient/node';
+import * as util from '../utilities';
 import * as config from '../config';
 import { provideClojureDefinition } from '../providers/definition';
 import { provideCompletionItems } from '../providers/completion';
@@ -17,51 +27,52 @@ import { isResultsDoc } from '../results-output/results-doc';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
-const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE = 'The clojure-lsp server is not running or has not finished intializing.'
-const lspStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE =
+    'The clojure-lsp server is not running or has not finished intializing.';
+const lspStatus = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left,
+    0
+);
 let serverVersion: string;
 
 // The Node LSP client requires the client code to jump through a few hoops in
 // order to enable an experimental feature. This class exists solely to set
 // enable the `experimental.testTree` feature.
 class TestTreeFeature implements StaticFeature {
-
-    initialize(capabilities: ServerCapabilities, documentSelector: DocumentSelector | undefined): void {
-    }
+    initialize(
+        capabilities: ServerCapabilities,
+        documentSelector: DocumentSelector | undefined
+    ): void {}
 
     fillClientCapabilities(capabilities: ClientCapabilities): void {
         capabilities.experimental = { testTree: true };
     }
 
-    dispose(): void {
-    }
+    dispose(): void {}
 }
 
 function createClient(clojureLspPath: string): LanguageClient {
-
     const serverOptions: ServerOptions = {
         run: { command: clojureLspPath },
         debug: { command: clojureLspPath },
-
-
     };
     const clientOptions: LanguageClientOptions = {
-
         documentSelector: [
             { scheme: 'file', language: 'clojure' },
             { scheme: 'jar', language: 'clojure' },
         ],
         synchronize: {
             configurationSection: 'clojure-lsp',
-            fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
+            fileEvents:
+                vscode.workspace.createFileSystemWatcher('**/.clientrc'),
         },
         progressOnInitialization: true,
         initializationOptions: {
-            "dependency-scheme": "jar",
-            "auto-add-ns-to-new-files?": true,
-            "document-formatting?": false,
-            "document-range-formatting?": false,
-            "keep-require-at-start?": true,
+            'dependency-scheme': 'jar',
+            'auto-add-ns-to-new-files?': true,
+            'document-formatting?': false,
+            'document-range-formatting?': false,
+            'keep-require-at-start?': true,
         },
         middleware: {
             didOpen: async (document, next) => {
@@ -82,7 +93,12 @@ function createClient(clojureLspPath: string): LanguageClient {
                 }
                 return next(change);
             },
-            provideLinkedEditingRange: async (_document, _position, _token, _next): Promise<vscode.LinkedEditingRanges> => {
+            provideLinkedEditingRange: async (
+                _document,
+                _position,
+                _token,
+                _next
+            ): Promise<vscode.LinkedEditingRanges> => {
                 return null;
             },
             handleDiagnostics(uri, diagnostics, next) {
@@ -94,7 +110,11 @@ function createClient(clojureLspPath: string): LanguageClient {
             provideCodeActions(document, range, context, token, next) {
                 return next(document, range, context, token);
             },
-            provideCodeLenses: async (document, token, next): Promise<vscode.CodeLens[]> => {
+            provideCodeLenses: async (
+                document,
+                token,
+                next
+            ): Promise<vscode.CodeLens[]> => {
                 if (config.getConfig().referencesCodeLensEnabled) {
                     return await next(document, token);
                 }
@@ -110,7 +130,7 @@ function createClient(clojureLspPath: string): LanguageClient {
                 let hover: vscode.Hover;
                 try {
                     hover = await provideHover(document, position);
-                } catch (e) { }
+                } catch (e) {}
 
                 if (hover) {
                     return null;
@@ -119,30 +139,55 @@ function createClient(clojureLspPath: string): LanguageClient {
                 }
             },
             async provideDefinition(document, position, token, next) {
-                const definition = await provideClojureDefinition(document, position, token);
+                const definition = await provideClojureDefinition(
+                    document,
+                    position,
+                    token
+                );
                 if (definition) {
                     return null;
                 } else {
                     return next(document, position, token);
                 }
             },
-            async provideCompletionItem(document, position, context, token, next) {
-                const items = await provideCompletionItems(document, position, token, context);
+            async provideCompletionItem(
+                document,
+                position,
+                context,
+                token,
+                next
+            ) {
+                const items = await provideCompletionItems(
+                    document,
+                    position,
+                    token,
+                    context
+                );
                 if (items) {
                     return null;
                 } else {
                     return next(document, position, context, token);
                 }
             },
-            async provideSignatureHelp(document, position, context, token, next) {
-                const help = await provideSignatureHelp(document, position, token);
+            async provideSignatureHelp(
+                document,
+                position,
+                context,
+                token,
+                next
+            ) {
+                const help = await provideSignatureHelp(
+                    document,
+                    position,
+                    token
+                );
                 if (help) {
                     return null;
                 } else {
                     return next(document, position, context, token);
                 }
-            }
-        }
+            },
+        },
     };
     return new LanguageClient(
         'clojure',
@@ -153,88 +198,97 @@ function createClient(clojureLspPath: string): LanguageClient {
 }
 
 type ClojureLspCommand = {
-    command: string,
-    extraParamFn?: () => Thenable<string>,
+    command: string;
+    extraParamFn?: () => Thenable<string>;
     category?: string;
-}
+};
 
 function makePromptForInput(placeHolder: string) {
     return async () => {
         return await vscode.window.showInputBox({
             value: '',
             placeHolder: placeHolder,
-            validateInput: (input => input.trim() === '' ? 'Empty input' : null)
-        })
-    }
+            validateInput: (input) =>
+                input.trim() === '' ? 'Empty input' : null,
+        });
+    };
 }
 
 const clojureLspCommands: ClojureLspCommand[] = [
     {
-        command: 'clean-ns'
+        command: 'clean-ns',
     },
     {
-        command: 'add-missing-libspec'
+        command: 'add-missing-libspec',
     },
     // This seems to be similar to Calva's rewrap commands
     //{
     //    command: 'cycle-coll'
     //},
     {
-        command: 'cycle-privacy'
+        command: 'cycle-privacy',
     },
     {
-        command: 'expand-let'
+        command: 'expand-let',
     },
     {
-        command: 'thread-first'
+        command: 'thread-first',
     },
     {
-        command: 'thread-first-all'
+        command: 'thread-first-all',
     },
     {
-        command: 'thread-last'
+        command: 'thread-last',
     },
     {
-        command: 'thread-last-all'
+        command: 'thread-last-all',
     },
     {
-        command: 'inline-symbol'
+        command: 'inline-symbol',
     },
     {
-        command: 'unwind-all'
+        command: 'unwind-all',
     },
     {
-        command: 'unwind-thread'
+        command: 'unwind-thread',
     },
     {
         command: 'introduce-let',
-        extraParamFn: makePromptForInput('Bind to')
+        extraParamFn: makePromptForInput('Bind to'),
     },
     {
         command: 'move-to-let',
-        extraParamFn: makePromptForInput('Bind to')
+        extraParamFn: makePromptForInput('Bind to'),
     },
     {
         command: 'extract-function',
-        extraParamFn: makePromptForInput('Function name')
-    }
+        extraParamFn: makePromptForInput('Function name'),
+    },
 ];
 
 function sendCommandRequest(command: string, args: (number | string)[]): void {
     const client = getStateValue(LSP_CLIENT_KEY);
     if (client) {
-        client.sendRequest('workspace/executeCommand', {
-            command,
-            arguments: args
-        }).catch(e => {
-            console.error(e);
-        });
+        client
+            .sendRequest('workspace/executeCommand', {
+                command,
+                arguments: args,
+            })
+            .catch((e) => {
+                console.error(e);
+            });
     }
 }
 
-function registerLspCommand(client: LanguageClient, command: ClojureLspCommand): vscode.Disposable {
+function registerLspCommand(
+    client: LanguageClient,
+    command: ClojureLspCommand
+): vscode.Disposable {
     const category = command.category ? command.category : 'calva.refactor';
-    const vscodeCommand = `${category}.${command.command.replace(/-[a-z]/g, (m) => m.substring(1).toUpperCase())}`;
+    const vscodeCommand = `${category}.${command.command.replace(
+        /-[a-z]/g,
+        (m) => m.substring(1).toUpperCase()
+    )}`;
     return vscode.commands.registerCommand(vscodeCommand, async () => {
         const editor = vscode.window.activeTextEditor;
         const document = util.getDocument(editor.document);
@@ -243,25 +297,47 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
             const column = editor.selection.start.character;
             const docUri = `${document.uri.scheme}://${document.uri.path}`;
             const params = [docUri, line, column];
-            const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
-            if (!command.extraParamFn || command.extraParamFn && extraParam) {
-                sendCommandRequest(command.command, (extraParam ? [...params, extraParam] : params));
+            const extraParam = command.extraParamFn
+                ? await command.extraParamFn()
+                : undefined;
+            if (!command.extraParamFn || (command.extraParamFn && extraParam)) {
+                sendCommandRequest(
+                    command.command,
+                    extraParam ? [...params, extraParam] : params
+                );
             }
         }
     });
 }
 
 async function codeLensReferencesHandler(_, line, character): Promise<void> {
-    vscode.window.activeTextEditor.selection = new vscode.Selection(line - 1, character - 1, line - 1, character - 1);
-    await vscode.commands.executeCommand('editor.action.referenceSearch.trigger');
+    vscode.window.activeTextEditor.selection = new vscode.Selection(
+        line - 1,
+        character - 1,
+        line - 1,
+        character - 1
+    );
+    await vscode.commands.executeCommand(
+        'editor.action.referenceSearch.trigger'
+    );
 }
 
 function resolveMacroAsCommandHandler(): void {
     const activeTextEditor = vscode.window.activeTextEditor;
-    if (activeTextEditor && activeTextEditor.document && activeTextEditor.document.languageId === 'clojure') {
-        const documentUri = decodeURIComponent(activeTextEditor.document.uri.toString());
+    if (
+        activeTextEditor &&
+        activeTextEditor.document &&
+        activeTextEditor.document.languageId === 'clojure'
+    ) {
+        const documentUri = decodeURIComponent(
+            activeTextEditor.document.uri.toString()
+        );
         const { line, character } = activeTextEditor.selection.active;
-        sendCommandRequest(RESOLVE_MACRO_AS_COMMAND, [documentUri, line + 1, character + 1]);
+        sendCommandRequest(RESOLVE_MACRO_AS_COMMAND, [
+            documentUri,
+            line + 1,
+            character + 1,
+        ]);
     }
 }
 
@@ -269,46 +345,72 @@ const generalCommands = [
     {
         // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens for a symbol
         name: 'code-lens-references',
-        handler: codeLensReferencesHandler
+        handler: codeLensReferencesHandler,
     },
     {
         name: 'calva.linting.resolveMacroAs',
-        handler: resolveMacroAsCommandHandler
-    }
+        handler: resolveMacroAsCommandHandler,
+    },
 ];
 
-function registerCommands(context: vscode.ExtensionContext, client: LanguageClient) {
+function registerCommands(
+    context: vscode.ExtensionContext,
+    client: LanguageClient
+) {
     context.subscriptions.push(
-        ...generalCommands.map(command => vscode.commands.registerCommand(command.name, command.handler))
+        ...generalCommands.map((command) =>
+            vscode.commands.registerCommand(command.name, command.handler)
+        )
     );
     context.subscriptions.push(
-        ...clojureLspCommands.map(command => registerLspCommand(client, command))
+        ...clojureLspCommands.map((command) =>
+            registerLspCommand(client, command)
+        )
     );
 }
 
-function registerEventHandlers(context: vscode.ExtensionContext, client: LanguageClient) {
-    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async event => {
-        if (event.affectsConfiguration('calva.referencesCodeLens.enabled')) {
-            const visibleFileEditors = vscode.window.visibleTextEditors.filter(editor => {
-                return editor.document.uri.scheme === 'file';
-            });
+function registerEventHandlers(
+    context: vscode.ExtensionContext,
+    client: LanguageClient
+) {
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(async (event) => {
+            if (
+                event.affectsConfiguration('calva.referencesCodeLens.enabled')
+            ) {
+                const visibleFileEditors =
+                    vscode.window.visibleTextEditors.filter((editor) => {
+                        return editor.document.uri.scheme === 'file';
+                    });
 
-            for (let editor of visibleFileEditors) {
-                // Hacky solution for triggering codeLens refresh
-                // Could not find a better way, aside from possibly changes to clojure-lsp
-                // https://github.com/microsoft/vscode-languageserver-node/issues/705
-                const edit1 = new vscode.WorkspaceEdit();
-                edit1.insert(editor.document.uri, new vscode.Position(0, 0), '\n');
-                await vscode.workspace.applyEdit(edit1);
-                const edit2 = new vscode.WorkspaceEdit();
-                edit2.delete(editor.document.uri, new vscode.Range(0, 0, 1, 0));
-                await vscode.workspace.applyEdit(edit2);
+                for (let editor of visibleFileEditors) {
+                    // Hacky solution for triggering codeLens refresh
+                    // Could not find a better way, aside from possibly changes to clojure-lsp
+                    // https://github.com/microsoft/vscode-languageserver-node/issues/705
+                    const edit1 = new vscode.WorkspaceEdit();
+                    edit1.insert(
+                        editor.document.uri,
+                        new vscode.Position(0, 0),
+                        '\n'
+                    );
+                    await vscode.workspace.applyEdit(edit1);
+                    const edit2 = new vscode.WorkspaceEdit();
+                    edit2.delete(
+                        editor.document.uri,
+                        new vscode.Range(0, 0, 1, 0)
+                    );
+                    await vscode.workspace.applyEdit(edit2);
+                }
             }
-        }
-    }));
+        })
+    );
 }
 
-async function startClient(clojureLspPath: string, context: vscode.ExtensionContext, handler: TestTreeHandler): Promise<void> {
+async function startClient(
+    clojureLspPath: string,
+    context: vscode.ExtensionContext,
+    handler: TestTreeHandler
+): Promise<void> {
     const client = createClient(clojureLspPath);
     console.log('Starting clojure-lsp at', clojureLspPath);
 
@@ -328,9 +430,12 @@ async function startClient(clojureLspPath: string, context: vscode.ExtensionCont
     serverVersion = serverInfo['server-version'];
     sayClientVersionInfo(serverVersion, serverInfo);
 
-    client.onNotification("clojure/textDocument/testTree", (tree: TestTreeParams) => {
-        handler(tree);
-    });
+    client.onNotification(
+        'clojure/textDocument/testTree',
+        (tree: TestTreeParams) => {
+            handler(tree);
+        }
+    );
 }
 
 function sayClientVersionInfo(serverVersion: string, serverInfo: any) {
@@ -351,26 +456,49 @@ async function serverInfoCommandHandler(): Promise<void> {
         calvaSaysChannel.appendLine(serverInfoPretty);
         calvaSaysChannel.show(true);
     } else {
-        vscode.window.showInformationMessage(SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE);
+        vscode.window.showInformationMessage(
+            SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE
+        );
     }
 }
 
 function registerDiagnosticsCommands(context: vscode.ExtensionContext): void {
-    context.subscriptions.push(vscode.commands.registerCommand('calva.diagnostics.clojureLspServerInfo', serverInfoCommandHandler));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.diagnostics.openClojureLspLogFile', openLogFile));
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'calva.diagnostics.clojureLspServerInfo',
+            serverInfoCommandHandler
+        )
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'calva.diagnostics.openClojureLspLogFile',
+            openLogFile
+        )
+    );
 }
 
-async function activate(context: vscode.ExtensionContext, handler: TestTreeHandler): Promise<void> {
+async function activate(
+    context: vscode.ExtensionContext,
+    handler: TestTreeHandler
+): Promise<void> {
     registerDiagnosticsCommands(context);
     const extensionPath = context.extensionPath;
     const currentVersion = readVersionFile(extensionPath);
     const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;
-    let clojureLspPath = userConfiguredClojureLspPath === '' ? getClojureLspPath(extensionPath, util.isWindows) : userConfiguredClojureLspPath;
+    let clojureLspPath =
+        userConfiguredClojureLspPath === ''
+            ? getClojureLspPath(extensionPath, util.isWindows)
+            : userConfiguredClojureLspPath;
     if (userConfiguredClojureLspPath === '') {
         const configuredVersion: string = config.getConfig().clojureLspVersion;
-        const downloadVersion = ['', 'latest'].includes(configuredVersion) ? await getLatestVersion() : configuredVersion;
+        const downloadVersion = ['', 'latest'].includes(configuredVersion)
+            ? await getLatestVersion()
+            : configuredVersion;
         if (currentVersion !== downloadVersion && downloadVersion !== '') {
-            const downloadPromise = downloadClojureLsp(context.extensionPath, downloadVersion);
+            const downloadPromise = downloadClojureLsp(
+                context.extensionPath,
+                downloadVersion
+            );
             lspStatus.text = '$(sync~spin) Downloading clojure-lsp';
             lspStatus.show();
             clojureLspPath = await downloadPromise;
@@ -388,25 +516,39 @@ function deactivate(): Promise<void> {
     return Promise.resolve();
 }
 
-async function getReferences(lspClient: LanguageClient, uri: string, position: Position, includeDeclaration: boolean = true): Promise<Location[] | null> {
-    const result: Location[] = await lspClient.sendRequest('textDocument/references', {
-        textDocument: {
-            uri,
-        },
-        position,
-        context: {
-            includeDeclaration
+async function getReferences(
+    lspClient: LanguageClient,
+    uri: string,
+    position: Position,
+    includeDeclaration: boolean = true
+): Promise<Location[] | null> {
+    const result: Location[] = await lspClient.sendRequest(
+        'textDocument/references',
+        {
+            textDocument: {
+                uri,
+            },
+            position,
+            context: {
+                includeDeclaration,
+            },
         }
-    });
+    );
     return result;
 }
 
-async function getDocumentSymbols(lspClient: LanguageClient, uri: string): Promise<DocumentSymbol[]> {
-    const result: DocumentSymbol[] = await lspClient.sendRequest('textDocument/documentSymbol', {
-        textDocument: {
-            uri
+async function getDocumentSymbols(
+    lspClient: LanguageClient,
+    uri: string
+): Promise<DocumentSymbol[]> {
+    const result: DocumentSymbol[] = await lspClient.sendRequest(
+        'textDocument/documentSymbol',
+        {
+            textDocument: {
+                uri,
+            },
         }
-    });
+    );
     return result;
 }
 
@@ -421,16 +563,21 @@ async function openLogFile(): Promise<void> {
         const logPath = serverInfo['log-path'];
         vscode.window.showTextDocument(vscode.Uri.file(logPath));
     } else {
-        vscode.window.showInformationMessage(SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE);
+        vscode.window.showInformationMessage(
+            SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE
+        );
     }
 }
 
-export async function getClojuredocs(symName: string, symNs: string): Promise<any> {
+export async function getClojuredocs(
+    symName: string,
+    symNs: string
+): Promise<any> {
     if (serverVersion > '2021.10.20-16.49.47') {
         const client: LanguageClient = getStateValue(LSP_CLIENT_KEY);
         return client.sendRequest('clojure/clojuredocs/raw', {
             symName,
-            symNs
+            symNs,
         });
     } else {
         return null;
@@ -442,5 +589,5 @@ export default {
     deactivate,
     LSP_CLIENT_KEY,
     getReferences,
-    getDocumentSymbols
-}
+    getDocumentSymbols,
+};

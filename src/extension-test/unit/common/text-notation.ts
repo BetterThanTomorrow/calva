@@ -1,6 +1,5 @@
 import * as model from '../../../cursor-doc/model';
 
-
 /**
  * Text Notation for expressing states of a document, including
  * current text and selection.
@@ -13,11 +12,13 @@ import * as model from '../../../cursor-doc/model';
  *   * Selections with direction left->right are denoted with `|<|` at the range boundaries
  */
 
-function textNotationToTextAndSelection(s: string): [string, { anchor: number, active: number }] {
+function textNotationToTextAndSelection(
+    s: string
+): [string, { anchor: number; active: number }] {
     const text = s.replace(/•/g, '\n').replace(/\|?[<>]?\|/g, '');
     let anchor = undefined;
     let active = undefined;
-    anchor = s.indexOf('|>|')
+    anchor = s.indexOf('|>|');
     if (anchor >= 0) {
         active = s.lastIndexOf('|>|') - 3;
     } else {
@@ -37,10 +38,7 @@ function textNotationToTextAndSelection(s: string): [string, { anchor: number, a
             }
         }
     }
-    return [
-        text,
-        { anchor, active }
-    ];
+    return [text, { anchor, active }];
 }
 
 /**
@@ -49,7 +47,10 @@ function textNotationToTextAndSelection(s: string): [string, { anchor: number, a
 export function docFromTextNotation(s: string): model.StringDocument {
     const [text, selection] = textNotationToTextAndSelection(s);
     const doc = new model.StringDocument(text);
-    doc.selection = new model.ModelEditSelection(selection.anchor, selection.active);
+    doc.selection = new model.ModelEditSelection(
+        selection.anchor,
+        selection.active
+    );
     return doc;
 }
 
@@ -66,6 +67,8 @@ export function text(doc: model.StringDocument): string {
  * Utility function to create a comparable structure with the text and
  * selection from a document
  */
-export function textAndSelection(doc: model.StringDocument): [string, [number, number]] {
-    return [text(doc), [doc.selection.anchor, doc.selection.active]]
+export function textAndSelection(
+    doc: model.StringDocument
+): [string, [number, number]] {
+    return [text(doc), [doc.selection.anchor, doc.selection.active]];
 }

@@ -1,17 +1,20 @@
 import * as expect from 'expect';
 import { moveTokenCursorToBreakpoint } from '../../../debugger/util';
 import * as model from '../../../cursor-doc/model';
-import * as fs from "fs";
+import * as fs from 'fs';
 
 function getCoordinates(text: string): (string | number)[] {
-    return text.split('\n')[0].split(',').map(s => {
-        const coor = s.replace(/;/g, '').trim();
-        if (coor.startsWith('"')) {
-            return coor.replace(/"/g, '');
-        } else {
-            return parseInt(coor);
-        }
-    });
+    return text
+        .split('\n')[0]
+        .split(',')
+        .map((s) => {
+            const coor = s.replace(/;/g, '').trim();
+            if (coor.startsWith('"')) {
+                return coor.replace(/"/g, '');
+            } else {
+                return parseInt(coor);
+            }
+        });
 }
 
 function getTestFileText(fileName: string): string {
@@ -19,9 +22,7 @@ function getTestFileText(fileName: string): string {
 }
 
 describe('Debugger Util', async () => {
-
     describe('moveTokenCursorToBreakpoint', () => {
-
         let doc: model.StringDocument;
         let debugResponse: any;
 
@@ -30,7 +31,7 @@ describe('Debugger Util', async () => {
 
             debugResponse = {
                 line: 0,
-                column: 0
+                column: 0,
             };
         });
 

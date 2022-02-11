@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import * as docMirror from './doc-mirror/index';
 import { LispTokenCursor } from './cursor-doc/token-cursor';
 import { Token } from './cursor-doc/clojure-lexer';
-import * as outputWindow from './results-output/results-doc'
+import * as outputWindow from './results-output/results-doc';
 import * as utilities from './utilities';
 import * as replSession from './nrepl/repl-session';
 import { NReplSession } from './nrepl';
@@ -12,10 +12,12 @@ export function getNamespace(doc: vscode.TextDocument) {
     if (outputWindow.isResultsDoc(doc)) {
         return outputWindow.getNs();
     }
-    let ns = "user";
+    let ns = 'user';
     if (doc && doc.languageId == 'clojure') {
         try {
-            const cursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(0);
+            const cursor: LispTokenCursor = docMirror
+                .getDocument(doc)
+                .getTokenCursor(0);
             cursor.forwardWhitespace(true);
             let token: Token = null,
                 foundNsToken: boolean = false,
@@ -26,37 +28,42 @@ export function getNamespace(doc: vscode.TextDocument) {
                     cursor.next();
                 }
                 token = cursor.getToken();
-                foundNsToken = token.type == "id" && token.raw == "ns";
+                foundNsToken = token.type == 'id' && token.raw == 'ns';
             } while (!foundNsToken && !cursor.atEnd());
             if (foundNsToken) {
                 do {
                     cursor.next();
                     token = cursor.getToken();
-                    foundNsId = token.type == "id";
+                    foundNsId = token.type == 'id';
                 } while (!foundNsId && !cursor.atEnd());
                 if (foundNsId) {
                     ns = token.raw;
                 } else {
-                    console.log("Error getting the ns name from the ns form.");
+                    console.log('Error getting the ns name from the ns form.');
                 }
             } else {
-                console.log("No ns form found.");
+                console.log('No ns form found.');
             }
         } catch (e) {
-            console.log("Error getting ns form of this file using docMirror, trying with cljs.reader: " + e);
+            console.log(
+                'Error getting ns form of this file using docMirror, trying with cljs.reader: ' +
+                    e
+            );
             try {
                 const forms = utilities.cljsLib.parseForms(doc.getText());
                 if (forms !== undefined) {
-                    const nsFormArray = forms.filter(x => x[0] == "ns");
+                    const nsFormArray = forms.filter((x) => x[0] == 'ns');
                     if (nsFormArray != undefined && nsFormArray.length > 0) {
-                        const nsForm = nsFormArray[0].filter(x => typeof (x) == "string");
+                        const nsForm = nsFormArray[0].filter(
+                            (x) => typeof x == 'string'
+                        );
                         if (nsForm != undefined) {
                             ns = nsForm[1];
                         }
                     }
                 }
             } catch (e) {
-                console.log("Error parsing ns form of this file. " + e);
+                console.log('Error parsing ns form of this file. ' + e);
             }
         }
     }
@@ -64,18 +71,19 @@ export function getNamespace(doc: vscode.TextDocument) {
 }
 
 export async function createNamespaceFromDocumentIfNotExists(doc) {
-
     if (utilities.getConnectedState()) {
         let document = utilities.getDocument(doc);
         if (document) {
             let ns = getNamespace(document);
-            let client = replSession.getSession(utilities.getFileType(document));
+            let client = replSession.getSession(
+                utilities.getFileType(document)
+            );
             if (client) {
                 let nsList = await client.listNamespaces([]);
                 if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
                     return;
                 }
-                await client.eval("(ns " + ns + ")", client.client.ns).value;
+                await client.eval('(ns ' + ns + ')', client.client.ns).value;
             }
         }
     }
@@ -87,7 +95,10 @@ export function getDocumentNamespace(document = {}) {
     return getNamespace(doc);
 }
 
-export async function getUriForNamespace(session: NReplSession, ns: string): Promise<vscode.Uri> {
+export async function getUriForNamespace(
+    session: NReplSession,
+    ns: string
+): Promise<vscode.Uri> {
     const info = await session.info(ns, ns);
     return vscode.Uri.parse(info.file, true);
 }

@@ -65,7 +65,7 @@ jobs:
       - run:
           name: Copy build
           command: |
-            cp -r * /tmp/build/
+            cp -r . /tmp/build
       - save_cache:
           name: Save dependencies
           key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
@@ -96,7 +96,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: Update system package lists
           command: sudo apt-get update
@@ -128,6 +128,19 @@ jobs:
           paths:
             - ~/.atom/packages
             - ./node_modules
+  prettier-check:
+    docker:
+      - image: circleci/node:latest
+    working_directory: ~/calva
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Restore build
+          command: cp -rT /tmp/build ~/calva
+      - run:
+          name: Run prettier format check
+          command: npm run prettier-check
   test-cljslib:
     docker:
       - image: circleci/node:latest
@@ -137,7 +150,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: Run CLJS Tests
           command: npm run calva-lib-test
@@ -152,7 +165,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: Run TS Unit Tests
           command: npm run unit-test
@@ -167,7 +180,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: Compile Extension Tests
           command: npm run compile-test
@@ -185,7 +198,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: "Publish Release on GitHub"
           command: |
@@ -217,7 +230,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: Publish to the marketplace
           command: |
@@ -237,7 +250,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: Publish to Open VSX
           command: |
@@ -323,6 +336,9 @@ workflows:
           filters:
             tags:
               ignore: /^v\d+\.\d+\.\d+-?.*/
+      - prettier-check:
+          requires:
+            - build
       - test-grammar:
           requires:
             - build
@@ -338,6 +354,14 @@ workflows:
   release-publish:
     jobs:
       - build:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - prettier-check:
+          requires:
+            - build
           filters:
             branches:
               ignore: /.*/
@@ -377,6 +401,7 @@ workflows:
               only: /^v\d+\.\d+\.\d+-?.*/
       - github-release:
           requires:
+            - prettier-check
             - test-grammar
             - test-cljslib
             - test-integration

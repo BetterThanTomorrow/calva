@@ -1,7 +1,9 @@
-import { LispTokenCursor } from "../cursor-doc/token-cursor";
+import { LispTokenCursor } from '../cursor-doc/token-cursor';
 
-function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string): void {
-
+function moveCursorPastStringInList(
+    tokenCursor: LispTokenCursor,
+    s: string
+): void {
     const [listOffsetStart, listOffsetEnd] = tokenCursor.rangeForList(1);
     const text = tokenCursor.doc.getText(listOffsetStart, listOffsetEnd - 1);
 
@@ -14,13 +16,15 @@ function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string): vo
         }
         tokenCursor.forwardSexp();
     } else {
-        throw "Cannot find string in list";
+        throw 'Cannot find string in list';
     }
 }
 
-function moveTokenCursorToBreakpoint(tokenCursor: LispTokenCursor, debugResponse: any): LispTokenCursor {
-
-    const errorMessage = "Error finding position of breakpoint";
+function moveTokenCursorToBreakpoint(
+    tokenCursor: LispTokenCursor,
+    debugResponse: any
+): LispTokenCursor {
+    const errorMessage = 'Error finding position of breakpoint';
     const [_, defunEnd] = tokenCursor.rangeForDefun(tokenCursor.offsetStart);
     let inSyntaxQuote = false;
 
@@ -87,6 +91,4 @@ function moveTokenCursorToBreakpoint(tokenCursor: LispTokenCursor, debugResponse
     return tokenCursor;
 }
 
-export {
-    moveTokenCursorToBreakpoint
-};
+export { moveTokenCursorToBreakpoint };

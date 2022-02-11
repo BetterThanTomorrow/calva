@@ -17,7 +17,7 @@ type ReplSessionType = 'clj' | 'cljs';
 const documentSelector = [
     { scheme: 'file', language: 'clojure' },
     { scheme: 'jar', language: 'clojure' },
-    { scheme: 'untitled', language: 'clojure' }
+    { scheme: 'untitled', language: 'clojure' },
 ];
 
 /**
@@ -26,14 +26,16 @@ const documentSelector = [
  * @param  {string} name
  * @return {string} The trimmed name
  */
- function _trimAliasName(name: string): string {
-    return name.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
+function _trimAliasName(name: string): string {
+    return name.replace(/^[\s,:]*/, '').replace(/[\s,:]*$/, '');
 }
 
 async function readEdnWorkspaceConfig(uri?: vscode.Uri) {
     try {
-        const data = await vscode.workspace.fs.readFile(uri ?? vscode.Uri.file(state.resolvePath('.calva/config.edn')));
-        return addEdnConfig(new TextDecoder("utf-8").decode(data));
+        const data = await vscode.workspace.fs.readFile(
+            uri ?? vscode.Uri.file(state.resolvePath('.calva/config.edn'))
+        );
+        return addEdnConfig(new TextDecoder('utf-8').decode(data));
     } catch (error) {
         return error;
     }
@@ -45,24 +47,35 @@ async function readEdnWorkspaceConfig(uri?: vscode.Uri) {
  * @param {string} data a string representation of a clojure map
  * @returns an error of one was thrown
  */
-async function addEdnConfig(data:string) {    
+async function addEdnConfig(data: string) {
     try {
         const parsed = parseEdn(data);
         const old = state.getProjectConfig();
         if (old && old.customREPLCommandSnippets) {
-            state.setProjectConfig({customREPLCommandSnippets: old.customREPLCommandSnippets.concat(parsed?.customREPLCommandSnippets ?? [])});
+            state.setProjectConfig({
+                customREPLCommandSnippets: old.customREPLCommandSnippets.concat(
+                    parsed?.customREPLCommandSnippets ?? []
+                ),
+            });
         } else {
-            state.setProjectConfig({customREPLCommandSnippets: (parsed?.customREPLCommandSnippets ?? [])});
+            state.setProjectConfig({
+                customREPLCommandSnippets:
+                    parsed?.customREPLCommandSnippets ?? [],
+            });
         }
-        
     } catch (error) {
         return error;
     }
 }
-var watcher = vscode.workspace.createFileSystemWatcher("**/.calva/**/config.edn", false, false, false);
+var watcher = vscode.workspace.createFileSystemWatcher(
+    '**/.calva/**/config.edn',
+    false,
+    false,
+    false
+);
 
 watcher.onDidChange((uri: vscode.Uri) => {
-    readEdnWorkspaceConfig(uri); 
+    readEdnWorkspaceConfig(uri);
 });
 
 // TODO find a way to validate the configs
@@ -70,40 +83,82 @@ function getConfig() {
     const configOptions = vscode.workspace.getConfiguration('calva');
     const pareditOptions = vscode.workspace.getConfiguration('calva.paredit');
 
-    const w = configOptions.inspect("customREPLCommandSnippets").workspaceValue as customREPLCommandSnippet[] ?? [];
-    const commands = w.concat(state.getProjectConfig()?.customREPLCommandSnippets as customREPLCommandSnippet[] ?? []);
+    const w =
+        (configOptions.inspect('customREPLCommandSnippets')
+            .workspaceValue as customREPLCommandSnippet[]) ?? [];
+    const commands = w.concat(
+        (state.getProjectConfig()
+            ?.customREPLCommandSnippets as customREPLCommandSnippet[]) ?? []
+    );
 
     return {
-        format: configOptions.get("formatOnSave"),
-        evaluate: configOptions.get("evalOnSave"),
-        test: configOptions.get("testOnSave"),
-        showDocstringInParameterHelp: configOptions.get("showDocstringInParameterHelp") as boolean,
-        jackInEnv: configOptions.get("jackInEnv"),
-        jackInDependencyVersions: configOptions.get("jackInDependencyVersions") as { JackInDependency: string },
-        clojureLspVersion: configOptions.get("clojureLspVersion") as string,
+        format: configOptions.get('formatOnSave'),
+        evaluate: configOptions.get('evalOnSave'),
+        test: configOptions.get('testOnSave'),
+        showDocstringInParameterHelp: configOptions.get(
+            'showDocstringInParameterHelp'
+        ) as boolean,
+        jackInEnv: configOptions.get('jackInEnv'),
+        jackInDependencyVersions: configOptions.get(
+            'jackInDependencyVersions'
+        ) as { JackInDependency: string },
+        clojureLspVersion: configOptions.get('clojureLspVersion') as string,
         clojureLspPath: configOptions.get('clojureLspPath') as string,
-        openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted") as boolean,
-        customCljsRepl: configOptions.get("customCljsRepl", null),
-        replConnectSequences: configOptions.get("replConnectSequences") as ReplConnectSequence[],
-        myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName) as string[],
-        myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[],
-        asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string,
-        customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []),
-        customREPLCommandSnippetsGlobal: configOptions.inspect("customREPLCommandSnippets").globalValue as customREPLCommandSnippet[],
+        openBrowserWhenFigwheelStarted: configOptions.get(
+            'openBrowserWhenFigwheelStarted'
+        ) as boolean,
+        customCljsRepl: configOptions.get('customCljsRepl', null),
+        replConnectSequences: configOptions.get(
+            'replConnectSequences'
+        ) as ReplConnectSequence[],
+        myLeinProfiles: configOptions
+            .get('myLeinProfiles', [])
+            .map(_trimAliasName) as string[],
+        myCljAliases: configOptions
+            .get('myCljAliases', [])
+            .map(_trimAliasName) as string[],
+        asyncOutputDestination: configOptions.get(
+            'sendAsyncOutputTo'
+        ) as string,
+        customREPLCommandSnippets: configOptions.get(
+            'customREPLCommandSnippets',
+            []
+        ),
+        customREPLCommandSnippetsGlobal: configOptions.inspect(
+            'customREPLCommandSnippets'
+        ).globalValue as customREPLCommandSnippet[],
         customREPLCommandSnippetsWorkspace: commands,
-        customREPLCommandSnippetsWorkspaceFolder: configOptions.inspect("customREPLCommandSnippets").workspaceFolderValue as customREPLCommandSnippet[],
-        prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions,
-        evaluationSendCodeToOutputWindow: configOptions.get("evaluationSendCodeToOutputWindow") as boolean,
-        enableJSCompletions: configOptions.get("enableJSCompletions") as boolean,
-        autoOpenREPLWindow: configOptions.get("autoOpenREPLWindow") as boolean,
-        autoOpenJackInTerminal: configOptions.get("autoOpenJackInTerminal") as boolean,
-        referencesCodeLensEnabled: configOptions.get('referencesCodeLens.enabled') as boolean,
+        customREPLCommandSnippetsWorkspaceFolder: configOptions.inspect(
+            'customREPLCommandSnippets'
+        ).workspaceFolderValue as customREPLCommandSnippet[],
+        prettyPrintingOptions: configOptions.get(
+            'prettyPrintingOptions'
+        ) as PrettyPrintingOptions,
+        evaluationSendCodeToOutputWindow: configOptions.get(
+            'evaluationSendCodeToOutputWindow'
+        ) as boolean,
+        enableJSCompletions: configOptions.get(
+            'enableJSCompletions'
+        ) as boolean,
+        autoOpenREPLWindow: configOptions.get('autoOpenREPLWindow') as boolean,
+        autoOpenJackInTerminal: configOptions.get(
+            'autoOpenJackInTerminal'
+        ) as boolean,
+        referencesCodeLensEnabled: configOptions.get(
+            'referencesCodeLens.enabled'
+        ) as boolean,
         hideReplUi: configOptions.get('hideReplUi') as boolean,
-        strictPreventUnmatchedClosingBracket: pareditOptions.get('strictPreventUnmatchedClosingBracket'),
-        showCalvaSaysOnStart: configOptions.get("showCalvaSaysOnStart") as boolean,
+        strictPreventUnmatchedClosingBracket: pareditOptions.get(
+            'strictPreventUnmatchedClosingBracket'
+        ),
+        showCalvaSaysOnStart: configOptions.get(
+            'showCalvaSaysOnStart'
+        ) as boolean,
         jackIn: {
-          useDeprecatedAliasFlag: configOptions.get("jackIn.useDeprecatedAliasFlag") as boolean,
-        }
+            useDeprecatedAliasFlag: configOptions.get(
+                'jackIn.useDeprecatedAliasFlag'
+            ) as boolean,
+        },
     };
 }
 
@@ -115,5 +170,5 @@ export {
     KEYBINDINGS_ENABLED_CONTEXT_KEY,
     documentSelector,
     ReplSessionType,
-    getConfig
-}
+    getConfig,
+};

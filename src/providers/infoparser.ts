@@ -1,6 +1,10 @@
-import { SignatureInformation, ParameterInformation, MarkdownString } from 'vscode';
+import {
+    SignatureInformation,
+    ParameterInformation,
+    MarkdownString,
+} from 'vscode';
 import * as tokenCursor from '../cursor-doc/token-cursor';
-import { getConfig } from "../config";
+import { getConfig } from '../config';
 
 export class REPLInfoParser {
     private _name: string = undefined;
@@ -35,12 +39,12 @@ export class REPLInfoParser {
             if (msg.macro) {
                 this._isMacro = true;
             }
-            if (msg["arglists-str"]) {
-                this._arglist = msg["arglists-str"];
+            if (msg['arglists-str']) {
+                this._arglist = msg['arglists-str'];
             }
-            if (msg["forms-str"]) {
+            if (msg['forms-str']) {
                 this._specialForm = true;
-                this._formsString = msg["forms-str"];
+                this._formsString = msg['forms-str'];
             }
             if (msg.doc) {
                 this._docString = msg.doc;
@@ -48,17 +52,24 @@ export class REPLInfoParser {
         }
     }
 
-    private getParameters(symbol: string, argList: string): ParameterInformation[] {
+    private getParameters(
+        symbol: string,
+        argList: string
+    ): ParameterInformation[] {
         const offsets = this.getParameterOffsets(symbol, argList);
         if (offsets !== undefined) {
-            return offsets.map(o => {
+            return offsets.map((o) => {
                 return new ParameterInformation(o);
-            })
+            });
         }
     }
 
-    private getParameterOffsets(symbol: string, argList: string): [number, number][] {
-        const cursor: tokenCursor.LispTokenCursor = tokenCursor.createStringCursor(argList);
+    private getParameterOffsets(
+        symbol: string,
+        argList: string
+    ): [number, number][] {
+        const cursor: tokenCursor.LispTokenCursor =
+            tokenCursor.createStringCursor(argList);
         if (cursor.downList()) {
             const ranges = cursor.rowColRangesForSexpsInList('[');
             if (ranges !== undefined) {
@@ -66,22 +77,30 @@ export class REPLInfoParser {
                 // We need to keep track of special `& args` and treat it as one argument
                 let previousArg: [string, [number, number]];
                 return ranges
-                    .map(r => {
-                        const columnOffset: [number, number] = [r[0][1], r[1][1]];
+                    .map((r) => {
+                        const columnOffset: [number, number] = [
+                            r[0][1],
+                            r[1][1],
+                        ];
                         const arg = argList.slice(...columnOffset);
                         const argOffset = [
                             arg,
                             [
                                 // If the previous arg was a `&` use its start offset instead
-                                previousArg !== undefined && previousArg[0] === '&' ? previousArg[1][0] : columnOffset[0] + symbolOffset,
-                                columnOffset[1] + symbolOffset
-                            ]
+                                previousArg !== undefined &&
+                                previousArg[0] === '&'
+                                    ? previousArg[1][0]
+                                    : columnOffset[0] + symbolOffset,
+                                columnOffset[1] + symbolOffset,
+                            ],
                         ] as [string, [number, number]];
                         previousArg = argOffset;
                         return argOffset;
-                    }).filter(argOffset => {
+                    })
+                    .filter((argOffset) => {
                         return argOffset[0] !== '&'; // Discard, because its start offset is used for the next arg
-                    }).map(argOffset => {
+                    })
+                    .map((argOffset) => {
                         return argOffset[1]; // Only return the offset part
                     });
             }
@@ -96,16 +115,18 @@ export class REPLInfoParser {
                 if (this._arglist) {
                     hover.appendCodeblock(this._arglist, 'clojure');
                 }
-            }
-            else {
+            } else {
                 if (this._formsString) {
                     hover.appendCodeblock(this._formsString, 'clojure');
                 }
             }
             if (this._specialForm || this._isMacro) {
-                hover.appendText(`${this._specialForm ? "(special form) " : ""}${this._isMacro ? "(macro)" : ""}\n`);
-            }
-            else {
+                hover.appendText(
+                    `${this._specialForm ? '(special form) ' : ''}${
+                        this._isMacro ? '(macro)' : ''
+                    }\n`
+                );
+            } else {
                 hover.appendText('\n');
             }
             hover.appendMarkdown(this._docString);
@@ -139,17 +160,28 @@ export class REPLInfoParser {
         if (this._name !== '') {
             const argLists = this._arglist ? this._arglist : this._formsString;
             if (argLists) {
-                return argLists.split('\n')
-                    .map(argList => argList.trim())
-                    .map(argList => {
+                return argLists
+                    .split('\n')
+                    .map((argList) => argList.trim())
+                    .map((argList) => {
                         if (argList !== '') {
-                            const signature = new SignatureInformation(`(${symbol} ${argList})`);
+                            const signature = new SignatureInformation(
+                                `(${symbol} ${argList})`
+                            );
                             // Skip parameter help on special forms and forms with optional arguments, for now
                             if (this._arglist && !argList.match(/\?/)) {
-                                signature.parameters = this.getParameters(symbol, argList);
+                                signature.parameters = this.getParameters(
+                                    symbol,
+                                    argList
+                                );
                             }
-                            if (this._docString && getConfig().showDocstringInParameterHelp) {
-                                signature.documentation = new MarkdownString(this._docString);
+                            if (
+                                this._docString &&
+                                getConfig().showDocstringInParameterHelp
+                            ) {
+                                signature.documentation = new MarkdownString(
+                                    this._docString
+                                );
                             }
                             return signature;
                         }
@@ -172,6 +204,9 @@ export function getCompletion(msg: any): [string | MarkdownString, string] {
     return new REPLInfoParser(msg).getCompletion();
 }
 
-export function getSignatures(msg: any, symbol: string): SignatureInformation[] {
+export function getSignatures(
+    msg: any,
+    symbol: string
+): SignatureInformation[] {
     return new REPLInfoParser(msg).getSignatures(symbol);
 }

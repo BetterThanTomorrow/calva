@@ -2580,7 +2580,9 @@
         "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
         "integration-test": "node ./out/extension-test/integration/runTests.js",
         "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
-        "publish": "bb publish.clj"
+        "publish": "bb publish.clj",
+        "prettier-format": "npx prettier --write './**/*.{ts,js}'",
+        "prettier-check": "npx prettier --check './**/*.{ts,js}'"
     },
     "dependencies": {
         "@types/escape-html": "0.0.20",
@@ -2637,6 +2639,7 @@
         "node-gyp": "^8.4.1",
         "nodemon": "^2.0.3",
         "ovsx": "^0.3.0",
+        "prettier": "2.5.1",
         "rimraf": "^2.7.1",
         "shadow-cljs": "^2.11.18",
         "source-map-support": "^0.5.16",

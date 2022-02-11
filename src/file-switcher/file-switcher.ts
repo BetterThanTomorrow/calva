@@ -6,7 +6,9 @@ import * as projectRoot from '../project-root';
 function openFile(file) {
     return vscode.workspace
         .openTextDocument(vscode.Uri.file(file))
-        .then(doc => vscode.window.showTextDocument(doc, { preserveFocus: true }));
+        .then((doc) =>
+            vscode.window.showTextDocument(doc, { preserveFocus: true })
+        );
 }
 
 function showConfirmationDialog(text, button) {
@@ -24,17 +26,16 @@ async function createNewFile(dir, file) {
 }
 
 function askToCreateANewFile(dir, file) {
-    const filePath = path.join(dir, file)
-    return showConfirmationDialog(
-        `Create ${filePath}?`,
-        'Create',
-    ).then((answer) => {
-        if (answer === 'Create') {
-            createNewFile(dir, file).then(() => {
-                openFile(filePath);
-            });
+    const filePath = path.join(dir, file);
+    return showConfirmationDialog(`Create ${filePath}?`, 'Create').then(
+        (answer) => {
+            if (answer === 'Create') {
+                createNewFile(dir, file).then(() => {
+                    openFile(filePath);
+                });
+            }
         }
-    });
+    );
 }
 
 export async function toggleBetweenImplAndTest() {
@@ -62,7 +63,10 @@ export async function toggleBetweenImplAndTest() {
 
     vscode.workspace.findFiles(fileToOpen, '**/.calva/**').then((files) => {
         if (!files.length) {
-            askToCreateANewFile(path.join(projectRootPath, sourcePath), newFilename);
+            askToCreateANewFile(
+                path.join(projectRootPath, sourcePath),
+                newFilename
+            );
         } else {
             const file = files[0].fsPath;
             openFile(file);

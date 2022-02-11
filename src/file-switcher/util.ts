@@ -3,15 +3,19 @@ import * as path from 'path';
 function isFileValid(fileName, pathAfterRoot) {
     if (!fileName.includes('.'))
         return {
-            success: false, message: "Toggle between implementation and file command doesn't"
-                + " work with extension-less files."
-        }
+            success: false,
+            message:
+                "Toggle between implementation and file command doesn't" +
+                ' work with extension-less files.',
+        };
     if (!pathAfterRoot.includes('src') && !pathAfterRoot.includes('test'))
         return {
-            success: false, message: "File path should include src or test to switch between " +
-                "implementation and test."
-        }
-    return { success: true, message: '' }
+            success: false,
+            message:
+                'File path should include src or test to switch between ' +
+                'implementation and test.',
+        };
+    return { success: true, message: '' };
 }
 
 function getNewFilename(fileName, extension) {
@@ -45,8 +49,4 @@ function getNewSourcePath(sourcePath) {
     return path.dirname(replacedSourcePath);
 }
 
-export {
-    isFileValid,
-    getNewFilename,
-    getNewSourcePath
-};
+export { isFileValid, getNewFilename, getNewSourcePath };

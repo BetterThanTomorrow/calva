@@ -1,14 +1,17 @@
 import * as vscode from 'vscode';
-import * as outputWindow from '../results-output/results-doc'
+import * as outputWindow from '../results-output/results-doc';
 
 /**
  * CodelensProvider
  */
-export class PrintStackTraceCodelensProvider implements vscode.CodeLensProvider {
-
+export class PrintStackTraceCodelensProvider
+    implements vscode.CodeLensProvider
+{
     private codeLenses: vscode.CodeLens[] = [];
-    private _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
-    public readonly onDidChangeCodeLenses: vscode.Event<void> = this._onDidChangeCodeLenses.event;
+    private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
+        new vscode.EventEmitter<void>();
+    public readonly onDidChangeCodeLenses: vscode.Event<void> =
+        this._onDidChangeCodeLenses.event;
 
     constructor() {
         vscode.workspace.onDidChangeConfiguration((_) => {
@@ -16,7 +19,10 @@ export class PrintStackTraceCodelensProvider implements vscode.CodeLensProvider 
         });
     }
 
-    public provideCodeLenses(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
+    public provideCodeLenses(
+        document: vscode.TextDocument,
+        token: vscode.CancellationToken
+    ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
         if (outputWindow.isResultsDoc(document)) {
             this.codeLenses = [];
             const stackTraceRange = outputWindow.getLastStackTraceRange();
@@ -28,12 +34,16 @@ export class PrintStackTraceCodelensProvider implements vscode.CodeLensProvider 
         return [];
     }
 
-    public resolveCodeLens(codeLens: vscode.CodeLens, token: vscode.CancellationToken) {
+    public resolveCodeLens(
+        codeLens: vscode.CodeLens,
+        token: vscode.CancellationToken
+    ) {
         codeLens.command = {
-            title: "Print stacktrace",
-            tooltip: "Print the stacktrace for this error (also available from the command palette)",
-            command: "calva.printLastStacktrace",
-            arguments: []
+            title: 'Print stacktrace',
+            tooltip:
+                'Print the stacktrace for this error (also available from the command palette)',
+            command: 'calva.printLastStacktrace',
+            arguments: [],
         };
         return codeLens;
     }

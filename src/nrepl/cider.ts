@@ -6,7 +6,7 @@ export interface TestSummary {
     pass: number;
     fail: number;
     error: number;
-};
+}
 
 // https://github.com/clojure-emacs/cider-nrepl/blob/a740583c3aa8b582f3097611787a276775131d32/src/cider/nrepl/middleware/test.clj#L97-L112
 export interface TestResult {
@@ -21,30 +21,30 @@ export interface TestResult {
     actual?: string;
     diffs?: unknown;
     error?: unknown;
-    line?: number
+    line?: number;
     file?: string;
 }
 
 // https://github.com/clojure-emacs/orchard/blob/febf8169675af1b11a8c00cfe1155ed40db8be42/src/orchard/query.clj#L10-L15
 export interface NamespaceQuery {
-    'exactly': string[]
-    'project?'?: boolean
-    'load-project-ns?'?: boolean
-    'has-tests?'?: boolean
-    'include-regexps'?: string[]
-    'exclude-regexps'?: string[]
+    exactly: string[];
+    'project?'?: boolean;
+    'load-project-ns?'?: boolean;
+    'has-tests?'?: boolean;
+    'include-regexps'?: string[];
+    'exclude-regexps'?: string[];
 }
 
 // https://github.com/clojure-emacs/orchard/blob/febf8169675af1b11a8c00cfe1155ed40db8be42/src/orchard/query.clj#L45-L52
 export interface VarQuery {
-    'ns-query'?: NamespaceQuery
-    'private?'?: boolean
-    'test?'?: boolean
-    'include-meta-key'?: string[]
-    'exclude-meta-key'?: string[]
-    'search'?: string
-    'search-property'?: 'doc' | 'name'
-    'manipulate-vars'?: unknown
+    'ns-query'?: NamespaceQuery;
+    'private?'?: boolean;
+    'test?'?: boolean;
+    'include-meta-key'?: string[];
+    'exclude-meta-key'?: string[];
+    search?: string;
+    'search-property'?: 'doc' | 'name';
+    'manipulate-vars'?: unknown;
 }
 
 // https://github.com/clojure-emacs/cider-nrepl/blob/a740583c3aa8b582f3097611787a276775131d32/src/cider/nrepl/middleware/test.clj#L45-L46
@@ -52,31 +52,29 @@ export interface TestResults {
     summary: TestSummary;
     results: {
         [key: string]: {
-            [key: string]: TestResult[]
-        }
-    }
-    'testing-ns'?: string
-    'gen-input': unknown
+            [key: string]: TestResult[];
+        };
+    };
+    'testing-ns'?: string;
+    'gen-input': unknown;
 }
 
 function stripTrailingNewlines(s: string): string {
-    return s.replace(/\r?\n$/, "");
+    return s.replace(/\r?\n$/, '');
 }
 
 function resultMessage(resultItem: Readonly<TestResult>): string {
     let msg = [];
-    if (resultItem.context && resultItem.context !== "false")
+    if (resultItem.context && resultItem.context !== 'false')
         msg.push(resultItem.context);
-    if (resultItem.message)
-        msg.push(resultItem.message);
-    return `${msg.length > 0 ? stripTrailingNewlines(msg.join(": ")) : ''}`;
+    if (resultItem.message) msg.push(resultItem.message);
+    return `${msg.length > 0 ? stripTrailingNewlines(msg.join(': ')) : ''}`;
 }
-
 
 // Remove any trailing blank lines from any of the string in result.
 export function cleanUpWhiteSpace(result: TestResult) {
     for (const prop in result) {
-        if (typeof (result[prop]) === 'string') {
+        if (typeof result[prop] === 'string') {
             result[prop] = stripTrailingNewlines(result[prop]);
         }
     }
@@ -90,21 +88,25 @@ export function cleanUpWhiteSpace(result: TestResult) {
 export function summaryMessage(summary: Readonly<TestSummary>): string {
     let msg = [];
     if (summary.test > 0) {
-        msg.push(summary.test + " tests finished");
+        msg.push(summary.test + ' tests finished');
 
         const hasProblems = summary.error + summary.fail > 0;
         if (!hasProblems) {
-            msg.push("all passing 👍");
+            msg.push('all passing 👍');
         } else {
-            msg.push("problems found. 😭 errors: " + summary.error + ", failures: " + summary.fail);
+            msg.push(
+                'problems found. 😭 errors: ' +
+                    summary.error +
+                    ', failures: ' +
+                    summary.fail
+            );
         }
-
     } else {
-        msg.push("No tests found. 😱");
+        msg.push('No tests found. 😱');
     }
 
-    msg.push("ns: " + summary.ns + ", vars: " + summary.var);
-    return msg.join(", ");
+    msg.push('ns: ' + summary.ns + ', vars: ' + summary.var);
+    return msg.join(', ');
 }
 
 // Given a list of summaries, sum them to compute the total number of tests,
@@ -119,7 +121,6 @@ export function totalSummary(summaries: TestSummary[]): TestSummary {
     return result;
 }
 
-
 // Returns the file and line number information of an error, if the data is provided.
 // If there is no information, the empty string is returned.
 // Otherwise, returns a string like:
@@ -129,11 +130,11 @@ export function totalSummary(summaries: TestSummary[]): TestSummary {
 // There is a leading space in these messages so that the return value can be
 // easily spliced into other messages without having to check deal with padding.
 export function lineInformation(result: TestResult): string {
-    let hasFile = (typeof result.file === 'string');
-    let hasLine = (typeof result.line === 'number');
+    let hasFile = typeof result.file === 'string';
+    let hasLine = typeof result.line === 'number';
 
     if (!hasFile && !hasLine) {
-        return "";
+        return '';
     }
 
     if (!hasFile) {
@@ -141,7 +142,7 @@ export function lineInformation(result: TestResult): string {
     }
 
     if (!hasLine) {
-        return ` (${result.file})`
+        return ` (${result.file})`;
     }
 
     return ` (${result.file}:${result.line})`;
@@ -156,36 +157,35 @@ export function detailedMessage(result: TestResult): string {
     const message = resultMessage(result);
     const location = lineInformation(result);
 
-    if (result.type === "error") {
-        messages.push(`; ERROR in ${result.ns}/${result.var}${location}:`)
+    if (result.type === 'error') {
+        messages.push(`; ERROR in ${result.ns}/${result.var}${location}:`);
         if (message) {
             messages.push(`; ${message}`);
         }
         messages.push(`; error: ${result.error}${location}`);
 
         if (result.expected) {
-            messages.push("; expected:");
+            messages.push('; expected:');
             messages.push(result.expected);
         }
-
     } else if (result.type === 'fail') {
         messages.push(`; FAIL in ${result.ns}/${result.var}${location}:`);
         if (message) {
             messages.push(`; ${message}`);
         }
         if (result.expected) {
-            messages.push(`; expected:\n${result.expected}`)
+            messages.push(`; expected:\n${result.expected}`);
         }
         if (result.actual) {
             messages.push(`; actual:\n${result.actual}`);
         }
     }
-    return messages.length > 0 ? messages.join("\n") : null;
+    return messages.length > 0 ? messages.join('\n') : null;
 }
 
 // Return a short message that can be shown to user as a Diagnostic.
 export function diagnosticMessage(result: TestResult): string {
-    return `failure in test: ${result.var} context: ${result.context}, expected ${result.expected}, got: ${result.actual}`
+    return `failure in test: ${result.var} context: ${result.context}, expected ${result.expected}, got: ${result.actual}`;
 }
 
 export function shortMessage(result: TestResult): string {
@@ -196,9 +196,17 @@ export function shortMessage(result: TestResult): string {
             return 'Error running test: ' + result.message + ' ' + result.error;
         case 'fail':
             if (result.message) {
-                return 'Expected ' + result.expected + ' actual ' + result.actual
+                return (
+                    'Expected ' + result.expected + ' actual ' + result.actual
+                );
             } else {
-                return result.message + ' expected ' + result.expected + ' actual ' + result.actual;
+                return (
+                    result.message +
+                    ' expected ' +
+                    result.expected +
+                    ' actual ' +
+                    result.actual
+                );
             }
     }
 }

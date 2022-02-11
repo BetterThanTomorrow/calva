@@ -10,12 +10,18 @@ export async function provideHover(document, position) {
         let text = util.getWordAtPosition(document, position);
         let ns = namespace.getNamespace(document);
         let client = replSession.getSession(util.getFileType(document));
-        if(client) {
+        if (client) {
             await namespace.createNamespaceFromDocumentIfNotExists(document);
             let res = await client.info(ns, text);
-            if (!res.status.includes('error') && !res.status.includes('no-info')) {
+            if (
+                !res.status.includes('error') &&
+                !res.status.includes('no-info')
+            ) {
                 const docsMd = infoparser.getHover(res);
-                const clojureDocsMd = await clojureDocs.getExamplesHover(document, position);
+                const clojureDocsMd = await clojureDocs.getExamplesHover(
+                    document,
+                    position
+                );
                 return new vscode.Hover([docsMd, clojureDocsMd]);
             }
         }
@@ -23,9 +29,8 @@ export async function provideHover(document, position) {
     }
 }
 
-
 export default class HoverProvider implements vscode.HoverProvider {
     async provideHover(document, position, _) {
         return provideHover(document, position);
     }
-};
+}

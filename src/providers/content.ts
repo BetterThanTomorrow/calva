@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
-import * as util from '../utilities'
+import * as util from '../utilities';
 
-export default class JarContentProvider implements vscode.TextDocumentContentProvider {
+export default class JarContentProvider
+    implements vscode.TextDocumentContentProvider
+{
     state: any;
 
     constructor() {
@@ -12,4 +14,4 @@ export default class JarContentProvider implements vscode.TextDocumentContentPro
     provideTextDocumentContent(uri, token) {
         return util.getJarContents(uri);
     }
-};
+}

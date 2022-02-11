@@ -23,8 +23,4 @@ function readVersionFile(extensionPath: string): string {
     }
 }
 
-export {
-    getClojureLspPath,
-    getVersionFilePath,
-    readVersionFile
-}
+export { getClojureLspPath, getVersionFilePath, readVersionFile };

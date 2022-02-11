@@ -10,7 +10,7 @@ let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
     extensionContext = context;
     if (context.workspaceState.get('selectedCljTypeName') == undefined) {
-        context.workspaceState.update('selectedCljTypeName', "unknown");
+        context.workspaceState.update('selectedCljTypeName', 'unknown');
     }
 }
 
@@ -42,9 +42,9 @@ function analytics(): Analytics {
     }
 }
 
-const PROJECT_DIR_KEY = "connect.projectDir";
-const PROJECT_DIR_URI_KEY = "connect.projectDirNew";
-const PROJECT_CONFIG_MAP = "config";
+const PROJECT_DIR_KEY = 'connect.projectDir';
+const PROJECT_DIR_URI_KEY = 'connect.projectDirNew';
+const PROJECT_CONFIG_MAP = 'config';
 
 export function getProjectRootLocal(useCache = true): string {
     if (useCache) {
@@ -68,33 +68,46 @@ export function getProjectRootUri(useCache = true): vscode.Uri {
     }
 }
 
-const NON_PROJECT_DIR_KEY = "calva.connect.nonProjectDir";
+const NON_PROJECT_DIR_KEY = 'calva.connect.nonProjectDir';
 
-export async function getNonProjectRootDir(context: vscode.ExtensionContext): Promise<vscode.Uri> {
+export async function getNonProjectRootDir(
+    context: vscode.ExtensionContext
+): Promise<vscode.Uri> {
     let root: vscode.Uri;
-    if (!process.env["NEW_DRAMS"]) {
-        root = await context.globalState.get(NON_PROJECT_DIR_KEY) as vscode.Uri;
+    if (!process.env['NEW_DRAMS']) {
+        root = (await context.globalState.get(
+            NON_PROJECT_DIR_KEY
+        )) as vscode.Uri;
     }
     if (root) {
-        const createNewOption = "Create new temp directory, download new files";
-        const useExistingOption = "Use existing temp directory, reuse any existing files";
-        root = await vscode.window.showQuickPick([useExistingOption, createNewOption], {
-             "placeHolder": "Reuse the existing REPL temp dir and its files?"
-        }).then(option => {
-            return option === useExistingOption ? root : undefined;
-        });
+        const createNewOption = 'Create new temp directory, download new files';
+        const useExistingOption =
+            'Use existing temp directory, reuse any existing files';
+        root = await vscode.window
+            .showQuickPick([useExistingOption, createNewOption], {
+                placeHolder: 'Reuse the existing REPL temp dir and its files?',
+            })
+            .then((option) => {
+                return option === useExistingOption ? root : undefined;
+            });
     }
-    if (typeof (root) === 'object') {
+    if (typeof root === 'object') {
         root = vscode.Uri.file(root.path);
     }
     return root;
 }
 
-export async function setNonProjectRootDir(context: vscode.ExtensionContext, root: vscode.Uri) {
+export async function setNonProjectRootDir(
+    context: vscode.ExtensionContext,
+    root: vscode.Uri
+) {
     await context.globalState.update(NON_PROJECT_DIR_KEY, root);
 }
 
-export async function getOrCreateNonProjectRoot(context: vscode.ExtensionContext, preferProjectDir = false): Promise<vscode.Uri> {
+export async function getOrCreateNonProjectRoot(
+    context: vscode.ExtensionContext,
+    preferProjectDir = false
+): Promise<vscode.Uri> {
     let root: vscode.Uri;
     if (preferProjectDir) {
         root = getProjectRootUri();
@@ -104,10 +117,15 @@ export async function getOrCreateNonProjectRoot(context: vscode.ExtensionContext
     }
     if (!root) {
         const subDir = util.randomSlug();
-        root = vscode.Uri.file(path.join(os.tmpdir(), 'betterthantomorrow.calva', subDir));
+        root = vscode.Uri.file(
+            path.join(os.tmpdir(), 'betterthantomorrow.calva', subDir)
+        );
         await setNonProjectRootDir(context, root);
     }
-    setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
+    setStateValue(
+        PROJECT_DIR_KEY,
+        path.resolve(root.fsPath ? root.fsPath : root.path)
+    );
     setStateValue(PROJECT_DIR_URI_KEY, root);
     return root;
 }
@@ -120,7 +138,10 @@ function getProjectWsFolder(): vscode.WorkspaceFolder {
             return folder;
         }
     }
-    if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+    if (
+        vscode.workspace.workspaceFolders &&
+        vscode.workspace.workspaceFolders.length > 0
+    ) {
         return vscode.workspace.workspaceFolders[0];
     }
     return undefined;
@@ -143,7 +164,11 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
         setStateValue(PROJECT_DIR_KEY, path.resolve(uri.fsPath));
         setStateValue(PROJECT_DIR_URI_KEY, uri);
     } else {
-        const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"];
+        const projectFileNames: string[] = [
+            'project.clj',
+            'shadow-cljs.edn',
+            'deps.edn',
+        ];
         const doc = util.getDocument({});
         let workspaceFolder = getProjectWsFolder();
         await findLocalProjectRoot(projectFileNames, doc, workspaceFolder);
@@ -151,7 +176,11 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
     }
 }
 
-async function findLocalProjectRoot(projectFileNames, doc, workspaceFolder): Promise<void> {
+async function findLocalProjectRoot(
+    projectFileNames,
+    doc,
+    workspaceFolder
+): Promise<void> {
     if (workspaceFolder) {
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
         setStateValue(PROJECT_DIR_KEY, rootPath);
@@ -176,7 +205,7 @@ async function findLocalProjectRoot(projectFileNames, doc, workspaceFolder): Pro
                 break;
             }
             prev = d;
-            d = path.resolve(d, "..");
+            d = path.resolve(d, '..');
         }
 
         // at least be sure the the root folder contains a
@@ -193,27 +222,34 @@ async function findLocalProjectRoot(projectFileNames, doc, workspaceFolder): Pro
     return;
 }
 
-async function findProjectRootUri(projectFileNames, doc, workspaceFolder): Promise<void> {
+async function findProjectRootUri(
+    projectFileNames,
+    doc,
+    workspaceFolder
+): Promise<void> {
     let searchUri = doc?.uri || workspaceFolder?.uri;
     if (searchUri && !(searchUri.scheme === 'untitled')) {
         let prev = null;
         while (searchUri != prev) {
             try {
                 for (let projectFile in projectFileNames) {
-                    const u = vscode.Uri.joinPath(searchUri, projectFileNames[projectFile]);
+                    const u = vscode.Uri.joinPath(
+                        searchUri,
+                        projectFileNames[projectFile]
+                    );
                     try {
                         await vscode.workspace.fs.stat(u);
                         setStateValue(PROJECT_DIR_URI_KEY, searchUri);
                         return;
-                    }
-                    catch { }
+                    } catch {}
                 }
-            }
-            catch (e) {
-                console.error(`Problems in search for project root directory: ${e}`);
+            } catch (e) {
+                console.error(
+                    `Problems in search for project root directory: ${e}`
+                );
             }
             prev = searchUri;
-            searchUri = vscode.Uri.joinPath(searchUri, "..");
+            searchUri = vscode.Uri.joinPath(searchUri, '..');
         }
     }
 }
@@ -231,9 +267,4 @@ export function resolvePath(filePath?: string) {
     return filePath && root && path.resolve(root.uri.fsPath, filePath);
 }
 
-export {
-    extensionContext,
-    outputChannel,
-    connectionLogChannel,
-    analytics
-};
+export { extensionContext, outputChannel, connectionLogChannel, analytics };
