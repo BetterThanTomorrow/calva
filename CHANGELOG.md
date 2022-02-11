@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Maintenance: [Consistently format all JavaScript and TypeScript in the project and provide for easily formatting these files in the future.](https://github.com/BetterThanTomorrow/calva/pull/1524)
+
 ## [2.0.240] - 2022-02-06
 - Maintenance: [Update dependencies to fix security vulnerabilities](https://github.com/BetterThanTomorrow/calva/pull/1520)
 
