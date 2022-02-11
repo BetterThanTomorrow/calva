@@ -96,7 +96,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: Update system package lists
           command: sudo apt-get update
@@ -139,9 +139,6 @@ jobs:
           name: Restore build
           command: cp -rT /tmp/build ~/calva
       - run:
-          name: List all files
-          command: ls -la
-      - run:
           name: Run prettier format check
           command: npm run prettier-check
   test-cljslib:
@@ -153,7 +150,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: Run CLJS Tests
           command: npm run calva-lib-test
@@ -168,7 +165,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: Run TS Unit Tests
           command: npm run unit-test
@@ -183,7 +180,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: Compile Extension Tests
           command: npm run compile-test
@@ -201,7 +198,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: "Publish Release on GitHub"
           command: |
@@ -233,7 +230,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: Publish to the marketplace
           command: |
@@ -253,7 +250,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -r /tmp/build/* .
+          command: cp -rT /tmp/build ~/calva
       - run:
           name: Publish to Open VSX
           command: |
