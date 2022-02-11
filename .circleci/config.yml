@@ -139,6 +139,9 @@ jobs:
           name: Restore build
           command: "cp -rT /tmp/build \"$(pwd)\""
       - run:
+          name: List all files
+          command: ls -la
+      - run:
           name: Run prettier format check
           command: npm run prettier-check
   test-cljslib:
