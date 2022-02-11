@@ -10,10 +10,10 @@ import * as docMirror from './doc-mirror/index';
 import * as paredit from './cursor-doc/paredit';
 
 export type DocsEntry = {
-name: string;
-type: string;
-ns: string;
-doc: string;
+    name: string;
+    type: string;
+    ns: string;
+    doc: string;
     argsLists: string[];
     baseUrl: string;
     urlPath: string;
