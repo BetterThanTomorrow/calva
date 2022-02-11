@@ -136,8 +136,11 @@ jobs:
       - attach_workspace:
           at: /tmp
       - run:
+          name: Remove working directory
+          command: rmdir ~/calva
+      - run:
           name: Restore build
-          command: "cp -rT /tmp/build \"$(pwd)\""
+          command: cp -r /tmp/build ~/calva
       - run:
           name: List all files
           command: ls -la
