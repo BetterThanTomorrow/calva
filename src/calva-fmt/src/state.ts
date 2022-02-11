@@ -9,7 +9,7 @@ const mode = {
 
 var data;
 const initialData = {
-    documents: {}
+    documents: {},
 };
 
 reset();
@@ -29,14 +29,8 @@ function reset() {
 function config() {
     let configOptions = vscode.workspace.getConfiguration('calva.fmt');
     return {
-        parinferOnSelectionChange: configOptions.get("inferParensOnCursorMove"),
+        parinferOnSelectionChange: configOptions.get('inferParensOnCursorMove'),
     };
 }
 
-export {
-    cursor,
-    mode,
-    deref,
-    reset,
-    config
-};
+export { cursor, mode, deref, reset, config };

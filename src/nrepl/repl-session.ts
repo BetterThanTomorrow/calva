@@ -1,5 +1,5 @@
-import { NReplSession } from ".";
-import { cljsLib, getDocument, getFileType } from "../utilities";
+import { NReplSession } from '.';
+import { cljsLib, getDocument, getFileType } from '../utilities';
 import * as outputWindow from '../results-output/results-doc';
 
 function getSession(fileType = undefined): NReplSession {
@@ -27,18 +27,15 @@ function getReplSessionType(connected: boolean): string {
     if (connected) {
         if (outputWindow.isResultsDoc(doc)) {
             sessionType = outputWindow.getSessionType();
-        }
-        else if (fileType == 'cljs' && getSession('cljs') !== null) {
-            sessionType = 'cljs'
-        }
-        else if (fileType == 'clj' && getSession('clj') !== null) {
-            sessionType = 'clj'
-        }
-        else if (getSession('cljc') !== null) {
-            sessionType = getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
-        }
-        else {
-            sessionType = 'clj'
+        } else if (fileType == 'cljs' && getSession('cljs') !== null) {
+            sessionType = 'cljs';
+        } else if (fileType == 'clj' && getSession('clj') !== null) {
+            sessionType = 'clj';
+        } else if (getSession('cljc') !== null) {
+            sessionType =
+                getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
+        } else {
+            sessionType = 'clj';
         }
     }
 
@@ -59,5 +56,5 @@ export {
     getSession,
     getReplSessionType,
     updateReplSessionType,
-    getReplSessionTypeFromState
-}
+    getReplSessionTypeFromState,
+};

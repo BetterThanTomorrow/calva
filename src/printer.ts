@@ -1,20 +1,19 @@
 import { getConfig } from './config';
 
 export type PrintFnOptions = {
-    name: string,
-    maxWidthArgument?: string,
-    seqLimitArgument?: string,
-    maxDepthArgument: string
+    name: string;
+    maxWidthArgument?: string;
+    seqLimitArgument?: string;
+    maxDepthArgument: string;
 };
 
-
 export type PrettyPrintingOptions = {
-    enabled: boolean,
-    printFn?: PrintFnOptions,
-    printEngine?: 'calva' | 'pprint' | 'fipp' | 'puget' | 'zprint' | 'custom',
-    width: number,
-    maxLength?: number,
-    maxDepth?: number
+    enabled: boolean;
+    printFn?: PrintFnOptions;
+    printEngine?: 'calva' | 'pprint' | 'fipp' | 'puget' | 'zprint' | 'custom';
+    width: number;
+    maxLength?: number;
+    maxDepth?: number;
 };
 
 export const disabledPrettyPrinter: PrettyPrintingOptions = {
@@ -22,10 +21,17 @@ export const disabledPrettyPrinter: PrettyPrintingOptions = {
     printEngine: undefined,
     width: undefined,
     maxLength: undefined,
-    maxDepth: undefined
+    maxDepth: undefined,
 };
 
-function getPrinter(pprintOptions: PrettyPrintingOptions, printerFn: string, widthSlug: string, lengthSlug: string, depthsSlug: string, moreOptions = {}) {
+function getPrinter(
+    pprintOptions: PrettyPrintingOptions,
+    printerFn: string,
+    widthSlug: string,
+    lengthSlug: string,
+    depthsSlug: string,
+    moreOptions = {}
+) {
     const PRINTER_FN = 'nrepl.middleware.print/print',
         OPTIONS = 'nrepl.middleware.print/options';
     let printer = {};
@@ -45,28 +51,59 @@ function getPrinter(pprintOptions: PrettyPrintingOptions, printerFn: string, wid
 
 const zprintExtraOptions = {
     // Can't do this, because `bencode` translates `false` to 0, and `zprint` does not approve (yet, Kim is looking into relaxing this)
-    // "record": { 
+    // "record": {
     //     "to-string?": true
     // }
-}
+};
 
 export function getServerSidePrinter(pprintOptions: PrettyPrintingOptions) {
     if (pprintOptions.enabled && pprintOptions.printEngine !== 'calva') {
         switch (pprintOptions.printEngine) {
-            case "pprint":
-                return getPrinter(pprintOptions, 'cider.nrepl.pprint/pprint', 'right-margin', 'length', 'level');
-            case "fipp":
-                return getPrinter(pprintOptions, 'cider.nrepl.pprint/fipp-pprint', 'width', 'print-length', 'print-level');
-            case "puget":
-                return getPrinter(pprintOptions, 'cider.nrepl.pprint/puget-pprint', 'width', 'seq-limit', undefined);
-            case "zprint":
-                return getPrinter(pprintOptions, 'cider.nrepl.pprint/zprint-pprint', 'width', 'max-length', 'print-depth', zprintExtraOptions);
+            case 'pprint':
+                return getPrinter(
+                    pprintOptions,
+                    'cider.nrepl.pprint/pprint',
+                    'right-margin',
+                    'length',
+                    'level'
+                );
+            case 'fipp':
+                return getPrinter(
+                    pprintOptions,
+                    'cider.nrepl.pprint/fipp-pprint',
+                    'width',
+                    'print-length',
+                    'print-level'
+                );
+            case 'puget':
+                return getPrinter(
+                    pprintOptions,
+                    'cider.nrepl.pprint/puget-pprint',
+                    'width',
+                    'seq-limit',
+                    undefined
+                );
+            case 'zprint':
+                return getPrinter(
+                    pprintOptions,
+                    'cider.nrepl.pprint/zprint-pprint',
+                    'width',
+                    'max-length',
+                    'print-depth',
+                    zprintExtraOptions
+                );
             default:
                 return undefined;
         }
     } else if (pprintOptions.printFn) {
         const printerFn = pprintOptions.printFn;
-        return getPrinter(pprintOptions, printerFn.name, printerFn?.maxWidthArgument, printerFn?.seqLimitArgument, printerFn?.maxDepthArgument);
+        return getPrinter(
+            pprintOptions,
+            printerFn.name,
+            printerFn?.maxWidthArgument,
+            printerFn?.seqLimitArgument,
+            printerFn?.maxDepthArgument
+        );
     }
 }
 
@@ -75,13 +112,13 @@ export function prettyPrintingOptions(): PrettyPrintingOptions {
 }
 
 export const zprintDependencies = {
-    "zprint": "0.4.16"
-}
+    zprint: '0.4.16',
+};
 
 export function getServerSidePrinterDependencies() {
     if (prettyPrintingOptions().printEngine === 'zprint') {
         return zprintDependencies;
     } else {
-        return {}
+        return {};
     }
 }

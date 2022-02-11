@@ -1,7 +1,13 @@
 'use strict';
 import { StatusBar } from './statusbar';
 import * as vscode from 'vscode';
-import { commands, window, ExtensionContext, workspace, ConfigurationChangeEvent } from 'vscode';
+import {
+    commands,
+    window,
+    ExtensionContext,
+    workspace,
+    ConfigurationChangeEvent,
+} from 'vscode';
 import { Event, EventEmitter } from 'vscode';
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
@@ -9,16 +15,15 @@ import { EditableDocument } from '../cursor-doc/model';
 
 let onPareditKeyMapChangedEmitter = new EventEmitter<String>();
 
-const languages = new Set(["clojure", "lisp", "scheme"]);
+const languages = new Set(['clojure', 'lisp', 'scheme']);
 let enabled = true;
-
 
 /**
  * Copies the text represented by the range from doc to the clipboard.
  * @param doc
  * @param range
  */
-function copyRangeToClipboard(doc: EditableDocument, [start, end]){
+function copyRangeToClipboard(doc: EditableDocument, [start, end]) {
     const text = doc.model.getText(start, end);
     vscode.env.clipboard.writeText(text);
 }
@@ -28,195 +33,214 @@ function copyRangeToClipboard(doc: EditableDocument, [start, end]){
  * @returns boolean
  */
 function shouldKillAlsoCutToClipboard() {
-  return workspace.getConfiguration().get('calva.paredit.killAlsoCutsToClipboard');
+    return workspace
+        .getConfiguration()
+        .get('calva.paredit.killAlsoCutsToClipboard');
 }
-
 
 type PareditCommand = {
-    command: string,
-    handler: (doc: EditableDocument) => void
-}
+    command: string;
+    handler: (doc: EditableDocument) => void;
+};
 const pareditCommands: PareditCommand[] = [
     // NAVIGATING
     {
         command: 'paredit.forwardSexp',
-        handler: (doc: EditableDocument) => { paredit.moveToRangeRight(doc, paredit.forwardSexpRange(doc)) }
+        handler: (doc: EditableDocument) => {
+            paredit.moveToRangeRight(doc, paredit.forwardSexpRange(doc));
+        },
     },
     {
         command: 'paredit.backwardSexp',
-        handler: (doc: EditableDocument) => { paredit.moveToRangeLeft(doc, paredit.backwardSexpRange(doc)) }
+        handler: (doc: EditableDocument) => {
+            paredit.moveToRangeLeft(doc, paredit.backwardSexpRange(doc));
+        },
     },
     {
         command: 'paredit.forwardDownSexp',
-        handler: (doc: EditableDocument) => { paredit.moveToRangeRight(doc, paredit.rangeToForwardDownList(doc)) }
+        handler: (doc: EditableDocument) => {
+            paredit.moveToRangeRight(doc, paredit.rangeToForwardDownList(doc));
+        },
     },
     {
         command: 'paredit.backwardDownSexp',
-        handler: (doc: EditableDocument) => { paredit.moveToRangeLeft(doc, paredit.rangeToBackwardDownList(doc)) }
+        handler: (doc: EditableDocument) => {
+            paredit.moveToRangeLeft(doc, paredit.rangeToBackwardDownList(doc));
+        },
     },
     {
         command: 'paredit.forwardUpSexp',
-        handler: (doc: EditableDocument) => { paredit.moveToRangeRight(doc, paredit.rangeToForwardUpList(doc)) }
+        handler: (doc: EditableDocument) => {
+            paredit.moveToRangeRight(doc, paredit.rangeToForwardUpList(doc));
+        },
     },
     {
         command: 'paredit.backwardUpSexp',
-        handler: (doc: EditableDocument) => { paredit.moveToRangeLeft(doc, paredit.rangeToBackwardUpList(doc)) }
+        handler: (doc: EditableDocument) => {
+            paredit.moveToRangeLeft(doc, paredit.rangeToBackwardUpList(doc));
+        },
     },
     {
         command: 'paredit.closeList',
-        handler: (doc: EditableDocument) => { paredit.moveToRangeRight(doc, paredit.rangeToForwardList(doc)) }
+        handler: (doc: EditableDocument) => {
+            paredit.moveToRangeRight(doc, paredit.rangeToForwardList(doc));
+        },
     },
     {
         command: 'paredit.openList',
-        handler: (doc: EditableDocument) => { paredit.moveToRangeLeft(doc, paredit.rangeToBackwardList(doc)) }
+        handler: (doc: EditableDocument) => {
+            paredit.moveToRangeLeft(doc, paredit.rangeToBackwardList(doc));
+        },
     },
 
     // SELECTING
     {
         command: 'paredit.rangeForDefun',
-        handler: (doc: EditableDocument) => { paredit.selectRange(doc, paredit.rangeForDefun(doc)) }
+        handler: (doc: EditableDocument) => {
+            paredit.selectRange(doc, paredit.rangeForDefun(doc));
+        },
     },
     {
         command: 'paredit.sexpRangeExpansion',
-        handler: paredit.growSelection
+        handler: paredit.growSelection,
     }, // TODO: Inside string should first select contents
     {
         command: 'paredit.sexpRangeContraction',
-        handler: paredit.shrinkSelection
+        handler: paredit.shrinkSelection,
     },
 
     {
         command: 'paredit.selectForwardSexp',
-        handler: paredit.selectForwardSexp
+        handler: paredit.selectForwardSexp,
     },
     {
         command: 'paredit.selectRight',
-        handler: paredit.selectRight
+        handler: paredit.selectRight,
     },
     {
         command: 'paredit.selectBackwardSexp',
-        handler: paredit.selectBackwardSexp
+        handler: paredit.selectBackwardSexp,
     },
     {
         command: 'paredit.selectForwardDownSexp',
-        handler: paredit.selectForwardDownSexp
+        handler: paredit.selectForwardDownSexp,
     },
     {
         command: 'paredit.selectBackwardDownSexp',
-        handler: paredit.selectBackwardDownSexp
+        handler: paredit.selectBackwardDownSexp,
     },
     {
         command: 'paredit.selectForwardUpSexp',
-        handler: paredit.selectForwardUpSexp
+        handler: paredit.selectForwardUpSexp,
     },
     {
         command: 'paredit.selectBackwardUpSexp',
-        handler: paredit.selectBackwardUpSexp
+        handler: paredit.selectBackwardUpSexp,
     },
     {
         command: 'paredit.selectCloseList',
-        handler: paredit.selectCloseList
+        handler: paredit.selectCloseList,
     },
     {
         command: 'paredit.selectOpenList',
-        handler: paredit.selectOpenList
+        handler: paredit.selectOpenList,
     },
 
     // EDITING
     {
         command: 'paredit.slurpSexpForward',
-        handler: paredit.forwardSlurpSexp
+        handler: paredit.forwardSlurpSexp,
     },
     {
         command: 'paredit.barfSexpForward',
-        handler: paredit.forwardBarfSexp
+        handler: paredit.forwardBarfSexp,
     },
     {
         command: 'paredit.slurpSexpBackward',
-        handler: paredit.backwardSlurpSexp
+        handler: paredit.backwardSlurpSexp,
     },
     {
         command: 'paredit.barfSexpBackward',
-        handler: paredit.backwardBarfSexp
+        handler: paredit.backwardBarfSexp,
     },
     {
         command: 'paredit.splitSexp',
-        handler: paredit.splitSexp
+        handler: paredit.splitSexp,
     },
     {
         command: 'paredit.joinSexp',
-        handler: paredit.joinSexp
+        handler: paredit.joinSexp,
     },
     {
         command: 'paredit.spliceSexp',
-        handler: paredit.spliceSexp
+        handler: paredit.spliceSexp,
     },
     // ['paredit.transpose', ], // TODO: Not yet implemented
     {
         command: 'paredit.raiseSexp',
-        handler: paredit.raiseSexp
+        handler: paredit.raiseSexp,
     },
     {
         command: 'paredit.transpose',
-        handler: paredit.transpose
+        handler: paredit.transpose,
     },
     {
         command: 'paredit.dragSexprBackward',
-        handler: paredit.dragSexprBackward
+        handler: paredit.dragSexprBackward,
     },
     {
         command: 'paredit.dragSexprForward',
-        handler: paredit.dragSexprForward
+        handler: paredit.dragSexprForward,
     },
     {
         command: 'paredit.dragSexprBackwardUp',
-        handler: paredit.dragSexprBackwardUp
+        handler: paredit.dragSexprBackwardUp,
     },
     {
         command: 'paredit.dragSexprForwardDown',
-        handler: paredit.dragSexprForwardDown
+        handler: paredit.dragSexprForwardDown,
     },
     {
         command: 'paredit.dragSexprForwardUp',
-        handler: paredit.dragSexprForwardUp
+        handler: paredit.dragSexprForwardUp,
     },
     {
         command: 'paredit.dragSexprBackwardDown',
-        handler: paredit.dragSexprBackwardDown
+        handler: paredit.dragSexprBackwardDown,
     },
     {
         command: 'paredit.convolute',
-        handler: paredit.convolute
+        handler: paredit.convolute,
     },
     {
         command: 'paredit.killRight',
-        handler:  (doc: EditableDocument) => {
-            const range =  paredit.forwardHybridSexpRange(doc);
+        handler: (doc: EditableDocument) => {
+            const range = paredit.forwardHybridSexpRange(doc);
             if (shouldKillAlsoCutToClipboard()) {
                 copyRangeToClipboard(doc, range);
             }
             paredit.killRange(doc, range);
-        }
+        },
     },
     {
         command: 'paredit.killSexpForward',
-        handler:  (doc: EditableDocument) => {
-            const range =  paredit.forwardSexpRange(doc);
+        handler: (doc: EditableDocument) => {
+            const range = paredit.forwardSexpRange(doc);
             if (shouldKillAlsoCutToClipboard()) {
                 copyRangeToClipboard(doc, range);
             }
             paredit.killRange(doc, range);
-        }
+        },
     },
     {
         command: 'paredit.killSexpBackward',
-        handler:  (doc: EditableDocument) => {
-            const range =  paredit.backwardSexpRange(doc);
+        handler: (doc: EditableDocument) => {
+            const range = paredit.backwardSexpRange(doc);
             if (shouldKillAlsoCutToClipboard()) {
                 copyRangeToClipboard(doc, range);
             }
             paredit.killRange(doc, range);
-        }
+        },
     },
     {
         command: 'paredit.killListForward',
@@ -226,7 +250,7 @@ const pareditCommands: PareditCommand[] = [
                 copyRangeToClipboard(doc, range);
             }
             return paredit.killForwardList(doc, range);
-        }
+        },
     }, // TODO: Implement with killRange
     {
         command: 'paredit.killListBackward',
@@ -236,7 +260,7 @@ const pareditCommands: PareditCommand[] = [
                 copyRangeToClipboard(doc, range);
             }
             return paredit.killBackwardList(doc, range);
-        }
+        },
     }, // TODO: Implement with killRange
     {
         command: 'paredit.spliceSexpKillForward',
@@ -248,7 +272,7 @@ const pareditCommands: PareditCommand[] = [
             paredit.killForwardList(doc, range).then((isFulfilled) => {
                 return paredit.spliceSexp(doc, doc.selectionRight, false);
             });
-        }
+        },
     },
     {
         command: 'paredit.spliceSexpKillBackward',
@@ -259,114 +283,161 @@ const pareditCommands: PareditCommand[] = [
             }
             paredit.killBackwardList(doc, range).then((isFulfilled) => {
                 return paredit.spliceSexp(doc, doc.selectionRight, false);
-            })
-        }
+            });
+        },
     },
     {
         command: 'paredit.wrapAroundParens',
-        handler: (doc: EditableDocument) => { paredit.wrapSexpr(doc, '(', ')') }
+        handler: (doc: EditableDocument) => {
+            paredit.wrapSexpr(doc, '(', ')');
+        },
     },
     {
         command: 'paredit.wrapAroundSquare',
-        handler: (doc: EditableDocument) => { paredit.wrapSexpr(doc, '[', ']') }
+        handler: (doc: EditableDocument) => {
+            paredit.wrapSexpr(doc, '[', ']');
+        },
     },
     {
         command: 'paredit.wrapAroundCurly',
-        handler: (doc: EditableDocument) => { paredit.wrapSexpr(doc, '{', '}') }
+        handler: (doc: EditableDocument) => {
+            paredit.wrapSexpr(doc, '{', '}');
+        },
     },
     {
         command: 'paredit.wrapAroundQuote',
-        handler: (doc: EditableDocument) => { paredit.wrapSexpr(doc, '"', '"') }
+        handler: (doc: EditableDocument) => {
+            paredit.wrapSexpr(doc, '"', '"');
+        },
     },
     {
         command: 'paredit.rewrapParens',
-        handler: (doc: EditableDocument) => { paredit.rewrapSexpr(doc, '(', ')') }
+        handler: (doc: EditableDocument) => {
+            paredit.rewrapSexpr(doc, '(', ')');
+        },
     },
     {
         command: 'paredit.rewrapSquare',
-        handler: (doc: EditableDocument) => { paredit.rewrapSexpr(doc, '[', ']') }
+        handler: (doc: EditableDocument) => {
+            paredit.rewrapSexpr(doc, '[', ']');
+        },
     },
     {
         command: 'paredit.rewrapCurly',
-        handler: (doc: EditableDocument) => { paredit.rewrapSexpr(doc, '{', '}') }
+        handler: (doc: EditableDocument) => {
+            paredit.rewrapSexpr(doc, '{', '}');
+        },
     },
     {
         command: 'paredit.rewrapQuote',
-        handler: (doc: EditableDocument) => { paredit.rewrapSexpr(doc, '"', '"') }
+        handler: (doc: EditableDocument) => {
+            paredit.rewrapSexpr(doc, '"', '"');
+        },
     },
     {
         command: 'paredit.deleteForward',
-        handler: paredit.deleteForward
+        handler: paredit.deleteForward,
     },
     {
         command: 'paredit.deleteBackward',
-        handler: paredit.backspace
+        handler: paredit.backspace,
     },
     {
         command: 'paredit.forceDeleteForward',
-        handler: () => { vscode.commands.executeCommand('deleteRight') }
+        handler: () => {
+            vscode.commands.executeCommand('deleteRight');
+        },
     },
     {
         command: 'paredit.forceDeleteBackward',
-        handler: () => { vscode.commands.executeCommand('deleteLeft') }
+        handler: () => {
+            vscode.commands.executeCommand('deleteLeft');
+        },
     },
     {
         command: 'paredit.addRichComment',
-        handler: paredit.addRichComment
-    }
+        handler: paredit.addRichComment,
+    },
 ];
 
 function wrapPareditCommand(command: PareditCommand) {
     return () => {
         try {
             const textEditor = window.activeTextEditor,
-                mDoc: EditableDocument = docMirror.getDocument(textEditor.document);
-            if (!enabled || !languages.has(textEditor.document.languageId)) return;
+                mDoc: EditableDocument = docMirror.getDocument(
+                    textEditor.document
+                );
+            if (!enabled || !languages.has(textEditor.document.languageId))
+                return;
             command.handler(mDoc);
         } catch (e) {
-            console.error(e.message)
+            console.error(e.message);
         }
-    }
+    };
 }
 
 export function getKeyMapConf(): String {
-    let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
-    return (String(keyMap));
+    let keyMap = workspace
+        .getConfiguration()
+        .get('calva.paredit.defaultKeyMap');
+    return String(keyMap);
 }
 
 function setKeyMapConf() {
-    let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
+    let keyMap = workspace
+        .getConfiguration()
+        .get('calva.paredit.defaultKeyMap');
     commands.executeCommand('setContext', 'paredit:keyMap', keyMap);
     onPareditKeyMapChangedEmitter.fire(String(keyMap));
 }
 setKeyMapConf();
 
 export function activate(context: ExtensionContext) {
-
     let statusBar = new StatusBar(getKeyMapConf());
 
     context.subscriptions.push(
         statusBar,
         commands.registerCommand('paredit.togglemode', () => {
-            let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
+            let keyMap = workspace
+                .getConfiguration()
+                .get('calva.paredit.defaultKeyMap');
             keyMap = String(keyMap).trim().toLowerCase();
             if (keyMap == 'original') {
-                workspace.getConfiguration().update('calva.paredit.defaultKeyMap', 'strict', vscode.ConfigurationTarget.Global);
+                workspace
+                    .getConfiguration()
+                    .update(
+                        'calva.paredit.defaultKeyMap',
+                        'strict',
+                        vscode.ConfigurationTarget.Global
+                    );
             } else if (keyMap == 'strict') {
-                workspace.getConfiguration().update('calva.paredit.defaultKeyMap', 'original', vscode.ConfigurationTarget.Global);
+                workspace
+                    .getConfiguration()
+                    .update(
+                        'calva.paredit.defaultKeyMap',
+                        'original',
+                        vscode.ConfigurationTarget.Global
+                    );
             }
         }),
-        window.onDidChangeActiveTextEditor((e) => e && e.document && languages.has(e.document.languageId)),
+        window.onDidChangeActiveTextEditor(
+            (e) => e && e.document && languages.has(e.document.languageId)
+        ),
         workspace.onDidChangeConfiguration((e: ConfigurationChangeEvent) => {
             if (e.affectsConfiguration('calva.paredit.defaultKeyMap')) {
                 setKeyMapConf();
             }
         }),
-        ...pareditCommands
-            .map((command) => commands.registerCommand(command.command, wrapPareditCommand(command))));
+        ...pareditCommands.map((command) =>
+            commands.registerCommand(
+                command.command,
+                wrapPareditCommand(command)
+            )
+        )
+    );
 }
 
-export function deactivate() {
-}
+export function deactivate() {}
 
-export const onPareditKeyMapChanged: Event<String> = onPareditKeyMapChangedEmitter.event;
+export const onPareditKeyMapChanged: Event<String> =
+    onPareditKeyMapChangedEmitter.event;

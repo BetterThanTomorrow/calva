@@ -11,10 +11,13 @@ import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
-const syntaxQuoteSymbol = "`";
+const syntaxQuoteSymbol = '`';
 
 export function stripAnsi(str: string) {
-    return str.replace(/[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g, "")
+    return str.replace(
+        /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g,
+        ''
+    );
 }
 
 export function escapeStringRegexp(s: string): string {
@@ -22,12 +25,16 @@ export function escapeStringRegexp(s: string): string {
 }
 
 export function isNonEmptyString(value: any): boolean {
-    return typeof (value) == 'string' && value.length > 0
+    return typeof value == 'string' && value.length > 0;
 }
 
-async function quickPickSingle(opts: { values: string[], saveAs?: string, placeHolder: string, autoSelect?: boolean }) {
-    if (opts.values.length == 0)
-        return;
+async function quickPickSingle(opts: {
+    values: string[];
+    saveAs?: string;
+    placeHolder: string;
+    autoSelect?: boolean;
+}) {
+    if (opts.values.length == 0) return;
     let selected: string;
     let saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
     if (saveAs) {
@@ -35,56 +42,79 @@ async function quickPickSingle(opts: { values: string[], saveAs?: string, placeH
     }
 
     let result;
-    if (opts.autoSelect && opts.values.length == 1)
-        result = opts.values[0];
+    if (opts.autoSelect && opts.values.length == 1) result = opts.values[0];
     else
-        result = await quickPick(opts.values, selected ? [selected] : [], [], { placeHolder: opts.placeHolder, ignoreFocusOut: true })
+        result = await quickPick(opts.values, selected ? [selected] : [], [], {
+            placeHolder: opts.placeHolder,
+            ignoreFocusOut: true,
+        });
     state.extensionContext.workspaceState.update(saveAs, result);
     return result;
 }
 
-async function quickPickMulti(opts: { values: string[], saveAs?: string, placeHolder: string }) {
+async function quickPickMulti(opts: {
+    values: string[];
+    saveAs?: string;
+    placeHolder: string;
+}) {
     let selected: string[];
     let saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
     if (saveAs) {
         selected = state.extensionContext.workspaceState.get(saveAs) || [];
     }
-    let result = await quickPick(opts.values, [], selected, { placeHolder: opts.placeHolder, canPickMany: true, ignoreFocusOut: true })
+    let result = await quickPick(opts.values, [], selected, {
+        placeHolder: opts.placeHolder,
+        canPickMany: true,
+        ignoreFocusOut: true,
+    });
     state.extensionContext.workspaceState.update(saveAs, result);
     return result;
 }
 
-function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions & { canPickMany: true }): Promise<string[]>;
-function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions): Promise<string>;
+function quickPick(
+    itemsToPick: string[],
+    active: string[],
+    selected: string[],
+    options: vscode.QuickPickOptions & { canPickMany: true }
+): Promise<string[]>;
+function quickPick(
+    itemsToPick: string[],
+    active: string[],
+    selected: string[],
+    options: vscode.QuickPickOptions
+): Promise<string>;
 
-async function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions): Promise<string | string[]> {
-    let items = itemsToPick.map(x => ({ label: x }));
+async function quickPick(
+    itemsToPick: string[],
+    active: string[],
+    selected: string[],
+    options: vscode.QuickPickOptions
+): Promise<string | string[]> {
+    let items = itemsToPick.map((x) => ({ label: x }));
 
     let qp = vscode.window.createQuickPick();
     qp.canSelectMany = options.canPickMany;
     qp.placeholder = options.placeHolder;
     qp.ignoreFocusOut = options.ignoreFocusOut;
-    qp.matchOnDescription = options.matchOnDescription
-    qp.matchOnDetail = options.matchOnDetail
+    qp.matchOnDescription = options.matchOnDescription;
+    qp.matchOnDetail = options.matchOnDetail;
     qp.items = items;
-    qp.activeItems = items.filter(x => active.indexOf(x.label) != -1);
-    qp.selectedItems = items.filter(x => selected.indexOf(x.label) != -1);
+    qp.activeItems = items.filter((x) => active.indexOf(x.label) != -1);
+    qp.selectedItems = items.filter((x) => selected.indexOf(x.label) != -1);
     return new Promise<string[] | string>((resolve, reject) => {
         qp.show();
         qp.onDidAccept(() => {
-            if (qp.canSelectMany)
-                resolve(qp.selectedItems.map(x => x.label))
+            if (qp.canSelectMany) resolve(qp.selectedItems.map((x) => x.label));
             else if (qp.selectedItems.length)
-                resolve(qp.selectedItems[0].label)
-            else
-                resolve(undefined);
+                resolve(qp.selectedItems[0].label);
+            else resolve(undefined);
             qp.hide();
-        })
+        });
         qp.onDidHide(() => {
             resolve([]);
             qp.hide();
-        })
-    })
+        });
+    });
 }
 
 function getCljsReplStartCode() {
@@ -97,23 +127,38 @@ function getShadowCljsReplStartCode(build) {
 
 function getActualWord(document, position, selected, word) {
     if (selected === undefined) {
-        let selectedChar = document.lineAt(position.line).text.slice(position.character, position.character + 1),
-            isFn = document.lineAt(position.line).text.slice(position.character - 1, position.character) === "(";
-        if (selectedChar !== undefined &&
+        let selectedChar = document
+                .lineAt(position.line)
+                .text.slice(position.character, position.character + 1),
+            isFn =
+                document
+                    .lineAt(position.line)
+                    .text.slice(position.character - 1, position.character) ===
+                '(';
+        if (
+            selectedChar !== undefined &&
             specialWords.indexOf(selectedChar) !== -1 &&
-            isFn) {
+            isFn
+        ) {
             return selectedChar;
         } else {
-            return "";
+            return '';
         }
     } else {
-        return (word && word.startsWith(syntaxQuoteSymbol)) ? word.substr(1) : word;
+        return word && word.startsWith(syntaxQuoteSymbol)
+            ? word.substr(1)
+            : word;
     }
 }
 
 function getWordAtPosition(document, position) {
     let selected = document.getWordRangeAtPosition(position),
-        selectedText = selected !== undefined ? document.getText(new vscode.Range(selected.start, selected.end)) : "",
+        selectedText =
+            selected !== undefined
+                ? document.getText(
+                      new vscode.Range(selected.start, selected.end)
+                  )
+                : '',
         text = getActualWord(document, position, selected, selectedText);
     return text;
 }
@@ -121,12 +166,16 @@ function getWordAtPosition(document, position) {
 function getDocument(document): vscode.TextDocument {
     if (document && document.hasOwnProperty('fileName')) {
         return document;
-    } else if (vscode.window.activeTextEditor &&
+    } else if (
+        vscode.window.activeTextEditor &&
         vscode.window.activeTextEditor.document &&
-        vscode.window.activeTextEditor.document.languageId !== 'Log') {
+        vscode.window.activeTextEditor.document.languageId !== 'Log'
+    ) {
         return vscode.window.activeTextEditor.document;
     } else if (vscode.window.visibleTextEditors.length > 0) {
-        const editor = vscode.window.visibleTextEditors.find(editor => editor.document && editor.document.languageId !== 'Log');
+        const editor = vscode.window.visibleTextEditors.find(
+            (editor) => editor.document && editor.document.languageId !== 'Log'
+        );
         return editor ? editor.document : null;
     } else {
         return null;
@@ -137,9 +186,8 @@ function getFileType(document) {
     let doc = getDocument(document);
 
     if (doc) {
-        return path.extname(doc.fileName).replace(/^\./, "");
-    }
-    else {
+        return path.extname(doc.fileName).replace(/^\./, '');
+    } else {
         return 'clj';
     }
 }
@@ -149,7 +197,11 @@ function getLaunchingState() {
 }
 
 function setLaunchingState(value: any) {
-    vscode.commands.executeCommand("setContext", "calva:launching", Boolean(value));
+    vscode.commands.executeCommand(
+        'setContext',
+        'calva:launching',
+        Boolean(value)
+    );
     cljsLib.setStateValue('launching', value);
 }
 
@@ -158,7 +210,7 @@ function getConnectedState() {
 }
 
 function setConnectedState(value: Boolean) {
-    vscode.commands.executeCommand("setContext", "calva:connected", value);
+    vscode.commands.executeCommand('setContext', 'calva:connected', value);
     cljsLib.setStateValue('connected', value);
 }
 
@@ -168,40 +220,46 @@ function getConnectingState() {
 
 function setConnectingState(value: Boolean) {
     if (value) {
-        vscode.commands.executeCommand("setContext", "calva:connecting", true);
+        vscode.commands.executeCommand('setContext', 'calva:connecting', true);
         cljsLib.setStateValue('connecting', true);
     } else {
-        vscode.commands.executeCommand("setContext", "calva:connecting", false);
+        vscode.commands.executeCommand('setContext', 'calva:connecting', false);
         cljsLib.setStateValue('connecting', false);
     }
 }
 
 // ERROR HELPERS
 const ERROR_TYPE = {
-    WARNING: "warning",
-    ERROR: "error"
+    WARNING: 'warning',
+    ERROR: 'error',
 };
 
 function logSuccess(results) {
     let chan = state.outputChannel();
-    chan.appendLine("Evaluation completed successfully");
+    chan.appendLine('Evaluation completed successfully');
     _.each(results, (r) => {
-        let value = r.hasOwnProperty("value") ? r.value : null;
-        let out = r.hasOwnProperty("out") ? r.out : null;
+        let value = r.hasOwnProperty('value') ? r.value : null;
+        let out = r.hasOwnProperty('out') ? r.out : null;
         if (value !== null) {
-            chan.appendLine("=>\n" + value);
+            chan.appendLine('=>\n' + value);
         }
         if (out !== null) {
-            chan.appendLine("out:\n" + out);
+            chan.appendLine('out:\n' + out);
         }
     });
 }
 
 function logError(error) {
     outputWindow.append('; ' + error.reason);
-    if (error.line !== undefined && error.line !== null &&
-        error.column !== undefined && error.column !== null) {
-        outputWindow.append(";   at line: " + error.line + " and column: " + error.column)
+    if (
+        error.line !== undefined &&
+        error.line !== null &&
+        error.column !== undefined &&
+        error.column !== null
+    ) {
+        outputWindow.append(
+            ';   at line: ' + error.line + ' and column: ' + error.column
+        );
     }
 }
 
@@ -220,15 +278,21 @@ function markError(error) {
     let line = error.line - 1,
         column = error.column,
         lineLength = editor.document.lineAt(line).text.length,
-        lineText = editor.document.lineAt(line).text.substring(column, lineLength),
-        firstWordStart = column + lineText.indexOf(" "),
+        lineText = editor.document
+            .lineAt(line)
+            .text.substring(column, lineLength),
+        firstWordStart = column + lineText.indexOf(' '),
         existing = diagnostic.get(editor.document.uri),
-        err = new vscode.Diagnostic(new vscode.Range(line, column, line, firstWordStart),
+        err = new vscode.Diagnostic(
+            new vscode.Range(line, column, line, firstWordStart),
             error.reason,
-            vscode.DiagnosticSeverity.Error);
+            vscode.DiagnosticSeverity.Error
+        );
 
-    let errors = (existing !== undefined && existing.length > 0) ? [...existing, err] :
-        [err];
+    let errors =
+        existing !== undefined && existing.length > 0
+            ? [...existing, err]
+            : [err];
     diagnostic.set(editor.document.uri, errors);
 }
 
@@ -236,9 +300,14 @@ function logWarning(warning) {
     outputWindow.append('; ' + warning.reason);
     if (warning.line !== null) {
         if (warning.column !== null) {
-            outputWindow.append(";   at line: " + warning.line + " and column: " + warning.column)
+            outputWindow.append(
+                ';   at line: ' +
+                    warning.line +
+                    ' and column: ' +
+                    warning.column
+            );
         } else {
-            outputWindow.append(";   at line: " + warning.line)
+            outputWindow.append(';   at line: ' + warning.line);
         }
     }
 }
@@ -255,16 +324,20 @@ function markWarning(warning) {
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
-    let line = Math.max(0, (warning.line - 1)),
+    let line = Math.max(0, warning.line - 1),
         column = warning.column,
         lineLength = editor.document.lineAt(line).text.length,
         existing = diagnostic.get(editor.document.uri),
-        warn = new vscode.Diagnostic(new vscode.Range(line, column, line, lineLength),
+        warn = new vscode.Diagnostic(
+            new vscode.Range(line, column, line, lineLength),
             warning.reason,
-            vscode.DiagnosticSeverity.Warning);
+            vscode.DiagnosticSeverity.Warning
+        );
 
-    let warnings = (existing !== undefined && existing.length > 0) ? [...existing, warn] :
-        [warn];
+    let warnings =
+        existing !== undefined && existing.length > 0
+            ? [...existing, warn]
+            : [warn];
     diagnostic.set(editor.document.uri, warnings);
 }
 
@@ -278,7 +351,8 @@ async function promptForUserInputString(prompt: string): Promise<string> {
 function debounce(func, wait, immediate) {
     var timeout;
     return function () {
-        var context = this, args = arguments;
+        var context = this,
+            args = arguments;
         var later = function () {
             timeout = null;
             if (!immediate) func.apply(context, args);
@@ -288,15 +362,33 @@ function debounce(func, wait, immediate) {
         timeout = setTimeout(later, wait);
         if (callNow) func.apply(context, args);
     };
-};
+}
 
-function filterVisibleRanges(editor: vscode.TextEditor, ranges: vscode.Range[], combine = true): vscode.Range[] {
+function filterVisibleRanges(
+    editor: vscode.TextEditor,
+    ranges: vscode.Range[],
+    combine = true
+): vscode.Range[] {
     let filtered: vscode.Range[] = [];
-    editor.visibleRanges.forEach(visibleRange => {
-        const visibles = ranges.filter(r => {
-            return visibleRange.contains(r.start) || visibleRange.contains(r.end) || r.contains(visibleRange);
+    editor.visibleRanges.forEach((visibleRange) => {
+        const visibles = ranges.filter((r) => {
+            return (
+                visibleRange.contains(r.start) ||
+                visibleRange.contains(r.end) ||
+                r.contains(visibleRange)
+            );
         });
-        filtered = [].concat(filtered, combine ? [new vscode.Range(visibles[0].start, visibles[visibles.length - 1].end)] : visibles);
+        filtered = [].concat(
+            filtered,
+            combine
+                ? [
+                      new vscode.Range(
+                          visibles[0].start,
+                          visibles[visibles.length - 1].end
+                      ),
+                  ]
+                : visibles
+        );
     });
     return filtered;
 }
@@ -308,7 +400,9 @@ function scrollToBottom(editor: vscode.TextEditor) {
 }
 
 async function getFileContents(path: string) {
-    const doc = vscode.workspace.textDocuments.find(document => document.uri.path === path);
+    const doc = vscode.workspace.textDocuments.find(
+        (document) => document.uri.path === path
+    );
     if (doc) {
         return doc.getText();
     }
@@ -319,7 +413,7 @@ async function getFileContents(path: string) {
 }
 
 function jarFilePathComponents(uri: vscode.Uri | string) {
-    const rawPath = typeof (uri) === "string" ? uri : uri.path;
+    const rawPath = typeof uri === 'string' ? uri : uri.path;
     const replaceRegex = os.platform() === 'win32' ? /file:\/*/ : /file:/;
     return rawPath.replace(replaceRegex, '').split('!/');
 }
@@ -335,33 +429,34 @@ async function getJarContents(uri: vscode.Uri | string) {
 
         fs.readFile(pathToJar, (err, data) => {
             let zip = new JSZip();
-            zip.loadAsync(data).then((new_zip) => {
-                const fileInJar = new_zip.file(pathToFileInJar);
+            zip.loadAsync(data)
+                .then((new_zip) => {
+                    const fileInJar = new_zip.file(pathToFileInJar);
 
-                if (fileInJar) {
-                    return fileInJar.async("string").then((value) => {
-                        resolve(value);
-                    });
-                }
-                
-                return resolve("");
-            }).catch(_ => {
-                return resolve("");
-            });
+                    if (fileInJar) {
+                        return fileInJar.async('string').then((value) => {
+                            resolve(value);
+                        });
+                    }
+
+                    return resolve('');
+                })
+                .catch((_) => {
+                    return resolve('');
+                });
         });
     });
 }
 
 function sortByPresetOrder(arr: any[], presetOrder: any[]) {
     const result = [];
-    presetOrder.forEach(preset => {
+    presetOrder.forEach((preset) => {
         if (arr.indexOf(preset) != -1) {
             result.push(preset);
         }
     });
-    return [...result, ...arr.filter(e => !presetOrder.includes(e))];
+    return [...result, ...arr.filter((e) => !presetOrder.includes(e))];
 }
-
 
 function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
     const ab = new ArrayBuffer(text.length);
@@ -380,14 +475,20 @@ async function downloadFromUrl(url: string, savePath: string) {
                 res.pipe(saveFile);
             } else {
                 saveFile.close();
-                reject(new Error(`Server responded with ${res.statusCode}: ${res.statusMessage}`));
+                reject(
+                    new Error(
+                        `Server responded with ${res.statusCode}: ${res.statusMessage}`
+                    )
+                );
             }
             res.on('end', () => {
-                saveFile.close()
+                saveFile.close();
                 resolve(true);
             });
             res.on('error', (err: any) => {
-                console.error(`Error downloading file from ${url}: ${err.message}`)
+                console.error(
+                    `Error downloading file from ${url}: ${err.message}`
+                );
                 reject(err);
             });
         });
@@ -397,23 +498,30 @@ async function downloadFromUrl(url: string, savePath: string) {
 async function fetchFromUrl(fullUrl: string): Promise<string> {
     const q = url.parse(fullUrl);
     return new Promise((resolve, reject) => {
-        https.get({
-            host: q.hostname,
-            path: q.pathname,
-            port: q.port,
-            headers: {'user-agent': 'node.js'}
-        }, (res) => {
-            let data = '';
-            res.on('data', (chunk: any) => {
-                data += chunk;
+        https
+            .get(
+                {
+                    host: q.hostname,
+                    path: q.pathname,
+                    port: q.port,
+                    headers: { 'user-agent': 'node.js' },
+                },
+                (res) => {
+                    let data = '';
+                    res.on('data', (chunk: any) => {
+                        data += chunk;
+                    });
+                    res.on('end', () => {
+                        resolve(data);
+                    });
+                }
+            )
+            .on('error', (err: any) => {
+                console.error(
+                    `Error downloading file from ${url}: ${err.message}`
+                );
+                reject(err);
             });
-            res.on('end', () => {
-                resolve(data);
-            });
-        }).on('error', (err: any) => {
-            console.error(`Error downloading file from ${url}: ${err.message}`)
-            reject(err);
-        });;
     });
 }
 
@@ -423,7 +531,9 @@ function randomSlug(length = 7) {
 
 const isWindows = process.platform === 'win32';
 
-export async function isDocumentWritable(document: vscode.TextDocument): Promise<boolean> {
+export async function isDocumentWritable(
+    document: vscode.TextDocument
+): Promise<boolean> {
     if (!vscode.workspace.fs.isWritableFileSystem(document.uri.scheme)) {
         return false;
     }
@@ -434,7 +544,7 @@ export async function isDocumentWritable(document: vscode.TextDocument): Promise
 // Returns the elements of coll with duplicates removed
 // (See clojure.core/distinct).
 function distinct<T>(coll: T[]): T[] {
-    return [... new Set(coll)];
+    return [...new Set(coll)];
 }
 
 export {
@@ -473,5 +583,5 @@ export {
     fetchFromUrl,
     cljsLib,
     randomSlug,
-    isWindows
+    isWindows,
 };

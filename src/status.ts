@@ -14,7 +14,11 @@ function shouldshowReplUi(context = state.extensionContext): boolean {
 }
 
 function update(context = state.extensionContext) {
-    vscode.commands.executeCommand('setContext', 'calva:showReplUi', shouldshowReplUi(context));
+    vscode.commands.executeCommand(
+        'setContext',
+        'calva:showReplUi',
+        shouldshowReplUi(context)
+    );
     updateReplSessionType();
     statusbar.update(context);
 }
@@ -22,5 +26,5 @@ function update(context = state.extensionContext) {
 export default {
     update,
     updateNeedReplUi,
-    shouldshowReplUi
+    shouldshowReplUi,
 };

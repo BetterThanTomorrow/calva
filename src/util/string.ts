@@ -5,7 +5,7 @@
  * @return {string} keywordized string
  */
 function keywordize(s: string): string {
-    return s.replace(/^[\s,:]*/, ":");
+    return s.replace(/^[\s,:]*/, ':');
 }
 
 /**
@@ -15,7 +15,7 @@ function keywordize(s: string): string {
  * @return {string} kw without the first character
  */
 function unKeywordize(kw: string): string {
-    return kw.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
+    return kw.replace(/^[\s,:]*/, '').replace(/[\s,:]*$/, '');
 }
 
 function getIndexAfterLastNonWhitespace(text: string): number {
@@ -24,7 +24,10 @@ function getIndexAfterLastNonWhitespace(text: string): number {
     return text.lastIndexOf(lastNonWhitespaceOrEolChar) + 1;
 }
 
-function getTextAfterLastOccurrenceOfSubstring(text: string, substring: string): string {
+function getTextAfterLastOccurrenceOfSubstring(
+    text: string,
+    substring: string
+): string {
     const indexOfLastPrompt = text.lastIndexOf(substring);
     if (indexOfLastPrompt === -1) {
         return null;
@@ -37,5 +40,5 @@ export {
     keywordize,
     unKeywordize,
     getIndexAfterLastNonWhitespace,
-    getTextAfterLastOccurrenceOfSubstring
-}
+    getTextAfterLastOccurrenceOfSubstring,
+};

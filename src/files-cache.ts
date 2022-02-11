@@ -1,16 +1,16 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import * as state from "./state";
+import * as state from './state';
 
 const filesCache: Map<string, string> = new Map();
 
 function writeToCache(uri: vscode.Uri) {
     try {
-        const content: string = fs.readFileSync(uri.fsPath, "utf8");
-        filesCache.set(uri.fsPath, content)
+        const content: string = fs.readFileSync(uri.fsPath, 'utf8');
+        filesCache.set(uri.fsPath, content);
     } catch {
         // if the file is not readable anymore then don't keep old content in cache
-        filesCache.delete(uri.fsPath)
+        filesCache.delete(uri.fsPath);
     }
 }
 
@@ -20,10 +20,11 @@ function writeToCache(uri: vscode.Uri) {
  */
 export const content = (path: string) => {
     const resolvedPath = state.resolvePath(path);
-    if (resolvedPath) {        
+    if (resolvedPath) {
         if (!filesCache.has(resolvedPath)) {
             writeToCache(vscode.Uri.file(resolvedPath));
-            const filesWatcher = vscode.workspace.createFileSystemWatcher(resolvedPath);
+            const filesWatcher =
+                vscode.workspace.createFileSystemWatcher(resolvedPath);
             filesWatcher.onDidChange(writeToCache);
             filesWatcher.onDidCreate(writeToCache);
             filesWatcher.onDidDelete((uri) => filesCache.delete(uri.fsPath));

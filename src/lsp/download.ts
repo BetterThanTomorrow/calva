@@ -8,19 +8,21 @@ import * as extractZip from 'extract-zip';
 
 async function getLatestVersion(): Promise<string> {
     try {
-        const releasesJSON = await util.fetchFromUrl('https://api.github.com/repos/clojure-lsp/clojure-lsp/releases');
+        const releasesJSON = await util.fetchFromUrl(
+            'https://api.github.com/repos/clojure-lsp/clojure-lsp/releases'
+        );
         const releases = JSON.parse(releasesJSON);
         return releases[0].tag_name;
     } catch (err) {
-        return "";
+        return '';
     }
 }
 
 function getZipFileName(platform: string): string {
     return {
-        'darwin': 'clojure-lsp-native-macos-amd64.zip',
-        'linux': 'clojure-lsp-native-linux-amd64.zip',
-        'win32': 'clojure-lsp-native-windows-amd64.zip'
+        darwin: 'clojure-lsp-native-macos-amd64.zip',
+        linux: 'clojure-lsp-native-linux-amd64.zip',
+        win32: 'clojure-lsp-native-windows-amd64.zip',
     }[platform];
 }
 
@@ -37,29 +39,42 @@ function backupExistingFile(clojureLspPath: string, backupPath: string): void {
     try {
         fs.renameSync(clojureLspPath, backupPath);
     } catch (e) {
-        console.log("Error while backing up existing clojure-lsp file.", e.message);
+        console.log(
+            'Error while backing up existing clojure-lsp file.',
+            e.message
+        );
     }
 }
 
 function downloadZipFile(urlPath: string, filePath: string): Promise<void> {
     console.log('Downloading clojure-lsp from', urlPath);
     return new Promise((resolve, reject) => {
-        https.get({
-            hostname: 'github.com',
-            path: urlPath
-        }, (response) => {
-            if (response.statusCode === 200) {
-                const writeStream = fs.createWriteStream(filePath);
-                response.on('end', () => {
-                    writeStream.close();
-                    console.log('Clojure-lsp zip file downloaded to', filePath);
-                    resolve();
-                }).pipe(writeStream);
-            } else {
-                response.resume(); // Consume response to free up memory
-                reject(new Error(response.statusMessage));
-            }
-        }).on('error', reject);
+        https
+            .get(
+                {
+                    hostname: 'github.com',
+                    path: urlPath,
+                },
+                (response) => {
+                    if (response.statusCode === 200) {
+                        const writeStream = fs.createWriteStream(filePath);
+                        response
+                            .on('end', () => {
+                                writeStream.close();
+                                console.log(
+                                    'Clojure-lsp zip file downloaded to',
+                                    filePath
+                                );
+                                resolve();
+                            })
+                            .pipe(writeStream);
+                    } else {
+                        response.resume(); // Consume response to free up memory
+                        reject(new Error(response.statusMessage));
+                    }
+                }
+            )
+            .on('error', reject);
     });
 }
 
@@ -71,18 +86,27 @@ function writeVersionFile(extensionPath: string, version: string): void {
     } catch (e) {
         console.log('Could not write clojure-lsp version file.', e.message);
     }
-} 
+}
 
-async function unzipFile(zipFilePath: string, extensionPath: string): Promise<void> {
+async function unzipFile(
+    zipFilePath: string,
+    extensionPath: string
+): Promise<void> {
     console.log('Unzipping file');
     return extractZip(zipFilePath, { dir: extensionPath });
 }
 
-async function downloadClojureLsp(extensionPath: string, version: string): Promise<string> {
+async function downloadClojureLsp(
+    extensionPath: string,
+    version: string
+): Promise<string> {
     const zipFileName = getZipFileName(process.platform);
     const urlPath = `/clojure-lsp/clojure-lsp/releases/download/${version}/${zipFileName}`;
     const zipFilePath = getZipFilePath(extensionPath, process.platform);
-    const clojureLspPath = lspUtil.getClojureLspPath(extensionPath, util.isWindows);
+    const clojureLspPath = lspUtil.getClojureLspPath(
+        extensionPath,
+        util.isWindows
+    );
     const backupPath = getBackupPath(clojureLspPath, util.isWindows);
     backupExistingFile(clojureLspPath, backupPath);
     try {
@@ -96,7 +120,4 @@ async function downloadClojureLsp(extensionPath: string, version: string): Promi
     return clojureLspPath;
 }
 
-export {
-    downloadClojureLsp,
-    getLatestVersion
-}
+export { downloadClojureLsp, getLatestVersion };

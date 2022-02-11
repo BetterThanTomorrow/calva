@@ -1,5 +1,9 @@
 import * as vscode from 'vscode';
-import { getStateValue, setStateValue, removeStateValue } from '../../out/cljs-lib/cljs-lib';
+import {
+    getStateValue,
+    setStateValue,
+    removeStateValue,
+} from '../../out/cljs-lib/cljs-lib';
 import * as nodeUtil from 'util';
 
 const NREPL_MESSAGES_CHANNEL_KEY = 'nReplMessagesChannel';
@@ -10,7 +14,9 @@ function getMessageChannel(): vscode.OutputChannel {
 }
 
 function createMessageChannel(): void {
-    const channel = vscode.window.createOutputChannel(NREPL_MESSAGES_CHANNEL_NAME);
+    const channel = vscode.window.createOutputChannel(
+        NREPL_MESSAGES_CHANNEL_NAME
+    );
     setStateValue(NREPL_MESSAGES_CHANNEL_KEY, channel);
     channel.show();
 }
@@ -41,19 +47,16 @@ function loggingEnabled(): boolean {
 function log(message: any, direction: Direction): void {
     const channel = getMessageChannel();
     if (channel) {
-        const formattedMessage = `${direction}\n${formatNreplMessage(message)}\n`;
+        const formattedMessage = `${direction}\n${formatNreplMessage(
+            message
+        )}\n`;
         channel.appendLine(formattedMessage);
     }
 }
 
 const enum Direction {
     ClientToServer = '-> sent',
-    ServerToClient = '<- received'
+    ServerToClient = '<- received',
 }
 
-export {
-    toggleEnabled,
-    log,
-    Direction,
-    loggingEnabled
-}
+export { toggleEnabled, log, Direction, loggingEnabled };

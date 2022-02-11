@@ -5,19 +5,31 @@ import { EditableDocument } from '../../../cursor-doc/model';
 import * as paredit from '../../../cursor-doc/paredit';
 import { getConfig } from '../../../config';
 
-export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProvider {
-    async provideOnTypeFormattingEdits(document: vscode.TextDocument, _position: vscode.Position, ch: string, _options): Promise<vscode.TextEdit[]> {
+export class FormatOnTypeEditProvider
+    implements vscode.OnTypeFormattingEditProvider
+{
+    async provideOnTypeFormattingEdits(
+        document: vscode.TextDocument,
+        _position: vscode.Position,
+        ch: string,
+        _options
+    ): Promise<vscode.TextEdit[]> {
         const editor = vscode.window.activeTextEditor;
-        let keyMap = vscode.workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
+        let keyMap = vscode.workspace
+            .getConfiguration()
+            .get('calva.paredit.defaultKeyMap');
         keyMap = String(keyMap).trim().toLowerCase();
         if ([')', ']', '}'].includes(ch)) {
-            if (keyMap === 'strict' && getConfig().strictPreventUnmatchedClosingBracket) {
+            if (
+                keyMap === 'strict' &&
+                getConfig().strictPreventUnmatchedClosingBracket
+            ) {
                 const mDoc: EditableDocument = docMirror.getDocument(document);
                 const tokenCursor = mDoc.getTokenCursor();
                 if (tokenCursor.withinComment()) {
                     return null;
                 }
-                return paredit.backspace(mDoc).then(fulfilled => {
+                return paredit.backspace(mDoc).then((fulfilled) => {
                     paredit.close(mDoc, ch);
                     return null;
                 });
@@ -27,8 +39,16 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
         }
 
         const pos = editor.selection.active;
-        if (vscode.workspace.getConfiguration("calva.fmt").get("formatAsYouType")) {
-            if (vscode.workspace.getConfiguration("calva.fmt").get("newIndentEngine")) {
+        if (
+            vscode.workspace
+                .getConfiguration('calva.fmt')
+                .get('formatAsYouType')
+        ) {
+            if (
+                vscode.workspace
+                    .getConfiguration('calva.fmt')
+                    .get('newIndentEngine')
+            ) {
                 formatter.indentPosition(pos, document);
             } else {
                 try {

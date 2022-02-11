@@ -1,8 +1,8 @@
 /* Functions for getting text given only cursor-doc related input
  * Can be unit tested since vscode and stuff is not imported
-*/
+ */
 
-import { EditableDocument } from "../cursor-doc/model";
+import { EditableDocument } from '../cursor-doc/model';
 
 export type RangeAndText = [[number, number], string];
 
@@ -16,8 +16,8 @@ export function currentTopLevelFunction(doc: EditableDocument): RangeAndText {
             cursor.forwardWhitespace();
             // skip over metadata, if present
             while (cursor.getToken().raw.startsWith('^')) {
-              cursor.forwardSexp(true, false, true);
-              cursor.forwardWhitespace();
+                cursor.forwardSexp(true, false, true);
+                cursor.forwardWhitespace();
             }
             const symbol = cursor.getToken();
             if (symbol.type === 'id') {
@@ -33,16 +33,26 @@ export function currentTopLevelFunction(doc: EditableDocument): RangeAndText {
 export function currentTopLevelForm(doc: EditableDocument): RangeAndText {
     const defunCursor = doc.getTokenCursor(doc.selection.active);
     const defunRange = defunCursor.rangeForDefun(doc.selection.active);
-    return defunRange ? [defunRange, doc.model.getText(...defunRange)] : [undefined, ''];
+    return defunRange
+        ? [defunRange, doc.model.getText(...defunRange)]
+        : [undefined, ''];
 }
 
-function rangeOrStartOfFileToCursor(doc: EditableDocument, foldRange: [number, number], startFrom: number): RangeAndText {
+function rangeOrStartOfFileToCursor(
+    doc: EditableDocument,
+    foldRange: [number, number],
+    startFrom: number
+): RangeAndText {
     if (foldRange) {
         const closeBrackets: string[] = [];
         const bracketCursor = doc.getTokenCursor(doc.selection.active);
         bracketCursor.backwardWhitespace(true);
         const rangeEnd = bracketCursor.offsetStart;
-        while (bracketCursor.offsetStart !== foldRange[1] && bracketCursor.forwardList() && bracketCursor.upList()) {
+        while (
+            bracketCursor.offsetStart !== foldRange[1] &&
+            bracketCursor.forwardList() &&
+            bracketCursor.upList()
+        ) {
             closeBrackets.push(bracketCursor.getPrevToken().raw);
         }
         const range: [number, number] = [startFrom, rangeEnd];
@@ -51,13 +61,17 @@ function rangeOrStartOfFileToCursor(doc: EditableDocument, foldRange: [number, n
     return [undefined, ''];
 }
 
-export function currentEnclosingFormToCursor(doc: EditableDocument): RangeAndText {
+export function currentEnclosingFormToCursor(
+    doc: EditableDocument
+): RangeAndText {
     const cursor = doc.getTokenCursor(doc.selection.active);
     const enclosingRange = cursor.rangeForList(1);
     return rangeOrStartOfFileToCursor(doc, enclosingRange, enclosingRange[0]);
 }
 
-export function currentTopLevelFormToCursor(doc: EditableDocument): RangeAndText {
+export function currentTopLevelFormToCursor(
+    doc: EditableDocument
+): RangeAndText {
     const cursor = doc.getTokenCursor(doc.selection.active);
     const defunRange = cursor.rangeForDefun(doc.selection.active);
     return rangeOrStartOfFileToCursor(doc, defunRange, defunRange[0]);

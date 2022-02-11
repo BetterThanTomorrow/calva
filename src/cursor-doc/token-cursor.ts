@@ -1,6 +1,5 @@
-import { LineInputModel } from "./model";
-import { Token, validPair } from "./clojure-lexer";
-
+import { LineInputModel } from './model';
+import { Token, validPair } from './clojure-lexer';
 
 function tokenIsWhiteSpace(token: Token) {
     return token.type === 'eol' || token.type == 'ws';
@@ -10,8 +9,11 @@ function tokenIsWhiteSpace(token: Token) {
  * A mutable cursor into the token stream.
  */
 export class TokenCursor {
-    constructor(public doc: LineInputModel, public line: number, public token: number) {
-    }
+    constructor(
+        public doc: LineInputModel,
+        public line: number,
+        public token: number
+    ) {}
 
     /** Create a copy of this cursor. */
     clone() {
@@ -40,9 +42,13 @@ export class TokenCursor {
 
     /** Return the offset at the end of the token */
     get offsetEnd() {
-        return Math.min(this.doc.maxOffset, this.doc.getOffsetForLine(this.line) + this.getToken().offset + this.getToken().raw.length);
+        return Math.min(
+            this.doc.maxOffset,
+            this.doc.getOffsetForLine(this.line) +
+                this.getToken().offset +
+                this.getToken().raw.length
+        );
     }
-
 
     /** True if we are at the start of the document */
     atStart() {
@@ -51,7 +57,10 @@ export class TokenCursor {
 
     /** True if we are at the end of the document */
     atEnd() {
-        return this.line == this.doc.lines.length - 1 && this.token == this.doc.lines[this.line].tokens.length - 1;
+        return (
+            this.line == this.doc.lines.length - 1 &&
+            this.token == this.doc.lines[this.line].tokens.length - 1
+        );
     }
 
     /** Move this cursor backwards one token */
@@ -83,7 +92,7 @@ export class TokenCursor {
      */
     getPrevToken(): Token {
         if (this.line == 0 && this.token == 0)
-            return { type: "eol", raw: "\n", offset: 0, state: null };
+            return { type: 'eol', raw: '\n', offset: 0, state: null };
         let cursor = this.clone();
         cursor.previous();
         return cursor.getToken();
@@ -97,7 +106,11 @@ export class TokenCursor {
     }
 
     equals(cursor: TokenCursor) {
-        return this.line == cursor.line && this.token == cursor.token && this.doc == cursor.doc;
+        return (
+            this.line == cursor.line &&
+            this.token == cursor.token &&
+            this.doc == cursor.doc
+        );
     }
 }
 
@@ -109,8 +122,11 @@ export class TokenCursor {
  * If you are particular about which list type that should be considered, supply an `openingBracket`.
  */
 
-function _rangesForSexpsInList(cursor: LispTokenCursor, useRowCol = false, openingBracket?: string):
-    [number, number][] | [[number, number], [number, number]][] {
+function _rangesForSexpsInList(
+    cursor: LispTokenCursor,
+    useRowCol = false,
+    openingBracket?: string
+): [number, number][] | [[number, number], [number, number]][] {
     if (openingBracket !== undefined) {
         if (!cursor.backwardListOfType(openingBracket)) {
             return undefined;
@@ -146,8 +162,11 @@ function _rangesForSexpsInList(cursor: LispTokenCursor, useRowCol = false, openi
 }
 
 export class LispTokenCursor extends TokenCursor {
-
-    constructor(public doc: LineInputModel, public line: number, public token: number) {
+    constructor(
+        public doc: LineInputModel,
+        public line: number,
+        public token: number
+    ) {
         super(doc, line, token);
     }
 
@@ -166,15 +185,18 @@ export class LispTokenCursor extends TokenCursor {
     forwardWhitespace(includeComments = true) {
         while (!this.atEnd()) {
             switch (this.getToken().type) {
-                case "comment":
-                case "prompt":
+                case 'comment':
+                case 'prompt':
                     if (!includeComments) {
                         return;
                     }
-                case "eol":
-                case "ws":
+                case 'eol':
+                case 'ws':
                     this.next();
-                    if (["comment", "prompt"].includes(this.getToken().type) && !includeComments) {
+                    if (
+                        ['comment', 'prompt'].includes(this.getToken().type) &&
+                        !includeComments
+                    ) {
                         return;
                     }
                     continue;
@@ -190,15 +212,20 @@ export class LispTokenCursor extends TokenCursor {
     backwardWhitespace(includeComments = true) {
         while (!this.atStart()) {
             switch (this.getPrevToken().type) {
-                case "comment":
-                case "prompt":
+                case 'comment':
+                case 'prompt':
                     if (!includeComments) {
                         return;
                     }
-                case "eol":
-                case "ws":
+                case 'eol':
+                case 'ws':
                     this.previous();
-                    if (["comment", "prompt"].includes(this.getPrevToken().type) && !includeComments) {
+                    if (
+                        ['comment', 'prompt'].includes(
+                            this.getPrevToken().type
+                        ) &&
+                        !includeComments
+                    ) {
                         return;
                     }
                     continue;
@@ -221,7 +248,11 @@ export class LispTokenCursor extends TokenCursor {
      *
      * @returns true if the cursor was moved, false otherwise.
      */
-    forwardSexp(skipComments = true, skipMetadata = false, skipIgnoredForms = false): boolean {
+    forwardSexp(
+        skipComments = true,
+        skipMetadata = false,
+        skipIgnoredForms = false
+    ): boolean {
         // TODO: Consider using a proper bracket stack
         const stack = [];
         let isMetadata = false;
@@ -235,7 +266,7 @@ export class LispTokenCursor extends TokenCursor {
         while (!this.atEnd()) {
             this.forwardWhitespace(skipComments);
             const token = this.getToken();
-            switch(token.type) {
+            switch (token.type) {
                 case 'comment':
                     this.next();
                     this.next();
@@ -247,7 +278,11 @@ export class LispTokenCursor extends TokenCursor {
                 case 'ignore':
                     if (skipIgnoredForms) {
                         this.next();
-                        this.forwardSexp(skipComments, skipMetadata, skipIgnoredForms);
+                        this.forwardSexp(
+                            skipComments,
+                            skipMetadata,
+                            skipIgnoredForms
+                        );
                         break;
                     }
                 case 'id':
@@ -267,7 +302,7 @@ export class LispTokenCursor extends TokenCursor {
                 case 'close':
                     const close = token.raw;
                     let open: string;
-                    while (open = stack.pop()) {
+                    while ((open = stack.pop())) {
                         if (validPair(open, close)) {
                             this.next();
                             break;
@@ -320,8 +355,7 @@ export class LispTokenCursor extends TokenCursor {
                 case 'str-inside':
                     this.previous();
                     this.backwardThroughAnyReader();
-                    if (stack.length <= 0)
-                        return true;
+                    if (stack.length <= 0) return true;
                     break;
                 case 'close':
                     stack.push(tk.raw);
@@ -330,15 +364,14 @@ export class LispTokenCursor extends TokenCursor {
                 case 'open':
                     const open = tk.raw;
                     let close: string;
-                    while (close = stack.pop()) {
+                    while ((close = stack.pop())) {
                         if (validPair(open, close)) {
                             break;
                         }
                     }
                     this.previous();
                     this.backwardThroughAnyReader();
-                    if (stack.length <= 0)
-                        return true;
+                    if (stack.length <= 0) return true;
                     break;
                 default:
                     this.previous();
@@ -386,8 +419,8 @@ export class LispTokenCursor extends TokenCursor {
      */
     forwardList(): boolean {
         let cursor = this.clone();
-        while (cursor.forwardSexp()) { }
-        if (cursor.getToken().type === "close") {
+        while (cursor.forwardSexp()) {}
+        if (cursor.getToken().type === 'close') {
             const backCursor = cursor.clone();
             if (backCursor.backwardList()) {
                 this.set(cursor);
@@ -418,8 +451,8 @@ export class LispTokenCursor extends TokenCursor {
      */
     backwardList(): boolean {
         let cursor = this.clone();
-        while (cursor.backwardSexp()) { }
-        if (cursor.getPrevToken().type == "open") {
+        while (cursor.backwardSexp()) {}
+        if (cursor.getPrevToken().type == 'open') {
             this.set(cursor);
             return true;
         }
@@ -456,7 +489,12 @@ export class LispTokenCursor extends TokenCursor {
                     return range;
                 }
             } else {
-                if (!(cursor.backwardListOfType(openingBracket) && cursor.backwardUpList())) {
+                if (
+                    !(
+                        cursor.backwardListOfType(openingBracket) &&
+                        cursor.backwardUpList()
+                    )
+                ) {
                     return range;
                 }
             }
@@ -499,7 +537,7 @@ export class LispTokenCursor extends TokenCursor {
     upList(): boolean {
         let cursor = this.clone();
         cursor.forwardWhitespace();
-        if (cursor.getToken().type == "close") {
+        if (cursor.getToken().type == 'close') {
             cursor.next();
             this.set(cursor);
             return true;
@@ -515,7 +553,7 @@ export class LispTokenCursor extends TokenCursor {
         let cursor = this.clone();
         cursor.backwardThroughAnyReader();
         cursor.backwardWhitespace();
-        if (cursor.getPrevToken().type == "open") {
+        if (cursor.getPrevToken().type == 'open') {
             cursor.previous();
             cursor.backwardThroughAnyReader();
             this.set(cursor);
@@ -531,7 +569,7 @@ export class LispTokenCursor extends TokenCursor {
     backwardDownList(): boolean {
         let cursor = this.clone();
         cursor.backwardWhitespace();
-        if (cursor.getPrevToken().type == "close") {
+        if (cursor.getPrevToken().type == 'close') {
             cursor.previous();
             this.set(cursor);
             return true;
@@ -553,15 +591,23 @@ export class LispTokenCursor extends TokenCursor {
      * @param offset the current cursor (caret) offset in the document
      */
     rangeForCurrentForm(offset: number): [number, number] {
-        if (['id', 'kw', 'lit', 'str-inside'].includes(this.getToken().type) && offset !== this.offsetStart) { // 0
+        if (
+            ['id', 'kw', 'lit', 'str-inside'].includes(this.getToken().type) &&
+            offset !== this.offsetStart
+        ) {
+            // 0
             const cursor = this.clone();
             cursor.backwardThroughAnyReader();
             return [cursor.offsetStart, this.offsetEnd];
         }
         const afterCursor = this.clone();
         afterCursor.backwardWhitespace(true);
-        if (afterCursor.offsetStart == offset && afterCursor.getPrevToken().type !== 'reader') {
-            if (afterCursor.backwardSexp()) { // 1.
+        if (
+            afterCursor.offsetStart == offset &&
+            afterCursor.getPrevToken().type !== 'reader'
+        ) {
+            if (afterCursor.backwardSexp()) {
+                // 1.
                 return [afterCursor.offsetStart, offset];
             }
         }
@@ -570,51 +616,74 @@ export class LispTokenCursor extends TokenCursor {
         beforeCursor.forwardWhitespace(true);
         const readerCursor = beforeCursor.clone();
         readerCursor.backwardThroughAnyReader();
-        if ((offset >= beforeCursor.offsetStart && offset <= beforeCursor.offsetEnd) || readerCursor.offsetStart !== beforeCursor.offsetStart) {
-            if (beforeCursor.forwardSexp()) { // 2.
+        if (
+            (offset >= beforeCursor.offsetStart &&
+                offset <= beforeCursor.offsetEnd) ||
+            readerCursor.offsetStart !== beforeCursor.offsetStart
+        ) {
+            if (beforeCursor.forwardSexp()) {
+                // 2.
                 return [readerCursor.offsetStart, beforeCursor.offsetStart];
             }
         }
         if (afterCursor.rowCol[0] === this.rowCol[0]) {
             const peekBehindBackwards = afterCursor.clone();
-            if (peekBehindBackwards.backwardSexp()) { // 3.
-                return [peekBehindBackwards.offsetStart, afterCursor.offsetStart];
+            if (peekBehindBackwards.backwardSexp()) {
+                // 3.
+                return [
+                    peekBehindBackwards.offsetStart,
+                    afterCursor.offsetStart,
+                ];
             }
         }
         if (beforeCursor.rowCol[0] === this.rowCol[0]) {
             const peekPastForwards = beforeCursor.clone();
-            if (peekPastForwards.forwardSexp()) { // 4.
+            if (peekPastForwards.forwardSexp()) {
+                // 4.
                 return [beforeCursor.offsetStart, peekPastForwards.offsetStart];
             }
         }
         const peekBehindBackwards = afterCursor.clone();
-        if (peekBehindBackwards.backwardSexp()) { // 5.
+        if (peekBehindBackwards.backwardSexp()) {
+            // 5.
             return [peekBehindBackwards.offsetStart, afterCursor.offsetStart];
         } else {
             const peekPastForwards = beforeCursor.clone();
-            if (peekPastForwards.forwardSexp()) { // 6.
+            if (peekPastForwards.forwardSexp()) {
+                // 6.
                 return [beforeCursor.offsetStart, peekPastForwards.offsetStart];
             } else {
                 const peekUp = this.clone();
                 if (peekUp.upList()) {
                     const peekBehindUp = peekUp.clone();
-                    if (peekBehindUp.backwardSexp()) {  // 7.
+                    if (peekBehindUp.backwardSexp()) {
+                        // 7.
                         return [peekBehindUp.offsetStart, peekUp.offsetStart];
                     }
                 }
             }
         }
         return undefined; // 8.
-    }  
+    }
 
-    rangeForDefun(offset: number, commentCreatesTopLevel = true): [number, number] {
+    rangeForDefun(
+        offset: number,
+        commentCreatesTopLevel = true
+    ): [number, number] {
         const cursor = this.doc.getTokenCursor(offset);
-        let lastCandidateRange: [number, number] = cursor.rangeForCurrentForm(offset);
+        let lastCandidateRange: [number, number] =
+            cursor.rangeForCurrentForm(offset);
         while (cursor.forwardList() && cursor.upList()) {
             const commentCursor = cursor.clone();
             commentCursor.backwardDownList();
-            if (!commentCreatesTopLevel || commentCursor.getToken().raw !== ')' || commentCursor.getFunctionName() !== 'comment') {
-                lastCandidateRange = cursor.rangeForCurrentForm(cursor.offsetStart);
+            if (
+                !commentCreatesTopLevel ||
+                commentCursor.getToken().raw !== ')' ||
+                commentCursor.getFunctionName() !== 'comment'
+            ) {
+                lastCandidateRange = cursor.rangeForCurrentForm(
+                    cursor.offsetStart
+                );
             }
         }
         return lastCandidateRange;
@@ -650,9 +719,12 @@ export class LispTokenCursor extends TokenCursor {
     withinString() {
         const cursor = this.clone();
         cursor.backwardList();
-        if (cursor.getPrevToken().type === 'open' && cursor.getPrevToken().raw.endsWith('"')) {
+        if (
+            cursor.getPrevToken().type === 'open' &&
+            cursor.getPrevToken().raw.endsWith('"')
+        ) {
             return true;
-        };
+        }
         return false;
     }
 
@@ -661,13 +733,17 @@ export class LispTokenCursor extends TokenCursor {
      */
     withinComment() {
         const cursor = this.clone();
-        let isComment = cursor.getToken().type === 'comment' || cursor.getPrevToken().type === 'comment';
+        let isComment =
+            cursor.getToken().type === 'comment' ||
+            cursor.getPrevToken().type === 'comment';
         if (!isComment && this.withinWhiteSpace()) {
             cursor.forwardWhitespace(false);
             isComment = cursor.getToken().type === 'comment';
             if (!isComment) {
                 cursor.backwardWhitespace(false);
-                isComment = cursor.getPrevToken().type === 'comment' && cursor.getToken().type !== 'eol';
+                isComment =
+                    cursor.getPrevToken().type === 'comment' &&
+                    cursor.getToken().type !== 'eol';
             }
         }
         return isComment;
@@ -678,8 +754,8 @@ export class LispTokenCursor extends TokenCursor {
      */
     withinValidList(): boolean {
         let cursor = this.clone();
-        while (cursor.forwardSexp()) { }
-        return cursor.getToken().type == "close";
+        while (cursor.forwardSexp()) {}
+        return cursor.getToken().type == 'close';
     }
 
     /**
@@ -687,9 +763,14 @@ export class LispTokenCursor extends TokenCursor {
      * Returns undefined if the current cursor is not within a list.
      * If you are particular about which list type that should be considered, supply an `openingBracket`.
      */
-    rowColRangesForSexpsInList(openingBracket?: string): [[number, number], [number, number]][] {
+    rowColRangesForSexpsInList(
+        openingBracket?: string
+    ): [[number, number], [number, number]][] {
         let cursor = this.clone();
-        return _rangesForSexpsInList(cursor, true, openingBracket) as [[number, number], [number, number]][];
+        return _rangesForSexpsInList(cursor, true, openingBracket) as [
+            [number, number],
+            [number, number]
+        ][];
     }
 
     /**
@@ -699,7 +780,10 @@ export class LispTokenCursor extends TokenCursor {
      */
     rangesForSexpsInList(openingBracket?: string): [number, number][] {
         let cursor = this.clone();
-        return _rangesForSexpsInList(cursor, false, openingBracket) as [number, number][];
+        return _rangesForSexpsInList(cursor, false, openingBracket) as [
+            number,
+            number
+        ][];
     }
 
     /**

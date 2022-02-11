@@ -1,12 +1,15 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
 import * as util from '../utilities';
-import { getIndexAfterLastNonWhitespace, getTextAfterLastOccurrenceOfSubstring } from '../util/string';
+import {
+    getIndexAfterLastNonWhitespace,
+    getTextAfterLastOccurrenceOfSubstring,
+} from '../util/string';
 import type { ReplSessionType } from '../config';
 import { isResultsDoc, getSessionType, getPrompt, append } from './results-doc';
 import { addToHistory } from './util';
 
-const replHistoryCommandsActiveContext = "calva:replHistoryCommandsActive";
+const replHistoryCommandsActiveContext = 'calva:replHistoryCommandsActive';
 let historyIndex = null;
 let lastTextAtPrompt = null;
 
@@ -14,13 +17,23 @@ function setReplHistoryCommandsActiveContext(editor: vscode.TextEditor): void {
     if (editor && util.getConnectedState() && isResultsDoc(editor.document)) {
         const document = editor.document;
         const selection = editor.selection;
-        const positionAtEndOfContent = document.positionAt(getIndexAfterLastNonWhitespace(document.getText()));
+        const positionAtEndOfContent = document.positionAt(
+            getIndexAfterLastNonWhitespace(document.getText())
+        );
         if (selection.start.isAfterOrEqual(positionAtEndOfContent)) {
-            vscode.commands.executeCommand("setContext", replHistoryCommandsActiveContext, true);
+            vscode.commands.executeCommand(
+                'setContext',
+                replHistoryCommandsActiveContext,
+                true
+            );
             return;
         }
     }
-    vscode.commands.executeCommand("setContext", replHistoryCommandsActiveContext, false);
+    vscode.commands.executeCommand(
+        'setContext',
+        replHistoryCommandsActiveContext,
+        false
+    );
 }
 
 function resetState(): void {
@@ -38,15 +51,26 @@ function getHistory(replSessionType: ReplSessionType): Array<string> {
     return history;
 }
 
-function updateReplHistory(replSessionType: ReplSessionType, history: string[], content: string, index: number) {
+function updateReplHistory(
+    replSessionType: ReplSessionType,
+    history: string[],
+    content: string,
+    index: number
+) {
     const newHistory = [...history];
     newHistory[index] = content.trim();
-    state.extensionContext.workspaceState.update(getHistoryKey(replSessionType), newHistory);
+    state.extensionContext.workspaceState.update(
+        getHistoryKey(replSessionType),
+        newHistory
+    );
 }
 
 function addToReplHistory(replSessionType: ReplSessionType, content: string) {
     const newHistory = addToHistory(getHistory(replSessionType), content);
-    state.extensionContext.workspaceState.update(getHistoryKey(replSessionType), newHistory);
+    state.extensionContext.workspaceState.update(
+        getHistoryKey(replSessionType),
+        newHistory
+    );
 }
 
 function clearHistory() {
@@ -58,25 +82,31 @@ function clearHistory() {
     append(getPrompt());
 }
 
-function showReplHistoryEntry(historyEntry: string, resultsEditor: vscode.TextEditor): void {
+function showReplHistoryEntry(
+    historyEntry: string,
+    resultsEditor: vscode.TextEditor
+): void {
     const prompt = getPrompt();
     const resultsDoc = resultsEditor.document;
     const docText = resultsDoc.getText();
     const indexOfLastPrompt = docText.lastIndexOf(prompt);
     if (indexOfLastPrompt === -1) {
         // Prompt not found in results doc, so append a prompt and re-run this function
-        append(getPrompt(), _ => {
+        append(getPrompt(), (_) => {
             showReplHistoryEntry(historyEntry, resultsEditor);
         });
         return;
     }
     let insertOffset = indexOfLastPrompt + prompt.length;
     const startPosition = resultsDoc.positionAt(insertOffset);
-    const range = new vscode.Range(startPosition, resultsDoc.positionAt(Infinity));
-    const entry = historyEntry || "\n";
+    const range = new vscode.Range(
+        startPosition,
+        resultsDoc.positionAt(Infinity)
+    );
+    const entry = historyEntry || '\n';
     const edit = new vscode.WorkspaceEdit();
     edit.replace(resultsDoc.uri, range, entry);
-    vscode.workspace.applyEdit(edit).then(_ => {
+    vscode.workspace.applyEdit(edit).then((_) => {
         resultsDoc.save();
         util.scrollToBottom(resultsEditor);
     });
@@ -94,7 +124,10 @@ function showPreviousReplHistoryEntry(): void {
     if (!isResultsDoc(doc) || historyIndex === 0 || history.length === 0) {
         return;
     }
-    const textAtPrompt = getTextAfterLastOccurrenceOfSubstring(doc.getText(), getPrompt());
+    const textAtPrompt = getTextAfterLastOccurrenceOfSubstring(
+        doc.getText(),
+        getPrompt()
+    );
     if (historyIndex === null) {
         historyIndex = history.length;
         lastTextAtPrompt = textAtPrompt;
@@ -117,9 +150,12 @@ function showNextReplHistoryEntry(): void {
         historyIndex = null;
         showReplHistoryEntry(lastTextAtPrompt, editor);
     } else {
-        const textAtPrompt = getTextAfterLastOccurrenceOfSubstring(doc.getText(), getPrompt());
+        const textAtPrompt = getTextAfterLastOccurrenceOfSubstring(
+            doc.getText(),
+            getPrompt()
+        );
         updateReplHistory(replSessionType, history, textAtPrompt, historyIndex);
-        historyIndex++
+        historyIndex++;
         const nextHistoryEntry = history[historyIndex];
         showReplHistoryEntry(prependNewline(nextHistoryEntry), editor);
     }
@@ -132,5 +168,5 @@ export {
     showNextReplHistoryEntry,
     resetState,
     clearHistory,
-    setReplHistoryCommandsActiveContext
+    setReplHistoryCommandsActiveContext,
 };

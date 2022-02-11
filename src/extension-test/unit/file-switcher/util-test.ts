@@ -4,27 +4,83 @@ import * as path from 'path';
 
 describe('getNewSourcePath', () => {
     it('should get new source path for maven style src folder', () => {
-        const filePath = path.join('~', 'test.check', 'src', 'test', 'clojure', 'clojure', 'test', 'check', 'generators_test.cljc');
-        const expected = path.join('~', 'test.check', 'src', 'main', 'clojure', 'clojure', 'test', 'check');
+        const filePath = path.join(
+            '~',
+            'test.check',
+            'src',
+            'test',
+            'clojure',
+            'clojure',
+            'test',
+            'check',
+            'generators_test.cljc'
+        );
+        const expected = path.join(
+            '~',
+            'test.check',
+            'src',
+            'main',
+            'clojure',
+            'clojure',
+            'test',
+            'check'
+        );
         expect(util.getNewSourcePath(filePath)).toBe(expected);
     });
     it('should get new source path for maven style test folder', () => {
-        const filePath = path.join('~', 'test.check', 'src', 'main', 'clojure', 'clojure', 'test', 'check', 'generators.cljc');
-        const expected = path.join('~', 'test.check', 'src', 'test', 'clojure', 'clojure', 'test', 'check');
+        const filePath = path.join(
+            '~',
+            'test.check',
+            'src',
+            'main',
+            'clojure',
+            'clojure',
+            'test',
+            'check',
+            'generators.cljc'
+        );
+        const expected = path.join(
+            '~',
+            'test.check',
+            'src',
+            'test',
+            'clojure',
+            'clojure',
+            'test',
+            'check'
+        );
         expect(util.getNewSourcePath(filePath)).toBe(expected);
     });
     it('should get new source path for leiningen style src folder', () => {
-        const filePath = path.join('~', 'leiningen', 'src', 'leiningen', 'change.clj');
+        const filePath = path.join(
+            '~',
+            'leiningen',
+            'src',
+            'leiningen',
+            'change.clj'
+        );
         const expected = path.join('~', 'leiningen', 'test', 'leiningen');
         expect(util.getNewSourcePath(filePath)).toBe(expected);
     });
     it('should get new source path for leiningen style test folder', () => {
-        const filePath = path.join('~', 'leiningen', 'test', 'leiningen', 'change_test.clj');
+        const filePath = path.join(
+            '~',
+            'leiningen',
+            'test',
+            'leiningen',
+            'change_test.clj'
+        );
         const expected = path.join('~', 'leiningen', 'src', 'leiningen');
         expect(util.getNewSourcePath(filePath)).toBe(expected);
     });
     it('should handle the case where source path has "src" or "test" keyword in it', () => {
-        const filePath = path.join('~', 'tests', 'project-name', 'src', 'change.clj');
+        const filePath = path.join(
+            '~',
+            'tests',
+            'project-name',
+            'src',
+            'change.clj'
+        );
         const expected = path.join('~', 'tests', 'project-name', 'test');
         expect(util.getNewSourcePath(filePath)).toBe(expected);
     });
@@ -65,19 +121,22 @@ describe('getNewFileName', () => {
 
 describe('isFileValid', () => {
     it('should return true if the file path is valid', () => {
-        const fileName = 'change.clj'
+        const fileName = 'change.clj';
         const pathAfterRoot = path.join('src', 'leiningen');
         const { success } = util.isFileValid(fileName, pathAfterRoot);
         expect(success).toBeTruthy();
     });
     it('should return false if the file path is invalid', () => {
-        const fileName = 'main.cljc'
+        const fileName = 'main.cljc';
         const pathAfterRoot = path.join('');
         var { success } = util.isFileValid(fileName, pathAfterRoot);
         expect(success).toBeFalsy();
         const anotherFileName = 'foo';
         const anotherPathAfterRoot = path.join('leiningen');
-        var { success } = util.isFileValid(anotherFileName, anotherPathAfterRoot);
+        var { success } = util.isFileValid(
+            anotherFileName,
+            anotherPathAfterRoot
+        );
         expect(success).toBeFalsy();
     });
 });
