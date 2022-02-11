@@ -2582,7 +2582,7 @@
         "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
         "publish": "bb publish.clj",
         "prettier-format": "npx prettier --write './**/*.{ts,js}'",
-        "prettier-check": "npx prettier --check --write './**/*.{ts,js}'"
+        "prettier-check": "npx prettier --check './**/*.{ts,js}'"
     },
     "dependencies": {
         "@types/escape-html": "0.0.20",
