@@ -1,3 +1,7 @@
 /node_modules
 /.shadow-cljs
 /out
+/.vscode-test
+/.vscode
+/.lsp
+/.clj-kondo
