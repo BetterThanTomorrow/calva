@@ -2581,7 +2581,8 @@
         "integration-test": "node ./out/extension-test/integration/runTests.js",
         "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
         "publish": "bb publish.clj",
-        "prettier-all": "npx prettier --write './**/*.{ts,js}'"
+        "prettier-format": "npx prettier --write './**/*.{ts,js}'",
+        "prettier-check": "npx prettier --check --write './**/*.{ts,js}'"
     },
     "dependencies": {
         "@types/escape-html": "0.0.20",
