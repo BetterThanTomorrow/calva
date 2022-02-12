@@ -141,6 +141,19 @@ jobs:
       - run:
           name: Run prettier format check
           command: npm run prettier-check
+  eslint-check:
+    docker:
+      - image: circleci/node:latest
+    working_directory: ~/calva
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Restore build
+          command: cp -rT /tmp/build ~/calva
+      - run:
+          name: Run eslint check
+          command: npm run eslint
   test-cljslib:
     docker:
       - image: circleci/node:latest
@@ -339,6 +352,9 @@ workflows:
       - prettier-check:
           requires:
             - build
+      - eslint-check:
+          requires:
+            - build
       - test-grammar:
           requires:
             - build
@@ -360,6 +376,14 @@ workflows:
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
       - prettier-check:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - eslint-check:
           requires:
             - build
           filters:
@@ -402,6 +426,7 @@ workflows:
       - github-release:
           requires:
             - prettier-check
+            - eslint-check
             - test-grammar
             - test-cljslib
             - test-integration
