@@ -96,7 +96,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Update system package lists
           command: sudo apt-get update
@@ -137,7 +137,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Run prettier format check
           command: npm run prettier-check
@@ -150,7 +150,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Run eslint check
           command: npm run eslint
@@ -163,7 +163,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Run CLJS Tests
           command: npm run calva-lib-test
@@ -178,7 +178,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Run TS Unit Tests
           command: npm run unit-test
@@ -193,7 +193,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Compile Extension Tests
           command: npm run compile-test
@@ -243,7 +243,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Publish to the marketplace
           command: |
@@ -263,7 +263,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Publish to Open VSX
           command: |
