@@ -1,3 +1,4 @@
+/* eslint-disable no-control-regex */
 /**
  * Calva Clojure Lexer
  *

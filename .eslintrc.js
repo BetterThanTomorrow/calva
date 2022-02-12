@@ -28,7 +28,7 @@ module.exports = {
     rules: {
         'import/no-unresolved': [2, { ignore: ['^vscode$'] }],
         curly: ['error'],
-        'no-control-regex': 'off',
+        'no-control-regex': ['error'],
         'prefer-const': ['error'],
         'no-useless-escape': ['error'],
         'prefer-rest-params': ['error'],
