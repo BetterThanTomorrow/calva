@@ -355,11 +355,11 @@ async function promptForUserInputString(prompt: string): Promise<string> {
     });
 }
 
-function debounce(func, wait, immediate) {
+function debounce(func, wait, immediate, ...rest) {
     let timeout;
     return function () {
         const context = this,
-            args = arguments;
+            args = [func, wait, immediate, ...rest];
         const later = function () {
             timeout = null;
             if (!immediate) {
