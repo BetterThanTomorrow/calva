@@ -29,16 +29,22 @@ export class UndoStepGroup<T> extends UndoStep<T> {
     addUndoStep(step: UndoStep<T>) {
         let prevStep = this.steps.length && this.steps[this.steps.length - 1];
 
-        if (prevStep && !prevStep.undoStop && prevStep.coalesce(step)) return;
+        if (prevStep && !prevStep.undoStop && prevStep.coalesce(step)) {
+            return;
+        }
         this.steps.push(step);
     }
 
     undo(c: T): void {
-        for (let i = this.steps.length - 1; i >= 0; i--) this.steps[i].undo(c);
+        for (let i = this.steps.length - 1; i >= 0; i--) {
+            this.steps[i].undo(c);
+        }
     }
 
     redo(c: T): void {
-        for (let i = 0; i < this.steps.length; i++) this.steps[i].redo(c);
+        for (let i = 0; i < this.steps.length; i++) {
+            this.steps[i].redo(c);
+        }
     }
 }
 
@@ -99,8 +105,9 @@ export class UndoManager<T> {
 
     /** Prevents this undo from becoming coalesced with future undos */
     insertUndoStop() {
-        if (this.undos.length)
+        if (this.undos.length) {
             this.undos[this.undos.length - 1].undoStop = true;
+        }
     }
 
     /** Performs the top undo operation on the document (if it exists), moving it to the redo stack. */

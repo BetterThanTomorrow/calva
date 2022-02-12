@@ -774,7 +774,7 @@ function docIsBalanced(
     start: number = doc.selection.active
 ): boolean {
     const cursor = doc.getTokenCursor(0);
-    while (cursor.forwardSexp(true, true, true));
+    while (cursor.forwardSexp(true, true, true)) {}
     cursor.forwardWhitespace(true);
     return cursor.atEnd();
 }

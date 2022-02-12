@@ -68,7 +68,9 @@ export class TokenCursor {
         if (this.token > 0) {
             this.token--;
         } else {
-            if (this.line == 0) return;
+            if (this.line == 0) {
+                return;
+            }
             this.line--;
             this.token = this.doc.lines[this.line].tokens.length - 1;
         }
@@ -80,7 +82,9 @@ export class TokenCursor {
         if (this.token < this.doc.lines[this.line].tokens.length - 1) {
             this.token++;
         } else {
-            if (this.line == this.doc.lines.length - 1) return;
+            if (this.line == this.doc.lines.length - 1) {
+                return;
+            }
             this.line++;
             this.token = 0;
         }
@@ -91,8 +95,9 @@ export class TokenCursor {
      * Return the token immediately preceding this cursor. At the start of the file, a token of type "eol" is returned.
      */
     getPrevToken(): Token {
-        if (this.line == 0 && this.token == 0)
+        if (this.line == 0 && this.token == 0) {
             return { type: 'eol', raw: '\n', offset: 0, state: null };
+        }
         let cursor = this.clone();
         cursor.previous();
         return cursor.getToken();
@@ -355,7 +360,9 @@ export class LispTokenCursor extends TokenCursor {
                 case 'str-inside':
                     this.previous();
                     this.backwardThroughAnyReader();
-                    if (stack.length <= 0) return true;
+                    if (stack.length <= 0) {
+                        return true;
+                    }
                     break;
                 case 'close':
                     stack.push(tk.raw);
@@ -371,7 +378,9 @@ export class LispTokenCursor extends TokenCursor {
                     }
                     this.previous();
                     this.backwardThroughAnyReader();
-                    if (stack.length <= 0) return true;
+                    if (stack.length <= 0) {
+                        return true;
+                    }
                     break;
                 default:
                     this.previous();

@@ -54,19 +54,21 @@ function decorationType(opts) {
 }
 
 function colorDecorationType(color) {
-    if (isArray(color))
+    if (isArray(color)) {
         return decorationType({
             light: { color: color[0] },
             dark: { color: color[1] },
         });
-    else return decorationType({ color: color });
+    } else {
+        return decorationType({ color: color });
+    }
 }
 
 function guidesDecorationType_(
     color,
     isActive: boolean
 ): vscode.TextEditorDecorationType {
-    if (isArray(color))
+    if (isArray(color)) {
         return decorationType({
             light: {
                 borderWidth: `0; border-right-width: ${
@@ -83,7 +85,7 @@ function guidesDecorationType_(
                 borderColor: color[1],
             },
         });
-    else
+    } else {
         return decorationType({
             borderWidth: `0; border-right-width: ${
                 isActive ? '1.5px' : '0.5px'
@@ -91,6 +93,7 @@ function guidesDecorationType_(
             borderStyle: `solid; opacity: ${isActive ? '0.5' : '0.25'};`,
             borderColor: color,
         });
+    }
 }
 
 function guidesDecorationType(color): vscode.TextEditorDecorationType {
@@ -121,7 +124,9 @@ function reset_styles() {
     }
     activeGuidesTypes = rainbowColors.map(activeGuidesDecorationType);
 
-    if (!!misplacedType) activeEditor.setDecorations(misplacedType, []);
+    if (!!misplacedType) {
+        activeEditor.setDecorations(misplacedType, []);
+    }
     misplacedType = decorationType(
         misplacedBracketStyle || {
             light: { color: '#fff', backgroundColor: '#c33' },
@@ -133,7 +138,9 @@ function reset_styles() {
         }
     );
 
-    if (!!matchedType) activeEditor.setDecorations(matchedType, []);
+    if (!!matchedType) {
+        activeEditor.setDecorations(matchedType, []);
+    }
     matchedType = decorationType(
         matchedBracketStyle || {
             light: { backgroundColor: '#d0d0d0' },
@@ -141,12 +148,16 @@ function reset_styles() {
         }
     );
 
-    if (!!commentFormType) activeEditor.setDecorations(commentFormType, []);
+    if (!!commentFormType) {
+        activeEditor.setDecorations(commentFormType, []);
+    }
     commentFormType = decorationType(
         commentFormStyle || { fontStyle: 'italic' }
     );
 
-    if (!!ignoredFormType) activeEditor.setDecorations(ignoredFormType, []);
+    if (!!ignoredFormType) {
+        activeEditor.setDecorations(ignoredFormType, []);
+    }
     ignoredFormType = decorationType(
         ignoredFormStyle || { textDecoration: 'none; opacity: 0.5' }
     );
@@ -227,21 +238,30 @@ function reloadConfig() {
         dirty = true;
     }
 
-    if (dirty) scheduleRainbowBrackets();
+    if (dirty) {
+        scheduleRainbowBrackets();
+    }
 }
 
 function scheduleRainbowBrackets() {
-    if (rainbowTimer) clearTimeout(rainbowTimer);
-    if (is_clojure(activeEditor))
+    if (rainbowTimer) {
+        clearTimeout(rainbowTimer);
+    }
+    if (is_clojure(activeEditor)) {
         rainbowTimer = setTimeout(updateRainbowBrackets, 16);
+    }
 }
 
 function updateRainbowBrackets() {
-    if (!is_clojure(activeEditor)) return;
+    if (!is_clojure(activeEditor)) {
+        return;
+    }
 
     lastHighlightedEditor = activeEditor;
 
-    if (dirty) reset_styles();
+    if (dirty) {
+        reset_styles();
+    }
 
     const doc = activeEditor.document,
         mirrorDoc = docMirror.getDocument(doc),
@@ -456,20 +476,26 @@ function updateRainbowBrackets() {
 
 function matchBefore(selection) {
     const cursor = selection.active;
-    if (cursor.isBeforeOrEqual(selection.anchor))
-        if (cursor.character > 0)
+    if (cursor.isBeforeOrEqual(selection.anchor)) {
+        if (cursor.character > 0) {
             return pairsBack.get(position_str(cursor.translate(0, -1)));
+        }
+    }
 }
 
 function matchAfter(selection) {
     const cursor = selection.active;
-    if (cursor.isAfterOrEqual(selection.anchor))
-        if (cursor.translate(0, 1).line === cursor.line)
+    if (cursor.isAfterOrEqual(selection.anchor)) {
+        if (cursor.translate(0, 1).line === cursor.line) {
             return pairsForward.get(position_str(cursor));
+        }
+    }
 }
 
 function matchPairs() {
-    if (!is_clojure(activeEditor)) return;
+    if (!is_clojure(activeEditor)) {
+        return;
+    }
 
     const matches = [];
     activeEditor.selections.forEach((selection) => {
@@ -563,7 +589,9 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeActiveTextEditor(
         (editor) => {
             activeEditor = editor;
-            if (is_clojure(editor)) scheduleRainbowBrackets();
+            if (is_clojure(editor)) {
+                scheduleRainbowBrackets();
+            }
         },
         null,
         context.subscriptions
@@ -599,8 +627,9 @@ export function activate(context: vscode.ExtensionContext) {
             if (
                 is_clojure(activeEditor) &&
                 event.document === activeEditor.document
-            )
+            ) {
                 scheduleRainbowBrackets();
+            }
         },
         null,
         context.subscriptions
@@ -608,8 +637,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.window.onDidChangeTextEditorVisibleRanges(
         (event) => {
-            if (is_clojure(activeEditor) && event.textEditor === activeEditor)
+            if (is_clojure(activeEditor) && event.textEditor === activeEditor) {
                 scheduleRainbowBrackets();
+            }
         },
         null,
         context.subscriptions

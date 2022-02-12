@@ -534,7 +534,9 @@ async function copyLastResultCommand() {
         vscode.window.showInformationMessage(
             'Results copied to the clipboard.'
         );
-    } else chan.appendLine('Nothing to copy');
+    } else {
+        chan.appendLine('Nothing to copy');
+    }
 }
 
 async function togglePrettyPrint() {

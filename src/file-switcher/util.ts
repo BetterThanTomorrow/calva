@@ -1,20 +1,22 @@
 import * as path from 'path';
 
 function isFileValid(fileName, pathAfterRoot) {
-    if (!fileName.includes('.'))
+    if (!fileName.includes('.')) {
         return {
             success: false,
             message:
                 "Toggle between implementation and file command doesn't" +
                 ' work with extension-less files.',
         };
-    if (!pathAfterRoot.includes('src') && !pathAfterRoot.includes('test'))
+    }
+    if (!pathAfterRoot.includes('src') && !pathAfterRoot.includes('test')) {
         return {
             success: false,
             message:
                 'File path should include src or test to switch between ' +
                 'implementation and test.',
         };
+    }
     return { success: true, message: '' };
 }
 

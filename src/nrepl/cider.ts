@@ -65,9 +65,12 @@ function stripTrailingNewlines(s: string): string {
 
 function resultMessage(resultItem: Readonly<TestResult>): string {
     let msg = [];
-    if (resultItem.context && resultItem.context !== 'false')
+    if (resultItem.context && resultItem.context !== 'false') {
         msg.push(resultItem.context);
-    if (resultItem.message) msg.push(resultItem.message);
+    }
+    if (resultItem.message) {
+        msg.push(resultItem.message);
+    }
     return `${msg.length > 0 ? stripTrailingNewlines(msg.join(': ')) : ''}`;
 }
 

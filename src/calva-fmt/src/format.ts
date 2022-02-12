@@ -40,7 +40,9 @@ export function indentPosition(
         );
     } else if (delta < 0) {
         let str = '';
-        while (delta++ < 0) str += ' ';
+        while (delta++ < 0) {
+            str += ' ';
+        }
         return editor.edit((edits) => edits.insert(pos, str), {
             undoStopAfter: false,
             undoStopBefore: false,

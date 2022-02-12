@@ -34,7 +34,9 @@ async function quickPickSingle(opts: {
     placeHolder: string;
     autoSelect?: boolean;
 }) {
-    if (opts.values.length == 0) return;
+    if (opts.values.length == 0) {
+        return;
+    }
     let selected: string;
     let saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
     if (saveAs) {
@@ -42,12 +44,14 @@ async function quickPickSingle(opts: {
     }
 
     let result;
-    if (opts.autoSelect && opts.values.length == 1) result = opts.values[0];
-    else
+    if (opts.autoSelect && opts.values.length == 1) {
+        result = opts.values[0];
+    } else {
         result = await quickPick(opts.values, selected ? [selected] : [], [], {
             placeHolder: opts.placeHolder,
             ignoreFocusOut: true,
         });
+    }
     state.extensionContext.workspaceState.update(saveAs, result);
     return result;
 }
@@ -104,10 +108,13 @@ async function quickPick(
     return new Promise<string[] | string>((resolve, reject) => {
         qp.show();
         qp.onDidAccept(() => {
-            if (qp.canSelectMany) resolve(qp.selectedItems.map((x) => x.label));
-            else if (qp.selectedItems.length)
+            if (qp.canSelectMany) {
+                resolve(qp.selectedItems.map((x) => x.label));
+            } else if (qp.selectedItems.length) {
                 resolve(qp.selectedItems[0].label);
-            else resolve(undefined);
+            } else {
+                resolve(undefined);
+            }
             qp.hide();
         });
         qp.onDidHide(() => {
@@ -355,12 +362,16 @@ function debounce(func, wait, immediate) {
             args = arguments;
         const later = function () {
             timeout = null;
-            if (!immediate) func.apply(context, args);
+            if (!immediate) {
+                func.apply(context, args);
+            }
         };
         const callNow = immediate && !timeout;
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
-        if (callNow) func.apply(context, args);
+        if (callNow) {
+            func.apply(context, args);
+        }
     };
 }
 

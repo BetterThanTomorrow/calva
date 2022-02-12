@@ -367,8 +367,9 @@ function wrapPareditCommand(command: PareditCommand) {
                 mDoc: EditableDocument = docMirror.getDocument(
                     textEditor.document
                 );
-            if (!enabled || !languages.has(textEditor.document.languageId))
+            if (!enabled || !languages.has(textEditor.document.languageId)) {
                 return;
+            }
             command.handler(mDoc);
         } catch (e) {
             console.error(e.message);

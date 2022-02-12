@@ -89,12 +89,16 @@ export class NReplClient {
 
     private _closeHandlers: ((c: NReplClient) => void)[] = [];
     addOnCloseHandler(fn: (c: NReplClient) => void) {
-        if (this._closeHandlers.indexOf(fn) == -1) this._closeHandlers.push(fn);
+        if (this._closeHandlers.indexOf(fn) == -1) {
+            this._closeHandlers.push(fn);
+        }
     }
 
     removeOnCloseHandler(fn: (c: NReplClient) => void) {
         let idx = this._closeHandlers.indexOf(fn);
-        if (idx != -1) this._closeHandlers.splice(idx, 1);
+        if (idx != -1) {
+            this._closeHandlers.splice(idx, 1);
+        }
     }
 
     /**
@@ -146,9 +150,12 @@ export class NReplClient {
                     if (!client.describe && data['id'] === describeId) {
                         client.describe = data;
                     } else if (data['id'] === nsId) {
-                        if (data['ns']) client.ns = data['ns'];
-                        if (hasStatus(data, 'done'))
+                        if (data['ns']) {
+                            client.ns = data['ns'];
+                        }
+                        if (hasStatus(data, 'done')) {
                             client.encoder.write({ op: 'clone', id: cloneId });
+                        }
                     } else if (data['id'] === cloneId) {
                         client.session = new NReplSession(
                             data['new-session'],
@@ -163,7 +170,9 @@ export class NReplClient {
                         resolve(client);
                     } else if (data['session']) {
                         let session = client.sessions[data['session']];
-                        if (session) session._response(data);
+                        if (session) {
+                            session._response(data);
+                        }
                     }
                 });
                 client.encoder.write({ op: 'eval', code: '*ns*', id: nsId });
@@ -181,13 +190,16 @@ export class NReplSession {
     public _onCloseHandlers: ((c: NReplSession) => void)[] = [];
 
     addOnCloseHandler(fn: (c: NReplSession) => void) {
-        if (this._onCloseHandlers.indexOf(fn) == -1)
+        if (this._onCloseHandlers.indexOf(fn) == -1) {
             this._onCloseHandlers.push(fn);
+        }
     }
 
     removeOnCloseHandler(fn: (c: NReplSession) => void) {
         let idx = this._onCloseHandlers.indexOf(fn);
-        if (idx != -1) this._onCloseHandlers.splice(idx, 1);
+        if (idx != -1) {
+            this._onCloseHandlers.splice(idx, 1);
+        }
     }
 
     constructor(public sessionId: string, public client: NReplClient) {
@@ -262,7 +274,9 @@ export class NReplSession {
     _response(data: any) {
         if (this.messageHandlers[data.id]) {
             let res = this.messageHandlers[data.id](data);
-            if (res) delete this.messageHandlers[data.id];
+            if (res) {
+                delete this.messageHandlers[data.id];
+            }
         } else {
             this._defaultMessageHandler(data).then(
                 () => {},
@@ -588,19 +602,31 @@ export class NReplSession {
                 status,
                 err = '';
             this.messageHandlers[id] = (msg) => {
-                if (msg.reloading) reloaded = msg.reloading;
-                if (hasStatus(msg, 'ok')) status = 'ok';
+                if (msg.reloading) {
+                    reloaded = msg.reloading;
+                }
+                if (hasStatus(msg, 'ok')) {
+                    status = 'ok';
+                }
                 if (hasStatus(msg, 'error')) {
                     status = 'error';
                     error = msg.error;
                     errorNs = msg['error-ns'];
                 }
-                if (msg.err) err += msg.err;
+                if (msg.err) {
+                    err += msg.err;
+                }
                 if (hasStatus(msg, 'done')) {
                     let res = { reloaded, status } as any;
-                    if (error) res.error = error;
-                    if (errorNs) res.errorNs = errorNs;
-                    if (err) res.err = err;
+                    if (error) {
+                        res.error = error;
+                    }
+                    if (errorNs) {
+                        res.errorNs = errorNs;
+                    }
+                    if (err) {
+                        res.err = err;
+                    }
                     resolve(res);
                     return true;
                 }

@@ -83,7 +83,9 @@ export function collectIndents(
 
             const token = cursor.getToken().raw;
             const startIndent = cursor.rowCol[1];
-            if (!cursor.backwardUpList()) break;
+            if (!cursor.backwardUpList()) {
+                break;
+            }
 
             const rules = config['cljfmt-options']['indents'];
             const pattern = _.find(
@@ -123,7 +125,7 @@ export function collectIndents(
         Math.abs(startLine - cursor.line) < maxLines &&
         indents.length < maxDepth
     );
-    if (!indents.length)
+    if (!indents.length) {
         indents.push({
             argPos: 0,
             first: null,
@@ -132,6 +134,7 @@ export function collectIndents(
             startIndent: lastIndent >= 0 ? lastIndent : 0,
             firstItemIdent: lastIndent >= 0 ? lastIndent : 0,
         });
+    }
     return indents;
 }
 
@@ -157,21 +160,27 @@ export function getIndent(
     // now find applicable indent rules
     let indent = -1;
     let thisBlock = state[state.length - 1];
-    if (!state.length) return 0;
+    if (!state.length) {
+        return 0;
+    }
 
     for (let pos = state.length - 1; pos >= 0; pos--) {
         for (let rule of state[pos].rules) {
             if (rule[0] == 'inner') {
                 if (pos + rule[1] == state.length - 1) {
                     if (rule.length == 3) {
-                        if (rule[2] > thisBlock.argPos)
+                        if (rule[2] > thisBlock.argPos) {
                             indent = thisBlock.startIndent + 1;
-                    } else indent = thisBlock.startIndent + 1;
+                        }
+                    } else {
+                        indent = thisBlock.startIndent + 1;
+                    }
                 }
             } else if (rule[0] == 'block' && pos == state.length - 1) {
                 if (thisBlock.exprsOnLine <= rule[1]) {
-                    if (thisBlock.argPos >= rule[1])
+                    if (thisBlock.argPos >= rule[1]) {
                         indent = thisBlock.startIndent + 1;
+                    }
                 } else {
                     indent = thisBlock.firstItemIdent;
                 }
@@ -181,8 +190,11 @@ export function getIndent(
 
     if (indent == -1) {
         // no indentation styles applied, so use default style.
-        if (thisBlock.exprsOnLine > 0) indent = thisBlock.firstItemIdent;
-        else indent = thisBlock.startIndent;
+        if (thisBlock.exprsOnLine > 0) {
+            indent = thisBlock.firstItemIdent;
+        } else {
+            indent = thisBlock.startIndent;
+        }
     }
     return indent;
 }

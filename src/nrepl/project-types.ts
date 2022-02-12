@@ -389,8 +389,9 @@ const projectTypes: { [id: string]: ProjectType } = {
                     ...serverPrinterDependencies,
                 };
             let defaultArgs: string[] = [];
-            for (let dep in dependencies)
+            for (let dep in dependencies) {
                 defaultArgs.push('-d', dep + ':' + dependencies[dep]);
+            }
 
             const foundBuilds = await shadowBuilds(),
                 { selectedBuilds, args } = await selectShadowBuilds(
@@ -615,8 +616,9 @@ async function cljCommandLine(
             : aliasesFlag[1];
     const q = isWin ? '"' : "'";
     const dQ = isWin ? '""' : '"';
-    for (let dep in dependencies)
+    for (let dep in dependencies) {
         out.push(dep + ` {:mvn/version,${dQ}${dependencies[dep]}${dQ}}`);
+    }
 
     let args = ['-Sdeps', `${q}${'{:deps {' + out.join(',') + '}}'}${q}`];
 
@@ -712,8 +714,11 @@ async function leinCommandLine(
 
 /** Given the name of a project in project types, find that project. */
 export function getProjectTypeForName(name: string) {
-    for (let id in projectTypes)
-        if (projectTypes[id].name == name) return projectTypes[id];
+    for (let id in projectTypes) {
+        if (projectTypes[id].name == name) {
+            return projectTypes[id];
+        }
+    }
 }
 
 export async function detectProjectTypes(): Promise<string[]> {

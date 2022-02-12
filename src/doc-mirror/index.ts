@@ -265,7 +265,9 @@ function addDocument(doc: vscode.TextDocument): boolean {
 
 export function activate() {
     // the last thing we want is to register twice and receive double events...
-    if (registered) return;
+    if (registered) {
+        return;
+    }
     registered = true;
 
     addDocument(utilities.getDocument({}));

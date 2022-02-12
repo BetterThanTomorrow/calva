@@ -220,7 +220,9 @@ function reportTests(
             msg,
             vscode.DiagnosticSeverity.Error
         );
-        if (!diagnostics[result.file]) diagnostics[result.file] = [];
+        if (!diagnostics[result.file]) {
+            diagnostics[result.file] = [];
+        }
         diagnostics[result.file].push(err);
     };
 

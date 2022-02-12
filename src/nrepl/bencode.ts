@@ -8,14 +8,25 @@ import { Buffer } from 'buffer';
 
 /** Bencode the given JSON object */
 const bencode = (value) => {
-    if (value === null || value === undefined) value = 0;
-    if (typeof value == 'boolean') value = value ? 1 : 0;
-    if (typeof value == 'number') return 'i' + value + 'e';
-    if (typeof value == 'string')
+    if (value === null || value === undefined) {
+        value = 0;
+    }
+    if (typeof value == 'boolean') {
+        value = value ? 1 : 0;
+    }
+    if (typeof value == 'number') {
+        return 'i' + value + 'e';
+    }
+    if (typeof value == 'string') {
         return Buffer.byteLength(value, 'utf8') + ':' + value;
-    if (value instanceof Array) return 'l' + value.map(bencode).join('') + 'e';
+    }
+    if (value instanceof Array) {
+        return 'l' + value.map(bencode).join('') + 'e';
+    }
     let out = 'd';
-    for (let prop in value) out += bencode(prop) + bencode(value[prop]);
+    for (let prop in value) {
+        out += bencode(prop) + bencode(value[prop]);
+    }
     return out + 'e';
 };
 
@@ -136,47 +147,64 @@ class BIncrementalDecoder {
                     this.stack.push({ id: 'list', accum: [] });
                     break;
                 case 'e':
-                    if (!this.stack.length) throw 'unexpected end';
+                    if (!this.stack.length) {
+                        throw 'unexpected end';
+                    }
                     this.state = this.stack.pop();
                     if (this.state.id == 'dict') {
-                        if (this.state.key !== null)
+                        if (this.state.key !== null) {
                             throw 'Missing value in dict';
+                        }
                         return this.complete(this.state.accum);
-                    } else if (this.state.id == 'list')
+                    } else if (this.state.id == 'list') {
                         return this.complete(this.state.accum);
+                    }
                     break;
                 default:
-                    if (ch >= '0' && ch <= '9')
+                    if (ch >= '0' && ch <= '9') {
                         this.state = { id: 'string-start', accum: ch };
-                    else throw 'Malformed input in bencode';
+                    } else {
+                        throw 'Malformed input in bencode';
+                    }
             }
         } else if (this.state.id == 'int') {
-            if (ch == 'e') return this.complete(parseInt(this.state.accum));
-            else this.state.accum += ch;
+            if (ch == 'e') {
+                return this.complete(parseInt(this.state.accum));
+            } else {
+                this.state.accum += ch;
+            }
         } else if (this.state.id == 'string-start') {
             if (ch == ':') {
-                if (!isFinite(+this.state.accum))
+                if (!isFinite(+this.state.accum)) {
                     throw new Error(
                         'Invalid string length: ' + this.state.accum
                     );
-                if (+this.state.accum == 0) return this.complete('');
+                }
+                if (+this.state.accum == 0) {
+                    return this.complete('');
+                }
                 this.state = {
                     id: 'string-body',
                     accum: [],
                     length: +this.state.accum,
                 };
-            } else this.state.accum += ch;
+            } else {
+                this.state.accum += ch;
+            }
         } else if (this.state.id == 'string-body') {
             this.state.accum.push(byte);
-            if (this.state.accum.length >= this.state.length)
+            if (this.state.accum.length >= this.state.length) {
                 return this.complete(
                     Buffer.from(this.state.accum).toString('utf8')
                 );
+            }
         } else if (this.state.id == 'list') {
             return this.complete(this.state.accum);
         } else if (this.state.id == 'dict') {
             return this.complete(this.state.accum);
-        } else throw 'Junk in bencode';
+        } else {
+            throw 'Junk in bencode';
+        }
     }
 }
 
@@ -189,7 +217,9 @@ export class BDecoderStream extends stream.Transform {
     _transform(data, encoding, cb) {
         for (let i = 0; i < data.length; i++) {
             let res = this.decoder.write(data[i]);
-            if (res) this.push(res);
+            if (res) {
+                this.push(res);
+            }
         }
         cb();
     }

@@ -95,9 +95,10 @@ async function connectToHost(
         nClient.addOnCloseHandler((c) => {
             util.setConnectedState(false);
             util.setConnectingState(false);
-            if (!c['silent'])
+            if (!c['silent']) {
                 // we didn't deliberately close this session, mention this fact.
                 outputWindow.append('; nREPL Connection was closed');
+            }
             status.update();
             calvaDebug.terminateDebugSession();
         });

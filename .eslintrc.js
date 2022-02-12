@@ -27,6 +27,8 @@ module.exports = {
     },
     rules: {
         'import/no-unresolved': [2, { ignore: ['^vscode$'] }],
+        curly: ['error'],
+
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
