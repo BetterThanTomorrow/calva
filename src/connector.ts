@@ -16,7 +16,7 @@ import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
 import * as outputWindow from './results-output/results-doc';
-import evaluate from './evaluate';
+import { evaluateInOutputWindow } from './evaluate';
 import * as liveShareSupport from './liveShareSupport';
 import * as calvaDebug from './debugger/calva-debug';
 import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
@@ -121,7 +121,7 @@ async function connectToHost(
 
         if (connectSequence.afterCLJReplJackInCode) {
             outputWindow.append(`\n; Evaluating 'afterCLJReplJackInCode'`);
-            await evaluate.evaluateInOutputWindow(
+            await evaluateInOutputWindow(
                 connectSequence.afterCLJReplJackInCode,
                 'clj',
                 outputWindow.getNs(),
