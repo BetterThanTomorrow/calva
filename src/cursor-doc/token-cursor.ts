@@ -195,6 +195,7 @@ export class LispTokenCursor extends TokenCursor {
                     if (!includeComments) {
                         return;
                     }
+                // eslint-disable-next-line no-fallthrough
                 case 'eol':
                 case 'ws':
                     this.next();
@@ -222,6 +223,7 @@ export class LispTokenCursor extends TokenCursor {
                     if (!includeComments) {
                         return;
                     }
+                // eslint-disable-next-line no-fallthrough
                 case 'eol':
                 case 'ws':
                     this.previous();
@@ -290,6 +292,7 @@ export class LispTokenCursor extends TokenCursor {
                         );
                         break;
                     }
+                // eslint-disable-next-line no-fallthrough
                 case 'id':
                 case 'lit':
                 case 'kw':
