@@ -62,6 +62,7 @@ toplevel.terminal('comment', /;.*/, (l, m) => ({ type: 'comment' }));
 // Calva repl prompt, it contains special colon symbols and a hard space
 toplevel.terminal(
     'comment',
+    // eslint-disable-next-line no-irregular-whitespace
     /^[^()[\]{},~@`^"\s;]+꞉[^()[\]{},~@`^"\s;]+꞉> /,
     (l, m) => ({ type: 'prompt' })
 );

@@ -33,6 +33,7 @@ module.exports = {
         'no-useless-escape': ['error'],
         'prefer-rest-params': ['error'],
         'no-empty': ['error'],
+        'no-irregular-whitespace': ['error'],
 
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
@@ -53,7 +54,6 @@ module.exports = {
         '@typescript-eslint/no-unnecessary-type-assertion': 'off',
         '@typescript-eslint/no-inferrable-types': 'off',
         'prefer-spread': 'off',
-        'no-irregular-whitespace': 'off',
         '@typescript-eslint/no-for-in-array': 'off',
         '@typescript-eslint/no-empty-function': 'off',
         'import/no-duplicates': 'off',

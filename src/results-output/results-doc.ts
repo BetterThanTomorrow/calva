@@ -67,6 +67,7 @@ const showPrompt: { [id: string]: boolean } = {
 };
 
 export function getPrompt(): string {
+    // eslint-disable-next-line no-irregular-whitespace
     let prompt = `${_sessionType}꞉${getNs()}꞉> `;
     if (showPrompt[_sessionType]) {
         showPrompt[_sessionType] = false;
