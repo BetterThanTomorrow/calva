@@ -19,7 +19,7 @@ import { LexicalGrammar, Token as LexerToken } from './lexer';
  * The 'toplevel' lexical grammar. This grammar contains all normal tokens. Strings are identified as
  * "open", and trigger the lexer to switch to the 'inString' lexical grammar.
  */
-export let toplevel = new LexicalGrammar();
+export const toplevel = new LexicalGrammar();
 
 /**
  * Returns `true` if open and close are compatible parentheses
@@ -143,7 +143,7 @@ toplevel.terminal('junk', /[\u0000-\uffff]/, (l, m) => ({ type: 'junk' }));
 
 /** This is inside-string string grammar. It spits out 'close' once it is time to switch back to the 'toplevel' grammar,
  * and 'str-inside' for the words in the string. */
-let inString = new LexicalGrammar();
+const inString = new LexicalGrammar();
 // end a string
 inString.terminal('close', /"/, (l, m) => ({ type: 'close' }));
 // still within a string
@@ -177,7 +177,7 @@ export class Scanner {
     constructor(private maxLength: number) {}
 
     processLine(line: string, state: ScannerState = this.state) {
-        let tks: Token[] = [];
+        const tks: Token[] = [];
         this.state = state;
         let lex = (this.state.inString ? inString : toplevel).lex(
             line,
@@ -187,7 +187,7 @@ export class Scanner {
         do {
             tk = lex.scan();
             if (tk) {
-                let oldpos = lex.position;
+                const oldpos = lex.position;
                 if (tk.raw.match(/[~`'@#]*"$/)) {
                     switch (tk.type) {
                         case 'open': // string started, switch to inString.

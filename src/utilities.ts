@@ -38,7 +38,7 @@ async function quickPickSingle(opts: {
         return;
     }
     let selected: string;
-    let saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
+    const saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
     if (saveAs) {
         selected = state.extensionContext.workspaceState.get(saveAs);
     }
@@ -62,11 +62,11 @@ async function quickPickMulti(opts: {
     placeHolder: string;
 }) {
     let selected: string[];
-    let saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
+    const saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
     if (saveAs) {
         selected = state.extensionContext.workspaceState.get(saveAs) || [];
     }
-    let result = await quickPick(opts.values, [], selected, {
+    const result = await quickPick(opts.values, [], selected, {
         placeHolder: opts.placeHolder,
         canPickMany: true,
         ignoreFocusOut: true,
@@ -94,9 +94,9 @@ async function quickPick(
     selected: string[],
     options: vscode.QuickPickOptions
 ): Promise<string | string[]> {
-    let items = itemsToPick.map((x) => ({ label: x }));
+    const items = itemsToPick.map((x) => ({ label: x }));
 
-    let qp = vscode.window.createQuickPick();
+    const qp = vscode.window.createQuickPick();
     qp.canSelectMany = options.canPickMany;
     qp.placeholder = options.placeHolder;
     qp.ignoreFocusOut = options.ignoreFocusOut;
@@ -134,7 +134,7 @@ function getShadowCljsReplStartCode(build) {
 
 function getActualWord(document, position, selected, word) {
     if (selected === undefined) {
-        let selectedChar = document
+        const selectedChar = document
                 .lineAt(position.line)
                 .text.slice(position.character, position.character + 1),
             isFn =
@@ -159,7 +159,7 @@ function getActualWord(document, position, selected, word) {
 }
 
 function getWordAtPosition(document, position) {
-    let selected = document.getWordRangeAtPosition(position),
+    const selected = document.getWordRangeAtPosition(position),
         selectedText =
             selected !== undefined
                 ? document.getText(
@@ -190,7 +190,7 @@ function getDocument(document): vscode.TextDocument {
 }
 
 function getFileType(document) {
-    let doc = getDocument(document);
+    const doc = getDocument(document);
 
     if (doc) {
         return path.extname(doc.fileName).replace(/^\./, '');
@@ -242,11 +242,11 @@ const ERROR_TYPE = {
 };
 
 function logSuccess(results) {
-    let chan = state.outputChannel();
+    const chan = state.outputChannel();
     chan.appendLine('Evaluation completed successfully');
     _.each(results, (r) => {
-        let value = r.hasOwnProperty('value') ? r.value : null;
-        let out = r.hasOwnProperty('out') ? r.out : null;
+        const value = r.hasOwnProperty('value') ? r.value : null;
+        const out = r.hasOwnProperty('out') ? r.out : null;
         if (value !== null) {
             chan.appendLine('=>\n' + value);
         }
@@ -278,11 +278,11 @@ function markError(error) {
         error.column = 0;
     }
 
-    let diagnostic = cljsLib.getStateValue('diagnosticCollection'),
+    const diagnostic = cljsLib.getStateValue('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
-    let line = error.line - 1,
+    const line = error.line - 1,
         column = error.column,
         lineLength = editor.document.lineAt(line).text.length,
         lineText = editor.document
@@ -296,7 +296,7 @@ function markError(error) {
             vscode.DiagnosticSeverity.Error
         );
 
-    let errors =
+    const errors =
         existing !== undefined && existing.length > 0
             ? [...existing, err]
             : [err];
@@ -327,11 +327,11 @@ function markWarning(warning) {
         warning.column = 0;
     }
 
-    let diagnostic = cljsLib.getStateValue('diagnosticCollection'),
+    const diagnostic = cljsLib.getStateValue('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
-    let line = Math.max(0, warning.line - 1),
+    const line = Math.max(0, warning.line - 1),
         column = warning.column,
         lineLength = editor.document.lineAt(line).text.length,
         existing = diagnostic.get(editor.document.uri),
@@ -341,7 +341,7 @@ function markWarning(warning) {
             vscode.DiagnosticSeverity.Warning
         );
 
-    let warnings =
+    const warnings =
         existing !== undefined && existing.length > 0
             ? [...existing, warn]
             : [warn];
@@ -439,7 +439,7 @@ async function getJarContents(uri: vscode.Uri | string) {
         const [pathToJar, pathToFileInJar] = jarFilePathComponents(uri);
 
         fs.readFile(pathToJar, (err, data) => {
-            let zip = new JSZip();
+            const zip = new JSZip();
             zip.loadAsync(data)
                 .then((new_zip) => {
                     const fileInJar = new_zip.file(pathToFileInJar);

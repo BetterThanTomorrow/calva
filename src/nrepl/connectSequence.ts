@@ -252,9 +252,9 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
 
 /** Retrieve the replConnectSequences from the config */
 function getCustomConnectSequences(): ReplConnectSequence[] {
-    let sequences: ReplConnectSequence[] = getConfig().replConnectSequences;
+    const sequences: ReplConnectSequence[] = getConfig().replConnectSequences;
 
-    for (let sequence of sequences) {
+    for (const sequence of sequences) {
         if (
             sequence.name == undefined ||
             sequence.projectType == undefined ||

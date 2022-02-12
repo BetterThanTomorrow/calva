@@ -170,7 +170,7 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
             'deps.edn',
         ];
         const doc = util.getDocument({});
-        let workspaceFolder = getProjectWsFolder();
+        const workspaceFolder = getProjectWsFolder();
         await findLocalProjectRoot(projectFileNames, doc, workspaceFolder);
         await findProjectRootUri(projectFileNames, doc, workspaceFolder);
     }
@@ -194,7 +194,7 @@ async function findLocalProjectRoot(
             d = workspaceFolder.uri.fsPath;
         }
         while (d !== prev) {
-            for (let projectFile in projectFileNames) {
+            for (const projectFile in projectFileNames) {
                 const p = path.resolve(d, projectFileNames[projectFile]);
                 if (fs.existsSync(p)) {
                     rootPath = d;
@@ -210,7 +210,7 @@ async function findLocalProjectRoot(
 
         // at least be sure the the root folder contains a
         // supported project.
-        for (let projectFile in projectFileNames) {
+        for (const projectFile in projectFileNames) {
             const p = path.resolve(rootPath, projectFileNames[projectFile]);
             if (fs.existsSync(p)) {
                 setStateValue(PROJECT_DIR_KEY, rootPath);
@@ -232,7 +232,7 @@ async function findProjectRootUri(
         let prev = null;
         while (searchUri != prev) {
             try {
-                for (let projectFile in projectFileNames) {
+                for (const projectFile in projectFileNames) {
                     const u = vscode.Uri.joinPath(
                         searchUri,
                         projectFileNames[projectFile]

@@ -24,7 +24,7 @@ const bencode = (value) => {
         return 'l' + value.map(bencode).join('') + 'e';
     }
     let out = 'd';
-    for (let prop in value) {
+    for (const prop in value) {
         out += bencode(prop) + bencode(value[prop]);
     }
     return out + 'e';
@@ -37,7 +37,7 @@ export class BEncoderStream extends stream.Transform {
         super({ objectMode: true });
     }
     _transform(object, encoding, cb) {
-        let enc = bencode(object);
+        const enc = bencode(object);
         this.push(enc);
         cb();
     }
@@ -134,7 +134,7 @@ class BIncrementalDecoder {
     }
 
     write(byte: number) {
-        let ch = String.fromCharCode(byte);
+        const ch = String.fromCharCode(byte);
         if (this.state.id == 'ready') {
             switch (ch) {
                 case 'i':
@@ -216,7 +216,7 @@ export class BDecoderStream extends stream.Transform {
 
     _transform(data, encoding, cb) {
         for (let i = 0; i < data.length; i++) {
-            let res = this.decoder.write(data[i]);
+            const res = this.decoder.write(data[i]);
             if (res) {
                 this.push(res);
             }

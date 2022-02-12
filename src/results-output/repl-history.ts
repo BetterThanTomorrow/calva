@@ -47,7 +47,7 @@ function getHistoryKey(replSessionType: ReplSessionType): string {
 
 function getHistory(replSessionType: ReplSessionType): Array<string> {
     const key = getHistoryKey(replSessionType);
-    let history = state.extensionContext.workspaceState.get(key, []);
+    const history = state.extensionContext.workspaceState.get(key, []);
     return history;
 }
 
@@ -97,7 +97,7 @@ function showReplHistoryEntry(
         });
         return;
     }
-    let insertOffset = indexOfLastPrompt + prompt.length;
+    const insertOffset = indexOfLastPrompt + prompt.length;
     const startPosition = resultsDoc.positionAt(insertOffset);
     const range = new vscode.Range(
         startPosition,

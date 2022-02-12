@@ -383,7 +383,7 @@ function registerEventHandlers(
                         return editor.document.uri.scheme === 'file';
                     });
 
-                for (let editor of visibleFileEditors) {
+                for (const editor of visibleFileEditors) {
                     // Hacky solution for triggering codeLens refresh
                     // Could not find a better way, aside from possibly changes to clojure-lsp
                     // https://github.com/microsoft/vscode-languageserver-node/issues/705

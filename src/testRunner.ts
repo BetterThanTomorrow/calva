@@ -10,7 +10,8 @@ import * as namespace from './namespace';
 import { getSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
 
-let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
+const diagnosticCollection =
+    vscode.languages.createDiagnosticCollection('calva');
 
 async function uriForFile(fileName: string): Promise<vscode.Uri> {
     if (fileName.startsWith('/')) {
@@ -53,7 +54,7 @@ function upsertTest(
     range?: vscode.Range
 ): vscode.TestItem {
     const ns = upsertNamespace(controller, uri, nsName);
-    let testId = nsName + '/' + varName;
+    const testId = nsName + '/' + varName;
     let test = ns.children.get(testId);
     if (!test) {
         test = controller.createTestItem(testId, varName, uri);
@@ -136,7 +137,7 @@ async function onTestResult(
     }
 
     failures.forEach((result) => {
-        let assertionId = test.id + '/' + result.index;
+        const assertionId = test.id + '/' + result.index;
         const assertion = controller.createTestItem(
             assertionId,
             assertionName(result),
@@ -210,7 +211,7 @@ function reportTests(
 ) {
     // Results can sometimes not be actual test results, such as when a namespace is not found: https://github.com/BetterThanTomorrow/calva/issues/1516.
     const results = possibleResults.filter((pr) => pr.results);
-    let diagnostics: { [key: string]: vscode.Diagnostic[] } = {};
+    const diagnostics: { [key: string]: vscode.Diagnostic[] } = {};
     diagnosticCollection.clear();
 
     const recordDiagnostic = (result: cider.TestResult) => {
@@ -230,9 +231,9 @@ function reportTests(
         onTestResults(controller, session, results);
     }
 
-    for (let result of results) {
+    for (const result of results) {
         for (const ns in result.results) {
-            let resultSet = result.results[ns];
+            const resultSet = result.results[ns];
             for (const test in resultSet) {
                 for (const a of resultSet[test]) {
                     cider.cleanUpWhiteSpace(a);
@@ -297,7 +298,7 @@ async function considerTestNS(
         const testFilePath = nsPath.path;
         if (testFilePath && testFilePath !== '') {
             const filePath = vscode.Uri.parse(testFilePath).path;
-            let loadForms = `(load-file "${filePath}")`;
+            const loadForms = `(load-file "${filePath}")`;
             await session.eval(loadForms, testNS).value;
         }
 
@@ -412,7 +413,7 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
 }
 
 async function rerunTests(controller: vscode.TestController, document = {}) {
-    let session = getSession(util.getFileType(document));
+    const session = getSession(util.getFileType(document));
     await evaluate.loadFile({}, disabledPrettyPrinter);
     outputWindow.append('; Running previously failed tests…');
 

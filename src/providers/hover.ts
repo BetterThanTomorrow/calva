@@ -7,12 +7,12 @@ import * as clojureDocs from '../clojuredocs';
 
 export async function provideHover(document, position) {
     if (util.getConnectedState()) {
-        let text = util.getWordAtPosition(document, position);
-        let ns = namespace.getNamespace(document);
-        let client = replSession.getSession(util.getFileType(document));
+        const text = util.getWordAtPosition(document, position);
+        const ns = namespace.getNamespace(document);
+        const client = replSession.getSession(util.getFileType(document));
         if (client) {
             await namespace.createNamespaceFromDocumentIfNotExists(document);
-            let res = await client.info(ns, text);
+            const res = await client.info(ns, text);
             if (
                 !res.status.includes('error') &&
                 !res.status.includes('no-info')

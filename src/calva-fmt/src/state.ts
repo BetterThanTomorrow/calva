@@ -27,7 +27,7 @@ function reset() {
 }
 
 function config() {
-    let configOptions = vscode.workspace.getConfiguration('calva.fmt');
+    const configOptions = vscode.workspace.getConfiguration('calva.fmt');
     return {
         parinferOnSelectionChange: configOptions.get('inferParensOnCursorMove'),
     };

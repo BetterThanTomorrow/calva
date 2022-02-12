@@ -13,10 +13,10 @@ import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import { EditableDocument } from '../cursor-doc/model';
 
-let onPareditKeyMapChangedEmitter = new EventEmitter<String>();
+const onPareditKeyMapChangedEmitter = new EventEmitter<String>();
 
 const languages = new Set(['clojure', 'lisp', 'scheme']);
-let enabled = true;
+const enabled = true;
 
 /**
  * Copies the text represented by the range from doc to the clipboard.
@@ -378,14 +378,14 @@ function wrapPareditCommand(command: PareditCommand) {
 }
 
 export function getKeyMapConf(): String {
-    let keyMap = workspace
+    const keyMap = workspace
         .getConfiguration()
         .get('calva.paredit.defaultKeyMap');
     return String(keyMap);
 }
 
 function setKeyMapConf() {
-    let keyMap = workspace
+    const keyMap = workspace
         .getConfiguration()
         .get('calva.paredit.defaultKeyMap');
     commands.executeCommand('setContext', 'paredit:keyMap', keyMap);
@@ -394,7 +394,7 @@ function setKeyMapConf() {
 setKeyMapConf();
 
 export function activate(context: ExtensionContext) {
-    let statusBar = new StatusBar(getKeyMapConf());
+    const statusBar = new StatusBar(getKeyMapConf());
 
     context.subscriptions.push(
         statusBar,

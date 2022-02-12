@@ -18,8 +18,8 @@ import * as getText from './util/get-text';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
-        let msgs: string[] = [];
-        let nums = NReplEvaluation.interruptAll((msg) => {
+        const msgs: string[] = [];
+        const nums = NReplEvaluation.interruptAll((msg) => {
             msgs.push(msg);
         });
         if (msgs.length) {
@@ -94,13 +94,13 @@ async function evaluateCode(
             replHistory.resetState();
         }
 
-        let err: string[] = [];
+        const err: string[] = [];
 
         if (outputWindow.getNs() !== ns) {
             await session.eval("(in-ns '" + ns + ')', session.client.ns).value;
         }
 
-        let context: NReplEvaluation = session.eval(code, ns, {
+        const context: NReplEvaluation = session.eval(code, ns, {
             file: filePath,
             line: line + 1,
             column: column + 1,
@@ -238,10 +238,11 @@ async function evaluateSelection(document: {}, options) {
 
     if (getStateValue('connected')) {
         const editor = vscode.window.activeTextEditor;
-        let code = '';
-        let codeSelection: vscode.Selection;
         state.analytics().logEvent('Evaluation', 'selectionFn').send();
-        [codeSelection, code] = selectionFn(editor);
+        const selection = selectionFn(editor);
+        const codeSelection: vscode.Selection = selection[0];
+        let code = selection[1];
+        [codeSelection, code];
 
         const ns = namespace.getNamespace(doc);
         const line = codeSelection.start.line;
@@ -386,7 +387,7 @@ function evaluateUsingTextAndSelectionGetter(
         Object.assign({}, options, {
             pprintOptions: getConfig().prettyPrintingOptions,
             selectionFn: (editor: vscode.TextEditor) => {
-                let [selection, code] = getter(editor);
+                const [selection, code] = getter(editor);
                 return [selection, formatter(code)];
             },
         })
@@ -523,12 +524,12 @@ async function requireREPLUtilitiesCommand() {
 }
 
 async function copyLastResultCommand() {
-    let chan = state.outputChannel();
-    let session = replSession.getSession(
+    const chan = state.outputChannel();
+    const session = replSession.getSession(
         util.getFileType(util.getDocument({}))
     );
 
-    let value = await session.eval('*1', session.client.ns).value;
+    const value = await session.eval('*1', session.client.ns).value;
     if (value !== null) {
         vscode.env.clipboard.writeText(value);
         vscode.window.showInformationMessage(

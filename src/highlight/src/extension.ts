@@ -278,9 +278,9 @@ function updateRainbowBrackets() {
             ? (i) => i % len
             : (i) => Math.min(i, len - 1);
 
-    let in_comment_form = false,
-        stack: StackItem[] = [],
-        stack_depth = 0;
+    let in_comment_form = false;
+    let stack_depth = 0;
+    const stack: StackItem[] = [];
     pairsBack = new Map();
     pairsForward = new Map();
     placedGuidesColor = new Map();
@@ -395,7 +395,7 @@ function updateRainbowBrackets() {
                 ) {
                     misplaced.push(decoration);
                 } else {
-                    let pair = stack[pair_idx],
+                    const pair = stack[pair_idx],
                         closing = new Range(pos, pos.translate(0, charLength)),
                         opening = new Range(
                             pair.end.translate(0, -1),
@@ -539,7 +539,7 @@ function decorateGuide(
 }
 
 function decorateActiveGuides() {
-    let activeGuides = [];
+    const activeGuides = [];
     activeEditor = vscode.window.activeTextEditor;
     if (!!activeGuidesTypes) {
         activeGuidesTypes.forEach((type) =>
@@ -550,7 +550,7 @@ function decorateActiveGuides() {
         const doc = activeEditor.document;
         const mirrorDoc = docMirror.getDocument(doc);
         const cursor = mirrorDoc.getTokenCursor(doc.offsetAt(selection.start));
-        let visitedEndPositions = [selection.start];
+        const visitedEndPositions = [selection.start];
         findActiveGuide: while (cursor.forwardList() && cursor.upList()) {
             const endPos = doc.positionAt(cursor.offsetStart);
             for (let i = 0; i < visitedEndPositions.length; i++) {
@@ -564,8 +564,9 @@ function decorateActiveGuides() {
             if (downCursor.downList()) {
                 const startPos = doc.positionAt(downCursor.offsetStart - 1);
                 const guideRange = new vscode.Range(startPos, endPos);
-                let colorIndex;
-                colorIndex = placedGuidesColor.get(position_str(startPos));
+                const colorIndex = placedGuidesColor.get(
+                    position_str(startPos)
+                );
                 if (colorIndex !== undefined) {
                     if (guideRange.contains(selection)) {
                         decorateGuide(doc, startPos, endPos, activeGuides);

@@ -98,7 +98,7 @@ export class TokenCursor {
         if (this.line == 0 && this.token == 0) {
             return { type: 'eol', raw: '\n', offset: 0, state: null };
         }
-        let cursor = this.clone();
+        const cursor = this.clone();
         cursor.previous();
         return cursor.getToken();
     }
@@ -141,7 +141,7 @@ function _rangesForSexpsInList(
             return undefined;
         }
     }
-    let ranges = [];
+    const ranges = [];
     // TODO: Figure out how to do this ignore skipping more generally in forward/backward this or that.
     let ignoreCounter = 0;
     while (true) {
@@ -341,14 +341,14 @@ export class LispTokenCursor extends TokenCursor {
      * @returns true if the cursor was moved, false otherwise.
      */
     backwardSexp(skipComments = true) {
-        let stack = [];
+        const stack = [];
         this.backwardWhitespace(skipComments);
         if (this.getPrevToken().type === 'open') {
             return false;
         }
         while (!this.atStart()) {
             this.backwardWhitespace(skipComments);
-            let tk = this.getPrevToken();
+            const tk = this.getPrevToken();
             switch (tk.type) {
                 case 'id':
                 case 'lit':
@@ -427,7 +427,7 @@ export class LispTokenCursor extends TokenCursor {
      * Moves this cursor to the close paren of the containing sexpr, or until the end of the document.
      */
     forwardList(): boolean {
-        let cursor = this.clone();
+        const cursor = this.clone();
         while (cursor.forwardSexp()) {}
         if (cursor.getToken().type === 'close') {
             const backCursor = cursor.clone();
@@ -443,7 +443,7 @@ export class LispTokenCursor extends TokenCursor {
      * Moves this cursor forwards to the `closingBracket` of the containing sexpr, or until the end of the document.
      */
     forwardListOfType(closingBracket: string): boolean {
-        let cursor = this.clone();
+        const cursor = this.clone();
         while (cursor.forwardList()) {
             if (cursor.getPrevToken().raw === closingBracket) {
                 this.set(cursor);
@@ -459,7 +459,7 @@ export class LispTokenCursor extends TokenCursor {
      * Moves this cursor backwards to the open paren of the containing sexpr, or until the start of the document.
      */
     backwardList(): boolean {
-        let cursor = this.clone();
+        const cursor = this.clone();
         while (cursor.backwardSexp()) {}
         if (cursor.getPrevToken().type == 'open') {
             this.set(cursor);
@@ -472,7 +472,7 @@ export class LispTokenCursor extends TokenCursor {
      * Moves this cursor backwards to the `openingBracket` of the containing sexpr, or until the start of the document.
      */
     backwardListOfType(openingBracket: string): boolean {
-        let cursor = this.clone();
+        const cursor = this.clone();
         while (cursor.backwardList()) {
             if (cursor.getPrevToken().raw.endsWith(openingBracket)) {
                 this.set(cursor);
@@ -522,7 +522,7 @@ export class LispTokenCursor extends TokenCursor {
      * If the source does not match this, returns false and does not move the cursor.
      */
     downList(skipMetadata = false): boolean {
-        let cursor = this.clone();
+        const cursor = this.clone();
         cursor.forwardThroughAnyReader();
         cursor.forwardWhitespace();
         if (cursor.getToken().type === 'open') {
@@ -544,7 +544,7 @@ export class LispTokenCursor extends TokenCursor {
      * If the source does not match this, returns false and does not move the cursor.
      */
     upList(): boolean {
-        let cursor = this.clone();
+        const cursor = this.clone();
         cursor.forwardWhitespace();
         if (cursor.getToken().type == 'close') {
             cursor.next();
@@ -559,7 +559,7 @@ export class LispTokenCursor extends TokenCursor {
      * If the source does not match this, returns false and does not move the cursor.
      */
     backwardUpList(): boolean {
-        let cursor = this.clone();
+        const cursor = this.clone();
         cursor.backwardThroughAnyReader();
         cursor.backwardWhitespace();
         if (cursor.getPrevToken().type == 'open') {
@@ -576,7 +576,7 @@ export class LispTokenCursor extends TokenCursor {
      * If the source does not match this, returns false and does not move the cursor.
      */
     backwardDownList(): boolean {
-        let cursor = this.clone();
+        const cursor = this.clone();
         cursor.backwardWhitespace();
         if (cursor.getPrevToken().type == 'close') {
             cursor.previous();
@@ -700,7 +700,7 @@ export class LispTokenCursor extends TokenCursor {
 
     rangesForTopLevelForms(): [number, number][] {
         const cursor = new LispTokenCursor(this.doc, 0, 0);
-        let ranges: [number, number][] = [];
+        const ranges: [number, number][] = [];
         while (cursor.forwardSexp()) {
             const end = cursor.offsetStart;
             cursor.backwardSexp();
@@ -762,7 +762,7 @@ export class LispTokenCursor extends TokenCursor {
      * Tells if the cursor is inside a properly closed list.
      */
     withinValidList(): boolean {
-        let cursor = this.clone();
+        const cursor = this.clone();
         while (cursor.forwardSexp()) {}
         return cursor.getToken().type == 'close';
     }
@@ -775,7 +775,7 @@ export class LispTokenCursor extends TokenCursor {
     rowColRangesForSexpsInList(
         openingBracket?: string
     ): [[number, number], [number, number]][] {
-        let cursor = this.clone();
+        const cursor = this.clone();
         return _rangesForSexpsInList(cursor, true, openingBracket) as [
             [number, number],
             [number, number]
@@ -788,7 +788,7 @@ export class LispTokenCursor extends TokenCursor {
      * If you are particular about which list type that should be considered, supply an `openingBracket`.
      */
     rangesForSexpsInList(openingBracket?: string): [number, number][] {
-        let cursor = this.clone();
+        const cursor = this.clone();
         return _rangesForSexpsInList(cursor, false, openingBracket) as [
             number,
             number

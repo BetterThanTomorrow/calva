@@ -12,7 +12,7 @@ import {
     ModelEditSelection,
 } from '../cursor-doc/model';
 
-let documents = new Map<vscode.TextDocument, MirroredDocument>();
+const documents = new Map<vscode.TextDocument, MirroredDocument>();
 
 export class DocumentModel implements EditableModel {
     readonly lineEndingLength: number;
@@ -210,7 +210,7 @@ let registered = false;
 
 function processChanges(event: vscode.TextDocumentChangeEvent) {
     const model = documents.get(event.document).model;
-    for (let change of event.contentChanges) {
+    for (const change of event.contentChanges) {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
         const myStartOffset =
                 model.getOffsetForLine(change.range.start.line) +
@@ -245,7 +245,7 @@ export function getDocumentOffset(
     doc: vscode.TextDocument,
     position: vscode.Position
 ) {
-    let model = getDocument(doc).model;
+    const model = getDocument(doc).model;
     return model.getOffsetForLine(position.line) + position.character;
 }
 

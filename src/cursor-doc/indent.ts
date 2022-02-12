@@ -8,7 +8,7 @@ type IndentRule =
     | ['inner', number]
     | ['inner', number, number];
 
-let indentRules: { [id: string]: IndentRule[] } = {
+const indentRules: { [id: string]: IndentRule[] } = {
     '#"^\\w"': [['inner', 0]],
 };
 
@@ -58,7 +58,7 @@ export function collectIndents(
     let exprsOnLine = 0;
     let lastLine = cursor.line;
     let lastIndent = 0;
-    let indents: IndentInformation[] = [];
+    const indents: IndentInformation[] = [];
     do {
         if (!cursor.backwardSexp()) {
             // this needs some work..
@@ -106,7 +106,7 @@ export function collectIndents(
         }
 
         if (cursor.line != lastLine) {
-            let head = cursor.clone();
+            const head = cursor.clone();
             head.forwardSexp();
             head.forwardWhitespace();
             if (!head.atEnd()) {
@@ -156,16 +156,16 @@ export function getIndent(
             },
         };
     }
-    let state = collectIndents(document, offset, config);
+    const state = collectIndents(document, offset, config);
     // now find applicable indent rules
     let indent = -1;
-    let thisBlock = state[state.length - 1];
+    const thisBlock = state[state.length - 1];
     if (!state.length) {
         return 0;
     }
 
     for (let pos = state.length - 1; pos >= 0; pos--) {
-        for (let rule of state[pos].rules) {
+        for (const rule of state[pos].rules) {
             if (rule[0] == 'inner') {
                 if (pos + rule[1] == state.length - 1) {
                     if (rule.length == 3) {

@@ -28,6 +28,8 @@ module.exports = {
     rules: {
         'import/no-unresolved': [2, { ignore: ['^vscode$'] }],
         curly: ['error'],
+        'no-control-regex': 'off',
+        'prefer-const': ['error'],
 
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
@@ -37,10 +39,7 @@ module.exports = {
         '@typescript-eslint/no-unsafe-call': 'off',
         '@typescript-eslint/no-unsafe-argument': 'off',
         '@typescript-eslint/restrict-plus-operands': 'off',
-        'no-control-regex': 'off',
-
         'typescript-eslint/no-unused-vars': 'off',
-        'prefer-const': 'off',
         '@typescript-eslint/no-this-alias': 'off',
         'no-prototype-builtins': 'off',
         '@typescript-eslint/no-floating-promises': 'off',

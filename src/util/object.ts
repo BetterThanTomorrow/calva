@@ -20,12 +20,12 @@ function deepEqual(x: any, y: any): boolean {
         x instanceof Object &&
         y instanceof Object
     ) {
-        for (let f in x) {
+        for (const f in x) {
             if (!deepEqual(x[f], y[f])) {
                 return false;
             }
         }
-        for (let f in y) {
+        for (const f in y) {
             if (!x.hasOwnProperty(f)) {
                 return false;
             }

@@ -20,9 +20,9 @@ export function indentPosition(
     position: vscode.Position,
     document: vscode.TextDocument
 ) {
-    let editor = vscode.window.activeTextEditor;
-    let pos = new vscode.Position(position.line, 0);
-    let indent = getIndent(
+    const editor = vscode.window.activeTextEditor;
+    const pos = new vscode.Position(position.line, 0);
+    const indent = getIndent(
         getDocument(document).model.lineInputModel,
         getDocumentOffset(document, position),
         config.getConfig()
@@ -77,7 +77,7 @@ export function formatRange(
     document: vscode.TextDocument,
     range: vscode.Range
 ) {
-    let wsEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
+    const wsEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
     wsEdit.set(document.uri, formatRangeEdits(document, range));
     return vscode.workspace.applyEdit(wsEdit);
 }

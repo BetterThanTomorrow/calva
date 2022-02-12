@@ -51,7 +51,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
     }
 
     handleInput(data: string) {
-        let charCode = data.charCodeAt(0);
+        const charCode = data.charCodeAt(0);
         if (data === '\r') {
             this.writeEmitter.fire('\r\n');
         } else if (charCode < 32) {

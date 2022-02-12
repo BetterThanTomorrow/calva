@@ -27,7 +27,7 @@ export class UndoStepGroup<T> extends UndoStep<T> {
     steps: UndoStep<T>[] = [];
 
     addUndoStep(step: UndoStep<T>) {
-        let prevStep = this.steps.length && this.steps[this.steps.length - 1];
+        const prevStep = this.steps.length && this.steps[this.steps.length - 1];
 
         if (prevStep && !prevStep.undoStop && prevStep.coalesce(step)) {
             return;
@@ -67,7 +67,7 @@ export class UndoManager<T> {
         if (this.groupedUndo) {
             this.groupedUndo.addUndoStep(step);
         } else if (this.undos.length) {
-            let prevUndo = this.undos[this.undos.length - 1];
+            const prevUndo = this.undos[this.undos.length - 1];
             if (prevUndo.undoStop) {
                 this.undos.push(step);
             } else if (!prevUndo.coalesce(step)) {
@@ -84,7 +84,7 @@ export class UndoManager<T> {
             try {
                 this.groupedUndo = new UndoStepGroup<T>();
                 f();
-                let undo = this.groupedUndo;
+                const undo = this.groupedUndo;
                 this.groupedUndo = null;
                 switch (undo.steps.length) {
                     case 0:

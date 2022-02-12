@@ -142,7 +142,7 @@ export class LineInputModel implements EditableModel {
     dirtyLines: number[] = [];
 
     private updateLines(start: number, deleted: number, inserted: number) {
-        let delta = inserted - deleted;
+        const delta = inserted - deleted;
 
         this.dirtyLines = this.dirtyLines
             .filter((x) => x < start || x >= start + deleted)
@@ -165,7 +165,7 @@ export class LineInputModel implements EditableModel {
         this.insertedLines = new Set(
             Array.from(this.insertedLines)
                 .map((x): [number, number] => {
-                    let [a, b] = x;
+                    const [a, b] = x;
                     if (a > start && a < start + deleted) {
                         return null;
                     }
@@ -180,7 +180,7 @@ export class LineInputModel implements EditableModel {
         this.deletedLines = new Set(
             Array.from(this.deletedLines)
                 .map((x): [number, number] => {
-                    let [a, b] = x;
+                    const [a, b] = x;
                     if (a > start && a < start + deleted) {
                         return null;
                     }
@@ -229,7 +229,7 @@ export class LineInputModel implements EditableModel {
         if (!this.dirtyLines.length) {
             return;
         }
-        let seen = new Set<number>();
+        const seen = new Set<number>();
         this.dirtyLines.sort();
         while (this.dirtyLines.length) {
             let nextIdx = this.dirtyLines.shift();
@@ -288,10 +288,10 @@ export class LineInputModel implements EditableModel {
         ) {
             return '';
         }
-        let st = this.getRowCol(Math.min(start, end));
-        let en = this.getRowCol(Math.max(start, end));
+        const st = this.getRowCol(Math.min(start, end));
+        const en = this.getRowCol(Math.max(start, end));
 
-        let lines = [];
+        const lines = [];
         if (st[0] == en[0]) {
             lines[0] = this.lines[st[0]].text.substring(st[1], en[1]);
         } else {
@@ -436,28 +436,28 @@ export class LineInputModel implements EditableModel {
     ) {
         const t1 = new Date();
 
-        let startPos = Math.min(start, end);
-        let endPos = Math.max(start, end);
-        let deletedText = this.recordingUndo
+        const startPos = Math.min(start, end);
+        const endPos = Math.max(start, end);
+        const deletedText = this.recordingUndo
             ? this.getText(startPos, endPos)
             : '';
-        let [startLine, startCol] = this.getRowCol(startPos);
-        let [endLine, endCol] = this.getRowCol(endPos);
+        const [startLine, startCol] = this.getRowCol(startPos);
+        const [endLine, endCol] = this.getRowCol(endPos);
         // extract the lines we will replace
-        let replaceLines = text.split(/\r\n|\n/);
+        const replaceLines = text.split(/\r\n|\n/);
 
         // the left side of the line unaffected by the edit.
-        let left = this.lines[startLine].text.substr(0, startCol);
+        const left = this.lines[startLine].text.substr(0, startCol);
 
         // the right side of the line unaffected by the edit.
-        let right = this.lines[endLine].text.substr(endCol);
+        const right = this.lines[endLine].text.substr(endCol);
 
-        let items: TextLine[] = [];
+        const items: TextLine[] = [];
 
         // initialize the lexer state - the first line is definitely not in a string, otherwise copy the
         // end state of the previous line before the edit
-        let state = this.getStateForLine(startLine);
-        let currentLength = endLine - startLine + 1;
+        const state = this.getStateForLine(startLine);
+        const currentLength = endLine - startLine + 1;
 
         if (replaceLines.length == 1) {
             // trivial single line edit
@@ -553,12 +553,12 @@ export class LineInputModel implements EditableModel {
     }
 
     public getTokenCursor(offset: number, previous: boolean = false) {
-        let [row, col] = this.getRowCol(offset);
-        let line = this.lines[row];
+        const [row, col] = this.getRowCol(offset);
+        const line = this.lines[row];
         let lastIndex = 0;
         if (line) {
             for (let i = 0; i < line.tokens.length; i++) {
-                let tk = line.tokens[i];
+                const tk = line.tokens[i];
                 if (previous ? tk.offset > col : tk.offset > col) {
                     return new LispTokenCursor(
                         this,

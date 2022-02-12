@@ -96,7 +96,7 @@ export async function shadowBuilds(): Promise<string[]> {
 
 export function leinShadowBuilds(defproject: any): string[] {
     if (defproject) {
-        let shadowIndex = defproject.indexOf('shadow-cljs');
+        const shadowIndex = defproject.indexOf('shadow-cljs');
         if (shadowIndex > -1) {
             const buildsMap = defproject[shadowIndex + 1];
             try {
@@ -136,7 +136,7 @@ async function selectShadowBuilds(
                 ? menuSelections.cljAliases.map(keywordize)
                 : []; // TODO do the same as clj to prompt the user with a list of aliases
     const aliasesOption = aliases.length > 0 ? `-A${aliases.join('')}` : '';
-    let args: string[] = [];
+    const args: string[] = [];
     if (aliasesOption && aliasesOption.length) {
         args.push(aliasesOption);
     }
@@ -388,8 +388,8 @@ const projectTypes: { [id: string]: ProjectType } = {
                     ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
                     ...serverPrinterDependencies,
                 };
-            let defaultArgs: string[] = [];
-            for (let dep in dependencies) {
+            const defaultArgs: string[] = [];
+            for (const dep in dependencies) {
                 defaultArgs.push('-d', dep + ':' + dependencies[dep]);
             }
 
@@ -513,7 +513,7 @@ async function cljCommandLine(
     connectSequence: ReplConnectSequence,
     cljsType: CljsTypes
 ) {
-    let out: string[] = [];
+    const out: string[] = [];
     let depsUri: vscode.Uri;
     try {
         depsUri = vscode.Uri.joinPath(state.getProjectRootUri(), 'deps.edn');
@@ -525,10 +525,10 @@ async function cljCommandLine(
     let parsed;
     if (connectSequence.projectType !== 'generic') {
         vscode.workspace.fs.stat(depsUri);
-        let bytes = await vscode.workspace.fs.readFile(
+        const bytes = await vscode.workspace.fs.readFile(
             vscode.Uri.joinPath(state.getProjectRootUri(), 'deps.edn')
         );
-        let data = new TextDecoder('utf-8').decode(bytes);
+        const data = new TextDecoder('utf-8').decode(bytes);
         try {
             parsed = parseEdn(data);
         } catch (e) {
@@ -542,7 +542,7 @@ async function cljCommandLine(
         ? menuSelections.cljAliases
         : undefined;
     let aliases: string[] = [];
-    let aliasesWithMain = [];
+    const aliasesWithMain = [];
     if (launchAliases) {
         aliases = launchAliases.map(keywordize);
     } else {
@@ -550,10 +550,10 @@ async function cljCommandLine(
             parsed && parsed.aliases != undefined
                 ? Object.keys(parsed.aliases)
                 : [];
-        for (let a in projectAliases) {
+        for (const a in projectAliases) {
             const aliasKey = unKeywordize(projectAliases[a]);
             if (parsed && parsed.aliases) {
-                let alias = parsed.aliases[aliasKey];
+                const alias = parsed.aliases[aliasKey];
                 if (alias && alias['main-opts'] != undefined) {
                     aliasesWithMain.push(`:${projectAliases[a]}`);
                 }
@@ -594,7 +594,7 @@ async function cljCommandLine(
             });
         }
     }
-    let selectedAliasesHasMain =
+    const selectedAliasesHasMain =
         aliases.filter((a) => aliasesWithMain.includes(a)).length > 0;
 
     const dependencies = {
@@ -616,11 +616,11 @@ async function cljCommandLine(
             : aliasesFlag[1];
     const q = isWin ? '"' : "'";
     const dQ = isWin ? '""' : '"';
-    for (let dep in dependencies) {
+    for (const dep in dependencies) {
         out.push(dep + ` {:mvn/version,${dQ}${dependencies[dep]}${dQ}}`);
     }
 
-    let args = ['-Sdeps', `${q}${'{:deps {' + out.join(',') + '}}'}${q}`];
+    const args = ['-Sdeps', `${q}${'{:deps {' + out.join(',') + '}}'}${q}`];
 
     if (selectedAliasesHasMain) {
         args.push(aliasesOption);
@@ -642,7 +642,7 @@ async function leinCommandLine(
     cljsType: CljsTypes,
     connectSequence: ReplConnectSequence
 ) {
-    let out: string[] = [];
+    const out: string[] = [];
     const dependencies = {
         ...leinDependencies(),
         ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
@@ -657,7 +657,7 @@ async function leinCommandLine(
     const q = isWin ? '' : "'",
         dQ = '"';
     for (let i = 0; i < keys.length; i++) {
-        let dep = keys[i];
+        const dep = keys[i];
         out.push(
             'update-in',
             ':dependencies',
@@ -668,7 +668,7 @@ async function leinCommandLine(
     }
     keys = Object.keys(leinPluginDependencies());
     for (let i = 0; i < keys.length; i++) {
-        let dep = keys[i];
+        const dep = keys[i];
         out.push(
             'update-in',
             ':plugins',
@@ -691,7 +691,7 @@ async function leinCommandLine(
         ...middleware,
         ...(cljsType ? cljsMiddleware[cljsType] : []),
     ];
-    for (let mw of useMiddleware) {
+    for (const mw of useMiddleware) {
         out.push(
             'update-in',
             `${q + '[:repl-options,:nrepl-middleware]' + q}`,
@@ -714,7 +714,7 @@ async function leinCommandLine(
 
 /** Given the name of a project in project types, find that project. */
 export function getProjectTypeForName(name: string) {
-    for (let id in projectTypes) {
+    for (const id in projectTypes) {
         if (projectTypes[id].name == name) {
             return projectTypes[id];
         }
@@ -724,7 +724,7 @@ export function getProjectTypeForName(name: string) {
 export async function detectProjectTypes(): Promise<string[]> {
     const rootUri = state.getProjectRootUri();
     const cljProjTypes = ['generic', 'cljs-only', 'babashka', 'nbb'];
-    for (let clj in projectTypes) {
+    for (const clj in projectTypes) {
         if (projectTypes[clj].useWhenExists) {
             try {
                 const projectFileName = projectTypes[clj].useWhenExists;

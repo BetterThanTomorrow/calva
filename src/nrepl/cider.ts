@@ -64,7 +64,7 @@ function stripTrailingNewlines(s: string): string {
 }
 
 function resultMessage(resultItem: Readonly<TestResult>): string {
-    let msg = [];
+    const msg = [];
     if (resultItem.context && resultItem.context !== 'false') {
         msg.push(resultItem.context);
     }
@@ -89,7 +89,7 @@ export function cleanUpWhiteSpace(result: TestResult) {
 // ; 6 tests finished, all passing 👍, ns: 1, vars: 2
 // ; 6 tests finished, problems found. 😭 errors: 0, failures: 1, ns: 1, vars: 2
 export function summaryMessage(summary: Readonly<TestSummary>): string {
-    let msg = [];
+    const msg = [];
     if (summary.test > 0) {
         msg.push(summary.test + ' tests finished');
 
@@ -115,8 +115,8 @@ export function summaryMessage(summary: Readonly<TestSummary>): string {
 // Given a list of summaries, sum them to compute the total number of tests,
 // errors and vars, etc.
 export function totalSummary(summaries: TestSummary[]): TestSummary {
-    let result = { test: 0, error: 0, ns: 0, var: 0, fail: 0, pass: 0 };
-    for (let summary of summaries) {
+    const result = { test: 0, error: 0, ns: 0, var: 0, fail: 0, pass: 0 };
+    for (const summary of summaries) {
         for (const k in result) {
             result[k] = result[k] + summary[k];
         }
@@ -133,8 +133,8 @@ export function totalSummary(summaries: TestSummary[]): TestSummary {
 // There is a leading space in these messages so that the return value can be
 // easily spliced into other messages without having to check deal with padding.
 export function lineInformation(result: TestResult): string {
-    let hasFile = typeof result.file === 'string';
-    let hasLine = typeof result.line === 'number';
+    const hasFile = typeof result.file === 'string';
+    const hasLine = typeof result.line === 'number';
 
     if (!hasFile && !hasLine) {
         return '';

@@ -34,7 +34,7 @@ function getPrinter(
 ) {
     const PRINTER_FN = 'nrepl.middleware.print/print',
         OPTIONS = 'nrepl.middleware.print/options';
-    let printer = {};
+    const printer = {};
     printer[OPTIONS] = moreOptions;
     printer[PRINTER_FN] = printerFn;
     if (widthSlug !== undefined) {

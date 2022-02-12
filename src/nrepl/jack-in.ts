@@ -192,7 +192,7 @@ async function getJackInTerminalOptions(
     }
 
     const projectType = projectTypes.getProjectTypeForName(projectTypeName);
-    let executable: string;
+
     let args: string[] = await projectType.commandLine(
         projectConnectSequence,
         selectedCljsType
@@ -220,7 +220,7 @@ async function getJackInTerminalOptions(
             cmd = [...cmd, projectType.resolveBundledPathUnix()];
         }
     }
-    executable = cmd[0];
+    const executable: string = cmd[0];
     args = [...cmd.slice(1), ...args];
 
     const terminalOptions: JackInTerminalOptions = {
