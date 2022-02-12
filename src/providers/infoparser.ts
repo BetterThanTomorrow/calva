@@ -184,6 +184,8 @@ export class REPLInfoParser {
                                 );
                             }
                             return signature;
+                        } else {
+                            return undefined;
                         }
                     });
             }

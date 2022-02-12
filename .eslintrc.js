@@ -31,6 +31,7 @@ module.exports = {
         'prefer-const': ['error'],
         'prefer-rest-params': ['error'],
         'prefer-spread': ['error'],
+        'array-callback-return': ['error'],
 
         '@typescript-eslint/await-thenable': 'off',
         '@typescript-eslint/ban-types': 'off',
