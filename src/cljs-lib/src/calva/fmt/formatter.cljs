@@ -1,5 +1,6 @@
 (ns calva.fmt.formatter
-  (:require [cljfmt.core :as cljfmt]
+  (:require [pez-cljfmt.core :as pez-cljfmt]
+            [cljfmt.core :as cljfmt]
             #_[zprint.core :refer [zprint-str]]
             [calva.js-utils :refer [jsify]]
             [calva.fmt.util :as util]
@@ -42,11 +43,16 @@
       (read-cljfmt)
       (merge config)))
 
+(defn- reformat-string [range-text {:keys [align-associative?] :as config}]
+  (if align-associative?
+    (pez-cljfmt/reformat-string range-text (cljfmt-options config))
+    (cljfmt/reformat-string range-text (cljfmt-options config))))
+
 (defn format-text
   [{:keys [range-text eol config] :as m}]
   (try
     (let [formatted-text (-> range-text
-                             (cljfmt/reformat-string (cljfmt-options config))
+                             (reformat-string config)
                              (clojure.string/replace #"\r?\n" eol))]
       (assoc m :range-text formatted-text))
     (catch js/Error e

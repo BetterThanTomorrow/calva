@@ -1,5 +1,5 @@
 (ns calva.fmt.formatter-test
-  (:require [cljs.test :include-macros true :refer [deftest is]]
+  (:require [cljs.test :include-macros true :refer [deftest is testing]]
             [cljfmt.core :as cljfmt]
             [calva.fmt.formatter :as sut]))
 
@@ -28,6 +28,35 @@ baz)")
          (:range (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 5] :idx 2}))))
   (is (= "()"
          (:range-text (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 5] :idx 2})))))
+
+(def misaligned-text "(def foo
+(let[a b
+aa bb
+ccc {:a b :aa bb :ccc ccc}]
+))")
+
+(deftest format-aligned-text-at-idx
+  (testing "Aligns associative structures when `:align-associative` is `true`"
+    (is (= "(def foo
+  (let [a   b
+        aa  bb
+        ccc {:a   b
+             :aa  bb
+             :ccc ccc}]))"
+           (:range-text (sut/format-text-at-idx {:eol      "\n"
+                                                 :all-text misaligned-text
+                                                 :config {:align-associative? true}
+                                                 :range    [0 54]
+                                                 :idx      0})))))
+  (testing "Does not align associative structures when `:align-associative` is not `true`"
+    (is (= "(def foo
+  (let [a b
+        aa bb
+        ccc {:a b :aa bb :ccc ccc}]))"
+           (:range-text (sut/format-text-at-idx {:eol      "\n"
+                                                 :all-text misaligned-text
+                                                 :range    [0 54]
+                                                 :idx      1}))))))
 
 (def a-comment
   {:eol "\n"
