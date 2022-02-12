@@ -4,11 +4,12 @@ import * as vscode from 'vscode';
 import {
     commands,
     window,
+    Event,
+    EventEmitter,
     ExtensionContext,
     workspace,
     ConfigurationChangeEvent,
 } from 'vscode';
-import { Event, EventEmitter } from 'vscode';
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import { EditableDocument } from '../cursor-doc/model';

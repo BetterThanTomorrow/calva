@@ -27,6 +27,7 @@ module.exports = {
     },
     rules: {
         curly: ['error'],
+        'import/no-duplicates': ['error'],
         'import/no-unresolved': [2, { ignore: ['^vscode$'] }],
         'no-case-declarations': ['error'],
         'no-constant-condition': ['error', { checkLoops: false }],
@@ -63,7 +64,6 @@ module.exports = {
         '@typescript-eslint/restrict-plus-operands': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
         '@typescript-eslint/unbound-method': 'off',
-        'import/no-duplicates': 'off',
         'import/no-named-as-default-member': 'off',
     },
     overrides: [
