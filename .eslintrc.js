@@ -35,6 +35,7 @@ module.exports = {
         'no-empty': ['error'],
         'no-irregular-whitespace': ['error'],
         'no-extra-boolean-cast': ['error'],
+        'no-constant-condition': ['error', { checkLoops: false }],
 
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
@@ -61,7 +62,6 @@ module.exports = {
         '@typescript-eslint/no-misused-promises': 'off',
         '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/unbound-method': 'off',
-        'no-constant-condition': 'off',
         'no-case-declarations': 'off',
         'no-fallthrough': 'off',
         '@typescript-eslint/await-thenable': 'off',
