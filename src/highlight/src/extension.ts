@@ -105,26 +105,26 @@ function activeGuidesDecorationType(color): vscode.TextEditorDecorationType {
 }
 
 function reset_styles() {
-    if (!!rainbowTypes) {
+    if (rainbowTypes) {
         rainbowTypes.forEach((type) => activeEditor.setDecorations(type, []));
     }
     rainbowTypes = rainbowColors.map(colorDecorationType);
 
-    if (!!rainbowGuidesTypes) {
+    if (rainbowGuidesTypes) {
         rainbowGuidesTypes.forEach((type) =>
             activeEditor.setDecorations(type, [])
         );
     }
     rainbowGuidesTypes = rainbowColors.map(guidesDecorationType);
 
-    if (!!activeGuidesTypes) {
+    if (activeGuidesTypes) {
         activeGuidesTypes.forEach((type) =>
             activeEditor.setDecorations(type, [])
         );
     }
     activeGuidesTypes = rainbowColors.map(activeGuidesDecorationType);
 
-    if (!!misplacedType) {
+    if (misplacedType) {
         activeEditor.setDecorations(misplacedType, []);
     }
     misplacedType = decorationType(
@@ -138,7 +138,7 @@ function reset_styles() {
         }
     );
 
-    if (!!matchedType) {
+    if (matchedType) {
         activeEditor.setDecorations(matchedType, []);
     }
     matchedType = decorationType(
@@ -148,14 +148,14 @@ function reset_styles() {
         }
     );
 
-    if (!!commentFormType) {
+    if (commentFormType) {
         activeEditor.setDecorations(commentFormType, []);
     }
     commentFormType = decorationType(
         commentFormStyle || { fontStyle: 'italic' }
     );
 
-    if (!!ignoredFormType) {
+    if (ignoredFormType) {
         activeEditor.setDecorations(ignoredFormType, []);
     }
     ignoredFormType = decorationType(
@@ -168,7 +168,7 @@ function reset_styles() {
 function reloadConfig() {
     const configuration = vscode.workspace.getConfiguration(
         'calva.highlight',
-        !!activeEditor ? activeEditor.document.uri : null
+        activeEditor ? activeEditor.document.uri : null
     );
 
     if (!isEqual(rainbowColors, configuration.get<string[]>('bracketColors'))) {
@@ -501,11 +501,11 @@ function matchPairs() {
     activeEditor.selections.forEach((selection) => {
         const match_before = matchBefore(selection),
             match_after = matchAfter(selection);
-        if (!!match_before) {
+        if (match_before) {
             matches.push({ range: match_before[0] });
             matches.push({ range: match_before[1] });
         }
-        if (!!match_after) {
+        if (match_after) {
             matches.push({ range: match_after[0] });
             matches.push({ range: match_after[1] });
         }
@@ -541,7 +541,7 @@ function decorateGuide(
 function decorateActiveGuides() {
     const activeGuides = [];
     activeEditor = vscode.window.activeTextEditor;
-    if (!!activeGuidesTypes) {
+    if (activeGuidesTypes) {
         activeGuidesTypes.forEach((type) =>
             activeEditor.setDecorations(type, [])
         );

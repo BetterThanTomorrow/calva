@@ -34,6 +34,7 @@ module.exports = {
         'prefer-rest-params': ['error'],
         'no-empty': ['error'],
         'no-irregular-whitespace': ['error'],
+        'no-extra-boolean-cast': ['error'],
 
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
@@ -59,7 +60,6 @@ module.exports = {
         'import/no-duplicates': 'off',
         '@typescript-eslint/no-misused-promises': 'off',
         '@typescript-eslint/no-var-requires': 'off',
-        'no-extra-boolean-cast': 'off',
         '@typescript-eslint/unbound-method': 'off',
         'no-constant-condition': 'off',
         'no-case-declarations': 'off',
