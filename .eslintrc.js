@@ -27,9 +27,7 @@ module.exports = {
     },
     rules: {
         curly: ['error'],
-        'import/no-duplicates': ['error'],
-        'import/no-named-as-default-member': ['error'],
-        'import/no-unresolved': [2, { ignore: ['^vscode$'] }],
+        'import/no-unresolved': ['error', { ignore: ['^vscode$'] }], // errors
         'no-case-declarations': ['error'],
         'no-constant-condition': ['error', { checkLoops: false }],
         'no-control-regex': ['error'],
