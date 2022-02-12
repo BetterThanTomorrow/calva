@@ -30,6 +30,7 @@ module.exports = {
         curly: ['error'],
         'no-control-regex': 'off',
         'prefer-const': ['error'],
+        'no-useless-escape': ['error'],
 
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
@@ -46,7 +47,6 @@ module.exports = {
         'typescript-eslint/ban-types': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/ban-types': 'off',
-        'no-useless-escape': 'off',
         'prefer-rest-params': 'off',
         'no-empty': 'off',
         '@typescript-eslint/require-await': 'off',

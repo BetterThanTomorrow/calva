@@ -9,8 +9,8 @@ function pathToNs(filePath: string): string {
     const extName: string = path.extname(filePath);
     return filePath
         .substring(0, filePath.length - extName.length)
-        .replace(/[\/\\]/g, '.')
-        .replace(/\_/g, '-');
+        .replace(/[/\\]/g, '.')
+        .replace(/_/g, '-');
 }
 
 function resolveNsName(sourcePaths: string[], filePath: string): string {

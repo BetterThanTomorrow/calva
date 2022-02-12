@@ -61,7 +61,7 @@ toplevel.terminal('comment', /;.*/, (l, m) => ({ type: 'comment' }));
 // Calva repl prompt, it contains special colon symbols and a hard space
 toplevel.terminal(
     'comment',
-    /^[^()[\]\{\},~@`^\"\s;]+꞉[^()[\]\{\},~@`^\"\s;]+꞉> /,
+    /^[^()[\]{},~@`^"\s;]+꞉[^()[\]{},~@`^"\s;]+꞉> /,
     (l, m) => ({ type: 'prompt' })
 );
 
@@ -71,7 +71,7 @@ toplevel.terminal(
 // open parens
 toplevel.terminal(
     'open',
-    /((?<=(^|[\(\)\[\]\{\}\s,]))['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/,
+    /((?<=(^|[()[\]{}\s,]))['`~#@?^]\s*)*['`~#@?^]*[([{"]/,
     (l, m) => ({ type: 'open' })
 );
 
@@ -86,10 +86,10 @@ toplevel.terminal('lit-quoted-ws', /\\[\n\r\t ]/, (l, m) => ({ type: 'lit' }));
 toplevel.terminal('lit-quoted-chars', /\\.?/, (l, m) => ({ type: 'lit' }));
 toplevel.terminal(
     'lit-quoted',
-    /\\[^\(\)\[\]\{\}\s;,\\][^\(\)\[\]\{\}\s;,\\]+/,
+    /\\[^()[\]{}\s;,\\][^()[\]{}\s;,\\]+/,
     (l, m) => ({ type: 'lit' })
 );
-toplevel.terminal('lit-quoted-brackets', /\\[\(\)\[\]\{\}]/, (l, m) => ({
+toplevel.terminal('lit-quoted-brackets', /\\[()[\]{}]/, (l, m) => ({
     type: 'lit',
 }));
 toplevel.terminal('lit-symbolic-values', /##[\s,]*(NaN|-?Inf)/, (l, m) => ({
@@ -122,19 +122,19 @@ toplevel.terminal('lit-ratio', /(['`~#]\s*)*[-+]?\d+\/\d+/, (l, m) => ({
     type: 'lit',
 }));
 
-toplevel.terminal('kw', /(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({
+toplevel.terminal('kw', /(['`~^]\s*)*(:[^()[\]{},~@`^"\s;]*)/, (l, m) => ({
     type: 'kw',
 }));
 
 // data readers
-toplevel.terminal('reader', /#[^\(\)\[\]\{\}'"_@~\s,;\\]+/, (_l, _m) => ({
+toplevel.terminal('reader', /#[^()[\]{}'"_@~\s,;\\]+/, (_l, _m) => ({
     type: 'reader',
 }));
 
 // symbols, allows quite a lot, but can't start with `#_`, anything numeric, or a selection of chars
 toplevel.terminal(
     'id',
-    /(['`~#^@]\s*)*(((?<!#)_|[+-](?!\d)|[^-+\d_()[\]\{\}#,~@'`^\"\s:;\\])[^()[\]\{\},~@`^\"\s;\\]*)/,
+    /(['`~#^@]\s*)*(((?<!#)_|[+-](?!\d)|[^-+\d_()[\]{}#,~@'`^"\s:;\\])[^()[\]{},~@`^"\s;\\]*)/,
     (l, m) => ({ type: 'id' })
 );
 
