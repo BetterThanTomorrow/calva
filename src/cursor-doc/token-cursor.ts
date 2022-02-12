@@ -304,7 +304,7 @@ export class LispTokenCursor extends TokenCursor {
                         }
                     }
                     break;
-                case 'close':
+                case 'close': {
                     const close = token.raw;
                     let open: string;
                     while ((open = stack.pop())) {
@@ -320,6 +320,7 @@ export class LispTokenCursor extends TokenCursor {
                         return true;
                     }
                     break;
+                }
                 case 'open':
                     stack.push(token.raw);
                     this.next();
@@ -368,7 +369,7 @@ export class LispTokenCursor extends TokenCursor {
                     stack.push(tk.raw);
                     this.previous();
                     break;
-                case 'open':
+                case 'open': {
                     const open = tk.raw;
                     let close: string;
                     while ((close = stack.pop())) {
@@ -382,6 +383,7 @@ export class LispTokenCursor extends TokenCursor {
                         return true;
                     }
                     break;
+                }
                 default:
                     this.previous();
                     break;

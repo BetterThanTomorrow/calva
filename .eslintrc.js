@@ -36,6 +36,7 @@ module.exports = {
         'no-irregular-whitespace': ['error'],
         'no-extra-boolean-cast': ['error'],
         'no-constant-condition': ['error', { checkLoops: false }],
+        'no-case-declarations': ['error'],
 
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
@@ -62,7 +63,6 @@ module.exports = {
         '@typescript-eslint/no-misused-promises': 'off',
         '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/unbound-method': 'off',
-        'no-case-declarations': 'off',
         'no-fallthrough': 'off',
         '@typescript-eslint/await-thenable': 'off',
         'import/no-named-as-default-member': 'off',
