@@ -369,7 +369,7 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                             editQueue = remainingEditQueue;
                             return append(textBatch.join('\n'));
                         } else {
-                            return append.apply(null, editQueue.shift());
+                            return append(...editQueue.shift());
                         }
                     }
                 });

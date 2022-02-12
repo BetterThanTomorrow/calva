@@ -397,13 +397,25 @@ export class LineInputModel implements EditableModel {
             for (const edit of edits) {
                 switch (edit.editFn) {
                     case 'insertString':
-                        this.insertString.apply(this, edit.args);
+                        this.insertString(
+                            ...(edit.args.slice(0, 4) as Parameters<
+                                typeof this.insertString
+                            >)
+                        );
                         break;
                     case 'changeRange':
-                        this.changeRange.apply(this, edit.args);
+                        this.changeRange(
+                            ...(edit.args.slice(0, 5) as Parameters<
+                                typeof this.changeRange
+                            >)
+                        );
                         break;
                     case 'deleteRange':
-                        this.deleteRange.apply(this, edit.args);
+                        this.deleteRange(
+                            ...(edit.args.slice(0, 5) as Parameters<
+                                typeof this.deleteRange
+                            >)
+                        );
                         break;
                     default:
                         break;

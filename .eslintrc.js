@@ -39,6 +39,7 @@ module.exports = {
         'no-case-declarations': ['error'],
         'no-fallthrough': ['error'],
         'no-prototype-builtins': ['error'],
+        'prefer-spread': ['error'],
 
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
@@ -57,7 +58,6 @@ module.exports = {
         '@typescript-eslint/require-await': 'off',
         '@typescript-eslint/no-unnecessary-type-assertion': 'off',
         '@typescript-eslint/no-inferrable-types': 'off',
-        'prefer-spread': 'off',
         '@typescript-eslint/no-for-in-array': 'off',
         '@typescript-eslint/no-empty-function': 'off',
         'import/no-duplicates': 'off',
