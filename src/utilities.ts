@@ -172,7 +172,10 @@ function getWordAtPosition(document, position) {
 }
 
 function getDocument(document): vscode.TextDocument {
-    if (document && document.hasOwnProperty('fileName')) {
+    if (
+        document &&
+        Object.prototype.hasOwnProperty.call(document, 'fileName')
+    ) {
         return document;
     } else if (
         vscode.window.activeTextEditor &&
@@ -246,8 +249,12 @@ function logSuccess(results) {
     const chan = state.outputChannel();
     chan.appendLine('Evaluation completed successfully');
     _.each(results, (r) => {
-        const value = r.hasOwnProperty('value') ? r.value : null;
-        const out = r.hasOwnProperty('out') ? r.out : null;
+        const value = Object.prototype.hasOwnProperty.call(r, 'value')
+            ? r.value
+            : null;
+        const out = Object.prototype.hasOwnProperty.call(r, 'out')
+            ? r.out
+            : null;
         if (value !== null) {
             chan.appendLine('=>\n' + value);
         }

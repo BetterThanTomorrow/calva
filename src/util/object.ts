@@ -26,7 +26,7 @@ function deepEqual(x: any, y: any): boolean {
             }
         }
         for (const f in y) {
-            if (!x.hasOwnProperty(f)) {
+            if (!Object.prototype.hasOwnProperty.call(x, f)) {
                 return false;
             }
         }

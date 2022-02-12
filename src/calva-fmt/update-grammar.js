@@ -55,7 +55,7 @@ exports.update = function (contentPath, dest) {
             'repository',
         ];
         for (const key of keys) {
-            if (grammar.hasOwnProperty(key)) {
+            if (Object.prototype.hasOwnProperty.call(grammar, key)) {
                 result[key] = grammar[key];
             }
         }

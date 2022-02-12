@@ -38,6 +38,7 @@ module.exports = {
         'no-constant-condition': ['error', { checkLoops: false }],
         'no-case-declarations': ['error'],
         'no-fallthrough': ['error'],
+        'no-prototype-builtins': ['error'],
 
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
@@ -49,7 +50,6 @@ module.exports = {
         '@typescript-eslint/restrict-plus-operands': 'off',
         'typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/no-this-alias': 'off',
-        'no-prototype-builtins': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
         'typescript-eslint/ban-types': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
