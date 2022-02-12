@@ -731,7 +731,9 @@ export async function detectProjectTypes(): Promise<string[]> {
                 const uri = vscode.Uri.joinPath(rootUri, projectFileName);
                 await vscode.workspace.fs.readFile(uri);
                 cljProjTypes.push(clj);
-            } catch (_e) {}
+            } catch {
+                // continue regardless of error
+            }
         }
     }
     return cljProjTypes;

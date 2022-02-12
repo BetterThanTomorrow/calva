@@ -428,7 +428,9 @@ export class LispTokenCursor extends TokenCursor {
      */
     forwardList(): boolean {
         const cursor = this.clone();
-        while (cursor.forwardSexp()) {}
+        while (cursor.forwardSexp()) {
+            // move forward until the cursor cannot move forward anymore
+        }
         if (cursor.getToken().type === 'close') {
             const backCursor = cursor.clone();
             if (backCursor.backwardList()) {
@@ -460,7 +462,9 @@ export class LispTokenCursor extends TokenCursor {
      */
     backwardList(): boolean {
         const cursor = this.clone();
-        while (cursor.backwardSexp()) {}
+        while (cursor.backwardSexp()) {
+            // move backward until the cursor cannot move backward anymore
+        }
         if (cursor.getPrevToken().type == 'open') {
             this.set(cursor);
             return true;
@@ -763,7 +767,9 @@ export class LispTokenCursor extends TokenCursor {
      */
     withinValidList(): boolean {
         const cursor = this.clone();
-        while (cursor.forwardSexp()) {}
+        while (cursor.forwardSexp()) {
+            // move forward until the cursor cannot move forward anymore
+        }
         return cursor.getToken().type == 'close';
     }
 

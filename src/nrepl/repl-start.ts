@@ -149,7 +149,9 @@ async function extractBundledFiles(
                 await vscode.workspace.fs.copy(templateUri, docUri, {
                     overwrite: true,
                 });
-            } catch {}
+            } catch {
+                // continue regardless of error
+            }
         })
     );
 }

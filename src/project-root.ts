@@ -38,7 +38,9 @@ export async function findProjectRootUri(
                     try {
                         await vscode.workspace.fs.stat(u);
                         return searchUri;
-                    } catch {}
+                    } catch {
+                        // continue regardless of error
+                    }
                 }
             } catch (e) {
                 console.error(

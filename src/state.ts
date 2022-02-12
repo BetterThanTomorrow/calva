@@ -241,7 +241,9 @@ async function findProjectRootUri(
                         await vscode.workspace.fs.stat(u);
                         setStateValue(PROJECT_DIR_URI_KEY, searchUri);
                         return;
-                    } catch {}
+                    } catch {
+                        // continue regardless of error
+                    }
                 }
             } catch (e) {
                 console.error(

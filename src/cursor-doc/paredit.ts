@@ -262,7 +262,9 @@ export function forwardHybridSexpRange(
         // greater than the document's cursor location if any
         cursor = doc.getTokenCursor(currentLineNewlineOffset);
         while (cursor.offsetStart > offset) {
-            while (cursor.backwardSexp()) {}
+            while (cursor.backwardSexp()) {
+                // move backward until the cursor cannot move backward anymore
+            }
             if (cursor.offsetStart > offset) {
                 nearestOpenTokenOffset = cursor.offsetStart;
                 cursor = doc.getTokenCursor(cursor.offsetStart - 1);
@@ -774,7 +776,9 @@ function docIsBalanced(
     start: number = doc.selection.active
 ): boolean {
     const cursor = doc.getTokenCursor(0);
-    while (cursor.forwardSexp(true, true, true)) {}
+    while (cursor.forwardSexp(true, true, true)) {
+        // move forward until the cursor cannot move forward anymore
+    }
     cursor.forwardWhitespace(true);
     return cursor.atEnd();
 }

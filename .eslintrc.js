@@ -32,6 +32,7 @@ module.exports = {
         'prefer-const': ['error'],
         'no-useless-escape': ['error'],
         'prefer-rest-params': ['error'],
+        'no-empty': ['error'],
 
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
@@ -48,7 +49,6 @@ module.exports = {
         'typescript-eslint/ban-types': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/ban-types': 'off',
-        'no-empty': 'off',
         '@typescript-eslint/require-await': 'off',
         '@typescript-eslint/no-unnecessary-type-assertion': 'off',
         '@typescript-eslint/no-inferrable-types': 'off',

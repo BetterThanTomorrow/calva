@@ -211,7 +211,9 @@ async function getJackInTerminalOptions(
                 await vscode.workspace.fs.copy(jarSourceUri, jarDestUri, {
                     overwrite: false,
                 });
-            } catch {}
+            } catch {
+                // continue regardless of error
+            }
             cmd = [...cmd, projectType.resolveBundledPathWin()];
         }
     } else {

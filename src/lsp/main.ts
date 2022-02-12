@@ -130,7 +130,9 @@ function createClient(clojureLspPath: string): LanguageClient {
                 let hover: vscode.Hover;
                 try {
                     hover = await provideHover(document, position);
-                } catch (e) {}
+                } catch {
+                    // continue regardless of error
+                }
 
                 if (hover) {
                     return null;
