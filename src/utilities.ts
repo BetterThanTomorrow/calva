@@ -349,15 +349,15 @@ async function promptForUserInputString(prompt: string): Promise<string> {
 }
 
 function debounce(func, wait, immediate) {
-    var timeout;
+    let timeout;
     return function () {
-        var context = this,
+        const context = this,
             args = arguments;
-        var later = function () {
+        const later = function () {
             timeout = null;
             if (!immediate) func.apply(context, args);
         };
-        var callNow = immediate && !timeout;
+        const callNow = immediate && !timeout;
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
         if (callNow) func.apply(context, args);
@@ -461,7 +461,7 @@ function sortByPresetOrder(arr: any[], presetOrder: any[]) {
 function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
     const ab = new ArrayBuffer(text.length);
     const ui8a = new Uint8Array(ab);
-    for (var i = 0, strLen = text.length; i < strLen; i++) {
+    for (let i = 0, strLen = text.length; i < strLen; i++) {
         ui8a[i] = text.charCodeAt(i);
     }
     return vscode.workspace.fs.writeFile(uri, ui8a);

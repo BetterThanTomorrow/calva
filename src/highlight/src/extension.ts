@@ -277,7 +277,7 @@ function updateRainbowBrackets() {
         // Look for top level ignores, and adjust starting point if found
         const topLevelSentinelCursor = mirrorDoc.getTokenCursor(rangeStart);
         let startPaintingFrom = rangeStart;
-        for (i = 0; i < 25 && topLevelSentinelCursor.backwardSexp(); i++) {
+        for (let i = 0; i < 25 && topLevelSentinelCursor.backwardSexp(); i++) {
             if (topLevelSentinelCursor.getToken().type === 'ignore') {
                 do {
                     topLevelSentinelCursor.backwardSexp();
@@ -312,7 +312,7 @@ function updateRainbowBrackets() {
                         ignoreCursor.next();
                         ignoreCursor.forwardWhitespace();
                     }
-                    for (i = 0; i < ignore_counter; i++) {
+                    for (let i = 0; i < ignore_counter; i++) {
                         ignoreCursor.forwardSexp(true, true, true);
                     }
                     const ignore_end = activeEditor.document.positionAt(
@@ -361,7 +361,7 @@ function updateRainbowBrackets() {
                         cursor.offsetStart
                     ),
                     decoration = { range: new Range(pos, pos.translate(0, 1)) };
-                var pair_idx = stack.length - 1;
+                let pair_idx = stack.length - 1;
                 while (
                     pair_idx >= 0 &&
                     stack[pair_idx].pair_idx !== undefined
@@ -436,7 +436,7 @@ function updateRainbowBrackets() {
         } while (cursor.offsetStart < rangeEnd && cursor.next());
     });
 
-    for (var i = 0; i < rainbowTypes.length; ++i) {
+    for (let i = 0; i < rainbowTypes.length; ++i) {
         activeEditor.setDecorations(rainbowTypes[i], rainbow[i]);
         if (guideColorsEnabled) {
             activeEditor.setDecorations(

@@ -7,7 +7,7 @@ const mode = {
     //scheme: 'file'
 };
 
-var data;
+let data;
 const initialData = {
     documents: {},
 };

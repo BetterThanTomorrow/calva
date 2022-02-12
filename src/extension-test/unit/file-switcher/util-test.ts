@@ -129,14 +129,14 @@ describe('isFileValid', () => {
     it('should return false if the file path is invalid', () => {
         const fileName = 'main.cljc';
         const pathAfterRoot = path.join('');
-        var { success } = util.isFileValid(fileName, pathAfterRoot);
+        let { success } = util.isFileValid(fileName, pathAfterRoot);
         expect(success).toBeFalsy();
         const anotherFileName = 'foo';
         const anotherPathAfterRoot = path.join('leiningen');
-        var { success } = util.isFileValid(
+        success = util.isFileValid(
             anotherFileName,
             anotherPathAfterRoot
-        );
+        ).success;
         expect(success).toBeFalsy();
     });
 });

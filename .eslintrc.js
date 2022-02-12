@@ -38,7 +38,6 @@ module.exports = {
         'no-control-regex': 'off',
 
         'typescript-eslint/no-unused-vars': 'off',
-        'no-var': 'off',
         'prefer-const': 'off',
         '@typescript-eslint/no-this-alias': 'off',
         'no-prototype-builtins': 'off',
