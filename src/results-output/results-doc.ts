@@ -104,7 +104,7 @@ export function isResultsDoc(doc: vscode.TextDocument): boolean {
     return doc && path.basename(doc.fileName) === RESULTS_DOC_NAME;
 }
 
-function getViewColumn(): vscode.ViewColumn {
+export function getViewColumn(): vscode.ViewColumn {
     const column: vscode.ViewColumn = state.extensionContext.workspaceState.get(
         `outputWindowViewColumn`
     );

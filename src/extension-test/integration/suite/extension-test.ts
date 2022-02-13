@@ -10,8 +10,9 @@ import * as util from '../../../utilities';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 // import * as myExtension from '../extension';
-import * as calvaState from '../../../state';
+import * as outputWindow from '../../../results-output/results-doc';
 import { commands } from 'vscode';
+import { getDocument } from '../../../doc-mirror';
 
 vscode.window.showInformationMessage('Tests running. Yay!');
 
@@ -40,7 +41,7 @@ suite('Extension Test Suite', () => {
   //   expect(vscode.window.activeTextEditor).undefined;
   // });
 
-  test('command with args', async function () {
+  test('connect to repl', async function () {
     
     await openFile(path.join(testUtil.testDataDir, 'test.clj'));
     const dir = await state.initProjectDir();
@@ -50,16 +51,29 @@ suite('Extension Test Suite', () => {
     state.extensionContext.workspaceState.update(saveAs, 'deps.edn');
 
 		const res = commands.executeCommand('calva.jackIn');
-    await sleep(2000);
-    console.log("called jacking + sleep");
+    while (!state.extensionContext.workspaceState.get('askForConnectSequenceQuickPick')) {
+      await sleep(200);
+    }
     await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
     
     await res;
     while (!util.getConnectedState()) {
       await sleep(500);
     }
-    // will not be run if timed out
-    assert(true);
+    // await commands.executeCommand('calva.loadFile');
+
+    const resultsDoc = getDocument(await outputWindow.openResultsDoc());
+    
+
+    const testUri = path.join(testUtil.testDataDir, 'test.clj');
+    await vscode.workspace.openTextDocument(testUri).then((doc) =>
+        vscode.window.showTextDocument(doc, {
+            preserveFocus: false,
+        })
+    );
+    await commands.executeCommand('calva.loadFile');
+    const reversedLines = resultsDoc.model.lineInputModel.lines.reverse();
+    assert.deepEqual(['', 'clj꞉test꞉> ', 'nil', 'bar', '; Evaluating file: test.clj'], reversedLines.slice(0, 5).map((v) => v.text));
 	});
 
   // TODO: Add more smoke tests for the extension

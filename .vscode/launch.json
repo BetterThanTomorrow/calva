@@ -158,8 +158,8 @@
             "runtimeExecutable": "${execPath}",
             "env": {
                 "IS_DEBUG": "true",
-                // "CALVA_DEV_GA": "FUBAR-69796730-4",
-                // "DEBUG": "no-debug-universal-analytics"
+                "CALVA_DEV_GA": "FUBAR-69796730-4",
+                "DEBUG": "no-debug-universal-analytics"
             },
             "args": [
               "${workspaceRoot}/test-data",
