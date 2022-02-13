@@ -48,6 +48,11 @@ suite('Extension Test Suite', () => {
         // qps = quickPickSingle
         const saveAs = `qps-${uri.toString()}/jack-in-type`;
         state.extensionContext.workspaceState.update(saveAs, 'deps.edn');
+        assert.equal(
+            state.extensionContext.workspaceState.get(saveAs),
+            'deps.edn',
+            'Picking option timed out'
+        );
 
         const res = commands.executeCommand('calva.jackIn');
         while (
@@ -57,6 +62,8 @@ suite('Extension Test Suite', () => {
         ) {
             await sleep(200);
         }
+        assert('picked option', 'Picking option timed out');
+
         await commands.executeCommand(
             'workbench.action.acceptSelectedQuickOpenItem'
         );
@@ -65,7 +72,7 @@ suite('Extension Test Suite', () => {
         while (!util.getConnectedState()) {
             await sleep(500);
         }
-        // await commands.executeCommand('calva.loadFile');
+        assert('connected to repl', 'Repl connection timed out');
 
         const resultsDoc = getDocument(await outputWindow.openResultsDoc());
 
