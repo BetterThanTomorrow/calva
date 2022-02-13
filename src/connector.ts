@@ -16,7 +16,7 @@ import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
 import * as outputWindow from './results-output/results-doc';
-import evaluate from './evaluate';
+import { evaluateInOutputWindow } from './evaluate';
 import * as liveShareSupport from './liveShareSupport';
 import * as calvaDebug from './debugger/calva-debug';
 import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
@@ -95,9 +95,10 @@ async function connectToHost(
         nClient.addOnCloseHandler((c) => {
             util.setConnectedState(false);
             util.setConnectingState(false);
-            if (!c['silent'])
+            if (!c['silent']) {
                 // we didn't deliberately close this session, mention this fact.
                 outputWindow.append('; nREPL Connection was closed');
+            }
             status.update();
             calvaDebug.terminateDebugSession();
         });
@@ -120,7 +121,7 @@ async function connectToHost(
 
         if (connectSequence.afterCLJReplJackInCode) {
             outputWindow.append(`\n; Evaluating 'afterCLJReplJackInCode'`);
-            await evaluate.evaluateInOutputWindow(
+            await evaluateInOutputWindow(
                 connectSequence.afterCLJReplJackInCode,
                 'clj',
                 outputWindow.getNs(),
@@ -141,7 +142,7 @@ async function connectToHost(
             ) {
                 const isBuiltinType: boolean =
                     typeof connectSequence.cljsType == 'string';
-                let cljsType: CljsTypeConfig = isBuiltinType
+                const cljsType: CljsTypeConfig = isBuiltinType
                     ? getDefaultCljsType(connectSequence.cljsType as string)
                     : (connectSequence.cljsType as CljsTypeConfig);
                 translatedReplType = createCLJSReplType(
@@ -202,10 +203,10 @@ async function setUpCljsRepl(session, build) {
 }
 
 async function getFigwheelMainBuilds() {
-    let res = await vscode.workspace.fs.readDirectory(
+    const res = await vscode.workspace.fs.readDirectory(
         state.getProjectRootUri()
     );
-    let builds = res
+    const builds = res
         .filter(
             ([name, type]) =>
                 type !== vscode.FileType.Directory && name.match(/\.cljs\.edn/)
@@ -245,8 +246,8 @@ async function evalConnectCode(
     outputProcessors: processOutputFn[] = [],
     errorProcessors: processOutputFn[] = []
 ): Promise<boolean> {
-    let chan = state.connectionLogChannel();
-    let err = [],
+    const chan = state.connectionLogChannel();
+    const err = [],
         out = [],
         result = await newCljsSession.eval(code, 'user', {
             stdout: (x) => {
@@ -265,7 +266,7 @@ async function evalConnectCode(
             },
             pprintOptions: disabledPrettyPrinter,
         });
-    let valueResult = await result.value.catch((reason) => {
+    const valueResult = await result.value.catch((reason) => {
         console.error('Error evaluating connect form: ', reason);
     });
     if (checkSuccess(valueResult, out, err)) {
@@ -395,7 +396,7 @@ function createCLJSReplType(
             outputWindow.append('; ' + util.stripAnsi(x).replace(/\s*$/, ''));
         };
 
-    let replType: ReplType = {
+    const replType: ReplType = {
         name: cljsTypeName,
         connect: async (session, name, checkFn) => {
             state.extensionContext.workspaceState.update(
@@ -610,12 +611,12 @@ async function makeCljsSessionClone(
             setStateValue('cljs', (cljsSession = newCljsSession));
             return [cljsSession, getStateValue('cljsBuild')];
         } else {
-            let build = getStateValue('cljsBuild');
+            const build = getStateValue('cljsBuild');
             state
                 .analytics()
                 .logEvent('REPL', 'FailedConnectingCLJS', repl.name)
                 .send();
-            let failed =
+            const failed =
                 'Failed starting cljs repl' +
                 (build != null
                     ? ` for build: ${build}. Is the build running and connected?\n   See the Output channel "Calva Connection Log" for any hints on what went wrong.`
@@ -639,7 +640,7 @@ async function promptForNreplUrlAndConnect(
     port,
     connectSequence: ReplConnectSequence
 ) {
-    let url = await vscode.window.showInputBox({
+    const url = await vscode.window.showInputBox({
         placeHolder: 'Enter existing nREPL hostname:port here...',
         prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",
         value: 'localhost:' + (port ? port : ''),
@@ -647,7 +648,7 @@ async function promptForNreplUrlAndConnect(
     });
     // state.reset(); TODO see if this should be done
     if (url !== undefined) {
-        let [hostname, port] = url.split(':'),
+        const [hostname, port] = url.split(':'),
             parsedPort = parseFloat(port);
         if (parsedPort && parsedPort > 0 && parsedPort < 65536) {
             setStateValue('hostname', hostname);
@@ -701,7 +702,7 @@ export async function connect(
         if (port === undefined) {
             try {
                 await vscode.workspace.fs.stat(portFile);
-                let bytes = await vscode.workspace.fs.readFile(portFile);
+                const bytes = await vscode.workspace.fs.readFile(portFile);
                 port = new TextDecoder('utf-8').decode(bytes);
             } catch {
                 throw new Error('No nrepl port found');
@@ -838,7 +839,7 @@ export default {
         }
     },
     switchCljsBuild: async () => {
-        let cljSession = replSession.getSession('clj');
+        const cljSession = replSession.getSession('clj');
         const cljsTypeName: string = state.extensionContext.workspaceState.get(
                 'selectedCljsTypeName'
             ),
@@ -850,7 +851,7 @@ export default {
             .logEvent('REPL', 'switchCljsBuild', cljsTypeName)
             .send();
 
-        let [session, build] = await makeCljsSessionClone(
+        const [session, build] = await makeCljsSessionClone(
             cljSession,
             translatedReplType,
             cljTypeName

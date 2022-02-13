@@ -38,7 +38,7 @@ export async function provideCompletionItems(
     token: CancellationToken,
     context: CompletionContext
 ) {
-    let text = util.getWordAtPosition(document, position);
+    const text = util.getWordAtPosition(document, position);
 
     if (util.getConnectedState()) {
         const toplevelSelection = select.getFormSelection(
@@ -109,7 +109,7 @@ export default class CalvaCompletionItemProvider
         token: CancellationToken
     ) {
         if (util.getConnectedState()) {
-            let client = replSession.getSession(
+            const client = replSession.getSession(
                 util.getFileType(window.activeTextEditor.document)
             );
             if (client) {

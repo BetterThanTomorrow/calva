@@ -40,7 +40,7 @@ async function onDidSave(
     testController: vscode.TestController,
     document: vscode.TextDocument
 ) {
-    let { evaluate, test } = config.getConfig();
+    const { evaluate, test } = config.getConfig();
 
     if (document.languageId !== 'clojure') {
         return;
@@ -73,7 +73,7 @@ function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
 }
 
 function setKeybindingsEnabledContext() {
-    let keybindingsEnabled = vscode.workspace
+    const keybindingsEnabled = vscode.workspace
         .getConfiguration()
         .get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
     vscode.commands.executeCommand(
@@ -522,7 +522,7 @@ async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'calva.toggleKeybindingsEnabled',
             () => {
-                let keybindingsEnabled = vscode.workspace
+                const keybindingsEnabled = vscode.workspace
                     .getConfiguration()
                     .get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
                 vscode.workspace

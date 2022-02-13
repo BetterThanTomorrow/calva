@@ -38,7 +38,7 @@ function moveTokenCursorToBreakpoint(
 
         // Check if we just entered a syntax quote, since we have to account for how syntax quoted forms are read
         // `(. .) is read as (seq (concat (list .) (list .))).
-        if (/.*\`(\[|\{|\()$/.test(previousToken.raw)) {
+        if (/.*`(\[|\{|\()$/.test(previousToken.raw)) {
             inSyntaxQuote = true;
         }
 

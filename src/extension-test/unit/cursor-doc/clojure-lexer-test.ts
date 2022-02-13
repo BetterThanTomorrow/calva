@@ -1,7 +1,10 @@
 import * as expect from 'expect';
 import * as fc from 'fast-check';
-import { Scanner } from '../../../cursor-doc/clojure-lexer';
-import { toplevel, validPair } from '../../../cursor-doc/clojure-lexer';
+import {
+    Scanner,
+    toplevel,
+    validPair,
+} from '../../../cursor-doc/clojure-lexer';
 
 const MAX_LINE_LENGTH = 100;
 

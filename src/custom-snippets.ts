@@ -19,7 +19,7 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
     const currentLine = editor.selection.active.line;
     const currentColumn = editor.selection.active.character;
     const currentFilename = editor.document.fileName;
-    let configErrors: { name: string; keys: string[] }[] = [];
+    const configErrors: { name: string; keys: string[] }[] = [];
     const globalSnippets = getConfig()
         .customREPLCommandSnippetsGlobal as customREPLCommandSnippet[];
     const workspaceSnippets = getConfig()

@@ -72,14 +72,14 @@ export function getNamespace(doc: vscode.TextDocument) {
 
 export async function createNamespaceFromDocumentIfNotExists(doc) {
     if (utilities.getConnectedState()) {
-        let document = utilities.getDocument(doc);
+        const document = utilities.getDocument(doc);
         if (document) {
-            let ns = getNamespace(document);
-            let client = replSession.getSession(
+            const ns = getNamespace(document);
+            const client = replSession.getSession(
                 utilities.getFileType(document)
             );
             if (client) {
-                let nsList = await client.listNamespaces([]);
+                const nsList = await client.listNamespaces([]);
                 if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
                     return;
                 }
@@ -90,7 +90,7 @@ export async function createNamespaceFromDocumentIfNotExists(doc) {
 }
 
 export function getDocumentNamespace(document = {}) {
-    let doc = utilities.getDocument(document);
+    const doc = utilities.getDocument(document);
 
     return getNamespace(doc);
 }

@@ -96,7 +96,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Update system package lists
           command: sudo apt-get update
@@ -137,10 +137,23 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Run prettier format check
           command: npm run prettier-check
+  eslint-check:
+    docker:
+      - image: circleci/node:latest
+    working_directory: ~/calva
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Restore build
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
+      - run:
+          name: Run eslint check
+          command: npm run eslint
   test-cljslib:
     docker:
       - image: circleci/node:latest
@@ -150,7 +163,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Run CLJS Tests
           command: npm run calva-lib-test
@@ -165,7 +178,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Run TS Unit Tests
           command: npm run unit-test
@@ -180,7 +193,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Compile Extension Tests
           command: npm run compile-test
@@ -230,7 +243,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Publish to the marketplace
           command: |
@@ -250,7 +263,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: cp -rT /tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Publish to Open VSX
           command: |
@@ -339,6 +352,9 @@ workflows:
       - prettier-check:
           requires:
             - build
+      - eslint-check:
+          requires:
+            - build
       - test-grammar:
           requires:
             - build
@@ -360,6 +376,14 @@ workflows:
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
       - prettier-check:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - eslint-check:
           requires:
             - build
           filters:
@@ -402,6 +426,7 @@ workflows:
       - github-release:
           requires:
             - prettier-check
+            - eslint-check
             - test-grammar
             - test-cljslib
             - test-integration

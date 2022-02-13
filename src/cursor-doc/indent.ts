@@ -8,7 +8,7 @@ type IndentRule =
     | ['inner', number]
     | ['inner', number, number];
 
-let indentRules: { [id: string]: IndentRule[] } = {
+const indentRules: { [id: string]: IndentRule[] } = {
     '#"^\\w"': [['inner', 0]],
 };
 
@@ -58,7 +58,7 @@ export function collectIndents(
     let exprsOnLine = 0;
     let lastLine = cursor.line;
     let lastIndent = 0;
-    let indents: IndentInformation[] = [];
+    const indents: IndentInformation[] = [];
     do {
         if (!cursor.backwardSexp()) {
             // this needs some work..
@@ -83,7 +83,9 @@ export function collectIndents(
 
             const token = cursor.getToken().raw;
             const startIndent = cursor.rowCol[1];
-            if (!cursor.backwardUpList()) break;
+            if (!cursor.backwardUpList()) {
+                break;
+            }
 
             const rules = config['cljfmt-options']['indents'];
             const pattern = _.find(
@@ -104,7 +106,7 @@ export function collectIndents(
         }
 
         if (cursor.line != lastLine) {
-            let head = cursor.clone();
+            const head = cursor.clone();
             head.forwardSexp();
             head.forwardWhitespace();
             if (!head.atEnd()) {
@@ -123,7 +125,7 @@ export function collectIndents(
         Math.abs(startLine - cursor.line) < maxLines &&
         indents.length < maxDepth
     );
-    if (!indents.length)
+    if (!indents.length) {
         indents.push({
             argPos: 0,
             first: null,
@@ -132,6 +134,7 @@ export function collectIndents(
             startIndent: lastIndent >= 0 ? lastIndent : 0,
             firstItemIdent: lastIndent >= 0 ? lastIndent : 0,
         });
+    }
     return indents;
 }
 
@@ -153,25 +156,31 @@ export function getIndent(
             },
         };
     }
-    let state = collectIndents(document, offset, config);
+    const state = collectIndents(document, offset, config);
     // now find applicable indent rules
     let indent = -1;
-    let thisBlock = state[state.length - 1];
-    if (!state.length) return 0;
+    const thisBlock = state[state.length - 1];
+    if (!state.length) {
+        return 0;
+    }
 
     for (let pos = state.length - 1; pos >= 0; pos--) {
-        for (let rule of state[pos].rules) {
+        for (const rule of state[pos].rules) {
             if (rule[0] == 'inner') {
                 if (pos + rule[1] == state.length - 1) {
                     if (rule.length == 3) {
-                        if (rule[2] > thisBlock.argPos)
+                        if (rule[2] > thisBlock.argPos) {
                             indent = thisBlock.startIndent + 1;
-                    } else indent = thisBlock.startIndent + 1;
+                        }
+                    } else {
+                        indent = thisBlock.startIndent + 1;
+                    }
                 }
             } else if (rule[0] == 'block' && pos == state.length - 1) {
                 if (thisBlock.exprsOnLine <= rule[1]) {
-                    if (thisBlock.argPos >= rule[1])
+                    if (thisBlock.argPos >= rule[1]) {
                         indent = thisBlock.startIndent + 1;
+                    }
                 } else {
                     indent = thisBlock.firstItemIdent;
                 }
@@ -181,8 +190,11 @@ export function getIndent(
 
     if (indent == -1) {
         // no indentation styles applied, so use default style.
-        if (thisBlock.exprsOnLine > 0) indent = thisBlock.firstItemIdent;
-        else indent = thisBlock.startIndent;
+        if (thisBlock.exprsOnLine > 0) {
+            indent = thisBlock.firstItemIdent;
+        } else {
+            indent = thisBlock.startIndent;
+        }
     }
     return indent;
 }

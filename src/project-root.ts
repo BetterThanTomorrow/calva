@@ -30,7 +30,7 @@ export async function findProjectRootUri(
         let prev = null;
         while (searchUri != prev) {
             try {
-                for (let projectFile in projectFileNames) {
+                for (const projectFile in projectFileNames) {
                     const u = vscode.Uri.joinPath(
                         searchUri,
                         projectFileNames[projectFile]
@@ -38,7 +38,9 @@ export async function findProjectRootUri(
                     try {
                         await vscode.workspace.fs.stat(u);
                         return searchUri;
-                    } catch {}
+                    } catch {
+                        // continue regardless of error
+                    }
                 }
             } catch (e) {
                 console.error(

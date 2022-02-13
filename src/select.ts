@@ -44,12 +44,12 @@ function getEnclosingFormSelection(
 }
 
 function selectForm(document = {}, selectionFn: Function, args?: any[]) {
-    let editor = vscode.window.activeTextEditor,
+    const editor = vscode.window.activeTextEditor,
         doc = util.getDocument(document),
         selection = editor.selection;
 
     if (selection.isEmpty) {
-        let codeSelection = selectionFn(doc, selection.active, ...args);
+        const codeSelection = selectionFn(doc, selection.active, ...args);
         if (codeSelection) {
             editor.selection = codeSelection;
         }

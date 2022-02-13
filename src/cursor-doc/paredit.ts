@@ -233,7 +233,7 @@ export function forwardHybridSexpRange(
     const currentFormEndToken = cursor.getToken();
     // when we've advanced the cursor but start is behind us then go to the end
     // happens when in a clojure comment i.e:  ;; ----
-    let cursorOffsetEnd =
+    const cursorOffsetEnd =
         cursor.offsetStart <= offset ? cursor.offsetEnd : cursor.offsetStart;
     const text = doc.model.getText(offset, cursorOffsetEnd);
     let hasNewline = text.indexOf('\n') > -1;
@@ -262,7 +262,9 @@ export function forwardHybridSexpRange(
         // greater than the document's cursor location if any
         cursor = doc.getTokenCursor(currentLineNewlineOffset);
         while (cursor.offsetStart > offset) {
-            while (cursor.backwardSexp()) {}
+            while (cursor.backwardSexp()) {
+                // move backward until the cursor cannot move backward anymore
+            }
             if (cursor.offsetStart > offset) {
                 nearestOpenTokenOffset = cursor.offsetStart;
                 cursor = doc.getTokenCursor(cursor.offsetStart - 1);
@@ -497,7 +499,7 @@ export function joinSexp(
     doc: EditableDocument,
     start: number = doc.selectionRight
 ): Thenable<boolean> {
-    let cursor = doc.getTokenCursor(start);
+    const cursor = doc.getTokenCursor(start);
     cursor.backwardWhitespace();
     const prevToken = cursor.getPrevToken(),
         prevEnd = cursor.offsetStart;
@@ -529,16 +531,16 @@ export function spliceSexp(
     start: number = doc.selectionRight,
     undoStopBefore = true
 ): Thenable<boolean> {
-    let cursor = doc.getTokenCursor(start);
+    const cursor = doc.getTokenCursor(start);
     // TODO: this should unwrap the string, not the enclosing list.
 
     cursor.backwardList();
-    let open = cursor.getPrevToken();
-    let beginning = cursor.offsetStart;
+    const open = cursor.getPrevToken();
+    const beginning = cursor.offsetStart;
     if (open.type == 'open') {
         cursor.forwardList();
-        let close = cursor.getToken();
-        let end = cursor.offsetStart;
+        const close = cursor.getToken();
+        const end = cursor.offsetStart;
         if (close.type == 'close' && validPair(open.raw, close.raw)) {
             return doc.model.edit(
                 [
@@ -581,8 +583,8 @@ export function killForwardList(
     doc: EditableDocument,
     [start, end]: [number, number]
 ): Thenable<boolean> {
-    let cursor = doc.getTokenCursor(start);
-    let inComment =
+    const cursor = doc.getTokenCursor(start);
+    const inComment =
         (cursor.getToken().type == 'comment' && start > cursor.offsetStart) ||
         cursor.getPrevToken().type == 'comment';
     return doc.model.edit(
@@ -655,12 +657,12 @@ export function backwardSlurpSexp(
     start: number = doc.selectionRight,
     extraOpts = {}
 ) {
-    let cursor = doc.getTokenCursor(start);
+    const cursor = doc.getTokenCursor(start);
     cursor.backwardList();
-    let tk = cursor.getPrevToken();
+    const tk = cursor.getPrevToken();
     if (tk.type == 'open') {
-        let offset = cursor.clone().previous().offsetStart;
-        let open = cursor.getPrevToken().raw;
+        const offset = cursor.clone().previous().offsetStart;
+        const open = cursor.getPrevToken().raw;
         cursor.previous();
         cursor.backwardSexp(true);
         cursor.forwardWhitespace(false);
@@ -722,13 +724,13 @@ export function backwardBarfSexp(
     doc: EditableDocument,
     start: number = doc.selectionRight
 ) {
-    let cursor = doc.getTokenCursor(start);
+    const cursor = doc.getTokenCursor(start);
     cursor.backwardList();
-    let tk = cursor.getPrevToken();
+    const tk = cursor.getPrevToken();
     if (tk.type == 'open') {
         cursor.previous();
-        let offset = cursor.offsetStart;
-        let close = cursor.getToken().raw;
+        const offset = cursor.offsetStart;
+        const close = cursor.getToken().raw;
         cursor.next();
         cursor.forwardSexp();
         cursor.forwardWhitespace(false);
@@ -757,7 +759,7 @@ export function open(
     close: string,
     start: number = doc.selectionRight
 ) {
-    let [cs, ce] = [doc.selectionLeft, doc.selectionRight];
+    const [cs, ce] = [doc.selectionLeft, doc.selectionRight];
     doc.insertString(open + doc.getSelectionText() + close);
     if (cs != ce) {
         doc.selection = new ModelEditSelection(
@@ -774,7 +776,9 @@ function docIsBalanced(
     start: number = doc.selection.active
 ): boolean {
     const cursor = doc.getTokenCursor(0);
-    while (cursor.forwardSexp(true, true, true));
+    while (cursor.forwardSexp(true, true, true)) {
+        // move forward until the cursor cannot move forward anymore
+    }
     cursor.forwardWhitespace(true);
     return cursor.atEnd();
 }
@@ -898,7 +902,7 @@ export function stringQuote(
     if (start != end) {
         doc.insertString('"');
     } else {
-        let cursor = doc.getTokenCursor(start);
+        const cursor = doc.getTokenCursor(start);
         if (cursor.withinString()) {
             // inside a string, let's be clever
             if (cursor.getToken().type == 'close') {
@@ -989,7 +993,7 @@ export function growSelectionStack(
 ) {
     const [start, end] = range;
     if (doc.selectionStack.length > 0) {
-        let prev = doc.selectionStack[doc.selectionStack.length - 1];
+        const prev = doc.selectionStack[doc.selectionStack.length - 1];
         if (
             !(
                 doc.selectionLeft == prev.anchor &&
@@ -1009,7 +1013,7 @@ export function growSelectionStack(
 
 export function shrinkSelection(doc: EditableDocument) {
     if (doc.selectionStack.length) {
-        let latest = doc.selectionStack.pop();
+        const latest = doc.selectionStack.pop();
         if (
             doc.selectionStack.length &&
             latest.anchor == doc.selectionLeft &&
@@ -1036,9 +1040,9 @@ export function raiseSexp(
     const [formStart, formEnd] = cursor.rangeForCurrentForm(start);
     const isCaretTrailing = formEnd - start < start - formStart;
     const startCursor = doc.getTokenCursor(formStart);
-    let endCursor = startCursor.clone();
+    const endCursor = startCursor.clone();
     if (endCursor.forwardSexp()) {
-        let raised = doc.model.getText(
+        const raised = doc.model.getText(
             startCursor.offsetStart,
             endCursor.offsetStart
         );
@@ -1074,21 +1078,21 @@ export function convolute(
     end = doc.selectionRight
 ) {
     if (start == end) {
-        let cursorStart = doc.getTokenCursor(end);
-        let cursorEnd = cursorStart.clone();
+        const cursorStart = doc.getTokenCursor(end);
+        const cursorEnd = cursorStart.clone();
 
         if (cursorStart.backwardList()) {
             if (cursorEnd.forwardList()) {
-                let head = doc.model.getText(cursorStart.offsetStart, end);
+                const head = doc.model.getText(cursorStart.offsetStart, end);
                 if (cursorStart.getPrevToken().type == 'open') {
                     cursorStart.previous();
-                    let headStart = cursorStart.clone();
+                    const headStart = cursorStart.clone();
 
                     if (
                         headStart.backwardList() &&
                         headStart.backwardUpList()
                     ) {
-                        let headEnd = cursorStart.clone();
+                        const headEnd = cursorStart.clone();
                         if (
                             headEnd.forwardList() &&
                             cursorEnd.getToken().type == 'close'

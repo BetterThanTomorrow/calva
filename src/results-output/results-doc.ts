@@ -41,7 +41,7 @@ export const CLJS_CONNECT_GREETINGS =
 ;    (There is a button in the status bar for this)';
 
 function outputFileDir() {
-    let projectRoot = state.getProjectRootUri();
+    const projectRoot = state.getProjectRootUri();
     try {
         return vscode.Uri.joinPath(projectRoot, '.calva', 'output-window');
     } catch {
@@ -56,16 +56,18 @@ const DOC_URI = () => {
 };
 
 let _sessionType: ReplSessionType = 'clj';
-let _sessionInfo: { [id: string]: { ns?: string; session?: NReplSession } } = {
-    clj: {},
-    cljs: {},
-};
-let showPrompt: { [id: string]: boolean } = {
+const _sessionInfo: { [id: string]: { ns?: string; session?: NReplSession } } =
+    {
+        clj: {},
+        cljs: {},
+    };
+const showPrompt: { [id: string]: boolean } = {
     clj: true,
     cljs: true,
 };
 
 export function getPrompt(): string {
+    // eslint-disable-next-line no-irregular-whitespace
     let prompt = `${_sessionType}꞉${getNs()}꞉> `;
     if (showPrompt[_sessionType]) {
         showPrompt[_sessionType] = false;
@@ -320,7 +322,7 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                 if (scrollToBottomSub) {
                     scrollToBottomSub.dispose();
                 }
-                let visibleResultsEditors: vscode.TextEditor[] = [];
+                const visibleResultsEditors: vscode.TextEditor[] = [];
                 vscode.window.visibleTextEditors.forEach((editor) => {
                     if (isResultsDoc(editor.document)) {
                         visibleResultsEditors.push(editor);
@@ -367,7 +369,7 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                             editQueue = remainingEditQueue;
                             return append(textBatch.join('\n'));
                         } else {
-                            return append.apply(null, editQueue.shift());
+                            return append(...editQueue.shift());
                         }
                     }
                 });

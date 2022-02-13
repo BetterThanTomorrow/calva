@@ -9,7 +9,7 @@ let liveShareListener: Disposable = null;
 
 let connectedPort: number = null;
 let jackedIn = false;
-let sharedPorts: Map<number, Disposable> = new Map();
+const sharedPorts: Map<number, Disposable> = new Map();
 
 export async function setupLiveShareListener() {
     if (liveShareListener !== null) {
