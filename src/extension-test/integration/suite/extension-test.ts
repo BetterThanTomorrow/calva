@@ -42,7 +42,12 @@ suite('Extension Test Suite', () => {
     // });
 
     test('connect to repl', async function () {
+        console.log('connect to repl');
+        assert('started connect to repl');
+
         await openFile(path.join(testUtil.testDataDir, 'test.clj'));
+        console.log('file opened');
+        
         const dir = await state.initProjectDir();
         const uri = state.getProjectRootUri();
         // qps = quickPickSingle
@@ -51,8 +56,9 @@ suite('Extension Test Suite', () => {
         assert.equal(
             state.extensionContext.workspaceState.get(saveAs),
             'deps.edn',
-            'Picking option timed out'
+            'Connect option not set'
         );
+        console.log('Connect option set');
 
         const res = commands.executeCommand('calva.jackIn');
         while (
@@ -63,6 +69,7 @@ suite('Extension Test Suite', () => {
             await sleep(200);
         }
         assert('picked option', 'Picking option timed out');
+        console.log('picked option');
 
         await commands.executeCommand(
             'workbench.action.acceptSelectedQuickOpenItem'
@@ -73,6 +80,7 @@ suite('Extension Test Suite', () => {
             await sleep(500);
         }
         assert('connected to repl', 'Repl connection timed out');
+        console.log('connected to repl');
 
         const resultsDoc = getDocument(await outputWindow.openResultsDoc());
 
@@ -82,6 +90,8 @@ suite('Extension Test Suite', () => {
                 preserveFocus: false,
             })
         );
+        console.log('opened document again');
+
         await commands.executeCommand('calva.loadFile');
         const reversedLines = resultsDoc.model.lineInputModel.lines.reverse();
         assert.deepEqual(
