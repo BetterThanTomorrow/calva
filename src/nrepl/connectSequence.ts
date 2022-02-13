@@ -318,7 +318,10 @@ async function askForConnectSequence(
     const saveAsFull = projectRootUri
         ? `${projectRootUri.toString()}/${saveAs}`
         : saveAs;
-    state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', true);
+    state.extensionContext.workspaceState.update(
+        'askForConnectSequenceQuickPick',
+        true
+    );
     const projectConnectSequenceName = await utilities.quickPickSingle({
         values: sequences.map((s) => {
             return s.name;
@@ -327,7 +330,10 @@ async function askForConnectSequence(
         saveAs: saveAsFull,
         autoSelect: true,
     });
-    state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', false);
+    state.extensionContext.workspaceState.update(
+        'askForConnectSequenceQuickPick',
+        false
+    );
     if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
         state
             .analytics()

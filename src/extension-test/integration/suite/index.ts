@@ -22,7 +22,6 @@ import * as glob from 'glob';
 // 			return cb(err);
 // 		}
 //     console.log(files);
-    
 
 // 		// Add files to the test suite
 // 		files.forEach(f => mocha.addFile(path.resolve(testsRoot, f)));
@@ -43,7 +42,7 @@ export function run(): Promise<void> {
     // Create the mocha test
     const mocha = new Mocha({
         ui: 'tdd',
-        timeout: 60000,
+        timeout: 160000,
         reporter: 'mocha-multi-reporters',
         reporterOptions: {
             reporterEnabled: 'mocha-junit-reporter, spec',
@@ -63,6 +62,7 @@ export function run(): Promise<void> {
             // Add files to the test suite
             files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
 
+            console.log(files);
             try {
                 // Run the mocha test
                 mocha.run((failures) => {

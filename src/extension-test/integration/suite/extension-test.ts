@@ -17,68 +17,74 @@ import { getDocument } from '../../../doc-mirror';
 vscode.window.showInformationMessage('Tests running. Yay!');
 
 suite('Extension Test Suite', () => {
-  after(() => {
-    vscode.window.showInformationMessage('All tests done!');
-  });
+    after(() => {
+        vscode.window.showInformationMessage('All tests done!');
+    });
 
-  // test("We have a context", async () => {
-  //   const context = calvaState.extensionContext; // Makes things croak with message "state.config is not a function"
-  //   expect(context).not.undefined("foo");
-  //   context.workspaceState.get('selectedCljTypeName')
-  // });
+    // test("We have a context", async () => {
+    //   const context = calvaState.extensionContext; // Makes things croak with message "state.config is not a function"
+    //   expect(context).not.undefined("foo");
+    //   context.workspaceState.get('selectedCljTypeName')
+    // });
 
-  test('Sample test', async () => {
-		await sleep(1000);
-		assert.equal(-1, [1, 2, 3].indexOf(5));
-		assert.equal(-1, [1, 2, 3].indexOf(0));
-	});
+    test('Sample test', async () => {
+        await sleep(1000);
+        assert.equal(-1, [1, 2, 3].indexOf(5));
+        assert.equal(-1, [1, 2, 3].indexOf(0));
+    });
 
-  // test("open a file and close it again, w/o croaking", async () => {
-  //   expect(vscode.window.activeTextEditor).undefined;
-  //   const testClj = await openFile(path.join(util.testDataDir, 'test.clj'));
-  //   vscode.commands.executeCommand("workbench.action.closeActiveEditor");
-  //   await sleep(1000);
-  //   expect(vscode.window.activeTextEditor).undefined;
-  // });
+    // test("open a file and close it again, w/o croaking", async () => {
+    //   expect(vscode.window.activeTextEditor).undefined;
+    //   const testClj = await openFile(path.join(util.testDataDir, 'test.clj'));
+    //   vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+    //   await sleep(1000);
+    //   expect(vscode.window.activeTextEditor).undefined;
+    // });
 
-  test('connect to repl', async function () {
-    
-    await openFile(path.join(testUtil.testDataDir, 'test.clj'));
-    const dir = await state.initProjectDir();
-    const uri = state.getProjectRootUri();
-    // qps = quickPickSingle
-    const saveAs = `qps-${uri.toString()}/jack-in-type`;
-    state.extensionContext.workspaceState.update(saveAs, 'deps.edn');
+    test('connect to repl', async function () {
+        await openFile(path.join(testUtil.testDataDir, 'test.clj'));
+        const dir = await state.initProjectDir();
+        const uri = state.getProjectRootUri();
+        // qps = quickPickSingle
+        const saveAs = `qps-${uri.toString()}/jack-in-type`;
+        state.extensionContext.workspaceState.update(saveAs, 'deps.edn');
 
-		const res = commands.executeCommand('calva.jackIn');
-    while (!state.extensionContext.workspaceState.get('askForConnectSequenceQuickPick')) {
-      await sleep(200);
-    }
-    await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
-    
-    await res;
-    while (!util.getConnectedState()) {
-      await sleep(500);
-    }
-    // await commands.executeCommand('calva.loadFile');
+        const res = commands.executeCommand('calva.jackIn');
+        while (
+            !state.extensionContext.workspaceState.get(
+                'askForConnectSequenceQuickPick'
+            )
+        ) {
+            await sleep(200);
+        }
+        await commands.executeCommand(
+            'workbench.action.acceptSelectedQuickOpenItem'
+        );
 
-    const resultsDoc = getDocument(await outputWindow.openResultsDoc());
-    
+        await res;
+        while (!util.getConnectedState()) {
+            await sleep(500);
+        }
+        // await commands.executeCommand('calva.loadFile');
 
-    const testUri = path.join(testUtil.testDataDir, 'test.clj');
-    await vscode.workspace.openTextDocument(testUri).then((doc) =>
-        vscode.window.showTextDocument(doc, {
-            preserveFocus: false,
-        })
-    );
-    await commands.executeCommand('calva.loadFile');
-    const reversedLines = resultsDoc.model.lineInputModel.lines.reverse();
-    assert.deepEqual(['', 'clj꞉test꞉> ', 'nil', 'bar', '; Evaluating file: test.clj'], reversedLines.slice(0, 5).map((v) => v.text));
-	});
+        const resultsDoc = getDocument(await outputWindow.openResultsDoc());
 
-  // TODO: Add more smoke tests for the extension
-  // TODO: Start building integration test coverage
+        const testUri = path.join(testUtil.testDataDir, 'test.clj');
+        await vscode.workspace.openTextDocument(testUri).then((doc) =>
+            vscode.window.showTextDocument(doc, {
+                preserveFocus: false,
+            })
+        );
+        await commands.executeCommand('calva.loadFile');
+        const reversedLines = resultsDoc.model.lineInputModel.lines.reverse();
+        assert.deepEqual(
+            ['', 'clj꞉test꞉> ', 'nil', 'bar', '; Evaluating file: test.clj'],
+            reversedLines.slice(0, 5).map((v) => v.text)
+        );
+    });
 
+    // TODO: Add more smoke tests for the extension
+    // TODO: Start building integration test coverage
 });
 
 async function openFile(filePath: string) {
