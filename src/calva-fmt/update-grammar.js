@@ -40,13 +40,13 @@ exports.update = function (contentPath, dest) {
     console.log('Reading from ' + contentPath);
     fs.readFile(contentPath, (_err, content) => {
         var grammar = cson.parse(content);
-        let result = {
+        const result = {
             information_for_contributors: [
                 'This file is generated from ' + contentPath,
             ],
         };
 
-        let keys = [
+        const keys = [
             'name',
             'scopeName',
             'comment',
@@ -54,8 +54,8 @@ exports.update = function (contentPath, dest) {
             'patterns',
             'repository',
         ];
-        for (let key of keys) {
-            if (grammar.hasOwnProperty(key)) {
+        for (const key of keys) {
+            if (Object.prototype.hasOwnProperty.call(grammar, key)) {
                 result[key] = grammar[key];
             }
         }

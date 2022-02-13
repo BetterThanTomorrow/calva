@@ -1,3 +1,4 @@
+/* eslint-disable no-control-regex */
 /**
  * Calva Clojure Lexer
  *
@@ -19,7 +20,7 @@ import { LexicalGrammar, Token as LexerToken } from './lexer';
  * The 'toplevel' lexical grammar. This grammar contains all normal tokens. Strings are identified as
  * "open", and trigger the lexer to switch to the 'inString' lexical grammar.
  */
-export let toplevel = new LexicalGrammar();
+export const toplevel = new LexicalGrammar();
 
 /**
  * Returns `true` if open and close are compatible parentheses
@@ -61,7 +62,8 @@ toplevel.terminal('comment', /;.*/, (l, m) => ({ type: 'comment' }));
 // Calva repl prompt, it contains special colon symbols and a hard space
 toplevel.terminal(
     'comment',
-    /^[^()[\]\{\},~@`^\"\s;]+꞉[^()[\]\{\},~@`^\"\s;]+꞉> /,
+    // eslint-disable-next-line no-irregular-whitespace
+    /^[^()[\]{},~@`^"\s;]+꞉[^()[\]{},~@`^"\s;]+꞉> /,
     (l, m) => ({ type: 'prompt' })
 );
 
@@ -71,7 +73,7 @@ toplevel.terminal(
 // open parens
 toplevel.terminal(
     'open',
-    /((?<=(^|[\(\)\[\]\{\}\s,]))['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/,
+    /((?<=(^|[()[\]{}\s,]))['`~#@?^]\s*)*['`~#@?^]*[([{"]/,
     (l, m) => ({ type: 'open' })
 );
 
@@ -86,10 +88,10 @@ toplevel.terminal('lit-quoted-ws', /\\[\n\r\t ]/, (l, m) => ({ type: 'lit' }));
 toplevel.terminal('lit-quoted-chars', /\\.?/, (l, m) => ({ type: 'lit' }));
 toplevel.terminal(
     'lit-quoted',
-    /\\[^\(\)\[\]\{\}\s;,\\][^\(\)\[\]\{\}\s;,\\]+/,
+    /\\[^()[\]{}\s;,\\][^()[\]{}\s;,\\]+/,
     (l, m) => ({ type: 'lit' })
 );
-toplevel.terminal('lit-quoted-brackets', /\\[\(\)\[\]\{\}]/, (l, m) => ({
+toplevel.terminal('lit-quoted-brackets', /\\[()[\]{}]/, (l, m) => ({
     type: 'lit',
 }));
 toplevel.terminal('lit-symbolic-values', /##[\s,]*(NaN|-?Inf)/, (l, m) => ({
@@ -122,19 +124,19 @@ toplevel.terminal('lit-ratio', /(['`~#]\s*)*[-+]?\d+\/\d+/, (l, m) => ({
     type: 'lit',
 }));
 
-toplevel.terminal('kw', /(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({
+toplevel.terminal('kw', /(['`~^]\s*)*(:[^()[\]{},~@`^"\s;]*)/, (l, m) => ({
     type: 'kw',
 }));
 
 // data readers
-toplevel.terminal('reader', /#[^\(\)\[\]\{\}'"_@~\s,;\\]+/, (_l, _m) => ({
+toplevel.terminal('reader', /#[^()[\]{}'"_@~\s,;\\]+/, (_l, _m) => ({
     type: 'reader',
 }));
 
 // symbols, allows quite a lot, but can't start with `#_`, anything numeric, or a selection of chars
 toplevel.terminal(
     'id',
-    /(['`~#^@]\s*)*(((?<!#)_|[+-](?!\d)|[^-+\d_()[\]\{\}#,~@'`^\"\s:;\\])[^()[\]\{\},~@`^\"\s;\\]*)/,
+    /(['`~#^@]\s*)*(((?<!#)_|[+-](?!\d)|[^-+\d_()[\]{}#,~@'`^"\s:;\\])[^()[\]{},~@`^"\s;\\]*)/,
     (l, m) => ({ type: 'id' })
 );
 
@@ -143,7 +145,7 @@ toplevel.terminal('junk', /[\u0000-\uffff]/, (l, m) => ({ type: 'junk' }));
 
 /** This is inside-string string grammar. It spits out 'close' once it is time to switch back to the 'toplevel' grammar,
  * and 'str-inside' for the words in the string. */
-let inString = new LexicalGrammar();
+const inString = new LexicalGrammar();
 // end a string
 inString.terminal('close', /"/, (l, m) => ({ type: 'close' }));
 // still within a string
@@ -177,7 +179,7 @@ export class Scanner {
     constructor(private maxLength: number) {}
 
     processLine(line: string, state: ScannerState = this.state) {
-        let tks: Token[] = [];
+        const tks: Token[] = [];
         this.state = state;
         let lex = (this.state.inString ? inString : toplevel).lex(
             line,
@@ -187,7 +189,7 @@ export class Scanner {
         do {
             tk = lex.scan();
             if (tk) {
-                let oldpos = lex.position;
+                const oldpos = lex.position;
                 if (tk.raw.match(/[~`'@#]*"$/)) {
                     switch (tk.type) {
                         case 'open': // string started, switch to inString.

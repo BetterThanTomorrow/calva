@@ -83,13 +83,13 @@ const evalSelectionDecorationTypes = [
 ];
 
 function setResultDecorations(editor: vscode.TextEditor, ranges) {
-    let key = editor.document.uri + ':resultDecorationRanges';
+    const key = editor.document.uri + ':resultDecorationRanges';
     util.cljsLib.setStateValue(key, ranges);
     editor.setDecorations(evalResultsDecorationType, ranges);
 }
 
 function setSelectionDecorations(editor, ranges, status) {
-    let key = editor.document.uri + ':selectionDecorationRanges:' + status;
+    const key = editor.document.uri + ':selectionDecorationRanges:' + status;
     util.cljsLib.setStateValue(key, ranges);
     editor.setDecorations(evalSelectionDecorationTypes[status], ranges);
 }
@@ -128,10 +128,14 @@ function decorateResults(
     codeSelection: vscode.Range,
     editor: vscode.TextEditor
 ) {
-    let uri = editor.document.uri,
-        key = uri + ':resultDecorationRanges',
-        decorationRanges = util.cljsLib.getStateValue(key) || [],
-        decoration = evaluated(` => ${resultString} `, resultString, hasError);
+    const uri = editor.document.uri;
+    const key = uri + ':resultDecorationRanges';
+    let decorationRanges = util.cljsLib.getStateValue(key) || [];
+    const decoration = evaluated(
+        ` => ${resultString} `,
+        resultString,
+        hasError
+    );
     decorationRanges = _.filter(decorationRanges, (o) => {
         return !o.codeRange.intersection(codeSelection);
     });
@@ -154,7 +158,7 @@ function decorateSelection(
 ) {
     const uri = editor.document.uri;
     const key = uri + ':selectionDecorationRanges:' + status;
-    let decoration = {};
+    const decoration = {};
     let decorationRanges = util.cljsLib.getStateValue(key) || [];
     decorationRanges = _.filter(decorationRanges, (o) => {
         return !o.range.intersection(codeSelection);

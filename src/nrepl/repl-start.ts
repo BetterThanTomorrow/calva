@@ -139,8 +139,9 @@ async function extractBundledFiles(
 ) {
     await Promise.all(
         docNames.map(async (docName) => {
-            let docUri: vscode.Uri;
-            docUri = vscode.Uri.file(path.join(storageUri.fsPath, docName));
+            const docUri: vscode.Uri = vscode.Uri.file(
+                path.join(storageUri.fsPath, docName)
+            );
             const templateUri = vscode.Uri.file(
                 path.join(context.extensionPath, TEMPLATES_SUB_DIR, docName)
             );
@@ -148,7 +149,9 @@ async function extractBundledFiles(
                 await vscode.workspace.fs.copy(templateUri, docUri, {
                     overwrite: true,
                 });
-            } catch {}
+            } catch {
+                // continue regardless of error
+            }
         })
     );
 }
@@ -158,12 +161,12 @@ export async function startStandaloneRepl(
     dramTemplate: DramTemplate,
     areBundled: boolean
 ) {
-    let config =
+    const config =
         typeof dramTemplate.config === 'string'
             ? await fetchConfig(dramTemplate.config)
             : dramTemplate.config;
     const docNames = config.files.map((f) => f.path);
-    let tempDirUri = await state.getOrCreateNonProjectRoot(context);
+    const tempDirUri = await state.getOrCreateNonProjectRoot(context);
     await state.initProjectDir(tempDirUri);
 
     const storageUri = vscode.Uri.joinPath(context.globalStorageUri, 'drams');
@@ -248,7 +251,7 @@ export async function startOrConnectRepl() {
         OPEN_WINDOW_OPTION,
         DISCONNECT_OPTION,
     ];
-    let commands = {};
+    const commands = {};
     if (
         !utilities.getConnectedState() &&
         !utilities.getConnectingState() &&

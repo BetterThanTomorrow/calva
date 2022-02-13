@@ -142,7 +142,7 @@ export class LineInputModel implements EditableModel {
     dirtyLines: number[] = [];
 
     private updateLines(start: number, deleted: number, inserted: number) {
-        let delta = inserted - deleted;
+        const delta = inserted - deleted;
 
         this.dirtyLines = this.dirtyLines
             .filter((x) => x < start || x >= start + deleted)
@@ -151,8 +151,12 @@ export class LineInputModel implements EditableModel {
         this.changedLines = new Set(
             Array.from(this.changedLines)
                 .map((x) => {
-                    if (x > start && x < start + deleted) return null;
-                    if (x >= start) return x + delta;
+                    if (x > start && x < start + deleted) {
+                        return null;
+                    }
+                    if (x >= start) {
+                        return x + delta;
+                    }
                     return x;
                 })
                 .filter((x) => x !== null)
@@ -161,9 +165,13 @@ export class LineInputModel implements EditableModel {
         this.insertedLines = new Set(
             Array.from(this.insertedLines)
                 .map((x): [number, number] => {
-                    let [a, b] = x;
-                    if (a > start && a < start + deleted) return null;
-                    if (a >= start) return [a + delta, b];
+                    const [a, b] = x;
+                    if (a > start && a < start + deleted) {
+                        return null;
+                    }
+                    if (a >= start) {
+                        return [a + delta, b];
+                    }
                     return [a, b];
                 })
                 .filter((x) => x !== null)
@@ -172,9 +180,13 @@ export class LineInputModel implements EditableModel {
         this.deletedLines = new Set(
             Array.from(this.deletedLines)
                 .map((x): [number, number] => {
-                    let [a, b] = x;
-                    if (a > start && a < start + deleted) return null;
-                    if (a >= start) return [a + delta, b];
+                    const [a, b] = x;
+                    if (a > start && a < start + deleted) {
+                        return null;
+                    }
+                    if (a >= start) {
+                        return [a + delta, b];
+                    }
                     return [a, b];
                 })
                 .filter((x) => x !== null)
@@ -182,7 +194,9 @@ export class LineInputModel implements EditableModel {
     }
 
     private deleteLines(start: number, count: number) {
-        if (count == 0) return;
+        if (count == 0) {
+            return;
+        }
         this.updateLines(start, count, 0);
         this.deletedLines.add([start, count]);
     }
@@ -202,8 +216,9 @@ export class LineInputModel implements EditableModel {
             idx >= 0 &&
             idx < this.lines.length &&
             this.dirtyLines.indexOf(idx) == -1
-        )
+        ) {
             this.dirtyLines.push(idx);
+        }
     }
 
     /**
@@ -211,12 +226,16 @@ export class LineInputModel implements EditableModel {
      * changed.
      */
     flushChanges() {
-        if (!this.dirtyLines.length) return;
-        let seen = new Set<number>();
+        if (!this.dirtyLines.length) {
+            return;
+        }
+        const seen = new Set<number>();
         this.dirtyLines.sort();
         while (this.dirtyLines.length) {
             let nextIdx = this.dirtyLines.shift();
-            if (seen.has(nextIdx)) continue; // already processed.
+            if (seen.has(nextIdx)) {
+                continue;
+            } // already processed.
             let prevState = this.getStateForLine(nextIdx);
             do {
                 seen.add(nextIdx);
@@ -237,8 +256,9 @@ export class LineInputModel implements EditableModel {
      */
     getOffsetForLine(line: number) {
         let max = 0;
-        for (let i = 0; i < line; i++)
+        for (let i = 0; i < line; i++) {
             max += this.lines[i].text.length + this.lineEndingLength;
+        }
         return max;
     }
 
@@ -259,22 +279,30 @@ export class LineInputModel implements EditableModel {
      * @param mustBeWithin if the start or end are outside the document, returns ""
      */
     getText(start: number, end: number, mustBeWithin = false): string {
-        if (start == end) return '';
+        if (start == end) {
+            return '';
+        }
         if (
             mustBeWithin &&
             (Math.min(start, end) < 0 || Math.max(start, end) > this.maxOffset)
-        )
+        ) {
             return '';
-        let st = this.getRowCol(Math.min(start, end));
-        let en = this.getRowCol(Math.max(start, end));
+        }
+        const st = this.getRowCol(Math.min(start, end));
+        const en = this.getRowCol(Math.max(start, end));
 
-        let lines = [];
-        if (st[0] == en[0])
+        const lines = [];
+        if (st[0] == en[0]) {
             lines[0] = this.lines[st[0]].text.substring(st[1], en[1]);
-        else lines[0] = this.lines[st[0]].text.substring(st[1]);
-        for (let i = st[0] + 1; i < en[0]; i++) lines.push(this.lines[i].text);
-        if (st[0] != en[0])
+        } else {
+            lines[0] = this.lines[st[0]].text.substring(st[1]);
+        }
+        for (let i = st[0] + 1; i < en[0]; i++) {
+            lines.push(this.lines[i].text);
+        }
+        if (st[0] != en[0]) {
             lines.push(this.lines[en[0]].text.substring(0, en[1]));
+        }
         return lines.join('\n');
     }
 
@@ -283,9 +311,11 @@ export class LineInputModel implements EditableModel {
      */
     getRowCol(offset: number): [number, number] {
         for (let i = 0; i < this.lines.length; i++) {
-            if (offset > this.lines[i].text.length)
+            if (offset > this.lines[i].text.length) {
                 offset -= this.lines[i].text.length + this.lineEndingLength;
-            else return [i, offset];
+            } else {
+                return [i, offset];
+            }
         }
         return [
             this.lines.length - 1,
@@ -366,15 +396,27 @@ export class LineInputModel implements EditableModel {
         return new Promise((resolve, reject) => {
             for (const edit of edits) {
                 switch (edit.editFn) {
-                    case 'insertString':
-                        this.insertString.apply(this, edit.args);
+                    case 'insertString': {
+                        const fn = this.insertString;
+                        this.insertString(
+                            ...(edit.args.slice(0, 4) as Parameters<typeof fn>)
+                        );
                         break;
-                    case 'changeRange':
-                        this.changeRange.apply(this, edit.args);
+                    }
+                    case 'changeRange': {
+                        const fn = this.changeRange;
+                        this.changeRange(
+                            ...(edit.args.slice(0, 5) as Parameters<typeof fn>)
+                        );
                         break;
-                    case 'deleteRange':
-                        this.deleteRange.apply(this, edit.args);
+                    }
+                    case 'deleteRange': {
+                        const fn = this.deleteRange;
+                        this.deleteRange(
+                            ...(edit.args.slice(0, 5) as Parameters<typeof fn>)
+                        );
                         break;
+                    }
                     default:
                         break;
                 }
@@ -406,28 +448,28 @@ export class LineInputModel implements EditableModel {
     ) {
         const t1 = new Date();
 
-        let startPos = Math.min(start, end);
-        let endPos = Math.max(start, end);
-        let deletedText = this.recordingUndo
+        const startPos = Math.min(start, end);
+        const endPos = Math.max(start, end);
+        const deletedText = this.recordingUndo
             ? this.getText(startPos, endPos)
             : '';
-        let [startLine, startCol] = this.getRowCol(startPos);
-        let [endLine, endCol] = this.getRowCol(endPos);
+        const [startLine, startCol] = this.getRowCol(startPos);
+        const [endLine, endCol] = this.getRowCol(endPos);
         // extract the lines we will replace
-        let replaceLines = text.split(/\r\n|\n/);
+        const replaceLines = text.split(/\r\n|\n/);
 
         // the left side of the line unaffected by the edit.
-        let left = this.lines[startLine].text.substr(0, startCol);
+        const left = this.lines[startLine].text.substr(0, startCol);
 
         // the right side of the line unaffected by the edit.
-        let right = this.lines[endLine].text.substr(endCol);
+        const right = this.lines[endLine].text.substr(endCol);
 
-        let items: TextLine[] = [];
+        const items: TextLine[] = [];
 
         // initialize the lexer state - the first line is definitely not in a string, otherwise copy the
         // end state of the previous line before the edit
-        let state = this.getStateForLine(startLine);
-        let currentLength = endLine - startLine + 1;
+        const state = this.getStateForLine(startLine);
+        const currentLength = endLine - startLine + 1;
 
         if (replaceLines.length == 1) {
             // trivial single line edit
@@ -435,8 +477,9 @@ export class LineInputModel implements EditableModel {
         } else {
             // multi line edit.
             items.push(new TextLine(left + replaceLines[0], state));
-            for (let i = 1; i < replaceLines.length - 1; i++)
+            for (let i = 1; i < replaceLines.length - 1; i++) {
                 items.push(new TextLine(replaceLines[i], scanner.state));
+            }
             items.push(
                 new TextLine(
                     replaceLines[replaceLines.length - 1] + right,
@@ -515,24 +558,26 @@ export class LineInputModel implements EditableModel {
     /** Return the offset of the last character in this model. */
     get maxOffset() {
         let max = 0;
-        for (let i = 0; i < this.lines.length; i++)
+        for (let i = 0; i < this.lines.length; i++) {
             max += this.lines[i].text.length + this.lineEndingLength;
+        }
         return max - 1;
     }
 
     public getTokenCursor(offset: number, previous: boolean = false) {
-        let [row, col] = this.getRowCol(offset);
-        let line = this.lines[row];
+        const [row, col] = this.getRowCol(offset);
+        const line = this.lines[row];
         let lastIndex = 0;
         if (line) {
             for (let i = 0; i < line.tokens.length; i++) {
-                let tk = line.tokens[i];
-                if (previous ? tk.offset > col : tk.offset > col)
+                const tk = line.tokens[i];
+                if (previous ? tk.offset > col : tk.offset > col) {
                     return new LispTokenCursor(
                         this,
                         row,
                         previous ? Math.max(0, lastIndex - 1) : lastIndex
                     );
+                }
                 lastIndex = i;
             }
             return new LispTokenCursor(this, row, line.tokens.length - 1);

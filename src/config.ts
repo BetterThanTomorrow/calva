@@ -67,7 +67,7 @@ async function addEdnConfig(data: string) {
         return error;
     }
 }
-var watcher = vscode.workspace.createFileSystemWatcher(
+const watcher = vscode.workspace.createFileSystemWatcher(
     '**/.calva/**/config.edn',
     false,
     false,

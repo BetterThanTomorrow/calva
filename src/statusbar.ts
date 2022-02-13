@@ -37,7 +37,7 @@ function colorValue(
     section: string,
     currentConf: vscode.WorkspaceConfiguration
 ): string {
-    let { defaultValue, globalValue, workspaceFolderValue, workspaceValue } =
+    const { defaultValue, globalValue, workspaceFolderValue, workspaceValue } =
         currentConf.inspect(section);
     return (workspaceFolderValue ||
         workspaceValue ||
@@ -46,7 +46,7 @@ function colorValue(
 }
 
 function update(context = state.extensionContext) {
-    let currentConf = vscode.workspace.getConfiguration(
+    const currentConf = vscode.workspace.getConfiguration(
         `calva.statusColor.${
             vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light
                 ? 'light'
@@ -54,7 +54,7 @@ function update(context = state.extensionContext) {
         }`
     );
 
-    let doc = util.getDocument({}),
+    const doc = util.getDocument({}),
         fileType = util.getFileType(doc),
         cljsBuild = getStateValue('cljsBuild');
 

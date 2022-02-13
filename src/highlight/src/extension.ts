@@ -54,19 +54,21 @@ function decorationType(opts) {
 }
 
 function colorDecorationType(color) {
-    if (isArray(color))
+    if (isArray(color)) {
         return decorationType({
             light: { color: color[0] },
             dark: { color: color[1] },
         });
-    else return decorationType({ color: color });
+    } else {
+        return decorationType({ color: color });
+    }
 }
 
 function guidesDecorationType_(
     color,
     isActive: boolean
 ): vscode.TextEditorDecorationType {
-    if (isArray(color))
+    if (isArray(color)) {
         return decorationType({
             light: {
                 borderWidth: `0; border-right-width: ${
@@ -83,7 +85,7 @@ function guidesDecorationType_(
                 borderColor: color[1],
             },
         });
-    else
+    } else {
         return decorationType({
             borderWidth: `0; border-right-width: ${
                 isActive ? '1.5px' : '0.5px'
@@ -91,6 +93,7 @@ function guidesDecorationType_(
             borderStyle: `solid; opacity: ${isActive ? '0.5' : '0.25'};`,
             borderColor: color,
         });
+    }
 }
 
 function guidesDecorationType(color): vscode.TextEditorDecorationType {
@@ -102,26 +105,28 @@ function activeGuidesDecorationType(color): vscode.TextEditorDecorationType {
 }
 
 function reset_styles() {
-    if (!!rainbowTypes) {
+    if (rainbowTypes) {
         rainbowTypes.forEach((type) => activeEditor.setDecorations(type, []));
     }
     rainbowTypes = rainbowColors.map(colorDecorationType);
 
-    if (!!rainbowGuidesTypes) {
+    if (rainbowGuidesTypes) {
         rainbowGuidesTypes.forEach((type) =>
             activeEditor.setDecorations(type, [])
         );
     }
     rainbowGuidesTypes = rainbowColors.map(guidesDecorationType);
 
-    if (!!activeGuidesTypes) {
+    if (activeGuidesTypes) {
         activeGuidesTypes.forEach((type) =>
             activeEditor.setDecorations(type, [])
         );
     }
     activeGuidesTypes = rainbowColors.map(activeGuidesDecorationType);
 
-    if (!!misplacedType) activeEditor.setDecorations(misplacedType, []);
+    if (misplacedType) {
+        activeEditor.setDecorations(misplacedType, []);
+    }
     misplacedType = decorationType(
         misplacedBracketStyle || {
             light: { color: '#fff', backgroundColor: '#c33' },
@@ -133,7 +138,9 @@ function reset_styles() {
         }
     );
 
-    if (!!matchedType) activeEditor.setDecorations(matchedType, []);
+    if (matchedType) {
+        activeEditor.setDecorations(matchedType, []);
+    }
     matchedType = decorationType(
         matchedBracketStyle || {
             light: { backgroundColor: '#d0d0d0' },
@@ -141,12 +148,16 @@ function reset_styles() {
         }
     );
 
-    if (!!commentFormType) activeEditor.setDecorations(commentFormType, []);
+    if (commentFormType) {
+        activeEditor.setDecorations(commentFormType, []);
+    }
     commentFormType = decorationType(
         commentFormStyle || { fontStyle: 'italic' }
     );
 
-    if (!!ignoredFormType) activeEditor.setDecorations(ignoredFormType, []);
+    if (ignoredFormType) {
+        activeEditor.setDecorations(ignoredFormType, []);
+    }
     ignoredFormType = decorationType(
         ignoredFormStyle || { textDecoration: 'none; opacity: 0.5' }
     );
@@ -157,7 +168,7 @@ function reset_styles() {
 function reloadConfig() {
     const configuration = vscode.workspace.getConfiguration(
         'calva.highlight',
-        !!activeEditor ? activeEditor.document.uri : null
+        activeEditor ? activeEditor.document.uri : null
     );
 
     if (!isEqual(rainbowColors, configuration.get<string[]>('bracketColors'))) {
@@ -227,21 +238,30 @@ function reloadConfig() {
         dirty = true;
     }
 
-    if (dirty) scheduleRainbowBrackets();
+    if (dirty) {
+        scheduleRainbowBrackets();
+    }
 }
 
 function scheduleRainbowBrackets() {
-    if (rainbowTimer) clearTimeout(rainbowTimer);
-    if (is_clojure(activeEditor))
+    if (rainbowTimer) {
+        clearTimeout(rainbowTimer);
+    }
+    if (is_clojure(activeEditor)) {
         rainbowTimer = setTimeout(updateRainbowBrackets, 16);
+    }
 }
 
 function updateRainbowBrackets() {
-    if (!is_clojure(activeEditor)) return;
+    if (!is_clojure(activeEditor)) {
+        return;
+    }
 
     lastHighlightedEditor = activeEditor;
 
-    if (dirty) reset_styles();
+    if (dirty) {
+        reset_styles();
+    }
 
     const doc = activeEditor.document,
         mirrorDoc = docMirror.getDocument(doc),
@@ -258,9 +278,9 @@ function updateRainbowBrackets() {
             ? (i) => i % len
             : (i) => Math.min(i, len - 1);
 
-    let in_comment_form = false,
-        stack: StackItem[] = [],
-        stack_depth = 0;
+    let in_comment_form = false;
+    let stack_depth = 0;
+    const stack: StackItem[] = [];
     pairsBack = new Map();
     pairsForward = new Map();
     placedGuidesColor = new Map();
@@ -277,7 +297,7 @@ function updateRainbowBrackets() {
         // Look for top level ignores, and adjust starting point if found
         const topLevelSentinelCursor = mirrorDoc.getTokenCursor(rangeStart);
         let startPaintingFrom = rangeStart;
-        for (i = 0; i < 25 && topLevelSentinelCursor.backwardSexp(); i++) {
+        for (let i = 0; i < 25 && topLevelSentinelCursor.backwardSexp(); i++) {
             if (topLevelSentinelCursor.getToken().type === 'ignore') {
                 do {
                     topLevelSentinelCursor.backwardSexp();
@@ -312,7 +332,7 @@ function updateRainbowBrackets() {
                         ignoreCursor.next();
                         ignoreCursor.forwardWhitespace();
                     }
-                    for (i = 0; i < ignore_counter; i++) {
+                    for (let i = 0; i < ignore_counter; i++) {
                         ignoreCursor.forwardSexp(true, true, true);
                     }
                     const ignore_end = activeEditor.document.positionAt(
@@ -361,7 +381,7 @@ function updateRainbowBrackets() {
                         cursor.offsetStart
                     ),
                     decoration = { range: new Range(pos, pos.translate(0, 1)) };
-                var pair_idx = stack.length - 1;
+                let pair_idx = stack.length - 1;
                 while (
                     pair_idx >= 0 &&
                     stack[pair_idx].pair_idx !== undefined
@@ -375,7 +395,7 @@ function updateRainbowBrackets() {
                 ) {
                     misplaced.push(decoration);
                 } else {
-                    let pair = stack[pair_idx],
+                    const pair = stack[pair_idx],
                         closing = new Range(pos, pos.translate(0, charLength)),
                         opening = new Range(
                             pair.end.translate(0, -1),
@@ -436,7 +456,7 @@ function updateRainbowBrackets() {
         } while (cursor.offsetStart < rangeEnd && cursor.next());
     });
 
-    for (var i = 0; i < rainbowTypes.length; ++i) {
+    for (let i = 0; i < rainbowTypes.length; ++i) {
         activeEditor.setDecorations(rainbowTypes[i], rainbow[i]);
         if (guideColorsEnabled) {
             activeEditor.setDecorations(
@@ -456,30 +476,36 @@ function updateRainbowBrackets() {
 
 function matchBefore(selection) {
     const cursor = selection.active;
-    if (cursor.isBeforeOrEqual(selection.anchor))
-        if (cursor.character > 0)
+    if (cursor.isBeforeOrEqual(selection.anchor)) {
+        if (cursor.character > 0) {
             return pairsBack.get(position_str(cursor.translate(0, -1)));
+        }
+    }
 }
 
 function matchAfter(selection) {
     const cursor = selection.active;
-    if (cursor.isAfterOrEqual(selection.anchor))
-        if (cursor.translate(0, 1).line === cursor.line)
+    if (cursor.isAfterOrEqual(selection.anchor)) {
+        if (cursor.translate(0, 1).line === cursor.line) {
             return pairsForward.get(position_str(cursor));
+        }
+    }
 }
 
 function matchPairs() {
-    if (!is_clojure(activeEditor)) return;
+    if (!is_clojure(activeEditor)) {
+        return;
+    }
 
     const matches = [];
     activeEditor.selections.forEach((selection) => {
         const match_before = matchBefore(selection),
             match_after = matchAfter(selection);
-        if (!!match_before) {
+        if (match_before) {
             matches.push({ range: match_before[0] });
             matches.push({ range: match_before[1] });
         }
-        if (!!match_after) {
+        if (match_after) {
             matches.push({ range: match_after[0] });
             matches.push({ range: match_after[1] });
         }
@@ -513,9 +539,9 @@ function decorateGuide(
 }
 
 function decorateActiveGuides() {
-    let activeGuides = [];
+    const activeGuides = [];
     activeEditor = vscode.window.activeTextEditor;
-    if (!!activeGuidesTypes) {
+    if (activeGuidesTypes) {
         activeGuidesTypes.forEach((type) =>
             activeEditor.setDecorations(type, [])
         );
@@ -524,7 +550,7 @@ function decorateActiveGuides() {
         const doc = activeEditor.document;
         const mirrorDoc = docMirror.getDocument(doc);
         const cursor = mirrorDoc.getTokenCursor(doc.offsetAt(selection.start));
-        let visitedEndPositions = [selection.start];
+        const visitedEndPositions = [selection.start];
         findActiveGuide: while (cursor.forwardList() && cursor.upList()) {
             const endPos = doc.positionAt(cursor.offsetStart);
             for (let i = 0; i < visitedEndPositions.length; i++) {
@@ -538,8 +564,9 @@ function decorateActiveGuides() {
             if (downCursor.downList()) {
                 const startPos = doc.positionAt(downCursor.offsetStart - 1);
                 const guideRange = new vscode.Range(startPos, endPos);
-                let colorIndex;
-                colorIndex = placedGuidesColor.get(position_str(startPos));
+                const colorIndex = placedGuidesColor.get(
+                    position_str(startPos)
+                );
                 if (colorIndex !== undefined) {
                     if (guideRange.contains(selection)) {
                         decorateGuide(doc, startPos, endPos, activeGuides);
@@ -563,7 +590,9 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeActiveTextEditor(
         (editor) => {
             activeEditor = editor;
-            if (is_clojure(editor)) scheduleRainbowBrackets();
+            if (is_clojure(editor)) {
+                scheduleRainbowBrackets();
+            }
         },
         null,
         context.subscriptions
@@ -599,8 +628,9 @@ export function activate(context: vscode.ExtensionContext) {
             if (
                 is_clojure(activeEditor) &&
                 event.document === activeEditor.document
-            )
+            ) {
                 scheduleRainbowBrackets();
+            }
         },
         null,
         context.subscriptions
@@ -608,8 +638,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.window.onDidChangeTextEditorVisibleRanges(
         (event) => {
-            if (is_clojure(activeEditor) && event.textEditor === activeEditor)
+            if (is_clojure(activeEditor) && event.textEditor === activeEditor) {
                 scheduleRainbowBrackets();
+            }
         },
         null,
         context.subscriptions

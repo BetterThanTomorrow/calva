@@ -16,8 +16,8 @@ model.initScanner(20000);
 
 describe('paredit', () => {
     const docText = '(def foo [:foo :bar :baz])';
-    let doc: model.StringDocument,
-        startSelection = new ModelEditSelection(0, 0);
+    let doc: model.StringDocument;
+    const startSelection = new ModelEditSelection(0, 0);
 
     beforeEach(() => {
         doc = new model.StringDocument(docText);

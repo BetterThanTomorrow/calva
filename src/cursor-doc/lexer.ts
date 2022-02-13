@@ -74,7 +74,9 @@ export class Lexer {
         }
         this.position += length;
         if (token == null) {
-            if (this.position == this.source.length) return null;
+            if (this.position == this.source.length) {
+                return null;
+            }
             throw new Error(
                 'Unexpected character at ' +
                     this.position +
