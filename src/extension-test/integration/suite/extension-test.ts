@@ -47,7 +47,7 @@ suite('Extension Test Suite', () => {
 
         await openFile(path.join(testUtil.testDataDir, 'test.clj'));
         console.log('file opened');
-        
+
         const dir = await state.initProjectDir();
         const uri = state.getProjectRootUri();
         // qps = quickPickSingle
@@ -76,7 +76,9 @@ suite('Extension Test Suite', () => {
         );
 
         await res;
+        console.log('waiting for connect');
         while (!util.getConnectedState()) {
+          console.log('waiting for connect...');
             await sleep(500);
         }
         assert('connected to repl', 'Repl connection timed out');
