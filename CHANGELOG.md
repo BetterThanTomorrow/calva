@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.243] - 2022-02-13
+- [Use vanilla cljfmt for regular formatting](https://github.com/BetterThanTomorrow/calva/pull/1179)
+
 ## [2.0.242] - 2022-02-13
 - Maintenance: [Upgrade typescript and linting packages/configs.](https://github.com/BetterThanTomorrow/calva/pull/1529)
 
