@@ -396,27 +396,27 @@ export class LineInputModel implements EditableModel {
         return new Promise((resolve, reject) => {
             for (const edit of edits) {
                 switch (edit.editFn) {
-                    case 'insertString':
+                    case 'insertString': {
+                        const fn = this.insertString;
                         this.insertString(
-                            ...(edit.args.slice(0, 4) as Parameters<
-                                typeof this.insertString
-                            >)
+                            ...(edit.args.slice(0, 4) as Parameters<typeof fn>)
                         );
                         break;
-                    case 'changeRange':
+                    }
+                    case 'changeRange': {
+                        const fn = this.changeRange;
                         this.changeRange(
-                            ...(edit.args.slice(0, 5) as Parameters<
-                                typeof this.changeRange
-                            >)
+                            ...(edit.args.slice(0, 5) as Parameters<typeof fn>)
                         );
                         break;
-                    case 'deleteRange':
+                    }
+                    case 'deleteRange': {
+                        const fn = this.deleteRange;
                         this.deleteRange(
-                            ...(edit.args.slice(0, 5) as Parameters<
-                                typeof this.deleteRange
-                            >)
+                            ...(edit.args.slice(0, 5) as Parameters<typeof fn>)
                         );
                         break;
+                    }
                     default:
                         break;
                 }
