@@ -1698,8 +1698,8 @@
 <p>We have tried to make Calva's formatter so that it <em>just works</em>. It is enabled by default for Clojure files, and unconfigured it mostly follows Bozhidar Batsov's <a href="https://github.com/bbatsov/clojure-style-guide">Clojure Style Guide</a>. Calva uses <a href="https://github.com/weavejester/cljfmt">cljfmt</a> for the formatting.</p>
 <div class="admonition tips">
 <p class="admonition-title">Tips</p>
-<p>Calva's code formatter sets the default keybinding of its <strong>Format Current Form</strong> command to <code>tab</code>. Meaning that most often when things look a bit untidy, you can press <code>tab</code> to make things look pretty. Good to know, right? For performance reasons it only formats the current enclosing form, so sometimes you want to move the cursor up/out a form (<code>ctrl+up</code>) first. See <a href="../paredit/">The Paredit Guide</a> for more on moving the cursor structurally through your code.</p>
 </div>
+<p>Calva's code formatter sets the default keybinding of its <strong>Format Current Form</strong> command to <code>tab</code>. Meaning that most often when things look a bit untidy, you can press <code>tab</code> to make things look pretty. Good to know, right? For performance reasons it only formats the current enclosing form, so sometimes you want to move the cursor up/out a form (<code>ctrl+up</code>) first. See <a href="../paredit/">The Paredit Guide</a> for more on moving the cursor structurally through your code.</p>
 <p>With the default settings, Calva's formatting behaves like so:</p>
 <ul>
 <li>formats as you type (when entering new lines)</li>
@@ -1711,8 +1711,8 @@
 </ul>
 <div class="admonition tips">
 <p class="admonition-title">Tips</p>
-<p>Calva has a command that will ”heal” the bracket structure if it is correctly indented. Yes, it is Parinfer behind the scenes. This command is default bound to <code>shift+tab</code> to form a nicely balanced pair with the <code>tab</code> formatting.</p>
 </div>
+<p>Calva has a command that will ”heal” the bracket structure if it is correctly indented. Yes, it is Parinfer behind the scenes. This command is default bound to <code>shift+tab</code> to form a nicely balanced pair with the <code>tab</code> formatting.</p>
 <p>Also: If you have <strong>Format on Save</strong> enabled in VS Code, it will be Calva doing the formatting for Clojure files.</p>
 <p>Calva's formatting is mostly about indenting, but it also (again, defaults):</p>
 <ul>
@@ -1728,27 +1728,26 @@
 <p>You configure Calva's formatting using <a href="https://github.com/weavejester/cljfmt#configuration">cljfmt's configuration EDN</a>. This means that you can adjust the above mentioned defaults, including the indenting.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The <code>cljfmt</code> docs mention the <code>:cljfmt</code> config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.</p>
 </div>
+<p>The <code>cljfmt</code> docs mention the <code>:cljfmt</code> config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.</p>
 <p>To start changing the Calva formatting defaults, paste the following map into a file and save it. It could be somewhere in the project workspace, or some other place, depending on your requirements:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span> <span class="nv">true</span>
  <span class="ss">:remove-trailing-whitespace?</span> <span class="nv">true</span>
  <span class="ss">:remove-consecutive-blank-lines?</span> <span class="nv">false</span>
- <span class="ss">:insert-missing-whitespace?</span> <span class="nv">true</span>
- <span class="ss">:align-associative?</span> <span class="nv">false</span><span class="p">}</span>
+ <span class="ss">:insert-missing-whitespace?</span> <span class="nv">true</span><span class="p">}</span>
 </code></pre></div>
 <p>Then set <code>calva.fmt.configPath</code> to the path to the file. The path should either be absolute, or relative to the project root directory. So, if you named the file <code>.cljfmt.edn</code> and saved it in the root of the project, then this setting should be <code>.cljfmt.edn</code>.</p>
 <p>Since you are editing the file in Calva (you are, right?), you can quickly test how different settings affect the formatting. Try:</p>
 <ol>
-<li>setting <code>:align-associative</code> to <code>true</code></li>
+<li>Adding <code>:align-associative true</code> to the config</li>
 <li>then save</li>
 <li>then hit <code>tab</code>, and see what happens.</li>
 </ol>
 <p>(This particular setting is experimental and known to cause trouble together with namespaced keywords. Consider using <code>ctrl+alt+l</code> instead of <code>tab</code> as your formatting command, instead of enabling this setting.)</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The hot reloading of the config file only works for config files inside the project directory structure.</p>
 </div>
+<p>The hot reloading of the config file only works for config files inside the project directory structure.</p>
 <h3 id="indentation-rules">Indentation rules</h3>
 <p>The <code>cljfmt</code> indents are highly configurable. They, and the rest of the configuration options, are masterly detailed <a href="https://github.com/weavejester/cljfmt#configuration">here</a>.</p>
 <p>Calva is an extra good tool for experimenting with these settings. <code>cljfmt</code> doesn't care about keys in the map that it doesn't know about so you can sneak in test code there to quickly see how it will get formatted by certain rules. Try this, for instance:</p>
@@ -1756,7 +1755,6 @@
  <span class="ss">:remove-trailing-whitespace?</span> <span class="nv">true</span>
  <span class="ss">:remove-consecutive-blank-lines?</span> <span class="nv">false</span>
  <span class="ss">:insert-missing-whitespace?</span> <span class="nv">false</span>
- <span class="ss">:align-associative?</span> <span class="nv">false</span>
  <span class="ss">:indents</span> <span class="o">^</span><span class="ss">:replace</span> <span class="p">{</span><span class="o">#</span><span class="s">&quot;^\w&quot;</span> <span class="p">[[</span><span class="ss">:inner</span> <span class="mi">0</span><span class="p">]]}</span>
  <span class="ss">:test-code</span>
  <span class="p">(</span><span class="nb">concat </span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
