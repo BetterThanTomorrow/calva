@@ -8,28 +8,28 @@ description: Conforming to the Community Styleguide by default, and it just work
 We have tried to make Calva's formatter so that it _just works_. It is enabled by default for Clojure files, and unconfigured it mostly follows Bozhidar Batsov's [Clojure Style Guide](https://github.com/bbatsov/clojure-style-guide). Calva uses [cljfmt](https://github.com/weavejester/cljfmt) for the formatting.
 
 !!! Tips
-    Calva's code formatter sets the default keybinding of its **Format Current Form** command to `tab`. Meaning that most often when things look a bit untidy, you can press `tab` to make things look pretty. Good to know, right? For performance reasons it only formats the current enclosing form, so sometimes you want to move the cursor up/out a form (`ctrl+up`) first. See [The Paredit Guide](paredit.md) for more on moving the cursor structurally through your code.
+Calva's code formatter sets the default keybinding of its **Format Current Form** command to `tab`. Meaning that most often when things look a bit untidy, you can press `tab` to make things look pretty. Good to know, right? For performance reasons it only formats the current enclosing form, so sometimes you want to move the cursor up/out a form (`ctrl+up`) first. See [The Paredit Guide](paredit.md) for more on moving the cursor structurally through your code.
 
 With the default settings, Calva's formatting behaves like so:
 
-* formats as you type (when entering new lines)
-* formats the current enclosing form when you hit `tab`
-* formats pasted code
-* formats according to community standards (see above link)
-* formats the current form, _aligning map keys and values_, when you press `ctrl+alt+l`
-* formats `(comment ..)` forms special, see [rich comments](#rich-comments)
+-   formats as you type (when entering new lines)
+-   formats the current enclosing form when you hit `tab`
+-   formats pasted code
+-   formats according to community standards (see above link)
+-   formats the current form, _aligning map keys and values_, when you press `ctrl+alt+l`
+-   formats `(comment ..)` forms special, see [rich comments](#rich-comments)
 
 !!! Tips
-    Calva has a command that will ”heal” the bracket structure if it is correctly indented. Yes, it is Parinfer behind the scenes. This command is default bound to `shift+tab` to form a nicely balanced pair with the `tab` formatting.
+Calva has a command that will ”heal” the bracket structure if it is correctly indented. Yes, it is Parinfer behind the scenes. This command is default bound to `shift+tab` to form a nicely balanced pair with the `tab` formatting.
 
 Also: If you have **Format on Save** enabled in VS Code, it will be Calva doing the formatting for Clojure files.
 
 Calva's formatting is mostly about indenting, but it also (again, defaults):
 
-* trims whitespace at the end of the line
-* trims whitespace inside brackets
-    * this also folds trailing brackets (a k a _the paren trail_) up on the same line
-* inserts whitespace between forms
+-   trims whitespace at the end of the line
+-   trims whitespace inside brackets
+    -   this also folds trailing brackets (a k a _the paren trail_) up on the same line
+-   inserts whitespace between forms
 
 Not a fan of some default setting? The formatter is quite configurable.
 
@@ -38,7 +38,7 @@ Not a fan of some default setting? The formatter is quite configurable.
 You configure Calva's formatting using [cljfmt's configuration EDN](https://github.com/weavejester/cljfmt#configuration). This means that you can adjust the above mentioned defaults, including the indenting.
 
 !!! Note
-    The `cljfmt` docs mention the `:cljfmt` config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.
+The `cljfmt` docs mention the `:cljfmt` config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.
 
 To start changing the Calva formatting defaults, paste the following map into a file and save it. It could be somewhere in the project workspace, or some other place, depending on your requirements:
 
@@ -46,22 +46,21 @@ To start changing the Calva formatting defaults, paste the following map into a 
 {:remove-surrounding-whitespace? true
  :remove-trailing-whitespace? true
  :remove-consecutive-blank-lines? false
- :insert-missing-whitespace? true
- :align-associative? false}
+ :insert-missing-whitespace? true}
 ```
 
 Then set `calva.fmt.configPath` to the path to the file. The path should either be absolute, or relative to the project root directory. So, if you named the file `.cljfmt.edn` and saved it in the root of the project, then this setting should be `.cljfmt.edn`.
 
 Since you are editing the file in Calva (you are, right?), you can quickly test how different settings affect the formatting. Try:
 
-1. setting `:align-associative` to `true`
+1. Adding `:align-associative true` to the config
 2. then save
 3. then hit `tab`, and see what happens.
 
 (This particular setting is experimental and known to cause trouble together with namespaced keywords. Consider using `ctrl+alt+l` instead of `tab` as your formatting command, instead of enabling this setting.)
 
 !!! Note
-    The hot reloading of the config file only works for config files inside the project directory structure.
+The hot reloading of the config file only works for config files inside the project directory structure.
 
 ### Indentation rules
 
@@ -74,7 +73,6 @@ Calva is an extra good tool for experimenting with these settings. `cljfmt` does
  :remove-trailing-whitespace? true
  :remove-consecutive-blank-lines? false
  :insert-missing-whitespace? false
- :align-associative? false
  :indents ^:replace {#"^\w" [[:inner 0]]}
  :test-code
  (concat [2]
