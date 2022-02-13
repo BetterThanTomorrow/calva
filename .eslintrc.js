@@ -34,6 +34,17 @@ module.exports = {
         'array-callback-return': ['error'],
         'no-constructor-return': ['error'],
 
+        // 'no-unused-vars': 'off',
+        // '@typescript-eslint/no-unused-vars': [
+        //     'error',
+        //     {
+        //         vars: 'all',
+        //         args: 'after-used',
+        //         ignoreRestSiblings: true,
+        //         argsIgnorePattern: '^_',
+        //     },
+        // ],
+
         '@typescript-eslint/await-thenable': 'off',
         '@typescript-eslint/ban-types': 'off',
         '@typescript-eslint/no-empty-function': 'off',
