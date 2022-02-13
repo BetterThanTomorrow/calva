@@ -42,7 +42,7 @@ export function run(): Promise<void> {
     // Create the mocha test
     const mocha = new Mocha({
         ui: 'tdd',
-        timeout: 560000,
+        timeout: 160000,
         reporter: 'mocha-multi-reporters',
         reporterOptions: {
             reporterEnabled: 'mocha-junit-reporter, spec',

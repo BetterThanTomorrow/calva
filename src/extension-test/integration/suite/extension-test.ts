@@ -43,13 +43,14 @@ suite('Extension Test Suite', () => {
 
     test('connect to repl', async function () {
         console.log('connect to repl');
-        assert('started connect to repl');
-
-        await openFile(path.join(testUtil.testDataDir, 'test.clj'));
+        const testUri = path.join(testUtil.testDataDir, 'test.clj');
+        await openFile(testUri);
         console.log('file opened');
 
-        const dir = await state.initProjectDir();
+        await state.initProjectDir();
         const uri = state.getProjectRootUri();
+
+        // pre-select deps.edn as the repl connect sequence
         // qps = quickPickSingle
         const saveAs = `qps-${uri.toString()}/jack-in-type`;
         state.extensionContext.workspaceState.update(saveAs, 'deps.edn');
@@ -61,6 +62,7 @@ suite('Extension Test Suite', () => {
         console.log('Connect option set');
 
         const res = commands.executeCommand('calva.jackIn');
+        // wait for the quickPick menu to be open
         while (
             !state.extensionContext.workspaceState.get(
                 'askForConnectSequenceQuickPick'
@@ -68,7 +70,6 @@ suite('Extension Test Suite', () => {
         ) {
             await sleep(200);
         }
-        assert('picked option', 'Picking option timed out');
         console.log('picked option');
 
         await commands.executeCommand(
@@ -79,14 +80,14 @@ suite('Extension Test Suite', () => {
         console.log('waiting for connect');
         while (!util.getConnectedState()) {
             console.log('waiting for connect...');
-            await sleep(500);
+            await sleep(200);
         }
-        assert('connected to repl', 'Repl connection timed out');
+        await sleep(500); // wait a little longer for repl output to be done
         console.log('connected to repl');
 
         const resultsDoc = getDocument(await outputWindow.openResultsDoc());
-
-        const testUri = path.join(testUtil.testDataDir, 'test.clj');
+        
+        // focus the clojure file
         await vscode.workspace.openTextDocument(testUri).then((doc) =>
             vscode.window.showTextDocument(doc, {
                 preserveFocus: false,
