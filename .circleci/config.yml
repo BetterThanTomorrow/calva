@@ -186,7 +186,7 @@ jobs:
           path: ~/calva/junit
   test-integration:
     docker:
-      - image: circleci/openjdk:11.0.4-stretch-node-browsers
+      - image: circleci/clojure:openjdk-11-tools-deps-bullseye-node-browsers-legacy
     working_directory: ~/calva
     steps:
       - attach_workspace:
