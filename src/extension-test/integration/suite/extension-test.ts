@@ -86,7 +86,7 @@ suite('Extension Test Suite', () => {
         console.log('connected to repl');
 
         const resultsDoc = getDocument(await outputWindow.openResultsDoc());
-        
+
         // focus the clojure file
         await vscode.workspace.openTextDocument(testUri).then((doc) =>
             vscode.window.showTextDocument(doc, {
