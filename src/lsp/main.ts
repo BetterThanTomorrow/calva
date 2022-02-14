@@ -24,6 +24,7 @@ import * as state from '../state';
 import { provideHover } from '../providers/hover';
 import { provideSignatureHelp } from '../providers/signature';
 import { isResultsDoc } from '../results-output/results-doc';
+import * as calvaFmtConfig from '../calva-fmt/src/config';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
@@ -431,6 +432,17 @@ async function startClient(
     const serverInfo = await getServerInfo(client);
     serverVersion = serverInfo['server-version'];
     sayClientVersionInfo(serverVersion, serverInfo);
+    // TODO: Remove this hardcode when the indents issue is fixed in clojure-lsp
+    // https://github.com/clojure-lsp/clojure-lsp/issues/763
+    // calvaFmtConfig.setLspFormatConfig(serverInfo['final-settings']['cljfmt']);
+    calvaFmtConfig.setLspFormatConfig({
+        'remove-surrounding-whitespace?': true,
+        'remove-trailing-whitespace?': true,
+        'remove-consecutive-blank-lines?': true,
+        'insert-missing-whitespace?': true,
+        'align-associative?': false,
+        'indents': { 'foo': [['inner', 0]] },
+    });
 
     client.onNotification(
         'clojure/textDocument/testTree',

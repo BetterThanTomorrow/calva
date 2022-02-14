@@ -1,4 +1,5 @@
 {
+  "calva.fmt.configPath": "CLOJURE-LSP",
   "calva.customREPLCommandSnippets": [
     {
       "name": "Double current",

@@ -317,5 +317,5 @@ bar))" :range [22 25]})))
   (is (= false
          (:align-associative? (sut/cljfmt-options {:cljfmt-string "{}"})))
       ":align-associative? is false by default")
-  (is (nil? (:foo (sut/read-cljfmt {:cljfmt-string "{:bar false}"})))
+  (is (nil? (:foo (sut/merge-cljfmt {:cljfmt-string "{:bar false}"})))
       "most keys don't have any defaults."))

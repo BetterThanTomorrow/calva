@@ -10,7 +10,8 @@
                              :formatTextAtRange calva.fmt.formatter/format-text-at-range-bridge
                              :formatTextAtIdx calva.fmt.formatter/format-text-at-idx-bridge
                              :formatTextAtIdxOnType calva.fmt.formatter/format-text-at-idx-on-type-bridge
-                             :cljfmtOptions calva.fmt.formatter/read-cljfmt-js-bridge
+                             :cljfmtOptionsFromString calva.fmt.formatter/merge-cljfmt-from-string-js-bridge
+                             :cljfmtOptions calva.fmt.formatter/merge-cljfmt-js-bridge
                              :inferIndents calva.fmt.inferer/infer-indents-bridge
                              :inferParens calva.fmt.inferer/infer-parens-bridge
                              :jsify calva.js-utils/jsify

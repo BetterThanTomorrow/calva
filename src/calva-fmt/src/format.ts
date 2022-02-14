@@ -216,14 +216,14 @@ function _formatIndex(
     onType: boolean = false,
     extraConfig = {}
 ): { 'range-text': string; range: number[]; 'new-index': number } {
-    const d = cljify({
-            'all-text': allText,
-            idx: index,
-            eol: eol,
-            range: range,
-            config: { ...config.getConfig(), ...extraConfig },
-        }),
-        result = jsify(onType ? formatTextAtIdxOnType(d) : formatTextAtIdx(d));
+    const d = {
+        'all-text': allText,
+        idx: index,
+        eol: eol,
+        range: range,
+        config: { ...config.getConfig(), ...extraConfig },
+    };
+    const result = jsify(onType ? formatTextAtIdxOnType(d) : formatTextAtIdx(d));
     if (!result['error']) {
         return result;
     } else {

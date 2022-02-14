@@ -155,5 +155,6 @@
         "webpacked",
         "xvfb",
         "zprint"
-    ]
+    ],
+    "calva.fmt.configPath": "cljfmt.edn"
 }
