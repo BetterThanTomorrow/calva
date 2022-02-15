@@ -587,7 +587,7 @@ async function copyLastResultCommand() {
 async function togglePrettyPrint() {
     const config = vscode.workspace.getConfiguration('calva'),
         pprintConfigKey = 'prettyPrintingOptions',
-        pprintOptions = config.get(pprintConfigKey) as PrettyPrintingOptions;
+        pprintOptions = config.get<PrettyPrintingOptions>(pprintConfigKey);
     pprintOptions.enabled = !pprintOptions.enabled;
     if (
         pprintOptions.enabled &&

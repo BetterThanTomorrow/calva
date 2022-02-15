@@ -20,12 +20,10 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
     const currentColumn = editor.selection.active.character;
     const currentFilename = editor.document.fileName;
     const configErrors: { name: string; keys: string[] }[] = [];
-    const globalSnippets = getConfig()
-        .customREPLCommandSnippetsGlobal as customREPLCommandSnippet[];
-    const workspaceSnippets = getConfig()
-        .customREPLCommandSnippetsWorkspace as customREPLCommandSnippet[];
-    const workspaceFolderSnippets = getConfig()
-        .customREPLCommandSnippetsWorkspaceFolder as customREPLCommandSnippet[];
+    const globalSnippets = getConfig().customREPLCommandSnippetsGlobal;
+    const workspaceSnippets = getConfig().customREPLCommandSnippetsWorkspace;
+    const workspaceFolderSnippets =
+        getConfig().customREPLCommandSnippetsWorkspaceFolder;
     let snippets = [
         ...(globalSnippets ? globalSnippets : []),
         ...(workspaceSnippets ? workspaceSnippets : []),
