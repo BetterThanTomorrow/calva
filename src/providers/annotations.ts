@@ -101,7 +101,7 @@ function clearEvaluationDecorations(editor?: vscode.TextEditor) {
             editor.document.uri + ':resultDecorationRanges'
         );
         setResultDecorations(editor, []);
-        for (const status in [
+        for (const status of [
             AnnotationStatus.PENDING,
             AnnotationStatus.SUCCESS,
             AnnotationStatus.ERROR,

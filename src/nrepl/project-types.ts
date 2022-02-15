@@ -550,7 +550,7 @@ async function cljCommandLine(
             parsed && parsed.aliases != undefined
                 ? Object.keys(parsed.aliases)
                 : [];
-        for (const a in projectAliases) {
+        for (const a of projectAliases) {
             const aliasKey = unKeywordize(projectAliases[a]);
             if (parsed && parsed.aliases) {
                 const alias = parsed.aliases[aliasKey];
