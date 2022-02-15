@@ -249,7 +249,7 @@ async function evalConnectCode(
     const chan = state.connectionLogChannel();
     const err = [],
         out = [],
-        result = await newCljsSession.eval(code, 'user', {
+        result = newCljsSession.eval(code, 'user', {
             stdout: (x) => {
                 out.push(util.stripAnsi(x));
                 chan.append(util.stripAnsi(x));
