@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 - [Print stacktrace link in REPL gets duplicated](https://github.com/BetterThanTomorrow/calva/issues/1542)
 - [Publish pre-releases when dev updates](https://github.com/BetterThanTomorrow/calva/issues/1554)
+- [Apply basic typescript eslint rules](https://github.com/BetterThanTomorrow/calva/issues/1536)
 
 ## [2.0.244] - 2022-02-20
 - [Add custom hover snippets](https://github.com/BetterThanTomorrow/calva/issues/1471)
