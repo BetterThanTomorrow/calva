@@ -33,6 +33,7 @@ module.exports = {
         'prefer-spread': ['error'],
         'array-callback-return': ['error'],
         'no-constructor-return': ['error'],
+        '@typescript-eslint/no-inferrable-types': 'off',
 
         // 'no-unused-vars': 'off',
         // '@typescript-eslint/no-unused-vars': [
@@ -51,7 +52,6 @@ module.exports = {
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
         // '@typescript-eslint/no-for-in-array': 'off',
-        '@typescript-eslint/no-inferrable-types': 'off',
         '@typescript-eslint/no-misused-promises': 'off',
         '@typescript-eslint/no-non-null-assertion': 'off',
         '@typescript-eslint/no-this-alias': 'off',
