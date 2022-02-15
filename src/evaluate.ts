@@ -613,7 +613,7 @@ async function toggleEvaluationSendCodeToOutputWindow() {
     statusbar.update();
 }
 
-async function instrumentTopLevelForm() {
+function instrumentTopLevelForm() {
     evaluateSelection(
         {},
         {

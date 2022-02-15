@@ -115,7 +115,7 @@ async function connectToHost(
         );
         replSession.updateReplSessionType();
 
-        await initializeDebugger(cljSession);
+        initializeDebugger(cljSession);
 
         outputWindow.setSession(cljSession, nClient.ns);
 
@@ -168,7 +168,7 @@ async function connectToHost(
                     .send();
             }
             if (cljsSession) {
-                await setUpCljsRepl(cljsSession, cljsBuild);
+                setUpCljsRepl(cljsSession, cljsBuild);
             }
         } catch (e) {
             outputWindow.append('; Error while connecting cljs REPL: ' + e);
@@ -190,7 +190,7 @@ async function connectToHost(
     return true;
 }
 
-async function setUpCljsRepl(session, build) {
+function setUpCljsRepl(session, build) {
     setStateValue('cljs', session);
     status.update();
     outputWindow.append(
@@ -866,7 +866,7 @@ export default {
             cljTypeName
         );
         if (session) {
-            await setUpCljsRepl(session, build);
+            setUpCljsRepl(session, build);
         }
         status.update();
     },

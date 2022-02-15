@@ -407,7 +407,7 @@ function stackEntryString(entry: any): string {
     return `${name} (${entry.file}:${entry.line})`;
 }
 
-export async function saveStacktrace(stacktrace: any[]): Promise<void> {
+export function saveStacktrace(stacktrace: any[]): void {
     _lastStacktrace = [];
     stacktrace
         .filter((entry) => {

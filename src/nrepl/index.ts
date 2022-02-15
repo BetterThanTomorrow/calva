@@ -245,7 +245,7 @@ export class NReplSession {
         });
     }
 
-    async _defaultMessageHandler(msgData: any) {
+    _defaultMessageHandler(msgData: any) {
         if (msgData['repl-type']) {
             this.replType = msgData['repl-type'];
         }
@@ -278,14 +278,7 @@ export class NReplSession {
                 delete this.messageHandlers[data.id];
             }
         } else {
-            this._defaultMessageHandler(data).then(
-                () => {
-                    // do nothing
-                },
-                () => {
-                    // do nothing
-                }
-            );
+            this._defaultMessageHandler(data);
         }
     }
 

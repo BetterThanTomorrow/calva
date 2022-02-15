@@ -216,7 +216,7 @@ export async function startStandaloneRepl(
     });
 }
 
-export async function startOrConnectRepl() {
+export function startOrConnectRepl() {
     const JACK_IN_OPTION =
         'Start your project with a REPL and connect (a.k.a. Jack-in)';
     const JACK_IN_COMMAND = 'calva.jackIn';

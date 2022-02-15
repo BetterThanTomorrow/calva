@@ -53,7 +53,7 @@ function getGlobalJackInEnv() {
     };
 }
 
-async function executeJackInTask(
+function executeJackInTask(
     terminalOptions: JackInTerminalOptions,
     connectSequence: ReplConnectSequence,
     cb?: () => unknown
@@ -303,7 +303,7 @@ export async function jackIn(
             projectConnectSequence
         );
         if (terminalJackInOptions) {
-            await executeJackInTask(
+            executeJackInTask(
                 terminalJackInOptions,
                 projectConnectSequence,
                 cb
@@ -333,7 +333,7 @@ export async function jackInCommand(connectSequence?: ReplConnectSequence) {
     await jackIn(connectSequence);
 }
 
-export async function calvaDisconnect() {
+export function calvaDisconnect() {
     if (utilities.getConnectedState()) {
         connector.default.disconnect();
         return;

@@ -176,7 +176,7 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
     }
 }
 
-async function findLocalProjectRoot(
+function findLocalProjectRoot(
     projectFileNames,
     doc,
     workspaceFolder
