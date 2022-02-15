@@ -643,7 +643,9 @@ export async function evaluateInOutputWindow(
         if (outputWindow.getNs() !== ns) {
             await session.eval(`(in-ns '${ns})`, session.client.ns).value;
             outputWindow.setSession(session, ns);
-            outputWindow.appendPrompt();
+            if (options.evaluationSendCodeToOutputWindow !== false) {
+                outputWindow.appendPrompt();
+            }
         }
 
         return await evaluateCode(code, {

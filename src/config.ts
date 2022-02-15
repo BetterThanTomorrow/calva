@@ -4,6 +4,7 @@ import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
 import { parseEdn } from '../out/cljs-lib/cljs-lib';
 import * as state from './state';
+import _ = require('lodash');
 
 const REPL_FILE_EXT = 'calva-repl';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
@@ -41,6 +42,17 @@ async function readEdnWorkspaceConfig(uri?: vscode.Uri) {
     }
 }
 
+function mergeSnippets(
+    oldSnippets: customREPLCommandSnippet[],
+    newSnippets: customREPLCommandSnippet[]
+): customREPLCommandSnippet[] {
+    return newSnippets.concat(
+        _.remove(oldSnippets, (item) =>
+            _.findIndex(newSnippets, (newItem) => item.name === newItem.name)
+        )
+    );
+}
+
 /**
  * Saves the EDN config in the state to be merged into the actual vsconfig.
  * Currently only `:customREPLCommandSnippets` is supported and the `:snippet` has to be a string.
@@ -51,29 +63,17 @@ async function addEdnConfig(data: string) {
     try {
         const parsed = parseEdn(data);
         const old = state.getProjectConfig();
-        if (old && old.customREPLCommandSnippets) {
-            state.setProjectConfig({
-                customREPLCommandSnippets: old.customREPLCommandSnippets.concat(
-                    parsed?.customREPLCommandSnippets ?? []
-                ),
-            });
-        } else {
-            state.setProjectConfig({
-                customREPLCommandSnippets:
-                    parsed?.customREPLCommandSnippets ?? [],
-            });
-        }
-        if (old && old.customREPLHoverSnippets) {
-            state.setProjectConfig({
-                customREPLHoverSnippets: old.customREPLHoverSnippets.concat(
-                    parsed?.customREPLHoverSnippets ?? []
-                ),
-            });
-        } else {
-            state.setProjectConfig({
-                customREPLHoverSnippets: parsed?.customREPLHoverSnippets ?? [],
-            });
-        }
+
+        state.setProjectConfig({
+            customREPLCommandSnippets: mergeSnippets(
+                old?.customREPLCommandSnippets ?? [],
+                parsed?.customREPLCommandSnippets ?? []
+            ),
+            customREPLHoverSnippets: mergeSnippets(
+                old?.customREPLHoverSnippets ?? [],
+                parsed?.customREPLHoverSnippets ?? []
+            ),
+        });
     } catch (error) {
         return error;
     }
@@ -138,10 +138,9 @@ function getConfig() {
         asyncOutputDestination: configOptions.get(
             'sendAsyncOutputTo'
         ) as string,
-        customREPLCommandSnippets: configOptions.get(
-            'customREPLCommandSnippets',
-            []
-        ),
+        customREPLCommandSnippets: configOptions.get<
+            customREPLCommandSnippet[]
+        >('customREPLCommandSnippets', []),
         customREPLCommandSnippetsGlobal: configOptions.inspect(
             'customREPLCommandSnippets'
         ).globalValue as customREPLCommandSnippet[],

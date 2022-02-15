@@ -143,7 +143,7 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
         tail: getText.toEndOfList(editor?.document)[1],
         ...getText.currentContext(editor.document, editor.selection.active),
     };
-    let result = await evaluateSnippet({ snippet: code }, context, options);
+    const result = await evaluateSnippet({ snippet: code }, context, options);
 
     outputWindow.appendPrompt();
 

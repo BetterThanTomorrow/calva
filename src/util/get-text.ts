@@ -116,15 +116,23 @@ export function toEndOfList(doc: vscode.TextDocument): SelectionAndText {
     return fromFn(doc, paredit.rangeToForwardList);
 }
 
-export function currentContext(document: vscode.TextDocument, pos: vscode.Position, prefix = "") {
-    const result = {}
-    result[prefix +  "currentForm"] = currentFormText(document, pos)[1];
-    result[prefix +  "enclosingForm"] = currentEnclosingFormText(document, pos)[1];
-    result[prefix +  "topLevelForm"] = currentTopLevelFormText(document, pos)[1];
-    result[prefix +  "currentFn"] = currentFunction(document)[1];
-    result[prefix +  "topLevelDefinedForm"] = currentTopLevelFunction(document)[1];
-    result[prefix +  "head"] = toStartOfList(document)[1];
-    result[prefix +  "tail"] = toEndOfList(document)[1];
+export function currentContext(
+    document: vscode.TextDocument,
+    pos: vscode.Position,
+    prefix = ''
+) {
+    const result = {};
+    result[prefix + 'currentForm'] = currentFormText(document, pos)[1];
+    result[prefix + 'enclosingForm'] = currentEnclosingFormText(
+        document,
+        pos
+    )[1];
+    result[prefix + 'topLevelForm'] = currentTopLevelFormText(document, pos)[1];
+    result[prefix + 'currentFn'] = currentFunction(document)[1];
+    result[prefix + 'topLevelDefinedForm'] =
+        currentTopLevelFunction(document)[1];
+    result[prefix + 'head'] = toStartOfList(document)[1];
+    result[prefix + 'tail'] = toEndOfList(document)[1];
 
     return result;
 }
