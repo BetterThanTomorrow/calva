@@ -279,8 +279,12 @@ export class NReplSession {
             }
         } else {
             this._defaultMessageHandler(data).then(
-                () => {},
-                () => {}
+                () => {
+                    // do nothing
+                },
+                () => {
+                    // do nothing
+                }
             );
         }
     }
@@ -668,7 +672,9 @@ export class NReplSession {
             });
             this._runningIds = [];
             ids.forEach((id, index) => {
-                this.interrupt(id).catch((e) => {});
+                this.interrupt(id).catch((e) => {
+                    // do nothing
+                });
             });
             return ids.length;
         }
@@ -905,7 +911,9 @@ export class NReplEvaluation {
             this._interrupted = true;
             this._exception = 'Evaluation was interrupted';
             this._stacktrace = {};
-            this.session.interrupt(this.id).catch(() => {});
+            this.session.interrupt(this.id).catch(() => {
+                // do nothing
+            });
             this.doReject(this.exception);
             // make sure the message handler is removed.
             delete this.session.messageHandlers[this.id];

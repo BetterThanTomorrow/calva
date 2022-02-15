@@ -43,13 +43,17 @@ class TestTreeFeature implements StaticFeature {
     initialize(
         capabilities: ServerCapabilities,
         documentSelector: DocumentSelector | undefined
-    ): void {}
+    ): void {
+        // do nothing
+    }
 
     fillClientCapabilities(capabilities: ClientCapabilities): void {
         capabilities.experimental = { testTree: true };
     }
 
-    dispose(): void {}
+    dispose(): void {
+        // do nothing
+    }
 }
 
 function createClient(clojureLspPath: string): LanguageClient {

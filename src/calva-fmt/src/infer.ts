@@ -147,4 +147,6 @@ function applyResults(r: ResultOptions, editor: vscode.TextEditor) {
     }
 }
 
-export function updateState(editor: vscode.TextEditor) {}
+export function updateState(editor: vscode.TextEditor) {
+    // do nothing
+}

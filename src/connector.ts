@@ -228,7 +228,9 @@ async function getFigwheelMainBuilds() {
 /**
  * ! DO it later
  */
-function getFigwheelBuilds() {}
+function getFigwheelBuilds() {
+    // do nothing
+}
 
 type checkConnectedFn = (value: string, out: any[], err: any[]) => boolean;
 type processOutputFn = (output: string) => void;
@@ -752,7 +754,9 @@ async function standaloneConnect(
                 `${connectSequence.name} + ${cljsTypeName}`
             )
             .send();
-        await connect(connectSequence, false).catch(() => {});
+        await connect(connectSequence, false).catch(() => {
+            // do nothing
+        });
     } else {
         outputWindow.append(
             '; Aborting connect, error determining connect sequence.'
@@ -789,7 +793,12 @@ export default {
             );
         standaloneConnect(context, connectSequence);
     },
-    disconnect: (options = null, callback = () => {}) => {
+    disconnect: (
+        options = null,
+        callback = () => {
+            // do nothing
+        }
+    ) => {
         status.updateNeedReplUi(false);
         ['clj', 'cljs'].forEach((sessionType) => {
             setStateValue(sessionType, null);

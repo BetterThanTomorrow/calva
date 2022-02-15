@@ -439,7 +439,9 @@ export function activate(context: ExtensionContext) {
     );
 }
 
-export function deactivate() {}
+export function deactivate() {
+    // do nothing
+}
 
 export const onPareditKeyMapChanged: Event<string> =
     onPareditKeyMapChangedEmitter.event;

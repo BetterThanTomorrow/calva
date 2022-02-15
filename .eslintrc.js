@@ -47,7 +47,7 @@ module.exports = {
 
         // '@typescript-eslint/await-thenable': 'off',
         // '@typescript-eslint/ban-types': 'off',
-        '@typescript-eslint/no-empty-function': 'off',
+        // '@typescript-eslint/no-empty-function': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-for-in-array': 'off',
