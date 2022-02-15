@@ -525,7 +525,7 @@ function createCLJSReplType(
                             [startAppNowProcessor, printThisPrinter],
                             [allPrinter]
                         );
-                        if (result) {
+                        if (await result) {
                             startedBuilds = builds;
                         }
                         return result;

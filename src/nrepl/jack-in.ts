@@ -72,14 +72,17 @@ async function executeJackInTask(
     try {
         jackInPTY = new JackInTerminal(
             terminalOptions,
-            async (_p, hostname: string, port: string) => {
+            (_p, hostname: string, port: string) => {
                 utilities.setLaunchingState(null);
-                await connector.connect(connectSequence, true, hostname, port);
-                outputWindow.append('; Jack-in done.');
-                outputWindow.appendPrompt();
-                if (cb) {
-                    cb();
-                }
+                connector
+                    .connect(connectSequence, true, hostname, port)
+                    .then(() => {
+                        outputWindow.append('; Jack-in done.');
+                        outputWindow.appendPrompt();
+                        if (cb) {
+                            cb();
+                        }
+                    });
             },
             (errorMessage) => {
                 outputWindow.append(

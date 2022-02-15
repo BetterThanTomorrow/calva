@@ -193,9 +193,9 @@ export async function startStandaloneRepl(
         tempDirUri,
         config.files[0]
     );
-    config.files.slice(1).forEach(async (file) => {
+    for (const file of config.files.slice(1)) {
         await openStoredDoc(storageUri, tempDirUri, file);
-    });
+    }
     const firstPos = mainEditor.document.positionAt(0);
     mainEditor.selection = new vscode.Selection(firstPos, firstPos);
     mainEditor.revealRange(new vscode.Range(firstPos, firstPos));
