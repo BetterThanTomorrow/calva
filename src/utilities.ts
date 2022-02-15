@@ -365,26 +365,6 @@ async function promptForUserInputString(prompt: string): Promise<string> {
     });
 }
 
-function debounce(func, wait, immediate, ...rest) {
-    let timeout;
-    return function () {
-        const context = this,
-            args = [func, wait, immediate, ...rest];
-        const later = function () {
-            timeout = null;
-            if (!immediate) {
-                func.apply(context, args);
-            }
-        };
-        const callNow = immediate && !timeout;
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-        if (callNow) {
-            func.apply(context, args);
-        }
-    };
-}
-
 function filterVisibleRanges(
     editor: vscode.TextEditor,
     ranges: vscode.Range[],
@@ -592,7 +572,6 @@ export {
     quickPickSingle,
     quickPickMulti,
     promptForUserInputString,
-    debounce,
     filterVisibleRanges,
     scrollToBottom,
     getFileContents,
