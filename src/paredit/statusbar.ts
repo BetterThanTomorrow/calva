@@ -4,12 +4,12 @@ import statusbar from '../statusbar';
 import * as paredit from './extension';
 
 export class StatusBar {
-    private _visible: Boolean;
-    private _keyMap: String;
+    private _visible: boolean;
+    private _keyMap: string;
 
     private _toggleBarItem: StatusBarItem;
 
-    constructor(keymap: String) {
+    constructor(keymap: string) {
         this._toggleBarItem = window.createStatusBarItem(
             StatusBarAlignment.Right
         );
@@ -28,7 +28,7 @@ export class StatusBar {
         return this._keyMap;
     }
 
-    set keyMap(keymap: String) {
+    set keyMap(keymap: string) {
         this._keyMap = keymap;
         this.updateUIState();
     }
@@ -56,11 +56,11 @@ export class StatusBar {
         }
     }
 
-    get visible(): Boolean {
+    get visible(): boolean {
         return this._visible;
     }
 
-    set visible(value: Boolean) {
+    set visible(value: boolean) {
         if (value) {
             this._toggleBarItem.show();
         } else {

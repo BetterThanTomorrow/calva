@@ -96,7 +96,7 @@ export function startOFileToCursor(doc: vscode.TextDocument): SelectionAndText {
 
 function fromFn(
     doc: vscode.TextDocument,
-    cursorDocFn: Function
+    cursorDocFn: (doc: EditableDocument, offset?: number) => [number, number]
 ): SelectionAndText {
     if (doc) {
         const cursorDoc = docMirror.getDocument(doc);

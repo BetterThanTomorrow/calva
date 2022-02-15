@@ -171,12 +171,14 @@ function getWordAtPosition(document, position) {
     return text;
 }
 
-function getDocument(document): vscode.TextDocument {
+function getDocument(
+    document: vscode.TextDocument | Record<string, never>
+): vscode.TextDocument {
     if (
         document &&
         Object.prototype.hasOwnProperty.call(document, 'fileName')
     ) {
-        return document;
+        return document as vscode.TextDocument;
     } else if (
         vscode.window.activeTextEditor &&
         vscode.window.activeTextEditor.document &&
@@ -220,7 +222,7 @@ function getConnectedState() {
     return cljsLib.getStateValue('connected');
 }
 
-function setConnectedState(value: Boolean) {
+function setConnectedState(value: boolean) {
     vscode.commands.executeCommand('setContext', 'calva:connected', value);
     cljsLib.setStateValue('connected', value);
 }
@@ -229,7 +231,7 @@ function getConnectingState() {
     return cljsLib.getStateValue('connecting');
 }
 
-function setConnectingState(value: Boolean) {
+function setConnectingState(value: boolean) {
     if (value) {
         vscode.commands.executeCommand('setContext', 'calva:connecting', true);
         cljsLib.setStateValue('connecting', true);

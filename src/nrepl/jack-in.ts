@@ -56,7 +56,7 @@ function getGlobalJackInEnv() {
 async function executeJackInTask(
     terminalOptions: JackInTerminalOptions,
     connectSequence: ReplConnectSequence,
-    cb?: Function
+    cb?: () => unknown
 ) {
     utilities.setLaunchingState(connectSequence.name);
     statusbar.update();
@@ -260,7 +260,7 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
 
 export async function jackIn(
     connectSequence: ReplConnectSequence,
-    cb?: Function
+    cb?: () => unknown
 ) {
     try {
         await liveShareSupport.setupLiveShareListener();

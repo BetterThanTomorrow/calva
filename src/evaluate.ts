@@ -252,9 +252,11 @@ async function evaluateCode(
     return result;
 }
 
-async function evaluateSelection(document: {}, options) {
+async function evaluateSelection(document = {}, options) {
     const doc = util.getDocument(document);
-    const selectionFn: Function = options.selectionFn;
+    const selectionFn: (
+        editor: vscode.TextEditor
+    ) => [vscode.Selection, string] = options.selectionFn;
 
     if (getStateValue('connected')) {
         const editor = vscode.window.activeTextEditor;

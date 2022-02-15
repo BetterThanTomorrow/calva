@@ -16,8 +16,8 @@ export type ProjectType = {
     cljsTypes: string[];
     cmd: string[];
     winCmd: string[];
-    resolveBundledPathWin?: Function;
-    resolveBundledPathUnix?: Function;
+    resolveBundledPathWin?: () => string;
+    resolveBundledPathUnix?: () => string;
     processShellWin: boolean;
     processShellUnix: boolean;
     commandLine: (

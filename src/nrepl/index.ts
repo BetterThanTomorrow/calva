@@ -761,11 +761,11 @@ export class NReplEvaluation {
 
     private _pprintOut: string;
 
-    private _outPut: String;
+    private _outPut: string;
 
-    private _errorOutput: String;
+    private _errorOutput: string;
 
-    private _exception: String;
+    private _exception: string;
 
     private _stacktrace: any;
 

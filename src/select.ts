@@ -43,7 +43,15 @@ function getEnclosingFormSelection(
     }
 }
 
-function selectForm(document = {}, selectionFn: Function, args?: any[]) {
+function selectForm(
+    document = {},
+    selectionFn: (
+        doc: vscode.TextDocument,
+        pos: vscode.Position,
+        ...topLevel: any
+    ) => vscode.Selection,
+    args?: any[]
+) {
     const editor = vscode.window.activeTextEditor,
         doc = util.getDocument(document),
         selection = editor.selection;
