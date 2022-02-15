@@ -7,7 +7,7 @@ import * as pprint from '../printer';
 import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
-const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
+import { parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
 
 export const isWin = /^win/.test(process.platform);
 

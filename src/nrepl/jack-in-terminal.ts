@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as child from 'child_process';
-const kill = require('tree-kill');
+import * as kill from 'tree-kill';
 import * as outputWindow from '../results-output/results-doc';
 
 export interface JackInTerminalOptions extends vscode.TerminalOptions {
