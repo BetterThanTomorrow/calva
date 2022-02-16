@@ -101,7 +101,7 @@ There are three ways to bind shortcuts to custom commands:
 
 Calva supports custom snippets that will display their result inside the tooltip. They will only work when connected to a repl, since they eval code in it.
 This is mostly useful for tooling authors that want to integrate with calva.
-Be careful with these, since they will be executed anytime Calva displays a tooltip. So they should be fast and probably not have any sideeffects.
+Be careful with these, since they will be executed anytime Calva displays a tooltip. So they should be fast and probably not have any side effects.
 
 The hover snippets accept the same inputs as the Custom REPL Commands, except for the hotkey:
 
@@ -116,7 +116,7 @@ The hover snippets accept the same inputs as the Custom REPL Commands, except fo
     ]
 ```
 
-With this setting anything the mouse is over will be also shown inside it's tooltip.
+With this setting anything the mouse is over will also be shown inside its tooltip.
 There are now also `hover-` versions of most substitutions. Those currently only work inside the hover snippets.
 
 ## config.edn
