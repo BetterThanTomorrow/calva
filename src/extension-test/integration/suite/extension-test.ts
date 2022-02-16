@@ -41,8 +41,8 @@ suite('Extension Test Suite', () => {
     //   expect(vscode.window.activeTextEditor).undefined;
     // });
 
-    test('connect to repl', async function () {
-        console.log('connect to repl');
+    test('start repl and connect (jack-in)', async function () {
+        console.log('start repl and connect (jack-in)');
         const testUri = path.join(testUtil.testDataDir, 'test.clj');
         await openFile(testUri);
         console.log('file opened');
