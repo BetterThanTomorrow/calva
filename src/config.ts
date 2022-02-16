@@ -47,8 +47,13 @@ function mergeSnippets(
     newSnippets: customREPLCommandSnippet[]
 ): customREPLCommandSnippet[] {
     return newSnippets.concat(
-        _.reject(oldSnippets, (item) =>
-            _.findIndex(newSnippets, (newItem) => item.name === newItem.name) !== -1
+        _.reject(
+            oldSnippets,
+            (item) =>
+                _.findIndex(
+                    newSnippets,
+                    (newItem) => item.name === newItem.name
+                ) !== -1
         )
     );
 }
