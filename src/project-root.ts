@@ -25,7 +25,7 @@ export async function findProjectRootUri(
     doc: vscode.TextDocument,
     workspaceFolder: vscode.WorkspaceFolder
 ): Promise<vscode.Uri> {
-    let searchUri = doc.uri || workspaceFolder.uri;
+    let searchUri = doc?.uri || workspaceFolder?.uri;
     if (searchUri && !(searchUri.scheme === 'untitled')) {
         let prev: vscode.Uri;
         while (searchUri != prev) {
