@@ -96,3 +96,45 @@ There are three ways to bind shortcuts to custom commands:
     * One of `tab`, `backspace`, `,`, `.`, or `-` 
 2. Bind `calva.runCustomREPLCommand` to a shortcut with whatever code you want to evaluate in `args` key. You have access to the substitution variables here as well.
 3. Bind `calva.runCustomREPLCommand` to a keyboard shortcut referencing the `key` of one of your `calva.customREPLCommandSnippets`. (If not using any of the `key`s mentioned in **1.**)
+
+## Custom REPL hover snippets
+
+Calva supports custom snippets that will display their result inside the tooltip. They will only work when connected to a repl, since they eval code in it.
+This is mostly useful for tooling authors that want to integrate with calva.
+Be careful with these, since they will be executed anytime Calva displays a tooltip. So they should be fast and probably not have any side effects.
+
+The hover snippets accept the same inputs as the Custom REPL Commands, except for the hotkey:
+
+```json
+    "calva.customREPLHoverSnippets": [
+        {
+            "name": "eval text on hover",
+            "repl": "clj",
+            "ns": "example.app",
+            "snippet": "(str \"$hover-text\")"
+        }
+    ]
+```
+
+With this setting anything the mouse is over will also be shown inside its tooltip.
+There are now also `hover-` versions of most substitutions. Those currently only work inside the hover snippets.
+
+## config.edn
+
+Your project can have a `.calva/config.edn` file that holds a map with calva configs. Currently only `:customREPLCommandSnippets` and `:customREPLHoverSnippets` get loaded.
+These will not get synced through vscode settings sync.
+
+## Snippets inside deps
+
+A new experimental feature lets library authors ship snippets inside their jar files. These accept the same options as above but should be placed in "resources/calva.exports/config.edn" inside the jar.
+
+```edn
+{:customREPLCommandSnippets 
+ [{:name "edn test"
+   :key "a"
+   :snippet "($current-form)"}]
+ :customREPLHoverSnippets
+ [{:name "edn hover"
+   :snippet "(str \"$hover-tex\")"}]
+ }
+```

@@ -10,11 +10,11 @@ import * as replSession from './nrepl/repl-session';
 import * as evaluate from './evaluate';
 import * as state from './state';
 
-export async function evaluateCustomCodeSnippetCommand(codeOrKey?: string) {
-    await evaluateCustomCodeSnippet(codeOrKey);
+async function evaluateCustomCodeSnippetCommand(codeOrKey?: string) {
+    await evaluateCodeOrKey(codeOrKey);
 }
 
-async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
+async function evaluateCodeOrKey(codeOrKey?: string) {
     const editor = vscode.window.activeTextEditor;
     const currentLine = editor.selection.active.line;
     const currentColumn = editor.selection.active.character;
@@ -102,28 +102,6 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
     const code = pick !== undefined ? snippetsDict[pick].snippet : codeOrKey;
     const ns = pick !== undefined ? snippetsDict[pick].ns : editorNS;
     const repl = pick !== undefined ? snippetsDict[pick].repl : editorRepl;
-    const interpolatedCode = code
-        .replace(/\$line/g, currentLine)
-        .replace(/\$column/g, currentColumn)
-        .replace(/\$file/g, currentFilename)
-        .replace(/\$ns/g, ns)
-        .replace(/\$selection/g, editor.document.getText(editor.selection))
-        .replace(/\$current-form/g, getText.currentFormText(editor)[1])
-        .replace(
-            /\$enclosing-form/g,
-            getText.currentEnclosingFormText(editor)[1]
-        )
-        .replace(
-            /\$top-level-form/g,
-            getText.currentTopLevelFormText(editor)[1]
-        )
-        .replace(/\$current-fn/g, getText.currentFunction(editor)[1])
-        .replace(
-            /\$top-level-defined-symbol/g,
-            getText.currentTopLevelFunction(editor)[1]
-        )
-        .replace(/\$head/g, getText.toStartOfList(editor)[1])
-        .replace(/\$tail/g, getText.toEndOfList(editor)[1]);
 
     const options = {};
 
@@ -138,6 +116,82 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
                 : undefined;
     }
 
-    await evaluate.evaluateInOutputWindow(interpolatedCode, repl, ns, options);
+    const context = {
+        currentLine,
+        currentColumn,
+        currentFilename,
+        ns,
+        repl,
+        selection: editor.document.getText(editor.selection),
+        currentForm: getText.currentFormText(
+            editor?.document,
+            editor?.selection.active
+        )[1],
+        enclosingForm: getText.currentEnclosingFormText(
+            editor.document,
+            editor?.selection.active
+        )[1],
+        topLevelForm: getText.currentTopLevelFormText(
+            editor?.document,
+            editor?.selection.active
+        )[1],
+        currentFn: getText.currentFunction(editor?.document)[1],
+        topLevelDefinedForm: getText.currentTopLevelFunction(
+            editor?.document
+        )[1],
+        head: getText.toStartOfList(editor?.document)[1],
+        tail: getText.toEndOfList(editor?.document)[1],
+        ...getText.currentContext(editor.document, editor.selection.active),
+    };
+    const result = await evaluateSnippet({ snippet: code }, context, options);
+
     outputWindow.appendPrompt();
+
+    return result;
 }
+
+async function evaluateSnippet(snippet, context, options) {
+    const code = snippet.snippet;
+    const ns = snippet.ns ?? context.ns;
+    const repl = snippet.repl ?? context.repl;
+    const interpolatedCode = interpolateCode(code, context);
+    return await evaluate.evaluateInOutputWindow(
+        interpolatedCode,
+        repl,
+        ns,
+        options
+    );
+}
+
+function interpolateCode(code: string, context): string {
+    return code
+        .replace(/\$line/g, context.currentLine)
+        .replace(/\$hover-line/g, context.hoverLine)
+        .replace(/\$column/g, context.currentColumn)
+        .replace(/\$hover-column/g, context.hoverColumn)
+        .replace(/\$file/g, context.currentFilename)
+        .replace(/\$hover-file/g, context.hoverFilename)
+        .replace(/\$ns/g, context.ns)
+        .replace(/\$repl/g, context.repl)
+        .replace(/\$selection/g, context.selection)
+        .replace(/\$hover-text/g, context.hoverText)
+        .replace(/\$current-form/g, context.currentForm)
+        .replace(/\$enclosing-form/g, context.enclosingForm)
+        .replace(/\$top-level-form/g, context.topLevelForm)
+        .replace(/\$current-fn/g, context.currentFn)
+        .replace(/\$top-level-defined-symbol/g, context.topLevelDefinedForm)
+        .replace(/\$head/g, context.head)
+        .replace(/\$tail/g, context.tail)
+        .replace(/\$hover-current-form/g, context.hovercurrentForm)
+        .replace(/\$hover-enclosing-form/g, context.hoverenclosingForm)
+        .replace(/\$hover-top-level-form/g, context.hovertopLevelForm)
+        .replace(/\$hover-current-fn/g, context.hovercurrentFn)
+        .replace(
+            /\$hover-top-level-defined-symbol/g,
+            context.hovertopLevelDefinedForm
+        )
+        .replace(/\$hover-head/g, context.hoverhead)
+        .replace(/\$hover-tail/g, context.hovertail);
+}
+
+export { evaluateCustomCodeSnippetCommand, evaluateSnippet };
