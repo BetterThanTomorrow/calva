@@ -432,17 +432,7 @@ async function startClient(
     const serverInfo = await getServerInfo(client);
     serverVersion = serverInfo['server-version'];
     sayClientVersionInfo(serverVersion, serverInfo);
-    // TODO: Remove this hardcode when the indents issue is fixed in clojure-lsp
-    // https://github.com/clojure-lsp/clojure-lsp/issues/763
-    // calvaFmtConfig.setLspFormatConfig(serverInfo['final-settings']['cljfmt']);
-    calvaFmtConfig.setLspFormatConfig({
-        'remove-surrounding-whitespace?': true,
-        'remove-trailing-whitespace?': true,
-        'remove-consecutive-blank-lines?': true,
-        'insert-missing-whitespace?': true,
-        'align-associative?': false,
-        'indents': { 'foo': [['inner', 0]] },
-    });
+    calvaFmtConfig.setLspFormatConfig(serverInfo['cljfmt-raw']);
 
     client.onNotification(
         'clojure/textDocument/testTree',

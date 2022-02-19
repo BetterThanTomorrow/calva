@@ -3,11 +3,11 @@
  :remove-consecutive-blank-lines? true
  :insert-missing-whitespace? true
  :align-associative? true
- :indents ^:replace {foo [[:inner 0]]
-                     #"bar" [[:inner 0]]}
+ :indents  {#"fooa?$" [[:inner 0]]
+            #"bar" [[:block 0]]}
 
- :test (foo 1
-         2
-         {:a a
-          :aa a
-          :bbb bbb})}
+ :test (foob 1
+             2
+             {:a a
+              :aa a
+              :bbb bbb})}

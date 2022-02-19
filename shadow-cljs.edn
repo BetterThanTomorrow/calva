@@ -11,7 +11,6 @@
                              :formatTextAtIdx calva.fmt.formatter/format-text-at-idx-bridge
                              :formatTextAtIdxOnType calva.fmt.formatter/format-text-at-idx-on-type-bridge
                              :cljfmtOptionsFromString calva.fmt.formatter/merge-cljfmt-from-string-js-bridge
-                             :cljfmtOptions calva.fmt.formatter/merge-cljfmt-js-bridge
                              :inferIndents calva.fmt.inferer/infer-indents-bridge
                              :inferParens calva.fmt.inferer/infer-parens-bridge
                              :jsify calva.js-utils/jsify

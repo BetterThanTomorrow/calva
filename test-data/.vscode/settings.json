@@ -1,5 +1,5 @@
 {
-  "calva.fmt.configPath": "CLOJURE-LSP",
+  "calva.fmt.configPath": "projects/pirate-lang/.cljfmt.edn",
   "calva.customREPLCommandSnippets": [
     {
       "name": "Double current",

@@ -1,9 +1,6 @@
 import * as vscode from 'vscode';
 import * as filesCache from '../../files-cache';
-import {
-    cljfmtOptionsFromString,
-    cljfmtOptions,
-} from '../../../out/cljs-lib/cljs-lib.js';
+import * as cljsLib from '../../../out/cljs-lib/cljs-lib.js';
 
 const defaultCljfmtContent =
     '\
@@ -14,11 +11,11 @@ const defaultCljfmtContent =
  :align-associative? false}';
 
 const LSP_CONFIG_KEY = 'CLOJURE-LSP';
-let lspFormatConfig: Object;
+let lspFormatConfig: string;
 
 function configuration(
     workspaceConfig: vscode.WorkspaceConfiguration,
-    cljfmt: string | Object
+    cljfmt: string
 ) {
     const config = {
         'format-as-you-type': workspaceConfig.get('formatAsYouType') as boolean,
@@ -26,18 +23,15 @@ function configuration(
             'keepCommentTrailParenOnOwnLine'
         ) as boolean,
     };
-    if (typeof cljfmt === 'string') {
-        config['cljfmt-options'] = cljfmtOptionsFromString(cljfmt);
-    } else {
-        config['cljfmt-options'] = cljfmtOptions(cljfmt);
-    }
+    config['cljfmt-options-string'] = cljfmt;
+    config['cljfmt-options'] = cljsLib.cljfmtOptionsFromString(cljfmt);
     return config;
 }
 
 function readConfiguration() {
     const workspaceConfig = vscode.workspace.getConfiguration('calva.fmt');
     const configPath: string = workspaceConfig.get('configPath');
-    const cljfmtContent: string | Object =
+    const cljfmtContent: string =
         configPath === LSP_CONFIG_KEY
             ? lspFormatConfig
                 ? lspFormatConfig
@@ -57,7 +51,7 @@ function readConfiguration() {
     }
 }
 
-export function setLspFormatConfig(config: Object) {
+export function setLspFormatConfig(config: string) {
     lspFormatConfig = config;
 }
 
