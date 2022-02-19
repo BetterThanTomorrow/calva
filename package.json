@@ -717,7 +717,7 @@
                 "properties": {
                     "calva.fmt.configPath": {
                         "type": "string",
-                        "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Absolute or relative to the project root directory."
+                        "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Absolute or relative to the project root directory. To provide the config via [clojure-lsp](https://clojure-lsp.io), set this to `CLOJURE-LSP` (case sensitive)."
                     },
                     "calva.fmt.formatAsYouType": {
                         "type": "boolean",
