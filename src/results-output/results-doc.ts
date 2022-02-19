@@ -295,12 +295,12 @@ export interface OnAppendedCallback {
 }
 let editQueue: [string, OnAppendedCallback][] = [];
 let applyingEdit = false;
-/* Because this function can be called several times asynchronously by the handling of incoming nrepl messages and those,
+/* Because this function can be called several times asynchronously by the handling of incoming nrepl messages,
    we should never await it, because that await could possibly not return until way later, after edits that came in from elsewhere
    are also applied, causing it to wait for several edits after the one awaited. This is due to the recursion and edit queue, which help
    apply edits one after another without issues.
 
-   If something must be done after a particular edit, use the onResultAppended callback. */
+   If something must be done after a particular edit, use the onAppended callback. */
 export function append(text: string, onAppended?: OnAppendedCallback): void {
     let insertPosition: vscode.Position;
     if (applyingEdit) {
