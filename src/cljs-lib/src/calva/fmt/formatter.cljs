@@ -38,9 +38,11 @@
       {:error (.-message e)})))
 
 (defn- reformat-string [range-text {:keys [align-associative?] :as config}]
-  (if align-associative?
-    (pez-cljfmt/reformat-string range-text (:cljfmt-options config))
-    (cljfmt/reformat-string range-text (:cljfmt-options config))))
+  (let [cljfmt-options (:cljfmt-options config)]
+    (if (or align-associative?
+            (:align-associative? cljfmt-options))
+      (pez-cljfmt/reformat-string range-text (assoc cljfmt-options :align-associative? true))
+      (cljfmt/reformat-string range-text cljfmt-options))))
 
 (defn format-text
   [{:keys [range-text eol config] :as m}]

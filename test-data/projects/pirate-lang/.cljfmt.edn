@@ -2,7 +2,7 @@
  :remove-trailing-whitespace? true
  :remove-consecutive-blank-lines? true
  :insert-missing-whitespace? true
- :align-associative? true
+ :align-associative? false
  :indents  {#"fooa?$" [[:inner 0]]
             #"bar" [[:block 0]]}
 
