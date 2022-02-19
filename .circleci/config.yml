@@ -234,7 +234,7 @@ jobs:
               GHR_CMD=ghr
             fi
             ${GHR_CMD} -t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -b "${BODY}" -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} /tmp/artifacts/
-    marketplace-publish:
+  marketplace-publish:
     docker:
       - image: circleci/node:latest
     working_directory: ~/calva
