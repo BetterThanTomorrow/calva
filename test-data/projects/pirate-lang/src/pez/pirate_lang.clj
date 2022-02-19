@@ -19,10 +19,7 @@
                      consonants)]
     {:pirate-char pirate-char
      :pirates pirates}))
-(bar 1
-  2)
-(baz 1
-     2)
+
 (defn to-pirate-talk
   [text language]
   (let [{:keys [pirate-char pirates]} (configure language)]
