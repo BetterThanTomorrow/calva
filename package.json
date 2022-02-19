@@ -2109,7 +2109,7 @@
             },
             {
                 "command": "calva-fmt.inferParens",
-                "key": "shift+tab",
+                "key": "ctrl+alt+p i",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
@@ -2119,7 +2119,7 @@
             },
             {
                 "command": "calva-fmt.tabDedent",
-                "key": "shift+ctrl+i",
+                "key": "shift+tab",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
