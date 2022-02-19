@@ -33,7 +33,8 @@ function readConfiguration() {
     const configPath: string = workspaceConfig.get('configPath');
     if (configPath === LSP_CONFIG_KEY && !lspFormatConfig) {
         vscode.window.showErrorMessage(
-            'Fetching formatting settings from clojure-lsp failed. Check that you are running a version of clojure-lsp that provides "cljfmt-raw" in serverInfo.', "Roger that"
+            'Fetching formatting settings from clojure-lsp failed. Check that you are running a version of clojure-lsp that provides "cljfmt-raw" in serverInfo.',
+            'Roger that'
         );
     }
     const cljfmtContent: string =

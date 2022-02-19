@@ -223,7 +223,9 @@ function _formatIndex(
         range: range,
         config: { ...config.getConfig(), ...extraConfig },
     };
-    const result = jsify(onType ? formatTextAtIdxOnType(d) : formatTextAtIdx(d));
+    const result = jsify(
+        onType ? formatTextAtIdxOnType(d) : formatTextAtIdx(d)
+    );
     if (!result['error']) {
         return result;
     } else {
