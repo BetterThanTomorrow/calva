@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add custom hover snippets](https://github.com/BetterThanTomorrow/calva/issues/1471)
 
 ## [2.0.243] - 2022-02-13
 - [Use vanilla cljfmt for regular formatting](https://github.com/BetterThanTomorrow/calva/pull/1179)
