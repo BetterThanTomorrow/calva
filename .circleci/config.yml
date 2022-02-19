@@ -234,7 +234,7 @@ jobs:
               GHR_CMD=ghr
             fi
             ${GHR_CMD} -t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -b "${BODY}" -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} /tmp/artifacts/
-  marketplace-publish:
+    marketplace-publish:
     docker:
       - image: circleci/node:latest
     working_directory: ~/calva
@@ -248,6 +248,26 @@ jobs:
           name: Publish to the marketplace
           command: |
             VSCE_CMD="vsce publish --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
+            if [ "${IS_LOCAL}" = YES ]
+            then
+              echo "Dry npx ${VSCE_CMD}"
+            else
+              npx ${VSCE_CMD}
+            fi
+  marketplace-preview-publish:
+    docker:
+      - image: circleci/node:latest
+    working_directory: ~/calva
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Restore build
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
+      - run:
+          name: Publish to the marketplace
+          command: |
+            VSCE_CMD="vsce publish --pre-release --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
             if [ "${IS_LOCAL}" = YES ]
             then
               echo "Dry npx ${VSCE_CMD}"
@@ -436,6 +456,20 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
+          context: Calva
+      - marketplace-preview-publish:
+          requires:
+            - prettier-check
+            - eslint-check
+            - test-grammar
+            - test-cljslib
+            - test-integration
+            - test-ts-unit
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
           context: Calva
       - marketplace-publish:
           requires:
