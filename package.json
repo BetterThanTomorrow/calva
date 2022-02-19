@@ -1776,11 +1776,6 @@
                 "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
-                "command": "calva.continueComment",
-                "key": "alt+enter",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && calva:cursorInComment && !calva:cursorAtStartOfLine"
-            },
-            {
                 "command": "paredit.togglemode",
                 "key": "ctrl+alt+p ctrl+alt+m",
                 "when": "editorLangId == clojure calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
