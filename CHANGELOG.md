@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 - [Add custom hover snippets](https://github.com/BetterThanTomorrow/calva/issues/1471)
 - [Make alt+enter evaluate top level form also within line-comments](https://github.com/BetterThanTomorrow/calva/issues/1549)
+- [Add option to read cljfmt config from clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/1545)
 
 ## [2.0.243] - 2022-02-13
 - [Use vanilla cljfmt for regular formatting](https://github.com/BetterThanTomorrow/calva/pull/1179)
