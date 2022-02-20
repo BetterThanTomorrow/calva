@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.11+insiders-4.8.2">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.1+insiders-4.8.3">
     
     
       
@@ -30,7 +30,6 @@
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
         
       
-      <link rel="preload" as="style" href="../assets/stylesheets/vendor/mermaid.53552a32.min.css">
       
     
     
@@ -851,6 +850,27 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#custom-repl-hover-snippets" class="md-nav__link">
+    Custom REPL hover snippets
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configedn" class="md-nav__link">
+    config.edn
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snippets-inside-deps" class="md-nav__link">
+    Snippets inside deps
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1650,6 +1670,27 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#custom-repl-hover-snippets" class="md-nav__link">
+    Custom REPL hover snippets
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configedn" class="md-nav__link">
+    config.edn
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snippets-inside-deps" class="md-nav__link">
+    Snippets inside deps
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1747,6 +1788,36 @@
 <li>Bind <code>calva.runCustomREPLCommand</code> to a shortcut with whatever code you want to evaluate in <code>args</code> key. You have access to the substitution variables here as well.</li>
 <li>Bind <code>calva.runCustomREPLCommand</code> to a keyboard shortcut referencing the <code>key</code> of one of your <code>calva.customREPLCommandSnippets</code>. (If not using any of the <code>key</code>s mentioned in <strong>1.</strong>)</li>
 </ol>
+<h2 id="custom-repl-hover-snippets">Custom REPL hover snippets</h2>
+<p>Calva supports custom snippets that will display their result inside the tooltip. They will only work when connected to a repl, since they eval code in it.
+This is mostly useful for tooling authors that want to integrate with calva.
+Be careful with these, since they will be executed anytime Calva displays a tooltip. So they should be fast and probably not have any side effects.</p>
+<p>The hover snippets accept the same inputs as the Custom REPL Commands, except for the hotkey:</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.customREPLHoverSnippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;eval text on hover&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;clj&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;ns&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;example.app&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(str \&quot;$hover-text\&quot;)&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">]</span><span class="w"></span>
+</code></pre></div>
+<p>With this setting anything the mouse is over will also be shown inside its tooltip.
+There are now also <code>hover-</code> versions of most substitutions. Those currently only work inside the hover snippets.</p>
+<h2 id="configedn">config.edn</h2>
+<p>Your project can have a <code>.calva/config.edn</code> file that holds a map with calva configs. Currently only <code>:customREPLCommandSnippets</code> and <code>:customREPLHoverSnippets</code> get loaded.
+These will not get synced through vscode settings sync.</p>
+<h2 id="snippets-inside-deps">Snippets inside deps</h2>
+<p>A new experimental feature lets library authors ship snippets inside their jar files. These accept the same options as above but should be placed in "resources/calva.exports/config.edn" inside the jar.</p>
+<div class="highlight"><pre><span></span><code>{:customREPLCommandSnippets 
+ [{:name &quot;edn test&quot;
+   :key &quot;a&quot;
+   :snippet &quot;($current-form)&quot;}]
+ :customREPLHoverSnippets
+ [{:name &quot;edn hover&quot;
+   :snippet &quot;(str \&quot;$hover-tex\&quot;)&quot;}]
+ }
+</code></pre></div>
 
   
 
@@ -1822,7 +1893,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.5c9dbbf3.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.af85c085.min.js"></script>
+      <script src="../assets/javascripts/bundle.25f1df3e.min.js"></script>
       
     
   </body>
