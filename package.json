@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.243",
+    "version": "2.0.244",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -427,6 +427,45 @@
                             ]
                         }
                     },
+                    "calva.customREPLHoverSnippets": {
+                        "type": "array",
+                        "default": [],
+                        "description": "Configuration for snippets that get called on hover",
+                        "$schema": "http://json-schema.org/draft-06/schema#",
+                        "items": {
+                            "title": "replHover",
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "markDownDescription": "The name of the snippet will show inside the hover text."
+                                },
+                                "snippet": {
+                                    "type": [
+                                        "string",
+                                        "array"
+                                    ],
+                                    "description": "Snippet to send to the REPL"
+                                },
+                                "ns": {
+                                    "type": "string",
+                                    "description": "(optional) Namespace to evaluate the snippet in. If omitted the snippet will be executed in the namespace of the current file."
+                                },
+                                "repl": {
+                                    "type": "string",
+                                    "description": "Choose which REPL should the code should be evaluated in. If omitted, the same REPL as for the current file will be used.",
+                                    "enum": [
+                                        "clj",
+                                        "cljs"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "snippet"
+                            ]
+                        }
+                    },
                     "calva.myLeinProfiles": {
                         "type": "array",
                         "description": "At Jack in, any profiles listed here will be added to the profiles found in the `project.clj` file.",
@@ -678,7 +717,7 @@
                 "properties": {
                     "calva.fmt.configPath": {
                         "type": "string",
-                        "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Absolute or relative to the project root directory."
+                        "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Absolute or relative to the project root directory. To provide the config via [clojure-lsp](https://clojure-lsp.io), set this to `CLOJURE-LSP` (case sensitive)."
                     },
                     "calva.fmt.formatAsYouType": {
                         "type": "boolean",
@@ -1737,11 +1776,6 @@
                 "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
-                "command": "calva.continueComment",
-                "key": "alt+enter",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && calva:cursorInComment && !calva:cursorAtStartOfLine"
-            },
-            {
                 "command": "paredit.togglemode",
                 "key": "ctrl+alt+p ctrl+alt+m",
                 "when": "editorLangId == clojure calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
@@ -2075,7 +2109,7 @@
             },
             {
                 "command": "calva-fmt.inferParens",
-                "key": "shift+tab",
+                "key": "ctrl+alt+p i",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
@@ -2085,7 +2119,7 @@
             },
             {
                 "command": "calva-fmt.tabDedent",
-                "key": "shift+ctrl+i",
+                "key": "shift+tab",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {

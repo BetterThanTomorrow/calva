@@ -361,7 +361,7 @@ async function runNamespaceTests(
 function getTestUnderCursor() {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
-        return getText.currentTopLevelFunction(editor)[1];
+        return getText.currentTopLevelFunction(editor?.document)[1];
     }
 }
 

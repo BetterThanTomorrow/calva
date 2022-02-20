@@ -24,6 +24,7 @@ import * as state from '../state';
 import { provideHover } from '../providers/hover';
 import { provideSignatureHelp } from '../providers/signature';
 import { isResultsDoc } from '../results-output/results-doc';
+import * as calvaFmtConfig from '../calva-fmt/src/config';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
@@ -431,6 +432,7 @@ async function startClient(
     const serverInfo = await getServerInfo(client);
     serverVersion = serverInfo['server-version'];
     sayClientVersionInfo(serverVersion, serverInfo);
+    calvaFmtConfig.setLspFormatConfig(serverInfo['cljfmt-raw']);
 
     client.onNotification(
         'clojure/textDocument/testTree',

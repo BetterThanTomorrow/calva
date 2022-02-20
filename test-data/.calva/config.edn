@@ -1,0 +1,12 @@
+{
+ :customREPLHoverSnippets
+ [{:name "edn hover symbol"
+   :snippet "(str \"**EDN edn hover symbol**: \" $hover-text)"}
+  {:name "edn hover symbol quoted"
+   :snippet "(str \"**EDN edn hover symbol quoted** \" '$hover-text)"}
+  {:name "edn hover hover-current-form"
+   :snippet "(str \"**EDN edn hover hover-current-form** \" \"$hover-current-form\")"}
+  {:name "edn hover current-form"
+   :snippet "(str \"**EDN edn hover current-form** \" \"$current-form\")"}]
+ }
+

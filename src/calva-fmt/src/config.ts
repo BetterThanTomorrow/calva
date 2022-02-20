@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as filesCache from '../../files-cache';
-import { cljfmtOptions } from '../../../out/cljs-lib/cljs-lib.js';
+import * as cljsLib from '../../../out/cljs-lib/cljs-lib.js';
 
 const defaultCljfmtContent =
     '\
@@ -10,24 +10,39 @@ const defaultCljfmtContent =
  :insert-missing-whitespace? true\n\
  :align-associative? false}';
 
+const LSP_CONFIG_KEY = 'CLOJURE-LSP';
+let lspFormatConfig: string;
+
 function configuration(
     workspaceConfig: vscode.WorkspaceConfiguration,
-    cljfmtString: string
+    cljfmt: string
 ) {
-    return {
+    const config = {
         'format-as-you-type': workspaceConfig.get('formatAsYouType') as boolean,
         'keep-comment-forms-trail-paren-on-own-line?': workspaceConfig.get(
             'keepCommentTrailParenOnOwnLine'
         ) as boolean,
-        'cljfmt-string': cljfmtString,
-        'cljfmt-options': cljfmtOptions(cljfmtString),
     };
+    config['cljfmt-options-string'] = cljfmt;
+    config['cljfmt-options'] = cljsLib.cljfmtOptionsFromString(cljfmt);
+    return config;
 }
 
 function readConfiguration() {
     const workspaceConfig = vscode.workspace.getConfiguration('calva.fmt');
     const configPath: string = workspaceConfig.get('configPath');
-    const cljfmtContent: string = filesCache.content(configPath);
+    if (configPath === LSP_CONFIG_KEY && !lspFormatConfig) {
+        vscode.window.showErrorMessage(
+            'Fetching formatting settings from clojure-lsp failed. Check that you are running a version of clojure-lsp that provides "cljfmt-raw" in serverInfo.',
+            'Roger that'
+        );
+    }
+    const cljfmtContent: string =
+        configPath === LSP_CONFIG_KEY
+            ? lspFormatConfig
+                ? lspFormatConfig
+                : defaultCljfmtContent
+            : filesCache.content(configPath);
     const config = configuration(
         workspaceConfig,
         cljfmtContent ? cljfmtContent : defaultCljfmtContent
@@ -40,6 +55,10 @@ function readConfiguration() {
         );
         return configuration(workspaceConfig, defaultCljfmtContent);
     }
+}
+
+export function setLspFormatConfig(config: string) {
+    lspFormatConfig = config;
 }
 
 export function getConfig() {

@@ -186,7 +186,7 @@ jobs:
           path: ~/calva/junit
   test-integration:
     docker:
-      - image: circleci/openjdk:11.0.4-stretch-node-browsers
+      - image: circleci/clojure:openjdk-11-tools-deps-bullseye-node-browsers-legacy
     working_directory: ~/calva
     steps:
       - attach_workspace:
@@ -248,6 +248,26 @@ jobs:
           name: Publish to the marketplace
           command: |
             VSCE_CMD="vsce publish --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
+            if [ "${IS_LOCAL}" = YES ]
+            then
+              echo "Dry npx ${VSCE_CMD}"
+            else
+              npx ${VSCE_CMD}
+            fi
+  marketplace-preview-publish:
+    docker:
+      - image: circleci/node:latest
+    working_directory: ~/calva
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Restore build
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
+      - run:
+          name: Publish to the marketplace
+          command: |
+            VSCE_CMD="vsce publish --pre-release --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
             if [ "${IS_LOCAL}" = YES ]
             then
               echo "Dry npx ${VSCE_CMD}"
@@ -436,6 +456,20 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
+          context: Calva
+      - marketplace-preview-publish:
+          requires:
+            - prettier-check
+            - eslint-check
+            - test-grammar
+            - test-cljslib
+            - test-integration
+            - test-ts-unit
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
           context: Calva
       - marketplace-publish:
           requires:

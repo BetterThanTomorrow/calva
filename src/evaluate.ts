@@ -69,7 +69,7 @@ async function evaluateCode(
     code: string,
     options,
     selection?: vscode.Selection
-): Promise<void> {
+): Promise<string | null> {
     const pprintOptions =
         options.pprintOptions || getConfig().prettyPrintingOptions;
     // passed options overwrite config options
@@ -81,12 +81,18 @@ async function evaluateCode(
         (options.addToHistory === undefined || options.addToHistory === true) &&
         (evaluationSendCodeToOutputWindow ||
             state.extensionContext.workspaceState.get('outputWindowActive'));
+    const showErrorMessage =
+        options.showErrorMessage === undefined ||
+        options.showErrorMessage === true;
+    const showResult =
+        options.showResult === undefined || options.showResult === true;
     const line = options.line;
     const column = options.column;
     const filePath = options.filePath;
     const session: NReplSession = options.session;
     const ns = options.ns;
     const editor = vscode.window.activeTextEditor;
+    let result = null;
 
     if (code.length > 0) {
         if (addToHistory) {
@@ -119,117 +125,131 @@ async function evaluateCode(
                 outputWindow.append(code);
             }
 
-            outputWindow.append(value, async (resultLocation) => {
-                if (selection) {
-                    const c = selection.start.character;
-                    if (options.replace) {
-                        const indent = `${' '.repeat(c)}`,
-                            edit = vscode.TextEdit.replace(
-                                selection,
-                                value.replace(/\n/gm, '\n' + indent)
-                            ),
-                            wsEdit = new vscode.WorkspaceEdit();
-                        wsEdit.set(editor.document.uri, [edit]);
-                        vscode.workspace.applyEdit(wsEdit);
-                    } else {
-                        if (options.comment) {
-                            await addAsComment(
-                                c,
-                                value,
-                                selection,
-                                editor,
-                                editor.selection
-                            );
-                        }
-                        if (!outputWindow.isResultsDoc(editor.document)) {
-                            annotations.decorateSelection(
-                                value,
-                                selection,
-                                editor,
-                                editor.selection.active,
-                                resultLocation,
-                                annotations.AnnotationStatus.SUCCESS
-                            );
-                            if (!options.comment) {
-                                annotations.decorateResults(
-                                    value,
-                                    false,
+            result = value;
+
+            if (showResult) {
+                outputWindow.append(value, async (resultLocation) => {
+                    if (selection) {
+                        const c = selection.start.character;
+                        if (options.replace) {
+                            const indent = `${' '.repeat(c)}`,
+                                edit = vscode.TextEdit.replace(
                                     selection,
-                                    editor
+                                    value.replace(/\n/gm, '\n' + indent)
+                                ),
+                                wsEdit = new vscode.WorkspaceEdit();
+                            wsEdit.set(editor.document.uri, [edit]);
+                            vscode.workspace.applyEdit(wsEdit);
+                        } else {
+                            if (options.comment) {
+                                await addAsComment(
+                                    c,
+                                    value,
+                                    selection,
+                                    editor,
+                                    editor.selection
                                 );
+                            }
+                            if (!outputWindow.isResultsDoc(editor.document)) {
+                                annotations.decorateSelection(
+                                    value,
+                                    selection,
+                                    editor,
+                                    editor.selection.active,
+                                    resultLocation,
+                                    annotations.AnnotationStatus.SUCCESS
+                                );
+                                if (!options.comment) {
+                                    annotations.decorateResults(
+                                        value,
+                                        false,
+                                        selection,
+                                        editor
+                                    );
+                                }
                             }
                         }
                     }
-                }
-            });
-            // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
-            if (err.length > 0) {
-                const errMsg = `; ${normalizeNewLinesAndJoin(err, true)}`;
-                if (context.stacktrace) {
-                    outputWindow.saveStacktrace(context.stacktrace);
-                    outputWindow.append(errMsg, (_, afterResultLocation) => {
-                        outputWindow.markLastStacktraceRange(
-                            afterResultLocation
+                });
+                // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
+                if (err.length > 0) {
+                    const errMsg = `; ${normalizeNewLinesAndJoin(err, true)}`;
+                    if (context.stacktrace) {
+                        outputWindow.saveStacktrace(context.stacktrace);
+                        outputWindow.append(
+                            errMsg,
+                            (_, afterResultLocation) => {
+                                outputWindow.markLastStacktraceRange(
+                                    afterResultLocation
+                                );
+                            }
                         );
-                    });
-                } else {
-                    outputWindow.append(errMsg);
+                    } else {
+                        outputWindow.append(errMsg);
+                    }
                 }
             }
         } catch (e) {
-            const outputWindowError = err.length
-                ? `; ${normalizeNewLinesAndJoin(err, true)}`
-                : formatAsLineComments(e);
-            outputWindow.append(
-                outputWindowError,
-                async (resultLocation, afterResultLocation) => {
-                    if (selection) {
-                        const editorError = util.stripAnsi(
-                            err.length ? err.join('\n') : e
-                        );
-                        const currentCursorPos = editor.selection.active;
-                        if (options.comment) {
-                            await addAsComment(
-                                selection.start.character,
-                                editorError,
-                                selection,
-                                editor,
-                                editor.selection
+            if (showErrorMessage) {
+                const outputWindowError = err.length
+                    ? `; ${normalizeNewLinesAndJoin(err, true)}`
+                    : formatAsLineComments(e);
+                outputWindow.append(
+                    outputWindowError,
+                    async (resultLocation, afterResultLocation) => {
+                        if (selection) {
+                            const editorError = util.stripAnsi(
+                                err.length ? err.join('\n') : e
                             );
-                        }
-                        if (!outputWindow.isResultsDoc(editor.document)) {
-                            annotations.decorateSelection(
-                                editorError,
-                                selection,
-                                editor,
-                                currentCursorPos,
-                                resultLocation,
-                                annotations.AnnotationStatus.ERROR
-                            );
-                            if (!options.comment) {
-                                annotations.decorateResults(
+                            const currentCursorPos = editor.selection.active;
+                            if (options.comment) {
+                                await addAsComment(
+                                    selection.start.character,
                                     editorError,
-                                    true,
                                     selection,
-                                    editor
+                                    editor,
+                                    editor.selection
                                 );
                             }
+                            if (!outputWindow.isResultsDoc(editor.document)) {
+                                annotations.decorateSelection(
+                                    editorError,
+                                    selection,
+                                    editor,
+                                    currentCursorPos,
+                                    resultLocation,
+                                    annotations.AnnotationStatus.ERROR
+                                );
+                                if (!options.comment) {
+                                    annotations.decorateResults(
+                                        editorError,
+                                        true,
+                                        selection,
+                                        editor
+                                    );
+                                }
+                            }
+                        }
+                        if (
+                            context.stacktrace &&
+                            context.stacktrace.stacktrace
+                        ) {
+                            outputWindow.markLastStacktraceRange(
+                                afterResultLocation
+                            );
                         }
                     }
-                    if (context.stacktrace && context.stacktrace.stacktrace) {
-                        outputWindow.markLastStacktraceRange(
-                            afterResultLocation
-                        );
-                    }
+                );
+                if (context.stacktrace && context.stacktrace.stacktrace) {
+                    outputWindow.saveStacktrace(context.stacktrace.stacktrace);
                 }
-            );
-            if (context.stacktrace && context.stacktrace.stacktrace) {
-                outputWindow.saveStacktrace(context.stacktrace.stacktrace);
             }
         }
         outputWindow.setSession(session, context.ns || ns);
         replSession.updateReplSessionType();
     }
+
+    return result;
 }
 
 async function evaluateSelection(document: {}, options) {
@@ -296,10 +316,31 @@ function _currentSelectionElseCurrentForm(
     editor: vscode.TextEditor
 ): getText.SelectionAndText {
     if (editor.selection.isEmpty) {
-        return getText.currentFormText(editor);
+        return getText.currentFormText(
+            editor?.document,
+            editor.selection.active
+        );
     } else {
         return [editor.selection, editor.document.getText(editor.selection)];
     }
+}
+
+function _currentTopLevelFormText(
+    editor: vscode.TextEditor
+): getText.SelectionAndText {
+    return getText.currentTopLevelFormText(
+        editor?.document,
+        editor?.selection.active
+    );
+}
+
+function _currentEnclosingFormText(
+    editor: vscode.TextEditor
+): getText.SelectionAndText {
+    return getText.currentEnclosingFormText(
+        editor?.document,
+        editor?.selection.active
+    );
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
@@ -330,7 +371,7 @@ function evaluateTopLevelFormAsComment(document = {}, options = {}) {
         Object.assign({}, options, {
             comment: true,
             pprintOptions: getConfig().prettyPrintingOptions,
-            selectionFn: getText.currentTopLevelFormText,
+            selectionFn: _currentTopLevelFormText,
         })
     ).catch(printWarningForError);
 }
@@ -340,7 +381,7 @@ function evaluateTopLevelForm(document = {}, options = {}) {
         document,
         Object.assign({}, options, {
             pprintOptions: getConfig().prettyPrintingOptions,
-            selectionFn: getText.currentTopLevelFormText,
+            selectionFn: _currentTopLevelFormText,
         })
     ).catch(printWarningForError);
 }
@@ -350,8 +391,9 @@ function evaluateOutputWindowForm(document = {}, options = {}) {
         document,
         Object.assign({}, options, {
             pprintOptions: getConfig().prettyPrintingOptions,
-            selectionFn: getText.currentTopLevelFormText,
+            selectionFn: _currentTopLevelFormText,
             evaluationSendCodeToOutputWindow: false,
+            addToHistory: true,
         })
     ).catch(printWarningForError);
 }
@@ -371,13 +413,13 @@ function evaluateEnclosingForm(document = {}, options = {}) {
         document,
         Object.assign({}, options, {
             pprintOptions: getConfig().prettyPrintingOptions,
-            selectionFn: getText.currentEnclosingFormText,
+            selectionFn: _currentEnclosingFormText,
         })
     ).catch(printWarningForError);
 }
 
 function evaluateUsingTextAndSelectionGetter(
-    getter: (editor: vscode.TextEditor) => getText.SelectionAndText,
+    getter: (doc: vscode.TextDocument) => getText.SelectionAndText,
     formatter: (s: string) => string,
     document = {},
     options = {}
@@ -387,7 +429,7 @@ function evaluateUsingTextAndSelectionGetter(
         Object.assign({}, options, {
             pprintOptions: getConfig().prettyPrintingOptions,
             selectionFn: (editor: vscode.TextEditor) => {
-                const [selection, code] = getter(editor);
+                const [selection, code] = getter(editor?.document);
                 return [selection, formatter(code)];
             },
         })
@@ -575,7 +617,7 @@ async function instrumentTopLevelForm() {
         {
             pprintOptions: getConfig().prettyPrintingOptions,
             debug: true,
-            selectionFn: getText.currentTopLevelFormText,
+            selectionFn: _currentTopLevelFormText,
         }
     ).catch(printWarningForError);
     state
@@ -601,10 +643,12 @@ export async function evaluateInOutputWindow(
         if (outputWindow.getNs() !== ns) {
             await session.eval(`(in-ns '${ns})`, session.client.ns).value;
             outputWindow.setSession(session, ns);
-            outputWindow.appendPrompt();
+            if (options.evaluationSendCodeToOutputWindow !== false) {
+                outputWindow.appendPrompt();
+            }
         }
 
-        await evaluateCode(code, {
+        return await evaluateCode(code, {
             ...options,
             filePath: outputDocument.fileName,
             session,

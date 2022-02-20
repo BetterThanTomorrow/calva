@@ -2,3 +2,5 @@
 
 (defn foo []
   (println "bar"))
+
+(foo)

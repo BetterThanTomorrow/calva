@@ -154,14 +154,21 @@
             "name": "Extension Tests",
             "type": "extensionHost",
             "request": "launch",
+            "sourceMaps": true,
             "runtimeExecutable": "${execPath}",
+            "env": {
+                "IS_DEBUG": "true",
+                "CALVA_DEV_GA": "FUBAR-69796730-4",
+                "DEBUG": "no-debug-universal-analytics"
+            },
             "args": [
+              "${workspaceRoot}/test-data",
               "--disable-extensions",
               "--extensionDevelopmentPath=${workspaceRoot}",
-              "--extensionTestsPath=${workspaceRoot}/out/test/suite/index"
+              "--extensionTestsPath=${workspaceRoot}/out/extension-test/integration/suite"
             ],
-            "outFiles": ["${workspaceRoot}/out/test/**/*.js"],
-            "preLaunchTask": "npm: test-compile"
+            "preLaunchTask": "npm: compile-test",
+            "outFiles": ["${workspaceRoot}/out/test/**/*.js"]            
           }
     ]
 }

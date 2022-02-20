@@ -2,7 +2,7 @@
   (:require [pez-cljfmt.core :as pez-cljfmt]
             [cljfmt.core :as cljfmt]
             #_[zprint.core :refer [zprint-str]]
-            [calva.js-utils :refer [jsify]]
+            [calva.js-utils :refer [jsify cljify]]
             [calva.fmt.util :as util]
             [calva.parse :refer [parse-clj-edn]]
             [clojure.string]))
@@ -22,31 +22,27 @@
    :insert-missing-whitespace? true
    :align-associative? false})
 
+(defn merge-cljfmt
+  [fmt]
+  (as-> fmt $
+    (update $ :indents merge-default-indents)
+    (merge default-fmt $)))
+
 (defn- read-cljfmt
   [s]
-  #_(println "*** parsing config")
   (try
     (as-> s $
       (parse-clj-edn $)
-      (update $ :indents merge-default-indents)
-      (merge default-fmt $))
+      (merge-cljfmt $))
     (catch js/Error e
       {:error (.-message e)})))
 
-(defn read-cljfmt-js-bridge
-  [s]
-  (-> s read-cljfmt jsify))
-
-(defn- cljfmt-options
-  [{:as config :keys [cljfmt-string]}]
-  (-> cljfmt-string
-      (read-cljfmt)
-      (merge config)))
-
 (defn- reformat-string [range-text {:keys [align-associative?] :as config}]
-  (if align-associative?
-    (pez-cljfmt/reformat-string range-text (cljfmt-options config))
-    (cljfmt/reformat-string range-text (cljfmt-options config))))
+  (let [cljfmt-options (:cljfmt-options config)]
+    (if (or align-associative?
+            (:align-associative? cljfmt-options))
+      (pez-cljfmt/reformat-string range-text (assoc cljfmt-options :align-associative? true))
+      (cljfmt/reformat-string range-text cljfmt-options))))
 
 (defn format-text
   [{:keys [range-text eol config] :as m}]
@@ -64,15 +60,18 @@
 
 (comment
   {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :idx 6}
-  (def s "[:foo\n\n(foo)(bar)]")
+  (def s "[:foo\n\n(foo\n(bar))]")
   #_(def s "(defn\n0\n#_)")
   (format-text #_s
                {:range-text s
                 :eol "\n"
-                :config {:remove-surrounding-whitespace? false
-                         :remove-trailing-whitespace? false
-                         :remove-consecutive-blank-lines? false
-                         :align-associative? true}}))
+                :config {:cljfmt-options
+                         {:remove-surrounding-whitespace? false
+                          :indents {"foo" [["inner" 0]]}
+                          :remove-trailing-whitespace? false
+                          :remove-consecutive-blank-lines? false
+                          :align-associative? true}}}))
+
 (defn extract-range-text
   [{:keys [all-text range]}]
   (subs all-text (first range) (last range)))
@@ -152,10 +151,6 @@
     (-> (assoc formatted-m
                :range-text formatted-text
                :range-tail tail))))
-
-(defn format-text-at-range-bridge
-  [m]
-  (format-text-at-range m))
 
 (comment
   (format-text-at-range {:all-text "  '([]\n[])"
@@ -247,6 +242,7 @@
   "Formats the enclosing range of text surrounding idx"
   [{:keys [range] :as m}]
   (-> m
+      (update-in [:config :cljfmt-options] merge-cljfmt)
       (add-trail-symbol-if-comment)
       (add-head-and-tail)
       (add-current-line)
@@ -256,23 +252,70 @@
       (remove-indent-token-if-empty-current-line)
       (remove-trail-symbol-if-comment range)))
 
-(defn format-text-at-idx-bridge
-  [m]
-  (format-text-at-idx m))
-
 (defn format-text-at-idx-on-type
   "Relax formating some when used as an on-type handler"
   [m]
   (-> m
       (assoc :on-type true)
-      (assoc-in [:config :remove-surrounding-whitespace?] false)
-      (assoc-in [:config :remove-trailing-whitespace?] false)
-      (assoc-in [:config :remove-consecutive-blank-lines?] false)
+      (assoc-in [:config :cljfmt-options :remove-surrounding-whitespace?] false)
+      (assoc-in [:config :cljfmt-options :remove-trailing-whitespace?] false)
+      (assoc-in [:config :cljfmt-options :remove-consecutive-blank-lines?] false)
+      (format-text-at-idx)))
+
+(defn- js-cljfmt-options->clj [^js opts]
+  (let [indents (.-indents opts)]
+    (-> opts
+        (cljify)
+        (assoc :indents (->> indents
+                             js->clj
+                             (reduce-kv (fn [m k v]
+                                          (let [new-v (reduce (fn [acc x]
+                                                                (conj acc [(keyword (first x)) (second x)]))
+                                                              []
+                                                              v)]
+                                            (if (.startsWith k "#")
+                                              (let [regex-string (subs k 2 (- (count k) 1))]
+                                                (assoc m (re-pattern regex-string) new-v))
+                                              (assoc m (symbol k) new-v))))
+                                        {}))))))
+
+(defn- parse-cljfmt-options-string [^js m]
+  (let [conf (.-config m)
+        edn (aget conf "cljfmt-options-string")]
+    (-> m
+        (cljify)
+        (assoc-in [:config :cljfmt-options] (parse-clj-edn edn)))))
+
+(defn format-text-at-range-bridge
+  [^js m]
+  (-> m
+      (format-text-at-range)))
+
+(defn format-text-at-idx-bridge
+  [^js m]
+  (tap> [:format-text-at-idx-bridge m])
+  (-> m
+      (parse-cljfmt-options-string)
       (format-text-at-idx)))
 
 (defn format-text-at-idx-on-type-bridge
-  [m]
-  (format-text-at-idx-on-type m))
+  [^js m]
+  (-> m
+      (parse-cljfmt-options-string)
+      (format-text-at-idx-on-type)))
+
+(defn merge-cljfmt-from-string-js-bridge
+  [^js s]
+  (-> s
+      read-cljfmt
+      jsify))
+
+(defn merge-cljfmt-js-bridge
+  [^js fmt]
+  (-> fmt
+      js-cljfmt-options->clj
+      merge-cljfmt
+      jsify))
 
 (comment
   (:range-text (format-text-at-idx-on-type {:all-text "  '([]\n[])" :idx 7})))

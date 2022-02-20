@@ -8,126 +8,131 @@ import { EditableDocument } from '../cursor-doc/model';
 export type SelectionAndText = [vscode.Selection, string];
 
 function _currentFormText(
-    editor: vscode.TextEditor,
-    topLevel: boolean
+    doc: vscode.TextDocument,
+    topLevel: boolean,
+    pos: vscode.Position
 ): SelectionAndText {
-    const doc = editor.document;
     if (doc) {
-        const codeSelection = select.getFormSelection(
-            doc,
-            editor.selection.active,
-            topLevel
-        );
+        const codeSelection = select.getFormSelection(doc, pos, topLevel);
         return [codeSelection, doc.getText(codeSelection)];
     }
     return [undefined, ''];
 }
 
 export function currentTopLevelFormText(
-    editor: vscode.TextEditor
+    doc: vscode.TextDocument,
+    pos: vscode.Position
 ): SelectionAndText {
-    return _currentFormText(editor, true);
+    return _currentFormText(doc, true, pos);
 }
 
-export function currentFormText(editor: vscode.TextEditor): SelectionAndText {
-    return _currentFormText(editor, false);
+export function currentFormText(
+    doc: vscode.TextDocument,
+    pos: vscode.Position
+): SelectionAndText {
+    return _currentFormText(doc, false, pos);
 }
 
 export function currentEnclosingFormText(
-    editor: vscode.TextEditor
+    doc: vscode.TextDocument,
+    pos: vscode.Position
 ): SelectionAndText {
-    const doc = editor.document;
     if (doc) {
-        const codeSelection = select.getEnclosingFormSelection(
-            doc,
-            editor.selection.active
-        );
+        const codeSelection = select.getEnclosingFormSelection(doc, pos);
         return [codeSelection, doc.getText(codeSelection)];
     }
     return [undefined, ''];
 }
 
-export function currentFunction(editor: vscode.TextEditor): SelectionAndText {
-    if (editor) {
-        const document = editor.document;
-        const tokenCursor = docMirror
-            .getDocument(editor.document)
-            .getTokenCursor();
+export function currentFunction(doc: vscode.TextDocument): SelectionAndText {
+    if (doc) {
+        const tokenCursor = docMirror.getDocument(doc).getTokenCursor();
         const [start, end] = tokenCursor.getFunctionSexpRange();
         if (start && end) {
-            const startPos = document.positionAt(start);
-            const endPos = document.positionAt(end);
+            const startPos = doc.positionAt(start);
+            const endPos = doc.positionAt(end);
             const selection = new vscode.Selection(startPos, endPos);
-            return [selection, document.getText(selection)];
+            return [selection, doc.getText(selection)];
         }
     }
     return [undefined, ''];
 }
 
 function selectionAndText(
-    editor: vscode.TextEditor,
+    doc: vscode.TextDocument,
     textGetter: (doc: EditableDocument) => cursorTextGetter.RangeAndText
 ): SelectionAndText {
-    if (editor) {
-        const document = editor.document;
-        const mirrorDoc = docMirror.getDocument(document);
+    if (doc) {
+        const mirrorDoc = docMirror.getDocument(doc);
         const [range, text] = textGetter(mirrorDoc);
         if (range) {
-            return [select.selectionFromOffsetRange(document, range), text];
+            return [select.selectionFromOffsetRange(doc, range), text];
         }
     }
     return [undefined, ''];
 }
 
 export function currentEnclosingFormToCursor(
-    editor: vscode.TextEditor
+    doc: vscode.TextDocument
 ): SelectionAndText {
-    return selectionAndText(
-        editor,
-        cursorTextGetter.currentEnclosingFormToCursor
-    );
+    return selectionAndText(doc, cursorTextGetter.currentEnclosingFormToCursor);
 }
 
 export function currentTopLevelFunction(
-    editor: vscode.TextEditor
+    doc: vscode.TextDocument
 ): SelectionAndText {
-    return selectionAndText(editor, cursorTextGetter.currentTopLevelFunction);
+    return selectionAndText(doc, cursorTextGetter.currentTopLevelFunction);
 }
 
 export function currentTopLevelFormToCursor(
-    editor: vscode.TextEditor
+    doc: vscode.TextDocument
 ): SelectionAndText {
-    return selectionAndText(
-        editor,
-        cursorTextGetter.currentTopLevelFormToCursor
-    );
+    return selectionAndText(doc, cursorTextGetter.currentTopLevelFormToCursor);
 }
 
-export function startOFileToCursor(
-    editor: vscode.TextEditor
-): SelectionAndText {
-    return selectionAndText(editor, cursorTextGetter.startOfFileToCursor);
+export function startOFileToCursor(doc: vscode.TextDocument): SelectionAndText {
+    return selectionAndText(doc, cursorTextGetter.startOfFileToCursor);
 }
 
 function fromFn(
-    editor: vscode.TextEditor,
+    doc: vscode.TextDocument,
     cursorDocFn: Function
 ): SelectionAndText {
-    if (editor) {
-        const document = editor.document;
-        const cursorDoc = docMirror.getDocument(document);
+    if (doc) {
+        const cursorDoc = docMirror.getDocument(doc);
         const range = cursorDocFn(cursorDoc);
-        const selection = select.selectionFromOffsetRange(document, range);
-        const text = document.getText(selection);
+        const selection = select.selectionFromOffsetRange(doc, range);
+        const text = doc.getText(selection);
         return [selection, text];
     }
     return [undefined, ''];
 }
 
-export function toStartOfList(editor: vscode.TextEditor): SelectionAndText {
-    return fromFn(editor, paredit.rangeToBackwardList);
+export function toStartOfList(doc: vscode.TextDocument): SelectionAndText {
+    return fromFn(doc, paredit.rangeToBackwardList);
 }
 
-export function toEndOfList(editor: vscode.TextEditor): SelectionAndText {
-    return fromFn(editor, paredit.rangeToForwardList);
+export function toEndOfList(doc: vscode.TextDocument): SelectionAndText {
+    return fromFn(doc, paredit.rangeToForwardList);
+}
+
+export function currentContext(
+    document: vscode.TextDocument,
+    pos: vscode.Position,
+    prefix = ''
+) {
+    const result = {};
+    result[prefix + 'currentForm'] = currentFormText(document, pos)[1];
+    result[prefix + 'enclosingForm'] = currentEnclosingFormText(
+        document,
+        pos
+    )[1];
+    result[prefix + 'topLevelForm'] = currentTopLevelFormText(document, pos)[1];
+    result[prefix + 'currentFn'] = currentFunction(document)[1];
+    result[prefix + 'topLevelDefinedForm'] =
+        currentTopLevelFunction(document)[1];
+    result[prefix + 'head'] = toStartOfList(document)[1];
+    result[prefix + 'tail'] = toEndOfList(document)[1];
+
+    return result;
 }
