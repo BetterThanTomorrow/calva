@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.244] - 2022-02-20
 - [Add custom hover snippets](https://github.com/BetterThanTomorrow/calva/issues/1471)
 - [Add option to read cljfmt config from clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/1545)
 - Fix: [Map key/value pair aligning is not working on format](https://github.com/BetterThanTomorrow/calva/issues/1535)
