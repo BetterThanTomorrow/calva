@@ -19,6 +19,7 @@
     {:pirate-char pirate-char
      :pirates pirates}))
 
+
 (defn to-pirate-talk
   [text language]
   (let [{:keys [pirate-char pirates]} (configure language)]
@@ -37,14 +38,13 @@
 (comment
   (to-pirate-talk "Have you heard about Pirate talk?" english-o)
   ;; => "HoHavove yoyou hohearordod aboboutot PoPiroratote totalolkok?"
-  
+
   (from-pirate-talk "HoHavove yoyou hohearordod aboboutot PoPiroratote totalolkok?" english-o)
   ;; => "Have you heard about Pirate talk?"
-  
+
   (to-pirate-talk "Har du hört talas om rövarspråket?" swedish-o)
   ;; => "HoHaror dodu hohörortot totalolasos omom rorövovarorsospoproråkoketot?"
-  
+
   (from-pirate-talk "HoHaror dodu hohörortot totalolasos omom rorövovarorsospoproråkoketot?" swedish-o)
   ;; => "Har du hört talas om rövarspråket?"
-
   )

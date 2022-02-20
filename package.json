@@ -717,7 +717,7 @@
                 "properties": {
                     "calva.fmt.configPath": {
                         "type": "string",
-                        "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Absolute or relative to the project root directory."
+                        "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Absolute or relative to the project root directory. To provide the config via [clojure-lsp](https://clojure-lsp.io), set this to `CLOJURE-LSP` (case sensitive)."
                     },
                     "calva.fmt.formatAsYouType": {
                         "type": "boolean",
@@ -2109,7 +2109,7 @@
             },
             {
                 "command": "calva-fmt.inferParens",
-                "key": "shift+tab",
+                "key": "ctrl+alt+p i",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
@@ -2119,7 +2119,7 @@
             },
             {
                 "command": "calva-fmt.tabDedent",
-                "key": "shift+ctrl+i",
+                "key": "shift+tab",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {

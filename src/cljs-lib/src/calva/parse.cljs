@@ -43,6 +43,7 @@
 
 ;[[ar gu ment] {:as extras, :keys [d e :s t r u c t u r e d]}]
 (comment
+  (meta (:indents (parse-clj-edn "{:indents ^:replace {}}")))
   (parse-forms-js-bridge "(deftest fact-rec-test\n  (testing \"returns 1 when passed 1\"\n    (is (= 1 (do (println \"hello\") #break (core/fact-rec 1))))))")
   (= [:a {:foo [(quote bar)], :bar (quote foo)}]
      [:a {:foo ['bar] :bar 'foo}])

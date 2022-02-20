@@ -302,20 +302,20 @@ bar))" :range [22 25]})))
 
 (deftest cljfmt-options
   (is (= (count cljfmt/default-indents)
-         (count (:indents (sut/cljfmt-options {}))))
+         (count (:indents (sut/merge-cljfmt {}))))
       "by default uses cljfmt indent rules")
   (is (= (+ 2 (count cljfmt/default-indents))
-         (count (:indents (sut/cljfmt-options {:cljfmt-string "{:indents {foo [[:inner 0]] bar [[:block 1]]}}"}))))
+         (count (:indents (sut/merge-cljfmt '{:indents {foo [[:inner 0]] bar [[:block 1]]}}))))
       "merges indents on top of cljfmt indent rules")
   (is (= {'a [[:inner 0]]}
-         (:indents (sut/cljfmt-options {:cljfmt-string "{:indents ^:replace {a [[:inner 0]]}}"})))
+         (:indents (sut/merge-cljfmt '{:indents ^:replace {a [[:inner 0]]}})))
       "with :replace metadata hint overrides default indents")
   (is (= true
-         (:align-associative? (sut/cljfmt-options {:align-associative? true
+         (:align-associative? (sut/merge-cljfmt {:align-associative? true
                                                    :cljfmt-string "{:align-associative? false}"})))
       "cljfmt :align-associative? has lower priority than config's option")
   (is (= false
-         (:align-associative? (sut/cljfmt-options {:cljfmt-string "{}"})))
+         (:align-associative? (sut/merge-cljfmt {:cljfmt-string "{}"})))
       ":align-associative? is false by default")
-  (is (nil? (:foo (sut/read-cljfmt {:cljfmt-string "{:bar false}"})))
+  (is (nil? (:foo (sut/merge-cljfmt {:cljfmt-string "{:bar false}"})))
       "most keys don't have any defaults."))
