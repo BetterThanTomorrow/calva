@@ -31,11 +31,9 @@ jobs:
             TAG_VERSION=NO-TAG
             if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
             then
-              PACKAGE_CMD="vsce package --githubBranch published"
               TAG_VERSION=${BASH_REMATCH[1]}
               echo 'No version tampering because this is a release tag'
             else
-              PACKAGE_CMD="vsce package --pre-release"
               COMMIT=${CIRCLE_SHA1:0:8}
               if [[  "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-(.*) ]]
               then
@@ -59,7 +57,16 @@ jobs:
             fi
       - run:
           name: Package vsix
-          command: npx ${PACKAGE_CMD}
+          command: |
+            if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
+            then
+              echo "Packaging as release"
+              PACKAGE_CMD="vsce package --githubBranch published"
+            else
+              echo "Packaging as pre-release"
+              PACKAGE_CMD="vsce package --pre-release"
+            fi
+            npx ${PACKAGE_CMD}
       - run:
           name: Copy vsix
           command: |
