@@ -35,7 +35,7 @@ jobs:
               TAG_VERSION=${BASH_REMATCH[1]}
               echo 'No version tampering because this is a release tag'
             else
-              PACKAGE_CMD="vsce package --pre-release --githubBranch published"
+              PACKAGE_CMD="vsce package --pre-release"
               COMMIT=${CIRCLE_SHA1:0:8}
               if [[  "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-(.*) ]]
               then
@@ -59,7 +59,7 @@ jobs:
             fi
       - run:
           name: Package vsix
-          command: "npx ${PACKAGE_CMD}"
+          command: npx ${PACKAGE_CMD}
       - run:
           name: Copy vsix
           command: |
