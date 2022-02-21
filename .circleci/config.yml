@@ -406,7 +406,7 @@ workflows:
             - test-ts-unit
           filters:
             branches:
-              only: dev
+              only: disabled # dev (disabled for now because https://github.com/microsoft/vsmarketplace/issues/310)
           context: Calva
   release-publish:
     jobs:
