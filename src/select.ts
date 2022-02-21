@@ -15,7 +15,7 @@ function selectionFromOffsetRange(
 function getFormSelection(
     doc: vscode.TextDocument,
     pos: vscode.Position,
-    topLevel
+    topLevel: boolean
 ): vscode.Selection {
     const idx = doc.offsetAt(pos);
     const cursor = docMirror.getDocument(doc).getTokenCursor(idx);
@@ -48,16 +48,16 @@ function selectForm(
     selectionFn: (
         doc: vscode.TextDocument,
         pos: vscode.Position,
-        ...topLevel: any
+        topLevel: boolean
     ) => vscode.Selection,
-    args?: any[]
+    toplevel: boolean
 ) {
     const editor = vscode.window.activeTextEditor,
         doc = util.getDocument(document),
         selection = editor.selection;
 
     if (selection.isEmpty) {
-        const codeSelection = selectionFn(doc, selection.active, ...args);
+        const codeSelection = selectionFn(doc, selection.active, toplevel);
         if (codeSelection) {
             editor.selection = codeSelection;
         }
@@ -65,7 +65,7 @@ function selectForm(
 }
 
 function selectCurrentForm(document = {}) {
-    selectForm(document, getFormSelection, [false]);
+    selectForm(document, getFormSelection, false);
 }
 
 export default {
