@@ -108,10 +108,6 @@ class BIncrementalDecoder {
     state: State = { id: 'ready' };
     stack: State[] = [];
 
-    constructor() {
-        // do nothing
-    }
-
     private complete(data: any) {
         if (this.stack.length) {
             this.state = this.stack.pop();
