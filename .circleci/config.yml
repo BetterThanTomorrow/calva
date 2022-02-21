@@ -387,6 +387,18 @@ workflows:
       - test-ts-unit:
           requires:
             - build
+      - marketplace-preview-publish:
+          requires:
+            - prettier-check
+            - eslint-check
+            - test-grammar
+            - test-cljslib
+            - test-integration
+            - test-ts-unit
+          filters:
+            branches:
+              only: dev
+          context: Calva
   release-publish:
     jobs:
       - build:
@@ -456,20 +468,6 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
-          context: Calva
-      - marketplace-preview-publish:
-          requires:
-            - prettier-check
-            - eslint-check
-            - test-grammar
-            - test-cljslib
-            - test-integration
-            - test-ts-unit
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
           context: Calva
       - marketplace-publish:
           requires:
