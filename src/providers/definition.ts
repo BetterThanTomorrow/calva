@@ -51,7 +51,7 @@ export class StackTraceDefinitionProvider implements vscode.DefinitionProvider {
         this.state = state;
     }
 
-    async provideDefinition(
+    provideDefinition(
         document: vscode.TextDocument,
         position: vscode.Position,
         _token

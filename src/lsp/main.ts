@@ -43,13 +43,17 @@ class TestTreeFeature implements StaticFeature {
     initialize(
         capabilities: ServerCapabilities,
         documentSelector: DocumentSelector | undefined
-    ): void {}
+    ): void {
+        // do nothing
+    }
 
     fillClientCapabilities(capabilities: ClientCapabilities): void {
         capabilities.experimental = { testTree: true };
     }
 
-    dispose(): void {}
+    dispose(): void {
+        // do nothing
+    }
 }
 
 function createClient(clojureLspPath: string): LanguageClient {
@@ -76,30 +80,30 @@ function createClient(clojureLspPath: string): LanguageClient {
             'keep-require-at-start?': true,
         },
         middleware: {
-            didOpen: async (document, next) => {
+            didOpen: (document, next) => {
                 if (isResultsDoc(document)) {
                     return;
                 }
                 return next(document);
             },
-            didSave: async (document, next) => {
+            didSave: (document, next) => {
                 if (isResultsDoc(document)) {
                     return;
                 }
                 return next(document);
             },
-            didChange: async (change, next) => {
+            didChange: (change, next) => {
                 if (isResultsDoc(change.document)) {
                     return;
                 }
                 return next(change);
             },
-            provideLinkedEditingRange: async (
+            provideLinkedEditingRange: (
                 _document,
                 _position,
                 _token,
                 _next
-            ): Promise<vscode.LinkedEditingRanges> => {
+            ): null => {
                 return null;
             },
             handleDiagnostics(uri, diagnostics, next) {

@@ -7,14 +7,14 @@ import {
     getDocumentOffset,
     MirroredDocument,
 } from '../../doc-mirror/index';
-const {
+import {
     formatTextAtRange,
     formatTextAtIdx,
     formatTextAtIdxOnType,
     formatText,
     cljify,
     jsify,
-} = require('../../../out/cljs-lib/cljs-lib');
+} from '../../../out/cljs-lib/cljs-lib';
 
 export function indentPosition(
     position: vscode.Position,

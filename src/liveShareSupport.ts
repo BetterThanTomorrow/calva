@@ -34,8 +34,8 @@ export async function didJackIn() {
     await shareReplServerIfPossible();
 }
 
-export async function didJackOut() {
-    await unshareReplServer();
+export function didJackOut() {
+    unshareReplServer();
     jackedIn = false;
 }
 
@@ -44,8 +44,8 @@ export async function didConnectRepl(port: number): Promise<void> {
     await shareReplServerIfPossible();
 }
 
-export async function didDisconnectRepl() {
-    await unshareReplServer();
+export function didDisconnectRepl() {
+    unshareReplServer();
     connectedPort = null;
 }
 
@@ -75,7 +75,7 @@ async function shareReplServerIfPossible() {
     }
 }
 
-async function unshareReplServer() {
+function unshareReplServer() {
     if (connectedPort !== null) {
         const sharedPort = sharedPorts.get(connectedPort);
         sharedPort?.dispose();

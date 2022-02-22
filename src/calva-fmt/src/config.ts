@@ -17,15 +17,13 @@ function configuration(
     workspaceConfig: vscode.WorkspaceConfiguration,
     cljfmt: string
 ) {
-    const config = {
-        'format-as-you-type': workspaceConfig.get('formatAsYouType') as boolean,
-        'keep-comment-forms-trail-paren-on-own-line?': workspaceConfig.get(
-            'keepCommentTrailParenOnOwnLine'
-        ) as boolean,
+    return {
+        'format-as-you-type': workspaceConfig.get<boolean>('formatAsYouType'),
+        'keep-comment-forms-trail-paren-on-own-line?':
+            workspaceConfig.get<boolean>('keepCommentTrailParenOnOwnLine'),
+        'cljfmt-options-string': cljfmt,
+        'cljfmt-options': cljsLib.cljfmtOptionsFromString(cljfmt),
     };
-    config['cljfmt-options-string'] = cljfmt;
-    config['cljfmt-options'] = cljsLib.cljfmtOptionsFromString(cljfmt);
-    return config;
 }
 
 function readConfiguration() {

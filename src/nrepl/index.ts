@@ -245,7 +245,7 @@ export class NReplSession {
         });
     }
 
-    async _defaultMessageHandler(msgData: any) {
+    _defaultMessageHandler(msgData: any) {
         if (msgData['repl-type']) {
             this.replType = msgData['repl-type'];
         }
@@ -278,10 +278,7 @@ export class NReplSession {
                 delete this.messageHandlers[data.id];
             }
         } else {
-            this._defaultMessageHandler(data).then(
-                () => {},
-                () => {}
-            );
+            this._defaultMessageHandler(data);
         }
     }
 
@@ -668,7 +665,9 @@ export class NReplSession {
             });
             this._runningIds = [];
             ids.forEach((id, index) => {
-                this.interrupt(id).catch((e) => {});
+                this.interrupt(id).catch((e) => {
+                    // do nothing
+                });
             });
             return ids.length;
         }
@@ -761,11 +760,11 @@ export class NReplEvaluation {
 
     private _pprintOut: string;
 
-    private _outPut: String;
+    private _outPut: string;
 
-    private _errorOutput: String;
+    private _errorOutput: string;
 
-    private _exception: String;
+    private _exception: string;
 
     private _stacktrace: any;
 
@@ -905,7 +904,9 @@ export class NReplEvaluation {
             this._interrupted = true;
             this._exception = 'Evaluation was interrupted';
             this._stacktrace = {};
-            this.session.interrupt(this.id).catch(() => {});
+            this.session.interrupt(this.id).catch(() => {
+                // do nothing
+            });
             this.doReject(this.exception);
             // make sure the message handler is removed.
             delete this.session.messageHandlers[this.id];

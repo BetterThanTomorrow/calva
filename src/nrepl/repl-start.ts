@@ -193,9 +193,9 @@ export async function startStandaloneRepl(
         tempDirUri,
         config.files[0]
     );
-    config.files.slice(1).forEach(async (file) => {
+    for (const file of config.files.slice(1)) {
         await openStoredDoc(storageUri, tempDirUri, file);
-    });
+    }
     const firstPos = mainEditor.document.positionAt(0);
     mainEditor.selection = new vscode.Selection(firstPos, firstPos);
     mainEditor.revealRange(new vscode.Range(firstPos, firstPos));
@@ -216,7 +216,7 @@ export async function startStandaloneRepl(
     });
 }
 
-export async function startOrConnectRepl() {
+export function startOrConnectRepl() {
     const JACK_IN_OPTION =
         'Start your project with a REPL and connect (a.k.a. Jack-in)';
     const JACK_IN_COMMAND = 'calva.jackIn';

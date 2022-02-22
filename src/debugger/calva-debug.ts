@@ -80,10 +80,10 @@ class CalvaDebugSession extends LoggingDebugSession {
      * The 'initialize' request is the first request called by the frontend
      * to interrogate the features the debug adapter provides.
      */
-    protected async initializeRequest(
+    protected initializeRequest(
         response: DebugProtocol.InitializeResponse,
         args: DebugProtocol.InitializeRequestArguments
-    ): Promise<void> {
+    ): void {
         this.setDebuggerLinesStartAt1(args.linesStartAt1);
         this.setDebuggerColumnsStartAt1(args.columnsStartAt1);
 
@@ -96,10 +96,10 @@ class CalvaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected async attachRequest(
+    protected attachRequest(
         response: DebugProtocol.AttachResponse,
         args: DebugProtocol.AttachRequestArguments
-    ): Promise<void> {
+    ): void {
         const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
 
         this.sendResponse(response);
@@ -112,11 +112,11 @@ class CalvaDebugSession extends LoggingDebugSession {
             .send();
     }
 
-    protected async continueRequest(
+    protected continueRequest(
         response: DebugProtocol.ContinueResponse,
         args: DebugProtocol.ContinueArguments,
         request?: DebugProtocol.Request
-    ): Promise<void> {
+    ): void {
         const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
 
         if (cljSession) {
@@ -149,11 +149,11 @@ class CalvaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected async nextRequest(
+    protected nextRequest(
         response: DebugProtocol.NextResponse,
         args: DebugProtocol.NextArguments,
         request?: DebugProtocol.Request
-    ): Promise<void> {
+    ): void {
         const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
 
         if (cljSession) {
@@ -352,11 +352,11 @@ class CalvaDebugSession extends LoggingDebugSession {
         };
     }
 
-    protected async variablesRequest(
+    protected variablesRequest(
         response: DebugProtocol.VariablesResponse,
         args: DebugProtocol.VariablesArguments,
         request?: DebugProtocol.Request
-    ): Promise<void> {
+    ): void {
         const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
 
         response.body = {
@@ -366,11 +366,11 @@ class CalvaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    protected async disconnectRequest(
+    protected disconnectRequest(
         response: DebugProtocol.DisconnectResponse,
         args: DebugProtocol.DisconnectArguments,
         request?: DebugProtocol.Request
-    ): Promise<void> {
+    ): void {
         const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
 
         if (cljSession) {
@@ -516,7 +516,7 @@ function convertOneBasedToZeroBased(n: number): number {
     return n === 0 ? n : n - 1;
 }
 
-async function initializeDebugger(cljSession: NReplSession): Promise<void> {
+function initializeDebugger(cljSession: NReplSession): void {
     cljSession.initDebugger();
     debugDecorations.activate();
 }

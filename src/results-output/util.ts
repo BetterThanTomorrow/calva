@@ -20,7 +20,7 @@ function formatAsLineComments(error: string): string {
 function splitEditQueueForTextBatching(
     editQueue: [string, OnAppendedCallback][],
     maxBatchSize: number = 1000
-): [String[], [string, OnAppendedCallback][]] {
+): [string[], [string, OnAppendedCallback][]] {
     const textBatch = takeWhile(editQueue, (value, index) => {
         return index < maxBatchSize && !value[1];
     }).map((value) => value[0]);

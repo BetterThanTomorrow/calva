@@ -7,7 +7,7 @@ import * as pprint from '../printer';
 import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
-const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
+import { parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
 
 export const isWin = /^win/.test(process.platform);
 
@@ -16,8 +16,8 @@ export type ProjectType = {
     cljsTypes: string[];
     cmd: string[];
     winCmd: string[];
-    resolveBundledPathWin?: Function;
-    resolveBundledPathUnix?: Function;
+    resolveBundledPathWin?: () => string;
+    resolveBundledPathUnix?: () => string;
     processShellWin: boolean;
     processShellUnix: boolean;
     commandLine: (
@@ -550,12 +550,12 @@ async function cljCommandLine(
             parsed && parsed.aliases != undefined
                 ? Object.keys(parsed.aliases)
                 : [];
-        for (const a in projectAliases) {
-            const aliasKey = unKeywordize(projectAliases[a]);
+        for (const projectAlias of projectAliases) {
+            const aliasKey = unKeywordize(projectAlias);
             if (parsed && parsed.aliases) {
                 const alias = parsed.aliases[aliasKey];
                 if (alias && alias['main-opts'] != undefined) {
-                    aliasesWithMain.push(`:${projectAliases[a]}`);
+                    aliasesWithMain.push(`:${projectAlias}`);
                 }
             }
         }

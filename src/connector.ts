@@ -115,7 +115,7 @@ async function connectToHost(
         );
         replSession.updateReplSessionType();
 
-        await initializeDebugger(cljSession);
+        initializeDebugger(cljSession);
 
         outputWindow.setSession(cljSession, nClient.ns);
 
@@ -168,7 +168,7 @@ async function connectToHost(
                     .send();
             }
             if (cljsSession) {
-                await setUpCljsRepl(cljsSession, cljsBuild);
+                setUpCljsRepl(cljsSession, cljsBuild);
             }
         } catch (e) {
             outputWindow.append('; Error while connecting cljs REPL: ' + e);
@@ -190,7 +190,7 @@ async function connectToHost(
     return true;
 }
 
-async function setUpCljsRepl(session, build) {
+function setUpCljsRepl(session, build) {
     setStateValue('cljs', session);
     status.update();
     outputWindow.append(
@@ -228,7 +228,9 @@ async function getFigwheelMainBuilds() {
 /**
  * ! DO it later
  */
-function getFigwheelBuilds() {}
+function getFigwheelBuilds() {
+    // do nothing
+}
 
 type checkConnectedFn = (value: string, out: any[], err: any[]) => boolean;
 type processOutputFn = (output: string) => void;
@@ -249,7 +251,7 @@ async function evalConnectCode(
     const chan = state.connectionLogChannel();
     const err = [],
         out = [],
-        result = await newCljsSession.eval(code, 'user', {
+        result = newCljsSession.eval(code, 'user', {
             stdout: (x) => {
                 out.push(util.stripAnsi(x));
                 chan.append(util.stripAnsi(x));
@@ -523,7 +525,7 @@ function createCLJSReplType(
                             [startAppNowProcessor, printThisPrinter],
                             [allPrinter]
                         );
-                        if (result) {
+                        if (await result) {
                             startedBuilds = builds;
                         }
                         return result;
@@ -752,7 +754,9 @@ async function standaloneConnect(
                 `${connectSequence.name} + ${cljsTypeName}`
             )
             .send();
-        await connect(connectSequence, false).catch(() => {});
+        await connect(connectSequence, false).catch(() => {
+            // do nothing
+        });
     } else {
         outputWindow.append(
             '; Aborting connect, error determining connect sequence.'
@@ -789,7 +793,12 @@ export default {
             );
         standaloneConnect(context, connectSequence);
     },
-    disconnect: (options = null, callback = () => {}) => {
+    disconnect: (
+        options = null,
+        callback = () => {
+            // do nothing
+        }
+    ) => {
         status.updateNeedReplUi(false);
         ['clj', 'cljs'].forEach((sessionType) => {
             setStateValue(sessionType, null);
@@ -857,7 +866,7 @@ export default {
             cljTypeName
         );
         if (session) {
-            await setUpCljsRepl(session, build);
+            setUpCljsRepl(session, build);
         }
         status.update();
     },

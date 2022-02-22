@@ -159,7 +159,9 @@ async function activate(context: vscode.ExtensionContext) {
             )
             .then((v) => {
                 if (v == BUTTON_GOTO_DOC) {
-                    open(CONNECT_SEQUENCES_DOC_URL).catch(() => {});
+                    open(CONNECT_SEQUENCES_DOC_URL).catch(() => {
+                        // do nothing
+                    });
                 }
             });
     }
@@ -741,7 +743,9 @@ async function activate(context: vscode.ExtensionContext) {
                 .then((v) => {
                     if (v == BUTTON_GOTO_DOC) {
                         context.globalState.update(VIEWED_VIM_DOCS, true);
-                        open(VIM_DOC_URL).catch(() => {});
+                        open(VIM_DOC_URL).catch(() => {
+                            // do nothing
+                        });
                     }
                 });
         }

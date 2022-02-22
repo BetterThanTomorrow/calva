@@ -20,7 +20,7 @@ function report(res, chan: vscode.OutputChannel) {
     }
 }
 
-async function refresh(document = {}) {
+function refresh(document = {}) {
     const doc = util.getDocument(document),
         client: NReplSession = replSession.getSession(util.getFileType(doc)),
         chan: vscode.OutputChannel = state.outputChannel();
@@ -35,7 +35,7 @@ async function refresh(document = {}) {
     }
 }
 
-async function refreshAll(document = {}) {
+function refreshAll(document = {}) {
     const doc = util.getDocument(document),
         client: NReplSession = replSession.getSession(util.getFileType(doc)),
         chan: vscode.OutputChannel = state.outputChannel();

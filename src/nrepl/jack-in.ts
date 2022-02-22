@@ -53,10 +53,10 @@ function getGlobalJackInEnv() {
     };
 }
 
-async function executeJackInTask(
+function executeJackInTask(
     terminalOptions: JackInTerminalOptions,
     connectSequence: ReplConnectSequence,
-    cb?: Function
+    cb?: () => unknown
 ) {
     utilities.setLaunchingState(connectSequence.name);
     statusbar.update();
@@ -72,14 +72,17 @@ async function executeJackInTask(
     try {
         jackInPTY = new JackInTerminal(
             terminalOptions,
-            async (_p, hostname: string, port: string) => {
+            (_p, hostname: string, port: string) => {
                 utilities.setLaunchingState(null);
-                await connector.connect(connectSequence, true, hostname, port);
-                outputWindow.append('; Jack-in done.');
-                outputWindow.appendPrompt();
-                if (cb) {
-                    cb();
-                }
+                connector
+                    .connect(connectSequence, true, hostname, port)
+                    .then(() => {
+                        outputWindow.append('; Jack-in done.');
+                        outputWindow.appendPrompt();
+                        if (cb) {
+                            cb();
+                        }
+                    });
             },
             (errorMessage) => {
                 outputWindow.append(
@@ -260,7 +263,7 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
 
 export async function jackIn(
     connectSequence: ReplConnectSequence,
-    cb?: Function
+    cb?: () => unknown
 ) {
     try {
         await liveShareSupport.setupLiveShareListener();
@@ -300,7 +303,7 @@ export async function jackIn(
             projectConnectSequence
         );
         if (terminalJackInOptions) {
-            await executeJackInTask(
+            executeJackInTask(
                 terminalJackInOptions,
                 projectConnectSequence,
                 cb
@@ -330,7 +333,7 @@ export async function jackInCommand(connectSequence?: ReplConnectSequence) {
     await jackIn(connectSequence);
 }
 
-export async function calvaDisconnect() {
+export function calvaDisconnect() {
     if (utilities.getConnectedState()) {
         connector.default.disconnect();
         return;
