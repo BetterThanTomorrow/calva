@@ -97,7 +97,8 @@ jobs:
       - run:
           name: Copy build
           command: |
-            cp -r . /tmp/build
+            cp -r out /tmp/build
+            cp  package.json /tmp/build
       - save_cache:
           name: Save dependencies
           key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
