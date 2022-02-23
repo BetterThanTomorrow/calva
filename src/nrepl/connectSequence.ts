@@ -34,7 +34,7 @@ interface CljsTypeConfig {
     isReadyToStartRegExp?: string | RegExp;
     openUrlRegExp?: string | RegExp;
     shouldOpenUrl?: boolean;
-    connectCode: string | Object;
+    connectCode: string | { build: string; repl: string };
     isConnectedRegExp?: string | RegExp;
     printThisLineRegExp?: string | RegExp;
 }

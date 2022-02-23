@@ -54,10 +54,6 @@
     (catch js/Error e
       (assoc m :error (.-message e)))))
 
-(defn format-text-bridge
-  [m]
-  (format-text m))
-
 (comment
   {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :idx 6}
   (def s "[:foo\n\n(foo\n(bar))]")
@@ -286,9 +282,16 @@
         (cljify)
         (assoc-in [:config :cljfmt-options] (parse-clj-edn edn)))))
 
+(defn format-text-bridge
+  [^js m]
+  (-> m
+      (parse-cljfmt-options-string)
+      (format-text)))
+
 (defn format-text-at-range-bridge
   [^js m]
   (-> m
+      (parse-cljfmt-options-string)
       (format-text-at-range)))
 
 (defn format-text-at-idx-bridge

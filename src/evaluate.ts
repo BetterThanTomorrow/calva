@@ -252,9 +252,11 @@ async function evaluateCode(
     return result;
 }
 
-async function evaluateSelection(document: {}, options) {
+async function evaluateSelection(document = {}, options) {
     const doc = util.getDocument(document);
-    const selectionFn: Function = options.selectionFn;
+    const selectionFn: (
+        editor: vscode.TextEditor
+    ) => [vscode.Selection, string] = options.selectionFn;
 
     if (getStateValue('connected')) {
         const editor = vscode.window.activeTextEditor;
@@ -585,7 +587,7 @@ async function copyLastResultCommand() {
 async function togglePrettyPrint() {
     const config = vscode.workspace.getConfiguration('calva'),
         pprintConfigKey = 'prettyPrintingOptions',
-        pprintOptions = config.get(pprintConfigKey) as PrettyPrintingOptions;
+        pprintOptions = config.get<PrettyPrintingOptions>(pprintConfigKey);
     pprintOptions.enabled = !pprintOptions.enabled;
     if (
         pprintOptions.enabled &&
@@ -611,7 +613,7 @@ async function toggleEvaluationSendCodeToOutputWindow() {
     statusbar.update();
 }
 
-async function instrumentTopLevelForm() {
+function instrumentTopLevelForm() {
     evaluateSelection(
         {},
         {

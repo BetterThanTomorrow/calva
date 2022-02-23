@@ -51,6 +51,8 @@ function outputFileDir() {
     }
 }
 
+let isInitialized = false;
+
 const DOC_URI = () => {
     return vscode.Uri.joinPath(outputFileDir(), RESULTS_DOC_NAME);
 };
@@ -131,24 +133,15 @@ export function setContextForOutputWindowActive(isActive: boolean): void {
 }
 
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
+    const docUri = DOC_URI();
     await vscode.workspace.fs.createDirectory(outputFileDir());
     let resultsDoc: vscode.TextDocument;
     try {
-        resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
+        resultsDoc = await vscode.workspace.openTextDocument(docUri);
     } catch (e) {
-        await util.writeTextToFile(DOC_URI(), '');
-        resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
+        await util.writeTextToFile(docUri, '');
+        resultsDoc = await vscode.workspace.openTextDocument(docUri);
     }
-    const greetings = `${START_GREETINGS}\n\n`;
-    const edit = new vscode.WorkspaceEdit();
-    const fullRange = new vscode.Range(
-        resultsDoc.positionAt(0),
-        resultsDoc.positionAt(Infinity)
-    );
-    edit.replace(DOC_URI(), fullRange, greetings);
-    await vscode.workspace.applyEdit(edit);
-    resultsDoc.save();
-
     if (config.getConfig().autoOpenREPLWindow) {
         const resultsEditor = await vscode.window.showTextDocument(
             resultsDoc,
@@ -160,6 +153,20 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
         resultsEditor.selection = new vscode.Selection(lastPos, lastPos);
         resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
     }
+    if (isInitialized) {
+        return resultsDoc;
+    }
+
+    const greetings = `${START_GREETINGS}\n\n`;
+    const edit = new vscode.WorkspaceEdit();
+    const fullRange = new vscode.Range(
+        resultsDoc.positionAt(0),
+        resultsDoc.positionAt(Infinity)
+    );
+    edit.replace(docUri, fullRange, greetings);
+    await vscode.workspace.applyEdit(edit);
+    resultsDoc.save();
+
     // For some reason onDidChangeTextEditorViewColumn won't fire
     state.extensionContext.subscriptions.push(
         vscode.window.onDidChangeActiveTextEditor((event) => {
@@ -222,6 +229,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
         );
     }
     replHistory.resetState();
+    isInitialized = true;
     return resultsDoc;
 }
 
@@ -399,7 +407,7 @@ function stackEntryString(entry: any): string {
     return `${name} (${entry.file}:${entry.line})`;
 }
 
-export async function saveStacktrace(stacktrace: any[]): Promise<void> {
+export function saveStacktrace(stacktrace: any[]): void {
     _lastStacktrace = [];
     stacktrace
         .filter((entry) => {

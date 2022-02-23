@@ -14,7 +14,7 @@ import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import { EditableDocument } from '../cursor-doc/model';
 
-const onPareditKeyMapChangedEmitter = new EventEmitter<String>();
+const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
 const languages = new Set(['clojure', 'lisp', 'scheme']);
 const enabled = true;
@@ -378,7 +378,7 @@ function wrapPareditCommand(command: PareditCommand) {
     };
 }
 
-export function getKeyMapConf(): String {
+export function getKeyMapConf(): string {
     const keyMap = workspace
         .getConfiguration()
         .get('calva.paredit.defaultKeyMap');
@@ -439,7 +439,9 @@ export function activate(context: ExtensionContext) {
     );
 }
 
-export function deactivate() {}
+export function deactivate() {
+    // do nothing
+}
 
-export const onPareditKeyMapChanged: Event<String> =
+export const onPareditKeyMapChanged: Event<string> =
     onPareditKeyMapChangedEmitter.event;

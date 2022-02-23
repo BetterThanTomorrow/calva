@@ -22,6 +22,7 @@ export default class Analytics {
     ).replace(/^FUBAR/, 'UA');
 
     constructor(context: vscode.ExtensionContext) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.extension = vscode.extensions.getExtension(
             'betterthantomorrow.calva'
         )!;

@@ -64,7 +64,7 @@ function mergeSnippets(
  * @param {string} data a string representation of a clojure map
  * @returns an error of one was thrown
  */
-async function addEdnConfig(data: string) {
+function addEdnConfig(data: string) {
     try {
         const parsed = parseEdn(data);
         const old = state.getProjectConfig();
@@ -118,31 +118,29 @@ function getConfig() {
         format: configOptions.get('formatOnSave'),
         evaluate: configOptions.get('evalOnSave'),
         test: configOptions.get('testOnSave'),
-        showDocstringInParameterHelp: configOptions.get(
+        showDocstringInParameterHelp: configOptions.get<boolean>(
             'showDocstringInParameterHelp'
-        ) as boolean,
+        ),
         jackInEnv: configOptions.get('jackInEnv'),
-        jackInDependencyVersions: configOptions.get(
-            'jackInDependencyVersions'
-        ) as { JackInDependency: string },
-        clojureLspVersion: configOptions.get('clojureLspVersion') as string,
-        clojureLspPath: configOptions.get('clojureLspPath') as string,
-        openBrowserWhenFigwheelStarted: configOptions.get(
+        jackInDependencyVersions: configOptions.get<{
+            JackInDependency: string;
+        }>('jackInDependencyVersions'),
+        clojureLspVersion: configOptions.get<string>('clojureLspVersion'),
+        clojureLspPath: configOptions.get<string>('clojureLspPath'),
+        openBrowserWhenFigwheelStarted: configOptions.get<boolean>(
             'openBrowserWhenFigwheelStarted'
-        ) as boolean,
+        ),
         customCljsRepl: configOptions.get('customCljsRepl', null),
-        replConnectSequences: configOptions.get(
+        replConnectSequences: configOptions.get<ReplConnectSequence[]>(
             'replConnectSequences'
-        ) as ReplConnectSequence[],
+        ),
         myLeinProfiles: configOptions
-            .get('myLeinProfiles', [])
-            .map(_trimAliasName) as string[],
+            .get<string[]>('myLeinProfiles', [])
+            .map(_trimAliasName),
         myCljAliases: configOptions
-            .get('myCljAliases', [])
-            .map(_trimAliasName) as string[],
-        asyncOutputDestination: configOptions.get(
-            'sendAsyncOutputTo'
-        ) as string,
+            .get<string[]>('myCljAliases', [])
+            .map(_trimAliasName),
+        asyncOutputDestination: configOptions.get<string>('sendAsyncOutputTo'),
         customREPLCommandSnippets: configOptions.get<
             customREPLCommandSnippet[]
         >('customREPLCommandSnippets', []),
@@ -154,33 +152,29 @@ function getConfig() {
             'customREPLCommandSnippets'
         ).workspaceFolderValue as customREPLCommandSnippet[],
         customREPLHoverSnippets: hoverSnippets,
-        prettyPrintingOptions: configOptions.get(
+        prettyPrintingOptions: configOptions.get<PrettyPrintingOptions>(
             'prettyPrintingOptions'
-        ) as PrettyPrintingOptions,
-        evaluationSendCodeToOutputWindow: configOptions.get(
+        ),
+        evaluationSendCodeToOutputWindow: configOptions.get<boolean>(
             'evaluationSendCodeToOutputWindow'
-        ) as boolean,
-        enableJSCompletions: configOptions.get(
-            'enableJSCompletions'
-        ) as boolean,
-        autoOpenREPLWindow: configOptions.get('autoOpenREPLWindow') as boolean,
-        autoOpenJackInTerminal: configOptions.get(
-            'autoOpenJackInTerminal'
-        ) as boolean,
-        referencesCodeLensEnabled: configOptions.get(
+        ),
+        enableJSCompletions: configOptions.get<boolean>('enableJSCompletions'),
+        autoOpenREPLWindow: configOptions.get<boolean>('autoOpenREPLWindow'),
+        autoOpenJackInTerminal: configOptions.get('autoOpenJackInTerminal'),
+        referencesCodeLensEnabled: configOptions.get<boolean>(
             'referencesCodeLens.enabled'
-        ) as boolean,
-        hideReplUi: configOptions.get('hideReplUi') as boolean,
-        strictPreventUnmatchedClosingBracket: pareditOptions.get(
+        ),
+        hideReplUi: configOptions.get<boolean>('hideReplUi'),
+        strictPreventUnmatchedClosingBracket: pareditOptions.get<boolean>(
             'strictPreventUnmatchedClosingBracket'
         ),
-        showCalvaSaysOnStart: configOptions.get(
+        showCalvaSaysOnStart: configOptions.get<boolean>(
             'showCalvaSaysOnStart'
-        ) as boolean,
+        ),
         jackIn: {
-            useDeprecatedAliasFlag: configOptions.get(
+            useDeprecatedAliasFlag: configOptions.get<boolean>(
                 'jackIn.useDeprecatedAliasFlag'
-            ) as boolean,
+            ),
         },
     };
 }

@@ -53,7 +53,12 @@ describe('splitEditQueueForTextBatching', () => {
     });
     it("doesn't perform batching if first item has callback", () => {
         const queue: [string, OnAppendedCallback][] = [
-            ['item-with-callback', () => {}],
+            [
+                'item-with-callback',
+                () => {
+                    // do nothing
+                },
+            ],
             ['item2', null],
             ['item3', null],
         ];
@@ -68,7 +73,12 @@ describe('splitEditQueueForTextBatching', () => {
         const queue: [string, OnAppendedCallback][] = [
             ['item1', null],
             ['item2', null],
-            ['item3-with-callback', () => {}],
+            [
+                'item3-with-callback',
+                () => {
+                    // do nothing
+                },
+            ],
             ['item4', null],
         ];
         const [textBatch, remainingEditQueue] =

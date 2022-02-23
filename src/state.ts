@@ -75,9 +75,9 @@ export async function getNonProjectRootDir(
 ): Promise<vscode.Uri> {
     let root: vscode.Uri;
     if (!process.env['NEW_DRAMS']) {
-        root = (await context.globalState.get(
+        root = await context.globalState.get<Promise<vscode.Uri>>(
             NON_PROJECT_DIR_KEY
-        )) as vscode.Uri;
+        );
     }
     if (root) {
         const createNewOption = 'Create new temp directory, download new files';
@@ -176,7 +176,7 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
     }
 }
 
-async function findLocalProjectRoot(
+function findLocalProjectRoot(
     projectFileNames,
     doc,
     workspaceFolder

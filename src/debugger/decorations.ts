@@ -157,7 +157,7 @@ function triggerUpdateAndRenderDecorations() {
     }
 }
 
-async function activate() {
+function activate() {
     enabled = true;
     triggerUpdateAndRenderDecorations();
 

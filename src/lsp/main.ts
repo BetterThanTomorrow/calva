@@ -9,6 +9,7 @@ import {
     ClientCapabilities,
     ServerCapabilities,
     DocumentSelector,
+    MessageType,
 } from 'vscode-languageclient/node';
 import * as util from '../utilities';
 import * as config from '../config';
@@ -25,6 +26,7 @@ import { provideHover } from '../providers/hover';
 import { provideSignatureHelp } from '../providers/signature';
 import { isResultsDoc } from '../results-output/results-doc';
 import * as calvaFmtConfig from '../calva-fmt/src/config';
+import { MessageItem } from 'vscode';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
@@ -43,13 +45,17 @@ class TestTreeFeature implements StaticFeature {
     initialize(
         capabilities: ServerCapabilities,
         documentSelector: DocumentSelector | undefined
-    ): void {}
+    ): void {
+        // do nothing
+    }
 
     fillClientCapabilities(capabilities: ClientCapabilities): void {
         capabilities.experimental = { testTree: true };
     }
 
-    dispose(): void {}
+    dispose(): void {
+        // do nothing
+    }
 }
 
 function createClient(clojureLspPath: string): LanguageClient {
@@ -76,30 +82,30 @@ function createClient(clojureLspPath: string): LanguageClient {
             'keep-require-at-start?': true,
         },
         middleware: {
-            didOpen: async (document, next) => {
+            didOpen: (document, next) => {
                 if (isResultsDoc(document)) {
                     return;
                 }
                 return next(document);
             },
-            didSave: async (document, next) => {
+            didSave: (document, next) => {
                 if (isResultsDoc(document)) {
                     return;
                 }
                 return next(document);
             },
-            didChange: async (change, next) => {
+            didChange: (change, next) => {
                 if (isResultsDoc(change.document)) {
                     return;
                 }
                 return next(change);
             },
-            provideLinkedEditingRange: async (
+            provideLinkedEditingRange: (
                 _document,
                 _position,
                 _token,
                 _next
-            ): Promise<vscode.LinkedEditingRanges> => {
+            ): null => {
                 return null;
             },
             handleDiagnostics(uri, diagnostics, next) {
@@ -440,6 +446,70 @@ async function startClient(
             handler(tree);
         }
     );
+
+    client.onRequest('window/showMessageRequest', (params) => {
+        // showInformationMessage can't handle some of the menus that clojure-lsp uses
+        // https://github.com/BetterThanTomorrow/calva/issues/1539
+        // We count the sum of the lengths of the button titles and
+        // use a QuickPick menu when it exceeds some number
+        const totalActionsLength = params.actions.reduce(
+            (length: number, action: MessageItem) =>
+                (length += action.title.length),
+            0
+        );
+        if (params.type === MessageType.Info && totalActionsLength > 25) {
+            return quickPick(params.message, params.actions);
+        }
+        // Else we use this, copied from the default client
+        // TODO: Can we reuse the default clients implementation?
+        let messageFunc: <T extends MessageItem>(
+            message: string,
+            ...items: T[]
+        ) => Thenable<T>;
+        switch (params.type) {
+            case MessageType.Error:
+                messageFunc = vscode.window.showErrorMessage;
+                break;
+            case MessageType.Warning:
+                messageFunc = vscode.window.showWarningMessage;
+                break;
+            case MessageType.Info:
+                messageFunc = vscode.window.showInformationMessage;
+                break;
+            default:
+                messageFunc = vscode.window.showInformationMessage;
+        }
+        const actions = params.actions || [];
+        return messageFunc(params.message, ...actions);
+    });
+}
+
+// A quickPick that expects the same input as showInformationMessage does
+// TODO: How do we make it satisfy the messageFunc interface above?
+function quickPick(
+    message: string,
+    actions: { title: string }[]
+): Promise<{ title: string }> {
+    const qp = vscode.window.createQuickPick();
+    qp.items = actions.map((item) => ({ label: item.title }));
+    qp.title = message;
+    return new Promise<{ title: string }>((resolve, _reject) => {
+        qp.show();
+        qp.onDidAccept(() => {
+            if (qp.selectedItems.length > 0) {
+                resolve({
+                    title: qp.selectedItems[0].label,
+                });
+            } else {
+                resolve(undefined);
+            }
+            qp.hide();
+        });
+        qp.onDidHide(() => {
+            resolve(undefined);
+            qp.hide();
+        });
+    });
 }
 
 function sayClientVersionInfo(serverVersion: string, serverInfo: any) {

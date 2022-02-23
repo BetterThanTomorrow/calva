@@ -57,7 +57,16 @@ jobs:
             fi
       - run:
           name: Package vsix
-          command: npx vsce package --githubBranch published
+          command: |
+            if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
+            then
+              echo "Packaging as release"
+              PACKAGE_CMD="vsce package --githubBranch published"
+            else
+              echo "Packaging as pre-release"
+              PACKAGE_CMD="vsce package --pre-release"
+            fi
+            npx ${PACKAGE_CMD}
       - run:
           name: Copy vsix
           command: |
@@ -387,6 +396,18 @@ workflows:
       - test-ts-unit:
           requires:
             - build
+      - marketplace-preview-publish:
+          requires:
+            - prettier-check
+            - eslint-check
+            - test-grammar
+            - test-cljslib
+            - test-integration
+            - test-ts-unit
+          filters:
+            branches:
+              only: disabled # dev (disabled for now because https://github.com/microsoft/vsmarketplace/issues/310)
+          context: Calva
   release-publish:
     jobs:
       - build:
@@ -456,20 +477,6 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
-          context: Calva
-      - marketplace-preview-publish:
-          requires:
-            - prettier-check
-            - eslint-check
-            - test-grammar
-            - test-cljslib
-            - test-integration
-            - test-ts-unit
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
           context: Calva
       - marketplace-publish:
           requires:

@@ -21,7 +21,7 @@ function getTestFileText(fileName: string): string {
     return fs.readFileSync(__dirname + '/test-files/' + fileName, 'utf8');
 }
 
-describe('Debugger Util', async () => {
+describe('Debugger Util', () => {
     describe('moveTokenCursorToBreakpoint', () => {
         let doc: model.StringDocument;
         let debugResponse: any;
