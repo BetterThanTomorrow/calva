@@ -374,16 +374,18 @@ workflows:
   # We have two Calva build workflows, because for some reason the tag filter need to be on all jobs...
   build-test:
     jobs:
+      - prettier-check:
+          filters:
+            tags:
+              ignore: /^v\d+\.\d+\.\d+-?.*/
+      - eslint-check:
+          filters:
+            tags:
+              ignore: /^v\d+\.\d+\.\d+-?.*/
       - build:
           filters:
             tags:
               ignore: /^v\d+\.\d+\.\d+-?.*/
-      - prettier-check:
-          requires:
-            - build
-      - eslint-check:
-          requires:
-            - build
       - test-grammar:
           requires:
             - build
