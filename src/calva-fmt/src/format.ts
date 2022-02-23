@@ -194,11 +194,11 @@ export function alignPositionCommand(editor: vscode.TextEditor) {
 }
 
 export function formatCode(code: string, eol: number) {
-    const d = cljify({
+    const d = {
         'range-text': code,
         eol: eol == 2 ? '\r\n' : '\n',
         config: config.getConfig(),
-    });
+    };
     const result = jsify(formatText(d));
     if (!result['error']) {
         return result['range-text'];
@@ -247,8 +247,7 @@ function _formatRange(
         eol: eol,
         config: config.getConfig(),
     };
-    const cljData = cljify(d);
-    const result = jsify(formatTextAtRange(cljData));
+    const result = jsify(formatTextAtRange(d));
     if (!result['error']) {
         return result['range-text'];
     }
