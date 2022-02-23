@@ -16,6 +16,9 @@ jobs:
           name: Install node_modules
           command: cp package.json /tmp && npm install && cp /tmp/package.json .
       - run:
+          name: "Create build workspace"
+          command: mkdir /tmp/build
+      - run:
           name: Copy build
           command: |
             cp -r . /tmp/build
@@ -44,9 +47,6 @@ jobs:
       - run:
           name: "Create artifacts workspace"
           command: mkdir /tmp/artifacts
-      - run:
-          name: "Create build workspace"
-          command: mkdir /tmp/build
       - run:
           name: Tamper Calva version if not release versioned
           command: |
