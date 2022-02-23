@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.245] - 2022-02-23
 - [Print stacktrace link in REPL gets duplicated](https://github.com/BetterThanTomorrow/calva/issues/1542)
 - [Publish pre-releases when dev updates](https://github.com/BetterThanTomorrow/calva/issues/1554)
 - [Apply basic typescript eslint rules](https://github.com/BetterThanTomorrow/calva/issues/1536)
