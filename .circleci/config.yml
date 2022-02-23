@@ -5,8 +5,6 @@ jobs:
       - image: cimg/openjdk:17.0.1-node
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
       - checkout:
           path: ~/calva
       - restore_cache:
@@ -15,6 +13,11 @@ jobs:
       - run:
           name: Install node_modules
           command: cp package.json /tmp && npm install && cp /tmp/package.json .
+      - save_cache:
+          name: Save dependencies
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+          paths:
+            - ./node_modules
   build:
     docker:
       - image: cimg/openjdk:17.0.1-node
@@ -22,9 +25,6 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp
-      - run:
-          name: Restore checkout
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Install CLJS dependencies
           command: npx shadow-cljs classpath
@@ -152,11 +152,6 @@ jobs:
       - image: circleci/node:latest
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore checkout
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Run prettier format check
           command: npm run prettier-check
@@ -165,11 +160,6 @@ jobs:
       - image: circleci/node:latest
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore checkout
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Run eslint check
           command: npm run eslint
