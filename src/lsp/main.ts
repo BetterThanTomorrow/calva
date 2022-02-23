@@ -485,7 +485,7 @@ async function startClient(
 }
 
 // A quickPick that expects the same input as showInformationMessage does
-// TODO: How do we make it satisfy the messageFunc interface above? 
+// TODO: How do we make it satisfy the messageFunc interface above?
 function quickPick(
     message: string,
     actions: { title: string }[]
