@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  checkout:
     docker:
       - image: cimg/openjdk:17.0.1-node
     working_directory: ~/calva
@@ -15,6 +15,16 @@ jobs:
       - run:
           name: Install node_modules
           command: cp package.json /tmp && npm install && cp /tmp/package.json .
+  build:
+    docker:
+      - image: cimg/openjdk:17.0.1-node
+    working_directory: ~/calva
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Restore checkout
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Install CLJS dependencies
           command: npx shadow-cljs classpath
@@ -145,6 +155,9 @@ jobs:
       - attach_workspace:
           at: /tmp
       - run:
+          name: Restore checkout
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
+      - run:
           name: Run prettier format check
           command: npm run prettier-check
   eslint-check:
@@ -154,6 +167,9 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp
+      - run:
+          name: Restore checkout
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Run eslint check
           command: npm run eslint
@@ -368,18 +384,19 @@ workflows:
   # We have two Calva build workflows, because for some reason the tag filter need to be on all jobs...
   build-test:
     jobs:
+      - checkout:
+          filters:
+            tags:
+              ignore: /^v\d+\.\d+\.\d+-?.*/
       - prettier-check:
-          filters:
-            tags:
-              ignore: /^v\d+\.\d+\.\d+-?.*/
+          requires:
+            - checkout
       - eslint-check:
-          filters:
-            tags:
-              ignore: /^v\d+\.\d+\.\d+-?.*/
+          requires:
+            - checkout
       - build:
-          filters:
-            tags:
-              ignore: /^v\d+\.\d+\.\d+-?.*/
+          requires:
+            - checkout
       - test-grammar:
           requires:
             - build
@@ -406,7 +423,15 @@ workflows:
           context: Calva
   release-publish:
     jobs:
+      - checkout:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
       - build:
+          requires:
+            - checkout
           filters:
             branches:
               ignore: /.*/
