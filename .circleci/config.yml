@@ -165,6 +165,8 @@ jobs:
       - image: circleci/node:latest
     working_directory: ~/calva
     steps:
+      - attach_workspace:
+          at: /tmp
       - run:
           name: Restore build
           command: rmdir ~/calva && cp -r /tmp/build ~/calva
@@ -176,6 +178,8 @@ jobs:
       - image: circleci/node:latest
     working_directory: ~/calva
     steps:
+      - attach_workspace:
+          at: /tmp
       - run:
           name: Restore build
           command: rmdir ~/calva && cp -r /tmp/build ~/calva
