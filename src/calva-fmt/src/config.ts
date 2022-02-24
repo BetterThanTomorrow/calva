@@ -36,15 +36,12 @@ async function readConfiguration(): Promise<{
     const workspaceConfig = vscode.workspace.getConfiguration('calva.fmt');
     const configPath: string = workspaceConfig.get('configPath');
     if (configPath === LSP_CONFIG_KEY && !lspFormatConfigFetched) {
-        lspFormatConfig = await lsp
-            .getCljFmtConfig()
-            .then((c) => {
-                lspFormatConfigFetched = true;
-                return c;
-            })
-            .catch((e) => {
-                lspFormatConfigFetched = true;
-            });
+      try {
+        lspFormatConfig = await lsp.getCljFmtConfig(); 
+        lspFormatConfigFetched = true;
+      } catch (_) {
+        lspFormatConfigFetched = true;
+      }
     }
     if (configPath === LSP_CONFIG_KEY && !lspFormatConfig) {
         vscode.window.showErrorMessage(
