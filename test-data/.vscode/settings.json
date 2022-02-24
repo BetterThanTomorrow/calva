@@ -11,5 +11,6 @@
       "snippet": "(str \"**JSON edn hover hover-text** \" \"$hover-text\")"
     }
   ],
-  "calva.fmt.configPath": "CLOJURE-LSP"
+  "calva.fmt.configPath": "CLOJURE-LSP",
+  "editor.formatOnSave": true
 }

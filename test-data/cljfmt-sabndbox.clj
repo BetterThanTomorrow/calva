@@ -6,6 +6,7 @@
   (let [a b
         aa bb
         ccc {:a b :aa bb :ccc ccc}]))
+
 (tabular 0
   (foo
     (bar
