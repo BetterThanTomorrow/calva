@@ -72,7 +72,7 @@ async function readConfiguration(): Promise<{
     }
 }
 
-export function getConfig() {
-    const config = readConfiguration();
+export async function getConfig() {
+    const config = await readConfiguration();
     return config;
 }
