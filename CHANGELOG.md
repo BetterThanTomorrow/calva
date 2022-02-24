@@ -3,9 +3,10 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Format config from clojure-lsp broken](https://github.com/BetterThanTomorrow/calva/issues/1561)
 
 ## [2.0.245] - 2022-02-23
-- [Print stacktrace link in REPL gets duplicated](https://github.com/BetterThanTomorrow/calva/issues/1542)
+- Fix: [Print stacktrace link in REPL gets duplicated](https://github.com/BetterThanTomorrow/calva/issues/1542)
 - [Publish pre-releases when dev updates](https://github.com/BetterThanTomorrow/calva/issues/1554)
 - [Apply basic typescript eslint rules](https://github.com/BetterThanTomorrow/calva/issues/1536)
 - Fix: [”Resolve macro as...” code action produces unreadable text in pop up](https://github.com/BetterThanTomorrow/calva/issues/1539)

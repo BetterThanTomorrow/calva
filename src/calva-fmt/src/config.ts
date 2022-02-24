@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as filesCache from '../../files-cache';
 import * as cljsLib from '../../../out/cljs-lib/cljs-lib.js';
-
+import * as lsp from '../../lsp/main';
 const defaultCljfmtContent =
     '\
 {:remove-surrounding-whitespace? true\n\
@@ -12,6 +12,7 @@ const defaultCljfmtContent =
 
 const LSP_CONFIG_KEY = 'CLOJURE-LSP';
 let lspFormatConfig: string;
+let lspFormatConfigFetched = false;
 
 function configuration(
     workspaceConfig: vscode.WorkspaceConfiguration,
@@ -26,9 +27,17 @@ function configuration(
     };
 }
 
-function readConfiguration() {
+async function readConfiguration(): Promise<{ 'format-as-you-type': boolean; 'keep-comment-forms-trail-paren-on-own-line?': boolean; 'cljfmt-options-string': string; 'cljfmt-options': object; }> {
     const workspaceConfig = vscode.workspace.getConfiguration('calva.fmt');
     const configPath: string = workspaceConfig.get('configPath');
+    if (configPath === LSP_CONFIG_KEY && !lspFormatConfigFetched) {
+        lspFormatConfig = await lsp.getCljFmtConfig().then(c => {
+            lspFormatConfigFetched = true;
+            return c;
+        }).catch(e => {
+            lspFormatConfigFetched = true;
+        });
+    }
     if (configPath === LSP_CONFIG_KEY && !lspFormatConfig) {
         vscode.window.showErrorMessage(
             'Fetching formatting settings from clojure-lsp failed. Check that you are running a version of clojure-lsp that provides "cljfmt-raw" in serverInfo.',
@@ -53,10 +62,6 @@ function readConfiguration() {
         );
         return configuration(workspaceConfig, defaultCljfmtContent);
     }
-}
-
-export function setLspFormatConfig(config: string) {
-    lspFormatConfig = config;
 }
 
 export function getConfig() {

@@ -25,10 +25,10 @@ import * as state from '../state';
 import { provideHover } from '../providers/hover';
 import { provideSignatureHelp } from '../providers/signature';
 import { isResultsDoc } from '../results-output/results-doc';
-import * as calvaFmtConfig from '../calva-fmt/src/config';
 import { MessageItem } from 'vscode';
 
 const LSP_CLIENT_KEY = 'lspClient';
+const LSP_CLIENT_KEY_ERROR = 'lspClientError';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
 const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE =
     'The clojure-lsp server is not running or has not finished intializing.';
@@ -430,15 +430,20 @@ async function startClient(
     lspStatus.text = '$(rocket) clojure-lsp';
     lspStatus.show();
     client.start();
-    await onReadyPromise;
+    await onReadyPromise.catch(e => {
+        console.error('clojure-lsp:', e);
+        setStateValue(LSP_CLIENT_KEY_ERROR, e);
+    });
     lspStatus.hide();
+    if (getStateValue(LSP_CLIENT_KEY_ERROR)) {
+        return;
+    }
     setStateValue(LSP_CLIENT_KEY, client);
     registerCommands(context, client);
     registerEventHandlers(context, client);
     const serverInfo = await getServerInfo(client);
     serverVersion = serverInfo['server-version'];
     sayClientVersionInfo(serverVersion, serverInfo);
-    calvaFmtConfig.setLspFormatConfig(serverInfo['cljfmt-raw']);
 
     client.onNotification(
         'clojure/textDocument/testTree',
@@ -656,6 +661,33 @@ export async function getClojuredocs(
     } else {
         return null;
     }
+}
+
+// TODO: This feels a bit brute, what are other ways to wait for the client to initialize?
+function getClient(timeout: number): Promise<LanguageClient> | undefined {
+    const start = Date.now();
+    return new Promise(waitForClientStarted);
+
+    function waitForClientStarted(resolve, reject) {
+        if (getStateValue(LSP_CLIENT_KEY)) {
+            resolve(getStateValue(LSP_CLIENT_KEY));
+        } else if (getStateValue(LSP_CLIENT_KEY_ERROR)) {
+            reject(new Error('clojure-lsp: ' + getStateValue(LSP_CLIENT_KEY_ERROR)));
+        }
+        else if (Date.now() - start >= timeout) {
+            reject(new Error('clojure-lsp: timeout'));
+        }
+        else {
+            setTimeout(waitForClientStarted.bind(this, resolve, reject), 30);
+        }
+    }
+}
+
+export async function getCljFmtConfig() {
+    // TODO: Figure out a reasonable timeout
+    const client = await getClient(60 * 5 * 1000);
+    const serverInfo = await getServerInfo(client);
+    return serverInfo['cljfmt-raw'];
 }
 
 export default {
