@@ -6,10 +6,10 @@
   (let [a b
         aa bb
         ccc {:a b :aa bb :ccc ccc}]))
-(tabular
- (foo
-  (bar
-   0)))
+(tabular 0
+  (foo
+    (bar
+     0)))
 
 (f
  ##Inf)

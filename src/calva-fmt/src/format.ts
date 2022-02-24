@@ -16,7 +16,7 @@ import {
     jsify,
 } from '../../../out/cljs-lib/cljs-lib';
 
-export function indentPosition(
+export async function indentPosition(
     position: vscode.Position,
     document: vscode.TextDocument
 ) {
@@ -25,7 +25,7 @@ export function indentPosition(
     const indent = getIndent(
         getDocument(document).model.lineInputModel,
         getDocumentOffset(document, position),
-        config.getConfig()
+        await config.getConfig()
     );
     let delta =
         document.lineAt(position.line).firstNonWhitespaceCharacterIndex -
@@ -50,10 +50,10 @@ export function indentPosition(
     }
 }
 
-export function formatRangeEdits(
+export async function formatRangeEdits(
     document: vscode.TextDocument,
     range: vscode.Range
-): vscode.TextEdit[] {
+): Promise<vscode.TextEdit[]> {
     const text: string = document.getText(range);
     const mirroredDoc: MirroredDocument = getDocument(document);
     const startIndex = document.offsetAt(range.start);
@@ -61,7 +61,7 @@ export function formatRangeEdits(
     const cursor = mirroredDoc.getTokenCursor(startIndex);
     if (!cursor.withinString()) {
         const rangeTuple: number[] = [startIndex, endIndex];
-        const newText: string = _formatRange(
+        const newText: string = await _formatRange(
             text,
             document.getText(),
             rangeTuple,
@@ -73,16 +73,16 @@ export function formatRangeEdits(
     }
 }
 
-export function formatRange(
+export async function formatRange(
     document: vscode.TextDocument,
     range: vscode.Range
 ) {
     const wsEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
-    wsEdit.set(document.uri, formatRangeEdits(document, range));
+    wsEdit.set(document.uri, await formatRangeEdits(document, range));
     return vscode.workspace.applyEdit(wsEdit);
 }
 
-export function formatPositionInfo(
+export async function formatPositionInfo(
     editor: vscode.TextEditor,
     onType: boolean = false,
     extraConfig = {}
@@ -108,7 +108,7 @@ export function formatPositionInfo(
         'range-text': string;
         range: number[];
         'new-index': number;
-    } = _formatIndex(
+    } = await _formatIndex(
         doc.getText(),
         formatRange,
         index,
@@ -131,13 +131,13 @@ export function formatPositionInfo(
     };
 }
 
-export function formatPosition(
+export async function formatPosition(
     editor: vscode.TextEditor,
     onType: boolean = false,
     extraConfig = {}
-): Thenable<boolean> {
+): Promise<boolean> {
     const doc: vscode.TextDocument = editor.document,
-        formattedInfo = formatPositionInfo(editor, onType, extraConfig);
+        formattedInfo = await formatPositionInfo(editor, onType, extraConfig);
     if (
         formattedInfo &&
         formattedInfo.previousText != formattedInfo.formattedText
@@ -193,11 +193,11 @@ export function alignPositionCommand(editor: vscode.TextEditor) {
     formatPosition(editor, true, { 'align-associative?': true });
 }
 
-export function formatCode(code: string, eol: number) {
+export async function formatCode(code: string, eol: number) {
     const d = {
         'range-text': code,
         eol: eol == 2 ? '\r\n' : '\n',
-        config: config.getConfig(),
+        config: await config.getConfig(),
     };
     const result = jsify(formatText(d));
     if (!result['error']) {
@@ -208,20 +208,20 @@ export function formatCode(code: string, eol: number) {
     }
 }
 
-function _formatIndex(
+async function _formatIndex(
     allText: string,
     range: [number, number],
     index: number,
     eol: string,
     onType: boolean = false,
     extraConfig = {}
-): { 'range-text': string; range: number[]; 'new-index': number } {
+): Promise<{ 'range-text': string; range: number[]; 'new-index': number }> {
     const d = {
         'all-text': allText,
         idx: index,
         eol: eol,
         range: range,
-        config: { ...config.getConfig(), ...extraConfig },
+        config: { ...(await config.getConfig()), ...extraConfig },
     };
     const result = jsify(
         onType ? formatTextAtIdxOnType(d) : formatTextAtIdx(d)
@@ -234,18 +234,18 @@ function _formatIndex(
     }
 }
 
-function _formatRange(
+async function _formatRange(
     rangeText: string,
     allText: string,
     range: number[],
     eol: string
-): string {
+): Promise<string> {
     const d = {
         'range-text': rangeText,
         'all-text': allText,
         range: range,
         eol: eol,
-        config: config.getConfig(),
+        config: await config.getConfig(),
     };
     const result = jsify(formatTextAtRange(d));
     if (!result['error']) {
