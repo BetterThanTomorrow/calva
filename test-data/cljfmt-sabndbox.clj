@@ -7,6 +7,11 @@
         aa bb
         ccc {:a b :aa bb :ccc ccc}]))
 
+(tabular 0
+  (foo
+    (bar
+     0)))
+
 (f
  ##Inf)
 

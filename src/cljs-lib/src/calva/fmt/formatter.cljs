@@ -286,17 +286,19 @@
   [^js m]
   (-> m
       (parse-cljfmt-options-string)
+      (update-in [:config :cljfmt-options] merge-cljfmt)
       (format-text)))
 
 (defn format-text-at-range-bridge
   [^js m]
+  (def m m)
   (-> m
       (parse-cljfmt-options-string)
+      (update-in [:config :cljfmt-options] merge-cljfmt)
       (format-text-at-range)))
 
 (defn format-text-at-idx-bridge
   [^js m]
-  (tap> [:format-text-at-idx-bridge m])
   (-> m
       (parse-cljfmt-options-string)
       (format-text-at-idx)))

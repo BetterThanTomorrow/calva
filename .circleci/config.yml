@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  checkout:
     docker:
       - image: cimg/openjdk:17.0.1-node
     working_directory: ~/calva
@@ -16,14 +16,37 @@ jobs:
           name: Install node_modules
           command: cp package.json /tmp && npm install && cp /tmp/package.json .
       - run:
+          name: "Create build workspace"
+          command: mkdir /tmp/build
+      - run:
+          name: Copy build
+          command: |
+            cp -r . /tmp/build
+      - save_cache:
+          name: Save dependencies
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+          paths:
+            - ./node_modules
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - build
+  build:
+    docker:
+      - image: cimg/openjdk:17.0.1-node
+    working_directory: ~/calva
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Restore build
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
+      - run:
           name: Install CLJS dependencies
           command: npx shadow-cljs classpath
       - run:
           name: "Create artifacts workspace"
           command: mkdir /tmp/artifacts
-      - run:
-          name: "Create build workspace"
-          command: mkdir /tmp/build
       - run:
           name: Tamper Calva version if not release versioned
           command: |
@@ -74,7 +97,8 @@ jobs:
       - run:
           name: Copy build
           command: |
-            cp -r . /tmp/build
+            cp -r out /tmp/build
+            cp  package.json /tmp/build
       - save_cache:
           name: Save dependencies
           key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
@@ -374,13 +398,16 @@ workflows:
   # We have two Calva build workflows, because for some reason the tag filter need to be on all jobs...
   build-test:
     jobs:
-      - build:
+      - checkout:
           filters:
             tags:
               ignore: /^v\d+\.\d+\.\d+-?.*/
       - prettier-check:
           requires:
-            - build
+            - checkout
+      - build:
+          requires:
+            - checkout
       - eslint-check:
           requires:
             - build
@@ -410,7 +437,15 @@ workflows:
           context: Calva
   release-publish:
     jobs:
+      - checkout:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
       - build:
+          requires:
+            - checkout
           filters:
             branches:
               ignore: /.*/

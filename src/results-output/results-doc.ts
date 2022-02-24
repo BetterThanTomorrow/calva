@@ -276,9 +276,9 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
             selection.active,
             topLevel
         );
-        code = formatCode(doc.getText(formSelection), doc.eol);
+        code = await formatCode(doc.getText(formSelection), doc.eol);
     } else {
-        code = formatCode(doc.getText(selection), doc.eol);
+        code = await formatCode(doc.getText(selection), doc.eol);
     }
     if (code != '') {
         if (getNs() !== ns) {
