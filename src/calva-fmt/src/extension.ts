@@ -29,11 +29,11 @@ function getLanguageConfiguration(
     };
 }
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     docmirror.activate();
     vscode.languages.setLanguageConfiguration(
         'clojure',
-        getLanguageConfiguration(config.getConfig()['format-as-you-type'])
+        getLanguageConfiguration(await config.getConfig()['format-as-you-type'])
     );
     context.subscriptions.push(
         vscode.commands.registerTextEditorCommand(
@@ -87,12 +87,12 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
     vscode.window.onDidChangeActiveTextEditor(inferer.updateState);
-    vscode.workspace.onDidChangeConfiguration((e) => {
+    vscode.workspace.onDidChangeConfiguration(async (e) => {
         if (e.affectsConfiguration('calva.fmt.formatAsYouType')) {
             vscode.languages.setLanguageConfiguration(
                 'clojure',
                 getLanguageConfiguration(
-                    config.getConfig()['format-as-you-type']
+                    await config.getConfig()['format-as-you-type']
                 )
             );
         }

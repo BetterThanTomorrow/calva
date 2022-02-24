@@ -1,5 +1,4 @@
 {
-  "calva.fmt.configPath": "projects/pirate-lang/.cljfmt.edn",
   "calva.customREPLCommandSnippets": [
     {
       "name": "Double current",
@@ -11,5 +10,7 @@
       "name": "edn hover hover-text",
       "snippet": "(str \"**JSON edn hover hover-text** \" \"$hover-text\")"
     }
-  ]
+  ],
+  "calva.fmt.configPath": "CLOJURE-LSP",
+  "editor.formatOnSave": true
 }
