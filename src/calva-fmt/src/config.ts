@@ -27,16 +27,24 @@ function configuration(
     };
 }
 
-async function readConfiguration(): Promise<{ 'format-as-you-type': boolean; 'keep-comment-forms-trail-paren-on-own-line?': boolean; 'cljfmt-options-string': string; 'cljfmt-options': object; }> {
+async function readConfiguration(): Promise<{
+    'format-as-you-type': boolean;
+    'keep-comment-forms-trail-paren-on-own-line?': boolean;
+    'cljfmt-options-string': string;
+    'cljfmt-options': object;
+}> {
     const workspaceConfig = vscode.workspace.getConfiguration('calva.fmt');
     const configPath: string = workspaceConfig.get('configPath');
     if (configPath === LSP_CONFIG_KEY && !lspFormatConfigFetched) {
-        lspFormatConfig = await lsp.getCljFmtConfig().then(c => {
-            lspFormatConfigFetched = true;
-            return c;
-        }).catch(e => {
-            lspFormatConfigFetched = true;
-        });
+        lspFormatConfig = await lsp
+            .getCljFmtConfig()
+            .then((c) => {
+                lspFormatConfigFetched = true;
+                return c;
+            })
+            .catch((e) => {
+                lspFormatConfigFetched = true;
+            });
     }
     if (configPath === LSP_CONFIG_KEY && !lspFormatConfig) {
         vscode.window.showErrorMessage(

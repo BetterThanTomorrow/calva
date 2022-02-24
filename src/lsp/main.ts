@@ -430,7 +430,7 @@ async function startClient(
     lspStatus.text = '$(rocket) clojure-lsp';
     lspStatus.show();
     client.start();
-    await onReadyPromise.catch(e => {
+    await onReadyPromise.catch((e) => {
         console.error('clojure-lsp:', e);
         setStateValue(LSP_CLIENT_KEY_ERROR, e);
     });
@@ -672,12 +672,12 @@ function getClient(timeout: number): Promise<LanguageClient> | undefined {
         if (getStateValue(LSP_CLIENT_KEY)) {
             resolve(getStateValue(LSP_CLIENT_KEY));
         } else if (getStateValue(LSP_CLIENT_KEY_ERROR)) {
-            reject(new Error('clojure-lsp: ' + getStateValue(LSP_CLIENT_KEY_ERROR)));
-        }
-        else if (Date.now() - start >= timeout) {
+            reject(
+                new Error('clojure-lsp: ' + getStateValue(LSP_CLIENT_KEY_ERROR))
+            );
+        } else if (Date.now() - start >= timeout) {
             reject(new Error('clojure-lsp: timeout'));
-        }
-        else {
+        } else {
             setTimeout(waitForClientStarted.bind(this, resolve, reject), 30);
         }
     }
