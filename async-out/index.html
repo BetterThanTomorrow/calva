@@ -62,32 +62,6 @@
 
     
     
-      
-        <meta  property="og:type"  content="website" >
-      
-        <meta  property="og:title"  content="Viewing Async Output with Shadow-CLJS and Node - Calva User Guide" >
-      
-        <meta  property="og:description"  content="Tips on using Calva to create Node scripts using shadow-cljs" >
-      
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/async-out.png" >
-      
-        <meta  property="og:image:type"  content="image/png" >
-      
-        <meta  property="og:image:width"  content="1200" >
-      
-        <meta  property="og:image:height"  content="630" >
-      
-        <meta  property="og:url"  content="https://calva.io/async-out/" >
-      
-        <meta  name="twitter:card"  content="summary_large_image" >
-      
-        <meta  name="twitter:title"  content="Viewing Async Output with Shadow-CLJS and Node - Calva User Guide" >
-      
-        <meta  name="twitter:description"  content="Tips on using Calva to create Node scripts using shadow-cljs" >
-      
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/async-out.png" >
-      
-    
     
   </head>
   
@@ -1603,15 +1577,15 @@
 
 
 <h1 id="viewing-async-output-while-working-on-node-projects-with-shadow-cljs">Viewing Async Output While Working On Node Projects with <code>shadow-cljs</code></h1>
-<p>When working on Node projects with <code>shadow-cljs</code> and Calva, async output does not always appear in the Calva output window. To work around this problem, follow these steps:</p>
+<p>When working on NodeJS projects with <code>shadow-cljs</code> and Calva, async output does not always appear in the Calva output window. To work around this problem, follow these steps:</p>
 <ol>
 <li>In a terminal run <code>npx shadow-cljs -d cider/cider-nrepl:0.27.4 node-repl</code></li>
 <li>Wait for the message <code>shadow-cljs - nREPL server started on port &lt;some-port&gt;</code></li>
-<li>Issue the command <strong>Calva: Connect to a running REPL server in your project</strong>, <code>ctrl+alt+c ctrl+alt+c</code>. For project type select <code>shadow-cljs</code>, accepted the proposed <code>localhost:&lt;some-port&gt;</code>, and for <code>build</code> select <code>node-repl</code>.</li>
-<li>Load a file from your project with the command <code>ctrl+alt+c Enter.</code> Evaluating forms in Calva will show results in the output window. Synchronous <code>stdout</code> ouput will be printed in both the output window and in the terminal where you started the repl. Some asynchronous output may show up in the output window, but all will appear in the terminal.</li>
+<li>Issue the command <strong>Calva: Connect to a running REPL server in your project</strong>, <code>ctrl+alt+c ctrl+alt+c</code>. For project type select <code>shadow-cljs</code>, accept the proposed <code>localhost:&lt;some-port&gt;</code>, and for <code>build</code> select <code>node-repl</code>.</li>
+<li>Load a file from your project with the command <code>ctrl+alt+c Enter.</code> Evaluating forms in Calva will show results in the output window. Synchronous <code>stdout</code> output will be printed in both the output window and in the terminal where you started the repl. Some asynchronous output may show up in the output window, but all will appear in the terminal.</li>
 </ol>
 <p>If you use an integrated VSCode terminal to start shadow-cljs, all <code>stdout</code> will appear in the Calva window with your code. Alternatively, you can use an external terminal, which is especially nice when using a second monitor.</p>
-<p>For discussion of this problem and other connection options, see issue #1468.</p>
+<p>For a discussion of this problem and other connection options, see <a href="https://github.com/BetterThanTomorrow/calva/issues/1468">issue #1468</a>.</p>
 
   
 
