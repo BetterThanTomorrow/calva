@@ -182,7 +182,7 @@ export async function startStandaloneRepl(
             docNames
         ).catch((err) => {
             console.error(`Error downloading drams: ${err.message}`);
-            vscode.window.showWarningMessage(
+            void vscode.window.showWarningMessage(
                 `Error downloading files: ${err.message}`
             );
         });
@@ -286,9 +286,9 @@ export function startOrConnectRepl() {
         Object.keys(commands),
         PREFERRED_ORDER
     );
-    vscode.window.showQuickPick(sortedCommands).then((v) => {
+    void vscode.window.showQuickPick(sortedCommands).then((v) => {
         if (commands[v]) {
-            vscode.commands.executeCommand(commands[v]);
+            void vscode.commands.executeCommand(commands[v]);
         }
     });
 }

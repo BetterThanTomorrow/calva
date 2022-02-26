@@ -20,7 +20,7 @@ export function killRange(
     end = doc.selectionRight
 ) {
     const [left, right] = [Math.min(...range), Math.max(...range)];
-    doc.model.edit(
+    void doc.model.edit(
         [new ModelEdit('deleteRange', [left, right - left, [start, end]])],
         { selection: new ModelEditSelection(left) }
     );
@@ -476,7 +476,7 @@ export function splitSexp(
         const open = cursor.getPrevToken().raw;
         if (cursor.forwardList()) {
             const close = cursor.getToken().raw;
-            doc.model.edit(
+            void doc.model.edit(
                 [
                     new ModelEdit('changeRange', [
                         splitPos,
@@ -629,7 +629,7 @@ export function forwardSlurpSexp(
                           '',
                       ]
                     : [wsStartOffset, wsEndOffset, ' '];
-            doc.model.edit(
+            void doc.model.edit(
                 [
                     new ModelEdit('insertString', [newCloseOffset, close]),
                     new ModelEdit('changeRange', changeArgs),
@@ -667,7 +667,7 @@ export function backwardSlurpSexp(
         cursor.backwardSexp(true);
         cursor.forwardWhitespace(false);
         if (offset !== cursor.offsetStart) {
-            doc.model.edit(
+            void doc.model.edit(
                 [
                     new ModelEdit('deleteRange', [offset, tk.raw.length]),
                     new ModelEdit('changeRange', [
@@ -705,7 +705,7 @@ export function forwardBarfSexp(
             close = cursor.getToken().raw;
         cursor.backwardSexp(true);
         cursor.backwardWhitespace();
-        doc.model.edit(
+        void doc.model.edit(
             [
                 new ModelEdit('deleteRange', [offset, close.length]),
                 new ModelEdit('insertString', [cursor.offsetStart, close]),
@@ -734,7 +734,7 @@ export function backwardBarfSexp(
         cursor.next();
         cursor.forwardSexp();
         cursor.forwardWhitespace(false);
-        doc.model.edit(
+        void doc.model.edit(
             [
                 new ModelEdit('changeRange', [
                     cursor.offsetStart,
@@ -797,9 +797,12 @@ export function close(
         if (!inString && docIsBalanced(doc)) {
             // Do nothing when there is balance
         } else {
-            doc.model.edit([new ModelEdit('insertString', [start, close])], {
-                selection: new ModelEditSelection(start + close.length),
-            });
+            void doc.model.edit(
+                [new ModelEdit('insertString', [start, close])],
+                {
+                    selection: new ModelEditSelection(start + close.length),
+                }
+            );
         }
     }
 }
@@ -861,7 +864,7 @@ export function deleteForward(
 ) {
     const cursor = doc.getTokenCursor(start);
     if (start != end) {
-        doc.delete();
+        void doc.delete();
     } else {
         const prevToken = cursor.getPrevToken();
         const nextToken = cursor.getToken();
@@ -871,7 +874,7 @@ export function deleteForward(
                 selection: new ModelEditSelection(p),
             });
         } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-            doc.model.edit(
+            void doc.model.edit(
                 [
                     new ModelEdit('deleteRange', [
                         p - prevToken.raw.length,
@@ -907,7 +910,7 @@ export function stringQuote(
             // inside a string, let's be clever
             if (cursor.getToken().type == 'close') {
                 if (doc.model.getText(0, start).endsWith('\\')) {
-                    doc.model.edit(
+                    void doc.model.edit(
                         [new ModelEdit('changeRange', [start, start, '"'])],
                         { selection: new ModelEditSelection(start + 1) }
                     );
@@ -916,19 +919,19 @@ export function stringQuote(
                 }
             } else {
                 if (doc.model.getText(0, start).endsWith('\\')) {
-                    doc.model.edit(
+                    void doc.model.edit(
                         [new ModelEdit('changeRange', [start, start, '"'])],
                         { selection: new ModelEditSelection(start + 1) }
                     );
                 } else {
-                    doc.model.edit(
+                    void doc.model.edit(
                         [new ModelEdit('changeRange', [start, start, '\\"'])],
                         { selection: new ModelEditSelection(start + 2) }
                     );
                 }
             }
         } else {
-            doc.model.edit(
+            void doc.model.edit(
                 [new ModelEdit('changeRange', [start, start, '""'])],
                 { selection: new ModelEditSelection(start + 1) }
             );
@@ -1051,7 +1054,7 @@ export function raiseSexp(
         if (startCursor.getPrevToken().type == 'open') {
             startCursor.previous();
             if (endCursor.getToken().type == 'close') {
-                doc.model.edit(
+                void doc.model.edit(
                     [
                         new ModelEdit('changeRange', [
                             startCursor.offsetStart,
@@ -1097,7 +1100,7 @@ export function convolute(
                             headEnd.forwardList() &&
                             cursorEnd.getToken().type == 'close'
                         ) {
-                            doc.model.edit(
+                            void doc.model.edit(
                                 [
                                     new ModelEdit('changeRange', [
                                         headEnd.offsetEnd,
@@ -1162,7 +1165,7 @@ export function transpose(
                 } else if (newPosOffset.fromRight != undefined) {
                     newCursorPos = rightEnd - newPosOffset.fromRight;
                 }
-                doc.model.edit(
+                void doc.model.edit(
                     [
                         new ModelEdit('changeRange', [
                             rightStart,
@@ -1268,7 +1271,7 @@ export function dragSexprBackward(
         // there is a sexp to the left
         const leftText = doc.model.getText(backRange[0], backRange[1]);
         const currentText = doc.model.getText(currentRange[0], currentRange[1]);
-        doc.model.edit(
+        void doc.model.edit(
             [
                 new ModelEdit('changeRange', [
                     currentRange[0],
@@ -1308,7 +1311,7 @@ export function dragSexprForward(
         // there is a sexp to the right
         const rightText = doc.model.getText(forwardRange[0], forwardRange[1]);
         const currentText = doc.model.getText(currentRange[0], currentRange[1]);
-        doc.model.edit(
+        void doc.model.edit(
             [
                 new ModelEdit('changeRange', [
                     forwardRange[0],
@@ -1415,7 +1418,7 @@ export function dragSexprBackwardUp(
                 wsInfo.rightWsRange[1] - currentRange[0],
             ]);
         }
-        doc.model.edit(
+        void doc.model.edit(
             [
                 deleteEdit,
                 new ModelEdit('insertString', [
@@ -1453,7 +1456,7 @@ export function dragSexprForwardDown(
             const insertText =
                 doc.model.getText(...currentRange) +
                 (wsInfo.rightWsHasNewline ? '\n' : ' ');
-            doc.model.edit(
+            void doc.model.edit(
                 [
                     new ModelEdit('insertString', [
                         insertStart,
@@ -1498,7 +1501,7 @@ export function dragSexprForwardUp(
             deleteLength = wsInfo.rightWsRange[1] - deleteStart;
         }
         const newCursorPos = listEnd + newPosOffset + 1 - deleteLength;
-        doc.model.edit(
+        void doc.model.edit(
             [
                 new ModelEdit('insertString', [
                     listEnd,
@@ -1542,7 +1545,7 @@ export function dragSexprBackwardDown(
             let insertText = doc.model.getText(...currentRange);
             insertText =
                 (siblingWsInfo.leftWsHasNewline ? '\n' : ' ') + insertText;
-            doc.model.edit(
+            void doc.model.edit(
                 [
                     new ModelEdit('deleteRange', [
                         wsInfo.leftWsRange[0],
@@ -1613,7 +1616,7 @@ export function addRichComment(
             checkIfRichCommentExistsCursor.forwardWhitespace(false);
             // insert nothing, just place cursor
             const newCursorPos = checkIfRichCommentExistsCursor.offsetStart;
-            doc.model.edit(
+            void doc.model.edit(
                 [
                     new ModelEdit('insertString', [
                         newCursorPos,
@@ -1646,7 +1649,7 @@ export function addRichComment(
     const insertText = `${prepend}${richComment}${append}`;
     const newCursorPos =
         insertStart + 11 + numPrependNls * doc.model.lineEndingLength;
-    doc.model.edit(
+    void doc.model.edit(
         [
             new ModelEdit('insertString', [
                 insertStart,

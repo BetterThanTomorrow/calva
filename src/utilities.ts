@@ -53,7 +53,7 @@ async function quickPickSingle(opts: {
             ignoreFocusOut: true,
         });
     }
-    state.extensionContext.workspaceState.update(saveAs, result);
+    void state.extensionContext.workspaceState.update(saveAs, result);
     return result;
 }
 
@@ -72,7 +72,7 @@ async function quickPickMulti(opts: {
         canPickMany: true,
         ignoreFocusOut: true,
     });
-    state.extensionContext.workspaceState.update(saveAs, result);
+    void state.extensionContext.workspaceState.update(saveAs, result);
     return result;
 }
 
@@ -210,7 +210,7 @@ function getLaunchingState() {
 }
 
 function setLaunchingState(value: any) {
-    vscode.commands.executeCommand(
+    void vscode.commands.executeCommand(
         'setContext',
         'calva:launching',
         Boolean(value)
@@ -223,7 +223,7 @@ function getConnectedState() {
 }
 
 function setConnectedState(value: boolean) {
-    vscode.commands.executeCommand('setContext', 'calva:connected', value);
+    void vscode.commands.executeCommand('setContext', 'calva:connected', value);
     cljsLib.setStateValue('connected', value);
 }
 
@@ -233,10 +233,18 @@ function getConnectingState() {
 
 function setConnectingState(value: boolean) {
     if (value) {
-        vscode.commands.executeCommand('setContext', 'calva:connecting', true);
+        void vscode.commands.executeCommand(
+            'setContext',
+            'calva:connecting',
+            true
+        );
         cljsLib.setStateValue('connecting', true);
     } else {
-        vscode.commands.executeCommand('setContext', 'calva:connecting', false);
+        void vscode.commands.executeCommand(
+            'setContext',
+            'calva:connecting',
+            false
+        );
         cljsLib.setStateValue('connecting', false);
     }
 }

@@ -42,7 +42,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
                 this.options.args
             )}`
         );
-        this.startClojureProgram();
+        void this.startClojureProgram();
     }
 
     close(): void {

@@ -173,7 +173,7 @@ export class MirroredDocument implements EditableDocument {
                 text
             );
         wsEdit.set(this.document.uri, [edit]);
-        vscode.workspace.applyEdit(wsEdit).then((_v) => {
+        void vscode.workspace.applyEdit(wsEdit).then((_v) => {
             editor.selection = selection;
         });
     }
@@ -218,7 +218,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             myEndOffset =
                 model.getOffsetForLine(change.range.end.line) +
                 change.range.end.character;
-        model.lineInputModel.edit(
+        void model.lineInputModel.edit(
             [
                 new ModelEdit('changeRange', [
                     myStartOffset,

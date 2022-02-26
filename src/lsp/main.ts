@@ -535,7 +535,7 @@ async function serverInfoCommandHandler(): Promise<void> {
         calvaSaysChannel.appendLine(serverInfoPretty);
         calvaSaysChannel.show(true);
     } else {
-        vscode.window.showInformationMessage(
+        void vscode.window.showInformationMessage(
             SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE
         );
     }
@@ -640,9 +640,9 @@ async function openLogFile(): Promise<void> {
     if (client) {
         const serverInfo = await getServerInfo(client);
         const logPath = serverInfo['log-path'];
-        vscode.window.showTextDocument(vscode.Uri.file(logPath));
+        void vscode.window.showTextDocument(vscode.Uri.file(logPath));
     } else {
-        vscode.window.showInformationMessage(
+        void vscode.window.showInformationMessage(
             SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE
         );
     }

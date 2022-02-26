@@ -149,7 +149,7 @@ function triggerUpdateAndRenderDecorations() {
             timeout = setTimeout(() => {
                 const cljSession = replSession.getSession('clj');
                 const lspClient = getStateValue(lsp.LSP_CLIENT_KEY);
-                update(editor, cljSession, lspClient).then(
+                void update(editor, cljSession, lspClient).then(
                     renderInAllVisibleEditors
                 );
             }, 50);

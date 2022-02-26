@@ -186,11 +186,11 @@ export async function formatPosition(
 }
 
 export function formatPositionCommand(editor: vscode.TextEditor) {
-    formatPosition(editor);
+    void formatPosition(editor);
 }
 
 export function alignPositionCommand(editor: vscode.TextEditor) {
-    formatPosition(editor, true, { 'align-associative?': true });
+    void formatPosition(editor, true, { 'align-associative?': true });
 }
 
 export async function formatCode(code: string, eol: number) {

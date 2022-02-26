@@ -45,7 +45,7 @@ export function indentCommand(
     let deletedText = '',
         doEdit = true;
 
-    editor
+    void editor
         .edit(
             (editBuilder) => {
                 if (forward) {
@@ -113,7 +113,7 @@ export function indentCommand(
 
 function applyResults(r: ResultOptions, editor: vscode.TextEditor) {
     if (r.success) {
-        editor
+        void editor
             .edit(
                 (editBuilder) => {
                     r.edits.forEach((edit: CFEdit) => {
@@ -140,7 +140,7 @@ function applyResults(r: ResultOptions, editor: vscode.TextEditor) {
                 ];
             });
     } else {
-        vscode.window.showErrorMessage(
+        void vscode.window.showErrorMessage(
             'Calva Formatter Error: ' +
                 (r.error ? r.error.message : r['error-msg'])
         );

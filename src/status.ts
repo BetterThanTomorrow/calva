@@ -5,7 +5,7 @@ import { getConfig } from './config';
 import { updateReplSessionType } from './nrepl/repl-session';
 
 function updateNeedReplUi(isNeeded: boolean, context = state.extensionContext) {
-    context.workspaceState.update('needReplUi', isNeeded);
+    void context.workspaceState.update('needReplUi', isNeeded);
     update(context);
 }
 
@@ -14,7 +14,7 @@ function shouldshowReplUi(context = state.extensionContext): boolean {
 }
 
 function update(context = state.extensionContext) {
-    vscode.commands.executeCommand(
+    void vscode.commands.executeCommand(
         'setContext',
         'calva:showReplUi',
         shouldshowReplUi(context)

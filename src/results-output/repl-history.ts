@@ -21,7 +21,7 @@ function setReplHistoryCommandsActiveContext(editor: vscode.TextEditor): void {
             getIndexAfterLastNonWhitespace(document.getText())
         );
         if (selection.start.isAfterOrEqual(positionAtEndOfContent)) {
-            vscode.commands.executeCommand(
+            void vscode.commands.executeCommand(
                 'setContext',
                 replHistoryCommandsActiveContext,
                 true
@@ -29,7 +29,7 @@ function setReplHistoryCommandsActiveContext(editor: vscode.TextEditor): void {
             return;
         }
     }
-    vscode.commands.executeCommand(
+    void vscode.commands.executeCommand(
         'setContext',
         replHistoryCommandsActiveContext,
         false
@@ -59,7 +59,7 @@ function updateReplHistory(
 ) {
     const newHistory = [...history];
     newHistory[index] = content.trim();
-    state.extensionContext.workspaceState.update(
+    void state.extensionContext.workspaceState.update(
         getHistoryKey(replSessionType),
         newHistory
     );
@@ -67,7 +67,7 @@ function updateReplHistory(
 
 function addToReplHistory(replSessionType: ReplSessionType, content: string) {
     const newHistory = addToHistory(getHistory(replSessionType), content);
-    state.extensionContext.workspaceState.update(
+    void state.extensionContext.workspaceState.update(
         getHistoryKey(replSessionType),
         newHistory
     );
@@ -76,7 +76,7 @@ function addToReplHistory(replSessionType: ReplSessionType, content: string) {
 function clearHistory() {
     const replType = getSessionType();
     const key = getHistoryKey(replType);
-    state.extensionContext.workspaceState.update(key, []);
+    void state.extensionContext.workspaceState.update(key, []);
     resetState();
     append('; REPL history cleared');
     append(getPrompt());
@@ -106,8 +106,8 @@ function showReplHistoryEntry(
     const entry = historyEntry || '\n';
     const edit = new vscode.WorkspaceEdit();
     edit.replace(resultsDoc.uri, range, entry);
-    vscode.workspace.applyEdit(edit).then((_) => {
-        resultsDoc.save();
+    void vscode.workspace.applyEdit(edit).then((_) => {
+        void resultsDoc.save();
         util.scrollToBottom(resultsEditor);
     });
 }

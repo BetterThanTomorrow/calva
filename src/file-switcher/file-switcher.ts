@@ -30,8 +30,8 @@ function askToCreateANewFile(dir, file) {
     return showConfirmationDialog(`Create ${filePath}?`, 'Create').then(
         (answer) => {
             if (answer === 'Create') {
-                createNewFile(dir, file).then(() => {
-                    openFile(filePath);
+                void createNewFile(dir, file).then(() => {
+                    void openFile(filePath);
                 });
             }
         }
@@ -51,7 +51,7 @@ export async function toggleBetweenImplAndTest() {
 
     const { success, message } = util.isFileValid(fullFileName, pathAfterRoot);
     if (!success) {
-        vscode.window.showErrorMessage(message);
+        void vscode.window.showErrorMessage(message);
         return;
     }
 
@@ -61,15 +61,17 @@ export async function toggleBetweenImplAndTest() {
     const filePath = path.join(projectRootPath, sourcePath, newFilename);
     const fileToOpen = vscode.workspace.asRelativePath(filePath);
 
-    vscode.workspace.findFiles(fileToOpen, '**/.calva/**').then((files) => {
-        if (!files.length) {
-            askToCreateANewFile(
-                path.join(projectRootPath, sourcePath),
-                newFilename
-            );
-        } else {
-            const file = files[0].fsPath;
-            openFile(file);
-        }
-    });
+    void vscode.workspace
+        .findFiles(fileToOpen, '**/.calva/**')
+        .then((files) => {
+            if (!files.length) {
+                void askToCreateANewFile(
+                    path.join(projectRootPath, sourcePath),
+                    newFilename
+                );
+            } else {
+                const file = files[0].fsPath;
+                void openFile(file);
+            }
+        });
 }

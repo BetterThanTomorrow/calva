@@ -91,7 +91,7 @@ const watcher = vscode.workspace.createFileSystemWatcher(
 );
 
 watcher.onDidChange((uri: vscode.Uri) => {
-    readEdnWorkspaceConfig(uri);
+    void readEdnWorkspaceConfig(uri);
 });
 
 // TODO find a way to validate the configs

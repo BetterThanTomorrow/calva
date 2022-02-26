@@ -121,11 +121,16 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         if (cljSession) {
             const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
-            cljSession.sendDebugInput(':continue', id, key).then((response) => {
-                this.sendEvent(
-                    new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID)
-                );
-            });
+            void cljSession
+                .sendDebugInput(':continue', id, key)
+                .then((response) => {
+                    this.sendEvent(
+                        new StoppedEvent(
+                            'breakpoint',
+                            CalvaDebugSession.THREAD_ID
+                        )
+                    );
+                });
         } else {
             response.success = false;
         }
@@ -158,7 +163,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         if (cljSession) {
             const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
-            cljSession.sendDebugInput(':next', id, key).then((_) => {
+            void cljSession.sendDebugInput(':next', id, key).then((_) => {
                 this.sendEvent(
                     new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID)
                 );
@@ -186,7 +191,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         if (cljSession) {
             const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
-            cljSession.sendDebugInput(':in', id, key).then((_) => {
+            void cljSession.sendDebugInput(':in', id, key).then((_) => {
                 this.sendEvent(
                     new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID)
                 );
@@ -214,7 +219,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         if (cljSession) {
             const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
-            cljSession.sendDebugInput(':out', id, key).then((_) => {
+            void cljSession.sendDebugInput(':out', id, key).then((_) => {
                 this.sendEvent(
                     new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID)
                 );
@@ -288,7 +293,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         try {
             moveTokenCursorToBreakpoint(tokenCursor, debugResponse);
         } catch (e) {
-            window.showErrorMessage(
+            void window.showErrorMessage(
                 'An error occurred in the breakpoint-finding logic. We would love if you submitted an issue in the Calva repo with the instrumented code, or a similar reproducible case.'
             );
             this.sendEvent(new TerminatedEvent());
@@ -316,7 +321,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         this.sendResponse(response);
 
-        this._showDebugAnnotation(
+        void this._showDebugAnnotation(
             debugResponse['debug-value'],
             document,
             line,
@@ -375,7 +380,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         if (cljSession) {
             const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
-            cljSession.sendDebugInput(':quit', id, key);
+            void cljSession.sendDebugInput(':quit', id, key);
         }
 
         this.sendResponse(response);
@@ -472,7 +477,7 @@ class CalvaDebugAdapterDescriptorFactory
 function onNreplMessage(data: any): void {
     if (vscode.debug.activeDebugSession && (data['value'] || data['err'])) {
         annotations.clearAllEvaluationDecorations();
-        vscode.debug.activeDebugSession.customRequest(
+        void vscode.debug.activeDebugSession.customRequest(
             REQUESTS.SEND_TERMINATED_EVENT
         );
     } else if (
@@ -493,12 +498,12 @@ function handleNeedDebugInput(response: any): void {
         setStateValue(DEBUG_RESPONSE_KEY, response);
 
         if (!debug.activeDebugSession) {
-            debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+            void debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
         }
     } else {
         const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
-        cljSession.sendDebugInput(':quit', response.id, response.key);
-        vscode.window.showInformationMessage(
+        void cljSession.sendDebugInput(':quit', response.id, response.key);
+        void vscode.window.showInformationMessage(
             'Forms containing breakpoints that were not evaluated in the editor (such as if you evaluated a form in the REPL window) cannot be debugged. Evaluate the form in the editor in order to debug it.'
         );
     }
@@ -506,7 +511,7 @@ function handleNeedDebugInput(response: any): void {
 
 debug.onDidStartDebugSession((session) => {
     // We only start debugger sessions when a breakpoint is hit
-    session.customRequest(REQUESTS.SEND_STOPPED_EVENT, {
+    void session.customRequest(REQUESTS.SEND_STOPPED_EVENT, {
         reason: 'breakpoint',
     });
 });
@@ -523,7 +528,7 @@ function initializeDebugger(cljSession: NReplSession): void {
 
 function terminateDebugSession(): void {
     if (vscode.debug.activeDebugSession) {
-        vscode.debug.activeDebugSession.customRequest(
+        void vscode.debug.activeDebugSession.customRequest(
             REQUESTS.SEND_TERMINATED_EVENT
         );
     }

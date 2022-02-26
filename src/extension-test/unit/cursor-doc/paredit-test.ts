@@ -997,119 +997,119 @@ describe('paredit', () => {
             it('Leaves closing paren of empty list alone', () => {
                 const a = docFromTextNotation('{::foo ()|• ::bar :foo}');
                 const b = docFromTextNotation('{::foo (|)• ::bar :foo}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes closing paren if unbalance', () => {
                 const a = docFromTextNotation('{::foo )|• ::bar :foo}');
                 const b = docFromTextNotation('{::foo |• ::bar :foo}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Leaves opening paren of non-empty list alone', () => {
                 const a = docFromTextNotation('{::foo (|a)• ::bar :foo}');
                 const b = docFromTextNotation('{::foo |(a)• ::bar :foo}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Leaves opening quote of non-empty string alone', () => {
                 const a = docFromTextNotation('{::foo "|a"• ::bar :foo}');
                 const b = docFromTextNotation('{::foo |"a"• ::bar :foo}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Leaves closing quote of non-empty string alone', () => {
                 const a = docFromTextNotation('{::foo "a"|• ::bar :foo}');
                 const b = docFromTextNotation('{::foo "a|"• ::bar :foo}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes contents in strings', () => {
                 const a = docFromTextNotation('{::foo "a|"• ::bar :foo}');
                 const b = docFromTextNotation('{::foo "|"• ::bar :foo}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes contents in strings 2', () => {
                 const a = docFromTextNotation('{::foo "a|a"• ::bar :foo}');
                 const b = docFromTextNotation('{::foo "|a"• ::bar :foo}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes contents in strings 3', () => {
                 const a = docFromTextNotation('{::foo "aa|"• ::bar :foo}');
                 const b = docFromTextNotation('{::foo "a|"• ::bar :foo}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes quoted quote', () => {
                 const a = docFromTextNotation('{::foo \\"|• ::bar :foo}');
                 const b = docFromTextNotation('{::foo |• ::bar :foo}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes quoted quote in string', () => {
                 const a = docFromTextNotation('{::foo "\\"|"• ::bar :foo}');
                 const b = docFromTextNotation('{::foo "|"• ::bar :foo}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes contents in list', () => {
                 const a = docFromTextNotation('{::foo (a|)• ::bar :foo}');
                 const b = docFromTextNotation('{::foo (|)• ::bar :foo}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes empty list function', () => {
                 const a = docFromTextNotation('{::foo (|)• ::bar :foo}');
                 const b = docFromTextNotation('{::foo |• ::bar :foo}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes empty set', () => {
                 const a = docFromTextNotation('#{|}');
                 const b = docFromTextNotation('|');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes empty literal function with trailing newline', () => {
                 // https://github.com/BetterThanTomorrow/calva/issues/1079
                 const a = docFromTextNotation('{::foo #(|)• ::bar :foo}');
                 const b = docFromTextNotation('{::foo |• ::bar :foo}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes open paren prefix characters', () => {
                 // https://github.com/BetterThanTomorrow/calva/issues/1122
                 const a = docFromTextNotation('#|(foo)');
                 const b = docFromTextNotation('|(foo)');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes open map curly prefix/ns characters', () => {
                 const a = docFromTextNotation('#:same|{:thing :here}');
                 const b = docFromTextNotation('#:sam|{:thing :here}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes open set hash characters', () => {
                 // https://github.com/BetterThanTomorrow/calva/issues/1122
                 const a = docFromTextNotation('#|{:thing :here}');
                 const b = docFromTextNotation('|{:thing :here}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Moves cursor past entire open paren, including prefix characters', () => {
                 const a = docFromTextNotation('#(|foo)');
                 const b = docFromTextNotation('|#(foo)');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Moves cursor only past the open curly for namespaced maps', () => {
                 // Could be argued it should move past the entire reader tag, but anyway
                 const a = docFromTextNotation('#:same{|:thing :here}');
                 const b = docFromTextNotation('#:same|{:thing :here}');
-                paredit.backspace(a);
+                void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
         });
@@ -1118,80 +1118,80 @@ describe('paredit', () => {
             it('Leaves closing paren of empty list alone', () => {
                 const a = docFromTextNotation('{::foo |()• ::bar :foo}');
                 const b = docFromTextNotation('{::foo (|)• ::bar :foo}');
-                paredit.deleteForward(a);
+                void paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes closing paren if unbalance', () => {
                 const a = docFromTextNotation('{::foo |)• ::bar :foo}');
                 const b = docFromTextNotation('{::foo |• ::bar :foo}');
-                paredit.deleteForward(a);
+                void paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Leaves opening paren of non-empty list alone', () => {
                 const a = docFromTextNotation('{::foo |(a)• ::bar :foo}');
                 const b = docFromTextNotation('{::foo (|a)• ::bar :foo}');
-                paredit.deleteForward(a);
+                void paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Leaves opening quote of non-empty string alone', () => {
                 const a = docFromTextNotation('{::foo |"a"• ::bar :foo}');
                 const b = docFromTextNotation('{::foo "|a"• ::bar :foo}');
-                paredit.deleteForward(a);
+                void paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Leaves closing quote of non-empty string alone', () => {
                 const a = docFromTextNotation('{::foo "a|"• ::bar :foo}');
                 const b = docFromTextNotation('{::foo "a"|• ::bar :foo}');
-                paredit.deleteForward(a);
+                void paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes contents in strings', () => {
                 const a = docFromTextNotation('{::foo "|a"• ::bar :foo}');
                 const b = docFromTextNotation('{::foo "|"• ::bar :foo}');
-                paredit.deleteForward(a);
+                void paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes contents in strings 2', () => {
                 const a = docFromTextNotation('{::foo "|aa"• ::bar :foo}');
                 const b = docFromTextNotation('{::foo "|a"• ::bar :foo}');
-                paredit.deleteForward(a);
+                void paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes quoted quote', () => {
                 const a = docFromTextNotation('{::foo |\\"• ::bar :foo}');
                 const b = docFromTextNotation('{::foo |• ::bar :foo}');
-                paredit.deleteForward(a);
+                void paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes quoted quote in string', () => {
                 const a = docFromTextNotation('{::foo "|\\""• ::bar :foo}');
                 const b = docFromTextNotation('{::foo "|"• ::bar :foo}');
-                paredit.deleteForward(a);
+                void paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes contents in list', () => {
                 const a = docFromTextNotation('{::foo (|a)• ::bar :foo}');
                 const b = docFromTextNotation('{::foo (|)• ::bar :foo}');
-                paredit.deleteForward(a);
+                void paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes empty list function', () => {
                 const a = docFromTextNotation('{::foo (|)• ::bar :foo}');
                 const b = docFromTextNotation('{::foo |• ::bar :foo}');
-                paredit.deleteForward(a);
+                void paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes empty set', () => {
                 const a = docFromTextNotation('#{|}');
                 const b = docFromTextNotation('|');
-                paredit.deleteForward(a);
+                void paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
             it('Deletes empty literal function with trailing newline', () => {
                 // https://github.com/BetterThanTomorrow/calva/issues/1079
                 const a = docFromTextNotation('{::foo #(|)• ::bar :foo}');
                 const b = docFromTextNotation('{::foo |• ::bar :foo}');
-                paredit.deleteForward(a);
+                void paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
         });
@@ -1249,38 +1249,38 @@ describe('paredit', () => {
         describe('splice sexp', () => {
             it('splice empty', () => {
                 const a = docFromTextNotation('|');
-                paredit.spliceSexp(a);
+                void paredit.spliceSexp(a);
                 expect(text(a)).toEqual('');
             });
 
             it('splice list', () => {
                 const a = docFromTextNotation('(a| b c)');
-                paredit.spliceSexp(a);
+                void paredit.spliceSexp(a);
                 expect(text(a)).toEqual('a b c');
             });
 
             it('splice vector', () => {
                 const a = docFromTextNotation('[a| b c]');
-                paredit.spliceSexp(a);
+                void paredit.spliceSexp(a);
                 expect(text(a)).toEqual('a b c');
             });
 
             it('splice map', () => {
                 const a = docFromTextNotation('{a| b}');
-                paredit.spliceSexp(a);
+                void paredit.spliceSexp(a);
                 expect(text(a)).toEqual('a b');
             });
 
             it('splice nested', () => {
                 const a = docFromTextNotation('[1 {ab| cd} 2]');
-                paredit.spliceSexp(a);
+                void paredit.spliceSexp(a);
                 expect(text(a)).toEqual('[1 ab cd 2]');
             });
 
             // TODO: enable after fixing spliceSexp
             it('splice set', () => {
                 const a = docFromTextNotation('#{a| b}');
-                paredit.spliceSexp(a);
+                void paredit.spliceSexp(a);
                 expect(text(a)).toEqual('a b');
             });
 
@@ -1288,7 +1288,7 @@ describe('paredit', () => {
             //     Not sure why, but it can be run successfully by itself.
             xit('splice string', () => {
                 const a = docFromTextNotation('"h|ello"');
-                paredit.spliceSexp(a);
+                void paredit.spliceSexp(a);
                 expect(text(a)).toEqual('hello');
             });
         });

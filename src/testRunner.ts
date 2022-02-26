@@ -228,7 +228,7 @@ function reportTests(
     };
 
     if (useTestExplorer()) {
-        onTestResults(controller, session, results);
+        void onTestResults(controller, session, results);
     }
 
     for (const result of results) {
@@ -256,7 +256,7 @@ function reportTests(
 
     if (!useTestExplorer()) {
         for (const fileName in diagnostics) {
-            uriForFile(fileName).then((uri) => {
+            void uriForFile(fileName).then((uri) => {
                 diagnosticCollection.set(uri, diagnostics[fileName]);
             });
         }
@@ -278,13 +278,13 @@ async function runAllTests(controller: vscode.TestController, document = {}) {
 
 function runAllTestsCommand(controller: vscode.TestController) {
     if (!util.getConnectedState()) {
-        vscode.window.showInformationMessage(
+        void vscode.window.showInformationMessage(
             'You must connect to a REPL server to run this command.'
         );
         return;
     }
     runAllTests(controller).catch((msg) => {
-        vscode.window.showWarningMessage(msg);
+        void vscode.window.showWarningMessage(msg);
     });
 }
 
@@ -313,14 +313,14 @@ async function runNamespaceTestsImpl(
     nss: string[]
 ) {
     if (!util.getConnectedState()) {
-        vscode.window.showInformationMessage(
+        void vscode.window.showInformationMessage(
             'You must connect to a REPL server to run this command.'
         );
         return;
     }
 
     if (nss.length === 0) {
-        vscode.window.showInformationMessage('No namespace selected.');
+        void vscode.window.showInformationMessage('No namespace selected.');
         return;
     }
 
@@ -355,7 +355,7 @@ async function runNamespaceTests(
     const session = getSession(util.getFileType(document));
     const ns = namespace.getNamespace(doc);
     const nss = await considerTestNS(ns, session);
-    runNamespaceTestsImpl(controller, document, nss);
+    void runNamespaceTestsImpl(controller, document, nss);
 }
 
 function getTestUnderCursor() {
@@ -387,19 +387,19 @@ async function runTestUnderCursor(controller: vscode.TestController) {
 
 function runTestUnderCursorCommand(controller: vscode.TestController) {
     if (!util.getConnectedState()) {
-        vscode.window.showInformationMessage(
+        void vscode.window.showInformationMessage(
             'You must connect to a REPL server to run this command.'
         );
         return;
     }
     runTestUnderCursor(controller).catch((msg) => {
-        vscode.window.showWarningMessage(msg);
+        void vscode.window.showWarningMessage(msg);
     });
 }
 
 function runNamespaceTestsCommand(controller: vscode.TestController) {
     if (!util.getConnectedState()) {
-        vscode.window.showInformationMessage(
+        void vscode.window.showInformationMessage(
             'You must connect to a REPL server to run this command.'
         );
         return;
@@ -408,7 +408,7 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
         controller,
         vscode.window.activeTextEditor.document
     ).catch((msg) => {
-        vscode.window.showWarningMessage(msg);
+        void vscode.window.showWarningMessage(msg);
     });
 }
 
@@ -428,13 +428,13 @@ async function rerunTests(controller: vscode.TestController, document = {}) {
 
 function rerunTestsCommand(controller: vscode.TestController) {
     if (!util.getConnectedState()) {
-        vscode.window.showInformationMessage(
+        void vscode.window.showInformationMessage(
             'You must connect to a REPL server to run this command.'
         );
         return;
     }
     rerunTests(controller).catch((msg) => {
-        vscode.window.showWarningMessage(msg);
+        void vscode.window.showWarningMessage(msg);
     });
 }
 
@@ -445,21 +445,21 @@ function initialize(controller: vscode.TestController): void {
 
         (request: vscode.TestRunRequest, token: vscode.CancellationToken) => {
             if (!util.getConnectedState()) {
-                vscode.window.showInformationMessage(
+                void vscode.window.showInformationMessage(
                     'You must connect to a REPL server to run tests.'
                 );
                 return;
             }
 
             if (request.exclude && request.exclude.length > 0) {
-                vscode.window.showWarningMessage(
+                void vscode.window.showWarningMessage(
                     'Excluding tests from a test run is not currently supported - running all tests.'
                 );
             }
 
             if (!request.include) {
                 runAllTests(controller).catch((msg) => {
-                    vscode.window.showWarningMessage(msg);
+                    void vscode.window.showWarningMessage(msg);
                 });
                 return;
             }
@@ -476,7 +476,7 @@ function initialize(controller: vscode.TestController): void {
             const namespaces = util.distinct(runItems.map((ri) => ri[0]));
             const doc = vscode.window.activeTextEditor.document;
             runNamespaceTestsImpl(controller, doc, namespaces).catch((msg) => {
-                vscode.window.showWarningMessage(msg);
+                void vscode.window.showWarningMessage(msg);
             });
         },
         true
@@ -522,7 +522,7 @@ function onTestTree(
             );
         });
     } catch (e) {
-        vscode.window.showErrorMessage('Error in test tree parsing', e);
+        void vscode.window.showErrorMessage('Error in test tree parsing', e);
     }
 }
 

@@ -121,11 +121,11 @@ function setViewColumn(column: vscode.ViewColumn) {
 }
 
 export function setContextForOutputWindowActive(isActive: boolean): void {
-    state.extensionContext.workspaceState.update(
+    void state.extensionContext.workspaceState.update(
         `outputWindowActive`,
         isActive
     );
-    vscode.commands.executeCommand(
+    void vscode.commands.executeCommand(
         'setContext',
         'calva:outputWindowActive',
         isActive
@@ -165,7 +165,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     );
     edit.replace(docUri, fullRange, greetings);
     await vscode.workspace.applyEdit(edit);
-    resultsDoc.save();
+    void resultsDoc.save();
 
     // For some reason onDidChangeTextEditorViewColumn won't fire
     state.extensionContext.subscriptions.push(
@@ -174,7 +174,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
                 const isOutputWindow = isResultsDoc(event.document);
                 setContextForOutputWindowActive(isOutputWindow);
                 if (isOutputWindow) {
-                    setViewColumn(event.viewColumn);
+                    void setViewColumn(event.viewColumn);
                 }
             }
         })
@@ -205,7 +205,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
                     }
                 }
             }
-            vscode.commands.executeCommand(
+            void vscode.commands.executeCommand(
                 'setContext',
                 'calva:outputWindowSubmitOnEnter',
                 submitOnEnter
@@ -239,14 +239,18 @@ export async function openResultsDoc(): Promise<vscode.TextDocument> {
 }
 
 export function revealResultsDoc(preserveFocus: boolean = true) {
-    openResultsDoc().then((doc) => {
-        vscode.window.showTextDocument(doc, getViewColumn(), preserveFocus);
+    void openResultsDoc().then((doc) => {
+        void vscode.window.showTextDocument(
+            doc,
+            getViewColumn(),
+            preserveFocus
+        );
     });
 }
 
 export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
     const uri = await getUriForCurrentNamespace();
-    vscode.workspace.openTextDocument(uri).then((doc) =>
+    void vscode.workspace.openTextDocument(uri).then((doc) =>
         vscode.window.showTextDocument(doc, {
             preserveFocus,
         })
@@ -290,11 +294,11 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
 }
 
 export function appendCurrentForm() {
-    appendFormGrabbingSessionAndNS(false);
+    void appendFormGrabbingSessionAndNS(false);
 }
 
 export function appendCurrentTopLevelForm() {
-    appendFormGrabbingSessionAndNS(true);
+    void appendFormGrabbingSessionAndNS(true);
 }
 
 let scrollToBottomSub: vscode.Disposable;
@@ -315,7 +319,7 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
         editQueue.push([text, onAppended]);
     } else {
         applyingEdit = true;
-        vscode.workspace.openTextDocument(DOC_URI()).then((doc) => {
+        void vscode.workspace.openTextDocument(DOC_URI()).then((doc) => {
             const ansiStrippedText = util.stripAnsi(text);
             if (doc) {
                 const edit = new vscode.WorkspaceEdit();
@@ -349,9 +353,9 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                     );
                 }
 
-                vscode.workspace.applyEdit(edit).then((success) => {
+                void vscode.workspace.applyEdit(edit).then((success) => {
                     applyingEdit = false;
-                    doc.save();
+                    void doc.save();
                     if (success) {
                         if (visibleResultsEditors.length > 0) {
                             visibleResultsEditors.forEach((editor) => {

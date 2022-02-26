@@ -217,7 +217,7 @@ function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
 }
 
 function copyHoverTextCommand(args: { [x: string]: string }) {
-    vscode.env.clipboard.writeText(args['text']);
+    void vscode.env.clipboard.writeText(args['text']);
 }
 export default {
     AnnotationStatus,
