@@ -35,6 +35,7 @@ module.exports = {
         'no-constructor-return': ['error'],
         '@typescript-eslint/no-inferrable-types': 'off',
         '@typescript-eslint/unbound-method': 'off',
+        '@typescript-eslint/no-floating-promises': ['error'],
 
         // 'no-unused-vars': 'off',
         // '@typescript-eslint/no-unused-vars': [
@@ -48,7 +49,6 @@ module.exports = {
         // ],
 
         '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-unsafe-argument': 'off',
         '@typescript-eslint/no-unsafe-assignment': 'off',
         '@typescript-eslint/no-unsafe-call': 'off',
