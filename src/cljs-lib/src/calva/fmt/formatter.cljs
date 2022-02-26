@@ -291,7 +291,6 @@
 
 (defn format-text-at-range-bridge
   [^js m]
-  (def m m)
   (-> m
       (parse-cljfmt-options-string)
       (update-in [:config :cljfmt-options] merge-cljfmt)
