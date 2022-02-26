@@ -26,7 +26,7 @@ const enabled = true;
  */
 function copyRangeToClipboard(doc: EditableDocument, [start, end]) {
     const text = doc.model.getText(start, end);
-    vscode.env.clipboard.writeText(text);
+    void vscode.env.clipboard.writeText(text);
 }
 
 /**
@@ -270,7 +270,7 @@ const pareditCommands: PareditCommand[] = [
             if (shouldKillAlsoCutToClipboard()) {
                 copyRangeToClipboard(doc, range);
             }
-            paredit.killForwardList(doc, range).then((isFulfilled) => {
+            void paredit.killForwardList(doc, range).then((isFulfilled) => {
                 return paredit.spliceSexp(doc, doc.selectionRight, false);
             });
         },
@@ -282,7 +282,7 @@ const pareditCommands: PareditCommand[] = [
             if (shouldKillAlsoCutToClipboard()) {
                 copyRangeToClipboard(doc, range);
             }
-            paredit.killBackwardList(doc, range).then((isFulfilled) => {
+            void paredit.killBackwardList(doc, range).then((isFulfilled) => {
                 return paredit.spliceSexp(doc, doc.selectionRight, false);
             });
         },
@@ -290,49 +290,49 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.wrapAroundParens',
         handler: (doc: EditableDocument) => {
-            paredit.wrapSexpr(doc, '(', ')');
+            void paredit.wrapSexpr(doc, '(', ')');
         },
     },
     {
         command: 'paredit.wrapAroundSquare',
         handler: (doc: EditableDocument) => {
-            paredit.wrapSexpr(doc, '[', ']');
+            void paredit.wrapSexpr(doc, '[', ']');
         },
     },
     {
         command: 'paredit.wrapAroundCurly',
         handler: (doc: EditableDocument) => {
-            paredit.wrapSexpr(doc, '{', '}');
+            void paredit.wrapSexpr(doc, '{', '}');
         },
     },
     {
         command: 'paredit.wrapAroundQuote',
         handler: (doc: EditableDocument) => {
-            paredit.wrapSexpr(doc, '"', '"');
+            void paredit.wrapSexpr(doc, '"', '"');
         },
     },
     {
         command: 'paredit.rewrapParens',
         handler: (doc: EditableDocument) => {
-            paredit.rewrapSexpr(doc, '(', ')');
+            void paredit.rewrapSexpr(doc, '(', ')');
         },
     },
     {
         command: 'paredit.rewrapSquare',
         handler: (doc: EditableDocument) => {
-            paredit.rewrapSexpr(doc, '[', ']');
+            void paredit.rewrapSexpr(doc, '[', ']');
         },
     },
     {
         command: 'paredit.rewrapCurly',
         handler: (doc: EditableDocument) => {
-            paredit.rewrapSexpr(doc, '{', '}');
+            void paredit.rewrapSexpr(doc, '{', '}');
         },
     },
     {
         command: 'paredit.rewrapQuote',
         handler: (doc: EditableDocument) => {
-            paredit.rewrapSexpr(doc, '"', '"');
+            void paredit.rewrapSexpr(doc, '"', '"');
         },
     },
     {
@@ -346,13 +346,13 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.forceDeleteForward',
         handler: () => {
-            vscode.commands.executeCommand('deleteRight');
+            void vscode.commands.executeCommand('deleteRight');
         },
     },
     {
         command: 'paredit.forceDeleteBackward',
         handler: () => {
-            vscode.commands.executeCommand('deleteLeft');
+            void vscode.commands.executeCommand('deleteLeft');
         },
     },
     {
@@ -389,7 +389,7 @@ function setKeyMapConf() {
     const keyMap = workspace
         .getConfiguration()
         .get('calva.paredit.defaultKeyMap');
-    commands.executeCommand('setContext', 'paredit:keyMap', keyMap);
+    void commands.executeCommand('setContext', 'paredit:keyMap', keyMap);
     onPareditKeyMapChangedEmitter.fire(String(keyMap));
 }
 setKeyMapConf();
@@ -405,7 +405,7 @@ export function activate(context: ExtensionContext) {
                 .get('calva.paredit.defaultKeyMap');
             keyMap = String(keyMap).trim().toLowerCase();
             if (keyMap == 'original') {
-                workspace
+                void workspace
                     .getConfiguration()
                     .update(
                         'calva.paredit.defaultKeyMap',
@@ -413,7 +413,7 @@ export function activate(context: ExtensionContext) {
                         vscode.ConfigurationTarget.Global
                     );
             } else if (keyMap == 'strict') {
-                workspace
+                void workspace
                     .getConfiguration()
                     .update(
                         'calva.paredit.defaultKeyMap',

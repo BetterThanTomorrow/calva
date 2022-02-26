@@ -29,18 +29,18 @@ function interruptAllEvaluations() {
             session.interruptAll();
         });
         if (nums > 0) {
-            vscode.window.showInformationMessage(
+            void vscode.window.showInformationMessage(
                 `Interrupted ${nums} running evaluation(s).`
             );
         } else {
-            vscode.window.showInformationMessage(
+            void vscode.window.showInformationMessage(
                 'Interruption command finished (unknown results)'
             );
         }
         outputWindow.discardPendingPrints();
         return;
     }
-    vscode.window.showInformationMessage('Not connected to a REPL server');
+    void vscode.window.showInformationMessage('Not connected to a REPL server');
 }
 
 async function addAsComment(
@@ -139,7 +139,7 @@ async function evaluateCode(
                                 ),
                                 wsEdit = new vscode.WorkspaceEdit();
                             wsEdit.set(editor.document.uri, [edit]);
-                            vscode.workspace.applyEdit(wsEdit);
+                            void vscode.workspace.applyEdit(wsEdit);
                         } else {
                             if (options.comment) {
                                 await addAsComment(
@@ -292,7 +292,7 @@ async function evaluateSelection(document = {}, options) {
             outputWindow.appendPrompt();
         }
     } else {
-        vscode.window.showErrorMessage('Not connected to a REPL');
+        void vscode.window.showErrorMessage('Not connected to a REPL');
     }
 }
 
@@ -528,7 +528,9 @@ async function evaluateUser(code: string) {
             chan.appendLine(`Eval failure: ${e}`);
         }
     } else {
-        vscode.window.showInformationMessage('Not connected to a REPL server');
+        void vscode.window.showInformationMessage(
+            'Not connected to a REPL server'
+        );
     }
 }
 
@@ -563,7 +565,9 @@ async function requireREPLUtilitiesCommand() {
             }
         }
     } else {
-        vscode.window.showInformationMessage('Not connected to a REPL server');
+        void vscode.window.showInformationMessage(
+            'Not connected to a REPL server'
+        );
     }
 }
 
@@ -575,8 +579,8 @@ async function copyLastResultCommand() {
 
     const value = await session.eval('*1', session.client.ns).value;
     if (value !== null) {
-        vscode.env.clipboard.writeText(value);
-        vscode.window.showInformationMessage(
+        void vscode.env.clipboard.writeText(value);
+        void vscode.window.showInformationMessage(
             'Results copied to the clipboard.'
         );
     } else {

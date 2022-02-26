@@ -49,7 +49,7 @@ export default class Analytics {
         const KEY = 'userLogID';
         if (this.store.get(KEY) == undefined) {
             const newID = uuid.uuid();
-            this.store.update(KEY, newID);
+            void this.store.update(KEY, newID);
             return newID;
         } else {
             return this.store.get(KEY);

@@ -14,11 +14,11 @@ import * as outputWindow from '../../../results-output/results-doc';
 import { commands } from 'vscode';
 import { getDocument } from '../../../doc-mirror';
 
-vscode.window.showInformationMessage('Tests running. Yay!');
+void vscode.window.showInformationMessage('Tests running. Yay!');
 
 suite('Extension Test Suite', () => {
     after(() => {
-        vscode.window.showInformationMessage('All tests done!');
+        void vscode.window.showInformationMessage('All tests done!');
     });
 
     // test("We have a context", async () => {
@@ -53,7 +53,7 @@ suite('Extension Test Suite', () => {
         // pre-select deps.edn as the repl connect sequence
         // qps = quickPickSingle
         const saveAs = `qps-${uri.toString()}/jack-in-type`;
-        state.extensionContext.workspaceState.update(saveAs, 'deps.edn');
+        void state.extensionContext.workspaceState.update(saveAs, 'deps.edn');
         assert.equal(
             state.extensionContext.workspaceState.get(saveAs),
             'deps.edn',

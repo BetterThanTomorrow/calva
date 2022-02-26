@@ -61,7 +61,7 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
     });
 
     if (configErrors.length > 0) {
-        vscode.window.showErrorMessage(
+        void vscode.window.showErrorMessage(
             'Errors found in the `calva.customREPLCommandSnippets` setting. Values missing for: ' +
                 JSON.stringify(configErrors),
             'OK'

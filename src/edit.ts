@@ -26,7 +26,7 @@ export function continueCommentCommand() {
         const bulletText = newNum ? bullet.replace(/\d+/, '' + newNum) : bullet;
         const pad = ' '.repeat(commentOffset);
         const newText = `${pad}${startText}${bullet ? bulletText : ''}`;
-        editor
+        void editor
             .edit((edits) => edits.insert(position, `\n${newText}`), {
                 undoStopAfter: false,
                 undoStopBefore: true,

@@ -34,7 +34,7 @@ function determineCursorContexts(
 function setCursorContexts(currentContexts: context.CursorContext[]) {
     lastContexts = currentContexts;
     context.allCursorContexts.forEach((context) => {
-        vscode.commands.executeCommand(
+        void vscode.commands.executeCommand(
             'setContext',
             context,
             currentContexts.indexOf(context) > -1

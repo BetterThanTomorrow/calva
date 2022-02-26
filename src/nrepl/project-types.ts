@@ -107,7 +107,7 @@ export function leinShadowBuilds(defproject: any): string[] {
                     ...['node-repl', 'browser-repl'],
                 ];
             } catch (error) {
-                vscode.window.showErrorMessage(
+                void vscode.window.showErrorMessage(
                     'The project.clj file is not sane. ' + error.message
                 );
                 console.log(error);
@@ -152,7 +152,7 @@ async function leinDefProject(): Promise<any> {
         const parsed = parseForms(data);
         return parsed.find((x) => x[0] == 'defproject');
     } catch (e) {
-        vscode.window.showErrorMessage('Could not parse project.clj');
+        void vscode.window.showErrorMessage('Could not parse project.clj');
         throw e;
     }
 }
@@ -193,7 +193,7 @@ async function leinProfilesAndAlias(
                     }
                 }
             } catch (error) {
-                vscode.window.showErrorMessage(
+                void vscode.window.showErrorMessage(
                     'The project.clj file is not sane. ' + error.message
                 );
                 console.log(error);
@@ -524,7 +524,7 @@ async function cljCommandLine(
     }
     let parsed;
     if (connectSequence.projectType !== 'generic') {
-        vscode.workspace.fs.stat(depsUri);
+        void vscode.workspace.fs.stat(depsUri);
         const bytes = await vscode.workspace.fs.readFile(
             vscode.Uri.joinPath(state.getProjectRootUri(), 'deps.edn')
         );
@@ -532,7 +532,7 @@ async function cljCommandLine(
         try {
             parsed = parseEdn(data);
         } catch (e) {
-            vscode.window.showErrorMessage('Could not parse deps.edn');
+            void vscode.window.showErrorMessage('Could not parse deps.edn');
             throw e;
         }
     }
@@ -562,7 +562,7 @@ async function cljCommandLine(
         if (aliasesWithMain.length > 0) {
             const alertKey = 'calva.jackInMainOptsWarningEnabled';
             if (state.extensionContext.workspaceState.get(alertKey, true)) {
-                vscode.window
+                void vscode.window
                     .showInformationMessage(
                         `The aliases [${aliasesWithMain.join(
                             ' '
@@ -572,7 +572,7 @@ async function cljCommandLine(
                     )
                     .then((answer) => {
                         if (answer === "OK, Don't show again") {
-                            state.extensionContext.workspaceState.update(
+                            void state.extensionContext.workspaceState.update(
                                 alertKey,
                                 false
                             );

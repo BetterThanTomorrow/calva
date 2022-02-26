@@ -47,7 +47,7 @@ async function onDidSave(
     }
 
     if (test && util.getConnectedState()) {
-        testRunner.runNamespaceTests(testController, document);
+        void testRunner.runNamespaceTests(testController, document);
         state.analytics().logEvent('Calva', 'OnSaveTest').send();
     } else if (evaluate) {
         if (!outputWindow.isResultsDoc(document)) {
@@ -76,7 +76,7 @@ function setKeybindingsEnabledContext() {
     const keybindingsEnabled = vscode.workspace
         .getConfiguration()
         .get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
-    vscode.commands.executeCommand(
+    void vscode.commands.executeCommand(
         'setContext',
         config.KEYBINDINGS_ENABLED_CONTEXT_KEY,
         keybindingsEnabled
@@ -113,7 +113,7 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(controller);
     testRunner.initialize(controller);
 
-    lsp.activate(context, (testTree) => {
+    void lsp.activate(context, (testTree) => {
         testRunner.onTestTree(controller, testTree);
     });
 
@@ -152,7 +152,7 @@ async function activate(context: vscode.ExtensionContext) {
     const VIEWED_CALVA_DOCS = 'viewedCalvaDocs';
     if (customCljsRepl && replConnectSequences.length == 0) {
         chan.appendLine('Old customCljsRepl settings detected.');
-        vscode.window
+        void vscode.window
             .showErrorMessage(
                 'Old customCljsRepl settings detected. You need to specify it using the new calva.customConnectSequence setting. See the Calva user documentation for instructions.',
                 ...[BUTTON_GOTO_DOC, BUTTON_OK]
@@ -167,7 +167,7 @@ async function activate(context: vscode.ExtensionContext) {
     }
 
     if (legacyExtension) {
-        vscode.window.showErrorMessage(
+        void vscode.window.showErrorMessage(
             'Calva Legacy extension detected. Things will break. Please uninstall, or disable, the old Calva extension.',
             'Roger that. Right away!'
         );
@@ -177,12 +177,12 @@ async function activate(context: vscode.ExtensionContext) {
 
     if (!fmtExtension) {
         try {
-            fmt.activate(context);
+            void fmt.activate(context);
         } catch (e) {
             console.error('Failed activating Formatter: ' + e.message);
         }
     } else {
-        vscode.window.showErrorMessage(
+        void vscode.window.showErrorMessage(
             'Calva Format extension detected, which will break things. Please uninstall or, disable, it before continuing using Calva.',
             'Got it. Will do!'
         );
@@ -194,7 +194,7 @@ async function activate(context: vscode.ExtensionContext) {
             console.error('Failed activating Paredit: ' + e.message);
         }
     } else {
-        vscode.window.showErrorMessage(
+        void vscode.window.showErrorMessage(
             'Calva Paredit extension detected, which will cause problems. Please uninstall, or disable, it.',
             'I hear ya. Doing it!'
         );
@@ -211,7 +211,7 @@ async function activate(context: vscode.ExtensionContext) {
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('calva.startStandaloneRepl', () => {
-            replStart.startStandaloneRepl(
+            void replStart.startStandaloneRepl(
                 context,
                 replStart.USER_TEMPLATE,
                 true
@@ -222,7 +222,7 @@ async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'calva.startStandaloneHelloRepl',
             () => {
-                replStart.startStandaloneRepl(
+                void replStart.startStandaloneRepl(
                     context,
                     replStart.HELLO_TEMPLATE,
                     false
@@ -234,7 +234,7 @@ async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'calva.startStandaloneCljsBrowserRepl',
             () => {
-                replStart.startStandaloneRepl(
+                void replStart.startStandaloneRepl(
                     context,
                     replStart.HELLO_CLJS_BROWSER_TEMPLATE,
                     false
@@ -246,7 +246,7 @@ async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'calva.startStandaloneCljsNodeRepl',
             () => {
-                replStart.startStandaloneRepl(
+                void replStart.startStandaloneRepl(
                     context,
                     replStart.HELLO_CLJS_NODE_TEMPLATE,
                     false
@@ -265,7 +265,7 @@ async function activate(context: vscode.ExtensionContext) {
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('calva.connectNonProjectREPL', () => {
-            connector.connectNonProjectREPLCommand(context);
+            void connector.connectNonProjectREPLCommand(context);
         })
     );
     context.subscriptions.push(
@@ -468,7 +468,7 @@ async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'calva.showFileForOutputWindowNS',
             () => {
-                outputWindow.revealDocForCurrentNS(false);
+                void outputWindow.revealDocForCurrentNS(false);
             }
         )
     );
@@ -476,7 +476,7 @@ async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'calva.toggleBetweenImplAndTest',
             () => {
-                fileSwitcher.toggleBetweenImplAndTest();
+                void fileSwitcher.toggleBetweenImplAndTest();
             }
         )
     );
@@ -529,7 +529,7 @@ async function activate(context: vscode.ExtensionContext) {
                 const keybindingsEnabled = vscode.workspace
                     .getConfiguration()
                     .get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
-                vscode.workspace
+                void vscode.workspace
                     .getConfiguration()
                     .update(
                         config.KEYBINDINGS_ENABLED_CONFIG_KEY,
@@ -541,7 +541,7 @@ async function activate(context: vscode.ExtensionContext) {
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('calva.openCalvaDocs', () => {
-            context.globalState.update(VIEWED_CALVA_DOCS, true);
+            void context.globalState.update(VIEWED_CALVA_DOCS, true);
             open(CALVA_DOCS_URL)
                 .then(() => {
                     state.analytics().logEvent('Calva', 'Docs opened');
@@ -590,9 +590,13 @@ async function activate(context: vscode.ExtensionContext) {
 
     // Initial set of the provided contexts
     outputWindow.setContextForOutputWindowActive(false);
-    vscode.commands.executeCommand('setContext', 'calva:launching', false);
-    vscode.commands.executeCommand('setContext', 'calva:connected', false);
-    vscode.commands.executeCommand('setContext', 'calva:connecting', false);
+    void vscode.commands.executeCommand('setContext', 'calva:launching', false);
+    void vscode.commands.executeCommand('setContext', 'calva:connected', false);
+    void vscode.commands.executeCommand(
+        'setContext',
+        'calva:connecting',
+        false
+    );
     setKeybindingsEnabledContext();
 
     // PROVIDERS
@@ -642,7 +646,7 @@ async function activate(context: vscode.ExtensionContext) {
     );
     context.subscriptions.push(
         vscode.workspace.onDidSaveTextDocument((document) => {
-            onDidSave(controller, document);
+            void onDidSave(controller, document);
         })
     );
     context.subscriptions.push(
@@ -726,7 +730,7 @@ async function activate(context: vscode.ExtensionContext) {
         context.subscriptions.push(factory);
     }
 
-    vscode.commands.executeCommand('setContext', 'calva:activated', true);
+    void vscode.commands.executeCommand('setContext', 'calva:activated', true);
 
     greetings.activationGreetings(chan);
 
@@ -735,14 +739,14 @@ async function activate(context: vscode.ExtensionContext) {
             `VIM Extension detected. Please read: ${VIM_DOC_URL} now and then.\n`
         );
         if (!context.globalState.get(VIEWED_VIM_DOCS)) {
-            vscode.window
+            void vscode.window
                 .showErrorMessage(
                     'VIM Extension detected. Please view the docs for tips (and to stop this info box from appearing).',
                     ...[BUTTON_GOTO_DOC]
                 )
                 .then((v) => {
                     if (v == BUTTON_GOTO_DOC) {
-                        context.globalState.update(VIEWED_VIM_DOCS, true);
+                        void context.globalState.update(VIEWED_VIM_DOCS, true);
                         open(VIM_DOC_URL).catch(() => {
                             // do nothing
                         });
@@ -754,7 +758,7 @@ async function activate(context: vscode.ExtensionContext) {
     if (clojureExtension) {
         chan.appendLine(`The Clojure Extension is installed.\n`);
         if (!context.globalState.get(DONT_SHOW_CLOJURE_EXT_NAG)) {
-            vscode.window
+            void vscode.window
                 .showWarningMessage(
                     'You have the Clojure extension installed. Please note that it will conflict with Calva.',
                     "Don't show again",
@@ -762,7 +766,7 @@ async function activate(context: vscode.ExtensionContext) {
                 )
                 .then((v) => {
                     if (v == "Don't show again") {
-                        context.globalState.update(
+                        void context.globalState.update(
                             DONT_SHOW_CLOJURE_EXT_NAG,
                             true
                         );
@@ -784,7 +788,7 @@ async function activate(context: vscode.ExtensionContext) {
             console.error('Failed activating Highlight: ' + e.message);
         }
     } else {
-        vscode.window.showErrorMessage(
+        void vscode.window.showErrorMessage(
             "Clojure Warrior extension detected. This will not work well together with Calva's highlighting (which is an improvement on Clojure Warrior). Please uninstall/disable it.",
             ...['Got it.', 'Will do!']
         );

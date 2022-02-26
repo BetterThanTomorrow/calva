@@ -183,7 +183,7 @@ async function connectToHost(
         return false;
     }
 
-    liveShareSupport.didConnectRepl(port);
+    void liveShareSupport.didConnectRepl(port);
 
     await readRuntimeConfigs();
 
@@ -213,7 +213,7 @@ async function getFigwheelMainBuilds() {
         )
         .map(([name, _]) => name.replace(/\.cljs\.edn$/, ''));
     if (builds.length == 0) {
-        vscode.window.showErrorMessage(
+        void vscode.window.showErrorMessage(
             'There are no figwheel build files (.cljs.edn) in the project directory.'
         );
         outputWindow.append(
@@ -401,7 +401,7 @@ function createCLJSReplType(
     const replType: ReplType = {
         name: cljsTypeName,
         connect: async (session, name, checkFn) => {
-            state.extensionContext.workspaceState.update(
+            void state.extensionContext.workspaceState.update(
                 'cljsReplTypeHasBuilds',
                 cljsType.buildsRequired
             );
@@ -505,7 +505,7 @@ function createCLJSReplType(
                                 projectTypeName +
                                 '...'
                         );
-                        state.extensionContext.workspaceState.update(
+                        void state.extensionContext.workspaceState.update(
                             'cljsReplTypeHasBuilds',
                             true
                         );
@@ -625,7 +625,7 @@ async function makeCljsSessionClone(
                     : '');
             outputWindow.append(`; ${failed}`);
             setStateValue('cljsBuild', null);
-            vscode.window
+            void vscode.window
                 .showInformationMessage(failed, { modal: true }, ...['Ok'])
                 .then((value) => {
                     if (value == 'Ok') {
@@ -691,11 +691,11 @@ export async function connect(
 
     const portFile = projectTypes.nreplPortFileUri(connectSequence);
 
-    state.extensionContext.workspaceState.update(
+    void state.extensionContext.workspaceState.update(
         'selectedCljsTypeName',
         cljsTypeName
     );
-    state.extensionContext.workspaceState.update(
+    void state.extensionContext.workspaceState.update(
         'selectedConnectSequence',
         connectSequence
     );
@@ -772,7 +772,7 @@ export default {
             'connect-type',
             'ConnectInterrupted'
         );
-        standaloneConnect(context, connectSequence);
+        void standaloneConnect(context, connectSequence);
     },
     connectCommand: async (context: vscode.ExtensionContext) => {
         status.updateNeedReplUi(true);
@@ -782,7 +782,7 @@ export default {
             await liveShareSupport.setupLiveShareListener();
         } catch {
             // Could be a bae file, user makes the call
-            vscode.commands.executeCommand('calva.startOrConnectRepl');
+            void vscode.commands.executeCommand('calva.startOrConnectRepl');
             return;
         }
         const cljTypes = await projectTypes.detectProjectTypes(),
@@ -791,7 +791,7 @@ export default {
                 'connect-type',
                 'ConnectInterrupted'
             );
-        standaloneConnect(context, connectSequence);
+        void standaloneConnect(context, connectSequence);
     },
     disconnect: (
         options = null,

@@ -260,7 +260,7 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
             sequence.projectType == undefined ||
             sequence.cljsType == undefined
         ) {
-            vscode.window.showWarningMessage(
+            void vscode.window.showWarningMessage(
                 'Check your calva.replConnectSequences. You need to supply `name`, `projectType`, and `cljsType` for every sequence.',
                 ...['Roger That!']
             );
@@ -318,7 +318,7 @@ async function askForConnectSequence(
     const saveAsFull = projectRootUri
         ? `${projectRootUri.toString()}/${saveAs}`
         : saveAs;
-    state.extensionContext.workspaceState.update(
+    void state.extensionContext.workspaceState.update(
         'askForConnectSequenceQuickPick',
         true
     );
@@ -330,7 +330,7 @@ async function askForConnectSequence(
         saveAs: saveAsFull,
         autoSelect: true,
     });
-    state.extensionContext.workspaceState.update(
+    void state.extensionContext.workspaceState.update(
         'askForConnectSequenceQuickPick',
         false
     );
@@ -344,7 +344,7 @@ async function askForConnectSequence(
     const sequence = sequences.find(
         (seq) => seq.name === projectConnectSequenceName
     );
-    state.extensionContext.workspaceState.update(
+    void state.extensionContext.workspaceState.update(
         'selectedCljTypeName',
         sequence.projectType
     );

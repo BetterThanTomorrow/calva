@@ -74,7 +74,7 @@ function executeJackInTask(
             terminalOptions,
             (_p, hostname: string, port: string) => {
                 utilities.setLaunchingState(null);
-                connector
+                void connector
                     .connect(connectSequence, true, hostname, port)
                     .then(() => {
                         outputWindow.append('; Jack-in done.');
@@ -92,7 +92,7 @@ function executeJackInTask(
                 outputWindow.append(
                     '; You may have chosen the wrong jack-in configuration for your project.'
                 );
-                vscode.window.showErrorMessage(
+                void vscode.window.showErrorMessage(
                     'Error in Jack-in: unable to read port file. See output window for more information.'
                 );
                 cancelJackInTask();
@@ -164,13 +164,15 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
             projectConnectSequence
         );
         if (executable && args) {
-            vscode.env.clipboard.writeText(createCommandLine(executable, args));
-            vscode.window.showInformationMessage(
+            void vscode.env.clipboard.writeText(
+                createCommandLine(executable, args)
+            );
+            void vscode.window.showInformationMessage(
                 'Jack-in command copied to the clipboard.'
             );
         }
     } else {
-        vscode.window.showInformationMessage(
+        void vscode.window.showInformationMessage(
             'No supported project types detected.'
         );
     }
@@ -310,13 +312,13 @@ export async function jackIn(
             );
         }
     } else {
-        vscode.window.showInformationMessage(
+        void vscode.window.showInformationMessage(
             'No supported project types detected. Maybe try starting your project manually and use the Connect command?'
         );
         return;
     }
 
-    liveShareSupport.didJackIn();
+    void liveShareSupport.didJackIn();
 }
 
 export async function jackInCommand(connectSequence?: ReplConnectSequence) {
@@ -341,7 +343,7 @@ export function calvaDisconnect() {
         utilities.getConnectingState() ||
         utilities.getLaunchingState()
     ) {
-        vscode.window
+        void vscode.window
             .showInformationMessage(
                 'Do you want to interrupt the connection process?',
                 { modal: true },
@@ -359,5 +361,5 @@ export function calvaDisconnect() {
             });
         return;
     }
-    vscode.window.showInformationMessage('Not connected to a REPL server');
+    void vscode.window.showInformationMessage('Not connected to a REPL server');
 }

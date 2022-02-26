@@ -44,7 +44,7 @@ async function readConfiguration(): Promise<{
         }
     }
     if (configPath === LSP_CONFIG_KEY && !lspFormatConfig) {
-        vscode.window.showErrorMessage(
+        void vscode.window.showErrorMessage(
             'Fetching formatting settings from clojure-lsp failed. Check that you are running a version of clojure-lsp that provides "cljfmt-raw" in serverInfo.',
             'Roger that'
         );
@@ -62,7 +62,7 @@ async function readConfiguration(): Promise<{
     if (!config['cljfmt-options']['error']) {
         return config;
     } else {
-        vscode.window.showErrorMessage(
+        void vscode.window.showErrorMessage(
             `Error parsing ${configPath}: ${config['cljfmt-options']['error']}\n\nUsing default formatting configuration.`
         );
         return configuration(workspaceConfig, defaultCljfmtContent);

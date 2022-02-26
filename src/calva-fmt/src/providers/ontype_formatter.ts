@@ -49,12 +49,12 @@ export class FormatOnTypeEditProvider
                     .getConfiguration('calva.fmt')
                     .get('newIndentEngine')
             ) {
-                formatter.indentPosition(pos, document);
+                void formatter.indentPosition(pos, document);
             } else {
                 try {
-                    formatter.formatPosition(editor, true);
+                    void formatter.formatPosition(editor, true);
                 } catch (e) {
-                    formatter.indentPosition(pos, document);
+                    void formatter.indentPosition(pos, document);
                 }
             }
         }

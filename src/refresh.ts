@@ -27,11 +27,11 @@ function refresh(document = {}) {
 
     if (client != undefined) {
         chan.appendLine('Reloading...');
-        client.refresh().then((res) => {
+        void client.refresh().then((res) => {
             report(res, chan);
         });
     } else {
-        vscode.window.showErrorMessage('Not connected to a REPL.');
+        void vscode.window.showErrorMessage('Not connected to a REPL.');
     }
 }
 
@@ -42,11 +42,11 @@ function refreshAll(document = {}) {
 
     if (client != undefined) {
         chan.appendLine('Reloading all the things...');
-        client.refreshAll().then((res) => {
+        void client.refreshAll().then((res) => {
             report(res, chan);
         });
     } else {
-        vscode.window.showErrorMessage('Not connected to a REPL.');
+        void vscode.window.showErrorMessage('Not connected to a REPL.');
     }
 }
 
