@@ -181,9 +181,12 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     tokenBeginsMetadata(): boolean {
-        return this.getToken().raw.endsWith('^{');
+        return this.getToken().raw.startsWith('^');
     }
 
+    prevTokenBeginsMetadata(): boolean {
+        return this.getPrevToken().raw.startsWith('^');
+    }
     /**
      * Moves this token past any whitespace or comment.
      */
@@ -258,7 +261,8 @@ export class LispTokenCursor extends TokenCursor {
     forwardSexp(
         skipComments = true,
         skipMetadata = false,
-        skipIgnoredForms = false
+        skipIgnoredForms = false,
+        skipReaders = true
     ): boolean {
         // TODO: Consider using a proper bracket stack
         const stack = [];
@@ -267,9 +271,7 @@ export class LispTokenCursor extends TokenCursor {
         if (this.getToken().type === 'close') {
             return false;
         }
-        if (this.tokenBeginsMetadata()) {
-            isMetadata = true;
-        }
+        isMetadata = this.tokenBeginsMetadata();
         while (!this.atEnd()) {
             this.forwardWhitespace(skipComments);
             const token = this.getToken();
@@ -298,8 +300,14 @@ export class LispTokenCursor extends TokenCursor {
                 case 'kw':
                 case 'junk':
                 case 'str-inside':
+                    //if (skipReaders) {
+                    //    this.forwardThroughAnyReader();
+                    //}
                     if (skipMetadata && this.getToken().raw.startsWith('^')) {
                         this.next();
+                        //if (skipReaders) {
+                        //    this.forwardThroughAnyReader();
+                        //}
                     } else {
                         this.next();
                         if (stack.length <= 0) {
@@ -316,9 +324,15 @@ export class LispTokenCursor extends TokenCursor {
                             break;
                         }
                     }
+                    //if (skipReaders) {
+                    //    this.forwardThroughAnyReader();
+                    //}
                     if (skipMetadata && isMetadata) {
                         this.forwardSexp(skipComments, skipMetadata);
                     }
+                    //if (skipReaders) {
+                    //    this.forwardThroughAnyReader();
+                    //}
                     if (stack.length <= 0) {
                         return true;
                     }
@@ -344,7 +358,12 @@ export class LispTokenCursor extends TokenCursor {
      *
      * @returns true if the cursor was moved, false otherwise.
      */
-    backwardSexp(skipComments = true) {
+    backwardSexp(
+        skipComments = true,
+        skipMetadata = false,
+        skipIgnoredForms = false,
+        skipReaders = true
+    ) {
         const stack = [];
         this.backwardWhitespace(skipComments);
         if (this.getPrevToken().type === 'open') {
@@ -361,13 +380,30 @@ export class LispTokenCursor extends TokenCursor {
                 case 'junk':
                 case 'comment':
                 case 'prompt':
-                case 'str-inside':
+                case 'str-inside': {
                     this.previous();
-                    this.backwardThroughAnyReader();
+                    if (skipReaders) {
+                        this.backwardThroughAnyReader();
+                    }
+                    if (skipMetadata) {
+                        const metaCursor = this.clone();
+                        metaCursor.backwardSexp(true, false, false, false);
+                        if (metaCursor.tokenBeginsMetadata()) {
+                            this.backwardSexp(
+                                skipComments,
+                                skipMetadata,
+                                skipIgnoredForms
+                            );
+                        }
+                    }
+                    if (skipReaders) {
+                        this.backwardThroughAnyReader();
+                    }
                     if (stack.length <= 0) {
                         return true;
                     }
                     break;
+                }
                 case 'close':
                     stack.push(tk.raw);
                     this.previous();
@@ -381,7 +417,23 @@ export class LispTokenCursor extends TokenCursor {
                         }
                     }
                     this.previous();
-                    this.backwardThroughAnyReader();
+                    if (skipReaders) {
+                        this.backwardThroughAnyReader();
+                    }
+                    if (skipMetadata) {
+                        const metaCursor = this.clone();
+                        metaCursor.backwardSexp(true, false, false, false);
+                        if (metaCursor.tokenBeginsMetadata()) {
+                            this.backwardSexp(
+                                skipComments,
+                                skipMetadata,
+                                skipIgnoredForms
+                            );
+                        }
+                    }
+                    if (skipReaders) {
+                        this.backwardThroughAnyReader();
+                    }
                     if (stack.length <= 0) {
                         return true;
                     }
@@ -400,15 +452,18 @@ export class LispTokenCursor extends TokenCursor {
      */
     backwardThroughAnyReader() {
         const cursor = this.clone();
+        let hasReader = false;
         while (true) {
             cursor.backwardWhitespace();
             if (cursor.getPrevToken().type === 'reader') {
                 cursor.previous();
                 this.set(cursor);
+                hasReader = true;
             } else {
                 break;
             }
         }
+        return hasReader;
     }
 
     /**
@@ -417,15 +472,18 @@ export class LispTokenCursor extends TokenCursor {
      */
     forwardThroughAnyReader() {
         const cursor = this.clone();
+        let hasReader = false;
         while (true) {
             cursor.forwardWhitespace();
             if (cursor.getToken().type === 'reader') {
                 cursor.next();
                 this.set(cursor);
+                hasReader = true;
             } else {
                 break;
             }
         }
+        return hasReader;
     }
 
     /**
@@ -609,79 +667,132 @@ export class LispTokenCursor extends TokenCursor {
      * @param offset the current cursor (caret) offset in the document
      */
     rangeForCurrentForm(offset: number): [number, number] {
+        let afterCurrentFormOffset: number;
+        // console.log(-1, offset);
+
+        // 0. If `offset` is within or before, a symbol, literal or keyword
         if (
-            ['id', 'kw', 'lit', 'str-inside'].includes(this.getToken().type) &&
-            offset !== this.offsetStart
+            ['id', 'kw', 'lit', 'str-inside'].includes(this.getToken().type)
         ) {
-            // 0
+            afterCurrentFormOffset = this.offsetEnd;
+        }
+        // console.log(0, afterCurrentFormOffset);
+
+        // 1. Else, if `offset` is adjacent after form
+        if (afterCurrentFormOffset === undefined) {
             const cursor = this.clone();
-            cursor.backwardThroughAnyReader();
-            return [cursor.offsetStart, this.offsetEnd];
-        }
-        const afterCursor = this.clone();
-        afterCursor.backwardWhitespace(true);
-        if (
-            afterCursor.offsetStart == offset &&
-            afterCursor.getPrevToken().type !== 'reader'
-        ) {
-            if (afterCursor.backwardSexp()) {
-                // 1.
-                return [afterCursor.offsetStart, offset];
-            }
-        }
-        const beforeCursor = this.clone();
-        beforeCursor.forwardThroughAnyReader();
-        beforeCursor.forwardWhitespace(true);
-        const readerCursor = beforeCursor.clone();
-        readerCursor.backwardThroughAnyReader();
-        if (
-            (offset >= beforeCursor.offsetStart &&
-                offset <= beforeCursor.offsetEnd) ||
-            readerCursor.offsetStart !== beforeCursor.offsetStart
-        ) {
-            if (beforeCursor.forwardSexp()) {
-                // 2.
-                return [readerCursor.offsetStart, beforeCursor.offsetStart];
-            }
-        }
-        if (afterCursor.rowCol[0] === this.rowCol[0]) {
-            const peekBehindBackwards = afterCursor.clone();
-            if (peekBehindBackwards.backwardSexp()) {
-                // 3.
-                return [
-                    peekBehindBackwards.offsetStart,
-                    afterCursor.offsetStart,
-                ];
-            }
-        }
-        if (beforeCursor.rowCol[0] === this.rowCol[0]) {
-            const peekPastForwards = beforeCursor.clone();
-            if (peekPastForwards.forwardSexp()) {
-                // 4.
-                return [beforeCursor.offsetStart, peekPastForwards.offsetStart];
-            }
-        }
-        const peekBehindBackwards = afterCursor.clone();
-        if (peekBehindBackwards.backwardSexp()) {
-            // 5.
-            return [peekBehindBackwards.offsetStart, afterCursor.offsetStart];
-        } else {
-            const peekPastForwards = beforeCursor.clone();
-            if (peekPastForwards.forwardSexp()) {
-                // 6.
-                return [beforeCursor.offsetStart, peekPastForwards.offsetStart];
-            } else {
-                const peekUp = this.clone();
-                if (peekUp.upList()) {
-                    const peekBehindUp = peekUp.clone();
-                    if (peekBehindUp.backwardSexp()) {
-                        // 7.
-                        return [peekBehindUp.offsetStart, peekUp.offsetStart];
-                    }
+            cursor.backwardWhitespace(true);
+            if (
+                cursor.offsetStart == offset &&
+                cursor.getPrevToken().type !== 'reader'
+            ) {
+                if (cursor.backwardSexp()) {
+                    afterCurrentFormOffset = offset;
                 }
             }
         }
-        return undefined; // 8.
+        // console.log(1, afterCurrentFormOffset);
+
+        // 2. Else, if `offset` is adjacent before a form
+        if (afterCurrentFormOffset === undefined) {
+            const tk = this.getToken();
+            const pTk = this.getPrevToken();
+            let isAdjacentBefore =
+                tk.type === 'reader' ||
+                this.tokenBeginsMetadata() ||
+                pTk.type === 'reader' ||
+                this.prevTokenBeginsMetadata() ||
+                tk.type === 'open';
+            if (!isAdjacentBefore) {
+                const cursor = this.clone();
+                cursor.backwardWhitespace();
+                isAdjacentBefore =
+                    cursor.prevTokenBeginsMetadata() ||
+                    cursor.getPrevToken().type === 'reader';
+            }
+            if (!isAdjacentBefore) {
+                const cursor = this.clone();
+                cursor.forwardWhitespace();
+                isAdjacentBefore =
+                    cursor.tokenBeginsMetadata() ||
+                    cursor.getToken().type === 'reader';
+            }
+            if (isAdjacentBefore) {
+                const cursor = this.clone();
+                if (cursor.forwardSexp(true, true)) {
+                    afterCurrentFormOffset = cursor.offsetStart;
+                }
+            }
+        }
+        // console.log(2, afterCurrentFormOffset);
+
+        // 3. Else, if the previous form is on the same line
+        if (afterCurrentFormOffset === undefined) {
+            const cursor = this.clone();
+            cursor.backwardWhitespace(true);
+            const afterOffset = cursor.offsetStart;
+            if (cursor.rowCol[0] === this.rowCol[0]) {
+                if (cursor.backwardSexp()) {
+                    afterCurrentFormOffset = afterOffset;
+                }
+            }
+        }
+        // console.log(3, afterCurrentFormOffset);
+
+        // 4. Else, if the next form is on the same line
+        if (afterCurrentFormOffset === undefined) {
+            const cursor = this.clone();
+            cursor.forwardWhitespace(true);
+            if (cursor.rowCol[0] === this.rowCol[0]) {
+                if (cursor.forwardSexp()) {
+                    afterCurrentFormOffset = cursor.offsetStart;
+                }
+            }
+        }
+        // console.log(4, afterCurrentFormOffset);
+
+        // 5. Else, the previous form, if any
+        if (afterCurrentFormOffset === undefined) {
+            const cursor = this.clone();
+            cursor.backwardWhitespace(true);
+            const afterOffset = cursor.offsetStart;
+            if (cursor.backwardSexp()) {
+                afterCurrentFormOffset = afterOffset;
+            }
+        }
+        // console.log(5, afterCurrentFormOffset);
+
+        // 6. Else, the next form, if any
+        if (afterCurrentFormOffset === undefined) {
+            const cursor = this.clone();
+            cursor.forwardWhitespace();
+            if (cursor.forwardSexp()) {
+                afterCurrentFormOffset = cursor.offsetStart;
+            }
+        }
+        // console.log(6, afterCurrentFormOffset);
+
+        // 7. Else, the current enclosing form, if any
+        if (afterCurrentFormOffset === undefined) {
+            const cursor = this.clone();
+            if (cursor.backwardUpList()) {
+                if (cursor.forwardSexp()) {
+                    afterCurrentFormOffset = cursor.offsetStart;
+                }
+            }
+        }
+        // console.log(7, afterCurrentFormOffset);
+
+        // 8. Else, ¯\_(ツ)_/¯
+        if (afterCurrentFormOffset === undefined) {
+            return undefined; // 8.
+        }
+
+        const currentFormCursor = this.doc.getTokenCursor(
+            afterCurrentFormOffset
+        );
+        currentFormCursor.backwardSexp(true, true);
+        return [currentFormCursor.offsetStart, afterCurrentFormOffset];
     }
 
     rangeForDefun(

@@ -9,6 +9,10 @@
     {
       "name": "edn hover hover-text",
       "snippet": "(str \"**JSON edn hover hover-text** \" \"$hover-text\")"
+    },
+    {
+      "name": "Show doc string",
+      "snippet": "(with-out-str (clojure.repl/doc $hover-text))"
     }
   ],
   "calva.fmt.configPath": "CLOJURE-LSP",
