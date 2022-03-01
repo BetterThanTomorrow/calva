@@ -658,9 +658,7 @@ export class LispTokenCursor extends TokenCursor {
         // console.log(-1, offset);
 
         // 0. If `offset` is within or before, a symbol, literal or keyword
-        if (
-            ['id', 'kw', 'lit', 'str-inside'].includes(this.getToken().type)
-        ) {
+        if (['id', 'kw', 'lit', 'str-inside'].includes(this.getToken().type)) {
             afterCurrentFormOffset = this.offsetEnd;
         }
         // console.log(0, afterCurrentFormOffset);
