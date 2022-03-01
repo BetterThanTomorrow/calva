@@ -9,7 +9,7 @@ export function continueCommentCommand() {
     if (document && document.languageId === 'clojure') {
         const editor = util.mustGetActiveTextEditor();
         const position = editor.selection.active;
-        const cursor = docMirror.getDocument(document).getTokenCursor();
+        const cursor = docMirror.mustGetDocument(document).getTokenCursor();
         if (cursor.getToken().type !== 'comment') {
             if (cursor.getPrevToken().type === 'comment') {
                 cursor.previous();

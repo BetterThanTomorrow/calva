@@ -186,7 +186,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
                 const document = event.textEditor.document;
                 if (isResultsDoc(document)) {
                     const idx = document.offsetAt(event.selections[0].active);
-                    const mirrorDoc = docMirror.getDocument(document);
+                    const mirrorDoc = docMirror.mustGetDocument(document);
                     const selectionCursor = mirrorDoc.getTokenCursor(idx);
                     selectionCursor.forwardWhitespace();
                     if (selectionCursor.atEnd()) {

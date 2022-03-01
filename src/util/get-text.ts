@@ -46,7 +46,7 @@ export function currentEnclosingFormText(
 
 export function currentFunction(doc: vscode.TextDocument): SelectionAndText {
     if (doc) {
-        const tokenCursor = docMirror.getDocument(doc).getTokenCursor();
+        const tokenCursor = docMirror.mustGetDocument(doc).getTokenCursor();
         const [start, end] = tokenCursor.getFunctionSexpRange();
         if (start && end) {
             const startPos = doc.positionAt(start);
@@ -63,7 +63,7 @@ function selectionAndText(
     textGetter: (doc: EditableDocument) => cursorTextGetter.RangeAndText
 ): SelectionAndText {
     if (doc) {
-        const mirrorDoc = docMirror.getDocument(doc);
+        const mirrorDoc = docMirror.mustGetDocument(doc);
         const [range, text] = textGetter(mirrorDoc);
         if (range) {
             return [select.selectionFromOffsetRange(doc, range), text];
@@ -99,7 +99,7 @@ function fromFn(
     cursorDocFn: (doc: EditableDocument, offset?: number) => [number, number]
 ): SelectionAndText {
     if (doc) {
-        const cursorDoc = docMirror.getDocument(doc);
+        const cursorDoc = docMirror.mustGetDocument(doc);
         const range = cursorDocFn(cursorDoc);
         const selection = select.selectionFromOffsetRange(doc, range);
         const text = doc.getText(selection);

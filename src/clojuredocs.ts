@@ -63,7 +63,7 @@ export function printTextToRichCommentCommand(args: { [x: string]: string }) {
 
 function printTextToRichComment(text: string, position?: number) {
     const doc = util.getDocument({});
-    const mirrorDoc = docMirror.getDocument(doc);
+    const mirrorDoc = docMirror.mustGetDocument(doc);
     paredit.addRichComment(
         mirrorDoc,
         position ? position : mirrorDoc.selection.active,

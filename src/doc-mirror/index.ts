@@ -11,6 +11,7 @@ import {
     LineInputModel,
     ModelEditSelection,
 } from '../cursor-doc/model';
+import { isUndefined } from 'lodash';
 
 const documents = new Map<vscode.TextDocument, MirroredDocument>();
 
@@ -241,11 +242,21 @@ export function getDocument(doc: vscode.TextDocument) {
     return documents.get(doc);
 }
 
+export function mustGetDocument(doc: vscode.TextDocument) {
+    const mirrorDoc = documents.get(doc);
+
+    if (isUndefined(mirrorDoc)) {
+        throw new Error('Missing mirror document!');
+    }
+
+    return mirrorDoc;
+}
+
 export function getDocumentOffset(
     doc: vscode.TextDocument,
     position: vscode.Position
 ) {
-    const model = getDocument(doc).model;
+    const model = mustGetDocument(doc).model;
     return model.getOffsetForLine(position.line) + position.character;
 }
 

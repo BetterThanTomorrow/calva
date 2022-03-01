@@ -3,9 +3,9 @@ import * as config from './config';
 import * as outputWindow from '../../results-output/results-doc';
 import {
     getIndent,
-    getDocument,
     getDocumentOffset,
     MirroredDocument,
+    mustGetDocument,
 } from '../../doc-mirror/index';
 import {
     formatTextAtRange,
@@ -24,7 +24,7 @@ export async function indentPosition(
     const editor = util.mustGetActiveTextEditor();
     const pos = new vscode.Position(position.line, 0);
     const indent = getIndent(
-        getDocument(document).model.lineInputModel,
+        mustGetDocument(document).model.lineInputModel,
         getDocumentOffset(document, position),
         await config.getConfig()
     );
@@ -56,7 +56,7 @@ export async function formatRangeEdits(
     range: vscode.Range
 ): Promise<vscode.TextEdit[]> {
     const text: string = document.getText(range);
-    const mirroredDoc: MirroredDocument = getDocument(document);
+    const mirroredDoc: MirroredDocument = mustGetDocument(document);
     const startIndex = document.offsetAt(range.start);
     const endIndex = document.offsetAt(range.end);
     const cursor = mirroredDoc.getTokenCursor(startIndex);
@@ -91,7 +91,7 @@ export async function formatPositionInfo(
     const doc: vscode.TextDocument = editor.document;
     const pos: vscode.Position = editor.selection.active;
     const index = doc.offsetAt(pos);
-    const mirroredDoc: MirroredDocument = getDocument(doc);
+    const mirroredDoc: MirroredDocument = mustGetDocument(doc);
     const cursor = mirroredDoc.getTokenCursor(index);
     const formatDepth = extraConfig['format-depth']
         ? extraConfig['format-depth']

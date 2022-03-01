@@ -12,7 +12,7 @@ import * as vscode from 'vscode';
 // import * as myExtension from '../extension';
 import * as outputWindow from '../../../results-output/results-doc';
 import { commands } from 'vscode';
-import { getDocument } from '../../../doc-mirror';
+import { mustGetDocument } from '../../../doc-mirror';
 
 void vscode.window.showInformationMessage('Tests running. Yay!');
 
@@ -85,7 +85,7 @@ suite('Extension Test Suite', () => {
         await sleep(500); // wait a little longer for repl output to be done
         console.log('connected to repl');
 
-        const resultsDoc = getDocument(await outputWindow.openResultsDoc());
+        const resultsDoc = mustGetDocument(await outputWindow.openResultsDoc());
 
         // focus the clojure file
         await vscode.workspace.openTextDocument(testUri).then((doc) =>
