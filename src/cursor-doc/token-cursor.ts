@@ -261,8 +261,7 @@ export class LispTokenCursor extends TokenCursor {
     forwardSexp(
         skipComments = true,
         skipMetadata = false,
-        skipIgnoredForms = false,
-        skipReaders = true
+        skipIgnoredForms = false
     ): boolean {
         // TODO: Consider using a proper bracket stack
         const stack = [];
@@ -300,14 +299,8 @@ export class LispTokenCursor extends TokenCursor {
                 case 'kw':
                 case 'junk':
                 case 'str-inside':
-                    //if (skipReaders) {
-                    //    this.forwardThroughAnyReader();
-                    //}
                     if (skipMetadata && this.getToken().raw.startsWith('^')) {
                         this.next();
-                        //if (skipReaders) {
-                        //    this.forwardThroughAnyReader();
-                        //}
                     } else {
                         this.next();
                         if (stack.length <= 0) {
@@ -324,15 +317,9 @@ export class LispTokenCursor extends TokenCursor {
                             break;
                         }
                     }
-                    //if (skipReaders) {
-                    //    this.forwardThroughAnyReader();
-                    //}
                     if (skipMetadata && isMetadata) {
                         this.forwardSexp(skipComments, skipMetadata);
                     }
-                    //if (skipReaders) {
-                    //    this.forwardThroughAnyReader();
-                    //}
                     if (stack.length <= 0) {
                         return true;
                     }
