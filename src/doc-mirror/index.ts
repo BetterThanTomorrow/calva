@@ -28,7 +28,7 @@ export class DocumentModel implements EditableModel {
         modelEdits: ModelEdit[],
         options: ModelEditOptions
     ): Thenable<boolean> {
-        const editor = vscode.window.activeTextEditor,
+        const editor = utilities.mustGetActiveTextEditor(),
             undoStopBefore = !!options.undoStopBefore;
         return editor
             .edit(
@@ -84,7 +84,7 @@ export class DocumentModel implements EditableModel {
         oldSelection?: [number, number],
         newSelection?: [number, number]
     ) {
-        const editor = vscode.window.activeTextEditor,
+        const editor = utilities.mustGetActiveTextEditor(),
             document = editor.document;
         builder.insert(document.positionAt(offset), text);
     }
@@ -97,7 +97,7 @@ export class DocumentModel implements EditableModel {
         oldSelection?: [number, number],
         newSelection?: [number, number]
     ) {
-        const editor = vscode.window.activeTextEditor,
+        const editor = utilities.mustGetActiveTextEditor(),
             document = editor.document,
             range = new vscode.Range(
                 document.positionAt(start),
@@ -113,7 +113,7 @@ export class DocumentModel implements EditableModel {
         oldSelection?: [number, number],
         newSelection?: [number, number]
     ) {
-        const editor = vscode.window.activeTextEditor,
+        const editor = utilities.mustGetActiveTextEditor(),
             document = editor.document,
             range = new vscode.Range(
                 document.positionAt(offset),
@@ -143,13 +143,13 @@ export class MirroredDocument implements EditableDocument {
 
     get selectionLeft(): number {
         return this.document.offsetAt(
-            vscode.window.activeTextEditor.selection.anchor
+            utilities.mustGetActiveTextEditor().selection.anchor
         );
     }
 
     get selectionRight(): number {
         return this.document.offsetAt(
-            vscode.window.activeTextEditor.selection.active
+            utilities.mustGetActiveTextEditor().selection.active
         );
     }
 
@@ -165,7 +165,7 @@ export class MirroredDocument implements EditableDocument {
     }
 
     public insertString(text: string) {
-        const editor = vscode.window.activeTextEditor,
+        const editor = utilities.mustGetActiveTextEditor(),
             selection = editor.selection,
             wsEdit = new vscode.WorkspaceEdit(),
             edit = vscode.TextEdit.insert(
@@ -179,7 +179,7 @@ export class MirroredDocument implements EditableDocument {
     }
 
     set selection(selection: ModelEditSelection) {
-        const editor = vscode.window.activeTextEditor,
+        const editor = utilities.mustGetActiveTextEditor(),
             document = editor.document,
             anchor = document.positionAt(selection.anchor),
             active = document.positionAt(selection.active);
@@ -192,7 +192,7 @@ export class MirroredDocument implements EditableDocument {
     }
 
     public getSelectionText() {
-        const editor = vscode.window.activeTextEditor,
+        const editor = utilities.mustGetActiveTextEditor(),
             selection = editor.selection;
         return this.document.getText(selection);
     }

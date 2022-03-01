@@ -4,6 +4,7 @@ import * as docMirror from '../../../doc-mirror/index';
 import { EditableDocument } from '../../../cursor-doc/model';
 import * as paredit from '../../../cursor-doc/paredit';
 import { getConfig } from '../../../config';
+import * as util from '../../../utilities';
 
 export class FormatOnTypeEditProvider
     implements vscode.OnTypeFormattingEditProvider
@@ -14,7 +15,6 @@ export class FormatOnTypeEditProvider
         ch: string,
         _options
     ): Promise<vscode.TextEdit[]> {
-        const editor = vscode.window.activeTextEditor;
         let keyMap = vscode.workspace
             .getConfiguration()
             .get('calva.paredit.defaultKeyMap');
@@ -37,6 +37,7 @@ export class FormatOnTypeEditProvider
                 return null;
             }
         }
+        const editor = util.mustGetActiveTextEditor();
 
         const pos = editor.selection.active;
         if (

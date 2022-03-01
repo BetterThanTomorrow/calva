@@ -52,7 +52,7 @@ function selectForm(
     ) => vscode.Selection,
     toplevel: boolean
 ) {
-    const editor = vscode.window.activeTextEditor,
+    const editor = util.mustGetActiveTextEditor(),
         doc = util.getDocument(document),
         selection = editor.selection;
 

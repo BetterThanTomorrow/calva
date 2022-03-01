@@ -144,7 +144,7 @@ function triggerUpdateAndRenderDecorations() {
         timeout = undefined;
     }
     if (enabled) {
-        const editor = vscode.window.activeTextEditor;
+        const editor = util.getActiveTextEditor();
         if (editor) {
             timeout = setTimeout(() => {
                 const cljSession = replSession.getSession('clj');
@@ -166,7 +166,7 @@ function activate() {
     });
 
     vscode.workspace.onDidChangeTextDocument((event) => {
-        const activeEditor = vscode.window.activeTextEditor;
+        const activeEditor = util.getActiveTextEditor();
         if (
             activeEditor &&
             event.document === activeEditor.document &&

@@ -91,7 +91,7 @@ async function evaluateCode(
     const filePath = options.filePath;
     const session: NReplSession = options.session;
     const ns = options.ns;
-    const editor = vscode.window.activeTextEditor;
+    const editor = util.mustGetActiveTextEditor();
     let result = null;
 
     if (code.length > 0) {
@@ -259,7 +259,7 @@ async function evaluateSelection(document = {}, options) {
     ) => [vscode.Selection, string] = options.selectionFn;
 
     if (getStateValue('connected')) {
-        const editor = vscode.window.activeTextEditor;
+        const editor = util.mustGetActiveTextEditor();
         state.analytics().logEvent('Evaluation', 'selectionFn').send();
         const selection = selectionFn(editor);
         const codeSelection: vscode.Selection = selection[0];

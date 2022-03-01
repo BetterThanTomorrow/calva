@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as util from './util';
 import * as projectRoot from '../project-root';
+import { mustGetActiveTextEditor } from '../utilities';
 
 function openFile(file) {
     return vscode.workspace
@@ -39,7 +40,7 @@ function askToCreateANewFile(dir, file) {
 }
 
 export async function toggleBetweenImplAndTest() {
-    const activeFile = vscode.window.activeTextEditor;
+    const activeFile = mustGetActiveTextEditor();
     const openedFilename = activeFile.document.fileName;
 
     const projectRootUri = await projectRoot.getProjectRootUri();
