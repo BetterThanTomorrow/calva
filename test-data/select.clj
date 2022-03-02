@@ -9,15 +9,17 @@
 
 ^:a #a a b
 
-#a ^:a a b
+b aaa bbb ^{:aa aa}
 
-^{:aa aa} aaa bbb
+#a ^:a a
+
+a
 
 ^{:aa aa} #aa aaa bbb
 
+bbb
 #aa (def foo
       bar)
-bbb
 
 ^aa (def foo
       bar)
