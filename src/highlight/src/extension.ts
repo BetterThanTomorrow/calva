@@ -5,7 +5,7 @@ import { isArray } from 'util';
 import * as docMirror from '../../doc-mirror/index';
 import { Token, validPair } from '../../cursor-doc/clojure-lexer';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
-import { mustGetActiveTextEditor } from '../../utilities';
+import { getActiveTextEditor, mustGetActiveTextEditor } from '../../utilities';
 
 type StackItem = {
     char: string;
@@ -602,7 +602,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeTextEditorSelection(
         (event) => {
             if (
-                event.textEditor === mustGetActiveTextEditor() &&
+                event.textEditor === getActiveTextEditor() &&
                 is_clojure(event.textEditor)
             ) {
                 if (lastHighlightedEditor !== event.textEditor) {
