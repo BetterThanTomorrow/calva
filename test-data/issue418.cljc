@@ -29,10 +29,10 @@
   ;; => Syntax error reading source at (REPL:36:1).
   ;;    EOF while reading character
 
-  #{:foo :foo}|
+  #{:foo :bar}|
    ;; => {:foo :foo}
 
-  #{:foo :foo}
+  #{:foo :bar}
   ;; => Syntax error reading source at (REPL:43:1).
   ;;    EOF while reading character
   )

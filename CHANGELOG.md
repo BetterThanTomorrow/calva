@@ -4,8 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Enable the @typescript-eslint/no-floating-promises eslint rule](https://github.com/BetterThanTomorrow/calva/pull/1564)
+- [Include metadata in current form selection/evaluation/etcetera](https://github.com/BetterThanTomorrow/calva/pull/1551)
 
 ## [2.0.246] - 2022-02-24
+
 -   Fix: [Format config from clojure-lsp broken](https://github.com/BetterThanTomorrow/calva/issues/1561)
 -   Fix2: [Format on save](https://github.com/BetterThanTomorrow/calva/issues/1556)
 

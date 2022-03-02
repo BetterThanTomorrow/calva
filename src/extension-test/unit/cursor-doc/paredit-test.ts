@@ -33,6 +33,27 @@ describe('paredit', () => {
                     textAndSelection(b)[1]
                 );
             });
+            it('Finds the list in front through metadata', () => {
+                const a = docFromTextNotation('|^:foo (def foo [vec])');
+                const b = docFromTextNotation('|^:foo (def foo [vec])|');
+                expect(paredit.forwardSexpRange(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('Finds the list in front through metadata and readers', () => {
+                const a = docFromTextNotation('|^:f #a #b (def foo [vec])');
+                const b = docFromTextNotation('|^:f #a #b (def foo [vec])|');
+                expect(paredit.forwardSexpRange(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('Finds the list in front through reader metadata reader', () => {
+                const a = docFromTextNotation('|#c ^:f #a #b (def foo [vec])');
+                const b = docFromTextNotation('|#c ^:f #a #b (def foo [vec])|');
+                expect(paredit.forwardSexpRange(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
             it('Finds the symbol in front', () => {
                 const a = docFromTextNotation('(|def foo [vec])');
                 const b = docFromTextNotation('(|def| foo [vec])');
@@ -106,6 +127,34 @@ describe('paredit', () => {
         });
 
         describe('rangeToSexprBackward', () => {
+            it('Finds the list preceding', () => {
+                const a = docFromTextNotation('(def foo [vec])|');
+                const b = docFromTextNotation('|(def foo [vec])|');
+                expect(paredit.backwardSexpRange(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('Finds the list preceding through metadata', () => {
+                const a = docFromTextNotation('^:foo (def foo [vec])|');
+                const b = docFromTextNotation('|^:foo (def foo [vec])|');
+                expect(paredit.backwardSexpRange(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('Finds the list preceding through metadata and readers', () => {
+                const a = docFromTextNotation('^:f #a #b (def foo [vec])|');
+                const b = docFromTextNotation('|^:f #a #b (def foo [vec])|');
+                expect(paredit.backwardSexpRange(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('Finds the list preceding through reader metadata reader', () => {
+                const a = docFromTextNotation('#c ^:f #a #b (def foo [vec])|');
+                const b = docFromTextNotation('|#c ^:f #a #b (def foo [vec])|');
+                expect(paredit.backwardSexpRange(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
             it('Finds previous form, including space, and reverses direction', () => {
                 // TODO: Should we really be reversing the direction here?
                 const a = docFromTextNotation('(def |<|foo [vec]|<|)');
@@ -400,25 +449,75 @@ describe('paredit', () => {
         });
     });
 
-    describe('Reader tags', () => {
+    describe('Down list', () => {
         it('rangeToForwardDownList', () => {
-            const a = docFromTextNotation(
-                '(a(b(|c•#f•(#b •[:f :b :z])•#z•1)))'
-            );
-            const b = docFromTextNotation(
-                '(a(b(|c•#f•(|#b •[:f :b :z])•#z•1)))'
-            );
+            const a = docFromTextNotation('(|c•(#b •[:f :b :z])•#z•1)');
+            const b = docFromTextNotation('(|c•(|#b •[:f :b :z])•#z•1)');
             expect(paredit.rangeToForwardDownList(a)).toEqual(
                 textAndSelection(b)[1]
             );
         });
+        it('rangeToForwardDownList through readers', () => {
+            const a = docFromTextNotation('(|c•#f•(#b •[:f :b :z])•#z•1)');
+            const b = docFromTextNotation('(|c•#f•(|#b •[:f :b :z])•#z•1)');
+            expect(paredit.rangeToForwardDownList(a)).toEqual(
+                textAndSelection(b)[1]
+            );
+        });
+        it('rangeToForwardDownList through metadata', () => {
+            const a = docFromTextNotation('(|c•^f•(#b •[:f :b]))');
+            const b = docFromTextNotation('(|c•^f•(|#b •[:f :b]))');
+            expect(paredit.rangeToForwardDownList(a)).toEqual(
+                textAndSelection(b)[1]
+            );
+        });
+        it('rangeToForwardDownList through metadata collection', () => {
+            const a = docFromTextNotation('(|c•^{:f 1}•(#b •[:f :b]))');
+            const b = docFromTextNotation('(|c•^{:f 1}•(|#b •[:f :b]))');
+            expect(paredit.rangeToForwardDownList(a)).toEqual(
+                textAndSelection(b)[1]
+            );
+        });
+        it('rangeToForwardDownList through metadata and readers', () => {
+            const a = docFromTextNotation('(|c•^:a #f•(#b •[:f :b]))');
+            const b = docFromTextNotation('(|c•^:a #f•(|#b •[:f :b]))');
+            expect(paredit.rangeToForwardDownList(a)).toEqual(
+                textAndSelection(b)[1]
+            );
+        });
+        it('rangeToForwardDownList through metadata collection and reader', () => {
+            const a = docFromTextNotation('(|c•^{:f 1}•#a •(#b •[:f :b]))');
+            const b = docFromTextNotation('(|c•^{:f 1}•#a •(|#b •[:f :b]))');
+            expect(paredit.rangeToForwardDownList(a)).toEqual(
+                textAndSelection(b)[1]
+            );
+        });
+    });
+    describe('Backward Up list', () => {
         it('rangeToBackwardUpList', () => {
-            const a = docFromTextNotation(
-                '(a(b(c•#f•(|#b •[:f :b :z])•#z•1)))'
+            const a = docFromTextNotation('(c•(|#b •[:f :b :z])•#z•1)');
+            const b = docFromTextNotation('(c•|(|#b •[:f :b :z])•#z•1)');
+            expect(paredit.rangeToBackwardUpList(a)).toEqual(
+                textAndSelection(b)[1]
             );
-            const b = docFromTextNotation(
-                '(a(b(c•|#f•(|#b •[:f :b :z])•#z•1)))'
+        });
+        it('rangeToBackwardUpList through readers', () => {
+            const a = docFromTextNotation('(c•#f•(|#b •[:f :b :z])•#z•1)');
+            const b = docFromTextNotation('(c•|#f•(|#b •[:f :b :z])•#z•1)');
+            expect(paredit.rangeToBackwardUpList(a)).toEqual(
+                textAndSelection(b)[1]
             );
+        });
+        it('rangeToBackwardUpList through metadata', () => {
+            const a = docFromTextNotation('(c•^f•(|#b •[:f :b]))');
+            const b = docFromTextNotation('(c•|^f•(|#b •[:f :b]))');
+            expect(paredit.rangeToBackwardUpList(a)).toEqual(
+                textAndSelection(b)[1]
+            );
+        });
+        it('rangeToBackwardUpList through metadata and readers', () => {
+            const a = docFromTextNotation('(c•^:a #f•(|#b •[:f :b]))');
+            const b = docFromTextNotation('(c•|^:a #f•(|#b •[:f :b]))');
             expect(paredit.rangeToBackwardUpList(a)).toEqual(
                 textAndSelection(b)[1]
             );
@@ -435,6 +534,8 @@ describe('paredit', () => {
                 textAndSelection(b)[1]
             );
         });
+    });
+    describe('Reader tags', () => {
         it('dragSexprBackward', () => {
             const a = docFromTextNotation(
                 '(a(b(c•#f•|(#b •[:f :b :z])•#z•1)))'
@@ -483,6 +584,7 @@ describe('paredit', () => {
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
         });
+
         describe('Top Level Readers', () => {
             const docText = '#f\n(#b \n[:f :b :z])\n#x\n#y\n1\n#å#ä#ö';
             let doc: model.StringDocument;

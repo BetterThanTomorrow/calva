@@ -145,7 +145,7 @@ export function forwardSexpRange(
 ): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     cursor.forwardWhitespace();
-    if (cursor.forwardSexp()) {
+    if (cursor.forwardSexp(true, true)) {
         if (goPastWhitespace) {
             cursor.forwardWhitespace();
         }
@@ -167,7 +167,7 @@ export function backwardSexpRange(
         cursor.forwardSexp();
     }
     cursor.backwardWhitespace();
-    if (cursor.backwardSexp()) {
+    if (cursor.backwardSexp(true, true)) {
         if (goPastWhitespace) {
             cursor.backwardWhitespace();
         }
@@ -307,7 +307,7 @@ export function rangeToBackwardUpList(
 ): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     cursor.backwardList();
-    if (cursor.backwardUpList()) {
+    if (cursor.backwardUpList(true)) {
         if (goPastWhitespace) {
             cursor.backwardWhitespace();
         }
@@ -326,11 +326,14 @@ export function rangeToForwardDownList(
     do {
         cursor.forwardThroughAnyReader();
         cursor.forwardWhitespace();
-        if (cursor.getToken().type === 'open') {
+        if (
+            cursor.getToken().type === 'open' &&
+            !cursor.tokenBeginsMetadata()
+        ) {
             break;
         }
     } while (cursor.forwardSexp());
-    if (cursor.downList()) {
+    if (cursor.downList(true)) {
         if (goPastWhitespace) {
             cursor.forwardWhitespace();
         }
