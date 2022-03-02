@@ -22,56 +22,36 @@ describe('Token Cursor', () => {
 
     describe('forwardSexp', () => {
         it('moves from beginning to end of symbol', () => {
-            const a = docFromTextNotation(
-                '(a(b(|c•#f•(#b •[:f :b :z])•#z•1)))'
-            );
-            const b = docFromTextNotation(
-                '(a(b(c|•#f•(#b •[:f :b :z])•#z•1)))'
-            );
+            const a = docFromTextNotation('(|c•#f)');
+            const b = docFromTextNotation('(c|•#f)');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp();
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
         it('moves from beginning to end of nested list ', () => {
-            const a = docFromTextNotation(
-                '|(a(b(c•#f•(#b •[:f :b :z])•#z•1)))'
-            );
-            const b = docFromTextNotation(
-                '(a(b(c•#f•(#b •[:f :b :z])•#z•1)))|'
-            );
+            const a = docFromTextNotation('|(a(b(c•#f•(#b •[:f])•#z•1)))');
+            const b = docFromTextNotation('(a(b(c•#f•(#b •[:f])•#z•1)))|');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp();
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
         it('Includes reader tag as part of a list form', () => {
-            const a = docFromTextNotation(
-                '(a(b(c|•#f•(#b •[:f :b :z])•#z•1)))'
-            );
-            const b = docFromTextNotation(
-                '(a(b(c•#f•(#b •[:f :b :z])|•#z•1)))'
-            );
+            const a = docFromTextNotation('(c|•#f•(#b •[:f :b :z])•#z•1)');
+            const b = docFromTextNotation('(c•#f•(#b •[:f :b :z])|•#z•1)');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp();
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
         it('Includes reader tag as part of a symbol', () => {
-            const a = docFromTextNotation(
-                '(a(b(c•#f•(#b •[:f :b :z])|•#z•1)))'
-            );
-            const b = docFromTextNotation(
-                '(a(b(c•#f•(#b •[:f :b :z])•#z•1|)))'
-            );
+            const a = docFromTextNotation('(c•#f•(#b •[:f :b :z])|•#z•1)');
+            const b = docFromTextNotation('(c•#f•(#b •[:f :b :z])•#z•1|)');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp();
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
         it('Does not move out of a list', () => {
-            const a = docFromTextNotation(
-                '(a(b(c•#f•(#b •[:f :b :z])•#z•1|)))'
-            );
-            const b = docFromTextNotation(
-                '(a(b(c•#f•(#b •[:f :b :z])•#z•1|)))'
-            );
+            const a = docFromTextNotation('(c•#f•(#b •[:f :b :z])•#z•1|)');
+            const b = docFromTextNotation('(c•#f•(#b •[:f :b :z])•#z•1|)');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp();
             expect(cursor.offsetStart).toBe(b.selectionLeft);
@@ -90,7 +70,7 @@ describe('Token Cursor', () => {
             cursor.forwardSexp(true, true);
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-        it.skip('Skip reader and metadata if skipMetadata is true', () => {
+        it('Skip reader and metadata if skipMetadata is true', () => {
             const a = docFromTextNotation('(a |#a ^{:a 1} (= 1 1))');
             const b = docFromTextNotation('(a #a ^{:a 1} (= 1 1)|)');
             const cursor = a.getTokenCursor(a.selectionLeft);
@@ -148,14 +128,8 @@ describe('Token Cursor', () => {
         });
         it.skip('Does not move past unbalanced top level form', () => {
             //TODO: Figure out why this doesn't work
-            const d = docFromTextNotation('|(foo "bar"');
-            const cursor: LispTokenCursor = d.getTokenCursor(d.selectionLeft);
-            cursor.forwardSexp();
-            expect(cursor.offsetStart).toBe(d.selectionLeft);
-        });
-        it.skip('Does not move past unbalanced top level form', () => {
             //TODO: Figure out why this breaks some tests run after this one
-            const d = docFromTextNotation('|(foo "bar');
+            const d = docFromTextNotation('|(foo "bar"');
             const cursor: LispTokenCursor = d.getTokenCursor(d.selectionLeft);
             cursor.forwardSexp();
             expect(cursor.offsetStart).toBe(d.selectionLeft);
@@ -225,9 +199,37 @@ describe('Token Cursor', () => {
             cursor.backwardSexp(true, true);
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
+        it('Treats metadata as part of the sexp if skipMetadata is true', () => {
+            const a = docFromTextNotation('(a ^{:a 1}| (= 1 1))');
+            const b = docFromTextNotation('(a |^{:a 1} (= 1 1))');
+            const cursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardSexp(true, true);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
         it('Skips multiple metadata maps if skipMetadata is true', () => {
             const a = docFromTextNotation('(a ^{:a 1} ^{:b 2} (= 1 1)|)');
             const b = docFromTextNotation('(a |^{:a 1} ^{:b 2} (= 1 1))');
+            const cursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardSexp(true, true);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Treats metadata and readers as part of the sexp if skipMetadata is true', () => {
+            const a = docFromTextNotation('#bar •^baz•|[:a :b :c]•x');
+            const b = docFromTextNotation('|#bar •^baz•[:a :b :c]•x');
+            const cursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardSexp(true, true);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Treats reader and metadata as part of the sexp if skipMetadata is true', () => {
+            const a = docFromTextNotation('^bar •#baz•|[:a :b :c]•x');
+            const b = docFromTextNotation('|^bar •#baz•[:a :b :c]•x');
+            const cursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardSexp(true, true);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Treats readers and metadata:s mixed as part of the sexp from behind the sexp if skipMetadata is true', () => {
+            const a = docFromTextNotation('^d #c ^b •#a•[:a :b :c]|•x');
+            const b = docFromTextNotation('|^d #c ^b •#a•[:a :b :c]•x');
             const cursor = a.getTokenCursor(a.selectionLeft);
             cursor.backwardSexp(true, true);
             expect(cursor.offsetStart).toBe(b.selectionLeft);
@@ -521,9 +523,33 @@ describe('Token Cursor', () => {
                 textAndSelection(b)[1]
             );
         });
-        it.skip('2: selects from adjacent before form, including meta data', () => {
+        it('2: selects from adjacent before form, including meta data', () => {
+            const a = docFromTextNotation('|^bar •[:a :b :c]•x');
+            const b = docFromTextNotation('|^bar •[:a :b :c]|•x');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(
+                textAndSelection(b)[1]
+            );
+        });
+        it('2: selects from adjacent before form, including meta data and reader', () => {
             const a = docFromTextNotation('|^bar •#baz•[:a :b :c]•x');
             const b = docFromTextNotation('|^bar •#baz•[:a :b :c]|•x');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(
+                textAndSelection(b)[1]
+            );
+        });
+        it('2: selects from adjacent before form, including preceding reader and meta data', () => {
+            const a = docFromTextNotation('^bar •#baz•|[:a :b :c]•x');
+            const b = docFromTextNotation('|^bar •#baz•[:a :b :c]|•x');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(
+                textAndSelection(b)[1]
+            );
+        });
+        it('2: selects from adjacent before form, including preceding meta data and reader', () => {
+            const a = docFromTextNotation('#bar •^baz•|[:a :b :c]•x');
+            const b = docFromTextNotation('|#bar •^baz•[:a :b :c]|•x');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(
                 textAndSelection(b)[1]

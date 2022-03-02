@@ -15,6 +15,5 @@
       "snippet": "(with-out-str (clojure.repl/doc $hover-text))"
     }
   ],
-  "calva.fmt.configPath": "CLOJURE-LSP",
-  "editor.formatOnSave": true
+  "calva.fmt.configPath": "CLOJURE-LSP"
 }
