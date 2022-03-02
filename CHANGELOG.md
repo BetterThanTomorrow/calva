@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.247] - 2022-03-02
 - [Enable the @typescript-eslint/no-floating-promises eslint rule](https://github.com/BetterThanTomorrow/calva/pull/1564)
 - [Include metadata in current form selection/evaluation/etcetera](https://github.com/BetterThanTomorrow/calva/pull/1551)
 
