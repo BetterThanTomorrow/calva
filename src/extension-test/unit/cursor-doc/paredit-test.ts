@@ -843,8 +843,12 @@ describe('paredit', () => {
                 expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
             it('Drags up without killing preceding line comments', () => {
-                const b = docFromTextNotation(`(;;foo•de|f foo [:foo :bar :baz])`);
-                const a = docFromTextNotation(`de|f•(;;foo• foo [:foo :bar :baz])`);
+                const b = docFromTextNotation(
+                    `(;;foo•de|f foo [:foo :bar :baz])`
+                );
+                const a = docFromTextNotation(
+                    `de|f•(;;foo• foo [:foo :bar :baz])`
+                );
                 paredit.dragSexprBackwardUp(b);
                 expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
