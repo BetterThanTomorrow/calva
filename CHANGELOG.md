@@ -97,7 +97,7 @@ Changes to Calva.
 
 ## [2.0.230] - 2021-12-13
 
--   Fix: [Hover broken when repl is connected but cider-nrelp is not present](https://github.com/BetterThanTomorrow/calva/issues/1432)
+-   Fix: [Hover broken when repl is connected but cider-nrepl is not present](https://github.com/BetterThanTomorrow/calva/issues/1432)
 -   Fix: [Some valid floats are highlighted incorrectly](https://github.com/BetterThanTomorrow/calva/issues/1378)
 
 ## [2.0.229] - 2021-12-12
@@ -366,7 +366,7 @@ Changes to Calva.
 
 ## [2.0.180] - 2021-03-21
 
--   [Make Paredit forward, then backward selections (and vice versa) behave like ”normal” foward/backward selection does](https://github.com/BetterThanTomorrow/calva/pull/1062)
+-   [Make Paredit forward, then backward selections (and vice versa) behave like ”normal” forward/backward selection does](https://github.com/BetterThanTomorrow/calva/pull/1062)
 
 ## [2.0.179] - 2021-03-10
 
