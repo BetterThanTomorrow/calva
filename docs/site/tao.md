@@ -29,7 +29,7 @@ There are reasons as to why VS Code is so popular. Among those, one stands out t
 
 A language extension for VS Code can leverage this, by recognizing that what's old is old, and that what's new should be as easy as possible to pick up. Coming to a new language, people bring with them a lot of expectations from the languages they are used to. This is also true for the editor support. Syntax highlighting and formatting should just work, as should documentation lookup, linting and other IDE commodities.
 
-Clojure brings some new concepts to the table. Chief among thise: The REPL. It does take some time to grasp it. Calva needs to remove any obstacles it can when it comes to helping the user to reach the REPL, in order to help getting it, and start loving it.
+Clojure brings some new concepts to the table. Chief among these: The REPL. It does take some time to grasp it. Calva needs to remove any obstacles it can when it comes to helping the user to reach the REPL, in order to help getting it, and start loving it.
 
 To help the users to quickly focus on Clojure, we provide a package that is all-inclusive, with few knobs to turn, and with sane defaults for the knobs that still need to be there.
 

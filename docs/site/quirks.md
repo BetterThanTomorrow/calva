@@ -31,8 +31,8 @@ See [Using Calva with the VIM Extension](vim.md).
 
 Also, in some circumstances VS Code is not spawned from a shell with the environment variables, especially `$PATH`, which might mean that even though you have the tools installed, they are not found when VS Code/Calva tries to execute them. To fix this you will need to do one of these two things:
 
-1. Figure out from where VS Code is spawned, and make sure the `$PATH` there includes the directoy with the needed binary.
-1. Start VS Code from a terminal where the `$PATH` is correctly configured. (Using the `code` commmand.)
+1. Figure out from where VS Code is spawned, and make sure the `$PATH` there includes the directory with the needed binary.
+1. Start VS Code from a terminal where the `$PATH` is correctly configured. (Using the `code` command.)
 
 See [this issue](https://github.com/BetterThanTomorrow/calva/issues/591) for more clues on this problem.
 

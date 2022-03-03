@@ -72,7 +72,7 @@ Add rebl profiles to your [user-wide profiles](https://github.com/technomancy/le
                        [cljfmt "0.6.4"]
                        [org.yaml/snakeyaml "1.23"]]}
 
- ;; REBL 12 for JDK 12.0.1. Swap out for your JDK vaersion
+ ;; REBL 12 for JDK 12.0.1. Swap out for your JDK version
  :rebl-12 {:dependencies [[org.openjfx/javafx-fxml  "12.0.1"]
                           [org.openjfx/javafx-controls "12.0.1"]
                           [org.openjfx/javafx-graphics "12.0.1"]

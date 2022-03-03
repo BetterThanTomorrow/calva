@@ -44,7 +44,7 @@ A connect sequence configures the following:
 The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts) also use this format, check them out to get a clearer picture of how these settings work.
 
 !!! Note "Apropos the **ClojureScript nREPL Server** built-in sequence"
-    Because of ancient decisions in the design of Calva session managament, the current implementation of the ClojureScript nREPL Server connect sequence is a workaround. Calva will still indicate that it has a Clojure session available, which is nonsense in a pure ClojureScript nREPL environment. This session is also a ClojureScript session.
+    Because of ancient decisions in the design of Calva session management, the current implementation of the ClojureScript nREPL Server connect sequence is a workaround. Calva will still indicate that it has a Clojure session available, which is nonsense in a pure ClojureScript nREPL environment. This session is also a ClojureScript session.
 
 ## Example Sequences
 

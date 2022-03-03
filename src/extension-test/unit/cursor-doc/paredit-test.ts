@@ -842,17 +842,13 @@ describe('paredit', () => {
                 paredit.dragSexprBackwardUp(b);
                 expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
-            it('Drags up without killing preceding line commments', () => {
-                const b = docFromTextNotation(
-                    `(;;foo•de|f foo [:foo :bar :baz])`
-                );
-                const a = docFromTextNotation(
-                    `de|f•(;;foo• foo [:foo :bar :baz])`
-                );
+            it('Drags up without killing preceding line comments', () => {
+                const b = docFromTextNotation(`(;;foo•de|f foo [:foo :bar :baz])`);
+                const a = docFromTextNotation(`de|f•(;;foo• foo [:foo :bar :baz])`);
                 paredit.dragSexprBackwardUp(b);
                 expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
-            it('Drags up without killing preceding line commments or trailing parens', () => {
+            it('Drags up without killing preceding line comments or trailing parens', () => {
                 const b = docFromTextNotation(`(def ;; foo•  |:foo)`);
                 const a = docFromTextNotation(`|:foo•(def ;; foo•)`);
                 paredit.dragSexprBackwardUp(b);
@@ -1082,7 +1078,7 @@ describe('paredit', () => {
         });
 
         describe('Raise', () => {
-            it('raises the current form when cursor is preceeding', () => {
+            it('raises the current form when cursor is preceding', () => {
                 const a = docFromTextNotation('(comment•  (str |#(foo)))');
                 const b = docFromTextNotation('(comment•  |#(foo))');
                 paredit.raiseSexp(a);
