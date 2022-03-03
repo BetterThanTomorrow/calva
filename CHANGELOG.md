@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Remove special grammar scopes for keywords](https://github.com/BetterThanTomorrow/calva/pull/1571)
 
 ## [2.0.247] - 2022-03-02
 - [Enable the @typescript-eslint/no-floating-promises eslint rule](https://github.com/BetterThanTomorrow/calva/pull/1564)

@@ -132,9 +132,6 @@
                     "macro": [
                         "storage.control.clojure",
                         "keyword.control.clojure"
-                    ],
-                    "keyword": [
-                        "variable.other.constant.clojure"
                     ]
                 }
             }
