@@ -37,20 +37,20 @@ Some examples of what it can be like to use Calva Formatter:
 
 ## How to use
 
-Install it and edit away. It will keep the code fomatted mostly as you type, in a somewhat ”relaxed” way, and will format it more strictly (collecting trailing brackets, for instance) when you hit `tab`. Search the settings for `calva-fmt` to see how you can tweak it.
+Install it and edit away. It will keep the code formatted mostly as you type, in a somewhat ”relaxed” way, and will format it more strictly (collecting trailing brackets, for instance) when you hit `tab`. Search the settings for `calva-fmt` to see how you can tweak it.
 
 
 ## You might not need to install it
 
 *Calva Formatter* comes bundled with [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva)
 
-## Written in ClojureScipt
+## Written in ClojureScript
 
 Built with [Shadow CLJS](http://shadow-cljs.org/).
 
 ## By the Calva team a.k.a. Better Than Tomorrow
 
-We are committed to make the Clojure experience in VS Code pruductive and pleasurable.
+We are committed to make the Clojure experience in VS Code productive and pleasurable.
 
 * [Peter Strömberg](https://github.com/PEZ)
 * [Matt Seddon](https://github.com/mseddon)
@@ -59,7 +59,7 @@ We are committed to make the Clojure experience in VS Code pruductive and pleasu
 
 ## Something is not working?
 
-File issues or send pull requests. You can also find us in the #editors and #calva channels of Clojurains Slack.
+File issues or send pull requests. You can also find us in the #editors and #calva channels of Clojurians Slack.
 
 
 ## Disable the Parinfer Extension
