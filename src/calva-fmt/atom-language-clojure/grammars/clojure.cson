@@ -129,7 +129,7 @@
         'name': 'constant.numeric.octal.clojure'
       }
       {
-        # The decimal separator is optional only when followed by e, E or M! 
+        # The decimal separator is optional only when followed by e, E or M!
         'match': '([-+]?[0-9]+(?:(\\.|(?=[eEM]))[0-9]*([eE][-+]?[0-9]+)?)M?)'
         'name': 'constant.numeric.double.clojure'
       }
@@ -143,7 +143,7 @@
     ]
   'keyword':
     'match': '(?<=^|\\s|\\(|\\[|\\{):[\\w\\#\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+(?=(\\s|\\)|\\]|\\}|\\,))'
-    'name': 'variable.other.constant.clojure'
+    'name': 'constant.keyword.clojure'
   'keyfn':
     'patterns': [
       {

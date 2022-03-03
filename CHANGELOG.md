@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.248] - 2022-03-03
+- [Remove special grammar scopes for keywords](https://github.com/BetterThanTomorrow/calva/pull/1571)
+
 ## [2.0.247] - 2022-03-02
 - [Enable the @typescript-eslint/no-floating-promises eslint rule](https://github.com/BetterThanTomorrow/calva/pull/1564)
 - [Include metadata in current form selection/evaluation/etcetera](https://github.com/BetterThanTomorrow/calva/pull/1551)
@@ -96,7 +99,7 @@ Changes to Calva.
 
 ## [2.0.230] - 2021-12-13
 
--   Fix: [Hover broken when repl is connected but cider-nrelp is not present](https://github.com/BetterThanTomorrow/calva/issues/1432)
+-   Fix: [Hover broken when repl is connected but cider-nrepl is not present](https://github.com/BetterThanTomorrow/calva/issues/1432)
 -   Fix: [Some valid floats are highlighted incorrectly](https://github.com/BetterThanTomorrow/calva/issues/1378)
 
 ## [2.0.229] - 2021-12-12
@@ -365,7 +368,7 @@ Changes to Calva.
 
 ## [2.0.180] - 2021-03-21
 
--   [Make Paredit forward, then backward selections (and vice versa) behave like ”normal” foward/backward selection does](https://github.com/BetterThanTomorrow/calva/pull/1062)
+-   [Make Paredit forward, then backward selections (and vice versa) behave like ”normal” forward/backward selection does](https://github.com/BetterThanTomorrow/calva/pull/1062)
 
 ## [2.0.179] - 2021-03-10
 
