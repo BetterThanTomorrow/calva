@@ -56,7 +56,7 @@ Without creating a project structure or installing anything but Calva, you can s
 
 The browser REPL app looks like so:
 
-![ClojureScript Quick Start Browser REPL](images/howto/clojurescript-quick-start.png "clojurescipt-quick-start")
+![ClojureScript Quick Start Browser REPL](images/howto/clojurescript-quick-start.png "clojurescript-quick-start")
 
 
 

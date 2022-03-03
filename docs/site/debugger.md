@@ -63,7 +63,7 @@ You can insert a breakpoint manually into any code by placing a `#break` in fron
 
 ### Conditional Breakpoints
 
-You can set conditional breapoints by adding metadata before the form that the `#break` applies to.
+You can set conditional breakpoints by adding metadata before the form that the `#break` applies to.
 
 ```clojure
 (defn print-nums [n]
@@ -172,7 +172,7 @@ If you want a breakpoint to work within the test, evaluate the test form with a 
 
 ### "No reader function for tag" error
 
-If you get an error like this, it's likely that you connected to a REPL instead of jacking in, and you don't have the proper depednencies loaded in your REPL. You can run the command "Copy Jack-in Command to Clipboard" to see what command would be run if you jacked in.
+If you get an error like this, it's likely that you connected to a REPL instead of jacking in, and you don't have the proper dependencies loaded in your REPL. You can run the command "Copy Jack-in Command to Clipboard" to see what command would be run if you jacked in.
 
 Most importantly, make sure you have `cider/cider-nrepl` as a dependency, and `cider.nrepl/cider-middleware` as middleware loaded in your REPL. For example, this is a jack-in command for a deps.edn project:
 
@@ -194,7 +194,7 @@ Typical use cases:
 Calva supports passing environment variables via `jackInEnv`.
 You can set that option inside VSCode `settings.json` file.
 
-You can configre global `settings.json` file or a project wide version, inside `<project-root>/.vscode/settings.json`.
+You can configure global `settings.json` file or a project wide version, inside `<project-root>/.vscode/settings.json`.
 
 Configuring the global option will impact all projects you work on using Calva, so be aware.
 See [the documentation for `settings.json`](https://code.visualstudio.com/docs/getstarted/settings) for more information.

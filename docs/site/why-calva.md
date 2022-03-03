@@ -68,7 +68,7 @@ We are super proud of the [Calva reviews on the Visual Studio Code Marketplace](
 > 
 > ...
 >
-> That is the biggest thing I can say for Calva, it just works. I was never a fan of VS Code before, but VS Code + Calva for Clojure is now my favourite language / IDE experience.
+> That is the biggest thing I can say for Calva, it just works. I was never a fan of VS Code before, but VS Code + Calva for Clojure is now my favorite language / IDE experience.
 >
 > Plus, the #calva on the clojurians slack is brilliant, always someone there to help if you have issues (although any issue I've had has been squarely on me, and never Calva itself).
 >
@@ -82,7 +82,7 @@ We are super proud of the [Calva reviews on the Visual Studio Code Marketplace](
 >
 > It already has great REPL support (including inline evaluation), an extensive Paredit implementation, and excellent linting (care of the bundled clj-kondo). Calva is being improved on at an impressive clip by maintainers who appear solidly committed to its ongoing development. It's well-documented, and manages to be both approachable and capable.
 >
-> A no brainer if you're already a VS Code user, and well worth a look if you're not.
+> A no-brainer if you're already a VS Code user, and well worth a look if you're not.
 > 
 > _Crispin Bennett_
 

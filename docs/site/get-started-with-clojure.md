@@ -29,7 +29,7 @@ Welcome to a zero-install, interactive, guide to get you started with [Clojure](
 ## What you'll learn
 
 * The basics of the Clojure language (at least the start of the basics)
-* The basics of the [ClojureScipt](https://clojurescript.org) language (we won't be using ClojureScript, but it is same language 😀)
+* The basics of the [ClojureScript](https://clojurescript.org) language (we won't be using ClojureScript, but it is same language 😀)
 * The basics of Calva (It's a bit as a side effect. You need it to learn Clojure this way, and by learning Clojure this way, Calva knowledge trickles in.)
 * What is meant by, and some ways to perform, *Interactive Programming* (aka REPL Driven Development)
 * Where to find Clojurians, i.e. folks who use Clojure and care about it (you will thus find help, the friendliest help you have ever seen a community provide)
@@ -77,7 +77,7 @@ Welcome to a zero-install, interactive, guide to get you started with [Clojure](
 
 ## How it works
 
-1. You will open an instance of VS Code in a development environment running in the browser. The envirnoment will have Java, Clojure tools, and Calva installed.
+1. You will open an instance of VS Code in a development environment running in the browser. The environment will have Java, Clojure tools, and Calva installed.
     * ???+ Note "Gitpod Sign-in"
            You will be asked to sign in to Gitpod, if you aren't already. You need to use the ”Sign in with GitHub” option.
 2. Instructions will be automatically displayed (very brief such, because it is mainly about firing up the [Getting Started REPL](getting-started.md))
@@ -138,7 +138,7 @@ Clojurians draw tremendous value from [ClojureDocs](https://clojuredocs.org). At
 ## Other learning resources
 
 * [Clojure Beginner Resources](https://gist.github.com/yogthos/be323be0361c589570a6da4ccc85f58f) - a much more comprehensive list than this one
-* [clojure.org Gettting Started](https://clojure.org/guides/getting_started) - the source of truth, includes installing and stuff
+* [clojure.org Getting Started](https://clojure.org/guides/getting_started) - the source of truth, includes installing and stuff
 * [The Exercism Clojure track](https://exercism.io/my/tracks/clojure) - Learn solving carefully crafted Clojure exercises, get mentor feedback if you like.
 * [Clojure for the Brave and True](https://www.braveclojure.com) - helping you from beginner to pretty advanced stuff, very popular among Clojurians
 * [What do beginners struggle with?](https://clojureverse.org/t/what-do-beginners-struggle-with/5383) - a ClojureVerse thread, where you can tell us about what you have found hard in picking up Clojure. It's what spawned the creation of this guide.

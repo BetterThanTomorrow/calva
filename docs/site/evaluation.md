@@ -27,7 +27,9 @@ Some of the commands also let you choose what should happen with the results:
 
 ## Wait, Current Form? Top-level Form?
 
-These are important concepts in Calva in order for you to create your most effective workflow.
+These are important concepts in Calva in order for you to create your most effective workflow. This video explains it a bit:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/8ygw7LLLU1w" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ### Current Form
 
@@ -60,7 +62,7 @@ Default shortcut for evaluating the current top level form: `alt+enter`.
 
 The **current top-level form** means top-level in a structural sense. It is _not_ the topmost form in the file. Typically in a Clojure file you will find `def` and `defn` (and `defwhatever`) forms at the top level, which also is one major intended use for evaluating top level form: _to define and redefine variables_. However, Calva does not check the contents of the form in order to determine it as a top-level forms: _all forms not enclosed in any other form are top level forms_.
 
-An ”exception” is introduced by the `comment` form. It will create a new top level context, so that any forms immediately inside a `(commment ...)` form will be considered top-level by Calva. This is to support a workflow with what is often referred to the [Rich Comments](rich-comments.md).
+An ”exception” is introduced by the `comment` form. It will create a new top level context, so that any forms immediately inside a `(comment ...)` form will be considered top-level by Calva. This is to support a workflow with what is often referred to the [Rich Comments](rich-comments.md).
 
 At the top level the selection of which form is the current top level form follows the same rules as those for [the current form](#current-form).
 

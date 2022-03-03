@@ -61,7 +61,7 @@ That first example would be interesting to play with, right? Click **To Rich Com
   ;; build tuples over sets with the same cardinality 
   (map
    #(when-not (= %2 %3) [%1 %2 %3])
-   (iterate inc 0)   ; a lazy list of indecies
+   (iterate inc 0)   ; a lazy list of indices
    [:a :b :c]
    [:a :a :a])
   ;;=> (nil [1 :b :a] [2 :c :a])

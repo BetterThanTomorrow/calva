@@ -136,7 +136,7 @@ describe('Token Cursor', () => {
         });
     });
 
-    describe('backardSexp', () => {
+    describe('backwardSexp', () => {
         it('moves from end to beginning of symbol', () => {
             const a = docFromTextNotation(
                 '(a(b(c|•#f•(#b •[:f :b :z])•#z•1)))'

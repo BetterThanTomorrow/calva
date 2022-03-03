@@ -75,7 +75,7 @@ Default keybinding    | Action | Description
 ------------------    | ------ | -----------
  `shift+alt+right` (win/linux)<br>`ctrl+w` (mac)                | **Expand Selection** | Starts from the cursor and selects the current form. Then will keep expanding to enclosing forms.<br> ![](images/paredit/grow-selection.gif)
  `shift+alt+left` (win/linux)<br>`ctrl+shift+w` (mac)         | **Shrink Selection** | Contracts back from an expanded selection performed by any Paredit selection command.<br> ![](images/paredit/shrink-selection.gif)<br>(In the animation the selection is first grown using a combination of **Grow Selection** and some lateral selection commands, then shrunk all the way back down to no selection.)
- `ctrl+alt+w space`      | **Select Top Level Form** | Top level in a structural sence. Typically where your`(def ...)`/`(defn ...)` type forms. Please note that`(comment ...)` forms create a new top level. <br> ![](images/paredit/select-top-level-form.gif)
+ `ctrl+alt+w space`      | **Select Top Level Form** | Top level in a structural sense. Typically where your`(def ...)`/`(defn ...)` type forms. Please note that`(comment ...)` forms create a new top level. <br> ![](images/paredit/select-top-level-form.gif)
  `shift+ctrl+right` (win/linux)<br>`shift+alt+right` (mac)  | **Select Forward Sexp** | ![](images/paredit/select-forward-sexp.gif)
   `ctrl+shift+k`         | **Select Right**          | Select forward to the end of the current form or the first newline. See **Kill right** below. (The animation also shows **Shrink Selection**).<br> ![](images/paredit/select-right.gif)
  `shift+ctrl+left` (win/linux)<br>`shift+alt+left`(mac)   | **Select Backward Sexp** | ![](images/paredit/select-backward-sexp.gif)
