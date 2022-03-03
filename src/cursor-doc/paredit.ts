@@ -619,7 +619,7 @@ export function forwardSlurpSexp(
         const wsStartOffset = wsInsideCursor.offsetStart;
         cursor.upList();
         const wsOutSideCursor = cursor.clone();
-        if (cursor.forwardSexp()) {
+        if (cursor.forwardSexp(true, true)) {
             wsOutSideCursor.forwardWhitespace(false);
             const wsEndOffset = wsOutSideCursor.offsetStart;
             const newCloseOffset = cursor.offsetStart;
@@ -667,7 +667,7 @@ export function backwardSlurpSexp(
         const offset = cursor.clone().previous().offsetStart;
         const open = cursor.getPrevToken().raw;
         cursor.previous();
-        cursor.backwardSexp(true);
+        cursor.backwardSexp(true, true);
         cursor.forwardWhitespace(false);
         if (offset !== cursor.offsetStart) {
             void doc.model.edit(
@@ -706,7 +706,7 @@ export function forwardBarfSexp(
     if (cursor.getToken().type == 'close') {
         const offset = cursor.offsetStart,
             close = cursor.getToken().raw;
-        cursor.backwardSexp(true);
+        cursor.backwardSexp(true, true);
         cursor.backwardWhitespace();
         void doc.model.edit(
             [
@@ -735,7 +735,7 @@ export function backwardBarfSexp(
         const offset = cursor.offsetStart;
         const close = cursor.getToken().raw;
         cursor.next();
-        cursor.forwardSexp();
+        cursor.forwardSexp(true, true);
         cursor.forwardWhitespace(false);
         void doc.model.edit(
             [

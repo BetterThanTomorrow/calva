@@ -447,94 +447,132 @@ describe('paredit', () => {
                 expect(textAndSelection(a)).toEqual(textAndSelection(c));
             });
         });
+
+        describe('Forward to end of list', () => {
+            it('rangeToForwardList', () => {
+                const a = docFromTextNotation('(|c•(#b •[:f :b :z])•#z•1)');
+                const b = docFromTextNotation('(|c•(#b •[:f :b :z])•#z•1|)');
+                expect(paredit.rangeToForwardList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('rangeToForwardList through readers and meta', () => {
+                const a = docFromTextNotation('(|^e #a ^{:c d}•#b•[:f]•#z•1)');
+                const b = docFromTextNotation('(|^e #a ^{:c d}•#b•[:f]•#z•1|)');
+                expect(paredit.rangeToForwardList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+        });
+
+        describe('Backward to start of list', () => {
+            it('rangeToBackwardList', () => {
+                const a = docFromTextNotation('(c•(#b •[:f :b :z])•#z•1|)');
+                const b = docFromTextNotation('(|c•(#b •[:f :b :z])•#z•1|)');
+                expect(paredit.rangeToBackwardList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('rangeToBackwardList through readers and meta', () => {
+                const a = docFromTextNotation('(^e #a ^{:c d}•#b•[:f]•#z•1|)');
+                const b = docFromTextNotation('(|^e #a ^{:c d}•#b•[:f]•#z•1|)');
+                expect(paredit.rangeToBackwardList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+        });
+
+        describe('Down list', () => {
+            it('rangeToForwardDownList', () => {
+                const a = docFromTextNotation('(|c•(#b •[:f :b :z])•#z•1)');
+                const b = docFromTextNotation('(|c•(|#b •[:f :b :z])•#z•1)');
+                expect(paredit.rangeToForwardDownList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('rangeToForwardDownList through readers', () => {
+                const a = docFromTextNotation('(|c•#f•(#b •[:f :b :z])•#z•1)');
+                const b = docFromTextNotation('(|c•#f•(|#b •[:f :b :z])•#z•1)');
+                expect(paredit.rangeToForwardDownList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('rangeToForwardDownList through metadata', () => {
+                const a = docFromTextNotation('(|c•^f•(#b •[:f :b]))');
+                const b = docFromTextNotation('(|c•^f•(|#b •[:f :b]))');
+                expect(paredit.rangeToForwardDownList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('rangeToForwardDownList through metadata collection', () => {
+                const a = docFromTextNotation('(|c•^{:f 1}•(#b •[:f :b]))');
+                const b = docFromTextNotation('(|c•^{:f 1}•(|#b •[:f :b]))');
+                expect(paredit.rangeToForwardDownList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('rangeToForwardDownList through metadata and readers', () => {
+                const a = docFromTextNotation('(|c•^:a #f•(#b •[:f :b]))');
+                const b = docFromTextNotation('(|c•^:a #f•(|#b •[:f :b]))');
+                expect(paredit.rangeToForwardDownList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('rangeToForwardDownList through metadata collection and reader', () => {
+                const a = docFromTextNotation('(|c•^{:f 1}•#a •(#b •[:f :b]))');
+                const b = docFromTextNotation(
+                    '(|c•^{:f 1}•#a •(|#b •[:f :b]))'
+                );
+                expect(paredit.rangeToForwardDownList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+        });
+
+        describe('Backward Up list', () => {
+            it('rangeToBackwardUpList', () => {
+                const a = docFromTextNotation('(c•(|#b •[:f :b :z])•#z•1)');
+                const b = docFromTextNotation('(c•|(|#b •[:f :b :z])•#z•1)');
+                expect(paredit.rangeToBackwardUpList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('rangeToBackwardUpList through readers', () => {
+                const a = docFromTextNotation('(c•#f•(|#b •[:f :b :z])•#z•1)');
+                const b = docFromTextNotation('(c•|#f•(|#b •[:f :b :z])•#z•1)');
+                expect(paredit.rangeToBackwardUpList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('rangeToBackwardUpList through metadata', () => {
+                const a = docFromTextNotation('(c•^f•(|#b •[:f :b]))');
+                const b = docFromTextNotation('(c•|^f•(|#b •[:f :b]))');
+                expect(paredit.rangeToBackwardUpList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('rangeToBackwardUpList through metadata and readers', () => {
+                const a = docFromTextNotation('(c•^:a #f•(|#b •[:f :b]))');
+                const b = docFromTextNotation('(c•|^:a #f•(|#b •[:f :b]))');
+                expect(paredit.rangeToBackwardUpList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+            it('rangeToBackwardUpList 2', () => {
+                // TODO: This is wrong! But real Paredit behaves as it should...
+                const a = docFromTextNotation(
+                    '(a(b(c•#f•(#b •|[:f :b :z])•#z•1)))'
+                );
+                const b = docFromTextNotation(
+                    '(a(b|(c•#f•(#b •|[:f :b :z])•#z•1)))'
+                );
+                expect(paredit.rangeToBackwardUpList(a)).toEqual(
+                    textAndSelection(b)[1]
+                );
+            });
+        });
     });
 
-    describe('Down list', () => {
-        it('rangeToForwardDownList', () => {
-            const a = docFromTextNotation('(|c•(#b •[:f :b :z])•#z•1)');
-            const b = docFromTextNotation('(|c•(|#b •[:f :b :z])•#z•1)');
-            expect(paredit.rangeToForwardDownList(a)).toEqual(
-                textAndSelection(b)[1]
-            );
-        });
-        it('rangeToForwardDownList through readers', () => {
-            const a = docFromTextNotation('(|c•#f•(#b •[:f :b :z])•#z•1)');
-            const b = docFromTextNotation('(|c•#f•(|#b •[:f :b :z])•#z•1)');
-            expect(paredit.rangeToForwardDownList(a)).toEqual(
-                textAndSelection(b)[1]
-            );
-        });
-        it('rangeToForwardDownList through metadata', () => {
-            const a = docFromTextNotation('(|c•^f•(#b •[:f :b]))');
-            const b = docFromTextNotation('(|c•^f•(|#b •[:f :b]))');
-            expect(paredit.rangeToForwardDownList(a)).toEqual(
-                textAndSelection(b)[1]
-            );
-        });
-        it('rangeToForwardDownList through metadata collection', () => {
-            const a = docFromTextNotation('(|c•^{:f 1}•(#b •[:f :b]))');
-            const b = docFromTextNotation('(|c•^{:f 1}•(|#b •[:f :b]))');
-            expect(paredit.rangeToForwardDownList(a)).toEqual(
-                textAndSelection(b)[1]
-            );
-        });
-        it('rangeToForwardDownList through metadata and readers', () => {
-            const a = docFromTextNotation('(|c•^:a #f•(#b •[:f :b]))');
-            const b = docFromTextNotation('(|c•^:a #f•(|#b •[:f :b]))');
-            expect(paredit.rangeToForwardDownList(a)).toEqual(
-                textAndSelection(b)[1]
-            );
-        });
-        it('rangeToForwardDownList through metadata collection and reader', () => {
-            const a = docFromTextNotation('(|c•^{:f 1}•#a •(#b •[:f :b]))');
-            const b = docFromTextNotation('(|c•^{:f 1}•#a •(|#b •[:f :b]))');
-            expect(paredit.rangeToForwardDownList(a)).toEqual(
-                textAndSelection(b)[1]
-            );
-        });
-    });
-    describe('Backward Up list', () => {
-        it('rangeToBackwardUpList', () => {
-            const a = docFromTextNotation('(c•(|#b •[:f :b :z])•#z•1)');
-            const b = docFromTextNotation('(c•|(|#b •[:f :b :z])•#z•1)');
-            expect(paredit.rangeToBackwardUpList(a)).toEqual(
-                textAndSelection(b)[1]
-            );
-        });
-        it('rangeToBackwardUpList through readers', () => {
-            const a = docFromTextNotation('(c•#f•(|#b •[:f :b :z])•#z•1)');
-            const b = docFromTextNotation('(c•|#f•(|#b •[:f :b :z])•#z•1)');
-            expect(paredit.rangeToBackwardUpList(a)).toEqual(
-                textAndSelection(b)[1]
-            );
-        });
-        it('rangeToBackwardUpList through metadata', () => {
-            const a = docFromTextNotation('(c•^f•(|#b •[:f :b]))');
-            const b = docFromTextNotation('(c•|^f•(|#b •[:f :b]))');
-            expect(paredit.rangeToBackwardUpList(a)).toEqual(
-                textAndSelection(b)[1]
-            );
-        });
-        it('rangeToBackwardUpList through metadata and readers', () => {
-            const a = docFromTextNotation('(c•^:a #f•(|#b •[:f :b]))');
-            const b = docFromTextNotation('(c•|^:a #f•(|#b •[:f :b]))');
-            expect(paredit.rangeToBackwardUpList(a)).toEqual(
-                textAndSelection(b)[1]
-            );
-        });
-        it('rangeToBackwardUpList 2', () => {
-            // TODO: This is wrong! But real Paredit behaves as it should...
-            const a = docFromTextNotation(
-                '(a(b(c•#f•(#b •|[:f :b :z])•#z•1)))'
-            );
-            const b = docFromTextNotation(
-                '(a(b|(c•#f•(#b •|[:f :b :z])•#z•1)))'
-            );
-            expect(paredit.rangeToBackwardUpList(a)).toEqual(
-                textAndSelection(b)[1]
-            );
-        });
-    });
     describe('Reader tags', () => {
         it('dragSexprBackward', () => {
             const a = docFromTextNotation(
@@ -1017,67 +1055,143 @@ describe('paredit', () => {
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
         });
+
         describe('Slurping', () => {
-            it('slurps form after list', () => {
-                const a = docFromTextNotation('(str|) "foo"');
-                const b = docFromTextNotation('(str| "foo")');
-                paredit.forwardSlurpSexp(a);
-                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            describe('Slurping forwards', () => {
+                it('slurps form after list', () => {
+                    const a = docFromTextNotation('(str|) "foo"');
+                    const b = docFromTextNotation('(str| "foo")');
+                    paredit.forwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('slurps, in multiline document', () => {
+                    const a = docFromTextNotation('(foo• (str| ) "foo")');
+                    const b = docFromTextNotation('(foo• (str| "foo"))');
+                    paredit.forwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('slurps and adds leading space', () => {
+                    const a = docFromTextNotation('(s|tr)#(foo)');
+                    const b = docFromTextNotation('(s|tr #(foo))');
+                    paredit.forwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('slurps without adding a space', () => {
+                    const a = docFromTextNotation('(s|tr )#(foo)');
+                    const b = docFromTextNotation('(s|tr #(foo))');
+                    paredit.forwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('slurps, trimming inside whitespace', () => {
+                    const a = docFromTextNotation('(str|   )"foo"');
+                    const b = docFromTextNotation('(str| "foo")');
+                    paredit.forwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('slurps, trimming outside whitespace', () => {
+                    const a = docFromTextNotation('(str|)   "foo"');
+                    const b = docFromTextNotation('(str| "foo")');
+                    paredit.forwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('slurps, trimming inside and outside whitespace', () => {
+                    const a = docFromTextNotation('(str|   )   "foo"');
+                    const b = docFromTextNotation('(str| "foo")');
+                    paredit.forwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('slurps form after empty list', () => {
+                    const a = docFromTextNotation('(|) "foo"');
+                    const b = docFromTextNotation('(| "foo")');
+                    paredit.forwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('leaves newlines when slurp', () => {
+                    const a = docFromTextNotation('(fo|o•)  bar');
+                    const b = docFromTextNotation('(fo|o•  bar)');
+                    paredit.forwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('slurps properly when closing paren is on new line', () => {
+                    // https://github.com/BetterThanTomorrow/calva/issues/1171
+                    const a = docFromTextNotation(
+                        '(def foo•  (str|•   )•  42)'
+                    );
+                    const b = docFromTextNotation(
+                        '(def foo•  (str|•   •  42))'
+                    );
+                    paredit.forwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('slurps form including meta and readers', () => {
+                    const a = docFromTextNotation('(|) ^{:a b} #c ^d "foo"');
+                    const b = docFromTextNotation('(| ^{:a b} #c ^d "foo")');
+                    paredit.forwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
             });
-            it('slurps, in multiline document', () => {
-                const a = docFromTextNotation('(foo• (str| ) "foo")');
-                const b = docFromTextNotation('(foo• (str| "foo"))');
-                paredit.forwardSlurpSexp(a);
-                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+
+            describe('Slurping backwards', () => {
+                // TODO: Figure out why this test makes the following test fail
+                //       It's something with in-string navigation...
+                it.skip('slurps form before string', () => {
+                    const a = docFromTextNotation('(str) "fo|o"');
+                    const b = docFromTextNotation('"(str) fo|o"');
+                    paredit.backwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('slurps form before list', () => {
+                    const a = docFromTextNotation('(str) (fo|o)');
+                    const b = docFromTextNotation('((str) fo|o)');
+                    paredit.backwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('slurps form before list including meta and readers', () => {
+                    const a = docFromTextNotation('^{:a b} #c ^d "foo" (|)');
+                    // TODO: Figure out how to test result after format
+                    //       (Because that last space is then removed)
+                    const b = docFromTextNotation('(^{:a b} #c ^d "foo" |)');
+                    paredit.backwardSlurpSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
             });
-            it('slurps and adds leading space', () => {
-                const a = docFromTextNotation('(s|tr)#(foo)');
-                const b = docFromTextNotation('(s|tr #(foo))');
-                paredit.forwardSlurpSexp(a);
-                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+
+        describe('Barfing', () => {
+            describe('Barfing forwards', () => {
+                it('barfs last form in list', () => {
+                    const a = docFromTextNotation('(str| "foo")');
+                    const b = docFromTextNotation('(str|) "foo"');
+                    paredit.forwardBarfSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('leaves newlines when slurp', () => {
+                    const a = docFromTextNotation('(fo|o•  bar)');
+                    const b = docFromTextNotation('(fo|o)•  bar');
+                    paredit.forwardBarfSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('barfs form including meta and readers', () => {
+                    const a = docFromTextNotation('(| ^{:a b} #c ^d "foo")');
+                    const b = docFromTextNotation('(|) ^{:a b} #c ^d "foo"');
+                    paredit.forwardBarfSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
             });
-            it('slurps without adding a space', () => {
-                const a = docFromTextNotation('(s|tr )#(foo)');
-                const b = docFromTextNotation('(s|tr #(foo))');
-                paredit.forwardSlurpSexp(a);
-                expect(textAndSelection(a)).toEqual(textAndSelection(b));
-            });
-            it('slurps, trimming inside whitespace', () => {
-                const a = docFromTextNotation('(str|   )"foo"');
-                const b = docFromTextNotation('(str| "foo")');
-                paredit.forwardSlurpSexp(a);
-                expect(textAndSelection(a)).toEqual(textAndSelection(b));
-            });
-            it('slurps, trimming outside whitespace', () => {
-                const a = docFromTextNotation('(str|)   "foo"');
-                const b = docFromTextNotation('(str| "foo")');
-                paredit.forwardSlurpSexp(a);
-                expect(textAndSelection(a)).toEqual(textAndSelection(b));
-            });
-            it('slurps, trimming inside and outside whitespace', () => {
-                const a = docFromTextNotation('(str|   )   "foo"');
-                const b = docFromTextNotation('(str| "foo")');
-                paredit.forwardSlurpSexp(a);
-                expect(textAndSelection(a)).toEqual(textAndSelection(b));
-            });
-            it('slurps form after empty list', () => {
-                const a = docFromTextNotation('(|) "foo"');
-                const b = docFromTextNotation('(| "foo")');
-                paredit.forwardSlurpSexp(a);
-                expect(textAndSelection(a)).toEqual(textAndSelection(b));
-            });
-            it('leaves newlines when slurp', () => {
-                const a = docFromTextNotation('(fo|o•)  bar');
-                const b = docFromTextNotation('(fo|o•  bar)');
-                paredit.forwardSlurpSexp(a);
-                expect(textAndSelection(a)).toEqual(textAndSelection(b));
-            });
-            it('slurps properly when closing paren is on new line', () => {
-                // https://github.com/BetterThanTomorrow/calva/issues/1171
-                const a = docFromTextNotation('(def foo•  (str|•   )•  42)');
-                const b = docFromTextNotation('(def foo•  (str|•   •  42))');
-                paredit.forwardSlurpSexp(a);
-                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+
+            describe('Barfing backwards', () => {
+                it('barfs first form in list', () => {
+                    const a = docFromTextNotation('((str) fo|o)');
+                    const b = docFromTextNotation('(str) (fo|o)');
+                    paredit.backwardBarfSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
+                it('barfs first form in list including meta and readers', () => {
+                    const a = docFromTextNotation('(^{:a b} #c ^d "foo"|)');
+                    const b = docFromTextNotation('^{:a b} #c ^d "foo"(|)');
+                    paredit.backwardBarfSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
             });
         });
 
@@ -1095,6 +1209,7 @@ describe('paredit', () => {
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
         });
+
         describe('Kill character backwards (backspace)', () => {
             it('Leaves closing paren of empty list alone', () => {
                 const a = docFromTextNotation('{::foo ()|• ::bar :foo}');
@@ -1207,10 +1322,11 @@ describe('paredit', () => {
                 void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
-            it('Moves cursor only past the open curly for namespaced maps', () => {
-                // Could be argued it should move past the entire reader tag, but anyway
-                const a = docFromTextNotation('#:same{|:thing :here}');
-                const b = docFromTextNotation('#:same|{:thing :here}');
+            it('Deletes unbalanced bracket', () => {
+                // This hangs the structural editing in the real editor
+                // https://github.com/BetterThanTomorrow/calva/issues/1573
+                const a = docFromTextNotation('([{|)');
+                const b = docFromTextNotation('([|)');
                 void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
@@ -1351,44 +1467,53 @@ describe('paredit', () => {
         describe('splice sexp', () => {
             it('splice empty', () => {
                 const a = docFromTextNotation('|');
+                const b = docFromTextNotation('|');
                 void paredit.spliceSexp(a);
-                expect(text(a)).toEqual('');
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
-
             it('splice list', () => {
-                const a = docFromTextNotation('(a| b c)');
+                const a = docFromTextNotation('(a|a b c)');
+                const b = docFromTextNotation('a|a b c');
                 void paredit.spliceSexp(a);
-                expect(text(a)).toEqual('a b c');
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
-
+            it('splice list also when forms have meta and readers', () => {
+                const a = docFromTextNotation('(^{:d e} #a|a b c)');
+                const b = docFromTextNotation('^{:d e} #a|a b c');
+                void paredit.spliceSexp(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
             it('splice vector', () => {
                 const a = docFromTextNotation('[a| b c]');
+                const b = docFromTextNotation('a| b c');
                 void paredit.spliceSexp(a);
-                expect(text(a)).toEqual('a b c');
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
-
             it('splice map', () => {
                 const a = docFromTextNotation('{a| b}');
+                const b = docFromTextNotation('a| b');
                 void paredit.spliceSexp(a);
-                expect(text(a)).toEqual('a b');
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
 
             it('splice nested', () => {
                 const a = docFromTextNotation('[1 {ab| cd} 2]');
+                const b = docFromTextNotation('[1 ab| cd 2]');
                 void paredit.spliceSexp(a);
-                expect(text(a)).toEqual('[1 ab cd 2]');
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
 
-            // TODO: enable after fixing spliceSexp
             it('splice set', () => {
+                // TODO: Figure out why the cursor gets misplaced
                 const a = docFromTextNotation('#{a| b}');
+                const b = docFromTextNotation('a |b');
                 void paredit.spliceSexp(a);
-                expect(text(a)).toEqual('a b');
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
 
             // NB: enabling this breaks bunch of other tests.
             //     Not sure why, but it can be run successfully by itself.
-            xit('splice string', () => {
+            it.skip('splice string', () => {
                 const a = docFromTextNotation('"h|ello"');
                 void paredit.spliceSexp(a);
                 expect(text(a)).toEqual('hello');
