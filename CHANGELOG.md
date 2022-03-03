@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.248] - 2022-03-03
 - [Remove special grammar scopes for keywords](https://github.com/BetterThanTomorrow/calva/pull/1571)
 
 ## [2.0.247] - 2022-03-02
