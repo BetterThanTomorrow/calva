@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.1+insiders-4.9.1">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.4+insiders-4.10.1">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.a3608ae2.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.589a02ac.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
@@ -35,6 +35,7 @@
     
     
       
+        
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
@@ -1797,7 +1798,9 @@
 <li><strong>Replace the evaluated code.</strong> This will do what it says, the evaluated code will be replaced with its results.</li>
 </ol>
 <h2 id="wait-current-form-top-level-form">Wait, Current Form? Top-level Form?</h2>
-<p>These are important concepts in Calva in order for you to create your most effective workflow.</p>
+<p>These are important concepts in Calva in order for you to create your most effective workflow. This video explains it a bit:</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/8ygw7LLLU1w" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 <h3 id="current-form">Current Form</h3>
 <p>Default shortcut for evaluating the current form: <code>ctrl+enter</code>.</p>
 <p>The <strong>current form</strong> either means the current selection, or otherwise is based on the cursor position. Play some with the command <strong>Calva: Select current form</strong>, <code>ctrl+alt+c s</code>, to figure out what Calva thinks is the current form for some different situations. Try it inside a symbol, adjacent to a symbol (both sides) and adjacent to an opening or closing bracket (again, both sides). Generally the current form is determined like so:</p>
@@ -1820,7 +1823,7 @@
 <h3 id="current-top-level-form">Current Top-level Form</h3>
 <p>Default shortcut for evaluating the current top level form: <code>alt+enter</code>.</p>
 <p>The <strong>current top-level form</strong> means top-level in a structural sense. It is <em>not</em> the topmost form in the file. Typically in a Clojure file you will find <code>def</code> and <code>defn</code> (and <code>defwhatever</code>) forms at the top level, which also is one major intended use for evaluating top level form: <em>to define and redefine variables</em>. However, Calva does not check the contents of the form in order to determine it as a top-level forms: <em>all forms not enclosed in any other form are top level forms</em>.</p>
-<p>An ”exception” is introduced by the <code>comment</code> form. It will create a new top level context, so that any forms immediately inside a <code>(commment ...)</code> form will be considered top-level by Calva. This is to support a workflow with what is often referred to the <a href="../rich-comments/">Rich Comments</a>.</p>
+<p>An ”exception” is introduced by the <code>comment</code> form. It will create a new top level context, so that any forms immediately inside a <code>(comment ...)</code> form will be considered top-level by Calva. This is to support a workflow with what is often referred to the <a href="../rich-comments/">Rich Comments</a>.</p>
 <p>At the top level the selection of which form is the current top level form follows the same rules as those for <a href="#current-form">the current form</a>.</p>
 <h3 id="evaluate-to-cursor">Evaluate to Cursor</h3>
 <p>There is also a command for evaluating the text from the start of the current list to where the cursor is. Convenient for checking intermediate results in thread or <code>doto</code>, or similar pipelines. The cursor is right behind <code>:d</code> in this form:</p>
@@ -1947,7 +1950,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.5c9dbbf3.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.e533ffb0.min.js"></script>
+      <script src="../assets/javascripts/bundle.8be037b4.min.js"></script>
       
     
   </body>

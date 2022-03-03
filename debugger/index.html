@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.1+insiders-4.9.1">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.4+insiders-4.10.1">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.a3608ae2.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.589a02ac.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
@@ -35,6 +35,7 @@
     
     
       
+        
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
@@ -2042,7 +2043,7 @@
 <p>Code will be executed up to and <em>including</em> the form after the breakpoint.</p>
 </div>
 <h3 id="conditional-breakpoints">Conditional Breakpoints</h3>
-<p>You can set conditional breapoints by adding metadata before the form that the <code>#break</code> applies to.</p>
+<p>You can set conditional breakpoints by adding metadata before the form that the <code>#break</code> applies to.</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">print-nums</span> <span class="p">[</span><span class="nv">n</span><span class="p">]</span>
   <span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">i</span> <span class="nv">n</span><span class="p">]</span>
     <span class="o">#</span><span class="nv">break</span> <span class="o">^</span><span class="p">{</span><span class="ss">:break/when</span> <span class="p">(</span><span class="nb">= </span><span class="nv">i</span> <span class="mi">7</span><span class="p">)}</span> <span class="c1">;; This breakpoint will only be hit when i equals 7</span>
@@ -2111,7 +2112,7 @@
 <p>If you want a breakpoint to work within the test, evaluate the test form with a breakpoint tag in it, then call the test directly.</p>
 <p><img alt="Hitting a breakpoint in a test" src="../images/debugger/breakpoint-in-test.png" title="Hitting a breakpoint in a test" /></p>
 <h3 id="no-reader-function-for-tag-error">"No reader function for tag" error</h3>
-<p>If you get an error like this, it's likely that you connected to a REPL instead of jacking in, and you don't have the proper depednencies loaded in your REPL. You can run the command "Copy Jack-in Command to Clipboard" to see what command would be run if you jacked in.</p>
+<p>If you get an error like this, it's likely that you connected to a REPL instead of jacking in, and you don't have the proper dependencies loaded in your REPL. You can run the command "Copy Jack-in Command to Clipboard" to see what command would be run if you jacked in.</p>
 <p>Most importantly, make sure you have <code>cider/cider-nrepl</code> as a dependency, and <code>cider.nrepl/cider-middleware</code> as middleware loaded in your REPL. For example, this is a jack-in command for a deps.edn project:</p>
 <div class="highlight"><pre><span></span><code>clojure -Sdeps <span class="s1">&#39;{:deps {nrepl/nrepl {:mvn/version,&quot;0.8.3&quot;},cider/cider-nrepl {:mvn/version,&quot;0.25.8&quot;}}}&#39;</span> -m nrepl.cmdline --middleware <span class="s2">&quot;[cider.nrepl/cider-middleware]&quot;</span>
 </code></pre></div>
@@ -2126,7 +2127,7 @@ For those cases and others, you need to start the JVM in debug mode.</p>
 </ul>
 <p>Calva supports passing environment variables via <code>jackInEnv</code>.
 You can set that option inside VSCode <code>settings.json</code> file.</p>
-<p>You can configre global <code>settings.json</code> file or a project wide version, inside <code>&lt;project-root&gt;/.vscode/settings.json</code>.</p>
+<p>You can configure global <code>settings.json</code> file or a project wide version, inside <code>&lt;project-root&gt;/.vscode/settings.json</code>.</p>
 <p>Configuring the global option will impact all projects you work on using Calva, so be aware.
 See <a href="https://code.visualstudio.com/docs/getstarted/settings">the documentation for <code>settings.json</code></a> for more information.</p>
 <p>The bellow snippet configures <code>JAVA_TOOL_OPTIONS</code> environment variable.
@@ -2221,7 +2222,7 @@ nREPL server started on port <span class="m">46691</span> on host localhost - nr
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.5c9dbbf3.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.e533ffb0.min.js"></script>
+      <script src="../assets/javascripts/bundle.8be037b4.min.js"></script>
       
     
   </body>
