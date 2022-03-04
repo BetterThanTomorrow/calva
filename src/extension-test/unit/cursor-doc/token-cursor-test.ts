@@ -638,7 +638,6 @@ describe('Token Cursor', () => {
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             expect(cursor.rangeForCurrentForm(a.selectionLeft)).toBeUndefined();
         });
-
     });
 
     describe('Top Level Form', () => {
@@ -831,6 +830,27 @@ describe('Token Cursor', () => {
             expect(cursor.rangeForDefun(a.selectionLeft)).toEqual(
                 textAndSelection(b)[1]
             );
+        });
+    });
+
+    describe('Utilities', () => {
+        describe('getFunctionName', () => {
+            it('Finds function name in the current list', () => {
+                const a = docFromTextNotation('(foo [|])');
+                const cursor: LispTokenCursor = a.getTokenCursor(
+                    a.selectionLeft
+                );
+                expect(cursor.getFunctionName()).toEqual('foo');
+            });
+            it.skip('Does not croak finding function name in unbalance', () => {
+                // This hangs the structural editing in the real editor
+                // https://github.com/BetterThanTomorrow/calva/issues/1573
+                const a = docFromTextNotation('([|');
+                const cursor: LispTokenCursor = a.getTokenCursor(
+                    a.selectionLeft
+                );
+                expect(cursor.getFunctionName()).toBeUndefined();
+            });
         });
     });
 
