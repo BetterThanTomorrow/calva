@@ -846,8 +846,8 @@ export function backspace(
             );
         } else {
             if (
-                ['open', 'close'].includes(prevToken.type) &&
-                docIsBalanced(doc)
+                ['open', 'close'].includes(prevToken.type) //&&
+                //docIsBalanced(doc)
             ) {
                 doc.selection = new ModelEditSelection(
                     p - prevToken.raw.length

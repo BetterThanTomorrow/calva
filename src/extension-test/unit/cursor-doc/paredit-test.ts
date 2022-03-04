@@ -1326,7 +1326,7 @@ describe('paredit', () => {
                 // This hangs the structural editing in the real editor
                 // https://github.com/BetterThanTomorrow/calva/issues/1573
                 const a = docFromTextNotation('([{|)');
-                const b = docFromTextNotation('([|)');
+                const b = docFromTextNotation('([|');
                 void paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
