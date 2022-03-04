@@ -531,21 +531,21 @@ workflows:
             tags:
               only: /^v\d+\.\d+\.\d+$/
           context: Calva
-      - merge-dev-to-published:
-          requires:
-            - marketplace-publish
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
-          context: Calva
-      - bump-dev-version:
-          requires:
-            - merge-dev-to-published
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
-          context: Calva
+      #- merge-dev-to-published:
+      #    requires:
+      #      - marketplace-publish
+      #    filters:
+      #      branches:
+      #        ignore: /.*/
+      #      tags:
+      #        only: /^v\d+\.\d+\.\d+$/
+      #    context: Calva
+      #- bump-dev-version:
+      #    requires:
+      #      - merge-dev-to-published
+      #    filters:
+      #      branches:
+      #        ignore: /.*/
+      #      tags:
+      #        only: /^v\d+\.\d+\.\d+$/
+      #    context: Calva

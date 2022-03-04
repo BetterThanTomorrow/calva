@@ -3,6 +3,13 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Revert to before metadata-change, because: [Version 2.0.247 regression with structural editing, hangs at unbalance + structural delete](https://github.com/BetterThanTomorrow/calva/pull/1573)
+
+## [2.0.248] - 2022-03-03
+- [Remove special grammar scopes for keywords](https://github.com/BetterThanTomorrow/calva/pull/1571)
+
+## [2.0.247] - 2022-03-02
+- [Include metadata in current form selection/evaluation/etcetera](https://github.com/BetterThanTomorrow/calva/pull/1551)
 - [Enable the @typescript-eslint/no-floating-promises eslint rule](https://github.com/BetterThanTomorrow/calva/pull/1564)
 
 ## [2.0.246] - 2022-02-24
