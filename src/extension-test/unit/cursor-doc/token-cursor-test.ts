@@ -631,6 +631,14 @@ describe('Token Cursor', () => {
                 textAndSelection(b)[1]
             );
         });
+        it('8: does not croak on unbalance', () => {
+            // This hangs the structural editing in the real editor
+            // https://github.com/BetterThanTomorrow/calva/issues/1573
+            const a = docFromTextNotation('([|');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toBeUndefined();
+        });
+
     });
 
     describe('Top Level Form', () => {
