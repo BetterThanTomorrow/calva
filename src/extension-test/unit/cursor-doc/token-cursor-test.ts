@@ -1,5 +1,6 @@
 import * as expect from 'expect';
 import { LispTokenCursor } from '../../../cursor-doc/token-cursor';
+import { currentEnclosingFormToCursor } from '../../../util/cursor-get-text';
 import { docFromTextNotation, textAndSelection } from '../common/text-notation';
 
 describe('Token Cursor', () => {
@@ -326,10 +327,12 @@ describe('Token Cursor', () => {
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
         it('Does not move when unbalanced from extra opens', () => {
+            // https://github.com/BetterThanTomorrow/calva/issues/1573
             const a = docFromTextNotation('([|');
             const b = docFromTextNotation('([|');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
-            cursor.backwardList();
+            const result = cursor.backwardList();
+            expect(result).toBe(false);
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
         it('Finds the list start when unbalanced from extra closes outside the current list', () => {
@@ -363,7 +366,7 @@ describe('Token Cursor', () => {
             cursor.backwardListOfType('{');
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-        it.skip('Does not move when list type is unbalanced from missing close', () => {
+        it('Does not move when list type is unbalanced from missing close', () => {
             // This hangs the structural editing in the real editor
             // https://github.com/BetterThanTomorrow/calva/issues/1573
             const a = docFromTextNotation('([|');
