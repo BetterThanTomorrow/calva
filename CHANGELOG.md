@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [Version 2.0.247 regression with structural editing, hangs at unbalance + structural delete](https://github.com/BetterThanTomorrow/calva/pull/1573)
+- Fix: [Paredit Slurp and Barf are not metadata aware](https://github.com/BetterThanTomorrow/calva/pull/1576)
 
 ## [2.0.249] - 2022-03-04
 - Revert to before metadata-change, because: [Version 2.0.247 regression with structural editing, hangs at unbalance + structural delete](https://github.com/BetterThanTomorrow/calva/pull/1573)
