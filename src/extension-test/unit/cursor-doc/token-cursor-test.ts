@@ -729,6 +729,14 @@ describe('Token Cursor', () => {
                 textAndSelection(b)[1]
             );
         });
+        it('5: selects previous form, if any, when next form has metadata', () => {
+            const a = docFromTextNotation('z•foo•|•^{:a b}•bar');
+            const b = docFromTextNotation('z•|foo|••^{:a b}•bar');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(
+                textAndSelection(b)[1]
+            );
+        });
         it('6: selects next form, if any', () => {
             const a = docFromTextNotation(' | •  (foo {:a b})•(c)');
             const b = docFromTextNotation('  •  |(foo {:a b})|•(c)');
