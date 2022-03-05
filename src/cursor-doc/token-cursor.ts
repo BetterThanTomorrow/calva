@@ -498,7 +498,7 @@ export class LispTokenCursor extends TokenCursor {
     forwardListOfType(closingBracket: string): boolean {
         const cursor = this.clone();
         while (cursor.forwardList()) {
-            if (cursor.getPrevToken().raw === closingBracket) {
+            if (cursor.getToken().raw === closingBracket) {
                 this.set(cursor);
                 return true;
             }
@@ -506,6 +506,7 @@ export class LispTokenCursor extends TokenCursor {
                 return false;
             }
         }
+        return false;
     }
 
     /**
@@ -516,9 +517,12 @@ export class LispTokenCursor extends TokenCursor {
         while (cursor.backwardSexp()) {
             // move backward until the cursor cannot move backward anymore
         }
-        if (cursor.getPrevToken().type == 'open') {
-            this.set(cursor);
-            return true;
+        if (cursor.getPrevToken().type === 'open') {
+            const checkCursor = cursor.clone();
+            if (checkCursor.backwardUpList() && checkCursor.forwardSexp()) {
+                this.set(cursor);
+                return true;
+            }
         }
         return false;
     }
@@ -537,6 +541,7 @@ export class LispTokenCursor extends TokenCursor {
                 return false;
             }
         }
+        return false;
     }
 
     /**
