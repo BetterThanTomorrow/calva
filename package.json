@@ -1660,7 +1660,7 @@
             {
                 "command": "calva.evaluateSelection",
                 "key": "ctrl+enter",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !suggestWidgetVisible"
             },
             {
                 "command": "calva.evaluateEnclosingForm",
