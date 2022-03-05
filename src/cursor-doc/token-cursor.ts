@@ -723,9 +723,7 @@ export class LispTokenCursor extends TokenCursor {
             if (isAdjacentBefore) {
                 const cursor = this.clone();
                 cursor.forwardWhitespace();
-                if (
-                    cursor.forwardSexp(true, true)
-                ) {
+                if (cursor.forwardSexp(true, true)) {
                     afterCurrentFormOffset = cursor.offsetStart;
                 }
             }
