@@ -2097,7 +2097,7 @@
             {
                 "command": "calva-fmt.formatCurrentForm",
                 "key": "tab",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !inSnippetMode && !suggestWidgetVisible && !hasOtherSuggestions"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !inSnippetMode && !suggestWidgetVisible && !hasOtherSuggestions && !inSnippetMode"
             },
             {
                 "command": "calva-fmt.alignCurrentForm",
