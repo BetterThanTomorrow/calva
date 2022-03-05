@@ -288,14 +288,69 @@ describe('Token Cursor', () => {
         });
     });
 
+    it('upList', () => {
+        const a = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1|)))');
+        const b = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1)|))');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+        cursor.upList();
+        expect(cursor.offsetStart).toBe(b.selectionLeft);
+    });
+    describe('backwardList', () => {
+        it('Finds start of list', () => {
+            const a = docFromTextNotation('(((c•(#b •[:f])•#z•|1)))');
+            const b = docFromTextNotation('(((|c•(#b •[:f])•#z•1)))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardList();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Finds start of list through readers', () => {
+            const a = docFromTextNotation('(((c•#a• #f•(#b •[:f])•#z•|1)))');
+            const b = docFromTextNotation('(((|c•#a• #f•(#b •[:f])•#z•1)))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardList();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Finds start of list through metadata', () => {
+            const a = docFromTextNotation('(((c•^{:a c} (#b •[:f])•#z•|1)))');
+            const b = docFromTextNotation('(((|c•^{:a c} (#b •[:f])•#z•1)))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardList();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Does not move at top level', () => {
+            const a = docFromTextNotation('foo |(bar baz)');
+            const b = docFromTextNotation('foo |(bar baz)');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.forwardList();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Does not move when unbalanced from extra opens', () => {
+            const a = docFromTextNotation('([|');
+            const b = docFromTextNotation('([|');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardList();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Finds the list start when unbalanced from extra closes outside the current list', () => {
+            const a = docFromTextNotation('([]|))');
+            const b = docFromTextNotation('(|[]))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardList();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+    });
+
     describe('forwardList', () => {
-        it('Moves to closing end of list', () => {
-            const a = docFromTextNotation(
-                '(a(b(c•|#f•(#b •[:f :b :z])•#z•1)))'
-            );
-            const b = docFromTextNotation(
-                '(a(b(c•#f•(#b •[:f :b :z])•#z•1|)))'
-            );
+        it('Finds end of list', () => {
+            const a = docFromTextNotation('(|foo (bar baz) [])');
+            const b = docFromTextNotation('(foo (bar baz) []|)');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.forwardList();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Finds end of list through readers and meta', () => {
+            const a = docFromTextNotation('(|#a ^{:b c} #d (bar baz) [])');
+            const b = docFromTextNotation('(#a ^{:b c} #d (bar baz) []|)');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardList();
             expect(cursor.offsetStart).toBe(b.selectionLeft);
@@ -321,43 +376,16 @@ describe('Token Cursor', () => {
             cursor.forwardList();
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-    });
-    it('upList', () => {
-        const a = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1|)))');
-        const b = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1)|))');
-        const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
-        cursor.upList();
-        expect(cursor.offsetStart).toBe(b.selectionLeft);
-    });
-    describe('backwardList', () => {
-        it('backwardList', () => {
-            const a = docFromTextNotation(
-                '(a(b(c•#f•(#b •[:f :b :z])•#z•|1)))'
-            );
-            const b = docFromTextNotation(
-                '(a(b(|c•#f•(#b •[:f :b :z])•#z•1)))'
-            );
-            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
-            cursor.backwardList();
-            expect(cursor.offsetStart).toBe(b.selectionLeft);
-        });
-        it('Does not move at top level', () => {
-            const a = docFromTextNotation('foo (bar baz)|');
-            const b = docFromTextNotation('foo (bar baz)|');
+        it('Does not move when unbalanced from extra opens', () => {
+            const a = docFromTextNotation('(|[');
+            const b = docFromTextNotation('(|[');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardList();
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-        it('Does not move at top level when unbalanced document from extra closings', () => {
-            const a = docFromTextNotation('foo (bar baz))|');
-            const b = docFromTextNotation('foo (bar baz))|');
-            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
-            cursor.forwardList();
-            expect(cursor.offsetStart).toBe(b.selectionLeft);
-        });
-        it('Does not move at top level when unbalanced document from extra opens', () => {
-            const a = docFromTextNotation('foo ((bar baz)|');
-            const b = docFromTextNotation('foo ((bar baz)|');
+        it('Finds the list end when unbalanced from extra closes outside the current list', () => {
+            const a = docFromTextNotation('(|a #b []))');
+            const b = docFromTextNotation('(a #b []|))');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardList();
             expect(cursor.offsetStart).toBe(b.selectionLeft);
