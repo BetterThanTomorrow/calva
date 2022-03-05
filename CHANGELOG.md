@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Metadata affects the Current Form being recognized](https://github.com/BetterThanTomorrow/calva/pull/1577)
 
 ## [2.0.250] - 2022-03-05
 - Fix: [Version 2.0.247 regression with structural editing, hangs at unbalance + structural delete](https://github.com/BetterThanTomorrow/calva/pull/1573)
