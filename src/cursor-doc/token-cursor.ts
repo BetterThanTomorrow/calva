@@ -517,12 +517,12 @@ export class LispTokenCursor extends TokenCursor {
         while (cursor.backwardSexp()) {
             // move backward until the cursor cannot move backward anymore
         }
-        if (
-            cursor.getPrevToken().type === 'open' &&
-            cursor.offsetStart !== this.offsetStart
-        ) {
-            this.set(cursor);
-            return true;
+        if (cursor.getPrevToken().type === 'open') {
+            const checkCursor = cursor.clone();
+            if (checkCursor.backwardUpList() && checkCursor.forwardSexp()) {
+                this.set(cursor);
+                return true;
+            }
         }
         return false;
     }
