@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.251] - 2022-03-05
+- Fix: [Metadata affects the Current Form being recognized](https://github.com/BetterThanTomorrow/calva/pull/1577)
+- Fix: [ENTER key does not pick suggestion when cursor is not in a form in output window ](https://github.com/BetterThanTomorrow/calva/pull/1578)
+
 ## [2.0.250] - 2022-03-05
 - Fix: [Version 2.0.247 regression with structural editing, hangs at unbalance + structural delete](https://github.com/BetterThanTomorrow/calva/pull/1573)
 - Fix: [Paredit Slurp and Barf are not metadata aware](https://github.com/BetterThanTomorrow/calva/pull/1576)
