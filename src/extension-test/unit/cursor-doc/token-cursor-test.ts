@@ -687,10 +687,10 @@ describe('Token Cursor', () => {
         });
         it('2: selects from adjacent before form, or in readers', () => {
             const a = docFromTextNotation(
-                'ccc •#foo•|(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy'
+                'ccc •#foo•|•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy'
             );
             const b = docFromTextNotation(
-                'ccc •|#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))|•#baz•yyy'
+                'ccc •|#foo••(#bar •#baz•[:a :b :c]•x•#(a b c))|•#baz•yyy'
             );
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(

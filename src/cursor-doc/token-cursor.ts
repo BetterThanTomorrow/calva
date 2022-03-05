@@ -662,7 +662,7 @@ export class LispTokenCursor extends TokenCursor {
      */
     rangeForCurrentForm(offset: number): [number, number] {
         let afterCurrentFormOffset: number;
-        // console.log(-1, offset);
+        console.log(-1, offset);
 
         // 0. If `offset` is within or before, a symbol, literal or keyword
         if (
@@ -671,7 +671,7 @@ export class LispTokenCursor extends TokenCursor {
         ) {
             afterCurrentFormOffset = this.offsetEnd;
         }
-        // console.log(0, afterCurrentFormOffset);
+        console.log(0, afterCurrentFormOffset);
 
         // 1. Else, if `offset` is adjacent after form
         if (afterCurrentFormOffset === undefined) {
@@ -689,7 +689,7 @@ export class LispTokenCursor extends TokenCursor {
                 }
             }
         }
-        // console.log(1, afterCurrentFormOffset);
+        console.log(1, afterCurrentFormOffset);
 
         // 2. Else, if `offset` is adjacent before a form
         if (afterCurrentFormOffset === undefined) {
@@ -701,7 +701,7 @@ export class LispTokenCursor extends TokenCursor {
                 pTk.type === 'reader' ||
                 this.prevTokenBeginsMetadata() ||
                 tk.type === 'open';
-            // console.log(2.1, afterCurrentFormOffset);
+            console.log(2.1, isAdjacentBefore);
             if (!isAdjacentBefore) {
                 const cursor = this.clone();
                 cursor.backwardWhitespace();
@@ -709,24 +709,28 @@ export class LispTokenCursor extends TokenCursor {
                     cursor.prevTokenBeginsMetadata() ||
                     cursor.getPrevToken().type === 'reader';
             }
-            // console.log(2.2, afterCurrentFormOffset);
+            console.log(2.2, isAdjacentBefore);
             if (!isAdjacentBefore) {
                 const cursor = this.clone();
                 cursor.forwardWhitespace();
-                isAdjacentBefore =
-                    cursor.tokenBeginsMetadata() ||
-                    cursor.getToken().type === 'reader';
+                if (cursor.rowCol[0] === this.rowCol[0]) {
+                    isAdjacentBefore =
+                        cursor.tokenBeginsMetadata() ||
+                        cursor.getToken().type === 'reader';
+                }
             }
-            // console.log(2.3, afterCurrentFormOffset);
+            console.log(2.3, isAdjacentBefore);
             if (isAdjacentBefore) {
                 const cursor = this.clone();
                 cursor.forwardWhitespace();
-                if (cursor.forwardSexp(true, true)) {
+                if (
+                    cursor.forwardSexp(true, true)
+                ) {
                     afterCurrentFormOffset = cursor.offsetStart;
                 }
             }
         }
-        // console.log(2, afterCurrentFormOffset);
+        console.log(2, afterCurrentFormOffset);
 
         // 3. Else, if the previous form is on the same line
         if (afterCurrentFormOffset === undefined) {
@@ -739,7 +743,7 @@ export class LispTokenCursor extends TokenCursor {
                 }
             }
         }
-        // console.log(3, afterCurrentFormOffset);
+        console.log(3, afterCurrentFormOffset);
 
         // 4. Else, if the next form is on the same line
         if (afterCurrentFormOffset === undefined) {
@@ -751,7 +755,7 @@ export class LispTokenCursor extends TokenCursor {
                 }
             }
         }
-        // console.log(4, afterCurrentFormOffset);
+        console.log(4, afterCurrentFormOffset);
 
         // 5. Else, the previous form, if any
         if (afterCurrentFormOffset === undefined) {
@@ -762,7 +766,7 @@ export class LispTokenCursor extends TokenCursor {
                 afterCurrentFormOffset = afterOffset;
             }
         }
-        // console.log(5, afterCurrentFormOffset);
+        console.log(5, afterCurrentFormOffset);
 
         // 6. Else, the next form, if any
         if (afterCurrentFormOffset === undefined) {
@@ -772,7 +776,7 @@ export class LispTokenCursor extends TokenCursor {
                 afterCurrentFormOffset = cursor.offsetStart;
             }
         }
-        // console.log(6, afterCurrentFormOffset);
+        console.log(6, afterCurrentFormOffset);
 
         // 7. Else, the current enclosing form, if any
         if (afterCurrentFormOffset === undefined) {
@@ -783,7 +787,7 @@ export class LispTokenCursor extends TokenCursor {
                 }
             }
         }
-        // console.log(7, afterCurrentFormOffset);
+        console.log(7, afterCurrentFormOffset);
 
         // 8. Else, ¯\_(ツ)_/¯
         if (afterCurrentFormOffset === undefined) {

@@ -52,6 +52,8 @@ bbb
 
 (set! *default-data-reader-fn* test-reader)
 
+
+
 (c
  #f
   (#b
@@ -60,6 +62,16 @@ bbb
   #y
    1)
 
-^{:a b} #c ^d "foo" ()
 
-#{a b}
+
+^{:a b}
+#c
+ ^d
+ "foo"  
+
+
+  ()
+
+
+
+   #{a b}
