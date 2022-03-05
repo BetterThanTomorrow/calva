@@ -328,6 +328,7 @@ describe('Token Cursor', () => {
         });
         it('Does not move when unbalanced from extra opens', () => {
             // https://github.com/BetterThanTomorrow/calva/issues/1573
+            // https://github.com/BetterThanTomorrow/calva/commit/18732d47de1279860235c0cd24228bfcbaec9254
             const a = docFromTextNotation('([|');
             const b = docFromTextNotation('([|');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
@@ -367,13 +368,64 @@ describe('Token Cursor', () => {
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
         it('Does not move when list type is unbalanced from missing close', () => {
-            // This hangs the structural editing in the real editor
+            // This hung the structural editing in the real editor
             // https://github.com/BetterThanTomorrow/calva/issues/1573
             const a = docFromTextNotation('([|');
             const b = docFromTextNotation('([|');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.backwardListOfType('(');
             expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Does not move when list type is not found', () => {
+            const a = docFromTextNotation('([|])');
+            const b = docFromTextNotation('([|])');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            const result = cursor.backwardListOfType('{');
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('forwardListOfType', () => {
+        it('Finds end of list', () => {
+            const a = docFromTextNotation('([#{|c•(#b •[:f])•#z•1}])');
+            const b = docFromTextNotation('([#{c•(#b •[:f])•#z•1}]|)');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            const result = cursor.forwardListOfType(')');
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+            expect(result).toBe(true);
+        });
+        it('Finds end of vector', () => {
+            const a = docFromTextNotation('([(c•(#b| •[:f])•#z•1)])');
+            const b = docFromTextNotation('([(c•(#b •[:f])•#z•1)|])');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            const result = cursor.forwardListOfType(']');
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+            expect(result).toBe(true);
+        });
+        it('Finds end of map', () => {
+            const a = docFromTextNotation('({:a [(c•(#|b •[:f])•#z•|1)]})');
+            const b = docFromTextNotation('({:a [(c•(#b •[:f])•#z•1)]|})');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            const result = cursor.forwardListOfType('}');
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+            expect(result).toBe(true);
+        });
+        it('Does not move when list is unbalanced from missing open', () => {
+            const a = docFromTextNotation('|])');
+            const b = docFromTextNotation('|])');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            const result = cursor.forwardListOfType(')');
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+            expect(result).toBe(false);
+        });
+        it('Does not move when list type is not found', () => {
+            const a = docFromTextNotation('([|])');
+            const b = docFromTextNotation('([|])');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            const result = cursor.forwardListOfType('}');
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+            expect(result).toBe(false);
         });
     });
 
@@ -907,8 +959,8 @@ describe('Token Cursor', () => {
                 );
                 expect(cursor.getFunctionName()).toEqual('foo');
             });
-            it.skip('Does not croak finding function name in unbalance', () => {
-                // This hangs the structural editing in the real editor
+            it('Does not croak finding function name in unbalance', () => {
+                // This hung the structural editing in the real editor
                 // https://github.com/BetterThanTomorrow/calva/issues/1573
                 const a = docFromTextNotation('([|');
                 const cursor: LispTokenCursor = a.getTokenCursor(
