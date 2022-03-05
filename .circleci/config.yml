@@ -384,7 +384,7 @@ jobs:
             git checkout dev
             npm run bump-version
             git add .
-            git commit -m "Bring on version $(node -p "require('./package').version")! [skip ci]"
+            git commit -m "Bring on version $(node -p "require('./package').version")!"
             git push origin HEAD
 workflows:
   version: 2
