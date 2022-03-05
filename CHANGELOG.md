@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.252] - 2022-03-05
 - Fix: [Tab doesn't work in snippet mode](https://github.com/BetterThanTomorrow/calva/pull/1580)
 
 ## [2.0.251] - 2022-03-05
