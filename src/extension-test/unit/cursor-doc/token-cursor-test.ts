@@ -295,6 +295,7 @@ describe('Token Cursor', () => {
         cursor.upList();
         expect(cursor.offsetStart).toBe(b.selectionLeft);
     });
+
     describe('backwardList', () => {
         it('Finds start of list', () => {
             const a = docFromTextNotation('(((c•(#b •[:f])•#z•|1)))');
@@ -336,6 +337,39 @@ describe('Token Cursor', () => {
             const b = docFromTextNotation('(|[]))');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.backwardList();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+    });
+
+    describe('backwardListOfType', () => {
+        it('Finds start of list', () => {
+            const a = docFromTextNotation('([#{c•(#b •[:f])•#z•|1}])');
+            const b = docFromTextNotation('(|[#{c•(#b •[:f])•#z•1}])');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardListOfType('(');
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Finds start of vector', () => {
+            const a = docFromTextNotation('([(c•(#b •[:f])•#z•|1)])');
+            const b = docFromTextNotation('([|(c•(#b •[:f])•#z•1)])');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardListOfType('[');
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Finds start of map', () => {
+            const a = docFromTextNotation('({:a [(c•(#b •[:f])•#z•|1)]})');
+            const b = docFromTextNotation('({|:a [(c•(#b •[:f])•#z•1)]})');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardListOfType('{');
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it.skip('Does not move when list type is unbalanced from missing close', () => {
+            // This hangs the structural editing in the real editor
+            // https://github.com/BetterThanTomorrow/calva/issues/1573
+            const a = docFromTextNotation('([|');
+            const b = docFromTextNotation('([|');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardListOfType('(');
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
     });
