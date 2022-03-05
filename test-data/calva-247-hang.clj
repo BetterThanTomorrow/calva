@@ -10,5 +10,5 @@
 
 ;; Calva stops working 😭
 
-;; Until https://github.com/BetterThanTomorrow/calva/commit/18732d47de1279860235c0cd24228bfcbaec9254
+;; Until https://github.com/BetterThanTomorrow/calva/commit/d77359fcea16bc052ab829853d5711434330a375
 ;; 🎉
