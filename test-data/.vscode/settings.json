@@ -16,7 +16,7 @@
         },
         {
             "name": "def var",
-            "snippet": "(pr-str $hover-text)"
+            "snippet": "(str \"```clojure\n\" (pr-str $hover-text) \"\n```\")"
         }
     ],
     "calva.fmt.configPath": "CLOJURE-LSP"
