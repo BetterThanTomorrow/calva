@@ -186,7 +186,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
                 const document = event.textEditor.document;
                 if (isResultsDoc(document)) {
                     const idx = document.offsetAt(event.selections[0].active);
-                    const mirrorDoc = docMirror.getDocument(document);
+                    const mirrorDoc = docMirror.mustGetDocument(document);
                     const selectionCursor = mirrorDoc.getTokenCursor(idx);
                     selectionCursor.forwardWhitespace();
                     if (selectionCursor.atEnd()) {
@@ -219,14 +219,10 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
 
     // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
     // until the next time it's focused
-    if (
-        vscode.window.activeTextEditor &&
-        isResultsDoc(vscode.window.activeTextEditor.document)
-    ) {
+    const activeTextEditor = util.getActiveTextEditor();
+    if (activeTextEditor && isResultsDoc(activeTextEditor.document)) {
         setContextForOutputWindowActive(true);
-        replHistory.setReplHistoryCommandsActiveContext(
-            vscode.window.activeTextEditor
-        );
+        replHistory.setReplHistoryCommandsActiveContext(activeTextEditor);
     }
     replHistory.resetState();
     isInitialized = true;
@@ -270,7 +266,7 @@ export async function setNamespaceFromCurrentFile() {
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
     const session = replSession.getSession();
     const ns = namespace.getNamespace(util.getDocument({}));
-    const editor = vscode.window.activeTextEditor;
+    const editor = util.mustGetActiveTextEditor();
     const doc = editor.document;
     const selection = editor.selection;
     let code = '';

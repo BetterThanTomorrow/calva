@@ -63,7 +63,7 @@ export function printTextToRichCommentCommand(args: { [x: string]: string }) {
 
 function printTextToRichComment(text: string, position?: number) {
     const doc = util.getDocument({});
-    const mirrorDoc = docMirror.getDocument(doc);
+    const mirrorDoc = docMirror.mustGetDocument(doc);
     paredit.addRichComment(
         mirrorDoc,
         position ? position : mirrorDoc.selection.active,
@@ -183,7 +183,7 @@ async function clojureDocsLookup(
     p?: vscode.Position
 ): Promise<DocsEntry> {
     const doc = d ? d : util.getDocument({});
-    const position = p ? p : vscode.window.activeTextEditor.selection.active;
+    const position = p ? p : util.mustGetActiveTextEditor().selection.active;
     const symbol = util.getWordAtPosition(doc, position);
     const ns = namespace.getNamespace(doc);
     const session = replSession.getSession(util.getFileType(doc));

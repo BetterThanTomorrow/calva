@@ -15,7 +15,7 @@ async function evaluateCustomCodeSnippetCommand(codeOrKey?: string) {
 }
 
 async function evaluateCodeOrKey(codeOrKey?: string) {
-    const editor = vscode.window.activeTextEditor;
+    const editor = util.mustGetActiveTextEditor();
     const currentLine = editor.selection.active.line;
     const currentColumn = editor.selection.active.character;
     const currentFilename = editor.document.fileName;

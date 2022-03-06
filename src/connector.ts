@@ -837,7 +837,7 @@ export default {
             setStateValue('cljc', newSession);
             if (
                 outputWindow.isResultsDoc(
-                    vscode.window.activeTextEditor.document
+                    util.mustGetActiveTextEditor().document
                 )
             ) {
                 outputWindow.setSession(newSession, undefined);

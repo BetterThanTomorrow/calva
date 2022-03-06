@@ -359,7 +359,7 @@ async function runNamespaceTests(
 }
 
 function getTestUnderCursor() {
-    const editor = vscode.window.activeTextEditor;
+    const editor = util.getActiveTextEditor();
     if (editor) {
         return getText.currentTopLevelFunction(editor?.document)[1];
     }
@@ -406,7 +406,7 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
     }
     runNamespaceTests(
         controller,
-        vscode.window.activeTextEditor.document
+        util.mustGetActiveTextEditor().document
     ).catch((msg) => {
         void vscode.window.showWarningMessage(msg);
     });
@@ -474,7 +474,7 @@ function initialize(controller: vscode.TestController): void {
             // The next steps here would be to turn request.exclude and requst.include
             // into a Cider var-query that can be passed to test-var query directly.
             const namespaces = util.distinct(runItems.map((ri) => ri[0]));
-            const doc = vscode.window.activeTextEditor.document;
+            const doc = util.mustGetActiveTextEditor().document;
             runNamespaceTestsImpl(controller, doc, namespaces).catch((msg) => {
                 void vscode.window.showWarningMessage(msg);
             });

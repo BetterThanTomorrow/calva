@@ -9,6 +9,7 @@ import * as JSZip from 'jszip';
 import * as outputWindow from './results-output/results-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
+import { isUndefined } from 'lodash';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
@@ -174,17 +175,17 @@ function getWordAtPosition(document, position) {
 function getDocument(
     document: vscode.TextDocument | Record<string, never>
 ): vscode.TextDocument {
+    const activeTextEditor = getActiveTextEditor();
     if (
         document &&
         Object.prototype.hasOwnProperty.call(document, 'fileName')
     ) {
         return document as vscode.TextDocument;
     } else if (
-        vscode.window.activeTextEditor &&
-        vscode.window.activeTextEditor.document &&
-        vscode.window.activeTextEditor.document.languageId !== 'Log'
+        activeTextEditor?.document &&
+        activeTextEditor.document.languageId !== 'Log'
     ) {
-        return vscode.window.activeTextEditor.document;
+        return activeTextEditor.document;
     } else if (vscode.window.visibleTextEditors.length > 0) {
         const editor = vscode.window.visibleTextEditors.find(
             (editor) => editor.document && editor.document.languageId !== 'Log'
@@ -297,7 +298,7 @@ function markError(error) {
     }
 
     const diagnostic = cljsLib.getStateValue('diagnosticCollection'),
-        editor = vscode.window.activeTextEditor;
+        editor = mustGetActiveTextEditor();
 
     //editor.selection = new vscode.Selection(position, position);
     const line = error.line - 1,
@@ -346,7 +347,7 @@ function markWarning(warning) {
     }
 
     const diagnostic = cljsLib.getStateValue('diagnosticCollection'),
-        editor = vscode.window.activeTextEditor;
+        editor = mustGetActiveTextEditor();
 
     //editor.selection = new vscode.Selection(position, position);
     const line = Math.max(0, warning.line - 1),
@@ -556,6 +557,20 @@ function distinct<T>(coll: T[]): T[] {
     return [...new Set(coll)];
 }
 
+function getActiveTextEditor(): vscode.TextEditor | undefined {
+    return vscode.window.activeTextEditor;
+}
+
+function mustGetActiveTextEditor(): vscode.TextEditor {
+    const editor = getActiveTextEditor();
+
+    if (isUndefined(editor)) {
+        throw new Error('Expected active text editor!');
+    }
+
+    return editor;
+}
+
 export {
     distinct,
     getWordAtPosition,
@@ -592,4 +607,6 @@ export {
     cljsLib,
     randomSlug,
     isWindows,
+    getActiveTextEditor,
+    mustGetActiveTextEditor,
 };
