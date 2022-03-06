@@ -71,7 +71,7 @@ export async function provideHover(
                             hover.isTrusted = true;
                             hover.appendMarkdown(
                                 _.replace(
-                                    _.replace(_.trim(text, '"'), /\\n)/g, '\n'),
+                                    _.replace(_.trim(text, '"'), /\\n/g, '\n'),
                                     /\\"/g,
                                     '"'
                                 )
