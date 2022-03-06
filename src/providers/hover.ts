@@ -21,7 +21,7 @@ export async function provideHover(
             await namespace.createNamespaceFromDocumentIfNotExists(document);
             const res = await client.info(ns, text);
             const customREPLHoverSnippets = getConfig().customREPLHoverSnippets;
-            const hovers = [];
+            const hovers: vscode.MarkdownString[] = [];
             if (
                 !res.status.includes('error') &&
                 !res.status.includes('no-info')
@@ -32,7 +32,11 @@ export async function provideHover(
                     position
                 );
 
-                hovers.push(docsMd, clojureDocsMd);
+                hovers.push(docsMd);
+
+                if (clojureDocsMd) {
+                    hovers.push(clojureDocsMd);
+                }
             }
             const editor = util.getActiveTextEditor();
 

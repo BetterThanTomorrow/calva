@@ -249,8 +249,8 @@ async function evalConnectCode(
     errorProcessors: processOutputFn[] = []
 ): Promise<boolean> {
     const chan = state.connectionLogChannel();
-    const err = [],
-        out = [],
+    const err: string[] = [],
+        out: string[] = [],
         result = newCljsSession.eval(code, 'user', {
             stdout: (x) => {
                 out.push(util.stripAnsi(x));

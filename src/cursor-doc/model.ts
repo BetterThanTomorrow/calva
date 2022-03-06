@@ -292,7 +292,7 @@ export class LineInputModel implements EditableModel {
         const st = this.getRowCol(Math.min(start, end));
         const en = this.getRowCol(Math.max(start, end));
 
-        const lines = [];
+        const lines: string[] = [];
         if (st[0] == en[0]) {
             lines[0] = this.lines[st[0]].text.substring(st[1], en[1]);
         } else {

@@ -64,7 +64,7 @@ function stripTrailingNewlines(s: string): string {
 }
 
 function resultMessage(resultItem: Readonly<TestResult>): string {
-    const msg = [];
+    const msg: string[] = [];
     if (resultItem.context && resultItem.context !== 'false') {
         msg.push(resultItem.context);
     }
@@ -89,7 +89,7 @@ export function cleanUpWhiteSpace(result: TestResult) {
 // ; 6 tests finished, all passing 👍, ns: 1, vars: 2
 // ; 6 tests finished, problems found. 😭 errors: 0, failures: 1, ns: 1, vars: 2
 export function summaryMessage(summary: Readonly<TestSummary>): string {
-    const msg = [];
+    const msg: string[] = [];
     if (summary.test > 0) {
         msg.push(summary.test + ' tests finished');
 
@@ -156,7 +156,7 @@ export function lineInformation(result: TestResult): string {
 // The message contains "comment" lines that are prepended with ;
 // and "data" lines that should be printed verbatim into the REPL.
 export function detailedMessage(result: TestResult): string {
-    const messages = [];
+    const messages: string[] = [];
     const message = resultMessage(result);
     const location = lineInformation(result);
 

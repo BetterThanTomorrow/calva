@@ -395,8 +395,7 @@ function filterVisibleRanges(
                 r.contains(visibleRange)
             );
         });
-        filtered = [].concat(
-            filtered,
+        filtered = filtered.concat(
             combine
                 ? [
                       new vscode.Range(
@@ -466,7 +465,7 @@ async function getJarContents(uri: vscode.Uri | string) {
 }
 
 function sortByPresetOrder(arr: any[], presetOrder: any[]) {
-    const result = [];
+    const result: any[] = [];
     presetOrder.forEach((preset) => {
         if (arr.indexOf(preset) != -1) {
             result.push(preset);

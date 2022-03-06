@@ -498,7 +498,7 @@ function matchPairs() {
         return;
     }
 
-    const matches = [];
+    const matches: { range: vscode.Range }[] = [];
     activeEditor.selections.forEach((selection) => {
         const match_before = matchBefore(selection),
             match_after = matchAfter(selection);

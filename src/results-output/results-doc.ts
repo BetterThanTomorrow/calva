@@ -301,7 +301,7 @@ let scrollToBottomSub: vscode.Disposable;
 export interface OnAppendedCallback {
     (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
 }
-let editQueue: [string, OnAppendedCallback][] = [];
+let editQueue: [string, OnAppendedCallback | undefined][] = [];
 let applyingEdit = false;
 /* Because this function can be called several times asynchronously by the handling of incoming nrepl messages,
    we should never await it, because that await could possibly not return until way later, after edits that came in from elsewhere
