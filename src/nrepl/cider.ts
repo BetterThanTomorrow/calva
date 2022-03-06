@@ -155,7 +155,7 @@ export function lineInformation(result: TestResult): string {
 // If the test passed, return the empty string.
 // The message contains "comment" lines that are prepended with ;
 // and "data" lines that should be printed verbatim into the REPL.
-export function detailedMessage(result: TestResult): string {
+export function detailedMessage(result: TestResult): string | undefined {
     const messages: string[] = [];
     const message = resultMessage(result);
     const location = lineInformation(result);
@@ -183,7 +183,7 @@ export function detailedMessage(result: TestResult): string {
             messages.push(`; actual:\n${result.actual}`);
         }
     }
-    return messages.length > 0 ? messages.join('\n') : null;
+    return messages.length > 0 ? messages.join('\n') : undefined;
 }
 
 // Return a short message that can be shown to user as a Diagnostic.
