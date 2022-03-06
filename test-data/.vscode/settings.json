@@ -13,10 +13,6 @@
         {
             "name": "Show doc string",
             "snippet": "(clojure.string/replace (with-out-str (clojure.repl/doc $hover-text)) \"\n\" \"\n\n\")"
-        },
-        {
-            "name": "def var",
-            "snippet": "(str \"```clojure\n\" (pr-str $hover-text) \"\n```\")"
         }
     ],
     "calva.fmt.configPath": "CLOJURE-LSP"
