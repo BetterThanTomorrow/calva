@@ -1,6 +1,7 @@
 import { Scanner, Token, ScannerState } from './clojure-lexer';
 import { LispTokenCursor } from './token-cursor';
 import { deepEqual as equal } from '../util/object';
+import { isUndefined } from 'lodash';
 
 let scanner: Scanner;
 
@@ -581,6 +582,8 @@ export class LineInputModel implements EditableModel {
                 lastIndex = i;
             }
             return new LispTokenCursor(this, row, line.tokens.length - 1);
+        } else {
+            throw new Error('Unable to get token cursor for LineInputModel!');
         }
     }
 }
@@ -609,7 +612,15 @@ export class StringDocument implements EditableDocument {
     selectionStack: ModelEditSelection[] = [];
 
     getTokenCursor(offset?: number, previous?: boolean): LispTokenCursor {
-        return this.model.getTokenCursor(offset);
+        const cursor = isUndefined(offset)
+            ? undefined
+            : this.model.getTokenCursor(offset);
+
+        if (isUndefined(cursor)) {
+            throw new Error('Expected a cursor for StringDocument!');
+        }
+
+        return cursor;
     }
 
     insertString(text: string) {

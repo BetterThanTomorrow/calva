@@ -135,7 +135,7 @@ export class DocumentModel implements EditableModel {
         return this.lineInputModel.getOffsetForLine(line);
     }
 
-    public getTokenCursor(offset: number, previous: boolean = false) {
+    public getTokenCursor(offset: number, previous?: boolean) {
         return this.lineInputModel.getTokenCursor(offset, previous);
     }
 }
@@ -162,7 +162,13 @@ export class MirroredDocument implements EditableDocument {
         offset: number = this.selectionRight,
         previous: boolean = false
     ): LispTokenCursor {
-        return this.model.getTokenCursor(offset, previous);
+        const cursor = this.model.getTokenCursor(offset, previous);
+
+        if (isUndefined(cursor)) {
+            throw new Error('Expected a cursor for MirrorDocument!');
+        }
+
+        return cursor;
     }
 
     public insertString(text: string) {
