@@ -8,7 +8,7 @@ import * as utilities from './utilities';
 import * as replSession from './nrepl/repl-session';
 import { NReplSession } from './nrepl';
 
-export function getNamespace(doc: vscode.TextDocument) {
+export function getNamespace(doc?: vscode.TextDocument) {
     if (outputWindow.isResultsDoc(doc)) {
         return outputWindow.getNs();
     }

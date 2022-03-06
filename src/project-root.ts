@@ -22,7 +22,7 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
 
 export async function findProjectRootUri(
     projectFileNames: string[],
-    doc: vscode.TextDocument,
+    doc: vscode.TextDocument | undefined,
     workspaceFolder: vscode.WorkspaceFolder
 ): Promise<vscode.Uri> {
     let searchUri = doc?.uri || workspaceFolder?.uri;

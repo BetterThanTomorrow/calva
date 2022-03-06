@@ -102,8 +102,8 @@ export function setSession(session: NReplSession, newNs: string): void {
     }
 }
 
-export function isResultsDoc(doc: vscode.TextDocument): boolean {
-    return doc && path.basename(doc.fileName) === RESULTS_DOC_NAME;
+export function isResultsDoc(doc?: vscode.TextDocument): boolean {
+    return !!doc && path.basename(doc.fileName) === RESULTS_DOC_NAME;
 }
 
 function getViewColumn(): vscode.ViewColumn {

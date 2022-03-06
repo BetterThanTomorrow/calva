@@ -32,18 +32,15 @@ export function isNonEmptyString(value: any): boolean {
 
 async function quickPickSingle(opts: {
     values: string[];
-    saveAs?: string;
+    saveAs: string;
     placeHolder: string;
     autoSelect?: boolean;
 }) {
     if (opts.values.length == 0) {
         return;
     }
-    let selected: string;
-    const saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
-    if (saveAs) {
-        selected = state.extensionContext.workspaceState.get(saveAs);
-    }
+    const saveAs = `qps-${opts.saveAs}`;
+    const selected = state.extensionContext.workspaceState.get<string>(saveAs);
 
     let result;
     if (opts.autoSelect && opts.values.length == 1) {
@@ -60,14 +57,12 @@ async function quickPickSingle(opts: {
 
 async function quickPickMulti(opts: {
     values: string[];
-    saveAs?: string;
+    saveAs: string;
     placeHolder: string;
 }) {
-    let selected: string[];
-    const saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
-    if (saveAs) {
-        selected = state.extensionContext.workspaceState.get(saveAs) || [];
-    }
+    const saveAs = `qps-${opts.saveAs}`;
+    const selected =
+        state.extensionContext.workspaceState.get<string[]>(saveAs) || [];
     const result = await quickPick(opts.values, [], selected, {
         placeHolder: opts.placeHolder,
         canPickMany: true,
@@ -95,19 +90,19 @@ async function quickPick(
     active: string[],
     selected: string[],
     options: vscode.QuickPickOptions
-): Promise<string | string[]> {
+): Promise<string[] | string | undefined> {
     const items = itemsToPick.map((x) => ({ label: x }));
 
     const qp = vscode.window.createQuickPick();
-    qp.canSelectMany = options.canPickMany;
+    qp.canSelectMany = !!options.canPickMany;
     qp.placeholder = options.placeHolder;
-    qp.ignoreFocusOut = options.ignoreFocusOut;
-    qp.matchOnDescription = options.matchOnDescription;
-    qp.matchOnDetail = options.matchOnDetail;
+    qp.ignoreFocusOut = !!options.ignoreFocusOut;
+    qp.matchOnDescription = !!options.matchOnDescription;
+    qp.matchOnDetail = !!options.matchOnDetail;
     qp.items = items;
     qp.activeItems = items.filter((x) => active.indexOf(x.label) != -1);
     qp.selectedItems = items.filter((x) => selected.indexOf(x.label) != -1);
-    return new Promise<string[] | string>((resolve, reject) => {
+    return new Promise<string[] | string | undefined>((resolve, reject) => {
         qp.show();
         qp.onDidAccept(() => {
             if (qp.canSelectMany) {
@@ -174,7 +169,7 @@ function getWordAtPosition(document, position) {
 
 function getDocument(
     document: vscode.TextDocument | Record<string, never>
-): vscode.TextDocument {
+): vscode.TextDocument | undefined {
     const activeTextEditor = getActiveTextEditor();
     if (
         document &&
@@ -190,10 +185,20 @@ function getDocument(
         const editor = vscode.window.visibleTextEditors.find(
             (editor) => editor.document && editor.document.languageId !== 'Log'
         );
-        return editor ? editor.document : null;
-    } else {
-        return null;
+        return editor?.document;
     }
+}
+
+function mustGetDocument(
+    document: vscode.TextDocument | Record<string, never>
+): vscode.TextDocument {
+    const doc = getDocument(document);
+
+    if (isUndefined(doc)) {
+        throw new Error('Expected an activeTextEditor with a document!');
+    }
+
+    return doc;
 }
 
 function getFileType(document) {
@@ -575,6 +580,7 @@ export {
     distinct,
     getWordAtPosition,
     getDocument,
+    mustGetDocument,
     getFileType,
     getLaunchingState,
     setLaunchingState,

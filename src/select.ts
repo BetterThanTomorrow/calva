@@ -53,7 +53,7 @@ function selectForm(
     toplevel: boolean
 ) {
     const editor = util.mustGetActiveTextEditor(),
-        doc = util.getDocument(document),
+        doc = util.mustGetDocument(document),
         selection = editor.selection;
 
     if (selection.isEmpty) {

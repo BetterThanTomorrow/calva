@@ -253,7 +253,6 @@ async function evaluateCode(
 }
 
 async function evaluateSelection(document = {}, options) {
-    const doc = util.getDocument(document);
     const selectionFn: (
         editor: vscode.TextEditor
     ) => [vscode.Selection, string] = options.selectionFn;
@@ -266,6 +265,7 @@ async function evaluateSelection(document = {}, options) {
         let code = selection[1];
         [codeSelection, code];
 
+        const doc = util.mustGetDocument(document);
         const ns = namespace.getNamespace(doc);
         const line = codeSelection.start.line;
         const column = codeSelection.start.character;

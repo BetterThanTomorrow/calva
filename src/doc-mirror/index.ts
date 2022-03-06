@@ -266,7 +266,7 @@ export function getDocumentOffset(
     return model.getOffsetForLine(position.line) + position.character;
 }
 
-function addDocument(doc: vscode.TextDocument): boolean {
+function addDocument(doc?: vscode.TextDocument): boolean {
     if (doc && doc.languageId == 'clojure') {
         if (!documents.has(doc)) {
             const document = new MirroredDocument(doc);
