@@ -54,7 +54,7 @@ export async function indentPosition(
 export async function formatRangeEdits(
     document: vscode.TextDocument,
     range: vscode.Range
-): Promise<vscode.TextEdit[]> {
+): Promise<vscode.TextEdit[] | undefined> {
     const text: string = document.getText(range);
     const mirroredDoc: MirroredDocument = getDocument(document);
     const startIndex = document.offsetAt(range.start);
@@ -240,7 +240,7 @@ async function _formatRange(
     allText: string,
     range: number[],
     eol: string
-): Promise<string> {
+): Promise<string | undefined> {
     const d = {
         'range-text': rangeText,
         'all-text': allText,

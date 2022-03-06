@@ -200,7 +200,7 @@ async function onTestResults(
     run.end();
 }
 
-function useTestExplorer(): boolean {
+function useTestExplorer(): boolean | undefined {
     return vscode.workspace.getConfiguration('calva').get('useTestExplorer');
 }
 

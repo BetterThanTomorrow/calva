@@ -60,6 +60,6 @@ export class FormatOnTypeEditProvider
             }
         }
 
-        return null;
+        return undefined;
     }
 }

@@ -74,10 +74,10 @@ function printTextToRichComment(text: string, position?: number) {
 export async function getExamplesHover(
     document: vscode.TextDocument,
     position: vscode.Position
-): Promise<vscode.MarkdownString> {
+): Promise<vscode.MarkdownString | undefined> {
     const docs = await clojureDocsLookup(document, position);
     if (!docs) {
-        return null;
+        return undefined;
     }
     return getHoverForDocs(
         docs,
@@ -237,7 +237,7 @@ function rawDocs2DocsEntry(
     docsResult: any,
     symbol: string,
     ns: string
-): DocsEntry {
+): DocsEntry | undefined {
     const docs = docsResult.clojuredocs;
     if (docs) {
         return {
@@ -262,6 +262,6 @@ function rawDocs2DocsEntry(
         };
     } else {
         // console.log(`No results for ${ns}/${symbol} from ${docsResult.fromServer}`);
-        return null;
+        return undefined;
     }
 }

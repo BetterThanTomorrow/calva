@@ -372,7 +372,9 @@ function markWarning(warning) {
     diagnostic.set(editor.document.uri, warnings);
 }
 
-async function promptForUserInputString(prompt: string): Promise<string> {
+async function promptForUserInputString(
+    prompt: string
+): Promise<string | undefined> {
     return vscode.window.showInputBox({
         prompt: prompt,
         ignoreFocusOut: true,
