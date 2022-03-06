@@ -14,7 +14,7 @@ export class FormatOnTypeEditProvider
         _position: vscode.Position,
         ch: string,
         _options
-    ): Promise<vscode.TextEdit[]> {
+    ): Promise<vscode.TextEdit[] | undefined> {
         let keyMap = vscode.workspace
             .getConfiguration()
             .get('calva.paredit.defaultKeyMap');
@@ -27,14 +27,14 @@ export class FormatOnTypeEditProvider
                 const mDoc: EditableDocument = docMirror.getDocument(document);
                 const tokenCursor = mDoc.getTokenCursor();
                 if (tokenCursor.withinComment()) {
-                    return null;
+                    return undefined;
                 }
                 return paredit.backspace(mDoc).then((fulfilled) => {
                     paredit.close(mDoc, ch);
-                    return null;
+                    return undefined;
                 });
             } else {
-                return null;
+                return undefined;
             }
         }
         const editor = util.getActiveTextEditor();
