@@ -836,9 +836,7 @@ export default {
             }
             setStateValue('cljc', newSession);
             if (
-                outputWindow.isResultsDoc(
-                    util.mustGetActiveTextEditor().document
-                )
+                outputWindow.isResultsDoc(util.getActiveTextEditor().document)
             ) {
                 outputWindow.setSession(newSession, undefined);
                 replSession.updateReplSessionType();

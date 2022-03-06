@@ -219,7 +219,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
 
     // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
     // until the next time it's focused
-    const activeTextEditor = util.getActiveTextEditor();
+    const activeTextEditor = util.tryToGetActiveTextEditor();
     if (activeTextEditor && isResultsDoc(activeTextEditor.document)) {
         setContextForOutputWindowActive(true);
         replHistory.setReplHistoryCommandsActiveContext(activeTextEditor);
@@ -266,7 +266,7 @@ export async function setNamespaceFromCurrentFile() {
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
     const session = replSession.getSession();
     const ns = namespace.getNamespace(util.tryToGetDocument({}));
-    const editor = util.mustGetActiveTextEditor();
+    const editor = util.getActiveTextEditor();
     const doc = editor.document;
     const selection = editor.selection;
     let code = '';

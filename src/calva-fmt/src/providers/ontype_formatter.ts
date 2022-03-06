@@ -37,7 +37,7 @@ export class FormatOnTypeEditProvider
                 return null;
             }
         }
-        const editor = util.mustGetActiveTextEditor();
+        const editor = util.getActiveTextEditor();
 
         const pos = editor.selection.active;
         if (

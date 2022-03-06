@@ -183,7 +183,7 @@ async function clojureDocsLookup(
     p?: vscode.Position
 ): Promise<DocsEntry> {
     const doc = d ? d : util.getDocument({});
-    const position = p ? p : util.mustGetActiveTextEditor().selection.active;
+    const position = p ? p : util.getActiveTextEditor().selection.active;
     const symbol = util.getWordAtPosition(doc, position);
     const ns = namespace.getNamespace(doc);
     const session = replSession.getSession(util.getFileType(doc));

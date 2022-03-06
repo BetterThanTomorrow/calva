@@ -170,7 +170,7 @@ function getWordAtPosition(document, position) {
 function tryToGetDocument(
     document: vscode.TextDocument | Record<string, never>
 ): vscode.TextDocument | undefined {
-    const activeTextEditor = getActiveTextEditor();
+    const activeTextEditor = tryToGetActiveTextEditor();
     if (
         document &&
         Object.prototype.hasOwnProperty.call(document, 'fileName')
@@ -303,7 +303,7 @@ function markError(error) {
     }
 
     const diagnostic = cljsLib.getStateValue('diagnosticCollection'),
-        editor = mustGetActiveTextEditor();
+        editor = getActiveTextEditor();
 
     //editor.selection = new vscode.Selection(position, position);
     const line = error.line - 1,
@@ -352,7 +352,7 @@ function markWarning(warning) {
     }
 
     const diagnostic = cljsLib.getStateValue('diagnosticCollection'),
-        editor = mustGetActiveTextEditor();
+        editor = getActiveTextEditor();
 
     //editor.selection = new vscode.Selection(position, position);
     const line = Math.max(0, warning.line - 1),
@@ -562,12 +562,12 @@ function distinct<T>(coll: T[]): T[] {
     return [...new Set(coll)];
 }
 
-function getActiveTextEditor(): vscode.TextEditor | undefined {
+function tryToGetActiveTextEditor(): vscode.TextEditor | undefined {
     return vscode.window.activeTextEditor;
 }
 
-function mustGetActiveTextEditor(): vscode.TextEditor {
-    const editor = getActiveTextEditor();
+function getActiveTextEditor(): vscode.TextEditor {
+    const editor = tryToGetActiveTextEditor();
 
     if (isUndefined(editor)) {
         throw new Error('Expected active text editor!');
@@ -613,6 +613,6 @@ export {
     cljsLib,
     randomSlug,
     isWindows,
+    tryToGetActiveTextEditor,
     getActiveTextEditor,
-    mustGetActiveTextEditor,
 };

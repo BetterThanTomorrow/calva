@@ -21,7 +21,7 @@ export async function indentPosition(
     position: vscode.Position,
     document: vscode.TextDocument
 ) {
-    const editor = util.mustGetActiveTextEditor();
+    const editor = util.getActiveTextEditor();
     const pos = new vscode.Position(position.line, 0);
     const indent = getIndent(
         getDocument(document).model.lineInputModel,

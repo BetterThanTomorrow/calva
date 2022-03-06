@@ -5,7 +5,7 @@ import { isArray } from 'util';
 import * as docMirror from '../../doc-mirror/index';
 import { Token, validPair } from '../../cursor-doc/clojure-lexer';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
-import { getActiveTextEditor, mustGetActiveTextEditor } from '../../utilities';
+import { tryToGetActiveTextEditor, getActiveTextEditor } from '../../utilities';
 
 type StackItem = {
     char: string;
@@ -541,7 +541,7 @@ function decorateGuide(
 
 function decorateActiveGuides() {
     const activeGuides = [];
-    activeEditor = mustGetActiveTextEditor();
+    activeEditor = getActiveTextEditor();
     if (activeGuidesTypes) {
         activeGuidesTypes.forEach((type) =>
             activeEditor.setDecorations(type, [])
@@ -586,7 +586,7 @@ function decorateActiveGuides() {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    activeEditor = mustGetActiveTextEditor();
+    activeEditor = getActiveTextEditor();
 
     vscode.window.onDidChangeActiveTextEditor(
         (editor) => {
@@ -602,7 +602,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeTextEditorSelection(
         (event) => {
             if (
-                event.textEditor === getActiveTextEditor() &&
+                event.textEditor === tryToGetActiveTextEditor() &&
                 is_clojure(event.textEditor)
             ) {
                 if (lastHighlightedEditor !== event.textEditor) {

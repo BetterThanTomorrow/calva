@@ -34,7 +34,7 @@ export async function provideHover(
 
                 hovers.push(docsMd, clojureDocsMd);
             }
-            const editor = util.mustGetActiveTextEditor();
+            const editor = util.getActiveTextEditor();
 
             const context = {
                 ns,

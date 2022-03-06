@@ -95,7 +95,7 @@ function setSelectionDecorations(editor, ranges, status) {
 }
 
 function clearEvaluationDecorations(editor?: vscode.TextEditor) {
-    editor = editor || util.getActiveTextEditor();
+    editor = editor || util.tryToGetActiveTextEditor();
     if (editor) {
         util.cljsLib.removeStateValue(
             editor.document.uri + ':resultDecorationRanges'
@@ -204,7 +204,8 @@ function decorateSelection(
 
 function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
     if (event.contentChanges.length) {
-        const activeTextEditor: vscode.TextEditor = util.getActiveTextEditor();
+        const activeTextEditor: vscode.TextEditor =
+            util.tryToGetActiveTextEditor();
         if (activeTextEditor) {
             const activeDocument = activeTextEditor.document,
                 changeDocument = event.document;

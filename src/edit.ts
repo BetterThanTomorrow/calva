@@ -7,7 +7,7 @@ import * as docMirror from './doc-mirror/index';
 export function continueCommentCommand() {
     const document = util.tryToGetDocument({});
     if (document && document.languageId === 'clojure') {
-        const editor = util.mustGetActiveTextEditor();
+        const editor = util.getActiveTextEditor();
         const position = editor.selection.active;
         const cursor = docMirror.getDocument(document).getTokenCursor();
         if (cursor.getToken().type !== 'comment') {

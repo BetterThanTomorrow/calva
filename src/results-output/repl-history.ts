@@ -117,7 +117,7 @@ function prependNewline(text: string) {
 }
 
 function showPreviousReplHistoryEntry(): void {
-    const editor = util.mustGetActiveTextEditor();
+    const editor = util.getActiveTextEditor();
     const doc = editor.document;
     const replSessionType = getSessionType();
     const history = getHistory(replSessionType);
@@ -139,7 +139,7 @@ function showPreviousReplHistoryEntry(): void {
 }
 
 function showNextReplHistoryEntry(): void {
-    const editor = util.mustGetActiveTextEditor();
+    const editor = util.getActiveTextEditor();
     const doc = editor.document;
     const replSessionType = getSessionType();
     const history = getHistory(replSessionType);
