@@ -426,7 +426,12 @@
                     },
                     "calva.customREPLHoverSnippets": {
                         "type": "array",
-                        "default": [],
+                        "default": [
+                            {
+                                "name": "def var",
+                                "snippet": "(pr-str $hover-text)"
+                            }
+                        ],
                         "description": "Configuration for snippets that get called on hover",
                         "$schema": "http://json-schema.org/draft-06/schema#",
                         "items": {

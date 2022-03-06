@@ -1,19 +1,23 @@
 {
-  "calva.customREPLCommandSnippets": [
-    {
-      "name": "Double current",
-      "snippet": "(tap> [$current-form $current-form])"
-    }
-  ],
-  "calva.customREPLHoverSnippets": [
-    {
-      "name": "edn hover hover-text",
-      "snippet": "(str \"**JSON edn hover hover-text** \" \"$hover-text\")"
-    },
-    {
-      "name": "Show doc string",
-      "snippet": "(with-out-str (clojure.repl/doc $hover-text))"
-    }
-  ],
-  "calva.fmt.configPath": "CLOJURE-LSP"
+    "calva.customREPLCommandSnippets": [
+        {
+            "name": "Double current",
+            "snippet": "(tap> [$current-form $current-form])"
+        }
+    ],
+    "calva.customREPLHoverSnippets": [
+        {
+            "name": "edn hover hover-text",
+            "snippet": "(str \"**JSON edn hover hover-text** \" \"$hover-text\")"
+        },
+        {
+            "name": "Show doc string",
+            "snippet": "(clojure.string/replace (with-out-str (clojure.repl/doc $hover-text)) \"\n\" \"\n\n\")"
+        },
+        {
+            "name": "def var",
+            "snippet": "(pr-str $hover-text)"
+        }
+    ],
+    "calva.fmt.configPath": "CLOJURE-LSP"
 }
