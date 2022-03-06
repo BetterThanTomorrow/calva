@@ -16,7 +16,7 @@ export function getNamespace(doc?: vscode.TextDocument) {
     if (doc && doc.languageId == 'clojure') {
         try {
             const cursor: LispTokenCursor = docMirror
-                .mustGetDocument(doc)
+                .getDocument(doc)
                 .getTokenCursor(0);
             cursor.forwardWhitespace(true);
             let token: Token = null,
@@ -72,7 +72,7 @@ export function getNamespace(doc?: vscode.TextDocument) {
 
 export async function createNamespaceFromDocumentIfNotExists(doc) {
     if (utilities.getConnectedState()) {
-        const document = utilities.getDocument(doc);
+        const document = utilities.tryToGetDocument(doc);
         if (document) {
             const ns = getNamespace(document);
             const client = replSession.getSession(
@@ -90,7 +90,7 @@ export async function createNamespaceFromDocumentIfNotExists(doc) {
 }
 
 export function getDocumentNamespace(document = {}) {
-    const doc = utilities.getDocument(document);
+    const doc = utilities.tryToGetDocument(document);
 
     return getNamespace(doc);
 }

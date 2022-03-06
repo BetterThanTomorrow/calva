@@ -365,7 +365,7 @@ function wrapPareditCommand(command: PareditCommand) {
     return () => {
         try {
             const textEditor = window.activeTextEditor,
-                mDoc: EditableDocument = docMirror.mustGetDocument(
+                mDoc: EditableDocument = docMirror.getDocument(
                     textEditor.document
                 );
             if (!enabled || !languages.has(textEditor.document.languageId)) {

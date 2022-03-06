@@ -4,7 +4,7 @@ import * as util from './utilities';
 // TODO - this module has some code common with `state`. We can refactor `state` to use this functions.
 
 export function getProjectWsFolder(): vscode.WorkspaceFolder {
-    const doc = util.getDocument({});
+    const doc = util.tryToGetDocument({});
     if (doc) {
         const folder = vscode.workspace.getWorkspaceFolder(doc.uri);
         if (folder) {
@@ -57,7 +57,7 @@ export async function getProjectRootUri(): Promise<any> {
         'shadow-cljs.edn',
         'deps.edn',
     ];
-    const doc = util.getDocument({});
+    const doc = util.tryToGetDocument({});
     const workspaceFolder = getProjectWsFolder();
     return findProjectRootUri(projectFileNames, doc, workspaceFolder);
 }

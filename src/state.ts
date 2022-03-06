@@ -131,7 +131,7 @@ export async function getOrCreateNonProjectRoot(
 }
 
 function getProjectWsFolder(): vscode.WorkspaceFolder {
-    const doc = util.getDocument({});
+    const doc = util.tryToGetDocument({});
     if (doc) {
         const folder = vscode.workspace.getWorkspaceFolder(doc.uri);
         if (folder) {
@@ -169,7 +169,7 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
             'shadow-cljs.edn',
             'deps.edn',
         ];
-        const doc = util.getDocument({});
+        const doc = util.tryToGetDocument({});
         const workspaceFolder = getProjectWsFolder();
         await findLocalProjectRoot(projectFileNames, doc, workspaceFolder);
         await findProjectRootUri(projectFileNames, doc, workspaceFolder);

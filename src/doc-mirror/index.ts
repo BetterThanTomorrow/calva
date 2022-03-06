@@ -244,12 +244,12 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
     model.lineInputModel.deletedLines.clear();
 }
 
-export function getDocument(doc: vscode.TextDocument) {
+export function tryToGetDocument(doc: vscode.TextDocument) {
     return documents.get(doc);
 }
 
-export function mustGetDocument(doc: vscode.TextDocument) {
-    const mirrorDoc = documents.get(doc);
+export function getDocument(doc: vscode.TextDocument) {
+    const mirrorDoc = tryToGetDocument(doc);
 
     if (isUndefined(mirrorDoc)) {
         throw new Error('Missing mirror document!');
@@ -262,7 +262,7 @@ export function getDocumentOffset(
     doc: vscode.TextDocument,
     position: vscode.Position
 ) {
-    const model = mustGetDocument(doc).model;
+    const model = getDocument(doc).model;
     return model.getOffsetForLine(position.line) + position.character;
 }
 
@@ -287,7 +287,7 @@ export function activate() {
     }
     registered = true;
 
-    addDocument(utilities.getDocument({}));
+    addDocument(utilities.tryToGetDocument({}));
 
     vscode.workspace.onDidCloseTextDocument((e) => {
         if (e.languageId == 'clojure') {

@@ -167,7 +167,7 @@ function getWordAtPosition(document, position) {
     return text;
 }
 
-function getDocument(
+function tryToGetDocument(
     document: vscode.TextDocument | Record<string, never>
 ): vscode.TextDocument | undefined {
     const activeTextEditor = getActiveTextEditor();
@@ -189,10 +189,10 @@ function getDocument(
     }
 }
 
-function mustGetDocument(
+function getDocument(
     document: vscode.TextDocument | Record<string, never>
 ): vscode.TextDocument {
-    const doc = getDocument(document);
+    const doc = tryToGetDocument(document);
 
     if (isUndefined(doc)) {
         throw new Error('Expected an activeTextEditor with a document!');
@@ -202,7 +202,7 @@ function mustGetDocument(
 }
 
 function getFileType(document) {
-    const doc = getDocument(document);
+    const doc = tryToGetDocument(document);
 
     if (doc) {
         return path.extname(doc.fileName).replace(/^\./, '');
@@ -579,8 +579,8 @@ function mustGetActiveTextEditor(): vscode.TextEditor {
 export {
     distinct,
     getWordAtPosition,
+    tryToGetDocument,
     getDocument,
-    mustGetDocument,
     getFileType,
     getLaunchingState,
     setLaunchingState,

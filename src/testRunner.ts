@@ -348,7 +348,7 @@ async function runNamespaceTests(
     controller: vscode.TestController,
     document: vscode.TextDocument
 ) {
-    const doc = util.getDocument(document);
+    const doc = util.tryToGetDocument(document);
     if (outputWindow.isResultsDoc(doc)) {
         return;
     }
@@ -369,7 +369,7 @@ function getTestUnderCursor() {
 }
 
 async function runTestUnderCursor(controller: vscode.TestController) {
-    const doc = util.getDocument({});
+    const doc = util.tryToGetDocument({});
     const session = getSession(util.getFileType(doc));
     const ns = namespace.getNamespace(doc);
     const test = getTestUnderCursor();

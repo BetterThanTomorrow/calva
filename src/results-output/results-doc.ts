@@ -186,7 +186,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
                 const document = event.textEditor.document;
                 if (isResultsDoc(document)) {
                     const idx = document.offsetAt(event.selections[0].active);
-                    const mirrorDoc = docMirror.mustGetDocument(document);
+                    const mirrorDoc = docMirror.getDocument(document);
                     const selectionCursor = mirrorDoc.getTokenCursor(idx);
                     selectionCursor.forwardWhitespace();
                     if (selectionCursor.atEnd()) {
@@ -255,7 +255,7 @@ export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
 
 export async function setNamespaceFromCurrentFile() {
     const session = replSession.getSession();
-    const ns = namespace.getNamespace(util.getDocument({}));
+    const ns = namespace.getNamespace(util.tryToGetDocument({}));
     if (getNs() !== ns) {
         await session.eval("(in-ns '" + ns + ')', session.client.ns).value;
     }
@@ -265,7 +265,7 @@ export async function setNamespaceFromCurrentFile() {
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
     const session = replSession.getSession();
-    const ns = namespace.getNamespace(util.getDocument({}));
+    const ns = namespace.getNamespace(util.tryToGetDocument({}));
     const editor = util.mustGetActiveTextEditor();
     const doc = editor.document;
     const selection = editor.selection;

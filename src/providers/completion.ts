@@ -49,7 +49,7 @@ export async function provideCompletionItems(
             toplevel = document.getText(toplevelSelection),
             toplevelStartOffset = document.offsetAt(toplevelSelection.start),
             toplevelStartCursor = docMirror
-                .mustGetDocument(document)
+                .getDocument(document)
                 .getTokenCursor(toplevelStartOffset + 1),
             wordRange = document.getWordRangeAtPosition(position),
             wordStartLocalOffset =

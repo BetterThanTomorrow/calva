@@ -54,7 +54,7 @@ function update(context = state.extensionContext) {
         }`
     );
 
-    const doc = util.getDocument({}),
+    const doc = util.tryToGetDocument({}),
         fileType = util.getFileType(doc),
         cljsBuild = getStateValue('cljsBuild');
 

@@ -28,7 +28,7 @@ function determineCursorContexts(
     document: vscode.TextDocument,
     position: vscode.Position
 ): context.CursorContext[] {
-    const mirrorDoc = docMirror.mustGetDocument(document);
+    const mirrorDoc = docMirror.getDocument(document);
     return context.determineContexts(mirrorDoc, document.offsetAt(position));
 }
 

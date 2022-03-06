@@ -18,7 +18,7 @@ function getFormSelection(
     topLevel: boolean
 ): vscode.Selection {
     const idx = doc.offsetAt(pos);
-    const cursor = docMirror.mustGetDocument(doc).getTokenCursor(idx);
+    const cursor = docMirror.getDocument(doc).getTokenCursor(idx);
     const range = topLevel
         ? cursor.rangeForDefun(idx)
         : cursor.rangeForCurrentForm(idx);
@@ -32,7 +32,7 @@ function getEnclosingFormSelection(
     pos: vscode.Position
 ): vscode.Selection {
     const idx = doc.offsetAt(pos);
-    const cursor = docMirror.mustGetDocument(doc).getTokenCursor(idx);
+    const cursor = docMirror.getDocument(doc).getTokenCursor(idx);
     if (cursor.backwardList()) {
         cursor.backwardUpList();
         const start = cursor.offsetStart;
@@ -53,7 +53,7 @@ function selectForm(
     toplevel: boolean
 ) {
     const editor = util.mustGetActiveTextEditor(),
-        doc = util.mustGetDocument(document),
+        doc = util.getDocument(document),
         selection = editor.selection;
 
     if (selection.isEmpty) {

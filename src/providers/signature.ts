@@ -75,7 +75,7 @@ export async function provideSignatureHelp(
 
 function getCurrentArgsRanges(document: TextDocument, idx: number): Range[] {
     const cursor: LispTokenCursor = docMirror
-            .mustGetDocument(document)
+            .getDocument(document)
             .getTokenCursor(idx),
         allRanges = cursor.rowColRangesForSexpsInList('(');
 
@@ -112,7 +112,7 @@ function getActiveSignatureIdx(
 
 function getSymbol(document: TextDocument, idx: number): string {
     const cursor: LispTokenCursor = docMirror
-        .mustGetDocument(document)
+        .getDocument(document)
         .getTokenCursor(idx);
     return cursor.getFunctionName();
 }
@@ -123,7 +123,7 @@ function coordsToRange(coords: [[number, number], [number, number]]): Range {
 
 function getPreviousRangeIndexAndFunction(document: TextDocument, idx: number) {
     const peekBehindCursor: LispTokenCursor = docMirror
-        .mustGetDocument(document)
+        .getDocument(document)
         .getTokenCursor(idx);
     peekBehindCursor.backwardFunction(1);
     const previousFunction = peekBehindCursor.getFunctionName(0),

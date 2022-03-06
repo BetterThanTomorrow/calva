@@ -24,8 +24,7 @@ export class FormatOnTypeEditProvider
                 keyMap === 'strict' &&
                 getConfig().strictPreventUnmatchedClosingBracket
             ) {
-                const mDoc: EditableDocument =
-                    docMirror.mustGetDocument(document);
+                const mDoc: EditableDocument = docMirror.getDocument(document);
                 const tokenCursor = mDoc.getTokenCursor();
                 if (tokenCursor.withinComment()) {
                     return null;

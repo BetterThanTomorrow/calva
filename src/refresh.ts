@@ -21,7 +21,7 @@ function report(res, chan: vscode.OutputChannel) {
 }
 
 function refresh(document = {}) {
-    const doc = util.getDocument(document),
+    const doc = util.tryToGetDocument(document),
         client: NReplSession = replSession.getSession(util.getFileType(doc)),
         chan: vscode.OutputChannel = state.outputChannel();
 
@@ -36,7 +36,7 @@ function refresh(document = {}) {
 }
 
 function refreshAll(document = {}) {
-    const doc = util.getDocument(document),
+    const doc = util.tryToGetDocument(document),
         client: NReplSession = replSession.getSession(util.getFileType(doc)),
         chan: vscode.OutputChannel = state.outputChannel();
 

@@ -300,7 +300,7 @@ function registerLspCommand(
     )}`;
     return vscode.commands.registerCommand(vscodeCommand, async () => {
         const editor = util.mustGetActiveTextEditor();
-        const document = util.getDocument(editor.document);
+        const document = util.tryToGetDocument(editor.document);
         if (document && document.languageId === 'clojure') {
             const line = editor.selection.start.line;
             const column = editor.selection.start.character;
