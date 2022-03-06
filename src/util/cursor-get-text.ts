@@ -4,7 +4,7 @@
 
 import { EditableDocument } from '../cursor-doc/model';
 
-export type RangeAndText = [[number, number], string];
+export type RangeAndText = [[number, number], string] | [undefined, ''];
 
 export function currentTopLevelFunction(
     doc: EditableDocument,
