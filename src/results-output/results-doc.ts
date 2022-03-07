@@ -107,9 +107,8 @@ export function isResultsDoc(doc?: vscode.TextDocument): boolean {
 }
 
 function getViewColumn(): vscode.ViewColumn {
-    const column: vscode.ViewColumn = state.extensionContext.workspaceState.get(
-        `outputWindowViewColumn`
-    );
+    const column: vscode.ViewColumn | undefined =
+        state.extensionContext.workspaceState.get(`outputWindowViewColumn`);
     return column ? column : vscode.ViewColumn.Two;
 }
 
@@ -339,7 +338,7 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                 if (visibleResultsEditors.length == 0) {
                     scrollToBottomSub =
                         vscode.window.onDidChangeActiveTextEditor((editor) => {
-                            if (isResultsDoc(editor.document)) {
+                            if (editor && isResultsDoc(editor.document)) {
                                 util.scrollToBottom(editor);
                                 scrollToBottomSub.dispose();
                             }

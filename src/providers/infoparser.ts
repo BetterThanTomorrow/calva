@@ -7,13 +7,13 @@ import * as tokenCursor from '../cursor-doc/token-cursor';
 import { getConfig } from '../config';
 
 export class REPLInfoParser {
-    private _name: string = undefined;
+    private _name: string | undefined = undefined;
 
-    private _arglist: string = undefined;
+    private _arglist: string | undefined = undefined;
 
-    private _formsString: string = undefined;
+    private _formsString: string | undefined = undefined;
 
-    private _docString: string = undefined;
+    private _docString: string | undefined = undefined;
 
     private _specialForm: boolean = false;
 
@@ -55,7 +55,7 @@ export class REPLInfoParser {
     private getParameters(
         symbol: string,
         argList: string
-    ): ParameterInformation[] {
+    ): ParameterInformation[] | undefined {
         const offsets = this.getParameterOffsets(symbol, argList);
         if (offsets !== undefined) {
             return offsets.map((o) => {
@@ -67,7 +67,7 @@ export class REPLInfoParser {
     private getParameterOffsets(
         symbol: string,
         argList: string
-    ): [number, number][] {
+    ): [number, number][] | undefined {
         const cursor: tokenCursor.LispTokenCursor =
             tokenCursor.createStringCursor(argList);
         if (cursor.downList()) {
@@ -144,7 +144,9 @@ export class REPLInfoParser {
         return result;
     }
 
-    getCompletion(): [string | MarkdownString, string] {
+    getCompletion():
+        | [string | MarkdownString, string]
+        | [undefined, undefined] {
         const name = new MarkdownString(this._docString);
         if (this._name !== '') {
             if (this._specialForm) {
@@ -156,7 +158,7 @@ export class REPLInfoParser {
         return [undefined, undefined];
     }
 
-    getSignatures(symbol: string): SignatureInformation[] {
+    getSignatures(symbol: string): SignatureInformation[] | undefined {
         if (this._name !== '') {
             const argLists = this._arglist ? this._arglist : this._formsString;
             if (argLists) {
@@ -202,13 +204,15 @@ export function getHoverNotAvailable(text: string): string {
     return new REPLInfoParser({ name: text }).getHoverNotAvailable();
 }
 
-export function getCompletion(msg: any): [string | MarkdownString, string] {
+export function getCompletion(
+    msg: any
+): [string | MarkdownString, string] | [undefined, undefined] {
     return new REPLInfoParser(msg).getCompletion();
 }
 
 export function getSignatures(
     msg: any,
     symbol: string
-): SignatureInformation[] {
+): SignatureInformation[] | undefined {
     return new REPLInfoParser(msg).getSignatures(symbol);
 }

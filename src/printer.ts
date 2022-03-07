@@ -107,7 +107,7 @@ export function getServerSidePrinter(pprintOptions: PrettyPrintingOptions) {
     }
 }
 
-export function prettyPrintingOptions(): PrettyPrintingOptions {
+export function prettyPrintingOptions(): PrettyPrintingOptions | undefined {
     return getConfig().prettyPrintingOptions;
 }
 

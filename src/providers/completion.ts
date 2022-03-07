@@ -67,7 +67,7 @@ export async function provideCompletionItems(
             res = await client.complete(
                 ns,
                 text,
-                toplevelIsValidForm ? context : null
+                toplevelIsValidForm ? context : undefined
             ),
             results = res.completions || [];
 

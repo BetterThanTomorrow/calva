@@ -3,7 +3,7 @@ import * as util from './utilities';
 
 // TODO - this module has some code common with `state`. We can refactor `state` to use this functions.
 
-export function getProjectWsFolder(): vscode.WorkspaceFolder {
+export function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
     const doc = util.tryToGetDocument({});
     if (doc) {
         const folder = vscode.workspace.getWorkspaceFolder(doc.uri);
@@ -24,10 +24,10 @@ export async function findProjectRootUri(
     projectFileNames: string[],
     doc: vscode.TextDocument | undefined,
     workspaceFolder: vscode.WorkspaceFolder
-): Promise<vscode.Uri> {
+): Promise<vscode.Uri | undefined> {
     let searchUri = doc?.uri || workspaceFolder?.uri;
     if (searchUri && !(searchUri.scheme === 'untitled')) {
-        let prev: vscode.Uri;
+        let prev: vscode.Uri | undefined = undefined;
         while (searchUri != prev) {
             try {
                 for (const projectFile of projectFileNames) {

@@ -81,7 +81,7 @@ function update(context = state.extensionContext) {
 
     cljsBuildStatus.text = null;
     cljsBuildStatus.command = 'calva.switchCljsBuild';
-    cljsBuildStatus.tooltip = null;
+    cljsBuildStatus.tooltip = undefined;
 
     if (getStateValue('connected')) {
         connectionStatus.text = 'REPL $(zap)';

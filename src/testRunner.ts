@@ -78,7 +78,7 @@ export function assertionName(result: cider.TestResult): string {
 function existingUriForNameSpace(
     controller: vscode.TestController,
     nsName: string
-): vscode.Uri | null {
+): vscode.Uri | undefined {
     return controller.items.get(nsName)?.uri;
 }
 

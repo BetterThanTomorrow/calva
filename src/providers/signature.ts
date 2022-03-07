@@ -19,7 +19,7 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
         document: TextDocument,
         position: Position,
         token: CancellationToken
-    ): Promise<SignatureHelp> {
+    ): Promise<SignatureHelp | undefined> {
         return provideSignatureHelp(document, position, token);
     }
 }
@@ -28,7 +28,7 @@ export async function provideSignatureHelp(
     document: TextDocument,
     position: Position,
     _token: CancellationToken
-): Promise<SignatureHelp> {
+): Promise<SignatureHelp | undefined> {
     if (util.getConnectedState()) {
         const ns = namespace.getNamespace(document),
             idx = document.offsetAt(position),
@@ -70,7 +70,7 @@ export async function provideSignatureHelp(
             }
         }
     }
-    return null;
+    return undefined;
 }
 
 function getCurrentArgsRanges(document: TextDocument, idx: number): Range[] {
@@ -86,7 +86,7 @@ function getCurrentArgsRanges(document: TextDocument, idx: number): Range[] {
         (previousRangeIndex > 1 &&
             ['->', 'some->'].includes(previousFunction)) ||
         (previousRangeIndex > 1 &&
-            previousRangeIndex % 2 &&
+            previousRangeIndex % 2 !== 0 &&
             previousFunction === 'cond->');
 
     if (allRanges !== undefined) {

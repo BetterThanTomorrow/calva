@@ -46,7 +46,7 @@ const PROJECT_DIR_KEY = 'connect.projectDir';
 const PROJECT_DIR_URI_KEY = 'connect.projectDirNew';
 const PROJECT_CONFIG_MAP = 'config';
 
-export function getProjectRootLocal(useCache = true): string {
+export function getProjectRootLocal(useCache = true): string | undefined {
     if (useCache) {
         return getStateValue(PROJECT_DIR_KEY);
     }
@@ -62,7 +62,7 @@ export function setProjectConfig(config) {
     return setStateValue(PROJECT_CONFIG_MAP, config);
 }
 
-export function getProjectRootUri(useCache = true): vscode.Uri {
+export function getProjectRootUri(useCache = true): vscode.Uri | undefined {
     if (useCache) {
         return getStateValue(PROJECT_DIR_URI_KEY);
     }
@@ -72,8 +72,8 @@ const NON_PROJECT_DIR_KEY = 'calva.connect.nonProjectDir';
 
 export async function getNonProjectRootDir(
     context: vscode.ExtensionContext
-): Promise<vscode.Uri> {
-    let root: vscode.Uri;
+): Promise<vscode.Uri | undefined> {
+    let root: vscode.Uri | undefined = undefined;
     if (!process.env['NEW_DRAMS']) {
         root = await context.globalState.get<Promise<vscode.Uri>>(
             NON_PROJECT_DIR_KEY
@@ -108,7 +108,7 @@ export async function getOrCreateNonProjectRoot(
     context: vscode.ExtensionContext,
     preferProjectDir = false
 ): Promise<vscode.Uri> {
-    let root: vscode.Uri;
+    let root: vscode.Uri | undefined = undefined;
     if (preferProjectDir) {
         root = getProjectRootUri();
     }
@@ -130,7 +130,7 @@ export async function getOrCreateNonProjectRoot(
     return root;
 }
 
-function getProjectWsFolder(): vscode.WorkspaceFolder {
+function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
     const doc = util.tryToGetDocument({});
     if (doc) {
         const folder = vscode.workspace.getWorkspaceFolder(doc.uri);
@@ -180,14 +180,14 @@ function findLocalProjectRoot(
     projectFileNames,
     doc,
     workspaceFolder
-): Promise<void> {
+): undefined {
     if (workspaceFolder) {
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
         setStateValue(PROJECT_DIR_KEY, rootPath);
         setStateValue(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
 
-        let d = null;
-        let prev = null;
+        let d: any;
+        let prev: any;
         if (doc && path.dirname(doc.uri.fsPath) !== '.') {
             d = path.dirname(doc.uri.fsPath);
         } else {

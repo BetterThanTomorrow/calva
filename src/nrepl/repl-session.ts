@@ -20,10 +20,10 @@ function getSession(fileType?: string): NReplSession {
     }
 }
 
-function getReplSessionType(connected: boolean): string {
+function getReplSessionType(connected: boolean): string | undefined {
     const doc = tryToGetDocument({});
     const fileType = getFileType(doc);
-    let sessionType: string = null;
+    let sessionType: string | undefined = undefined;
 
     if (connected) {
         if (outputWindow.isResultsDoc(doc)) {
