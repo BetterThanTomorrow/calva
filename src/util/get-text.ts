@@ -147,8 +147,10 @@ export function currentContext(
     )[1];
     result[prefix + 'topLevelForm'] = currentTopLevelFormText(document, pos)[1];
     result[prefix + 'currentFn'] = currentFunction(document)[1];
-    result[prefix + 'topLevelDefinedForm'] =
-        currentTopLevelFunction(document, pos)[1];
+    result[prefix + 'topLevelDefinedForm'] = currentTopLevelFunction(
+        document,
+        pos
+    )[1];
     result[prefix + 'head'] = toStartOfList(document)[1];
     result[prefix + 'tail'] = toEndOfList(document)[1];
 

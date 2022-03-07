@@ -421,7 +421,10 @@ function evaluateEnclosingForm(document = {}, options = {}) {
 }
 
 function evaluateUsingTextAndSelectionGetter(
-    getter: (doc: vscode.TextDocument, pos: vscode.Position) => getText.SelectionAndText,
+    getter: (
+        doc: vscode.TextDocument,
+        pos: vscode.Position
+    ) => getText.SelectionAndText,
     formatter: (s: string) => string,
     document = {},
     options = {}
@@ -431,7 +434,10 @@ function evaluateUsingTextAndSelectionGetter(
         Object.assign({}, options, {
             pprintOptions: getConfig().prettyPrintingOptions,
             selectionFn: (editor: vscode.TextEditor) => {
-                const [selection, code] = getter(editor?.document, editor?.selection.active);
+                const [selection, code] = getter(
+                    editor?.document,
+                    editor?.selection.active
+                );
                 return [selection, formatter(code)];
             },
         })

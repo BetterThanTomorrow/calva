@@ -6,7 +6,10 @@ import { EditableDocument } from '../cursor-doc/model';
 
 export type RangeAndText = [[number, number], string];
 
-export function currentTopLevelFunction(doc: EditableDocument, active: number): RangeAndText {
+export function currentTopLevelFunction(
+    doc: EditableDocument,
+    active: number
+): RangeAndText {
     const defunCursor = doc.getTokenCursor(active);
     const defunStart = defunCursor.rangeForDefun(active)[0];
     const cursor = doc.getTokenCursor(defunStart);
