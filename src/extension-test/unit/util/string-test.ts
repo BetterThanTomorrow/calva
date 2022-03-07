@@ -41,8 +41,8 @@ describe('string', () => {
     });
 
     describe('getTextAfterLastOccurrenceOfSubstring', () => {
-        it('returns null if substring does not exist', () => {
-            expect(null).toBe(
+        it('returns undefined if substring does not exist', () => {
+            expect(undefined).toBe(
                 getTextAfterLastOccurrenceOfSubstring('hello world', '123')
             );
         });

@@ -123,7 +123,7 @@ describe('test result processing', () => {
                 var: 'test',
                 message: '',
             })
-        ).toBe(null);
+        ).toBeUndefined();
 
         expect(
             cider.detailedMessage({
