@@ -11,7 +11,7 @@ export type PrettyPrintingOptions = {
     enabled: boolean;
     printFn?: PrintFnOptions;
     printEngine?: 'calva' | 'pprint' | 'fipp' | 'puget' | 'zprint' | 'custom';
-    width: number;
+    width?: number;
     maxLength?: number;
     maxDepth?: number;
 };
@@ -27,9 +27,9 @@ export const disabledPrettyPrinter: PrettyPrintingOptions = {
 function getPrinter(
     pprintOptions: PrettyPrintingOptions,
     printerFn: string,
-    widthSlug: string,
-    lengthSlug: string,
-    depthsSlug: string,
+    widthSlug?: string,
+    lengthSlug?: string,
+    depthsSlug?: string,
     moreOptions = {}
 ) {
     const PRINTER_FN = 'nrepl.middleware.print/print',
