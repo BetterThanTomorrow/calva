@@ -361,7 +361,7 @@ async function runNamespaceTests(
 function getTestUnderCursor() {
     const editor = util.getActiveTextEditor();
     if (editor) {
-        return getText.currentTopLevelFunction(editor?.document)[1];
+        return getText.currentTopLevelFunction(editor?.document, editor?.selection.active)[1];
     }
 }
 

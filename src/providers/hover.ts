@@ -69,13 +69,11 @@ export async function provideHover(
                         if (text) {
                             const hover = new vscode.MarkdownString();
                             hover.isTrusted = true;
-                            hover.appendMarkdown(
-                                _.replace(
-                                    _.replace(_.trim(text, '"'), /\\n/g, '\n'),
-                                    /\\"/g,
-                                    '"'
-                                )
-                            );
+                            const hoverText = text
+                                .replace(/^"|"$/g, '')
+                                .replace(/\\n/g, '\n')
+                                .replace(/\\"/g, '"');
+                            hover.appendMarkdown(hoverText);
                             hovers.push(hover);
                         }
                     } catch (error) {

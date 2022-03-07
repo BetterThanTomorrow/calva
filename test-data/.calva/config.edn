@@ -6,7 +6,7 @@
   {:name "edn hover hover-current-form"
    :snippet "(str \"**EDN edn hover hover-current-form** \" \"$hover-current-form\")"}
   {:name "edn hover show val"
-   :snippet "(str \"**EDN edn hover show val**\n\n```clojure\n\" (pr-str (eval (symbol (str \"$ns\" \"/\" \"$hover-text\")))) \"\n```\")"}
+   :snippet "(str \"### EDN show val\n```clojure\n\" (pr-str (eval (symbol (str \"$ns\" \"/\" \"$hover-top-level-defined-symbol\")))) \"\n```\")"}
   {:name "edn hover current-form"
    :snippet "(str \"**EDN edn hover current-form** \" \"$current-form\")"}]}
 

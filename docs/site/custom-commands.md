@@ -137,7 +137,7 @@ A new experimental feature lets library authors ship snippets inside their jar f
  [{:name "edn hover"
    :snippet "(str \"$hover-tex\")"}
   {:name "edn hover show val"
-   :snippet "(str \"**EDN edn hover show val**\n\n```clojure\n\" (pr-str (eval (symbol (str \"$ns\" \"/\" \"$hover-top-level-defined-symbol\")))) \"\n```\")"}
+   :snippet "(str \"### EDN show val\n```clojure\n\" (pr-str (eval (symbol (str \"$ns\" \"/\" \"$hover-top-level-defined-symbol\")))) \"\n```\")"}
  ]
  }
 ```
