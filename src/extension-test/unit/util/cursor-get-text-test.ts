@@ -3,64 +3,60 @@ import { docFromTextNotation } from '../common/text-notation';
 import * as getText from '../../../util/cursor-get-text';
 
 describe('get text', () => {
-    // describe('getTopLevelFunction', () => {
-    //     it('Finds top level function at top', () => {
-    //         const a = docFromTextNotation(
-    //             '(foo bar)•(deftest a-test•  (baz |gaz))'
-    //         );
-    //         const b = docFromTextNotation(
-    //             '(foo bar)•(deftest |a-test|•  (baz gaz))'
-    //         );
-    //         const range: [number, number] = [b.selectionLeft, b.selectionRight];
-    //         expect(getText.currentTopLevelFunction(a)).toEqual([
-    //             range,
-    //             b.model.getText(...range),
-    //         ]);
-    //     });
+    describe('getTopLevelFunction', () => {
+        it('Finds top level function at top', () => {
+            const a = docFromTextNotation(
+                '(foo bar)•(deftest a-test•  (baz |gaz))'
+            );
+            const b = docFromTextNotation(
+                '(foo bar)•(deftest |a-test|•  (baz gaz))'
+            );
+            const range: [number, number] = [b.selectionLeft, b.selectionRight];
+            expect(
+                getText.currentTopLevelFunction(a, a.selection.active)
+            ).toEqual([range, b.model.getText(...range)]);
+        });
 
-    //     it('Finds top level function when nested', () => {
-    //         const a = docFromTextNotation(
-    //             '(foo bar)•(with-test•  (deftest a-test•    (baz |gaz)))'
-    //         );
-    //         const b = docFromTextNotation(
-    //             '(foo bar)•(with-test•  (deftest |a-test|•    (baz gaz)))'
-    //         );
-    //         const range: [number, number] = [b.selectionLeft, b.selectionRight];
-    //         expect(getText.currentTopLevelFunction(a)).toEqual([
-    //             range,
-    //             b.model.getText(...range),
-    //         ]);
-    //     });
+        it('Finds top level function when nested', () => {
+            const a = docFromTextNotation(
+                '(foo bar)•(with-test•  (deftest a-test•    (baz |gaz)))'
+            );
+            const b = docFromTextNotation(
+                '(foo bar)•(with-test•  (deftest |a-test|•    (baz gaz)))'
+            );
+            const range: [number, number] = [b.selectionLeft, b.selectionRight];
+            expect(
+                getText.currentTopLevelFunction(a, a.selection.active)
+            ).toEqual([range, b.model.getText(...range)]);
+        });
 
-    //     it('Finds top level function when namespaced def-macro', () => {
-    //         // https://github.com/BetterThanTomorrow/calva/issues/1086
-    //         const a = docFromTextNotation(
-    //             '(foo bar)•(with-test•  (t/deftest a-test•    (baz |gaz)))'
-    //         );
-    //         const b = docFromTextNotation(
-    //             '(foo bar)•(with-test•  (t/deftest |a-test|•    (baz gaz)))'
-    //         );
-    //         const range: [number, number] = [b.selectionLeft, b.selectionRight];
-    //         expect(getText.currentTopLevelFunction(a)).toEqual([
-    //             range,
-    //             b.model.getText(...range),
-    //         ]);
-    //     });
+        it('Finds top level function when namespaced def-macro', () => {
+            // https://github.com/BetterThanTomorrow/calva/issues/1086
+            const a = docFromTextNotation(
+                '(foo bar)•(with-test•  (t/deftest a-test•    (baz |gaz)))'
+            );
+            const b = docFromTextNotation(
+                '(foo bar)•(with-test•  (t/deftest |a-test|•    (baz gaz)))'
+            );
+            const range: [number, number] = [b.selectionLeft, b.selectionRight];
+            expect(
+                getText.currentTopLevelFunction(a, a.selection.active)
+            ).toEqual([range, b.model.getText(...range)]);
+        });
 
-    //     it('Finds top level function when function has metadata', () => {
-    //         const a = docFromTextNotation(
-    //             '(foo bar)•(deftest ^{:some :thing} a-test•  (baz |gaz))'
-    //         );
-    //         const b = docFromTextNotation(
-    //             '(foo bar)•(deftest ^{:some :thing} |a-test|•  (baz gaz))'
-    //         );
-    //         const range: [number, number] = [b.selectionLeft, b.selectionRight];
-    //         expect(getText.currentTopLevelFunction(a)).toEqual([
-    //             range,
-    //             b.model.getText(...range),
-    //         ]);
-    //     });
-    // });
+        it('Finds top level function when function has metadata', () => {
+            const a = docFromTextNotation(
+                '(foo bar)•(deftest ^{:some :thing} a-test•  (baz |gaz))'
+            );
+            const b = docFromTextNotation(
+                '(foo bar)•(deftest ^{:some :thing} |a-test|•  (baz gaz))'
+            );
+            const range: [number, number] = [b.selectionLeft, b.selectionRight];
+            expect(
+                getText.currentTopLevelFunction(a, a.selection.active)
+            ).toEqual([range, b.model.getText(...range)]);
+        });
+    });
 
     describe('getTopLevelForm', () => {
         it('Finds top level form', () => {
