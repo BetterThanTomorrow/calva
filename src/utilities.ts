@@ -10,6 +10,7 @@ import * as outputWindow from './results-output/results-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
 import { isUndefined } from 'lodash';
+import { isNullOrUndefined } from 'util';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
@@ -20,6 +21,17 @@ export function stripAnsi(str: string) {
         /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g,
         ''
     );
+}
+
+// This needs to be a function and not an arrow function
+// because assertion types are special.
+export function assertIsDefined<T>(
+    value: T | undefined | null,
+    message: string | (() => string)
+): asserts value is T {
+    if (isNullOrUndefined(value)) {
+        throw new Error(typeof message === 'string' ? message : message());
+    }
 }
 
 export function escapeStringRegexp(s: string): string {
