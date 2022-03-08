@@ -1177,6 +1177,14 @@ describe('paredit', () => {
                     paredit.forwardBarfSexp(a);
                     expect(textAndSelection(a)).toEqual(textAndSelection(b));
                 });
+                it('barfs form from balanced list, when inside unclosed list', () => {
+                    // Trying to expose:
+                    // https://github.com/BetterThanTomorrow/calva/issues/1585
+                    const a = docFromTextNotation('(let [a| a)');
+                    const b = docFromTextNotation('(let [a|) a');
+                    paredit.forwardBarfSexp(a);
+                    expect(textAndSelection(a)).toEqual(textAndSelection(b));
+                });
             });
 
             describe('Barfing backwards', () => {
