@@ -23,6 +23,10 @@ export function stripAnsi(str: string) {
     );
 }
 
+export const isDefined = <T>(value: T | undefined | null): value is T => {
+    return !isNullOrUndefined(value);
+};
+
 // This needs to be a function and not an arrow function
 // because assertion types are special.
 export function assertIsDefined<T>(
