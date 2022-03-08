@@ -24,7 +24,7 @@ export function getNamespace(doc?: vscode.TextDocument) {
                 .getDocument(doc)
                 .getTokenCursor(0);
             cursor.forwardWhitespace(true);
-            let token: Token = null,
+            let token: Token | undefined = undefined,
                 foundNsToken: boolean = false,
                 foundNsId: boolean = false;
             do {
