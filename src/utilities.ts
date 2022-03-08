@@ -565,12 +565,18 @@ const isWindows = process.platform === 'win32';
 
 export async function isDocumentWritable(
     document: vscode.TextDocument
-): Promise<boolean> {
+): Promise<boolean | undefined> {
     if (!vscode.workspace.fs.isWritableFileSystem(document.uri.scheme)) {
         return false;
     }
     const fileStat = await vscode.workspace.fs.stat(document.uri);
-    return (fileStat.permissions & vscode.FilePermission.Readonly) !== 1;
+
+    return (
+        // Try treating it as writable when we can't get the permissions,
+        // let it error later when we go to use the file.
+        isUndefined(fileStat.permissions) ||
+        (fileStat.permissions & vscode.FilePermission.Readonly) !== 1
+    );
 }
 
 // Returns the elements of coll with duplicates removed
