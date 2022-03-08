@@ -37,12 +37,28 @@ function colorValue(
     section: string,
     currentConf: vscode.WorkspaceConfiguration
 ): string {
+    const configSection = currentConf.inspect(section);
+
+    util.assertIsDefined(
+        configSection,
+        () => `Expected config section "${section}" to be defined!`
+    );
+
     const { defaultValue, globalValue, workspaceFolderValue, workspaceValue } =
-        currentConf.inspect(section);
-    return (workspaceFolderValue ||
-        workspaceValue ||
-        globalValue ||
-        defaultValue) as string;
+        configSection;
+
+    const value =
+        workspaceFolderValue || workspaceValue || globalValue || defaultValue;
+
+    if (typeof value !== 'string') {
+        throw new Error(
+            `Expected color value to be a string! We got ${JSON.stringify(
+                value
+            )}`
+        );
+    }
+
+    return value;
 }
 
 function update(context = state.extensionContext) {
