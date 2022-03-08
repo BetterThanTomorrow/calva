@@ -215,7 +215,20 @@ function reportTests(
     diagnosticCollection.clear();
 
     const recordDiagnostic = (result: cider.TestResult) => {
+        const { line, file } = result;
+
+        util.assertIsDefined(
+            result.line,
+            'Expected cider test result to have a line!'
+        );
+
+        util.assertIsDefined(
+            result.file,
+            'Expected cider test result to have a file!'
+        );
+
         const msg = cider.diagnosticMessage(result);
+
         const err = new vscode.Diagnostic(
             new vscode.Range(result.line - 1, 0, result.line - 1, 1000),
             msg,
