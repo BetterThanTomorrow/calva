@@ -135,7 +135,8 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
         )[1],
         currentFn: getText.currentFunction(editor?.document)[1],
         topLevelDefinedForm: getText.currentTopLevelFunction(
-            editor?.document
+            editor?.document,
+            editor?.selection.active
         )[1],
         head: getText.toStartOfList(editor?.document)[1],
         tail: getText.toEndOfList(editor?.document)[1],

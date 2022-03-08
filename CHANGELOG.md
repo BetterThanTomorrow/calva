@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Fix hover snippet markdown and adds example](https://github.com/BetterThanTomorrow/calva/pull/1582)
 - Maintenance: [Begin work on enabling strictNullChecks in the TypeScript config.](https://github.com/BetterThanTomorrow/calva/pull/1568)
 
 ## [2.0.252] - 2022-03-05
