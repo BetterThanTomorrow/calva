@@ -5,7 +5,7 @@ import * as docMirror from '../doc-mirror/index';
 import * as cursorTextGetter from './cursor-get-text';
 import { EditableDocument } from '../cursor-doc/model';
 
-export type SelectionAndText = [vscode.Selection, string] | [undefined, ''];
+export type SelectionAndText = [vscode.Selection | undefined, string];
 
 function _currentFormText(
     doc: vscode.TextDocument,
