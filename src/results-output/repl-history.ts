@@ -8,10 +8,11 @@ import {
 import type { ReplSessionType } from '../config';
 import { isResultsDoc, getSessionType, getPrompt, append } from './results-doc';
 import { addToHistory } from './util';
+import { isUndefined } from 'lodash';
 
 const replHistoryCommandsActiveContext = 'calva:replHistoryCommandsActive';
-let historyIndex = null;
-let lastTextAtPrompt = null;
+let historyIndex: number | undefined = undefined;
+let lastTextAtPrompt: string | undefined = undefined;
 
 function setReplHistoryCommandsActiveContext(editor: vscode.TextEditor): void {
     if (editor && util.getConnectedState() && isResultsDoc(editor.document)) {
@@ -37,8 +38,8 @@ function setReplHistoryCommandsActiveContext(editor: vscode.TextEditor): void {
 }
 
 function resetState(): void {
-    historyIndex = null;
-    lastTextAtPrompt = null;
+    historyIndex = undefined;
+    lastTextAtPrompt = undefined;
 }
 
 function getHistoryKey(replSessionType: ReplSessionType): string {
@@ -83,7 +84,7 @@ function clearHistory() {
 }
 
 function showReplHistoryEntry(
-    historyEntry: string,
+    historyEntry: string | undefined,
     resultsEditor: vscode.TextEditor
 ): void {
     const prompt = getPrompt();
@@ -128,10 +129,14 @@ function showPreviousReplHistoryEntry(): void {
         doc.getText(),
         getPrompt()
     );
-    if (historyIndex === null) {
+    if (isUndefined(historyIndex)) {
         historyIndex = history.length;
         lastTextAtPrompt = textAtPrompt;
     } else {
+        util.assertIsDefined(
+            textAtPrompt,
+            'Expected to find text at the prompt!'
+        );
         updateReplHistory(replSessionType, history, textAtPrompt, historyIndex);
     }
     historyIndex--;
@@ -147,12 +152,20 @@ function showNextReplHistoryEntry(): void {
         return;
     }
     if (historyIndex === history.length - 1) {
-        historyIndex = null;
+        historyIndex = undefined;
         showReplHistoryEntry(lastTextAtPrompt, editor);
     } else {
         const textAtPrompt = getTextAfterLastOccurrenceOfSubstring(
             doc.getText(),
             getPrompt()
+        );
+        util.assertIsDefined(
+            textAtPrompt,
+            'Expected to find text at the prompt!'
+        );
+        util.assertIsDefined(
+            historyIndex,
+            'Expected a value for historyIndex!'
         );
         updateReplHistory(replSessionType, history, textAtPrompt, historyIndex);
         historyIndex++;
