@@ -386,7 +386,7 @@ describe('Token Cursor', () => {
             cursor.forwardList();
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-        it('Does not move when unbalanced from extra opens', () => {
+        it('Does not move when at start of unbalanced list', () => {
             // https://github.com/BetterThanTomorrow/calva/issues/1573
             // https://github.com/BetterThanTomorrow/calva/commit/d77359fcea16bc052ab829853d5711434330a375
             const a = docFromTextNotation('([|');
@@ -394,6 +394,14 @@ describe('Token Cursor', () => {
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             const result = cursor.backwardList();
             expect(result).toBe(false);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Moves to stary of unbalanced list', () => {
+            const a = docFromTextNotation('(let [a| a');
+            const b = docFromTextNotation('(let [|a a');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            const result = cursor.backwardList();
+            expect(result).toBe(true);
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
         it('Finds the list start when unbalanced from extra closes outside the current list', () => {
