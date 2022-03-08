@@ -91,7 +91,7 @@ export function getSession(): NReplSession | undefined {
     return _sessionInfo[_sessionType].session;
 }
 
-export function setSession(session: NReplSession, newNs: string): void {
+export function setSession(session: NReplSession, newNs?: string): void {
     if (session) {
         if (session.replType) {
             _sessionType = session.replType;
@@ -256,7 +256,7 @@ export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
 export async function setNamespaceFromCurrentFile() {
     const session = replSession.getSession();
     const ns = namespace.getNamespace(util.tryToGetDocument({}));
-    if (getNs() !== ns) {
+    if (getNs() !== ns && util.isDefined(ns)) {
         await session.eval("(in-ns '" + ns + ')', session.client.ns).value;
     }
     setSession(session, ns);
@@ -452,5 +452,10 @@ export function appendPrompt(onAppended?: OnAppendedCallback) {
 }
 
 function getUriForCurrentNamespace(): Promise<vscode.Uri> {
-    return namespace.getUriForNamespace(getSession(), getNs());
+    const session = getSession();
+    const ns = getNs();
+
+    util.assertIsDefined(session, 'Expected a session to be defined!');
+    util.assertIsDefined(ns, 'Expected an ns to be defined!');
+    return namespace.getUriForNamespace(session, ns);
 }
