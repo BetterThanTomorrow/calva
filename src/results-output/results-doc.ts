@@ -79,7 +79,7 @@ export function getPrompt(): string {
     return prompt;
 }
 
-export function getNs(): string {
+export function getNs(): string | undefined {
     return _sessionInfo[_sessionType].ns;
 }
 
@@ -87,7 +87,7 @@ export function getSessionType(): ReplSessionType {
     return _sessionType;
 }
 
-export function getSession(): NReplSession {
+export function getSession(): NReplSession | undefined {
     return _sessionInfo[_sessionType].session;
 }
 
@@ -113,7 +113,7 @@ function getViewColumn(): vscode.ViewColumn {
     return column ? column : vscode.ViewColumn.Two;
 }
 
-function setViewColumn(column: vscode.ViewColumn) {
+function setViewColumn(column: vscode.ViewColumn | undefined) {
     return state.extensionContext.workspaceState.update(
         `outputWindowViewColumn`,
         column
@@ -394,7 +394,7 @@ export function discardPendingPrints(): void {
 export type OutputStacktraceEntry = { uri: vscode.Uri; line: number };
 
 let _lastStacktrace: any[] = [];
-let _lastStackTraceRange: vscode.Range;
+let _lastStackTraceRange: vscode.Range | undefined;
 const _stacktraceEntries = {} as OutputStacktraceEntry;
 
 export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
@@ -435,7 +435,7 @@ export function markLastStacktraceRange(location: vscode.Location): void {
     _lastStackTraceRange = location.range; //new vscode.Range(newPosition, newPosition);
 }
 
-export function getLastStackTraceRange(): vscode.Range {
+export function getLastStackTraceRange(): vscode.Range | undefined {
     return _lastStackTraceRange;
 }
 
