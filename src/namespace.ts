@@ -10,7 +10,12 @@ import { NReplSession } from './nrepl';
 
 export function getNamespace(doc?: vscode.TextDocument) {
     if (outputWindow.isResultsDoc(doc)) {
-        return outputWindow.getNs();
+        const outputWindowNs = outputWindow.getNs();
+        utilities.assertIsDefined(
+            outputWindowNs,
+            'Expected output window to have a namespace!'
+        );
+        return outputWindowNs;
     }
     let ns = 'user';
     if (doc && doc.languageId == 'clojure') {
