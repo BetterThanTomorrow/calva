@@ -11,5 +11,11 @@
 
 (let [a "123"] a)
 
+
+;; This reproduces it for me (PEZ)
+;; Delete the closing square bracket
+;; With the cursor behind `[a` do **Paredit Barf Forward**
+;; BOOM
+
 (let [a] a)
 
