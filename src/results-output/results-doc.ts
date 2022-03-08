@@ -377,7 +377,10 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                             editQueue = remainingEditQueue;
                             return append(textBatch.join('\n'));
                         } else {
-                            return append(...editQueue.shift());
+                            // we're sure there's a value in the queue at this point
+                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                            const [text, onAppended] = editQueue.shift()!;
+                            return append(text, onAppended);
                         }
                     }
                 });
