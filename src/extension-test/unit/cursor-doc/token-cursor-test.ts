@@ -396,13 +396,23 @@ describe('Token Cursor', () => {
             expect(result).toBe(false);
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-        it('Moves to stary of unbalanced list', () => {
+        it('Does not move to start of an unbalanced list when outer list is also unbalanced', () => {
+            // NB: This is a bit arbitrary, this test documents the current behaviour
             const a = docFromTextNotation('(let [a| a');
-            const b = docFromTextNotation('(let [|a a');
+            const b = docFromTextNotation('(let [a| a');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             const result = cursor.backwardList();
-            expect(result).toBe(true);
             expect(cursor.offsetStart).toBe(b.selectionLeft);
+            expect(result).toBe(false);
+        });
+        it('Moves to start of an unbalanced list when outer list is balanced', () => {
+            // NB: This is a bit arbitrary, this test documents the current behaviour
+            const a = docFromTextNotation('(let [a| a)');
+            const b = docFromTextNotation('(let [|a a)');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            const result = cursor.backwardList();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+            expect(result).toBe(true);
         });
         it('Finds the list start when unbalanced from extra closes outside the current list', () => {
             const a = docFromTextNotation('([]|))');
@@ -501,11 +511,11 @@ describe('Token Cursor', () => {
             expect(cursor.offsetStart).toBe(b.selectionLeft);
             expect(result).toBe(true);
         });
-        it.skip('Moves backward in balanced list when inner list is unbalanced', () => {
+        it('Moves backward in balanced list when inner list is unbalanced', () => {
             // This never conmpletes in Calva v2.0.252
             // https://github.com/BetterThanTomorrow/calva/issues/1585
             const a = docFromTextNotation('(let [a|)');
-            const b = docFromTextNotation('(let [|a)');
+            const b = docFromTextNotation('(|let [a)');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             const result = cursor.backwardListOfType('(');
             expect(cursor.offsetStart).toBe(b.selectionLeft);
@@ -523,7 +533,7 @@ describe('Token Cursor', () => {
 
     it('backwardUpList', () => {
         const a = docFromTextNotation('(a(b(c•#f•(#b •|[:f :b :z])•#z•1)))');
-        const b = docFromTextNotation('(a(b(c•|#f•(#b •[:f :b :z])•#z•1)))');
+        const b = docFromTextNotation('(a(b(c•#f•|(#b •[:f :b :z])•#z•1)))');
         const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
         cursor.backwardUpList();
         expect(cursor.offsetStart).toBe(b.selectionLeft);

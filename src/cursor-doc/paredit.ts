@@ -307,7 +307,9 @@ export function rangeToBackwardUpList(
 ): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     cursor.backwardList();
-    if (cursor.backwardUpList(true)) {
+    if (cursor.backwardUpList()) {
+        cursor.forwardSexp(true, true);
+        cursor.backwardSexp(true, true);
         if (goPastWhitespace) {
             cursor.backwardWhitespace();
         }
