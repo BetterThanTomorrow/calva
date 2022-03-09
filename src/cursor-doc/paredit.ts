@@ -335,7 +335,7 @@ export function rangeToForwardDownList(
             break;
         }
     } while (cursor.forwardSexp());
-    if (cursor.downList(true)) {
+    if (cursor.downList()) {
         if (goPastWhitespace) {
             cursor.forwardWhitespace();
         }

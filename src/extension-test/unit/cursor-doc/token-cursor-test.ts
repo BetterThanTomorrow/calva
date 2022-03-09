@@ -273,18 +273,11 @@ describe('Token Cursor', () => {
             cursor.downList();
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-        it('Does not skip metadata by default', () => {
+        it('Does not skip metadata', () => {
             const a = docFromTextNotation('(a| ^{:x 1} (b 1))');
             const b = docFromTextNotation('(a ^{|:x 1} (b 1))');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.downList();
-            expect(cursor.offsetStart).toBe(b.selectionLeft);
-        });
-        it('Skips metadata when skipMetadata is true', () => {
-            const a = docFromTextNotation('(a| ^{:x 1} (b 1))');
-            const b = docFromTextNotation('(a ^{:x 1} (|b 1))');
-            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
-            cursor.downList(true);
             expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
     });

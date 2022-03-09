@@ -3,9 +3,9 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Maintenance: [Dumb down the token cursor some dealing with meta data and readers](https://github.com/BetterThanTomorrow/calva/pull/1585)
 
 ## [2.0.253] - 2022-03-09
-- Fix: [Structural editing hangs in specific cases of unbalanced forms](https://github.com/BetterThanTomorrow/calva/pull/1585)
 - Fix: [over snippet markdown and adds example](https://github.com/BetterThanTomorrow/calva/pull/1582)
 - Maintenance: [Begin work on enabling strictNullChecks in the TypeScript config.](https://github.com/BetterThanTomorrow/calva/pull/1568)
 
