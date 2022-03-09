@@ -492,6 +492,25 @@ describe('Token Cursor', () => {
             expect(cursor.offsetStart).toBe(b.selectionLeft);
             expect(result).toBe(false);
         });
+        it('Moves backward in unbalanced list when outer list is balanced', () => {
+            // https://github.com/BetterThanTomorrow/calva/issues/1585
+            const a = docFromTextNotation('(let [a|)');
+            const b = docFromTextNotation('(let [|a)');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            const result = cursor.backwardListOfType('[');
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+            expect(result).toBe(true);
+        });
+        it.skip('Moves backward in balanced list when inner list is unbalanced', () => {
+            // This never conmpletes in Calva v2.0.252
+            // https://github.com/BetterThanTomorrow/calva/issues/1585
+            const a = docFromTextNotation('(let [a|)');
+            const b = docFromTextNotation('(let [|a)');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            const result = cursor.backwardListOfType('(');
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+            expect(result).toBe(true);
+        });
         it('Does not move when list type is not found', () => {
             const a = docFromTextNotation('([|])');
             const b = docFromTextNotation('([|])');
