@@ -618,14 +618,12 @@ export class LispTokenCursor extends TokenCursor {
      * If possible, moves this cursor backwards past any whitespace, and then backwards past the immediately following open-paren and returns true.
      * If the source does not match this, returns false and does not move the cursor.
      */
-    backwardUpList(skipMetadata = false): boolean {
+    backwardUpList(): boolean {
         const cursor = this.clone();
         cursor.backwardThroughAnyReader();
         cursor.backwardWhitespace();
         if (cursor.getPrevToken().type == 'open') {
             cursor.previous();
-            cursor.forwardSexp(true, skipMetadata);
-            cursor.backwardSexp(true, skipMetadata);
             this.set(cursor);
             return true;
         }
