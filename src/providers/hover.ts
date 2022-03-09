@@ -34,7 +34,7 @@ export async function provideHover(
 
                 hovers.push(docsMd, clojureDocsMd);
             }
-            const editor = vscode.window.activeTextEditor;
+            const editor = util.mustGetActiveTextEditor();
 
             const context = {
                 ns,
@@ -69,7 +69,11 @@ export async function provideHover(
                         if (text) {
                             const hover = new vscode.MarkdownString();
                             hover.isTrusted = true;
-                            hover.appendMarkdown(_.trim(text, '"'));
+                            const hoverText = text
+                                .replace(/^"|"$/g, '')
+                                .replace(/\\n/g, '\n')
+                                .replace(/\\"/g, '"');
+                            hover.appendMarkdown(hoverText);
                             hovers.push(hover);
                         }
                     } catch (error) {

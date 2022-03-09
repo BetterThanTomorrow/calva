@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.252",
+    "version": "2.0.253",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -2600,7 +2600,8 @@
         "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "prewatch": "npm i && npm run clean && npm run update-grammar && npm run compile-cljs",
-        "watch": "npx tsc -watch -p ./tsconfig.json",
+        "watch": "npx tsc --watch --project ./tsconfig.json",
+        "watch-with-strict-nulls": "npx tsc --watch --project ./tsconfig.json --strictNullChecks",
         "release-cljs": "npx shadow-cljs release :calva-lib :test",
         "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",

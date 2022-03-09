@@ -1,12 +1,12 @@
-{
- :customREPLHoverSnippets
+{:customREPLHoverSnippets
  [{:name "edn hover symbol"
    :snippet "(str \"**EDN edn hover symbol**: \" $hover-text)"}
   {:name "edn hover symbol quoted"
    :snippet "(str \"**EDN edn hover symbol quoted** \" '$hover-text)"}
   {:name "edn hover hover-current-form"
    :snippet "(str \"**EDN edn hover hover-current-form** \" \"$hover-current-form\")"}
+  {:name "edn hover show val"
+   :snippet "(str \"### EDN show val\n```clojure\n\" (pr-str (eval (symbol (str \"$ns\" \"/\" \"$hover-top-level-defined-symbol\")))) \"\n```\")"}
   {:name "edn hover current-form"
-   :snippet "(str \"**EDN edn hover current-form** \" \"$current-form\")"}]
- }
+   :snippet "(str \"**EDN edn hover current-form** \" \"$current-form\")"}]}
 

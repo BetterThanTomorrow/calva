@@ -12,10 +12,9 @@ describe('get text', () => {
                 '(foo bar)•(deftest |a-test|•  (baz gaz))'
             );
             const range: [number, number] = [b.selectionLeft, b.selectionRight];
-            expect(getText.currentTopLevelFunction(a)).toEqual([
-                range,
-                b.model.getText(...range),
-            ]);
+            expect(
+                getText.currentTopLevelFunction(a, a.selection.active)
+            ).toEqual([range, b.model.getText(...range)]);
         });
 
         it('Finds top level function when nested', () => {
@@ -26,10 +25,9 @@ describe('get text', () => {
                 '(foo bar)•(with-test•  (deftest |a-test|•    (baz gaz)))'
             );
             const range: [number, number] = [b.selectionLeft, b.selectionRight];
-            expect(getText.currentTopLevelFunction(a)).toEqual([
-                range,
-                b.model.getText(...range),
-            ]);
+            expect(
+                getText.currentTopLevelFunction(a, a.selection.active)
+            ).toEqual([range, b.model.getText(...range)]);
         });
 
         it('Finds top level function when namespaced def-macro', () => {
@@ -41,10 +39,9 @@ describe('get text', () => {
                 '(foo bar)•(with-test•  (t/deftest |a-test|•    (baz gaz)))'
             );
             const range: [number, number] = [b.selectionLeft, b.selectionRight];
-            expect(getText.currentTopLevelFunction(a)).toEqual([
-                range,
-                b.model.getText(...range),
-            ]);
+            expect(
+                getText.currentTopLevelFunction(a, a.selection.active)
+            ).toEqual([range, b.model.getText(...range)]);
         });
 
         it('Finds top level function when function has metadata', () => {
@@ -55,10 +52,9 @@ describe('get text', () => {
                 '(foo bar)•(deftest ^{:some :thing} |a-test|•  (baz gaz))'
             );
             const range: [number, number] = [b.selectionLeft, b.selectionRight];
-            expect(getText.currentTopLevelFunction(a)).toEqual([
-                range,
-                b.model.getText(...range),
-            ]);
+            expect(
+                getText.currentTopLevelFunction(a, a.selection.active)
+            ).toEqual([range, b.model.getText(...range)]);
         });
     });
 

@@ -117,7 +117,7 @@ function prependNewline(text: string) {
 }
 
 function showPreviousReplHistoryEntry(): void {
-    const editor = vscode.window.activeTextEditor;
+    const editor = util.mustGetActiveTextEditor();
     const doc = editor.document;
     const replSessionType = getSessionType();
     const history = getHistory(replSessionType);
@@ -139,7 +139,7 @@ function showPreviousReplHistoryEntry(): void {
 }
 
 function showNextReplHistoryEntry(): void {
-    const editor = vscode.window.activeTextEditor;
+    const editor = util.mustGetActiveTextEditor();
     const doc = editor.document;
     const replSessionType = getSessionType();
     const history = getHistory(replSessionType);

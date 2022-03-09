@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.253] - 2022-03-09
+- Fix: [Structural editing hangs in specific cases of unbalanced forms](https://github.com/BetterThanTomorrow/calva/pull/1585)
+- Fix: [over snippet markdown and adds example](https://github.com/BetterThanTomorrow/calva/pull/1582)
+- Maintenance: [Begin work on enabling strictNullChecks in the TypeScript config.](https://github.com/BetterThanTomorrow/calva/pull/1568)
+
 ## [2.0.252] - 2022-03-05
 - Fix: [Tab doesn't work in snippet mode](https://github.com/BetterThanTomorrow/calva/pull/1580)
 
