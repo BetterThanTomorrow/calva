@@ -7,7 +7,7 @@ description: Community Styleguide conforming formatting by default. And it just 
 
 We have tried to make Calva's formatter so that it _just works_. It is enabled by default for Clojure files, and with the default configuration it mostly follows Bozhidar Batsov's [Clojure Style Guide](https://github.com/bbatsov/clojure-style-guide). Calva uses [cljfmt](https://github.com/weavejester/cljfmt) for the formatting.
 
-!!! Tips
+!!! Tips "Tab formats the current surrounding form"
     Calva's code formatter sets the default keybinding of its **Format Current Form** command to `tab`. Meaning that most often when things look a bit untidy, you can press `tab` to make things look pretty. Good to know, right? For performance reasons it only formats the current enclosing form, so sometimes you want to move the cursor up/out a form (`ctrl+up`) first. See [The Paredit Guide](paredit.md) for more on moving the cursor structurally through your code.
 
 With the default settings, Calva's formatting behaves like so:
@@ -19,7 +19,7 @@ With the default settings, Calva's formatting behaves like so:
 -   formats the current form, _aligning map keys and values_, when you press `ctrl+alt+l`
 -   formats `(comment ...)` forms special, see [rich comments](#rich-comments)
 
-!!! Tips
+!!! Tips "Infer parens at will"
     Calva has a command that will ”heal” the bracket structure if it is correctly indented using Parinfer **Infer parens**. This command is default bound to `ctrl+alt+p i`.
 
 Also: If you have **Format on Save** enabled in VS Code, it will be Calva doing the formatting for Clojure files.
@@ -37,14 +37,19 @@ Not a fan of some default setting? The formatter is quite configurable.
 
 You configure Calva's formatting using [cljfmt's configuration EDN](https://github.com/weavejester/cljfmt#configuration). This means that you can adjust the above mentioned defaults, including the indenting.
 
-This configuration can either be provided via a file or via clojure-lsp (see [Clojure LSP Settings](https://clojure-lsp.io/settings/)).
+This configuration can either be provided via a file or via clojure-lsp (see [Clojure LSP Settings]
+(https://clojure-lsp.io/settings/)).
 
-!!! Note
-    The `cljfmt` docs mention the `:cljfmt` config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.
+??? Note "Only use the clojure-lsp config option if you need it"
+    The option to read formatting config from clojure-lsp is there to let teams where some members use clojure-lsp for formatting, share the config. To provide the settings via clojure-lsp, set `calva.fmt.configPath` to `CLOJURE-LSP` (case sensitive). However, there are limitations:
+    
+    1. There is no config hot reloading support (see below)
+    1. clojure-lsp's cljfmt config is special in that it does not support regular Clojure syntax for regular expressions. This can make it difficult to run cljfmt as part of a CI pipline.
 
-To provide the settings via clojure-lsp, set `calva.fmt.configPath` to `CLOJURE-LSP` (case sensitive).
+??? Note "No Leiningen config support"
+    The **cljfmt** docs mention the `:cljfmt` config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.
 
-If providing settings via a file, start changing the Calva formatting defaults by pasting the following map into a file and save it. It could be somewhere in the project workspace, or some other place, depending on your requirements:
+If providing settings via a file, start changing the Calva formatting defaults by pasting the following map into a file and save it. It could be somewhere in the project workspace (supporting hot reload), or some other place (no hot reload), depending on your requirements:
 
 ```clojure
 {:remove-surrounding-whitespace? true
@@ -61,10 +66,10 @@ Since you are editing the file in Calva (you are, right?), you can quickly test 
 2. then save
 3. then hit `tab`, and see what happens.
 
-!!! Note
-    This particular setting is experimental and known to cause trouble together with namespaced keywords. Consider using `ctrl+alt+l` instead of `tab` as your formatting command, instead of enabling this setting. See below for more info about this.
+??? Note "`:align-associative?` is experimental"
+    This particular setting is experimental and known to cause trouble together with namespaced keywords. Consider using `ctrl+alt+l` instead of `tab` as your formatting command, instead of enabling this setting. See below for more info about this. See [more below](#about-aligning-associative-forms) about this.
 
-!!! Note
+!!! Note "Hot reloding requirements"
     The hot reloading of the config file only works for config files inside the project directory structure. And if you are providing the settings via clojure-lsp: no hot-reload for you.
 
 ### About aligning associative forms
