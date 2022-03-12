@@ -1,12 +1,26 @@
-# Calva: Clojure & ClojureScript with Visual Studio Code
+# Calva: A Clojure & ClojureScript IDE in Visual Studio Code
 
 ![Calva logo](assets/calva-64h.png)
 
 _Distilled from [CIDER](https://cider.mx/)*._
 
-Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) in [Visual Studio Code](https://code.visualstudio.com). It includes inline code evaluation, [Paredit](https://calva.io/paredit/), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Most of the REPL power is harvested from the produce of [The Orchard](https://github.com/clojure-emacs/orchard).
+Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an integrated, REPL powered, development environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) programming in [Visual Studio Code](https://code.visualstudio.com). It includes:
 
-(*) Calva is short for Calvados, a liquid gifted to humanity from God.
+* inline [code evaluation](https://calva.io/evaluation.md)
+* [structural editing](https://calva.io/paredit.md)
+* code [formatting](https://calva.io/formatting.md)
+* code navigation
+* a [debugger](ttps://calva.io/debugger.md)
+* [linting](https://calva.io/linting.md)
+* syntax highlighting
+* Clojure aware rainbow brackets
+* a [test runner](https://calva.io/test-runner.md)
+* refactoring support
+* and much more.
+
+A lot of effort has been put into making Calva a good choice to start if you are new to Clojure. [Calva is open source](https://github.com/BetterThanTomorrow/calva) and free to use.
+
+(*) Calva is short for Calvados, a liquid gifted to humanity from God. Calvas's REPL power is harvested from the produce of [The Orchard](https://github.com/clojure-emacs/orchard).
 
 ## Users Like it 😍
 
