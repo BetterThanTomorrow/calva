@@ -146,6 +146,11 @@
                         "description": "Enable experimental support for the VSCode Test Explorer",
                         "default": false
                     },
+                    "calva.enableClojureLspOnStart": {
+                        "type": "boolean",
+                        "markdownDescription": "**Recommended**: Start [clojure-lsp](https://calva.io/clojure-lsp/) automatically when Calva starts",
+                        "default": true
+                    },
                     "calva.prettyPrintingOptions": {
                         "type": "object",
                         "description": "Settings for Calva's pretty printing",

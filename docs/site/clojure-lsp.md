@@ -8,15 +8,17 @@ description: Learn about how Calva leverages clojure-lsp for a lot of the featur
 Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from [clojure-lsp](https://github.com/snoe/clojure-lsp). This enables you to check something up in a project, with a lot of navigational and contextual support, without starting a REPL for it. (And once you do start a REPL you'll get even more capabilities, enabled by the dynamic analysis.)
 
 !!! Note
-    By default, Calva determines the version of clojure-lsp it uses, and it defaults to `latest`. To use a different version of clojure-lsp, see the [configuration](#configuration) section. **Calva does not use the clojure-lsp installed on your system, unless you [set the path for clojure-lsp](#using-a-custom-clojure-lsp-native-binary) to the installed binary in your settings**. You can see what version is being used by running the `Clojure-lsp Server Info` command, which will also show the version of clj-kondo that's being used as well as other info. 
+    Calva defaults to using the `latest` clojure-lsp released. To use a different version of clojure-lsp, see the [configuration](#configuration) section. **Calva does not use the clojure-lsp installed on your system, unless you [set the path for clojure-lsp](#using-a-custom-clojure-lsp-native-binary) to the installed binary in your settings**. You can see what version is being used by running the `Clojure-lsp Server Info` command, which will also show the version of clj-kondo that's being used as well as other info. 
 
-## Starting the LSP server
+## The LSP server starts automatically
 
-You don't need to do anything to start clojure-lsp. No install, no commands, no nothing. Calva downloads the correct binary for your operating system if necessary (this should only happen when the clojure-lsp version is updated in a new release of Calva) and then starts it. It does take a while for clojure-lsp to start, though, especially the first time for a new project, when clojure-lsp (via `clj-kondo`) indexes the project files.
+Unless you set `calva.enableClojureLspOnStart` to `false`, Calva will automatically start clojure-lsp. And you won't need to install antyting, because Calva handles that. It can take a while for clojure-lsp to start, though. Especially the first time for a new project, when clojure-lsp (via `clj-kondo`) indexes the project files.
 
 Calva will show a status bar message during the download and while the server is starting, which will go away once the server is ready. However, _much of Calva's functionality is available regardless of the LSP server_, so please start using Calva while this server is starting.
 
 !["Clojure-lsp status bar downloading and intializing messages"](images/clojure-lsp/lsp-status-bar-message.gif "Clojure-lsp status bar downloading and intializing messages")
+
+Therea are commands for stopping and starting the clojure-lsp server. And you can also disable the autostarting using the `calva.enableClojureLspOnStart` setting (we recommend to keeping the default here and always enjoy clojure-lsp goodness).
 
 ## Ignoring LSP cache files
 

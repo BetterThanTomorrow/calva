@@ -31,7 +31,7 @@ const LSP_CLIENT_KEY = 'lspClient';
 const LSP_CLIENT_KEY_ERROR = 'lspClientError';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
 const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE =
-    'The clojure-lsp server is not running or has not finished intializing.';
+    'The clojure-lsp server is not running or has not finished initializing.';
 const lspStatus = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
     0
@@ -418,6 +418,7 @@ async function stopClient() {
         false
     );
     if (client) {
+        setStateValue(LSP_CLIENT_KEY, undefined);
         return client.stop();
     }
 }
@@ -592,7 +593,9 @@ async function activate(
     } else {
         clojureLspPath = await ensureServerDownloaded(context);
     }
-    await startClient();
+    if (config.getConfig().enableClojureLspOnStart) {
+        await startClient();
+    }
 }
 
 async function ensureServerDownloaded(
@@ -716,9 +719,14 @@ function getClient(timeout: number): Promise<LanguageClient> | undefined {
 
 export async function getCljFmtConfig() {
     // TODO: Figure out a reasonable timeout
-    const client = await getClient(60 * 5 * 1000);
-    const serverInfo = await getServerInfo(client);
-    return serverInfo['cljfmt-raw'];
+    if (getStateValue(LSP_CLIENT_KEY)) {
+        const client = await getClient(60 * 5 * 1000);
+        const serverInfo = await getServerInfo(client);
+        return serverInfo['cljfmt-raw'];
+    } else {
+        console.error('Clojure LSP is not active');
+        return undefined;
+    }
 }
 
 export default {
