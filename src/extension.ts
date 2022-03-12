@@ -29,7 +29,7 @@ import * as fileSwitcher from './file-switcher/file-switcher';
 import * as replHistory from './results-output/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
-import setCursorContextIfChanged from './when-contexts';
+import * as whenContexts from './when-contexts';
 import lsp from './lsp/main';
 import { setStateValue } from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
@@ -69,7 +69,7 @@ function onDidOpen(document) {
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
     replHistory.setReplHistoryCommandsActiveContext(editor);
-    setCursorContextIfChanged(editor);
+    whenContexts.setCursorContextIfChanged(editor);
 }
 
 function setKeybindingsEnabledContext() {
