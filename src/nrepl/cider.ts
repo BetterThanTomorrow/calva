@@ -218,29 +218,8 @@ type TestResultWithLineNumber = Omit<TestResult, 'line'> & {
     line: NonNullable<TestResult['line']>;
 };
 
-type TestResultWithFile = Omit<TestResult, 'file'> & {
-    file: NonNullable<TestResult['file']>;
-};
-
-type TestResultWithLineNumberAndFile = Omit<TestResult, 'line' | 'file'> & {
-    line: TestResultWithLineNumber['line'];
-    file: TestResultWithFile['file'];
-};
-
 export const hasLineNumber = (
     result: TestResult | TestResultWithLineNumber
 ): result is TestResultWithLineNumber => {
     return typeof result.line === 'number';
-};
-
-export function hasFile(
-    result: TestResult | TestResultWithFile
-): result is TestResultWithFile {
-    return typeof result.file === 'string';
-}
-
-export const hasLineNumberAndFile = (
-    result: TestResult | TestResultWithLineNumberAndFile
-): result is TestResultWithLineNumberAndFile => {
-    return hasLineNumber(result) && hasFile(result);
 };
