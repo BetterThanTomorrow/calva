@@ -282,6 +282,23 @@ describe('Token Cursor', () => {
         });
     });
 
+    describe('downListSkippingMeta', () => {
+        it('Moves down, skipping metadata', () => {
+            const a = docFromTextNotation('(|a #b ^{:x 1} (c 1))');
+            const b = docFromTextNotation('(a #b ^{:x 1} (|c 1))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.downListSkippingMeta();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Moves down when there is no metadata', () => {
+            const a = docFromTextNotation('(|a #b (c 1))');
+            const b = docFromTextNotation('(a #b (|c 1))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.downListSkippingMeta();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+    });
+
     it('upList', () => {
         const a = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1|)))');
         const b = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1)|))');
