@@ -573,12 +573,11 @@ export async function isDocumentWritable(
     }
     const fileStat = await vscode.workspace.fs.stat(document.uri);
 
-    return (
-        // Try treating it as writable when we can't get the permissions,
-        // let it error later when we go to use the file.
-        isUndefined(fileStat.permissions) ||
-        (fileStat.permissions & vscode.FilePermission.Readonly) !== 1
-    );
+    // I'm not sure in which cases fileStat permissions can be missing
+    // and so it's not clear what to do if it is. For the moment we can
+    // ignore this to maintain current behavior.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return (fileStat.permissions! & vscode.FilePermission.Readonly) !== 1;
 }
 
 // Returns the elements of coll with duplicates removed
