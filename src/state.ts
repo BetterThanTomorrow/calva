@@ -177,42 +177,43 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
 }
 
 function findLocalProjectRoot(
-    projectFileNames,
-    doc,
-    workspaceFolder
+    projectFileNames: string[],
+    doc: vscode.TextDocument | undefined,
+    workspaceFolder: vscode.WorkspaceFolder | undefined
 ): undefined {
     if (workspaceFolder) {
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
         setStateValue(PROJECT_DIR_KEY, rootPath);
         setStateValue(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
+        const docPath = doc && path.dirname(doc.uri.fsPath);
 
-        let d: any;
-        let prev: any;
-        if (doc && path.dirname(doc.uri.fsPath) !== '.') {
-            d = path.dirname(doc.uri.fsPath);
-        } else {
-            d = workspaceFolder.uri.fsPath;
-        }
-        while (d !== prev) {
-            for (const projectFile in projectFileNames) {
-                const p = path.resolve(d, projectFileNames[projectFile]);
-                if (fs.existsSync(p)) {
-                    rootPath = d;
+        let currentPath =
+            util.isDefined(docPath) && docPath !== '.'
+                ? docPath
+                : workspaceFolder.uri.fsPath;
+
+        let previousPath = '';
+
+        do {
+            for (const projectFile of projectFileNames) {
+                const fullPath = path.resolve(currentPath, projectFile);
+                if (fs.existsSync(fullPath)) {
+                    rootPath = currentPath;
                     break;
                 }
             }
-            if (d === rootPath) {
+            if (currentPath === rootPath) {
                 break;
             }
-            prev = d;
-            d = path.resolve(d, '..');
-        }
+            previousPath = currentPath;
+            currentPath = path.resolve(currentPath, '..');
+        } while (currentPath !== previousPath);
 
         // at least be sure the the root folder contains a
         // supported project.
-        for (const projectFile in projectFileNames) {
-            const p = path.resolve(rootPath, projectFileNames[projectFile]);
-            if (fs.existsSync(p)) {
+        for (const projectFile of projectFileNames) {
+            const fullPath = path.resolve(rootPath, projectFile);
+            if (fs.existsSync(fullPath)) {
                 setStateValue(PROJECT_DIR_KEY, rootPath);
                 setStateValue(PROJECT_DIR_URI_KEY, vscode.Uri.file(rootPath));
                 return;
