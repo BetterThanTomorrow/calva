@@ -37,7 +37,7 @@ function colorValue(
     section: string,
     currentConf: vscode.WorkspaceConfiguration
 ): string {
-    const configSection = currentConf.inspect(section);
+    const configSection = currentConf.inspect<string>(section);
 
     util.assertIsDefined(
         configSection,
@@ -50,13 +50,13 @@ function colorValue(
     const value =
         workspaceFolderValue || workspaceValue || globalValue || defaultValue;
 
-    if (typeof value !== 'string') {
-        throw new Error(
+    util.assertIsString(
+        value,
+        () =>
             `Expected color value to be a string! We got ${JSON.stringify(
                 value
             )}`
-        );
-    }
+    );
 
     return value;
 }
