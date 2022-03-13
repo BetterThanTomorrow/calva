@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from './state';
 import annotations from './providers/annotations';
+import * as inlayhints from './providers/inlayhints';
 import * as path from 'path';
 import * as util from './utilities';
 import { NReplSession, NReplEvaluation } from './nrepl';
@@ -151,6 +152,14 @@ async function evaluateCode(
                                 );
                             }
                             if (!outputWindow.isResultsDoc(editor.document)) {
+                                    inlayhints.registerResult(
+                                        editor,
+                                        editor.document,
+                                        new vscode.Range(selection.end, selection.end),
+                                        //selection,
+                                            //resultLocation.range,
+                                            value
+                                        );
                                 annotations.decorateSelection(
                                     value,
                                     selection,
@@ -159,7 +168,8 @@ async function evaluateCode(
                                     resultLocation,
                                     annotations.AnnotationStatus.SUCCESS
                                 );
-                                if (!options.comment) {
+                                // hide decoration results for this exploration
+                                if (false && !options.comment) {
                                     annotations.decorateResults(
                                         value,
                                         false,
