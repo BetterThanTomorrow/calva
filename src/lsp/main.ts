@@ -410,13 +410,14 @@ function registerEventHandlers(
     );
 }
 
-async function stopClient() {
+function stopClient() {
     const client = getStateValue(LSP_CLIENT_KEY);
-    await vscode.commands.executeCommand(
+    void vscode.commands.executeCommand(
         'setContext',
         'clojureLsp:active',
         false
     );
+    lspStatus.text = '$(circle-outline)';
     if (client) {
         setStateValue(LSP_CLIENT_KEY, undefined);
         return client.stop();
@@ -432,13 +433,11 @@ async function startClient(): Promise<void> {
 
     const onReadyPromise = client.onReady();
     lspStatus.text = '$(rocket) clojure-lsp';
-    lspStatus.show();
     client.start();
     await onReadyPromise.catch((e) => {
         console.error('clojure-lsp:', e);
         setStateValue(LSP_CLIENT_KEY_ERROR, e);
     });
-    lspStatus.hide();
     if (getStateValue(LSP_CLIENT_KEY_ERROR)) {
         return;
     }
@@ -453,7 +452,7 @@ async function startClient(): Promise<void> {
         'clojureLsp:active',
         true
     );
-
+    lspStatus.text = '$(circle-filled) clojure-lsp';
     client.onNotification(
         'clojure/textDocument/testTree',
         (tree: TestTreeParams) => {
@@ -557,6 +556,12 @@ function registerLifeCycleCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.commands.registerCommand('calva.clojureLsp.stop', stopClient)
     );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'calva.clojureLsp.download',
+            downloadLSPServerCommand
+        )
+    );
 }
 
 function registerDiagnosticsCommands(context: vscode.ExtensionContext): void {
@@ -587,22 +592,38 @@ async function activate(
     testTreeHandler = handler;
     registerLifeCycleCommands(context);
     registerDiagnosticsCommands(context);
-    const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;
-    if (userConfiguredClojureLspPath !== '') {
-        clojureLspPath = userConfiguredClojureLspPath;
-    } else {
-        clojureLspPath = await ensureServerDownloaded(context);
-    }
+    lspStatus.show();
+    lspStatus.text = 'clojure-lsp $(circle-outline)';
+    await maybeDownloadLspServer();
     if (config.getConfig().enableClojureLspOnStart) {
         await startClient();
     }
 }
 
-async function ensureServerDownloaded(
-    context: vscode.ExtensionContext,
-    forceDownLoad = false
-) {
-    const currentVersion = readVersionFile(context.extensionPath);
+async function maybeDownloadLspServer(forceDownLoad = false): Promise<string> {
+    const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;
+    if (userConfiguredClojureLspPath !== '') {
+        clojureLspPath = userConfiguredClojureLspPath;
+        if (forceDownLoad) {
+            void vscode.window.showErrorMessage(
+                `Not downloading, because 'calva.clojureLSPPath' is configured (${userConfiguredClojureLspPath})`
+            );
+        }
+        return undefined;
+    } else {
+        return await ensureServerDownloaded(forceDownLoad);
+    }
+}
+
+async function downloadLSPServerCommand() {
+    const version = await maybeDownloadLspServer(true);
+    void vscode.window.showInformationMessage(
+        `Downloaded clojure-lsp version: ${version}`
+    );
+}
+
+async function ensureServerDownloaded(forceDownLoad = false): Promise<string> {
+    const currentVersion = readVersionFile(extensionContext.extensionPath);
     const configuredVersion: string = config.getConfig().clojureLspVersion;
     const downloadVersion = ['', 'latest'].includes(configuredVersion)
         ? await getLatestVersion()
@@ -612,20 +633,18 @@ async function ensureServerDownloaded(
         forceDownLoad
     ) {
         const downloadPromise = downloadClojureLsp(
-            context.extensionPath,
+            extensionContext.extensionPath,
             downloadVersion
         );
-        lspStatus.text = '$(sync~spin) Downloading clojure-lsp';
-        lspStatus.show();
+        lspStatus.text = '$(sync~spin) clojure-lsp downloading';
         clojureLspPath = await downloadPromise;
-        lspStatus.hide();
-        return clojureLspPath;
+        lspStatus.text = '$(circle-outline) clojure-lsp';
     }
-    return getClojureLspPath(context.extensionPath, util.isWindows);
+    return readVersionFile(extensionContext.extensionPath);
 }
 
 function deactivate(): Promise<void> {
-    stopClient();
+    void stopClient();
     return Promise.resolve();
 }
 
