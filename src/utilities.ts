@@ -184,7 +184,7 @@ function getWordAtPosition(document, position) {
 }
 
 function tryToGetDocument(
-    document: vscode.TextDocument | Record<string, never>
+    document: vscode.TextDocument | Record<string, never> | undefined
 ): vscode.TextDocument | undefined {
     const activeTextEditor = tryToGetActiveTextEditor();
     if (
@@ -217,7 +217,9 @@ function getDocument(
     return doc;
 }
 
-function getFileType(document) {
+function getFileType(
+    document: vscode.TextDocument | Record<string, never> | undefined
+) {
     const doc = tryToGetDocument(document);
 
     if (doc) {
