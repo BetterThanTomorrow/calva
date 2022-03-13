@@ -162,13 +162,7 @@ export class MirroredDocument implements EditableDocument {
         offset: number = this.selectionRight,
         previous: boolean = false
     ): LispTokenCursor {
-        const cursor = this.model.getTokenCursor(offset, previous);
-
-        if (isUndefined(cursor)) {
-            throw new Error('Expected a cursor for MirrorDocument!');
-        }
-
-        return cursor;
+        return this.model.getTokenCursor(offset, previous);
     }
 
     public insertString(text: string) {
