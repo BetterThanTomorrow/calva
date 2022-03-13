@@ -31,7 +31,7 @@ function moveTokenCursorToBreakpoint(
     const coor = [...debugResponse.coor]; // Copy the array so we do not modify the one stored in state
 
     for (let i = 0; i < coor.length; i++) {
-        while (!tokenCursor.downList()) {
+        while (!tokenCursor.downListSkippingMeta()) {
             tokenCursor.next();
         }
         const previousToken = tokenCursor.getPrevToken();

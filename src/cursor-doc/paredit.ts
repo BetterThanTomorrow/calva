@@ -325,17 +325,7 @@ export function rangeToForwardDownList(
     goPastWhitespace = false
 ): [number, number] {
     const cursor = doc.getTokenCursor(offset);
-    do {
-        cursor.forwardThroughAnyReader();
-        cursor.forwardWhitespace();
-        if (
-            cursor.getToken().type === 'open' &&
-            !cursor.tokenBeginsMetadata()
-        ) {
-            break;
-        }
-    } while (cursor.forwardSexp());
-    if (cursor.downList()) {
+    if (cursor.downListSkippingMeta()) {
         if (goPastWhitespace) {
             cursor.forwardWhitespace();
         }
