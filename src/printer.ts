@@ -1,4 +1,5 @@
 import { getConfig } from './config';
+import { assertIsDefined } from './utilities';
 
 export type PrintFnOptions = {
     name: string;
@@ -116,7 +117,10 @@ export const zprintDependencies = {
 };
 
 export function getServerSidePrinterDependencies() {
-    if (prettyPrintingOptions().printEngine === 'zprint') {
+    const options = prettyPrintingOptions();
+    assertIsDefined(options, 'Expected prettyPrintingOptions to be defined!');
+
+    if (options.printEngine === 'zprint') {
         return zprintDependencies;
     } else {
         return {};
