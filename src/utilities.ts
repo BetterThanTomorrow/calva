@@ -576,7 +576,7 @@ export async function isDocumentWritable(
     // I'm not sure in which cases fileStat permissions can be missing
     // and so it's not clear what to do if it is. For the moment we can
     // ignore this to maintain current behavior.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unnecessary-type-assertion
     return (fileStat.permissions! & vscode.FilePermission.Readonly) !== 1;
 }
 

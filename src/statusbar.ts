@@ -54,7 +54,7 @@ function colorValue(
     // not be. Maintaining current behavior for the moment but we should
     // eventually do an assertion here or allow the function to return
     // undefined.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unnecessary-type-assertion
     return value!;
 }
 
