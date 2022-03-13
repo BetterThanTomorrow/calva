@@ -50,15 +50,12 @@ function colorValue(
     const value =
         workspaceFolderValue || workspaceValue || globalValue || defaultValue;
 
-    util.assertIsString(
-        value,
-        () =>
-            `Expected color value to be a string! We got ${JSON.stringify(
-                value
-            )}`
-    );
-
-    return value;
+    // Current behavior is to assert that this is a string even though it may
+    // not be. Maintaining current behavior for the moment but we should
+    // eventually do an assertion here or allow the function to return
+    // undefined.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return value!;
 }
 
 function update(context = state.extensionContext) {
