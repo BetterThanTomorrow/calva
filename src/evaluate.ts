@@ -471,7 +471,10 @@ function evaluateStartOfFileToCursor(document = {}, options = {}) {
     );
 }
 
-async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
+async function loadFile(
+    document: vscode.TextDocument | Record<string, never> | undefined,
+    pprintOptions: PrettyPrintingOptions
+) {
     const doc = util.tryToGetDocument(document);
     const fileType = util.getFileType(doc);
     const ns = namespace.getNamespace(doc);
