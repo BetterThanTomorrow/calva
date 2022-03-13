@@ -766,7 +766,7 @@ export async function getClojuredocs(symName: string, symNs: string): Promise<an
 }
 
 // TODO: This feels a bit brute, what are other ways to wait for the client to initialize?
-function getClient(timeout: number): Promise<LanguageClient> {
+export function getClient(timeout: number): Promise<LanguageClient> {
   const start = Date.now();
   return new Promise(waitForClientStarted);
 
