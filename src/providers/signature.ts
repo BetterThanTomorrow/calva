@@ -57,6 +57,10 @@ export async function provideSignatureHelp(
                                 (range) => range.contains(position)
                             ),
                             activeSignature = signatures[help.activeSignature];
+                        util.assertIsDefined(
+                            activeSignature,
+                            'Expected activeSignature to be defined!'
+                        );
                         help.activeParameter =
                             activeSignature.label.match(/&/) !== null
                                 ? Math.min(
@@ -73,7 +77,10 @@ export async function provideSignatureHelp(
     return undefined;
 }
 
-function getCurrentArgsRanges(document: TextDocument, idx: number): Range[] {
+function getCurrentArgsRanges(
+    document: TextDocument,
+    idx: number
+): Range[] | undefined {
     const cursor: LispTokenCursor = docMirror
             .getDocument(document)
             .getTokenCursor(idx),
