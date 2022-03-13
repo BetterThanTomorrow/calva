@@ -42,17 +42,26 @@ export async function provideCompletionItems(
 
     if (util.getConnectedState()) {
         const toplevelSelection = select.getFormSelection(
-                document,
-                position,
-                true
-            ),
-            toplevel = document.getText(toplevelSelection),
+            document,
+            position,
+            true
+        );
+
+        util.assertIsDefined(
+            toplevelSelection,
+            'Expected a topLevelSelection!'
+        );
+
+        const toplevel = document.getText(toplevelSelection),
             toplevelStartOffset = document.offsetAt(toplevelSelection.start),
             toplevelStartCursor = docMirror
                 .getDocument(document)
                 .getTokenCursor(toplevelStartOffset + 1),
-            wordRange = document.getWordRangeAtPosition(position),
-            wordStartLocalOffset =
+            wordRange = document.getWordRangeAtPosition(position);
+
+        util.assertIsDefined(wordRange, 'Expected a wordRange!');
+
+        const wordStartLocalOffset =
                 document.offsetAt(wordRange.start) - toplevelStartOffset,
             wordEndLocalOffset =
                 document.offsetAt(wordRange.end) - toplevelStartOffset,
