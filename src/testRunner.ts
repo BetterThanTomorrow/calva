@@ -9,7 +9,6 @@ import * as lsp from './lsp/types';
 import * as namespace from './namespace';
 import { getSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
-import { isUndefined } from 'lodash';
 
 const diagnosticCollection =
     vscode.languages.createDiagnosticCollection('calva');
@@ -116,11 +115,13 @@ async function onTestResult(
             .map((a) => a.line)
             .sort();
 
-        const startOfRange = lines[0];
-        const endOfRange = lines[lines.length - 1];
-
-        if (!isUndefined(startOfRange) && !isUndefined(endOfRange)) {
-            test.range = new vscode.Range(startOfRange, 0, endOfRange, 1000);
+        if (lines.length > 0) {
+            test.range = new vscode.Range(
+                lines[0] - 1,
+                0,
+                lines[lines.length - 1],
+                1000
+            );
         }
     }
 
