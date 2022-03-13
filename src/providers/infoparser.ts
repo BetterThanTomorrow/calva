@@ -6,6 +6,11 @@ import {
 import * as tokenCursor from '../cursor-doc/token-cursor';
 import { getConfig } from '../config';
 
+export type Completion =
+    | [string, string]
+    | [MarkdownString, string | undefined]
+    | [undefined, undefined];
+
 export class REPLInfoParser {
     private _name: string | undefined = undefined;
 
@@ -144,9 +149,7 @@ export class REPLInfoParser {
         return result;
     }
 
-    getCompletion():
-        | [string | MarkdownString, string]
-        | [undefined, undefined] {
+    getCompletion(): Completion {
         const name = new MarkdownString(this._docString);
         if (this._name !== '') {
             if (this._specialForm) {
@@ -204,9 +207,7 @@ export function getHoverNotAvailable(text: string): string {
     return new REPLInfoParser({ name: text }).getHoverNotAvailable();
 }
 
-export function getCompletion(
-    msg: any
-): [string | MarkdownString, string] | [undefined, undefined] {
+export function getCompletion(msg: any): Completion {
     return new REPLInfoParser(msg).getCompletion();
 }
 
