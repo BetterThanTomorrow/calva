@@ -42,9 +42,9 @@ describe('string', () => {
 
     describe('getTextAfterLastOccurrenceOfSubstring', () => {
         it('returns undefined if substring does not exist', () => {
-            expect(undefined).toBe(
+            expect(
                 getTextAfterLastOccurrenceOfSubstring('hello world', '123')
-            );
+            ).toBeUndefined();
         });
         it('returns text after last occurrence of substring', () => {
             expect('foo').toBe(
