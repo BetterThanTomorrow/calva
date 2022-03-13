@@ -109,12 +109,17 @@ export default class CalvaCompletionItemProvider
         token: CancellationToken
     ) {
         if (util.getConnectedState()) {
+            const activeTextEditor = window.activeTextEditor;
+            util.assertIsDefined(
+                activeTextEditor,
+                'Expected window to have activeTextEditor defined!'
+            );
             const client = replSession.getSession(
-                util.getFileType(window.activeTextEditor.document)
+                util.getFileType(activeTextEditor.document)
             );
             if (client) {
                 await namespace.createNamespaceFromDocumentIfNotExists(
-                    window.activeTextEditor.document
+                    activeTextEditor.document
                 );
                 const ns = namespace.getDocumentNamespace();
                 const result = await client.info(
