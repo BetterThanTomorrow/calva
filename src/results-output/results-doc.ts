@@ -455,10 +455,5 @@ export function appendPrompt(onAppended?: OnAppendedCallback) {
 }
 
 function getUriForCurrentNamespace(): Promise<vscode.Uri> {
-    const session = getSession();
-    const ns = getNs();
-
-    util.assertIsDefined(session, 'Expected a session to be defined!');
-    util.assertIsDefined(ns, 'Expected an ns to be defined!');
-    return namespace.getUriForNamespace(session, ns);
+    return namespace.getUriForNamespace(getSession(), getNs());
 }
