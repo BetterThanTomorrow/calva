@@ -612,15 +612,11 @@ export class StringDocument implements EditableDocument {
     selectionStack: ModelEditSelection[] = [];
 
     getTokenCursor(offset?: number, previous?: boolean): LispTokenCursor {
-        const cursor = isUndefined(offset)
-            ? undefined
-            : this.model.getTokenCursor(offset);
-
-        if (isUndefined(cursor)) {
+        if (isUndefined(offset)) {
             throw new Error('Expected a cursor for StringDocument!');
         }
 
-        return cursor;
+        return this.model.getTokenCursor(offset);
     }
 
     insertString(text: string) {
