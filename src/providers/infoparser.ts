@@ -158,7 +158,9 @@ export class REPLInfoParser {
         return [undefined, undefined];
     }
 
-    getSignatures(symbol: string): SignatureInformation[] | undefined {
+    getSignatures(
+        symbol: string
+    ): (SignatureInformation | undefined)[] | undefined {
         if (this._name !== '') {
             const argLists = this._arglist ? this._arglist : this._formsString;
             if (argLists) {
