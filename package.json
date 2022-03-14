@@ -831,6 +831,12 @@
         ],
         "commands": [
             {
+                "command": "calva.clojureLsp.showClojureLspStartedMenu",
+                "title": "Show clojure-lsp menu",
+                "enablement": "clojureLsp:active",
+                "category": "Calva Clojure LSP"
+            },
+            {
                 "command": "calva.clojureLsp.showClojureLspStoppedMenu",
                 "title": "Show clojure-lsp menu",
                 "enablement": "!clojureLsp:active",
@@ -934,7 +940,7 @@
             },
             {
                 "command": "calva.startStandaloneHelloRepl",
-                "title": "Fire up the ”Getting Started” REPL",
+                "title": "Fire up the Getting Started REPL",
                 "category": "Calva"
             },
             {
