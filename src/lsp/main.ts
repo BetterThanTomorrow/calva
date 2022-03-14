@@ -666,7 +666,6 @@ async function activate(
 }
 
 async function maybeDownloadLspServer(forceDownLoad = false): Promise<string> {
-    lspStatus.show();
     const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;
     if (userConfiguredClojureLspPath !== '') {
         clojureLspPath = userConfiguredClojureLspPath;
@@ -682,6 +681,7 @@ async function maybeDownloadLspServer(forceDownLoad = false): Promise<string> {
 }
 
 async function downloadLSPServerCommand() {
+    lspStatus.show();
     const version = await maybeDownloadLspServer(true);
     void vscode.window.showInformationMessage(
         `Downloaded clojure-lsp version: ${version}`
