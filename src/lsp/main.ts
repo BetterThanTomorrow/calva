@@ -417,11 +417,16 @@ function stopClient() {
         'clojureLsp:active',
         false
     );
-    lspStatus.text = '$(circle-outline)';
+    updateStatusItem('stopped');
+    setStateValue(LSP_CLIENT_KEY, undefined);
     if (client) {
-        setStateValue(LSP_CLIENT_KEY, undefined);
         return client.stop();
     }
+}
+
+async function startClientCommand() {
+    await maybeDownloadLspServer();
+    void startClient();
 }
 
 async function startClient(): Promise<void> {
@@ -432,7 +437,8 @@ async function startClient(): Promise<void> {
     client.registerFeature(testTree);
 
     const onReadyPromise = client.onReady();
-    lspStatus.text = '$(rocket) clojure-lsp';
+    updateStatusItem('starting');
+
     client.start();
     await onReadyPromise.catch((e) => {
         console.error('clojure-lsp:', e);
@@ -452,7 +458,8 @@ async function startClient(): Promise<void> {
         'clojureLsp:active',
         true
     );
-    lspStatus.text = '$(circle-filled) clojure-lsp';
+    updateStatusItem('started');
+
     client.onNotification(
         'clojure/textDocument/testTree',
         (tree: TestTreeParams) => {
@@ -551,7 +558,10 @@ async function serverInfoCommandHandler(): Promise<void> {
 
 function registerLifeCycleCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
-        vscode.commands.registerCommand('calva.clojureLsp.start', startClient)
+        vscode.commands.registerCommand(
+            'calva.clojureLsp.start',
+            startClientCommand
+        )
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('calva.clojureLsp.stop', stopClient)
@@ -560,6 +570,12 @@ function registerLifeCycleCommands(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand(
             'calva.clojureLsp.download',
             downloadLSPServerCommand
+        )
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'calva.clojureLsp.showClojureLspStoppedMenu',
+            stoppedMenuCommand
         )
     );
 }
@@ -579,6 +595,46 @@ function registerDiagnosticsCommands(context: vscode.ExtensionContext): void {
     );
 }
 
+type LspStatus =
+    | 'preparing'
+    | 'stopped'
+    | 'starting'
+    | 'started'
+    | 'downloading';
+
+function updateStatusItem(status: LspStatus, extraInfo?: string) {
+    switch (status) {
+        case 'preparing':
+            lspStatus.text = '$(dash) clojure-lsp';
+            lspStatus.tooltip = 'Calva is preparing to initialize Clojure-LSP';
+            lspStatus.command = undefined;
+            break;
+        case 'stopped':
+            lspStatus.text = '$(circle-outline) clojure-lsp';
+            lspStatus.tooltip =
+                'Clojure-LSP is not active, click to get a menu';
+            lspStatus.command = 'calva.clojureLsp.showClojureLspStoppedMenu';
+            break;
+        case 'starting':
+            lspStatus.text = '$(rocket) clojure-lsp';
+            lspStatus.tooltip = 'Clojure-LSP is starting';
+            lspStatus.command = undefined;
+            break;
+        case 'started':
+            lspStatus.text = '$(circle-filled) clojure-lsp';
+            lspStatus.tooltip = 'Clojure-LSP is active';
+            lspStatus.command = undefined;
+            break;
+        case 'downloading':
+            lspStatus.text = '$(sync~spin) clojure-lsp downloading';
+            lspStatus.tooltip = `Calva is downloading clojure-lsp version: ${extraInfo}`;
+            lspStatus.command = undefined;
+            break;
+        default:
+            break;
+    }
+}
+
 async function activate(
     context: vscode.ExtensionContext,
     handler: TestTreeHandler
@@ -592,11 +648,13 @@ async function activate(
     testTreeHandler = handler;
     registerLifeCycleCommands(context);
     registerDiagnosticsCommands(context);
-    lspStatus.show();
-    lspStatus.text = 'clojure-lsp $(circle-outline)';
-    await maybeDownloadLspServer();
+    updateStatusItem('preparing');
     if (config.getConfig().enableClojureLspOnStart) {
+        lspStatus.show();
+        await maybeDownloadLspServer();
         await startClient();
+    } else {
+        updateStatusItem('stopped');
     }
 }
 
@@ -636,9 +694,14 @@ async function ensureServerDownloaded(forceDownLoad = false): Promise<string> {
             extensionContext.extensionPath,
             downloadVersion
         );
-        lspStatus.text = '$(sync~spin) clojure-lsp downloading';
+        updateStatusItem('downloading', downloadVersion);
         clojureLspPath = await downloadPromise;
-        lspStatus.text = '$(circle-outline) clojure-lsp';
+        updateStatusItem('stopped');
+    } else {
+        clojureLspPath = getClojureLspPath(
+            extensionContext.extensionPath,
+            util.isWindows
+        );
     }
     return readVersionFile(extensionContext.extensionPath);
 }
@@ -738,14 +801,30 @@ function getClient(timeout: number): Promise<LanguageClient> | undefined {
 
 export async function getCljFmtConfig() {
     // TODO: Figure out a reasonable timeout
-    if (getStateValue(LSP_CLIENT_KEY)) {
-        const client = await getClient(60 * 5 * 1000);
+    const client = await getClient(60 * 5 * 1000).catch((e) => {
+        console.error(`Formatting: Error waiting for clojure-lsp to start: ${e}`);
+    });
+    if (client) {
         const serverInfo = await getServerInfo(client);
         return serverInfo['cljfmt-raw'];
-    } else {
-        console.error('Clojure LSP is not active');
-        return undefined;
     }
+}
+
+function stoppedMenuCommand() {
+    const START_OPTION = 'Start';
+    const START_COMMAND = 'calva.clojureLsp.start';
+    const DOWNLOAD_OPTION = 'Download configured version';
+    const DOWNLOAD_COMMAND = 'calva.clojureLsp.download';
+    const commands = {};
+    commands[START_OPTION] = START_COMMAND;
+    commands[DOWNLOAD_OPTION] = DOWNLOAD_COMMAND;
+    void vscode.window
+        .showQuickPick(Object.keys(commands), { title: 'clojure-lsp' })
+        .then((v) => {
+            if (commands[v]) {
+                void vscode.commands.executeCommand(commands[v]);
+            }
+        });
 }
 
 export default {

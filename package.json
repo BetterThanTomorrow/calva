@@ -831,6 +831,12 @@
         ],
         "commands": [
             {
+                "command": "calva.clojureLsp.showClojureLspStoppedMenu",
+                "title": "Show clojure-lsp menu",
+                "enablement": "!clojureLsp:active",
+                "category": "Calva Clojure LSP"
+            },
+            {
                 "command": "calva.clojureLsp.download",
                 "title": "Download the configured Clojure LSP Server version",
                 "enablement": "!clojureLsp:active",
