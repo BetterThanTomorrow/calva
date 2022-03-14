@@ -7,18 +7,52 @@ description: Learn about how Calva leverages clojure-lsp for a lot of the featur
 
 Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from [clojure-lsp](https://github.com/snoe/clojure-lsp). This enables you to check something up in a project, with a lot of navigational and contextual support, without starting a REPL for it. (And once you do start a REPL you'll get even more capabilities, enabled by the dynamic analysis.)
 
-!!! Note
+!!! Note "Which clojure-lsp does Calva use?"
     Calva defaults to using the `latest` clojure-lsp released. To use a different version of clojure-lsp, see the [configuration](#configuration) section. **Calva does not use the clojure-lsp installed on your system, unless you [set the path for clojure-lsp](#using-a-custom-clojure-lsp-native-binary) to the installed binary in your settings**. You can see what version is being used by running the `Clojure-lsp Server Info` command, which will also show the version of clj-kondo that's being used as well as other info. 
 
 ## The LSP server starts automatically
 
-Unless you set `calva.enableClojureLspOnStart` to `false`, Calva will automatically start clojure-lsp. And you won't need to install antyting, because Calva handles that. It can take a while for clojure-lsp to start, though. Especially the first time for a new project, when clojure-lsp (via `clj-kondo`) indexes the project files.
+Unless you set `calva.enableClojureLspOnStart` to `false`, Calva will automatically start clojure-lsp. And you won't need to install antyting, because Calva handles that. It can take a while for clojure-lsp to start. Especially the first time for a new project, when clojure-lsp (via `clj-kondo`) indexes the project files.
 
-Calva will show a status bar message during the download and while the server is starting, which will go away once the server is ready. However, _much of Calva's functionality is available regardless of the LSP server_, so please start using Calva while this server is starting.
+## LSP server process control
 
-!["Clojure-lsp status bar downloading and intializing messages"](images/clojure-lsp/lsp-status-bar-message.gif "Clojure-lsp status bar downloading and intializing messages")
+It is highly recommended to let clojure-lsp start automatically, and most often you can just let it do its wonderful magic without bothering with it. There are times when you might want to control and inspect the process, though. Calva has commands for:
 
-Therea are commands for stopping and starting the clojure-lsp server. And you can also disable the autostarting using the `calva.enableClojureLspOnStart` setting (we recommend to keeping the default here and always enjoy clojure-lsp goodness).
+* Inspecting the clojure-lsp server information
+* Read the clojure-lsp server log
+* Stopping clojure-lsp
+* Starting clojure-lsp
+* Download the configured clojure-lsp version
+
+In the status bar, Calva will show an indicator with the clojure-lsp status.
+
+### Active clojure-lsp
+
+When clojure-lsp is downloaded, started and initialized the status bar indicator will look like so:
+
+!["Active clojure-lsp status bar item"](images/clojure-lsp/calva-clojure-lsp-statusbar-active.png "Active clojure-lsp status bar item")
+
+Clicking the item will bring up this menu:
+
+!["Active clojure-lsp  menu"](images/clojure-lsp/calva-clojure-lsp-menu-active.png "Active clojure-lsp menu")
+
+See below about the [server info](#server-info-command) and [server log](#opening-the-server-log-file) commands.
+
+### Stopped clojure-lsp
+
+When clojure-lsp is stopped the status bar indicator will look like so:
+
+!["Inactive clojure-lsp status bar item"](images/clojure-lsp/calva-clojure-lsp-statusbar-inactive.png "Inactive clojure-lsp status bar item")
+
+The clojure-lsp inactive menu:
+
+!["Inactive clojure-lsp  menu"](images/clojure-lsp/calva-clojure-lsp-menu-inactive.png "Inactive clojure-lsp menu")
+
+The download option here will download the configured clojure-lsp version regardless if it is already installed or not. This can be useful when some earlier download has failed resulting in that clojure-lsp can't be started. *NB: It will not download anything if `calva.clojureLspPath` is set to something non-blank.*
+
+### Downloading and starting
+
+The statusbar item also will indicate when clojure-lsp is being downloaded and while it is starting.
 
 ## Ignoring LSP cache files
 

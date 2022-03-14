@@ -75,7 +75,7 @@ report.*
 .lsp
 output.calva-repl
 .clj-kondo
-clojure-lsp*
+/clojure-lsp*
 
 # MkDocs
 /site/
