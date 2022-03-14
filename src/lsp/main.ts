@@ -666,6 +666,7 @@ async function activate(
 }
 
 async function maybeDownloadLspServer(forceDownLoad = false): Promise<string> {
+    lspStatus.show();
     const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;
     if (userConfiguredClojureLspPath !== '') {
         clojureLspPath = userConfiguredClojureLspPath;
