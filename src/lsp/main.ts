@@ -420,14 +420,15 @@ function stopClient() {
     updateStatusItem('stopped');
     setStateValue(LSP_CLIENT_KEY, undefined);
     if (client) {
+        console.log('Stopping clojure-lsp');
         return client.stop();
     }
 }
 
 async function startClientCommand() {
-    await maybeDownloadLspServer();
     lspStatus.show();
-    void startClient();
+    await maybeDownloadLspServer();
+    await startClient();
 }
 
 async function startClient(): Promise<void> {
@@ -691,32 +692,30 @@ async function downloadLSPServerCommand() {
 async function ensureServerDownloaded(forceDownLoad = false): Promise<string> {
     const currentVersion = readVersionFile(extensionContext.extensionPath);
     const configuredVersion: string = config.getConfig().clojureLspVersion;
+    clojureLspPath = getClojureLspPath(
+            extensionContext.extensionPath,
+            util.isWindows
+        );
     const downloadVersion = ['', 'latest'].includes(configuredVersion)
         ? await getLatestVersion()
         : configuredVersion;
     if (
         (currentVersion !== downloadVersion && downloadVersion !== '') ||
-        forceDownLoad
+        forceDownLoad || !util.pathExists(clojureLspPath)
     ) {
         const downloadPromise = downloadClojureLsp(
             extensionContext.extensionPath,
             downloadVersion
         );
         updateStatusItem('downloading', downloadVersion);
-        clojureLspPath = await downloadPromise;
+        await downloadPromise;
         updateStatusItem('stopped');
-    } else {
-        clojureLspPath = getClojureLspPath(
-            extensionContext.extensionPath,
-            util.isWindows
-        );
     }
     return readVersionFile(extensionContext.extensionPath);
 }
 
 function deactivate(): Promise<void> {
-    void stopClient();
-    return Promise.resolve();
+    return stopClient();
 }
 
 async function getReferences(

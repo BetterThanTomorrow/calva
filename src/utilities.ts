@@ -571,6 +571,10 @@ function mustGetActiveTextEditor(): vscode.TextEditor {
     return editor;
 }
 
+function pathExists(path: string): boolean {
+    return fs.existsSync(path);    
+}
+
 export {
     distinct,
     getWordAtPosition,
@@ -609,4 +613,5 @@ export {
     isWindows,
     getActiveTextEditor,
     mustGetActiveTextEditor,
+    pathExists
 };
