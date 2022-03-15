@@ -12,7 +12,7 @@ Calva uses a mix of static and dynamic analysis to power the experience. A lot o
 
 ## The LSP server starts automatically
 
-Unless you set `calva.enableClojureLspOnStart` to `false`, Calva will automatically start clojure-lsp. And you won't need to install antyting, because Calva handles that. It can take a while for clojure-lsp to start. Especially the first time for a new project, when clojure-lsp (via `clj-kondo`) indexes the project files.
+Unless you set `calva.enableClojureLspOnStart` to `false`, Calva will automatically start clojure-lsp. And you won't need to install antyting, because Calva handles that. It can take a while for clojure-lsp to start, especially the first time for a new project, when clojure-lsp (via `clj-kondo`) indexes the project files.
 
 ## LSP server process control
 
@@ -34,7 +34,7 @@ When clojure-lsp is downloaded, started and initialized the status bar indicator
 
 Clicking the item will bring up this menu:
 
-!["Active clojure-lsp  menu"](images/clojure-lsp/calva-clojure-lsp-menu-active.png "Active clojure-lsp menu")
+!["Active clojure-lsp menu"](images/clojure-lsp/calva-clojure-lsp-menu-active.png "Active clojure-lsp menu")
 
 See below about the [server info](#server-info-command) and [server log](#opening-the-server-log-file) commands.
 
