@@ -578,21 +578,40 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
-     * If possible, moves this cursor forwards past any whitespace, and then past the immediately following open-paren and returns true.
+     * If possible, moves this cursor forwards past any readers and whitespace,
+     * and then past the immediately following open-paren and returns true.
      * If the source does not match this, returns false and does not move the cursor.
      */
-    downList(skipMetadata = false): boolean {
+    downList(): boolean {
         const cursor = this.clone();
         cursor.forwardThroughAnyReader();
         cursor.forwardWhitespace();
         if (cursor.getToken().type === 'open') {
-            if (skipMetadata) {
-                while (cursor.tokenBeginsMetadata()) {
-                    cursor.forwardSexp();
-                    cursor.forwardWhitespace();
-                }
-            }
             cursor.next();
+            this.set(cursor);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * If possible, moves this cursor forwards past any readers, whitespace, and metadata,
+     * and then past the immediately following open-paren and returns true.
+     * If the source does not match this, returns false and does not move the cursor.
+     */
+    downListSkippingMeta(): boolean {
+        const cursor = this.clone();
+        do {
+            cursor.forwardThroughAnyReader();
+            cursor.forwardWhitespace();
+            if (
+                cursor.getToken().type === 'open' &&
+                !cursor.tokenBeginsMetadata()
+            ) {
+                break;
+            }
+        } while (cursor.forwardSexp());
+        if (cursor.downList()) {
             this.set(cursor);
             return true;
         }

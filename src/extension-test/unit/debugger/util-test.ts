@@ -60,6 +60,14 @@ describe('Debugger Util', () => {
             expectBreakpointToBeFound('metadata-symbol.clj');
         });
 
+        it('metadata map', () => {
+            expectBreakpointToBeFound('metadata-map.clj');
+        });
+
+        it('metadata map last sexp', () => {
+            expectBreakpointToBeFound('metadata-map-last.clj');
+        });
+
         it('ignored forms', () => {
             expectBreakpointToBeFound('ignored-forms.clj');
         });
