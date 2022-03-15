@@ -572,7 +572,7 @@ function mustGetActiveTextEditor(): vscode.TextEditor {
 }
 
 function pathExists(path: string): boolean {
-    return fs.existsSync(path);    
+    return fs.existsSync(path);
 }
 
 export {
@@ -613,5 +613,5 @@ export {
     isWindows,
     getActiveTextEditor,
     mustGetActiveTextEditor,
-    pathExists
+    pathExists,
 };

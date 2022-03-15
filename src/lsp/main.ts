@@ -693,15 +693,16 @@ async function ensureServerDownloaded(forceDownLoad = false): Promise<string> {
     const currentVersion = readVersionFile(extensionContext.extensionPath);
     const configuredVersion: string = config.getConfig().clojureLspVersion;
     clojureLspPath = getClojureLspPath(
-            extensionContext.extensionPath,
-            util.isWindows
-        );
+        extensionContext.extensionPath,
+        util.isWindows
+    );
     const downloadVersion = ['', 'latest'].includes(configuredVersion)
         ? await getLatestVersion()
         : configuredVersion;
     if (
         (currentVersion !== downloadVersion && downloadVersion !== '') ||
-        forceDownLoad || !util.pathExists(clojureLspPath)
+        forceDownLoad ||
+        !util.pathExists(clojureLspPath)
     ) {
         const downloadPromise = downloadClojureLsp(
             extensionContext.extensionPath,
