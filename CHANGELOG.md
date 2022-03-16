@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add commands for starting and stopping clojure-lsp](https://github.com/BetterThanTomorrow/calva/pull/1592)
 - Maintenance: [Dumb down the token cursor some dealing with meta data and readers](https://github.com/BetterThanTomorrow/calva/pull/1585)
 
 ## [2.0.253] - 2022-03-09
