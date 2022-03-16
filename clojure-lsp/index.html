@@ -902,9 +902,43 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#starting-the-lsp-server" class="md-nav__link">
-    Starting the LSP server
+  <a href="#the-lsp-server-starts-automatically" class="md-nav__link">
+    The LSP server starts automatically
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lsp-server-process-control" class="md-nav__link">
+    LSP server process control
+  </a>
+  
+    <nav class="md-nav" aria-label="LSP server process control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#active-clojure-lsp" class="md-nav__link">
+    Active clojure-lsp
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stopped-clojure-lsp" class="md-nav__link">
+    Stopped clojure-lsp
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#downloading-and-starting" class="md-nav__link">
+    Downloading and starting
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1703,9 +1737,43 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#starting-the-lsp-server" class="md-nav__link">
-    Starting the LSP server
+  <a href="#the-lsp-server-starts-automatically" class="md-nav__link">
+    The LSP server starts automatically
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lsp-server-process-control" class="md-nav__link">
+    LSP server process control
+  </a>
+  
+    <nav class="md-nav" aria-label="LSP server process control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#active-clojure-lsp" class="md-nav__link">
+    Active clojure-lsp
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stopped-clojure-lsp" class="md-nav__link">
+    Stopped clojure-lsp
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#downloading-and-starting" class="md-nav__link">
+    Downloading and starting
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1805,13 +1873,35 @@
 <h1 id="clojure-lsp">Clojure-lsp</h1>
 <p>Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from <a href="https://github.com/snoe/clojure-lsp">clojure-lsp</a>. This enables you to check something up in a project, with a lot of navigational and contextual support, without starting a REPL for it. (And once you do start a REPL you'll get even more capabilities, enabled by the dynamic analysis.)</p>
 <div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>By default, Calva determines the version of clojure-lsp it uses, and it defaults to <code>latest</code>. To use a different version of clojure-lsp, see the <a href="#configuration">configuration</a> section. <strong>Calva does not use the clojure-lsp installed on your system, unless you <a href="#using-a-custom-clojure-lsp-native-binary">set the path for clojure-lsp</a> to the installed binary in your settings</strong>. You can see what version is being used by running the <code>Clojure-lsp Server Info</code> command, which will also show the version of clj-kondo that's being used as well as other info. </p>
+<p class="admonition-title">Which clojure-lsp does Calva use?</p>
+<p>Calva defaults to using the <code>latest</code> clojure-lsp released. To use a different version of clojure-lsp, see the <a href="#configuration">configuration</a> section. <strong>Calva does not use the clojure-lsp installed on your system, unless you <a href="#using-a-custom-clojure-lsp-native-binary">set the path for clojure-lsp</a> to the installed binary in your settings</strong>. You can see what version is being used by running the <code>Clojure-lsp Server Info</code> command, which will also show the version of clj-kondo that's being used as well as other info. </p>
 </div>
-<h2 id="starting-the-lsp-server">Starting the LSP server</h2>
-<p>You don't need to do anything to start clojure-lsp. No install, no commands, no nothing. Calva downloads the correct binary for your operating system if necessary (this should only happen when the clojure-lsp version is updated in a new release of Calva) and then starts it. It does take a while for clojure-lsp to start, though, especially the first time for a new project, when clojure-lsp (via <code>clj-kondo</code>) indexes the project files.</p>
-<p>Calva will show a status bar message during the download and while the server is starting, which will go away once the server is ready. However, <em>much of Calva's functionality is available regardless of the LSP server</em>, so please start using Calva while this server is starting.</p>
-<p><img alt="&quot;Clojure-lsp status bar downloading and intializing messages&quot;" src="../images/clojure-lsp/lsp-status-bar-message.gif" title="Clojure-lsp status bar downloading and intializing messages" /></p>
+<h2 id="the-lsp-server-starts-automatically">The LSP server starts automatically</h2>
+<p>Unless you set <code>calva.enableClojureLspOnStart</code> to <code>false</code>, Calva will automatically start clojure-lsp. And you won't need to install antyting, because Calva handles that. It can take a while for clojure-lsp to start, especially the first time for a new project, when clojure-lsp (via <code>clj-kondo</code>) indexes the project files.</p>
+<h2 id="lsp-server-process-control">LSP server process control</h2>
+<p>It is highly recommended to let clojure-lsp start automatically, and most often you can just let it do its wonderful magic without bothering with it. There are times when you might want to control and inspect the process, though. Calva has commands for:</p>
+<ul>
+<li>Inspecting the clojure-lsp server information</li>
+<li>Read the clojure-lsp server log</li>
+<li>Stopping clojure-lsp</li>
+<li>Starting clojure-lsp</li>
+<li>Download the configured clojure-lsp version</li>
+</ul>
+<p>In the status bar, Calva will show an indicator with the clojure-lsp status.</p>
+<h3 id="active-clojure-lsp">Active clojure-lsp</h3>
+<p>When clojure-lsp is downloaded, started and initialized the status bar indicator will look like so:</p>
+<p><img alt="&quot;Active clojure-lsp status bar item&quot;" src="../images/clojure-lsp/calva-clojure-lsp-statusbar-active.png" title="Active clojure-lsp status bar item" /></p>
+<p>Clicking the item will bring up this menu:</p>
+<p><img alt="&quot;Active clojure-lsp menu&quot;" src="../images/clojure-lsp/calva-clojure-lsp-menu-active.png" title="Active clojure-lsp menu" /></p>
+<p>See below about the <a href="#server-info-command">server info</a> and <a href="#opening-the-server-log-file">server log</a> commands.</p>
+<h3 id="stopped-clojure-lsp">Stopped clojure-lsp</h3>
+<p>When clojure-lsp is stopped the status bar indicator will look like so:</p>
+<p><img alt="&quot;Inactive clojure-lsp status bar item&quot;" src="../images/clojure-lsp/calva-clojure-lsp-statusbar-inactive.png" title="Inactive clojure-lsp status bar item" /></p>
+<p>The clojure-lsp inactive menu:</p>
+<p><img alt="&quot;Inactive clojure-lsp  menu&quot;" src="../images/clojure-lsp/calva-clojure-lsp-menu-inactive.png" title="Inactive clojure-lsp menu" /></p>
+<p>The download option here will download the configured clojure-lsp version regardless if it is already installed or not. This can be useful when some earlier download has failed resulting in that clojure-lsp can't be started. <em>NB: It will not download anything if <code>calva.clojureLspPath</code> is set to something non-blank.</em></p>
+<h3 id="downloading-and-starting">Downloading and starting</h3>
+<p>The statusbar item also will indicate when clojure-lsp is being downloaded and while it is starting.</p>
 <h2 id="ignoring-lsp-cache-files">Ignoring LSP cache files</h2>
 <p>Clojure-lsp stores its project analysis information in your project. Git users can add these lines to their project root directory <code>.gitignore</code>:</p>
 <div class="highlight"><pre><span></span><code>.clj-kondo/cache/
