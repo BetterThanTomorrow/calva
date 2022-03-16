@@ -6,7 +6,7 @@ import * as util from './utilities';
 
 let lastContexts: context.CursorContext[] = [];
 
-export default function setCursorContextIfChanged(editor: vscode.TextEditor) {
+export function setCursorContextIfChanged(editor: vscode.TextEditor) {
     if (
         !editor ||
         !editor.document ||

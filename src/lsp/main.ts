@@ -31,12 +31,16 @@ const LSP_CLIENT_KEY = 'lspClient';
 const LSP_CLIENT_KEY_ERROR = 'lspClientError';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
 const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE =
-    'The clojure-lsp server is not running or has not finished intializing.';
+    'The clojure-lsp server is not running or has not finished initializing.';
 const lspStatus = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
     0
 );
 let serverVersion: string;
+let extensionContext: vscode.ExtensionContext;
+let clojureLspPath: string;
+let testTreeHandler: TestTreeHandler;
+let lspCommandsRegistered = false;
 
 // The Node LSP client requires the client code to jump through a few hoops in
 // order to enable an experimental feature. This class exists solely to set
@@ -289,10 +293,7 @@ function sendCommandRequest(command: string, args: (number | string)[]): void {
     }
 }
 
-function registerLspCommand(
-    client: LanguageClient,
-    command: ClojureLspCommand
-): vscode.Disposable {
+function registerLspCommand(command: ClojureLspCommand): vscode.Disposable {
     const category = command.category ? command.category : 'calva.refactor';
     const vscodeCommand = `${category}.${command.command.replace(
         /-[a-z]/g,
@@ -358,20 +359,18 @@ const generalCommands = [
     },
 ];
 
-function registerCommands(
-    context: vscode.ExtensionContext,
-    client: LanguageClient
-) {
-    context.subscriptions.push(
-        ...generalCommands.map((command) =>
-            vscode.commands.registerCommand(command.name, command.handler)
-        )
-    );
-    context.subscriptions.push(
-        ...clojureLspCommands.map((command) =>
-            registerLspCommand(client, command)
-        )
-    );
+function registerLspCommands(context: vscode.ExtensionContext) {
+    if (!lspCommandsRegistered) {
+        context.subscriptions.push(
+            ...generalCommands.map((command) =>
+                vscode.commands.registerCommand(command.name, command.handler)
+            )
+        );
+        context.subscriptions.push(
+            ...clojureLspCommands.map((command) => registerLspCommand(command))
+        );
+    }
+    lspCommandsRegistered = true;
 }
 
 function registerEventHandlers(
@@ -411,11 +410,28 @@ function registerEventHandlers(
     );
 }
 
-async function startClient(
-    clojureLspPath: string,
-    context: vscode.ExtensionContext,
-    handler: TestTreeHandler
-): Promise<void> {
+function stopClient() {
+    const client = getStateValue(LSP_CLIENT_KEY);
+    void vscode.commands.executeCommand(
+        'setContext',
+        'clojureLsp:active',
+        false
+    );
+    updateStatusItem('stopped');
+    setStateValue(LSP_CLIENT_KEY, undefined);
+    if (client) {
+        console.log('Stopping clojure-lsp');
+        return client.stop();
+    }
+}
+
+async function startClientCommand() {
+    lspStatus.show();
+    await maybeDownloadLspServer();
+    await startClient();
+}
+
+async function startClient(): Promise<void> {
     const client = createClient(clojureLspPath);
     console.log('Starting clojure-lsp at', clojureLspPath);
 
@@ -423,28 +439,33 @@ async function startClient(
     client.registerFeature(testTree);
 
     const onReadyPromise = client.onReady();
-    lspStatus.text = '$(rocket) clojure-lsp';
-    lspStatus.show();
+    updateStatusItem('starting');
+
     client.start();
     await onReadyPromise.catch((e) => {
         console.error('clojure-lsp:', e);
         setStateValue(LSP_CLIENT_KEY_ERROR, e);
     });
-    lspStatus.hide();
     if (getStateValue(LSP_CLIENT_KEY_ERROR)) {
         return;
     }
     setStateValue(LSP_CLIENT_KEY, client);
-    registerCommands(context, client);
-    registerEventHandlers(context, client);
+    registerLspCommands(extensionContext);
+    registerEventHandlers(extensionContext, client);
     const serverInfo = await getServerInfo(client);
     serverVersion = serverInfo['server-version'];
     sayClientVersionInfo(serverVersion, serverInfo);
+    await vscode.commands.executeCommand(
+        'setContext',
+        'clojureLsp:active',
+        true
+    );
+    updateStatusItem('started');
 
     client.onNotification(
         'clojure/textDocument/testTree',
         (tree: TestTreeParams) => {
-            handler(tree);
+            testTreeHandler(tree);
         }
     );
 
@@ -537,6 +558,36 @@ async function serverInfoCommandHandler(): Promise<void> {
     }
 }
 
+function registerLifeCycleCommands(context: vscode.ExtensionContext): void {
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'calva.clojureLsp.start',
+            startClientCommand
+        )
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('calva.clojureLsp.stop', stopClient)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'calva.clojureLsp.download',
+            downloadLSPServerCommand
+        )
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'calva.clojureLsp.showClojureLspStoppedMenu',
+            stoppedMenuCommand
+        )
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'calva.clojureLsp.showClojureLspStartedMenu',
+            startedMenuCommand
+        )
+    );
+}
+
 function registerDiagnosticsCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.commands.registerCommand(
@@ -552,43 +603,120 @@ function registerDiagnosticsCommands(context: vscode.ExtensionContext): void {
     );
 }
 
+type LspStatus =
+    | 'preparing'
+    | 'stopped'
+    | 'starting'
+    | 'started'
+    | 'downloading';
+
+function updateStatusItem(status: LspStatus, extraInfo?: string) {
+    switch (status) {
+        case 'preparing':
+            lspStatus.text = '$(dash) clojure-lsp';
+            lspStatus.tooltip = 'Calva is preparing to initialize Clojure-LSP';
+            lspStatus.command = undefined;
+            break;
+        case 'stopped':
+            lspStatus.text = '$(circle-outline) clojure-lsp';
+            lspStatus.tooltip =
+                'Clojure-LSP is not active, click to get a menu';
+            lspStatus.command = 'calva.clojureLsp.showClojureLspStoppedMenu';
+            break;
+        case 'starting':
+            lspStatus.text = '$(rocket) clojure-lsp';
+            lspStatus.tooltip = 'Clojure-LSP is starting';
+            lspStatus.command = undefined;
+            break;
+        case 'started':
+            lspStatus.text = '$(circle-filled) clojure-lsp';
+            lspStatus.tooltip = 'Clojure-LSP is active';
+            lspStatus.command = 'calva.clojureLsp.showClojureLspStartedMenu';
+            break;
+        case 'downloading':
+            lspStatus.text = '$(sync~spin) clojure-lsp downloading';
+            lspStatus.tooltip = `Calva is downloading clojure-lsp version: ${extraInfo}`;
+            lspStatus.command = undefined;
+            break;
+        default:
+            break;
+    }
+}
+
 async function activate(
     context: vscode.ExtensionContext,
     handler: TestTreeHandler
 ): Promise<void> {
+    await vscode.commands.executeCommand(
+        'setContext',
+        'clojureLsp:active',
+        false
+    );
+    extensionContext = context;
+    testTreeHandler = handler;
+    registerLifeCycleCommands(context);
     registerDiagnosticsCommands(context);
-    const extensionPath = context.extensionPath;
-    const currentVersion = readVersionFile(extensionPath);
-    const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;
-    let clojureLspPath =
-        userConfiguredClojureLspPath === ''
-            ? getClojureLspPath(extensionPath, util.isWindows)
-            : userConfiguredClojureLspPath;
-    if (userConfiguredClojureLspPath === '') {
-        const configuredVersion: string = config.getConfig().clojureLspVersion;
-        const downloadVersion = ['', 'latest'].includes(configuredVersion)
-            ? await getLatestVersion()
-            : configuredVersion;
-        if (currentVersion !== downloadVersion && downloadVersion !== '') {
-            const downloadPromise = downloadClojureLsp(
-                context.extensionPath,
-                downloadVersion
-            );
-            lspStatus.text = '$(sync~spin) Downloading clojure-lsp';
-            lspStatus.show();
-            clojureLspPath = await downloadPromise;
-            lspStatus.hide();
-        }
+    updateStatusItem('preparing');
+    if (config.getConfig().enableClojureLspOnStart) {
+        lspStatus.show();
+        await maybeDownloadLspServer();
+        await startClient();
+    } else {
+        updateStatusItem('stopped');
     }
-    await startClient(clojureLspPath, context, handler);
+}
+
+async function maybeDownloadLspServer(forceDownLoad = false): Promise<string> {
+    const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;
+    if (userConfiguredClojureLspPath !== '') {
+        clojureLspPath = userConfiguredClojureLspPath;
+        if (forceDownLoad) {
+            void vscode.window.showErrorMessage(
+                `Not downloading, because 'calva.clojureLSPPath' is configured (${userConfiguredClojureLspPath})`
+            );
+        }
+        return undefined;
+    } else {
+        return await ensureServerDownloaded(forceDownLoad);
+    }
+}
+
+async function downloadLSPServerCommand() {
+    lspStatus.show();
+    const version = await maybeDownloadLspServer(true);
+    void vscode.window.showInformationMessage(
+        `Downloaded clojure-lsp version: ${version}`
+    );
+}
+
+async function ensureServerDownloaded(forceDownLoad = false): Promise<string> {
+    const currentVersion = readVersionFile(extensionContext.extensionPath);
+    const configuredVersion: string = config.getConfig().clojureLspVersion;
+    clojureLspPath = getClojureLspPath(
+        extensionContext.extensionPath,
+        util.isWindows
+    );
+    const downloadVersion = ['', 'latest'].includes(configuredVersion)
+        ? await getLatestVersion()
+        : configuredVersion;
+    if (
+        (currentVersion !== downloadVersion && downloadVersion !== '') ||
+        forceDownLoad ||
+        !util.pathExists(clojureLspPath)
+    ) {
+        const downloadPromise = downloadClojureLsp(
+            extensionContext.extensionPath,
+            downloadVersion
+        );
+        updateStatusItem('downloading', downloadVersion);
+        await downloadPromise;
+        updateStatusItem('stopped');
+    }
+    return readVersionFile(extensionContext.extensionPath);
 }
 
 function deactivate(): Promise<void> {
-    const client = getStateValue(LSP_CLIENT_KEY);
-    if (client) {
-        return client.stop();
-    }
-    return Promise.resolve();
+    return stopClient();
 }
 
 async function getReferences(
@@ -681,9 +809,77 @@ function getClient(timeout: number): Promise<LanguageClient> | undefined {
 
 export async function getCljFmtConfig() {
     // TODO: Figure out a reasonable timeout
-    const client = await getClient(60 * 5 * 1000);
-    const serverInfo = await getServerInfo(client);
-    return serverInfo['cljfmt-raw'];
+    const client = await getClient(60 * 5 * 1000).catch((e) => {
+        console.error(
+            `Formatting: Error waiting for clojure-lsp to start: ${e}`
+        );
+    });
+    if (client) {
+        const serverInfo = await getServerInfo(client);
+        return serverInfo['cljfmt-raw'];
+    }
+}
+
+function showMenu(
+    items: vscode.QuickPickItem[],
+    commands: Record<string, string>
+) {
+    void vscode.window
+        .showQuickPick(items, { title: 'clojure-lsp' })
+        .then((v) => {
+            if (commands[v.label]) {
+                void vscode.commands.executeCommand(commands[v.label]);
+            }
+        });
+}
+
+function stoppedMenuCommand() {
+    const START_OPTION = 'Start';
+    const START_COMMAND = 'calva.clojureLsp.start';
+    const DOWNLOAD_OPTION = 'Download configured version';
+    const DOWNLOAD_COMMAND = 'calva.clojureLsp.download';
+    const commands = {};
+    commands[START_OPTION] = START_COMMAND;
+    commands[DOWNLOAD_OPTION] = DOWNLOAD_COMMAND;
+    const items: vscode.QuickPickItem[] = [
+        {
+            label: START_OPTION,
+            description: 'Start the clojure-lsp server',
+        },
+        {
+            label: DOWNLOAD_OPTION,
+            description: `${config.getConfig().clojureLspVersion}`,
+        },
+    ];
+    showMenu(items, commands);
+}
+
+function startedMenuCommand() {
+    const STOP_OPTION = 'Stop';
+    const STOP_COMMAND = 'calva.clojureLsp.stop';
+    const INFO_OPTION = 'Show server info';
+    const INFO_COMMAND = 'calva.diagnostics.clojureLspServerInfo';
+    const LOG_OPTION = 'Open log';
+    const LOG_COMMAND = 'calva.diagnostics.openClojureLspLogFile';
+    const commands = {};
+    commands[STOP_OPTION] = STOP_COMMAND;
+    commands[INFO_OPTION] = INFO_COMMAND;
+    commands[LOG_OPTION] = LOG_COMMAND;
+    const items: vscode.QuickPickItem[] = [
+        {
+            label: INFO_OPTION,
+            description: 'Print clojure-lsp server info to `Calva says`',
+        },
+        {
+            label: LOG_OPTION,
+            description: 'Open the clojure-lsp log file',
+        },
+        {
+            label: STOP_OPTION,
+            description: 'Stop the clojure-lsp server',
+        },
+    ];
+    showMenu(items, commands);
 }
 
 export default {

@@ -1,13 +1,13 @@
 ---
 title: Clojure Interactive Programming for Visual Studio Code
-description: Learn how to use Calva, an IDE bringing full Clojure and ClojureScript Interactive Programming to VS Code.
+description: Learn how to use Calva, a rich IDE for enjoyable and productive Clojure and ClojureScript Interactive Programming in VS Code.
 ---
 
 # Welcome!
 
 ![Calva Logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
 
-[Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) is an integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) development in [Visual Studio Code](https://code.visualstudio.com). It includes inline code evaluation, Paredit, code formatting, a test runner, syntax highlighting, [linting](linting.md), and more. [Calva is open source](https://github.com/BetterThanTomorrow/calva) and free to use.
+[Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) is an integrated, REPL powered, development environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) programming in [Visual Studio Code](https://code.visualstudio.com). It includes inline [code evaluation](evaluation.md), [structural editing](paredit.md), code [formatting](formatting.md), code navigation, a [debugger](debugger.md), [linting](linting.md), syntax highlighting, Clojure aware rainbow brackets, a [test runner](test-runner.md), refactoring support, and more. A lot of effort has been put into making Calva a good choice to start if you are new to Clojure. [Calva is open source](https://github.com/BetterThanTomorrow/calva) and free to use.
 
 ## Getting Started
 
