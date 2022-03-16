@@ -13,6 +13,7 @@ import JarContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
 import * as definition from './providers/definition';
 import { CalvaSignatureHelpProvider } from './providers/signature';
+import { TheInlayHintsProvider } from './providers/inlayhints';
 import testRunner from './testRunner';
 import annotations from './providers/annotations';
 import select from './select';
@@ -610,6 +611,13 @@ async function activate(context: vscode.ExtensionContext) {
         vscode.languages.registerHoverProvider(
             config.documentSelector,
             new HoverProvider()
+        )
+    );
+    context.subscriptions.push(
+        vscode.languages.registerInlayHintsProvider(
+            config.documentSelector,
+            TheInlayHintsProvider
+
         )
     );
     context.subscriptions.push(
