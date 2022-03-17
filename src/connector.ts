@@ -43,23 +43,27 @@ async function readJarContent(uri: string) {
 }
 
 async function readRuntimeConfigs() {
-    const classpath = await nClient.session.classpath();
-    const configs = classpath.classpath.map(async (element: string) => {
-        if (element.endsWith('.jar')) {
-            const edn = await getJarContents(
-                element.concat('!/calva.exports/config.edn')
-            );
-            return [element, edn];
-        }
-
-        return [element, null];
+    const classpath = await nClient.session.classpath().catch(e => {
+        console.error('readRuntimeConfigs:', e);
     });
-    const files = await Promise.all(configs);
-
-    // maybe we don't need to keep uri -> edn association, but it would make showing errors easier later
-    return files
-        .filter(([_, config]) => util.isNonEmptyString(config))
-        .map(([_, config]) => addEdnConfig(config));
+    if (classpath) {
+        const configs = classpath.classpath.map(async (element: string) => {
+            if (element.endsWith('.jar')) {
+                const edn = await getJarContents(
+                    element.concat('!/calva.exports/config.edn')
+                );
+                return [element, edn];
+            }
+    
+            return [element, null];
+        });
+        const files = await Promise.all(configs);
+    
+        // maybe we don't need to keep uri -> edn association, but it would make showing errors easier later
+        return files
+            .filter(([_, config]) => util.isNonEmptyString(config))
+            .map(([_, config]) => addEdnConfig(config));
+    }
 }
 
 async function connectToHost(
