@@ -43,7 +43,7 @@ async function readJarContent(uri: string) {
 }
 
 async function readRuntimeConfigs() {
-    const classpath = await nClient.session.classpath().catch(e => {
+    const classpath = await nClient.session.classpath().catch((e) => {
         console.error('readRuntimeConfigs:', e);
     });
     if (classpath) {
@@ -54,11 +54,11 @@ async function readRuntimeConfigs() {
                 );
                 return [element, edn];
             }
-    
+
             return [element, null];
         });
         const files = await Promise.all(configs);
-    
+
         // maybe we don't need to keep uri -> edn association, but it would make showing errors easier later
         return files
             .filter(([_, config]) => util.isNonEmptyString(config))
