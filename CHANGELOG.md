@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Be more graceful about that [clojure-lsp does not start in the Getting Started REPL](https://github.com/BetterThanTomorrow/calva/pull/1601)
 
 ## [2.0.254] - 2022-03-16
 - [Add commands for starting and stopping clojure-lsp](https://github.com/BetterThanTomorrow/calva/pull/1592)
