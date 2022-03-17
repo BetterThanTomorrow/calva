@@ -176,6 +176,9 @@ function getConfig() {
                 'jackIn.useDeprecatedAliasFlag'
             ),
         },
+        enableClojureLspOnStart: configOptions.get<boolean>(
+            'enableClojureLspOnStart'
+        ),
     };
 }
 

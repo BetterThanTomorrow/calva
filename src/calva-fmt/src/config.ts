@@ -12,7 +12,6 @@ const defaultCljfmtContent =
 
 const LSP_CONFIG_KEY = 'CLOJURE-LSP';
 let lspFormatConfig: string;
-let lspFormatConfigFetched = false;
 
 function configuration(
     workspaceConfig: vscode.WorkspaceConfiguration,
@@ -35,13 +34,8 @@ async function readConfiguration(): Promise<{
 }> {
     const workspaceConfig = vscode.workspace.getConfiguration('calva.fmt');
     const configPath: string = workspaceConfig.get('configPath');
-    if (configPath === LSP_CONFIG_KEY && !lspFormatConfigFetched) {
-        try {
-            lspFormatConfig = await lsp.getCljFmtConfig();
-            lspFormatConfigFetched = true;
-        } catch (_) {
-            lspFormatConfigFetched = true;
-        }
+    if (configPath === LSP_CONFIG_KEY) {
+        lspFormatConfig = await lsp.getCljFmtConfig();
     }
     if (configPath === LSP_CONFIG_KEY && !lspFormatConfig) {
         void vscode.window.showErrorMessage(
