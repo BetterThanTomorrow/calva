@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [An extra quick-pick prompt at pops up after jack-in](https://github.com/BetterThanTomorrow/calva/issues/1600)
 
 ## [2.0.254] - 2022-03-16
 - [Add commands for starting and stopping clojure-lsp](https://github.com/BetterThanTomorrow/calva/pull/1592)
