@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as filesCache from '../../files-cache';
 import * as cljsLib from '../../../out/cljs-lib/cljs-lib.js';
 import * as lsp from '../../lsp/main';
+import { assertIsDefined } from '../../utilities';
 const defaultCljfmtContent =
   '\
 {:remove-surrounding-whitespace? true\n\
@@ -31,7 +32,10 @@ async function readConfiguration(): Promise<{
   'cljfmt-options': object;
 }> {
   const workspaceConfig = vscode.workspace.getConfiguration('calva.fmt');
-  const configPath: string = workspaceConfig.get('configPath');
+  const configPath: string | undefined = workspaceConfig.get('configPath');
+
+  assertIsDefined(configPath, 'Expected configPath to be defined!');
+
   if (configPath === LSP_CONFIG_KEY) {
     lspFormatConfig = await lsp.getCljFmtConfig();
   }
