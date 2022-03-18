@@ -13,6 +13,7 @@ import {
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import { EditableDocument } from '../cursor-doc/model';
+import { assertIsDefined } from '../utilities';
 
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
@@ -364,10 +365,16 @@ const pareditCommands: PareditCommand[] = [
 function wrapPareditCommand(command: PareditCommand) {
     return () => {
         try {
-            const textEditor = window.activeTextEditor,
-                mDoc: EditableDocument = docMirror.mustGetDocument(
-                    textEditor.document
-                );
+            const textEditor = window.activeTextEditor;
+
+            assertIsDefined(
+                textEditor,
+                'Expected window to have an activeTextEditor!'
+            );
+
+            const mDoc: EditableDocument = docMirror.getDocument(
+                textEditor.document
+            );
             if (!enabled || !languages.has(textEditor.document.languageId)) {
                 return;
             }

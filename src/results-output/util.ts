@@ -18,9 +18,9 @@ function formatAsLineComments(error: string): string {
 }
 
 function splitEditQueueForTextBatching(
-    editQueue: [string, OnAppendedCallback][],
+    editQueue: [string, OnAppendedCallback | undefined][],
     maxBatchSize: number = 1000
-): [string[], [string, OnAppendedCallback][]] {
+): [string[], [string, OnAppendedCallback | undefined][]] {
     const textBatch = takeWhile(editQueue, (value, index) => {
         return index < maxBatchSize && !value[1];
     }).map((value) => value[0]);

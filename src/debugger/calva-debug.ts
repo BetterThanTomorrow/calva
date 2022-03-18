@@ -287,7 +287,7 @@ class CalvaDebugSession extends LoggingDebugSession {
             new Position(positionLine, positionColumn)
         );
         const tokenCursor = docMirror
-            .mustGetDocument(document)
+            .getDocument(document)
             .getTokenCursor(offset);
 
         try {

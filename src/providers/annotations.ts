@@ -29,7 +29,7 @@ const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
 
 let resultsLocations: [vscode.Range, vscode.Position, vscode.Location][] = [];
 
-function getResultsLocation(pos: vscode.Position): vscode.Location {
+function getResultsLocation(pos: vscode.Position): vscode.Location | undefined {
     for (const [range, _evaluatePosition, location] of resultsLocations) {
         if (range.contains(pos)) {
             return location;
@@ -37,7 +37,9 @@ function getResultsLocation(pos: vscode.Position): vscode.Location {
     }
 }
 
-function getEvaluationPosition(pos: vscode.Position): vscode.Position {
+function getEvaluationPosition(
+    pos: vscode.Position
+): vscode.Position | undefined {
     for (const [range, evaluatePosition, _location] of resultsLocations) {
         if (range.contains(pos)) {
             return evaluatePosition;
@@ -95,7 +97,7 @@ function setSelectionDecorations(editor, ranges, status) {
 }
 
 function clearEvaluationDecorations(editor?: vscode.TextEditor) {
-    editor = editor || util.getActiveTextEditor();
+    editor = editor || util.tryToGetActiveTextEditor();
     if (editor) {
         util.cljsLib.removeStateValue(
             editor.document.uri + ':resultDecorationRanges'
@@ -204,7 +206,8 @@ function decorateSelection(
 
 function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
     if (event.contentChanges.length) {
-        const activeTextEditor: vscode.TextEditor = util.getActiveTextEditor();
+        const activeTextEditor: vscode.TextEditor | undefined =
+            util.tryToGetActiveTextEditor();
         if (activeTextEditor) {
             const activeDocument = activeTextEditor.document,
                 changeDocument = event.document;

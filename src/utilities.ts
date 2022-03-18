@@ -10,6 +10,7 @@ import * as outputWindow from './results-output/results-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
 import { isUndefined } from 'lodash';
+import { isNullOrUndefined } from 'util';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
@@ -22,6 +23,21 @@ export function stripAnsi(str: string) {
     );
 }
 
+export const isDefined = <T>(value: T | undefined | null): value is T => {
+    return !isNullOrUndefined(value);
+};
+
+// This needs to be a function and not an arrow function
+// because assertion types are special.
+export function assertIsDefined<T>(
+    value: T | undefined | null,
+    message: string | (() => string)
+): asserts value is T {
+    if (isNullOrUndefined(value)) {
+        throw new Error(typeof message === 'string' ? message : message());
+    }
+}
+
 export function escapeStringRegexp(s: string): string {
     return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -32,18 +48,15 @@ export function isNonEmptyString(value: any): boolean {
 
 async function quickPickSingle(opts: {
     values: string[];
-    saveAs?: string;
+    saveAs: string;
     placeHolder: string;
     autoSelect?: boolean;
 }) {
     if (opts.values.length == 0) {
         return;
     }
-    let selected: string;
-    const saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
-    if (saveAs) {
-        selected = state.extensionContext.workspaceState.get(saveAs);
-    }
+    const saveAs = `qps-${opts.saveAs}`;
+    const selected = state.extensionContext.workspaceState.get<string>(saveAs);
 
     let result;
     if (opts.autoSelect && opts.values.length == 1) {
@@ -60,14 +73,12 @@ async function quickPickSingle(opts: {
 
 async function quickPickMulti(opts: {
     values: string[];
-    saveAs?: string;
+    saveAs: string;
     placeHolder: string;
 }) {
-    let selected: string[];
-    const saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
-    if (saveAs) {
-        selected = state.extensionContext.workspaceState.get(saveAs) || [];
-    }
+    const saveAs = `qps-${opts.saveAs}`;
+    const selected =
+        state.extensionContext.workspaceState.get<string[]>(saveAs) || [];
     const result = await quickPick(opts.values, [], selected, {
         placeHolder: opts.placeHolder,
         canPickMany: true,
@@ -95,19 +106,19 @@ async function quickPick(
     active: string[],
     selected: string[],
     options: vscode.QuickPickOptions
-): Promise<string | string[]> {
+): Promise<string[] | string | undefined> {
     const items = itemsToPick.map((x) => ({ label: x }));
 
     const qp = vscode.window.createQuickPick();
-    qp.canSelectMany = options.canPickMany;
+    qp.canSelectMany = !!options.canPickMany;
     qp.placeholder = options.placeHolder;
-    qp.ignoreFocusOut = options.ignoreFocusOut;
-    qp.matchOnDescription = options.matchOnDescription;
-    qp.matchOnDetail = options.matchOnDetail;
+    qp.ignoreFocusOut = !!options.ignoreFocusOut;
+    qp.matchOnDescription = !!options.matchOnDescription;
+    qp.matchOnDetail = !!options.matchOnDetail;
     qp.items = items;
     qp.activeItems = items.filter((x) => active.indexOf(x.label) != -1);
     qp.selectedItems = items.filter((x) => selected.indexOf(x.label) != -1);
-    return new Promise<string[] | string>((resolve, reject) => {
+    return new Promise<string[] | string | undefined>((resolve, reject) => {
         qp.show();
         qp.onDidAccept(() => {
             if (qp.canSelectMany) {
@@ -172,10 +183,10 @@ function getWordAtPosition(document, position) {
     return text;
 }
 
-function getDocument(
-    document: vscode.TextDocument | Record<string, never>
-): vscode.TextDocument {
-    const activeTextEditor = getActiveTextEditor();
+function tryToGetDocument(
+    document: vscode.TextDocument | Record<string, never> | undefined
+): vscode.TextDocument | undefined {
+    const activeTextEditor = tryToGetActiveTextEditor();
     if (
         document &&
         Object.prototype.hasOwnProperty.call(document, 'fileName')
@@ -190,14 +201,26 @@ function getDocument(
         const editor = vscode.window.visibleTextEditors.find(
             (editor) => editor.document && editor.document.languageId !== 'Log'
         );
-        return editor ? editor.document : null;
-    } else {
-        return null;
+        return editor?.document;
     }
 }
 
-function getFileType(document) {
-    const doc = getDocument(document);
+function getDocument(
+    document: vscode.TextDocument | Record<string, never>
+): vscode.TextDocument {
+    const doc = tryToGetDocument(document);
+
+    if (isUndefined(doc)) {
+        throw new Error('Expected an activeTextEditor with a document!');
+    }
+
+    return doc;
+}
+
+function getFileType(
+    document: vscode.TextDocument | Record<string, never> | undefined
+) {
+    const doc = tryToGetDocument(document);
 
     if (doc) {
         return path.extname(doc.fileName).replace(/^\./, '');
@@ -298,7 +321,7 @@ function markError(error) {
     }
 
     const diagnostic = cljsLib.getStateValue('diagnosticCollection'),
-        editor = mustGetActiveTextEditor();
+        editor = getActiveTextEditor();
 
     //editor.selection = new vscode.Selection(position, position);
     const line = error.line - 1,
@@ -347,7 +370,7 @@ function markWarning(warning) {
     }
 
     const diagnostic = cljsLib.getStateValue('diagnosticCollection'),
-        editor = mustGetActiveTextEditor();
+        editor = getActiveTextEditor();
 
     //editor.selection = new vscode.Selection(position, position);
     const line = Math.max(0, warning.line - 1),
@@ -367,7 +390,9 @@ function markWarning(warning) {
     diagnostic.set(editor.document.uri, warnings);
 }
 
-async function promptForUserInputString(prompt: string): Promise<string> {
+async function promptForUserInputString(
+    prompt: string
+): Promise<string | undefined> {
     return vscode.window.showInputBox({
         prompt: prompt,
         ignoreFocusOut: true,
@@ -388,8 +413,7 @@ function filterVisibleRanges(
                 r.contains(visibleRange)
             );
         });
-        filtered = [].concat(
-            filtered,
+        filtered = filtered.concat(
             combine
                 ? [
                       new vscode.Range(
@@ -459,7 +483,7 @@ async function getJarContents(uri: vscode.Uri | string) {
 }
 
 function sortByPresetOrder(arr: any[], presetOrder: any[]) {
-    const result = [];
+    const result: any[] = [];
     presetOrder.forEach((preset) => {
         if (arr.indexOf(preset) != -1) {
             result.push(preset);
@@ -543,12 +567,17 @@ const isWindows = process.platform === 'win32';
 
 export async function isDocumentWritable(
     document: vscode.TextDocument
-): Promise<boolean> {
+): Promise<boolean | undefined> {
     if (!vscode.workspace.fs.isWritableFileSystem(document.uri.scheme)) {
         return false;
     }
     const fileStat = await vscode.workspace.fs.stat(document.uri);
-    return (fileStat.permissions & vscode.FilePermission.Readonly) !== 1;
+
+    // I'm not sure in which cases fileStat permissions can be missing
+    // and so it's not clear what to do if it is. For the moment we can
+    // ignore this to maintain current behavior.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unnecessary-type-assertion
+    return (fileStat.permissions! & vscode.FilePermission.Readonly) !== 1;
 }
 
 // Returns the elements of coll with duplicates removed
@@ -557,12 +586,12 @@ function distinct<T>(coll: T[]): T[] {
     return [...new Set(coll)];
 }
 
-function getActiveTextEditor(): vscode.TextEditor | undefined {
+function tryToGetActiveTextEditor(): vscode.TextEditor | undefined {
     return vscode.window.activeTextEditor;
 }
 
-function mustGetActiveTextEditor(): vscode.TextEditor {
-    const editor = getActiveTextEditor();
+function getActiveTextEditor(): vscode.TextEditor {
+    const editor = tryToGetActiveTextEditor();
 
     if (isUndefined(editor)) {
         throw new Error('Expected active text editor!');
@@ -578,6 +607,7 @@ function pathExists(path: string): boolean {
 export {
     distinct,
     getWordAtPosition,
+    tryToGetDocument,
     getDocument,
     getFileType,
     getLaunchingState,
@@ -611,7 +641,7 @@ export {
     cljsLib,
     randomSlug,
     isWindows,
+    tryToGetActiveTextEditor,
     getActiveTextEditor,
-    mustGetActiveTextEditor,
     pathExists,
 };

@@ -42,17 +42,26 @@ export async function provideCompletionItems(
 
     if (util.getConnectedState()) {
         const toplevelSelection = select.getFormSelection(
-                document,
-                position,
-                true
-            ),
-            toplevel = document.getText(toplevelSelection),
+            document,
+            position,
+            true
+        );
+
+        util.assertIsDefined(
+            toplevelSelection,
+            'Expected a topLevelSelection!'
+        );
+
+        const toplevel = document.getText(toplevelSelection),
             toplevelStartOffset = document.offsetAt(toplevelSelection.start),
             toplevelStartCursor = docMirror
-                .mustGetDocument(document)
+                .getDocument(document)
                 .getTokenCursor(toplevelStartOffset + 1),
-            wordRange = document.getWordRangeAtPosition(position),
-            wordStartLocalOffset =
+            wordRange = document.getWordRangeAtPosition(position);
+
+        util.assertIsDefined(wordRange, 'Expected a wordRange!');
+
+        const wordStartLocalOffset =
                 document.offsetAt(wordRange.start) - toplevelStartOffset,
             wordEndLocalOffset =
                 document.offsetAt(wordRange.end) - toplevelStartOffset,
@@ -67,7 +76,7 @@ export async function provideCompletionItems(
             res = await client.complete(
                 ns,
                 text,
-                toplevelIsValidForm ? context : null
+                toplevelIsValidForm ? context : undefined
             ),
             results = res.completions || [];
 
@@ -109,12 +118,17 @@ export default class CalvaCompletionItemProvider
         token: CancellationToken
     ) {
         if (util.getConnectedState()) {
+            const activeTextEditor = window.activeTextEditor;
+            util.assertIsDefined(
+                activeTextEditor,
+                'Expected window to have activeTextEditor defined!'
+            );
             const client = replSession.getSession(
-                util.getFileType(window.activeTextEditor.document)
+                util.getFileType(activeTextEditor.document)
             );
             if (client) {
                 await namespace.createNamespaceFromDocumentIfNotExists(
-                    window.activeTextEditor.document
+                    activeTextEditor.document
                 );
                 const ns = namespace.getDocumentNamespace();
                 const result = await client.info(

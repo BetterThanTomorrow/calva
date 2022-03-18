@@ -107,7 +107,7 @@ async function openStoredDoc(
     storageUri: vscode.Uri,
     tempDirUri: vscode.Uri,
     dramFile: DramFile
-): Promise<[vscode.TextDocument, vscode.TextEditor]> {
+): Promise<[vscode.TextDocument, vscode.TextEditor] | undefined> {
     const sourceUri = vscode.Uri.file(
         path.join(storageUri.fsPath, dramFile.path)
     );
