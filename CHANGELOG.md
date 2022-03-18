@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.255] - 2022-03-18
 - Maintenance: [Update more TypeScript code to be compatible with strictNullChecks.](https://github.com/BetterThanTomorrow/calva/pull/1581)
 
 ## [2.0.254] - 2022-03-16
