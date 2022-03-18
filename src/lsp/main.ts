@@ -700,7 +700,7 @@ function getClient(timeout: number): Promise<LanguageClient> {
   }
 }
 
-export async function getCljFmtConfig() {
+export async function getCljFmtConfig(): Promise<string | undefined> {
   // TODO: Figure out a reasonable timeout
   const client = await getClient(60 * 5 * 1000).catch((e) => {
     console.error(`Formatting: Error waiting for clojure-lsp to start: ${e}`);
