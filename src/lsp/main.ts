@@ -300,8 +300,8 @@ function registerLspCommand(command: ClojureLspCommand): vscode.Disposable {
         (m) => m.substring(1).toUpperCase()
     )}`;
     return vscode.commands.registerCommand(vscodeCommand, async () => {
-        const editor = util.mustGetActiveTextEditor();
-        const document = util.getDocument(editor.document);
+        const editor = util.getActiveTextEditor();
+        const document = util.tryToGetDocument(editor.document);
         if (document && document.languageId === 'clojure') {
             const line = editor.selection.start.line;
             const column = editor.selection.start.character;
@@ -321,7 +321,7 @@ function registerLspCommand(command: ClojureLspCommand): vscode.Disposable {
 }
 
 async function codeLensReferencesHandler(_, line, character): Promise<void> {
-    util.mustGetActiveTextEditor().selection = new vscode.Selection(
+    util.getActiveTextEditor().selection = new vscode.Selection(
         line - 1,
         character - 1,
         line - 1,
@@ -333,7 +333,7 @@ async function codeLensReferencesHandler(_, line, character): Promise<void> {
 }
 
 function resolveMacroAsCommandHandler(): void {
-    const activeTextEditor = util.getActiveTextEditor();
+    const activeTextEditor = util.tryToGetActiveTextEditor();
     if (activeTextEditor?.document?.languageId === 'clojure') {
         const documentUri = decodeURIComponent(
             activeTextEditor.document.uri.toString()

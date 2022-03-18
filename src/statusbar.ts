@@ -37,12 +37,25 @@ function colorValue(
     section: string,
     currentConf: vscode.WorkspaceConfiguration
 ): string {
+    const configSection = currentConf.inspect<string>(section);
+
+    util.assertIsDefined(
+        configSection,
+        () => `Expected config section "${section}" to be defined!`
+    );
+
     const { defaultValue, globalValue, workspaceFolderValue, workspaceValue } =
-        currentConf.inspect(section);
-    return (workspaceFolderValue ||
-        workspaceValue ||
-        globalValue ||
-        defaultValue) as string;
+        configSection;
+
+    const value =
+        workspaceFolderValue || workspaceValue || globalValue || defaultValue;
+
+    // Current behavior is to assert that this is a string even though it may
+    // not be. Maintaining current behavior for the moment but we should
+    // eventually do an assertion here or allow the function to return
+    // undefined.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unnecessary-type-assertion
+    return value!;
 }
 
 function update(context = state.extensionContext) {
@@ -54,7 +67,7 @@ function update(context = state.extensionContext) {
         }`
     );
 
-    const doc = util.getDocument({}),
+    const doc = util.tryToGetDocument({}),
         fileType = util.getFileType(doc),
         cljsBuild = getStateValue('cljsBuild');
 
@@ -65,23 +78,23 @@ function update(context = state.extensionContext) {
 
     //let disconnectedColor = "rgb(192,192,192)";
 
-    const pprint = config.getConfig().prettyPrintingOptions.enabled;
+    const pprint = config.getConfig().prettyPrintingOptions?.enabled;
     prettyPrintToggle.text = 'pprint';
     prettyPrintToggle.color = pprint ? undefined : color.inactive;
     prettyPrintToggle.tooltip = `Turn pretty printing ${pprint ? 'off' : 'on'}`;
     prettyPrintToggle.command = 'calva.togglePrettyPrint';
 
-    typeStatus.command = null;
+    typeStatus.command = undefined;
     typeStatus.text = 'Disconnected';
     typeStatus.tooltip = 'No active REPL session';
     typeStatus.color = colorValue('disconnectedColor', currentConf);
 
-    connectionStatus.command = null;
+    connectionStatus.command = undefined;
     connectionStatus.tooltip = 'REPL connection status';
 
-    cljsBuildStatus.text = null;
+    cljsBuildStatus.text = '';
     cljsBuildStatus.command = 'calva.switchCljsBuild';
-    cljsBuildStatus.tooltip = null;
+    cljsBuildStatus.tooltip = undefined;
 
     if (getStateValue('connected')) {
         connectionStatus.text = 'REPL $(zap)';

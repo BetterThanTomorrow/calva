@@ -242,7 +242,7 @@ type connectFn = (
     session: NReplSession,
     name: string,
     checkSuccess: checkConnectedFn
-) => Promise<boolean>;
+) => Promise<boolean | undefined>;
 
 async function evalConnectCode(
     newCljsSession: NReplSession,
@@ -253,8 +253,8 @@ async function evalConnectCode(
     errorProcessors: processOutputFn[] = []
 ): Promise<boolean> {
     const chan = state.connectionLogChannel();
-    const err = [],
-        out = [],
+    const err: string[] = [],
+        out: string[] = [],
         result = newCljsSession.eval(code, 'user', {
             stdout: (x) => {
                 out.push(util.stripAnsi(x));
@@ -294,7 +294,9 @@ export interface ReplType {
 
 let translatedReplType: ReplType;
 
-async function figwheelOrShadowBuilds(cljsTypeName: string): Promise<string[]> {
+async function figwheelOrShadowBuilds(
+    cljsTypeName: string
+): Promise<string[] | undefined> {
     if (cljsTypeName.includes('Figwheel Main')) {
         return await getFigwheelMainBuilds();
     } else if (cljsTypeName.includes('shadow-cljs')) {
@@ -302,7 +304,7 @@ async function figwheelOrShadowBuilds(cljsTypeName: string): Promise<string[]> {
     }
 }
 
-function updateInitCode(build: string, initCode): string {
+function updateInitCode(build: string, initCode): string | undefined {
     if (build && typeof initCode === 'object') {
         if (['node-repl', 'browser-repl'].includes(build)) {
             return initCode.repl.replace('%REPL%', build);
@@ -312,7 +314,7 @@ function updateInitCode(build: string, initCode): string {
     } else if (build && typeof initCode === 'string') {
         return initCode.replace('%BUILD%', `"${build}"`);
     }
-    return null;
+    return undefined;
 }
 
 function createCLJSReplType(
@@ -839,9 +841,7 @@ export default {
             }
             setStateValue('cljc', newSession);
             if (
-                outputWindow.isResultsDoc(
-                    util.mustGetActiveTextEditor().document
-                )
+                outputWindow.isResultsDoc(util.getActiveTextEditor().document)
             ) {
                 outputWindow.setSession(newSession, undefined);
                 replSession.updateReplSessionType();

@@ -5,11 +5,11 @@ import * as docMirror from './doc-mirror/index';
 // Relies on that `when` claus guards this from being called
 // when the cursor is before the comment marker
 export function continueCommentCommand() {
-    const document = util.getDocument({});
+    const document = util.tryToGetDocument({});
     if (document && document.languageId === 'clojure') {
-        const editor = util.mustGetActiveTextEditor();
+        const editor = util.getActiveTextEditor();
         const position = editor.selection.active;
-        const cursor = docMirror.mustGetDocument(document).getTokenCursor();
+        const cursor = docMirror.getDocument(document).getTokenCursor();
         if (cursor.getToken().type !== 'comment') {
             if (cursor.getPrevToken().type === 'comment') {
                 cursor.previous();

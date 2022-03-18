@@ -5,6 +5,9 @@ Changes to Calva.
 ## [Unreleased]
 - Fix: [An extra quick-pick prompt at pops up after jack-in](https://github.com/BetterThanTomorrow/calva/issues/1600)
 
+## [2.0.255] - 2022-03-18
+- Maintenance: [Update more TypeScript code to be compatible with strictNullChecks.](https://github.com/BetterThanTomorrow/calva/pull/1581)
+
 ## [2.0.254] - 2022-03-16
 - [Add commands for starting and stopping clojure-lsp](https://github.com/BetterThanTomorrow/calva/pull/1592)
 - Maintenance: [Dumb down the token cursor some dealing with meta data and readers](https://github.com/BetterThanTomorrow/calva/pull/1585)

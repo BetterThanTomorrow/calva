@@ -8,18 +8,23 @@ import * as utilities from './utilities';
 import * as replSession from './nrepl/repl-session';
 import { NReplSession } from './nrepl';
 
-export function getNamespace(doc: vscode.TextDocument) {
+export function getNamespace(doc?: vscode.TextDocument) {
     if (outputWindow.isResultsDoc(doc)) {
-        return outputWindow.getNs();
+        const outputWindowNs = outputWindow.getNs();
+        utilities.assertIsDefined(
+            outputWindowNs,
+            'Expected output window to have a namespace!'
+        );
+        return outputWindowNs;
     }
     let ns = 'user';
     if (doc && doc.languageId == 'clojure') {
         try {
             const cursor: LispTokenCursor = docMirror
-                .mustGetDocument(doc)
+                .getDocument(doc)
                 .getTokenCursor(0);
             cursor.forwardWhitespace(true);
-            let token: Token = null,
+            let token: Token | undefined = undefined,
                 foundNsToken: boolean = false,
                 foundNsId: boolean = false;
             do {
@@ -72,7 +77,7 @@ export function getNamespace(doc: vscode.TextDocument) {
 
 export async function createNamespaceFromDocumentIfNotExists(doc) {
     if (utilities.getConnectedState()) {
-        const document = utilities.getDocument(doc);
+        const document = utilities.tryToGetDocument(doc);
         if (document) {
             const ns = getNamespace(document);
             const client = replSession.getSession(
@@ -90,7 +95,7 @@ export async function createNamespaceFromDocumentIfNotExists(doc) {
 }
 
 export function getDocumentNamespace(document = {}) {
-    const doc = utilities.getDocument(document);
+    const doc = utilities.tryToGetDocument(document);
 
     return getNamespace(doc);
 }
