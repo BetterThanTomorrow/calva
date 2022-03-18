@@ -5,7 +5,7 @@ import * as docMirror from '../doc-mirror/index';
 import * as cursorTextGetter from './cursor-get-text';
 import { EditableDocument } from '../cursor-doc/model';
 
-export type SelectionAndText = [vscode.Selection, string];
+export type SelectionAndText = [vscode.Selection | undefined, string];
 
 function _currentFormText(
     doc: vscode.TextDocument,
@@ -46,7 +46,7 @@ export function currentEnclosingFormText(
 
 export function currentFunction(doc: vscode.TextDocument): SelectionAndText {
     if (doc) {
-        const tokenCursor = docMirror.mustGetDocument(doc).getTokenCursor();
+        const tokenCursor = docMirror.getDocument(doc).getTokenCursor();
         const [start, end] = tokenCursor.getFunctionSexpRange();
         if (start && end) {
             const startPos = doc.positionAt(start);
@@ -67,7 +67,7 @@ function selectionAndText(
     pos: vscode.Position
 ): SelectionAndText {
     if (doc) {
-        const mirrorDoc = docMirror.mustGetDocument(doc);
+        const mirrorDoc = docMirror.getDocument(doc);
         const [range, text] = textGetter(mirrorDoc, doc.offsetAt(pos));
         if (range) {
             return [select.selectionFromOffsetRange(doc, range), text];
@@ -117,7 +117,7 @@ function fromFn(
     cursorDocFn: (doc: EditableDocument, offset?: number) => [number, number]
 ): SelectionAndText {
     if (doc) {
-        const cursorDoc = docMirror.mustGetDocument(doc);
+        const cursorDoc = docMirror.getDocument(doc);
         const range = cursorDocFn(cursorDoc);
         const selection = select.selectionFromOffsetRange(doc, range);
         const text = doc.getText(selection);

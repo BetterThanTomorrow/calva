@@ -807,10 +807,10 @@ export function backspace(
     start: number = doc.selection.anchor,
     end: number = doc.selection.active
 ): Thenable<boolean> {
-    const cursor = doc.getTokenCursor(start);
     if (start != end) {
         return doc.backspace();
     } else {
+        const cursor = doc.getTokenCursor(start);
         const nextToken = cursor.getToken();
         const p = start;
         const prevToken =
@@ -857,10 +857,10 @@ export function deleteForward(
     start: number = doc.selectionLeft,
     end: number = doc.selectionRight
 ) {
-    const cursor = doc.getTokenCursor(start);
     if (start != end) {
         void doc.delete();
     } else {
+        const cursor = doc.getTokenCursor(start);
         const prevToken = cursor.getPrevToken();
         const nextToken = cursor.getToken();
         const p = start;

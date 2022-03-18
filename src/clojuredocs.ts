@@ -63,7 +63,7 @@ export function printTextToRichCommentCommand(args: { [x: string]: string }) {
 
 function printTextToRichComment(text: string, position?: number) {
     const doc = util.getDocument({});
-    const mirrorDoc = docMirror.mustGetDocument(doc);
+    const mirrorDoc = docMirror.getDocument(doc);
     paredit.addRichComment(
         mirrorDoc,
         position ? position : mirrorDoc.selection.active,
@@ -74,10 +74,10 @@ function printTextToRichComment(text: string, position?: number) {
 export async function getExamplesHover(
     document: vscode.TextDocument,
     position: vscode.Position
-): Promise<vscode.MarkdownString> {
+): Promise<vscode.MarkdownString | undefined> {
     const docs = await clojureDocsLookup(document, position);
     if (!docs) {
-        return null;
+        return undefined;
     }
     return getHoverForDocs(
         docs,
@@ -183,7 +183,7 @@ async function clojureDocsLookup(
     p?: vscode.Position
 ): Promise<DocsEntry> {
     const doc = d ? d : util.getDocument({});
-    const position = p ? p : util.mustGetActiveTextEditor().selection.active;
+    const position = p ? p : util.getActiveTextEditor().selection.active;
     const symbol = util.getWordAtPosition(doc, position);
     const ns = namespace.getNamespace(doc);
     const session = replSession.getSession(util.getFileType(doc));
@@ -237,7 +237,7 @@ function rawDocs2DocsEntry(
     docsResult: any,
     symbol: string,
     ns: string
-): DocsEntry {
+): DocsEntry | undefined {
     const docs = docsResult.clojuredocs;
     if (docs) {
         return {
@@ -262,6 +262,6 @@ function rawDocs2DocsEntry(
         };
     } else {
         // console.log(`No results for ${ns}/${symbol} from ${docsResult.fromServer}`);
-        return null;
+        return undefined;
     }
 }

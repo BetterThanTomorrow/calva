@@ -1,4 +1,5 @@
 import { getConfig } from './config';
+import { assertIsDefined } from './utilities';
 
 export type PrintFnOptions = {
     name: string;
@@ -11,7 +12,7 @@ export type PrettyPrintingOptions = {
     enabled: boolean;
     printFn?: PrintFnOptions;
     printEngine?: 'calva' | 'pprint' | 'fipp' | 'puget' | 'zprint' | 'custom';
-    width: number;
+    width?: number;
     maxLength?: number;
     maxDepth?: number;
 };
@@ -27,9 +28,9 @@ export const disabledPrettyPrinter: PrettyPrintingOptions = {
 function getPrinter(
     pprintOptions: PrettyPrintingOptions,
     printerFn: string,
-    widthSlug: string,
-    lengthSlug: string,
-    depthsSlug: string,
+    widthSlug?: string,
+    lengthSlug?: string,
+    depthsSlug?: string,
     moreOptions = {}
 ) {
     const PRINTER_FN = 'nrepl.middleware.print/print',
@@ -107,7 +108,7 @@ export function getServerSidePrinter(pprintOptions: PrettyPrintingOptions) {
     }
 }
 
-export function prettyPrintingOptions(): PrettyPrintingOptions {
+export function prettyPrintingOptions(): PrettyPrintingOptions | undefined {
     return getConfig().prettyPrintingOptions;
 }
 
@@ -116,7 +117,10 @@ export const zprintDependencies = {
 };
 
 export function getServerSidePrinterDependencies() {
-    if (prettyPrintingOptions().printEngine === 'zprint') {
+    const options = prettyPrintingOptions();
+    assertIsDefined(options, 'Expected prettyPrintingOptions to be defined!');
+
+    if (options.printEngine === 'zprint') {
         return zprintDependencies;
     } else {
         return {};

@@ -91,7 +91,7 @@ async function evaluateCode(
     const filePath = options.filePath;
     const session: NReplSession = options.session;
     const ns = options.ns;
-    const editor = util.mustGetActiveTextEditor();
+    const editor = util.getActiveTextEditor();
     let result = null;
 
     if (code.length > 0) {
@@ -253,19 +253,19 @@ async function evaluateCode(
 }
 
 async function evaluateSelection(document = {}, options) {
-    const doc = util.getDocument(document);
     const selectionFn: (
         editor: vscode.TextEditor
     ) => [vscode.Selection, string] = options.selectionFn;
 
     if (getStateValue('connected')) {
-        const editor = util.mustGetActiveTextEditor();
+        const editor = util.getActiveTextEditor();
         state.analytics().logEvent('Evaluation', 'selectionFn').send();
         const selection = selectionFn(editor);
         const codeSelection: vscode.Selection = selection[0];
         let code = selection[1];
         [codeSelection, code];
 
+        const doc = util.getDocument(document);
         const ns = namespace.getNamespace(doc);
         const line = codeSelection.start.line;
         const column = codeSelection.start.character;
@@ -471,8 +471,11 @@ function evaluateStartOfFileToCursor(document = {}, options = {}) {
     );
 }
 
-async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
-    const doc = util.getDocument(document);
+async function loadFile(
+    document: vscode.TextDocument | Record<string, never> | undefined,
+    pprintOptions: PrettyPrintingOptions
+) {
+    const doc = util.tryToGetDocument(document);
     const fileType = util.getFileType(doc);
     const ns = namespace.getNamespace(doc);
     const session = replSession.getSession(util.getFileType(doc));
@@ -524,7 +527,7 @@ async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
 }
 
 async function evaluateUser(code: string) {
-    const fileType = util.getFileType(util.getDocument({})),
+    const fileType = util.getFileType(util.tryToGetDocument({})),
         session = replSession.getSession(fileType);
     if (session) {
         try {
@@ -543,20 +546,20 @@ async function evaluateUser(code: string) {
 async function requireREPLUtilitiesCommand() {
     if (util.getConnectedState()) {
         const chan = state.outputChannel(),
-            ns = namespace.getDocumentNamespace(util.getDocument({})),
+            ns = namespace.getDocumentNamespace(util.tryToGetDocument({})),
             CLJS_FORM =
                 "(use '[cljs.repl :only [apropos dir doc find-doc print-doc pst source]])",
             CLJ_FORM =
                 '(clojure.core/apply clojure.core/require clojure.main/repl-requires)',
             sessionType = replSession.getReplSessionTypeFromState(),
             form = sessionType == 'cljs' ? CLJS_FORM : CLJ_FORM,
-            fileType = util.getFileType(util.getDocument({})),
+            fileType = util.getFileType(util.tryToGetDocument({})),
             session = replSession.getSession(fileType);
 
         if (session) {
             try {
                 await namespace.createNamespaceFromDocumentIfNotExists(
-                    util.getDocument({})
+                    util.tryToGetDocument({})
                 );
                 await session.eval("(in-ns '" + ns + ')', session.client.ns)
                     .value;
@@ -580,7 +583,7 @@ async function requireREPLUtilitiesCommand() {
 async function copyLastResultCommand() {
     const chan = state.outputChannel();
     const session = replSession.getSession(
-        util.getFileType(util.getDocument({}))
+        util.getFileType(util.tryToGetDocument({}))
     );
 
     const value = await session.eval('*1', session.client.ns).value;

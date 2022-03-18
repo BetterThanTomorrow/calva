@@ -1,11 +1,12 @@
 import { NReplSession } from '.';
-import { cljsLib, getDocument, getFileType } from '../utilities';
+import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
 import * as outputWindow from '../results-output/results-doc';
+import { isUndefined } from 'lodash';
 
-function getSession(fileType = undefined): NReplSession {
-    const doc = getDocument({});
+function getSession(fileType?: string): NReplSession {
+    const doc = tryToGetDocument({});
 
-    if (fileType === undefined) {
+    if (isUndefined(fileType)) {
         fileType = getFileType(doc);
     }
     if (fileType.match(/^clj[sc]?/)) {
@@ -19,10 +20,10 @@ function getSession(fileType = undefined): NReplSession {
     }
 }
 
-function getReplSessionType(connected: boolean): string {
-    const doc = getDocument({});
+function getReplSessionType(connected: boolean): string | undefined {
+    const doc = tryToGetDocument({});
     const fileType = getFileType(doc);
-    let sessionType: string = null;
+    let sessionType: string | undefined = undefined;
 
     if (connected) {
         if (outputWindow.isResultsDoc(doc)) {
