@@ -431,6 +431,9 @@ async function startClientCommand() {
 }
 
 async function startClient(): Promise<boolean> {
+    // TODO: In startClient() there is case where we should be stopping the client,
+    //       but we don't because reasons mentions there. Meaning that here it could
+    //       be the case that the client is actually running.
     const runningClient = getStateValue(LSP_CLIENT_KEY);
     if (runningClient) {
         await runningClient.stop().catch((e) => {
