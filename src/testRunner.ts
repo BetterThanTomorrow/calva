@@ -78,7 +78,7 @@ export function assertionName(result: cider.TestResult): string {
 function existingUriForNameSpace(
     controller: vscode.TestController,
     nsName: string
-): vscode.Uri | null {
+): vscode.Uri | undefined {
     return controller.items.get(nsName)?.uri;
 }
 
@@ -114,6 +114,7 @@ async function onTestResult(
             .filter(cider.hasLineNumber)
             .map((a) => a.line)
             .sort();
+
         if (lines.length > 0) {
             test.range = new vscode.Range(
                 lines[0] - 1,
@@ -200,7 +201,7 @@ async function onTestResults(
     run.end();
 }
 
-function useTestExplorer(): boolean {
+function useTestExplorer(): boolean | undefined {
     return vscode.workspace.getConfiguration('calva').get('useTestExplorer');
 }
 
@@ -215,7 +216,18 @@ function reportTests(
     diagnosticCollection.clear();
 
     const recordDiagnostic = (result: cider.TestResult) => {
+        util.assertIsDefined(
+            result.line,
+            'Expected cider test result to have a line!'
+        );
+
+        util.assertIsDefined(
+            result.file,
+            'Expected cider test result to have a file!'
+        );
+
         const msg = cider.diagnosticMessage(result);
+
         const err = new vscode.Diagnostic(
             new vscode.Range(result.line - 1, 0, result.line - 1, 1000),
             msg,
@@ -348,7 +360,7 @@ async function runNamespaceTests(
     controller: vscode.TestController,
     document: vscode.TextDocument
 ) {
-    const doc = util.getDocument(document);
+    const doc = util.tryToGetDocument(document);
     if (outputWindow.isResultsDoc(doc)) {
         return;
     }
@@ -359,7 +371,7 @@ async function runNamespaceTests(
 }
 
 function getTestUnderCursor() {
-    const editor = util.getActiveTextEditor();
+    const editor = util.tryToGetActiveTextEditor();
     if (editor) {
         return getText.currentTopLevelFunction(
             editor?.document,
@@ -369,7 +381,7 @@ function getTestUnderCursor() {
 }
 
 async function runTestUnderCursor(controller: vscode.TestController) {
-    const doc = util.getDocument({});
+    const doc = util.tryToGetDocument({});
     const session = getSession(util.getFileType(doc));
     const ns = namespace.getNamespace(doc);
     const test = getTestUnderCursor();
@@ -407,12 +419,11 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
         );
         return;
     }
-    runNamespaceTests(
-        controller,
-        util.mustGetActiveTextEditor().document
-    ).catch((msg) => {
-        void vscode.window.showWarningMessage(msg);
-    });
+    runNamespaceTests(controller, util.getActiveTextEditor().document).catch(
+        (msg) => {
+            void vscode.window.showWarningMessage(msg);
+        }
+    );
 }
 
 async function rerunTests(controller: vscode.TestController, document = {}) {
@@ -477,7 +488,7 @@ function initialize(controller: vscode.TestController): void {
             // The next steps here would be to turn request.exclude and requst.include
             // into a Cider var-query that can be passed to test-var query directly.
             const namespaces = util.distinct(runItems.map((ri) => ri[0]));
-            const doc = util.mustGetActiveTextEditor().document;
+            const doc = util.getActiveTextEditor().document;
             runNamespaceTestsImpl(controller, doc, namespaces).catch((msg) => {
                 void vscode.window.showWarningMessage(msg);
             });

@@ -3,8 +3,8 @@ import * as util from './utilities';
 
 // TODO - this module has some code common with `state`. We can refactor `state` to use this functions.
 
-export function getProjectWsFolder(): vscode.WorkspaceFolder {
-    const doc = util.getDocument({});
+export function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
+    const doc = util.tryToGetDocument({});
     if (doc) {
         const folder = vscode.workspace.getWorkspaceFolder(doc.uri);
         if (folder) {
@@ -22,12 +22,12 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
 
 export async function findProjectRootUri(
     projectFileNames: string[],
-    doc: vscode.TextDocument,
-    workspaceFolder: vscode.WorkspaceFolder
-): Promise<vscode.Uri> {
+    doc: vscode.TextDocument | undefined,
+    workspaceFolder: vscode.WorkspaceFolder | undefined
+): Promise<vscode.Uri | undefined> {
     let searchUri = doc?.uri || workspaceFolder?.uri;
     if (searchUri && !(searchUri.scheme === 'untitled')) {
-        let prev: vscode.Uri;
+        let prev: vscode.Uri | undefined = undefined;
         while (searchUri != prev) {
             try {
                 for (const projectFile of projectFileNames) {
@@ -57,7 +57,7 @@ export async function getProjectRootUri(): Promise<any> {
         'shadow-cljs.edn',
         'deps.edn',
     ];
-    const doc = util.getDocument({});
+    const doc = util.tryToGetDocument({});
     const workspaceFolder = getProjectWsFolder();
     return findProjectRootUri(projectFileNames, doc, workspaceFolder);
 }

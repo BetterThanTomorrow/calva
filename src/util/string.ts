@@ -27,10 +27,10 @@ function getIndexAfterLastNonWhitespace(text: string): number {
 function getTextAfterLastOccurrenceOfSubstring(
     text: string,
     substring: string
-): string {
+): string | undefined {
     const indexOfLastPrompt = text.lastIndexOf(substring);
     if (indexOfLastPrompt === -1) {
-        return null;
+        return undefined;
     }
     const indexOfEndOfPrompt = indexOfLastPrompt + substring.length;
     return text.substring(indexOfEndOfPrompt);

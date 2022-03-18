@@ -42,6 +42,7 @@ export const CLJS_CONNECT_GREETINGS =
 
 function outputFileDir() {
     const projectRoot = state.getProjectRootUri();
+    util.assertIsDefined(projectRoot, 'Expected there to be a project root!');
     try {
         return vscode.Uri.joinPath(projectRoot, '.calva', 'output-window');
     } catch {
@@ -78,7 +79,7 @@ export function getPrompt(): string {
     return prompt;
 }
 
-export function getNs(): string {
+export function getNs(): string | undefined {
     return _sessionInfo[_sessionType].ns;
 }
 
@@ -86,11 +87,11 @@ export function getSessionType(): ReplSessionType {
     return _sessionType;
 }
 
-export function getSession(): NReplSession {
+export function getSession(): NReplSession | undefined {
     return _sessionInfo[_sessionType].session;
 }
 
-export function setSession(session: NReplSession, newNs: string): void {
+export function setSession(session: NReplSession, newNs?: string): void {
     if (session) {
         if (session.replType) {
             _sessionType = session.replType;
@@ -102,18 +103,17 @@ export function setSession(session: NReplSession, newNs: string): void {
     }
 }
 
-export function isResultsDoc(doc: vscode.TextDocument): boolean {
-    return doc && path.basename(doc.fileName) === RESULTS_DOC_NAME;
+export function isResultsDoc(doc?: vscode.TextDocument): boolean {
+    return !!doc && path.basename(doc.fileName) === RESULTS_DOC_NAME;
 }
 
 function getViewColumn(): vscode.ViewColumn {
-    const column: vscode.ViewColumn = state.extensionContext.workspaceState.get(
-        `outputWindowViewColumn`
-    );
+    const column: vscode.ViewColumn | undefined =
+        state.extensionContext.workspaceState.get(`outputWindowViewColumn`);
     return column ? column : vscode.ViewColumn.Two;
 }
 
-function setViewColumn(column: vscode.ViewColumn) {
+function setViewColumn(column: vscode.ViewColumn | undefined) {
     return state.extensionContext.workspaceState.update(
         `outputWindowViewColumn`,
         column
@@ -186,7 +186,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
                 const document = event.textEditor.document;
                 if (isResultsDoc(document)) {
                     const idx = document.offsetAt(event.selections[0].active);
-                    const mirrorDoc = docMirror.mustGetDocument(document);
+                    const mirrorDoc = docMirror.getDocument(document);
                     const selectionCursor = mirrorDoc.getTokenCursor(idx);
                     selectionCursor.forwardWhitespace();
                     if (selectionCursor.atEnd()) {
@@ -219,7 +219,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
 
     // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
     // until the next time it's focused
-    const activeTextEditor = util.getActiveTextEditor();
+    const activeTextEditor = util.tryToGetActiveTextEditor();
     if (activeTextEditor && isResultsDoc(activeTextEditor.document)) {
         setContextForOutputWindowActive(true);
         replHistory.setReplHistoryCommandsActiveContext(activeTextEditor);
@@ -255,8 +255,8 @@ export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
 
 export async function setNamespaceFromCurrentFile() {
     const session = replSession.getSession();
-    const ns = namespace.getNamespace(util.getDocument({}));
-    if (getNs() !== ns) {
+    const ns = namespace.getNamespace(util.tryToGetDocument({}));
+    if (getNs() !== ns && util.isDefined(ns)) {
         await session.eval("(in-ns '" + ns + ')', session.client.ns).value;
     }
     setSession(session, ns);
@@ -265,8 +265,8 @@ export async function setNamespaceFromCurrentFile() {
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
     const session = replSession.getSession();
-    const ns = namespace.getNamespace(util.getDocument({}));
-    const editor = util.mustGetActiveTextEditor();
+    const ns = namespace.getNamespace(util.tryToGetDocument({}));
+    const editor = util.getActiveTextEditor();
     const doc = editor.document;
     const selection = editor.selection;
     let code = '';
@@ -301,7 +301,7 @@ let scrollToBottomSub: vscode.Disposable;
 export interface OnAppendedCallback {
     (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
 }
-let editQueue: [string, OnAppendedCallback][] = [];
+let editQueue: [string, OnAppendedCallback | undefined][] = [];
 let applyingEdit = false;
 /* Because this function can be called several times asynchronously by the handling of incoming nrepl messages,
    we should never await it, because that await could possibly not return until way later, after edits that came in from elsewhere
@@ -339,7 +339,7 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                 if (visibleResultsEditors.length == 0) {
                     scrollToBottomSub =
                         vscode.window.onDidChangeActiveTextEditor((editor) => {
-                            if (isResultsDoc(editor.document)) {
+                            if (editor && isResultsDoc(editor.document)) {
                                 util.scrollToBottom(editor);
                                 scrollToBottomSub.dispose();
                             }
@@ -377,7 +377,10 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                             editQueue = remainingEditQueue;
                             return append(textBatch.join('\n'));
                         } else {
-                            return append(...editQueue.shift());
+                            // we're sure there's a value in the queue at this point
+                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                            const [text, onAppended] = editQueue.shift()!;
+                            return append(text, onAppended);
                         }
                     }
                 });
@@ -394,7 +397,7 @@ export function discardPendingPrints(): void {
 export type OutputStacktraceEntry = { uri: vscode.Uri; line: number };
 
 let _lastStacktrace: any[] = [];
-let _lastStackTraceRange: vscode.Range;
+let _lastStackTraceRange: vscode.Range | undefined;
 const _stacktraceEntries = {} as OutputStacktraceEntry;
 
 export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
@@ -435,7 +438,7 @@ export function markLastStacktraceRange(location: vscode.Location): void {
     _lastStackTraceRange = location.range; //new vscode.Range(newPosition, newPosition);
 }
 
-export function getLastStackTraceRange(): vscode.Range {
+export function getLastStackTraceRange(): vscode.Range | undefined {
     return _lastStackTraceRange;
 }
 

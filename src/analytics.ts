@@ -45,7 +45,7 @@ export default class Analytics {
         );
     }
 
-    private userID(): string {
+    private userID(): string | undefined {
         const KEY = 'userLogID';
         if (this.store.get(KEY) == undefined) {
             const newID = uuid.uuid();

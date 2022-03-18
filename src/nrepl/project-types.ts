@@ -542,7 +542,7 @@ async function cljCommandLine(
         ? menuSelections.cljAliases
         : undefined;
     let aliases: string[] = [];
-    const aliasesWithMain = [];
+    const aliasesWithMain: string[] = [];
     if (launchAliases) {
         aliases = launchAliases.map(keywordize);
     } else {
