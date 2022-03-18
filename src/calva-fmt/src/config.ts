@@ -12,12 +12,12 @@ const defaultCljfmtContent =
  :align-associative? false}';
 
 const LSP_CONFIG_KEY = 'CLOJURE-LSP';
-let lspFormatConfig: string;
+let lspFormatConfig: string | undefined;
 
 function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmt: string) {
   return {
-    'format-as-you-type': workspaceConfig.get<boolean>('formatAsYouType'),
-    'keep-comment-forms-trail-paren-on-own-line?': workspaceConfig.get<boolean>(
+    'format-as-you-type': !!workspaceConfig.get<boolean>('formatAsYouType'),
+    'keep-comment-forms-trail-paren-on-own-line?': !!workspaceConfig.get<boolean>(
       'keepCommentTrailParenOnOwnLine'
     ),
     'cljfmt-options-string': cljfmt,
@@ -45,7 +45,7 @@ async function readConfiguration(): Promise<{
       'Roger that'
     );
   }
-  const cljfmtContent: string =
+  const cljfmtContent: string | undefined =
     configPath === LSP_CONFIG_KEY
       ? lspFormatConfig
         ? lspFormatConfig
