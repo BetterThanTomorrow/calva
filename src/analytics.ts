@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as UA from 'universal-analytics';
 import * as uuid from 'uuidv4';
 import * as os from 'os';
+import { isUndefined } from 'lodash';
 
 // var debug = require('debug');
 // debug.log = console.info.bind(console);
@@ -41,14 +42,15 @@ export default class Analytics {
     );
   }
 
-  private userID(): string | undefined {
+  private userID(): string {
     const KEY = 'userLogID';
-    if (this.store.get(KEY) == undefined) {
+    const value = this.store.get<string>(KEY);
+    if (isUndefined(value)) {
       const newID = uuid.uuid();
       void this.store.update(KEY, newID);
       return newID;
     } else {
-      return this.store.get(KEY);
+      return value;
     }
   }
 
