@@ -1,6 +1,8 @@
+import { isArray, isEqual, isNumber, last, pick, property } from 'lodash';
 import { validPair } from './clojure-lexer';
 import { EditableDocument, ModelEdit, ModelEditSelection } from './model';
 import { LispTokenCursor } from './token-cursor';
+import _ = require('lodash');
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -32,36 +34,48 @@ export function moveToRangeRight(doc: EditableDocument, range: [number, number])
   doc.selection = new ModelEditSelection(Math.max(range[0], range[1]));
 }
 
-export function selectRange(doc: EditableDocument, range: [number, number]) {
-  growSelectionStack(doc, range);
+export function selectRange(doc: EditableDocument, range: [number, number] | Array<readonly [number, number]>) {
+    if (isArray(range[0])) {
+        growSelectionStack(doc, range as Array<readonly [number, number]>);
+    } else if (range.length === 2 && isNumber(range[0])) {
+        growSelectionStack(doc, [range as [number, number]]);
+    }
 }
 
-export function selectRangeForward(doc: EditableDocument, range: [number, number]) {
-  const selectionLeft = doc.selection.anchor;
-  const rangeRight = Math.max(range[0], range[1]);
-  growSelectionStack(doc, [selectionLeft, rangeRight]);
+export function selectRangeForward(
+    doc: EditableDocument,
+    range: [number, number]
+) {
+    const selectionLeft = doc.selection.anchor;
+    const rangeRight = Math.max(range[0], range[1]);
+    growSelectionStack(doc, [[selectionLeft, rangeRight]]);
 }
 
-export function selectRangeBackward(doc: EditableDocument, range: [number, number]) {
-  const selectionRight = doc.selection.anchor;
-  const rangeLeft = Math.min(range[0], range[1]);
-  growSelectionStack(doc, [selectionRight, rangeLeft]);
+export function selectRangeBackward(
+    doc: EditableDocument,
+    range: [number, number]
+) {
+    const selectionRight = doc.selection.anchor;
+    const rangeLeft = Math.min(range[0], range[1]);
+    growSelectionStack(doc, [[selectionRight, rangeLeft]]);
 }
 
 export function selectForwardSexp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selection.active >= doc.selection.anchor
-      ? forwardSexpRange
-      : (doc: EditableDocument) => forwardSexpRange(doc, doc.selection.active, true);
-  selectRangeForward(doc, rangeFn(doc));
+    const rangeFn =
+        doc.selection.active >= doc.selection.anchor
+            ? forwardSexpRange
+            : (doc: EditableDocument) =>
+                forwardSexpRange(doc, doc.selection.active, true);
+    selectRangeForward(doc, rangeFn(doc));
 }
 
 export function selectRight(doc: EditableDocument) {
-  const rangeFn =
-    doc.selection.active >= doc.selection.anchor
-      ? forwardHybridSexpRange
-      : (doc: EditableDocument) => forwardHybridSexpRange(doc, doc.selection.active, true);
-  selectRangeForward(doc, rangeFn(doc));
+    const rangeFn =
+        doc.selection.active >= doc.selection.anchor
+            ? forwardHybridSexpRange
+            : (doc: EditableDocument) =>
+                forwardHybridSexpRange(doc, doc.selection.active, true);
+    selectRangeForward(doc, rangeFn(doc));
 }
 
 export function selectForwardSexpOrUp(doc: EditableDocument) {
@@ -74,19 +88,22 @@ export function selectForwardSexpOrUp(doc: EditableDocument) {
 }
 
 export function selectBackwardSexp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selection.active <= doc.selection.anchor
-      ? backwardSexpRange
-      : (doc: EditableDocument) => backwardSexpRange(doc, doc.selection.active, false);
-  selectRangeBackward(doc, rangeFn(doc));
+    const rangeFn =
+        doc.selection.active <= doc.selection.anchor
+            ? backwardSexpRange
+            : (doc: EditableDocument) =>
+                backwardSexpRange(doc, doc.selection.active, false);
+    selectRangeBackward(doc, rangeFn(doc));
 }
 
 export function selectForwardDownSexp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selection.active >= doc.selection.anchor
-      ? (doc: EditableDocument) => rangeToForwardDownList(doc, doc.selection.active, true)
-      : (doc: EditableDocument) => rangeToForwardDownList(doc, doc.selection.active, true);
-  selectRangeForward(doc, rangeFn(doc));
+    const rangeFn =
+        doc.selection.active >= doc.selection.anchor
+            ? (doc: EditableDocument) =>
+                rangeToForwardDownList(doc, doc.selection.active, true)
+            : (doc: EditableDocument) =>
+                rangeToForwardDownList(doc, doc.selection.active, true);
+    selectRangeForward(doc, rangeFn(doc));
 }
 
 export function selectBackwardDownSexp(doc: EditableDocument) {
@@ -901,85 +918,160 @@ export function stringQuote(
   }
 }
 
+/**
+ * Given the set of selections in the given document,
+ * edit the set of selections therein such that for each selection:
+ * the selection expands to encompass just the contents of the form
+ * (where this selection or its cursor lies), the entire form itself
+ * (including open/close symbols) or the full contents of the form
+ * immediately enclosing this one, repeating each time the function is
+ * called, for each selection in the doc.
+ *
+ * (Or in other words, the S-expression powered equivalent to vs-code's
+ * built-in Expand Selection/Shrink Selection commands)
+ */
 export function growSelection(
+    doc: EditableDocument,
   doc: EditableDocument,
   start: number = doc.selection.anchor,
   end: number = doc.selection.active
 ) {
-  const startC = doc.getTokenCursor(start),
-    endC = doc.getTokenCursor(end),
-    emptySelection = startC.equals(endC);
+    const newRanges = doc.selections.map(({ anchor: start, active: end }) => {
+        // init start/end TokenCursors, ascertain emptiness of selection
+        const startC = doc.getTokenCursor(start),
+            endC = doc.getTokenCursor(end),
+            emptySelection = startC.equals(endC);
 
-  if (emptySelection) {
-    const currentFormRange = startC.rangeForCurrentForm(start);
-    if (currentFormRange) {
-      growSelectionStack(doc, currentFormRange);
-    }
-  } else {
-    if (startC.getPrevToken().type == 'open' && endC.getToken().type == 'close') {
-      startC.backwardList();
-      startC.backwardUpList();
-      endC.forwardList();
-      growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
-    } else {
-      if (startC.backwardList()) {
-        // we are in an sexpr.
-        endC.forwardList();
-        endC.previous();
-      } else {
-        if (startC.backwardDownList()) {
-          startC.backwardList();
-          if (emptySelection) {
-            endC.set(startC);
-            endC.forwardList();
-            endC.next();
-          }
-          startC.previous();
-        } else if (startC.downList()) {
-          if (emptySelection) {
-            endC.set(startC);
-            endC.forwardList();
-            endC.next();
-          }
-          startC.previous();
+        // check if selection is empty - means just a cursor
+        if (emptySelection) {
+            const currentFormRange = startC.rangeForCurrentForm(start);
+            // check if there's a form associated with the current cursor
+            if (currentFormRange) {
+                // growSelectionStack(doc, currentFormRange);
+                return currentFormRange;
+            }
+            // if there's not, do nothing, we will not be expanding this cursor
+            return [start, end] as const;
+        } else {
+            if (
+                startC.getPrevToken().type == 'open' &&
+                endC.getToken().type == 'close'
+            ) {
+                startC.backwardList();
+                startC.backwardUpList();
+                endC.forwardList();
+                // growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
+                return [startC.offsetStart, startC.offsetEnd] as const;
+            } else {
+                if (startC.backwardList()) {
+                    // we are in an sexpr.
+                    endC.forwardList();
+                    endC.previous();
+                } else {
+                    if (startC.backwardDownList()) {
+                        startC.backwardList();
+                        if (emptySelection) {
+                            endC.set(startC);
+                            endC.forwardList();
+                            endC.next();
+                        }
+                        startC.previous();
+                    } else if (startC.downList()) {
+                        if (emptySelection) {
+                            endC.set(startC);
+                            endC.forwardList();
+                            endC.next();
+                        }
+                        startC.previous();
+                    }
+                }
+                // growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
+                return [startC.offsetStart, endC.offsetEnd] as const;
+            }
         }
-      }
-      growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
-    }
-  }
+    })
+    growSelectionStack(doc, newRanges);
 }
 
-export function growSelectionStack(doc: EditableDocument, range: [number, number]) {
-  const [start, end] = range;
-  if (doc.selectionStack.length > 0) {
-    const prev = doc.selectionStack[doc.selectionStack.length - 1];
-    if (!(doc.selection.anchor == prev.anchor && doc.selection.active == prev.active)) {
-      setSelectionStack(doc);
-    } else if (prev.anchor === range[0] && prev.active === range[1]) {
-      return;
+/**
+ * When growing a stack, we want a temporary selection undo/redo history,
+ * so to speak, such that each time the growSelection (labelled "Expand Selection")
+ * command is invoked, the selection keeps expanding by s-expression level, without
+ * "losing" prior selections.
+ *
+ * Recall that one cannot arbitrarily "Shrink Selection" _without_ such a history stack
+ * or outside of the context of a series of "Expand Selection" operations,
+ * as there is no way to know to which symbol(s) a user could hypothetically intend on
+ * "zooming in" on via selection shrinking.
+ *
+ * Thus to implement the above, we store a stack of selections (each item in the stack
+ * is an array of selection items, one per cursor) and grow or traverse this stack
+ * as the user expands or shrinks their selection(s).
+ *
+ * @param doc EditableDocument
+ * @param ranges the new ranges to grow the selection into
+ * @returns
+ */
+export function growSelectionStack(
+    doc: EditableDocument,
+    ranges: Array<(readonly [number, number])>,
+) {
+    // const [start, end] = range;
+    // Check if user has already at least once invoked "Expand Selection":
+    if (doc.selectionsStack.length > 0) {
+        // User indeed already has a selection set expansion history.
+        const prev = last(doc.selectionsStack);
+        // Check if the current document selection set DOES NOT match the widest (latest) selection set
+        // in the history.
+        if (
+            !(
+                isEqual(doc.selections.map(property('anchor')), prev.map(property('anchor'))) &&
+                isEqual(doc.selections.map(property('active')), prev.map(property('active')))
+            )
+        ) {
+            // FIXME(multi-cursor): This means there's some kind of mismatch. Why?
+            // Therefore, let's reset the selection set history
+            setSelectionStack(doc);
+
+            // Check if the intended new selection set to grow into is already the widest (latest) selection set
+            // in the history.
+        } else if (
+            isEqual(prev.map(property('anchor')), ranges.map(property(0))) &&
+            isEqual(prev.map(property('active')), ranges.map(property(1)))) {
+            return;
+        }
+    } else {
+        // start a "fresh" selection set expansion history
+        // FIXME(multi-cursor): why doesn't this use `setSelectionStack(doc)` from below?
+        doc.selectionsStack = [doc.selections];
     }
-  } else {
-    doc.selectionStack = [doc.selection];
-  }
-  doc.selection = new ModelEditSelection(start, end);
-  doc.selectionStack.push(doc.selection);
+    doc.selections = ranges.map((range) => new ModelEditSelection(...range));
+    doc.selectionsStack.push(doc.selections);
 }
 
+// FIXME(multi-cursor): prob needs rethinking
 export function shrinkSelection(doc: EditableDocument) {
-  if (doc.selectionStack.length) {
-    const latest = doc.selectionStack.pop();
-    if (
-      doc.selectionStack.length &&
-      latest.anchor == doc.selection.anchor &&
-      latest.active == doc.selection.active
-    ) {
-      doc.selection = doc.selectionStack[doc.selectionStack.length - 1];
+    if (doc.selectionsStack.length) {
+        const latest = doc.selectionsStack.pop();
+        if (
+            doc.selectionsStack.length &&
+            latest
+                .every((selection, index) => isEqual(
+                    pick(selection, ['anchor, active']),
+                    pick(doc.selections[index], ['anchor, active'])
+                ))
+        ) {
+            doc.selections = last(doc.selectionsStack);
+        }
     }
-  }
+
 }
 
-export function setSelectionStack(doc: EditableDocument, selection = doc.selection) {
-  doc.selectionStack = [selection];
+export function setSelectionStack(
+    doc: EditableDocument,
+    selections: ModelEditSelection[] = doc.selections
+) {
+    doc.selectionsStack = [selections];
 }
 
 export function raiseSexp(

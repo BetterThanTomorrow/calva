@@ -122,24 +122,44 @@ export class DocumentModel implements EditableModel {
 export class MirroredDocument implements EditableDocument {
   constructor(public document: vscode.TextDocument) {}
 
+  get selections() {
+    return utilities
+      .tryToGetActiveTextEditor()
+      .selections.map(
+        ({ anchor, active }) =>
+          new ModelEditSelection(this.document.offsetAt(anchor), this.document.offsetAt(active))
+      );
+  }
+
+  get selectionLeft(): number {
+    return this.document.offsetAt(utilities.tryToGetActiveTextEditor().selection.anchor);
+  }
+
+  get selectionRight(): number {
+    return this.document.offsetAt(utilities.getActiveTextEditor().selection.active);
+  }
+
   model = new DocumentModel(this);
 
+  selectionsStack: ModelEditSelection[][] = [];
   selectionStack: ModelEditSelection[] = [];
 
   public getTokenCursor(
-    offset: number = this.selection.active,
+    offset: number = this.selections[0].active,
     previous: boolean = false
   ): LispTokenCursor {
     return this.model.getTokenCursor(offset, previous);
   }
 
   public insertString(text: string) {
-    const editor = utilities.getActiveTextEditor(),
+    const editor = utilities.tryToGetActiveTextEditor(),
       selection = editor.selection,
       wsEdit = new vscode.WorkspaceEdit(),
       // TODO: prob prefer selection.active or .start
-      edit = vscode.TextEdit.insert(this.document.positionAt(this.selection.anchor), text);
-    wsEdit.set(this.document.uri, [edit]);
+      edits = this.selections.map(({ anchor: left }) =>
+        vscode.TextEdit.insert(this.document.positionAt(left), text)
+      );
+    wsEdit.set(this.document.uri, edits);
     void vscode.workspace.applyEdit(wsEdit).then((_v) => {
       editor.selection = selection;
     });
@@ -162,10 +182,16 @@ export class MirroredDocument implements EditableDocument {
     return new ModelEditSelection(anchor, active);
   }
 
-  public getSelectionText() {
-    const editor = utilities.getActiveTextEditor(),
-      selection = editor.selection;
+  public getSelectionText(index: number = 0) {
+    const editor = utilities.tryToGetActiveTextEditor(),
+      selection = editor.selections[index];
     return this.document.getText(selection);
+  }
+
+  public getSelectionsText() {
+    const editor = utilities.tryToGetActiveTextEditor(),
+      selections = editor.selections;
+    return selections.map((s) => this.document.getText(s));
   }
 
   public delete(): Thenable<boolean> {

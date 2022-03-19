@@ -1,4 +1,4 @@
-import { isUndefined } from 'lodash';
+import { isUndefined, max, min } from 'lodash';
 import { deepEqual as equal } from '../util/object';
 import { Scanner, ScannerState, Token } from './clojure-lexer';
 import { LispTokenCursor } from './token-cursor';
@@ -84,6 +84,7 @@ export type ModelEditOptions = {
   undoStopBefore?: boolean;
   formatDepth?: number;
   skipFormat?: boolean;
+  selections?: ModelEditSelection[];
   selection?: ModelEditSelection;
 };
 
@@ -105,11 +106,14 @@ export interface EditableModel {
 
 export interface EditableDocument {
   selection: ModelEditSelection;
+  selections: ModelEditSelection[];
   model: EditableModel;
+  selectionsStack: ModelEditSelection[][];
   selectionStack: ModelEditSelection[];
   getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor;
   insertString: (text: string) => void;
-  getSelectionText: () => string;
+  getSelectionText: (index?: number) => string;
+  getSelectionsText: () => string[];
   delete: () => Thenable<boolean>;
   backspace: () => Thenable<boolean>;
 }
@@ -536,6 +540,8 @@ export class StringDocument implements EditableDocument {
 
   model: LineInputModel = new LineInputModel(1, this);
 
+  selectionsStack: ModelEditSelection[][] = [];
+  selections: ModelEditSelection[] = [];
   selectionStack: ModelEditSelection[] = [];
 
   getTokenCursor(offset?: number, previous?: boolean): LispTokenCursor {
@@ -546,23 +552,35 @@ export class StringDocument implements EditableDocument {
     return this.model.getTokenCursor(offset);
   }
 
+  getSelectionsText: () => string[];
   insertString(text: string) {
     this.model.insertString(0, text);
   }
 
-  getSelectionText: () => string;
-
   delete() {
-    const p = this.selection.anchor;
-    return this.model.edit([new ModelEdit('deleteRange', [p, 1])], {
-      selection: new ModelEditSelection(p),
+    const edits = [];
+    const selections = [];
+    this.selections.forEach(({ anchor: p }) => {
+      edits.push(new ModelEdit('deleteRange', [p, 1]));
+      selections.push(new ModelEditSelection(p));
+    });
+
+    return this.model.edit(edits, {
+      selections,
     });
   }
+  getSelectionText: () => string;
 
   backspace() {
-    const p = this.selection.anchor;
-    return this.model.edit([new ModelEdit('deleteRange', [p - 1, 1])], {
-      selection: new ModelEditSelection(p - 1),
+    const edits = [];
+    const selections = [];
+    this.selections.forEach(({ anchor: p }) => {
+      edits.push(new ModelEdit('deleteRange', [p - 1, 1]));
+      selections.push(new ModelEditSelection(p - 1));
+    });
+
+    return this.model.edit(edits, {
+      selections,
     });
   }
 }
