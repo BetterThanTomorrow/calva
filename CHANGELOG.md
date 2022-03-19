@@ -3,7 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Be more graceful about that [clojure-lsp does not start in the Getting Started REPL](https://github.com/BetterThanTomorrow/calva/pull/1601)
+- Be more graceful about that [clojure-lsp does not start in the Getting Started REPL](https://github.com/BetterThanTomorrow/calva/issues/1601)
+- Fix: [An extra quick-pick prompt at pops up after jack-in](https://github.com/BetterThanTomorrow/calva/issues/1600)
 
 ## [2.0.255] - 2022-03-18
 - Maintenance: [Update more TypeScript code to be compatible with strictNullChecks.](https://github.com/BetterThanTomorrow/calva/pull/1581)
