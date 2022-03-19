@@ -12,46 +12,41 @@ import * as model from '../../../cursor-doc/model';
  *   * Selections with direction left->right are denoted with `|<|` at the range boundaries
  */
 
-function textNotationToTextAndSelection(
-    s: string
-): [string, { anchor: number; active: number }] {
-    const text = s.replace(/•/g, '\n').replace(/\|?[<>]?\|/g, '');
-    let anchor = undefined;
-    let active = undefined;
-    anchor = s.indexOf('|>|');
+function textNotationToTextAndSelection(s: string): [string, { anchor: number; active: number }] {
+  const text = s.replace(/•/g, '\n').replace(/\|?[<>]?\|/g, '');
+  let anchor = undefined;
+  let active = undefined;
+  anchor = s.indexOf('|>|');
+  if (anchor >= 0) {
+    active = s.lastIndexOf('|>|') - 3;
+  } else {
+    anchor = s.lastIndexOf('|<|');
     if (anchor >= 0) {
-        active = s.lastIndexOf('|>|') - 3;
+      anchor -= 3;
+      active = s.indexOf('|<|');
     } else {
-        anchor = s.lastIndexOf('|<|');
-        if (anchor >= 0) {
-            anchor -= 3;
-            active = s.indexOf('|<|');
+      anchor = s.indexOf('|');
+      if (anchor >= 0) {
+        active = s.lastIndexOf('|');
+        if (active !== anchor) {
+          active -= 1;
         } else {
-            anchor = s.indexOf('|');
-            if (anchor >= 0) {
-                active = s.lastIndexOf('|');
-                if (active !== anchor) {
-                    active -= 1;
-                } else {
-                    active = anchor;
-                }
-            }
+          active = anchor;
         }
+      }
     }
-    return [text, { anchor, active }];
+  }
+  return [text, { anchor, active }];
 }
 
 /**
  * Utility function to create a doc from text-notated strings
  */
 export function docFromTextNotation(s: string): model.StringDocument {
-    const [text, selection] = textNotationToTextAndSelection(s);
-    const doc = new model.StringDocument(text);
-    doc.selection = new model.ModelEditSelection(
-        selection.anchor,
-        selection.active
-    );
-    return doc;
+  const [text, selection] = textNotationToTextAndSelection(s);
+  const doc = new model.StringDocument(text);
+  doc.selection = new model.ModelEditSelection(selection.anchor, selection.active);
+  return doc;
 }
 
 /**
@@ -60,15 +55,13 @@ export function docFromTextNotation(s: string): model.StringDocument {
  * @returns string
  */
 export function text(doc: model.StringDocument): string {
-    return doc.model.getText(0, Infinity);
+  return doc.model.getText(0, Infinity);
 }
 
 /**
  * Utility function to create a comparable structure with the text and
  * selection from a document
  */
-export function textAndSelection(
-    doc: model.StringDocument
-): [string, [number, number]] {
-    return [text(doc), [doc.selection.anchor, doc.selection.active]];
+export function textAndSelection(doc: model.StringDocument): [string, [number, number]] {
+  return [text(doc), [doc.selection.anchor, doc.selection.active]];
 }

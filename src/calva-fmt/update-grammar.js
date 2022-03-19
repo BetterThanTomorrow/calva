@@ -37,42 +37,30 @@ var fs = require('fs');
 var cson = require('cson-parser');
 
 exports.update = function (contentPath, dest) {
-    console.log('Reading from ' + contentPath);
-    fs.readFile(contentPath, (_err, content) => {
-        var grammar = cson.parse(content);
-        const result = {
-            information_for_contributors: [
-                'This file is generated from ' + contentPath,
-            ],
-        };
+  console.log('Reading from ' + contentPath);
+  fs.readFile(contentPath, (_err, content) => {
+    var grammar = cson.parse(content);
+    const result = {
+      information_for_contributors: ['This file is generated from ' + contentPath],
+    };
 
-        const keys = [
-            'name',
-            'scopeName',
-            'comment',
-            'injections',
-            'patterns',
-            'repository',
-        ];
-        for (const key of keys) {
-            if (Object.prototype.hasOwnProperty.call(grammar, key)) {
-                result[key] = grammar[key];
-            }
-        }
+    const keys = ['name', 'scopeName', 'comment', 'injections', 'patterns', 'repository'];
+    for (const key of keys) {
+      if (Object.prototype.hasOwnProperty.call(grammar, key)) {
+        result[key] = grammar[key];
+      }
+    }
 
-        try {
-            fs.writeFileSync(
-                dest,
-                JSON.stringify(result, null, '\t').replace(/\n/g, '\r\n')
-            );
-            console.log('Updated ' + path.basename(dest));
-        } catch (e) {
-            console.error(e);
-            process.exit(1);
-        }
-    });
+    try {
+      fs.writeFileSync(dest, JSON.stringify(result, null, '\t').replace(/\n/g, '\r\n'));
+      console.log('Updated ' + path.basename(dest));
+    } catch (e) {
+      console.error(e);
+      process.exit(1);
+    }
+  });
 };
 
 if (path.basename(process.argv[1]) === 'update-grammar.js') {
-    exports.update(process.argv[2], process.argv[3]);
+  exports.update(process.argv[2], process.argv[3]);
 }
