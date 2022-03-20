@@ -165,7 +165,10 @@ function docsEntry2ClojureCode(docs: DocsEntry, printDocString = false): string 
   return code;
 }
 
-async function clojureDocsLookup(d?: vscode.TextDocument, p?: vscode.Position): Promise<DocsEntry> {
+async function clojureDocsLookup(
+  d?: vscode.TextDocument,
+  p?: vscode.Position
+): Promise<DocsEntry | undefined> {
   const doc = d ? d : util.getDocument({});
   const position = p ? p : util.getActiveTextEditor().selection.active;
   const symbol = util.getWordAtPosition(doc, position);
