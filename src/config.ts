@@ -137,12 +137,12 @@ function getConfig() {
       []
     ),
     customREPLCommandSnippetsGlobal:
-      configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')?.globalValue ||
+      configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')?.globalValue ??
       [],
     customREPLCommandSnippetsWorkspace: commands,
     customREPLCommandSnippetsWorkspaceFolder:
       configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')
-        ?.workspaceFolderValue || [],
+        ?.workspaceFolderValue ?? [],
     customREPLHoverSnippets: hoverSnippets,
     prettyPrintingOptions: configOptions.get<PrettyPrintingOptions>('prettyPrintingOptions'),
     evaluationSendCodeToOutputWindow: configOptions.get<boolean>(
