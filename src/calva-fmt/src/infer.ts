@@ -118,6 +118,14 @@ function applyResults(r: ResultOptions, editor: vscode.TextEditor) {
         { undoStopAfter: true, undoStopBefore: false }
       )
       .then((_onFulfilled: boolean) => {
+        if (isUndefined(r.line)) {
+          console.error('Expected result line to be defined!', { r });
+          return;
+        }
+        if (isUndefined(r.character)) {
+          console.error('Expected result character to be defined!', { r });
+          return;
+        }
         const newPosition = new vscode.Position(r.line, r.character);
         editor.selections = [new vscode.Selection(newPosition, newPosition)];
       });
