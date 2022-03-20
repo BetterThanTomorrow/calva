@@ -645,6 +645,43 @@
                             }
                         }
                     },
+                    "calva.projectRootsSearchExclude": {
+                        "type": "array",
+                        "markdownDescription": "",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": [
+                            ".idea",
+                            ".vscode",
+                            ".ensime_cache",
+                            ".eunit",
+                            ".git",
+                            ".hg",
+                            ".fslckout",
+                            "_FOSSIL_",
+                            ".bzr",
+                            "_darcs",
+                            ".pijul",
+                            ".tox",
+                            ".svn",
+                            ".stack-work",
+                            ".ccls-cache",
+                            ".cache",
+                            ".clangd",
+                            "node_modules",
+                            "flow-typed",
+                            "bower_components",
+                            ".cpcache",
+                            ".classpath",
+                            ".project",
+                            "target",
+                            ".shadow-cljs",
+                            ".lsp",
+                            ".clj-kondo",
+                            "*.code-search"
+                        ]
+                    },
                     "calva.enableJSCompletions": {
                         "type": "boolean",
                         "description": "Should Calva use suitible and bring you JavaScript completions? This is an experimental cider-nrepl feature. Disable if completions start to throw errors.",

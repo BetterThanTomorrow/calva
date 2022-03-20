@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import Analytics from './analytics';
 import * as util from './utilities';
+import * as config from './config';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
@@ -134,98 +135,63 @@ function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
 }
 
 /**
- * Figures out, and stores, the current clojure project root
- * Also stores the WorkSpace folder for the project.
- *
- * 1. If there is no file open in single-rooted workspace use
- *    the workspace folder as a starting point. In multi-rooted
- *    workspaces stop and complain.
- * 2. If there is a file open, use it to determine the project root
- *    by looking for project files from the file's directory and up to
- *    the window root (for plain folder windows) or the file's
- *    workspace folder root (for workspaces) to find the project root.
+ * Figures out, and stores, the current clojure project root in Calva state
  */
 export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
   if (uri) {
     setStateValue(PROJECT_DIR_KEY, path.resolve(uri.fsPath));
     setStateValue(PROJECT_DIR_URI_KEY, uri);
   } else {
-    const projectFileNames: string[] = ['project.clj', 'shadow-cljs.edn', 'deps.edn'];
-    const doc = util.tryToGetDocument({});
     const workspaceFolder = getProjectWsFolder();
-    findLocalProjectRoot(projectFileNames, doc, workspaceFolder);
-    await findProjectRootUri(projectFileNames, doc, workspaceFolder);
+    console.log(workspaceFolder);
+    const candidatePaths = await findProjectRootPaths();
+    const closestRootPath = findClosestProjectRootPath(candidatePaths);
+    const projectRootPath = await pickProjectRootPath(candidatePaths, closestRootPath);
+    setStateValue(PROJECT_DIR_KEY, projectRootPath);
+    setStateValue(PROJECT_DIR_URI_KEY, vscode.Uri.file(projectRootPath));
   }
 }
 
-function findLocalProjectRoot(
-  projectFileNames: string[],
-  doc: vscode.TextDocument | undefined,
-  workspaceFolder: vscode.WorkspaceFolder | undefined
-): undefined {
-  if (workspaceFolder) {
-    let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
-    setStateValue(PROJECT_DIR_KEY, rootPath);
-    setStateValue(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
-    const docPath = doc && path.dirname(doc.uri.fsPath);
-
-    let currentPath =
-      util.isDefined(docPath) && docPath !== '.' ? docPath : workspaceFolder.uri.fsPath;
-
-    let previousPath = '';
-
-    do {
-      for (const projectFile of projectFileNames) {
-        const fullPath = path.resolve(currentPath, projectFile);
-        if (fs.existsSync(fullPath)) {
-          rootPath = currentPath;
-          break;
-        }
-      }
-      if (currentPath === rootPath) {
-        break;
-      }
-      previousPath = currentPath;
-      currentPath = path.resolve(currentPath, '..');
-    } while (currentPath !== previousPath);
-
-    // at least be sure the the root folder contains a
-    // supported project.
-    for (const projectFile of projectFileNames) {
-      const fullPath = path.resolve(rootPath, projectFile);
-      if (fs.existsSync(fullPath)) {
-        setStateValue(PROJECT_DIR_KEY, rootPath);
-        setStateValue(PROJECT_DIR_URI_KEY, vscode.Uri.file(rootPath));
-        return;
-      }
-    }
-  }
-  return;
+async function findProjectRootPaths() {
+  const projectFileNames: string[] = ['project.clj', 'shadow-cljs.edn', 'deps.edn'];
+  const projectFilesGlob = `**/{${projectFileNames.join(',')}}`;
+  const excludeDirsGlob = `**/{${config.getConfig().projectRootsSearchExclude.join(',')}}`;
+  const t0 = new Date().getTime();
+  const candidateUris = await vscode.workspace.findFiles(projectFilesGlob, excludeDirsGlob, 10000);
+  console.debug('glob took', new Date().getTime() - t0, 'ms');
+  const projectFilePaths = candidateUris.map((uri) => path.dirname(uri.fsPath));
+  const candidatePaths = [...new Set(projectFilePaths)];
+  console.log(candidatePaths);
+  return candidatePaths;
 }
 
-async function findProjectRootUri(projectFileNames, doc, workspaceFolder): Promise<void> {
-  let searchUri = doc?.uri || workspaceFolder?.uri;
-  if (searchUri && !(searchUri.scheme === 'untitled')) {
-    let prev = null;
-    while (searchUri != prev) {
-      try {
-        for (const projectFile in projectFileNames) {
-          const u = vscode.Uri.joinPath(searchUri, projectFileNames[projectFile]);
-          try {
-            await vscode.workspace.fs.stat(u);
-            setStateValue(PROJECT_DIR_URI_KEY, searchUri);
-            return;
-          } catch {
-            // continue regardless of error
-          }
-        }
-      } catch (e) {
-        console.error(`Problems in search for project root directory: ${e}`);
-      }
-      prev = searchUri;
-      searchUri = vscode.Uri.joinPath(searchUri, '..');
-    }
-  }
+function findClosestProjectRootPath(candidatePaths: string[]) {
+  const doc = util.tryToGetDocument({});
+  console.log(doc);
+  const docDir = doc && doc.uri ? path.dirname(doc.uri.fsPath) : undefined;
+  const closestRootPath = docDir
+    ? candidatePaths
+        .filter((p) => docDir.startsWith(p))
+        .sort()
+        .reverse()[0]
+    : candidatePaths[0];
+  console.log(closestRootPath);
+  return closestRootPath;
+}
+
+async function pickProjectRootPath(candidatePaths: string[], closestRootPath: string) {
+  const pickedRootPath = candidatePaths.length < 2
+    ? undefined
+    : await util.quickPickSingle({
+      values: candidatePaths,
+      // title: "Project root",
+      // default: closestRootPath
+      placeHolder: 'Select project root',
+      saveAs: `projectRoot`,
+      autoSelect: true,
+    });
+  const projectRootPath = typeof pickedRootPath === 'string' ? pickedRootPath : closestRootPath;
+  return projectRootPath;
 }
 
 /**
