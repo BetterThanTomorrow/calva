@@ -105,14 +105,14 @@ function getConfig() {
   const pareditOptions = vscode.workspace.getConfiguration('calva.paredit');
 
   const w =
-    (configOptions.inspect('customREPLCommandSnippets')
-      .workspaceValue as customREPLCommandSnippet[]) ?? [];
+    configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')
+      ?.workspaceValue ?? [];
   const commands = w.concat(
     (state.getProjectConfig()?.customREPLCommandSnippets as customREPLCommandSnippet[]) ?? []
   );
   const hoverSnippets = (
-    (configOptions.inspect('customREPLHoverSnippets')
-      .workspaceValue as customREPLCommandSnippet[]) ?? []
+    configOptions.inspect<customREPLCommandSnippet[]>('customREPLHoverSnippets')?.workspaceValue ??
+    []
   ).concat((state.getProjectConfig()?.customREPLHoverSnippets as customREPLCommandSnippet[]) ?? []);
 
   return {
@@ -136,11 +136,13 @@ function getConfig() {
       'customREPLCommandSnippets',
       []
     ),
-    customREPLCommandSnippetsGlobal: configOptions.inspect('customREPLCommandSnippets')
-      .globalValue as customREPLCommandSnippet[],
+    customREPLCommandSnippetsGlobal:
+      configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')?.globalValue ||
+      [],
     customREPLCommandSnippetsWorkspace: commands,
-    customREPLCommandSnippetsWorkspaceFolder: configOptions.inspect('customREPLCommandSnippets')
-      .workspaceFolderValue as customREPLCommandSnippet[],
+    customREPLCommandSnippetsWorkspaceFolder:
+      configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')
+        ?.workspaceFolderValue || [],
     customREPLHoverSnippets: hoverSnippets,
     prettyPrintingOptions: configOptions.get<PrettyPrintingOptions>('prettyPrintingOptions'),
     evaluationSendCodeToOutputWindow: configOptions.get<boolean>(
