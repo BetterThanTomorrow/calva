@@ -1,17 +1,17 @@
 export { getIndent } from '../cursor-doc/indent';
+import { isUndefined } from 'lodash';
 import * as vscode from 'vscode';
-import * as utilities from '../utilities';
 import * as formatter from '../calva-fmt/src/format';
-import { LispTokenCursor } from '../cursor-doc/token-cursor';
 import {
-  ModelEdit,
   EditableDocument,
   EditableModel,
-  ModelEditOptions,
   LineInputModel,
+  ModelEdit,
+  ModelEditOptions,
   ModelEditSelection,
 } from '../cursor-doc/model';
-import { isUndefined } from 'lodash';
+import { LispTokenCursor } from '../cursor-doc/token-cursor';
+import * as utilities from '../utilities';
 
 const documents = new Map<vscode.TextDocument, MirroredDocument>();
 
@@ -118,23 +118,16 @@ export class DocumentModel implements EditableModel {
     return this.lineInputModel.getTokenCursor(offset, previous);
   }
 }
+
 export class MirroredDocument implements EditableDocument {
   constructor(public document: vscode.TextDocument) {}
-
-  get selectionLeft(): number {
-    return this.document.offsetAt(utilities.getActiveTextEditor().selection.anchor);
-  }
-
-  get selectionRight(): number {
-    return this.document.offsetAt(utilities.getActiveTextEditor().selection.active);
-  }
 
   model = new DocumentModel(this);
 
   selectionStack: ModelEditSelection[] = [];
 
   public getTokenCursor(
-    offset: number = this.selectionRight,
+    offset: number = this.selection.active,
     previous: boolean = false
   ): LispTokenCursor {
     return this.model.getTokenCursor(offset, previous);
@@ -144,7 +137,8 @@ export class MirroredDocument implements EditableDocument {
     const editor = utilities.getActiveTextEditor(),
       selection = editor.selection,
       wsEdit = new vscode.WorkspaceEdit(),
-      edit = vscode.TextEdit.insert(this.document.positionAt(this.selectionLeft), text);
+      // TODO: prob prefer selection.active or .start
+      edit = vscode.TextEdit.insert(this.document.positionAt(this.selection.anchor), text);
     wsEdit.set(this.document.uri, [edit]);
     void vscode.workspace.applyEdit(wsEdit).then((_v) => {
       editor.selection = selection;
@@ -161,7 +155,11 @@ export class MirroredDocument implements EditableDocument {
   }
 
   get selection(): ModelEditSelection {
-    return new ModelEditSelection(this.selectionLeft, this.selectionRight);
+    const editor = utilities.getActiveTextEditor(),
+      document = editor.document,
+      anchor = document.offsetAt(editor.selection.anchor),
+      active = document.offsetAt(editor.selection.active);
+    return new ModelEditSelection(anchor, active);
   }
 
   public getSelectionText() {

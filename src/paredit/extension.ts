@@ -1,19 +1,19 @@
 'use strict';
-import { StatusBar } from './statusbar';
 import * as vscode from 'vscode';
 import {
   commands,
-  window,
+  ConfigurationChangeEvent,
   Event,
   EventEmitter,
   ExtensionContext,
+  window,
   workspace,
-  ConfigurationChangeEvent,
 } from 'vscode';
+import { EditableDocument } from '../cursor-doc/model';
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
-import { EditableDocument } from '../cursor-doc/model';
 import { assertIsDefined } from '../utilities';
+import { StatusBar } from './statusbar';
 
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
@@ -270,7 +270,7 @@ const pareditCommands: PareditCommand[] = [
         copyRangeToClipboard(doc, range);
       }
       void paredit.killForwardList(doc, range).then((isFulfilled) => {
-        return paredit.spliceSexp(doc, doc.selectionRight, false);
+        return paredit.spliceSexp(doc, doc.selection.active, false);
       });
     },
   },
@@ -282,7 +282,7 @@ const pareditCommands: PareditCommand[] = [
         copyRangeToClipboard(doc, range);
       }
       void paredit.killBackwardList(doc, range).then((isFulfilled) => {
-        return paredit.spliceSexp(doc, doc.selectionRight, false);
+        return paredit.spliceSexp(doc, doc.selection.active, false);
       });
     },
   },
