@@ -67,7 +67,8 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     nClient['silent'] = true;
     nClient.close();
   }
-  cljsSession = cljSession = null;
+
+  let cljSession: NReplSession;
 
   util.setConnectingState(true);
   status.update();
