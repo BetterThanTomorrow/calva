@@ -161,7 +161,7 @@ function getConfig() {
       useDeprecatedAliasFlag: configOptions.get<boolean>('jackIn.useDeprecatedAliasFlag'),
     },
     enableClojureLspOnStart: configOptions.get<boolean>('enableClojureLspOnStart'),
-    projectRootsSearchExclude: configOptions.get<string[]>('projectRootsSearchExclude')
+    projectRootsSearchExclude: configOptions.get<string[]>('projectRootsSearchExclude'),
   };
 }
 

@@ -180,16 +180,17 @@ function findClosestProjectRootPath(candidatePaths: string[]) {
 }
 
 async function pickProjectRootPath(candidatePaths: string[], closestRootPath: string) {
-  const pickedRootPath = candidatePaths.length < 2
-    ? undefined
-    : await util.quickPickSingle({
-      values: candidatePaths,
-      // title: "Project root",
-      // default: closestRootPath
-      placeHolder: 'Select project root',
-      saveAs: `projectRoot`,
-      autoSelect: true,
-    });
+  const pickedRootPath =
+    candidatePaths.length < 2
+      ? undefined
+      : await util.quickPickSingle({
+          values: candidatePaths,
+          // title: "Project root",
+          // default: closestRootPath
+          placeHolder: 'Select project root',
+          saveAs: `projectRoot`,
+          autoSelect: true,
+        });
   const projectRootPath = typeof pickedRootPath === 'string' ? pickedRootPath : closestRootPath;
   return projectRootPath;
 }
