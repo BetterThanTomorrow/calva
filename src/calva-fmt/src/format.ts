@@ -16,6 +16,7 @@ import {
   jsify,
 } from '../../../out/cljs-lib/cljs-lib';
 import * as util from '../../utilities';
+import { isUndefined } from 'lodash';
 
 export async function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
   const editor = util.getActiveTextEditor();
@@ -71,7 +72,14 @@ export async function formatRangeEdits(
 
 export async function formatRange(document: vscode.TextDocument, range: vscode.Range) {
   const wsEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
-  wsEdit.set(document.uri, await formatRangeEdits(document, range));
+  const edits = await formatRangeEdits(document, range);
+
+  if (isUndefined(edits)) {
+    console.error('formatRangeEdits returned undefined!', { document, range });
+    return false;
+  }
+
+  wsEdit.set(document.uri, edits);
   return vscode.workspace.applyEdit(wsEdit);
 }
 
