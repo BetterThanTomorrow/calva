@@ -680,15 +680,18 @@ export async function getClojuredocs(symName: string, symNs: string): Promise<an
 }
 
 // TODO: This feels a bit brute, what are other ways to wait for the client to initialize?
-function getClient(timeout: number): Promise<LanguageClient> | undefined {
+function getClient(timeout: number): Promise<LanguageClient> {
   const start = Date.now();
   return new Promise(waitForClientStarted);
 
   function waitForClientStarted(resolve, reject) {
-    if (getStateValue(LSP_CLIENT_KEY)) {
-      resolve(getStateValue(LSP_CLIENT_KEY));
-    } else if (getStateValue(LSP_CLIENT_KEY_ERROR)) {
-      reject(new Error('clojure-lsp: ' + getStateValue(LSP_CLIENT_KEY_ERROR)));
+    const client = getStateValue(LSP_CLIENT_KEY);
+    const error = getStateValue(LSP_CLIENT_KEY_ERROR);
+
+    if (client) {
+      resolve(client);
+    } else if (error) {
+      reject(new Error('clojure-lsp: ' + error));
     } else if (Date.now() - start >= timeout) {
       reject(new Error('clojure-lsp: timeout'));
     } else {
@@ -697,7 +700,7 @@ function getClient(timeout: number): Promise<LanguageClient> | undefined {
   }
 }
 
-export async function getCljFmtConfig() {
+export async function getCljFmtConfig(): Promise<string | undefined> {
   // TODO: Figure out a reasonable timeout
   const client = await getClient(60 * 5 * 1000).catch((e) => {
     console.error(`Formatting: Error waiting for clojure-lsp to start: ${e}`);

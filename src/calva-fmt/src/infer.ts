@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { inferParens, inferIndents } from '../../../out/cljs-lib/cljs-lib';
+import { isUndefined, cloneDeep } from 'lodash';
 
 interface CFEdit {
   edit: string;
@@ -97,16 +98,30 @@ function applyResults(r: ResultOptions, editor: vscode.TextEditor) {
     void editor
       .edit(
         (editBuilder) => {
+          if (isUndefined(r.edits)) {
+            console.error('Edits were undefined!', cloneDeep({ editBuilder, r, editor }));
+            return;
+          }
           r.edits.forEach((edit: CFEdit) => {
             const start = new vscode.Position(edit.start.line, edit.start.character),
               end = new vscode.Position(edit.end.line, edit.end.character);
+            if (isUndefined(edit.text)) {
+              console.error(
+                'edit.text was undefined!',
+                cloneDeep({ edit, editBuilder, r, editor })
+              );
+              return;
+            }
             editBuilder.replace(new vscode.Range(start, end), edit.text);
           });
         },
         { undoStopAfter: true, undoStopBefore: false }
       )
       .then((_onFulfilled: boolean) => {
-        const newPosition = new vscode.Position(r.line, r.character);
+        // these will never be undefined in practice:
+        // https://github.com/BetterThanTomorrow/calva/blob/5d23da5704989e000b1f860fc09f5935d7bac3f5/src/cljs-lib/src/calva/fmt/editor.cljs#L5-L21
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unnecessary-type-assertion
+        const newPosition = new vscode.Position(r.line!, r.character!);
         editor.selections = [new vscode.Selection(newPosition, newPosition)];
       });
   } else {

@@ -165,7 +165,10 @@ function docsEntry2ClojureCode(docs: DocsEntry, printDocString = false): string 
   return code;
 }
 
-async function clojureDocsLookup(d?: vscode.TextDocument, p?: vscode.Position): Promise<DocsEntry> {
+async function clojureDocsLookup(
+  d?: vscode.TextDocument,
+  p?: vscode.Position
+): Promise<DocsEntry | undefined> {
   const doc = d ? d : util.getDocument({});
   const position = p ? p : util.getActiveTextEditor().selection.active;
   const symbol = util.getWordAtPosition(doc, position);
@@ -184,7 +187,7 @@ async function clojureDocsCiderNReplLookup(
   session: nrepl.NReplSession,
   symbol: string,
   ns: string
-): Promise<DocsEntry> {
+): Promise<DocsEntry | undefined> {
   const ciderNReplDocs = await session.clojureDocsLookup(ns, symbol);
   ciderNReplDocs.fromServer = 'cider-nrepl';
   return rawDocs2DocsEntry(ciderNReplDocs, symbol, ns);
@@ -194,7 +197,7 @@ async function clojureDocsLspLookup(
   session: nrepl.NReplSession,
   symbol: string,
   ns: string
-): Promise<DocsEntry> {
+): Promise<DocsEntry | undefined> {
   const resolved = await session.info(ns, symbol);
   const symNs = resolved.ns.replace(/^cljs\./, 'clojure.');
   try {

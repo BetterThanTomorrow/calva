@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Maintenance: [Update _even more_ TypeScript code to be compatible with strictNullChecks.](https://github.com/BetterThanTomorrow/calva/pull/1605)
 
 ## [2.0.256] - 2022-03-19
 - Be more graceful about that [clojure-lsp does not start in the Getting Started REPL](https://github.com/BetterThanTomorrow/calva/issues/1601)

@@ -489,9 +489,7 @@ function randomSlug(length = 7) {
 
 const isWindows = process.platform === 'win32';
 
-export async function isDocumentWritable(
-  document: vscode.TextDocument
-): Promise<boolean | undefined> {
+export async function isDocumentWritable(document: vscode.TextDocument): Promise<boolean> {
   if (!vscode.workspace.fs.isWritableFileSystem(document.uri.scheme)) {
     return false;
   }

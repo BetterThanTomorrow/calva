@@ -5,6 +5,7 @@ import { PrettyPrintingOptions } from './printer';
 import { parseEdn } from '../out/cljs-lib/cljs-lib';
 import * as state from './state';
 import _ = require('lodash');
+import { isDefined } from './utilities';
 
 const REPL_FILE_EXT = 'calva-repl';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
@@ -33,9 +34,17 @@ function _trimAliasName(name: string): string {
 
 async function readEdnWorkspaceConfig(uri?: vscode.Uri) {
   try {
-    const data = await vscode.workspace.fs.readFile(
-      uri ?? vscode.Uri.file(state.resolvePath('.calva/config.edn'))
-    );
+    let resolvedUri: vscode.Uri;
+    const configPath = state.resolvePath('.calva/config.edn');
+
+    if (isDefined(uri)) {
+      resolvedUri = uri;
+    } else if (isDefined(configPath)) {
+      resolvedUri = vscode.Uri.file(configPath);
+    } else {
+      throw new Error('Expected a uri to be passed in or a config to exist at .calva/config.edn');
+    }
+    const data = await vscode.workspace.fs.readFile(resolvedUri);
     return addEdnConfig(new TextDecoder('utf-8').decode(data));
   } catch (error) {
     return error;
@@ -96,14 +105,14 @@ function getConfig() {
   const pareditOptions = vscode.workspace.getConfiguration('calva.paredit');
 
   const w =
-    (configOptions.inspect('customREPLCommandSnippets')
-      .workspaceValue as customREPLCommandSnippet[]) ?? [];
+    configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')
+      ?.workspaceValue ?? [];
   const commands = w.concat(
     (state.getProjectConfig()?.customREPLCommandSnippets as customREPLCommandSnippet[]) ?? []
   );
   const hoverSnippets = (
-    (configOptions.inspect('customREPLHoverSnippets')
-      .workspaceValue as customREPLCommandSnippet[]) ?? []
+    configOptions.inspect<customREPLCommandSnippet[]>('customREPLHoverSnippets')?.workspaceValue ??
+    []
   ).concat((state.getProjectConfig()?.customREPLHoverSnippets as customREPLCommandSnippet[]) ?? []);
 
   return {
@@ -127,11 +136,13 @@ function getConfig() {
       'customREPLCommandSnippets',
       []
     ),
-    customREPLCommandSnippetsGlobal: configOptions.inspect('customREPLCommandSnippets')
-      .globalValue as customREPLCommandSnippet[],
+    customREPLCommandSnippetsGlobal:
+      configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')?.globalValue ??
+      [],
     customREPLCommandSnippetsWorkspace: commands,
-    customREPLCommandSnippetsWorkspaceFolder: configOptions.inspect('customREPLCommandSnippets')
-      .workspaceFolderValue as customREPLCommandSnippet[],
+    customREPLCommandSnippetsWorkspaceFolder:
+      configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')
+        ?.workspaceFolderValue ?? [],
     customREPLHoverSnippets: hoverSnippets,
     prettyPrintingOptions: configOptions.get<PrettyPrintingOptions>('prettyPrintingOptions'),
     evaluationSendCodeToOutputWindow: configOptions.get<boolean>(
