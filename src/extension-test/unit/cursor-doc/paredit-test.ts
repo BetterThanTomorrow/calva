@@ -3,6 +3,7 @@ import * as paredit from '../../../cursor-doc/paredit';
 import * as model from '../../../cursor-doc/model';
 import { docFromTextNotation, textAndSelection, text } from '../common/text-notation';
 import { ModelEditSelection } from '../../../cursor-doc/model';
+import { last } from 'lodash';
 
 model.initScanner(20000);
 
@@ -694,22 +695,20 @@ describe('paredit', () => {
     const range = [15, 20] as [number, number];
     it('should make grow selection the topmost element on the stack', () => {
       paredit.growSelectionStack(doc, [range]);
-      expect(doc.selectionStack[doc.selectionStack.length - 1]).toEqual(
-        new ModelEditSelection(range[0], range[1])
-      );
+      expect(last(doc.selectionsStack)).toEqual([new ModelEditSelection(range[0], range[1])]);
     });
     it('get us back to where we started if we just grow, then shrink', () => {
       const selectionBefore = startSelection.clone();
       paredit.growSelectionStack(doc, [range]);
       paredit.shrinkSelection(doc);
-      expect(doc.selectionStack[doc.selectionStack.length - 1]).toEqual(selectionBefore);
+      expect(last(doc.selectionsStack)).toEqual([selectionBefore]);
     });
     it('should not add selections identical to the topmost', () => {
       const selectionBefore = doc.selection.clone();
       paredit.growSelectionStack(doc, [range]);
       paredit.growSelectionStack(doc, [range]);
       paredit.shrinkSelection(doc);
-      expect(doc.selectionStack[doc.selectionStack.length - 1]).toEqual(selectionBefore);
+      expect(last(doc.selectionsStack)).toEqual([selectionBefore]);
     });
     it('should have A topmost after adding A, then B, then shrinking', () => {
       const a = range,
@@ -717,9 +716,7 @@ describe('paredit', () => {
       paredit.growSelectionStack(doc, [a]);
       paredit.growSelectionStack(doc, [b]);
       paredit.shrinkSelection(doc);
-      expect(doc.selectionStack[doc.selectionStack.length - 1]).toEqual(
-        new ModelEditSelection(a[0], a[1])
-      );
+      expect(last(doc.selectionsStack)).toEqual([new ModelEditSelection(a[0], a[1])]);
     });
   });
 

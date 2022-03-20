@@ -84,8 +84,8 @@ export type ModelEditOptions = {
   undoStopBefore?: boolean;
   formatDepth?: number;
   skipFormat?: boolean;
+  // selection?: ModelEditSelection;
   selections?: ModelEditSelection[];
-  selection?: ModelEditSelection;
 };
 
 export interface EditableModel {
@@ -108,12 +108,24 @@ export interface EditableDocument {
   selection: ModelEditSelection;
   selections: ModelEditSelection[];
   model: EditableModel;
+  // selectionStack: ModelEditSelection[];
+  /**
+   * A stack of selections - that is, a 2d array, where the outer array index is a point in "selection/form nesting order" and the inner array index is which cursor that ModelEditSelection belongs to. That "selection/form nesting order" axis can be thought of as the axis for time, or something close to that. That is, .selectionStacks
+   * is only used when the user invokes the "Expand Selection" or "Shrink Selection" Paredit commands, such that each time the user invokes "Expand", it pushes an item onto the stack. Similarly, when "Shrink" is invoked, the last item
+   * is popped. In essence, it's sort of an undo/history/time stack for the selection of forms/text in the current document.
+   *
+   * Each item in the stack however, is not a single selection, but rather an array of selections, one for each active cursor. Recall that vscode users may have as many cursors as they like, and will expect that selection expansion/shrinking commands should work equally well for each cursor, with respect to their particular locations, as they do outside of Paredit, eg with vscode's native selection expansion/shrinking commands.
+   *
+   * A further detail is that, along the "selection/form nesting order" axis, the selections are not an undo history of
+   * the user's arbitrary selections anywhere in the document, but specifically of the order in which selection expansion operates. That is, if we for simplicity pretend there can only be one cursor, each selection stack is a stack whose items hold forms/s-exps, such that each item is the form immediately enclosing the previous one. As such, we can imagine traversing forward (towards the top/right) of the stack
+   * as representing expanding the selection of forms by each nesting level, and backwards as shrinking the selection back down to the starting form/cursor position.
+   *
+   */
   selectionsStack: ModelEditSelection[][];
-  selectionStack: ModelEditSelection[];
   getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor;
   insertString: (text: string) => void;
-  getSelectionText: (index?: number) => string;
-  getSelectionsText: () => string[];
+  getSelectionText: () => string;
+  getSelectionTexts: () => string[];
   delete: () => Thenable<boolean>;
   backspace: () => Thenable<boolean>;
 }
@@ -383,8 +395,8 @@ export class LineInputModel implements EditableModel {
             break;
         }
       }
-      if (this.document && options.selection) {
-        this.document.selection = options.selection;
+      if (this.document && options.selections) {
+        this.document.selections = [options.selections[0]];
       }
       resolve(true);
     });
@@ -537,12 +549,11 @@ export class StringDocument implements EditableDocument {
   }
 
   selection: ModelEditSelection;
+  selections: ModelEditSelection[];
 
   model: LineInputModel = new LineInputModel(1, this);
 
   selectionsStack: ModelEditSelection[][] = [];
-  selections: ModelEditSelection[] = [];
-  selectionStack: ModelEditSelection[] = [];
 
   getTokenCursor(offset?: number, previous?: boolean): LispTokenCursor {
     if (isUndefined(offset)) {
@@ -557,30 +568,25 @@ export class StringDocument implements EditableDocument {
     this.model.insertString(0, text);
   }
 
-  delete() {
-    const edits = [];
-    const selections = [];
-    this.selections.forEach(({ anchor: p }) => {
-      edits.push(new ModelEdit('deleteRange', [p, 1]));
-      selections.push(new ModelEditSelection(p));
-    });
+  getSelectionTexts: () => string[];
+  getSelectionText: () => string;
 
-    return this.model.edit(edits, {
-      selections,
-    });
+  delete() {
+    return this.model.edit(
+      [this.selection].map(({ anchor: p }) => new ModelEdit('deleteRange', [p, 1])),
+      {
+        selections: this.selections.map(({ anchor: p }) => new ModelEditSelection(p)),
+      }
+    );
   }
   getSelectionText: () => string;
 
   backspace() {
-    const edits = [];
-    const selections = [];
-    this.selections.forEach(({ anchor: p }) => {
-      edits.push(new ModelEdit('deleteRange', [p - 1, 1]));
-      selections.push(new ModelEditSelection(p - 1));
-    });
-
-    return this.model.edit(edits, {
-      selections,
-    });
+    return this.model.edit(
+      [this.selection].map(({ anchor: p }) => new ModelEdit('deleteRange', [p - 1, 1])),
+      {
+        selections: [this.selection].map(({ anchor: p }) => new ModelEditSelection(p - 1)),
+      }
+    );
   }
 }

@@ -50,8 +50,8 @@ export class DocumentModel implements EditableModel {
       )
       .then((isFulfilled) => {
         if (isFulfilled) {
-          if (options.selection) {
-            this.document.selection = options.selection;
+          if (options.selections) {
+            this.document.selections = options.selections;
           }
           if (!options.skipFormat) {
             return formatter.formatPosition(editor, false, {
@@ -142,7 +142,6 @@ export class MirroredDocument implements EditableDocument {
   model = new DocumentModel(this);
 
   selectionsStack: ModelEditSelection[][] = [];
-  selectionStack: ModelEditSelection[] = [];
 
   public getTokenCursor(
     offset: number = this.selections[0].active,
@@ -155,35 +154,56 @@ export class MirroredDocument implements EditableDocument {
     const editor = utilities.tryToGetActiveTextEditor(),
       selection = editor.selection,
       wsEdit = new vscode.WorkspaceEdit(),
-      // TODO: prob prefer selection.active or .start
+    // TODO: prob prefer selection.active or .start
       edits = this.selections.map(({ anchor: left }) =>
         vscode.TextEdit.insert(this.document.positionAt(left), text)
       );
     wsEdit.set(this.document.uri, edits);
     void vscode.workspace.applyEdit(wsEdit).then((_v) => {
-      editor.selection = selection;
+      editor.selections = [selections[0]];
     });
   }
 
-  set selection(selection: ModelEditSelection) {
+  get selection() {
+    return this.selections[0];
+  }
+
+  set selection(sel: ModelEditSelection) {
+    this.selections = [sel];
+  }
+
+  set selections(selections: ModelEditSelection[]) {
     const editor = utilities.getActiveTextEditor(),
-      document = editor.document,
-      anchor = document.positionAt(selection.anchor),
-      active = document.positionAt(selection.active);
-    editor.selection = new vscode.Selection(anchor, active);
+      document = editor.document;
+    editor.selections = selections.map((selection) => {
+      const anchor = document.positionAt(selection.anchor),
+        active = document.positionAt(selection.active);
+      return new vscode.Selection(anchor, active);
+    });
+
+    const primarySelection = selections[0];
+    const active = document.positionAt(primarySelection.active);
     editor.revealRange(new vscode.Range(active, active));
   }
 
-  get selection(): ModelEditSelection {
+  get selections(): ModelEditSelection[] {
     const editor = utilities.getActiveTextEditor(),
-      document = editor.document,
-      anchor = document.offsetAt(editor.selection.anchor),
-      active = document.offsetAt(editor.selection.active);
-    return new ModelEditSelection(anchor, active);
+      document = editor.document;
+    return editor.selections.map((sel) => {
+      const anchor = document.offsetAt(sel.anchor),
+        active = document.offsetAt(sel.active);
+      return new ModelEditSelection(anchor, active);
+    });
+  }
+
+  public getSelectionTexts() {
+    const editor = utilities.getActiveTextEditor(),
+      selections = editor.selections;
+    return selections.map((selection) => this.document.getText(selection));
   }
 
   public getSelectionText(index: number = 0) {
-    const editor = utilities.tryToGetActiveTextEditor(),
+    const editor = utilities.getActiveTextEditor(),
       selection = editor.selections[index];
     return this.document.getText(selection);
   }
@@ -235,7 +255,7 @@ export function tryToGetDocument(doc: vscode.TextDocument) {
   return documents.get(doc);
 }
 
-export function getDocument(doc: vscode.TextDocument) {
+export function getDocument(doc: vscode.TextDocument): MirroredDocument {
   const mirrorDoc = tryToGetDocument(doc);
 
   if (isUndefined(mirrorDoc)) {
