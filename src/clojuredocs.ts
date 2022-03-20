@@ -184,7 +184,7 @@ async function clojureDocsCiderNReplLookup(
   session: nrepl.NReplSession,
   symbol: string,
   ns: string
-): Promise<DocsEntry> {
+): Promise<DocsEntry | undefined> {
   const ciderNReplDocs = await session.clojureDocsLookup(ns, symbol);
   ciderNReplDocs.fromServer = 'cider-nrepl';
   return rawDocs2DocsEntry(ciderNReplDocs, symbol, ns);
