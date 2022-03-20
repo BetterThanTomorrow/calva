@@ -120,7 +120,7 @@ function applyResults(r: ResultOptions, editor: vscode.TextEditor) {
       .then((_onFulfilled: boolean) => {
         // these will never be undefined in practice:
         // https://github.com/BetterThanTomorrow/calva/blob/5d23da5704989e000b1f860fc09f5935d7bac3f5/src/cljs-lib/src/calva/fmt/editor.cljs#L5-L21
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unnecessary-type-assertion
         const newPosition = new vscode.Position(r.line!, r.character!);
         editor.selections = [new vscode.Selection(newPosition, newPosition)];
       });
