@@ -194,7 +194,7 @@ async function clojureDocsLspLookup(
   session: nrepl.NReplSession,
   symbol: string,
   ns: string
-): Promise<DocsEntry> {
+): Promise<DocsEntry | undefined> {
   const resolved = await session.info(ns, symbol);
   const symNs = resolved.ns.replace(/^cljs\./, 'clojure.');
   try {
