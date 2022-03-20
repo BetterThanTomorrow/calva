@@ -18,7 +18,7 @@ function writeToCache(uri: vscode.Uri) {
  * Tries to get content of cached file
  * @param path - absolute or relative to the project
  */
-export const content = (path: string) => {
+export const content = (path: string | undefined) => {
   const resolvedPath = state.resolvePath(path);
   if (resolvedPath) {
     if (!filesCache.has(resolvedPath)) {
