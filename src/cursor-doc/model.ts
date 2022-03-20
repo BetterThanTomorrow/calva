@@ -1,7 +1,7 @@
-import { Scanner, Token, ScannerState } from './clojure-lexer';
-import { LispTokenCursor } from './token-cursor';
-import { deepEqual as equal } from '../util/object';
 import { isUndefined } from 'lodash';
+import { deepEqual as equal } from '../util/object';
+import { Scanner, ScannerState, Token } from './clojure-lexer';
+import { LispTokenCursor } from './token-cursor';
 
 let scanner: Scanner;
 

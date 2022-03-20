@@ -1,17 +1,17 @@
 export { getIndent } from '../cursor-doc/indent';
+import { isUndefined } from 'lodash';
 import * as vscode from 'vscode';
-import * as utilities from '../utilities';
 import * as formatter from '../calva-fmt/src/format';
-import { LispTokenCursor } from '../cursor-doc/token-cursor';
 import {
-  ModelEdit,
   EditableDocument,
   EditableModel,
-  ModelEditOptions,
   LineInputModel,
+  ModelEdit,
+  ModelEditOptions,
   ModelEditSelection,
 } from '../cursor-doc/model';
-import { isUndefined } from 'lodash';
+import { LispTokenCursor } from '../cursor-doc/token-cursor';
+import * as utilities from '../utilities';
 
 const documents = new Map<vscode.TextDocument, MirroredDocument>();
 

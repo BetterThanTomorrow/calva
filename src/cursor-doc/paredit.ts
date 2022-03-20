@@ -1,5 +1,5 @@
 import { validPair } from './clojure-lexer';
-import { ModelEdit, EditableDocument, ModelEditSelection } from './model';
+import { EditableDocument, ModelEdit, ModelEditSelection } from './model';
 import { LispTokenCursor } from './token-cursor';
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
