@@ -13,6 +13,7 @@ import * as vscode from 'vscode';
 import * as outputWindow from '../../../results-output/results-doc';
 import { commands } from 'vscode';
 import { getDocument } from '../../../doc-mirror';
+import * as projectRoot from '../../../project-root';
 
 void vscode.window.showInformationMessage('Tests running. Yay!');
 
@@ -47,23 +48,14 @@ suite('Extension Test Suite', () => {
     await openFile(testFilePath);
     console.log('file opened');
 
-    // TODO: Figure out how to test the project root menu
-    const testDirUri = vscode.Uri.file(path.dirname(testFilePath));
-    await state.initProjectDir(testDirUri);
-    const uri = state.getProjectRootUri();
-
-    // pre-select deps.edn as the repl connect sequence
-    // qps = quickPickSingle
-    const saveAs = `qps-${uri.toString()}/jack-in-type`;
-    void state.extensionContext.workspaceState.update(saveAs, 'deps.edn');
-    assert.equal(
-      state.extensionContext.workspaceState.get(saveAs),
-      'deps.edn',
-      'Connect option not set'
-    );
-    console.log('Connect option set');
+    const projectRootPath = await projectRoot.findClosestProjectRootPath();
+    const projetcRootUri = vscode.Uri.file(projectRootPath);
+    // Project type pre-select, qps = quickPickSingle
+    const saveAs = `qps-${projetcRootUri.toString()}/jack-in-type`;
+    await state.extensionContext.workspaceState.update(saveAs, 'deps.edn');
 
     const res = commands.executeCommand('calva.jackIn');
+
     // Project root quick pick
     while (util.quicPickActive === undefined) {
       await sleep(50);
@@ -72,24 +64,12 @@ suite('Extension Test Suite', () => {
     await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
 
     // Project type quickpick
+    // pre-select deps.edn as the repl connect sequence
     while (util.quicPickActive === undefined) {
       await sleep(50);
     }
     await util.quicPickActive;
-    await commands.executeCommand('workbench.action.quickOpenSelectNext')
-    await commands.executeCommand('workbench.action.quickOpenSelectNext')
-    await commands.executeCommand('workbench.action.quickOpenSelectNext')
-    await commands.executeCommand('workbench.action.quickOpenSelectNext')
     await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
-
-
-    // // wait for the quickPick menu to be open
-    // while (!state.extensionContext.workspaceState.get('askForConnectSequenceQuickPick')) {
-    //   await sleep(200);
-    // }
-    // console.log('picked option');
-
-    // await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
 
     await res;
     console.log('waiting for connect');
