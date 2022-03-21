@@ -47,8 +47,10 @@ export function isNonEmptyString(value: any): boolean {
 }
 
 async function quickPickSingle(opts: {
+  title?: string;
   values: string[];
   saveAs: string;
+  default?: string;
   placeHolder: string;
   autoSelect?: boolean;
 }) {
@@ -56,13 +58,14 @@ async function quickPickSingle(opts: {
     return;
   }
   const saveAs = `qps-${opts.saveAs}`;
-  const selected = state.extensionContext.workspaceState.get<string>(saveAs);
+  const selected = opts.default ?? state.extensionContext.workspaceState.get<string>(saveAs);
 
   let result;
   if (opts.autoSelect && opts.values.length == 1) {
     result = opts.values[0];
   } else {
     result = await quickPick(opts.values, selected ? [selected] : [], [], {
+      title: opts.title,
       placeHolder: opts.placeHolder,
       ignoreFocusOut: true,
     });
@@ -106,6 +109,7 @@ async function quickPick(
 
   const qp = vscode.window.createQuickPick();
   qp.canSelectMany = !!options.canPickMany;
+  qp.title = options.title;
   qp.placeholder = options.placeHolder;
   qp.ignoreFocusOut = !!options.ignoreFocusOut;
   qp.matchOnDescription = !!options.matchOnDescription;
