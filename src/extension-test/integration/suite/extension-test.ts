@@ -43,11 +43,13 @@ suite('Extension Test Suite', () => {
 
   test('start repl and connect (jack-in)', async function () {
     console.log('start repl and connect (jack-in)');
-    const testUri = path.join(testUtil.testDataDir, 'test.clj');
-    await openFile(testUri);
+    const testFilePath = path.join(testUtil.testDataDir, 'test.clj');
+    await openFile(testFilePath);
     console.log('file opened');
 
-    await state.initProjectDir();
+    // TODO: Figure out how to test the project root menu
+    const testDirUri = vscode.Uri.file(path.dirname(testFilePath));
+    await state.initProjectDir(testDirUri);
     const uri = state.getProjectRootUri();
 
     // pre-select deps.edn as the repl connect sequence
@@ -82,7 +84,7 @@ suite('Extension Test Suite', () => {
     const resultsDoc = getDocument(await outputWindow.openResultsDoc());
 
     // focus the clojure file
-    await vscode.workspace.openTextDocument(testUri).then((doc) =>
+    await vscode.workspace.openTextDocument(testFilePath).then((doc) =>
       vscode.window.showTextDocument(doc, {
         preserveFocus: false,
       })
