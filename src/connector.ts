@@ -637,9 +637,7 @@ export async function connect(
   return true;
 }
 
-async function standaloneConnect(
-  connectSequence: ReplConnectSequence
-) {
+async function standaloneConnect(connectSequence: ReplConnectSequence) {
   await outputWindow.initResultsDoc();
   await outputWindow.openResultsDoc();
 
@@ -676,10 +674,10 @@ export default {
   connectCommand: async (_context: vscode.ExtensionContext) => {
     status.updateNeedReplUi(true);
     await state.initProjectDir().catch((e) => {
-      void vscode.window.showErrorMessage("Failed initializing project root directory: ", e);
+      void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
     });
     await liveShareSupport.setupLiveShareListener().catch((e) => {
-      console.error("Error initializing LiveShare support: ", e);
+      console.error('Error initializing LiveShare support: ', e);
     });
     const cljTypes = await projectTypes.detectProjectTypes(),
       connectSequence = await askForConnectSequence(cljTypes, 'connect-type', 'ConnectInterrupted');
