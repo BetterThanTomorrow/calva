@@ -160,7 +160,7 @@ async function findProjectRootPaths() {
   const candidateUris = await vscode.workspace.findFiles(projectFilesGlob, excludeDirsGlob, 10000);
   console.debug('glob took', new Date().getTime() - t0, 'ms');
   const projectFilePaths = candidateUris.map((uri) => path.dirname(uri.fsPath));
-  const candidatePaths = [...new Set(projectFilePaths)];
+  const candidatePaths = [...new Set(projectFilePaths)].sort();
   console.log({ candidatePaths });
   return candidatePaths;
 }
@@ -184,14 +184,14 @@ async function pickProjectRootPath(candidatePaths: string[], closestRootPath: st
     candidatePaths.length < 2
       ? undefined
       : await util.quickPickSingle({
+          title: 'Project root',
           values: candidatePaths,
-          // title: "Project root",
-          // default: closestRootPath
-          placeHolder: 'Select project root',
+          default: closestRootPath,
+          placeHolder: 'Multiple Clojure projects found, pick one',
           saveAs: `projectRoot`,
           autoSelect: true,
         });
-  const projectRootPath = typeof pickedRootPath === 'string' ? pickedRootPath : closestRootPath;
+  const projectRootPath = candidatePaths.includes(pickedRootPath) ? pickedRootPath : closestRootPath;
   return projectRootPath;
 }
 
