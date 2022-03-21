@@ -38,9 +38,7 @@ function askToCreateANewFile(dir, file) {
 export async function toggleBetweenImplAndTest() {
   const activeFile = getActiveTextEditor();
   const openedFilename = activeFile.document.fileName;
-
-  const projectRootUri = await projectRoot.getProjectRootUri();
-  const projectRootPath = projectRootUri.fsPath;
+  const projectRootPath = await projectRoot.findClosestProjectRootPath();
   const pathAfterRoot = openedFilename.replace(projectRootPath, '');
   const fullFileName = pathAfterRoot.split(path.sep).slice(-1)[0];
   const extension = '.' + fullFileName.split('.').pop();
