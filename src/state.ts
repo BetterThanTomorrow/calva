@@ -135,7 +135,7 @@ function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
 }
 
 /**
- * Figures out, and stores, the current clojure project root in Calva state
+ * Figures out the current clojure project root, and stores it in Calva state
  */
 export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
   if (uri) {
@@ -161,7 +161,7 @@ async function findProjectRootPaths() {
   console.debug('glob took', new Date().getTime() - t0, 'ms');
   const projectFilePaths = candidateUris.map((uri) => path.dirname(uri.fsPath));
   const candidatePaths = [...new Set(projectFilePaths)];
-  console.log(candidatePaths);
+  console.log({ candidatePaths });
   return candidatePaths;
 }
 

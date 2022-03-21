@@ -638,15 +638,8 @@ export async function connect(
 }
 
 async function standaloneConnect(
-  context: vscode.ExtensionContext,
   connectSequence: ReplConnectSequence
 ) {
-  await state.initProjectDir();
-  let projectDirUri = state.getProjectRootUri();
-  if (!projectDirUri) {
-    projectDirUri = await state.getOrCreateNonProjectRoot(context, true);
-  }
-  await state.initProjectDir(projectDirUri);
   await outputWindow.initResultsDoc();
   await outputWindow.openResultsDoc();
 
@@ -668,27 +661,29 @@ async function standaloneConnect(
 export default {
   connectNonProjectREPLCommand: async (context: vscode.ExtensionContext) => {
     status.updateNeedReplUi(true);
+    let projectDirUri = state.getProjectRootUri();
+    if (!projectDirUri) {
+      projectDirUri = await state.getOrCreateNonProjectRoot(context, true);
+    }
+    await state.initProjectDir(projectDirUri);
     const connectSequence = await askForConnectSequence(
       projectTypes.getAllProjectTypes(),
       'connect-type',
       'ConnectInterrupted'
     );
-    void standaloneConnect(context, connectSequence);
+    void standaloneConnect(connectSequence);
   },
-  connectCommand: async (context: vscode.ExtensionContext) => {
+  connectCommand: async (_context: vscode.ExtensionContext) => {
     status.updateNeedReplUi(true);
-    // TODO: Figure out a better way to have an initialized project directory.
-    try {
-      await state.initProjectDir();
-      await liveShareSupport.setupLiveShareListener();
-    } catch {
-      // Could be a bae file, user makes the call
-      void vscode.commands.executeCommand('calva.startOrConnectRepl');
-      return;
-    }
+    await state.initProjectDir().catch((e) => {
+      void vscode.window.showErrorMessage("Failed initializing project root directory: ", e);
+    });
+    await liveShareSupport.setupLiveShareListener().catch((e) => {
+      console.error("Error initializing LiveShare support: ", e);
+    });
     const cljTypes = await projectTypes.detectProjectTypes(),
       connectSequence = await askForConnectSequence(cljTypes, 'connect-type', 'ConnectInterrupted');
-    void standaloneConnect(context, connectSequence);
+    void standaloneConnect(connectSequence);
   },
   disconnect: (
     options = null,
