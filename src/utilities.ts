@@ -112,7 +112,7 @@ async function quickPick(
   const items = itemsToPick.map((x) => ({ label: x }));
 
   const qp = vscode.window.createQuickPick();
-  quickPickActive = new Promise<void>(resolve => qp.onDidChangeActive((e) => resolve()));
+  quickPickActive = new Promise<void>((resolve) => qp.onDidChangeActive((e) => resolve()));
   qp.canSelectMany = !!options.canPickMany;
   qp.title = options.title;
   qp.placeholder = options.placeHolder;

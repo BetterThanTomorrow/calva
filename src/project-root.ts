@@ -20,7 +20,7 @@ export async function findClosestProjectRootPath(candidatePaths?: string[]) {
   const doc = util.tryToGetDocument({});
   console.log(doc);
   const docDir = doc && doc.uri ? path.dirname(doc.uri.fsPath) : undefined;
-  candidatePaths = candidatePaths ?? await findProjectRootPaths();
+  candidatePaths = candidatePaths ?? (await findProjectRootPaths());
   const closestRootPath = docDir
     ? candidatePaths
         .filter((p) => docDir.startsWith(p))
