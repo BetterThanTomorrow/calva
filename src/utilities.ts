@@ -86,6 +86,10 @@ async function quickPickMulti(opts: { values: string[]; saveAs: string; placeHol
   return result;
 }
 
+// Testing facility.
+// Recreated every time we create a new quickPick
+let quickPickActive: Promise<void>;
+
 function quickPick(
   itemsToPick: string[],
   active: string[],
@@ -108,6 +112,7 @@ async function quickPick(
   const items = itemsToPick.map((x) => ({ label: x }));
 
   const qp = vscode.window.createQuickPick();
+  quickPickActive = new Promise<void>(resolve => qp.onDidChangeActive((e) => resolve()));
   qp.canSelectMany = !!options.canPickMany;
   qp.title = options.title;
   qp.placeholder = options.placeHolder;
@@ -128,10 +133,12 @@ async function quickPick(
         resolve(undefined);
       }
       qp.hide();
+      quickPickActive = undefined;
     });
     qp.onDidHide(() => {
       resolve([]);
       qp.hide();
+      quickPickActive = undefined;
     });
   });
 }
@@ -551,6 +558,7 @@ export {
   logSuccess,
   getCljsReplStartCode,
   getShadowCljsReplStartCode,
+  quickPickActive as quicPickActive,
   quickPick,
   quickPickSingle,
   quickPickMulti,

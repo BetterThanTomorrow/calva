@@ -64,13 +64,32 @@ suite('Extension Test Suite', () => {
     console.log('Connect option set');
 
     const res = commands.executeCommand('calva.jackIn');
-    // wait for the quickPick menu to be open
-    while (!state.extensionContext.workspaceState.get('askForConnectSequenceQuickPick')) {
-      await sleep(200);
+    // Project root quick pick
+    while (util.quicPickActive === undefined) {
+      await sleep(50);
     }
-    console.log('picked option');
-
+    await util.quicPickActive;
     await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+
+    // Project type quickpick
+    while (util.quicPickActive === undefined) {
+      await sleep(50);
+    }
+    await util.quicPickActive;
+    await commands.executeCommand('workbench.action.quickOpenSelectNext')
+    await commands.executeCommand('workbench.action.quickOpenSelectNext')
+    await commands.executeCommand('workbench.action.quickOpenSelectNext')
+    await commands.executeCommand('workbench.action.quickOpenSelectNext')
+    await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+
+
+    // // wait for the quickPick menu to be open
+    // while (!state.extensionContext.workspaceState.get('askForConnectSequenceQuickPick')) {
+    //   await sleep(200);
+    // }
+    // console.log('picked option');
+
+    // await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
 
     await res;
     console.log('waiting for connect');
