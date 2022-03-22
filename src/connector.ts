@@ -659,11 +659,7 @@ async function standaloneConnect(connectSequence: ReplConnectSequence) {
 export default {
   connectNonProjectREPLCommand: async (context: vscode.ExtensionContext) => {
     status.updateNeedReplUi(true);
-    let projectDirUri = state.getProjectRootUri();
-    if (!projectDirUri) {
-      projectDirUri = await state.getOrCreateNonProjectRoot(context, true);
-    }
-    await state.initProjectDir(projectDirUri);
+    await state.setOrCreateNonProjectRoot(context, true);
     const connectSequence = await askForConnectSequence(
       projectTypes.getAllProjectTypes(),
       'connect-type',

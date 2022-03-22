@@ -98,7 +98,7 @@ export async function setNonProjectRootDir(context: vscode.ExtensionContext, roo
   await context.globalState.update(NON_PROJECT_DIR_KEY, root);
 }
 
-export async function getOrCreateNonProjectRoot(
+export async function setOrCreateNonProjectRoot(
   context: vscode.ExtensionContext,
   preferProjectDir = false
 ): Promise<vscode.Uri> {
@@ -114,8 +114,8 @@ export async function getOrCreateNonProjectRoot(
     root = vscode.Uri.file(path.join(os.tmpdir(), 'betterthantomorrow.calva', subDir));
     await setNonProjectRootDir(context, root);
   }
-  setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
-  setStateValue(PROJECT_DIR_URI_KEY, root);
+  await setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
+  await setStateValue(PROJECT_DIR_URI_KEY, root);
   return root;
 }
 
