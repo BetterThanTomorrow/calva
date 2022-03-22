@@ -141,8 +141,6 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
     setStateValue(PROJECT_DIR_KEY, path.resolve(uri.fsPath));
     setStateValue(PROJECT_DIR_URI_KEY, uri);
   } else {
-    const workspaceFolder = getProjectWsFolder();
-    console.log(workspaceFolder);
     const candidatePaths = await projectRoot.findProjectRootPaths();
     const closestRootPath = await projectRoot.findClosestProjectRootPath(candidatePaths);
     const projectRootPath = await projectRoot.pickProjectRootPath(candidatePaths, closestRootPath);

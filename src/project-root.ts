@@ -12,13 +12,11 @@ export async function findProjectRootPaths() {
   console.debug('glob took', new Date().getTime() - t0, 'ms');
   const projectFilePaths = candidateUris.map((uri) => path.dirname(uri.fsPath));
   const candidatePaths = [...new Set(projectFilePaths)].sort();
-  console.log({ candidatePaths });
   return candidatePaths;
 }
 
 export async function findClosestProjectRootPath(candidatePaths?: string[]) {
   const doc = util.tryToGetDocument({});
-  console.log(doc);
   const docDir = doc && doc.uri ? path.dirname(doc.uri.fsPath) : undefined;
   candidatePaths = candidatePaths ?? (await findProjectRootPaths());
   const closestRootPath = docDir
@@ -27,7 +25,6 @@ export async function findClosestProjectRootPath(candidatePaths?: string[]) {
         .sort()
         .reverse()[0]
     : candidatePaths[0];
-  console.log(closestRootPath);
   return closestRootPath;
 }
 

@@ -615,7 +615,7 @@ export async function connect(
         const bytes = await vscode.workspace.fs.readFile(portFile);
         port = new TextDecoder('utf-8').decode(bytes);
       } catch {
-        console.log('No nrepl port found');
+        console.info('No nrepl port found');
       }
     }
     if (port) {
@@ -632,7 +632,7 @@ export async function connect(
       await promptForNreplUrlAndConnect(port, connectSequence);
     }
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
   return true;
 }
