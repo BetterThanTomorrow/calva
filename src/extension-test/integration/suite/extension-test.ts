@@ -13,6 +13,7 @@ import * as vscode from 'vscode';
 import * as outputWindow from '../../../results-output/results-doc';
 import { commands } from 'vscode';
 import { getDocument } from '../../../doc-mirror';
+import * as projectRoot from '../../../project-root';
 
 void vscode.window.showInformationMessage('Tests running. Yay!');
 
@@ -43,31 +44,31 @@ suite('Extension Test Suite', () => {
 
   test('start repl and connect (jack-in)', async function () {
     console.log('start repl and connect (jack-in)');
-    const testUri = path.join(testUtil.testDataDir, 'test.clj');
-    await openFile(testUri);
+    const testFilePath = path.join(testUtil.testDataDir, 'test.clj');
+    await openFile(testFilePath);
     console.log('file opened');
 
-    await state.initProjectDir();
-    const uri = state.getProjectRootUri();
-
-    // pre-select deps.edn as the repl connect sequence
-    // qps = quickPickSingle
-    const saveAs = `qps-${uri.toString()}/jack-in-type`;
-    void state.extensionContext.workspaceState.update(saveAs, 'deps.edn');
-    assert.equal(
-      state.extensionContext.workspaceState.get(saveAs),
-      'deps.edn',
-      'Connect option not set'
-    );
-    console.log('Connect option set');
+    const projectRootPath = await projectRoot.findClosestProjectRootPath();
+    const projetcRootUri = vscode.Uri.file(projectRootPath);
+    // Project type pre-select, qps = quickPickSingle
+    const saveAs = `qps-${projetcRootUri.toString()}/jack-in-type`;
+    await state.extensionContext.workspaceState.update(saveAs, 'deps.edn');
 
     const res = commands.executeCommand('calva.jackIn');
-    // wait for the quickPick menu to be open
-    while (!state.extensionContext.workspaceState.get('askForConnectSequenceQuickPick')) {
-      await sleep(200);
-    }
-    console.log('picked option');
 
+    // Project root quick pick
+    while (util.quickPickActive === undefined) {
+      await sleep(50);
+    }
+    await util.quickPickActive;
+    await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+
+    // Project type quickpick
+    // pre-select deps.edn as the repl connect sequence
+    while (util.quickPickActive === undefined) {
+      await sleep(50);
+    }
+    await util.quickPickActive;
     await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
 
     await res;
@@ -82,7 +83,7 @@ suite('Extension Test Suite', () => {
     const resultsDoc = getDocument(await outputWindow.openResultsDoc());
 
     // focus the clojure file
-    await vscode.workspace.openTextDocument(testUri).then((doc) =>
+    await vscode.workspace.openTextDocument(testFilePath).then((doc) =>
       vscode.window.showTextDocument(doc, {
         preserveFocus: false,
       })

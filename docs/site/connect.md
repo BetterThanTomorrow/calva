@@ -17,14 +17,16 @@ Jack-in supports both CLJ and for CLJS, and has built-in configurations for **Le
 
 It works like so:
 
-1. Open your project root directory in VS Code.
+1. Open your project in VS Code.
 1. Issue the command **Start a Project REPL and Connect**: `ctrl+alt+c ctrl+alt+j`.
 1. Answer the quick-pick prompts telling Calva about project types and what profiles to start. (See the [Jack-in Project Types and Profiles](https://github.com/BetterThanTomorrow/calva/wiki/Jack-In-Project-Types-and-Profiles) wiki page for more info if needed.)
 
 See also: [Workspace Layouts](workspace-layouts.md)
 
-!!! Note
-    You must have a project file, such as `project.clj` for Leiningen or `deps.edn` for deps.edn, in the directory opened in VS Code in order for jack-in to work. If, after adding the project file, you experience an error during jack-in that says something could not be located, make sure you have the correct dependencies in your project file. For example, when using the **Figwheel Main** project type, you should have `com.bhauman/figwheel-main` in your project dependencies.
+!!! Note "About project roots"
+    You must have a project file, such as `project.clj` for Leiningen, or `deps.edn` for deps.edn, or `shadow-cljs.edn` for shadow-cljs, in the directory opened in VS Code in order for jack-in to work. If, after adding the project file, you experience an error during jack-in that says something could not be located, make sure you have the correct dependencies in your project file. For example, when using the **Figwheel Main** project type, you should have `com.bhauman/figwheel-main` in your project dependencies.
+
+    See also below, regarding [multiple projects in a workspace](#monorepos-multiple-clojure-projects-in-one-workspace)
 
 ### Aliases, Profiles, Builds
 
@@ -60,6 +62,19 @@ All this said, I still recommend you challenge the conclusion that you can't use
 
 !!! Note
     There is a Calva command for copying the Jack-in command line to the clipboard.
+
+## Monorepos / multiple Clojure projects in one workspace
+
+If the workspace is a monorepo, Polylith repo or just a repository with more than one Clojure project, Calva will start the connect sequence with prompting for which project to start/connect to.
+
+![The project roots menu](images/calva-monorepo-project-roots-menu.png)
+
+When searching for project roots in your workspace, Calva will glob for all files matching `project.clj`, `deps.edn`, or `shadow-cljs.edn`. This is done using VS Code's workspace search engine, and is very efficient. However, in a large monorepo, it is still a substantial task. In order to not waste resources Calva will exclude any directories in the setting `calva.projectRootsSearchExclude`. 
+
+![calva.projectRootsSearchExclude setting](images/calva-project-roots-search-exclude.png)
+
+!!! Note "Exclude entry globs"
+    Each entry is a partial *glob* and will be part of a resulting *glob* of the form `**/{glob1,glob2,...,globN}`. This means that all directories in the workspace matching an entry will be excluded, regardless of where in the workspace they reside.
 
 ## Troubleshooting
 

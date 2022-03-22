@@ -47,8 +47,10 @@ export function isNonEmptyString(value: any): boolean {
 }
 
 async function quickPickSingle(opts: {
+  title?: string;
   values: string[];
   saveAs: string;
+  default?: string;
   placeHolder: string;
   autoSelect?: boolean;
 }) {
@@ -56,13 +58,14 @@ async function quickPickSingle(opts: {
     return;
   }
   const saveAs = `qps-${opts.saveAs}`;
-  const selected = state.extensionContext.workspaceState.get<string>(saveAs);
+  const selected = opts.default ?? state.extensionContext.workspaceState.get<string>(saveAs);
 
   let result;
   if (opts.autoSelect && opts.values.length == 1) {
     result = opts.values[0];
   } else {
     result = await quickPick(opts.values, selected ? [selected] : [], [], {
+      title: opts.title,
       placeHolder: opts.placeHolder,
       ignoreFocusOut: true,
     });
@@ -82,6 +85,10 @@ async function quickPickMulti(opts: { values: string[]; saveAs: string; placeHol
   void state.extensionContext.workspaceState.update(saveAs, result);
   return result;
 }
+
+// Testing facility.
+// Recreated every time we create a new quickPick
+let quickPickActive: Promise<void>;
 
 function quickPick(
   itemsToPick: string[],
@@ -105,7 +112,9 @@ async function quickPick(
   const items = itemsToPick.map((x) => ({ label: x }));
 
   const qp = vscode.window.createQuickPick();
+  quickPickActive = new Promise<void>((resolve) => qp.onDidChangeActive((e) => resolve()));
   qp.canSelectMany = !!options.canPickMany;
+  qp.title = options.title;
   qp.placeholder = options.placeHolder;
   qp.ignoreFocusOut = !!options.ignoreFocusOut;
   qp.matchOnDescription = !!options.matchOnDescription;
@@ -124,10 +133,12 @@ async function quickPick(
         resolve(undefined);
       }
       qp.hide();
+      quickPickActive = undefined;
     });
     qp.onDidHide(() => {
       resolve([]);
       qp.hide();
+      quickPickActive = undefined;
     });
   });
 }
@@ -547,6 +558,7 @@ export {
   logSuccess,
   getCljsReplStartCode,
   getShadowCljsReplStartCode,
+  quickPickActive,
   quickPick,
   quickPickSingle,
   quickPickMulti,

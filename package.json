@@ -645,6 +645,44 @@
                             }
                         }
                     },
+                    "calva.projectRootsSearchExclude": {
+                        "type": "array",
+                        "markdownDescription": "Exclude these directories when searching for projects in the workspace during Jack-in/Connect. Each entry is a partial *glob* and will be part of a resulting *glob* of the form `**/{glob1,glob2,...,globN}`. This means that all directories in the workspace matching an entry will be excluded.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": [
+                            "bower_components",
+                            ".bzr",
+                            ".cache",
+                            ".ccls-cache",
+                            ".clangd",
+                            ".classpath",
+                            ".clj-kondo",
+                            "*.code-search",
+                            ".cpcache",
+                            "_darcs",
+                            ".DS_Store",
+                            ".ensime_cache",
+                            ".eunit",
+                            "flow-typed",
+                            "_FOSSIL_",
+                            ".fslckout",
+                            ".git",
+                            ".hg",
+                            ".idea",
+                            ".lsp",
+                            "node_modules",
+                            ".pijul",
+                            ".project",
+                            ".shadow-cljs",
+                            ".stack-work",
+                            ".svn",
+                            "target",
+                            ".tox",
+                            ".vscode"
+                        ]
+                    },
                     "calva.enableJSCompletions": {
                         "type": "boolean",
                         "description": "Should Calva use suitible and bring you JavaScript completions? This is an experimental cider-nrepl feature. Disable if completions start to throw errors.",

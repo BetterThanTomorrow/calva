@@ -147,8 +147,7 @@ export async function startStandaloneRepl(
       ? await fetchConfig(dramTemplate.config)
       : dramTemplate.config;
   const docNames = config.files.map((f) => f.path);
-  const tempDirUri = await state.getOrCreateNonProjectRoot(context);
-  await state.initProjectDir(tempDirUri);
+  const tempDirUri = await state.setOrCreateNonProjectRoot(context);
 
   const storageUri = vscode.Uri.joinPath(context.globalStorageUri, 'drams');
 
