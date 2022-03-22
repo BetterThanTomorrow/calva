@@ -69,7 +69,7 @@ If the workspace is a monorepo, Polylith repo or just a repository with more tha
 
 ![The project roots menu](images/calva-monorepo-project-roots-menu.png)
 
-When searching for project roots in your workspace, Calva will glob for all files matching `project.clj`, `deps.edn`, or `shadow-cljs.edn`. This is done using VS Code's workspace search engine, and is very efficient. However, in a large monorepo, it is still a sufficient task. In order to not waste resources Calva will exclude any directories in the setting `calva.projectRootsSearchExclude`. 
+When searching for project roots in your workspace, Calva will glob for all files matching `project.clj`, `deps.edn`, or `shadow-cljs.edn`. This is done using VS Code's workspace search engine, and is very efficient. However, in a large monorepo, it is still a substantial task. In order to not waste resources Calva will exclude any directories in the setting `calva.projectRootsSearchExclude`. 
 
 ![calva.projectRootsSearchExclude setting](images/calva-project-roots-search-exclude.png)
 
