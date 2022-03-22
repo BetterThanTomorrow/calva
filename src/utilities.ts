@@ -558,7 +558,7 @@ export {
   logSuccess,
   getCljsReplStartCode,
   getShadowCljsReplStartCode,
-  quickPickActive as quicPickActive,
+  quickPickActive,
   quickPick,
   quickPickSingle,
   quickPickMulti,

@@ -57,18 +57,18 @@ suite('Extension Test Suite', () => {
     const res = commands.executeCommand('calva.jackIn');
 
     // Project root quick pick
-    while (util.quicPickActive === undefined) {
+    while (util.quickPickActive === undefined) {
       await sleep(50);
     }
-    await util.quicPickActive;
+    await util.quickPickActive;
     await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
 
     // Project type quickpick
     // pre-select deps.edn as the repl connect sequence
-    while (util.quicPickActive === undefined) {
+    while (util.quickPickActive === undefined) {
       await sleep(50);
     }
-    await util.quicPickActive;
+    await util.quickPickActive;
     await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
 
     await res;
