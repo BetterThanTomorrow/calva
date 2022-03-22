@@ -39,7 +39,7 @@ export async function pickProjectRootPath(candidatePaths: string[], closestRootP
           title: 'Project root',
           values: candidatePaths,
           default: closestRootPath,
-          placeHolder: 'Multiple Clojure projects found, pick one',
+          placeHolder: 'Multiple Clojure projects found; pick one.',
           saveAs: `projectRoot`,
           autoSelect: true,
         });
