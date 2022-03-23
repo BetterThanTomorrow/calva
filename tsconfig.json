@@ -1,35 +1,26 @@
 {
-    "compilerOptions": {
-        "incremental": true,
-        "tsBuildInfoFile": "tsconfig.tsbuildinfo",
-        "strict": false, /* Enable all strict type-checking options. */
-        // "noImplicitAny": true,                 /* Raise error on expressions and declarations with an implied 'any' type. */
-        // "strictNullChecks": true,              /* Enable strict null checks. */
-        // "strictFunctionTypes": true,           /* Enable strict checking of function types. */
-        // "strictBindCallApply": true,           /* Enable strict 'bind', 'call', and 'apply' methods on functions. */
-        // "strictPropertyInitialization": true,  /* Enable strict checking of property initialization in classes. */
-        // "noImplicitThis": true,                /* Raise error on 'this' expressions with an implied 'any' type. */
-        // "alwaysStrict": true,                  /* Parse in strict mode and emit "use strict" for each source file. */        "module": "commonjs",
-        /* Additional Checks */
-        // "noUnusedLocals": true,                /* Report errors on unused locals. */
-        // "noUnusedParameters": true,            /* Report errors on unused parameters. */
-        // "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
-        // "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
-        "module": "commonjs",
-        "target": "es6",
-        "outDir": "out",
-        "lib": [
-            "es7",
-            "dom",
-            "ESNext.String"
-        ],
-        "sourceMap": true,
-        "rootDir": "src",
-    },
-    "exclude": [
-        "node_modules",
-        "src/webview",
-        "src/webview.ts",
-        ".vscode-test"
-    ]
+  "compilerOptions": {
+    "incremental": true,
+    "tsBuildInfoFile": "tsconfig.tsbuildinfo",
+    "strict": false /* Enable all strict type-checking options. */,
+    // "noImplicitAny": true,                 /* Raise error on expressions and declarations with an implied 'any' type. */
+    // "strictNullChecks": true,              /* Enable strict null checks. */
+    // "strictFunctionTypes": true,           /* Enable strict checking of function types. */
+    // "strictBindCallApply": true,           /* Enable strict 'bind', 'call', and 'apply' methods on functions. */
+    // "strictPropertyInitialization": true,  /* Enable strict checking of property initialization in classes. */
+    // "noImplicitThis": true,                /* Raise error on 'this' expressions with an implied 'any' type. */
+    // "alwaysStrict": true,                  /* Parse in strict mode and emit "use strict" for each source file. */        "module": "commonjs",
+    /* Additional Checks */
+    // "noUnusedLocals": true,                /* Report errors on unused locals. */
+    // "noUnusedParameters": true,            /* Report errors on unused parameters. */
+    // "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
+    // "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
+    "module": "commonjs",
+    "target": "es6",
+    "outDir": "out",
+    "lib": ["es7", "dom", "ESNext.String"],
+    "sourceMap": true,
+    "rootDir": "src"
+  },
+  "exclude": ["node_modules", "src/webview", "src/webview.ts", ".vscode-test"]
 }
