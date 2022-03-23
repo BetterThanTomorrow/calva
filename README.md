@@ -191,6 +191,7 @@ Patrons, Gold, and Silver sponsors are also displayed here: https://calva.io/#sp
 [<img src="https://avatars0.githubusercontent.com/u/486355" width="32" alt="ajoberstar">](https://github.com/ajoberstar)
 [<img src="https://avatars0.githubusercontent.com/u/22004226" width="32" alt="glebovmaksim">](https://github.com/glebovmaksim)
 [<img src="https://avatars3.githubusercontent.com/u/124385" width="32" alt="Chris Smothers">](https://github.com/smothers)
+[<img src="https://avatars.githubusercontent.com/u/4410314" width="32" alt="Eugene Pakhomov">](https://github.com/p-himik)
 
 ### Calva Friends
 
