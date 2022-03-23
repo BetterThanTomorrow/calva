@@ -356,6 +356,38 @@ async function startClientCommand() {
   await startClient();
 }
 
+function handleShowMessageRequest(params) {
+  // showInformationMessage can't handle some of the menus that clojure-lsp uses
+  // https://github.com/BetterThanTomorrow/calva/issues/1539
+  // We count the sum of the lengths of the button titles and
+  // use a QuickPick menu when it exceeds some number
+  const totalActionsLength = params.actions.reduce(
+    (length: number, action: MessageItem) => (length += action.title.length),
+    0
+  );
+  if (params.type === MessageType.Info && totalActionsLength > 25) {
+    return quickPick(params.message, params.actions);
+  }
+  // Else we use this, copied from the default client
+  // TODO: Can we reuse the default clients implementation?
+  let messageFunc: <T extends MessageItem>(message: string, ...items: T[]) => Thenable<T>;
+  switch (params.type) {
+    case MessageType.Error:
+      messageFunc = vscode.window.showErrorMessage;
+      break;
+    case MessageType.Warning:
+      messageFunc = vscode.window.showWarningMessage;
+      break;
+    case MessageType.Info:
+      messageFunc = vscode.window.showInformationMessage;
+      break;
+    default:
+      messageFunc = vscode.window.showInformationMessage;
+  }
+  const actions = params.actions || [];
+  return messageFunc(params.message, ...actions);
+}
+
 async function startClient(): Promise<boolean> {
   // TODO: In startClient() there is case where we should be stopping the client,
   //       but we don't because reasons mentions there. Meaning that here it could
@@ -377,65 +409,30 @@ async function startClient(): Promise<boolean> {
   updateStatusItem('starting');
 
   client.start();
-  await onReadyPromise.catch((e) => {
-    console.error('clojure-lsp:', e);
-    setStateValue(LSP_CLIENT_KEY_ERROR, e);
-  });
-  if (getStateValue(LSP_CLIENT_KEY_ERROR)) {
-    return false;
-  }
-  setStateValue(LSP_CLIENT_KEY, client);
-  const serverInfo = await getServerInfo(client);
-  if (serverInfo) {
-    serverVersion = serverInfo['server-version'];
-    sayClientVersionInfo(serverVersion, serverInfo);
+  try {
+    await onReadyPromise;
+    setStateValue(LSP_CLIENT_KEY, client);
+    const serverInfo = await getServerInfo(client);
+    if (serverInfo) {
+      serverVersion = serverInfo['server-version'];
+      sayClientVersionInfo(serverVersion, serverInfo);
+    }
+    client.onNotification('clojure/textDocument/testTree', (tree: TestTreeParams) => {
+      testTreeHandler(tree);
+    });
+    client.onRequest('window/showMessageRequest', handleShowMessageRequest);
     await vscode.commands.executeCommand('setContext', 'clojureLsp:active', true);
     updateStatusItem('started');
-  } else {
+    return true;
+  } catch (error) {
+    console.error('clojure-lsp:', error);
+    setStateValue(LSP_CLIENT_KEY_ERROR, error);
     updateStatusItem('error');
     lspStatus.hide();
     // TODO: If we stop the client here, the user gets an error alert
     //await stopClient();
     return false;
   }
-
-  client.onNotification('clojure/textDocument/testTree', (tree: TestTreeParams) => {
-    testTreeHandler(tree);
-  });
-
-  client.onRequest('window/showMessageRequest', (params) => {
-    // showInformationMessage can't handle some of the menus that clojure-lsp uses
-    // https://github.com/BetterThanTomorrow/calva/issues/1539
-    // We count the sum of the lengths of the button titles and
-    // use a QuickPick menu when it exceeds some number
-    const totalActionsLength = params.actions.reduce(
-      (length: number, action: MessageItem) => (length += action.title.length),
-      0
-    );
-    if (params.type === MessageType.Info && totalActionsLength > 25) {
-      return quickPick(params.message, params.actions);
-    }
-    // Else we use this, copied from the default client
-    // TODO: Can we reuse the default clients implementation?
-    let messageFunc: <T extends MessageItem>(message: string, ...items: T[]) => Thenable<T>;
-    switch (params.type) {
-      case MessageType.Error:
-        messageFunc = vscode.window.showErrorMessage;
-        break;
-      case MessageType.Warning:
-        messageFunc = vscode.window.showWarningMessage;
-        break;
-      case MessageType.Info:
-        messageFunc = vscode.window.showInformationMessage;
-        break;
-      default:
-        messageFunc = vscode.window.showInformationMessage;
-    }
-    const actions = params.actions || [];
-    return messageFunc(params.message, ...actions);
-  });
-
-  return true;
 }
 
 // A quickPick that expects the same input as showInformationMessage does
@@ -563,15 +560,14 @@ async function activate(context: vscode.ExtensionContext, handler: TestTreeHandl
   testTreeHandler = handler;
   registerLifeCycleCommands(context);
   registerDiagnosticsCommands(context);
-  registerLspCommands(extensionContext);
-  registerEventHandlers(extensionContext);
+  registerLspCommands(context);
+  registerEventHandlers(context);
 
   updateStatusItem('preparing');
   if (config.getConfig().enableClojureLspOnStart) {
     lspStatus.show();
     await maybeDownloadLspServer();
     await startClient();
-    await vscode.commands.executeCommand('setContext', 'clojureLsp:active', false);
   }
 }
 
