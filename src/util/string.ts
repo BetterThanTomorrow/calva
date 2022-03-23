@@ -5,7 +5,7 @@
  * @return {string} keywordized string
  */
 function keywordize(s: string): string {
-    return s.replace(/^[\s,:]*/, ':');
+  return s.replace(/^[\s,:]*/, ':');
 }
 
 /**
@@ -15,30 +15,30 @@ function keywordize(s: string): string {
  * @return {string} kw without the first character
  */
 function unKeywordize(kw: string): string {
-    return kw.replace(/^[\s,:]*/, '').replace(/[\s,:]*$/, '');
+  return kw.replace(/^[\s,:]*/, '').replace(/[\s,:]*$/, '');
 }
 
 function getIndexAfterLastNonWhitespace(text: string): number {
-    const textTrimmed = text.trim();
-    const lastNonWhitespaceOrEolChar = textTrimmed[textTrimmed.length - 1];
-    return text.lastIndexOf(lastNonWhitespaceOrEolChar) + 1;
+  const textTrimmed = text.trim();
+  const lastNonWhitespaceOrEolChar = textTrimmed[textTrimmed.length - 1];
+  return text.lastIndexOf(lastNonWhitespaceOrEolChar) + 1;
 }
 
 function getTextAfterLastOccurrenceOfSubstring(
-    text: string,
-    substring: string
+  text: string,
+  substring: string
 ): string | undefined {
-    const indexOfLastPrompt = text.lastIndexOf(substring);
-    if (indexOfLastPrompt === -1) {
-        return undefined;
-    }
-    const indexOfEndOfPrompt = indexOfLastPrompt + substring.length;
-    return text.substring(indexOfEndOfPrompt);
+  const indexOfLastPrompt = text.lastIndexOf(substring);
+  if (indexOfLastPrompt === -1) {
+    return undefined;
+  }
+  const indexOfEndOfPrompt = indexOfLastPrompt + substring.length;
+  return text.substring(indexOfEndOfPrompt);
 }
 
 export {
-    keywordize,
-    unKeywordize,
-    getIndexAfterLastNonWhitespace,
-    getTextAfterLastOccurrenceOfSubstring,
+  keywordize,
+  unKeywordize,
+  getIndexAfterLastNonWhitespace,
+  getTextAfterLastOccurrenceOfSubstring,
 };

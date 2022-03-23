@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.257] - 2022-03-23
+- Maintenance: [Update _even more_ TypeScript code to be compatible with strictNullChecks.](https://github.com/BetterThanTomorrow/calva/pull/1605)
+- [Support Polylith and monorepo jack-in/connect better](https://github.com/BetterThanTomorrow/calva/issues/1254)
+- Fix: [Calva Refactor commands not appearing in command palette after initial start](https://github.com/BetterThanTomorrow/calva/issues/1610)
+
 ## [2.0.256] - 2022-03-19
 - Be more graceful about that [clojure-lsp does not start in the Getting Started REPL](https://github.com/BetterThanTomorrow/calva/issues/1601)
 - Fix: [An extra quick-pick prompt at pops up after jack-in](https://github.com/BetterThanTomorrow/calva/issues/1600)

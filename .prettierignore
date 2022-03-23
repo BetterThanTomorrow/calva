@@ -2,6 +2,5 @@
 /.shadow-cljs
 /out
 /.vscode-test
-/.vscode
-/.lsp
-/.clj-kondo
+/site
+.cache

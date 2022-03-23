@@ -12,74 +12,68 @@ let jackedIn = false;
 const sharedPorts: Map<number, Disposable> = new Map();
 
 export async function setupLiveShareListener() {
-    if (liveShareListener !== null) {
-        return;
-    }
+  if (liveShareListener !== null) {
+    return;
+  }
 
-    liveShare = await vsls.getApi();
+  liveShare = await vsls.getApi();
 
-    if (liveShare) {
-        liveShareListener = liveShare.onDidChangeSession(
-            async (e: vsls.SessionChangeEvent) => {
-                if (e.session.role === vsls.Role.Host) {
-                    await shareReplServerIfPossible();
-                }
-            }
-        );
-    }
+  if (liveShare) {
+    liveShareListener = liveShare.onDidChangeSession(async (e: vsls.SessionChangeEvent) => {
+      if (e.session.role === vsls.Role.Host) {
+        await shareReplServerIfPossible();
+      }
+    });
+  }
 }
 
 export async function didJackIn() {
-    jackedIn = true;
-    await shareReplServerIfPossible();
+  jackedIn = true;
+  await shareReplServerIfPossible();
 }
 
 export function didJackOut() {
-    unshareReplServer();
-    jackedIn = false;
+  unshareReplServer();
+  jackedIn = false;
 }
 
 export async function didConnectRepl(port: number): Promise<void> {
-    connectedPort = port;
-    await shareReplServerIfPossible();
+  connectedPort = port;
+  await shareReplServerIfPossible();
 }
 
 export function didDisconnectRepl() {
-    unshareReplServer();
-    connectedPort = null;
+  unshareReplServer();
+  connectedPort = null;
 }
 
 async function getLiveShare() {
-    if (!liveShare) {
-        liveShare = await vsls.getApi();
-    }
-    return liveShare;
+  if (!liveShare) {
+    liveShare = await vsls.getApi();
+  }
+  return liveShare;
 }
 
 async function shareReplServerIfPossible() {
-    const ls = await getLiveShare();
-    if (ls) {
-        if (
-            connectedPort !== null &&
-            ls.session &&
-            ls.session.role === vsls.Role.Host
-        ) {
-            sharedPorts.set(
-                connectedPort,
-                await ls.shareServer({
-                    port: connectedPort,
-                    displayName: 'nREPL server',
-                })
-            );
-        }
+  const ls = await getLiveShare();
+  if (ls) {
+    if (connectedPort !== null && ls.session && ls.session.role === vsls.Role.Host) {
+      sharedPorts.set(
+        connectedPort,
+        await ls.shareServer({
+          port: connectedPort,
+          displayName: 'nREPL server',
+        })
+      );
     }
+  }
 }
 
 function unshareReplServer() {
-    if (connectedPort !== null) {
-        const sharedPort = sharedPorts.get(connectedPort);
-        sharedPort?.dispose();
-        sharedPorts.delete(connectedPort);
-        connectedPort = null;
-    }
+  if (connectedPort !== null) {
+    const sharedPort = sharedPorts.get(connectedPort);
+    sharedPort?.dispose();
+    sharedPorts.delete(connectedPort);
+    connectedPort = null;
+  }
 }

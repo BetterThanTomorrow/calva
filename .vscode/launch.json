@@ -1,174 +1,145 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-    
-        {
-            "name": "Launch Extension",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}",
-            ],
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "env": {
-                "IS_DEBUG": "true",
-                "CALVA_DEV_GA": "FUBAR-69796730-4",
-                "DEBUG": "no-debug-universal-analytics"
-            },
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
-        },
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}"],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "env": {
+        "IS_DEBUG": "true",
+        "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "DEBUG": "no-debug-universal-analytics"
+      },
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
 
-        {
-            "name": "Launch Extension w/o extensions",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}",
-                "--disable-extensions",
-            ],
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "env": {
-                "IS_DEBUG": "true",
-                "CALVA_DEV_GA": "FUBAR-69796730-4",
-                "DEBUG": "no-debug-universal-analytics"
-            },
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
-        },
-        {
-            "name": "Launch w/ test folder",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}",
-                "${workspaceFolder}/test-data"
-            ],
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "env": {
-                "IS_DEBUG": "true",
-                "CALVA_DEV_GA": "FUBAR-69796730-4",
-                "DEBUG": "no-debug-universal-analytics"
-            },
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
-        },
-        {
-            "name": "Launch w/ /tmp/foo.clj",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}",
-                "--folder-uri=/tmp/foo.clj"
-            ],
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "env": {
-                "IS_DEBUG": "true",
-                "CALVA_DEV_GA": "FUBAR-69796730-4",
-                "DEBUG": "no-debug-universal-analytics"
-            },
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
-        },
-        {
-            "name": "Launch w/ welcome-to-calva.md",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}",
-                "--folder-uri=/Users/pez/Projects/md-docs/calva/welcome-to-calva.md"
-            ],
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "env": {
-                "IS_DEBUG": "true",
-                "NEW_DRAMS": "true",
-                "CALVA_DEV_GA": "FUBAR-69796730-4",
-                "DEBUG": "no-debug-universal-analytics"
-            },
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
-        },
-        {
-            "name": "Launch w/ no folder",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}",
-                "--folder-uri=null"
-            ],
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "env": {
-                "IS_DEBUG": "true",
-                "CALVA_DEV_GA": "FUBAR-69796730-4",
-                "DEBUG": "no-debug-universal-analytics"
-            },
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
-        },
-        {
-            "name": "Theia node launch",
-            "type": "node",
-            "request": "launch",
-            "port": 9229,
-            "runtimeExecutable": "${execPath}",
-            "args": [
-                "${workspaceFolder}/test-data",
-                "--port=3030",
-                "--hostname",
-                "0.0.0.0",
-                "--hosted-plugin-inspect=9229"
-            ],
-            "stopOnEntry": false,
-            "sourceMaps": true,
-            "env": {
-                "IS_DEBUG": "true",
-                "CALVA_DEV_GA": "FUBAR-69796730-4",
-                "DEBUG": "no-debug-universal-analytics"
-            },
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
-        },
-        {
-            "name": "Extension Tests",
-            "type": "extensionHost",
-            "request": "launch",
-            "sourceMaps": true,
-            "runtimeExecutable": "${execPath}",
-            "env": {
-                "IS_DEBUG": "true",
-                "CALVA_DEV_GA": "FUBAR-69796730-4",
-                "DEBUG": "no-debug-universal-analytics"
-            },
-            "args": [
-              "${workspaceRoot}/test-data",
-              "--disable-extensions",
-              "--extensionDevelopmentPath=${workspaceRoot}",
-              "--extensionTestsPath=${workspaceRoot}/out/extension-test/integration/suite"
-            ],
-            "preLaunchTask": "npm: compile-test",
-            "outFiles": ["${workspaceRoot}/out/test/**/*.js"]            
-          }
-    ]
+    {
+      "name": "Launch Extension w/o extensions",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}", "--disable-extensions"],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "env": {
+        "IS_DEBUG": "true",
+        "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "DEBUG": "no-debug-universal-analytics"
+      },
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "name": "Launch w/ test folder",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}", "${workspaceFolder}/test-data"],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "env": {
+        "IS_DEBUG": "true",
+        "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "DEBUG": "no-debug-universal-analytics"
+      },
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "name": "Launch w/ /tmp/foo.clj",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}", "--folder-uri=/tmp/foo.clj"],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "env": {
+        "IS_DEBUG": "true",
+        "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "DEBUG": "no-debug-universal-analytics"
+      },
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "name": "Launch w/ welcome-to-calva.md",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}",
+        "--folder-uri=/Users/pez/Projects/md-docs/calva/welcome-to-calva.md"
+      ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "env": {
+        "IS_DEBUG": "true",
+        "NEW_DRAMS": "true",
+        "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "DEBUG": "no-debug-universal-analytics"
+      },
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "name": "Launch w/ no folder",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}", "--folder-uri=null"],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "env": {
+        "IS_DEBUG": "true",
+        "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "DEBUG": "no-debug-universal-analytics"
+      },
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "name": "Theia node launch",
+      "type": "node",
+      "request": "launch",
+      "port": 9229,
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/test-data",
+        "--port=3030",
+        "--hostname",
+        "0.0.0.0",
+        "--hosted-plugin-inspect=9229"
+      ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "env": {
+        "IS_DEBUG": "true",
+        "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "DEBUG": "no-debug-universal-analytics"
+      },
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "name": "Extension Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "sourceMaps": true,
+      "runtimeExecutable": "${execPath}",
+      "env": {
+        "IS_DEBUG": "true",
+        "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "DEBUG": "no-debug-universal-analytics"
+      },
+      "args": [
+        "${workspaceRoot}/test-data",
+        "--disable-extensions",
+        "--extensionDevelopmentPath=${workspaceRoot}",
+        "--extensionTestsPath=${workspaceRoot}/out/extension-test/integration/suite"
+      ],
+      "preLaunchTask": "npm: compile-test",
+      "outFiles": ["${workspaceRoot}/out/test/**/*.js"]
+    }
+  ]
 }
