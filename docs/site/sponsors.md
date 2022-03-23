@@ -7,12 +7,7 @@ search:
 
 # Calva Sponsors
 
-Calva is open source and free to use. It is actively maintained during our free time, and it keeps improving. You can contribute in many different ways, one of which is sponsoring. These are our sponsor profiles:
-
-* [Peter Strömberg](https://github.com/sponsors/PEZ)
-* [Brandon Ringe](https://github.com/sponsors/bpringe)
-
-There you can see who are sponsoring Calva, and this is also displayed in the [README](https://github.com/BetterThanTomorrow/calva#calva-sponsors-%EF%B8%8F) of the Calva project (which means it is also displayed in the [VS Code Extension Marketlace](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva#calva-sponsors)).
+Calva is open source and free to use. It is actively maintained during our free time, and it keeps improving. You can contribute in many different ways, one of which is sponsoring.
 
 If you are working at a company which benefits from Calva's existence and continued development, please consider sponsoring at the Calva Gold Sponsor tier. 
 
@@ -53,3 +48,19 @@ Please see [this statement from Cognitect](https://cognitect.com/blog/2020/12/15
 
 </div>
 
+## Clojurists Together
+
+Significant additions to Calva have been made possible by funding from [Clojurists Together](https://www.clojuriststogether.org). And this has often been transformational for the whole project. Calva would not be where it is today without Clojurists Together.
+
+## Our Sponsoring Profiles
+
+These are the sponsoring profiles for the active maintainers of Calva (a.k.a. The Calva Team):
+
+* [Peter Strömberg](https://github.com/sponsors/PEZ)
+* [Brandon Ringe](https://github.com/sponsors/bpringe)
+* [Cora Sutton](https://github.com/sponsors/corasaurus-hex)
+* [Lukas Domagala](https://github.com/sponsors/Cyrik)
+
+## README visibility
+
+There is also a sponsors section in the [README](https://github.com/BetterThanTomorrow/calva#calva-sponsors-%EF%B8%8F) of the Calva project (which means it is also displayed in the [VS Code Extension Marketlace](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva#calva-sponsors)).

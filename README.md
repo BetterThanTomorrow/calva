@@ -144,10 +144,14 @@ I'm glad you are reading this section! There are many ways and you are welcome t
 
 A considerable amount of time, creativity, energy, worries, sweat, and tears (well, no tears, but anyway 😄), is being spent on Calva. Please consider sponsoring us to show us that extra level of appreciation. Here are the ways you can do it:
 
-* [Peter Strömberg's GitHub Sponsors Profile](https://github.com/sponsors/PEZ)
-* [Brandon Ringe's Github Sponsors Profile](https://github.com/sponsors/bpringe)
+* [Peter Strömberg](https://github.com/sponsors/PEZ)
+* [Brandon Ringe](https://github.com/sponsors/bpringe)
+* [Cora Sutton](https://github.com/sponsors/corasaurus-hex)
+* [Lukas Domagala](https://github.com/sponsors/Cyrik)
 
 Please see [this statement from Cognitect](https://cognitect.com/blog/2020/12/15/sponsoring-open-source-developers) about the importance of supporting open source developers.
+
+Significant additions to Calva has been made possible by funding from [Clojurists Together](https://www.clojuriststogether.org). And this has often been transformational for the whole project.
 
 The following people are helping to keep Calva maintained and improved by sponsoring with their hard earned money. It is fantastic. Thank you!
 
@@ -166,10 +170,15 @@ Patrons, Gold, and Silver sponsors are also displayed here: https://calva.io/#sp
 
 [<img src="assets/images/pitch-logo.png" height="40px" alt="pitch.io"/>](https://pitch.io)
 
+### Calva Pro Fans
+
+[<img src="https://avatars.githubusercontent.com/u/76403280" width="32" alt="lambdaschmiede GmbH">](https://github.com/lambdaschmiede)
+
 ### Calva Super Fans
 
 [<img src="https://avatars.githubusercontent.com/u/71524" width="32" alt="Aram Zadikian">](https://github.com/brancusi)
 [<img src="https://avatars.githubusercontent.com/u/75583439" width="32" alt="180° Insurance">](https://github.com/180seg)
+[<img src="https://avatars.githubusercontent.com/u/1206381" width="32" alt="Simon Accascina">](https://github.com/simonacca)
 
 ### Calva Fans
 
@@ -202,6 +211,8 @@ Patrons, Gold, and Silver sponsors are also displayed here: https://calva.io/#sp
 [<img src="https://avatars.githubusercontent.com/u/293162" width="32" alt="José Diaz Seng">](https://github.com/joseds)
 [<img src="https://avatars.githubusercontent.com/u/647669" width="32" alt="Nick Cernis">](https://github.com/nickcernis)
 [<img src="https://avatars.githubusercontent.com/u/1523536" width="32" alt="Steve Ashton">](https://github.com/sashton)
+[<img src="https://avatars.githubusercontent.com/u/1507474" width="32" alt="Christian Meter">](https://github.com/n2o)
+[<img src="https://avatars.githubusercontent.com/u/60780918" width="32" alt="repath">](https://github.com/repath)
 
 ## The Calva Team
 
@@ -211,13 +222,12 @@ We are Clojure and Visual Studio Code fans who care about the ergonomics of usin
 
 * [Peter Strömberg](https://github.com/PEZ)
 * [Brandon Ringe](https://github.com/bpringe)
-
-### Soon? returning
-
-* [Kevin Ahlbrecht](https://github.com/kstehn)
+* [Cora Sutton](https://github.com/corasaurus-hex)
+* [Lukas Domagala](https://github.com/Cyrik)
 
 ### Alumni
 
+* [Kevin Ahlbrecht](https://github.com/kstehn)
 * [Christian Fehse](https://github.com/cfehse)
 * [Matt Seddon](https://github.com/mseddon)
 * [Pedro Girardi](https://github.com/pedrorgirardi)
@@ -225,7 +235,7 @@ We are Clojure and Visual Studio Code fans who care about the ergonomics of usin
 
 ### Code Contributors
 
-Calva is a quite young open source project, with surprisingly many code contributors. We take great care to keep it easy and fun to contribute. See the [Calva Development Wiki](https://github.com/BetterThanTomorrow/calva/wiki) for more on this.
+Calva is an open source project with surprisingly many code contributors. We take great care to keep it easy and fun to contribute. See the [Calva Development Wiki](https://github.com/BetterThanTomorrow/calva/wiki) for more on this.
 
 ## Happy Coding
 
