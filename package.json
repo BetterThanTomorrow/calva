@@ -220,6 +220,7 @@
               "enabled"
             ],
             "default": {
+              "printEngine": "calva",
               "enabled": true,
               "width": 120,
               "maxLength": 50
