@@ -90,11 +90,13 @@
           ".clj",
           ".cljs",
           ".cljc",
+          ".cljd",
           ".cljx",
           ".clojure",
           ".edn",
           ".joke",
           ".boot",
+          ".bb",
           ".calva-repl"
         ],
         "configuration": "./language-configuration.json"
