@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Make `calva` the default pretty printer](https://github.com/BetterThanTomorrow/calva/issues/1619)
 - [Add default Clojure associations for file extensions `.bb` and `.cljd`](https://github.com/BetterThanTomorrow/calva/issues/1617)
 
 ## [2.0.257] - 2022-03-23
