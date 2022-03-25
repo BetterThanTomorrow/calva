@@ -4,14 +4,26 @@ import * as config from './config';
 import * as path from 'path';
 
 export async function findProjectRootPaths() {
-  const projectFileNames: string[] = ['project.clj', 'shadow-cljs.edn', 'deps.edn'];
+  const projectFileNames: string[] = [
+    'project.clj',
+    'shadow-cljs.edn',
+    'deps.edn',
+    'bb.edn',
+    '.nrepl-port',
+  ];
   const projectFilesGlob = `**/{${projectFileNames.join(',')}}`;
   const excludeDirsGlob = `**/{${config.getConfig().projectRootsSearchExclude.join(',')}}`;
   const t0 = new Date().getTime();
+  const rootPaths: string[] = [];
+  if (vscode.workspace.workspaceFolders?.length > 0) {
+    const wsRootPaths = vscode.workspace.workspaceFolders.map((f) => f.uri.fsPath);
+    rootPaths.push(...wsRootPaths);
+  }
   const candidateUris = await vscode.workspace.findFiles(projectFilesGlob, excludeDirsGlob, 10000);
   console.debug('glob took', new Date().getTime() - t0, 'ms');
   const projectFilePaths = candidateUris.map((uri) => path.dirname(uri.fsPath));
-  const candidatePaths = [...new Set(projectFilePaths)].sort();
+  rootPaths.push(...projectFilePaths);
+  const candidatePaths = [...new Set(rootPaths)].sort();
   return candidatePaths;
 }
 
