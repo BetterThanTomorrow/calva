@@ -6,11 +6,11 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Head over to the our shop and buy yourself and your friends some t-shirts withe the beautiful Calva logo">
+        <meta name="description" content="Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras include rainbow parens, sane bracket matching, and comment form dimming/highlighting.">
       
       
       
-        <link rel="canonical" href="https://calva.io/merch/">
+        <link rel="canonical" href="https://calva.io/syntax-highlighting/">
       
       
         
@@ -20,7 +20,7 @@
     
     
       
-        <title>Calva T-shirts! - Calva User Guide</title>
+        <title>Clojure Syntax Highlighting - Calva User Guide</title>
       
     
     
@@ -66,11 +66,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Calva T-shirts! - Calva User Guide" >
+        <meta  property="og:title"  content="Clojure Syntax Highlighting - Calva User Guide" >
       
-        <meta  property="og:description"  content="Head over to the our shop and buy yourself and your friends some t-shirts withe the beautiful Calva logo" >
+        <meta  property="og:description"  content="Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras include rainbow parens, sane bracket matching, and comment form dimming/highlighting." >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/merch.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/syntax-highlighting.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -78,15 +78,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/merch/" >
+        <meta  property="og:url"  content="https://calva.io/syntax-highlighting/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Calva T-shirts! - Calva User Guide" >
+        <meta  name="twitter:title"  content="Clojure Syntax Highlighting - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Head over to the our shop and buy yourself and your friends some t-shirts withe the beautiful Calva logo" >
+        <meta  name="twitter:description"  content="Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras include rainbow parens, sane bracket matching, and comment form dimming/highlighting." >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/merch.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/syntax-highlighting.png" >
       
     
     
@@ -212,7 +212,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#calva-merch" class="md-skip">
+        <a href="#calva-highlight" class="md-skip">
           Skip to content
         </a>
       
@@ -244,7 +244,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Calva T-shirts!
+              Clojure Syntax Highlighting
             
           </span>
         </div>
@@ -533,12 +533,14 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
       
       
       
@@ -773,9 +775,28 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../syntax-highlighting/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Clojure Syntax Highlighting
+  </span>
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -783,6 +804,40 @@
   </span>
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#syntax-highlighting" class="md-nav__link">
+    Syntax Highlighting
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extra-highlighting" class="md-nav__link">
+    Extra Highlighting
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1562,28 +1617,9 @@
 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Calva T-shirts!
-  </span>
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../merch/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1591,74 +1627,6 @@
   </span>
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#zero-profit" class="md-nav__link">
-    Zero profit
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-designs" class="md-nav__link">
-    The designs
-  </a>
-  
-    <nav class="md-nav" aria-label="The designs">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#symbol-logo" class="md-nav__link">
-    Symbol + Logo
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symbol-logo-we-do-it-with-rich-comments" class="md-nav__link">
-    Symbol + Logo + We do it with Rich Comments
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symbol-only" class="md-nav__link">
-    Symbol Only
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symbol-we-do-it-with-rich-comments" class="md-nav__link">
-    Symbol + We do it with Rich Comments
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1690,50 +1658,16 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#zero-profit" class="md-nav__link">
-    Zero profit
+  <a href="#syntax-highlighting" class="md-nav__link">
+    Syntax Highlighting
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-designs" class="md-nav__link">
-    The designs
+  <a href="#extra-highlighting" class="md-nav__link">
+    Extra Highlighting
   </a>
-  
-    <nav class="md-nav" aria-label="The designs">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#symbol-logo" class="md-nav__link">
-    Symbol + Logo
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symbol-logo-we-do-it-with-rich-comments" class="md-nav__link">
-    Symbol + Logo + We do it with Rich Comments
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symbol-only" class="md-nav__link">
-    Symbol Only
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symbol-we-do-it-with-rich-comments" class="md-nav__link">
-    Symbol + We do it with Rich Comments
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1749,82 +1683,102 @@
             <article class="md-content__inner md-typeset">
               
                 
-<a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/merch.md" title="Edit this page" class="md-content__button md-icon">
+<a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/syntax-highlighting.md" title="Edit this page" class="md-content__button md-icon">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
 </a>
 
 
 
-<h1 id="calva-merch">Calva Merch</h1>
-<p>In this video, there is a question about where you can buy the Calva T-shirt:</p>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/NIk5hVzA_fY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
-<p>You couldn't, then. But now you can! On Amazon.</p>
-<h2 id="zero-profit">Zero profit</h2>
-<p>To keep the admin of this shop to a minimum the merch is sold at production prize. There is no royalty going to anyone in the Calva team when you buy one of these t-shirts. You will represent, which is certainly a way to support the project. You are of course encouraged to support us via sponsoring as well:</p>
-<ul>
-<li><a href="https://github.com/sponsors/PEZ">Sponsor Peter Strömberg</a></li>
-<li><a href="https://github.com/sponsors/bpringe">Sponsor Brandon Ringe</a></li>
-</ul>
-<h2 id="the-designs">The designs</h2>
-<p>There are four design, all featuring the Calva symbol (the Calva glass), which are all available for a <strong>Standard T-shirt, in men's, women's and kid's cut, and in some different colors. In the <code>.com</code> store there are also </strong>Premium T-shirts**.</p>
-<h3 id="symbol-logo">Symbol + Logo</h3>
-<p><img alt="Calva T-shirt Symbol + Logo" src="/images/merch/t-shirt-calva-symbol-and-logo.png" /></p>
-<p>Available at:</p>
-<ul>
-<li><a href="https://www.amazon.com/dp/B09BCVH9SC">https://www.amazon.com/dp/B09BCVH9SC</a> (Premium T-shirt)</li>
-<li><a href="https://www.amazon.com/dp/B097TB5QFW">https://www.amazon.com/dp/B097TB5QFW</a></li>
-<li><a href="https://www.amazon.de/dp/B098GWQC6M">https://www.amazon.de/dp/B098GWQC6M</a></li>
-<li><a href="https://www.amazon.co.uk/dp/B098KM9XMF">https://www.amazon.co.uk/dp/B098KM9XMF</a></li>
-<li><a href="https://www.amazon.fr/dp/B0994TYXTN">https://www.amazon.fr/dp/B0994TYXTN</a></li>
-<li><a href="https://www.amazon.it/dp/B099KLJJV1">https://www.amazon.it/dp/B099KLJJV1</a></li>
-<li><a href="https://www.amazon.es/dp/B099NXR71Y">https://www.amazon.es/dp/B099NXR71Y</a></li>
-<li><a href="https://www.amazon.co.jp/dp/B097YZVMC4">https://www.amazon.co.jp/dp/B097YZVMC4</a></li>
-</ul>
-<h3 id="symbol-logo-we-do-it-with-rich-comments">Symbol + Logo + We do it with Rich Comments</h3>
-<p>The Calva symbol and Logo front, Rich Comments back.</p>
-<p><img alt="Calva T-shirt We do it with Rich Comments Back" src="/images/merch/calva-t-shirt-symbol+logo+rich-comments.png" /></p>
-<p>Available at:</p>
-<ul>
-<li><a href="https://www.amazon.com/dp/B09C4PBH5N">https://www.amazon.com/dp/B09C4PBH5N</a> (Premium T-shirt)</li>
-<li><a href="https://www.amazon.com/dp/B09BFMRCHL">https://www.amazon.com/dp/B09BFMRCHL</a></li>
-<li><a href="https://www.amazon.de/dp/B09C3VYZH8">https://www.amazon.de/dp/B09C3VYZH8</a></li>
-<li><a href="https://www.amazon.co.uk/dp/B09BLD2BVJ">https://www.amazon.co.uk/dp/B09BLD2BVJ</a></li>
-<li><a href="https://www.amazon.fr/dp/B09C3X1H7K">https://www.amazon.fr/dp/B09C3X1H7K</a></li>
-<li><a href="https://www.amazon.it/dp/B09C3WV2JQ">https://www.amazon.it/dp/B09C3WV2JQ</a></li>
-<li><a href="https://www.amazon.es/dp/B09C4P1GD1">https://www.amazon.es/dp/B09C4P1GD1</a></li>
-<li><a href="https://www.amazon.co.jp/dp/B09C4P45MR">https://www.amazon.co.jp/dp/B09C4P45MR</a></li>
-</ul>
-<h3 id="symbol-only">Symbol Only</h3>
-<p><img alt="Calva T-shirt Symbol" src="/images/merch/t-shirt-calva-symbol.png" /></p>
-<p>Available at:</p>
-<ul>
-<li><a href="https://www.amazon.com/dp/B09B83481D">https://www.amazon.com/dp/B09B83481D</a> (Premium T-shirt)</li>
-<li><a href="https://www.amazon.com/dp/B097TB5QFW">https://www.amazon.com/dp/B097TB5QFW</a></li>
-<li><a href="https://www.amazon.de/dp/B098434W9M">https://www.amazon.de/dp/B098434W9M</a></li>
-<li><a href="https://www.amazon.co.uk/dp/B098KNGPBB">https://www.amazon.co.uk/dp/B098KNGPBB</a></li>
-<li><a href="https://www.amazon.fr/dp/B099RZGNN7">https://www.amazon.fr/dp/B099RZGNN7</a></li>
-<li><a href="https://www.amazon.it/dp/B099WYH94Z">https://www.amazon.it/dp/B099WYH94Z</a></li>
-<li><a href="https://www.amazon.es/dp/B09B2TFCSR">https://www.amazon.es/dp/B09B2TFCSR</a></li>
-<li><a href="https://www.amazon.co.jp/dp/B09B4XN3HY">https://www.amazon.co.jp/dp/B09B4XN3HY</a></li>
-</ul>
-<h3 id="symbol-we-do-it-with-rich-comments">Symbol + We do it with Rich Comments</h3>
-<p>The Calva symbol front, Rich Comments Back.</p>
-<p><img alt="Calva T-shirt We do it with Rich Comments Back" src="/images/merch/calva-t-shirt-symbol+rich-comments.png" /></p>
-<p>Available at:</p>
-<ul>
-<li><a href="https://www.amazon.com/dp/B098M34FKJ">https://www.amazon.com/dp/B098M34FKJ</a> (Premium T-shirt)</li>
-<li><a href="https://www.amazon.com/dp/B0993VCG7P">https://www.amazon.com/dp/B0993VCG7P</a></li>
-<li><a href="https://www.amazon.de/dp/B098MF14PV">https://www.amazon.de/dp/B098MF14PV</a></li>
-<li><a href="https://www.amazon.co.uk/dp/B098P1MV44">https://www.amazon.co.uk/dp/B098P1MV44</a></li>
-<li><a href="https://www.amazon.fr/dp/B098TPQFCJ">https://www.amazon.fr/dp/B098TPQFCJ</a></li>
-<li><a href="https://www.amazon.it/dp/B098YP33ZL">https://www.amazon.it/dp/B098YP33ZL</a></li>
-<li><a href="https://www.amazon.es/dp/B098RDPK55">https://www.amazon.es/dp/B098RDPK55</a></li>
-<li><a href="https://www.amazon.co.jp/dp/B0992MQYG6">https://www.amazon.co.jp/dp/B0992MQYG6</a></li>
-</ul>
+<h1 id="calva-highlight">Calva Highlight</h1>
+<p>Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras include rainbow parens, sane bracket matching, and comment form dimming/highlighting.</p>
+<h2 id="syntax-highlighting">Syntax Highlighting</h2>
+<p>When using Calva, you are also using its <a href="https://macromates.com/manual/en/language_grammars">TMLanguage grammar</a> (the core mechanism VS Code uses for syntax highlighting).</p>
+<p>Our grammar tokenizes Clojure keywords as <code>constant.keyword.clojure</code>. Since it is pretty uncommon with keyword constants in the programming languages out there, your theme might not have a highlight defined for this scope. Try find a grammar that highlights keywords! If you are very fond of some theme lacking this, you can help it with a setting:</p>
+<pre><code>"editor.tokenColorCustomizations": {
+    "[Default Dark+]": {
+        "textMateRules": [
+            {
+                "scope": [
+                    "constant.keyword.clojure"
+                ],
+                "settings": {
+                    "foreground": "#6fbfff"
+                }
+            }
+        ]
+    }
+},
+</code></pre>
+<p>Instead of <code>Default Dark+</code> you should use your theme's name/key. And choose a color you like, of course.</p>
+<h2 id="extra-highlighting">Extra Highlighting</h2>
+<p>You are in charge of how brackets and comments are highlighted via the <code>calva.highlight.&lt;setting&gt;</code> settings:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Meaning</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enableBracketColors</code></td>
+<td>Enable rainbow colors</td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>rainbowIndentGuides</code></td>
+<td>Enable rainbow indent guides</td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>highlightActiveIndent</code></td>
+<td>Highlight the active indent guide</td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>bracketColors</code></td>
+<td>Which colors to use</td>
+<td><code>["#000", "#999"]</code></td>
+</tr>
+<tr>
+<td><code>cycleBracketColors</code></td>
+<td>Whether same colors should be <br> reused for deeply nested brackets</td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>misplacedBracketStyle</code></td>
+<td>Style of misplaced bracket</td>
+<td><code>{ "border": "2px solid #c33" }</code></td>
+</tr>
+<tr>
+<td><code>matchedBracketStyle</code></td>
+<td>Style of bracket pair highlight</td>
+<td><code>{"backgroundColor": "#E0E0E0"}</code></td>
+</tr>
+<tr>
+<td><code>ignoredFormStyle</code></td>
+<td>Style of <code>#_...</code> form</td>
+<td><code>{"textDecoration": "none; opacity: 0.5"}</code></td>
+</tr>
+<tr>
+<td><code>commentFormStyle</code></td>
+<td>Style of <code>(comment ...)</code> form</td>
+<td><code>{"fontStyle": "italic"}</code></td>
+</tr>
+</tbody>
+</table>
 <div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>What's available on this or that Amazon site will vary a bit and it is a bit slow to add a particular design to a particular market. Eventually I hope to have both designs up on these markets: <code>.com</code>, <code>.co.uk</code>, <code>.de</code>, <code>.fr</code>, <code>.it</code>, <code>.es</code>, and <code>.co.jp</code></p>
+<p class="admonition-title">Calva disables the VS Code built-in indent guides</p>
+<p>The VS Code built-in settings <code>editor.renderIndentGuides</code> and <code>editor.highlightActiveIndent</code> do not have any effect, since the former is switched off by the <strong>Clojure Defaults</strong>, mentioned above. Use Calva Highlight's <code>rainbowIndentGuides</code> and <code>highlightActiveIndent</code> instead. They are different from the built in ones in that they are independent, meaning you can choose to have active indent highlighted while the guides generally are not rendered (this is the default, even).</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">VS Code bracket coloring vs Calva's</p>
+<p>Calva's bracket coloring is more Clojure aware than VS Code's built-in coloring. And also will chime better with Calva's indent guides. If you like to have bracket coloring outside Clojure code, by all means enable it. Calva's bracket coloring will ”over paint” in Clojure files, when enabled. These settings work nicely:</p>
+<div class="highlight"><pre><span></span><code><span class="s">&quot;calva.highlight.highlightActiveIndent&quot;</span><span class="err">:</span> <span class="nv">true</span>,
+<span class="s">&quot;editor.bracketPairColorization.enabled&quot;</span><span class="err">:</span> <span class="nv">true</span>,
+</code></pre></div>
+<p>The <code>calva.highlight.bracketColors</code> setting can be used to harmonize the coloring between VS Code and Calva.</p>
 </div>
 
   
@@ -1845,7 +1799,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../sponsors/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Calva Sponsors" rel="prev">
+        <a href="../test-runner/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Test Runner" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1854,11 +1808,26 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Calva Sponsors
+              Test Runner
             </div>
           </div>
         </a>
       
+      
+        
+        <a href="../connect-sequences/" class="md-footer__link md-footer__link--next" aria-label="Next: Custom REPL Connect Sequences" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Custom REPL Connect Sequences
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
       
     </nav>
   

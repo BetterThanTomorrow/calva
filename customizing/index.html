@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.5+insiders-4.11.0">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.7+insiders-4.11.0">
     
     
       
@@ -102,6 +102,8 @@
   
     
     
+    
+      
     
       
     
@@ -759,6 +761,25 @@
   
   <span class="md-ellipsis">
     Test Runner
+  </span>
+
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../syntax-highlighting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Clojure Syntax Highlighting
   </span>
 
       </a>
@@ -1849,76 +1870,7 @@
 <h2 id="pretty-printing">Pretty Printing</h2>
 <p>Calva's pretty printing mode can be configured a bit. See <a href="../pprint/">Pretty Printing</a>.</p>
 <h2 id="calva-highlight">Calva Highlight</h2>
-<p>Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras include rainbow parens, sane bracket matching, and comment form dimming/highlighting.</p>
-<p>You are in charge of how brackets and comments are highlighted via the <code>calva.highlight.&lt;setting&gt;</code> settings:</p>
-<table>
-<thead>
-<tr>
-<th>Setting</th>
-<th>Meaning</th>
-<th>Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>enableBracketColors</code></td>
-<td>Enable rainbow colors</td>
-<td><code>true</code></td>
-</tr>
-<tr>
-<td><code>rainbowIndentGuides</code></td>
-<td>Enable rainbow indent guides</td>
-<td><code>true</code></td>
-</tr>
-<tr>
-<td><code>highlightActiveIndent</code></td>
-<td>Highlight the active indent guide</td>
-<td><code>true</code></td>
-</tr>
-<tr>
-<td><code>bracketColors</code></td>
-<td>Which colors to use</td>
-<td><code>["#000", "#999"]</code></td>
-</tr>
-<tr>
-<td><code>cycleBracketColors</code></td>
-<td>Whether same colors should be <br> reused for deeply nested brackets</td>
-<td><code>true</code></td>
-</tr>
-<tr>
-<td><code>misplacedBracketStyle</code></td>
-<td>Style of misplaced bracket</td>
-<td><code>{ "border": "2px solid #c33" }</code></td>
-</tr>
-<tr>
-<td><code>matchedBracketStyle</code></td>
-<td>Style of bracket pair highlight</td>
-<td><code>{"backgroundColor": "#E0E0E0"}</code></td>
-</tr>
-<tr>
-<td><code>ignoredFormStyle</code></td>
-<td>Style of <code>#_...</code> form</td>
-<td><code>{"textDecoration": "none; opacity: 0.5"}</code></td>
-</tr>
-<tr>
-<td><code>commentFormStyle</code></td>
-<td>Style of <code>(comment ...)</code> form</td>
-<td><code>{"fontStyle": "italic"}</code></td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="admonition-title">Calva disables the VS Code built-in indent guides</p>
-<p>The VS Code built-in settings <code>editor.renderIndentGuides</code> and <code>editor.highlightActiveIndent</code> do not have any effect, since the former is switched off by the <strong>Clojure Defaults</strong>, mentioned above. Use Calva Highlight's <code>rainbowIndentGuides</code> and <code>highlightActiveIndent</code> instead. They are different from the built in ones in that they are independent, meaning you can choose to have active indent highlighted while the guides generally are not rendered (this is the default, even).</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">VS Code bracket coloring vs Calva's</p>
-<p>Calva's bracket coloring is more Clojure aware than VS Code's built-in coloring. And also will chime better with Calva's indent guides. If you like to have bracket coloring outside Clojure code, by all means enable it. Calva's bracket coloring will ”over paint” in Clojure files, when enabled. These settings work nicely:</p>
-<div class="highlight"><pre><span></span><code><span class="s">&quot;calva.highlight.highlightActiveIndent&quot;</span><span class="err">:</span> <span class="nv">true</span>,
-<span class="s">&quot;editor.bracketPairColorization.enabled&quot;</span><span class="err">:</span> <span class="nv">true</span>,
-</code></pre></div>
-<p>The <code>calva.highlight.bracketColors</code> setting can be used to harmonize the coloring between VS Code and Calva.</p>
-</div>
+<p>This is highly customizable. See <a href="../syntax-highlighting/">Syntax highlighting</a></p>
 <h2 id="automatic-parameter-hints-poppup">Automatic Parameter Hints Poppup</h2>
 <p>Calva has helpful parameter hints to aid when typing function calls. They look like so:</p>
 <p><img width="353" alt="image" src="https://user-images.githubusercontent.com/30010/75957543-8cf4c180-5eba-11ea-8d77-1e543a73ef28.png"></p>

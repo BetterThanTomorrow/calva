@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.5+insiders-4.11.0">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.2.7+insiders-4.11.0">
     
     
       
@@ -102,6 +102,8 @@
   
     
     
+    
+      
     
       
     
@@ -874,6 +876,25 @@
   
   <span class="md-ellipsis">
     Test Runner
+  </span>
+
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../syntax-highlighting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Clojure Syntax Highlighting
   </span>
 
       </a>
@@ -1812,7 +1833,7 @@
 <tr>
 <td><code>printEngine</code></td>
 <td>enum</td>
-<td>Which printer function that will be used. Default is <code>pprint</code>, more about this setting below</td>
+<td>Which printer function that will be used. Default is <code>calva</code>, more about this setting below</td>
 </tr>
 <tr>
 <td><code>printFn</code></td>
@@ -1855,12 +1876,12 @@
 <tr>
 <td><code>calva</code></td>
 <td>client</td>
-<td>The nREPL server will plain print the results, and then Calva will pretty it.</td>
+<td>Current Calva default. The nREPL server will plain print the results, and then Calva will pretty it (using <code>zprint</code>).</td>
 </tr>
 <tr>
 <td><a href="https://clojure.github.io/clojure/clojure.pprint-api.html"><code>pprint</code></a></td>
 <td>server</td>
-<td>Current Calva default (<code>clojure.core/pprint</code> is a bit basic, but it's tried and tested, and has none of the server side printing issues mentioned below.</td>
+<td>(<code>clojure.core/pprint</code> is a bit basic, but it's tried and tested, and has none of the server side printing issues mentioned below.</td>
 </tr>
 <tr>
 <td><a href="https://github.com/brandonbloom/fipp"><code>fipp</code></a></td>
@@ -1875,13 +1896,13 @@
 <tr>
 <td><a href="https://github.com/kkinnear/zprint"><code>zprint</code></a></td>
 <td>server</td>
-<td>Recommended. Will need to be configured before <a href="../connect/">Jack-in</a> if you want Calva's help to inject its dependencies</td>
+<td>A very good option. However, it will need to be configured before <a href="../connect/">Jack-in</a> if you want Calva's help to inject its dependencies</td>
 </tr>
 </tbody>
 </table>
 <p>These particular server side functions were chosen because they have pre-configured print-functions in <a href="https://docs.cider.mx/cider-nrepl/"><code>cider-nrepl</code></a>.</p>
 <h4 id="or-configure-printfn">Or configure <code>printFn</code></h4>
-<p>If the selection of built-in <code>printEngine</code> support doesn't cut it, you can configure a custom function. This function will need to conform to the requirements of nREPL print functions. The VS Code settings editor will help you configure this one.</p>
+<p>If the selection of built-in <code>printEngine</code> support doesn't cut it, you can configure a custom function. This function will need to conform to the requirements of nREPL print functions. The VS Code settings editor will help you configure this one. (This is also a bit experimental, please consider giving feedback about how it works for you if you try it.)</p>
 <h3 id="why-does-server-or-client-side-matter">Why does Server or Client Side Matter?</h3>
 <p>This matters because on the server all pretty printers, except <code>pprint</code> does more than just pretty print the result that would be printed with plain printing. Pretty printing results on the server causes some results to get expanded. This can have huge implications depending on the results and which printer is used. E.g. for <a href="https://www.datomic.com">Datomic</a> transaction results, you will get the whole database printed. Twice. Depending on the database, you could be so unlucky that nothing gets printed, and instead you will soon have a very hot computer.</p>
 <blockquote>
