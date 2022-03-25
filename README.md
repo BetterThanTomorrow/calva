@@ -178,7 +178,9 @@ Patrons, Gold, and Silver sponsors are also displayed here: https://calva.io/#sp
 
 [<img src="https://avatars.githubusercontent.com/u/71524" width="32" alt="Aram Zadikian">](https://github.com/brancusi)
 [<img src="https://avatars.githubusercontent.com/u/75583439" width="32" alt="180° Insurance">](https://github.com/180seg)
+[<img src="https://avatars.githubusercontent.com/u/30010" width="32" alt="Peter Strömberg">](https://github.com/PEZ)
 [<img src="https://avatars.githubusercontent.com/u/1206381" width="32" alt="Simon Accascina">](https://github.com/simonacca)
+[<img src="https://avatars.githubusercontent.com/u/26651" width="32" alt="Aaron Iba">](https://github.com/aiba)
 
 ### Calva Fans
 
