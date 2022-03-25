@@ -214,6 +214,7 @@ Patrons, Gold, and Silver sponsors are also displayed here: https://calva.io/#sp
 [<img src="https://avatars.githubusercontent.com/u/1523536" width="32" alt="Steve Ashton">](https://github.com/sashton)
 [<img src="https://avatars.githubusercontent.com/u/1507474" width="32" alt="Christian Meter">](https://github.com/n2o)
 [<img src="https://avatars.githubusercontent.com/u/60780918" width="32" alt="repath">](https://github.com/repath)
+[<img src="https://avatars.githubusercontent.com/u/13682625" width="32" alt="Netdava">](https://github.com/netdava)
 
 ## The Calva Team
 
