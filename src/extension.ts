@@ -229,11 +229,8 @@ async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm)
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand('calva.loadFile', async () => {
-      await eval.loadFile({}, config.getConfig().prettyPrintingOptions);
-      return new Promise((finished) => {
-        outputWindow.appendPrompt(finished);
-      });
+    vscode.commands.registerCommand('calva.loadFile', () => {
+      void eval.loadFile({}, config.getConfig().prettyPrintingOptions);
     })
   );
   context.subscriptions.push(
