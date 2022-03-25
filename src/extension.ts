@@ -229,8 +229,9 @@ async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm)
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand('calva.loadFile', () => {
-      void eval.loadFile({}, config.getConfig().prettyPrintingOptions);
+    vscode.commands.registerCommand('calva.loadFile', async () => {
+      await eval.loadFile({}, config.getConfig().prettyPrintingOptions);
+      outputWindow.appendPrompt();
     })
   );
   context.subscriptions.push(
@@ -385,7 +386,10 @@ async function activate(context: vscode.ExtensionContext) {
     )
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand('calva.printLastStacktrace', outputWindow.printLastStacktrace)
+    vscode.commands.registerCommand('calva.printLastStacktrace', () => {
+      outputWindow.printLastStacktrace();
+      outputWindow.appendPrompt();
+    })
   );
   context.subscriptions.push(
     vscode.commands.registerCommand(
