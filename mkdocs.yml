@@ -57,6 +57,7 @@ nav:
     - pprint.md
     - refactoring.md
     - test-runner.md
+    - syntax-highlighting.md
     - connect-sequences.md
     - custom-commands.md
     - linting.md
