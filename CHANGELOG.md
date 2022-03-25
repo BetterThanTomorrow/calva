@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [Connect fails when there is no project file (deps.edn, etc)](https://github.com/BetterThanTomorrow/calva/issues/1613)
+- [Make `calva` the default pretty printer](https://github.com/BetterThanTomorrow/calva/issues/1619)
 - [Add default Clojure associations for file extensions `.bb` and `.cljd`](https://github.com/BetterThanTomorrow/calva/issues/1617)
 
 ## [2.0.257] - 2022-03-23
