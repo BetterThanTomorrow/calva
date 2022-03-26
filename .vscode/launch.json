@@ -104,7 +104,10 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceRoot}", "${workspaceFolder}/test-data/empty-folder"],
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}",
+        "${workspaceFolder}/test-data/empty-folder"
+      ],
       "stopOnEntry": false,
       "sourceMaps": true,
       "env": {

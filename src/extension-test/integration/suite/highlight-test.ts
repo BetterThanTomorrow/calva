@@ -6,7 +6,6 @@ import * as testUtil from './util';
 import * as vscode from 'vscode';
 import * as highlight from '../../../highlight/src/extension';
 
-
 suite('Highlight suite', () => {
   const suite = 'Highlight';
 
@@ -32,5 +31,4 @@ suite('Highlight suite', () => {
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
   });
-
 });
