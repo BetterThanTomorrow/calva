@@ -1,19 +1,19 @@
 'use strict';
+import { StatusBar } from './statusbar';
 import * as vscode from 'vscode';
 import {
   commands,
-  ConfigurationChangeEvent,
+  window,
   Event,
   EventEmitter,
   ExtensionContext,
-  window,
   workspace,
+  ConfigurationChangeEvent,
 } from 'vscode';
-import { EditableDocument } from '../cursor-doc/model';
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
+import { EditableDocument } from '../cursor-doc/model';
 import { assertIsDefined } from '../utilities';
-import { StatusBar } from './statusbar';
 
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
