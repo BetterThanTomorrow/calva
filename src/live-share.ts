@@ -1,5 +1,6 @@
 import { Disposable } from 'vscode';
 import * as vsls from 'vsls';
+import * as config from './config';
 
 // Keeps hold of the LiveShare API instance, so that it is requested only once.
 let liveShare: vsls.LiveShare = null;
@@ -16,7 +17,11 @@ export async function setupLiveShareListener() {
     return;
   }
 
-  liveShare = await vsls.getApi();
+  // Due to https://github.com/MicrosoftDocs/live-share/issues/4551
+  // this is only done if the user enables LiveShare support in settings
+  if (config.getConfig().useLiveShare) {
+    liveShare = await vsls.getApi();
+  }
 
   if (liveShare) {
     liveShareListener = liveShare.onDidChangeSession(async (e: vsls.SessionChangeEvent) => {

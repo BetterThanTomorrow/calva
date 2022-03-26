@@ -143,6 +143,11 @@
         "type": "object",
         "title": "Calva",
         "properties": {
+          "calva.useLiveShare": {
+            "type": "boolean",
+            "markdownDescription": "Enable support for LiveShare. Currently defaults to false, because of [ive-share/issues/4551](https://github.com/MicrosoftDocs/live-share/issues/4551). This issue makes Calva fail to connect to a REPL for some users.",
+            "default": false
+          },
           "calva.useTestExplorer": {
             "type": "boolean",
             "description": "Enable experimental support for the VSCode Test Explorer",

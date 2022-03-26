@@ -24,6 +24,9 @@ REPL. When using Live Share, Calva allows the host to share the REPL with guests
 as well. If you use any of the supported configuration, this will be pretty much
 automatic.
 
+!!! Note "You need to enable the LiveShare support"
+    Due to [an issue in the LiveShare API](https://github.com/MicrosoftDocs/live-share/issues/4551), for some users, this feature stops Calva from connecting the REPL. Therefore the support is disabled by default. The setting is `calva.useLiveShare`.
+
 This is what a typical scenario looks like:
 
 1. **The host** jacks-in.
