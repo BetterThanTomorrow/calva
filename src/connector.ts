@@ -17,7 +17,7 @@ import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
 import * as outputWindow from './results-output/results-doc';
 import { evaluateInOutputWindow } from './evaluate';
-import * as liveShareSupport from './liveShareSupport';
+import * as liveShareSupport from './live-share';
 import * as calvaDebug from './debugger/calva-debug';
 import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 import * as replSession from './nrepl/repl-session';
