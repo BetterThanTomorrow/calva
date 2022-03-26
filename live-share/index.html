@@ -1719,6 +1719,10 @@ as for any other programming language. What makes Calva a bit special, is the
 REPL. When using Live Share, Calva allows the host to share the REPL with guests
 as well. If you use any of the supported configuration, this will be pretty much
 automatic.</p>
+<div class="admonition note">
+<p class="admonition-title">You need to enable the LiveShare support</p>
+<p>Due to <a href="https://github.com/MicrosoftDocs/live-share/issues/4551">an issue in the LiveShare API</a>, for some users, this feature stops Calva from connecting the REPL. Therefore the support is disabled by default. The setting is <code>calva.useLiveShare</code>.</p>
+</div>
 <p>This is what a typical scenario looks like:</p>
 <ol>
 <li><strong>The host</strong> jacks-in.</li>
