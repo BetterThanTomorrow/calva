@@ -22,8 +22,10 @@ function is_clojure(editor) {
   return !!editor && editor.document.languageId === 'clojure';
 }
 
-let activeEditor: vscode.TextEditor,
-  lastHighlightedEditor,
+// Exported for integration testing purposes
+export let activeEditor: vscode.TextEditor;
+
+let lastHighlightedEditor,
   rainbowColors,
   rainbowTypes: vscode.TextEditorDecorationType[],
   rainbowGuidesTypes: vscode.TextEditorDecorationType[],
@@ -500,7 +502,7 @@ function decorateActiveGuides() {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  activeEditor = getActiveTextEditor();
+  activeEditor = tryToGetActiveTextEditor();
 
   vscode.window.onDidChangeActiveTextEditor(
     (editor) => {

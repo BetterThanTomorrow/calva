@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Rainbow parentheses sometimes not activating](https://github.com/BetterThanTomorrow/calva/issues/1616)
 
 ## [2.0.259] - 2022-03-26
 - [Add setting for enabling LiveShare support](https://github.com/BetterThanTomorrow/calva/issues/1629)
