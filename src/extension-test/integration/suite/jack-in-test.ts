@@ -57,7 +57,7 @@ suite('Jack-in suite', () => {
     );
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-    testUtil.log(suite, 'test.clj closed')
+    testUtil.log(suite, 'test.clj closed');
   });
 
   test('Copy Jack-in command line', async function () {
