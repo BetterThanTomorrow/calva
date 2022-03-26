@@ -11,7 +11,7 @@ import { askForConnectSequence, ReplConnectSequence, CljsTypes } from './connect
 import * as projectTypes from './project-types';
 import * as outputWindow from '../results-output/results-doc';
 import { JackInTerminal, JackInTerminalOptions, createCommandLine } from './jack-in-terminal';
-import * as liveShareSupport from '../liveShareSupport';
+import * as liveShareSupport from '../live-share';
 import { getConfig } from '../config';
 
 let jackInPTY: JackInTerminal = undefined;

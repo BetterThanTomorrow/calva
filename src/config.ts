@@ -162,6 +162,7 @@ function getConfig() {
     },
     enableClojureLspOnStart: configOptions.get<boolean>('enableClojureLspOnStart'),
     projectRootsSearchExclude: configOptions.get<string[]>('projectRootsSearchExclude', []),
+    useLiveShare: configOptions.get<boolean>('useLiveShare'),
   };
 }
 

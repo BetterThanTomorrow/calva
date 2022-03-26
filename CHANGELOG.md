@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.259] - 2022-03-26
+- [Add setting for enabling LiveShare support](https://github.com/BetterThanTomorrow/calva/issues/1629)
+
 ## [2.0.258] - 2022-03-25
 - Fix: [Connect fails when there is no project file (deps.edn, etc)](https://github.com/BetterThanTomorrow/calva/issues/1613)
 - [Make `calva` the default pretty printer](https://github.com/BetterThanTomorrow/calva/issues/1619)
