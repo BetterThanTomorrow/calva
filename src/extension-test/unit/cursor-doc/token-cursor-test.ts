@@ -725,9 +725,7 @@ describe('Token Cursor', () => {
       const a = docFromTextNotation('(map #|(println %) [1 2])');
       const b = docFromTextNotation('(map |#(println %)| [1 2])');
       const cursor: LispTokenCursor = a.getTokenCursor(a.selection.anchor);
-      expect(cursor.rangeForCurrentForm(a.selection.anchor)).toEqual(
-        textAndSelection(b)[1]
-      );
+      expect(cursor.rangeForCurrentForm(a.selection.anchor)).toEqual(textAndSelection(b)[1]);
     });
     it('8: does not croak on unbalance', () => {
       // This hangs the structural editing in the real editor
