@@ -23,11 +23,6 @@ strict: true
 plugins:
  - search:
      separator: '[\s\-\._]'
- - social:
-     cards: !ENV [MKDOCS_SOCIAL_CARDS, false]
-     cards_color:
-       fill: "#db9550"
-       text: "#fafafa"
 markdown_extensions:
   - meta
   - attr_list

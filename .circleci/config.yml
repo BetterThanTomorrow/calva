@@ -367,7 +367,7 @@ jobs:
           name: Deploy docs
           command: |
             git checkout published
-            mkdocs gh-deploy --message "[skip ci]" --strict --clean
+            mkdocs gh-deploy --config-file mkdocs.insiders.yml --message "[skip ci]" --strict --clean
   bump-dev-version:
     docker:
       - image: cimg/node:15.8
