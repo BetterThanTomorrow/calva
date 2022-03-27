@@ -7,6 +7,47 @@ description: Powered by clj-kondo, Calva comes with state-of-the-art Clojure and
 
 Calva does no linting, yet with Calva you get excellent linting. That is because Calva uses [clojure-lsp](https://github.com/clojure-lsp/clojure-lsp), which provides linting powered by clj-kondo.
 
+## Get Started
+clj-kondo comes with its set of rules, but the configuration can be customized with a configuration file. The custom configuration must be placed at the root of your project under `.clj-kondo/config.edn`. The `.clj-kondo` folder may already exist if you started calva before, it is safe to create it manually if it doesn't.
+
+The configuration will be merged with the default set of rules, you can only specify the rules you want to override. The full list of available options can be found on [clj-kondo's github](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md)
+
+### Examples
+The following examples show how to turn on/off linting rules in your configuration:
+
+**Display missing docstring as warning:**
+```clj
+{:linters {:missing-docstring {:level :warning}}}
+```
+
+**Display an error when the :require are not sorted in the namespace:**
+```clj
+{:linters {:unsorted-required-namespaces {:level :error}}}
+```
+
+**Turn off the 'Not empty?' idiom:**
+```clj
+{:linters {:not-empty? {:level :off}}}
+```
+
+**Multiple rules in a single config:**
+```clj
+{:linters {:missing-docstring {:level :warning}
+           :unsorted-required-namespaces {:level :error}
+           :not-empty? {:level :off}}}
+```
+
+### Exclude entire folders from the linter
+The linter is ran through the clojure-lsp, by default clojure-lsp runs on the entire classpath of the project. There are casses where you may not want that. For example when using clojurescript it is very likely that you will have a `target/` folder in your classpath which you want to exclude from linting. The custom configuration must be placed at the root of your project under `.lsp/config.edn`. The `.lsp` folder may already exist if you started calva before, it is safe to create it manually if it doesn't.
+
+```clj
+{:use-source-paths-from-classpath false
+ :source-paths #{"folder-you-want-1"
+                 "folder-you-want-2"}}
+```
+
+## To go further
+
 You might want to read about [how to configure clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#configuration). These two sections might be of extra interest:
 
 * [Unrecognized macros](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#unrecognized-macros)
