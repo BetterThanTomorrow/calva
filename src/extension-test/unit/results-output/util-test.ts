@@ -1,5 +1,5 @@
 import * as expect from 'expect';
-import { OnAppendedCallback } from '../../../results-output/results-doc';
+import type { ResultsBuffer } from '../../../results-output/results-doc';
 import * as util from '../../../results-output/util';
 
 describe('addToHistory', () => {
@@ -51,57 +51,51 @@ describe('splitEditQueueForTextBatching', () => {
     expect(remainingEditQueue).toHaveLength(0);
   });
   it("doesn't perform batching if first item has callback", () => {
-    const queue: [string, OnAppendedCallback][] = [
-      [
-        'item-with-callback',
-        () => {
+    const queue: ResultsBuffer = [
+      {
+        text: 'item-with-callback',
+        onAppended: () => {
           // do nothing
         },
-      ],
-      ['item2', null],
-      ['item3', null],
+      },
+      { text: 'item2' },
+      { text: 'item3' },
     ];
     const [textBatch, remainingEditQueue] = util.splitEditQueueForTextBatching(queue);
     expect(textBatch).toHaveLength(0);
-    expect(remainingEditQueue.map(([s]) => s)).toEqual(
+    expect(remainingEditQueue.map((x) => x.text)).toEqual(
       expect.arrayContaining(['item-with-callback', 'item2', 'item3'])
     );
   });
   it('batches only leading items with no callback', () => {
-    const queue: [string, OnAppendedCallback][] = [
-      ['item1', null],
-      ['item2', null],
-      [
-        'item3-with-callback',
-        () => {
+    const queue: ResultsBuffer = [
+      { text: 'item1' },
+      { text: 'item2' },
+      {
+        text: 'item3-with-callback',
+        onAppended: () => {
           // do nothing
         },
-      ],
-      ['item4', null],
+      },
+      { text: 'item4' },
     ];
     const [textBatch, remainingEditQueue] = util.splitEditQueueForTextBatching(queue);
     expect(textBatch).toEqual(expect.arrayContaining(['item1', 'item2']));
-    expect(remainingEditQueue.map(([s]) => s)).toEqual(
+    expect(remainingEditQueue.map((x) => x.text)).toEqual(
       expect.arrayContaining(['item3-with-callback', 'item4'])
     );
   });
   it('correctly handles queue containing just items without callbacks', () => {
-    const queue: [string, OnAppendedCallback][] = [
-      ['item1', null],
-      ['item2', null],
-    ];
+    const queue: ResultsBuffer = [{ text: 'item1' }, { text: 'item2' }];
     const [textBatch, remainingEditQueue] = util.splitEditQueueForTextBatching(queue);
     expect(textBatch).toEqual(expect.arrayContaining(['item1', 'item2']));
     expect(remainingEditQueue).toHaveLength(0);
   });
   it('respects maxBatchSize', () => {
-    const queue: [string, OnAppendedCallback][] = [
-      ['item1', null],
-      ['item2', null],
-      ['item3', null],
-    ];
+    const queue: ResultsBuffer = [{ text: 'item1' }, { text: 'item2' }, { text: 'item3' }];
+
     const [textBatch, remainingEditQueue] = util.splitEditQueueForTextBatching(queue, 2);
     expect(textBatch).toEqual(expect.arrayContaining(['item1', 'item2']));
-    expect(remainingEditQueue.map(([s]) => s)).toEqual(expect.arrayContaining(['item3']));
+    expect(remainingEditQueue.map((x) => x.text)).toEqual(expect.arrayContaining(['item3']));
   });
 });
