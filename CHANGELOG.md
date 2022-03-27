@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Improve kondo configuration documentation](https://github.com/BetterThanTomorrow/calva/issues/1282)
 
 ## [2.0.262] - 2022-04-02
 - Tech debt mortgage: [Cleanup/removal of EditableDocument.selectionLeft/Right APIs](https://github.com/BetterThanTomorrow/calva/issues/1607)]
