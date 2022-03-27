@@ -1,0 +1,10 @@
+INHERIT: mkdocs.yml
+plugins:
+  #- search
+  - social:
+    cards: !ENV [MKDOCS_SOCIAL_CARDS, false]
+    cards_color:
+      fill: "#db9550"
+      text: "#fafafa"
+
+  #- tags
