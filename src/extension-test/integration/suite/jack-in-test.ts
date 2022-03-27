@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { after } from 'mocha';
+import { before, after } from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as state from '../../../state';
@@ -18,13 +18,12 @@ import * as projectRoot from '../../../project-root';
 suite('Jack-in suite', () => {
   const suite = 'Jack-in';
 
-  // TODO: Why can't we use before()?
-  //before(() => {
-  //  void vscode.window.showInformationMessage(`${suite} suite starting!`);
-  //});
+  before(() => {
+    testUtil.showMessage(suite, `suite starting!`);
+  });
 
   after(() => {
-    void vscode.window.showInformationMessage(`${suite} suite done!`);
+    testUtil.showMessage(suite, `suite done!`);
   });
 
   test('start repl and connect (jack-in)', async function () {
