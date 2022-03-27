@@ -19,27 +19,51 @@ describe('indent', () => {
       });
       it("calculates indents for arg 0 in `[['inner' 0]]`", () => {
         const doc = docFromTextNotation('(foo|)');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0], mkConfig({
-          '#"^\\w"': [['inner', 0]],
-        }))).toEqual(2);
+        expect(
+          indent.getIndent(
+            doc.model,
+            textAndSelection(doc)[1][0],
+            mkConfig({
+              '#"^\\w"': [['inner', 0]],
+            })
+          )
+        ).toEqual(2);
       });
       it("calculates indents for arg 1 in `[['inner' 0]]`", () => {
         const doc = docFromTextNotation('(foo x|)');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0], mkConfig({
-          '#"^\\w"': [['inner', 0]],
-        }))).toEqual(2);
+        expect(
+          indent.getIndent(
+            doc.model,
+            textAndSelection(doc)[1][0],
+            mkConfig({
+              '#"^\\w"': [['inner', 0]],
+            })
+          )
+        ).toEqual(2);
       });
       it("calculates indents for arg 0 in `[['block' 1]]`", () => {
         const doc = docFromTextNotation('(foo|)');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0], mkConfig({
-          '#"^\\w"': [['block', 1]],
-        }))).toEqual(1);
+        expect(
+          indent.getIndent(
+            doc.model,
+            textAndSelection(doc)[1][0],
+            mkConfig({
+              '#"^\\w"': [['block', 1]],
+            })
+          )
+        ).toEqual(1);
       });
       it("calculates indents for arg 1 in `[['block' 1]]`", () => {
         const doc = docFromTextNotation('(foo x|)');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0], mkConfig({
-          '#"^\\w"': [['block', 1]],
-        }))).toEqual(2);
+        expect(
+          indent.getIndent(
+            doc.model,
+            textAndSelection(doc)[1][0],
+            mkConfig({
+              '#"^\\w"': [['block', 1]],
+            })
+          )
+        ).toEqual(2);
       });
     });
 
@@ -55,9 +79,15 @@ describe('indent', () => {
       it('does not use indent rules for vectors with', () => {
         // https://github.com/BetterThanTomorrow/calva/issues/1622
         const doc = docFromTextNotation('[foo|]');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0], mkConfig({
-          '#"^\\w"': [['inner', 0]],
-        }))).toEqual(1);
+        expect(
+          indent.getIndent(
+            doc.model,
+            textAndSelection(doc)[1][0],
+            mkConfig({
+              '#"^\\w"': [['inner', 0]],
+            })
+          )
+        ).toEqual(1);
       });
     });
   });
@@ -69,7 +99,11 @@ describe('indent', () => {
         const rules: indent.IndentRules = {
           '#"^\\w"': [['inner', 0]],
         };
-        const state: indent.IndentInformation[] = indent.collectIndents(doc.model, textAndSelection(doc)[1][0], mkConfig(rules));
+        const state: indent.IndentInformation[] = indent.collectIndents(
+          doc.model,
+          textAndSelection(doc)[1][0],
+          mkConfig(rules)
+        );
         expect(state.length).toEqual(1);
         expect(state[0].rules).toEqual([]);
       });
@@ -78,31 +112,43 @@ describe('indent', () => {
         const rules: indent.IndentRules = {
           '#"^\\w"': [['inner', 0]],
         };
-        const state: indent.IndentInformation[] = indent.collectIndents(doc.model, textAndSelection(doc)[1][0], mkConfig(rules));
+        const state: indent.IndentInformation[] = indent.collectIndents(
+          doc.model,
+          textAndSelection(doc)[1][0],
+          mkConfig(rules)
+        );
         expect(state.length).toEqual(1);
         expect(state[0].rules).toEqual([]);
       });
-      it("collects indents for arg 0", () => {
+      it('collects indents for arg 0', () => {
         const doc = docFromTextNotation('(foo|)');
         const rule1: indent.IndentRule = ['inner', 0];
         const rules: indent.IndentRules = {
           '#"^\\w"': [rule1],
         };
-        const state: indent.IndentInformation[] = indent.collectIndents(doc.model, textAndSelection(doc)[1][0], mkConfig(rules));
+        const state: indent.IndentInformation[] = indent.collectIndents(
+          doc.model,
+          textAndSelection(doc)[1][0],
+          mkConfig(rules)
+        );
         expect(state.length).toEqual(1);
         expect(state[0].rules).toEqual([rule1]);
       });
     });
 
     describe('vectors', () => {
-      it("ignores rule arg 0", () => {
+      it('ignores rule arg 0', () => {
         // https://github.com/BetterThanTomorrow/calva/issues/1622
         const doc = docFromTextNotation('[foo|]');
         const rule1: indent.IndentRule = ['inner', 0];
         const rules: indent.IndentRules = {
           '#"^\\w"': [rule1],
         };
-        const state: indent.IndentInformation[] = indent.collectIndents(doc.model, textAndSelection(doc)[1][0], mkConfig(rules));
+        const state: indent.IndentInformation[] = indent.collectIndents(
+          doc.model,
+          textAndSelection(doc)[1][0],
+          mkConfig(rules)
+        );
         expect(state.length).toEqual(1);
         expect(state[0].rules).toEqual([]);
       });
@@ -114,6 +160,6 @@ function mkConfig(rules: indent.IndentRules) {
   return {
     'cljfmt-options': {
       indents: rules,
-    }
-  }
+    },
+  };
 }
