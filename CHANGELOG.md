@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Improve kondo configuration documentation](https://github.com/BetterThanTomorrow/calva/issues/1282)
 
 ## [2.0.260] - 2022-03-27
 - Fix: [Rainbow parentheses sometimes not activating](https://github.com/BetterThanTomorrow/calva/issues/1616)
