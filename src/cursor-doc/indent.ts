@@ -3,16 +3,20 @@ import * as _ from 'lodash';
 
 const whitespace = new Set(['ws', 'comment', 'eol']);
 
-type IndentRule = ['block', number] | ['inner', number] | ['inner', number, number];
+export type IndentRule = ['block', number] | ['inner', number] | ['inner', number, number];
 
-const indentRules: { [id: string]: IndentRule[] } = {
+export type IndentRules = {
+  [id: string]: IndentRule[];
+};
+
+const indentRules: IndentRules = {
   '#"^\\w"': [['inner', 0]],
 };
 
 /**
  * The information about an enclosing s-expr, returned by collectIndents
  */
-interface IndentInformation {
+export interface IndentInformation {
   /** The first token in the expression (after the open paren/bracket etc.), as a raw string */
   first: string;
 
