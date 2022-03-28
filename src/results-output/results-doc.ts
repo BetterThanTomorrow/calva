@@ -295,7 +295,7 @@ async function writeToResultsDoc({ text, onAppended }: ResultsBufferEntry): Prom
   const doc = await vscode.workspace.openTextDocument(docUri);
   const insertPosition = doc.positionAt(Infinity);
   const edit = new vscode.WorkspaceEdit();
-  let editText = text;
+  let editText = util.stripAnsi(text);
   if (!lastLineIsEmpty(doc)) {
     editText = '\n' + editText;
   }
@@ -363,10 +363,7 @@ async function flushOutput() {
 
 /* If something must be done after a particular edit, use the onAppended callback. */
 export function append(text: string, onAppended?: OnAppendedCallback): void {
-  resultsBuffer.push({
-    text: util.stripAnsi(text),
-    onAppended,
-  });
+  resultsBuffer.push({ text, onAppended });
   void flushOutput();
 }
 
