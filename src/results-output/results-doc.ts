@@ -356,6 +356,8 @@ async function flushOutput() {
     while (resultsBuffer.length > 0) {
       await writeNextOutputBatch();
     }
+  } catch (err) {
+    console.error('Error writing to results doc:', err);
   } finally {
     outputPending = false;
   }
