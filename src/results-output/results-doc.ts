@@ -27,7 +27,7 @@ const START_GREETINGS =
 ; Happy coding! ♥️';
 
 export const CLJ_CONNECT_GREETINGS =
-  '; TIPS: \n\
+  '; TIPS:\n\
 ;   - You can edit the contents here. Use it as a REPL if you like.\n\
 ;   - `alt+enter` evaluates the current top level form.\n\
 ;   - `ctrl+enter` evaluates the current form.\n\
@@ -295,7 +295,14 @@ async function writeToResultsDoc({ text, onAppended }: ResultsBufferEntry): Prom
   const doc = await vscode.workspace.openTextDocument(docUri);
   const insertPosition = doc.positionAt(Infinity);
   const edit = new vscode.WorkspaceEdit();
-  edit.insert(docUri, insertPosition, `${lastLineIsEmpty(doc) ? '' : '\n'}${text}`);
+  let editText = text;
+  if (!lastLineIsEmpty(doc)) {
+    editText = '\n' + editText;
+  }
+  if (!editText.endsWith('\n')) {
+    editText += '\n';
+  }
+  edit.insert(docUri, insertPosition, editText);
   if (!((await vscode.workspace.applyEdit(edit)) && (await doc.save()))) {
     return;
   }
