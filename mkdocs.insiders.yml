@@ -1,0 +1,7 @@
+INHERIT: mkdocs.yml
+plugins:
+  - social:
+      cards: true
+      cards_color:
+        fill: "#db9550"
+        text: "#fafafa"
