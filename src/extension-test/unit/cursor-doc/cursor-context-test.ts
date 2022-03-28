@@ -90,7 +90,7 @@ describe('Cursor Contexts', () => {
       );
       expect(contexts.includes('calva:cursorBeforeComment')).toBe(true);
     });
-    it('is false adjacent before comment on line with leading witespace and preceding comment line', () => {
+    it('is false adjacent before comment on line with leading whitespace and preceding comment line', () => {
       const contexts = context.determineContexts(docFromTextNotation(' ;; foo• |;; bar'));
       expect(contexts.includes('calva:cursorBeforeComment')).toBe(false);
     });

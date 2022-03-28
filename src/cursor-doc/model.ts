@@ -1,7 +1,8 @@
-import { isUndefined, max, min } from 'lodash';
+import { isUndefined, max, min, isNumber } from 'lodash';
 import { deepEqual as equal } from '../util/object';
 import { Scanner, ScannerState, Token } from './clojure-lexer';
 import { LispTokenCursor } from './token-cursor';
+import type { Selection, TextDocument } from 'vscode';
 
 let scanner: Scanner;
 
@@ -45,18 +46,50 @@ export class ModelEdit {
  *
  * This will be in line with vscode when it comes to anchor/active, but introduce our own terminology  for the span of the selection. It will also keep the tradition of paredit with backward/forward and up/down.
  */
-
 export class ModelEditSelection {
   private _anchor: number;
   private _active: number;
+  private _start: number;
+  private _end: number;
+  private _isReversed: boolean;
 
-  constructor(anchor: number, active?: number) {
-    this._anchor = anchor;
-    if (active !== undefined) {
-      this._active = active;
+  constructor(anchor: number, active?: number, start?: number, end?: number, isReversed?: boolean);
+  constructor(selection: Selection, doc: TextDocument);
+  constructor(
+    anchorOrSelection: number | Selection,
+    activeOrDoc?: number | TextDocument,
+    start?: number,
+    end?: number,
+    isReversed?: boolean
+  ) {
+    if (isNumber(anchorOrSelection)) {
+      const anchor = anchorOrSelection;
+      this._anchor = anchor;
+      if (activeOrDoc !== undefined && isNumber(activeOrDoc)) {
+        this._active = activeOrDoc;
+      } else {
+        this._active = anchor;
+      }
+      isReversed = isReversed ?? this._anchor > this._active;
+      this._isReversed = isReversed;
+      this._start = start ?? isReversed ? this._active : Math.min(anchor, this._active);
+      this._end = end ?? isReversed ? anchor : Math.max(anchor, this._active);
     } else {
-      this._active = anchor;
+      const { active, anchor, start, end, isReversed } = anchorOrSelection;
+      // const doc = getActiveTextEditor().document;
+      const doc = activeOrDoc as TextDocument;
+      this._active = doc.offsetAt(active);
+      this._anchor = doc.offsetAt(anchor);
+      this._start = doc.offsetAt(start);
+      this._end = doc.offsetAt(end);
+      this._isReversed = isReversed;
     }
+  }
+
+  private _updateDirection() {
+    this._start = Math.min(this._anchor, this._active);
+    this._end = Math.max(this._anchor, this._active);
+    this._isReversed = this._active < this._anchor;
   }
 
   get anchor() {
@@ -65,6 +98,7 @@ export class ModelEditSelection {
 
   set anchor(v: number) {
     this._anchor = v;
+    this._updateDirection();
   }
 
   get active() {
@@ -73,6 +107,67 @@ export class ModelEditSelection {
 
   set active(v: number) {
     this._active = v;
+    this._updateDirection();
+  }
+
+  get start() {
+    this._updateDirection();
+    return this._start;
+  }
+
+  /* set start(v: number) {
+    // TODO: figure out .start setter logic
+    this._start = v;
+    if (this._start === this._anchor) {
+      this._isReversed = false;
+    } else if (this._start === this._active) {
+      this._isReversed = true;
+    } else if (this._isReversed) {
+      this._active = this._start;
+    } else if (!this._isReversed) {
+      this._anchor = this._start;
+    }
+  } */
+
+  get end() {
+    this._updateDirection();
+    return this._end;
+  }
+
+  /* set end(v: number) {
+    // TODO: figure out .end setter logic
+    // TODO: figure out .start setter logic
+    this.end = v;
+
+    if (this._end < this._start) {
+      this._start;
+    }
+
+    if (this.end === this._anchor) {
+      this._isReversed = true;
+    } else if (this.end === this._active) {
+      this._isReversed = false;
+    } else if (this._isReversed) {
+      this._anchor = this.end;
+    } else if (!this._isReversed) {
+      this._active = this.end;
+    }
+  } */
+
+  get isReversed() {
+    this._updateDirection();
+    return this._isReversed;
+  }
+
+  set isReversed(isReversed: boolean) {
+    this._isReversed = isReversed;
+    if (this._isReversed) {
+      this._start = this._active;
+      this._end = this._anchor;
+    } else {
+      this._start = this._anchor;
+      this._end = this._active;
+    }
   }
 
   clone() {
@@ -88,6 +183,11 @@ export type ModelEditOptions = {
   selections?: ModelEditSelection[];
 };
 
+export type ModelEditResult = {
+  edits: ModelEdit[];
+  selections: ModelEditSelection[];
+  success: boolean;
+};
 export interface EditableModel {
   readonly lineEndingLength: number;
 
@@ -96,7 +196,7 @@ export interface EditableModel {
    * For some EditableModel's these are performed as one atomic set of edits.
    * @param edits
    */
-  edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
+  edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<ModelEditResult>;
 
   getText: (start: number, end: number, mustBeWithin?: boolean) => string;
   getLineText: (line: number) => string;
@@ -105,10 +205,8 @@ export interface EditableModel {
 }
 
 export interface EditableDocument {
-  selection: ModelEditSelection;
   selections: ModelEditSelection[];
   model: EditableModel;
-  // selectionStack: ModelEditSelection[];
   /**
    * A stack of selections - that is, a 2d array, where the outer array index is a point in "selection/form nesting order" and the inner array index is which cursor that ModelEditSelection belongs to. That "selection/form nesting order" axis can be thought of as the axis for time, or something close to that. That is, .selectionStacks
    * is only used when the user invokes the "Expand Selection" or "Shrink Selection" Paredit commands, such that each time the user invokes "Expand", it pushes an item onto the stack. Similarly, when "Shrink" is invoked, the last item
@@ -124,10 +222,10 @@ export interface EditableDocument {
   selectionsStack: ModelEditSelection[][];
   getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor;
   insertString: (text: string) => void;
-  getSelectionText: () => string;
   getSelectionTexts: () => string[];
-  delete: () => Thenable<boolean>;
-  backspace: () => Thenable<boolean>;
+  getSelectionText: (index: number) => string;
+  delete: (index?: number) => Thenable<ModelEditResult>;
+  backspace: (index?: number) => Thenable<ModelEditResult>;
 }
 
 /** The underlying model for the REPL readline. */
@@ -372,7 +470,7 @@ export class LineInputModel implements EditableModel {
    * Doesn't need to be atomic in the LineInputModel.
    * @param edits
    */
-  edit(edits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
+  edit(edits: ModelEdit[], options: ModelEditOptions): Thenable<ModelEditResult> {
     return new Promise((resolve, reject) => {
       for (const edit of edits) {
         switch (edit.editFn) {
@@ -396,9 +494,9 @@ export class LineInputModel implements EditableModel {
         }
       }
       if (this.document && options.selections) {
-        this.document.selections = [options.selections[0]];
+        this.document.selections = options.selections;
       }
-      resolve(true);
+      resolve({ edits, selections: options.selections, success: true });
     });
   }
 
@@ -548,7 +646,6 @@ export class StringDocument implements EditableDocument {
     }
   }
 
-  selection: ModelEditSelection;
   selections: ModelEditSelection[];
 
   model: LineInputModel = new LineInputModel(1, this);
@@ -563,30 +660,43 @@ export class StringDocument implements EditableDocument {
     return this.model.getTokenCursor(offset);
   }
 
-  getSelectionsText: () => string[];
   insertString(text: string) {
     this.model.insertString(0, text);
   }
 
   getSelectionTexts: () => string[];
-  getSelectionText: () => string;
+  getSelectionText: (index: number) => string;
 
-  delete() {
-    return this.model.edit(
-      [this.selection].map(({ anchor: p }) => new ModelEdit('deleteRange', [p, 1])),
-      {
-        selections: this.selections.map(({ anchor: p }) => new ModelEditSelection(p)),
-      }
-    );
+  delete(index?: number) {
+    if (isUndefined(index)) {
+      return this.model.edit(
+        this.selections.map(({ anchor: p }) => new ModelEdit('deleteRange', [p, 1])),
+        {
+          selections: this.selections.map(({ anchor: p }) => new ModelEditSelection(p)),
+        }
+      );
+    } else {
+      return this.model.edit([new ModelEdit('deleteRange', [(this.selections[index].anchor, 1)])], {
+        selections: [new ModelEditSelection(this.selections[index].anchor)],
+      });
+    }
   }
-  getSelectionText: () => string;
 
-  backspace() {
-    return this.model.edit(
-      [this.selection].map(({ anchor: p }) => new ModelEdit('deleteRange', [p - 1, 1])),
-      {
-        selections: [this.selection].map(({ anchor: p }) => new ModelEditSelection(p - 1)),
-      }
-    );
+  backspace(index?: number) {
+    if (isUndefined(index)) {
+      return this.model.edit(
+        this.selections.map(({ anchor: p }) => new ModelEdit('deleteRange', [p - 1, 1])),
+        {
+          selections: this.selections.map(({ anchor: p }) => new ModelEditSelection(p - 1)),
+        }
+      );
+    } else {
+      return this.model.edit(
+        [new ModelEdit('deleteRange', [this.selections[index].anchor - 1, 1])],
+        {
+          selections: [new ModelEditSelection(this.selections[index].anchor - 1)],
+        }
+      );
+    }
   }
 }

@@ -169,7 +169,7 @@ function getActualWord(document, position, selected, word) {
   }
 }
 
-function getWordAtPosition(document, position) {
+function getWordAtPosition(document: vscode.TextDocument, position) {
   const selected = document.getWordRangeAtPosition(position),
     selectedText =
       selected !== undefined

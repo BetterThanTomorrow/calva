@@ -9,6 +9,7 @@ import {
   ModelEdit,
   ModelEditOptions,
   ModelEditSelection,
+  ModelEditResult,
 } from '../cursor-doc/model';
 import { LispTokenCursor } from '../cursor-doc/token-cursor';
 import * as utilities from '../utilities';
@@ -24,7 +25,7 @@ export class DocumentModel implements EditableModel {
     this.lineInputModel = new LineInputModel(this.lineEndingLength);
   }
 
-  edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
+  edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<ModelEditResult> {
     const editor = utilities.getActiveTextEditor(),
       undoStopBefore = !!options.undoStopBefore;
     return editor
@@ -48,18 +49,18 @@ export class DocumentModel implements EditableModel {
         },
         { undoStopBefore, undoStopAfter: false }
       )
-      .then((isFulfilled) => {
-        if (isFulfilled) {
+      .then(async(success) => {
+        if (success) {
           if (options.selections) {
             this.document.selections = options.selections;
           }
           if (!options.skipFormat) {
-            return formatter.formatPosition(editor, false, {
+            return {edits: modelEdits, selections: options.selections, success: await formatter.formatPosition(editor, false, {
               'format-depth': options.formatDepth ? options.formatDepth : 1,
-            });
+            })};
           }
         }
-        return isFulfilled;
+        return { edits: modelEdits, selections: options.selections, success };
       });
   }
 
@@ -122,23 +123,6 @@ export class DocumentModel implements EditableModel {
 export class MirroredDocument implements EditableDocument {
   constructor(public document: vscode.TextDocument) {}
 
-  get selections() {
-    return utilities
-      .tryToGetActiveTextEditor()
-      .selections.map(
-        ({ anchor, active }) =>
-          new ModelEditSelection(this.document.offsetAt(anchor), this.document.offsetAt(active))
-      );
-  }
-
-  get selectionLeft(): number {
-    return this.document.offsetAt(utilities.tryToGetActiveTextEditor().selection.anchor);
-  }
-
-  get selectionRight(): number {
-    return this.document.offsetAt(utilities.getActiveTextEditor().selection.active);
-  }
-
   model = new DocumentModel(this);
 
   selectionsStack: ModelEditSelection[][] = [];
@@ -152,15 +136,15 @@ export class MirroredDocument implements EditableDocument {
 
   public insertString(text: string) {
     const editor = utilities.tryToGetActiveTextEditor(),
-      selection = editor.selection,
+      selections = editor.selections,
       wsEdit = new vscode.WorkspaceEdit(),
-    // TODO: prob prefer selection.active or .start
+      // TODO: prob prefer selection.active or .start
       edits = this.selections.map(({ anchor: left }) =>
         vscode.TextEdit.insert(this.document.positionAt(left), text)
       );
     wsEdit.set(this.document.uri, edits);
     void vscode.workspace.applyEdit(wsEdit).then((_v) => {
-      editor.selections = [selections[0]];
+      editor.selections = selections;
     });
   }
 
@@ -170,6 +154,16 @@ export class MirroredDocument implements EditableDocument {
 
   set selection(sel: ModelEditSelection) {
     this.selections = [sel];
+  }
+
+  get selections(): ModelEditSelection[] {
+    const editor = utilities.getActiveTextEditor(),
+      document = editor.document;
+    return editor.selections.map((sel) => {
+      const anchor = document.offsetAt(sel.anchor),
+        active = document.offsetAt(sel.active);
+      return new ModelEditSelection(anchor, active);
+    });
   }
 
   set selections(selections: ModelEditSelection[]) {
@@ -186,16 +180,6 @@ export class MirroredDocument implements EditableDocument {
     editor.revealRange(new vscode.Range(active, active));
   }
 
-  get selections(): ModelEditSelection[] {
-    const editor = utilities.getActiveTextEditor(),
-      document = editor.document;
-    return editor.selections.map((sel) => {
-      const anchor = document.offsetAt(sel.anchor),
-        active = document.offsetAt(sel.active);
-      return new ModelEditSelection(anchor, active);
-    });
-  }
-
   public getSelectionTexts() {
     const editor = utilities.getActiveTextEditor(),
       selections = editor.selections;
@@ -208,17 +192,11 @@ export class MirroredDocument implements EditableDocument {
     return this.document.getText(selection);
   }
 
-  public getSelectionsText() {
-    const editor = utilities.tryToGetActiveTextEditor(),
-      selections = editor.selections;
-    return selections.map((s) => this.document.getText(s));
-  }
-
-  public delete(): Thenable<boolean> {
+  public delete(): Thenable<ModelEditResult> {
     return vscode.commands.executeCommand('deleteRight');
   }
 
-  public backspace(): Thenable<boolean> {
+  public backspace(): Thenable<ModelEditResult> {
     return vscode.commands.executeCommand('deleteLeft');
   }
 }

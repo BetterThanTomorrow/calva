@@ -47,37 +47,55 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.forwardSexp',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeRight(doc, paredit.forwardSexpRange(doc));
+      paredit.moveToRangeRight(
+        doc,
+        doc.selections.map((s) => paredit.forwardSexpRange(doc, s.active))
+      );
     },
   },
   {
     command: 'paredit.backwardSexp',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeLeft(doc, paredit.backwardSexpRange(doc));
+      paredit.moveToRangeLeft(
+        doc,
+        doc.selections.map((s) => paredit.backwardSexpRange(doc, s.active))
+      );
     },
   },
   {
     command: 'paredit.forwardDownSexp',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeRight(doc, paredit.rangeToForwardDownList(doc));
+      paredit.moveToRangeRight(
+        doc,
+        doc.selections.map((s) => paredit.rangeToForwardDownList(doc, s.active))
+      );
     },
   },
   {
     command: 'paredit.backwardDownSexp',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeLeft(doc, paredit.rangeToBackwardDownList(doc));
+      paredit.moveToRangeLeft(
+        doc,
+        doc.selections.map((s) => paredit.rangeToBackwardDownList(doc, s.active))
+      );
     },
   },
   {
     command: 'paredit.forwardUpSexp',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeRight(doc, paredit.rangeToForwardUpList(doc));
+      paredit.moveToRangeRight(
+        doc,
+        doc.selections.map((s) => paredit.rangeToForwardUpList(doc, s.active))
+      );
     },
   },
   {
     command: 'paredit.backwardUpSexp',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeLeft(doc, paredit.rangeToBackwardUpList(doc));
+      paredit.moveToRangeLeft(
+        doc,
+        doc.selections.map((s) => paredit.rangeToBackwardUpList(doc, s.active))
+      );
     },
   },
   {
@@ -95,13 +113,19 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.closeList',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeRight(doc, paredit.rangeToForwardList(doc));
+      paredit.moveToRangeRight(
+        doc,
+        doc.selections.map((s) => paredit.rangeToForwardList(doc, s.active))
+      );
     },
   },
   {
     command: 'paredit.openList',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeLeft(doc, paredit.rangeToBackwardList(doc));
+      paredit.moveToRangeLeft(
+        doc,
+        doc.selections.map((s) => paredit.rangeToBackwardList(doc, s.active))
+      );
     },
   },
 
@@ -109,7 +133,10 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.rangeForDefun',
     handler: (doc: EditableDocument) => {
-      paredit.selectRange(doc, paredit.rangeForDefun(doc));
+      paredit.selectRange(
+        doc,
+        doc.selections.map((selection) => paredit.rangeForDefun(doc, selection.active))
+      );
     },
   },
   {
@@ -235,74 +262,95 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.killRight',
     handler: (doc: EditableDocument) => {
-      const range = paredit.forwardHybridSexpRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
-      }
-      paredit.killRange(doc, range);
+      // doc.selections.forEach((s) => {
+      // const range = paredit.forwardHybridSexpRange(doc, s.active);
+      paredit.forwardHybridSexpRange(doc).forEach((range) => {
+        if (shouldKillAlsoCutToClipboard()) {
+          copyRangeToClipboard(doc, range);
+        }
+        paredit.killRange(doc, range);
+      });
     },
   },
   {
     command: 'paredit.killSexpForward',
     handler: (doc: EditableDocument) => {
-      const range = paredit.forwardSexpRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
-      }
-      paredit.killRange(doc, range);
+      // doc.selections.forEach(s => {
+      // const range = paredit.forwardSexpRange(doc, s.active);
+      paredit.forwardSexpRange(doc).forEach((range) => {
+        if (shouldKillAlsoCutToClipboard()) {
+          copyRangeToClipboard(doc, range);
+        }
+        paredit.killRange(doc, range);
+      });
     },
   },
   {
     command: 'paredit.killSexpBackward',
     handler: (doc: EditableDocument) => {
-      const range = paredit.backwardSexpRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
-      }
-      paredit.killRange(doc, range);
+      doc.selections.forEach((s) => {
+        const range = paredit.backwardSexpRange(doc, s.active);
+
+        if (shouldKillAlsoCutToClipboard()) {
+          copyRangeToClipboard(doc, range);
+        }
+        paredit.killRange(doc, range);
+      });
     },
   },
   {
     command: 'paredit.killListForward',
     handler: (doc: EditableDocument) => {
-      const range = paredit.forwardListRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
-      }
-      return paredit.killForwardList(doc, range);
+      doc.selections.forEach((s) => {
+        const range = paredit.forwardListRange(doc, s.active);
+
+        if (shouldKillAlsoCutToClipboard()) {
+          copyRangeToClipboard(doc, range);
+        }
+        void paredit.killForwardList(doc, range);
+      });
     },
   }, // TODO: Implement with killRange
   {
     command: 'paredit.killListBackward',
     handler: (doc: EditableDocument) => {
-      const range = paredit.backwardListRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
-      }
-      return paredit.killBackwardList(doc, range);
+      doc.selections.forEach((s) => {
+        const range = paredit.backwardListRange(doc, s.active);
+
+        if (shouldKillAlsoCutToClipboard()) {
+          copyRangeToClipboard(doc, range);
+        }
+        void paredit.killBackwardList(doc, range);
+      });
     },
   }, // TODO: Implement with killRange
   {
     command: 'paredit.spliceSexpKillForward',
     handler: (doc: EditableDocument) => {
-      const range = paredit.forwardListRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
-      }
-      void paredit.killForwardList(doc, range).then((isFulfilled) => {
-        return paredit.spliceSexp(doc, doc.selection.active, false);
+      doc.selections.forEach((s) => {
+        const range = paredit.forwardListRange(doc, s.active);
+
+        if (shouldKillAlsoCutToClipboard()) {
+          copyRangeToClipboard(doc, range);
+        }
+        void paredit.killForwardList(doc, range).then((isFulfilled) => {
+          return paredit.spliceSexp(doc, /* s.active, */ false);
+        });
       });
     },
   },
   {
     command: 'paredit.spliceSexpKillBackward',
     handler: (doc: EditableDocument) => {
-      const range = paredit.backwardListRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
-      }
-      void paredit.killBackwardList(doc, range).then((isFulfilled) => {
-        return paredit.spliceSexp(doc, doc.selection.active, false);
+      doc.selections.forEach((s) => {
+        const range = paredit.backwardListRange(doc, s.active);
+
+        if (shouldKillAlsoCutToClipboard()) {
+          copyRangeToClipboard(doc, range);
+        }
+        void paredit.killBackwardList(doc, range).then((isFulfilled) => {
+          return paredit.spliceSexp(doc, /* s.active, */ false);
+        });
       });
     },
   },

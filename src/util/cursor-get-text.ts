@@ -8,7 +8,7 @@ export type RangeAndText = [[number, number], string] | [undefined, ''];
 
 export function currentTopLevelFunction(
   doc: EditableDocument,
-  active: number = doc.selection.active
+  active: number = doc.selections[0].active
 ): RangeAndText {
   const defunCursor = doc.getTokenCursor(active);
   const defunStart = defunCursor.rangeForDefun(active)[0];
@@ -34,8 +34,8 @@ export function currentTopLevelFunction(
 }
 
 export function currentTopLevelForm(doc: EditableDocument): RangeAndText {
-  const defunCursor = doc.getTokenCursor(doc.selection.active);
-  const defunRange = defunCursor.rangeForDefun(doc.selection.active);
+  const defunCursor = doc.getTokenCursor(doc.selections[0].active);
+  const defunRange = defunCursor.rangeForDefun(doc.selections[0].active);
   return defunRange ? [defunRange, doc.model.getText(...defunRange)] : [undefined, ''];
 }
 
@@ -46,7 +46,7 @@ function rangeOrStartOfFileToCursor(
 ): RangeAndText {
   if (foldRange) {
     const closeBrackets: string[] = [];
-    const bracketCursor = doc.getTokenCursor(doc.selection.active);
+    const bracketCursor = doc.getTokenCursor(doc.selections[0].active);
     bracketCursor.backwardWhitespace(true);
     const rangeEnd = bracketCursor.offsetStart;
     while (
@@ -63,19 +63,19 @@ function rangeOrStartOfFileToCursor(
 }
 
 export function currentEnclosingFormToCursor(doc: EditableDocument): RangeAndText {
-  const cursor = doc.getTokenCursor(doc.selection.active);
+  const cursor = doc.getTokenCursor(doc.selections[0].active);
   const enclosingRange = cursor.rangeForList(1);
   return rangeOrStartOfFileToCursor(doc, enclosingRange, enclosingRange[0]);
 }
 
 export function currentTopLevelFormToCursor(doc: EditableDocument): RangeAndText {
-  const cursor = doc.getTokenCursor(doc.selection.active);
-  const defunRange = cursor.rangeForDefun(doc.selection.active);
+  const cursor = doc.getTokenCursor(doc.selections[0].active);
+  const defunRange = cursor.rangeForDefun(doc.selections[0].active);
   return rangeOrStartOfFileToCursor(doc, defunRange, defunRange[0]);
 }
 
 export function startOfFileToCursor(doc: EditableDocument): RangeAndText {
-  const cursor = doc.getTokenCursor(doc.selection.active);
-  const defunRange = cursor.rangeForDefun(doc.selection.active, false);
+  const cursor = doc.getTokenCursor(doc.selections[0].active);
+  const defunRange = cursor.rangeForDefun(doc.selections[0].active, false);
   return rangeOrStartOfFileToCursor(doc, defunRange, 0);
 }
