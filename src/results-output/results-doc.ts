@@ -283,7 +283,7 @@ function registerResultDocSubscriptions() {
   let currentResultDocs = visibleResultsEditors();
   const subOpen = vscode.window.onDidChangeVisibleTextEditors((editors) => {
     const current = editors.filter((editor) => isResultsDoc(editor.document));
-    const opened = current.filter((editor) => currentResultDocs.indexOf(editor) < 0);
+    const opened = current.filter((editor) => currentResultDocs.includes(editor));
     currentResultDocs = current;
     opened.forEach(handleResultDocEditorDidOpen);
   });

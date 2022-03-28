@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Results doc gets in a bad state and does not update](https://github.com/BetterThanTomorrow/calva/issues/1509)
+
 ## [2.0.259] - 2022-03-26
 - [Add setting for enabling LiveShare support](https://github.com/BetterThanTomorrow/calva/issues/1629)
 
