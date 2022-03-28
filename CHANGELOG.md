@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Results doc gets in a bad state and does not update](https://github.com/BetterThanTomorrow/calva/issues/1509)
 
 ## [2.0.260] - 2022-03-27
 - Fix: [Rainbow parentheses sometimes not activating](https://github.com/BetterThanTomorrow/calva/issues/1616)
