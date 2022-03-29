@@ -74,7 +74,7 @@ There is also a command for evaluating the text from the start of the current li
   (->> [1 1 2 3 5 8 13 21]
        (partition 2)
        (zipmap [:a :b :c :d])
-       :d| ; => (12 21)
+       :d| ; => (13 21)
        (apply -)
        (Math/abs))
 ```
