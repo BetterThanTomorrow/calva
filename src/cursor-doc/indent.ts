@@ -60,6 +60,7 @@ export function collectIndents(
   let lastLine = cursor.line;
   let lastIndent = 0;
   const indents: IndentInformation[] = [];
+  const rules = config['cljfmt-options']['indents'];
   do {
     if (!cursor.backwardSexp()) {
       // this needs some work..
@@ -73,12 +74,12 @@ export function collectIndents(
       nextCursor.forwardWhitespace();
 
       // if the first item of this list is a a function, and the second item is on the same line, indent to that second item. otherwise indent to the open paren.
+      const isList = prevToken.type === 'open' && prevToken.raw.endsWith('(');
       const firstItemIdent =
         ['id', 'kw'].includes(cursor.getToken().type) &&
-        nextCursor.line == cursor.line &&
-        !nextCursor.atEnd() &&
-        prevToken.type === 'open' &&
-        prevToken.raw.endsWith('(')
+          nextCursor.line == cursor.line &&
+          !nextCursor.atEnd() &&
+          isList
           ? nextCursor.rowCol[1]
           : cursor.rowCol[1];
 
@@ -88,8 +89,7 @@ export function collectIndents(
         break;
       }
 
-      const rules = config['cljfmt-options']['indents'];
-      const pattern = _.find(
+      const pattern = isList && _.find(
         _.keys(rules),
         (pattern) => pattern == token || testCljRe(pattern, token)
       );
