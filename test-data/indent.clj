@@ -1,8 +1,7 @@
 ;; https://github.com/BetterThanTomorrow/calva/issues/1622
 
 ;; Misbehaves in the indenter
-(let [context
-       |])
+(let [context|])
 
 ;; Behaves in the indenter
 (let [contexs|])
@@ -22,3 +21,9 @@
 
 ;; `[[:inner 0]]`
 [foo|]
+
+;; Also goes for maps and sets
+
+{fn|}
+
+#{fn|}
