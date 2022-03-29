@@ -77,9 +77,9 @@ export function collectIndents(
       const isList = prevToken.type === 'open' && prevToken.raw.endsWith('(');
       const firstItemIdent =
         ['id', 'kw'].includes(cursor.getToken().type) &&
-          nextCursor.line == cursor.line &&
-          !nextCursor.atEnd() &&
-          isList
+        nextCursor.line == cursor.line &&
+        !nextCursor.atEnd() &&
+        isList
           ? nextCursor.rowCol[1]
           : cursor.rowCol[1];
 
@@ -89,10 +89,8 @@ export function collectIndents(
         break;
       }
 
-      const pattern = isList && _.find(
-        _.keys(rules),
-        (pattern) => pattern == token || testCljRe(pattern, token)
-      );
+      const pattern =
+        isList && _.find(_.keys(rules), (pattern) => pattern == token || testCljRe(pattern, token));
       const indentRule = pattern ? rules[pattern] : [];
       indents.unshift({
         first: token,
