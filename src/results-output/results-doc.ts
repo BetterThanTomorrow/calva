@@ -425,7 +425,6 @@ export function printLastStacktrace(): void {
   append(text, (_location) => {
     _lastStackTraceRange = undefined;
   });
-  append(getPrompt());
 }
 
 export function appendPrompt(onAppended?: OnAppendedCallback) {

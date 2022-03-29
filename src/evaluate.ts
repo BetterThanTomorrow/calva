@@ -436,7 +436,7 @@ async function loadFile(
     } catch (e) {
       outputWindow.append(`; Evaluation of file ${fileName} failed: ${e}`);
       if (res.stacktrace) {
-        outputWindow.saveStacktrace(res.stacktrace);
+        outputWindow.saveStacktrace(res.stacktrace.stacktrace);
         outputWindow.printLastStacktrace();
       }
     }

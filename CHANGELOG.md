@@ -15,6 +15,7 @@ Changes to Calva.
 - Fix: [Connect fails when there is no project file (deps.edn, etc)](https://github.com/BetterThanTomorrow/calva/issues/1613)
 - [Make `calva` the default pretty printer](https://github.com/BetterThanTomorrow/calva/issues/1619)
 - [Add default Clojure associations for file extensions `.bb` and `.cljd`](https://github.com/BetterThanTomorrow/calva/issues/1617)
+- Fix: [Warning when loading a file produces an error: n.filter is not a function](https://github.com/BetterThanTomorrow/calva/issues/1567)
 
 ## [2.0.257] - 2022-03-23
 - Maintenance: [Update _even more_ TypeScript code to be compatible with strictNullChecks.](https://github.com/BetterThanTomorrow/calva/pull/1605)
