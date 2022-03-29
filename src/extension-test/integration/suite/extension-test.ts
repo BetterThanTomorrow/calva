@@ -91,6 +91,7 @@ suite('Extension Test Suite', () => {
     console.log('opened document again');
 
     await commands.executeCommand('calva.loadFile');
+    await sleep(500); // wait a little longer for repl output to be done
     const reversedLines = resultsDoc.model.lineInputModel.lines.reverse();
     assert.deepEqual(
       ['', 'clj꞉test꞉> ', 'nil', 'bar', '; Evaluating file: test.clj'],
