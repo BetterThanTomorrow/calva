@@ -231,7 +231,9 @@ async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('calva.loadFile', async () => {
       await eval.loadFile({}, config.getConfig().prettyPrintingOptions);
-      outputWindow.appendPrompt();
+      return new Promise((resolve) => {
+        outputWindow.appendPrompt(resolve);
+      });
     })
   );
   context.subscriptions.push(
