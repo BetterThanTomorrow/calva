@@ -90,7 +90,8 @@ export function collectIndents(
       }
 
       const pattern =
-        isList && _.find(_.keys(rules), (pattern) => pattern === token || testCljRe(pattern, token));
+        isList &&
+        _.find(_.keys(rules), (pattern) => pattern === token || testCljRe(pattern, token));
       const indentRule = pattern ? rules[pattern] : [];
       indents.unshift({
         first: token,
