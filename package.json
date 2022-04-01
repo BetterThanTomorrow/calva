@@ -225,7 +225,7 @@
               "enabled"
             ],
             "default": {
-              "printEngine": "calva",
+              "printEngine": "pprint",
               "enabled": true,
               "width": 120,
               "maxLength": 50
