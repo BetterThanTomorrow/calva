@@ -781,7 +781,9 @@ describe('Token Cursor', () => {
         'aaa |(comment (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar))| (ddd eee)'
       );
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].active);
-      expect(cursor.rangeForDefun(a.selections[0].active, false)).toEqual(textAndSelection(b)[1][0]);
+      expect(cursor.rangeForDefun(a.selections[0].active, false)).toEqual(
+        textAndSelection(b)[1][0]
+      );
     });
     it('Finds comment range for empty comment form', () => {
       // Unimportant use case, just documenting how it behaves
@@ -839,7 +841,9 @@ describe('Token Cursor', () => {
         'aaa |(comment (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar))| (ddd eee)'
       );
       const cursor: LispTokenCursor = a.getTokenCursor(0);
-      expect(cursor.rangeForDefun(a.selections[0].anchor, false)).toEqual(textAndSelection(b)[1][0]);
+      expect(cursor.rangeForDefun(a.selections[0].anchor, false)).toEqual(
+        textAndSelection(b)[1][0]
+      );
     });
     it('Finds closest form inside multiple nested comments', () => {
       const a = docFromTextNotation('aaa (comment (comment [bbb ccc] | ddd))');

@@ -83,7 +83,7 @@ export function selectRight(doc: EditableDocument) {
   const ranges = doc.selections.map((selection) => {
     const rangeFn =
       selection.active >= selection.anchor
-        ? doc => forwardHybridSexpRange(doc, selection.end)
+        ? (doc) => forwardHybridSexpRange(doc, selection.end)
         : (doc: EditableDocument) => forwardHybridSexpRange(doc, selection.active, true);
     return rangeFn(doc);
   });
@@ -335,12 +335,11 @@ export function forwardHybridSexpRange(
   offsets: number | number[] = doc.selections.map((s) => s.end),
   goPastWhitespace = false
 ): [number, number] | Array<[number, number]> {
-
-  if(isNumber(offsets)) {
+  if (isNumber(offsets)) {
     offsets = [offsets];
   }
 
-  const ranges = offsets.map<[number,number]>((offset) => {
+  const ranges = offsets.map<[number, number]>((offset) => {
     // const { end: offset } = selection;
 
     let cursor = doc.getTokenCursor(offset);
@@ -1036,53 +1035,57 @@ export async function deleteForward(
   // _start: number = doc.selections.anchor,
   // _end: number = doc.selections.active
 ) {
-  const results = await Promise.all(doc.selections.map(async (selection, index) => {
-    const { start, end } = selection;
-    if (start != end) {
-      // await doc.delete();
-      // return selection;
-      return ['delete', selection, index] as const;
-    } else {
-      const cursor = doc.getTokenCursor(start);
-      const prevToken = cursor.getPrevToken();
-      const nextToken = cursor.getToken();
-      const p = start;
-      if (doc.model.getText(p, p + 2, true) == '\\"') {
-        const res = await doc.model.edit([new ModelEdit('deleteRange', [p, 2])], {
-          selections: replaceAt(doc.selections, index, new ModelEditSelection(p)),
-        });
-        return [res.success, res.selections[index], index] as const;
-      } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-        const res = await doc.model.edit(
-          [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
-          {
-            selections: replaceAt(
-              doc.selections,
-              index,
-              new ModelEditSelection(p - prevToken.raw.length)
-            ),
-          }
-        );
-        return [res.success, res.selections[index], index] as const;
+  const results = await Promise.all(
+    doc.selections.map(async (selection, index) => {
+      const { start, end } = selection;
+      if (start != end) {
+        // await doc.delete();
+        // return selection;
+        return ['delete', selection, index] as const;
       } else {
-        if (['open', 'close'].includes(nextToken.type) && docIsBalanced(doc)) {
-          // doc.selections = replaceAt(doc.selections, index, new ModelEditSelection(p + 1));
-          // return new Promise<boolean>((resolve) => resolve(true));
-          return [true, new ModelEditSelection(p + 1), index] as const;
+        const cursor = doc.getTokenCursor(start);
+        const prevToken = cursor.getPrevToken();
+        const nextToken = cursor.getToken();
+        const p = start;
+        if (doc.model.getText(p, p + 2, true) == '\\"') {
+          const res = await doc.model.edit([new ModelEdit('deleteRange', [p, 2])], {
+            selections: replaceAt(doc.selections, index, new ModelEditSelection(p)),
+          });
+          return [res.success, res.selections[index], index] as const;
+        } else if (prevToken.type === 'open' && nextToken.type === 'close') {
+          const res = await doc.model.edit(
+            [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
+            {
+              selections: replaceAt(
+                doc.selections,
+                index,
+                new ModelEditSelection(p - prevToken.raw.length)
+              ),
+            }
+          );
+          return [res.success, res.selections[index], index] as const;
         } else {
-          // return doc.delete();
-          // return selection;
-          return ['delete', selection, index] as const;
+          if (['open', 'close'].includes(nextToken.type) && docIsBalanced(doc)) {
+            // doc.selections = replaceAt(doc.selections, index, new ModelEditSelection(p + 1));
+            // return new Promise<boolean>((resolve) => resolve(true));
+            return [true, new ModelEditSelection(p + 1), index] as const;
+          } else {
+            // return doc.delete();
+            // return selection;
+            return ['delete', selection, index] as const;
+          }
         }
       }
-    }
-  }));
-  const postCalvaEditSelections = results.filter(r => isBoolean(r[0]))
-  const cursorsNeedingNativeDeletion = results.filter(r => r[0] === "delete");
-  doc.selections = cursorsNeedingNativeDeletion.map(r => r[1])
-  await doc.delete();
-  doc.selections.push(...postCalvaEditSelections.map(s => s[1]))
-  return results.map(r => r[0] === "delete" ? true : r[0]);
+    })
+  );
+  const postCalvaEditSelections = results.filter((r) => isBoolean(r[0]));
+  const cursorsNeedingNativeDeletion = results.filter((r) => r[0] === 'delete');
+  doc.selections = cursorsNeedingNativeDeletion.map((r) => r[1]);
+  await doc.delete()
+  ;
+
+  doc.selections.push(...postCalvaEditSelections.map((s) => s[1]));
+  return results.map((r) => (r[0] === 'delete' ? true : r[0]));
 }
 
 // FIXME: stringQuote() is defined and tested but is never used or referenced?

@@ -46,9 +46,11 @@ function textNotationToTextAndSelection(content: string): [string, model.ModelEd
     .replace(/\|?[<>]?\|\d?/g, '');
 
   // 3 capt groups: 0 = total cursor, with number, 1 = just the cursor type, no number, 2 = only for directional selection cursors, the > or <, 3 = only if there's a number, the number itself (eg multi cursor)
-  const matches = Array.from(content.matchAll(
-    /(?<cursorType>(?:\|(?<selectionDirection><|>)\|)|(?:\|))(?<cursorNumber>\d)?/g
-  ));
+  const matches = Array.from(
+    content.matchAll(
+      /(?<cursorType>(?:\|(?<selectionDirection><|>)\|)|(?:\|))(?<cursorNumber>\d)?/g
+    )
+  );
 
   // a map of cursor symbols (eg '|>|3' - including the cursor number if >1 ) to an an array of matches (for their positions mostly) in content string where that cursor is
   // for now, we hope that there are at most two positions per symbol

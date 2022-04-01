@@ -49,15 +49,19 @@ export class DocumentModel implements EditableModel {
         },
         { undoStopBefore, undoStopAfter: false }
       )
-      .then(async(success) => {
+      .then(async (success) => {
         if (success) {
           if (options.selections) {
             this.document.selections = options.selections;
           }
           if (!options.skipFormat) {
-            return {edits: modelEdits, selections: options.selections, success: await formatter.formatPosition(editor, false, {
-              'format-depth': options.formatDepth ? options.formatDepth : 1,
-            })};
+            return {
+              edits: modelEdits,
+              selections: options.selections,
+              success: await formatter.formatPosition(editor, false, {
+                'format-depth': options.formatDepth ? options.formatDepth : 1,
+              }),
+            };
           }
         }
         return { edits: modelEdits, selections: options.selections, success };
