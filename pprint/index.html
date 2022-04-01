@@ -1796,7 +1796,7 @@
 <tr>
 <td><code>printEngine</code></td>
 <td>enum</td>
-<td>Which printer function that will be used. Default is <code>calva</code>, more about this setting below</td>
+<td>Which printer function that will be used. Default is <code>pprint</code>, more about this setting below</td>
 </tr>
 <tr>
 <td><code>printFn</code></td>
@@ -1839,12 +1839,12 @@
 <tr>
 <td><code>calva</code></td>
 <td>client</td>
-<td>Current Calva default. The nREPL server will plain print the results, and then Calva will pretty it (using <code>zprint</code>).</td>
+<td>The nREPL server will plain print the results, and then Calva will pretty it (using <code>zprint</code>).</td>
 </tr>
 <tr>
-<td><a href="https://clojure.github.io/clojure/clojure.pprint-api.html"><code>pprint</code></a></td>
+<td><a href="https://clojure.github.io/clojure/clojure.pprint-api.html"><strong><code>pprint</code></strong></a></td>
 <td>server</td>
-<td>(<code>clojure.core/pprint</code> is a bit basic, but it's tried and tested, and has none of the server side printing issues mentioned below.</td>
+<td><strong>Current Calva default.</strong> <code>clojure.core/pprint</code> is a bit basic, but it's tried and tested, and doesn't suffer from the issues with the other server side printing options, mentioned below.</td>
 </tr>
 <tr>
 <td><a href="https://github.com/brandonbloom/fipp"><code>fipp</code></a></td>
@@ -1859,7 +1859,7 @@
 <tr>
 <td><a href="https://github.com/kkinnear/zprint"><code>zprint</code></a></td>
 <td>server</td>
-<td>A very good option. However, it will need to be configured before <a href="../connect/">Jack-in</a> if you want Calva's help to inject its dependencies</td>
+<td>A very good option. However, it will need to be configured before <a href="../connect/">Jack-in</a> if you want Calva's help to inject its dependencies. (If you are not using Jack-in, you'll need to supply this dependency yourself.)</td>
 </tr>
 </tbody>
 </table>
