@@ -169,7 +169,7 @@
               },
               "printEngine": {
                 "type": "string",
-                "description": "The print engine to use. 'calva' means that the nREPL server will first plain print it and then Calva will prettify. The other options will make the server use the chosen printer-function to print the result, and Calva will not reformat it. To use some other function (on the server), configure `printFn` instead. To use the `nREPL` default (the equivalent of `clojure.core/pr`), set neither this nore `printFn`.",
+                "description": "The print engine to use. 'calva' means that the nREPL server will first plain print it and then Calva will prettify. The other options will make the server use the chosen printer-function to print the result, and Calva will not reformat it. To use some other function (on the server), configure `printFn` instead. To use the `nREPL` default (the equivalent of `clojure.core/pr`), set neither this nor `printFn`.",
                 "enum": [
                   "calva",
                   "pprint",
