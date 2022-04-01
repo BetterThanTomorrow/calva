@@ -14,6 +14,5 @@
       "name": "Show doc string",
       "snippet": "(clojure.string/replace (with-out-str (clojure.repl/doc $hover-text)) \"\n\" \"\n\n\")"
     }
-  ],
-  "calva.fmt.configPath": "CLOJURE-LSP"
+  ]
 }
