@@ -3,16 +3,20 @@ import * as _ from 'lodash';
 
 const whitespace = new Set(['ws', 'comment', 'eol']);
 
-type IndentRule = ['block', number] | ['inner', number] | ['inner', number, number];
+export type IndentRule = ['block', number] | ['inner', number] | ['inner', number, number];
 
-const indentRules: { [id: string]: IndentRule[] } = {
+export type IndentRules = {
+  [id: string]: IndentRule[];
+};
+
+const indentRules: IndentRules = {
   '#"^\\w"': [['inner', 0]],
 };
 
 /**
  * The information about an enclosing s-expr, returned by collectIndents
  */
-interface IndentInformation {
+export interface IndentInformation {
   /** The first token in the expression (after the open paren/bracket etc.), as a raw string */
   first: string;
 
@@ -56,6 +60,7 @@ export function collectIndents(
   let lastLine = cursor.line;
   let lastIndent = 0;
   const indents: IndentInformation[] = [];
+  const rules = config['cljfmt-options']['indents'];
   do {
     if (!cursor.backwardSexp()) {
       // this needs some work..
@@ -69,12 +74,12 @@ export function collectIndents(
       nextCursor.forwardWhitespace();
 
       // if the first item of this list is a a function, and the second item is on the same line, indent to that second item. otherwise indent to the open paren.
+      const isList = prevToken.type === 'open' && prevToken.raw.endsWith('(');
       const firstItemIdent =
         ['id', 'kw'].includes(cursor.getToken().type) &&
         nextCursor.line == cursor.line &&
         !nextCursor.atEnd() &&
-        prevToken.type === 'open' &&
-        prevToken.raw.endsWith('(')
+        isList
           ? nextCursor.rowCol[1]
           : cursor.rowCol[1];
 
@@ -84,11 +89,9 @@ export function collectIndents(
         break;
       }
 
-      const rules = config['cljfmt-options']['indents'];
-      const pattern = _.find(
-        _.keys(rules),
-        (pattern) => pattern == token || testCljRe(pattern, token)
-      );
+      const pattern =
+        isList &&
+        _.find(_.keys(rules), (pattern) => pattern === token || testCljRe(pattern, token));
       const indentRule = pattern ? rules[pattern] : [];
       indents.unshift({
         first: token,

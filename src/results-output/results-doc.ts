@@ -27,7 +27,7 @@ const START_GREETINGS =
 ; Happy coding! ♥️';
 
 export const CLJ_CONNECT_GREETINGS =
-  '; TIPS: \n\
+  '; TIPS:\n\
 ;   - You can edit the contents here. Use it as a REPL if you like.\n\
 ;   - `alt+enter` evaluates the current top level form.\n\
 ;   - `ctrl+enter` evaluates the current form.\n\
@@ -147,6 +147,8 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
   await vscode.workspace.applyEdit(edit);
   void resultsDoc.save();
 
+  registerResultDocSubscriptions();
+
   // For some reason onDidChangeTextEditorViewColumn won't fire
   state.extensionContext.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((event) => {
@@ -263,90 +265,112 @@ export function appendCurrentTopLevelForm() {
   void appendFormGrabbingSessionAndNS(true);
 }
 
-let scrollToBottomSub: vscode.Disposable;
+function lastLineIsEmpty(doc: vscode.TextDocument): boolean {
+  const { lineCount } = doc;
+  const lastLine = doc.getText(new vscode.Range(lineCount - 1, 0, lineCount - 1, Infinity));
+  return lastLine === '';
+}
+
+function visibleResultsEditors(): vscode.TextEditor[] {
+  return vscode.window.visibleTextEditors.filter((editor) => isResultsDoc(editor.document));
+}
+
+function handleResultDocEditorDidOpen(editor: vscode.TextEditor) {
+  util.scrollToBottom(editor);
+}
+
+function registerResultDocSubscriptions() {
+  let currentResultDocs = visibleResultsEditors();
+  const subOpen = vscode.window.onDidChangeVisibleTextEditors((editors) => {
+    const current = editors.filter((editor) => isResultsDoc(editor.document));
+    const opened = current.filter((editor) => currentResultDocs.includes(editor));
+    currentResultDocs = current;
+    opened.forEach(handleResultDocEditorDidOpen);
+  });
+  state.extensionContext.subscriptions.push(subOpen);
+}
+
+async function writeToResultsDoc({ text, onAppended }: ResultsBufferEntry): Promise<void> {
+  const docUri = DOC_URI();
+  const doc = await vscode.workspace.openTextDocument(docUri);
+  const insertPosition = doc.positionAt(Infinity);
+  const edit = new vscode.WorkspaceEdit();
+  let editText = util.stripAnsi(text);
+  if (!lastLineIsEmpty(doc)) {
+    editText = '\n' + editText;
+  }
+  if (!editText.endsWith('\n')) {
+    editText += '\n';
+  }
+  edit.insert(docUri, insertPosition, editText);
+  if (!((await vscode.workspace.applyEdit(edit)) && (await doc.save()))) {
+    return;
+  }
+  onAppended?.(
+    new vscode.Location(docUri, insertPosition),
+    new vscode.Location(docUri, doc.positionAt(Infinity))
+  );
+  const editors = visibleResultsEditors();
+  editors.forEach((editor) => {
+    util.scrollToBottom(editor);
+    highlight(editor);
+  });
+}
+
+export type ResultsBuffer = ResultsBufferEntry[];
+
+export type ResultsBufferEntry = {
+  text: string;
+  onAppended?: OnAppendedCallback;
+};
+
 export interface OnAppendedCallback {
   (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
 }
-let editQueue: [string, OnAppendedCallback | undefined][] = [];
-let applyingEdit = false;
-/* Because this function can be called several times asynchronously by the handling of incoming nrepl messages,
-   we should never await it, because that await could possibly not return until way later, after edits that came in from elsewhere
-   are also applied, causing it to wait for several edits after the one awaited. This is due to the recursion and edit queue, which help
-   apply edits one after another without issues.
 
-   If something must be done after a particular edit, use the onAppended callback. */
-export function append(text: string, onAppended?: OnAppendedCallback): void {
-  let insertPosition: vscode.Position;
-  if (applyingEdit) {
-    editQueue.push([text, onAppended]);
-  } else {
-    applyingEdit = true;
-    void vscode.workspace.openTextDocument(DOC_URI()).then((doc) => {
-      const ansiStrippedText = util.stripAnsi(text);
-      if (doc) {
-        const edit = new vscode.WorkspaceEdit();
-        const currentContent = doc.getText();
-        const lastLineEmpty = currentContent.match(/\n$/) || currentContent === '';
-        const appendText = `${lastLineEmpty ? '' : '\n'}${ansiStrippedText}\n`;
-        insertPosition = doc.positionAt(Infinity);
-        edit.insert(DOC_URI(), insertPosition, `${appendText}`);
-        if (scrollToBottomSub) {
-          scrollToBottomSub.dispose();
-        }
-        const visibleResultsEditors: vscode.TextEditor[] = [];
-        vscode.window.visibleTextEditors.forEach((editor) => {
-          if (isResultsDoc(editor.document)) {
-            visibleResultsEditors.push(editor);
-          }
-        });
-        if (visibleResultsEditors.length == 0) {
-          scrollToBottomSub = vscode.window.onDidChangeActiveTextEditor((editor) => {
-            if (editor && isResultsDoc(editor.document)) {
-              util.scrollToBottom(editor);
-              scrollToBottomSub.dispose();
-            }
-          });
-          state.extensionContext.subscriptions.push(scrollToBottomSub);
-        }
+let resultsBuffer: ResultsBuffer = [];
 
-        void vscode.workspace.applyEdit(edit).then((success) => {
-          applyingEdit = false;
-          void doc.save();
-          if (success) {
-            if (visibleResultsEditors.length > 0) {
-              visibleResultsEditors.forEach((editor) => {
-                util.scrollToBottom(editor);
-                highlight(editor);
-              });
-            }
-          }
-          if (onAppended) {
-            onAppended(
-              new vscode.Location(DOC_URI(), insertPosition),
-              new vscode.Location(DOC_URI(), doc.positionAt(Infinity))
-            );
-          }
+async function writeNextOutputBatch() {
+  if (!resultsBuffer[0]) {
+    return;
+  }
+  // Any entries that contain onAppended are not batched with other pending
+  // entries to simplify providing the correct insert position to the callback.
+  if (resultsBuffer[0].onAppended) {
+    return await writeToResultsDoc(resultsBuffer.shift());
+  }
+  // Batch all remaining entries up until another onAppended callback.
+  const [nextText, remaining] = splitEditQueueForTextBatching(resultsBuffer);
+  resultsBuffer = remaining;
+  await writeToResultsDoc({ text: nextText.join('\n') });
+}
 
-          if (editQueue.length > 0) {
-            const [textBatch, remainingEditQueue] = splitEditQueueForTextBatching(editQueue, 1000);
-            if (textBatch.length > 0) {
-              editQueue = remainingEditQueue;
-              return append(textBatch.join('\n'));
-            } else {
-              // we're sure there's a value in the queue at this point
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              const [text, onAppended] = editQueue.shift()!;
-              return append(text, onAppended);
-            }
-          }
-        });
-      }
-    });
+// Ensures that writeNextOutputBatch is called on buffer sequentially.
+let outputPending = false;
+async function flushOutput() {
+  if (outputPending) {
+    return;
+  }
+  outputPending = true;
+  try {
+    while (resultsBuffer.length > 0) {
+      await writeNextOutputBatch();
+    }
+  } catch (err) {
+    console.error('Error writing to results doc:', err);
+  } finally {
+    outputPending = false;
   }
 }
 
+/* If something must be done after a particular edit, use the onAppended callback. */
+export function append(text: string, onAppended?: OnAppendedCallback): void {
+  resultsBuffer.push({ text, onAppended });
+  void flushOutput();
+}
+
 export function discardPendingPrints(): void {
-  editQueue = [];
+  resultsBuffer = [];
   appendPrompt();
 }
 
@@ -401,7 +425,6 @@ export function printLastStacktrace(): void {
   append(text, (_location) => {
     _lastStackTraceRange = undefined;
   });
-  append(getPrompt());
 }
 
 export function appendPrompt(onAppended?: OnAppendedCallback) {

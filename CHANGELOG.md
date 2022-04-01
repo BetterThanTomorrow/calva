@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.261] - 2022-04-01
+- Fix: [Results doc gets in a bad state and does not update](https://github.com/BetterThanTomorrow/calva/issues/1509)
+- Fix: [Indenting not working correctly in vectors starting with fn-like symbols](https://github.com/BetterThanTomorrow/calva/issues/1622)
+- Fix: [Make server side `pprint` the default pretty printer](https://github.com/BetterThanTomorrow/calva/issues/1650)
+
 ## [2.0.260] - 2022-03-27
 - Fix: [Rainbow parentheses sometimes not activating](https://github.com/BetterThanTomorrow/calva/issues/1616)
 
@@ -14,6 +19,7 @@ Changes to Calva.
 - Fix: [Connect fails when there is no project file (deps.edn, etc)](https://github.com/BetterThanTomorrow/calva/issues/1613)
 - [Make `calva` the default pretty printer](https://github.com/BetterThanTomorrow/calva/issues/1619)
 - [Add default Clojure associations for file extensions `.bb` and `.cljd`](https://github.com/BetterThanTomorrow/calva/issues/1617)
+- Fix: [Warning when loading a file produces an error: n.filter is not a function](https://github.com/BetterThanTomorrow/calva/issues/1567)
 
 ## [2.0.257] - 2022-03-23
 - Maintenance: [Update _even more_ TypeScript code to be compatible with strictNullChecks.](https://github.com/BetterThanTomorrow/calva/pull/1605)

@@ -231,8 +231,8 @@ async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('calva.loadFile', async () => {
       await eval.loadFile({}, config.getConfig().prettyPrintingOptions);
-      return new Promise((finished) => {
-        outputWindow.appendPrompt(finished);
+      return new Promise((resolve) => {
+        outputWindow.appendPrompt(resolve);
       });
     })
   );
@@ -388,7 +388,10 @@ async function activate(context: vscode.ExtensionContext) {
     )
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand('calva.printLastStacktrace', outputWindow.printLastStacktrace)
+    vscode.commands.registerCommand('calva.printLastStacktrace', () => {
+      outputWindow.printLastStacktrace();
+      outputWindow.appendPrompt();
+    })
   );
   context.subscriptions.push(
     vscode.commands.registerCommand(
