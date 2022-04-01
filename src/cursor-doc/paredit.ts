@@ -1,4 +1,4 @@
-import { isEqual, isNumber, last, pick, property, clone } from 'lodash';
+import { isEqual, isNumber, last, pick, property, clone, isBoolean } from 'lodash';
 import { validPair } from './clojure-lexer';
 import { EditableDocument, ModelEdit, ModelEditSelection, ModelEditResult } from './model';
 import { LispTokenCursor } from './token-cursor';
@@ -946,74 +946,88 @@ export function backspace(
   // _end: number // = doc.selections.active
   // ): Thenable<ModelEditResult> {
 ): Thenable<boolean[]> {
-  const selections = clone(doc.selections);
+  // const selections = clone(doc.selections);
 
   return Promise.all(
-    doc.selections.map(async (selection, index) => {
-      const { start, end } = selection;
+    doc.selections.map<Promise<readonly [boolean | 'backspace', ModelEditSelection, number?]>>(
+      async (selection, index) => {
+        const { start, end } = selection;
 
-      if (start != end) {
-        const res = await doc.backspace();
-        // return res.selections[0];
-        return res.success;
-      } else {
-        const cursor = doc.getTokenCursor(start);
-        const nextToken = cursor.getToken();
-        const p = start;
-        const prevToken =
-          p > cursor.offsetStart && !['open', 'close'].includes(nextToken.type)
-            ? nextToken
-            : cursor.getPrevToken();
-        if (prevToken.type == 'prompt') {
-          // return new Promise<boolean>((resolve) => resolve(true));
-          // return selection;
-          return true;
-        } else if (nextToken.type == 'prompt') {
-          // return new Promise<boolean>((resolve) => resolve(true));
-          return true;
-          // return selection;
-        } else if (doc.model.getText(p - 2, p, true) == '\\"') {
-          // return doc.model.edit([new ModelEdit('deleteRange', [p - 2, 2])], {
-          const sel = new ModelEditSelection(p - 2);
-          // selections[index] = sel;
-          const res = await doc.model.edit([new ModelEdit('deleteRange', [p - 2, 2])], {
-            // selections: [new ModelEditSelection(p - 2)],
-            // selections: Object.assign([...selections], {[index]: new ModelEditSelection(p - 2)})
-            selections: replaceAt(selections, index, sel),
-          });
-          // return sel;
-          selections[index] = res.selections[index];
-        } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-          // return doc.model.edit(
-          const sel = new ModelEditSelection(p - prevToken.raw.length);
-          selections[index] = sel;
-          return doc.model.edit(
-            [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
-            {
-              // selections: [new ModelEditSelection(p - prevToken.raw.length)],
-              // selections: Object.assign([...selections], {[index]: new ModelEditSelection(p - prevToken.raw.length)},
-              selections: replaceAt(selections, index, sel),
-            }
-          );
-          // return sel;
+        if (start != end) {
+          // const res = await doc.backspace();
+
+          // return res.selections[0];
+          // return [res.success, res.selections[0]];
+          return ['backspace', selection, index] as const;
         } else {
-          if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
-            // doc.selection = new ModelEditSelection(p - prevToken.raw.length);
-            // return new ModelEditSelection(p - prevToken.raw.length);
-            selections[index] = new ModelEditSelection(p - prevToken.raw.length);
-            return new Promise<boolean>((resolve) => resolve(true));
+          const cursor = doc.getTokenCursor(start);
+          const nextToken = cursor.getToken();
+          const p = start;
+          const prevToken =
+            p > cursor.offsetStart && !['open', 'close'].includes(nextToken.type)
+              ? nextToken
+              : cursor.getPrevToken();
+          if (prevToken.type == 'prompt') {
+            // return new Promise<boolean>((resolve) => resolve(true));
+            // return selection;
+            return [true, selection] as const;
+          } else if (nextToken.type == 'prompt') {
+            // return new Promise<boolean>((resolve) => resolve(true));
+            return [true, selection] as const;
+            // return selection;
+          } else if (doc.model.getText(p - 2, p, true) == '\\"') {
+            // return doc.model.edit([new ModelEdit('deleteRange', [p - 2, 2])], {
+            const sel = new ModelEditSelection(p - 2);
+            // selections[index] = sel;
+            const res = await doc.model.edit([new ModelEdit('deleteRange', [p - 2, 2])], {
+              // selections: [new ModelEditSelection(p - 2)],
+              // selections: Object.assign([...selections], {[index]: new ModelEditSelection(p - 2)})
+              selections: replaceAt(doc.selections, index, sel),
+            });
+            // return sel;
+            // selections[index] = res.selections[index];
+            return [res.success, res.selections[index]] as const;
+          } else if (prevToken.type === 'open' && nextToken.type === 'close') {
+            // return doc.model.edit(
+            const sel = new ModelEditSelection(p - prevToken.raw.length);
+            // selections[index] = sel;
+            const res = await doc.model.edit(
+              [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
+              {
+                // selections: [new ModelEditSelection(p - prevToken.raw.length)],
+                // selections: Object.assign([...selections], {[index]: new ModelEditSelection(p - prevToken.raw.length)},
+                selections: replaceAt(doc.selections, index, sel),
+              }
+            );
+            // selections[index] = res.selections[index];
+            return [res.success, res.selections[index]] as const;
           } else {
-            const res = await doc.backspace();
-            const { selections: sels } = res;
-            selections[index] = res.selections[0];
-            return res.success;
+            if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
+              // doc.selection = new ModelEditSelection(p - prevToken.raw.length);
+              // return new ModelEditSelection(p - prevToken.raw.length);
+              // selections[index] = new ModelEditSelection(p - prevToken.raw.length);
+              // return new Promise<boolean>((resolve) => resolve(true));
+              return [true, new ModelEditSelection(p - prevToken.raw.length)] as const;
+            } else {
+              // const res = await doc.backspace();
+              // selections[index] = res.selections[0];
+              // return [res.success, res.selections[0]] as const;
+              return ['backspace', selection, index] as const;
+            }
           }
         }
       }
-    })
-  ).then((succeeded) => {
-    doc.selections = selections;
-    return succeeded;
+    )
+  ).then<Array<boolean>>(async (results) => {
+    // run native backspace on non edited cursors
+    const nativeBackspaceSelections = results
+      .filter((result) => result[0] === 'backspace')
+      .map((result) => result[1]);
+    doc.selections = nativeBackspaceSelections;
+    await doc.backspace();
+    // set edited selections
+    doc.selections.push(...results.filter((r) => r[0] === true).map(([_, sel]) => sel));
+    return results.map(([success]) => (success === 'backspace' ? true : success));
   });
 }
 
@@ -1022,23 +1036,24 @@ export async function deleteForward(
   // _start: number = doc.selections.anchor,
   // _end: number = doc.selections.active
 ) {
-  doc.selections = await Promise.all(doc.selections.map(async (selection, index) => {
+  const results = await Promise.all(doc.selections.map(async (selection, index) => {
     const { start, end } = selection;
     if (start != end) {
-      await doc.delete();
-      return selection;
+      // await doc.delete();
+      // return selection;
+      return ['delete', selection, index] as const;
     } else {
       const cursor = doc.getTokenCursor(start);
       const prevToken = cursor.getPrevToken();
       const nextToken = cursor.getToken();
       const p = start;
       if (doc.model.getText(p, p + 2, true) == '\\"') {
-        await doc.model.edit([new ModelEdit('deleteRange', [p, 2])], {
+        const res = await doc.model.edit([new ModelEdit('deleteRange', [p, 2])], {
           selections: replaceAt(doc.selections, index, new ModelEditSelection(p)),
         });
-        return new ModelEditSelection(p);
+        return [res.success, res.selections[index], index] as const;
       } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-        await doc.model.edit(
+        const res = await doc.model.edit(
           [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
           {
             selections: replaceAt(
@@ -1048,19 +1063,26 @@ export async function deleteForward(
             ),
           }
         );
-        return new ModelEditSelection(p - prevToken.raw.length);
+        return [res.success, res.selections[index], index] as const;
       } else {
         if (['open', 'close'].includes(nextToken.type) && docIsBalanced(doc)) {
-          doc.selections = replaceAt(doc.selections, index, new ModelEditSelection(p + 1));
+          // doc.selections = replaceAt(doc.selections, index, new ModelEditSelection(p + 1));
           // return new Promise<boolean>((resolve) => resolve(true));
-          return new ModelEditSelection(p + 1);
+          return [true, new ModelEditSelection(p + 1), index] as const;
         } else {
           // return doc.delete();
-          return selection;
+          // return selection;
+          return ['delete', selection, index] as const;
         }
       }
     }
   }));
+  const postCalvaEditSelections = results.filter(r => isBoolean(r[0]))
+  const cursorsNeedingNativeDeletion = results.filter(r => r[0] === "delete");
+  doc.selections = cursorsNeedingNativeDeletion.map(r => r[1])
+  await doc.delete();
+  doc.selections.push(...postCalvaEditSelections.map(s => s[1]))
+  return results.map(r => r[0] === "delete" ? true : r[0]);
 }
 
 // FIXME: stringQuote() is defined and tested but is never used or referenced?
