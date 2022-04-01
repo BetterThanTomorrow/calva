@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Maintenance: Create npm scripts for prettier format+check watching, and expose vsc tasks for watching unit tests, prettier format, eslint and a compound task to run them all in one go.
+
 ## [2.0.261] - 2022-04-01
 - Fix: [Results doc gets in a bad state and does not update](https://github.com/BetterThanTomorrow/calva/issues/1509)
 - Fix: [Indenting not working correctly in vectors starting with fn-like symbols](https://github.com/BetterThanTomorrow/calva/issues/1622)

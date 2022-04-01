@@ -12,7 +12,67 @@
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": "$tsc-watch"
+      "problemMatcher": "$tsc-watch",
+      "presentation": {
+        "panel": "dedicated",
+        "group": "defaultCalva"
+      }
+    },
+    {
+      "label": "Calva Test Watch",
+      "type": "npm",
+      "script": "unit-test-watch",
+      "isBackground": true,
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": {
+        // "owner": "mocha",
+        "fileLocation": ["relative", "${workspaceRoot}"],
+        "pattern": [
+          {
+            "regexp": "^not\\sok\\s\\d+\\s(.*)$"
+          },
+          {
+            "regexp": "\\s+(.*)$",
+            "message": 1
+          },
+          {
+            "regexp": "\\s+at\\s(.*)\\s\\((.*):(\\d+):(\\d+)\\)",
+            "file": 2,
+            "line": 3,
+            "column": 4
+          }
+        ]
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "defaultCalva"
+      }
+    },
+    {
+      "label": "Calva Lint Watch",
+      "type": "npm",
+      "script": "eslint-watch",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": "$eslint-compact",
+      "presentation": {
+        "panel": "dedicated",
+        "group": "defaultCalva"
+      }
+    },
+    {
+      "label": "Calva Dev",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "dependsOn": ["Calva Watch", "Calva Test Watch", "Calva Lint Watch"]
     }
   ]
 }
