@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.261] - 2022-04-01
 - Fix: [Results doc gets in a bad state and does not update](https://github.com/BetterThanTomorrow/calva/issues/1509)
 - Fix: [Indenting not working correctly in vectors starting with fn-like symbols](https://github.com/BetterThanTomorrow/calva/issues/1622)
 - Fix: [Make server side `pprint` the default pretty printer](https://github.com/BetterThanTomorrow/calva/issues/1650)
