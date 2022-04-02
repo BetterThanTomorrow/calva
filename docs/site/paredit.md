@@ -64,8 +64,8 @@ Default keybinding      | Action | Description
  `ctrl+alt+up`             | **Backward Down Sexp** | Moves the cursor into the preceding list.<br> ![](images/paredit/backward-down-sexp.gif)
  `ctrl+alt+down`           | **Forward Up Sexp** | Moves the cursor forwards, out of the current list.<br> ![](images/paredit/forward-up-sexp.gif)
  `ctrl+up`                 | **Backward Up Sexp** | Moves the cursor backwards, out of the current list.<br> ![](images/paredit/backward-up-sexp.gif)
- Unbound                   | **Forward Sexp Or Up** | Moves the cursor forward, to the end of the current form. If at the end, moves to the end of the next form. Moves out of lists if at the end. <br> ![](images/paredit/forward-sexp-or-up.gif)
- Unbound                   | **Backward Sexp Or Up** | Moves the cursor backward, to the start of the current form. If at the start, moves to the start of the previous form. Moves out of lists if at the end. <br> ![](images/paredit/backward-sexp-or-up.gif)
+ Unbound                   | **Forward Sexp Or Up** | Moves the cursor forward, to the end of the current form. If at the end, moves to the end of the next form. Moves out of the lists if at the end of it. <br> ![](images/paredit/forward-sexp-or-up.gif)
+ Unbound                   | **Backward Sexp Or Up** | Moves the cursor backward, to the start of the current form. If at the start, moves to the start of the previous form. Moves out of the list if at the start of it. <br> ![](images/paredit/backward-sexp-or-up.gif)
  `ctrl+end`                | **Forward to List End/Close** | Moves the cursor forwards, staying within the current list.<br> ![](images/paredit/close-list.gif)
  `ctrl+home`               | **Backward to List Start/Open** | Moves the cursor backwards, staying within the current list.<br> ![](images/paredit/open-list.gif)
 
