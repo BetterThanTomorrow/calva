@@ -12,7 +12,7 @@ import {
 } from 'vscode';
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
-import { EditableDocument } from '../cursor-doc/model';
+import { EditableDocument, ModelEditResult, ModelEditSelection } from '../cursor-doc/model';
 import { assertIsDefined } from '../utilities';
 
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
@@ -40,7 +40,7 @@ function shouldKillAlsoCutToClipboard() {
 
 type PareditCommand = {
   command: string;
-  handler: (doc: EditableDocument) => void;
+  handler: (doc: EditableDocument) => void | Thenable<void> | Thenable<ModelEditResult>;
 };
 const pareditCommands: PareditCommand[] = [
   // NAVIGATING
@@ -439,7 +439,7 @@ function wrapPareditCommand(command: PareditCommand) {
       if (!enabled || !languages.has(textEditor.document.languageId)) {
         return;
       }
-      command.handler(mDoc);
+      void command.handler(mDoc);
     } catch (e) {
       console.error(e.message);
     }
