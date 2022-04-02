@@ -292,6 +292,63 @@ export function rangeToBackwardUpList(
   }
 }
 
+export function forwardSexpOrUpRange(
+  doc: EditableDocument,
+  offset = Math.max(doc.selection.anchor, doc.selection.active),
+  goPastWhitespace = false
+): [number, number] {
+  const cursor = doc.getTokenCursor(offset);
+  cursor.forwardWhitespace();
+  if (cursor.forwardSexp(true, true)) {
+    if (goPastWhitespace) {
+      cursor.forwardWhitespace();
+    }
+    return [offset, cursor.offsetStart];
+  } else {
+    if (cursor.upList()) {
+      if (goPastWhitespace) {
+        cursor.forwardWhitespace();
+      }
+      return [offset, cursor.offsetStart];
+    } else {
+      return [offset, offset];
+    }
+  }
+}
+
+export function backwardSexpOrUpRange(
+  doc: EditableDocument,
+  offset: number = Math.min(doc.selection.anchor, doc.selection.active),
+  goPastWhitespace = false
+): [number, number] {
+  const cursor = doc.getTokenCursor(offset);
+  if (!cursor.isWhiteSpace() && cursor.offsetStart < offset) {
+    // This is because cursor.backwardSexp() can't move backwards when "on" the first sexp inside a list
+    // TODO: Try to fix this in LispTokenCursor instead.
+    cursor.forwardSexp();
+  }
+  cursor.backwardWhitespace();
+  if (cursor.backwardSexp(true, true)) {
+    if (goPastWhitespace) {
+      cursor.backwardWhitespace();
+    }
+    return [cursor.offsetStart, offset];
+  } else {
+
+    cursor.backwardList();
+    if (cursor.backwardUpList()) {
+      cursor.forwardSexp(true, true);
+      cursor.backwardSexp(true, true);
+      if (goPastWhitespace) {
+        cursor.backwardWhitespace();
+      }
+      return [cursor.offsetStart, offset];
+    } else {
+      return [offset, offset];
+    }
+  }
+}
+
 export function rangeToForwardDownList(
   doc: EditableDocument,
   offset: number = Math.max(doc.selection.anchor, doc.selection.active),
@@ -636,9 +693,9 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
       ],
       start >= cursor.offsetStart
         ? {
-            selection: new ModelEditSelection(cursor.offsetStart),
-            formatDepth: 2,
-          }
+          selection: new ModelEditSelection(cursor.offsetStart),
+          formatDepth: 2,
+        }
         : { formatDepth: 2 }
     );
   }
@@ -662,9 +719,9 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
       ],
       start <= cursor.offsetStart
         ? {
-            selection: new ModelEditSelection(cursor.offsetStart),
-            formatDepth: 2,
-          }
+          selection: new ModelEditSelection(cursor.offsetStart),
+          formatDepth: 2,
+        }
         : { formatDepth: 2 }
     );
   }

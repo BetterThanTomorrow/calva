@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add new `paredit.[forward/backward]SexpOrUp` commands](https://github.com/BetterThanTomorrow/calva/issues/1657)
 
 ## [2.0.261] - 2022-04-01
 - Fix: [Results doc gets in a bad state and does not update](https://github.com/BetterThanTomorrow/calva/issues/1509)
