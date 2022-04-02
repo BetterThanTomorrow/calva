@@ -1081,8 +1081,7 @@ export async function deleteForward(
   const postCalvaEditSelections = results.filter((r) => isBoolean(r[0]));
   const cursorsNeedingNativeDeletion = results.filter((r) => r[0] === 'delete');
   doc.selections = cursorsNeedingNativeDeletion.map((r) => r[1]);
-  await doc.delete()
-  ;
+  await doc.delete();
 
   doc.selections.push(...postCalvaEditSelections.map((s) => s[1]));
   return results.map((r) => (r[0] === 'delete' ? true : r[0]));
