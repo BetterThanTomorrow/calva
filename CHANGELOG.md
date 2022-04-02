@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Maintenance: [Upgrade TS + some ts eslint plugins + fix any necessary changes thereof](https://github.com/BetterThanTomorrow/calva/issues/1639)
+
 ## [2.0.262] - 2022-04-02
 - Tech debt mortgage: [Cleanup/removal of EditableDocument.selectionLeft/Right APIs](https://github.com/BetterThanTomorrow/calva/issues/1607)]
 - Maintenance: [Update node version to v14, which is maintenance LTS until 2023-04-30](https://github.com/BetterThanTomorrow/calva/pull/1656)
