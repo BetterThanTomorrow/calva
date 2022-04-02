@@ -67,12 +67,85 @@
       }
     },
     {
+      "label": "Calva Prettier Check Watch",
+      "type": "npm",
+      "script": "prettier-check-watch",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": [
+        {
+          "owner": "prettier",
+          "source": "prettier",
+          "fileLocation": ["relative", "${workspaceRoot}"],
+          "severity": "warning",
+          "pattern": {
+            "regexp": "\\[warn\\] (.+)",
+            "kind": "file",
+            "file": 1,
+            "message": 1
+          },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "Checking formatting",
+            "endsPattern": "(\\[warn\\] Code style issues found in the above file\\(s\\))|(All matched files use Prettier code style!)"
+          }
+        },
+        {
+          "owner": "prettier",
+          "source": "prettier",
+          "fileLocation": ["relative", "${workspaceRoot}"],
+          "severity": "error",
+          "pattern": {
+            "regexp": "\\[(error)\\] (.+?): (.+) \\((\\d+?):(\\d+?)\\)",
+            "kind": "location",
+            "severity": 1,
+            "file": 2,
+            "message": 3,
+            "line": 4,
+            "column": 5
+          },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "Checking formatting",
+            "endsPattern": "(\\[warn\\] Code style issues found in the above file\\(s\\))|(All matched files use Prettier code style!)"
+          }
+        }
+      ],
+      "presentation": {
+        "panel": "dedicated",
+        "group": "defaultCalva"
+      }
+    },
+    {
+      "label": "Calva Prettier Format Watch",
+      "type": "npm",
+      "script": "prettier-format-watch",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+
+      "presentation": {
+        "panel": "dedicated",
+        "group": "defaultCalva"
+      }
+    },
+    {
       "label": "Calva Dev",
       "group": {
         "kind": "build",
         "isDefault": false
       },
-      "dependsOn": ["Calva Watch", "Calva Test Watch", "Calva Lint Watch"]
+      "dependsOn": [
+        "Calva Watch",
+        "Calva Test Watch",
+        "Calva Lint Watch",
+        "Calva Prettier Format Watch"
+      ]
     }
   ]
 }

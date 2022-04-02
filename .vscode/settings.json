@@ -12,6 +12,7 @@
     "arglists",
     "autoindent",
     "Batsov",
+    "behaviour",
     "bencode",
     "betterthantomorrow",
     "bhauman",
@@ -33,6 +34,7 @@
     "cljify",
     "cljslib",
     "CLJSREPL",
+    "Clojuredocs",
     "clojurians",
     "Clojurists",
     "cmdline",
@@ -58,6 +60,7 @@
     "docmirror",
     "Docstring",
     "Dorg",
+    "doseq",
     "dotimes",
     "Dvlaaad",
     "eckstein",
@@ -103,6 +106,7 @@
     "jszip",
     "junit",
     "keywordize",
+    "keywordized",
     "klepsch",
     "kondo",
     "lein",
@@ -201,5 +205,17 @@
       "languageId": ["clojure", "json", "typescript"],
       "allowCompoundWords": false
     }
-  ]
+  ],
+  "githubIssues.issueBranchTitle": "wip/${user}/issue-#${issueNumber}/${sanitizedIssueTitle}",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "peacock.color": "#e48141"
 }

@@ -2698,6 +2698,8 @@
     "publish": "bb publish.clj",
     "prettier-format": "npx prettier --write './**/*.{ts,js,json}'",
     "prettier-check": "npx prettier --check './**/*.{ts,js,json}'",
+    "prettier-check-watch": "npx onchange './**/*.{ts,js,json}' -- prettier --check {{changed}}",
+    "prettier-format-watch": "npx onchange './**/*.{ts,js,json}' -- prettier --write {{changed}}",
     "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
     "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch"
   },
