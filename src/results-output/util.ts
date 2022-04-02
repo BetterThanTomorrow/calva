@@ -1,7 +1,7 @@
 import { takeWhile } from 'lodash';
 import type { ResultsBuffer } from './results-doc';
 
-function addToHistory(history: string[], content: string): string[] {
+function addToHistory(history: string[], content?: string): string[] {
   if (content) {
     const entry = content.trim();
     if (entry !== '') {
