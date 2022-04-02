@@ -64,6 +64,8 @@ Default keybinding      | Action | Description
  `ctrl+alt+up`             | **Backward Down Sexp** | Moves the cursor into the preceding list.<br> ![](images/paredit/backward-down-sexp.gif)
  `ctrl+alt+down`           | **Forward Up Sexp** | Moves the cursor forwards, out of the current list.<br> ![](images/paredit/forward-up-sexp.gif)
  `ctrl+up`                 | **Backward Up Sexp** | Moves the cursor backwards, out of the current list.<br> ![](images/paredit/backward-up-sexp.gif)
+ Unbound                   | **Forward Sexp Or Up** | Moves the cursor forward, to the end of the current form. If at the end, moves to the end of the next form. Moves out of the lists if at the end of it. <br> ![](images/paredit/forward-sexp-or-up.gif)
+ Unbound                   | **Backward Sexp Or Up** | Moves the cursor backward, to the start of the current form. If at the start, moves to the start of the previous form. Moves out of the list if at the start of it. <br> ![](images/paredit/backward-sexp-or-up.gif)
  `ctrl+end`                | **Forward to List End/Close** | Moves the cursor forwards, staying within the current list.<br> ![](images/paredit/close-list.gif)
  `ctrl+home`               | **Backward to List Start/Open** | Moves the cursor backwards, staying within the current list.<br> ![](images/paredit/open-list.gif)
 
@@ -83,6 +85,8 @@ Default keybinding    | Action | Description
  `ctrl+shift+alt+up`     | **Select Backward Down Sexp** | ![](images/paredit/select-backward-down-sexp.gif) <br>(You probably do not need to select like this, but you can!)
  `ctrl+shift+alt+down`   | **Select Forward Up Sexp** | ![](images/paredit/select-forward-up-sexp.gif) <br>(You probably do not need to select like this, but you can!)
  `ctrl+shift+up`         | **Select Backward Up Sexp** | ![](images/paredit/select-backward-up-sexp.gif) <br>(You probably do not need to select like this, but you can!)
+ Unbound                 | **Select Forward Sexp Or Up** | ![](images/paredit/select-forward-sexp-or-up.gif) <br>(You probably do not need to select like this, but you can!)
+ Unbound                 | **Select Backward Sexp Or Up** | ![](images/paredit/select-backward-sexp-or-up.gif) <br>(You probably do not need to select like this, but you can!)
  `ctrl+shift+end`        | **Select Forward to List End/Close** | ![](images/paredit/select-close-list.gif)
  `ctrl+shift+home`       | **Select Backward to List Start/Open** | ![](images/paredit/select-open-list.gif)
 

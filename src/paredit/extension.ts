@@ -81,6 +81,18 @@ const pareditCommands: PareditCommand[] = [
     },
   },
   {
+    command: 'paredit.forwardSexpOrUp',
+    handler: (doc: EditableDocument) => {
+      paredit.moveToRangeRight(doc, paredit.forwardSexpOrUpRange(doc));
+    },
+  },
+  {
+    command: 'paredit.backwardSexpOrUp',
+    handler: (doc: EditableDocument) => {
+      paredit.moveToRangeLeft(doc, paredit.backwardSexpOrUpRange(doc));
+    },
+  },
+  {
     command: 'paredit.closeList',
     handler: (doc: EditableDocument) => {
       paredit.moveToRangeRight(doc, paredit.rangeToForwardList(doc));
@@ -132,6 +144,14 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.selectForwardUpSexp',
     handler: paredit.selectForwardUpSexp,
+  },
+  {
+    command: 'paredit.selectForwardSexpOrUp',
+    handler: paredit.selectForwardSexpOrUp,
+  },
+  {
+    command: 'paredit.selectBackwardSexpOrUp',
+    handler: paredit.selectBackwardSexpOrUp,
   },
   {
     command: 'paredit.selectBackwardUpSexp',
@@ -270,7 +290,7 @@ const pareditCommands: PareditCommand[] = [
         copyRangeToClipboard(doc, range);
       }
       void paredit.killForwardList(doc, range).then((isFulfilled) => {
-        return paredit.spliceSexp(doc, doc.selectionRight, false);
+        return paredit.spliceSexp(doc, doc.selection.active, false);
       });
     },
   },
@@ -282,7 +302,7 @@ const pareditCommands: PareditCommand[] = [
         copyRangeToClipboard(doc, range);
       }
       void paredit.killBackwardList(doc, range).then((isFulfilled) => {
-        return paredit.spliceSexp(doc, doc.selectionRight, false);
+        return paredit.spliceSexp(doc, doc.selection.active, false);
       });
     },
   },

@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.262] - 2022-04-02
+- Tech debt mortgage: [Cleanup/removal of EditableDocument.selectionLeft/Right APIs](https://github.com/BetterThanTomorrow/calva/issues/1607)]
+- Maintenance: [Update node version to v14, which is maintenance LTS until 2023-04-30](https://github.com/BetterThanTomorrow/calva/pull/1656)
+- Maintenance: [Update default build/dev task to rebuild cljs+ts, watch cljs+ts tests, watch linter, and Prettier watcher, add a custom Connect Sequence for connecting to Calva `:cljs-lib`](https://github.com/BetterThanTomorrow/calva/pull/1652)
+- [Add new `paredit.[forward/backward]SexpOrUp` commands](https://github.com/BetterThanTomorrow/calva/issues/1657)
+
 ## [2.0.261] - 2022-04-01
 - Fix: [Results doc gets in a bad state and does not update](https://github.com/BetterThanTomorrow/calva/issues/1509)
 - Fix: [Indenting not working correctly in vectors starting with fn-like symbols](https://github.com/BetterThanTomorrow/calva/issues/1622)
