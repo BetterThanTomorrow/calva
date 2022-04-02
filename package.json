@@ -1193,6 +1193,18 @@
       },
       {
         "category": "Calva Paredit",
+        "command": "paredit.forwardSexpOrUp",
+        "title": "Forward Sexp Or Up",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva Paredit",
+        "command": "paredit.backwardSexpOrUp",
+        "title": "Backward Sexp Or Up",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva Paredit",
         "command": "paredit.forwardDownSexp",
         "title": "Forward Down Sexp",
         "enablement": "editorLangId == clojure"
@@ -1261,6 +1273,18 @@
         "category": "Calva Paredit",
         "command": "paredit.selectForwardUpSexp",
         "title": "Select Forward Up Sexp",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva Paredit",
+        "command": "paredit.selectBackwardSexpOrUp",
+        "title": "Select Backward Sexp Or Up",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva Paredit",
+        "command": "paredit.selectForwardSexpOrUp",
+        "title": "Select Forward Sexp Or Up",
         "enablement": "editorLangId == clojure"
       },
       {
