@@ -290,7 +290,7 @@ export function forwardSexpRange(
 ): [number, number];
 export function forwardSexpRange(
   doc: EditableDocument,
-  oneOrMoreOffsets: number[]|number = doc.selections.map((s) => s.end),
+  oneOrMoreOffsets: number[] | number = doc.selections.map((s) => s.end),
   goPastWhitespace = false
 ): Array<[number, number]> | [number, number] {
   const offsets = Array.isArray(oneOrMoreOffsets) ? oneOrMoreOffsets : [oneOrMoreOffsets];

@@ -214,11 +214,7 @@
   ],
   "cSpell.languageSettings": [
     {
-      "languageId": [
-        "clojure",
-        "json",
-        "typescript"
-      ],
+      "languageId": ["clojure", "json", "typescript"],
       "allowCompoundWords": false
     }
   ],
