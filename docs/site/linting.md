@@ -8,7 +8,7 @@ description: Powered by clj-kondo, Calva comes with state-of-the-art Clojure and
 Calva does no linting, yet with Calva you get excellent linting. That is because Calva uses [clojure-lsp](https://github.com/clojure-lsp/clojure-lsp), which provides linting powered by clj-kondo.
 
 ## Get Started
-clj-kondo comes with its set of rules, but the configuration can be customized with a configuration file. The custom configuration must be placed at the root of your project under `.clj-kondo/config.edn`. The `.clj-kondo` folder may already exist if you started calva before, it is safe to create it manually if it doesn't.
+clj-kondo comes with great default rules, and the configuration [can be customized](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md). One of your options for the configuration file is to  placed a `config.edn` file in `.clj-kondo/` at the root of your project. This folder may or may not already exist. It is safe to create it manually if it doesn't.
 
 The configuration will be merged with the default set of rules, you can only specify the rules you want to override. The full list of available options can be found on [clj-kondo's github](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md)
 
