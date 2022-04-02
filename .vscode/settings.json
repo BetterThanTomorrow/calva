@@ -142,6 +142,7 @@
     "polyrepos",
     "postrelease",
     "pprint",
+    "precompile",
     "prefs",
     "preinstall",
     "prepending",
@@ -217,5 +218,16 @@
   "[jsonc]": {
     "editor.defaultFormatter": "vscode.json-language-features"
   },
-  "peacock.color": "#e48141"
+  "peacock.color": "#e48141",
+  "calva.replConnectSequences": [
+    {
+      "name": "Calva",
+      "projectType": "shadow-cljs",
+      "cljsType": "shadow-cljs",
+      "menuSelections": {
+        "cljsDefaultBuild": ":calva-lib",
+        "cljsLaunchBuilds": [":calva-lib", ":test"]
+      }
+    }
+  ]
 }
