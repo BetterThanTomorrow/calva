@@ -1,4 +1,3 @@
-import { includes } from 'lodash';
 import { validPair } from './clojure-lexer';
 import { ModelEdit, EditableDocument, ModelEditSelection } from './model';
 import { LispTokenCursor } from './token-cursor';
@@ -16,8 +15,8 @@ import { LispTokenCursor } from './token-cursor';
 export function killRange(
   doc: EditableDocument,
   range: [number, number],
-  start = doc.selectionLeft,
-  end = doc.selectionRight
+  start = doc.selection.anchor,
+  end = doc.selection.active
 ) {
   const [left, right] = [Math.min(...range), Math.max(...range)];
   void doc.model.edit([new ModelEdit('deleteRange', [left, right - left, [start, end]])], {
@@ -86,7 +85,7 @@ export function selectBackwardDownSexp(doc: EditableDocument) {
 }
 
 export function selectForwardUpSexp(doc: EditableDocument) {
-  selectRangeForward(doc, rangeToForwardUpList(doc, doc.selectionRight));
+  selectRangeForward(doc, rangeToForwardUpList(doc, doc.selection.active));
 }
 
 export function selectBackwardUpSexp(doc: EditableDocument) {
@@ -98,7 +97,7 @@ export function selectBackwardUpSexp(doc: EditableDocument) {
 }
 
 export function selectCloseList(doc: EditableDocument) {
-  selectRangeForward(doc, rangeToForwardList(doc, doc.selectionRight));
+  selectRangeForward(doc, rangeToForwardList(doc, doc.selection.active));
 }
 
 export function selectOpenList(doc: EditableDocument) {
@@ -159,7 +158,7 @@ export function backwardSexpRange(
 
 export function forwardListRange(
   doc: EditableDocument,
-  start: number = doc.selectionRight
+  start: number = doc.selection.active
 ): [number, number] {
   const cursor = doc.getTokenCursor(start);
   cursor.forwardList();
@@ -168,7 +167,7 @@ export function forwardListRange(
 
 export function backwardListRange(
   doc: EditableDocument,
-  start: number = doc.selectionRight
+  start: number = doc.selection.active
 ): [number, number] {
   const cursor = doc.getTokenCursor(start);
   cursor.backwardList();
@@ -414,8 +413,8 @@ export function wrapSexpr(
   doc: EditableDocument,
   open: string,
   close: string,
-  start: number = doc.selectionLeft,
-  end: number = doc.selectionRight,
+  start: number = doc.selection.anchor,
+  end: number = doc.selection.active,
   options = { skipFormat: false }
 ): Thenable<boolean> {
   const cursor = doc.getTokenCursor(end);
@@ -463,8 +462,8 @@ export function rewrapSexpr(
   doc: EditableDocument,
   open: string,
   close: string,
-  start: number = doc.selectionLeft,
-  end: number = doc.selectionRight
+  start: number = doc.selection.anchor,
+  end: number = doc.selection.active
 ): Thenable<boolean> {
   const cursor = doc.getTokenCursor(end);
   if (cursor.backwardList()) {
@@ -484,7 +483,7 @@ export function rewrapSexpr(
   }
 }
 
-export function splitSexp(doc: EditableDocument, start: number = doc.selectionRight) {
+export function splitSexp(doc: EditableDocument, start: number = doc.selection.active) {
   const cursor = doc.getTokenCursor(start);
   if (!cursor.withinString() && !(cursor.isWhiteSpace() || cursor.previousIsWhiteSpace())) {
     cursor.forwardWhitespace();
@@ -508,7 +507,7 @@ export function splitSexp(doc: EditableDocument, start: number = doc.selectionRi
  */
 export function joinSexp(
   doc: EditableDocument,
-  start: number = doc.selectionRight
+  start: number = doc.selection.active
 ): Thenable<boolean> {
   const cursor = doc.getTokenCursor(start);
   cursor.backwardWhitespace();
@@ -537,7 +536,7 @@ export function joinSexp(
 
 export function spliceSexp(
   doc: EditableDocument,
-  start: number = doc.selectionRight,
+  start: number = doc.selection.active,
   undoStopBefore = true
 ): Thenable<boolean> {
   const cursor = doc.getTokenCursor(start);
@@ -598,7 +597,7 @@ export function killForwardList(
 
 export function forwardSlurpSexp(
   doc: EditableDocument,
-  start: number = doc.selectionRight,
+  start: number = doc.selection.active,
   extraOpts = { formatDepth: 1 }
 ) {
   const cursor = doc.getTokenCursor(start);
@@ -643,7 +642,7 @@ export function forwardSlurpSexp(
 
 export function backwardSlurpSexp(
   doc: EditableDocument,
-  start: number = doc.selectionRight,
+  start: number = doc.selection.active,
   extraOpts = {}
 ) {
   const cursor = doc.getTokenCursor(start);
@@ -677,7 +676,7 @@ export function backwardSlurpSexp(
   }
 }
 
-export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selectionRight) {
+export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selection.active) {
   const cursor = doc.getTokenCursor(start);
   cursor.forwardList();
   if (cursor.getToken().type == 'close') {
@@ -700,7 +699,7 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
   }
 }
 
-export function backwardBarfSexp(doc: EditableDocument, start: number = doc.selectionRight) {
+export function backwardBarfSexp(doc: EditableDocument, start: number = doc.selection.active) {
   const cursor = doc.getTokenCursor(start);
   cursor.backwardList();
   const tk = cursor.getPrevToken();
@@ -730,9 +729,9 @@ export function open(
   doc: EditableDocument,
   open: string,
   close: string,
-  start: number = doc.selectionRight
+  start: number = doc.selection.active
 ) {
-  const [cs, ce] = [doc.selectionLeft, doc.selectionRight];
+  const [cs, ce] = [doc.selection.anchor, doc.selection.active];
   doc.insertString(open + doc.getSelectionText() + close);
   if (cs != ce) {
     doc.selection = new ModelEditSelection(cs + open.length, ce + open.length);
@@ -750,7 +749,7 @@ function docIsBalanced(doc: EditableDocument, start: number = doc.selection.acti
   return cursor.atEnd();
 }
 
-export function close(doc: EditableDocument, close: string, start: number = doc.selectionRight) {
+export function close(doc: EditableDocument, close: string, start: number = doc.selection.active) {
   const cursor = doc.getTokenCursor(start);
   const inString = cursor.withinString();
   cursor.forwardWhitespace(false);
@@ -810,8 +809,8 @@ export function backspace(
 
 export function deleteForward(
   doc: EditableDocument,
-  start: number = doc.selectionLeft,
-  end: number = doc.selectionRight
+  start: number = doc.selection.anchor,
+  end: number = doc.selection.active
 ) {
   if (start != end) {
     void doc.delete();
@@ -844,8 +843,8 @@ export function deleteForward(
 
 export function stringQuote(
   doc: EditableDocument,
-  start: number = doc.selectionLeft,
-  end: number = doc.selectionRight
+  start: number = doc.selection.anchor,
+  end: number = doc.selection.active
 ) {
   if (start != end) {
     doc.insertString('"');
@@ -882,8 +881,8 @@ export function stringQuote(
 
 export function growSelection(
   doc: EditableDocument,
-  start: number = doc.selectionLeft,
-  end: number = doc.selectionRight
+  start: number = doc.selection.anchor,
+  end: number = doc.selection.active
 ) {
   const startC = doc.getTokenCursor(start),
     endC = doc.getTokenCursor(end),
@@ -932,7 +931,7 @@ export function growSelectionStack(doc: EditableDocument, range: [number, number
   const [start, end] = range;
   if (doc.selectionStack.length > 0) {
     const prev = doc.selectionStack[doc.selectionStack.length - 1];
-    if (!(doc.selectionLeft == prev.anchor && doc.selectionRight == prev.active)) {
+    if (!(doc.selection.anchor == prev.anchor && doc.selection.active == prev.active)) {
       setSelectionStack(doc);
     } else if (prev.anchor === range[0] && prev.active === range[1]) {
       return;
@@ -949,8 +948,8 @@ export function shrinkSelection(doc: EditableDocument) {
     const latest = doc.selectionStack.pop();
     if (
       doc.selectionStack.length &&
-      latest.anchor == doc.selectionLeft &&
-      latest.active == doc.selectionRight
+      latest.anchor == doc.selection.anchor &&
+      latest.active == doc.selection.active
     ) {
       doc.selection = doc.selectionStack[doc.selectionStack.length - 1];
     }
@@ -963,8 +962,8 @@ export function setSelectionStack(doc: EditableDocument, selection = doc.selecti
 
 export function raiseSexp(
   doc: EditableDocument,
-  start = doc.selectionLeft,
-  end = doc.selectionRight
+  start = doc.selection.anchor,
+  end = doc.selection.active
 ) {
   const cursor = doc.getTokenCursor(end);
   const [formStart, formEnd] = cursor.rangeForCurrentForm(start);
@@ -993,8 +992,8 @@ export function raiseSexp(
 
 export function convolute(
   doc: EditableDocument,
-  start = doc.selectionLeft,
-  end = doc.selectionRight
+  start = doc.selection.anchor,
+  end = doc.selection.active
 ) {
   if (start == end) {
     const cursorStart = doc.getTokenCursor(end);
@@ -1033,8 +1032,8 @@ export function convolute(
 
 export function transpose(
   doc: EditableDocument,
-  left = doc.selectionLeft,
-  right = doc.selectionRight,
+  left = doc.selection.anchor,
+  right = doc.selection.active,
   newPosOffset: { fromLeft?: number; fromRight?: number } = {}
 ) {
   const cursor = doc.getTokenCursor(right);
@@ -1144,8 +1143,8 @@ function currentSexpsRange(
 export function dragSexprBackward(
   doc: EditableDocument,
   pairForms = bindingForms,
-  left = doc.selectionLeft,
-  right = doc.selectionRight
+  left = doc.selection.anchor,
+  right = doc.selection.active
 ) {
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, pairForms);
@@ -1171,8 +1170,8 @@ export function dragSexprBackward(
 export function dragSexprForward(
   doc: EditableDocument,
   pairForms = bindingForms,
-  left = doc.selectionLeft,
-  right = doc.selectionRight
+  left = doc.selection.anchor,
+  right = doc.selection.active
 ) {
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, pairForms);
@@ -1217,7 +1216,7 @@ export type WhitespaceInfo = {
  */
 export function collectWhitespaceInfo(
   doc: EditableDocument,
-  p = doc.selectionRight
+  p = doc.selection.active
 ): WhitespaceInfo {
   const cursor = doc.getTokenCursor(p);
   const currentRange = cursor.rangeForCurrentForm(p);
@@ -1245,7 +1244,7 @@ export function collectWhitespaceInfo(
   };
 }
 
-export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selectionRight) {
+export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selection.active) {
   const wsInfo = collectWhitespaceInfo(doc, p);
   const cursor = doc.getTokenCursor(p);
   const currentRange = cursor.rangeForCurrentForm(p);
@@ -1286,7 +1285,7 @@ export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selectionRigh
   }
 }
 
-export function dragSexprForwardDown(doc: EditableDocument, p = doc.selectionRight) {
+export function dragSexprForwardDown(doc: EditableDocument, p = doc.selection.active) {
   const wsInfo = collectWhitespaceInfo(doc, p);
   const currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p);
   const newPosOffset = p - currentRange[0];
@@ -1322,7 +1321,7 @@ export function dragSexprForwardDown(doc: EditableDocument, p = doc.selectionRig
   }
 }
 
-export function dragSexprForwardUp(doc: EditableDocument, p = doc.selectionRight) {
+export function dragSexprForwardUp(doc: EditableDocument, p = doc.selection.active) {
   const wsInfo = collectWhitespaceInfo(doc, p);
   const cursor = doc.getTokenCursor(p);
   const currentRange = cursor.rangeForCurrentForm(p);
@@ -1353,7 +1352,7 @@ export function dragSexprForwardUp(doc: EditableDocument, p = doc.selectionRight
   }
 }
 
-export function dragSexprBackwardDown(doc: EditableDocument, p = doc.selectionRight) {
+export function dragSexprBackwardDown(doc: EditableDocument, p = doc.selection.active) {
   const wsInfo = collectWhitespaceInfo(doc, p);
   const currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p);
   const newPosOffset = p - currentRange[0];

@@ -104,8 +104,6 @@ export interface EditableModel {
 }
 
 export interface EditableDocument {
-  readonly selectionLeft: number;
-  readonly selectionRight: number;
   selection: ModelEditSelection;
   model: EditableModel;
   selectionStack: ModelEditSelection[];
@@ -534,17 +532,7 @@ export class StringDocument implements EditableDocument {
     }
   }
 
-  selectionLeft: number;
-  selectionRight: number;
-
-  get selection() {
-    return new ModelEditSelection(this.selectionLeft, this.selectionRight);
-  }
-
-  set selection(sel: ModelEditSelection) {
-    this.selectionLeft = sel.anchor;
-    this.selectionRight = sel.active;
-  }
+  selection: ModelEditSelection;
 
   model: LineInputModel = new LineInputModel(1, this);
 
@@ -565,14 +553,14 @@ export class StringDocument implements EditableDocument {
   getSelectionText: () => string;
 
   delete() {
-    const p = this.selectionLeft;
+    const p = this.selection.anchor;
     return this.model.edit([new ModelEdit('deleteRange', [p, 1])], {
       selection: new ModelEditSelection(p),
     });
   }
 
   backspace() {
-    const p = this.selectionLeft;
+    const p = this.selection.anchor;
     return this.model.edit([new ModelEdit('deleteRange', [p - 1, 1])], {
       selection: new ModelEditSelection(p - 1),
     });

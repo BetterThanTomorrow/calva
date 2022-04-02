@@ -18,7 +18,7 @@
     "module": "commonjs",
     "target": "es6",
     "outDir": "out",
-    "lib": ["es7", "dom", "ESNext.String"],
+    "lib": ["es2020", "dom", "ESNext.String"],
     "sourceMap": true,
     "rootDir": "src"
   },
