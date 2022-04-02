@@ -334,7 +334,6 @@ export function backwardSexpOrUpRange(
     }
     return [cursor.offsetStart, offset];
   } else {
-
     cursor.backwardList();
     if (cursor.backwardUpList()) {
       cursor.forwardSexp(true, true);
@@ -693,9 +692,9 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
       ],
       start >= cursor.offsetStart
         ? {
-          selection: new ModelEditSelection(cursor.offsetStart),
-          formatDepth: 2,
-        }
+            selection: new ModelEditSelection(cursor.offsetStart),
+            formatDepth: 2,
+          }
         : { formatDepth: 2 }
     );
   }
@@ -719,9 +718,9 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
       ],
       start <= cursor.offsetStart
         ? {
-          selection: new ModelEditSelection(cursor.offsetStart),
-          formatDepth: 2,
-        }
+            selection: new ModelEditSelection(cursor.offsetStart),
+            formatDepth: 2,
+          }
         : { formatDepth: 2 }
     );
   }
