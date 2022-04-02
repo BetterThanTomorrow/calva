@@ -4,15 +4,132 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Calva Watch",
+      "label": "Calva Compile",
+      "type": "npm",
+      "script": "compile",
+      "isBackground": false,
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "defaultCalva",
+        "close": true
+      }
+    },
+    {
+      "label": "Calva Watch CLJS",
       "type": "npm",
       "script": "watch",
       "isBackground": true,
       "group": {
         "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "defaultCalva"
+      }
+    },
+    {
+      "label": "Calva Watch TS",
+      "type": "npm",
+      "script": "watch-ts",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": "$tsc-watch",
+      "presentation": {
+        "panel": "dedicated",
+        "group": "defaultCalva"
+      }
+    },
+    {
+      "label": "Calva Test Watch",
+      "type": "npm",
+      "script": "unit-test-watch",
+      "isBackground": true,
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
+      "problemMatcher": {
+        // "owner": "mocha",
+        "fileLocation": ["relative", "${workspaceRoot}"],
+        "pattern": [
+          {
+            "regexp": "^not\\sok\\s\\d+\\s(.*)$"
+          },
+          {
+            "regexp": "\\s+(.*)$",
+            "message": 1
+          },
+          {
+            "regexp": "\\s+at\\s(.*)\\s\\((.*):(\\d+):(\\d+)\\)",
+            "file": 2,
+            "line": 3,
+            "column": 4
+          }
+        ]
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "defaultCalva"
+      }
+    },
+    {
+      "label": "Calva Lint Watch",
+      "type": "npm",
+      "script": "eslint-watch",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": "$eslint-compact",
+      "presentation": {
+        "panel": "dedicated",
+        "group": "defaultCalva"
+      }
+    },
+    {
+      "label": "Calva Prettier Format Watch",
+      "type": "npm",
+      "script": "prettier-format-watch",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Calva Watch",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "dependsOn": [
+        "Calva Prettier Format Watch",
+        "Calva Watch TS",
+        "Calva Watch CLJS",
+        "Calva Test Watch",
+        "Calva Lint Watch"
+      ]
+    },
+    {
+      "label": "Calva Dev",
+      "group": {
+        "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": "$tsc-watch"
+      "dependsOrder": "sequence",
+      "dependsOn": ["Calva Compile", "Calva Watch"]
     }
   ]
 }
