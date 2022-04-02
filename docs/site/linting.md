@@ -20,7 +20,7 @@ The following examples show how to turn on/off linting rules in your configurati
 {:linters {:missing-docstring {:level :warning}}}
 ```
 
-**Display an error when the :require are not sorted in the namespace:**
+**Display an error when the `:require`s are not sorted in the namespace:**
 ```clj
 {:linters {:unsorted-required-namespaces {:level :error}}}
 ```
