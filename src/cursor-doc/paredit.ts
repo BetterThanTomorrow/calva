@@ -150,8 +150,8 @@ enum GoUpSexpOption {
  */
 function _forwardSexpRange(
   doc: EditableDocument,
-  goUpSexp: GoUpSexpOption,
   offset = Math.max(doc.selection.anchor, doc.selection.active),
+  goUpSexp: GoUpSexpOption,
   goPastWhitespace = false
 ): [number, number] {
   const cursor = doc.getTokenCursor(offset);
@@ -185,8 +185,8 @@ function _forwardSexpRange(
  */
 function _backwardSexpRange(
   doc: EditableDocument,
-  goUpSexp: GoUpSexpOption,
   offset: number = Math.min(doc.selection.anchor, doc.selection.active),
+  goUpSexp: GoUpSexpOption,
   goPastWhitespace = false
 ): [number, number] {
   const cursor = doc.getTokenCursor(offset);
@@ -227,7 +227,7 @@ export function forwardSexpRange(
   offset = Math.max(doc.selection.anchor, doc.selection.active),
   goPastWhitespace = false
 ): [number, number] {
-  return _forwardSexpRange(doc, GoUpSexpOption.Never, offset, goPastWhitespace);
+  return _forwardSexpRange(doc, offset, GoUpSexpOption.Never, goPastWhitespace);
 }
 
 export function backwardSexpRange(
@@ -235,7 +235,7 @@ export function backwardSexpRange(
   offset: number = Math.min(doc.selection.anchor, doc.selection.active),
   goPastWhitespace = false
 ): [number, number] {
-  return _backwardSexpRange(doc, GoUpSexpOption.Never, offset, goPastWhitespace);
+  return _backwardSexpRange(doc, offset, GoUpSexpOption.Never, goPastWhitespace);
 }
 
 export function forwardListRange(
@@ -342,7 +342,7 @@ export function rangeToForwardUpList(
   offset: number = Math.max(doc.selection.anchor, doc.selection.active),
   goPastWhitespace = false
 ): [number, number] {
-  return _forwardSexpRange(doc, GoUpSexpOption.Required, offset, goPastWhitespace);
+  return _forwardSexpRange(doc, offset, GoUpSexpOption.Required, goPastWhitespace);
 }
 
 export function rangeToBackwardUpList(
@@ -350,7 +350,7 @@ export function rangeToBackwardUpList(
   offset: number = Math.min(doc.selection.anchor, doc.selection.active),
   goPastWhitespace = false
 ): [number, number] {
-  return _backwardSexpRange(doc, GoUpSexpOption.Required, offset, goPastWhitespace);
+  return _backwardSexpRange(doc, offset, GoUpSexpOption.Required, goPastWhitespace);
 }
 
 export function forwardSexpOrUpRange(
@@ -358,7 +358,7 @@ export function forwardSexpOrUpRange(
   offset = Math.max(doc.selection.anchor, doc.selection.active),
   goPastWhitespace = false
 ): [number, number] {
-  return _forwardSexpRange(doc, GoUpSexpOption.WhenAtLimit, offset, goPastWhitespace);
+  return _forwardSexpRange(doc, offset, GoUpSexpOption.WhenAtLimit, goPastWhitespace);
 }
 
 export function backwardSexpOrUpRange(
@@ -366,7 +366,7 @@ export function backwardSexpOrUpRange(
   offset: number = Math.min(doc.selection.anchor, doc.selection.active),
   goPastWhitespace = false
 ): [number, number] {
-  return _backwardSexpRange(doc, GoUpSexpOption.WhenAtLimit, offset, goPastWhitespace);
+  return _backwardSexpRange(doc, offset, GoUpSexpOption.WhenAtLimit, goPastWhitespace);
 }
 
 export function rangeToForwardDownList(
