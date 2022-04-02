@@ -38,7 +38,9 @@ The following examples show how to turn on/off linting rules in your configurati
 ```
 
 ### Exclude entire folders from the linter
-The linter is ran through the clojure-lsp, by default clojure-lsp runs on the entire classpath of the project. There are casses where you may not want that. For example when using clojurescript it is very likely that you will have a `target/` folder in your classpath which you want to exclude from linting. The custom configuration must be placed at the root of your project under `.lsp/config.edn`. The `.lsp` folder may already exist if you started calva before, it is safe to create it manually if it doesn't.
+The linter is run by clojure-lsp. By default clojure-lsp runs on the entire classpath of the project. There are cases where you may not want that. For example when using clojurescript it is very likely that you will have a `target/` folder in your classpath which you want to exclude from linting. 
+
+There are multiple ways to configure clojure-lsp, The custom configuration must be placed at the root of your project under `.lsp/config.edn`. The `.lsp` folder may already exist if you started calva before, it is safe to create it manually if it doesn't.
 
 ```clj
 {:use-source-paths-from-classpath false
