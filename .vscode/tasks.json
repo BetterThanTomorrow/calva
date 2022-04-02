@@ -4,13 +4,42 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Calva Watch",
+      "label": "Calva Compile",
+      "type": "npm",
+      "script": "compile",
+      "isBackground": false,
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "defaultCalva",
+        "close": true
+      }
+    },
+    {
+      "label": "Calva Watch CLJS",
       "type": "npm",
       "script": "watch",
       "isBackground": true,
       "group": {
         "kind": "build",
-        "isDefault": true
+        "isDefault": false
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "defaultCalva"
+      }
+    },
+    {
+      "label": "Calva Watch TS",
+      "type": "npm",
+      "script": "watch-ts",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": false
       },
       "problemMatcher": "$tsc-watch",
       "presentation": {
@@ -25,7 +54,7 @@
       "isBackground": true,
       "group": {
         "kind": "test",
-        "isDefault": true
+        "isDefault": false
       },
       "problemMatcher": {
         // "owner": "mocha",
@@ -67,59 +96,6 @@
       }
     },
     {
-      "label": "Calva Prettier Check Watch",
-      "type": "npm",
-      "script": "prettier-check-watch",
-      "isBackground": true,
-      "group": {
-        "kind": "build",
-        "isDefault": false
-      },
-      "problemMatcher": [
-        {
-          "owner": "prettier",
-          "source": "prettier",
-          "fileLocation": ["relative", "${workspaceRoot}"],
-          "severity": "warning",
-          "pattern": {
-            "regexp": "\\[warn\\] (.+)",
-            "kind": "file",
-            "file": 1,
-            "message": 1
-          },
-          "background": {
-            "activeOnStart": true,
-            "beginsPattern": "Checking formatting",
-            "endsPattern": "(\\[warn\\] Code style issues found in the above file\\(s\\))|(All matched files use Prettier code style!)"
-          }
-        },
-        {
-          "owner": "prettier",
-          "source": "prettier",
-          "fileLocation": ["relative", "${workspaceRoot}"],
-          "severity": "error",
-          "pattern": {
-            "regexp": "\\[(error)\\] (.+?): (.+) \\((\\d+?):(\\d+?)\\)",
-            "kind": "location",
-            "severity": 1,
-            "file": 2,
-            "message": 3,
-            "line": 4,
-            "column": 5
-          },
-          "background": {
-            "activeOnStart": true,
-            "beginsPattern": "Checking formatting",
-            "endsPattern": "(\\[warn\\] Code style issues found in the above file\\(s\\))|(All matched files use Prettier code style!)"
-          }
-        }
-      ],
-      "presentation": {
-        "panel": "dedicated",
-        "group": "defaultCalva"
-      }
-    },
-    {
       "label": "Calva Prettier Format Watch",
       "type": "npm",
       "script": "prettier-format-watch",
@@ -128,24 +104,32 @@
         "kind": "build",
         "isDefault": false
       },
-
       "presentation": {
-        "panel": "dedicated",
-        "group": "defaultCalva"
+        "panel": "dedicated"
       }
     },
     {
-      "label": "Calva Dev",
+      "label": "Calva Watch",
       "group": {
         "kind": "build",
         "isDefault": false
       },
       "dependsOn": [
-        "Calva Watch",
+        "Calva Prettier Format Watch",
+        "Calva Watch TS",
+        "Calva Watch CLJS",
         "Calva Test Watch",
-        "Calva Lint Watch",
-        "Calva Prettier Format Watch"
+        "Calva Lint Watch"
       ]
+    },
+    {
+      "label": "Calva Dev",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOrder": "sequence",
+      "dependsOn": ["Calva Compile", "Calva Watch"]
     }
   ]
 }
