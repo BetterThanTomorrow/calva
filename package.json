@@ -15,6 +15,7 @@
   },
   "license": "MIT",
   "engines": {
+    "node": "^14",
     "vscode": "^1.63.0"
   },
   "categories": [
@@ -2694,6 +2695,7 @@
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
     "integration-test": "node ./out/extension-test/integration/runTests.js",
     "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
+    "unit-test-watch": "npm run unit-test -- --watch",
     "publish": "bb publish.clj",
     "prettier-format": "npx prettier --write './**/*.{ts,js,json}'",
     "prettier-check": "npx prettier --check './**/*.{ts,js,json}'",
@@ -2702,7 +2704,7 @@
   },
   "dependencies": {
     "@types/escape-html": "0.0.20",
-    "@types/node": "^7.10.9",
+    "@types/node": "^14.18.12",
     "@types/universal-analytics": "^0.4.2",
     "@types/uuid": "^8.3.1",
     "acorn": "^6.4.1",

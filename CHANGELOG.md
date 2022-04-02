@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Update node version to v14, which is maintenance LTS until 2023-04-30
+
 ## [2.0.261] - 2022-04-01
 - Fix: [Results doc gets in a bad state and does not update](https://github.com/BetterThanTomorrow/calva/issues/1509)
 - Fix: [Indenting not working correctly in vectors starting with fn-like symbols](https://github.com/BetterThanTomorrow/calva/issues/1622)

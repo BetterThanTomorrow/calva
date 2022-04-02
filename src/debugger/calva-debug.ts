@@ -406,7 +406,7 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
     }
 
     // Make VS Code connect to debug server
-    return new DebugAdapterServer(this.server.address().port);
+    return new DebugAdapterServer((this.server.address() as Net.AddressInfo).port);
   }
 
   dispose() {
