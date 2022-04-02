@@ -142,7 +142,7 @@ export function rangeForDefun(
 enum GoUpSexpOption {
   Required,
   Never,
-  WhenAtLimit
+  WhenAtLimit,
 }
 
 /**
@@ -157,7 +157,6 @@ function _forwardSexpRange(
   const cursor = doc.getTokenCursor(offset);
 
   if (goUpSexp == GoUpSexpOption.Never || goUpSexp == GoUpSexpOption.WhenAtLimit) {
-
     // Normalize our position by scooting to the beginning of the closest sexp
     cursor.forwardWhitespace();
 
@@ -714,9 +713,9 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
       ],
       start >= cursor.offsetStart
         ? {
-          selection: new ModelEditSelection(cursor.offsetStart),
-          formatDepth: 2,
-        }
+            selection: new ModelEditSelection(cursor.offsetStart),
+            formatDepth: 2,
+          }
         : { formatDepth: 2 }
     );
   }
@@ -740,9 +739,9 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
       ],
       start <= cursor.offsetStart
         ? {
-          selection: new ModelEditSelection(cursor.offsetStart),
-          formatDepth: 2,
-        }
+            selection: new ModelEditSelection(cursor.offsetStart),
+            formatDepth: 2,
+          }
         : { formatDepth: 2 }
     );
   }
