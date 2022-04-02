@@ -146,6 +146,14 @@ const pareditCommands: PareditCommand[] = [
     handler: paredit.selectForwardUpSexp,
   },
   {
+    command: 'paredit.selectForwardSexpOrUp',
+    handler: paredit.selectForwardSexpOrUp,
+  },
+  {
+    command: 'paredit.selectBackwardSexpOrUp',
+    handler: paredit.selectBackwardSexpOrUp,
+  },
+  {
     command: 'paredit.selectBackwardUpSexp',
     handler: paredit.selectBackwardUpSexp,
   },

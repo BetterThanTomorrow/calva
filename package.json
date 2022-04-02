@@ -1277,6 +1277,18 @@
       },
       {
         "category": "Calva Paredit",
+        "command": "paredit.selectBackwardSexpOrUp",
+        "title": "Select Backward Sexp Or Up",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva Paredit",
+        "command": "paredit.selectForwardSexpOrUp",
+        "title": "Select Forward Sexp Or Up",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva Paredit",
         "command": "paredit.selectCloseList",
         "title": "Select Forward to List End/Close",
         "enablement": "editorLangId == clojure"
@@ -1899,15 +1911,7 @@
         "win": "ctrl+right",
         "linux": "ctrl+right",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"
-      },
-      {
-        "command": "paredit.forwardSexpOrUp",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"
-      },
-      {
-        "command": "paredit.backwardSexpOrUp",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"
-      },
+      }, 
       {
         "command": "paredit.forwardDownSexp",
         "key": "ctrl+down",

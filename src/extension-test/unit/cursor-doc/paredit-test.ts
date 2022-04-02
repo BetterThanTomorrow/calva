@@ -340,6 +340,113 @@ describe('paredit', () => {
       });
     });
 
+    describe('forwardSexpOrUpRange', () => {
+      it('Finds the list in front', () => {
+        const a = docFromTextNotation('|(def foo [vec])');
+        const b = docFromTextNotation('|(def foo [vec])|');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds the list in front through metadata', () => {
+        const a = docFromTextNotation('|^:foo (def foo [vec])');
+        const b = docFromTextNotation('|^:foo (def foo [vec])|');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds the list in front through metadata and readers', () => {
+        const a = docFromTextNotation('|^:f #a #b (def foo [vec])');
+        const b = docFromTextNotation('|^:f #a #b (def foo [vec])|');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds the list in front through reader metadata reader', () => {
+        const a = docFromTextNotation('|#c ^:f #a #b (def foo [vec])');
+        const b = docFromTextNotation('|#c ^:f #a #b (def foo [vec])|');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds the symbol in front', () => {
+        const a = docFromTextNotation('(|def foo [vec])');
+        const b = docFromTextNotation('(|def| foo [vec])');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds the rest of the symbol', () => {
+        const a = docFromTextNotation('(d|ef foo [vec])');
+        const b = docFromTextNotation('(d|ef| foo [vec])');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds the rest of the keyword', () => {
+        const a = docFromTextNotation('(def foo [:foo :bar :ba|z])');
+        const b = docFromTextNotation('(def foo [:foo :bar :ba|z|])');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Includes space between the cursor and the symbol', () => {
+        const a = docFromTextNotation('(def| foo [vec])');
+        const b = docFromTextNotation('(def| foo| [vec])');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds the vector in front', () => {
+        const a = docFromTextNotation('(def foo |[vec])');
+        const b = docFromTextNotation('(def foo |[vec]|)');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds the keyword in front', () => {
+        const a = docFromTextNotation('(def foo [:foo :bar |:baz])');
+        const b = docFromTextNotation('(def foo [:foo :bar |:baz|])');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Leaves an sexp if at the end', () => {
+        const a = docFromTextNotation('(def foo [:foo :bar :baz|])');
+        const b = docFromTextNotation('(def foo [:foo :bar :baz|]|)');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds next symbol, including leading space', () => {
+        const a = docFromTextNotation('(|>|def|>| foo [vec])');
+        const b = docFromTextNotation('(def|>| foo|>| [vec])');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds following vector including leading space', () => {
+        const a = docFromTextNotation('(|>|def foo|>| [vec])');
+        const b = docFromTextNotation('(def foo|>| [vec]|>|)');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Reverses direction of selection and finds next sexp', () => {
+        const a = docFromTextNotation('(|<|def foo|<| [vec])');
+        const b = docFromTextNotation('(def foo|>| [vec]|>|)');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+    });
+
+    describe('backwardSexpOrUpRange', () => {
+      it('Finds the list preceding', () => {
+        const a = docFromTextNotation('(def foo [vec])|');
+        const b = docFromTextNotation('|(def foo [vec])|');
+        expect(paredit.backwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds the list preceding through metadata', () => {
+        const a = docFromTextNotation('^:foo (def foo [vec])|');
+        const b = docFromTextNotation('|^:foo (def foo [vec])|');
+        expect(paredit.backwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds the list preceding through metadata and readers', () => {
+        const a = docFromTextNotation('^:f #a #b (def foo [vec])|');
+        const b = docFromTextNotation('|^:f #a #b (def foo [vec])|');
+        expect(paredit.backwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds the list preceding through reader metadata reader', () => {
+        const a = docFromTextNotation('#c ^:f #a #b (def foo [vec])|');
+        const b = docFromTextNotation('|#c ^:f #a #b (def foo [vec])|');
+        expect(paredit.backwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Finds previous form, including space, and reverses direction', () => {
+        // TODO: Should we really be reversing the direction here?
+        const a = docFromTextNotation('(def |<|foo [vec]|<|)');
+        const b = docFromTextNotation('(|>|def |>|foo [vec])');
+        expect(paredit.backwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Goes up when at front bounds', () => {
+        const a = docFromTextNotation('(def x (|inc 1))');
+        const b = docFromTextNotation('(def x |(|inc 1))');
+        expect(paredit.backwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+    });
+
     describe('moveToRangeRight', () => {
       it('Places cursor at the right end of the selection', () => {
         const a = docFromTextNotation('(def |>|foo|>| [vec])');

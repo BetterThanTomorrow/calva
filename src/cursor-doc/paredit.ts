@@ -64,6 +64,15 @@ export function selectRight(doc: EditableDocument) {
   selectRangeForward(doc, rangeFn(doc));
 }
 
+export function selectForwardSexpOrUp(doc: EditableDocument) {
+  const rangeFn =
+    doc.selection.active >= doc.selection.anchor
+      ? forwardSexpOrUpRange
+      : (doc: EditableDocument) => forwardSexpOrUpRange(doc, doc.selection.active, true);
+
+  selectRangeForward(doc, rangeFn(doc));
+}
+
 export function selectBackwardSexp(doc: EditableDocument) {
   const rangeFn =
     doc.selection.active <= doc.selection.anchor
@@ -96,6 +105,14 @@ export function selectBackwardUpSexp(doc: EditableDocument) {
   selectRangeBackward(doc, rangeFn(doc));
 }
 
+export function selectBackwardSexpOrUp(doc: EditableDocument) {
+  const rangeFn =
+    doc.selection.active <= doc.selection.anchor
+      ? (doc: EditableDocument) => backwardSexpOrUpRange(doc, doc.selection.active, false)
+      : (doc: EditableDocument) => backwardSexpOrUpRange(doc, doc.selection.active, false);
+  selectRangeBackward(doc, rangeFn(doc));
+}
+
 export function selectCloseList(doc: EditableDocument) {
   selectRangeForward(doc, rangeToForwardList(doc, doc.selection.active));
 }
@@ -117,21 +134,101 @@ export function rangeForDefun(
   return cursor.rangeForDefun(offset, commentCreatesTopLevel);
 }
 
+/**
+ * Required : If the cursor can move up and out of an sexp, it must
+ * Never : If the cursor is at the inner limit of an sexp, it may not escape
+ * WhenAtLimit : If the cursor is at the inner limit of an sexp, it may move up and out
+ */
+enum GoUpSexpOption {
+  Required,
+  Never,
+  WhenAtLimit
+}
+
+/**
+ * Return a modified selection range on doc. Moves the right limit around sexps, potentially moving up.
+ */
+function _forwardSexpRange(
+  doc: EditableDocument,
+  goUpSexp: GoUpSexpOption,
+  offset = Math.max(doc.selection.anchor, doc.selection.active),
+  goPastWhitespace = false
+): [number, number] {
+  const cursor = doc.getTokenCursor(offset);
+
+  if (goUpSexp == GoUpSexpOption.Never || goUpSexp == GoUpSexpOption.WhenAtLimit) {
+
+    // Normalize our position by scooting to the beginning of the closest sexp
+    cursor.forwardWhitespace();
+
+    if (cursor.forwardSexp(true, true)) {
+      if (goPastWhitespace) {
+        cursor.forwardWhitespace();
+      }
+      return [offset, cursor.offsetStart];
+    }
+  }
+
+  if (goUpSexp == GoUpSexpOption.Required || goUpSexp == GoUpSexpOption.WhenAtLimit) {
+    cursor.forwardList();
+    if (cursor.upList()) {
+      if (goPastWhitespace) {
+        cursor.forwardWhitespace();
+      }
+      return [offset, cursor.offsetStart];
+    }
+  }
+  return [offset, offset];
+}
+
+/**
+ * Return a modified selection range on doc. Moves the left limit around sexps, potentially moving up.
+ */
+function _backwardSexpRange(
+  doc: EditableDocument,
+  goUpSexp: GoUpSexpOption,
+  offset: number = Math.min(doc.selection.anchor, doc.selection.active),
+  goPastWhitespace = false
+): [number, number] {
+  const cursor = doc.getTokenCursor(offset);
+
+  if (goUpSexp == GoUpSexpOption.Never || goUpSexp == GoUpSexpOption.WhenAtLimit) {
+    if (!cursor.isWhiteSpace() && cursor.offsetStart < offset) {
+      // This is because cursor.backwardSexp() can't move backwards when "on" the first sexp inside a list
+      // TODO: Try to fix this in LispTokenCursor instead.
+      cursor.forwardSexp();
+    }
+    cursor.backwardWhitespace();
+
+    if (cursor.backwardSexp(true, true)) {
+      if (goPastWhitespace) {
+        cursor.backwardWhitespace();
+      }
+      return [cursor.offsetStart, offset];
+    }
+  }
+
+  if (goUpSexp == GoUpSexpOption.Required || goUpSexp == GoUpSexpOption.WhenAtLimit) {
+    cursor.backwardList();
+    if (cursor.backwardUpList()) {
+      cursor.forwardSexp(true, true);
+      cursor.backwardSexp(true, true);
+      if (goPastWhitespace) {
+        cursor.backwardWhitespace();
+      }
+      return [cursor.offsetStart, offset];
+    }
+  }
+
+  return [offset, offset];
+}
+
 export function forwardSexpRange(
   doc: EditableDocument,
   offset = Math.max(doc.selection.anchor, doc.selection.active),
   goPastWhitespace = false
 ): [number, number] {
-  const cursor = doc.getTokenCursor(offset);
-  cursor.forwardWhitespace();
-  if (cursor.forwardSexp(true, true)) {
-    if (goPastWhitespace) {
-      cursor.forwardWhitespace();
-    }
-    return [offset, cursor.offsetStart];
-  } else {
-    return [offset, offset];
-  }
+  return _forwardSexpRange(doc, GoUpSexpOption.Never, offset, goPastWhitespace);
 }
 
 export function backwardSexpRange(
@@ -139,21 +236,7 @@ export function backwardSexpRange(
   offset: number = Math.min(doc.selection.anchor, doc.selection.active),
   goPastWhitespace = false
 ): [number, number] {
-  const cursor = doc.getTokenCursor(offset);
-  if (!cursor.isWhiteSpace() && cursor.offsetStart < offset) {
-    // This is because cursor.backwardSexp() can't move backwards when "on" the first sexp inside a list
-    // TODO: Try to fix this in LispTokenCursor instead.
-    cursor.forwardSexp();
-  }
-  cursor.backwardWhitespace();
-  if (cursor.backwardSexp(true, true)) {
-    if (goPastWhitespace) {
-      cursor.backwardWhitespace();
-    }
-    return [cursor.offsetStart, offset];
-  } else {
-    return [offset, offset];
-  }
+  return _backwardSexpRange(doc, GoUpSexpOption.Never, offset, goPastWhitespace);
 }
 
 export function forwardListRange(
@@ -260,16 +343,7 @@ export function rangeToForwardUpList(
   offset: number = Math.max(doc.selection.anchor, doc.selection.active),
   goPastWhitespace = false
 ): [number, number] {
-  const cursor = doc.getTokenCursor(offset);
-  cursor.forwardList();
-  if (cursor.upList()) {
-    if (goPastWhitespace) {
-      cursor.forwardWhitespace();
-    }
-    return [offset, cursor.offsetStart];
-  } else {
-    return [offset, offset];
-  }
+  return _forwardSexpRange(doc, GoUpSexpOption.Required, offset, goPastWhitespace);
 }
 
 export function rangeToBackwardUpList(
@@ -277,18 +351,7 @@ export function rangeToBackwardUpList(
   offset: number = Math.min(doc.selection.anchor, doc.selection.active),
   goPastWhitespace = false
 ): [number, number] {
-  const cursor = doc.getTokenCursor(offset);
-  cursor.backwardList();
-  if (cursor.backwardUpList()) {
-    cursor.forwardSexp(true, true);
-    cursor.backwardSexp(true, true);
-    if (goPastWhitespace) {
-      cursor.backwardWhitespace();
-    }
-    return [cursor.offsetStart, offset];
-  } else {
-    return [offset, offset];
-  }
+  return _backwardSexpRange(doc, GoUpSexpOption.Required, offset, goPastWhitespace);
 }
 
 export function forwardSexpOrUpRange(
@@ -296,23 +359,7 @@ export function forwardSexpOrUpRange(
   offset = Math.max(doc.selection.anchor, doc.selection.active),
   goPastWhitespace = false
 ): [number, number] {
-  const cursor = doc.getTokenCursor(offset);
-  cursor.forwardWhitespace();
-  if (cursor.forwardSexp(true, true)) {
-    if (goPastWhitespace) {
-      cursor.forwardWhitespace();
-    }
-    return [offset, cursor.offsetStart];
-  } else {
-    if (cursor.upList()) {
-      if (goPastWhitespace) {
-        cursor.forwardWhitespace();
-      }
-      return [offset, cursor.offsetStart];
-    } else {
-      return [offset, offset];
-    }
-  }
+  return _forwardSexpRange(doc, GoUpSexpOption.WhenAtLimit, offset, goPastWhitespace);
 }
 
 export function backwardSexpOrUpRange(
@@ -320,31 +367,7 @@ export function backwardSexpOrUpRange(
   offset: number = Math.min(doc.selection.anchor, doc.selection.active),
   goPastWhitespace = false
 ): [number, number] {
-  const cursor = doc.getTokenCursor(offset);
-  if (!cursor.isWhiteSpace() && cursor.offsetStart < offset) {
-    // This is because cursor.backwardSexp() can't move backwards when "on" the first sexp inside a list
-    // TODO: Try to fix this in LispTokenCursor instead.
-    cursor.forwardSexp();
-  }
-  cursor.backwardWhitespace();
-  if (cursor.backwardSexp(true, true)) {
-    if (goPastWhitespace) {
-      cursor.backwardWhitespace();
-    }
-    return [cursor.offsetStart, offset];
-  } else {
-    cursor.backwardList();
-    if (cursor.backwardUpList()) {
-      cursor.forwardSexp(true, true);
-      cursor.backwardSexp(true, true);
-      if (goPastWhitespace) {
-        cursor.backwardWhitespace();
-      }
-      return [cursor.offsetStart, offset];
-    } else {
-      return [offset, offset];
-    }
-  }
+  return _backwardSexpRange(doc, GoUpSexpOption.WhenAtLimit, offset, goPastWhitespace);
 }
 
 export function rangeToForwardDownList(
@@ -691,9 +714,9 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
       ],
       start >= cursor.offsetStart
         ? {
-            selection: new ModelEditSelection(cursor.offsetStart),
-            formatDepth: 2,
-          }
+          selection: new ModelEditSelection(cursor.offsetStart),
+          formatDepth: 2,
+        }
         : { formatDepth: 2 }
     );
   }
@@ -717,9 +740,9 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
       ],
       start <= cursor.offsetStart
         ? {
-            selection: new ModelEditSelection(cursor.offsetStart),
-            formatDepth: 2,
-          }
+          selection: new ModelEditSelection(cursor.offsetStart),
+          formatDepth: 2,
+        }
         : { formatDepth: 2 }
     );
   }
