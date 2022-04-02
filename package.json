@@ -2695,10 +2695,12 @@
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
     "integration-test": "node ./out/extension-test/integration/runTests.js",
     "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
-    "unit-test-watch": "npm run unit-test -- --watch",
+    "unit-test-watch": "npx mocha --watch --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
     "publish": "bb publish.clj",
     "prettier-format": "npx prettier --write './**/*.{ts,js,json}'",
     "prettier-check": "npx prettier --check './**/*.{ts,js,json}'",
+    "prettier-check-watch": "npx onchange './**/*.{ts,js,json}' -- prettier --check {{changed}}",
+    "prettier-format-watch": "npx onchange './**/*.{ts,js,json}' -- prettier --write {{changed}}",
     "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
     "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch"
   },
