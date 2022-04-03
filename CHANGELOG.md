@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Improve kondo configuration documentation](https://github.com/BetterThanTomorrow/calva/issues/1282)
-- [Upgrade node version to v16+, plus other node version related fixes and types updates](https://github.com/BetterThanTomorrow/calva/issues/1638#issuecomment-1086726236)
+- [Require VS Code 1.66+ (and update project node version to 16+)](https://github.com/BetterThanTomorrow/calva/issues/1638#issuecomment-1086726236)
 
 ## [2.0.262] - 2022-04-02
 - Tech debt mortgage: [Cleanup/removal of EditableDocument.selectionLeft/Right APIs](https://github.com/BetterThanTomorrow/calva/issues/1607)]
