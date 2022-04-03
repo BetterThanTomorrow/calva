@@ -1,5 +1,7 @@
 INHERIT: mkdocs.yml
 plugins:
+  - search:
+     separator: '[\s\-\._]'
   - social:
       cards: true
       cards_color:
