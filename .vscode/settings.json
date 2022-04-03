@@ -229,5 +229,12 @@
         "cljsLaunchBuilds": [":calva-lib", ":test"]
       }
     }
-  ]
+  ],
+  "workbench.colorCustomizations": {
+    "sash.hoverBorder": "#90B4FE",
+    "titleBar.activeBackground": "#DB9550",
+    "titleBar.activeForeground": "#131722",
+    "titleBar.inactiveBackground": "#db9550d5",
+    "titleBar.inactiveForeground": "#13172299"
+  }
 }
