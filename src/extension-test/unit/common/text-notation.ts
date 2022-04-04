@@ -14,8 +14,8 @@ import * as model from '../../../cursor-doc/model';
 
 function textNotationToTextAndSelection(s: string): [string, { anchor: number; active: number }] {
   const text = s.replace(/•/g, '\n').replace(/\|?[<>]?\|/g, '');
-  let anchor = undefined;
-  let active = undefined;
+  let anchor: undefined | number = undefined;
+  let active: undefined | number = undefined;
   anchor = s.indexOf('|>|');
   if (anchor >= 0) {
     active = s.lastIndexOf('|>|') - 3;
