@@ -15,8 +15,8 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "^14",
-    "vscode": "^1.63.0"
+    "node": ">=16",
+    "vscode": "^1.66.0"
   },
   "categories": [
     "Programming Languages",
@@ -2734,7 +2734,7 @@
   },
   "dependencies": {
     "@types/escape-html": "0.0.20",
-    "@types/node": "^14.18.12",
+    "@types/node": "^16.11.26",
     "@types/universal-analytics": "^0.4.2",
     "@types/uuid": "^8.3.1",
     "acorn": "^6.4.1",
