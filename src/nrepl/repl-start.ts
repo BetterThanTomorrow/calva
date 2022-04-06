@@ -10,6 +10,8 @@ import { getConfig } from '../config';
 import * as replSession from './repl-session';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import { ReplConnectSequence } from './connectSequence';
+import * as clojureLsp from '../lsp/main';
+import * as calvaConfig from '../config';
 
 const TEMPLATES_SUB_DIR = 'bundled';
 const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
@@ -160,6 +162,9 @@ export async function startStandaloneRepl(
       console.error(`Error downloading drams: ${err.message}`);
       void vscode.window.showWarningMessage(`Error downloading files: ${err.message}`);
     });
+  }
+  if (calvaConfig.getConfig().enableClojureLspOnStart) {
+    void clojureLsp.startClientCommand();
   }
 
   const [mainDoc, mainEditor] = await openStoredDoc(storageUri, tempDirUri, config.files[0]);

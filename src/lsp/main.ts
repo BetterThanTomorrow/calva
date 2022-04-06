@@ -440,7 +440,7 @@ async function getFallbackFolder(): Promise<FallbackFolder> {
   };
 }
 
-async function startClientCommand() {
+export async function startClientCommand() {
   lspStatus.show();
   await maybeDownloadLspServer();
   await startClient(await getFallbackFolder());
