@@ -498,6 +498,10 @@ function randomSlug(length = 7) {
   return Math.random().toString(36).substring(7);
 }
 
+function calvaTmpDir() {
+  return path.join(os.tmpdir(), 'betterthantomorrow.calva');
+}
+
 const isWindows = process.platform === 'win32';
 
 export async function isDocumentWritable(document: vscode.TextDocument): Promise<boolean> {
@@ -578,4 +582,5 @@ export {
   tryToGetActiveTextEditor,
   getActiveTextEditor,
   pathExists,
+  calvaTmpDir,
 };
