@@ -37,8 +37,7 @@ Not a fan of some default setting? The formatter is quite configurable.
 
 You configure Calva's formatting using [cljfmt's configuration EDN](https://github.com/weavejester/cljfmt#configuration). This means that you can adjust the above mentioned defaults, including the indenting.
 
-This configuration can either be provided via a file or via clojure-lsp (see [Clojure LSP Settings]
-(https://clojure-lsp.io/settings/)).
+This configuration can either be provided via a file or via clojure-lsp (see [Clojure LSP Settings](https://clojure-lsp.io/settings/)).
 
 ??? Note "Only use the clojure-lsp config option if you need it"
     The option to read formatting config from clojure-lsp is there to let teams where some members use clojure-lsp for formatting, share the config. To provide the settings via clojure-lsp, set `calva.fmt.configPath` to `CLOJURE-LSP` (case sensitive). However, there are limitations:

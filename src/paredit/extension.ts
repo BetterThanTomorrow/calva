@@ -40,7 +40,7 @@ function shouldKillAlsoCutToClipboard() {
 
 type PareditCommand = {
   command: string;
-  handler: (doc: EditableDocument) => void;
+  handler: (doc: EditableDocument) => void | Promise<void>;
 };
 const pareditCommands: PareditCommand[] = [
   // NAVIGATING
@@ -391,7 +391,7 @@ function wrapPareditCommand(command: PareditCommand) {
       if (!enabled || !languages.has(textEditor.document.languageId)) {
         return;
       }
-      command.handler(mDoc);
+      void command.handler(mDoc);
     } catch (e) {
       console.error(e.message);
     }

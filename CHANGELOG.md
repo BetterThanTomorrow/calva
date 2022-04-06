@@ -3,7 +3,13 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.263] - 2022-04-06
 - [Improve kondo configuration documentation](https://github.com/BetterThanTomorrow/calva/issues/1282)
+- [Require VS Code 1.66+ (and update project node version to 16+)](https://github.com/BetterThanTomorrow/calva/issues/1638#issuecomment-1086726236)
+- Maintenance: [Upgrade TS + some ts eslint plugins + fix any necessary changes thereof](https://github.com/BetterThanTomorrow/calva/issues/1639)
+- Fix: [Command not working: sync the Output/REPL window namespace with the current file](https://github.com/BetterThanTomorrow/calva/issues/1503)
+
 
 ## [2.0.262] - 2022-04-02
 - Tech debt mortgage: [Cleanup/removal of EditableDocument.selectionLeft/Right APIs](https://github.com/BetterThanTomorrow/calva/issues/1607)]
