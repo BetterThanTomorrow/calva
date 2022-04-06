@@ -21,7 +21,7 @@
     {
       "label": "Calva Watch CLJS",
       "type": "npm",
-      "script": "watch",
+      "script": "watch-cljs",
       "isBackground": true,
       "group": {
         "kind": "build",
