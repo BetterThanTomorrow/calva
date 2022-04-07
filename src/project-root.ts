@@ -12,7 +12,7 @@ export async function findProjectRootPaths() {
     '.nrepl-port',
   ];
   const projectFilesGlob = `**/{${projectFileNames.join(',')}}`;
-  const excludeDirsGlob = `**/{${config.getConfig().projectRootsSearchExclude.join(',')}}`;
+  const excludeDirsGlob = excludePattern();
   const t0 = new Date().getTime();
   const rootPaths: string[] = [];
   if (vscode.workspace.workspaceFolders?.length > 0) {
@@ -25,6 +25,10 @@ export async function findProjectRootPaths() {
   rootPaths.push(...projectFilePaths);
   const candidatePaths = [...new Set(rootPaths)].sort();
   return candidatePaths;
+}
+
+export function excludePattern(moreExcludes: string[] = []) {
+  return `**/{${[...moreExcludes, ...config.getConfig().projectRootsSearchExclude].join(',')}}`;
 }
 
 export async function findClosestProjectRootPath(candidatePaths?: string[]) {

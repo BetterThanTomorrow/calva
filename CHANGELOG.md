@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Jump between source/test does not work properly with multiple workspace folders](https://github.com/BetterThanTomorrow/calva/issues/1219)
 
 ## [2.0.264] - 2022-04-07
 - Fix: [Shadowcljs shows error when running calva.loadFile command](https://github.com/BetterThanTomorrow/calva/issues/1670)
