@@ -83,6 +83,49 @@ export function docFromTextNotation(s: string): model.StringDocument {
   return doc;
 }
 
+export function textNotationFromDoc(doc: model.StringDocument): string {
+  const selections = doc.selections ?? [];
+  let cursorSymbols: [number, string][] = [];
+  selections.forEach((s, cursorNumber) => {
+    const cursorType = s.isReversed ? '<' : '|';
+    cursorSymbols.push([s.start, `${cursorType}${cursorNumber || ''}`]);
+    if (s.isSelection) {
+      cursorSymbols.push([s.end, `${cursorType}${cursorNumber || ''}`]);
+    }
+  });
+
+  cursorSymbols = orderBy(cursorSymbols, (c) => c[0]);
+
+  const text = doc.model.lines.map((l) => l.text).join('•');
+
+  // basically split up the text into chunks separated by where they'd have had cursor symbols, and append cursor symbols after each chunk, before joining back together
+  // this way we can insert the cursor symbols in the right place without having to worry about the cumulative offsets created by appending the cursor symbols
+  const textSegments = cursorSymbols
+    .reduce(
+      (acc, [offset, symbol], index) => {
+        const lastSection = last(acc)[1];
+        const sections = acc.slice(0, -1);
+
+        const lastSectionOffset =
+          offset - sections.filter((s) => s[0]).reduce((sum, sec) => sum + sec[1].length, 0);
+        const newSectionOfText = [true, lastSection.slice(0, lastSectionOffset)];
+        const newSectionWithCursor = [false, symbol];
+        const restOfText = lastSection.slice(lastSectionOffset);
+
+        return [...sections, newSectionOfText, newSectionWithCursor, [true, restOfText]];
+      },
+      [
+        [true, text] as [
+          boolean /* is an actual text segment instead of cursor symbol? */,
+          string /* text segment or cursor symbol */
+        ],
+      ]
+    )
+    .map((s) => s[1]);
+
+  return textSegments.join('');
+}
+
 /**
  * Utility function to get the text from a document.
  * @param doc
