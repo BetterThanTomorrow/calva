@@ -31,7 +31,7 @@ const LSP_CLIENT_KEY_ERROR = 'lspClientError';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
 const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE =
   'The clojure-lsp server is not running or has not finished initializing.';
-const lspStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+const lspStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
 let serverVersion: string;
 let extensionContext: vscode.ExtensionContext;
 let clojureLspPath: string;
@@ -355,7 +355,7 @@ function registerEventHandlers(context: vscode.ExtensionContext) {
 async function stopClient() {
   const client = getStateValue(LSP_CLIENT_KEY);
   void vscode.commands.executeCommand('setContext', 'clojureLsp:active', false);
-  updateStatusItem('stopped');
+  updateStatus('stopped');
   setStateValue(LSP_CLIENT_KEY, undefined);
   if (client) {
     console.log('Stopping clojure-lsp');
@@ -441,7 +441,7 @@ async function getFallbackFolder(): Promise<FallbackFolder> {
 }
 
 export async function startClientCommand() {
-  lspStatus.show();
+  lspStatusItem.show();
   await maybeDownloadLspServer();
   await startClient(await getFallbackFolder());
 }
@@ -496,7 +496,7 @@ async function startClient(fallbackFolder: FallbackFolder): Promise<boolean> {
   client.registerFeature(testTree);
 
   const onReadyPromise = client.onReady();
-  updateStatusItem('starting');
+  updateStatus('starting');
 
   client.start();
   try {
@@ -512,13 +512,13 @@ async function startClient(fallbackFolder: FallbackFolder): Promise<boolean> {
     });
     client.onRequest('window/showMessageRequest', handleShowMessageRequest);
     await vscode.commands.executeCommand('setContext', 'clojureLsp:active', true);
-    updateStatusItem('started');
+    updateStatus('started');
     return true;
   } catch (error) {
     console.error('clojure-lsp:', error);
     setStateValue(LSP_CLIENT_KEY_ERROR, error);
-    updateStatusItem('error');
-    lspStatus.hide();
+    updateStatus('error');
+    lspStatusItem.hide();
     // TODO: If we stop the client here, the user gets an error alert
     //await stopClient();
     return false;
@@ -606,39 +606,36 @@ function registerDiagnosticsCommands(context: vscode.ExtensionContext): void {
   );
 }
 
-type LspStatus = 'preparing' | 'stopped' | 'starting' | 'started' | 'downloading' | 'error';
+export type LspStatus = 'stopped' | 'starting' | 'started' | 'downloading' | 'error';
+export let lspStatus: LspStatus = 'stopped';
 
-function updateStatusItem(status: LspStatus, extraInfo?: string) {
+function updateStatus(status: LspStatus, extraInfo?: string) {
+  lspStatus = status;
   switch (status) {
-    case 'preparing':
-      lspStatus.text = '$(dash) clojure-lsp';
-      lspStatus.tooltip = 'Calva is preparing to initialize Clojure-LSP';
-      lspStatus.command = undefined;
-      break;
     case 'stopped':
-      lspStatus.text = '$(circle-outline) clojure-lsp';
-      lspStatus.tooltip = 'Clojure-LSP is not active, click to get a menu';
-      lspStatus.command = 'calva.clojureLsp.showClojureLspStoppedMenu';
+      lspStatusItem.text = '$(circle-outline) clojure-lsp';
+      lspStatusItem.tooltip = 'Clojure-LSP is not active, click to get a menu';
+      lspStatusItem.command = 'calva.clojureLsp.showClojureLspStoppedMenu';
       break;
     case 'starting':
-      lspStatus.text = '$(rocket) clojure-lsp';
-      lspStatus.tooltip = 'Clojure-LSP is starting';
-      lspStatus.command = undefined;
+      lspStatusItem.text = '$(rocket) clojure-lsp';
+      lspStatusItem.tooltip = 'Clojure-LSP is starting';
+      lspStatusItem.command = undefined;
       break;
     case 'started':
-      lspStatus.text = '$(circle-filled) clojure-lsp';
-      lspStatus.tooltip = 'Clojure-LSP is active';
-      lspStatus.command = 'calva.clojureLsp.showClojureLspStartedMenu';
+      lspStatusItem.text = '$(circle-filled) clojure-lsp';
+      lspStatusItem.tooltip = 'Clojure-LSP is active';
+      lspStatusItem.command = 'calva.clojureLsp.showClojureLspStartedMenu';
       break;
     case 'downloading':
-      lspStatus.text = '$(sync~spin) clojure-lsp downloading';
-      lspStatus.tooltip = `Calva is downloading clojure-lsp version: ${extraInfo}`;
-      lspStatus.command = undefined;
+      lspStatusItem.text = '$(sync~spin) clojure-lsp downloading';
+      lspStatusItem.tooltip = `Calva is downloading clojure-lsp version: ${extraInfo}`;
+      lspStatusItem.command = undefined;
       break;
     case 'error':
-      lspStatus.text = '$(error) clojure-lsp';
-      lspStatus.tooltip = 'Clojure-LSP is not running because of some error';
-      lspStatus.command = 'calva.clojureLsp.showClojureLspStoppedMenu';
+      lspStatusItem.text = '$(error) clojure-lsp';
+      lspStatusItem.tooltip = 'Clojure-LSP is not running because of some error';
+      lspStatusItem.command = 'calva.clojureLsp.showClojureLspStoppedMenu';
       break;
     default:
       break;
@@ -653,9 +650,9 @@ async function activate(context: vscode.ExtensionContext, handler: TestTreeHandl
   registerLspCommands(context);
   registerEventHandlers(context);
 
-  updateStatusItem('preparing');
+  updateStatus('stopped');
   if (config.getConfig().enableClojureLspOnStart) {
-    lspStatus.show();
+    lspStatusItem.show();
     await maybeDownloadLspServer();
     const fallbackFolder = await getFallbackFolder();
     if (fallbackFolder.type !== FolderType.FROM_NO_CLOJURE_FILE) {
@@ -680,7 +677,7 @@ async function maybeDownloadLspServer(forceDownLoad = false): Promise<string> {
 }
 
 async function downloadLSPServerCommand() {
-  lspStatus.show();
+  lspStatusItem.show();
   const version = await maybeDownloadLspServer(true);
   void vscode.window.showInformationMessage(`Downloaded clojure-lsp version: ${version}`);
 }
@@ -698,9 +695,9 @@ async function ensureServerDownloaded(forceDownLoad = false): Promise<string> {
     !util.pathExists(clojureLspPath)
   ) {
     const downloadPromise = downloadClojureLsp(extensionContext.extensionPath, downloadVersion);
-    updateStatusItem('downloading', downloadVersion);
+    updateStatus('downloading', downloadVersion);
     await downloadPromise;
-    updateStatusItem('stopped');
+    updateStatus('stopped');
   }
   return readVersionFile(extensionContext.extensionPath);
 }

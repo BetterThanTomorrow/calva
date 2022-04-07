@@ -163,7 +163,7 @@ export async function startStandaloneRepl(
       void vscode.window.showWarningMessage(`Error downloading files: ${err.message}`);
     });
   }
-  if (calvaConfig.getConfig().enableClojureLspOnStart) {
+  if (clojureLsp.lspStatus === 'stopped' && calvaConfig.getConfig().enableClojureLspOnStart) {
     void clojureLsp.startClientCommand();
   }
 
