@@ -75,7 +75,7 @@ The versions used are configurable via the VS Code settings `calva.jackInDepende
 
 ## Key bindings
 
-Most of Calva's commands have default keybindings. They are only defaults, though, and you can change keybindings as you wish. To facilitate precision in binding keys Calva keeps some [when clause contexts](https://code.visualstudio.com/api/references/when-clause-contexts) updated. 
+Most of Calva's commands have default keybindings. They are only defaults, though, and you can change keybindings as you wish. To facilitate precision in binding keys Calva keeps some [when clause contexts](https://code.visualstudio.com/api/references/when-clause-contexts) updated.
 
 ### When Clause Contexts
 
@@ -87,15 +87,15 @@ The following contexts are available with Calva:
 * `calva:outputWindowActive`: `true` when the [Output/REPL window](output.md) has input focus
 * `calva:replHistoryCommandsActive`: `true` when the cursor is in the Output/REPL window at the top level after the last prompt
 * `calva:outputWindowSubmitOnEnter`: `true` when the cursor is adjacent after the last top level form in the Output/REPL window
-* `calva:cursorInString`: `true` when the cursor/caret is in a string or a regexp
-* `calva:cursorInComment`: `true` when the cursor is in, or adjacent to a line comment
-* `calva:cursorBeforeComment`: `true` when the cursor is adjacent before a line comment
-* `calva:cursorAfterComment`: `true` when the cursor is adjacent after a line comment
-* `calva:cursorAtStartOfLine`: `true` when the cursor is at the start of a line including any leading whitespace
-* `calva:cursorAtEndOfLine`: `true` when the cursor is at the end of a line including any trailing whitespace
+<!-- * `calva:cursorInString`: `true` when the cursor/caret is in a string or a regexp -->
+<!-- * `calva:cursorInComment`: `true` when the cursor is in, or adjacent to a line comment -->
+<!-- * `calva:cursorBeforeComment`: `true` when the cursor is adjacent before a line comment -->
+<!-- * `calva:cursorAfterComment`: `true` when the cursor is adjacent after a line comment -->
+<!-- * `calva:cursorAtStartOfLine`: `true` when the cursor is at the start of a line including any leading whitespace -->
+<!-- * `calva:cursorAtEndOfLine`: `true` when the cursor is at the end of a line including any trailing whitespace -->
 * `calva:showReplUi`: `false` when Calva's REPL UI is disabled through the corresponding setting
 
-### Some Custom Bindings 
+### Some Custom Bindings
 
 Here is a collection of custom keybindings from here and there.
 

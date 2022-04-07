@@ -4,7 +4,7 @@ import * as docMirror from './doc-mirror';
 import * as context from './cursor-doc/cursor-context';
 import * as util from './utilities';
 
-let lastContexts: context.CursorContext[] = [];
+let lastContexts: readonly context.CursorContext[] = context.allCursorContexts;
 
 export function setCursorContextIfChanged(editor: vscode.TextEditor) {
   if (
@@ -24,12 +24,12 @@ export function setCursorContextIfChanged(editor: vscode.TextEditor) {
 function determineCursorContexts(
   document: vscode.TextDocument,
   position: vscode.Position
-): context.CursorContext[] {
+): readonly context.CursorContext[] {
   const mirrorDoc = docMirror.getDocument(document);
   return context.determineContexts(mirrorDoc, document.offsetAt(position));
 }
 
-function setCursorContexts(currentContexts: context.CursorContext[]) {
+function setCursorContexts(currentContexts: readonly context.CursorContext[]) {
   lastContexts = currentContexts;
   context.allCursorContexts.forEach((context) => {
     void vscode.commands.executeCommand(

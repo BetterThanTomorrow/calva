@@ -1,12 +1,12 @@
 import { EditableDocument } from './model';
 
 export const allCursorContexts = [
-  'calva:cursorInString',
-  'calva:cursorInComment',
-  'calva:cursorAtStartOfLine',
-  'calva:cursorAtEndOfLine',
-  'calva:cursorBeforeComment',
-  'calva:cursorAfterComment',
+  // 'calva:cursorInString',
+  // 'calva:cursorInComment',
+  // 'calva:cursorAtStartOfLine',
+  // 'calva:cursorAtEndOfLine',
+  // 'calva:cursorBeforeComment',
+  // 'calva:cursorAfterComment',
 ] as const;
 
 export type CursorContext = typeof allCursorContexts[number];
@@ -60,24 +60,25 @@ export function isAtLineEndInclWS(doc: EditableDocument, offset = doc.selections
 export function determineContexts(
   doc: EditableDocument,
   offset = doc.selections[0].active
-): CursorContext[] {
+): readonly CursorContext[] {
   const tokenCursor = doc.getTokenCursor(offset);
-  const contexts: CursorContext[] = [];
+  // const contexts: CursorContext[] = [];
+  const contexts: readonly CursorContext[] = allCursorContexts;
 
   if (isAtLineStartInclWS(doc)) {
-    contexts.push('calva:cursorAtStartOfLine');
+    // contexts.push('calva:cursorAtStartOfLine');
   } else if (isAtLineEndInclWS(doc)) {
-    contexts.push('calva:cursorAtEndOfLine');
+    // contexts.push('calva:cursorAtEndOfLine');
   }
 
   if (tokenCursor.withinString()) {
-    contexts.push('calva:cursorInString');
+    // contexts.push('calva:cursorInString');
   } else if (tokenCursor.withinComment()) {
-    contexts.push('calva:cursorInComment');
+    // contexts.push('calva:cursorInComment');
   }
 
   // Compound contexts
-  if (contexts.includes('calva:cursorInComment')) {
+  /*   if (contexts.includes('calva:cursorInComment')) {
     if (contexts.includes('calva:cursorAtEndOfLine')) {
       tokenCursor.forwardWhitespace(false);
       if (tokenCursor.getToken().type != 'comment') {
@@ -89,7 +90,7 @@ export function determineContexts(
         contexts.push('calva:cursorBeforeComment');
       }
     }
-  }
+  } */
 
   return contexts;
 }
