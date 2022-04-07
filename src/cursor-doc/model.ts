@@ -154,6 +154,14 @@ export class ModelEditSelection {
     }
   } */
 
+  get isCursor() {
+    return this.anchor === this.active;
+  }
+
+  get isSelection() {
+    return this.anchor !== this.active;
+  }
+
   get isReversed() {
     this._updateDirection();
     return this._isReversed;
@@ -168,6 +176,10 @@ export class ModelEditSelection {
       this._start = this._anchor;
       this._end = this._active;
     }
+  }
+
+  get distance() {
+    return this._end - this._start;
   }
 
   clone() {
