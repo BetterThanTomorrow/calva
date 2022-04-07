@@ -28,9 +28,14 @@ export class TextLine {
 }
 
 export type ModelEditFunction = 'insertString' | 'changeRange' | 'deleteRange';
+export type ModelEditFunctionArgs<T extends ModelEditFunction> = T extends 'insertString'
+  ? Parameters<LineInputModel['insertString']>
+  : T extends 'changeRange'
+  ? Parameters<LineInputModel['changeRange']>
+  : Parameters<LineInputModel['deleteRange']>;
 
-export class ModelEdit {
-  constructor(public editFn: ModelEditFunction, public args: any[]) {}
+export class ModelEdit<T extends ModelEditFunction = ModelEditFunction> {
+  constructor(public editFn: T, public args: ModelEditFunctionArgs<T>) {}
 }
 
 /**
@@ -191,7 +196,6 @@ export type ModelEditOptions = {
   undoStopBefore?: boolean;
   formatDepth?: number;
   skipFormat?: boolean;
-  // selection?: ModelEditSelection;
   selections?: ModelEditSelection[];
 };
 
@@ -208,7 +212,10 @@ export interface EditableModel {
    * For some EditableModel's these are performed as one atomic set of edits.
    * @param edits
    */
-  edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<ModelEditResult>;
+  edit: (
+    edits: ModelEdit<ModelEditFunction>[],
+    options: ModelEditOptions
+  ) => Thenable<ModelEditResult>;
 
   getText: (start: number, end: number, mustBeWithin?: boolean) => string;
   getLineText: (line: number) => string;
@@ -523,13 +530,7 @@ export class LineInputModel implements EditableModel {
    * @param oldSelection the old selection
    * @param newSelection the new selection
    */
-  private changeRange(
-    start: number,
-    end: number,
-    text: string,
-    oldSelection?: [number, number],
-    newSelection?: [number, number]
-  ) {
+  private changeRange(start: number, end: number, text: string) {
     const t1 = new Date();
 
     const startPos = Math.min(start, end);
@@ -595,13 +596,8 @@ export class LineInputModel implements EditableModel {
    * @param text the text to insert
    * @param oldCursor the [row,col] of the cursor at the start of the operation
    */
-  insertString(
-    offset: number,
-    text: string,
-    oldSelection?: [number, number],
-    newSelection?: [number, number]
-  ): number {
-    this.changeRange(offset, offset, text, oldSelection, newSelection);
+  insertString(offset: number, text: string): number {
+    this.changeRange(offset, offset, text);
     return text.length;
   }
 
@@ -620,7 +616,7 @@ export class LineInputModel implements EditableModel {
     oldSelection?: [number, number],
     newSelection?: [number, number]
   ) {
-    this.changeRange(offset, offset + count, '', oldSelection, newSelection);
+    this.changeRange(offset, offset + count, '');
   }
 
   /** Return the offset of the last character in this model. */

@@ -1,9 +1,14 @@
-import { isEqual, isNumber, last, pick, property, clone, isBoolean } from 'lodash';
+import { isEqual, last, pick, property, clone, isBoolean, orderBy } from 'lodash';
 import { validPair } from './clojure-lexer';
-import { EditableDocument, ModelEdit, ModelEditSelection, ModelEditResult } from './model';
+import {
+  EditableDocument,
+  ModelEdit,
+  ModelEditSelection,
+  ModelEditResult,
+  ModelEditFunctionArgs,
+} from './model';
 import { LispTokenCursor } from './token-cursor';
 import { replaceAt } from '../util/array';
-import { ShowDocumentRequest } from 'vscode-languageclient';
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -595,8 +600,8 @@ export function wrapSexpr(
             new ModelEdit('insertString', [
               range[0],
               open,
-              [end, end],
-              [start + open.length, start + open.length],
+              // [end, end],
+              // [start + open.length, start + open.length],
             ]),
           ],
           {
@@ -703,8 +708,8 @@ export function joinSexp(doc: EditableDocument): Thenable<ModelEditResult> {
             prevEnd - 1,
             nextStart + 1,
             prevToken.type === 'close' ? ' ' : '',
-            [start, start],
-            [prevEnd, prevEnd],
+            // [start, start],
+            // [prevEnd, prevEnd],
           ])
         );
         selections[index] = new ModelEditSelection(prevEnd);
@@ -810,7 +815,7 @@ export function _forwardSlurpSexpSingle(
       const wsEndOffset = wsOutSideCursor.offsetStart;
       const newCloseOffset = cursor.offsetStart;
       const replacedText = doc.model.getText(wsStartOffset, wsEndOffset);
-      const changeArgs =
+      const changeArgs: ModelEditFunctionArgs<'changeRange'> =
         replacedText.indexOf('\n') >= 0
           ? [currentCloseOffset, currentCloseOffset + close.length, '']
           : [wsStartOffset, wsEndOffset, ' '];
@@ -1454,13 +1459,7 @@ export function transpose(
           }
           edits.push(
             new ModelEdit('changeRange', [rightStart, rightEnd, leftText]),
-            new ModelEdit('changeRange', [
-              leftStart,
-              leftEnd,
-              rightText,
-              [left, left],
-              [newCursorPos, newCursorPos],
-            ])
+            new ModelEdit('changeRange', [leftStart, leftEnd, rightText])
           );
           selections[index] = new ModelEditSelection(newCursorPos);
         }
@@ -1681,10 +1680,7 @@ export function dragSexprBackwardUp(
           wsInfo.rightWsRange[1] - currentRange[0],
         ]);
       }
-      edits.push(
-        deleteEdit,
-        new ModelEdit('insertString', [listStart, dragText, [p, p], [newCursorPos, newCursorPos]])
-      );
+      edits.push(deleteEdit, new ModelEdit('insertString', [listStart, dragText]));
       selections[index] = new ModelEditSelection(newCursorPos);
     }
   });
@@ -1722,12 +1718,7 @@ export function dragSexprForwardDown(
         const insertText =
           doc.model.getText(...currentRange) + (wsInfo.rightWsHasNewline ? '\n' : ' ');
         edits.push(
-          new ModelEdit('insertString', [
-            insertStart,
-            insertText,
-            [p, p],
-            [newCursorPos, newCursorPos],
-          ]),
+          new ModelEdit('insertString', [insertStart, insertText]),
           new ModelEdit('deleteRange', [currentRange[0], deleteLength])
         );
         selections[index] = new ModelEditSelection(newCursorPos);
@@ -1770,7 +1761,7 @@ export function dragSexprForwardUp(
       }
       const newCursorPos = listEnd + newPosOffset + 1 - deleteLength;
       edits.push(
-        new ModelEdit('insertString', [listEnd, dragText, [p, p], [newCursorPos, newCursorPos]]),
+        new ModelEdit('insertString', [listEnd, dragText]),
         new ModelEdit('deleteRange', [deleteStart, deleteLength])
       );
       selections[index] = new ModelEditSelection(newCursorPos);
@@ -1813,12 +1804,7 @@ export function dragSexprBackwardDown(
         insertText = (siblingWsInfo.leftWsHasNewline ? '\n' : ' ') + insertText;
         edits.push(
           new ModelEdit('deleteRange', [wsInfo.leftWsRange[0], deleteLength]),
-          new ModelEdit('insertString', [
-            insertStart,
-            insertText,
-            [p, p],
-            [newCursorPos, newCursorPos],
-          ])
+          new ModelEdit('insertString', [insertStart, insertText])
         );
         selections[index] = new ModelEditSelection(newCursorPos);
         break;
@@ -1872,21 +1858,11 @@ export function addRichComment(
       checkIfRichCommentExistsCursor.forwardWhitespace(false);
       // insert nothing, just place cursor
       const newCursorPos = checkIfRichCommentExistsCursor.offsetStart;
-      void doc.model.edit(
-        [
-          new ModelEdit('insertString', [
-            newCursorPos,
-            '',
-            [newCursorPos, newCursorPos],
-            [newCursorPos, newCursorPos],
-          ]),
-        ],
-        {
-          selections: [new ModelEditSelection(newCursorPos)],
-          skipFormat: true,
-          undoStopBefore: false,
-        }
-      );
+      void doc.model.edit([new ModelEdit('insertString', [newCursorPos, ''])], {
+        selections: [new ModelEditSelection(newCursorPos)],
+        skipFormat: true,
+        undoStopBefore: false,
+      });
       return;
     }
   }
@@ -1900,19 +1876,9 @@ export function addRichComment(
   const append = '\n'.repeat(numAppendNls);
   const insertText = `${prepend}${richComment}${append}`;
   const newCursorPos = insertStart + 11 + numPrependNls * doc.model.lineEndingLength;
-  void doc.model.edit(
-    [
-      new ModelEdit('insertString', [
-        insertStart,
-        insertText,
-        [insertStart, insertStart],
-        [newCursorPos, newCursorPos],
-      ]),
-    ],
-    {
-      selections: [new ModelEditSelection(newCursorPos)],
-      skipFormat: false,
-      undoStopBefore: true,
-    }
-  );
+  void doc.model.edit([new ModelEdit('insertString', [insertStart, insertText])], {
+    selections: [new ModelEditSelection(newCursorPos)],
+    skipFormat: false,
+    undoStopBefore: true,
+  });
 }
