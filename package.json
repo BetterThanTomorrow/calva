@@ -2706,7 +2706,7 @@
     "watch-docs": "mkdocs serve",
     "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
     "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
-    "precompile": "npm i && npm run clean && npm run update-grammar",
+    "precompile": "npm i && npm run clean && npm run update-grammar && npm run prettier-format",
     "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
     "compile-ts": "npx tsc --project ./tsconfig.json",
     "compile": "npm run compile-cljs && npm run compile-ts",
