@@ -236,8 +236,8 @@ export interface EditableDocument {
   insertString: (text: string) => void;
   getSelectionTexts: () => string[];
   getSelectionText: (index: number) => string;
-  delete: (index?: number) => Thenable<ModelEditResult>;
-  backspace: (index?: number) => Thenable<ModelEditResult>;
+  delete: () => Thenable<ModelEditResult>;
+  backspace: () => Thenable<ModelEditResult>;
 }
 
 /** The underlying model for the REPL readline. */
@@ -679,36 +679,21 @@ export class StringDocument implements EditableDocument {
   getSelectionTexts: () => string[];
   getSelectionText: (index: number) => string;
 
-  delete(index?: number) {
-    if (isUndefined(index)) {
-      return this.model.edit(
-        this.selections.map(({ anchor: p }) => new ModelEdit('deleteRange', [p, 1])),
-        {
-          selections: this.selections.map(({ anchor: p }) => new ModelEditSelection(p)),
-        }
-      );
-    } else {
-      return this.model.edit([new ModelEdit('deleteRange', [(this.selections[index].anchor, 1)])], {
-        selections: [new ModelEditSelection(this.selections[index].anchor)],
-      });
-    }
+  delete() {
+    return this.model.edit(
+      this.selections.map(({ anchor: p }) => new ModelEdit('deleteRange', [p, 1])),
+      {
+        selections: this.selections.map(({ anchor: p }) => new ModelEditSelection(p)),
+      }
+    );
   }
 
-  backspace(index?: number) {
-    if (isUndefined(index)) {
-      return this.model.edit(
-        this.selections.map(({ anchor: p }) => new ModelEdit('deleteRange', [p - 1, 1])),
-        {
-          selections: this.selections.map(({ anchor: p }) => new ModelEditSelection(p - 1)),
-        }
-      );
-    } else {
-      return this.model.edit(
-        [new ModelEdit('deleteRange', [this.selections[index].anchor - 1, 1])],
-        {
-          selections: [new ModelEditSelection(this.selections[index].anchor - 1)],
-        }
-      );
-    }
+  backspace() {
+    return this.model.edit(
+      this.selections.map(({ anchor: p }) => new ModelEdit('deleteRange', [p - 1, 1])),
+      {
+        selections: this.selections.map(({ anchor: p }) => new ModelEditSelection(p - 1)),
+      }
+    );
   }
 }
