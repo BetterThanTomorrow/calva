@@ -12,7 +12,7 @@ import {
 } from 'vscode';
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
-import { EditableDocument, ModelEditResult, ModelEditSelection } from '../cursor-doc/model';
+import { EditableDocument, ModelEditResult } from '../cursor-doc/model';
 import { assertIsDefined } from '../utilities';
 
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
@@ -49,7 +49,10 @@ const pareditCommands: PareditCommand[] = [
     handler: (doc: EditableDocument) => {
       paredit.moveToRangeRight(
         doc,
-        doc.selections.map((s) => paredit.forwardSexpRange(doc, s.active))
+        paredit.forwardSexpRange(
+          doc,
+          doc.selections.map((s) => s.active)
+        )
       );
     },
   },
@@ -58,7 +61,10 @@ const pareditCommands: PareditCommand[] = [
     handler: (doc: EditableDocument) => {
       paredit.moveToRangeLeft(
         doc,
-        doc.selections.map((s) => paredit.backwardSexpRange(doc, s.active))
+        paredit.backwardSexpRange(
+          doc,
+          doc.selections.map((s) => s.active)
+        )
       );
     },
   },
@@ -262,14 +268,11 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.killRight',
     handler: (doc: EditableDocument) => {
-      // doc.selections.forEach((s) => {
-      // const range = paredit.forwardHybridSexpRange(doc, s.active);
-      paredit.forwardHybridSexpRange(doc).forEach((range) => {
-        if (shouldKillAlsoCutToClipboard()) {
-          copyRangeToClipboard(doc, range);
-        }
-        paredit.killRange(doc, range);
-      });
+      const ranges = paredit.forwardHybridSexpRange(doc);
+      if (shouldKillAlsoCutToClipboard()) {
+        copyRangeToClipboard(doc, ranges);
+      }
+      return paredit.killRange(doc, ranges);
     },
   },
   {

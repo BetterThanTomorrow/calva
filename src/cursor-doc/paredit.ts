@@ -77,8 +77,8 @@ export function selectForwardSexp(doc: EditableDocument) {
     const rangeFn =
       selection.active >= selection.anchor
         ? forwardSexpRange
-        : (doc: EditableDocument) => forwardSexpRange(doc, selection.active, true);
-    return rangeFn(doc, selection.start);
+        : (doc: EditableDocument) => forwardSexpRange(doc, [selection.active], true);
+    return rangeFn(doc, [selection.start])[0];
   });
   selectRangeForward(doc, ranges);
 }
@@ -88,8 +88,8 @@ export function selectRight(doc: EditableDocument) {
   const ranges = doc.selections.map((selection) => {
     const rangeFn =
       selection.active >= selection.anchor
-        ? (doc) => forwardHybridSexpRange(doc, selection.end)
-        : (doc: EditableDocument) => forwardHybridSexpRange(doc, selection.active, true);
+        ? (doc) => forwardHybridSexpRange(doc, [selection.end])[0]
+        : (doc: EditableDocument) => forwardHybridSexpRange(doc, [selection.active], true)[0];
     return rangeFn(doc);
   });
   selectRangeForward(doc, ranges);
@@ -99,8 +99,8 @@ export function selectForwardSexpOrUp(doc: EditableDocument) {
   const ranges = doc.selections.map((selection) => {
     const rangeFn =
       selection.active >= selection.anchor
-        ? (doc) => forwardSexpOrUpRange(doc, selection.end)
-        : (doc: EditableDocument) => forwardSexpOrUpRange(doc, selection.active, true);
+        ? (doc) => forwardSexpOrUpRange(doc, [selection.end])[0]
+        : (doc: EditableDocument) => forwardSexpOrUpRange(doc, [selection.active], true)[0];
     return rangeFn(doc);
   });
   selectRangeForward(doc, ranges);
@@ -111,8 +111,8 @@ export function selectBackwardSexp(doc: EditableDocument) {
     const rangeFn =
       selection.active <= selection.anchor
         ? backwardSexpRange
-        : (doc: EditableDocument) => backwardSexpRange(doc, selection.active, false);
-    return rangeFn(doc, selection.start);
+        : (doc: EditableDocument) => backwardSexpRange(doc, [selection.active], false);
+    return rangeFn(doc, [selection.start])[0];
   });
   selectRangeBackward(doc, ranges);
 }
@@ -157,9 +157,9 @@ export function selectBackwardSexpOrUp(doc: EditableDocument) {
   const ranges = doc.selections.map((selection) => {
     const rangeFn =
       selection.active <= selection.anchor
-        ? (doc: EditableDocument) => backwardSexpOrUpRange(doc, selection.active, false)
-        : (doc: EditableDocument) => backwardSexpOrUpRange(doc, selection.active, false);
-    return rangeFn(doc);
+        ? (doc: EditableDocument) => backwardSexpOrUpRange(doc, [selection.active], false)
+        : (doc: EditableDocument) => backwardSexpOrUpRange(doc, [selection.active], false);
+    return rangeFn(doc)[0];
   });
   selectRangeBackward(doc, ranges);
 }
@@ -285,42 +285,18 @@ function _backwardSexpRange(
 
 export function forwardSexpRange(
   doc: EditableDocument,
-  offsets?: number[],
-  goPastWhitespace?: boolean
-): Array<[number, number]>;
-export function forwardSexpRange(
-  doc: EditableDocument,
-  offset?: number,
-  goPastWhitespace?: boolean
-): [number, number];
-export function forwardSexpRange(
-  doc: EditableDocument,
-  oneOrMoreOffsets: number[] | number = doc.selections.map((s) => s.end),
+  offsets: number[] = doc.selections.map((s) => s.end),
   goPastWhitespace = false
-): Array<[number, number]> | [number, number] {
-  const offsets = Array.isArray(oneOrMoreOffsets) ? oneOrMoreOffsets : [oneOrMoreOffsets];
-  const ranges = _forwardSexpRange(doc, offsets, GoUpSexpOption.Never, goPastWhitespace);
-  return Array.isArray(oneOrMoreOffsets) ? ranges : ranges[0];
+): Array<[number, number]> {
+  return _forwardSexpRange(doc, offsets, GoUpSexpOption.Never, goPastWhitespace);
 }
 
 export function backwardSexpRange(
   doc: EditableDocument,
-  offsets?: number[],
-  goPastWhitespace?: boolean
-): Array<[number, number]>;
-export function backwardSexpRange(
-  doc: EditableDocument,
-  offset?: number,
-  goPastWhitespace?: boolean
-): [number, number];
-export function backwardSexpRange(
-  doc: EditableDocument,
-  oneOrMoreOffsets: number[] | number = doc.selections.map((s) => s.start),
+  offsets: number[] = doc.selections.map((s) => s.start),
   goPastWhitespace = false
-): Array<[number, number]> | [number, number] {
-  const offsets = Array.isArray(oneOrMoreOffsets) ? oneOrMoreOffsets : [oneOrMoreOffsets];
-  const ranges = _backwardSexpRange(doc, offsets, GoUpSexpOption.Never, goPastWhitespace);
-  return Array.isArray(oneOrMoreOffsets) ? ranges : ranges[0];
+): Array<[number, number]> {
+  return _backwardSexpRange(doc, offsets, GoUpSexpOption.Never, goPastWhitespace);
 }
 
 export function forwardListRange(
@@ -355,29 +331,16 @@ export function backwardListRange(
  * @param goPastWhitespace
  * @returns [number, number]
  */
-export function forwardHybridSexpRange(
-  doc: EditableDocument,
-  offsets?: number[],
-  goPastWhitespace?: boolean
-): Array<[number, number]>;
-export function forwardHybridSexpRange(
-  doc: EditableDocument,
-  offset?: number,
-  goPastWhitespace?: boolean
-): [number, number];
+
 export function forwardHybridSexpRange(
   doc: EditableDocument,
   // offset = Math.max(doc.selections.anchor, doc.selections.active),
   // offset?: number = doc.selections[0].end,
   // selections: ModelEditSelection[] = doc.selections,
-  offsets: number | number[] = doc.selections.map((s) => s.end),
+  offsets: number[] = doc.selections.map((s) => s.end),
   goPastWhitespace = false
-): [number, number] | Array<[number, number]> {
-  if (isNumber(offsets)) {
-    offsets = [offsets];
-  }
-
-  const ranges = offsets.map<[number, number]>((offset) => {
+): Array<[number, number]> {
+  return offsets.map<[number, number]>((offset) => {
     // const { end: offset } = selection;
 
     let cursor = doc.getTokenCursor(offset);
@@ -442,12 +405,6 @@ export function forwardHybridSexpRange(
     }
     return [offset, end];
   });
-
-  if (isNumber(offsets)) {
-    return ranges[0];
-  } else {
-    return ranges;
-  }
 }
 
 export function rangeToForwardUpList(
@@ -470,42 +427,18 @@ export function rangeToBackwardUpList(
 
 export function forwardSexpOrUpRange(
   doc: EditableDocument,
-  offsets?: number[],
-  goPastWhitespace?: boolean
-): Array<[number, number]>;
-export function forwardSexpOrUpRange(
-  doc: EditableDocument,
-  offset?: number,
-  goPastWhitespace?: boolean
-): [number, number];
-export function forwardSexpOrUpRange(
-  doc: EditableDocument,
-  oneOrMoreOffsets: number[] | number = doc.selections.map((s) => s.end),
+  offsets: number[] = doc.selections.map((s) => s.end),
   goPastWhitespace = false
-): Array<[number, number]> | [number, number] {
-  const offsets = isNumber(oneOrMoreOffsets) ? [oneOrMoreOffsets] : oneOrMoreOffsets;
-  const ranges = _forwardSexpRange(doc, offsets, GoUpSexpOption.WhenAtLimit, goPastWhitespace);
-  return isNumber(oneOrMoreOffsets) ? ranges[0] : ranges;
+): Array<[number, number]> {
+  return _forwardSexpRange(doc, offsets, GoUpSexpOption.WhenAtLimit, goPastWhitespace);
 }
 
 export function backwardSexpOrUpRange(
   doc: EditableDocument,
-  offsets?: number[],
-  goPastWhitespace?: boolean
-): Array<[number, number]>;
-export function backwardSexpOrUpRange(
-  doc: EditableDocument,
-  offset?: number,
-  goPastWhitespace?: boolean
-): [number, number];
-export function backwardSexpOrUpRange(
-  doc: EditableDocument,
-  oneOrMoreOffsets: number[] | number = doc.selections.map((s) => s.start),
+  offsets: number[] = doc.selections.map((s) => s.start),
   goPastWhitespace = false
-): Array<[number, number]> | [number, number] {
-  const offsets = isNumber(oneOrMoreOffsets) ? [oneOrMoreOffsets] : oneOrMoreOffsets;
-  const ranges = _backwardSexpRange(doc, offsets, GoUpSexpOption.WhenAtLimit, goPastWhitespace);
-  return isNumber(oneOrMoreOffsets) ? ranges[0] : ranges;
+): Array<[number, number]> {
+  return _backwardSexpRange(doc, offsets, GoUpSexpOption.WhenAtLimit, goPastWhitespace);
 }
 
 export function rangeToForwardDownList(
