@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.264] - 2022-04-07
+- Fix: [Shadowcljs shows error when running calva.loadFile command](https://github.com/BetterThanTomorrow/calva/issues/1670)
+
 ## [2.0.263] - 2022-04-06
 - [Improve kondo configuration documentation](https://github.com/BetterThanTomorrow/calva/issues/1282)
 - [Require VS Code 1.66+ (and update project node version to 16+)](https://github.com/BetterThanTomorrow/calva/issues/1638#issuecomment-1086726236)

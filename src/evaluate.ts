@@ -93,7 +93,7 @@ async function evaluateCode(
     const err: string[] = [];
 
     if (outputWindow.getNs() !== ns) {
-      await session.eval(`(in-ns '${ns}) (clojure.core/refer-clojure)`, session.client.ns).value;
+      await session.switchNS(ns);
     }
 
     const context: NReplEvaluation = session.eval(code, ns, {
@@ -417,7 +417,7 @@ async function loadFile(
 
     outputWindow.append('; Evaluating file: ' + fileName);
 
-    await session.eval(`(in-ns '${ns}) (clojure.core/refer-clojure)`, session.client.ns).value;
+    await session.switchNS(ns);
 
     const res = session.loadFile(fileContents, {
       fileName,
@@ -474,7 +474,7 @@ async function requireREPLUtilitiesCommand() {
     if (session) {
       try {
         await namespace.createNamespaceFromDocumentIfNotExists(util.tryToGetDocument({}));
-        await session.eval(`(in-ns '${ns}) (clojure.core/refer-clojure)`, session.client.ns).value;
+        await session.switchNS(ns);
         await session.eval(form, ns).value;
         chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
       } catch (e) {
@@ -548,7 +548,7 @@ export async function evaluateInOutputWindow(
     const session = replSession.getSession(sessionType);
     replSession.updateReplSessionType();
     if (outputWindow.getNs() !== ns) {
-      await session.eval(`(in-ns '${ns}) (clojure.core/refer-clojure)`, session.client.ns).value;
+      await session.switchNS(ns);
       outputWindow.setSession(session, ns);
       if (options.evaluationSendCodeToOutputWindow !== false) {
         outputWindow.appendPrompt();
