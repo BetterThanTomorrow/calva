@@ -1136,6 +1136,18 @@ describe('paredit', () => {
         void paredit.raiseSexp(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
+      it('raises the current form when with two cursors ordered left->right', () => {
+        const a = docFromTextNotation('(a (b|)) (a (b|1)) (a (b))');
+        const b = docFromTextNotation('(a b|) (a b|1) (a (b))');
+        void paredit.raiseSexp(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('raises the current form when with two cursors ordered right->left', () => {
+        const a = docFromTextNotation('(a (b|1)) (a (b|)) (a (b))');
+        const b = docFromTextNotation('(a b|1) (a b|) (a (b))'); // "(a b) (a b) (a (b))", [[ 10, 10], [4, 4]]
+        void paredit.raiseSexp(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
     });
 
     describe('Kill character backwards (backspace)', () => {
@@ -1341,6 +1353,44 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
+
+    describe('Kill/Delete forward to End of List', () => {
+      it('Multi: kills last symbol in each list after cursor', async () => {
+        const a = docFromTextNotation('(|2a)(|1a)(|a)');
+        const b = docFromTextNotation('(|2)(|1)(|)');
+        await paredit.killForwardList(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
+    describe('Kill/Delete backward to start of List', () => {
+      it('Multi: kills last symbol in list after cursor', async () => {
+        const a = docFromTextNotation('(a|)(a|1)(a|2)'); // "(a)(a)(a)" [[2,2], [5,5], [8,8]]
+        const b = docFromTextNotation('(|)(|1)(|2)'); // "()()()" [[1,1], [3,3], [5,5]],
+        await paredit.killBackwardList(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
+    describe('Kill/Delete Sexp', () => {
+      describe('Kill/Delete Sexp Forward', () => {
+        it('Multi: kills/deletes sexp forwards', () => {
+          const a = docFromTextNotation('(|2a) (|1a) (|a) (a)');
+          const b = docFromTextNotation('(|2) (|1) (|) (a)');
+          void paredit.killSexpForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+      describe('Kill/Delete Sexp Backwards', () => {
+        it('Multi: kills/deletes sexp Backwards', async () => {
+          const a = docFromTextNotation('(a|2) (a|1) (a|) (a)');
+          const b = docFromTextNotation('(|2) (|1) (|) (a)');
+          await paredit.killSexpBackward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+    });
+
     describe('addRichComment', () => {
       it('Adds Rich Comment after Top Level form', () => {
         const a = docFromTextNotation('(fo|o)••(bar)');

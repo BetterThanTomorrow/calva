@@ -1,4 +1,5 @@
 import { isEqual, last, pick, property, clone, isBoolean, orderBy } from 'lodash';
+import _ = require('lodash');
 import { validPair } from './clojure-lexer';
 import {
   EditableDocument,
@@ -20,15 +21,60 @@ import { replaceAt } from '../util/array';
 //       Example: paredit.moveToRangeRight(this.readline, paredit.forwardSexpRange(this.readline))
 //                => paredit.moveForwardSexp(this.readline)
 
-export function killRange(
-  doc: EditableDocument,
-  range: [number, number],
-  start = doc.selections[0].anchor,
-  end = doc.selections[0].active
-) {
-  const [left, right] = [Math.min(...range), Math.max(...range)];
-  void doc.model.edit([new ModelEdit('deleteRange', [left, right - left, [start, end]])], {
-    selections: [new ModelEditSelection(left)],
+export function killRange(doc: EditableDocument, ranges: Array<[number, number]>) {
+  const edits = [],
+    // use tuple to track
+    // [selection, original selection/cursor order before sorting by location, and amount of text deleted]
+    selections: [ModelEditSelection, number, number][] = [];
+
+  /**
+   * Sorting by location backwards simplifies the underlying "deleteRange" operation,
+   *  as the operation logic doesn't have to translate the range by the sum of each prior deletion.
+   *
+   * We still however have to do the aforementioned translation/relocation for the post-delete cursor replacement,
+   *  but that happens ONCE, at the end of this whole range killing series,
+   *  and also seems to not be subject to as many strange bugs as
+   *  when we do the translation/relocation for deletion operations.
+   *
+   * For example, it appears that sometimes a series of deletions DOESN'T take into account
+   *  prior (ascending order of location) deletions,
+   *  so in order to prevent incorrect text being deleted, we might want to precalculate the updated offsets
+   *  on behalf of the delete operations, as we suggested NOT doing above.
+   *
+   * However, sometimes, it DOES take into account the prior deletions (or at least some of them)
+   *
+   * Of course, if the latter occurs, yet we thought the former would, our preventative
+   *  precalculated offset adjustments would then cause
+   *  incorrect text to be deleted anyways.
+   */
+
+  _(ranges)
+    .map((r, idx) => [r, idx] as const)
+    .orderBy(([r]) => Math.min(...r), 'desc')
+    .forEach(([range, idx]) => {
+      // we assume the ranges passed above are some transformation of the current selections
+      // therefore doc.selections[index] should be the range before the transformation... maybe
+      const [left, right] = [Math.min(...range), Math.max(...range)];
+      const length = right - left;
+      edits.push(new ModelEdit('deleteRange', [left, length]));
+      selections.push([new ModelEditSelection(left), idx, length]);
+    });
+
+  return doc.model.edit(edits, {
+    selections: _(selections)
+      // return to original selection/cursor order
+      .orderBy(([_, idx]) => idx)
+      // pull each cursor backwards by the amount of text deleted by every prior (by location) cursor's delete operation
+      .map(
+        ([selection], _index, others) =>
+          new ModelEditSelection(
+            selection.start -
+              _(others)
+                .filter(([s]) => s.start < selection.start)
+                .reduce((sum, [_, __, length]) => sum + length, 0)
+          )
+      )
+      .value(),
   });
 }
 
@@ -683,38 +729,132 @@ export function spliceSexp(
   return doc.model.edit(edits, { undoStopBefore, selections });
 }
 
-export function killBackwardList(
+export function killSexpBackward(
   doc: EditableDocument,
-  [start, end]: [number, number]
-): Thenable<ModelEditResult> {
-  return doc.model.edit(
-    [new ModelEdit('changeRange', [start, end, '', [end, end], [start, start]])],
-    {
-      selections: [new ModelEditSelection(start)],
-    }
+  shouldKillAlsoCutToClipboard = () => false,
+  copyRangeToClipboard = (doc: EditableDocument, range: Array<[number, number]>) => undefined
+) {
+  const ranges = backwardSexpRange(
+    doc,
+    doc.selections.map((s) => s.active)
   );
+  if (shouldKillAlsoCutToClipboard()) {
+    copyRangeToClipboard(doc, ranges);
+  }
+  return killRange(doc, ranges);
 }
 
+export function killSexpForward(
+  doc: EditableDocument,
+  shouldKillAlsoCutToClipboard = () => false,
+  copyRangeToClipboard = (doc: EditableDocument, range: Array<[number, number]>) => undefined
+) {
+  const ranges = forwardSexpRange(doc);
+  if (shouldKillAlsoCutToClipboard()) {
+    copyRangeToClipboard(doc, ranges);
+  }
+  return killRange(doc, ranges);
+}
+
+/**
+ * In making this compatible with multi-cursor,
+ *  we had to complicate the logic somewhat to make sure
+ *  deletions by prior cursors are taken into account by
+ *  later ones, and are relocated accordingly.
+ *
+ * See comments in paredit.killRange() for more details.
+ */
+export function killBackwardList(
+  doc: EditableDocument,
+  ranges: Array<[number, number]> = doc.selections.map((s) => [s.start, s.end])
+): Thenable<ModelEditResult> {
+  const edits: ModelEdit<'deleteRange'>[] = [],
+    selections: [ModelEditSelection, number, number][] = [];
+
+  _(ranges)
+    .map((r, idx) => [r, idx] as const)
+    .orderBy(([r]) => Math.min(...r), 'desc')
+    .forEach(([r, originalIndex]) => {
+      const [left, right] = r;
+      const cursor = doc.getTokenCursor(left);
+      cursor.backwardList();
+      // const offset = selections
+      // .filter((s) => s.start < left)
+      // .reduce((sum, s) => sum + s.distance, 0);
+      // const start = cursor.offsetStart - offset;
+      // const end = right - offset;
+      // edits.push(new ModelEdit('deleteRange', [start, Math.abs(end - start)]));
+      const start = cursor.offsetStart;
+      const end = right;
+      const length = Math.abs(end - start);
+      edits.push(new ModelEdit('deleteRange', [start, length]));
+      // selections.push([new ModelEditSelection(start, end), originalIndex, length]);
+      selections.push([new ModelEditSelection(start, end), originalIndex, length]);
+    });
+
+  return doc.model.edit(edits, {
+    selections: _(selections)
+      .orderBy(([_, originalIndex]) => originalIndex)
+      .map(
+        ([selection], _idx, others) =>
+          new ModelEditSelection(
+            selection.start -
+              _(others)
+                .filter(([s]) => s.start < selection.start)
+                .reduce((sum, [_, __, lengthDeleted]) => sum + lengthDeleted, 0)
+          )
+      )
+      .value(),
+  });
+}
+
+/**
+ * In making this compatible with multi-cursor,
+ *  we had to complicate the logic somewhat to make sure
+ *  deletions by prior cursors are taken into account by
+ *  later ones, and are relocated accordingly.
+ *
+ * See comments in paredit.killRange() for more details.
+ */
 export function killForwardList(
   doc: EditableDocument,
-  [start, end]: [number, number]
+  ranges: Array<[number, number]> = doc.selections.map((s) => [s.start, s.end])
 ): Thenable<ModelEditResult> {
-  const cursor = doc.getTokenCursor(start);
-  const inComment =
-    (cursor.getToken().type == 'comment' && start > cursor.offsetStart) ||
-    cursor.getPrevToken().type == 'comment';
-  return doc.model.edit(
-    [
-      new ModelEdit('changeRange', [
-        start,
-        end,
-        inComment ? '\n' : '',
-        [start, start],
-        [start, start],
-      ]),
-    ],
-    { selections: [new ModelEditSelection(start)] }
-  );
+  const edits: ModelEdit<'changeRange'>[] = [],
+    selections: [ModelEditSelection, number, number][] = [];
+
+  _(ranges)
+    .map((r, idx) => [r, idx] as const)
+    .orderBy(([r]) => Math.min(...r), 'desc')
+    .forEach(([r, originalIndex]) => {
+      const [left, right] = r;
+      const cursor = doc.getTokenCursor(left);
+      cursor.forwardList();
+      const inComment =
+        (cursor.getToken().type == 'comment' && left > cursor.offsetStart) ||
+        cursor.getPrevToken().type == 'comment';
+
+      const start = cursor.offsetStart;
+      const end = right;
+      const length = Math.abs(end - start);
+      edits.push(new ModelEdit('changeRange', [start, end, inComment ? '\n' : '']));
+      selections.push([new ModelEditSelection(start, end), originalIndex, length]);
+    });
+
+  return doc.model.edit(edits, {
+    selections: _(selections)
+      .orderBy(([_, originalIndex]) => originalIndex)
+      .map(
+        ([selection], _idx, others) =>
+          new ModelEditSelection(
+            selection.start -
+              _(others)
+                .filter(([s]) => s.start < selection.start)
+                .reduce((sum, [_, __, lengthDeleted]) => sum + lengthDeleted, 0)
+          )
+      )
+      .value(),
+  });
 }
 
 // FIXME: check if this forEach solution works vs map into modelEdit batch
@@ -1272,40 +1412,64 @@ export function setSelectionStack(
   doc.selectionsStack = selections;
 }
 
-export function raiseSexp(
-  doc: EditableDocument
-  // start = doc.selections.anchor,
-  // end = doc.selections.active
-) {
-  const edits = [],
-    selections = clone(doc.selections);
-  doc.selections.forEach((selection, index) => {
-    const { start, end } = selection;
+/**
+ * In making this compatible with multi-cursor,
+ *  we had to complicate the logic somewhat to make sure
+ *  deletions by prior cursors are taken into account by
+ *  later ones, and are relocated accordingly.
+ *
+ * See comments in paredit.killRange() for more details.
+ */
+export function raiseSexp(doc: EditableDocument) {
+  const edits: ModelEdit<'changeRange'>[] = [],
+    selections = doc.selections.map((s) => [0, s.clone()] as [number, ModelEditSelection]);
 
-    const cursor = doc.getTokenCursor(end);
-    const [formStart, formEnd] = cursor.rangeForCurrentForm(start);
-    const isCaretTrailing = formEnd - start < start - formStart;
-    const startCursor = doc.getTokenCursor(formStart);
-    const endCursor = startCursor.clone();
-    if (endCursor.forwardSexp()) {
-      const raised = doc.model.getText(startCursor.offsetStart, endCursor.offsetStart);
-      startCursor.backwardList();
-      endCursor.forwardList();
-      if (startCursor.getPrevToken().type == 'open') {
-        startCursor.previous();
-        if (endCursor.getToken().type == 'close') {
-          edits.push(
-            new ModelEdit('changeRange', [startCursor.offsetStart, endCursor.offsetEnd, raised])
-          );
-          selections[index] = new ModelEditSelection(
-            isCaretTrailing ? startCursor.offsetStart + raised.length : startCursor.offsetStart
-          );
+  _(doc.selections)
+    .map((s, index) => [s, index] as const)
+    .orderBy(([s]) => s.start, 'desc')
+    .forEach(([selection, originalIndex], index) => {
+      const { start, end } = selection;
+
+      const cursor = doc.getTokenCursor(end);
+      const [formStart, formEnd] = cursor.rangeForCurrentForm(start);
+      const isCaretTrailing = formEnd - start < start - formStart;
+      const startCursor = doc.getTokenCursor(formStart);
+      const endCursor = startCursor.clone();
+      if (endCursor.forwardSexp()) {
+        const raised = doc.model.getText(startCursor.offsetStart, endCursor.offsetStart);
+        startCursor.backwardList();
+        endCursor.forwardList();
+        if (startCursor.getPrevToken().type == 'open') {
+          startCursor.previous();
+          if (endCursor.getToken().type == 'close') {
+            edits.push(
+              new ModelEdit('changeRange', [startCursor.offsetStart, endCursor.offsetEnd, raised])
+            );
+            const cursorPos = isCaretTrailing
+              ? startCursor.offsetStart + raised.length
+              : startCursor.offsetStart;
+
+            selections[originalIndex] = [
+              endCursor.offsetEnd - startCursor.offsetStart - raised.length,
+              new ModelEditSelection(cursorPos),
+            ];
+          }
         }
       }
-    }
-  });
+    });
   return doc.model.edit(edits, {
-    selections,
+    selections: selections.map(([_, selection], __, others) => {
+      const s = selection.clone();
+
+      const offsetSum = others
+        .filter(([_, otherSel]) => otherSel.start < selection.start)
+        .reduce((sum, o) => sum + o[0], 0);
+
+      s.anchor -= offsetSum;
+      s.active -= offsetSum;
+
+      return s;
+    }),
   });
 }
 
