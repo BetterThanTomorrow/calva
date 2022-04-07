@@ -229,7 +229,7 @@ export async function setNamespaceFromCurrentFile() {
   const session = replSession.getSession();
   const ns = namespace.getNamespace(util.tryToGetDocument({}));
   if (getNs() !== ns && util.isDefined(ns)) {
-    await session.eval(`(in-ns '${ns}) (clojure.core/refer-clojure)`, session.client.ns).value;
+    await session.switchNS(ns);
   }
   setSession(session, ns);
   replSession.updateReplSessionType();
@@ -251,7 +251,7 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
   }
   if (code != '') {
     if (getNs() !== ns) {
-      await session.eval(`(in-ns '${ns}) (clojure.core/refer-clojure)`, session.client.ns).value;
+      await session.switchNS(ns);
     }
     setSession(session, ns);
     append(code, (_) => revealResultsDoc(false));
