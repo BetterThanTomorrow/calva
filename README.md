@@ -164,7 +164,8 @@ Patrons, Gold, and Silver sponsors are also displayed here: https://calva.io/#sp
 ### Calva Gold Sponsors
 
 [<img src="https://liftoff.io/wp-content/themes/liftoff/images/logo-blue.png" height="40px" alt="Liftoff"/>](https://liftoff.io)
-    [<img src="assets/images/cognitect-logo.jpg" height="40px" alt="Cognitect"/>](https://cognitect.com)
+[<img src="assets/images/cognitect-logo.jpg" height="40px" alt="Cognitect"/>](https://cognitect.com)
+[<img src="assets/images/thortech-solutions.png" height="40px" alt="ThorTech Solutions"/>](https://cognitect.com)
 
 ### Calva Silver Sponsors
 
