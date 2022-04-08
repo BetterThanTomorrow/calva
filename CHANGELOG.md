@@ -3,11 +3,11 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Change paredit navigation command labels and paredit "Or Up" labels from [Issue #1660](https://github.com/BetterThanTomorrow/calva/issues/1660)
+- [Update paredit sexp forward/backward command labels](https://github.com/BetterThanTomorrow/calva/issues/1660)
 - Fix: [clojure-lsp initialized in a non-working state when there is no VS Code folder](https://github.com/BetterThanTomorrow/calva/issues/1664)
 
 ## [2.0.264] - 2022-04-07
-- Fix: [Shadowcljs shows error when running calva.loadFile command](https://github.com/BetterThanTomorrow/calva/issues/1670)
+- Fix: [shadow-cljs shows error when running calva.loadFile command](https://github.com/BetterThanTomorrow/calva/issues/1670)
 
 ## [2.0.263] - 2022-04-06
 - [Improve kondo configuration documentation](https://github.com/BetterThanTomorrow/calva/issues/1282)
