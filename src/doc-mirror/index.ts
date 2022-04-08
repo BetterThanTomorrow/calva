@@ -1,17 +1,18 @@
 export { getIndent } from '../cursor-doc/indent';
+import { isUndefined } from 'lodash';
 import * as vscode from 'vscode';
-import * as utilities from '../utilities';
 import * as formatter from '../calva-fmt/src/format';
-import { LispTokenCursor } from '../cursor-doc/token-cursor';
 import {
-  ModelEdit,
   EditableDocument,
   EditableModel,
-  ModelEditOptions,
   LineInputModel,
+  ModelEdit,
+  ModelEditOptions,
   ModelEditSelection,
+  ModelEditResult,
 } from '../cursor-doc/model';
-import { isUndefined } from 'lodash';
+import { LispTokenCursor } from '../cursor-doc/token-cursor';
+import * as utilities from '../utilities';
 
 const documents = new Map<vscode.TextDocument, MirroredDocument>();
 
@@ -24,7 +25,7 @@ export class DocumentModel implements EditableModel {
     this.lineInputModel = new LineInputModel(this.lineEndingLength);
   }
 
-  edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
+  edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<ModelEditResult> {
     const editor = utilities.getActiveTextEditor(),
       undoStopBefore = !!options.undoStopBefore;
     return editor
@@ -48,18 +49,22 @@ export class DocumentModel implements EditableModel {
         },
         { undoStopBefore, undoStopAfter: false }
       )
-      .then((isFulfilled) => {
-        if (isFulfilled) {
-          if (options.selection) {
-            this.document.selection = options.selection;
+      .then(async (success) => {
+        if (success) {
+          if (options.selections) {
+            this.document.selections = options.selections;
           }
           if (!options.skipFormat) {
-            return formatter.formatPosition(editor, false, {
-              'format-depth': options.formatDepth ? options.formatDepth : 1,
-            });
+            return {
+              edits: modelEdits,
+              selections: options.selections,
+              success: await formatter.formatPosition(editor, false, {
+                'format-depth': options.formatDepth ? options.formatDepth : 1,
+              }),
+            };
           }
         }
-        return isFulfilled;
+        return { edits: modelEdits, selections: options.selections, success };
       });
   }
 
@@ -124,55 +129,78 @@ export class MirroredDocument implements EditableDocument {
 
   model = new DocumentModel(this);
 
-  selectionStack: ModelEditSelection[] = [];
+  selectionsStack: ModelEditSelection[][] = [];
 
   public getTokenCursor(
-    offset: number = this.selection.active,
+    offset: number = this.selections[0].active,
     previous: boolean = false
   ): LispTokenCursor {
     return this.model.getTokenCursor(offset, previous);
   }
 
   public insertString(text: string) {
-    const editor = utilities.getActiveTextEditor(),
-      selection = editor.selection,
+    const editor = utilities.tryToGetActiveTextEditor(),
+      selections = editor.selections,
       wsEdit = new vscode.WorkspaceEdit(),
       // TODO: prob prefer selection.active or .start
-      edit = vscode.TextEdit.insert(this.document.positionAt(this.selection.anchor), text);
-    wsEdit.set(this.document.uri, [edit]);
+      edits = this.selections.map(({ anchor: left }) =>
+        vscode.TextEdit.insert(this.document.positionAt(left), text)
+      );
+    wsEdit.set(this.document.uri, edits);
     void vscode.workspace.applyEdit(wsEdit).then((_v) => {
-      editor.selection = selection;
+      editor.selections = selections;
     });
   }
 
-  set selection(selection: ModelEditSelection) {
+  get selection() {
+    return this.selections[0];
+  }
+
+  set selection(sel: ModelEditSelection) {
+    this.selections = [sel];
+  }
+
+  get selections(): ModelEditSelection[] {
     const editor = utilities.getActiveTextEditor(),
-      document = editor.document,
-      anchor = document.positionAt(selection.anchor),
-      active = document.positionAt(selection.active);
-    editor.selection = new vscode.Selection(anchor, active);
+      document = editor.document;
+    return editor.selections.map((sel) => {
+      const anchor = document.offsetAt(sel.anchor),
+        active = document.offsetAt(sel.active);
+      return new ModelEditSelection(anchor, active);
+    });
+  }
+
+  set selections(selections: ModelEditSelection[]) {
+    const editor = utilities.getActiveTextEditor(),
+      document = editor.document;
+    editor.selections = selections.map((selection) => {
+      const anchor = document.positionAt(selection.anchor),
+        active = document.positionAt(selection.active);
+      return new vscode.Selection(anchor, active);
+    });
+
+    const primarySelection = selections[0];
+    const active = document.positionAt(primarySelection.active);
     editor.revealRange(new vscode.Range(active, active));
   }
 
-  get selection(): ModelEditSelection {
+  public getSelectionTexts() {
     const editor = utilities.getActiveTextEditor(),
-      document = editor.document,
-      anchor = document.offsetAt(editor.selection.anchor),
-      active = document.offsetAt(editor.selection.active);
-    return new ModelEditSelection(anchor, active);
+      selections = editor.selections;
+    return selections.map((selection) => this.document.getText(selection));
   }
 
-  public getSelectionText() {
+  public getSelectionText(index: number = 0) {
     const editor = utilities.getActiveTextEditor(),
-      selection = editor.selection;
+      selection = editor.selections[index];
     return this.document.getText(selection);
   }
 
-  public delete(): Thenable<boolean> {
+  public delete(): Thenable<ModelEditResult> {
     return vscode.commands.executeCommand('deleteRight');
   }
 
-  public backspace(): Thenable<boolean> {
+  public backspace(): Thenable<ModelEditResult> {
     return vscode.commands.executeCommand('deleteLeft');
   }
 }
@@ -209,7 +237,7 @@ export function tryToGetDocument(doc: vscode.TextDocument) {
   return documents.get(doc);
 }
 
-export function getDocument(doc: vscode.TextDocument) {
+export function getDocument(doc: vscode.TextDocument): MirroredDocument {
   const mirrorDoc = tryToGetDocument(doc);
 
   if (isUndefined(mirrorDoc)) {

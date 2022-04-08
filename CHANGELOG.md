@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Multi cursor](https://github.com/BetterThanTomorrow/calva/issues/610)
 
 ## [2.0.264] - 2022-04-07
 - Fix: [Shadowcljs shows error when running calva.loadFile command](https://github.com/BetterThanTomorrow/calva/issues/1670)

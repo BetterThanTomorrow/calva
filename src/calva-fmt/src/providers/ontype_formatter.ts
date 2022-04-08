@@ -7,7 +7,7 @@ import { getConfig } from '../../../config';
 import * as util from '../../../utilities';
 
 export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProvider {
-  async provideOnTypeFormattingEdits(
+  provideOnTypeFormattingEdits(
     document: vscode.TextDocument,
     _position: vscode.Position,
     ch: string,
@@ -22,10 +22,11 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
         if (tokenCursor.withinComment()) {
           return undefined;
         }
-        return paredit.backspace(mDoc).then((fulfilled) => {
-          paredit.close(mDoc, ch);
+        void paredit.backspace(mDoc).then((fulfilled) => {
+          void paredit.close(mDoc, ch);
           return undefined;
         });
+        return;
       } else {
         return undefined;
       }
