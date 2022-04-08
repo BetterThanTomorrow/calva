@@ -725,6 +725,12 @@ describe('paredit', () => {
       paredit.shrinkSelection(doc);
       expect(last(doc.selectionsStack)).toEqual([new ModelEditSelection(a[0], a[1])]);
     });
+    it('selects the enclosing form when all the text in a list is selected', () => {
+      const a = docFromTextNotation('(|a|)');
+      const b = docFromTextNotation('|(a)|'); // '(a)' [[0, 3]];
+      paredit.growSelection(a);
+      expect(textAndSelection(a)).toEqual(textAndSelection(b));
+    });
   });
 
   describe('dragSexpr', () => {

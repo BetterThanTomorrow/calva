@@ -1302,7 +1302,7 @@ export function growSelection(
         startC.backwardUpList();
         endC.forwardList();
         // growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
-        return [startC.offsetStart, startC.offsetEnd];
+        return [startC.offsetStart, endC.offsetEnd];
       } else {
         if (startC.backwardList()) {
           // we are in an sexpr.
