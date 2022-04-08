@@ -306,6 +306,14 @@ export class NReplSession {
     });
   }
 
+  async switchNS(ns: any) {
+    if (this.replType === 'clj') {
+      await this.eval(`(in-ns '${ns}) (clojure.core/refer-clojure)`, this.client.ns).value;
+    } else {
+      await this.eval(`(in-ns '${ns})`, this.client.ns).value;
+    }
+  }
+
   private _createEvalOperationMessage(code: string, ns: string, opts: any) {
     if (vscode.debug.activeDebugSession && this.replType === 'clj') {
       const debugResponse = getStateValue(debug.DEBUG_RESPONSE_KEY);

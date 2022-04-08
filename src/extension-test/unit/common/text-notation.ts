@@ -83,7 +83,7 @@ export function docFromTextNotation(s: string): model.StringDocument {
   return doc;
 }
 
-export function textNotationFromDoc(doc: model.StringDocument): string {
+export function textNotationFromDoc(doc: model.EditableDocument): string {
   const selections = doc.selections ?? [];
   let cursorSymbols: [number, string][] = [];
   selections.forEach((s, cursorNumber) => {
@@ -96,7 +96,9 @@ export function textNotationFromDoc(doc: model.StringDocument): string {
 
   cursorSymbols = orderBy(cursorSymbols, (c) => c[0]);
 
-  const text = doc.model.lines.map((l) => l.text).join('•');
+  const text = getText(doc)
+    .split(doc.model.lineEndingLength === 1 ? '\n' : '\r\n')
+    .join('•');
 
   // basically split up the text into chunks separated by where they'd have had cursor symbols, and append cursor symbols after each chunk, before joining back together
   // this way we can insert the cursor symbols in the right place without having to worry about the cumulative offsets created by appending the cursor symbols
@@ -131,7 +133,7 @@ export function textNotationFromDoc(doc: model.StringDocument): string {
  * @param doc
  * @returns string
  */
-export function text(doc: model.StringDocument): string {
+export function getText(doc: model.EditableDocument): string {
   return doc.model.getText(0, Infinity);
 }
 
@@ -141,5 +143,5 @@ export function text(doc: model.StringDocument): string {
  */
 export function textAndSelection(doc: model.StringDocument): [string, [number, number][]] {
   // return [text(doc), [doc.selection.anchor, doc.selection.active]];
-  return [text(doc), doc.selections.map((s) => [s.anchor, s.active])];
+  return [getText(doc), doc.selections.map((s) => [s.anchor, s.active])];
 }
