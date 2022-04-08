@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.265] - 2022-04-08
 - [Update paredit sexp forward/backward command labels](https://github.com/BetterThanTomorrow/calva/issues/1660)
 - Fix: [clojure-lsp initialized in a non-working state when there is no VS Code folder](https://github.com/BetterThanTomorrow/calva/issues/1664)
 
