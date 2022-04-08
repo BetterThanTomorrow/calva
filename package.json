@@ -918,6 +918,11 @@
         "category": "Calva Diagnostics"
       },
       {
+        "command": "calva.diagnostics.printTextNotationFromDocument",
+        "title": "Print TextNotation from the current document to Calva says",
+        "category": "Calva Diagnostics"
+      },
+      {
         "command": "calva.linting.resolveMacroAs",
         "title": "Resolve Macro As",
         "category": "Calva Linting",

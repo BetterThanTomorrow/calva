@@ -1,7 +1,7 @@
 import * as expect from 'expect';
 import * as model from '../../../cursor-doc/model';
 import * as indent from '../../../cursor-doc/indent';
-import { docFromTextNotation, textAndSelection, text } from '../common/text-notation';
+import { docFromTextNotation, textAndSelection, getText } from '../common/text-notation';
 import { ModelEditSelection } from '../../../cursor-doc/model';
 
 model.initScanner(20000);

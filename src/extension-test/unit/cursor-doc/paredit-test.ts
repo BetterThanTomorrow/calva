@@ -1,7 +1,7 @@
 import * as expect from 'expect';
 import * as paredit from '../../../cursor-doc/paredit';
 import * as model from '../../../cursor-doc/model';
-import { docFromTextNotation, textAndSelection, text } from '../common/text-notation';
+import { docFromTextNotation, textAndSelection, getText } from '../common/text-notation';
 import { ModelEditSelection } from '../../../cursor-doc/model';
 import { last, method } from 'lodash';
 
@@ -1488,7 +1488,7 @@ describe('paredit', () => {
       it.skip('splice string', () => {
         const a = docFromTextNotation('"h|ello"');
         void paredit.spliceSexp(a);
-        expect(text(a)).toEqual('hello');
+        expect(getText(a)).toEqual('hello');
       });
     });
   });

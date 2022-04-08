@@ -15,7 +15,8 @@ import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import { EditableDocument, ModelEditResult } from '../cursor-doc/model';
 import { assertIsDefined } from '../utilities';
-
+import { textNotationFromDoc } from '../extension-test/unit/common/text-notation';
+import * as calvaState from '../state';
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
 const languages = new Set(['clojure', 'lisp', 'scheme']);
@@ -460,6 +461,16 @@ export function activate(context: ExtensionContext) {
         void workspace
           .getConfiguration()
           .update('calva.paredit.defaultKeyMap', 'original', vscode.ConfigurationTarget.Global);
+      }
+    }),
+    commands.registerCommand('calva.diagnostics.printTextNotationFromDocument', () => {
+      const doc = vscode.window.activeTextEditor?.document;
+      if (doc && doc.languageId === 'clojure') {
+        const mirrorDoc = docMirror.getDocument(vscode.window.activeTextEditor?.document);
+        const notation = textNotationFromDoc(mirrorDoc);
+        const chan = calvaState.outputChannel();
+        const relPath = vscode.workspace.asRelativePath(doc.uri);
+        chan.appendLine(`Text notation for: ${relPath}:\n${notation}`);
       }
     }),
     window.onDidChangeActiveTextEditor(
