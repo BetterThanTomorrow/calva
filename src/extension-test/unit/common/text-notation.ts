@@ -4,6 +4,7 @@ import { clone, entries, cond, toInteger, last, first, cloneDeep, orderBy } from
 /**
  * Text Notation for expressing states of a document, including
  * current text and selection.
+ * See this video for an intro: https://www.youtube.com/watch?v=Sy3arG-Degw
  * * Since JavasScript makes it clumsy with multiline strings,
  *   newlines are denoted with the paragraph character: `§`
  * * Selections are denoted like so
