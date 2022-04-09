@@ -5,7 +5,7 @@ import { clone, entries, cond, toInteger, last, first, cloneDeep, orderBy } from
  * Text Notation for expressing states of a document, including
  * current text and selection.
  * * Since JavasScript makes it clumsy with multiline strings,
- *   newlines are denoted with a middle dot character: `•`
+ *   newlines are denoted with the paragraph character: `§`
  * * Selections are denoted like so
  *   * Cursors, (which are actually selections with identical start and end) are denoted with a single `|`, with <= 10 multiple cursors defined by `|1`, `|2`, ... `|9`, etc, or in regex: /\|\d/. 0-indexed, so `|` is 0, `|1` is 1, etc.
  *   * This is however actually an alternative for the following `>\d?` notation, it has the same left->right semantics, but looks more like a cursor/caret lol, and more importantly, drops the 0 for the first cursor.
@@ -14,7 +14,7 @@ import { clone, entries, cond, toInteger, last, first, cloneDeep, orderBy } from
  */
 function textNotationToTextAndSelection(content: string): [string, model.ModelEditSelection[]] {
   const text = clone(content)
-    .replace(/•/g, '\n')
+    .replace(/§/g, '\n')
     .replace(/\|?[<>]?\|\d?/g, '');
 
   /**
@@ -98,7 +98,7 @@ export function textNotationFromDoc(doc: model.EditableDocument): string {
 
   const text = getText(doc)
     .split(doc.model.lineEndingLength === 1 ? '\n' : '\r\n')
-    .join('•');
+    .join('§');
 
   // basically split up the text into chunks separated by where they'd have had cursor symbols, and append cursor symbols after each chunk, before joining back together
   // this way we can insert the cursor symbols in the right place without having to worry about the cumulative offsets created by appending the cursor symbols

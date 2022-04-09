@@ -173,7 +173,7 @@ describe('indent', () => {
         expect(state[0].rules).toEqual([]);
       });
       it('collects indents for cursor in nested structure', () => {
-        const doc = docFromTextNotation('[]•(aa []•(bb•(cc :dd|)))•[]');
+        const doc = docFromTextNotation('[]§(aa []§(bb§(cc :dd|)))§[]');
         const rule1: indent.IndentRule[] = [
           ['inner', 0],
           ['block', 1],
