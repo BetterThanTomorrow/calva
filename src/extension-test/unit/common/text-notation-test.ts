@@ -11,11 +11,55 @@ describe('text-notation test utils', () => {
   });
   describe('docFromTextNotation', () => {
     it('creates single cursor position', () => {
-      const tn = '(a b|1)';
+      const tn = '(a b|)';
       const text = '(a b)';
-      // TODO: Figure out why we need undefined here?
-      // const selections = [undefined, [4, 4]];
       const selections = [[4, 4]];
+      const doc = textNotation.docFromTextNotation(tn);
+      expect(textNotation.textAndSelection(doc)).toEqual([text, selections]);
+    });
+    it('creates multiple cursor positions', () => {
+      const tn = '(|1a |2b|)';
+      const text = '(a b)';
+      const selections = [
+        [4, 4],
+        [1, 1],
+        [3, 3],
+      ];
+      const doc = textNotation.docFromTextNotation(tn);
+      expect(textNotation.textAndSelection(doc)).toEqual([text, selections]);
+    });
+    it('creates single range/selection', () => {
+      const tn = '(a |b|)';
+      const text = '(a b)';
+      const selections = [[3, 4]];
+      const doc = textNotation.docFromTextNotation(tn);
+      expect(textNotation.textAndSelection(doc)).toEqual([text, selections]);
+    });
+    it('creates multiple ranges/selections', () => {
+      const tn = '|1(|1|2a|2 |b|)';
+      const text = '(a b)';
+      const selections = [
+        [3, 4],
+        [0, 1],
+        [1, 2],
+      ];
+      const doc = textNotation.docFromTextNotation(tn);
+      expect(textNotation.textAndSelection(doc)).toEqual([text, selections]);
+    });
+    it('creates single directed r->l range/selection', () => {
+      const tn = '(a <b<)';
+      const text = '(a b)';
+      const selections = [[4, 3]];
+      const doc = textNotation.docFromTextNotation(tn);
+      expect(textNotation.textAndSelection(doc)).toEqual([text, selections]);
+    });
+    it('creates multiple directed r->l range/selection', () => {
+      const tn = '(<1a<1 <b<)';
+      const text = '(a b)';
+      const selections = [
+        [4, 3],
+        [2, 1],
+      ];
       const doc = textNotation.docFromTextNotation(tn);
       expect(textNotation.textAndSelection(doc)).toEqual([text, selections]);
     });
