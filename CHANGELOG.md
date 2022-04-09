@@ -6,6 +6,8 @@ Changes to Calva.
 - [Multi cursor](https://github.com/BetterThanTomorrow/calva/issues/610)
 - [Remove all cursor when-context logic - this might affect the behavior of those who make substantial use of them. Worth testing](https://github.com/BetterThanTomorrow/calva/pull/1606#issuecomment-1086567905)
 - Fix: [Jump between source/test does not work properly with multiple workspace folders](https://github.com/BetterThanTomorrow/calva/issues/1219)
+- [New diagnostics command, Print TextNotation from current document](https://www.youtube.com/watch?v=Sy3arG-Degw)
+- [New diagnostics command, Create untitled document from TextNotation](TODO: create somewhere to link)
 
 ## [2.0.265] - 2022-04-08
 - [Update paredit sexp forward/backward command labels](https://github.com/BetterThanTomorrow/calva/issues/1660)
