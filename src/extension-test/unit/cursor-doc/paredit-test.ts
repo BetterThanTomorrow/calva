@@ -1,7 +1,12 @@
 import * as expect from 'expect';
 import * as paredit from '../../../cursor-doc/paredit';
 import * as model from '../../../cursor-doc/model';
-import { docFromTextNotation, textAndSelection, getText } from '../common/text-notation';
+import {
+  docFromTextNotation,
+  textAndSelection,
+  getText,
+  textNotationFromDoc,
+} from '../common/text-notation';
 import { ModelEditSelection } from '../../../cursor-doc/model';
 import { last, method } from 'lodash';
 
@@ -24,19 +29,38 @@ describe('paredit', () => {
   describe('movement', () => {
     describe('rangeToSexprForward', () => {
       it('Finds the list in front', () => {
-        const a = docFromTextNotation('|(def foo [vec])');
-        // const b = docFromTextNotation('|(def foo [vec])|');
-        const b = docFromTextNotation('|(def foo [vec])|');
+        const a = docFromTextNotation('|(a b [c])');
+        const b = docFromTextNotation('|(a b [c])|');
+        expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Multi-cursors find the list in front', () => {
+        const a = docFromTextNotation('|(a b [c])§|1(a b [c])');
+        const b = docFromTextNotation('|(a b [c])|§|1(a b [c])|1');
         expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
       });
       it('Finds the list in front through metadata', () => {
-        const a = docFromTextNotation('|^:foo (def foo [vec])');
-        const b = docFromTextNotation('|^:foo (def foo [vec])|');
+        const a = docFromTextNotation('|^:a (b c [d])');
+        const b = docFromTextNotation('|^:a (b c [d])|');
+        expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Multi-cursors find the list in front through metadata', () => {
+        const a = docFromTextNotation('|^:a (b c [d])§|1^:a (b c [d])');
+        const b = docFromTextNotation('|^:a (b c [d])|§|1^:a (b c [d])|1');
         expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
       });
       it('Finds the list in front through metadata and readers', () => {
-        const a = docFromTextNotation('|^:f #a #b (def foo [vec])');
-        const b = docFromTextNotation('|^:f #a #b (def foo [vec])|');
+        const a = docFromTextNotation('|^:f #a #b (c d [e])');
+        const b = docFromTextNotation('|^:f #a #b (c d [e])|');
+        expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Multi-cursors find the list in front through metadata and readers', () => {
+        const a = docFromTextNotation('|^:f #a #b (c d [e])§|1^:f #a #b (c d [e])');
+        const b = docFromTextNotation('|^:f #a #b (c d [e])|§|1^:f #a #b (c d [e])|1');
+        expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Multi-cursors find the list in front through metadata and readers', () => {
+        const a = docFromTextNotation('|^:f #a #b (c d [e])§|1^:f #a #b (c d [e])');
+        const b = docFromTextNotation('|^:f #a #b (c d [e])|§|1^:f #a #b (c d [e])|1');
         expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
       });
       it('Finds the list in front through reader metadata reader', () => {
@@ -74,9 +98,19 @@ describe('paredit', () => {
         const b = docFromTextNotation('(def foo [:foo :bar |:baz|])');
         expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
       });
-      it('Returns empty range when no forward sexp', () => {
-        const a = docFromTextNotation('(def foo [:foo :bar :baz|])');
-        const b = docFromTextNotation('(def foo [:foo :bar :baz|])');
+      it('Does not find anything at end of list', () => {
+        const a = docFromTextNotation('(|)');
+        const b = docFromTextNotation('(|)');
+        expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Multi-cursors do not find anything at end of list', () => {
+        const a = docFromTextNotation('(|)§(|1)');
+        const b = docFromTextNotation('(|)§(|1)');
+        expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Cursor 1 finds fwd sexp, cursor 2 does not, cursor 3 does', () => {
+        const a = docFromTextNotation('(|a)§(|1)§|2(b)');
+        const b = docFromTextNotation('(|a|)§(|1)§|2(b)|2');
         expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
       });
       it('Finds next symbol, including leading space', () => {
