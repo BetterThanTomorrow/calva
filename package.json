@@ -923,6 +923,11 @@
         "category": "Calva Diagnostics"
       },
       {
+        "command": "calva.diagnostics.createDocumentFromTextNotation",
+        "title": "Create a new Clojure Document from TextNotation",
+        "category": "Calva Diagnostics"
+      },
+      {
         "command": "calva.linting.resolveMacroAs",
         "title": "Resolve Macro As",
         "category": "Calva Linting",

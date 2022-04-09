@@ -142,7 +142,7 @@ export function getText(doc: model.EditableDocument): string {
  * Utility function to create a comparable structure with the text and
  * selection from a document
  */
-export function textAndSelection(doc: model.StringDocument): [string, [number, number][]] {
+export function textAndSelection(doc: model.EditableDocument): [string, [number, number][]] {
   // return [text(doc), [doc.selection.anchor, doc.selection.active]];
   return [getText(doc), doc.selections.map((s) => [s.anchor, s.active])];
 }

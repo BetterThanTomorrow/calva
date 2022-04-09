@@ -15,7 +15,7 @@ import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import { EditableDocument, ModelEditResult } from '../cursor-doc/model';
 import { assertIsDefined } from '../utilities';
-import { textNotationFromDoc } from '../extension-test/unit/common/text-notation';
+import * as textNotation from '../extension-test/unit/common/text-notation';
 import * as calvaState from '../state';
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
@@ -467,11 +467,31 @@ export function activate(context: ExtensionContext) {
       const doc = vscode.window.activeTextEditor?.document;
       if (doc && doc.languageId === 'clojure') {
         const mirrorDoc = docMirror.getDocument(vscode.window.activeTextEditor?.document);
-        const notation = textNotationFromDoc(mirrorDoc);
+        const notation = textNotation.textNotationFromDoc(mirrorDoc);
         const chan = calvaState.outputChannel();
         const relPath = vscode.workspace.asRelativePath(doc.uri);
         chan.appendLine(`Text notation for: ${relPath}:\n${notation}`);
       }
+    }),
+    commands.registerCommand('calva.diagnostics.createDocumentFromTextNotation', async () => {
+      const tn = await vscode.window.showInputBox({
+        placeHolder: 'Text-notation',
+        prompt: 'Type the text-notation for the document you want to create',
+      });
+      const cursorDoc = textNotation.docFromTextNotation(tn);
+      await vscode.workspace
+        .openTextDocument({ language: 'clojure', content: textNotation.getText(cursorDoc) })
+        .then(async (doc) => {
+          const editor = await vscode.window.showTextDocument(doc, {
+            preview: false,
+            preserveFocus: false,
+          });
+          editor.selections = cursorDoc.selections.map((selection) => {
+            const anchor = doc.positionAt(selection.anchor),
+              active = doc.positionAt(selection.active);
+            return new vscode.Selection(anchor, active);
+          });
+        });
     }),
     window.onDidChangeActiveTextEditor(
       (e) => e && e.document && languages.has(e.document.languageId)
