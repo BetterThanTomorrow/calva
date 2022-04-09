@@ -40,9 +40,9 @@ export async function toggleBetweenImplAndTest() {
   const openedFilename = activeFile.document.fileName;
   const projectRootPath = await projectRoot.findClosestProjectRootPath();
   const pathAfterRoot = openedFilename.replace(projectRootPath, '');
-  const fullFileName = pathAfterRoot.split(path.sep).slice(-1)[0];
-  const extension = '.' + fullFileName.split('.').pop();
-  const fileName = fullFileName.replace(extension, '');
+  const fullFileName = path.basename(openedFilename);
+  const extension = path.extname(fullFileName);
+  const fileName = fullFileName.substring(0, fullFileName.length - extension.length);
 
   const { success, message } = util.isFileValid(fullFileName, pathAfterRoot);
   if (!success) {
@@ -54,9 +54,9 @@ export async function toggleBetweenImplAndTest() {
   const newFilename = util.getNewFilename(fileName, extension);
 
   const filePath = path.join(projectRootPath, sourcePath, newFilename);
-  const fileToOpen = vscode.workspace.asRelativePath(filePath);
+  const fileToOpen = vscode.workspace.asRelativePath(filePath, false);
 
-  void vscode.workspace.findFiles(fileToOpen, '**/.calva/**').then((files) => {
+  void vscode.workspace.findFiles(fileToOpen, projectRoot.excludePattern()).then((files) => {
     if (!files.length) {
       void askToCreateANewFile(path.join(projectRootPath, sourcePath), newFilename);
     } else {

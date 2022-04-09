@@ -19,7 +19,6 @@ import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
 import { downloadClojureLsp, getLatestVersion } from './download';
 import { readVersionFile, getClojureLspPath } from './utilities';
 import { TestTreeHandler, TestTreeParams } from './types';
-import * as os from 'os';
 import * as path from 'path';
 import * as state from '../state';
 import { provideHover } from '../providers/hover';
@@ -32,7 +31,7 @@ const LSP_CLIENT_KEY_ERROR = 'lspClientError';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
 const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE =
   'The clojure-lsp server is not running or has not finished initializing.';
-const lspStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+const lspStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
 let serverVersion: string;
 let extensionContext: vscode.ExtensionContext;
 let clojureLspPath: string;
@@ -59,108 +58,124 @@ class TestTreeFeature implements StaticFeature {
   }
 }
 
-function createClient(clojureLspPath: string): LanguageClient {
+function createClient(clojureLspPath: string, fallbackFolder: FallbackFolder): LanguageClient {
   const serverOptions: ServerOptions = {
     run: { command: clojureLspPath },
     debug: { command: clojureLspPath },
   };
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [
-      { scheme: 'file', language: 'clojure' },
-      { scheme: 'jar', language: 'clojure' },
-    ],
-    synchronize: {
-      configurationSection: 'clojure-lsp',
-      fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc'),
-    },
-    progressOnInitialization: true,
-    initializationOptions: {
-      'dependency-scheme': 'jar',
-      'auto-add-ns-to-new-files?': true,
-      'document-formatting?': false,
-      'document-range-formatting?': false,
-      'keep-require-at-start?': true,
-    },
-    middleware: {
-      didOpen: (document, next) => {
-        if (isResultsDoc(document)) {
-          return;
-        }
-        return next(document);
+    // clojure-lsp croaks w/o a valid rootUri and  VS Code will only send
+    // one if it has a folder open. So we check this and when there is no
+    // VS Code folder open, we provide a rootUri via the `workspaceFolder`
+    // attribute. Extra important for the standalone REPLs, e.g. the
+    // the Getting Started REPL.
+    ...(fallbackFolder.type === FolderType.VSCODE
+      ? {}
+      : {
+          workspaceFolder: {
+            uri: fallbackFolder.uri,
+            name: 'No VS Code Workspace Available',
+            index: 0,
+          },
+        }),
+    ...{
+      documentSelector: [
+        { scheme: 'file', language: 'clojure' },
+        { scheme: 'jar', language: 'clojure' },
+      ],
+      synchronize: {
+        configurationSection: 'clojure-lsp',
+        fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc'),
       },
-      didSave: (document, next) => {
-        if (isResultsDoc(document)) {
-          return;
-        }
-        return next(document);
+      progressOnInitialization: true,
+      initializationOptions: {
+        'dependency-scheme': 'jar',
+        'auto-add-ns-to-new-files?': true,
+        'document-formatting?': false,
+        'document-range-formatting?': false,
+        'keep-require-at-start?': true,
       },
-      didChange: (change, next) => {
-        if (isResultsDoc(change.document)) {
-          return;
-        }
-        return next(change);
-      },
-      provideLinkedEditingRange: (_document, _position, _token, _next): null => {
-        return null;
-      },
-      handleDiagnostics(uri, diagnostics, next) {
-        if (uri.path.endsWith(config.REPL_FILE_EXT)) {
-          return;
-        }
-        return next(uri, diagnostics);
-      },
-      provideCodeActions(document, range, context, token, next) {
-        return next(document, range, context, token);
-      },
-      provideCodeLenses: async (document, token, next): Promise<vscode.CodeLens[]> => {
-        if (config.getConfig().referencesCodeLensEnabled) {
-          return await next(document, token);
-        }
-        return [];
-      },
-      resolveCodeLens: async (codeLens, token, next) => {
-        if (config.getConfig().referencesCodeLensEnabled) {
-          return await next(codeLens, token);
-        }
-        return null;
-      },
-      async provideHover(document, position, token, next) {
-        let hover: vscode.Hover;
-        try {
-          hover = await provideHover(document, position);
-        } catch {
-          // continue regardless of error
-        }
+      middleware: {
+        didOpen: (document, next) => {
+          if (isResultsDoc(document)) {
+            return;
+          }
+          return next(document);
+        },
+        didSave: (document, next) => {
+          if (isResultsDoc(document)) {
+            return;
+          }
+          return next(document);
+        },
+        didChange: (change, next) => {
+          if (isResultsDoc(change.document)) {
+            return;
+          }
+          return next(change);
+        },
+        provideLinkedEditingRange: (_document, _position, _token, _next): null => {
+          return null;
+        },
+        handleDiagnostics(uri, diagnostics, next) {
+          if (uri.path.endsWith(config.REPL_FILE_EXT)) {
+            return;
+          }
+          return next(uri, diagnostics);
+        },
+        provideCodeActions(document, range, context, token, next) {
+          return next(document, range, context, token);
+        },
+        provideCodeLenses: async (document, token, next): Promise<vscode.CodeLens[]> => {
+          if (config.getConfig().referencesCodeLensEnabled) {
+            return await next(document, token);
+          }
+          return [];
+        },
+        resolveCodeLens: async (codeLens, token, next) => {
+          if (config.getConfig().referencesCodeLensEnabled) {
+            return await next(codeLens, token);
+          }
+          return null;
+        },
+        async provideHover(document, position, token, next) {
+          let hover: vscode.Hover;
+          try {
+            hover = await provideHover(document, position);
+          } catch {
+            // continue regardless of error
+          }
 
-        if (hover) {
-          return null;
-        } else {
-          return next(document, position, token);
-        }
-      },
-      async provideDefinition(document, position, token, next) {
-        const definition = await provideClojureDefinition(document, position, token);
-        if (definition) {
-          return null;
-        } else {
-          return next(document, position, token);
-        }
-      },
-      async provideCompletionItem(document, position, context, token, next) {
-        const items = await provideCompletionItems(document, position, token, context);
-        if (items) {
-          return null;
-        } else {
-          return next(document, position, context, token);
-        }
-      },
-      async provideSignatureHelp(document, position, context, token, next) {
-        const help = await provideSignatureHelp(document, position, token);
-        if (help) {
-          return null;
-        } else {
-          return next(document, position, context, token);
-        }
+          if (hover) {
+            return null;
+          } else {
+            return next(document, position, token);
+          }
+        },
+        async provideDefinition(document, position, token, next) {
+          const definition = await provideClojureDefinition(document, position, token);
+          if (definition) {
+            return null;
+          } else {
+            return next(document, position, token);
+          }
+        },
+        async provideCompletionItem(document, position, context, token, next) {
+          const items = await provideCompletionItems(document, position, token, context);
+          if (items) {
+            return null;
+          } else {
+            return next(document, position, context, token);
+          }
+        },
+        async provideSignatureHelp(document, position, context, token, next) {
+          const help = await provideSignatureHelp(document, position, token);
+          if (help) {
+            return null;
+          } else {
+            return next(document, position, context, token);
+          }
+        },
       },
     },
   };
@@ -340,7 +355,7 @@ function registerEventHandlers(context: vscode.ExtensionContext) {
 async function stopClient() {
   const client = getStateValue(LSP_CLIENT_KEY);
   void vscode.commands.executeCommand('setContext', 'clojureLsp:active', false);
-  updateStatusItem('stopped');
+  updateStatus('stopped');
   setStateValue(LSP_CLIENT_KEY, undefined);
   if (client) {
     console.log('Stopping clojure-lsp');
@@ -350,10 +365,85 @@ async function stopClient() {
   }
 }
 
-async function startClientCommand() {
-  lspStatus.show();
+enum FolderType {
+  VSCODE = 0,
+  FROM_FS_FILE = 1,
+  FROM_UNTITLED_FILE = 2,
+  FROM_NO_CLOJURE_FILE = 3,
+}
+
+type FallbackFolder = {
+  uri: vscode.Uri;
+  type: FolderType;
+};
+
+/**
+ * Figures out a ”best fit” rootUri for use when starting the clojure-lsp
+ * server. See: https://github.com/BetterThanTomorrow/calva/issues/1664
+ *
+ * @returns the ”best fit” rootUri or `undefined` if there is a VS Code folder open
+ */
+async function getFallbackFolder(): Promise<FallbackFolder> {
+  // If VS Code has a folder open, a rootUri is not needed
+  // we signal that with `undefined`
+  if (vscode.workspace.workspaceFolders) {
+    return {
+      uri: undefined,
+      type: FolderType.VSCODE,
+    };
+  }
+
+  const activeEditor = vscode.window.activeTextEditor;
+  let clojureFilePath: string;
+  let folderType: FolderType;
+  if (activeEditor && activeEditor.document?.languageId === 'clojure') {
+    folderType = activeEditor.document.isUntitled
+      ? FolderType.FROM_UNTITLED_FILE
+      : FolderType.FROM_FS_FILE;
+    if (!activeEditor.document.isUntitled) {
+      clojureFilePath = activeEditor.document.uri.fsPath;
+    }
+  } else {
+    for (const document of vscode.workspace.textDocuments) {
+      if (document.languageId === 'clojure') {
+        folderType = document.isUntitled ? FolderType.FROM_UNTITLED_FILE : FolderType.FROM_FS_FILE;
+        if (!document.isUntitled) {
+          clojureFilePath = document.uri.fsPath;
+        }
+      }
+    }
+  }
+
+  if (!clojureFilePath) {
+    if (!folderType) {
+      folderType = FolderType.FROM_NO_CLOJURE_FILE;
+    }
+    clojureFilePath = path.join(util.calvaTmpDir(), 'clojure-lsp-fallback-root', 'Untitled');
+  }
+
+  const fallbackFolderPath = path.dirname(clojureFilePath);
+  const fallbackFolder = vscode.Uri.file(fallbackFolderPath);
+  if (
+    folderType === FolderType.FROM_UNTITLED_FILE ||
+    folderType === FolderType.FROM_NO_CLOJURE_FILE
+  ) {
+    await vscode.workspace.fs.createDirectory(fallbackFolder);
+    const depsFilePath = path.join(fallbackFolderPath, 'deps.edn');
+    if (!util.pathExists(depsFilePath)) {
+      await util.writeTextToFile(vscode.Uri.file(depsFilePath), '{}');
+    }
+  }
+
+  return {
+    uri: fallbackFolder,
+    type: folderType,
+  };
+}
+
+export async function startClientCommand() {
+  lspStatusItem.show();
   await maybeDownloadLspServer();
-  await startClient();
+  await startClient(await getFallbackFolder());
 }
 
 function handleShowMessageRequest(params) {
@@ -388,7 +478,7 @@ function handleShowMessageRequest(params) {
   return messageFunc(params.message, ...actions);
 }
 
-async function startClient(): Promise<boolean> {
+async function startClient(fallbackFolder: FallbackFolder): Promise<boolean> {
   // TODO: In startClient() there is case where we should be stopping the client,
   //       but we don't because reasons mentions there. Meaning that here it could
   //       be the case that the client is actually running.
@@ -399,14 +489,14 @@ async function startClient(): Promise<boolean> {
     });
   }
   setStateValue(LSP_CLIENT_KEY, undefined);
-  const client = createClient(clojureLspPath);
+  const client = createClient(clojureLspPath, fallbackFolder);
   console.log('Starting clojure-lsp at', clojureLspPath);
 
   const testTree: StaticFeature = new TestTreeFeature();
   client.registerFeature(testTree);
 
   const onReadyPromise = client.onReady();
-  updateStatusItem('starting');
+  updateStatus('starting');
 
   client.start();
   try {
@@ -422,13 +512,13 @@ async function startClient(): Promise<boolean> {
     });
     client.onRequest('window/showMessageRequest', handleShowMessageRequest);
     await vscode.commands.executeCommand('setContext', 'clojureLsp:active', true);
-    updateStatusItem('started');
+    updateStatus('started');
     return true;
   } catch (error) {
     console.error('clojure-lsp:', error);
     setStateValue(LSP_CLIENT_KEY_ERROR, error);
-    updateStatusItem('error');
-    lspStatus.hide();
+    updateStatus('error');
+    lspStatusItem.hide();
     // TODO: If we stop the client here, the user gets an error alert
     //await stopClient();
     return false;
@@ -516,39 +606,36 @@ function registerDiagnosticsCommands(context: vscode.ExtensionContext): void {
   );
 }
 
-type LspStatus = 'preparing' | 'stopped' | 'starting' | 'started' | 'downloading' | 'error';
+export type LspStatus = 'stopped' | 'starting' | 'started' | 'downloading' | 'error';
+export let lspStatus: LspStatus = 'stopped';
 
-function updateStatusItem(status: LspStatus, extraInfo?: string) {
+function updateStatus(status: LspStatus, extraInfo?: string) {
+  lspStatus = status;
   switch (status) {
-    case 'preparing':
-      lspStatus.text = '$(dash) clojure-lsp';
-      lspStatus.tooltip = 'Calva is preparing to initialize Clojure-LSP';
-      lspStatus.command = undefined;
-      break;
     case 'stopped':
-      lspStatus.text = '$(circle-outline) clojure-lsp';
-      lspStatus.tooltip = 'Clojure-LSP is not active, click to get a menu';
-      lspStatus.command = 'calva.clojureLsp.showClojureLspStoppedMenu';
+      lspStatusItem.text = '$(circle-outline) clojure-lsp';
+      lspStatusItem.tooltip = 'Clojure-LSP is not active, click to get a menu';
+      lspStatusItem.command = 'calva.clojureLsp.showClojureLspStoppedMenu';
       break;
     case 'starting':
-      lspStatus.text = '$(rocket) clojure-lsp';
-      lspStatus.tooltip = 'Clojure-LSP is starting';
-      lspStatus.command = undefined;
+      lspStatusItem.text = '$(rocket) clojure-lsp';
+      lspStatusItem.tooltip = 'Clojure-LSP is starting';
+      lspStatusItem.command = undefined;
       break;
     case 'started':
-      lspStatus.text = '$(circle-filled) clojure-lsp';
-      lspStatus.tooltip = 'Clojure-LSP is active';
-      lspStatus.command = 'calva.clojureLsp.showClojureLspStartedMenu';
+      lspStatusItem.text = '$(circle-filled) clojure-lsp';
+      lspStatusItem.tooltip = 'Clojure-LSP is active';
+      lspStatusItem.command = 'calva.clojureLsp.showClojureLspStartedMenu';
       break;
     case 'downloading':
-      lspStatus.text = '$(sync~spin) clojure-lsp downloading';
-      lspStatus.tooltip = `Calva is downloading clojure-lsp version: ${extraInfo}`;
-      lspStatus.command = undefined;
+      lspStatusItem.text = '$(sync~spin) clojure-lsp downloading';
+      lspStatusItem.tooltip = `Calva is downloading clojure-lsp version: ${extraInfo}`;
+      lspStatusItem.command = undefined;
       break;
     case 'error':
-      lspStatus.text = '$(error) clojure-lsp';
-      lspStatus.tooltip = 'Clojure-LSP is not running because of some error';
-      lspStatus.command = 'calva.clojureLsp.showClojureLspStoppedMenu';
+      lspStatusItem.text = '$(error) clojure-lsp';
+      lspStatusItem.tooltip = 'Clojure-LSP is not running because of some error';
+      lspStatusItem.command = 'calva.clojureLsp.showClojureLspStoppedMenu';
       break;
     default:
       break;
@@ -563,11 +650,14 @@ async function activate(context: vscode.ExtensionContext, handler: TestTreeHandl
   registerLspCommands(context);
   registerEventHandlers(context);
 
-  updateStatusItem('preparing');
+  updateStatus('stopped');
   if (config.getConfig().enableClojureLspOnStart) {
-    lspStatus.show();
+    lspStatusItem.show();
     await maybeDownloadLspServer();
-    await startClient();
+    const fallbackFolder = await getFallbackFolder();
+    if (fallbackFolder.type !== FolderType.FROM_NO_CLOJURE_FILE) {
+      await startClient(fallbackFolder);
+    }
   }
 }
 
@@ -587,7 +677,7 @@ async function maybeDownloadLspServer(forceDownLoad = false): Promise<string> {
 }
 
 async function downloadLSPServerCommand() {
-  lspStatus.show();
+  lspStatusItem.show();
   const version = await maybeDownloadLspServer(true);
   void vscode.window.showInformationMessage(`Downloaded clojure-lsp version: ${version}`);
 }
@@ -605,9 +695,9 @@ async function ensureServerDownloaded(forceDownLoad = false): Promise<string> {
     !util.pathExists(clojureLspPath)
   ) {
     const downloadPromise = downloadClojureLsp(extensionContext.extensionPath, downloadVersion);
-    updateStatusItem('downloading', downloadVersion);
+    updateStatus('downloading', downloadVersion);
     await downloadPromise;
-    updateStatusItem('stopped');
+    updateStatus('stopped');
   }
   return readVersionFile(extensionContext.extensionPath);
 }

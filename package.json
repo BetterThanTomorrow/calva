@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.265",
+  "version": "2.0.266",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -1187,55 +1187,55 @@
       {
         "category": "Calva Paredit",
         "command": "paredit.forwardSexp",
-        "title": "Forward Sexp",
+        "title": "Move Cursor Forward Sexp/Form",
         "enablement": "editorLangId == clojure"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.backwardSexp",
-        "title": "Backward Sexp",
+        "title": "Move Cursor Backward Sexp/Form",
         "enablement": "editorLangId == clojure"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.forwardSexpOrUp",
-        "title": "Forward Sexp Or Up",
+        "title": "Move Cursor Forward or Up Sexp/Form",
         "enablement": "editorLangId == clojure"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.backwardSexpOrUp",
-        "title": "Backward Sexp Or Up",
+        "title": "Move Cursor Backward or Up Sexp/Form",
         "enablement": "editorLangId == clojure"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.forwardDownSexp",
-        "title": "Forward Down Sexp",
+        "title": "Move Cursor Forward Down Sexp/Form",
         "enablement": "editorLangId == clojure"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.backwardDownSexp",
-        "title": "Backward Down Sexp",
+        "title": "Move Cursor Backward Down Sexp/Form",
         "enablement": "editorLangId == clojure"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.backwardUpSexp",
-        "title": "Backward Up Sexp",
+        "title": "Move Cursor Backward Up Sexp/Form",
         "enablement": "editorLangId == clojure"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.forwardUpSexp",
-        "title": "Forward Up Sexp",
+        "title": "Move Cursor Forward Up Sexp/Form",
         "enablement": "editorLangId == clojure"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.closeList",
-        "title": "Forward to List End/Close",
+        "title": "Move Cursor Forward to List End/Close",
         "enablement": "editorLangId == clojure"
       },
       {
@@ -1283,13 +1283,13 @@
       {
         "category": "Calva Paredit",
         "command": "paredit.selectBackwardSexpOrUp",
-        "title": "Select Backward Sexp Or Up",
+        "title": "Select Backward Or Up Sexp",
         "enablement": "editorLangId == clojure"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectForwardSexpOrUp",
-        "title": "Select Forward Sexp Or Up",
+        "title": "Select Forward Or Up Sexp",
         "enablement": "editorLangId == clojure"
       },
       {

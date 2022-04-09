@@ -111,7 +111,7 @@ export async function setOrCreateNonProjectRoot(
   }
   if (!root) {
     const subDir = util.randomSlug();
-    root = vscode.Uri.file(path.join(os.tmpdir(), 'betterthantomorrow.calva', subDir));
+    root = vscode.Uri.file(path.join(util.calvaTmpDir(), subDir));
     await setNonProjectRootDir(context, root);
   }
   await setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));

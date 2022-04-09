@@ -18,21 +18,26 @@ Please see [this statement from Cognitect](https://cognitect.com/blog/2020/12/15
 <div>
 <div><a href="https://agical.se" title="The right kind of different">
 <img src="/images/agical-logo-1200x400.png" width="300px" height="100px" alt="Agical"/></a></div>
-<div>The right kind of different</div>
+<div><i>The right kind of different</i></div>
 </div>
 
 ## Gold Sponsors
 
-<div style="display:flex; flex: 1; flex-direction: row; justify-content: flex-start; margin-bottom: 16px;">
+<div style="display:flex; flex: 1; flex-direction: row; justify-content: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 30px;">
 
 <div style="margin-right: 30px">
-<div><a href="https://liftoff.io" title="Scale your growth on mobile"><img src="https://liftoff.io/wp-content/themes/liftoff/images/logo-blue.png" style="height: 60px;" alt="Liftoff"/></a></div>
-<div>Scale your growth on mobile</div>
+<div><a href="https://liftoff.io" title="Scale your growth on mobile"><img src="https://liftoff.io/wp-content/themes/liftoff/images/logo-blue.png" style="height: 80px;" alt="Liftoff"/></a></div>
+<div><i>Scale your growth on mobile</i></div>
 </div>
 
 <div>
-<div><a href="https://cognitect.com" title="MAKE. DO. SHIP."><img src="https://cognitect.com/assets/cognitect-logo-horizontal.svg" style="height: 60px;" alt="Cognitect"/></a></div>
-<div>MAKE. DO. SHIP.</div>
+<div><a href="https://cognitect.com" title="MAKE. DO. SHIP."><img src="https://cognitect.com/assets/cognitect-logo-horizontal.svg" style="height: 80px;" alt="Cognitect"/></a></div>
+<div><i>MAKE. DO. SHIP.</i></div>
+</div>
+
+<div>
+<div><a href="https://www.thortech-solutions.com/" title="ThorTech"><img src="https://www.thortech-solutions.com/wp-content/uploads/2022/04/ThorTechSolutionsLogo-01-copy-1.png" style="height: 80px;" alt="Cognitect"/></a></div>
+<!--<div><i>Grow your Clojure & ClojureScript business</i></div>-->
 </div>
 
 </div>
