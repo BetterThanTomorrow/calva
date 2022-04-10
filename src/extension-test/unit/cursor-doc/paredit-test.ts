@@ -1576,5 +1576,45 @@ describe('paredit', () => {
         expect(getText(a)).toEqual('hello');
       });
     });
+
+    describe('wrap sexp', () => {
+      it('wraps symbol', () => {
+        const a = docFromTextNotation('|a');
+        const b = docFromTextNotation('(|a)');
+        void paredit.wrapSexpr(a, '(', ')');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('wraps multiple symbols (multi-cursor)', () => {
+        const a = docFromTextNotation('|a§|1b');
+        const b = docFromTextNotation('(|a)§(|1b)');
+        void paredit.wrapSexpr(a, '(', ')');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('wraps list', () => {
+        const a = docFromTextNotation('(a)|');
+        const b = docFromTextNotation('[(a)|]');
+        void paredit.wrapSexpr(a, '[', ']');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('wraps multiple list (multi-cursor)', () => {
+        const a = docFromTextNotation('(a)|§(b)|1');
+        const b = docFromTextNotation('[(a)|]§[(b)|1]');
+        void paredit.wrapSexpr(a, '[', ']');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('wraps selection', () => {
+        // TODO: See if we can maintain the selection here
+        const a = docFromTextNotation('|a|');
+        const b = docFromTextNotation('(|a)');
+        void paredit.wrapSexpr(a, '(', ')');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('wraps multiple selections (multi-cursor)', () => {
+        const a = docFromTextNotation('|a|§|1b|1');
+        const b = docFromTextNotation('(|a)§(|1b)');
+        void paredit.wrapSexpr(a, '(', ')');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
   });
 });
