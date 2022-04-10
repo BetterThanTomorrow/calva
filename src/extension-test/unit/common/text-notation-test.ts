@@ -4,7 +4,7 @@ import * as textNotation from '../common/text-notation';
 describe('text-notation test utils', () => {
   describe('textNotationFromDoc', () => {
     it('should return the same input text to textNotationFromDoc', () => {
-      const inputText = '(a b|1) (a b|) (a (b))';
+      const inputText = '(a b|1) (a b|) (a <2(b)<2)';
       const doc = textNotation.docFromTextNotation(inputText);
       expect(textNotation.textNotationFromDoc(doc)).toEqual(inputText);
     });

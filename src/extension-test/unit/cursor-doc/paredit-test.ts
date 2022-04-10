@@ -1145,6 +1145,21 @@ describe('paredit', () => {
           void paredit.forwardBarfSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+        it('Barfs symbols from vectors at multiple cursors positions', () => {
+          const a = docFromTextNotation('[|a§ b]§[|1a§ b]');
+          const b = docFromTextNotation('[|a]§ b§[|1a]§ b');
+          void paredit.forwardBarfSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Barfs symbols from nested vectors at multiple cursors positions, needing post-format', () => {
+          // TODO: This behaves before formatting happens
+          //       In the ”real” editor formatting happens after the barf
+          //       and formatting is still a single-cursor thing...
+          const a = docFromTextNotation('([|a§  b])§([|1a§  b])');
+          const b = docFromTextNotation('([|a]§  b)§([|1a]§  b)');
+          void paredit.forwardBarfSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
 
       describe('Barfing backwards', () => {
@@ -1477,21 +1492,51 @@ describe('paredit', () => {
     });
 
     describe('splice sexp', () => {
-      it('splice empty', () => {
+      it('does not splice empty', () => {
         const a = docFromTextNotation('|');
         const b = docFromTextNotation('|');
         void paredit.spliceSexp(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
-      it('splice list', () => {
-        const a = docFromTextNotation('(a|a b c)');
-        const b = docFromTextNotation('a|a b c');
+      it('splices empty list', () => {
+        const a = docFromTextNotation('(|)');
+        const b = docFromTextNotation('|');
         void paredit.spliceSexp(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
-      it('splice list also when forms have meta and readers', () => {
+      it('splices two list (multi-cursor', () => {
+        const a = docFromTextNotation('(|a)§(|1b)');
+        // TODO: This is quite strange.
+        //       In the VS Code editor the result is:
+        //       '|a§b|1'
+        //       Running this test, the result is:
+        //       '|a§(b|1'
+        //       (Both are wrong)
+        const b = docFromTextNotation('|a§|1b');
+        void paredit.spliceSexp(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('splices multiple list', () => {
+        const a = docFromTextNotation('(|a)§(|1b b)§(|2c c c)§(|3d d d d)');
+        const b = docFromTextNotation('|a§|1b b§|2c c c§|3d d d d');
+        // TODO: Same weirdness as with the two lists above
+        //       What I get in VS Code:
+        //       '|a§b |1b§c c |2c§d d d |3d'
+        //       What this test produces:
+        //       '|a§(b|1b)§c c|2c)§(dd d|3d)'
+        void paredit.spliceSexp(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('splices list also when forms have meta and readers', () => {
         const a = docFromTextNotation('(^{:d e} #a|a b c)');
         const b = docFromTextNotation('^{:d e} #a|a b c');
+        void paredit.spliceSexp(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it.skip('splices list with meta and readers', () => {
+        // TODO: Probably the meta data attached to the list should be removed
+        const a = docFromTextNotation('^{:d e} #a (|a b c)');
+        const b = docFromTextNotation('|a b c');
         void paredit.spliceSexp(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
