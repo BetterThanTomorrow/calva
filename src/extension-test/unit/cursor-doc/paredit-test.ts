@@ -167,10 +167,24 @@ describe('paredit', () => {
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
       });
+      it('Multi-cursors find end of string', () => {
+        const a = docFromTextNotation('"a |b c"§"c |1d e"');
+        const b = docFromTextNotation('"a |b c|"§"c |1d e|1"');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
 
       it('Finds newline in multi line string', () => {
         const a = docFromTextNotation('"This |needs to find the end\n of the string."');
         const b = docFromTextNotation('"This |needs to find the end|\n of the string."');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+      it('Multi-cursors find newline in multi line string', () => {
+        const a = docFromTextNotation('"a |b §c"§"c |1d §e"');
+        const b = docFromTextNotation('"a |b |cc"§"c |1d |1§e"');
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
@@ -185,8 +199,15 @@ describe('paredit', () => {
       });
 
       it('Finds end of comment', () => {
-        const a = docFromTextNotation('(a |;; foo\n e)');
-        const b = docFromTextNotation('(a |;; foo|\n e)');
+        const a = docFromTextNotation('(a |;; foo§ e)');
+        const b = docFromTextNotation('(a |;; foo|§ e)');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+      it('Multi-cursors find end of comment', () => {
+        const a = docFromTextNotation('(a |; b§ c)§(c |1; d§ e)');
+        const b = docFromTextNotation('(a |; b|§ c)§(c |1; d|1§ e)');
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
@@ -201,8 +222,15 @@ describe('paredit', () => {
       });
 
       it('Maintains balanced delimiters 1', () => {
-        const a = docFromTextNotation('(a| b (c\n d) e)');
-        const b = docFromTextNotation('(a| b (c\n d)| e)');
+        const a = docFromTextNotation('(a| b (c§ d) e)');
+        const b = docFromTextNotation('(a| b (c§ d)| e)');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+      it('Multi-cursors maintain balanced delimiters 1', () => {
+        const a = docFromTextNotation('(a| b (c§ d) e)§(f|1 g (h§ i) j)');
+        const b = docFromTextNotation('(a| b (c§ d)| e)§(f|1 g (h§ i)|1 j)');
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
@@ -218,8 +246,18 @@ describe('paredit', () => {
       });
 
       it('Maintains balanced delimiters 2', () => {
-        const a = docFromTextNotation('(aa| (c (e\nf)) g)');
-        const b = docFromTextNotation('(aa| (c (e\nf))|g)');
+        const a = docFromTextNotation('(aa| (c d(e§f)) g)');
+        const b = docFromTextNotation('(aa| (c d(e§f))|g)');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+      it('Multi-cursors maintain balanced delimiters 2', () => {
+        const a = docFromTextNotation('(a| (c d (e§f)) g)§(h|1 (i j (k§l)) m)');
+        // TODO: This behaves in VS Code, but the test fails
+        const b = docFromTextNotation('(a| (c d (e§f))|g)§(h|1 (i j (k§l))|1m)');
+        //       the result matches this (the second cursor is where it differes)
+        //const b = docFromTextNotation('(a| (c d (e§f))|g)§(h |1(i j (k§l)) |1m)');
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
@@ -427,9 +465,19 @@ describe('paredit', () => {
         const b = docFromTextNotation('(def foo [:foo :bar |:baz|])');
         expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
       });
-      it('Leaves an sexp if at the end', () => {
+      it('Leaves a sexp if at the end', () => {
         const a = docFromTextNotation('(def foo [:foo :bar :baz|])');
         const b = docFromTextNotation('(def foo [:foo :bar :baz|]|)');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Multi-cursors leave sexp if at the end', () => {
+        const a = docFromTextNotation('(a|)§(b|1)');
+        const b = docFromTextNotation('(a|)|§(b|1)|1');
+        expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Multi-cursors one goes fwd a sexp, one leaves sexp b/c at the end', () => {
+        const a = docFromTextNotation('(|a)§(b|1)');
+        const b = docFromTextNotation('(|a|)§(b|1)|1');
         expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
       });
       it('Finds next symbol, including leading space', () => {
@@ -479,6 +527,16 @@ describe('paredit', () => {
       it('Goes up when at front bounds', () => {
         const a = docFromTextNotation('(def x (|inc 1))');
         const b = docFromTextNotation('(def x |(|inc 1))');
+        expect(paredit.backwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Multi-cursors go up when at front bounds', () => {
+        const a = docFromTextNotation('(|1a (|b 1))');
+        const b = docFromTextNotation('|1(|1a |(|b 1))');
+        expect(paredit.backwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
+      });
+      it('Multi-cursors, one go up when at front bounds, the other back sexp', () => {
+        const a = docFromTextNotation('(|1a (b c|))');
+        const b = docFromTextNotation('|1(|1a (b |c|))');
         expect(paredit.backwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
       });
     });
