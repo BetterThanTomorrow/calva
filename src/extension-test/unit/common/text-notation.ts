@@ -14,9 +14,12 @@ import { clone, entries, cond, toInteger, last, first, cloneDeep, orderBy } from
  *   * Selections with direction right->left are denoted with `<0`, `<1`, `<2`, ... `<9` etc at the range boundaries
  */
 function textNotationToTextAndSelection(content: string): [string, model.ModelEditSelection[]] {
+  const cursorSymbolRegExPattern =
+    /(?<cursorType>(?:(?<selectionDirection><|>(?=\d{1})))|(?:\|))(?<cursorNumber>\d{1})?/g;
   const text = clone(content)
     .replace(/§/g, '\n')
-    .replace(/\|?[<>]?\|\d?/g, '');
+    // .replace(/\|?[<>]?\|\d?/g, '');
+    .replace(cursorSymbolRegExPattern, '');
 
   /**
    * 3 capt groups:
@@ -26,11 +29,7 @@ function textNotationToTextAndSelection(content: string): [string, model.ModelEd
    *     the > or <,
    * 3 = only if there's a number, the number itself (eg multi cursor)
    */
-  const matches = Array.from(
-    content.matchAll(
-      /(?<cursorType>(?:(?<selectionDirection><|>(?=\d{1})))|(?:\|))(?<cursorNumber>\d{1})?/g
-    )
-  );
+  const matches = Array.from(content.matchAll(cursorSymbolRegExPattern));
 
   // a map of cursor symbols (eg '>3' - including the cursor number if >1 ) to an an array of matches (for their positions mostly) in content string where that cursor is
   // for now, we hope that there are at most two positions per symbol
