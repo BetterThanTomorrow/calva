@@ -53,12 +53,26 @@ describe('text-notation test utils', () => {
       const doc = textNotation.docFromTextNotation(tn);
       expect(textNotation.textAndSelection(doc)).toEqual([text, selections]);
     });
-    it('creates multiple directed r->l range/selection', () => {
+    it('creates a variety directed r->l range/selection', () => {
       const tn = '(<1a<1 <b<)';
       const text = '(a b)';
       const selections = [
         [4, 3],
         [2, 1],
+      ];
+      const doc = textNotation.docFromTextNotation(tn);
+      expect(textNotation.textAndSelection(doc)).toEqual([text, selections]);
+    });
+    it('creates a variety of multi-cursor positions and selections', () => {
+      const tn = '|3a|3 <1b<1 >2c>2 d§>0e>0 f |4g<5<5';
+      const text = 'a b c d§e f g'.replace(/§/g, '\n');
+      const selections = [
+        [8, 9],
+        [3, 2],
+        [4, 5],
+        [0, 1],
+        [12, 12],
+        [13, 13],
       ];
       const doc = textNotation.docFromTextNotation(tn);
       expect(textNotation.textAndSelection(doc)).toEqual([text, selections]);
