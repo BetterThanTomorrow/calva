@@ -1540,6 +1540,12 @@
         "enablement": "editorLangId == clojure"
       },
       {
+        "command": "calva-fmt.trimCurrentFormWhiteSpace",
+        "title": "Format Current Form and trim space between forms",
+        "category": "Calva Format",
+        "enablement": "editorLangId == clojure"
+      },
+      {
         "command": "calva-fmt.inferParens",
         "title": "Infer Parens (from the indentation)",
         "category": "Calva Format",
