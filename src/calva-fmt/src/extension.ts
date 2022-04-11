@@ -46,6 +46,12 @@ export async function activate(context: vscode.ExtensionContext) {
     )
   );
   context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand(
+      'calva-fmt.trimCurrentFormWhiteSpace',
+      formatter.trimWhiteSpacePositionCommand
+    )
+  );
+  context.subscriptions.push(
     vscode.commands.registerTextEditorCommand('calva-fmt.inferParens', inferer.inferParensCommand)
   );
   context.subscriptions.push(
