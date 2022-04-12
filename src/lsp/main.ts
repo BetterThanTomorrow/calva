@@ -160,13 +160,8 @@ function createClient(clojureLspPath: string, fallbackFolder: FallbackFolder): L
             return next(document, position, token);
           }
         },
-        async provideCompletionItem(document, position, context, token, next) {
-          const items = await provideCompletionItems(document, position, token, context);
-          if (items) {
-            return null;
-          } else {
-            return next(document, position, context, token);
-          }
+        provideCompletionItem(document, position, context, token, next) {
+          return null;
         },
         async provideSignatureHelp(document, position, context, token, next) {
           const help = await provideSignatureHelp(document, position, token);
