@@ -13,8 +13,6 @@ import {
 } from 'vscode-languageclient/node';
 import * as util from '../utilities';
 import * as config from '../config';
-import { provideClojureDefinition } from '../providers/definition';
-import { provideCompletionItems } from '../providers/completion';
 import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
 import { downloadClojureLsp, getLatestVersion } from './download';
 import { readVersionFile, getClojureLspPath } from './utilities';
@@ -152,15 +150,10 @@ function createClient(clojureLspPath: string, fallbackFolder: FallbackFolder): L
             return next(document, position, token);
           }
         },
-        async provideDefinition(document, position, token, next) {
-          const definition = await provideClojureDefinition(document, position, token);
-          if (definition) {
-            return null;
-          } else {
-            return next(document, position, token);
-          }
+        provideDefinition(_document, _position, _token, _next) {
+          return null;
         },
-        provideCompletionItem(document, position, context, token, next) {
+        provideCompletionItem(_document, _position, _context, _token, _next) {
           return null;
         },
         async provideSignatureHelp(document, position, context, token, next) {

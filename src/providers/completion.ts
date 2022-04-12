@@ -39,7 +39,7 @@ const completionProviderOptions = { priority: ['lsp', 'repl'], merge: true };
 
 const completionFunctions = { lsp: lspCompletions, repl: replCompletions };
 
-export async function provideCompletionItems(
+async function provideCompletionItems(
   document: TextDocument,
   position: Position,
   token: CancellationToken,

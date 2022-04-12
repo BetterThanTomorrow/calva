@@ -5,9 +5,17 @@ import annotations from './annotations';
 import * as namespace from '../namespace';
 import * as outputWindow from '../results-output/results-doc';
 import * as replSession from '../nrepl/repl-session';
+import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
+import { getClient } from '../lsp/main';
+import { DefinitionRequest } from 'vscode-languageclient';
 
-// Used by out LSP middleware
-export async function provideClojureDefinition(document, position: vscode.Position, _token) {
+const converter = createConverter(undefined, undefined);
+
+const definitionProviderOptions = { priority: ['lsp', 'repl'] };
+
+const definitionFunctions = { lsp: lspDefinition, repl: provideClojureDefinition };
+
+async function provideClojureDefinition(document, position: vscode.Position, _token) {
   const evalPos = annotations.getEvaluationPosition(position);
   const posIsEvalPos = evalPos && position.isEqual(evalPos);
   if (util.getConnectedState() && !posIsEvalPos) {
@@ -25,8 +33,15 @@ export async function provideClojureDefinition(document, position: vscode.Positi
   }
 }
 
-// TODO: This provider is no longer used. We should factor the code away such that
-//       it is clearer that this is handled by our LSP middleware.
+async function lspDefinition(document, position: vscode.Position, token) {
+  const lspClient = await getClient(20);
+  return lspClient.sendRequest(
+    DefinitionRequest.type,
+    lspClient.code2ProtocolConverter.asTextDocumentPositionParams(document, position),
+    token
+  );
+}
+
 export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
   state: any;
   constructor() {
@@ -34,7 +49,19 @@ export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
   }
 
   async provideDefinition(document, position: vscode.Position, token) {
-    return await provideClojureDefinition(document, position, token);
+    for (const provider of definitionProviderOptions.priority) {
+      const definition = await definitionFunctions[provider](document, position, token);
+
+      if (definition) {
+        if (definition instanceof vscode.Location) {
+          return definition;
+        }
+
+        return converter.asLocation(definition);
+      }
+    }
+
+    return null;
   }
 }
 
