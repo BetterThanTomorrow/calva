@@ -707,6 +707,39 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#format-current-form-command-variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      Format current form command variants
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Format current form command variants">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#format-and-align-current-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      Format and Align Current Form
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#format-current-form-and-trim-space-between-forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      Format Current Form and trim space between forms
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#configuration" class="md-nav__link">
     <span class="md-ellipsis">
       Configuration
@@ -1686,6 +1719,39 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#format-current-form-command-variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      Format current form command variants
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Format current form command variants">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#format-and-align-current-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      Format and Align Current Form
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#format-current-form-and-trim-space-between-forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      Format Current Form and trim space between forms
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#configuration" class="md-nav__link">
     <span class="md-ellipsis">
       Configuration
@@ -1774,7 +1840,23 @@
 </li>
 <li>inserts whitespace between forms</li>
 </ul>
-<p>Not a fan of some default setting? The formatter is quite configurable.</p>
+<p>Not a fan of some default setting? The formatter is quite <a href="#configuration">configurable</a>.</p>
+<h2 id="format-current-form-command-variants">Format current form command variants</h2>
+<p>There are two special commands for formatting the current form:</p>
+<h3 id="format-and-align-current-form">Format and Align Current Form</h3>
+<p>Aligns associative structures and bindings in two columns. See more <a href="#about-aligning-associative-forms">below</a>.</p>
+<h3 id="format-current-form-and-trim-space-between-forms">Format Current Form and trim space between forms</h3>
+<p>This formats the text, and trims consecutive, non-indent, whitespace on a line to just one space. Something like:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span>    <span class="ss">:b</span><span class="p">]</span>
+<span class="p">(</span><span class="nb">str </span><span class="s">&quot;foo&quot;</span>     <span class="s">&quot;bar&quot;</span> <span class="s">&quot;baz&quot;</span>
+<span class="s">&quot;a&quot;</span>    <span class="nv">a</span><span class="p">))</span>
+</code></pre></div>
+<p>Becomes:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span> <span class="ss">:b</span><span class="p">]</span>
+  <span class="p">(</span><span class="nb">str </span><span class="s">&quot;foo&quot;</span> <span class="s">&quot;bar&quot;</span> <span class="s">&quot;baz&quot;</span>
+       <span class="s">&quot;a&quot;</span> <span class="nv">a</span><span class="p">))</span>
+</code></pre></div>
+<p>Basically, it behaves like if <code>:remove-multiple-non-indenting-spaces? true</code> was added to the <code>cljfmt</code> config. Which, in fact, is what happens. Calva merges that onto your cljfmt config when this command is used.</p>
 <h2 id="configuration">Configuration</h2>
 <p>You configure Calva's formatting using <a href="https://github.com/weavejester/cljfmt#configuration">cljfmt's configuration EDN</a>. This means that you can adjust the above mentioned defaults, including the indenting.</p>
 <p>This configuration can either be provided via a file or via clojure-lsp (see <a href="https://clojure-lsp.io/settings/">Clojure LSP Settings</a>).</p>
@@ -1794,7 +1876,8 @@
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span> <span class="nv">true</span>
  <span class="ss">:remove-trailing-whitespace?</span> <span class="nv">true</span>
  <span class="ss">:remove-consecutive-blank-lines?</span> <span class="nv">false</span>
- <span class="ss">:insert-missing-whitespace?</span> <span class="nv">true</span><span class="p">}</span>
+ <span class="ss">:insert-missing-whitespace?</span> <span class="nv">true</span>
+ <span class="ss">:remove-multiple-non-indenting-spaces?</span> <span class="nv">false</span><span class="p">}</span>
 </code></pre></div>
 <p>Then set <code>calva.fmt.configPath</code> to the path to this file. The path should either be absolute, or relative to the project root directory. So, if you named the file <code>.cljfmt.edn</code> and saved it in the root of the project, then this setting should be <code>.cljfmt.edn</code>.</p>
 <p>Since you are editing the file in Calva (you are, right?), you can quickly test how different settings affect the formatting. Try:</p>
