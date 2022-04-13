@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.266",
+  "version": "2.0.267",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -1536,6 +1536,12 @@
       {
         "command": "calva-fmt.alignCurrentForm",
         "title": "Format and Align Current Form (recursively, experimental)",
+        "category": "Calva Format",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "command": "calva-fmt.trimCurrentFormWhiteSpace",
+        "title": "Format Current Form and trim space between forms",
         "category": "Calva Format",
         "enablement": "editorLangId == clojure"
       },

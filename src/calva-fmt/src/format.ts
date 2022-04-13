@@ -183,6 +183,10 @@ export function alignPositionCommand(editor: vscode.TextEditor) {
   void formatPosition(editor, true, { 'align-associative?': true });
 }
 
+export function trimWhiteSpacePositionCommand(editor: vscode.TextEditor) {
+  void formatPosition(editor, false, { 'remove-multiple-non-indenting-spaces?': true });
+}
+
 export async function formatCode(code: string, eol: number) {
   const d = {
     'range-text': code,
