@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Add command for formatting away multiple space between forms on the same line](https://github.com/BetterThanTomorrow/calva/issues/1677)
+- [Merge LSP + NREPL completions and goToDefintion](https://github.com/BetterThanTomorrow/calva/issues/1498)
 
 ## [2.0.266] - 2022-04-11
 - Fix: [Jump between source/test does not work properly with multiple workspace folders](https://github.com/BetterThanTomorrow/calva/issues/1219)
