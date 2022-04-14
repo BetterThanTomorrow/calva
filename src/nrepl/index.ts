@@ -18,7 +18,7 @@ function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
 }
 
-// When a command fails becuase of an unknown-op (usually caused by missing
+// When a command fails because of an unknown-op (usually caused by missing
 // middleware), we can mark the operation as failed, so that we can show a message
 // in the UI to the user.
 // https://nrepl.org/nrepl/design/handlers.html
