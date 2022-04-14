@@ -1,1 +1,2 @@
-{}
+{:deps {org.clojure/clojure {:mvn/version "1.11.0-rc1"}}
+ :paths ["integration-test"]}

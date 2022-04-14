@@ -31,7 +31,35 @@ Calva's formatting is mostly about indenting, but it also (again, defaults):
     -   this also folds trailing brackets (a k a _the paren trail_) up on the same line
 -   inserts whitespace between forms
 
-Not a fan of some default setting? The formatter is quite configurable.
+Not a fan of some default setting? The formatter is quite [configurable](#configuration).
+
+## Format current form command variants
+
+There are two special commands for formatting the current form:
+
+### Format and Align Current Form
+
+Aligns associative structures and bindings in two columns. See more [below](#about-aligning-associative-forms).
+
+### Format Current Form and trim space between forms
+
+This formats the text, and trims consecutive, non-indent, whitespace on a line to just one space. Something like:
+
+```clojure
+(let [a    :b]
+(str "foo"     "bar" "baz"
+"a"    a))
+```
+
+Becomes:
+
+```clojure
+(let [a :b]
+  (str "foo" "bar" "baz"
+       "a" a))
+```
+
+Basically, it behaves like if `:remove-multiple-non-indenting-spaces? true` was added to the `cljfmt` config. Which, in fact, is what happens. Calva merges that onto your cljfmt config when this command is used.
 
 ## Configuration
 
@@ -54,7 +82,8 @@ If providing settings via a file, start changing the Calva formatting defaults b
 {:remove-surrounding-whitespace? true
  :remove-trailing-whitespace? true
  :remove-consecutive-blank-lines? false
- :insert-missing-whitespace? true}
+ :insert-missing-whitespace? true
+ :remove-multiple-non-indenting-spaces? false}
 ```
 
 Then set `calva.fmt.configPath` to the path to this file. The path should either be absolute, or relative to the project root directory. So, if you named the file `.cljfmt.edn` and saved it in the root of the project, then this setting should be `.cljfmt.edn`.

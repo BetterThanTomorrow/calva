@@ -37,12 +37,19 @@
     (catch js/Error e
       {:error (.-message e)})))
 
-(defn- reformat-string [range-text {:keys [align-associative?] :as config}]
-  (let [cljfmt-options (:cljfmt-options config)]
+(defn- reformat-string [range-text {:keys [align-associative?
+                                           remove-multiple-non-indenting-spaces?] :as config}]
+  (let [cljfmt-options (:cljfmt-options config)
+        trim-space-between? (or remove-multiple-non-indenting-spaces?
+                                (:remove-multiple-non-indenting-spaces? cljfmt-options))]
     (if (or align-associative?
             (:align-associative? cljfmt-options))
-      (pez-cljfmt/reformat-string range-text (assoc cljfmt-options :align-associative? true))
-      (cljfmt/reformat-string range-text cljfmt-options))))
+      (pez-cljfmt/reformat-string range-text (-> cljfmt-options
+                                                 (assoc :align-associative? true)
+                                                 (dissoc :remove-multiple-non-indenting-spaces?)))
+      (cljfmt/reformat-string range-text (-> cljfmt-options
+                                             (assoc :remove-multiple-non-indenting-spaces?
+                                                    trim-space-between?))))))
 
 (defn format-text
   [{:keys [range-text eol config] :as m}]

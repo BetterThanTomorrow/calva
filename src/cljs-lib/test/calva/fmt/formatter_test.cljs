@@ -30,7 +30,7 @@ baz)")
          (:range-text (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 5] :idx 2})))))
 
 (def misaligned-text "(def foo
-(let[a b
+(let[a   b
 aa bb
 ccc {:a b :aa bb :ccc ccc}]
 ))")
@@ -46,16 +46,39 @@ ccc {:a b :aa bb :ccc ccc}]
            (:range-text (sut/format-text-at-idx {:eol      "\n"
                                                  :all-text misaligned-text
                                                  :config {:align-associative? true}
-                                                 :range    [0 54]
+                                                 :range    [0 56]
                                                  :idx      0})))))
+  
   (testing "Does not align associative structures when `:align-associative` is not `true`"
+    (is (= "(def foo
+  (let [a   b
+        aa bb
+        ccc {:a b :aa bb :ccc ccc}]))"
+           (:range-text (sut/format-text-at-idx {:eol      "\n"
+                                                 :all-text misaligned-text
+                                                 :range    [0 56]
+                                                 :idx      1}))))))
+
+(deftest format-trim-text-at-idx
+  (testing "Trims space between forms when `:remove-multiple-non-indenting-spaces?` is `true`"
     (is (= "(def foo
   (let [a b
         aa bb
         ccc {:a b :aa bb :ccc ccc}]))"
            (:range-text (sut/format-text-at-idx {:eol      "\n"
                                                  :all-text misaligned-text
-                                                 :range    [0 54]
+                                                 :config {:remove-multiple-non-indenting-spaces? true}
+                                                 :range    [0 56]
+                                                 :idx      0})))))
+  
+  (testing "Does not trim space between forms when `:remove-multiple-non-indenting-spaces?` is missing"
+    (is (= "(def foo
+  (let [a   b
+        aa bb
+        ccc {:a b :aa bb :ccc ccc}]))"
+           (:range-text (sut/format-text-at-idx {:eol      "\n"
+                                                 :all-text misaligned-text
+                                                 :range    [0 56]
                                                  :idx      1}))))))
 
 (def a-comment
