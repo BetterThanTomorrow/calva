@@ -17,6 +17,7 @@ import { EditableDocument, ModelEditResult } from '../cursor-doc/model';
 import { assertIsDefined } from '../utilities';
 import * as textNotation from '../extension-test/unit/common/text-notation';
 import * as calvaState from '../state';
+import _ = require('lodash');
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
 const languages = new Set(['clojure', 'lisp', 'scheme']);
@@ -27,14 +28,19 @@ const enabled = true;
  * @param doc
  * @param range
  */
-export function copyRangeToClipboard(doc: EditableDocument, ranges: Array<[number, number]>) {
-  // FIXME: This is tricky. Somehow, vsc natively support cut/copy & pasting for multiple selections.
-  //        But, how it does so is not known to me at this time.
-  //        So, I am using the native copy command for now with only the first range (presumably the primary selection).
-  const range = ranges[0];
-  const [start, end] = range;
-  const text = doc.model.getText(start, end);
-  void env.clipboard.writeText(text);
+export function copyRangeToClipboard(
+  doc: EditableDocument,
+  ranges: Array<[number, number]> = _(doc.selections)
+    .map((s) => s.asRange)
+    .value()
+) {
+  const texts: string[] = _(ranges)
+    // Why do we reorder the ranges? Because vscode does consider the cursor order when pasting, and considers the cursors sorted in the order they appear in the document (ascending)
+    .orderBy((r) => Math.min(...r), 'asc')
+    .map(([start, end]) => doc.model.getText(start, end))
+    .value();
+  // TODO: Evaluate if we need to use a different line ending per os for the clipboard multiline copy/paste
+  void env.clipboard.writeText(texts.join('\n'));
 }
 
 /**
