@@ -85,20 +85,33 @@ export function docFromTextNotation(s: string): model.StringDocument {
 
 export function textNotationFromDoc(doc: model.EditableDocument): string {
   const selections = doc.selections ?? [];
+  const ranges = selections.map((s) => s.asDirectedRange);
+
+  const text = getText(doc, true);
+
+  return textNotationFromTextAndSelections(text, ranges);
+}
+
+export function textNotationFromTextAndSelections(
+  text: string,
+  ranges: Array<[number, number]>
+): string {
   let cursorSymbols: [number, string][] = [];
-  selections.forEach((s, cursorNumber) => {
-    const cursorType = s.isReversed ? '<' : '|';
-    cursorSymbols.push([s.start, `${cursorType}${cursorNumber || ''}`]);
-    if (s.isSelection) {
-      cursorSymbols.push([s.end, `${cursorType}${cursorNumber || ''}`]);
+  ranges.forEach((r, cursorNumber) => {
+    const [anchor, active] = r;
+    const isReversed = anchor > active;
+    const isSelection = anchor - active !== 0;
+    const start = Math.min(anchor, active);
+    const end = Math.max(anchor, active);
+
+    const cursorType = isReversed ? '<' : '|';
+    cursorSymbols.push([start, `${cursorType}${cursorNumber || ''}`]);
+    if (isSelection) {
+      cursorSymbols.push([end, `${cursorType}${cursorNumber || ''}`]);
     }
   });
 
   cursorSymbols = orderBy(cursorSymbols, (c) => c[0]);
-
-  const text = getText(doc)
-    .split(doc.model.lineEndingLength === 1 ? '\n' : '\r\n')
-    .join('§');
 
   // basically split up the text into chunks separated by where they'd have had cursor symbols, and append cursor symbols after each chunk, before joining back together
   // this way we can insert the cursor symbols in the right place without having to worry about the cumulative offsets created by appending the cursor symbols
