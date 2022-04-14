@@ -255,8 +255,8 @@ describe('paredit', () => {
       it('Multi-cursors maintain balanced delimiters 2', () => {
         const a = docFromTextNotation('(a| (c d (e§f)) g)§(h|1 (i j (k§l)) m)');
         // TODO: This behaves in VS Code, but the test fails
-        const b = docFromTextNotation('(a| (c d (e§f))|g)§(h|1 (i j (k§l))|1m)');
-        //       the result matches this (the second cursor is where it differes)
+        const b = docFromTextNotation('(a| (c d (e§f))| g)§(h|1 (i j (k§l))|1 m)');
+        //       the result matches this (the second cursor is where it differs)
         //const b = docFromTextNotation('(a| (c d (e§f))|g)§(h |1(i j (k§l)) |1m)');
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
