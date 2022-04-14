@@ -190,6 +190,23 @@ export class ModelEditSelection {
   clone() {
     return new ModelEditSelection(this._anchor, this._active);
   }
+
+  /**
+   * Returns a simple 2-item tuple representing the
+   * [leftmost/earliest/start position, rightmost, farthest, end position].
+   */
+  get asRange() {
+    return [this.start, this.end] as [start: number, end: number];
+  }
+
+  /**
+   * Same as `ModelEditSelection.asRange` but with the leftmost item being the anchor position, and the rightmost item
+   * being the active position. This way, you can tell if it's reversed by checking if the leftmost item is greater
+   * than the rightmost item.
+   */
+  get asDirectedRange() {
+    return [this.anchor, this.active] as [anchor: number, active: number];
+  }
 }
 
 export type ModelEditOptions = {
@@ -206,6 +223,7 @@ export type ModelEditResult = {
 };
 export interface EditableModel {
   readonly lineEndingLength: number;
+  readonly lineEnding: string;
 
   /**
    * Performs a model edit batch.
@@ -251,6 +269,10 @@ export interface EditableDocument {
 export class LineInputModel implements EditableModel {
   /** How many characters in the line endings of the text of this model? */
   constructor(readonly lineEndingLength: number = 1, private document?: EditableDocument) {}
+
+  get lineEnding() {
+    return this.lineEndingLength === 1 ? '\n' : '\r\n';
+  }
 
   /** The input lines. */
   lines: TextLine[] = [new TextLine('', this.getStateForLine(0))];

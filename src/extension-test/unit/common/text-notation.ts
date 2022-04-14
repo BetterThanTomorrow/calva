@@ -133,8 +133,10 @@ export function textNotationFromDoc(doc: model.EditableDocument): string {
  * @param doc
  * @returns string
  */
-export function getText(doc: model.EditableDocument): string {
-  return doc.model.getText(0, Infinity);
+export function getText(doc: model.EditableDocument, replaceNewLine = false): string {
+  const text = doc.model.getText(0, Infinity);
+
+  return replaceNewLine ? text.split(doc.model.lineEnding).join('§') : text;
 }
 
 /**

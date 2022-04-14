@@ -25,6 +25,10 @@ export class DocumentModel implements EditableModel {
     this.lineInputModel = new LineInputModel(this.lineEndingLength);
   }
 
+  get lineEnding() {
+    return this.lineEndingLength == 2 ? '\r\n' : '\n';
+  }
+
   edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<ModelEditResult> {
     const editor = utilities.getActiveTextEditor(),
       undoStopBefore = !!options.undoStopBefore;
