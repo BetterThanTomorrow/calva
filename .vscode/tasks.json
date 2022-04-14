@@ -56,25 +56,6 @@
         "kind": "test",
         "isDefault": false
       },
-      "problemMatcher": {
-        // "owner": "mocha",
-        "fileLocation": ["relative", "${workspaceRoot}"],
-        "pattern": [
-          {
-            "regexp": "^not\\sok\\s\\d+\\s(.*)$"
-          },
-          {
-            "regexp": "\\s+(.*)$",
-            "message": 1
-          },
-          {
-            "regexp": "\\s+at\\s(.*)\\s\\((.*):(\\d+):(\\d+)\\)",
-            "file": 2,
-            "line": 3,
-            "column": 4
-          }
-        ]
-      },
       "presentation": {
         "panel": "dedicated",
         "group": "defaultCalva"
@@ -89,7 +70,7 @@
         "kind": "build",
         "isDefault": false
       },
-      "problemMatcher": "$eslint-compact",
+      "problemMatcher": "$eslint-stylish",
       "presentation": {
         "panel": "dedicated",
         "group": "defaultCalva"
