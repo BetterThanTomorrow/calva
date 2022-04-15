@@ -1,4 +1,4 @@
-import { isEqual, last, pick, property, clone, isBoolean, orderBy } from 'lodash';
+import { isEqual, last, pick, property, clone, isBoolean, orderBy, isNil, flatten } from 'lodash';
 import _ = require('lodash');
 import { validPair } from './clojure-lexer';
 import {
@@ -9,7 +9,11 @@ import {
   ModelEditFunctionArgs,
 } from './model';
 import { LispTokenCursor } from './token-cursor';
-import { replaceAt } from '../util/array';
+import { mapToItemAndOrder, mapToOriginalItem, mapToOriginalOrder, replaceAt } from '../util/array';
+import {
+  mapRangeOrSelectionToOffset,
+  repositionRangeOrSelectionByCumulativeOffsets,
+} from './cursor-doc-utils';
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -553,67 +557,68 @@ export function rangeToBackwardList(
   }
 }
 
-// TODO: test
 export function wrapSexpr(
   doc: EditableDocument,
   open: string,
   close: string,
-  // _start: number, // = doc.selections.anchor,
-  // _end: number, // = doc.selections.active,
   options = { skipFormat: false }
-): void {
-  return doc.selections.forEach((sel) => {
-    const { start, end } = sel;
-    const cursor = doc.getTokenCursor(end);
-    if (cursor.withinString() && open == '"') {
-      open = close = '\\"';
-    }
-    if (start == end) {
-      // No selection
-      const currentFormRange = cursor.rangeForCurrentForm(start);
-      if (currentFormRange) {
-        const range = currentFormRange;
-        void doc.model.edit(
-          [
+): Thenable<ModelEditResult> {
+  // TODO: (The following applies to all multi cursor work that involved a ModelEditResult and where not every cursor has a valid operation) Restore all cursors to their original positions after batch edit, except those explicitly operated upon.
+
+  const edits = [],
+    // selections = clone(doc.selections).map(mapToItemAndOrder);
+    selections = clone(doc.selections);
+
+  _(doc.selections)
+    // iterate backwards to simplify dealing with cumulative cursor position offsets as document's text is added to with
+    // parens or whatever is being wrapped with.
+    .map(mapToItemAndOrder)
+    .orderBy(([r]) => mapRangeOrSelectionToOffset('start')(r), 'desc')
+    .forEach(([sel, index]) => {
+      const { start, end } = sel;
+      const cursor = doc.getTokenCursor(end);
+      if (cursor.withinString() && open == '"') {
+        open = close = '\\"';
+      }
+      if (start == end) {
+        // No selection
+        const currentFormRange = cursor.rangeForCurrentForm(start);
+        if (currentFormRange) {
+          const range = currentFormRange;
+          edits.push(
             new ModelEdit('insertString', [range[1], close]),
             new ModelEdit('insertString', [
               range[0],
               open,
               // [end, end],
               // [start + open.length, start + open.length],
-            ]),
-          ],
-          {
-            selections: [new ModelEditSelection(start + open.length)],
-            skipFormat: options.skipFormat,
-          }
-        );
-      }
-    } else {
-      // there is a selection
-      const range = [Math.min(start, end), Math.max(start, end)];
-      void doc.model.edit(
-        [
-          new ModelEdit('insertString', [range[1], close]),
-          new ModelEdit('insertString', [range[0], open]),
-        ],
-        {
-          selections: [new ModelEditSelection(start + open.length)],
-          skipFormat: options.skipFormat,
+            ])
+          );
+          // don't forget to include the index with the selection for later reordering to original order;
+          // selections[index] = [new ModelEditSelection(start + open.length), index];
+          selections[index] = new ModelEditSelection(start + open.length);
         }
-      );
-    }
+      } else {
+        // there is a selection
+        const range = [Math.min(start, end), Math.max(start, end)];
+        edits.push(
+          new ModelEdit('insertString', [range[1], close]),
+          new ModelEdit('insertString', [range[0], open])
+        );
+        // don't forget to include the index with the selection for later reordering to original order;
+        // selections[index] = [new ModelEditSelection(start + open.length), index];
+        selections[index] = new ModelEditSelection(start + open.length);
+      }
+      return undefined;
+    });
+  return doc.model.edit(edits, {
+    selections: selections.map(repositionRangeOrSelectionByCumulativeOffsets(2)),
+    skipFormat: options.skipFormat,
   });
 }
 
 // TODO: test
-export function rewrapSexpr(
-  doc: EditableDocument,
-  open: string,
-  close: string
-  // _start: number, // = doc.selections.anchor,
-  // _end: number // = doc.selections.active
-) {
+export function rewrapSexpr(doc: EditableDocument, open: string, close: string) {
   doc.selections.forEach((sel) => {
     const { start, end } = sel;
     const cursor = doc.getTokenCursor(end);
@@ -705,28 +710,35 @@ export function spliceSexp(
 ): Thenable<ModelEditResult> {
   const edits = [],
     selections = clone(doc.selections);
-  doc.selections.forEach((selection, index) => {
-    const { start, end } = selection;
-    const cursor = doc.getTokenCursor(start);
-    // TODO: this should unwrap the string, not the enclosing list.
-    cursor.backwardList();
-    const open = cursor.getPrevToken();
-    const beginning = cursor.offsetStart;
-    if (open.type == 'open') {
-      cursor.forwardList();
-      const close = cursor.getToken();
-      const end = cursor.offsetStart;
-      if (close.type == 'close' && validPair(open.raw, close.raw)) {
-        edits.push(
-          new ModelEdit('changeRange', [end, end + close.raw.length, '']),
-          new ModelEdit('changeRange', [beginning - open.raw.length, beginning, ''])
-        );
-        selections[index] = new ModelEditSelection(start - 1);
-      }
-    }
-  });
 
-  return doc.model.edit(edits, { undoStopBefore, selections });
+  _(doc.selections)
+    .map(mapToItemAndOrder)
+    .orderBy(mapRangeOrSelectionToOffset(), 'desc')
+    .forEach(([selection, originalOrder]) => {
+      const { start, end } = selection;
+      const cursor = doc.getTokenCursor(start);
+      // TODO: this should unwrap the string, not the enclosing list.
+      cursor.backwardList();
+      const open = cursor.getPrevToken();
+      const beginning = cursor.offsetStart;
+      if (open.type == 'open') {
+        cursor.forwardList();
+        const close = cursor.getToken();
+        const end = cursor.offsetStart;
+        if (close.type == 'close' && validPair(open.raw, close.raw)) {
+          edits.push(
+            new ModelEdit('changeRange', [end, end + close.raw.length, '']),
+            new ModelEdit('changeRange', [beginning - open.raw.length, beginning, ''])
+          );
+          selections[originalOrder] = new ModelEditSelection(start - 1);
+        }
+      }
+    });
+
+  return doc.model.edit(edits, {
+    undoStopBefore,
+    selections: _(selections).map(repositionRangeOrSelectionByCumulativeOffsets(-2)).value(),
+  });
 }
 
 export function killSexpBackward(

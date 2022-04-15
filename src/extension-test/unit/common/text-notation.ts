@@ -1,5 +1,15 @@
 import * as model from '../../../cursor-doc/model';
-import { clone, entries, cond, toInteger, last, first, cloneDeep, orderBy } from 'lodash';
+import {
+  clone,
+  entries,
+  cond,
+  toInteger,
+  last,
+  first,
+  cloneDeep,
+  orderBy,
+  partialRight,
+} from 'lodash';
 
 /**
  * Text Notation for expressing states of a document, including
@@ -83,18 +93,19 @@ export function docFromTextNotation(s: string): model.StringDocument {
   return doc;
 }
 
-export function textNotationFromDoc(doc: model.EditableDocument): string {
+export function textNotationFromDoc(doc: model.EditableDocument, prettyPrint = false): string {
   const selections = doc.selections ?? [];
   const ranges = selections.map((s) => s.asDirectedRange);
 
   const text = getText(doc, true);
 
-  return textNotationFromTextAndSelections(text, ranges);
+  return textNotationFromTextAndSelections(text, ranges, prettyPrint);
 }
 
 export function textNotationFromTextAndSelections(
   text: string,
-  ranges: Array<[number, number]>
+  ranges: Array<[number, number]>,
+  prettyPrint = false
 ): string {
   let cursorSymbols: [number, string][] = [];
   ranges.forEach((r, cursorNumber) => {
@@ -138,8 +149,12 @@ export function textNotationFromTextAndSelections(
     )
     .map((s) => s[1]);
 
-  return textSegments.join('');
+  const textNotation = textSegments.join('');
+  return prettyPrint ? textNotation.replace(/§/g, '\n') : textNotation;
 }
+
+textNotationFromDoc.pretty = partialRight(textNotationFromDoc, true);
+textNotationFromTextAndSelections.pretty = partialRight(textNotationFromTextAndSelections, true);
 
 /**
  * Utility function to get the text from a document.

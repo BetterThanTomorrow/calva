@@ -6,6 +6,7 @@ import {
   textAndSelection,
   getText,
   textNotationFromDoc,
+  textNotationFromTextAndSelections,
 } from '../common/text-notation';
 import { ModelEditSelection } from '../../../cursor-doc/model';
 import { last, method } from 'lodash';
@@ -1572,6 +1573,7 @@ describe('paredit', () => {
         //       (Both are wrong)
         const b = docFromTextNotation('|a§|1b');
         void paredit.spliceSexp(a);
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('splices multiple list', () => {
@@ -1583,6 +1585,7 @@ describe('paredit', () => {
         //       What this test produces:
         //       '|a§(b|1b)§c c|2c)§(dd d|3d)'
         void paredit.spliceSexp(a);
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('splices list also when forms have meta and readers', () => {
@@ -1646,6 +1649,7 @@ describe('paredit', () => {
         const a = docFromTextNotation('|a§|1b');
         const b = docFromTextNotation('(|a)§(|1b)');
         void paredit.wrapSexpr(a, '(', ')');
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('wraps list', () => {
@@ -1658,6 +1662,7 @@ describe('paredit', () => {
         const a = docFromTextNotation('(a)|§(b)|1');
         const b = docFromTextNotation('[(a)|]§[(b)|1]');
         void paredit.wrapSexpr(a, '[', ']');
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('wraps selection', () => {
@@ -1667,10 +1672,19 @@ describe('paredit', () => {
         void paredit.wrapSexpr(a, '(', ')');
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
-      it('wraps multiple selections (multi-cursor)', () => {
+      it('wraps selection even at newlines', () => {
+        // TODO: See if we can maintain the selection here
+        const a = docFromTextNotation('a§|b|');
+        const b = docFromTextNotation('a§(|b)');
+        void paredit.wrapSexpr(a, '(', ')');
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('wraps multiple selections (multi-cursor)', async () => {
         const a = docFromTextNotation('|a|§|1b|1');
         const b = docFromTextNotation('(|a)§(|1b)');
-        void paredit.wrapSexpr(a, '(', ')');
+        await paredit.wrapSexpr(a, '(', ')');
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });

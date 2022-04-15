@@ -207,6 +207,22 @@ export class ModelEditSelection {
   get asDirectedRange() {
     return [this.anchor, this.active] as [anchor: number, active: number];
   }
+
+  /**
+   * Mutates itself!
+   * Very basic, offsets both active/anchor by a positive or negative number lol, with no attempt at clamping.
+   *
+   * Returns self for convenience
+   * @param offset number
+   */
+  reposition(offset: number) {
+    this.active += offset;
+    this.anchor += offset;
+
+    this._updateDirection();
+
+    return this;
+  }
 }
 
 export type ModelEditOptions = {
