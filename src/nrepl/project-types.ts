@@ -76,9 +76,11 @@ export async function shadowBuilds(): Promise<string[]> {
   const data = await vscode.workspace.fs.readFile(shadowConfigFile());
   const parsed = parseEdn(new TextDecoder('utf-8').decode(data));
   return [
-    ...Object.keys(parsed.builds).map((key: string) => {
-      return ':' + key;
-    }),
+    ...(parsed.builds
+      ? Object.keys(parsed.builds).map((key: string) => {
+          return ':' + key;
+        })
+      : []),
     ...['node-repl', 'browser-repl'],
   ];
 }
@@ -354,16 +356,18 @@ const projectTypes: { [id: string]: ProjectType } = {
         defaultArgs.push('-d', dep + ':' + dependencies[dep]);
       }
 
-      const foundBuilds = await shadowBuilds(),
-        { selectedBuilds, args } = await selectShadowBuilds(connectSequence, foundBuilds);
+      const foundBuilds = await shadowBuilds();
+      const { selectedBuilds, args } =
+        foundBuilds.length > 2
+          ? await selectShadowBuilds(connectSequence, foundBuilds)
+          : { selectedBuilds: undefined, args: [] };
 
-      if (selectedBuilds && selectedBuilds.length) {
-        return ['shadow-cljs', ...defaultArgs, ...args, 'watch', ...selectedBuilds];
-      } else {
-        chan.show();
-        chan.appendLine('Aborting. No valid shadow-cljs build selected.');
-        throw 'No shadow-cljs build selected';
-      }
+      return [
+        'shadow-cljs',
+        ...defaultArgs,
+        ...args,
+        ...(selectedBuilds ? ['watch', ...selectedBuilds] : ['server']),
+      ];
     },
   },
   'lein-shadow': {
