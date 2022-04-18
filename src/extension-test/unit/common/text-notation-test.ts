@@ -3,8 +3,13 @@ import * as textNotation from '../common/text-notation';
 
 describe('text-notation test utils', () => {
   describe('textNotationFromDoc', () => {
-    it('should return the same input text to textNotationFromDoc', () => {
+    it('returns the same input text to textNotationFromDoc', () => {
       const inputText = '(a b|1) (a b|) (a <2(b)<2)';
+      const doc = textNotation.docFromTextNotation(inputText);
+      expect(textNotation.textNotationFromDoc(doc)).toEqual(inputText);
+    });
+    it('has cursor at end when no trailing newline', () => {
+      const inputText = '()|';
       const doc = textNotation.docFromTextNotation(inputText);
       expect(textNotation.textNotationFromDoc(doc)).toEqual(inputText);
     });
