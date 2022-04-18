@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.268] - 2022-04-18
+- Fix: [Jack-in doesn't handle a shadow-cljs config without builds](https://github.com/BetterThanTomorrow/calva/issues/1683)
+- [Merge LSP + NREPL completions and goToDefintion](https://github.com/BetterThanTomorrow/calva/issues/1498)
+
 ## [2.0.267] - 2022-04-13
 - [Add command for formatting away multiple space between forms on the same line](https://github.com/BetterThanTomorrow/calva/issues/1677)
 
