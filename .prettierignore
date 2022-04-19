@@ -4,3 +4,4 @@
 /.vscode-test
 /site
 .cache
+*.md
