@@ -15,12 +15,5 @@
       "snippet": "(clojure.string/replace (with-out-str (clojure.repl/doc $hover-text)) \"\n\" \"\n\n\")"
     }
   ],
-  "workbench.colorCustomizations": {
-    "sash.hoverBorder": "#DB9550",
-    "titleBar.activeBackground": "#90B4FE",
-    "titleBar.activeForeground": "#131722",
-    "titleBar.inactiveBackground": "#90B4FEd5",
-    "titleBar.inactiveForeground": "#13172299"
-  },
   "calva.fmt.configPath": "projects/pirate-lang/.cljfmt.edn"
 }

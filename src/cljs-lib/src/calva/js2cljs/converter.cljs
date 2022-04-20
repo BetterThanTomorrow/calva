@@ -1,18 +1,20 @@
 (ns calva.js2cljs.converter
   (:require [js-cljs.core :as jsc]))
 
-(defn- convert [js-string]
+(defn convert [js-string]
   (let [debug (atom nil)]
     (try
-      (println (jsc/parse-str js-string {:zprint-opts {:style [:community]
-                                                       :parse {:interpose "\n\n"}
-                                                       :width 60
-                                                       :pair {:nl-separator? true}}
-                                         :format-opts {:debug (atom nil)}}))
+      {:result
+       (jsc/parse-str js-string {:zprint-opts {:style [:community]
+                                               :parse {:interpose "\n\n"}
+                                               :width 60
+                                               :pair {:nl-separator? true}}
+                                 :format-opts {:debug debug}})}
       (catch :default e
-        (println "Error parsing JS file")
-        (println "Last line to parse:" (count (.split (subs js-string 0 (:start @debug)) "\n")))
-        (println "\nException:\n" e)))))
+        {:error {:message "Error parsing JS file"
+                 :number-of-parsed-lines (count (.split (subs js-string 0 (:start @debug)) "\n"))
+                 :exception {:name (.-name e)
+                             :message (.-message e)}}}))))
 
 (defn convert-bridge [js-string]
   (convert js-string))
@@ -26,6 +28,10 @@ MongoClient.connect(url, function(err, db) {
   console.log(\"Database created!\");
   db.close();
 });")
+
+  (convert "foo;
+            bar;
+            import * as foo from 'foo'")
 
   (jsc/parse-str "a++")
 
