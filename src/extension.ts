@@ -34,6 +34,7 @@ import lsp from './lsp/main';
 import { setStateValue } from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
+import * as converters from './converters';
 
 import * as clojureDocs from './clojuredocs';
 async function onDidSave(testController: vscode.TestController, document: vscode.TextDocument) {
@@ -466,6 +467,9 @@ async function activate(context: vscode.ExtensionContext) {
       'calva.printTextToOutputWindowCommand',
       clojureDocs.printTextToOutputWindowCommand
     )
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('calva.convertJs2Cljs', converters.js2cljs)
   );
 
   // Initial set of the provided contexts

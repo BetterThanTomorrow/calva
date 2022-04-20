@@ -59,6 +59,7 @@
     "onCommand:calva.startOrConnectRepl",
     "onCommand:calva.connect",
     "onCommand:calva.connectNonProjectREPL",
+    "onCommand:calva.convertJs2Cljs",
     "workspaceContains:**/project.clj",
     "workspaceContains:**/shadow-cljs.edn",
     "workspaceContains:**/deps.edn",
@@ -882,6 +883,11 @@
         "title": "Show clojure-lsp menu",
         "enablement": "clojureLsp:active",
         "category": "Calva Clojure LSP"
+      },
+      {
+        "command": "calva.convertJs2Cljs",
+        "title": "Convert JavaScript to ClojureScript",
+        "category": "Calva"
       },
       {
         "command": "calva.clojureLsp.showClojureLspStoppedMenu",
