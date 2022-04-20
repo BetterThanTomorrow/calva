@@ -9,8 +9,16 @@ search:
 
 Since [nbb](https://github.com/borkdude/nbb) can be started such that it is an nREPL server, Calva can connect to it and a lot of the features will work.
 
-Calva can also start nbb and connect its REPL for you, using the Jack-in command. This will start an nbb nREPL server on a random port and connect Calva to it.
+Calva can also start nbb and connect its REPL for you, using the Jack-in command. This will start an nbb nREPL server on a random port and connect Calva to it. Check out this video where they use Calva and nbb to create a CLI tool as an executable npm module:
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/_-G9EKaAyuI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+In that video they ask for a JavaScript to ClojureScript converter. And there is one: https://mauricioszabo.gitlab.io/js2cljs/
+
+Though if you are using Calva, this converter is easier to use directly via the command **Calva: Convert JavaScript to ClojureScript**:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/bMU2GhucLXc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    
 !!! Note "Errors jacking in to nbb on Windows?"
     On some machines it seems necessary to first run `npx nbb` from the `CMD` prompt to make jack-in work. Or try first install it `npm i -g nbb`. (You probabl want nbb installed globally anyway.)
 

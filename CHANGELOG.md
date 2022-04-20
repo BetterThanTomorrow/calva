@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.269] - 2022-04-20
+- [How about a command converting JavaScript to ClojureScript?](https://github.com/BetterThanTomorrow/calva/issues/1687)
+
 ## [2.0.268] - 2022-04-18
 - Fix: [Jack-in doesn't handle a shadow-cljs config without builds](https://github.com/BetterThanTomorrow/calva/issues/1683)
 - [Merge LSP + NREPL completions and goToDefintion](https://github.com/BetterThanTomorrow/calva/issues/1498)

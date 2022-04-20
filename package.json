@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.268",
+  "version": "2.0.269",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -59,6 +59,7 @@
     "onCommand:calva.startOrConnectRepl",
     "onCommand:calva.connect",
     "onCommand:calva.connectNonProjectREPL",
+    "onCommand:calva.convertJs2Cljs",
     "workspaceContains:**/project.clj",
     "workspaceContains:**/shadow-cljs.edn",
     "workspaceContains:**/deps.edn",
@@ -882,6 +883,11 @@
         "title": "Show clojure-lsp menu",
         "enablement": "clojureLsp:active",
         "category": "Calva Clojure LSP"
+      },
+      {
+        "command": "calva.convertJs2Cljs",
+        "title": "Convert JavaScript to ClojureScript",
+        "category": "Calva"
       },
       {
         "command": "calva.clojureLsp.showClojureLspStoppedMenu",

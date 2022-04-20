@@ -21,7 +21,8 @@
                              :setStateValue calva.state/set-state-value!
                              :getStateValue calva.state/get-state-value
                              :getState calva.state/get-state
-                             :removeStateValue calva.state/remove-state-value!}
+                             :removeStateValue calva.state/remove-state-value!
+                             :js2cljs calva.js2cljs.converter/convert-bridge}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test
