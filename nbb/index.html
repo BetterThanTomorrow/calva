@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.25650c35.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.837fa486.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.9647289d.min.css">
@@ -1626,7 +1626,13 @@
 
 <h1 id="using-calva-with-nbb">Using Calva with nbb</h1>
 <p>Since <a href="https://github.com/borkdude/nbb">nbb</a> can be started such that it is an nREPL server, Calva can connect to it and a lot of the features will work.</p>
-<p>Calva can also start nbb and connect its REPL for you, using the Jack-in command. This will start an nbb nREPL server on a random port and connect Calva to it.</p>
+<p>Calva can also start nbb and connect its REPL for you, using the Jack-in command. This will start an nbb nREPL server on a random port and connect Calva to it. Check out this video where they use Calva and nbb to create a CLI tool as an executable npm module:</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/_-G9EKaAyuI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<p>In that video they ask for a JavaScript to ClojureScript converter. And there is one: https://mauricioszabo.gitlab.io/js2cljs/</p>
+<p>Though if you are using Calva, this converter is easier to use directly via the command <strong>Calva: Convert JavaScript to ClojureScript</strong>:</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/bMU2GhucLXc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 <div class="admonition note">
 <p class="admonition-title">Errors jacking in to nbb on Windows?</p>
 <p>On some machines it seems necessary to first run <code>npx nbb</code> from the <code>CMD</code> prompt to make jack-in work. Or try first install it <code>npm i -g nbb</code>. (You probabl want nbb installed globally anyway.)</p>
