@@ -6,15 +6,15 @@ _Distilled from [CIDER](https://cider.mx/)*._
 
 Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an integrated, REPL powered, development environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) programming in [Visual Studio Code](https://code.visualstudio.com). It includes:
 
-* inline [code evaluation](https://calva.io/evaluation)
-* [structural editing](https://calva.io/paredit)
-* code [formatting](https://calva.io/formatting)
+* inline [code evaluation](https://calva.io/evaluation/)
+* [structural editing](https://calva.io/paredit/)
+* code [formatting](https://calva.io/formatting/)
 * code navigation
-* a [debugger](ttps://calva.io/debugger)
-* [linting](https://calva.io/linting)
+* a [debugger](ttps://calva.io/debugger/)
+* [linting](https://calva.io/linting/)
 * syntax highlighting
 * Clojure aware rainbow brackets
-* a [test runner](https://calva.io/test-runner)
+* a [test runner](https://calva.io/test-runner/)
 * refactoring support
 * and much more.
 
