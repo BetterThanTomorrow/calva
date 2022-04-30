@@ -8,7 +8,7 @@
   "calva.customREPLHoverSnippets": [
     {
       "name": "edn hover hover-text",
-      "snippet": "(str \"**JSON edn hover hover-text** \" \"$hover-text\")"
+      "snippet": "(str \"**JSON hover hover-text** \" \"$hover-text\")"
     },
     {
       "name": "Show doc string",
