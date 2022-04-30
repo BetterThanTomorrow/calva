@@ -10,7 +10,7 @@ Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=bettertha
 * [structural editing](https://calva.io/paredit/)
 * code [formatting](https://calva.io/formatting/)
 * code navigation
-* a [debugger](ttps://calva.io/debugger/)
+* a [debugger](https://calva.io/debugger/)
 * [linting](https://calva.io/linting/)
 * syntax highlighting
 * Clojure aware rainbow brackets
