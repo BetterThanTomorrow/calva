@@ -155,12 +155,12 @@ export class LineInputModel implements EditableModel {
           }
           return x;
         })
-        .filter((x) => x !== null)
+        .filter((x) => x !== null) as number[]
     );
 
     this.insertedLines = new Set(
       Array.from(this.insertedLines)
-        .map((x): [number, number] => {
+        .map((x) => {
           const [a, b] = x;
           if (a > start && a < start + deleted) {
             return null;
@@ -170,12 +170,12 @@ export class LineInputModel implements EditableModel {
           }
           return [a, b];
         })
-        .filter((x) => x !== null)
+        .filter((x) => x !== null) as [number, number][]
     );
 
     this.deletedLines = new Set(
       Array.from(this.deletedLines)
-        .map((x): [number, number] => {
+        .map((x) => {
           const [a, b] = x;
           if (a > start && a < start + deleted) {
             return null;
@@ -185,7 +185,7 @@ export class LineInputModel implements EditableModel {
           }
           return [a, b];
         })
-        .filter((x) => x !== null)
+        .filter((x) => x !== null) as [number, number][]
     );
   }
 
@@ -224,7 +224,7 @@ export class LineInputModel implements EditableModel {
     const seen = new Set<number>();
     this.dirtyLines.sort();
     while (this.dirtyLines.length) {
-      let nextIdx = this.dirtyLines.shift();
+      let nextIdx = this.dirtyLines.shift() as number;
       if (seen.has(nextIdx)) {
         continue;
       } // already processed.
