@@ -201,6 +201,12 @@ const clojureLspCommands: ClojureLspCommand[] = [
     command: 'cycle-privacy',
   },
   {
+    command: 'drag-backward',
+  },
+  {
+    command: 'drag-forward',
+  },
+  {
     command: 'expand-let',
   },
   {

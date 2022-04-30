@@ -1642,6 +1642,18 @@
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
+        "command": "calva.refactor.dragBackward",
+        "title": "Drag Sexp Backward",
+        "category": "Calva Refactor",
+        "enablement": "editorLangId == clojure && clojureLsp:active"
+      },
+      {
+        "command": "calva.refactor.dragForward",
+        "title": "Drag Sexp Forward",
+        "category": "Calva Refactor",
+        "enablement": "editorLangId == clojure && clojureLsp:active"
+      },
+      {
         "command": "calva.refactor.cyclePrivacy",
         "title": "Cycle/Toggle Privacy",
         "category": "Calva Refactor",
