@@ -39,6 +39,7 @@ If this PR involves only documentation changes, I have:
 
 - [ ] Read [Editing Documentation](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Hack-on-Calva#editing-documentation)
 - [ ] Directed this pull request at the `published` branch.
+- [ ] Built the site locally (if the changes were more involved than simple typo fixes), and verified that the site is presented as expected.
 - [ ] Referenced the issue I am fixing/addressing _in a commit message for the pull request_ (if there was is an issue for the documentation change)
   - [ ] If I am fixing the issue, I have used [GitHub's fixes/closes syntax](https://help.github.com/en/articles/closing-issues-using-keywords)
   - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
