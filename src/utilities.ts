@@ -90,7 +90,7 @@ async function quickPickMulti(opts: { values: string[]; saveAs: string; placeHol
 
 // Testing facility.
 // Recreated every time we create a new quickPick
-let quickPickActive: Promise<void>;
+let quickPickActive: Promise<void> | undefined;
 
 function quickPick(
   itemsToPick: string[],
