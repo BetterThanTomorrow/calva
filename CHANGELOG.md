@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Downloaded clojure-lsp not working for static linux distros](https://github.com/BetterThanTomorrow/calva/issues/1692)
 
 ## [2.0.269] - 2022-04-20
 - [How about a command converting JavaScript to ClojureScript?](https://github.com/BetterThanTomorrow/calva/issues/1687)
