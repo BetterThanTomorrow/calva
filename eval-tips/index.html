@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.9+insiders-4.12.0">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.12+insiders-4.13.2">
     
     
       
@@ -24,13 +24,14 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.837fa486.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.bc7b8b42.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.9647289d.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cc9b2e1e.min.css">
         
       
       
+
     
     
     
@@ -1864,17 +1865,17 @@
 <ol>
 <li>If text is selected, then that text</li>
 <li>If the cursor is ”in” a symbol, then that symbol
-    <div class="highlight"><pre><span></span><code><span class="nv">foob|ar</span> <span class="c1">; foobar</span>
+    <div class="highlight"><pre><span></span><code><span class="nv">foob|ar</span><span class="w"> </span><span class="c1">; foobar</span><span class="w"></span>
 </code></pre></div></li>
 <li>If the cursor is adjacent to a form (a symbol or a list of some kind), then that form
-    <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">foo</span> <span class="nv">bar</span> <span class="nv">|</span><span class="p">(</span><span class="nf">baz</span><span class="p">))</span> <span class="c1">; (baz)</span>
+    <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">foo</span><span class="w"> </span><span class="nv">bar</span><span class="w"> </span><span class="nv">|</span><span class="p">(</span><span class="nf">baz</span><span class="p">))</span><span class="w"> </span><span class="c1">; (baz)</span><span class="w"></span>
 </code></pre></div></li>
 <li>If the cursor is between to forms, then the left side form
-    <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">foo</span> <span class="nv">bar</span> <span class="nv">|</span> <span class="p">(</span><span class="nf">baz</span><span class="p">))</span> <span class="c1">; bar</span>
+    <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">foo</span><span class="w"> </span><span class="nv">bar</span><span class="w"> </span><span class="nv">|</span><span class="w"> </span><span class="p">(</span><span class="nf">baz</span><span class="p">))</span><span class="w"> </span><span class="c1">; bar</span><span class="w"></span>
 </code></pre></div></li>
 <li>If the cursor is before the first form of a line, then that form
-    <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">foo</span>
-<span class="nv">|</span> <span class="nv">bar</span> <span class="p">(</span><span class="nf">baz</span><span class="p">))</span> <span class="c1">; bar</span>
+    <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">foo</span><span class="w"></span>
+<span class="nv">|</span><span class="w"> </span><span class="nv">bar</span><span class="w"> </span><span class="p">(</span><span class="nf">baz</span><span class="p">))</span><span class="w"> </span><span class="c1">; bar</span><span class="w"></span>
 </code></pre></div></li>
 </ol>
 <h3 id="current-top-level-form">Current Top-level Form</h3>
@@ -1884,48 +1885,48 @@
 <p>At the top level the selection of which form is the current top level form follows the same rules as those for <a href="#current-form">the current form</a>.</p>
 <h3 id="evaluate-to-cursor">Evaluate to Cursor</h3>
 <p>There is also a command for evaluating the text from the start of the current list to where the cursor is. Convenient for checking intermediate results in thread or <code>doto</code>, or similar pipelines. The cursor is right behind <code>:d</code> in this form:</p>
-<div class="highlight"><pre><span></span><code>  <span class="p">(</span><span class="nf">-&gt;&gt;</span> <span class="p">[</span><span class="mi">1</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">5</span> <span class="mi">8</span> <span class="mi">13</span> <span class="mi">21</span><span class="p">]</span>
-       <span class="p">(</span><span class="nf">partition</span> <span class="mi">2</span><span class="p">)</span>
-       <span class="p">(</span><span class="nb">zipmap </span><span class="p">[</span><span class="ss">:a</span> <span class="ss">:b</span> <span class="ss">:c</span> <span class="ss">:d</span><span class="p">])</span>
-       <span class="ss">:d|</span> <span class="c1">; =&gt; (13 21)</span>
-       <span class="p">(</span><span class="nb">apply </span><span class="nv">-</span><span class="p">)</span>
-       <span class="p">(</span><span class="nf">Math/abs</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="mi">13</span><span class="w"> </span><span class="mi">21</span><span class="p">]</span><span class="w"></span>
+<span class="w">       </span><span class="p">(</span><span class="nf">partition</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"></span>
+<span class="w">       </span><span class="p">(</span><span class="nb">zipmap </span><span class="p">[</span><span class="ss">:a</span><span class="w"> </span><span class="ss">:b</span><span class="w"> </span><span class="ss">:c</span><span class="w"> </span><span class="ss">:d</span><span class="p">])</span><span class="w"></span>
+<span class="w">       </span><span class="ss">:d|</span><span class="w"> </span><span class="c1">; =&gt; (13 21)</span><span class="w"></span>
+<span class="w">       </span><span class="p">(</span><span class="nb">apply </span><span class="nv">-</span><span class="p">)</span><span class="w"></span>
+<span class="w">       </span><span class="p">(</span><span class="nf">Math/abs</span><span class="p">))</span><span class="w"></span>
 </code></pre></div>
 <p>The default shortcut for this command is <code>ctrl+alt+enter</code>.</p>
 <h3 id="evaluate-top-level-form-to-cursor">Evaluate Top Level Form to Cursor</h3>
 <p>This command has a default shortcut keybinding of <code>shift+alt+enter</code>. It will create a form from the start of the current top level form, up to the cursor, then fold the form, closing all brackets, and this will then be evaluated. Good for examining code blocks up to a certain point.</p>
 <p>Take this example and paste it in a file loaded into the REPL, then place the cursor in front of each line comment and try the command.</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
- <span class="p">(</span><span class="nf">do</span>
-   <span class="p">(</span><span class="k">def </span><span class="nv">colt-express</span>
-     <span class="p">{</span><span class="ss">:name</span> <span class="s">&quot;Colt Express&quot;</span>
-      <span class="ss">:categories</span> <span class="p">[</span><span class="s">&quot;Family&quot;</span>
-                   <span class="s">&quot;Strategy&quot;</span><span class="p">]</span>
-      <span class="ss">:play-time</span> <span class="mi">40</span>
-      <span class="ss">:ratings</span> <span class="p">{</span><span class="ss">:pez</span> <span class="mf">5.0</span>
-                <span class="ss">:kat</span> <span class="mf">5.0</span>
-                <span class="ss">:wiw</span> <span class="mf">5.0</span>   <span class="c1">; 1, then eval `colt-express`</span>
-                <span class="ss">:vig</span> <span class="mf">3.0</span>
-                <span class="ss">:rex</span> <span class="mf">5.0</span>
-                <span class="ss">:lun</span> <span class="mf">4.0</span><span class="p">}})</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span><span class="w"></span>
+<span class="w"> </span><span class="p">(</span><span class="nf">do</span><span class="w"></span>
+<span class="w">   </span><span class="p">(</span><span class="k">def </span><span class="nv">colt-express</span><span class="w"></span>
+<span class="w">     </span><span class="p">{</span><span class="ss">:name</span><span class="w"> </span><span class="s">&quot;Colt Express&quot;</span><span class="w"></span>
+<span class="w">      </span><span class="ss">:categories</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;Family&quot;</span><span class="w"></span>
+<span class="w">                   </span><span class="s">&quot;Strategy&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">      </span><span class="ss">:play-time</span><span class="w"> </span><span class="mi">40</span><span class="w"></span>
+<span class="w">      </span><span class="ss">:ratings</span><span class="w"> </span><span class="p">{</span><span class="ss">:pez</span><span class="w"> </span><span class="mf">5.0</span><span class="w"></span>
+<span class="w">                </span><span class="ss">:kat</span><span class="w"> </span><span class="mf">5.0</span><span class="w"></span>
+<span class="w">                </span><span class="ss">:wiw</span><span class="w"> </span><span class="mf">5.0</span><span class="w">   </span><span class="c1">; 1, then eval `colt-express`</span><span class="w"></span>
+<span class="w">                </span><span class="ss">:vig</span><span class="w"> </span><span class="mf">3.0</span><span class="w"></span>
+<span class="w">                </span><span class="ss">:rex</span><span class="w"> </span><span class="mf">5.0</span><span class="w"></span>
+<span class="w">                </span><span class="ss">:lun</span><span class="w"> </span><span class="mf">4.0</span><span class="p">}})</span><span class="w"></span>
 
-   <span class="p">(</span><span class="kd">defn </span><span class="nv">average</span> <span class="p">[</span><span class="nv">coll</span><span class="p">]</span>
-     <span class="p">(</span><span class="nb">/ </span><span class="p">(</span><span class="nb">apply + </span><span class="nv">coll</span><span class="p">)</span> <span class="p">(</span><span class="nb">count </span><span class="nv">coll</span><span class="p">)))</span>
+<span class="w">   </span><span class="p">(</span><span class="kd">defn </span><span class="nv">average</span><span class="w"> </span><span class="p">[</span><span class="nv">coll</span><span class="p">]</span><span class="w"></span>
+<span class="w">     </span><span class="p">(</span><span class="nb">/ </span><span class="p">(</span><span class="nb">apply + </span><span class="nv">coll</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">count </span><span class="nv">coll</span><span class="p">)))</span><span class="w"></span>
 
-   <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">foo-express</span> <span class="p">(</span><span class="nb">-&gt; </span><span class="nv">colt-express</span>
-                         <span class="p">(</span><span class="nb">assoc </span><span class="ss">:name</span> <span class="s">&quot;Foo Express&quot;</span><span class="p">)</span>
-                         <span class="p">(</span><span class="nf">assoc-in</span> <span class="p">[</span><span class="ss">:ratings</span> <span class="ss">:lyr</span><span class="p">]</span> <span class="mf">5.0</span><span class="p">)</span>
-                         <span class="p">(</span><span class="nf">update-in</span> <span class="p">[</span><span class="ss">:ratings</span> <span class="ss">:vig</span><span class="p">]</span> <span class="nv">inc</span><span class="p">))]</span>
-     <span class="p">(</span><span class="nf">-&gt;&gt;</span> <span class="nv">foo-express</span>   <span class="c1">; 2</span>
-          <span class="ss">:ratings</span>      <span class="c1">; 3</span>
-          <span class="nb">vals </span>         <span class="c1">; 4</span>
-          <span class="nv">average</span>       <span class="c1">; 5</span>
-          <span class="p">))))</span>
+<span class="w">   </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">foo-express</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt; </span><span class="nv">colt-express</span><span class="w"></span>
+<span class="w">                         </span><span class="p">(</span><span class="nb">assoc </span><span class="ss">:name</span><span class="w"> </span><span class="s">&quot;Foo Express&quot;</span><span class="p">)</span><span class="w"></span>
+<span class="w">                         </span><span class="p">(</span><span class="nf">assoc-in</span><span class="w"> </span><span class="p">[</span><span class="ss">:ratings</span><span class="w"> </span><span class="ss">:lyr</span><span class="p">]</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span><span class="w"></span>
+<span class="w">                         </span><span class="p">(</span><span class="nf">update-in</span><span class="w"> </span><span class="p">[</span><span class="ss">:ratings</span><span class="w"> </span><span class="ss">:vig</span><span class="p">]</span><span class="w"> </span><span class="nv">inc</span><span class="p">))]</span><span class="w"></span>
+<span class="w">     </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="nv">foo-express</span><span class="w">   </span><span class="c1">; 2</span><span class="w"></span>
+<span class="w">          </span><span class="ss">:ratings</span><span class="w">      </span><span class="c1">; 3</span><span class="w"></span>
+<span class="w">          </span><span class="nb">vals </span><span class="w">         </span><span class="c1">; 4</span><span class="w"></span>
+<span class="w">          </span><span class="nv">average</span><span class="w">       </span><span class="c1">; 5</span><span class="w"></span>
+<span class="w">          </span><span class="p">))))</span><span class="w"></span>
 </code></pre></div>
 <h3 id="evaluate-enclosing-form">Evaluate Enclosing Form</h3>
 <p>The default keyboard shortcut for evaluating the current enclosing form (the list the cursor is in) is <code>ctrl+shift+enter</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">foo</span> <span class="ss">:bar</span><span class="p">]</span>
-  <span class="p">(</span><span class="nb">when </span><span class="nv">false</span> <span class="p">(</span><span class="nf">str|</span> <span class="nv">foo</span><span class="p">)))</span> <span class="c1">; =&gt; &quot;:bar&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">foo</span><span class="w"> </span><span class="ss">:bar</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="nb">when </span><span class="nv">false</span><span class="w"> </span><span class="p">(</span><span class="nf">str|</span><span class="w"> </span><span class="nv">foo</span><span class="p">)))</span><span class="w"> </span><span class="c1">; =&gt; &quot;:bar&quot;</span><span class="w"></span>
 </code></pre></div>
 <h3 id="copying-the-inline-results">Copying the inline results</h3>
 <p>There is a command called <strong>Copy last evaluation results</strong>, <code>ctrl+alt+c ctrl+c</code>.</p>
@@ -2007,7 +2008,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "search": "../assets/javascripts/workers/search.ec8bae80.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.c07a5e79.min.js"></script>
+      <script src="../assets/javascripts/bundle.283c1e5e.min.js"></script>
       
     
   </body>

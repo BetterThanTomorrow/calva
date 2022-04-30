@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.9+insiders-4.12.0">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.12+insiders-4.13.2">
     
     
       
@@ -24,13 +24,14 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.837fa486.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.bc7b8b42.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.9647289d.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cc9b2e1e.min.css">
         
       
       
+
     
     
     
@@ -2025,12 +2026,12 @@
 <p>Once the REPL is connected you might want to change which ClojureScript build you have Calva connected to. For this Calva has the <strong>Select CLJS Build Connection</strong> command. Please note that you can only switch between builds that you have started.</p>
 <h3 id="play-with-starting-the-cljs-repl-yourself">Play With Starting the <code>cljs-repl</code> Yourself</h3>
 <p>To get a good grip on what is going on when creating and connecting the ClojureScript REPL, I can recommend making a custom connect sequence which leaves the REPL unpromoted (e.g. give it <code>nil</code> as <code>connectCode</code>), and then evaluate the <code>cljs-repl</code> start commands yourself. So for instance, promoting it to a ClojureScript Node.js REPL looks something like so:</p>
-<div class="highlight"><pre><span></span><code><span class="nv">user=&gt;</span> <span class="p">(</span><span class="nf">require</span> <span class="ss">&#39;cljs.repl.node</span><span class="p">)</span>
-<span class="nv">user=&gt;</span> <span class="p">(</span><span class="nf">cider.piggieback/cljs-repl</span> <span class="p">(</span><span class="nf">cljs.repl.node/repl-env</span><span class="p">))</span>
-<span class="nv">ClojureScript</span> <span class="mf">1.10</span><span class="nv">.844</span>
-<span class="nv">To</span> <span class="nv">quit</span>, <span class="nv">type</span><span class="err">:</span> <span class="ss">:cljs/quit</span>
-<span class="nv">nil</span>
-<span class="nv">cljs.user=&gt;</span> <span class="nv">|</span>
+<div class="highlight"><pre><span></span><code><span class="nv">user=&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="ss">&#39;cljs.repl.node</span><span class="p">)</span><span class="w"></span>
+<span class="nv">user=&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">cider.piggieback/cljs-repl</span><span class="w"> </span><span class="p">(</span><span class="nf">cljs.repl.node/repl-env</span><span class="p">))</span><span class="w"></span>
+<span class="nv">ClojureScript</span><span class="w"> </span><span class="mf">1.10</span><span class="nv">.844</span><span class="w"></span>
+<span class="nv">To</span><span class="w"> </span><span class="nv">quit</span>,<span class="w"> </span><span class="nv">type</span><span class="err">:</span><span class="w"> </span><span class="ss">:cljs/quit</span><span class="w"></span>
+<span class="nv">nil</span><span class="w"></span>
+<span class="nv">cljs.user=&gt;</span><span class="w"> </span><span class="nv">|</span><span class="w"></span>
 </code></pre></div>
 <p>It is the piggieback middleware there telling you that you can unpromote the REPL by ”evaluating” <code>:cljs/quit</code>.</p>
 <h3 id="about-full-stack-applications">About Full Stack Applications</h3>
@@ -2116,7 +2117,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "search": "../assets/javascripts/workers/search.ec8bae80.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.c07a5e79.min.js"></script>
+      <script src="../assets/javascripts/bundle.283c1e5e.min.js"></script>
       
     
   </body>

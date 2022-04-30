@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.9+insiders-4.12.0">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.12+insiders-4.13.2">
     
     
       
@@ -24,13 +24,14 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.837fa486.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.bc7b8b42.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.9647289d.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cc9b2e1e.min.css">
         
       
       
+
     
     
     
@@ -1835,10 +1836,10 @@
 
 <h2 id="things-in-comment-are-not-evaluated">Things in <code>comment</code> are not evaluated</h2>
 <p>The Clojure <code>comment</code> macro is defined like so:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defmacro </span><span class="nv">comment</span>
-  <span class="s">&quot;Ignores body, yields nil&quot;</span>
-  <span class="p">{</span><span class="ss">:added</span> <span class="s">&quot;1.0&quot;</span><span class="p">}</span>
-  <span class="p">[</span><span class="o">&amp;</span> <span class="nv">body</span><span class="p">])</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defmacro </span><span class="nv">comment</span><span class="w"></span>
+<span class="w">  </span><span class="s">&quot;Ignores body, yields nil&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="p">{</span><span class="ss">:added</span><span class="w"> </span><span class="s">&quot;1.0&quot;</span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">[</span><span class="o">&amp;</span><span class="w"> </span><span class="nv">body</span><span class="p">])</span><span class="w"></span>
 </code></pre></div>
 <p>It has no forms in its body and will therefore always (as long as the Clojure Reader can read it) evaluate to <code>nil</code>. That is: <em>nothing in the <code>(comment ...)</code> form will get evaluated when the file is loaded</em>.</p>
 <p>This makes it a very good ”place” where you can develop code, experiment with code, and keep example code. Since you will be able to load/evaluate the current file without worrying that the code in the <code>comment</code> form will get evaluated. This also holds true when using tools that hot-reload the code on save, such as <a href="https://figwheel.org">Figwheel</a>, <a href="https://github.com/thheller/shadow-cljs">shadow-cljs</a> and <a href="https://calva.io/krell/">Krell</a>.</p>
@@ -1871,51 +1872,51 @@
 <p>This carries over to all commands in Calva which deal with the top level form. Including <a href="../custom-commands/">custom command snippets</a>.</p>
 <h3 id="special-formatting">Special formatting</h3>
 <p>To invite a <strong>Rich comments</strong> workflow, the Calva command <strong>Format Current Form</strong> will not fold the closing bracket of the <code>(comment ...)</code> form. Instead it will place this bracket on a line of its own (or keep it there).</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span><span class="w"></span>
+<span class="w">  </span><span class="p">)</span><span class="w"></span>
 </code></pre></div>
 <p>With the cursor somewhere directly inside the comment form (denoted with a <code>|</code>):</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="ss">:foo</span><span class="p">)</span><span class="nv">|</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span><span class="w"></span>
+<span class="ss">:foo</span><span class="p">)</span><span class="nv">|</span><span class="p">)</span><span class="w"></span>
 </code></pre></div>
 <p><kbd>tab</kbd></p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-    <span class="ss">:foo</span><span class="p">)</span>
-  <span class="nv">|</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span><span class="w"></span>
+<span class="w">    </span><span class="ss">:foo</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="nv">|</span><span class="p">)</span><span class="w"></span>
 </code></pre></div>
 <p>!!! Note "Only for the current comment form”
     The special formatting only applies in the current <code>comment</code> form. When outside it, formatting tucks the closing paren in again. That's why fold when done, [below]](#fold-when-done) works like it does. This also applies to VS Code commands like <strong>Format Document</strong>, or when you have <strong>Format On Save</strong> enabled. There are several reasons for this, and one is that there is no <code>cljfmt</code> config for it and leaving the closing comment un-tucked might give you troubles with CI pipelines that enforce some cljfmt config be followed. (Another reason is that it would be pretty hard to do on the whole document.)</p>
 <h4 id="thinking-space-is-kept">Thinking space is kept</h4>
 <p>The formatter will not remove newlines between the cursor and the closing bracket. So if you have entered a few lines to get ”thinking” room:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="ss">:foo</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span><span class="w"></span>
+<span class="ss">:foo</span><span class="p">)</span><span class="w"></span>
 
-<span class="nv">|</span>
+<span class="nv">|</span><span class="w"></span>
 
-<span class="p">)</span>
+<span class="p">)</span><span class="w"></span>
 </code></pre></div>
 <p><kbd>tab</kbd></p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-    <span class="ss">:foo</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span><span class="w"></span>
+<span class="w">    </span><span class="ss">:foo</span><span class="p">)</span><span class="w"></span>
 
-  <span class="nv">|</span>
+<span class="w">  </span><span class="nv">|</span><span class="w"></span>
 
-  <span class="p">)</span>
+<span class="w">  </span><span class="p">)</span><span class="w"></span>
 </code></pre></div>
 <h4 id="fold-when-done">Fold when done</h4>
 <p>To fold the trailing paren automatically, place the cursor immediately outside (before or after) the form:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="ss">:foo</span><span class="p">))</span><span class="nv">|</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span><span class="w"></span>
+<span class="ss">:foo</span><span class="p">))</span><span class="nv">|</span><span class="w"></span>
 </code></pre></div>
 <p><kbd>tab</kbd></p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-    <span class="ss">:foo</span><span class="p">))</span><span class="nv">|</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span><span class="w"></span>
+<span class="w">    </span><span class="ss">:foo</span><span class="p">))</span><span class="nv">|</span><span class="w"></span>
 </code></pre></div>
 <h4 id="enabled-by-default">Enabled by default</h4>
 <p>You can disable this behavior with the setting: <code>calva.fmt.keepCommentTrailParenOnOwnLine</code>.</p>
@@ -2000,7 +2001,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "search": "../assets/javascripts/workers/search.ec8bae80.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.c07a5e79.min.js"></script>
+      <script src="../assets/javascripts/bundle.283c1e5e.min.js"></script>
       
     
   </body>

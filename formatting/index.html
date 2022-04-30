@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.9+insiders-4.12.0">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.12+insiders-4.13.2">
     
     
       
@@ -24,13 +24,14 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.837fa486.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.bc7b8b42.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.9647289d.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cc9b2e1e.min.css">
         
       
       
+
     
     
     
@@ -1847,14 +1848,14 @@
 <p>Aligns associative structures and bindings in two columns. See more <a href="#about-aligning-associative-forms">below</a>.</p>
 <h3 id="format-current-form-and-trim-space-between-forms">Format Current Form and trim space between forms</h3>
 <p>This formats the text, and trims consecutive, non-indent, whitespace on a line to just one space. Something like:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span>    <span class="ss">:b</span><span class="p">]</span>
-<span class="p">(</span><span class="nb">str </span><span class="s">&quot;foo&quot;</span>     <span class="s">&quot;bar&quot;</span> <span class="s">&quot;baz&quot;</span>
-<span class="s">&quot;a&quot;</span>    <span class="nv">a</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span><span class="w">    </span><span class="ss">:b</span><span class="p">]</span><span class="w"></span>
+<span class="p">(</span><span class="nb">str </span><span class="s">&quot;foo&quot;</span><span class="w">     </span><span class="s">&quot;bar&quot;</span><span class="w"> </span><span class="s">&quot;baz&quot;</span><span class="w"></span>
+<span class="s">&quot;a&quot;</span><span class="w">    </span><span class="nv">a</span><span class="p">))</span><span class="w"></span>
 </code></pre></div>
 <p>Becomes:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span> <span class="ss">:b</span><span class="p">]</span>
-  <span class="p">(</span><span class="nb">str </span><span class="s">&quot;foo&quot;</span> <span class="s">&quot;bar&quot;</span> <span class="s">&quot;baz&quot;</span>
-       <span class="s">&quot;a&quot;</span> <span class="nv">a</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span><span class="w"> </span><span class="ss">:b</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;foo&quot;</span><span class="w"> </span><span class="s">&quot;bar&quot;</span><span class="w"> </span><span class="s">&quot;baz&quot;</span><span class="w"></span>
+<span class="w">       </span><span class="s">&quot;a&quot;</span><span class="w"> </span><span class="nv">a</span><span class="p">))</span><span class="w"></span>
 </code></pre></div>
 <p>Basically, it behaves like if <code>:remove-multiple-non-indenting-spaces? true</code> was added to the <code>cljfmt</code> config. Which, in fact, is what happens. Calva merges that onto your cljfmt config when this command is used.</p>
 <h2 id="configuration">Configuration</h2>
@@ -1873,11 +1874,11 @@
 <p>The <strong>cljfmt</strong> docs mention the <code>:cljfmt</code> config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.</p>
 </details>
 <p>If providing settings via a file, start changing the Calva formatting defaults by pasting the following map into a file and save it. It could be somewhere in the project workspace (supporting hot reload), or some other place (no hot reload), depending on your requirements:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span> <span class="nv">true</span>
- <span class="ss">:remove-trailing-whitespace?</span> <span class="nv">true</span>
- <span class="ss">:remove-consecutive-blank-lines?</span> <span class="nv">false</span>
- <span class="ss">:insert-missing-whitespace?</span> <span class="nv">true</span>
- <span class="ss">:remove-multiple-non-indenting-spaces?</span> <span class="nv">false</span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span><span class="w"> </span><span class="nv">true</span><span class="w"></span>
+<span class="w"> </span><span class="ss">:remove-trailing-whitespace?</span><span class="w"> </span><span class="nv">true</span><span class="w"></span>
+<span class="w"> </span><span class="ss">:remove-consecutive-blank-lines?</span><span class="w"> </span><span class="nv">false</span><span class="w"></span>
+<span class="w"> </span><span class="ss">:insert-missing-whitespace?</span><span class="w"> </span><span class="nv">true</span><span class="w"></span>
+<span class="w"> </span><span class="ss">:remove-multiple-non-indenting-spaces?</span><span class="w"> </span><span class="nv">false</span><span class="p">}</span><span class="w"></span>
 </code></pre></div>
 <p>Then set <code>calva.fmt.configPath</code> to the path to this file. The path should either be absolute, or relative to the project root directory. So, if you named the file <code>.cljfmt.edn</code> and saved it in the root of the project, then this setting should be <code>.cljfmt.edn</code>.</p>
 <p>Since you are editing the file in Calva (you are, right?), you can quickly test how different settings affect the formatting. Try:</p>
@@ -1905,23 +1906,23 @@
 <h3 id="indentation-rules">Indentation rules</h3>
 <p>The <code>cljfmt</code> indents are highly configurable. They, and the rest of the configuration options, are masterly detailed <a href="https://github.com/weavejester/cljfmt#configuration">here</a>.</p>
 <p>Calva is an extra good tool for experimenting with these settings. <code>cljfmt</code> doesn't care about keys in the map that it doesn't know about so you can sneak in test code there to quickly see how it will get formatted by certain rules. Try this, for instance:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span> <span class="nv">true</span>
- <span class="ss">:remove-trailing-whitespace?</span> <span class="nv">true</span>
- <span class="ss">:remove-consecutive-blank-lines?</span> <span class="nv">false</span>
- <span class="ss">:insert-missing-whitespace?</span> <span class="nv">false</span>
- <span class="ss">:indents</span> <span class="o">^</span><span class="ss">:replace</span> <span class="p">{</span><span class="o">#</span><span class="s">&quot;^\w&quot;</span> <span class="p">[[</span><span class="ss">:inner</span> <span class="mi">0</span><span class="p">]]}</span>
- <span class="ss">:test-code</span>
- <span class="p">(</span><span class="nb">concat </span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-         <span class="p">(</span><span class="nb">map </span><span class="o">#</span><span class="p">(</span><span class="nb">inc </span><span class="p">(</span><span class="nb">* </span><span class="nv">%</span> <span class="mi">2</span><span class="p">))</span>
-              <span class="p">(</span><span class="nb">filter </span><span class="o">#</span><span class="p">(</span><span class="nb">aget </span><span class="nv">sieved</span> <span class="nv">%</span><span class="p">)</span>
-                      <span class="p">(</span><span class="nb">range </span><span class="mi">1</span> <span class="nv">hn</span><span class="p">))))}</span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span><span class="w"> </span><span class="nv">true</span><span class="w"></span>
+<span class="w"> </span><span class="ss">:remove-trailing-whitespace?</span><span class="w"> </span><span class="nv">true</span><span class="w"></span>
+<span class="w"> </span><span class="ss">:remove-consecutive-blank-lines?</span><span class="w"> </span><span class="nv">false</span><span class="w"></span>
+<span class="w"> </span><span class="ss">:insert-missing-whitespace?</span><span class="w"> </span><span class="nv">false</span><span class="w"></span>
+<span class="w"> </span><span class="ss">:indents</span><span class="w"> </span><span class="o">^</span><span class="ss">:replace</span><span class="w"> </span><span class="p">{</span><span class="o">#</span><span class="s">&quot;^\w&quot;</span><span class="w"> </span><span class="p">[[</span><span class="ss">:inner</span><span class="w"> </span><span class="mi">0</span><span class="p">]]}</span><span class="w"></span>
+<span class="w"> </span><span class="ss">:test-code</span><span class="w"></span>
+<span class="w"> </span><span class="p">(</span><span class="nb">concat </span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"></span>
+<span class="w">         </span><span class="p">(</span><span class="nb">map </span><span class="o">#</span><span class="p">(</span><span class="nb">inc </span><span class="p">(</span><span class="nb">* </span><span class="nv">%</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span><span class="w"></span>
+<span class="w">              </span><span class="p">(</span><span class="nb">filter </span><span class="o">#</span><span class="p">(</span><span class="nb">aget </span><span class="nv">sieved</span><span class="w"> </span><span class="nv">%</span><span class="p">)</span><span class="w"></span>
+<span class="w">                      </span><span class="p">(</span><span class="nb">range </span><span class="mi">1</span><span class="w"> </span><span class="nv">hn</span><span class="p">))))}</span><span class="w"></span>
 </code></pre></div>
 <p>Save, then hit <code>tab</code>, and the code should get formatted like so:</p>
-<div class="highlight"><pre><span></span><code> <span class="ss">:test-code</span>
- <span class="p">(</span><span class="nb">concat </span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-    <span class="p">(</span><span class="nb">map </span><span class="o">#</span><span class="p">(</span><span class="nb">inc </span><span class="p">(</span><span class="nb">* </span><span class="nv">%</span> <span class="mi">2</span><span class="p">))</span>
-      <span class="p">(</span><span class="nb">filter </span><span class="o">#</span><span class="p">(</span><span class="nb">aget </span><span class="nv">sieved</span> <span class="nv">%</span><span class="p">)</span>
-        <span class="p">(</span><span class="nb">range </span><span class="mi">1</span> <span class="nv">hn</span><span class="p">))))</span>
+<div class="highlight"><pre><span></span><code><span class="w"> </span><span class="ss">:test-code</span><span class="w"></span>
+<span class="w"> </span><span class="p">(</span><span class="nb">concat </span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="nb">map </span><span class="o">#</span><span class="p">(</span><span class="nb">inc </span><span class="p">(</span><span class="nb">* </span><span class="nv">%</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span><span class="w"></span>
+<span class="w">      </span><span class="p">(</span><span class="nb">filter </span><span class="o">#</span><span class="p">(</span><span class="nb">aget </span><span class="nv">sieved</span><span class="w"> </span><span class="nv">%</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="p">(</span><span class="nb">range </span><span class="mi">1</span><span class="w"> </span><span class="nv">hn</span><span class="p">))))</span><span class="w"></span>
 </code></pre></div>
 <p>That's somewhat similar to Nikita Prokopov's <a href="https://tonsky.me/blog/clojurefmt/">Better Clojure Formatting</a> suggestion. (Please be aware that this setting might not be sufficient to get complete <strong>Tonsky Formatting</strong>, please share any settings you use to get full compliance.)</p>
 <h2 id="rich-comments">Rich Comments</h2>
@@ -2001,7 +2002,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "search": "../assets/javascripts/workers/search.ec8bae80.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.c07a5e79.min.js"></script>
+      <script src="../assets/javascripts/bundle.283c1e5e.min.js"></script>
       
     
   </body>

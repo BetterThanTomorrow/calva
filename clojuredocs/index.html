@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.9+insiders-4.12.0">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.12+insiders-4.13.2">
     
     
       
@@ -24,13 +24,14 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.837fa486.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.bc7b8b42.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.9647289d.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cc9b2e1e.min.css">
         
       
       
+
     
     
     
@@ -1723,39 +1724,39 @@
 </div>
 <h2 id="clojuredocs-repl-surfing">ClojureDocs REPL Surfing</h2>
 <p>Since the ClojureDocs information includes see-alsos, you can go for super interactive ClojureDocs surfing right in the file you are editing. Say you have this function:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">trim-text</span>
-  <span class="s">&quot;Returns text without surrounding whitespace if not empty, otherwise nil&quot;</span>
-  <span class="p">[</span><span class="nv">text</span><span class="p">]</span>
-  <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">trimmed-text</span> <span class="p">(</span><span class="nf">clojure.string/trim</span> <span class="nv">text</span><span class="p">)]</span>
-    <span class="p">(</span><span class="nb">when-not </span><span class="p">(</span><span class="nf">empty?</span> <span class="nv">trimmed-text</span><span class="p">)</span>
-      <span class="nv">trimmed-text</span><span class="p">)))</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">trim-text</span><span class="w"></span>
+<span class="w">  </span><span class="s">&quot;Returns text without surrounding whitespace if not empty, otherwise nil&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="p">[</span><span class="nv">text</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">trimmed-text</span><span class="w"> </span><span class="p">(</span><span class="nf">clojure.string/trim</span><span class="w"> </span><span class="nv">text</span><span class="p">)]</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="nb">when-not </span><span class="p">(</span><span class="nf">empty?</span><span class="w"> </span><span class="nv">trimmed-text</span><span class="p">)</span><span class="w"></span>
+<span class="w">      </span><span class="nv">trimmed-text</span><span class="p">)))</span><span class="w"></span>
 </code></pre></div>
 <p>Then you hover on <code>when-not</code> and scroll down a bit in the hover:</p>
 <p><img alt="when-not ClojureDocs Hover Example 1" src="../images/clojuredocs-hover-when-not-example-1.png" /></p>
 <p>That first example would be interesting to play with, right? Click <strong>To Rich Comment</strong> and you will get:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">trim-text</span>
-  <span class="s">&quot;Returns text without surrounding whitespace if not empty, otherwise nil&quot;</span>
-  <span class="p">[</span><span class="nv">text</span><span class="p">]</span>
-  <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">trimmed-text</span> <span class="p">(</span><span class="nf">clojure.string/trim</span> <span class="nv">text</span><span class="p">)]</span>
-    <span class="p">(</span><span class="nb">when-not </span><span class="p">(</span><span class="nf">empty?</span> <span class="nv">trimmed-text</span><span class="p">)</span>
-      <span class="nv">trimmed-text</span><span class="p">)))</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">trim-text</span><span class="w"></span>
+<span class="w">  </span><span class="s">&quot;Returns text without surrounding whitespace if not empty, otherwise nil&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="p">[</span><span class="nv">text</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">trimmed-text</span><span class="w"> </span><span class="p">(</span><span class="nf">clojure.string/trim</span><span class="w"> </span><span class="nv">text</span><span class="p">)]</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="nb">when-not </span><span class="p">(</span><span class="nf">empty?</span><span class="w"> </span><span class="nv">trimmed-text</span><span class="p">)</span><span class="w"></span>
+<span class="w">      </span><span class="nv">trimmed-text</span><span class="p">)))</span><span class="w"></span>
 
-<span class="p">(</span><span class="nf">comment</span>
-  <span class="c1">;; = when-not - Example 1 = </span>
+<span class="p">(</span><span class="nf">comment</span><span class="w"></span>
+<span class="w">  </span><span class="c1">;; = when-not - Example 1 = </span><span class="w"></span>
 
-  <span class="c1">;; build tuples over sets with the same cardinality </span>
-  <span class="p">(</span><span class="nf">map</span>
-   <span class="o">#</span><span class="p">(</span><span class="nb">when-not </span><span class="p">(</span><span class="nb">= </span><span class="nv">%2</span> <span class="nv">%3</span><span class="p">)</span> <span class="p">[</span><span class="nv">%1</span> <span class="nv">%2</span> <span class="nv">%3</span><span class="p">])</span>
-   <span class="p">(</span><span class="nb">iterate inc </span><span class="mi">0</span><span class="p">)</span>   <span class="c1">; a lazy list of indices</span>
-   <span class="p">[</span><span class="ss">:a</span> <span class="ss">:b</span> <span class="ss">:c</span><span class="p">]</span>
-   <span class="p">[</span><span class="ss">:a</span> <span class="ss">:a</span> <span class="ss">:a</span><span class="p">])</span>
-  <span class="c1">;;=&gt; (nil [1 :b :a] [2 :c :a])</span>
+<span class="w">  </span><span class="c1">;; build tuples over sets with the same cardinality </span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="nf">map</span><span class="w"></span>
+<span class="w">   </span><span class="o">#</span><span class="p">(</span><span class="nb">when-not </span><span class="p">(</span><span class="nb">= </span><span class="nv">%2</span><span class="w"> </span><span class="nv">%3</span><span class="p">)</span><span class="w"> </span><span class="p">[</span><span class="nv">%1</span><span class="w"> </span><span class="nv">%2</span><span class="w"> </span><span class="nv">%3</span><span class="p">])</span><span class="w"></span>
+<span class="w">   </span><span class="p">(</span><span class="nb">iterate inc </span><span class="mi">0</span><span class="p">)</span><span class="w">   </span><span class="c1">; a lazy list of indices</span><span class="w"></span>
+<span class="w">   </span><span class="p">[</span><span class="ss">:a</span><span class="w"> </span><span class="ss">:b</span><span class="w"> </span><span class="ss">:c</span><span class="p">]</span><span class="w"></span>
+<span class="w">   </span><span class="p">[</span><span class="ss">:a</span><span class="w"> </span><span class="ss">:a</span><span class="w"> </span><span class="ss">:a</span><span class="p">])</span><span class="w"></span>
+<span class="w">  </span><span class="c1">;;=&gt; (nil [1 :b :a] [2 :c :a])</span><span class="w"></span>
 
-  <span class="c1">;; See also:</span>
-  <span class="nv">when</span>
-  <span class="nv">when-let</span>
-  <span class="nv">if</span>
-  <span class="p">)</span>
+<span class="w">  </span><span class="c1">;; See also:</span><span class="w"></span>
+<span class="w">  </span><span class="nv">when</span><span class="w"></span>
+<span class="w">  </span><span class="nv">when-let</span><span class="w"></span>
+<span class="w">  </span><span class="nv">if</span><span class="w"></span>
+<span class="w">  </span><span class="p">)</span><span class="w"></span>
 </code></pre></div>
 <p>There you can evaluate the <code>(map ...)</code> form using <code>alt+enter</code>, modify it and evaluate again. You can also hover over <code>map</code>, <code>iterate</code>, or any of the ”See also:” symbols to find more fun examples to play with. And so on and so forth.</p>
 <p>See these two tweets for some videos of early versions of this functionality:</p>
@@ -1841,7 +1842,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "search": "../assets/javascripts/workers/search.ec8bae80.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.c07a5e79.min.js"></script>
+      <script src="../assets/javascripts/bundle.283c1e5e.min.js"></script>
       
     
   </body>

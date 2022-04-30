@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.9+insiders-4.12.0">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.12+insiders-4.13.2">
     
     
       
@@ -24,13 +24,14 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.837fa486.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.bc7b8b42.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.9647289d.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cc9b2e1e.min.css">
         
       
       
+
     
     
     
@@ -1896,16 +1897,16 @@
 <p>The bracket inference will remove all cursors but the first one. So for instance if you edit with multiple cursors and it causes brackets to move, you'll end up with just one cursor and the subsequent edits will not be what you intended. This is particularly important to note when you have cursors that are not in the viewport. In such cases it might be better to turn Parinfer off while you do the edits, fix formatting and such manually and then switch Parinfer on again.</p>
 <h3 id="wrong-inferences">Wrong inferences</h3>
 <p>For yet unknown reasons an edit such as the following does the wrong thing (the cursor indicated by the vertical bar):</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">foo|</span> <span class="p">(</span><span class="nf">bar</span><span class="p">)</span>
-      <span class="p">(</span><span class="nf">baz</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">foo|</span><span class="w"> </span><span class="p">(</span><span class="nf">bar</span><span class="p">)</span><span class="w"></span>
+<span class="w">      </span><span class="p">(</span><span class="nf">baz</span><span class="p">))</span><span class="w"></span>
 </code></pre></div>
 <p><kbd>backspace</kbd> =&gt; </p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">fo|</span> <span class="p">(</span><span class="nf">bar</span>
-      <span class="p">(</span><span class="nf">baz</span><span class="p">)))</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">fo|</span><span class="w"> </span><span class="p">(</span><span class="nf">bar</span><span class="w"></span>
+<span class="w">      </span><span class="p">(</span><span class="nf">baz</span><span class="p">)))</span><span class="w"></span>
 </code></pre></div>
 <p>That is <code>(baz)</code> is slurped. When what should happen is:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">fo|</span> <span class="p">(</span><span class="nf">bar</span><span class="p">)</span>
-     <span class="p">(</span><span class="nf">baz</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">fo|</span><span class="w"> </span><span class="p">(</span><span class="nf">bar</span><span class="p">)</span><span class="w"></span>
+<span class="w">     </span><span class="p">(</span><span class="nf">baz</span><span class="p">))</span><span class="w"></span>
 </code></pre></div>
 <h3 id="lag-causing-errors-when-fast-typing">Lag causing errors when fast typing</h3>
 <p>The way that Calva Parinfer works is that for any edit of the document it first reformats the code around the cursor, then infer brackets. Currently these two steps are not atomic to VS Code, so if you type fast bracket inference might happen on the yet unformatted code, and thus not be correct. You might also see the cursor end up at the wrong position at times.</p>
@@ -2033,7 +2034,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "search": "../assets/javascripts/workers/search.ec8bae80.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.c07a5e79.min.js"></script>
+      <script src="../assets/javascripts/bundle.283c1e5e.min.js"></script>
       
     
   </body>

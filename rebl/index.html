@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.9+insiders-4.12.0">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.12+insiders-4.13.2">
     
     
       
@@ -24,13 +24,14 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.837fa486.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.bc7b8b42.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.9647289d.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cc9b2e1e.min.css">
         
       
       
+
     
     
     
@@ -1719,30 +1720,30 @@
 <p><a href="https://github.com/cognitect-labs/REBL-distro">REBL</a> is a graphical, interactive tool for browsing Clojure data.</p>
 <h2 id="depsedn">deps.edn</h2>
 <p>Add the following aliases to your deps.edn file. Use the deps.edn file in the <code>~/.clojure</code> directory to enable alias reuse across multiple projects. This is the configuration for REBL on openjdk 12. Check out the <a href="https://github.com/cognitect-labs/REBL-distro">REBL github page</a> for more info.</p>
-<div class="highlight"><pre><span></span><code><span class="c1">;; REBL Base</span>
-<span class="ss">:rebl</span>
-<span class="p">{</span><span class="ss">:extra-deps</span> <span class="p">{</span><span class="nv">org.clojure/core.async</span> <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;0.4.490&quot;</span><span class="p">}</span>
-                <span class="c1">;; deps for file datafication (0.9.149 or later)</span>
-                <span class="nv">org.clojure/data.csv</span> <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;0.1.4&quot;</span><span class="p">}</span>
-                <span class="nv">org.clojure/data.json</span> <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;0.2.3&quot;</span><span class="p">}</span>
-                <span class="nv">org.yaml/snakeyaml</span> <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;1.23&quot;</span><span class="p">}</span>
-                <span class="nv">com.cognitect/rebl</span>
-                <span class="c1">;; adjust to match your install location</span>
-                <span class="p">{</span><span class="ss">:local/root</span> <span class="s">&quot;/Users/ozimos/REBL/latest/REBL.jar&quot;</span><span class="p">}}}</span>
+<div class="highlight"><pre><span></span><code><span class="c1">;; REBL Base</span><span class="w"></span>
+<span class="ss">:rebl</span><span class="w"></span>
+<span class="p">{</span><span class="ss">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="nv">org.clojure/core.async</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;0.4.490&quot;</span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="c1">;; deps for file datafication (0.9.149 or later)</span><span class="w"></span>
+<span class="w">                </span><span class="nv">org.clojure/data.csv</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;0.1.4&quot;</span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="nv">org.clojure/data.json</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;0.2.3&quot;</span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="nv">org.yaml/snakeyaml</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;1.23&quot;</span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="nv">com.cognitect/rebl</span><span class="w"></span>
+<span class="w">                </span><span class="c1">;; adjust to match your install location</span><span class="w"></span>
+<span class="w">                </span><span class="p">{</span><span class="ss">:local/root</span><span class="w"> </span><span class="s">&quot;/Users/ozimos/REBL/latest/REBL.jar&quot;</span><span class="p">}}}</span><span class="w"></span>
 
-<span class="c1">;; REBL 12</span>
-<span class="ss">:rebl-12</span>
-<span class="p">{</span><span class="ss">:extra-deps</span> <span class="p">{</span><span class="nv">org.openjfx/javafx-fxml</span>     <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;12.0.1&quot;</span><span class="p">}</span>
-                <span class="nv">org.openjfx/javafx-controls</span> <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;12.0.1&quot;</span><span class="p">}</span>
-                <span class="nv">org.openjfx/javafx-graphics</span> <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;12.0.1&quot;</span><span class="p">}</span>
-                <span class="nv">org.openjfx/javafx-media</span>    <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;12.0.1&quot;</span><span class="p">}</span>
-                <span class="nv">org.openjfx/javafx-swing</span>    <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;12.0.1&quot;</span><span class="p">}</span>
-                <span class="nv">org.openjfx/javafx-base</span>     <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;12.0.1&quot;</span><span class="p">}</span>
-                <span class="nv">org.openjfx/javafx-web</span>      <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;12.0.1&quot;</span><span class="p">}}}</span>
+<span class="c1">;; REBL 12</span><span class="w"></span>
+<span class="ss">:rebl-12</span><span class="w"></span>
+<span class="p">{</span><span class="ss">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="nv">org.openjfx/javafx-fxml</span><span class="w">     </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;12.0.1&quot;</span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="nv">org.openjfx/javafx-controls</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;12.0.1&quot;</span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="nv">org.openjfx/javafx-graphics</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;12.0.1&quot;</span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="nv">org.openjfx/javafx-media</span><span class="w">    </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;12.0.1&quot;</span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="nv">org.openjfx/javafx-swing</span><span class="w">    </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;12.0.1&quot;</span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="nv">org.openjfx/javafx-base</span><span class="w">     </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;12.0.1&quot;</span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="nv">org.openjfx/javafx-web</span><span class="w">      </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;12.0.1&quot;</span><span class="p">}}}</span><span class="w"></span>
 
-<span class="c1">;; nREBL</span>
-<span class="ss">:nrebl</span> <span class="p">{</span><span class="ss">:extra-deps</span> <span class="p">{</span><span class="nv">rickmoynihan/nrebl.middleware</span> <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;0.2.0&quot;</span><span class="p">}}</span>
-            <span class="ss">:main-opts</span> <span class="p">[</span><span class="s">&quot;-e&quot;</span> <span class="s">&quot;((requiring-resolve,&#39;cognitect.rebl/ui))&quot;</span> <span class="s">&quot;-m&quot;</span> <span class="s">&quot;nrepl.cmdline&quot;</span> <span class="s">&quot;--middleware&quot;</span> <span class="s">&quot;[nrebl.middleware/wrap-nrebl]&quot;</span> <span class="s">&quot;-I&quot;</span><span class="p">]}</span>
+<span class="c1">;; nREBL</span><span class="w"></span>
+<span class="ss">:nrebl</span><span class="w"> </span><span class="p">{</span><span class="ss">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="nv">rickmoynihan/nrebl.middleware</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="p">}}</span><span class="w"></span>
+<span class="w">            </span><span class="ss">:main-opts</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;-e&quot;</span><span class="w"> </span><span class="s">&quot;((requiring-resolve,&#39;cognitect.rebl/ui))&quot;</span><span class="w"> </span><span class="s">&quot;-m&quot;</span><span class="w"> </span><span class="s">&quot;nrepl.cmdline&quot;</span><span class="w"> </span><span class="s">&quot;--middleware&quot;</span><span class="w"> </span><span class="s">&quot;[nrebl.middleware/wrap-nrebl]&quot;</span><span class="w"> </span><span class="s">&quot;-I&quot;</span><span class="p">]}</span><span class="w"></span>
 </code></pre></div>
 <p>Create a Calva custom connect sequence for your VSCode editor. (Read <a href="../connect-sequences/">Custom REPL Connect Sequences</a> if you haven't.) Add the following to your vscode settings.json:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
@@ -1763,28 +1764,28 @@
 </code></pre></div>
 <h2 id="leiningen">Leiningen</h2>
 <p>Add rebl profiles to your <a href="https://github.com/technomancy/leiningen/blob/stable/doc/PROFILES.md#declaring-profiles">user-wide profiles</a> so that they will be available for all your projects. Here's a sample user profile (located at <code>~/.lein/profiles.clj</code> on mac):</p>
-<p><div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:user</span> <span class="p">{</span><span class="ss">:plugins</span> <span class="p">[[</span><span class="nv">lein-ancient</span> <span class="s">&quot;0.6.15&quot;</span><span class="p">]]}</span>
+<p><div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:user</span><span class="w"> </span><span class="p">{</span><span class="ss">:plugins</span><span class="w"> </span><span class="p">[[</span><span class="nv">lein-ancient</span><span class="w"> </span><span class="s">&quot;0.6.15&quot;</span><span class="p">]]}</span><span class="w"></span>
 
- <span class="c1">;; REBL Base</span>
- <span class="ss">:rebl</span> <span class="p">{</span><span class="ss">:resource-paths</span> <span class="p">[</span><span class="s">&quot;/Users/ozimos/REBL/latest/REBL.jar&quot;</span><span class="p">]</span>
-        <span class="ss">:dependencies</span> <span class="p">[[</span><span class="nv">org.clojure/core.async</span> <span class="s">&quot;0.4.490&quot;</span><span class="p">]</span>
-                       <span class="p">[</span><span class="nv">org.clojure/data.csv</span> <span class="s">&quot;0.1.4&quot;</span><span class="p">]</span>
-                       <span class="p">[</span><span class="nv">org.clojure/data.json</span> <span class="s">&quot;0.2.3&quot;</span><span class="p">]</span>
-                       <span class="p">[</span><span class="nv">cljfmt</span> <span class="s">&quot;0.6.4&quot;</span><span class="p">]</span>
-                       <span class="p">[</span><span class="nv">org.yaml/snakeyaml</span> <span class="s">&quot;1.23&quot;</span><span class="p">]]}</span>
+<span class="w"> </span><span class="c1">;; REBL Base</span><span class="w"></span>
+<span class="w"> </span><span class="ss">:rebl</span><span class="w"> </span><span class="p">{</span><span class="ss">:resource-paths</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;/Users/ozimos/REBL/latest/REBL.jar&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">        </span><span class="ss">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="nv">org.clojure/core.async</span><span class="w"> </span><span class="s">&quot;0.4.490&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">                       </span><span class="p">[</span><span class="nv">org.clojure/data.csv</span><span class="w"> </span><span class="s">&quot;0.1.4&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">                       </span><span class="p">[</span><span class="nv">org.clojure/data.json</span><span class="w"> </span><span class="s">&quot;0.2.3&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">                       </span><span class="p">[</span><span class="nv">cljfmt</span><span class="w"> </span><span class="s">&quot;0.6.4&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">                       </span><span class="p">[</span><span class="nv">org.yaml/snakeyaml</span><span class="w"> </span><span class="s">&quot;1.23&quot;</span><span class="p">]]}</span><span class="w"></span>
 
- <span class="c1">;; REBL 12 for JDK 12.0.1. Swap out for your JDK version</span>
- <span class="ss">:rebl-12</span> <span class="p">{</span><span class="ss">:dependencies</span> <span class="p">[[</span><span class="nv">org.openjfx/javafx-fxml</span>  <span class="s">&quot;12.0.1&quot;</span><span class="p">]</span>
-                          <span class="p">[</span><span class="nv">org.openjfx/javafx-controls</span> <span class="s">&quot;12.0.1&quot;</span><span class="p">]</span>
-                          <span class="p">[</span><span class="nv">org.openjfx/javafx-graphics</span> <span class="s">&quot;12.0.1&quot;</span><span class="p">]</span>
-                          <span class="p">[</span><span class="nv">org.openjfx/javafx-media</span> <span class="s">&quot;12.0.1&quot;</span><span class="p">]</span>
-                          <span class="p">[</span><span class="nv">org.openjfx/javafx-swing</span> <span class="s">&quot;12.0.1&quot;</span><span class="p">]</span>
-                          <span class="p">[</span><span class="nv">org.openjfx/javafx-base</span>  <span class="s">&quot;12.0.1&quot;</span><span class="p">]</span>
-                          <span class="p">[</span><span class="nv">org.openjfx/javafx-web</span> <span class="s">&quot;12.0.1&quot;</span><span class="p">]]}</span>
+<span class="w"> </span><span class="c1">;; REBL 12 for JDK 12.0.1. Swap out for your JDK version</span><span class="w"></span>
+<span class="w"> </span><span class="ss">:rebl-12</span><span class="w"> </span><span class="p">{</span><span class="ss">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="nv">org.openjfx/javafx-fxml</span><span class="w">  </span><span class="s">&quot;12.0.1&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">                          </span><span class="p">[</span><span class="nv">org.openjfx/javafx-controls</span><span class="w"> </span><span class="s">&quot;12.0.1&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">                          </span><span class="p">[</span><span class="nv">org.openjfx/javafx-graphics</span><span class="w"> </span><span class="s">&quot;12.0.1&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">                          </span><span class="p">[</span><span class="nv">org.openjfx/javafx-media</span><span class="w"> </span><span class="s">&quot;12.0.1&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">                          </span><span class="p">[</span><span class="nv">org.openjfx/javafx-swing</span><span class="w"> </span><span class="s">&quot;12.0.1&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">                          </span><span class="p">[</span><span class="nv">org.openjfx/javafx-base</span><span class="w">  </span><span class="s">&quot;12.0.1&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">                          </span><span class="p">[</span><span class="nv">org.openjfx/javafx-web</span><span class="w"> </span><span class="s">&quot;12.0.1&quot;</span><span class="p">]]}</span><span class="w"></span>
 
-<span class="c1">;; NREBL https://github.com/RickMoynihan/nrebl.middleware</span>
- <span class="ss">:nrebl</span> <span class="p">{</span><span class="ss">:repl-options</span> <span class="p">{</span><span class="ss">:nrepl-middleware</span> <span class="p">[</span><span class="nv">nrebl.middleware/wrap-nrebl</span><span class="p">]}</span>
-        <span class="ss">:dependencies</span> <span class="p">[[</span><span class="nv">rickmoynihan/nrebl.middleware</span> <span class="s">&quot;0.3.1&quot;</span><span class="p">]]}}</span>
+<span class="c1">;; NREBL https://github.com/RickMoynihan/nrebl.middleware</span><span class="w"></span>
+<span class="w"> </span><span class="ss">:nrebl</span><span class="w"> </span><span class="p">{</span><span class="ss">:repl-options</span><span class="w"> </span><span class="p">{</span><span class="ss">:nrepl-middleware</span><span class="w"> </span><span class="p">[</span><span class="nv">nrebl.middleware/wrap-nrebl</span><span class="p">]}</span><span class="w"></span>
+<span class="w">        </span><span class="ss">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="nv">rickmoynihan/nrebl.middleware</span><span class="w"> </span><span class="s">&quot;0.3.1&quot;</span><span class="p">]]}}</span><span class="w"></span>
 </code></pre></div>
 <a href="https://github.com/eccentric-j/lein-rebl-example">More info here</a></p>
 <p>Create a Calva custom connect sequence for your VSCode editor. (Read <a href="../connect-sequences/">Custom REPL Connect Sequences</a> if you haven't.) Add the following to your vscode settings.json:</p>
@@ -1878,7 +1879,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "search": "../assets/javascripts/workers/search.ec8bae80.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.c07a5e79.min.js"></script>
+      <script src="../assets/javascripts/bundle.283c1e5e.min.js"></script>
       
     
   </body>

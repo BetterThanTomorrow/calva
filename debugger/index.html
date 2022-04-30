@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.9+insiders-4.12.0">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.12+insiders-4.13.2">
     
     
       
@@ -24,13 +24,14 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.837fa486.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.bc7b8b42.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.9647289d.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cc9b2e1e.min.css">
         
       
       
+
     
     
     
@@ -2153,10 +2154,10 @@
 </div>
 <h3 id="conditional-breakpoints">Conditional Breakpoints</h3>
 <p>You can set conditional breakpoints by adding metadata before the form that the <code>#break</code> applies to.</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">print-nums</span> <span class="p">[</span><span class="nv">n</span><span class="p">]</span>
-  <span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">i</span> <span class="nv">n</span><span class="p">]</span>
-    <span class="o">#</span><span class="nv">break</span> <span class="o">^</span><span class="p">{</span><span class="ss">:break/when</span> <span class="p">(</span><span class="nb">= </span><span class="nv">i</span> <span class="mi">7</span><span class="p">)}</span> <span class="c1">;; This breakpoint will only be hit when i equals 7</span>
-    <span class="p">(</span><span class="nb">prn </span><span class="nv">i</span><span class="p">)))</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">print-nums</span><span class="w"> </span><span class="p">[</span><span class="nv">n</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">i</span><span class="w"> </span><span class="nv">n</span><span class="p">]</span><span class="w"></span>
+<span class="w">    </span><span class="o">#</span><span class="nv">break</span><span class="w"> </span><span class="o">^</span><span class="p">{</span><span class="ss">:break/when</span><span class="w"> </span><span class="p">(</span><span class="nb">= </span><span class="nv">i</span><span class="w"> </span><span class="mi">7</span><span class="p">)}</span><span class="w"> </span><span class="c1">;; This breakpoint will only be hit when i equals 7</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="nb">prn </span><span class="nv">i</span><span class="p">)))</span><span class="w"></span>
 </code></pre></div>
 <h3 id="instrumenting-a-form-with-dbg">Instrumenting a Form with <code>#dbg</code></h3>
 <p>Adding <code>#dbg</code> before a form then evaluating the form with <code>alt+enter</code> will instrument the form. This has the same effect as using <a href="#instrumenting-a-function">the instrument command</a>.</p>
@@ -2193,11 +2194,11 @@
 <h2 id="caveats">Caveats</h2>
 <h3 id="breakpoints-in-looprecur">Breakpoints in loop/recur</h3>
 <p>One construct where the debugger is limited is <code>loop</code>/<code>recur</code>. As recur always has to appear in a tail-position inside a <code>loop</code> or a <code>fn</code> and the debugger uses macros to interleave breakpoints in the forms, it <strong>might</strong> happen that a <code>recur</code> no longer appears in a tail position. In that case we have to avoid setting up the breakpoint. An example of such a case is:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">loop </span><span class="p">[</span><span class="nv">i</span> <span class="mi">0</span><span class="p">]</span>
-  <span class="o">#</span><span class="nv">break</span>
-  <span class="p">(</span><span class="nb">when </span><span class="p">(</span><span class="nb">&lt; </span><span class="nv">i</span> <span class="mi">10</span><span class="p">)</span>
-    <span class="p">(</span><span class="nb">println </span><span class="nv">i</span><span class="p">)</span>
-    <span class="p">(</span><span class="nf">recur</span> <span class="p">(</span><span class="nb">inc </span><span class="nv">i</span><span class="p">))))</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">loop </span><span class="p">[</span><span class="nv">i</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="o">#</span><span class="nv">break</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="nb">when </span><span class="p">(</span><span class="nb">&lt; </span><span class="nv">i</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="nv">i</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="nf">recur</span><span class="w"> </span><span class="p">(</span><span class="nb">inc </span><span class="nv">i</span><span class="p">))))</span><span class="w"></span>
 </code></pre></div>
 <p>Here the breakpoint is exactly in front of a form that contains as its last expression a <code>recur</code> which is wrapped in a loop. This breakpoint has no effect. This does not mean you cannot use the debugger with <code>loop</code>, it just means you have to set your debug statements more carefully.</p>
 <h3 id="loading-the-file-and-eval-on-save">Loading the File and "Eval On Save"</h3>
@@ -2205,15 +2206,15 @@
 <h2 id="troubleshooting">Troubleshooting</h2>
 <h3 id="debugger-hangs-when-stepping-over-infinite-seqs">Debugger hangs when stepping over infinite seqs</h3>
 <p>This is because the debugger tries to evaluate the form when it's stepped over, and if <code>clojure.core/*print-length*</code> is set to <code>nil</code> as it is by default, evaluation will never complete. If you want to debug a form with an infinite seq, make sure to set <code>*print-length*</code> beforehand. For example:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">set!</span> <span class="nv">*print-length*</span> <span class="mi">3</span><span class="p">)</span>
-<span class="c1">;; Or, to be more precise</span>
-<span class="p">(</span><span class="nf">set!</span> <span class="nv">clojure.core/*print-length*</span> <span class="mi">3</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">set!</span><span class="w"> </span><span class="nv">*print-length*</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"></span>
+<span class="c1">;; Or, to be more precise</span><span class="w"></span>
+<span class="p">(</span><span class="nf">set!</span><span class="w"> </span><span class="nv">clojure.core/*print-length*</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"></span>
 </code></pre></div>
 <p>Calva does not set this for you during debug mode, instead leaving it up to you to decide the value.</p>
 <h3 id="my-breakpoint-isnt-being-hit">My breakpoint isn't being hit</h3>
 <p>It's likely that your breakpoint is in a place that cider-nrepl does not see as an appropriate place to break execution. For example, if you put a breakpoint before a literal number, it will not be hit, because there's no need to show the value of a literal.</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">simple</span> <span class="p">[</span><span class="nv">x</span><span class="p">]</span>
-  <span class="p">(</span><span class="nb">+ </span><span class="mi">1</span> <span class="o">#</span><span class="nv">break</span> <span class="mi">1</span><span class="p">))</span> <span class="c1">;; This breakpoint will not be hit</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">simple</span><span class="w"> </span><span class="p">[</span><span class="nv">x</span><span class="p">]</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="nb">+ </span><span class="mi">1</span><span class="w"> </span><span class="o">#</span><span class="nv">break</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="c1">;; This breakpoint will not be hit</span><span class="w"></span>
 </code></pre></div>
 <p>Another possible issue is that you're loading the file again after setting breakpoints, which unsets them. See <a href="#loading-the-file-and-eval-on-save">Loading the File and "Eval On Save"</a> under Caveats.</p>
 <h3 id="my-breakpoint-in-a-test-isnt-being-hit">My breakpoint in a test isn't being hit</h3>
@@ -2331,7 +2332,7 @@ nREPL server started on port <span class="m">46691</span> on host localhost - nr
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "search": "../assets/javascripts/workers/search.ec8bae80.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.c07a5e79.min.js"></script>
+      <script src="../assets/javascripts/bundle.283c1e5e.min.js"></script>
       
     
   </body>

@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.9+insiders-4.12.0">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.12+insiders-4.13.2">
     
     
       
@@ -24,13 +24,14 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.837fa486.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.bc7b8b42.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.9647289d.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cc9b2e1e.min.css">
         
       
       
+
     
     
     
@@ -1833,7 +1834,7 @@
 <h2 id="troubleshooting">Troubleshooting</h2>
 <h3 id="tests-are-not-found">Tests Are Not Found</h3>
 <p>If you have tests in a test directory separate from your source directory, and those tests are not being found by the test runner, make sure the test directory is included in your paths. This will not be the case by default with a tools.deps (deps.edn) project. If your project is a tools.deps project, you can create an alias in your deps.edn file with <code>:extra-paths</code> that includes <code>"test"</code> (or the name of your test directory).</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:aliases</span> <span class="p">{</span><span class="ss">:dev</span> <span class="p">{</span><span class="ss">:extra-paths</span> <span class="p">[</span><span class="s">&quot;test&quot;</span><span class="p">]}}}</span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:aliases</span><span class="w"> </span><span class="p">{</span><span class="ss">:dev</span><span class="w"> </span><span class="p">{</span><span class="ss">:extra-paths</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;test&quot;</span><span class="p">]}}}</span><span class="w"></span>
 </code></pre></div>
 <p>Having added the above to your deps.edn, when you jack-in, choose the <code>:dev</code> alias and the <code>test</code> directory will be added to your paths, which will allow tests located in the directory to be found by the test runner.</p>
 <h3 id="toggle-between-implementation-and-test-command-not-working-as-intended">Toggle between implementation and test command not working as intended</h3>
@@ -1916,7 +1917,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "search": "../assets/javascripts/workers/search.ec8bae80.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.c07a5e79.min.js"></script>
+      <script src="../assets/javascripts/bundle.283c1e5e.min.js"></script>
       
     
   </body>
