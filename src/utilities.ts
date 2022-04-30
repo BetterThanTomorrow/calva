@@ -10,7 +10,6 @@ import * as outputWindow from './results-output/results-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
 import { isUndefined } from 'lodash';
-import { isNullOrUndefined } from 'util';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
@@ -22,6 +21,9 @@ export function stripAnsi(str: string) {
     ''
   );
 }
+
+export const isNullOrUndefined = (object: unknown): object is null | undefined =>
+  object === null || object === undefined;
 
 export const isDefined = <T>(value: T | undefined | null): value is T => {
   return !isNullOrUndefined(value);
