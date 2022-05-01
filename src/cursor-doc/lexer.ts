@@ -3,6 +3,8 @@
  * @module lexer
  */
 
+import { assertIsDefined } from '../utilities';
+
 /**
  * The base Token class. Contains the token type,
  * the raw string of the token, and the offset into the input line.
@@ -36,8 +38,8 @@ export class Lexer {
   constructor(public source: string, public rules: Rule[], private maxLength) {}
 
   /** Returns the next token in this lexer, or null if at the end. If the match fails, throws an Error. */
-  scan(): Token {
-    let token = null,
+  scan(): Token | undefined {
+    let token: Token | undefined,
       length = 0;
     if (this.position < this.source.length) {
       if (this.source !== undefined && this.source.length < this.maxLength) {
@@ -47,6 +49,7 @@ export class Lexer {
           const x = rule.r.exec(this.source);
           if (x && x[0].length > length && this.position + x[0].length == rule.r.lastIndex) {
             token = rule.fn(this, x);
+            assertIsDefined(token, 'Expected token!');
             token.offset = this.position;
             token.raw = x[0];
             length = x[0].length;
@@ -62,9 +65,9 @@ export class Lexer {
       }
     }
     this.position += length;
-    if (token == null) {
+    if (token === undefined) {
       if (this.position == this.source.length) {
-        return null;
+        return undefined;
       }
       throw new Error(
         'Unexpected character at ' + this.position + ': ' + JSON.stringify(this.source)
