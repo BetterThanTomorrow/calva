@@ -42,6 +42,7 @@ export async function provideSignatureHelp(
         if (signatures) {
           const help = new SignatureHelp(),
             currentArgsRanges = getCurrentArgsRanges(document, idx);
+          util.assertIsDefined(currentArgsRanges, 'Expected to find the current args ranges!');
           help.signatures = signatures;
           help.activeSignature = getActiveSignatureIdx(signatures, currentArgsRanges.length);
           if (signatures[help.activeSignature].parameters !== undefined) {
@@ -68,7 +69,7 @@ function getCurrentArgsRanges(document: TextDocument, idx: number): Range[] | un
   // Are we in a function that gets a threaded first parameter?
   const { previousRangeIndex, previousFunction } = getPreviousRangeIndexAndFunction(document, idx);
   const isInThreadFirst: boolean =
-    (previousRangeIndex > 1 && ['->', 'some->'].includes(previousFunction)) ||
+    (previousRangeIndex > 1 && previousFunction && ['->', 'some->'].includes(previousFunction)) ||
     (previousRangeIndex > 1 && previousRangeIndex % 2 !== 0 && previousFunction === 'cond->');
 
   if (allRanges !== undefined) {
@@ -83,7 +84,7 @@ function getActiveSignatureIdx(signatures: SignatureInformation[], currentArgsCo
   return activeSignatureIdx !== -1 ? activeSignatureIdx : signatures.length - 1;
 }
 
-function getSymbol(document: TextDocument, idx: number): string {
+function getSymbol(document: TextDocument, idx: number): string | undefined {
   const cursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx);
   return cursor.getFunctionName();
 }
