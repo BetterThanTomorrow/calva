@@ -309,7 +309,7 @@ async function askForConnectSequence(
 ): Promise<ReplConnectSequence | undefined> {
   // figure out what possible kinds of project we're in
   const sequences: ReplConnectSequence[] = getConnectSequences(cljTypes);
-  const projectRootUri = state.getProjectRootUri();
+  const projectRootUri = state.tryToGetProjectRootUri();
   const saveAsFull = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
   void state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', true);
   const projectConnectSequenceName = await utilities.quickPickSingle({

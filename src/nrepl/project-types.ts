@@ -63,7 +63,7 @@ export function nreplPortFileLocalPath(connectSequence: ReplConnectSequence): st
 
 export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.Uri {
   const relativePath = nreplPortFileRelativePath(connectSequence);
-  const projectRoot = state.getProjectRootUri();
+  const projectRoot = state.tryToGetProjectRootUri();
   if (projectRoot) {
     try {
       return vscode.Uri.joinPath(projectRoot, relativePath);
@@ -75,9 +75,7 @@ export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.U
 }
 
 export function shadowConfigFile(): vscode.Uri {
-  const projectRootUri = state.getProjectRootUri();
-  utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
-  return vscode.Uri.joinPath(projectRootUri, 'shadow-cljs.edn');
+  return vscode.Uri.joinPath(state.getProjectRootUri(), 'shadow-cljs.edn');
 }
 
 export async function shadowBuilds(): Promise<string[]> {
@@ -118,16 +116,13 @@ async function selectShadowBuilds(
   connectSequence: ReplConnectSequence,
   foundBuilds: string[]
 ): Promise<{ selectedBuilds: string[] | undefined; args: string[] }> {
-  const projectRootUri = state.getProjectRootUri();
-  utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
-
   const menuSelections = connectSequence.menuSelections,
     selectedBuilds = menuSelections
       ? menuSelections.cljsLaunchBuilds
       : await utilities.quickPickMulti({
           values: foundBuilds.filter((x) => x[0] == ':'),
           placeHolder: 'Select builds to start',
-          saveAs: `${projectRootUri.toString()}/shadow-cljs-jack-in`,
+          saveAs: `${state.getProjectRootUri().toString()}/shadow-cljs-jack-in`,
         }),
     aliases: string[] =
       menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
@@ -140,11 +135,8 @@ async function selectShadowBuilds(
 }
 
 async function leinDefProject(): Promise<any> {
-  const projectRootUri = state.getProjectRootUri();
-  utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
-
   const bytes = await vscode.workspace.fs.readFile(
-    vscode.Uri.joinPath(projectRootUri, 'project.clj')
+    vscode.Uri.joinPath(state.getProjectRootUri(), 'project.clj')
   );
   const data = new TextDecoder('utf-8').decode(bytes);
   try {
@@ -178,14 +170,10 @@ async function leinProfilesAndAlias(
           const aliasesMap = defproject[aliasesIndex + 1];
           aliases = Object.keys(aliasesMap).map((v, k) => v);
           if (aliases.length) {
-            const projectRootUri = state.getProjectRootUri();
-            utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
-
-            state.getProjectRootUri();
             aliases.unshift('No alias');
             alias = await utilities.quickPickSingle({
               values: aliases,
-              saveAs: `${projectRootUri.toString()}/lein-cli-alias`,
+              saveAs: `${state.getProjectRootUri().toString()}/lein-cli-alias`,
               placeHolder: 'Choose alias to launch with',
             });
             alias = alias === 'No alias' ? undefined : alias;
@@ -211,12 +199,9 @@ async function leinProfilesAndAlias(
       if (projectProfiles.length) {
         profiles = projectProfiles.map(keywordize);
         if (profiles.length) {
-          const projectRootUri = state.getProjectRootUri();
-          utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
-
           profiles = await utilities.quickPickMulti({
             values: profiles,
-            saveAs: `${projectRootUri.toString()}/lein-cli-profiles`,
+            saveAs: `${state.getProjectRootUri().toString()}/lein-cli-profiles`,
             placeHolder: 'Pick any profiles to launch with',
           });
         }
@@ -479,7 +464,6 @@ async function cljCommandLine(
   let depsUri: vscode.Uri;
 
   const projectRootUri = state.getProjectRootUri();
-  utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
 
   try {
     depsUri = vscode.Uri.joinPath(projectRootUri, 'deps.edn');
@@ -649,15 +633,13 @@ export function getProjectTypeForName(name: string) {
 }
 
 export async function detectProjectTypes(): Promise<string[]> {
-  const projectRootUri = state.getProjectRootUri();
-  utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
   const cljProjTypes = ['generic', 'cljs-only', 'babashka', 'nbb'];
   for (const clj in projectTypes) {
     if (projectTypes[clj].useWhenExists) {
       try {
         const projectFileName = projectTypes[clj].useWhenExists;
         utilities.assertIsDefined(projectFileName, 'Expected there to be a project filename!');
-        const uri = vscode.Uri.joinPath(projectRootUri, projectFileName);
+        const uri = vscode.Uri.joinPath(state.getProjectRootUri(), projectFileName);
         await vscode.workspace.fs.readFile(uri);
         cljProjTypes.push(clj);
       } catch {

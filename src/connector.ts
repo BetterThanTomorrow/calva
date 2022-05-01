@@ -81,7 +81,6 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       port: +port,
       onError: (e) => {
         const projectRootUri = state.getProjectRootUri();
-        util.assertIsDefined(projectRootUri, 'Expected a project root URI');
 
         const scheme = projectRootUri.scheme;
         if (scheme === 'vsls') {
@@ -190,8 +189,6 @@ function setUpCljsRepl(session, build) {
 
 async function getFigwheelMainBuilds() {
   const projectRootUri = state.getProjectRootUri();
-  util.assertIsDefined(projectRootUri, 'Expected a project root URI');
-
   const res = await vscode.workspace.fs.readDirectory(projectRootUri);
   const builds = res
     .filter(([name, type]) => type !== vscode.FileType.Directory && name.match(/\.cljs\.edn/))
@@ -383,7 +380,6 @@ function createCLJSReplType(
       } else {
         if (typeof initCode === 'object' || initCode.includes('%BUILD%')) {
           const projectRootUri = state.getProjectRootUri();
-          util.assertIsDefined(projectRootUri, 'Expected a project root URI');
 
           const buildsForSelection = startedBuilds
             ? startedBuilds
@@ -449,7 +445,6 @@ function createCLJSReplType(
             const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
             util.assertIsDefined(allBuilds, 'Expected there to be figwheel or shadowcljs builds!');
             const projectRootUri = state.getProjectRootUri();
-            util.assertIsDefined(projectRootUri, 'Expected a project root URI');
 
             builds =
               allBuilds.length <= 1
@@ -710,7 +705,6 @@ export default {
 
     if (nClient) {
       const projectRootUri = state.getProjectRootUri();
-      util.assertIsDefined(projectRootUri, 'Expected a project root URI');
 
       if (projectRootUri.scheme === 'vsls') {
         nClient.disconnect();

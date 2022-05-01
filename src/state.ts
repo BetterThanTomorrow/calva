@@ -62,10 +62,17 @@ export function setProjectConfig(config) {
   return setStateValue(PROJECT_CONFIG_MAP, config);
 }
 
-export function getProjectRootUri(useCache = true): vscode.Uri | undefined {
+export function tryToGetProjectRootUri(useCache = true): vscode.Uri | undefined {
   if (useCache) {
     return getStateValue(PROJECT_DIR_URI_KEY);
   }
+}
+export function getProjectRootUri(useCache = true): vscode.Uri {
+  const projectRootUri = tryToGetProjectRootUri(useCache);
+
+  util.assertIsDefined(projectRootUri, 'Expected to find project root URI!');
+
+  return projectRootUri;
 }
 
 const NON_PROJECT_DIR_KEY = 'calva.connect.nonProjectDir';
@@ -104,7 +111,7 @@ export async function setOrCreateNonProjectRoot(
 ): Promise<vscode.Uri> {
   let root: vscode.Uri | undefined = undefined;
   if (preferProjectDir) {
-    root = getProjectRootUri();
+    root = tryToGetProjectRootUri();
   }
   if (!root) {
     root = await getNonProjectRootDir(context);

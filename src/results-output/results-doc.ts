@@ -42,7 +42,6 @@ export const CLJS_CONNECT_GREETINGS =
 
 function outputFileDir() {
   const projectRoot = state.getProjectRootUri();
-  util.assertIsDefined(projectRoot, 'Expected there to be a project root!');
   try {
     return vscode.Uri.joinPath(projectRoot, '.calva', 'output-window');
   } catch {

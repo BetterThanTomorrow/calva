@@ -242,7 +242,6 @@ export async function jackIn(connectSequence: ReplConnectSequence | undefined, c
     console.error('An error occurred while setting up Live Share listener.', e);
   }
   const projectRootUri = state.getProjectRootUri();
-  utilities.assertIsDefined(projectRootUri, 'Expected to find a project root URI!');
   if (projectRootUri.scheme === 'vsls') {
     outputWindow.append("; Aborting Jack-in, since you're the guest of a live share session.");
     outputWindow.append(
