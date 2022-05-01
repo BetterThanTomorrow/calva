@@ -7,7 +7,7 @@ import { NReplSession } from './nrepl';
 import * as cider from './nrepl/cider';
 import * as lsp from './lsp/types';
 import * as namespace from './namespace';
-import { getSession, tryToGetSession, updateReplSessionType } from './nrepl/repl-session';
+import { getSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
 
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
