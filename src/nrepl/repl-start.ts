@@ -191,7 +191,7 @@ export async function startStandaloneRepl(
     const pprintOptions = getConfig().prettyPrintingOptions;
     utilities.assertIsDefined(
       pprintOptions,
-      'Expected there to be pretty printing options configured'
+      'Expected there to be pretty printing options configured!'
     );
     await eval.loadFile({}, pprintOptions);
     outputWindow.appendPrompt();
