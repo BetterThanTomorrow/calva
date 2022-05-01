@@ -169,18 +169,21 @@ export class MirroredDocument implements EditableDocument {
   }
 
   public delete(): Thenable<boolean> {
-    return vscode.commands.executeCommand('deleteRight');
+    return vscode.commands.executeCommand('deleteRight').then((v) => !!v);
   }
 
   public backspace(): Thenable<boolean> {
-    return vscode.commands.executeCommand('deleteLeft');
+    return vscode.commands.executeCommand('deleteLeft').then((v) => !!v);
   }
 }
 
 let registered = false;
 
 function processChanges(event: vscode.TextDocumentChangeEvent) {
-  const model = documents.get(event.document).model;
+  const mirrorDoc = documents.get(event.document);
+  utilities.assertIsDefined(mirrorDoc, 'Expected to find a mirror document!');
+  const model = mirrorDoc.model;
+
   for (const change of event.contentChanges) {
     // vscode may have a \r\n marker, so it's line offsets are all wrong.
     const myStartOffset =
