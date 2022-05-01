@@ -13,6 +13,7 @@ import type { ReplSessionType } from '../config';
 import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
 import { log, Direction, loggingEnabled } from './logging';
+import { omit } from 'lodash';
 
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
@@ -207,7 +208,7 @@ export class NReplSession {
   }
 
   messageHandlers: { [id: string]: (msg: any) => boolean } = {};
-  replType: ReplSessionType = null;
+  replType: ReplSessionType | null = null;
 
   close() {
     this.client.write({ op: 'close', session: this.sessionId });
@@ -359,11 +360,11 @@ export class NReplSession {
   ) {
     const pprintOptions = opts.pprintOptions;
     opts['pprint'] = pprintOptions.enabled;
-    delete opts.pprintOptions;
+    const optsWithoutPprint = omit(opts, 'pprintOptions');
     const extraOpts = getServerSidePrinter(pprintOptions);
     const opMsg = this._createEvalOperationMessage(code, ns, {
       ...extraOpts,
-      ...opts,
+      ...optsWithoutPprint,
     });
 
     const evaluation = new NReplEvaluation(
@@ -381,6 +382,7 @@ export class NReplSession {
           if (evaluation.onMessage(msg, pprintOptions)) {
             return true;
           }
+          return false;
         };
         this.addRunningID(opMsg.id);
         this.client.write(opMsg);
@@ -433,7 +435,7 @@ export class NReplSession {
       this,
       opts.stderr,
       opts.stdout,
-      null,
+      undefined,
       new Promise((resolve, reject) => {
         this.messageHandlers[id] = (msg) => {
           evaluation.setHandlers(resolve, reject);
@@ -441,6 +443,7 @@ export class NReplSession {
           if (evaluation.onMessage(msg, opts.pprintOptions)) {
             return true;
           }
+          return false;
         };
         this.addRunningID(id);
         this.client.write({
@@ -616,6 +619,7 @@ export class NReplSession {
           resolve(res);
           return true;
         }
+        return false;
       };
       this.client.write({
         op: cmd,
@@ -761,9 +765,9 @@ export class NReplEvaluation {
   constructor(
     public id: string,
     public session: NReplSession,
-    public stderr: (x: string) => void,
-    public stdout: (x: string) => void,
-    public stdin: () => Promise<string>,
+    public stderr: ((x: string) => void) | undefined,
+    public stdout: ((x: string) => void) | undefined,
+    public stdin: (() => Promise<string>) | undefined,
     public value: Promise<any>
   ) {}
 

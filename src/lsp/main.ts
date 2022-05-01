@@ -23,6 +23,7 @@ import { provideHover } from '../providers/hover';
 import { provideSignatureHelp } from '../providers/signature';
 import { isResultsDoc } from '../results-output/results-doc';
 import { MessageItem } from 'vscode';
+import { assertIsDefined } from '../type-checks';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const LSP_CLIENT_KEY_ERROR = 'lspClientError';
@@ -32,7 +33,7 @@ const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE =
 const lspStatusItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
 let serverVersion: string;
 let extensionContext: vscode.ExtensionContext;
-let clojureLspPath: string;
+let clojureLspPath: string | undefined;
 let testTreeHandler: TestTreeHandler;
 let lspCommandsRegistered = false;
 
@@ -124,7 +125,11 @@ function createClient(clojureLspPath: string, fallbackFolder: FallbackFolder): L
         provideCodeActions(document, range, context, token, next) {
           return next(document, range, context, token);
         },
-        provideCodeLenses: async (document, token, next): Promise<vscode.CodeLens[]> => {
+        provideCodeLenses: async (
+          document,
+          token,
+          next
+        ): Promise<vscode.CodeLens[] | null | undefined> => {
           if (config.getConfig().referencesCodeLensEnabled) {
             return await next(document, token);
           }
@@ -137,7 +142,7 @@ function createClient(clojureLspPath: string, fallbackFolder: FallbackFolder): L
           return null;
         },
         async provideHover(document, position, token, next) {
-          let hover: vscode.Hover;
+          let hover: vscode.Hover | null | undefined;
           try {
             hover = await provideHover(document, position);
           } catch {
@@ -266,7 +271,7 @@ function registerLspCommand(command: ClojureLspCommand): vscode.Disposable {
       const docUri = `${document.uri.scheme}://${document.uri.path}`;
       const params = [docUri, line, column];
       const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
-      if (!command.extraParamFn || (command.extraParamFn && extraParam)) {
+      if (!command.extraParamFn || extraParam) {
         sendCommandRequest(command.command, extraParam ? [...params, extraParam] : params);
       }
     }
@@ -360,10 +365,12 @@ enum FolderType {
   FROM_NO_CLOJURE_FILE = 3,
 }
 
-type FallbackFolder = {
-  uri: vscode.Uri;
-  type: FolderType;
-};
+type FallbackFolder =
+  | { uri: undefined; type: FolderType.VSCODE }
+  | {
+      uri: vscode.Uri;
+      type: FolderType;
+    };
 
 /**
  * Figures out a ”best fit” rootUri for use when starting the clojure-lsp
@@ -382,8 +389,8 @@ async function getFallbackFolder(): Promise<FallbackFolder> {
   }
 
   const activeEditor = vscode.window.activeTextEditor;
-  let clojureFilePath: string;
-  let folderType: FolderType;
+  let clojureFilePath: string | undefined;
+  let folderType: FolderType | undefined;
   if (activeEditor && activeEditor.document?.languageId === 'clojure') {
     folderType = activeEditor.document.isUntitled
       ? FolderType.FROM_UNTITLED_FILE
@@ -394,8 +401,10 @@ async function getFallbackFolder(): Promise<FallbackFolder> {
   } else {
     for (const document of vscode.workspace.textDocuments) {
       if (document.languageId === 'clojure') {
-        folderType = document.isUntitled ? FolderType.FROM_UNTITLED_FILE : FolderType.FROM_FS_FILE;
-        if (!document.isUntitled) {
+        if (document.isUntitled) {
+          folderType = FolderType.FROM_UNTITLED_FILE;
+        } else {
+          folderType = FolderType.FROM_FS_FILE;
           clojureFilePath = document.uri.fsPath;
         }
       }
@@ -421,6 +430,8 @@ async function getFallbackFolder(): Promise<FallbackFolder> {
       await util.writeTextToFile(vscode.Uri.file(depsFilePath), '{}');
     }
   }
+
+  assertIsDefined(folderType, 'Expected there to be a folderType at this point!');
 
   return {
     uri: fallbackFolder,
@@ -477,6 +488,7 @@ async function startClient(fallbackFolder: FallbackFolder): Promise<boolean> {
     });
   }
   setStateValue(LSP_CLIENT_KEY, undefined);
+  assertIsDefined(clojureLspPath, 'Expected there to be a clojure LSP path!');
   const client = createClient(clojureLspPath, fallbackFolder);
   console.log('Starting clojure-lsp at', clojureLspPath);
 
@@ -515,11 +527,14 @@ async function startClient(fallbackFolder: FallbackFolder): Promise<boolean> {
 
 // A quickPick that expects the same input as showInformationMessage does
 // TODO: How do we make it satisfy the messageFunc interface above?
-function quickPick(message: string, actions: { title: string }[]): Promise<{ title: string }> {
+function quickPick(
+  message: string,
+  actions: { title: string }[]
+): Promise<{ title: string } | undefined> {
   const qp = vscode.window.createQuickPick();
   qp.items = actions.map((item) => ({ label: item.title }));
   qp.title = message;
-  return new Promise<{ title: string }>((resolve, _reject) => {
+  return new Promise<{ title: string } | undefined>((resolve, _reject) => {
     qp.show();
     qp.onDidAccept(() => {
       if (qp.selectedItems.length > 0) {
@@ -649,7 +664,7 @@ async function activate(context: vscode.ExtensionContext, handler: TestTreeHandl
   }
 }
 
-async function maybeDownloadLspServer(forceDownLoad = false): Promise<string> {
+async function maybeDownloadLspServer(forceDownLoad = false): Promise<string | undefined> {
   const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;
   if (userConfiguredClojureLspPath !== '') {
     clojureLspPath = userConfiguredClojureLspPath;
@@ -672,11 +687,12 @@ async function downloadLSPServerCommand() {
 
 async function ensureServerDownloaded(forceDownLoad = false): Promise<string> {
   const currentVersion = readVersionFile(extensionContext.extensionPath);
-  const configuredVersion: string = config.getConfig().clojureLspVersion;
+  const configuredVersion: string | undefined = config.getConfig().clojureLspVersion;
   clojureLspPath = getClojureLspPath(extensionContext.extensionPath, util.isWindows);
-  const downloadVersion = ['', 'latest'].includes(configuredVersion)
-    ? await getLatestVersion()
-    : configuredVersion;
+  const downloadVersion =
+    configuredVersion === undefined || ['', 'latest'].includes(configuredVersion)
+      ? await getLatestVersion()
+      : configuredVersion;
   if (
     (currentVersion !== downloadVersion && downloadVersion !== '') ||
     forceDownLoad ||
@@ -787,7 +803,7 @@ export async function getCljFmtConfig(): Promise<string | undefined> {
 
 function showMenu(items: vscode.QuickPickItem[], commands: Record<string, string>) {
   void vscode.window.showQuickPick(items, { title: 'clojure-lsp' }).then((v) => {
-    if (commands[v.label]) {
+    if (v && commands[v.label]) {
       void vscode.commands.executeCommand(commands[v.label]);
     }
   });

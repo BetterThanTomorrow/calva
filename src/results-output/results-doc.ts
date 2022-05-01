@@ -14,6 +14,7 @@ import * as docMirror from '../doc-mirror/index';
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 import * as replSession from '../nrepl/repl-session';
 import { splitEditQueueForTextBatching } from './util';
+import { assertIsDefined, isDefined } from '../type-checks';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
@@ -42,7 +43,6 @@ export const CLJS_CONNECT_GREETINGS =
 
 function outputFileDir() {
   const projectRoot = state.getProjectRootUri();
-  util.assertIsDefined(projectRoot, 'Expected there to be a project root!');
   try {
     return vscode.Uri.joinPath(projectRoot, '.calva', 'output-window');
   } catch {
@@ -88,7 +88,7 @@ export function getSession(): NReplSession | undefined {
   return _sessionInfo[_sessionType].session;
 }
 
-export function setSession(session: NReplSession, newNs?: string): void {
+export function setSession(session: NReplSession | undefined, newNs?: string): void {
   if (session) {
     if (session.replType) {
       _sessionType = session.replType;
@@ -177,7 +177,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
               promptCursor.previous();
             } while (promptCursor.getPrevToken().type !== 'prompt' && !promptCursor.atStart());
             const submitRange = selectionCursor.rangeForCurrentForm(idx);
-            submitOnEnter = submitRange && submitRange[1] > promptCursor.offsetStart;
+            submitOnEnter = !!submitRange && submitRange[1] > promptCursor.offsetStart;
           }
         }
       }
@@ -228,7 +228,7 @@ export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
 export async function setNamespaceFromCurrentFile() {
   const session = replSession.getSession();
   const ns = namespace.getNamespace(util.tryToGetDocument({}));
-  if (getNs() !== ns && util.isDefined(ns)) {
+  if (getNs() !== ns && isDefined(ns)) {
     await session.switchNS(ns);
   }
   setSession(session, ns);
@@ -338,7 +338,8 @@ async function writeNextOutputBatch() {
   // Any entries that contain onAppended are not batched with other pending
   // entries to simplify providing the correct insert position to the callback.
   if (resultsBuffer[0].onAppended) {
-    return await writeToResultsDoc(resultsBuffer.shift());
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return await writeToResultsDoc(resultsBuffer.shift()!);
   }
   // Batch all remaining entries up until another onAppended callback.
   const [nextText, remaining] = splitEditQueueForTextBatching(resultsBuffer);
@@ -433,5 +434,9 @@ export function appendPrompt(onAppended?: OnAppendedCallback) {
 }
 
 function getUriForCurrentNamespace(): Promise<vscode.Uri> {
-  return namespace.getUriForNamespace(getSession(), getNs());
+  const session = getSession();
+  assertIsDefined(session, 'Expected there to be a current session!');
+  const ns = getNs();
+  assertIsDefined(ns, 'Expected there to be a current namespace!');
+  return namespace.getUriForNamespace(session, ns);
 }

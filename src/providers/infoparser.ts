@@ -1,6 +1,7 @@
 import { SignatureInformation, ParameterInformation, MarkdownString } from 'vscode';
 import * as tokenCursor from '../cursor-doc/token-cursor';
 import { getConfig } from '../config';
+import { isString } from 'lodash';
 
 export type Completion =
   | [string, string]
@@ -10,8 +11,16 @@ export type Completion =
 export class REPLInfoParser {
   private _name: string | undefined = undefined;
 
+  /*
+   * Different arities of arglists for a symbol.
+   * e.g. "[]" or "[xs]" or "[s re]\n[s re limit]"
+   */
   private _arglist: string | undefined = undefined;
 
+  /*
+   * Different forms a special form can take.
+   * e.g. "(do exprs*)" or "(Classname. args*)\n(new Classname args*)"
+   */
   private _formsString: string | undefined = undefined;
 
   private _docString: string | undefined = undefined;
@@ -99,7 +108,7 @@ export class REPLInfoParser {
 
   getHover(): MarkdownString {
     const hover = new MarkdownString();
-    if (this._name !== '') {
+    if (isString(this._name) && this._name !== '') {
       if (!this._specialForm || this._isMacro) {
         hover.appendCodeblock(this._name, 'clojure');
         if (this._arglist) {
@@ -117,7 +126,10 @@ export class REPLInfoParser {
       } else {
         hover.appendText('\n');
       }
-      hover.appendMarkdown(this._docString);
+
+      if (isString(this._docString)) {
+        hover.appendMarkdown(this._docString);
+      }
     }
     return hover;
   }
@@ -145,27 +157,33 @@ export class REPLInfoParser {
   }
 
   getSignatures(symbol: string): SignatureInformation[] | undefined {
-    if (this._name !== '') {
+    if (isString(this._name) && this._name !== '') {
       const argLists = this._arglist ? this._arglist : this._formsString;
-      if (argLists) {
-        return argLists
+      if (isString(argLists) && argLists !== '') {
+        // Break down arglist or formsString into the different arglists/arities,
+        // removing empty strings since those make no sense as arglists.
+        const argListStrings = argLists
           .split('\n')
-          .map((argList) => argList.trim())
-          .map((argList) => {
-            if (argList !== '') {
-              const signature = new SignatureInformation(`(${symbol} ${argList})`);
-              // Skip parameter help on special forms and forms with optional arguments, for now
-              if (this._arglist && !argList.match(/\?/)) {
-                signature.parameters = this.getParameters(symbol, argList);
-              }
-              if (this._docString && getConfig().showDocstringInParameterHelp) {
-                signature.documentation = new MarkdownString(this._docString);
-              }
-              return signature;
-            } else {
-              return undefined;
+          .map((a) => a.trim())
+          .filter((a) => a !== '');
+
+        const signatures = argListStrings.map((argList) => {
+          const signature = new SignatureInformation(`(${symbol} ${argList})`);
+          // Skip parameter help on special forms and forms with optional arguments, for now
+          if (this._arglist && !argList.includes('?')) {
+            const parameters = this.getParameters(symbol, argList);
+
+            if (parameters) {
+              signature.parameters = parameters;
             }
-          });
+          }
+          if (this._docString && getConfig().showDocstringInParameterHelp) {
+            signature.documentation = new MarkdownString(this._docString);
+          }
+          return signature;
+        });
+
+        return signatures;
       }
     }
     return undefined;

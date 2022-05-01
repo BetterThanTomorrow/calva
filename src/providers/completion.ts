@@ -3,12 +3,11 @@ import {
   Position,
   CancellationToken,
   CompletionContext,
-  Hover,
   CompletionItemKind,
   window,
   CompletionList,
   CompletionItemProvider,
-  CompletionItem,
+  CompletionItem as VSCompletionItem,
   CompletionItemLabel,
 } from 'vscode';
 import * as util from '../utilities';
@@ -20,6 +19,8 @@ import * as replSession from '../nrepl/repl-session';
 import { getClient } from '../lsp/main';
 import { CompletionRequest, CompletionResolveRequest } from 'vscode-languageserver-protocol';
 import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
+import { CompletionItem as LSPCompletionItem } from 'vscode-languageclient';
+import { assertIsDefined } from '../type-checks';
 
 const mappings = {
   nil: CompletionItemKind.Value,
@@ -35,7 +36,10 @@ const mappings = {
 
 const converter = createConverter(undefined, undefined);
 
-const completionProviderOptions = { priority: ['lsp', 'repl'], merge: true };
+const completionProviderOptions: { priority: ['lsp', 'repl']; merge: boolean } = {
+  priority: ['lsp', 'repl'],
+  merge: true,
+};
 
 const completionFunctions = { lsp: lspCompletions, repl: replCompletions };
 
@@ -45,25 +49,39 @@ async function provideCompletionItems(
   token: CancellationToken,
   context: CompletionContext
 ) {
-  let results = [];
+  let results: (VSCompletionItem | LSPCompletionItem)[] = [];
   for (const provider of completionProviderOptions.priority) {
     if (results.length && !completionProviderOptions.merge) {
       break;
     }
-    const completions = await completionFunctions[provider](document, position, token, context);
 
-    if (completions) {
-      results = [
-        ...completions
-          .concat(results)
-          .reduce(
-            (m: Map<string | CompletionItemLabel, CompletionItem>, o: CompletionItem) =>
-              m.set(o.label, Object.assign(m.get(o.label) || {}, o)),
-            new Map()
-          )
-          .values(),
-      ];
+    const completionResult = await completionFunctions[provider](
+      document,
+      position,
+      token,
+      context
+    );
+
+    if (completionResult === null) {
+      continue;
     }
+
+    const completions: (VSCompletionItem | LSPCompletionItem)[] = Array.isArray(completionResult)
+      ? completionResult
+      : completionResult.items;
+
+    results = [
+      ...completions
+        .concat(results)
+        .reduce(
+          (
+            m: Map<string | CompletionItemLabel, VSCompletionItem | LSPCompletionItem>,
+            o: VSCompletionItem | LSPCompletionItem
+          ) => m.set(o.label, Object.assign(m.get(o.label) || {}, o)),
+          new Map()
+        )
+        .values(),
+    ];
   }
 
   return new CompletionList(results.map(converter.asCompletionItem), true);
@@ -79,13 +97,13 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
     return provideCompletionItems(document, position, token, context);
   }
 
-  async resolveCompletionItem(item: CompletionItem, token: CancellationToken) {
+  async resolveCompletionItem(item: VSCompletionItem, token: CancellationToken) {
     if (util.getConnectedState() && item['data']?.provider === 'repl') {
       const activeTextEditor = window.activeTextEditor;
 
-      util.assertIsDefined(activeTextEditor, 'Expected window to have activeTextEditor defined!');
+      assertIsDefined(activeTextEditor, 'Expected window to have activeTextEditor defined!');
 
-      const client = replSession.getSession(util.getFileType(activeTextEditor.document));
+      const client = replSession.tryToGetSession(util.getFileType(activeTextEditor.document));
       if (client) {
         await namespace.createNamespaceFromDocumentIfNotExists(activeTextEditor.document);
         const ns = namespace.getDocumentNamespace();
@@ -121,7 +139,7 @@ async function lspCompletions(
   );
 }
 
-async function lspResolveCompletions(item: CompletionItem, token: CancellationToken) {
+async function lspResolveCompletions(item: VSCompletionItem, token: CancellationToken) {
   const lspClient = await getClient(20);
   return lspClient.sendRequest(
     CompletionResolveRequest.type,
@@ -135,7 +153,7 @@ async function replCompletions(
   position: Position,
   _token: CancellationToken,
   _context: CompletionContext
-): Promise<CompletionItem[]> {
+): Promise<VSCompletionItem[]> {
   if (!util.getConnectedState()) {
     return [];
   }
@@ -143,14 +161,14 @@ async function replCompletions(
 
   const toplevelSelection = select.getFormSelection(document, position, true);
 
-  util.assertIsDefined(toplevelSelection, 'Expected a topLevelSelection!');
+  assertIsDefined(toplevelSelection, 'Expected a topLevelSelection!');
 
   const toplevel = document.getText(toplevelSelection),
     toplevelStartOffset = document.offsetAt(toplevelSelection.start),
     toplevelStartCursor = docMirror.getDocument(document).getTokenCursor(toplevelStartOffset + 1),
     wordRange = document.getWordRangeAtPosition(position);
 
-  util.assertIsDefined(wordRange, 'Expected a wordRange!');
+  assertIsDefined(wordRange, 'Expected a wordRange!');
 
   const wordStartLocalOffset = document.offsetAt(wordRange.start) - toplevelStartOffset,
     wordEndLocalOffset = document.offsetAt(wordRange.end) - toplevelStartOffset,
@@ -159,8 +177,11 @@ async function replCompletions(
     replContext = `${contextStart}__prefix__${contextEnd}`,
     toplevelIsValidForm = toplevelStartCursor.withinValidList() && replContext != '__prefix__',
     ns = namespace.getNamespace(document),
-    client = replSession.getSession(util.getFileType(document)),
-    res = await client.complete(ns, text, toplevelIsValidForm ? replContext : undefined),
+    client = replSession.tryToGetSession(util.getFileType(document));
+
+  assertIsDefined(client, 'Expected there to be a repl client!');
+
+  const res = await client.complete(ns, text, toplevelIsValidForm ? replContext : undefined),
     results = res.completions || [];
 
   results.forEach((element) => {
@@ -171,7 +192,7 @@ async function replCompletions(
     }
   });
   return results.map((item) => {
-    const result = new CompletionItem(
+    const result = new VSCompletionItem(
       item.candidate,
       mappings[item.type] || CompletionItemKind.Text
     );

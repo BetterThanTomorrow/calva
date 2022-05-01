@@ -5,6 +5,7 @@
  */
 import * as stream from 'stream';
 import { Buffer } from 'buffer';
+import { assertIsDefined } from '../type-checks';
 
 /** Bencode the given JSON object */
 const bencode = (value) => {
@@ -103,8 +104,9 @@ class BIncrementalDecoder {
   stack: State[] = [];
 
   private complete(data: any) {
-    if (this.stack.length) {
-      this.state = this.stack.pop();
+    const state = this.stack.pop();
+    if (state) {
+      this.state = state;
       if (this.state.id == 'list') {
         this.state.accum.push(data);
         this.stack.push(this.state);
@@ -127,6 +129,7 @@ class BIncrementalDecoder {
 
   write(byte: number) {
     const ch = String.fromCharCode(byte);
+    let state: State | undefined;
     if (this.state.id == 'ready') {
       switch (ch) {
         case 'i':
@@ -139,10 +142,9 @@ class BIncrementalDecoder {
           this.stack.push({ id: 'list', accum: [] });
           break;
         case 'e':
-          if (!this.stack.length) {
-            throw 'unexpected end';
-          }
-          this.state = this.stack.pop();
+          state = this.stack.pop();
+          assertIsDefined(state, 'Expected there to be states on the stack!');
+          this.state = state;
           if (this.state.id == 'dict') {
             if (this.state.key !== null) {
               throw 'Missing value in dict';

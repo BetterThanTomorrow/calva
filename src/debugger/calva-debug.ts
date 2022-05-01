@@ -35,8 +35,8 @@ import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
 import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
-import * as util from '../utilities';
 import * as replSession from '../nrepl/repl-session';
+import { assertIsDefined } from '../type-checks';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
   type: 'clojure',
@@ -84,8 +84,8 @@ class CalvaDebugSession extends LoggingDebugSession {
     response: DebugProtocol.InitializeResponse,
     args: DebugProtocol.InitializeRequestArguments
   ): void {
-    this.setDebuggerLinesStartAt1(args.linesStartAt1);
-    this.setDebuggerColumnsStartAt1(args.columnsStartAt1);
+    this.setDebuggerLinesStartAt1(!!args.linesStartAt1);
+    this.setDebuggerColumnsStartAt1(!!args.columnsStartAt1);
 
     // Build and return the capabilities of this debug adapter
     response.body = {
@@ -100,7 +100,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     response: DebugProtocol.AttachResponse,
     args: DebugProtocol.AttachRequestArguments
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
 
     this.sendResponse(response);
     state
@@ -114,7 +114,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.ContinueArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
@@ -146,7 +146,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.NextArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
@@ -169,7 +169,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.StepInArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
@@ -192,7 +192,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.StepOutArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
@@ -271,6 +271,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     // Pass scheme in path argument to Source contructor so that if it's a jar file it's handled correctly
     const source = new Source(basename(debugResponse.file), debugResponse.file);
     const name = tokenCursor.getFunctionName();
+    assertIsDefined(name, 'Expected to find a function name!');
     const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
 
     response.body = {
@@ -324,7 +325,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.DisconnectArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);

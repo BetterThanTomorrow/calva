@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as calvaLib from '../out/cljs-lib/cljs-lib';
+import { getActiveTextEditor } from './utilities';
 
 type Js2CljsResult = {
   result: string;
@@ -23,7 +24,7 @@ type Js2CljsInvalidResult = {
 const isJs2CljsResult = (input: any): input is Js2CljsResult => input.result !== undefined;
 
 export async function js2cljs() {
-  const editor = vscode.window.activeTextEditor;
+  const editor = getActiveTextEditor();
   const selection = editor.selection;
   const doc = editor.document;
   const js = doc.getText(

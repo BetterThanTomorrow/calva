@@ -9,8 +9,6 @@ import * as JSZip from 'jszip';
 import * as outputWindow from './results-output/results-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
-import { isUndefined } from 'lodash';
-import { isNullOrUndefined } from 'util';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
@@ -23,27 +21,8 @@ export function stripAnsi(str: string) {
   );
 }
 
-export const isDefined = <T>(value: T | undefined | null): value is T => {
-  return !isNullOrUndefined(value);
-};
-
-// This needs to be a function and not an arrow function
-// because assertion types are special.
-export function assertIsDefined<T>(
-  value: T | undefined | null,
-  message: string | (() => string)
-): asserts value is T {
-  if (isNullOrUndefined(value)) {
-    throw new Error(typeof message === 'string' ? message : message());
-  }
-}
-
 export function escapeStringRegexp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-export function isNonEmptyString(value: any): boolean {
-  return typeof value == 'string' && value.length > 0;
 }
 
 async function quickPickSingle(opts: {
@@ -88,7 +67,7 @@ async function quickPickMulti(opts: { values: string[]; saveAs: string; placeHol
 
 // Testing facility.
 // Recreated every time we create a new quickPick
-let quickPickActive: Promise<void>;
+let quickPickActive: Promise<void> | undefined;
 
 function quickPick(
   itemsToPick: string[],
@@ -198,7 +177,7 @@ function tryToGetDocument(
 function getDocument(document: vscode.TextDocument | Record<string, never>): vscode.TextDocument {
   const doc = tryToGetDocument(document);
 
-  if (isUndefined(doc)) {
+  if (doc === undefined) {
     throw new Error('Expected an activeTextEditor with a document!');
   }
 
@@ -530,7 +509,7 @@ function tryToGetActiveTextEditor(): vscode.TextEditor | undefined {
 function getActiveTextEditor(): vscode.TextEditor {
   const editor = tryToGetActiveTextEditor();
 
-  if (isUndefined(editor)) {
+  if (editor === undefined) {
     throw new Error('Expected active text editor!');
   }
 

@@ -37,6 +37,7 @@ import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
 
 import * as clojureDocs from './clojuredocs';
+import { assertIsDefined } from './type-checks';
 async function onDidSave(testController: vscode.TestController, document: vscode.TextDocument) {
   const { evaluate, test } = config.getConfig();
 
@@ -49,7 +50,9 @@ async function onDidSave(testController: vscode.TestController, document: vscode
     state.analytics().logEvent('Calva', 'OnSaveTest').send();
   } else if (evaluate) {
     if (!outputWindow.isResultsDoc(document)) {
-      await eval.loadFile(document, config.getConfig().prettyPrintingOptions);
+      const pprintOptions = config.getConfig().prettyPrintingOptions;
+      assertIsDefined(pprintOptions, 'Expected there to be pprint options!');
+      await eval.loadFile(document, pprintOptions);
       outputWindow.appendPrompt();
       state.analytics().logEvent('Calva', 'OnSaveLoad').send();
     }
@@ -62,7 +65,7 @@ function onDidOpen(document) {
   }
 }
 
-function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
+function onDidChangeEditorOrSelection(editor: vscode.TextEditor | undefined) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
   whenContexts.setCursorContextIfChanged(editor);
 }
@@ -106,7 +109,14 @@ async function activate(context: vscode.ExtensionContext) {
   setStateValue('analytics', new Analytics(context));
   state.analytics().logPath('/start').logEvent('LifeCycle', 'Started').send();
 
-  model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
+  const maxTokenizationLineLength = vscode.workspace
+    .getConfiguration('editor')
+    .get<number>('maxTokenizationLineLength');
+  assertIsDefined(
+    maxTokenizationLineLength,
+    'Expected there to be a maxTokenizationLineLength set in the editor config'
+  );
+  model.initScanner(maxTokenizationLineLength);
 
   const chan = state.outputChannel();
 
@@ -118,6 +128,10 @@ async function activate(context: vscode.ExtensionContext) {
   const clojureExtension = vscode.extensions.getExtension('avli.clojure');
   const customCljsRepl = config.getConfig().customCljsRepl;
   const replConnectSequences = config.getConfig().replConnectSequences;
+  assertIsDefined(
+    replConnectSequences,
+    'Expected there to be a repl connect sequence in the config!'
+  );
   const BUTTON_GOTO_DOC = 'Open the docs';
   const BUTTON_OK = 'Got it';
   const VIM_DOC_URL = 'https://calva.io/vim/';
@@ -231,7 +245,9 @@ async function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('calva.loadFile', async () => {
-      await eval.loadFile({}, config.getConfig().prettyPrintingOptions);
+      const pprintOptions = config.getConfig().prettyPrintingOptions;
+      assertIsDefined(pprintOptions, 'Expected pprint options in the config!');
+      await eval.loadFile({}, pprintOptions);
       return new Promise((resolve) => {
         outputWindow.appendPrompt(resolve);
       });

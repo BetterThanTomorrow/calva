@@ -22,10 +22,10 @@ function report(res, chan: vscode.OutputChannel) {
 
 function refresh(document = {}) {
   const doc = util.tryToGetDocument(document),
-    client: NReplSession = replSession.getSession(util.getFileType(doc)),
+    client: NReplSession | undefined = replSession.tryToGetSession(util.getFileType(doc)),
     chan: vscode.OutputChannel = state.outputChannel();
 
-  if (client != undefined) {
+  if (client !== undefined) {
     chan.appendLine('Reloading...');
     void client.refresh().then((res) => {
       report(res, chan);
@@ -37,10 +37,10 @@ function refresh(document = {}) {
 
 function refreshAll(document = {}) {
   const doc = util.tryToGetDocument(document),
-    client: NReplSession = replSession.getSession(util.getFileType(doc)),
+    client: NReplSession | undefined = replSession.tryToGetSession(util.getFileType(doc)),
     chan: vscode.OutputChannel = state.outputChannel();
 
-  if (client != undefined) {
+  if (client !== undefined) {
     chan.appendLine('Reloading all the things...');
     void client.refreshAll().then((res) => {
       report(res, chan);

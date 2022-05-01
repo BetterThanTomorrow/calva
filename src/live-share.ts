@@ -3,12 +3,12 @@ import * as vsls from 'vsls';
 import * as config from './config';
 
 // Keeps hold of the LiveShare API instance, so that it is requested only once.
-let liveShare: vsls.LiveShare = null;
+let liveShare: vsls.LiveShare | null = null;
 
 // Keeps hold of the LiveShare listener, to prevent it from being disposed immediately.
-let liveShareListener: Disposable = null;
+let liveShareListener: Disposable | null = null;
 
-let connectedPort: number = null;
+let connectedPort: number | null = null;
 let jackedIn = false;
 const sharedPorts: Map<number, Disposable> = new Map();
 

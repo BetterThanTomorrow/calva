@@ -12,6 +12,7 @@ import {
   ModelEditSelection,
 } from '../cursor-doc/model';
 import { isUndefined } from 'lodash';
+import { assertIsDefined } from '../type-checks';
 
 const documents = new Map<vscode.TextDocument, MirroredDocument>();
 
@@ -169,18 +170,21 @@ export class MirroredDocument implements EditableDocument {
   }
 
   public delete(): Thenable<boolean> {
-    return vscode.commands.executeCommand('deleteRight');
+    return vscode.commands.executeCommand('deleteRight').then((v) => !!v);
   }
 
   public backspace(): Thenable<boolean> {
-    return vscode.commands.executeCommand('deleteLeft');
+    return vscode.commands.executeCommand('deleteLeft').then((v) => !!v);
   }
 }
 
 let registered = false;
 
 function processChanges(event: vscode.TextDocumentChangeEvent) {
-  const model = documents.get(event.document).model;
+  const mirrorDoc = documents.get(event.document);
+  assertIsDefined(mirrorDoc, 'Expected to find a mirror document!');
+  const model = mirrorDoc.model;
+
   for (const change of event.contentChanges) {
     // vscode may have a \r\n marker, so it's line offsets are all wrong.
     const myStartOffset =

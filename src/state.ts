@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
 import * as projectRoot from './project-root';
+import { assertIsDefined } from './type-checks';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -46,11 +47,19 @@ const PROJECT_DIR_KEY = 'connect.projectDir';
 const PROJECT_DIR_URI_KEY = 'connect.projectDirNew';
 const PROJECT_CONFIG_MAP = 'config';
 
-export function getProjectRootLocal(useCache = true): string | undefined {
+export function tryToGetProjectRootLocal(useCache = true): string | undefined {
   if (useCache) {
     return getStateValue(PROJECT_DIR_KEY);
   }
 }
+
+export const getProjectRootLocal = (useCache = true): string => {
+  const projectRootLocal = tryToGetProjectRootLocal(useCache);
+
+  assertIsDefined(projectRootLocal, 'Expected to find a local project root!');
+
+  return projectRootLocal;
+};
 
 export function getProjectConfig(useCache = true) {
   if (useCache) {
@@ -62,10 +71,17 @@ export function setProjectConfig(config) {
   return setStateValue(PROJECT_CONFIG_MAP, config);
 }
 
-export function getProjectRootUri(useCache = true): vscode.Uri | undefined {
+export function tryToGetProjectRootUri(useCache = true): vscode.Uri | undefined {
   if (useCache) {
     return getStateValue(PROJECT_DIR_URI_KEY);
   }
+}
+export function getProjectRootUri(useCache = true): vscode.Uri {
+  const projectRootUri = tryToGetProjectRootUri(useCache);
+
+  assertIsDefined(projectRootUri, 'Expected to find project root URI!');
+
+  return projectRootUri;
 }
 
 const NON_PROJECT_DIR_KEY = 'calva.connect.nonProjectDir';
@@ -104,7 +120,7 @@ export async function setOrCreateNonProjectRoot(
 ): Promise<vscode.Uri> {
   let root: vscode.Uri | undefined = undefined;
   if (preferProjectDir) {
-    root = getProjectRootUri();
+    root = tryToGetProjectRootUri();
   }
   if (!root) {
     root = await getNonProjectRootDir(context);

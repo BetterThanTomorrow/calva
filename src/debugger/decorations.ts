@@ -7,6 +7,7 @@ import * as util from '../utilities';
 import lsp from '../lsp/main';
 import { getStateValue } from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
+import { assertIsDefined } from '../type-checks';
 
 let enabled = false;
 
@@ -33,7 +34,7 @@ const instrumentedSymbolDecorationType = vscode.window.createTextEditorDecoratio
 
 async function update(
   editor: vscode.TextEditor,
-  cljSession: NReplSession,
+  cljSession: NReplSession | undefined,
   lspClient: LanguageClient
 ): Promise<void> {
   if (/(\.clj)$/.test(editor.document.fileName)) {
@@ -49,6 +50,7 @@ async function update(
           const docUri = vscode.Uri.parse(namespacePath, true);
           const decodedDocUri = decodeURIComponent(docUri.toString());
           const docSymbols = (await lsp.getDocumentSymbols(lspClient, decodedDocUri))[0].children;
+          assertIsDefined(docSymbols, 'Expected to get document symbols from the LSP server!');
           const instrumentedDocSymbols = docSymbols.filter((s) =>
             instrumentedDefs.includes(s.name)
           );
@@ -118,7 +120,7 @@ function triggerUpdateAndRenderDecorations() {
     const editor = util.tryToGetActiveTextEditor();
     if (editor) {
       timeout = setTimeout(() => {
-        const cljSession = replSession.getSession('clj');
+        const cljSession = replSession.tryToGetSession('clj');
         const lspClient = getStateValue(lsp.LSP_CLIENT_KEY);
         void update(editor, cljSession, lspClient).then(renderInAllVisibleEditors);
       }, 50);

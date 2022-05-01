@@ -677,7 +677,7 @@ describe('Scanner', () => {
         if (!['reader', 'junk'].includes(rule.name)) {
           expect(x).toBeNull();
         } else {
-          expect(x.length).toBe(1);
+          expect(x?.length).toBe(1);
         }
       });
     });

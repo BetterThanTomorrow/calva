@@ -13,7 +13,7 @@ import {
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import { EditableDocument } from '../cursor-doc/model';
-import { assertIsDefined } from '../utilities';
+import { assertIsDefined } from '../type-checks';
 
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
@@ -109,7 +109,9 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.rangeForDefun',
     handler: (doc: EditableDocument) => {
-      paredit.selectRange(doc, paredit.rangeForDefun(doc));
+      const range = paredit.rangeForDefun(doc);
+      assertIsDefined(range, 'Expected to find a range for the current defun!');
+      paredit.selectRange(doc, range);
     },
   },
   {

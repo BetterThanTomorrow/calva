@@ -12,6 +12,7 @@ import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import { ReplConnectSequence } from './connectSequence';
 import * as clojureLsp from '../lsp/main';
 import * as calvaConfig from '../config';
+import { assertIsDefined } from '../type-checks';
 
 const TEMPLATES_SUB_DIR = 'bundled';
 const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
@@ -61,7 +62,7 @@ async function fetchConfig(configName: string): Promise<DramConfig> {
 
 async function downloadDram(storageUri: vscode.Uri, configPath: string, filePath: string) {
   const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
-  const calvaVersion = calva.packageJSON.version;
+  const calvaVersion = calva?.packageJSON.version;
   const isDebug = process.env['IS_DEBUG'] === 'true';
   const branch = isDebug || calvaVersion.match(/-.+$/) ? 'dev' : 'published';
   const dramBaseUrl = `${DRAM_BASE_URL}/${branch}/drams`;
@@ -167,7 +168,9 @@ export async function startStandaloneRepl(
     void clojureLsp.startClientCommand();
   }
 
-  const [mainDoc, mainEditor] = await openStoredDoc(storageUri, tempDirUri, config.files[0]);
+  const main = await openStoredDoc(storageUri, tempDirUri, config.files[0]);
+  assertIsDefined(main, 'Expected to be able to open the stored doc!');
+  const [mainDoc, mainEditor] = main;
   for (const file of config.files.slice(1)) {
     await openStoredDoc(storageUri, tempDirUri, file);
   }
@@ -186,7 +189,9 @@ export async function startStandaloneRepl(
       viewColumn: vscode.ViewColumn.One,
       preserveFocus: false,
     });
-    await eval.loadFile({}, getConfig().prettyPrintingOptions);
+    const pprintOptions = getConfig().prettyPrintingOptions;
+    assertIsDefined(pprintOptions, 'Expected there to be pretty printing options configured!');
+    await eval.loadFile({}, pprintOptions);
     outputWindow.appendPrompt();
   });
 }
@@ -242,7 +247,7 @@ export function startOrConnectRepl() {
     commands[START_HELLO_CLJS_NODE_OPTION] = START_HELLO_CLJS_NODE_COMMAND;
   } else {
     commands[DISCONNECT_OPTION] = DISCONNECT_COMMAND;
-    if (replSession.getSession('clj')) {
+    if (replSession.tryToGetSession('clj')) {
       commands[OPEN_WINDOW_OPTION] = OPEN_WINDOW_COMMAND;
     }
   }

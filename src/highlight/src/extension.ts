@@ -1,17 +1,17 @@
 import * as vscode from 'vscode';
 import { Position, Range } from 'vscode';
 import * as isEqual from 'lodash.isequal';
-import { isArray } from 'util';
 import * as docMirror from '../../doc-mirror/index';
 import { Token, validPair } from '../../cursor-doc/clojure-lexer';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
 import { tryToGetActiveTextEditor, getActiveTextEditor } from '../../utilities';
+import { assertIsDefined } from '../../type-checks';
 
 type StackItem = {
   char: string;
   start: Position;
   end: Position;
-  pair_idx: number;
+  pair_idx: number | undefined;
   opens_comment_form?: boolean;
 };
 
@@ -23,7 +23,12 @@ function is_clojure(editor) {
 }
 
 // Exported for integration testing purposes
-export let activeEditor: vscode.TextEditor;
+export let activeEditor: vscode.TextEditor | undefined;
+
+const definedActiveEditor = () => {
+  assertIsDefined(activeEditor, 'Expected there to be an active text editor set!');
+  return activeEditor;
+};
 
 let lastHighlightedEditor,
   rainbowColors,
@@ -45,8 +50,8 @@ let lastHighlightedEditor,
   pairsBack: Map<string, [Range, Range]> = new Map(),
   pairsForward: Map<string, [Range, Range]> = new Map(),
   placedGuidesColor: Map<string, number> = new Map(),
-  rainbowTimer = undefined,
-  matchTimer = undefined,
+  rainbowTimer: NodeJS.Timeout | undefined = undefined,
+  matchTimer: NodeJS.Timeout | undefined = undefined,
   dirty = false;
 
 reloadConfig();
@@ -57,7 +62,7 @@ function decorationType(opts) {
 }
 
 function colorDecorationType(color) {
-  if (isArray(color)) {
+  if (Array.isArray(color)) {
     return decorationType({
       light: { color: color[0] },
       dark: { color: color[1] },
@@ -68,7 +73,7 @@ function colorDecorationType(color) {
 }
 
 function guidesDecorationType_(color, isActive: boolean): vscode.TextEditorDecorationType {
-  if (isArray(color)) {
+  if (Array.isArray(color)) {
     return decorationType({
       light: {
         borderWidth: `0; border-right-width: ${
@@ -105,23 +110,26 @@ function activeGuidesDecorationType(color): vscode.TextEditorDecorationType {
 }
 
 function reset_styles() {
+  const editor = activeEditor;
+  assertIsDefined(editor, 'Expected there to be an active text editor!');
+
   if (rainbowTypes) {
-    rainbowTypes.forEach((type) => activeEditor.setDecorations(type, []));
+    rainbowTypes.forEach((type) => editor.setDecorations(type, []));
   }
   rainbowTypes = rainbowColors.map(colorDecorationType);
 
   if (rainbowGuidesTypes) {
-    rainbowGuidesTypes.forEach((type) => activeEditor.setDecorations(type, []));
+    rainbowGuidesTypes.forEach((type) => editor.setDecorations(type, []));
   }
   rainbowGuidesTypes = rainbowColors.map(guidesDecorationType);
 
   if (activeGuidesTypes) {
-    activeGuidesTypes.forEach((type) => activeEditor.setDecorations(type, []));
+    activeGuidesTypes.forEach((type) => editor.setDecorations(type, []));
   }
   activeGuidesTypes = rainbowColors.map(activeGuidesDecorationType);
 
   if (misplacedType) {
-    activeEditor.setDecorations(misplacedType, []);
+    editor.setDecorations(misplacedType, []);
   }
   misplacedType = decorationType(
     misplacedBracketStyle || {
@@ -133,7 +141,7 @@ function reset_styles() {
   );
 
   if (matchedType) {
-    activeEditor.setDecorations(matchedType, []);
+    editor.setDecorations(matchedType, []);
   }
   matchedType = decorationType(
     matchedBracketStyle || {
@@ -143,12 +151,12 @@ function reset_styles() {
   );
 
   if (commentFormType) {
-    activeEditor.setDecorations(commentFormType, []);
+    editor.setDecorations(commentFormType, []);
   }
   commentFormType = decorationType(commentFormStyle || { fontStyle: 'italic' });
 
   if (ignoredFormType) {
-    activeEditor.setDecorations(ignoredFormType, []);
+    editor.setDecorations(ignoredFormType, []);
   }
   ignoredFormType = decorationType(ignoredFormStyle || { textDecoration: 'none; opacity: 0.5' });
 
@@ -231,13 +239,16 @@ function updateRainbowBrackets() {
     reset_styles();
   }
 
-  const doc = activeEditor.document,
+  const editor = activeEditor;
+  assertIsDefined(editor, 'Expected there to be an active text editor!');
+
+  const doc = editor.document,
     mirrorDoc = docMirror.getDocument(doc),
-    rainbow = rainbowTypes.map(() => []),
+    rainbow = rainbowTypes.map(() => [] as { range: Range }[]),
     rainbowGuides = rainbowTypes.map(() => []),
-    misplaced = [],
-    comment_forms = [],
-    ignores = [],
+    misplaced: { range: Range }[] = [],
+    comment_forms: Range[] = [],
+    ignores: Range[] = [],
     len = rainbowTypes.length,
     colorsEnabled = enableBracketColors && len > 0,
     guideColorsEnabled = useRainbowIndentGuides && len > 0,
@@ -250,7 +261,7 @@ function updateRainbowBrackets() {
   pairsBack = new Map();
   pairsForward = new Map();
   placedGuidesColor = new Map();
-  activeEditor.visibleRanges.forEach((range) => {
+  editor.visibleRanges.forEach((range) => {
     // Find the visible forms
     const startOffset = doc.offsetAt(range.start),
       endOffset = doc.offsetAt(range.end),
@@ -289,7 +300,7 @@ function updateRainbowBrackets() {
         } else if (token.type === 'ignore') {
           const ignoreCursor = cursor.clone();
           let ignore_counter = 0;
-          const ignore_start = activeEditor.document.positionAt(ignoreCursor.offsetStart);
+          const ignore_start = editor.document.positionAt(ignoreCursor.offsetStart);
           while (ignoreCursor.getToken().type === 'ignore') {
             ignore_counter++;
             ignoreCursor.next();
@@ -298,7 +309,7 @@ function updateRainbowBrackets() {
           for (let i = 0; i < ignore_counter; i++) {
             ignoreCursor.forwardSexp(true, true, true);
           }
-          const ignore_end = activeEditor.document.positionAt(ignoreCursor.offsetStart);
+          const ignore_end = editor.document.positionAt(ignoreCursor.offsetStart);
           ignores.push(new Range(ignore_start, ignore_end));
         }
       }
@@ -318,10 +329,11 @@ function updateRainbowBrackets() {
       if (token.type === 'open') {
         const readerCursor = cursor.clone();
         readerCursor.backwardThroughAnyReader();
-        const start = activeEditor.document.positionAt(readerCursor.offsetStart),
-          end = activeEditor.document.positionAt(cursor.offsetEnd),
+
+        const start = editor.document.positionAt(readerCursor.offsetStart),
+          end = editor.document.positionAt(cursor.offsetEnd),
           openRange = new Range(start, end),
-          openString = activeEditor.document.getText(openRange);
+          openString = editor.document.getText(openRange);
         if (colorsEnabled) {
           const decoration = { range: openRange };
           rainbow[colorIndex(stack_depth)].push(decoration);
@@ -336,11 +348,12 @@ function updateRainbowBrackets() {
         });
         continue;
       } else if (token.type === 'close') {
-        const pos = activeEditor.document.positionAt(cursor.offsetStart),
+        const pos = editor.document.positionAt(cursor.offsetStart),
           decoration = { range: new Range(pos, pos.translate(0, 1)) };
         let pair_idx = stack.length - 1;
-        while (pair_idx >= 0 && stack[pair_idx].pair_idx !== undefined) {
-          pair_idx = stack[pair_idx].pair_idx - 1;
+        const stackPairIdx = stack[pair_idx];
+        while (pair_idx >= 0 && stackPairIdx.pair_idx !== undefined) {
+          pair_idx = stackPairIdx.pair_idx - 1;
         }
         if (pair_idx === undefined || pair_idx < 0 || !validPair(stack[pair_idx].char, char)) {
           misplaced.push(decoration);
@@ -359,9 +372,9 @@ function updateRainbowBrackets() {
             pair_idx: pair_idx,
           });
           pairsBack.set(position_str(pos), [opening, closing]);
-          const startOffset = activeEditor.document.offsetAt(pair.start);
+          const startOffset = editor.document.offsetAt(pair.start);
           for (let i = 0; i < pair.char.length; ++i) {
-            pairsForward.set(position_str(activeEditor.document.positionAt(startOffset + i)), [
+            pairsForward.set(position_str(editor.document.positionAt(startOffset + i)), [
               opening,
               closing,
             ]);
@@ -373,6 +386,7 @@ function updateRainbowBrackets() {
           if (guideColorsEnabled || activeGuideEnabled) {
             const matchPos = pos.translate(0, 1);
             const openSelection = matchBefore(new vscode.Selection(matchPos, matchPos));
+            assertIsDefined(openSelection, 'Expected openSelection to be defined!');
             const openSelectionPos = openSelection[0].start;
             const guideLength = decorateGuide(
               doc,
@@ -391,14 +405,14 @@ function updateRainbowBrackets() {
   });
 
   for (let i = 0; i < rainbowTypes.length; ++i) {
-    activeEditor.setDecorations(rainbowTypes[i], rainbow[i]);
+    editor.setDecorations(rainbowTypes[i], rainbow[i]);
     if (guideColorsEnabled) {
-      activeEditor.setDecorations(rainbowGuidesTypes[i], rainbowGuides[i]);
+      editor.setDecorations(rainbowGuidesTypes[i], rainbowGuides[i]);
     }
   }
-  activeEditor.setDecorations(misplacedType, misplaced);
-  activeEditor.setDecorations(commentFormType, comment_forms);
-  activeEditor.setDecorations(ignoredFormType, ignores);
+  editor.setDecorations(misplacedType, misplaced);
+  editor.setDecorations(commentFormType, comment_forms);
+  editor.setDecorations(ignoredFormType, ignores);
   matchPairs();
   if (activeGuideEnabled) {
     decorateActiveGuides();
@@ -428,8 +442,11 @@ function matchPairs() {
     return;
   }
 
+  const editor = activeEditor;
+  assertIsDefined(editor, 'Expected there to be an active text editor!');
+
   const matches: { range: vscode.Range }[] = [];
-  activeEditor.selections.forEach((selection) => {
+  editor.selections.forEach((selection) => {
     const match_before = matchBefore(selection),
       match_after = matchAfter(selection);
     if (match_before) {
@@ -441,7 +458,7 @@ function matchPairs() {
       matches.push({ range: match_after[1] });
     }
   });
-  activeEditor.setDecorations(matchedType, matches);
+  editor.setDecorations(matchedType, matches);
 }
 
 function decorateGuide(
@@ -453,7 +470,8 @@ function decorateGuide(
   let guideLength = 0;
   for (let lineDelta = 1; lineDelta <= endPos.line - startPos.line; lineDelta++) {
     const guidePos = startPos.translate(lineDelta, 0);
-    if (doc.lineAt(guidePos).text.match(/^ */)[0].length >= startPos.character) {
+    const leadingSpacesMatch = doc.lineAt(guidePos).text.match(/^ */);
+    if (leadingSpacesMatch && leadingSpacesMatch[0].length >= startPos.character) {
       const guidesDecoration = { range: new Range(guidePos, guidePos) };
       guides.push(guidesDecoration);
       guideLength++;
@@ -464,12 +482,13 @@ function decorateGuide(
 
 function decorateActiveGuides() {
   const activeGuides = [];
-  activeEditor = getActiveTextEditor();
+  const editor = getActiveTextEditor();
+  activeEditor = editor;
   if (activeGuidesTypes) {
-    activeGuidesTypes.forEach((type) => activeEditor.setDecorations(type, []));
+    activeGuidesTypes.forEach((type) => editor.setDecorations(type, []));
   }
-  activeEditor.selections.forEach((selection) => {
-    const doc = activeEditor.document;
+  editor.selections.forEach((selection) => {
+    const doc = editor.document;
     const mirrorDoc = docMirror.getDocument(doc);
     const cursor = mirrorDoc.getTokenCursor(doc.offsetAt(selection.start));
     const visitedEndPositions = [selection.start];
@@ -490,7 +509,7 @@ function decorateActiveGuides() {
         if (colorIndex !== undefined) {
           if (guideRange.contains(selection)) {
             decorateGuide(doc, startPos, endPos, activeGuides);
-            activeEditor.setDecorations(activeGuidesTypes[colorIndex], activeGuides);
+            editor.setDecorations(activeGuidesTypes[colorIndex], activeGuides);
           }
           break;
         }
@@ -539,7 +558,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   vscode.workspace.onDidChangeTextDocument(
     (event) => {
-      if (is_clojure(activeEditor) && event.document === activeEditor.document) {
+      if (is_clojure(activeEditor) && event.document === activeEditor?.document) {
         scheduleRainbowBrackets();
       }
     },

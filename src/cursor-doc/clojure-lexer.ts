@@ -43,7 +43,7 @@ export function validPair(open: string, close: string): boolean {
 }
 
 export interface Token extends LexerToken {
-  state: ScannerState;
+  state: ScannerState | null;
 }
 
 // whitespace, excluding newlines
@@ -174,7 +174,7 @@ export class Scanner {
     const tks: Token[] = [];
     this.state = state;
     let lex = (this.state.inString ? inString : toplevel).lex(line, this.maxLength);
-    let tk: LexerToken;
+    let tk: LexerToken | undefined;
     do {
       tk = lex.scan();
       if (tk) {

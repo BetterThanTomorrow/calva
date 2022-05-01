@@ -1,7 +1,10 @@
 import { LispTokenCursor } from '../cursor-doc/token-cursor';
+import { assertIsDefined } from '../type-checks';
 
 function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string): void {
-  const [listOffsetStart, listOffsetEnd] = tokenCursor.rangeForList(1);
+  const range = tokenCursor.rangeForList(1);
+  assertIsDefined(range, 'Expected range to be found!');
+  const [listOffsetStart, listOffsetEnd] = range;
   const text = tokenCursor.doc.getText(listOffsetStart, listOffsetEnd - 1);
 
   const stringIndexInList = text.indexOf(s);
@@ -22,7 +25,9 @@ function moveTokenCursorToBreakpoint(
   debugResponse: any
 ): LispTokenCursor {
   const errorMessage = 'Error finding position of breakpoint';
-  const [_, defunEnd] = tokenCursor.rangeForDefun(tokenCursor.offsetStart);
+  const range = tokenCursor.rangeForDefun(tokenCursor.offsetStart);
+  assertIsDefined(range, 'Expected range to be found!');
+  const [_, defunEnd] = range;
   let inSyntaxQuote = false;
 
   const coor = [...debugResponse.coor]; // Copy the array so we do not modify the one stored in state

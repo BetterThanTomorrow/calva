@@ -27,7 +27,7 @@ const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
   rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen,
 });
 
-let resultsLocations: [vscode.Range, vscode.Position, vscode.Location][] = [];
+let resultsLocations: [vscode.Range, vscode.Position | undefined, vscode.Location][] = [];
 
 function getResultsLocation(pos: vscode.Position): vscode.Location | undefined {
   for (const [range, _evaluatePosition, location] of resultsLocations) {
@@ -141,7 +141,7 @@ function decorateSelection(
   resultString: string,
   codeSelection: vscode.Selection,
   editor: vscode.TextEditor,
-  evaluatePosition: vscode.Position,
+  evaluatePosition: vscode.Position | undefined,
   resultsLocation,
   status: AnnotationStatus
 ) {

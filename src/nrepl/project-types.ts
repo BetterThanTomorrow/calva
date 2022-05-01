@@ -8,6 +8,7 @@ import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
 import { parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
+import { assertIsDefined } from '../type-checks';
 
 export const isWin = /^win/.test(process.platform);
 
@@ -20,8 +21,8 @@ export type ProjectType = {
   resolveBundledPathUnix?: () => string;
   processShellWin: boolean;
   processShellUnix: boolean;
-  commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => any;
-  useWhenExists: string;
+  commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes | undefined) => any;
+  useWhenExists: string | undefined;
   nReplPortFile: string[];
 };
 
@@ -30,8 +31,14 @@ function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string
   if (connectSequence.nReplPortFile) {
     subPath = path.join(...connectSequence.nReplPortFile);
   } else {
-    const projectType: ProjectType | string = connectSequence.projectType;
-    subPath = path.join(...getProjectTypeForName(projectType).nReplPortFile);
+    const projectTypeName: ProjectType | string = connectSequence.projectType;
+    const projectType = getProjectTypeForName(projectTypeName);
+    assertIsDefined(
+      projectType,
+      `Expected a project type given project type name of ${projectTypeName}`
+    );
+
+    subPath = path.join(...projectType.nReplPortFile);
   }
   return subPath;
 }
@@ -44,7 +51,7 @@ function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string
  */
 export function nreplPortFileLocalPath(connectSequence: ReplConnectSequence): string {
   const relativePath = nreplPortFileRelativePath(connectSequence);
-  const projectRoot = state.getProjectRootLocal();
+  const projectRoot = state.tryToGetProjectRootLocal();
   if (projectRoot) {
     try {
       return path.resolve(projectRoot, relativePath);
@@ -57,7 +64,7 @@ export function nreplPortFileLocalPath(connectSequence: ReplConnectSequence): st
 
 export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.Uri {
   const relativePath = nreplPortFileRelativePath(connectSequence);
-  const projectRoot = state.getProjectRootUri();
+  const projectRoot = state.tryToGetProjectRootUri();
   if (projectRoot) {
     try {
       return vscode.Uri.joinPath(projectRoot, relativePath);
@@ -85,7 +92,7 @@ export async function shadowBuilds(): Promise<string[]> {
   ];
 }
 
-export function leinShadowBuilds(defproject: any): string[] {
+export function leinShadowBuilds(defproject: any): string[] | undefined {
   if (defproject) {
     const shadowIndex = defproject.indexOf('shadow-cljs');
     if (shadowIndex > -1) {
@@ -108,18 +115,22 @@ export function leinShadowBuilds(defproject: any): string[] {
 
 async function selectShadowBuilds(
   connectSequence: ReplConnectSequence,
-  foundBuilds: string[]
-): Promise<{ selectedBuilds: string[]; args: string[] }> {
-  const menuSelections = connectSequence.menuSelections,
-    selectedBuilds = menuSelections
-      ? menuSelections.cljsLaunchBuilds
-      : await utilities.quickPickMulti({
-          values: foundBuilds.filter((x) => x[0] == ':'),
-          placeHolder: 'Select builds to start',
-          saveAs: `${state.getProjectRootUri().toString()}/shadow-cljs-jack-in`,
-        }),
-    aliases: string[] =
-      menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
+  foundBuilds: string[] | undefined
+): Promise<{ selectedBuilds: string[] | undefined; args: string[] }> {
+  const menuSelections = connectSequence.menuSelections;
+  let selectedBuilds: string[] | undefined;
+  if (menuSelections) {
+    selectedBuilds = menuSelections.cljsLaunchBuilds;
+  } else {
+    assertIsDefined(foundBuilds, 'Expected to have foundBuilds when using the picker!');
+    selectedBuilds = await utilities.quickPickMulti({
+      values: foundBuilds.filter((x) => x[0] == ':'),
+      placeHolder: 'Select builds to start',
+      saveAs: `${state.getProjectRootUri().toString()}/shadow-cljs-jack-in`,
+    });
+  }
+  const aliases: string[] =
+    menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
   const aliasesOption = aliases.length > 0 ? `-A${aliases.join('')}` : '';
   const args: string[] = [];
   if (aliasesOption && aliasesOption.length) {
@@ -145,9 +156,9 @@ async function leinDefProject(): Promise<any> {
 async function leinProfilesAndAlias(
   defproject: any,
   connectSequence: ReplConnectSequence
-): Promise<{ profiles: string[]; alias: string }> {
+): Promise<{ profiles: string[]; alias: string | undefined }> {
   let profiles: string[] = [],
-    alias: string;
+    alias: string | undefined;
 
   if (defproject) {
     const aliasesIndex = defproject.indexOf('aliases');
@@ -157,7 +168,7 @@ async function leinProfilesAndAlias(
           leinAlias = menuSelections ? menuSelections.leinAlias : undefined;
         if (leinAlias) {
           alias = unKeywordize(leinAlias);
-        } else if (leinAlias === null) {
+        } else if (leinAlias === undefined) {
           alias = undefined;
         } else {
           let aliases: string[] = [];
@@ -170,7 +181,7 @@ async function leinProfilesAndAlias(
               saveAs: `${state.getProjectRootUri().toString()}/lein-cli-alias`,
               placeHolder: 'Choose alias to launch with',
             });
-            alias = alias == 'No alias' ? undefined : alias;
+            alias = alias === 'No alias' ? undefined : alias;
           }
         }
       } catch (error) {
@@ -211,9 +222,15 @@ export enum JackInDependency {
   'cider/piggieback' = 'cider/piggieback',
 }
 
-const NREPL_VERSION = () => getConfig().jackInDependencyVersions['nrepl'],
-  CIDER_NREPL_VERSION = () => getConfig().jackInDependencyVersions['cider-nrepl'],
-  PIGGIEBACK_VERSION = () => getConfig().jackInDependencyVersions['cider/piggieback'];
+const jackInDependencyVersions = getConfig().jackInDependencyVersions;
+assertIsDefined(
+  jackInDependencyVersions,
+  'Expected jackInDependencyVersions to be set in the config!'
+);
+
+const NREPL_VERSION = () => jackInDependencyVersions['nrepl'],
+  CIDER_NREPL_VERSION = () => jackInDependencyVersions['cider-nrepl'],
+  PIGGIEBACK_VERSION = () => jackInDependencyVersions['cider/piggieback'];
 
 const cliDependencies = () => {
   return {
@@ -386,11 +403,9 @@ const projectTypes: { [id: string]: ProjectType } = {
       const chan = state.outputChannel();
 
       const defproject = await leinDefProject();
-      const foundBuilds = leinShadowBuilds(defproject),
-        { selectedBuilds, args: extraArgs } = await selectShadowBuilds(
-          connectSequence,
-          foundBuilds
-        );
+      const foundBuilds = leinShadowBuilds(defproject);
+
+      const { selectedBuilds } = await selectShadowBuilds(connectSequence, foundBuilds);
 
       if (selectedBuilds && selectedBuilds.length) {
         return leinCommandLine(['shadow', 'watch', ...selectedBuilds], cljsType, connectSequence);
@@ -445,19 +460,25 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
 };
 
-async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: CljsTypes) {
+async function cljCommandLine(
+  connectSequence: ReplConnectSequence,
+  cljsType: CljsTypes | undefined
+) {
   const out: string[] = [];
   let depsUri: vscode.Uri;
+
+  const projectRootUri = state.getProjectRootUri();
+
   try {
-    depsUri = vscode.Uri.joinPath(state.getProjectRootUri(), 'deps.edn');
+    depsUri = vscode.Uri.joinPath(projectRootUri, 'deps.edn');
   } catch {
-    depsUri = vscode.Uri.file(path.join(state.getProjectRootUri().fsPath, 'deps.edn'));
+    depsUri = vscode.Uri.file(path.join(projectRootUri.fsPath, 'deps.edn'));
   }
   let parsed;
   if (connectSequence.projectType !== 'generic') {
     void vscode.workspace.fs.stat(depsUri);
     const bytes = await vscode.workspace.fs.readFile(
-      vscode.Uri.joinPath(state.getProjectRootUri(), 'deps.edn')
+      vscode.Uri.joinPath(projectRootUri, 'deps.edn')
     );
     const data = new TextDecoder('utf-8').decode(bytes);
     try {
@@ -510,7 +531,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
     if (projectAliases.length) {
       aliases = await utilities.quickPickMulti({
         values: projectAliases.map(keywordize),
-        saveAs: `${state.getProjectRootUri().toString()}/clj-cli-aliases`,
+        saveAs: `${projectRootUri.toString()}/clj-cli-aliases`,
         placeHolder: 'Pick any aliases to launch with',
       });
     }
@@ -552,7 +573,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
 
 async function leinCommandLine(
   command: string[],
-  cljsType: CljsTypes,
+  cljsType: CljsTypes | undefined,
   connectSequence: ReplConnectSequence
 ) {
   const out: string[] = [];
@@ -616,13 +637,13 @@ export function getProjectTypeForName(name: string) {
 }
 
 export async function detectProjectTypes(): Promise<string[]> {
-  const rootUri = state.getProjectRootUri();
   const cljProjTypes = ['generic', 'cljs-only', 'babashka', 'nbb'];
   for (const clj in projectTypes) {
     if (projectTypes[clj].useWhenExists) {
       try {
         const projectFileName = projectTypes[clj].useWhenExists;
-        const uri = vscode.Uri.joinPath(rootUri, projectFileName);
+        assertIsDefined(projectFileName, 'Expected there to be a project filename!');
+        const uri = vscode.Uri.joinPath(state.getProjectRootUri(), projectFileName);
         await vscode.workspace.fs.readFile(uri);
         cljProjTypes.push(clj);
       } catch {

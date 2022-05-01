@@ -13,6 +13,7 @@ import { LispTokenCursor } from '../cursor-doc/token-cursor';
 import * as docMirror from '../doc-mirror/index';
 import * as namespace from '../namespace';
 import * as replSession from '../nrepl/repl-session';
+import { assertIsDefined } from '../type-checks';
 
 export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
   async provideSignatureHelp(
@@ -34,7 +35,7 @@ export async function provideSignatureHelp(
       idx = document.offsetAt(position),
       symbol = getSymbol(document, idx);
     if (symbol) {
-      const client = replSession.getSession(util.getFileType(document));
+      const client = replSession.tryToGetSession(util.getFileType(document));
       if (client) {
         await namespace.createNamespaceFromDocumentIfNotExists(document);
         const res = await client.info(ns, symbol),
@@ -42,12 +43,13 @@ export async function provideSignatureHelp(
         if (signatures) {
           const help = new SignatureHelp(),
             currentArgsRanges = getCurrentArgsRanges(document, idx);
+          assertIsDefined(currentArgsRanges, 'Expected to find the current args ranges!');
           help.signatures = signatures;
           help.activeSignature = getActiveSignatureIdx(signatures, currentArgsRanges.length);
           if (signatures[help.activeSignature].parameters !== undefined) {
             const currentArgIdx = currentArgsRanges.findIndex((range) => range.contains(position)),
               activeSignature = signatures[help.activeSignature];
-            util.assertIsDefined(activeSignature, 'Expected activeSignature to be defined!');
+            assertIsDefined(activeSignature, 'Expected activeSignature to be defined!');
             help.activeParameter =
               activeSignature.label.match(/&/) !== null
                 ? Math.min(currentArgIdx, activeSignature.parameters.length - 1)
@@ -68,7 +70,7 @@ function getCurrentArgsRanges(document: TextDocument, idx: number): Range[] | un
   // Are we in a function that gets a threaded first parameter?
   const { previousRangeIndex, previousFunction } = getPreviousRangeIndexAndFunction(document, idx);
   const isInThreadFirst: boolean =
-    (previousRangeIndex > 1 && ['->', 'some->'].includes(previousFunction)) ||
+    (previousRangeIndex > 1 && previousFunction && ['->', 'some->'].includes(previousFunction)) ||
     (previousRangeIndex > 1 && previousRangeIndex % 2 !== 0 && previousFunction === 'cond->');
 
   if (allRanges !== undefined) {
@@ -83,7 +85,7 @@ function getActiveSignatureIdx(signatures: SignatureInformation[], currentArgsCo
   return activeSignatureIdx !== -1 ? activeSignatureIdx : signatures.length - 1;
 }
 
-function getSymbol(document: TextDocument, idx: number): string {
+function getSymbol(document: TextDocument, idx: number): string | undefined {
   const cursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx);
   return cursor.getFunctionName();
 }

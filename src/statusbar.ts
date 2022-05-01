@@ -4,7 +4,8 @@ import * as util from './utilities';
 import * as config from './config';
 import status from './status';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
-import { getSession, getReplSessionTypeFromState } from './nrepl/repl-session';
+import { tryToGetSession, getReplSessionTypeFromState } from './nrepl/repl-session';
+import { assertIsDefined } from './type-checks';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
@@ -24,7 +25,7 @@ const color = {
 function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration): string {
   const configSection = currentConf.inspect<string>(section);
 
-  util.assertIsDefined(configSection, () => `Expected config section "${section}" to be defined!`);
+  assertIsDefined(configSection, () => `Expected config section "${section}" to be defined!`);
 
   const { defaultValue, globalValue, workspaceFolderValue, workspaceValue } = configSection;
 
@@ -83,11 +84,11 @@ function update(context = state.extensionContext) {
     connectionStatus.command = 'calva.startOrConnectRepl';
     typeStatus.color = colorValue('typeStatusColor', currentConf);
     const replType = getReplSessionTypeFromState();
-    if (replType !== null) {
+    if (replType !== undefined) {
       typeStatus.text = ['cljc', config.REPL_FILE_EXT].includes(fileType)
         ? `cljc/${replType}`
         : replType;
-      if (getSession('clj') !== null && getSession('cljs') !== null) {
+      if (tryToGetSession('clj') !== undefined && tryToGetSession('cljs') !== undefined) {
         typeStatus.command = 'calva.toggleCLJCSession';
         typeStatus.tooltip = `Click to use ${replType === 'clj' ? 'cljs' : 'clj'} REPL for cljc`;
       } else {

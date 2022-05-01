@@ -27,7 +27,7 @@ export class TokenCursor {
   }
 
   /** Return the position */
-  get rowCol() {
+  get rowCol(): [number, number] {
     return [this.line, this.getToken().offset];
   }
 
@@ -117,26 +117,21 @@ export class TokenCursor {
  * If you are particular about which list type that should be considered, supply an `openingBracket`.
  */
 
-function _rangesForSexpsInList(
+const collectRanges = <
+  StartFieldKey extends keyof LispTokenCursor,
+  EndFieldKey extends keyof LispTokenCursor
+>(
   cursor: LispTokenCursor,
-  useRowCol = false,
-  openingBracket?: string
-): [number, number][] | [[number, number], [number, number]][] {
-  if (openingBracket !== undefined) {
-    if (!cursor.backwardListOfType(openingBracket)) {
-      return undefined;
-    }
-  } else {
-    if (!cursor.backwardList()) {
-      return undefined;
-    }
-  }
-  const ranges = [];
+  cursorStartField: StartFieldKey,
+  cursorEndField: EndFieldKey
+): [LispTokenCursor[StartFieldKey], LispTokenCursor[EndFieldKey]][] => {
+  const ranges: [LispTokenCursor[StartFieldKey], LispTokenCursor[EndFieldKey]][] = [];
   // TODO: Figure out how to do this ignore skipping more generally in forward/backward this or that.
   let ignoreCounter = 0;
+
   while (true) {
     cursor.forwardWhitespace();
-    const start = useRowCol ? cursor.rowCol : cursor.offsetStart;
+    const start = cursor[cursorStartField];
     if (cursor.getToken().type === 'ignore') {
       ignoreCounter++;
       cursor.forwardSexp();
@@ -144,7 +139,7 @@ function _rangesForSexpsInList(
     }
     if (cursor.forwardSexp()) {
       if (ignoreCounter === 0) {
-        const end = useRowCol ? cursor.rowCol : cursor.offsetStart;
+        const end = cursor[cursorEndField];
         ranges.push([start, end]);
       } else {
         ignoreCounter--;
@@ -154,6 +149,28 @@ function _rangesForSexpsInList(
     }
   }
   return ranges;
+};
+
+function _rangesForSexpsInList(
+  cursor: LispTokenCursor,
+  useRowCol = false,
+  openingBracket?: string
+): [number, number][] | [[number, number], [number, number]][] | undefined {
+  if (openingBracket !== undefined) {
+    if (!cursor.backwardListOfType(openingBracket)) {
+      return undefined;
+    }
+  } else {
+    if (!cursor.backwardList()) {
+      return undefined;
+    }
+  }
+
+  if (useRowCol) {
+    return collectRanges(cursor, 'rowCol', 'rowCol');
+  } else {
+    return collectRanges(cursor, 'offsetStart', 'offsetStart');
+  }
 }
 
 export class LispTokenCursor extends TokenCursor {
@@ -238,7 +255,7 @@ export class LispTokenCursor extends TokenCursor {
    */
   forwardSexp(skipComments = true, skipMetadata = false, skipIgnoredForms = false): boolean {
     // TODO: Consider using a proper bracket stack
-    const stack = [];
+    const stack: string[] = [];
     let isMetadata = false;
     this.forwardWhitespace(skipComments);
     if (this.getToken().type === 'close') {
@@ -280,7 +297,7 @@ export class LispTokenCursor extends TokenCursor {
           break;
         case 'close': {
           const close = token.raw;
-          let open: string;
+          let open: string | undefined;
           while ((open = stack.pop())) {
             if (validPair(open, close)) {
               this.next();
@@ -305,6 +322,8 @@ export class LispTokenCursor extends TokenCursor {
           break;
       }
     }
+
+    return false;
   }
 
   /**
@@ -322,7 +341,7 @@ export class LispTokenCursor extends TokenCursor {
     skipIgnoredForms = false,
     skipReaders = true
   ) {
-    const stack = [];
+    const stack: string[] = [];
     this.backwardWhitespace(skipComments);
     if (this.getPrevToken().type === 'open') {
       return false;
@@ -364,7 +383,7 @@ export class LispTokenCursor extends TokenCursor {
           break;
         case 'open': {
           const open = tk.raw;
-          let close: string;
+          let close: string | undefined;
           while ((close = stack.pop())) {
             if (validPair(open, close)) {
               break;
@@ -511,9 +530,9 @@ export class LispTokenCursor extends TokenCursor {
    * If you are particular about which type of list, supply the `openingBracket`.
    * @param openingBracket
    */
-  rangeForList(depth: number, openingBracket?: string): [number, number] {
+  rangeForList(depth: number, openingBracket?: string): [number, number] | undefined {
     const cursor = this.clone();
-    let range: [number, number] = undefined;
+    let range: [number, number] | undefined = undefined;
     for (let i = 0; i < depth; i++) {
       if (openingBracket === undefined) {
         if (!(cursor.backwardList() && cursor.backwardUpList())) {
@@ -631,8 +650,8 @@ export class LispTokenCursor extends TokenCursor {
    * 8. Else, return `undefined`.
    * @param offset the current cursor (caret) offset in the document
    */
-  rangeForCurrentForm(offset: number): [number, number] {
-    let afterCurrentFormOffset: number;
+  rangeForCurrentForm(offset: number): [number, number] | undefined {
+    let afterCurrentFormOffset: number | undefined;
     // console.log(-1, offset);
 
     // 0. If `offset` is within or before, a symbol, literal or keyword
@@ -765,9 +784,9 @@ export class LispTokenCursor extends TokenCursor {
     return [currentFormCursor.offsetStart, afterCurrentFormOffset];
   }
 
-  rangeForDefun(offset: number, commentCreatesTopLevel = true): [number, number] {
+  rangeForDefun(offset: number, commentCreatesTopLevel = true): [number, number] | undefined {
     const cursor = this.doc.getTokenCursor(offset);
-    let lastCandidateRange: [number, number] = cursor.rangeForCurrentForm(offset);
+    let lastCandidateRange: [number, number] | undefined = cursor.rangeForCurrentForm(offset);
     while (cursor.forwardList() && cursor.upList()) {
       const commentCursor = cursor.clone();
       commentCursor.backwardDownList();
@@ -898,7 +917,7 @@ export class LispTokenCursor extends TokenCursor {
    * @param levels how many levels of functions to dig up.
    * @returns the function name, or undefined if there is no function there.
    */
-  getFunctionName(levels: number = 0): string {
+  getFunctionName(levels: number = 0): string | undefined {
     const cursor = this.clone();
     if (cursor.backwardFunction(levels)) {
       cursor.forwardWhitespace();
@@ -914,7 +933,7 @@ export class LispTokenCursor extends TokenCursor {
    * @param levels how many levels of functions to dig up.
    * @returns the range of the function sexp/form, or undefined if there is no function there.
    */
-  getFunctionSexpRange(levels: number = 0): [number, number] {
+  getFunctionSexpRange(levels: number = 0): [number, number] | [undefined, undefined] {
     const cursor = this.clone();
     if (cursor.backwardFunction(levels)) {
       cursor.forwardWhitespace();

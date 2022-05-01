@@ -1,3 +1,4 @@
+import { assertIsDefined } from '../type-checks';
 import { validPair } from './clojure-lexer';
 import { ModelEdit, EditableDocument, ModelEditSelection } from './model';
 import { LispTokenCursor } from './token-cursor';
@@ -129,7 +130,7 @@ export function rangeForDefun(
   doc: EditableDocument,
   offset: number = doc.selection.active,
   commentCreatesTopLevel = true
-): [number, number] {
+): [number, number] | undefined {
   const cursor = doc.getTokenCursor(offset);
   return cursor.rangeForDefun(offset, commentCreatesTopLevel);
 }
@@ -438,7 +439,7 @@ export function wrapSexpr(
   start: number = doc.selection.anchor,
   end: number = doc.selection.active,
   options = { skipFormat: false }
-): Thenable<boolean> {
+): Thenable<boolean> | undefined {
   const cursor = doc.getTokenCursor(end);
   if (cursor.withinString() && open == '"') {
     open = close = '\\"';
@@ -486,7 +487,7 @@ export function rewrapSexpr(
   close: string,
   start: number = doc.selection.anchor,
   end: number = doc.selection.active
-): Thenable<boolean> {
+): Thenable<boolean> | undefined {
   const cursor = doc.getTokenCursor(end);
   if (cursor.backwardList()) {
     const openStart = cursor.offsetStart - 1,
@@ -530,7 +531,7 @@ export function splitSexp(doc: EditableDocument, start: number = doc.selection.a
 export function joinSexp(
   doc: EditableDocument,
   start: number = doc.selection.active
-): Thenable<boolean> {
+): Thenable<boolean> | undefined {
   const cursor = doc.getTokenCursor(start);
   cursor.backwardWhitespace();
   const prevToken = cursor.getPrevToken(),
@@ -560,7 +561,7 @@ export function spliceSexp(
   doc: EditableDocument,
   start: number = doc.selection.active,
   undoStopBefore = true
-): Thenable<boolean> {
+): Thenable<boolean> | undefined {
   const cursor = doc.getTokenCursor(start);
   // TODO: this should unwrap the string, not the enclosing list.
 
@@ -671,7 +672,9 @@ export function backwardSlurpSexp(
   cursor.backwardList();
   const tk = cursor.getPrevToken();
   if (tk.type == 'open') {
-    const offset = cursor.clone().previous().offsetStart;
+    const previous = cursor.clone().previous();
+    assertIsDefined(previous, 'Expected a token to be before the cursor!');
+    const offset = previous.offsetStart;
     const open = cursor.getPrevToken().raw;
     cursor.previous();
     cursor.backwardSexp(true, true);
@@ -968,6 +971,7 @@ export function growSelectionStack(doc: EditableDocument, range: [number, number
 export function shrinkSelection(doc: EditableDocument) {
   if (doc.selectionStack.length) {
     const latest = doc.selectionStack.pop();
+    assertIsDefined(latest, 'Expected a value in selectionStack!');
     if (
       doc.selectionStack.length &&
       latest.anchor == doc.selection.anchor &&
@@ -988,7 +992,9 @@ export function raiseSexp(
   end = doc.selection.active
 ) {
   const cursor = doc.getTokenCursor(end);
-  const [formStart, formEnd] = cursor.rangeForCurrentForm(start);
+  const formRange = cursor.rangeForCurrentForm(start);
+  assertIsDefined(formRange, 'Expected to find a range for the current form!');
+  const [formStart, formEnd] = formRange;
   const isCaretTrailing = formEnd - start < start - formStart;
   const startCursor = doc.getTokenCursor(formStart);
   const endCursor = startCursor.clone();
@@ -1142,6 +1148,7 @@ function currentSexpsRange(
   usePairs = false
 ): [number, number] {
   const currentSingleRange = cursor.rangeForCurrentForm(offset);
+  assertIsDefined(currentSingleRange, 'Expected to find a range for the current form!');
   if (usePairs) {
     const ranges = cursor.rangesForSexpsInList();
     if (ranges.length > 1) {
@@ -1242,6 +1249,7 @@ export function collectWhitespaceInfo(
 ): WhitespaceInfo {
   const cursor = doc.getTokenCursor(p);
   const currentRange = cursor.rangeForCurrentForm(p);
+  assertIsDefined(currentRange, 'Expected to find a range for the current form!');
   const leftWsRight = currentRange[0];
   const leftWsCursor = doc.getTokenCursor(leftWsRight);
   const rightWsLeft = currentRange[1];
@@ -1271,6 +1279,7 @@ export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selection.act
   const cursor = doc.getTokenCursor(p);
   const currentRange = cursor.rangeForCurrentForm(p);
   if (cursor.backwardList() && cursor.backwardUpList()) {
+    assertIsDefined(currentRange, 'Expected to find a range for the current form!');
     const listStart = cursor.offsetStart;
     const newPosOffset = p - currentRange[0];
     const newCursorPos = listStart + newPosOffset;
@@ -1310,6 +1319,7 @@ export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selection.act
 export function dragSexprForwardDown(doc: EditableDocument, p = doc.selection.active) {
   const wsInfo = collectWhitespaceInfo(doc, p);
   const currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p);
+  assertIsDefined(currentRange, 'Expected to find a range for the current form!');
   const newPosOffset = p - currentRange[0];
   const cursor = doc.getTokenCursor(currentRange[0]);
   while (cursor.forwardSexp()) {
@@ -1348,6 +1358,7 @@ export function dragSexprForwardUp(doc: EditableDocument, p = doc.selection.acti
   const cursor = doc.getTokenCursor(p);
   const currentRange = cursor.rangeForCurrentForm(p);
   if (cursor.forwardList() && cursor.upList()) {
+    assertIsDefined(currentRange, 'Expected to find a range for the current form!');
     const listEnd = cursor.offsetStart;
     const newPosOffset = p - currentRange[0];
     const listWsInfo = collectWhitespaceInfo(doc, listEnd);
@@ -1377,6 +1388,7 @@ export function dragSexprForwardUp(doc: EditableDocument, p = doc.selection.acti
 export function dragSexprBackwardDown(doc: EditableDocument, p = doc.selection.active) {
   const wsInfo = collectWhitespaceInfo(doc, p);
   const currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p);
+  assertIsDefined(currentRange, 'Expected to find a range for the current form!');
   const newPosOffset = p - currentRange[0];
   const cursor = doc.getTokenCursor(currentRange[1]);
   while (cursor.backwardSexp()) {
@@ -1425,6 +1437,7 @@ export function addRichComment(doc: EditableDocument, p = doc.selection.active, 
   const richComment = `(comment\n  ${contents ? adaptContentsToRichComment(contents) : ''}\n  )`;
   let cursor = doc.getTokenCursor(p);
   const topLevelRange = rangeForDefun(doc, p, false);
+  assertIsDefined(topLevelRange, 'Expected to find a range for the current defun!');
   const isInsideForm = !(p <= topLevelRange[0] || p >= topLevelRange[1]);
   const checkIfAtStartCursor = doc.getTokenCursor(p);
   checkIfAtStartCursor.backwardWhitespace(true);

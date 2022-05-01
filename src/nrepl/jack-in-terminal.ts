@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as child from 'child_process';
 import * as kill from 'tree-kill';
 import * as outputWindow from '../results-output/results-doc';
+import { assertIsDefined } from '../type-checks';
 
 export interface JackInTerminalOptions extends vscode.TerminalOptions {
   name: string;
@@ -80,7 +81,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
       this.process.on('exit', (status) => {
         this.writeEmitter.fire(`Jack-in process exited. Status: ${status}\r\n`);
       });
-      this.process.stdout.on('data', (data) => {
+      this.process.stdout?.on('data', (data) => {
         const msg = this.dataToString(data);
         this.writeEmitter.fire(`${msg}\r\n`);
         // Started nREPL server at 127.0.0.1:1337
@@ -89,9 +90,14 @@ export class JackInTerminal implements vscode.Pseudoterminal {
         // nbb - nRepl server started on port %d . nrepl-cljs-sci version %s 1337 TODO
         // TODO: Remove nbb WIP match
         if (msg.match(/Started nREPL server|nREPL server started/i)) {
-          const [_, port1, host1, host2, port2, port3] = msg.match(
+          const connectionInfo = msg.match(
             /(?:Started nREPL server|nREPL server started)[^\r\n]+?(?:(?:on port (\d+)(?: on host (\S+))?)|([^\s/]+):(\d+))|.*?(\d+) TODO/
           );
+          assertIsDefined(
+            connectionInfo,
+            'Expected to find connection info in repl started messages!'
+          );
+          const [_, port1, host1, host2, port2, port3] = connectionInfo;
           this.whenREPLStarted(
             this.process,
             host1 ? host1 : host2 ? host2 : 'localhost',
@@ -99,7 +105,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
           );
         }
       });
-      this.process.stderr.on('data', (data) => {
+      this.process.stderr?.on('data', (data) => {
         const msg = this.dataToString(data);
         this.writeEmitter.fire(`${msg}\r\n`);
       });
@@ -111,8 +117,9 @@ export class JackInTerminal implements vscode.Pseudoterminal {
     if (this.process && !this.process.killed) {
       console.log('Closing any ongoing stdin event');
       this.writeEmitter.fire('Killing the Jack-in process\r\n');
-      this.process.stdin.end(() => {
+      this.process.stdin?.end(() => {
         console.log('Killing the Jack-in process');
+        assertIsDefined(this.process.pid, 'Expected child process to have a pid!');
         kill(this.process.pid);
       });
     } else if (this.process && this.process.killed) {

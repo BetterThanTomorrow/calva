@@ -216,7 +216,7 @@
     "editor.defaultFormatter": "vscode.json-language-features"
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "vscode.json-language-features"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "peacock.color": "#e48141",
   "calva.replConnectSequences": [

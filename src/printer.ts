@@ -1,5 +1,5 @@
 import { getConfig } from './config';
-import { assertIsDefined } from './utilities';
+import { assertIsDefined } from './type-checks';
 
 export type PrintFnOptions = {
   name: string;

@@ -114,8 +114,10 @@ export class UndoManager<T> {
   undo(c: T) {
     if (this.undos.length) {
       const step = this.undos.pop();
-      step.undo(c);
-      this.redos.push(step);
+      if (step) {
+        step.undo(c);
+        this.redos.push(step);
+      }
     }
   }
 
@@ -123,8 +125,10 @@ export class UndoManager<T> {
   redo(c: T) {
     if (this.redos.length) {
       const step = this.redos.pop();
-      step.redo(c);
-      this.undos.push(step);
+      if (step) {
+        step.redo(c);
+        this.undos.push(step);
+      }
     }
   }
 }
