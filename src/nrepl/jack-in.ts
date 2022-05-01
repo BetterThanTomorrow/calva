@@ -14,8 +14,8 @@ import { JackInTerminal, JackInTerminalOptions, createCommandLine } from './jack
 import * as liveShareSupport from '../live-share';
 import { getConfig } from '../config';
 
-let jackInPTY: JackInTerminal = undefined;
-let jackInTerminal: vscode.Terminal = undefined;
+let jackInPTY: JackInTerminal | undefined = undefined;
+let jackInTerminal: vscode.Terminal | undefined = undefined;
 
 function cancelJackInTask() {
   setTimeout(() => {
@@ -25,7 +25,7 @@ function cancelJackInTask() {
 
 function resolveEnvVariables(entry: any): any {
   if (typeof entry === 'string') {
-    const s = entry.replace(/\$\{env:(\w+)\}/, (_, v) => (process.env[v] ? process.env[v] : ''));
+    const s = entry.replace(/\$\{env:(\w+)\}/, (_, v) => process.env[v] || '');
     return s;
   } else {
     return entry;
@@ -84,7 +84,7 @@ function executeJackInTask(
         cancelJackInTask();
       }
     );
-    jackInTerminal = (<any>vscode.window).createTerminal({
+    jackInTerminal = vscode.window.createTerminal({
       name: `Calva Jack-in: ${connectSequence.name}`,
       pty: jackInPTY,
     });
@@ -136,7 +136,7 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
     console.error('An error occurred while initializing project directory.', e);
     return;
   }
-  let projectConnectSequence: ReplConnectSequence;
+  let projectConnectSequence: ReplConnectSequence | undefined;
   try {
     projectConnectSequence = await getProjectConnectSequence();
   } catch (e) {
@@ -157,7 +157,7 @@ async function getJackInTerminalOptions(
   projectConnectSequence: ReplConnectSequence
 ): Promise<JackInTerminalOptions> {
   const projectTypeName: string = projectConnectSequence.projectType;
-  let selectedCljsType: CljsTypes;
+  let selectedCljsType: CljsTypes | undefined;
 
   if (
     typeof projectConnectSequence.cljsType == 'string' &&
@@ -172,6 +172,10 @@ async function getJackInTerminalOptions(
   }
 
   const projectType = projectTypes.getProjectTypeForName(projectTypeName);
+  utilities.assertIsDefined(projectType, 'Expected to find a project type!');
+
+  const projectRootLocal = state.getProjectRootLocal();
+  utilities.assertIsDefined(projectRootLocal, 'Expected to find a local project root!');
 
   let args: string[] = await projectType.commandLine(projectConnectSequence, selectedCljsType);
   let cmd: string[];
@@ -181,9 +185,7 @@ async function getJackInTerminalOptions(
       const jarSourceUri = vscode.Uri.file(
         path.join(state.extensionContext.extensionPath, 'deps.clj.jar')
       );
-      const jarDestUri = vscode.Uri.file(
-        path.join(state.getProjectRootLocal(), '.calva', 'deps.clj.jar')
-      );
+      const jarDestUri = vscode.Uri.file(path.join(projectRootLocal, '.calva', 'deps.clj.jar'));
       try {
         await vscode.workspace.fs.copy(jarSourceUri, jarDestUri, {
           overwrite: false,
@@ -211,13 +213,13 @@ async function getJackInTerminalOptions(
       ...processEnvObject(projectConnectSequence.jackInEnv),
     },
     isWin: projectTypes.isWin,
-    cwd: state.getProjectRootLocal(),
+    cwd: projectRootLocal,
     useShell: projectTypes.isWin ? projectType.processShellWin : projectType.processShellUnix,
   };
   return terminalOptions;
 }
 
-async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
+async function getProjectConnectSequence(): Promise<ReplConnectSequence | undefined> {
   const cljTypes: string[] = await projectTypes.detectProjectTypes();
   if (cljTypes.length > 1) {
     const connectSequence = await askForConnectSequence(
@@ -233,13 +235,15 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
   }
 }
 
-export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => unknown) {
+export async function jackIn(connectSequence: ReplConnectSequence | undefined, cb?: () => unknown) {
   try {
     await liveShareSupport.setupLiveShareListener();
   } catch (e) {
     console.error('An error occurred while setting up Live Share listener.', e);
   }
-  if (state.getProjectRootUri().scheme === 'vsls') {
+  const projectRootUri = state.getProjectRootUri();
+  utilities.assertIsDefined(projectRootUri, 'Expected to find a project root URI!');
+  if (projectRootUri.scheme === 'vsls') {
     outputWindow.append("; Aborting Jack-in, since you're the guest of a live share session.");
     outputWindow.append(
       '; Please use this command instead: Connect to a running REPL server in the project.'
@@ -251,7 +255,7 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
   outputWindow.append('; Jacking in...');
   await outputWindow.openResultsDoc();
 
-  let projectConnectSequence: ReplConnectSequence = connectSequence;
+  let projectConnectSequence: ReplConnectSequence | undefined = connectSequence;
   if (!projectConnectSequence) {
     try {
       projectConnectSequence = await getProjectConnectSequence();
