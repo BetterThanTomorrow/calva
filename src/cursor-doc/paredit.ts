@@ -1,3 +1,4 @@
+import { assertIsDefined } from '../utilities';
 import { validPair } from './clojure-lexer';
 import { ModelEdit, EditableDocument, ModelEditSelection } from './model';
 import { LispTokenCursor } from './token-cursor';
@@ -438,7 +439,7 @@ export function wrapSexpr(
   start: number = doc.selection.anchor,
   end: number = doc.selection.active,
   options = { skipFormat: false }
-): Thenable<boolean> {
+): Thenable<boolean> | undefined {
   const cursor = doc.getTokenCursor(end);
   if (cursor.withinString() && open == '"') {
     open = close = '\\"';
@@ -486,7 +487,7 @@ export function rewrapSexpr(
   close: string,
   start: number = doc.selection.anchor,
   end: number = doc.selection.active
-): Thenable<boolean> {
+): Thenable<boolean> | undefined {
   const cursor = doc.getTokenCursor(end);
   if (cursor.backwardList()) {
     const openStart = cursor.offsetStart - 1,
@@ -530,7 +531,7 @@ export function splitSexp(doc: EditableDocument, start: number = doc.selection.a
 export function joinSexp(
   doc: EditableDocument,
   start: number = doc.selection.active
-): Thenable<boolean> {
+): Thenable<boolean> | undefined {
   const cursor = doc.getTokenCursor(start);
   cursor.backwardWhitespace();
   const prevToken = cursor.getPrevToken(),
@@ -560,7 +561,7 @@ export function spliceSexp(
   doc: EditableDocument,
   start: number = doc.selection.active,
   undoStopBefore = true
-): Thenable<boolean> {
+): Thenable<boolean> | undefined {
   const cursor = doc.getTokenCursor(start);
   // TODO: this should unwrap the string, not the enclosing list.
 
@@ -671,7 +672,9 @@ export function backwardSlurpSexp(
   cursor.backwardList();
   const tk = cursor.getPrevToken();
   if (tk.type == 'open') {
-    const offset = cursor.clone().previous().offsetStart;
+    const previous = cursor.clone().previous();
+    assertIsDefined(previous, 'Expected a token to be before the cursor!');
+    const offset = previous.offsetStart;
     const open = cursor.getPrevToken().raw;
     cursor.previous();
     cursor.backwardSexp(true, true);
@@ -968,6 +971,7 @@ export function growSelectionStack(doc: EditableDocument, range: [number, number
 export function shrinkSelection(doc: EditableDocument) {
   if (doc.selectionStack.length) {
     const latest = doc.selectionStack.pop();
+    assertIsDefined(latest, 'Expected a value in selectionStack!');
     if (
       doc.selectionStack.length &&
       latest.anchor == doc.selection.anchor &&
