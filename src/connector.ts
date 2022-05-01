@@ -80,9 +80,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       host: hostname,
       port: +port,
       onError: (e) => {
-        const projectRootUri = state.getProjectRootUri();
-
-        const scheme = projectRootUri.scheme;
+        const scheme = state.getProjectRootUri().scheme;
         if (scheme === 'vsls') {
           outputWindow.append('; nREPL connection failed; did the host share the nREPL port?');
         }
