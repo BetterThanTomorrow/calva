@@ -87,7 +87,7 @@ function update(context = state.extensionContext) {
       typeStatus.text = ['cljc', config.REPL_FILE_EXT].includes(fileType)
         ? `cljc/${replType}`
         : replType;
-      if (tryToGetSession('clj') !== null && tryToGetSession('cljs') !== null) {
+      if (tryToGetSession('clj') !== undefined && tryToGetSession('cljs') !== undefined) {
         typeStatus.command = 'calva.toggleCLJCSession';
         typeStatus.tooltip = `Click to use ${replType === 'clj' ? 'cljs' : 'clj'} REPL for cljc`;
       } else {
