@@ -14,6 +14,7 @@ function assertIsDefined<T>(
   message: string | (() => string)
 ): asserts value is T {
   if (isNullOrUndefined(value)) {
+    console.trace({ value, message });
     throw new Error(typeof message === 'string' ? message : message());
   }
 }
