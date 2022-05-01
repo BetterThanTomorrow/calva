@@ -31,8 +31,8 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
   if (snippets.length < 1) {
     snippets = getConfig().customREPLCommandSnippets;
   }
-  const snippetsDict = {};
-  const snippetsKeyDict = {};
+  const snippetsMap = new Map<string | undefined, customREPLCommandSnippet>();
+  const snippetsKeyMap = new Map<string | undefined, string>();
   const snippetsMenuItems: string[] = [];
   const editorNS =
     editor && editor.document && editor.document.languageId === 'clojure'
@@ -49,14 +49,14 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
     if (undefs.length > 0) {
       configErrors.push({ name: c.name, keys: undefs });
     }
-    const entry = { ...c };
+    const entry: customREPLCommandSnippet = { ...c };
     entry.ns = entry.ns ? entry.ns : editorNS;
     entry.repl = entry.repl ? entry.repl : editorRepl;
     const prefix = entry.key !== undefined ? `${entry.key}: ` : '';
     const item = `${prefix}${entry.name} (${entry.repl})`;
     snippetsMenuItems.push(item);
-    snippetsDict[item] = entry;
-    snippetsKeyDict[entry.key] = item;
+    snippetsMap.set(item, entry);
+    snippetsKeyMap.set(entry.key, item);
   });
 
   if (configErrors.length > 0) {
@@ -68,7 +68,7 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
     return;
   }
 
-  let pick: string;
+  let pick: string | undefined;
   if (codeOrKey === undefined) {
     // Without codeOrKey always show snippets menu
     if (snippetsMenuItems.length > 0) {
@@ -94,21 +94,23 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
   }
   if (pick === undefined) {
     // still no pick, but codeOrKey might be one
-    pick = snippetsKeyDict[codeOrKey];
+    pick = snippetsKeyMap.get(codeOrKey);
   }
-  const code = pick !== undefined ? snippetsDict[pick].snippet : codeOrKey;
-  const ns = pick !== undefined ? snippetsDict[pick].ns : editorNS;
-  const repl = pick !== undefined ? snippetsDict[pick].repl : editorRepl;
+
+  const replSnippet = snippetsMap.get(pick);
+
+  const code = pick !== undefined ? replSnippet?.snippet : codeOrKey;
+  const ns = pick !== undefined ? replSnippet?.ns : editorNS;
+  const repl = pick !== undefined ? replSnippet?.repl : editorRepl;
 
   const options = {};
 
   if (pick !== undefined) {
-    options['evaluationSendCodeToOutputWindow'] =
-      snippetsDict[pick].evaluationSendCodeToOutputWindow;
+    options['evaluationSendCodeToOutputWindow'] = replSnippet?.evaluationSendCodeToOutputWindow;
     // don't allow addToHistory if we don't show the code but are inside the repl
     options['addToHistory'] =
       state.extensionContext.workspaceState.get('outputWindowActive') &&
-      !snippetsDict[pick].evaluationSendCodeToOutputWindow
+      !replSnippet?.evaluationSendCodeToOutputWindow
         ? false
         : undefined;
   }

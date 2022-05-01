@@ -574,6 +574,7 @@ export type customREPLCommandSnippet = {
   snippet: string;
   repl?: string;
   ns?: string;
+  evaluationSendCodeToOutputWindow?: boolean;
 };
 
 export default {
