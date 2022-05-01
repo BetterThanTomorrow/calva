@@ -252,7 +252,7 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
 
 /** Retrieve the replConnectSequences from the config */
 function getCustomConnectSequences(): ReplConnectSequence[] {
-  const sequences: ReplConnectSequence[] = getConfig().replConnectSequences;
+  const sequences: ReplConnectSequence[] = getConfig().replConnectSequences || [];
 
   for (const sequence of sequences) {
     if (
@@ -283,7 +283,7 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
   const customSequences = getCustomConnectSequences();
   const defSequences = projectTypes.reduce(
     (seqs, projectType) => seqs.concat(defaultSequences[projectType]),
-    []
+    [] as ReplConnectSequence[]
   );
   const defSequenceProjectTypes = [...new Set(defSequences.map((s) => s.projectType))];
   const sequences = customSequences
@@ -306,7 +306,7 @@ async function askForConnectSequence(
   cljTypes: string[],
   saveAs: string,
   logLabel: string
-): Promise<ReplConnectSequence> {
+): Promise<ReplConnectSequence | undefined> {
   // figure out what possible kinds of project we're in
   const sequences: ReplConnectSequence[] = getConnectSequences(cljTypes);
   const projectRootUri = state.getProjectRootUri();
@@ -326,6 +326,7 @@ async function askForConnectSequence(
     return;
   }
   const sequence = sequences.find((seq) => seq.name === projectConnectSequenceName);
+  utilities.assertIsDefined(sequence, 'Expected to find a sequence!');
   void state.extensionContext.workspaceState.update('selectedCljTypeName', sequence.projectType);
   return sequence;
 }
