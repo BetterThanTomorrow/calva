@@ -7,7 +7,7 @@ import { NReplSession } from './nrepl';
 import * as cider from './nrepl/cider';
 import * as lsp from './lsp/types';
 import * as namespace from './namespace';
-import { getSession, updateReplSessionType } from './nrepl/repl-session';
+import { tryToGetSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
 
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
@@ -236,7 +236,7 @@ function reportTests(
 
 // FIXME: use cljs session where necessary
 async function runAllTests(controller: vscode.TestController, document = {}) {
-  const session = getSession(util.getFileType(document));
+  const session = tryToGetSession(util.getFileType(document));
   util.assertIsDefined(session, 'Expected there to be a current session!');
   outputWindow.append('; Running all project tests…');
   try {
@@ -293,7 +293,7 @@ async function runNamespaceTestsImpl(
     return;
   }
 
-  const session = getSession(util.getFileType(document));
+  const session = tryToGetSession(util.getFileType(document));
   util.assertIsDefined(session, 'Expected there to be a current session!');
 
   // TODO.marc: Should we be passing the `document` argument to `loadFile`?
@@ -319,7 +319,7 @@ async function runNamespaceTests(controller: vscode.TestController, document: vs
   if (outputWindow.isResultsDoc(doc)) {
     return;
   }
-  const session = getSession(util.getFileType(document));
+  const session = tryToGetSession(util.getFileType(document));
   util.assertIsDefined(session, 'Expected there to be a current session!');
   const ns = namespace.getNamespace(doc);
   const nss = await considerTestNS(ns, session);
@@ -335,7 +335,7 @@ function getTestUnderCursor() {
 
 async function runTestUnderCursor(controller: vscode.TestController) {
   const doc = util.tryToGetDocument({});
-  const session = getSession(util.getFileType(doc));
+  const session = tryToGetSession(util.getFileType(doc));
   util.assertIsDefined(session, 'Expected there to be a current session!');
   const ns = namespace.getNamespace(doc);
   const test = getTestUnderCursor();
@@ -379,7 +379,7 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
 }
 
 async function rerunTests(controller: vscode.TestController, document = {}) {
-  const session = getSession(util.getFileType(document));
+  const session = tryToGetSession(util.getFileType(document));
   util.assertIsDefined(session, 'Expected there to be a current session!');
   await evaluate.loadFile({}, disabledPrettyPrinter);
   outputWindow.append('; Running previously failed tests…');

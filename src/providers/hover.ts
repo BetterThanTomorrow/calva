@@ -13,7 +13,7 @@ export async function provideHover(document: vscode.TextDocument, position: vsco
   if (util.getConnectedState()) {
     const text = util.getWordAtPosition(document, position);
     const ns = namespace.getNamespace(document);
-    const client = replSession.getSession(util.getFileType(document));
+    const client = replSession.tryToGetSession(util.getFileType(document));
     if (client) {
       await namespace.createNamespaceFromDocumentIfNotExists(document);
       const res = await client.info(ns, text);

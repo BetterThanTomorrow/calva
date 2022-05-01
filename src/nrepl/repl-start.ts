@@ -249,7 +249,7 @@ export function startOrConnectRepl() {
     commands[START_HELLO_CLJS_NODE_OPTION] = START_HELLO_CLJS_NODE_COMMAND;
   } else {
     commands[DISCONNECT_OPTION] = DISCONNECT_COMMAND;
-    if (replSession.getSession('clj')) {
+    if (replSession.tryToGetSession('clj')) {
       commands[OPEN_WINDOW_OPTION] = OPEN_WINDOW_COMMAND;
     }
   }

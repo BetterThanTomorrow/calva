@@ -20,7 +20,7 @@ async function provideClojureDefinition(document, position: vscode.Position, _to
   const posIsEvalPos = evalPos && position.isEqual(evalPos);
   if (util.getConnectedState() && !posIsEvalPos) {
     const text = util.getWordAtPosition(document, position);
-    const client = replSession.getSession(util.getFileType(document));
+    const client = replSession.tryToGetSession(util.getFileType(document));
     util.assertIsDefined(client, 'Expected there to be a repl client!');
     const info = await client.info(namespace.getNamespace(document), text);
     if (info.file && info.file.length > 0) {

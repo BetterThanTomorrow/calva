@@ -119,7 +119,7 @@ function triggerUpdateAndRenderDecorations() {
     const editor = util.tryToGetActiveTextEditor();
     if (editor) {
       timeout = setTimeout(() => {
-        const cljSession = replSession.getSession('clj');
+        const cljSession = replSession.tryToGetSession('clj');
         const lspClient = getStateValue(lsp.LSP_CLIENT_KEY);
         void update(editor, cljSession, lspClient).then(renderInAllVisibleEditors);
       }, 50);

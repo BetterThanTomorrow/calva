@@ -72,7 +72,7 @@ export async function createNamespaceFromDocumentIfNotExists(doc) {
     const document = utilities.tryToGetDocument(doc);
     if (document) {
       const ns = getNamespace(document);
-      const client = replSession.getSession(utilities.getFileType(document));
+      const client = replSession.tryToGetSession(utilities.getFileType(document));
       if (client) {
         const nsList = await client.listNamespaces([]);
         if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {

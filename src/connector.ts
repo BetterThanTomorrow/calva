@@ -730,10 +730,10 @@ export default {
     let newSession: NReplSession | undefined;
 
     if (getStateValue('connected')) {
-      if (replSession.getSession('cljc') == replSession.getSession('cljs')) {
-        newSession = replSession.getSession('clj');
-      } else if (replSession.getSession('cljc') == replSession.getSession('clj')) {
-        newSession = replSession.getSession('cljs');
+      if (replSession.tryToGetSession('cljc') == replSession.tryToGetSession('cljs')) {
+        newSession = replSession.tryToGetSession('clj');
+      } else if (replSession.tryToGetSession('cljc') == replSession.tryToGetSession('clj')) {
+        newSession = replSession.tryToGetSession('cljs');
       }
       setStateValue('cljc', newSession);
       if (outputWindow.isResultsDoc(util.getActiveTextEditor().document)) {
@@ -745,7 +745,7 @@ export default {
     }
   },
   switchCljsBuild: async () => {
-    const cljSession = replSession.getSession('clj');
+    const cljSession = replSession.tryToGetSession('clj');
     const cljsTypeName: string | undefined =
         state.extensionContext.workspaceState.get('selectedCljsTypeName'),
       cljTypeName: string | undefined =

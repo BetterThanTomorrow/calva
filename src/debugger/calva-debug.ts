@@ -100,7 +100,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     response: DebugProtocol.AttachResponse,
     args: DebugProtocol.AttachRequestArguments
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
 
     this.sendResponse(response);
     state
@@ -114,7 +114,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.ContinueArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
@@ -146,7 +146,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.NextArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
@@ -169,7 +169,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.StepInArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
@@ -192,7 +192,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.StepOutArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
@@ -325,7 +325,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.DisconnectArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
@@ -439,7 +439,7 @@ function handleNeedDebugInput(response: any): void {
       void debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
     }
   } else {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
     util.assertIsDefined(cljSession, 'Expected there to be a repl session!');
     void cljSession.sendDebugInput(':quit', response.id, response.key);
     void vscode.window.showInformationMessage(

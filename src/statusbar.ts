@@ -4,7 +4,7 @@ import * as util from './utilities';
 import * as config from './config';
 import status from './status';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
-import { getSession, getReplSessionTypeFromState } from './nrepl/repl-session';
+import { tryToGetSession, getReplSessionTypeFromState } from './nrepl/repl-session';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
@@ -87,7 +87,7 @@ function update(context = state.extensionContext) {
       typeStatus.text = ['cljc', config.REPL_FILE_EXT].includes(fileType)
         ? `cljc/${replType}`
         : replType;
-      if (getSession('clj') !== null && getSession('cljs') !== null) {
+      if (tryToGetSession('clj') !== null && tryToGetSession('cljs') !== null) {
         typeStatus.command = 'calva.toggleCLJCSession';
         typeStatus.tooltip = `Click to use ${replType === 'clj' ? 'cljs' : 'clj'} REPL for cljc`;
       } else {

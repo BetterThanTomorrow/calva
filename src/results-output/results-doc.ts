@@ -226,7 +226,7 @@ export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
 }
 
 export async function setNamespaceFromCurrentFile() {
-  const session = replSession.getSession();
+  const session = replSession.tryToGetSession();
   util.assertIsDefined(session, 'Expected there to be a session!');
   const ns = namespace.getNamespace(util.tryToGetDocument({}));
   if (getNs() !== ns && util.isDefined(ns)) {
@@ -238,7 +238,7 @@ export async function setNamespaceFromCurrentFile() {
 }
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
-  const session = replSession.getSession();
+  const session = replSession.tryToGetSession();
   util.assertIsDefined(session, 'Expected there to be a session!');
   const ns = namespace.getNamespace(util.tryToGetDocument({}));
   const editor = util.getActiveTextEditor();

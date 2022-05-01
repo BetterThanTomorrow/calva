@@ -228,7 +228,7 @@ async function evaluateSelection(document = {}, options) {
     const line = codeSelection.start.line;
     const column = codeSelection.start.character;
     const filePath = doc.fileName;
-    const session = replSession.getSession(util.getFileType(doc));
+    const session = replSession.tryToGetSession(util.getFileType(doc));
 
     if (code.length > 0) {
       if (options.debug) {
@@ -408,7 +408,7 @@ async function loadFile(
   const doc = util.tryToGetDocument(document);
   const fileType = util.getFileType(doc);
   const ns = namespace.getNamespace(doc);
-  const session = replSession.getSession(util.getFileType(doc));
+  const session = replSession.tryToGetSession(util.getFileType(doc));
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
     state.analytics().logEvent('Evaluation', 'LoadFile').send();
@@ -451,7 +451,7 @@ async function loadFile(
 
 async function evaluateUser(code: string) {
   const fileType = util.getFileType(util.tryToGetDocument({})),
-    session = replSession.getSession(fileType);
+    session = replSession.tryToGetSession(fileType);
   if (session) {
     try {
       await session.eval(code, session.client.ns).value;
@@ -473,7 +473,7 @@ async function requireREPLUtilitiesCommand() {
       sessionType = replSession.getReplSessionTypeFromState(),
       form = sessionType == 'cljs' ? CLJS_FORM : CLJ_FORM,
       fileType = util.getFileType(util.tryToGetDocument({})),
-      session = replSession.getSession(fileType);
+      session = replSession.tryToGetSession(fileType);
 
     if (session) {
       try {
@@ -492,7 +492,7 @@ async function requireREPLUtilitiesCommand() {
 
 async function copyLastResultCommand() {
   const chan = state.outputChannel();
-  const session = replSession.getSession(util.getFileType(util.tryToGetDocument({})));
+  const session = replSession.tryToGetSession(util.getFileType(util.tryToGetDocument({})));
   util.assertIsDefined(session, 'Expected there to be a repl session!');
 
   const value = await session.eval('*1', session.client.ns).value;
@@ -551,7 +551,7 @@ export async function evaluateInOutputWindow(
   const outputDocument = await outputWindow.openResultsDoc();
   const evalPos = outputDocument.positionAt(outputDocument.getText().length);
   try {
-    const session = replSession.getSession(sessionType);
+    const session = replSession.tryToGetSession(sessionType);
     replSession.updateReplSessionType();
     if (outputWindow.getNs() !== ns) {
       util.assertIsDefined(session, 'Expected there to be a repl session!');

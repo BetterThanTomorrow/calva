@@ -1,9 +1,9 @@
 import { NReplSession } from '.';
-import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
+import { cljsLib, tryToGetDocument, getFileType, assertIsDefined } from '../utilities';
 import * as outputWindow from '../results-output/results-doc';
 import { isUndefined } from 'lodash';
 
-function getSession(fileType?: string): NReplSession | undefined {
+function tryToGetSession(fileType?: string): NReplSession | undefined {
   const doc = tryToGetDocument({});
 
   if (isUndefined(fileType)) {
@@ -20,6 +20,14 @@ function getSession(fileType?: string): NReplSession | undefined {
   }
 }
 
+function getSession(fileType?: string): NReplSession {
+  const session = tryToGetSession(fileType);
+
+  assertIsDefined(session, 'Expected to be able to get an nrepl session!');
+
+  return session;
+}
+
 function getReplSessionType(connected: boolean): string | undefined {
   const doc = tryToGetDocument({});
   const fileType = getFileType(doc);
@@ -28,12 +36,12 @@ function getReplSessionType(connected: boolean): string | undefined {
   if (connected) {
     if (outputWindow.isResultsDoc(doc)) {
       sessionType = outputWindow.getSessionType();
-    } else if (fileType == 'cljs' && getSession('cljs') !== null) {
+    } else if (fileType == 'cljs' && tryToGetSession('cljs') !== undefined) {
       sessionType = 'cljs';
-    } else if (fileType == 'clj' && getSession('clj') !== null) {
+    } else if (fileType == 'clj' && tryToGetSession('clj') !== undefined) {
       sessionType = 'clj';
-    } else if (getSession('cljc') !== null) {
-      sessionType = getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
+    } else if (tryToGetSession('cljc') !== undefined) {
+      sessionType = tryToGetSession('cljc') == tryToGetSession('clj') ? 'clj' : 'cljs';
     } else {
       sessionType = 'clj';
     }
@@ -52,4 +60,10 @@ function getReplSessionTypeFromState(): string | undefined {
   return cljsLib.getStateValue('current-session-type');
 }
 
-export { getSession, getReplSessionType, updateReplSessionType, getReplSessionTypeFromState };
+export {
+  tryToGetSession,
+  getSession,
+  getReplSessionType,
+  updateReplSessionType,
+  getReplSessionTypeFromState,
+};
