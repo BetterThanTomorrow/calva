@@ -86,6 +86,7 @@ async function evaluateCode(
 
   if (code.length > 0) {
     if (addToHistory) {
+      util.assertIsDefined(session.replType, 'Expected session to have a repl type!');
       replHistory.addToReplHistory(session.replType, code);
       replHistory.resetState();
     }
