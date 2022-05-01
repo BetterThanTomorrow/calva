@@ -13,6 +13,7 @@ import * as outputWindow from '../results-output/results-doc';
 import { JackInTerminal, JackInTerminalOptions, createCommandLine } from './jack-in-terminal';
 import * as liveShareSupport from '../live-share';
 import { getConfig } from '../config';
+import { assertIsDefined } from '../type-checks';
 
 let jackInPTY: JackInTerminal | undefined = undefined;
 let jackInTerminal: vscode.Terminal | undefined = undefined;
@@ -172,7 +173,7 @@ async function getJackInTerminalOptions(
   }
 
   const projectType = projectTypes.getProjectTypeForName(projectTypeName);
-  utilities.assertIsDefined(projectType, 'Expected to find a project type!');
+  assertIsDefined(projectType, 'Expected to find a project type!');
 
   const projectRootLocal = state.getProjectRootLocal();
 

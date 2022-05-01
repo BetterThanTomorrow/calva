@@ -8,6 +8,7 @@ import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
 import { parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
+import { assertIsDefined } from '../type-checks';
 
 export const isWin = /^win/.test(process.platform);
 
@@ -32,7 +33,7 @@ function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string
   } else {
     const projectTypeName: ProjectType | string = connectSequence.projectType;
     const projectType = getProjectTypeForName(projectTypeName);
-    utilities.assertIsDefined(
+    assertIsDefined(
       projectType,
       `Expected a project type given project type name of ${projectTypeName}`
     );
@@ -121,7 +122,7 @@ async function selectShadowBuilds(
   if (menuSelections) {
     selectedBuilds = menuSelections.cljsLaunchBuilds;
   } else {
-    utilities.assertIsDefined(foundBuilds, 'Expected to have foundBuilds when using the picker!');
+    assertIsDefined(foundBuilds, 'Expected to have foundBuilds when using the picker!');
     selectedBuilds = await utilities.quickPickMulti({
       values: foundBuilds.filter((x) => x[0] == ':'),
       placeHolder: 'Select builds to start',
@@ -222,7 +223,7 @@ export enum JackInDependency {
 }
 
 const jackInDependencyVersions = getConfig().jackInDependencyVersions;
-utilities.assertIsDefined(
+assertIsDefined(
   jackInDependencyVersions,
   'Expected jackInDependencyVersions to be set in the config!'
 );
@@ -641,7 +642,7 @@ export async function detectProjectTypes(): Promise<string[]> {
     if (projectTypes[clj].useWhenExists) {
       try {
         const projectFileName = projectTypes[clj].useWhenExists;
-        utilities.assertIsDefined(projectFileName, 'Expected there to be a project filename!');
+        assertIsDefined(projectFileName, 'Expected there to be a project filename!');
         const uri = vscode.Uri.joinPath(state.getProjectRootUri(), projectFileName);
         await vscode.workspace.fs.readFile(uri);
         cljProjTypes.push(clj);

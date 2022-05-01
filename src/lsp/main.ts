@@ -23,6 +23,7 @@ import { provideHover } from '../providers/hover';
 import { provideSignatureHelp } from '../providers/signature';
 import { isResultsDoc } from '../results-output/results-doc';
 import { MessageItem } from 'vscode';
+import { assertIsDefined } from '../type-checks';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const LSP_CLIENT_KEY_ERROR = 'lspClientError';
@@ -430,7 +431,7 @@ async function getFallbackFolder(): Promise<FallbackFolder> {
     }
   }
 
-  util.assertIsDefined(folderType, 'Expected there to be a folderType at this point!');
+  assertIsDefined(folderType, 'Expected there to be a folderType at this point!');
 
   return {
     uri: fallbackFolder,
@@ -487,7 +488,7 @@ async function startClient(fallbackFolder: FallbackFolder): Promise<boolean> {
     });
   }
   setStateValue(LSP_CLIENT_KEY, undefined);
-  util.assertIsDefined(clojureLspPath, 'Expected there to be a clojure LSP path!');
+  assertIsDefined(clojureLspPath, 'Expected there to be a clojure LSP path!');
   const client = createClient(clojureLspPath, fallbackFolder);
   console.log('Starting clojure-lsp at', clojureLspPath);
 

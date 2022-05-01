@@ -25,6 +25,7 @@ import * as clojureDocs from './clojuredocs';
 import * as jszip from 'jszip';
 import { addEdnConfig } from './config';
 import { getJarContents } from './utilities';
+import { assertIsDefined, isNonEmptyString } from './type-checks';
 
 async function readJarContent(uri: string) {
   try {
@@ -39,7 +40,7 @@ async function readJarContent(uri: string) {
 }
 
 async function readRuntimeConfigs() {
-  util.assertIsDefined(nClient, 'Expected there to be an nREPL client!');
+  assertIsDefined(nClient, 'Expected there to be an nREPL client!');
   const classpath = await nClient.session.classpath().catch((e) => {
     console.error('readRuntimeConfigs:', e);
   });
@@ -56,7 +57,7 @@ async function readRuntimeConfigs() {
 
     // maybe we don't need to keep uri -> edn association, but it would make showing errors easier later
     return files
-      .filter(([_, config]) => util.isNonEmptyString(config))
+      .filter(([_, config]) => isNonEmptyString(config))
       .map(([_, config]) => addEdnConfig(config));
   }
 }
@@ -114,7 +115,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     if (connectSequence.afterCLJReplJackInCode) {
       outputWindow.append(`\n; Evaluating 'afterCLJReplJackInCode'`);
       const ns = outputWindow.getNs();
-      util.assertIsDefined(ns, 'Expected outputWindow to have a namespace!');
+      assertIsDefined(ns, 'Expected outputWindow to have a namespace!');
       await evaluateInOutputWindow(connectSequence.afterCLJReplJackInCode, 'clj', ns, {});
     }
 
@@ -379,7 +380,7 @@ function createCLJSReplType(
           const buildsForSelection = startedBuilds
             ? startedBuilds
             : await figwheelOrShadowBuilds(cljsTypeName);
-          util.assertIsDefined(
+          assertIsDefined(
             buildsForSelection,
             'Expected there to be figwheel or shadowcljs builds!'
           );
@@ -435,14 +436,14 @@ function createCLJSReplType(
     replType.start = async (session, name, checkFn) => {
       let startCode = cljsType.startCode;
       if (!hasStarted) {
-        util.assertIsDefined(startCode, 'Expected startCode to be defined!');
+        assertIsDefined(startCode, 'Expected startCode to be defined!');
         if (startCode.includes('%BUILDS')) {
           let builds: string[];
           if (menuSelections && menuSelections.cljsLaunchBuilds) {
             builds = menuSelections.cljsLaunchBuilds;
           } else {
             const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
-            util.assertIsDefined(allBuilds, 'Expected there to be figwheel or shadowcljs builds!');
+            assertIsDefined(allBuilds, 'Expected there to be figwheel or shadowcljs builds!');
 
             builds =
               allBuilds.length <= 1
@@ -529,7 +530,7 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
       ';   The Calva Connection Log might have more connection progress information.'
     );
     if (repl.start !== undefined) {
-      util.assertIsDefined(repl.started, "Expected repl to have a 'started' check function!");
+      assertIsDefined(repl.started, "Expected repl to have a 'started' check function!");
       if (await repl.start(newCljsSession, repl.name, repl.started)) {
         state.analytics().logEvent('REPL', 'StartedCLJS', repl.name).send();
         outputWindow.append('; Cljs builds started');
@@ -543,7 +544,7 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
       }
     }
 
-    util.assertIsDefined(repl.connect, 'Expected repl to have a connect function!');
+    assertIsDefined(repl.connect, 'Expected repl to have a connect function!');
 
     if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
       state.analytics().logEvent('REPL', 'ConnectedCLJS', repl.name).send();

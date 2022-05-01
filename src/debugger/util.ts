@@ -1,5 +1,5 @@
 import { LispTokenCursor } from '../cursor-doc/token-cursor';
-import { assertIsDefined } from '../utilities';
+import { assertIsDefined } from '../type-checks';
 
 function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string): void {
   const range = tokenCursor.rangeForList(1);

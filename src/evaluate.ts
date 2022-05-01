@@ -15,6 +15,7 @@ import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
+import { assertIsDefined } from './type-checks';
 
 function interruptAllEvaluations() {
   if (util.getConnectedState()) {
@@ -86,7 +87,7 @@ async function evaluateCode(
 
   if (code.length > 0) {
     if (addToHistory) {
-      util.assertIsDefined(session.replType, 'Expected session to have a repl type!');
+      assertIsDefined(session.replType, 'Expected session to have a repl type!');
       replHistory.addToReplHistory(session.replType, code);
       replHistory.resetState();
     }
@@ -154,7 +155,7 @@ async function evaluateCode(
           if (context.stacktrace) {
             outputWindow.saveStacktrace(context.stacktrace);
             outputWindow.append(errMsg, (_, afterResultLocation) => {
-              util.assertIsDefined(afterResultLocation, 'Expected there to be a location!');
+              assertIsDefined(afterResultLocation, 'Expected there to be a location!');
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
           } else {
@@ -195,7 +196,7 @@ async function evaluateCode(
             }
           }
           if (context.stacktrace && context.stacktrace.stacktrace) {
-            util.assertIsDefined(afterResultLocation, 'Expected there to be a location!');
+            assertIsDefined(afterResultLocation, 'Expected there to be a location!');
             outputWindow.markLastStacktraceRange(afterResultLocation);
           }
         });
@@ -412,7 +413,8 @@ async function loadFile(
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
     state.analytics().logEvent('Evaluation', 'LoadFile').send();
-    util.assertIsDefined(session, 'Expected there to be a repl session!');
+    assertIsDefined(session, 'Expected there to be a repl session!');
+    assertIsDefined(ns, 'Expected there to be a namespace!');
     const docUri = outputWindow.isResultsDoc(doc)
       ? await namespace.getUriForNamespace(session, ns)
       : doc.uri;
@@ -478,6 +480,7 @@ async function requireREPLUtilitiesCommand() {
     if (session) {
       try {
         await namespace.createNamespaceFromDocumentIfNotExists(util.tryToGetDocument({}));
+        assertIsDefined(ns, 'Expected there to be a namespace!');
         await session.switchNS(ns);
         await session.eval(form, ns).value;
         chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
@@ -507,7 +510,7 @@ async function togglePrettyPrint() {
   const config = vscode.workspace.getConfiguration('calva'),
     pprintConfigKey = 'prettyPrintingOptions',
     pprintOptions = config.get<PrettyPrintingOptions>(pprintConfigKey);
-  util.assertIsDefined(pprintOptions, 'Expected there to be pprint options!');
+  assertIsDefined(pprintOptions, 'Expected there to be pprint options!');
   pprintOptions.enabled = !pprintOptions.enabled;
   if (pprintOptions.enabled && !(pprintOptions.printEngine || pprintOptions.printFn)) {
     pprintOptions.printEngine = 'pprint';
@@ -553,7 +556,7 @@ export async function evaluateInOutputWindow(
     const session = replSession.tryToGetSession(sessionType);
     replSession.updateReplSessionType();
     if (outputWindow.getNs() !== ns) {
-      util.assertIsDefined(session, 'Expected there to be a repl session!');
+      assertIsDefined(session, 'Expected there to be a repl session!');
       await session.switchNS(ns);
       outputWindow.setSession(session, ns);
       if (options.evaluationSendCodeToOutputWindow !== false) {

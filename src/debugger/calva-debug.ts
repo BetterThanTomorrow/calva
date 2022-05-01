@@ -35,8 +35,8 @@ import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
 import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
-import * as util from '../utilities';
 import * as replSession from '../nrepl/repl-session';
+import { assertIsDefined } from '../type-checks';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
   type: 'clojure',
@@ -271,7 +271,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     // Pass scheme in path argument to Source contructor so that if it's a jar file it's handled correctly
     const source = new Source(basename(debugResponse.file), debugResponse.file);
     const name = tokenCursor.getFunctionName();
-    util.assertIsDefined(name, 'Expected to find a function name!');
+    assertIsDefined(name, 'Expected to find a function name!');
     const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
 
     response.body = {

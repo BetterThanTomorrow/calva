@@ -13,6 +13,7 @@ import { LispTokenCursor } from '../cursor-doc/token-cursor';
 import * as docMirror from '../doc-mirror/index';
 import * as namespace from '../namespace';
 import * as replSession from '../nrepl/repl-session';
+import { assertIsDefined } from '../type-checks';
 
 export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
   async provideSignatureHelp(
@@ -42,13 +43,13 @@ export async function provideSignatureHelp(
         if (signatures) {
           const help = new SignatureHelp(),
             currentArgsRanges = getCurrentArgsRanges(document, idx);
-          util.assertIsDefined(currentArgsRanges, 'Expected to find the current args ranges!');
+          assertIsDefined(currentArgsRanges, 'Expected to find the current args ranges!');
           help.signatures = signatures;
           help.activeSignature = getActiveSignatureIdx(signatures, currentArgsRanges.length);
           if (signatures[help.activeSignature].parameters !== undefined) {
             const currentArgIdx = currentArgsRanges.findIndex((range) => range.contains(position)),
               activeSignature = signatures[help.activeSignature];
-            util.assertIsDefined(activeSignature, 'Expected activeSignature to be defined!');
+            assertIsDefined(activeSignature, 'Expected activeSignature to be defined!');
             help.activeParameter =
               activeSignature.label.match(/&/) !== null
                 ? Math.min(currentArgIdx, activeSignature.parameters.length - 1)

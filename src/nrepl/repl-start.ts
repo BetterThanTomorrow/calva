@@ -12,6 +12,7 @@ import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import { ReplConnectSequence } from './connectSequence';
 import * as clojureLsp from '../lsp/main';
 import * as calvaConfig from '../config';
+import { assertIsDefined } from '../type-checks';
 
 const TEMPLATES_SUB_DIR = 'bundled';
 const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
@@ -168,7 +169,7 @@ export async function startStandaloneRepl(
   }
 
   const main = await openStoredDoc(storageUri, tempDirUri, config.files[0]);
-  utilities.assertIsDefined(main, 'Expected to be able to open the stored doc!');
+  assertIsDefined(main, 'Expected to be able to open the stored doc!');
   const [mainDoc, mainEditor] = main;
   for (const file of config.files.slice(1)) {
     await openStoredDoc(storageUri, tempDirUri, file);
@@ -189,10 +190,7 @@ export async function startStandaloneRepl(
       preserveFocus: false,
     });
     const pprintOptions = getConfig().prettyPrintingOptions;
-    utilities.assertIsDefined(
-      pprintOptions,
-      'Expected there to be pretty printing options configured!'
-    );
+    assertIsDefined(pprintOptions, 'Expected there to be pretty printing options configured!');
     await eval.loadFile({}, pprintOptions);
     outputWindow.appendPrompt();
   });

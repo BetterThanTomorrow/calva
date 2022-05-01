@@ -3,7 +3,7 @@
  * @module lexer
  */
 
-import { assertIsDefined } from '../utilities';
+import { assertIsDefined } from '../type-checks';
 
 /**
  * The base Token class. Contains the token type,

@@ -5,7 +5,7 @@
  */
 import * as stream from 'stream';
 import { Buffer } from 'buffer';
-import { assertIsDefined } from '../utilities';
+import { assertIsDefined } from '../type-checks';
 
 /** Bencode the given JSON object */
 const bencode = (value) => {

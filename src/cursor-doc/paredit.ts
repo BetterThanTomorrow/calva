@@ -1,4 +1,4 @@
-import { assertIsDefined } from '../utilities';
+import { assertIsDefined } from '../type-checks';
 import { validPair } from './clojure-lexer';
 import { ModelEdit, EditableDocument, ModelEditSelection } from './model';
 import { LispTokenCursor } from './token-cursor';

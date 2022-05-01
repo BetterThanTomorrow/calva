@@ -9,6 +9,7 @@ import type { ReplSessionType } from '../config';
 import { isResultsDoc, getSessionType, getPrompt, append } from './results-doc';
 import { addToHistory } from './util';
 import { isUndefined } from 'lodash';
+import { assertIsDefined } from '../type-checks';
 
 const replHistoryCommandsActiveContext = 'calva:replHistoryCommandsActive';
 let historyIndex: number | undefined = undefined;
@@ -113,7 +114,7 @@ function showPreviousReplHistoryEntry(): void {
     historyIndex = history.length;
     lastTextAtPrompt = textAtPrompt;
   } else {
-    util.assertIsDefined(textAtPrompt, 'Expected to find text at the prompt!');
+    assertIsDefined(textAtPrompt, 'Expected to find text at the prompt!');
     updateReplHistory(replSessionType, history, textAtPrompt, historyIndex);
   }
   historyIndex--;
@@ -133,8 +134,8 @@ function showNextReplHistoryEntry(): void {
     showReplHistoryEntry(lastTextAtPrompt, editor);
   } else {
     const textAtPrompt = getTextAfterLastOccurrenceOfSubstring(doc.getText(), getPrompt());
-    util.assertIsDefined(textAtPrompt, 'Expected to find text at the prompt!');
-    util.assertIsDefined(historyIndex, 'Expected a value for historyIndex!');
+    assertIsDefined(textAtPrompt, 'Expected to find text at the prompt!');
+    assertIsDefined(historyIndex, 'Expected a value for historyIndex!');
     updateReplHistory(replSessionType, history, textAtPrompt, historyIndex);
     historyIndex++;
     const nextHistoryEntry = history[historyIndex];

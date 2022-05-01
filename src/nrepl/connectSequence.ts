@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as state from '../state';
 import * as utilities from '../utilities';
 import { getConfig } from '../config';
+import { assertIsDefined } from '../type-checks';
 
 enum ProjectTypes {
   'Leiningen' = 'Leiningen',
@@ -253,7 +254,7 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
 /** Retrieve the replConnectSequences from the config */
 function getCustomConnectSequences(): ReplConnectSequence[] {
   const sequences: ReplConnectSequence[] | undefined = getConfig().replConnectSequences;
-  utilities.assertIsDefined(sequences, 'Expected there to be repl connect sequences!');
+  assertIsDefined(sequences, 'Expected there to be repl connect sequences!');
 
   for (const sequence of sequences) {
     if (
@@ -327,7 +328,7 @@ async function askForConnectSequence(
     return;
   }
   const sequence = sequences.find((seq) => seq.name === projectConnectSequenceName);
-  utilities.assertIsDefined(sequence, 'Expected to find a sequence!');
+  assertIsDefined(sequence, 'Expected to find a sequence!');
   void state.extensionContext.workspaceState.update('selectedCljTypeName', sequence.projectType);
   return sequence;
 }

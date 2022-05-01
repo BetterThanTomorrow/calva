@@ -20,6 +20,7 @@ import { getClient } from '../lsp/main';
 import { CompletionRequest, CompletionResolveRequest } from 'vscode-languageserver-protocol';
 import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
 import { CompletionItem as LSPCompletionItem } from 'vscode-languageclient';
+import { assertIsDefined } from '../type-checks';
 
 const mappings = {
   nil: CompletionItemKind.Value,
@@ -100,7 +101,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
     if (util.getConnectedState() && item['data']?.provider === 'repl') {
       const activeTextEditor = window.activeTextEditor;
 
-      util.assertIsDefined(activeTextEditor, 'Expected window to have activeTextEditor defined!');
+      assertIsDefined(activeTextEditor, 'Expected window to have activeTextEditor defined!');
 
       const client = replSession.tryToGetSession(util.getFileType(activeTextEditor.document));
       if (client) {
@@ -160,14 +161,14 @@ async function replCompletions(
 
   const toplevelSelection = select.getFormSelection(document, position, true);
 
-  util.assertIsDefined(toplevelSelection, 'Expected a topLevelSelection!');
+  assertIsDefined(toplevelSelection, 'Expected a topLevelSelection!');
 
   const toplevel = document.getText(toplevelSelection),
     toplevelStartOffset = document.offsetAt(toplevelSelection.start),
     toplevelStartCursor = docMirror.getDocument(document).getTokenCursor(toplevelStartOffset + 1),
     wordRange = document.getWordRangeAtPosition(position);
 
-  util.assertIsDefined(wordRange, 'Expected a wordRange!');
+  assertIsDefined(wordRange, 'Expected a wordRange!');
 
   const wordStartLocalOffset = document.offsetAt(wordRange.start) - toplevelStartOffset,
     wordEndLocalOffset = document.offsetAt(wordRange.end) - toplevelStartOffset,
@@ -178,7 +179,7 @@ async function replCompletions(
     ns = namespace.getNamespace(document),
     client = replSession.tryToGetSession(util.getFileType(document));
 
-  util.assertIsDefined(client, 'Expected there to be a repl client!');
+  assertIsDefined(client, 'Expected there to be a repl client!');
 
   const res = await client.complete(ns, text, toplevelIsValidForm ? replContext : undefined),
     results = res.completions || [];

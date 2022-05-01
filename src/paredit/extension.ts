@@ -13,7 +13,7 @@ import {
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import { EditableDocument } from '../cursor-doc/model';
-import { assertIsDefined } from '../utilities';
+import { assertIsDefined } from '../type-checks';
 
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 

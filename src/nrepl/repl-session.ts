@@ -1,7 +1,8 @@
 import { NReplSession } from '.';
-import { cljsLib, tryToGetDocument, getFileType, assertIsDefined } from '../utilities';
+import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
 import * as outputWindow from '../results-output/results-doc';
 import { isUndefined } from 'lodash';
+import { assertIsDefined } from '../type-checks';
 
 function tryToGetSession(fileType?: string): NReplSession | undefined {
   const doc = tryToGetDocument({});

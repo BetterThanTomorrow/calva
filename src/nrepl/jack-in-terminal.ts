@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as child from 'child_process';
 import * as kill from 'tree-kill';
 import * as outputWindow from '../results-output/results-doc';
-import { assertIsDefined } from '../utilities';
+import { assertIsDefined } from '../type-checks';
 
 export interface JackInTerminalOptions extends vscode.TerminalOptions {
   name: string;

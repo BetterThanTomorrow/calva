@@ -9,6 +9,7 @@ import * as lsp from './lsp/types';
 import * as namespace from './namespace';
 import { getSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
+import { assertIsDefined, isNonEmptyString } from './type-checks';
 
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -68,7 +69,7 @@ function upsertTest(
 // Cider 0.26 and 0.27 have an issue where context can be an empty array.
 // https://github.com/clojure-emacs/cider-nrepl/issues/728#issuecomment-996002988
 export function assertionName(result: cider.TestResult): string {
-  if (util.isNonEmptyString(result.context)) {
+  if (isNonEmptyString(result.context)) {
     return result.context;
   }
   return 'assertion';
@@ -181,9 +182,9 @@ function reportTests(
   diagnosticCollection.clear();
 
   const recordDiagnostic = (result: cider.TestResult) => {
-    util.assertIsDefined(result.line, 'Expected cider test result to have a line!');
+    assertIsDefined(result.line, 'Expected cider test result to have a line!');
 
-    util.assertIsDefined(result.file, 'Expected cider test result to have a file!');
+    assertIsDefined(result.file, 'Expected cider test result to have a file!');
 
     const msg = cider.diagnosticMessage(result);
 

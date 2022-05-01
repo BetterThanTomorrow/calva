@@ -4,7 +4,8 @@ import * as isEqual from 'lodash.isequal';
 import * as docMirror from '../../doc-mirror/index';
 import { Token, validPair } from '../../cursor-doc/clojure-lexer';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
-import { tryToGetActiveTextEditor, getActiveTextEditor, assertIsDefined } from '../../utilities';
+import { tryToGetActiveTextEditor, getActiveTextEditor } from '../../utilities';
+import { assertIsDefined } from '../../type-checks';
 
 type StackItem = {
   char: string;

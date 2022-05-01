@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
 import * as projectRoot from './project-root';
+import { assertIsDefined } from './type-checks';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -55,7 +56,7 @@ export function tryToGetProjectRootLocal(useCache = true): string | undefined {
 export const getProjectRootLocal = (useCache = true): string => {
   const projectRootLocal = tryToGetProjectRootLocal(useCache);
 
-  util.assertIsDefined(projectRootLocal, 'Expected to find a local project root!');
+  assertIsDefined(projectRootLocal, 'Expected to find a local project root!');
 
   return projectRootLocal;
 };
@@ -78,7 +79,7 @@ export function tryToGetProjectRootUri(useCache = true): vscode.Uri | undefined 
 export function getProjectRootUri(useCache = true): vscode.Uri {
   const projectRootUri = tryToGetProjectRootUri(useCache);
 
-  util.assertIsDefined(projectRootUri, 'Expected to find project root URI!');
+  assertIsDefined(projectRootUri, 'Expected to find project root URI!');
 
   return projectRootUri;
 }

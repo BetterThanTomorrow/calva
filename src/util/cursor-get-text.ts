@@ -3,7 +3,7 @@
  */
 
 import { EditableDocument } from '../cursor-doc/model';
-import { assertIsDefined } from '../utilities';
+import { assertIsDefined } from '../type-checks';
 
 export type RangeAndText = [[number, number], string] | [undefined, ''];
 

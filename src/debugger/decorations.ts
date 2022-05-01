@@ -7,6 +7,7 @@ import * as util from '../utilities';
 import lsp from '../lsp/main';
 import { getStateValue } from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
+import { assertIsDefined } from '../type-checks';
 
 let enabled = false;
 
@@ -49,7 +50,7 @@ async function update(
           const docUri = vscode.Uri.parse(namespacePath, true);
           const decodedDocUri = decodeURIComponent(docUri.toString());
           const docSymbols = (await lsp.getDocumentSymbols(lspClient, decodedDocUri))[0].children;
-          util.assertIsDefined(docSymbols, 'Expected to get document symbols from the LSP server!');
+          assertIsDefined(docSymbols, 'Expected to get document symbols from the LSP server!');
           const instrumentedDocSymbols = docSymbols.filter((s) =>
             instrumentedDefs.includes(s.name)
           );

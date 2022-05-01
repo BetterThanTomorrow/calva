@@ -37,6 +37,7 @@ import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
 
 import * as clojureDocs from './clojuredocs';
+import { assertIsDefined } from './type-checks';
 async function onDidSave(testController: vscode.TestController, document: vscode.TextDocument) {
   const { evaluate, test } = config.getConfig();
 
@@ -50,7 +51,7 @@ async function onDidSave(testController: vscode.TestController, document: vscode
   } else if (evaluate) {
     if (!outputWindow.isResultsDoc(document)) {
       const pprintOptions = config.getConfig().prettyPrintingOptions;
-      util.assertIsDefined(pprintOptions, 'Expected there to be pprint options!');
+      assertIsDefined(pprintOptions, 'Expected there to be pprint options!');
       await eval.loadFile(document, pprintOptions);
       outputWindow.appendPrompt();
       state.analytics().logEvent('Calva', 'OnSaveLoad').send();
@@ -111,7 +112,7 @@ async function activate(context: vscode.ExtensionContext) {
   const maxTokenizationLineLength = vscode.workspace
     .getConfiguration('editor')
     .get<number>('maxTokenizationLineLength');
-  util.assertIsDefined(
+  assertIsDefined(
     maxTokenizationLineLength,
     'Expected there to be a maxTokenizationLineLength set in the editor config'
   );
@@ -127,7 +128,7 @@ async function activate(context: vscode.ExtensionContext) {
   const clojureExtension = vscode.extensions.getExtension('avli.clojure');
   const customCljsRepl = config.getConfig().customCljsRepl;
   const replConnectSequences = config.getConfig().replConnectSequences;
-  util.assertIsDefined(
+  assertIsDefined(
     replConnectSequences,
     'Expected there to be a repl connect sequence in the config!'
   );
@@ -245,7 +246,7 @@ async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('calva.loadFile', async () => {
       const pprintOptions = config.getConfig().prettyPrintingOptions;
-      util.assertIsDefined(pprintOptions, 'Expected pprint options in the config!');
+      assertIsDefined(pprintOptions, 'Expected pprint options in the config!');
       await eval.loadFile({}, pprintOptions);
       return new Promise((resolve) => {
         outputWindow.appendPrompt(resolve);

@@ -12,6 +12,7 @@ import {
   ModelEditSelection,
 } from '../cursor-doc/model';
 import { isUndefined } from 'lodash';
+import { assertIsDefined } from '../type-checks';
 
 const documents = new Map<vscode.TextDocument, MirroredDocument>();
 
@@ -181,7 +182,7 @@ let registered = false;
 
 function processChanges(event: vscode.TextDocumentChangeEvent) {
   const mirrorDoc = documents.get(event.document);
-  utilities.assertIsDefined(mirrorDoc, 'Expected to find a mirror document!');
+  assertIsDefined(mirrorDoc, 'Expected to find a mirror document!');
   const model = mirrorDoc.model;
 
   for (const change of event.contentChanges) {

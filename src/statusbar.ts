@@ -5,6 +5,7 @@ import * as config from './config';
 import status from './status';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { tryToGetSession, getReplSessionTypeFromState } from './nrepl/repl-session';
+import { assertIsDefined } from './type-checks';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
@@ -24,7 +25,7 @@ const color = {
 function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration): string {
   const configSection = currentConf.inspect<string>(section);
 
-  util.assertIsDefined(configSection, () => `Expected config section "${section}" to be defined!`);
+  assertIsDefined(configSection, () => `Expected config section "${section}" to be defined!`);
 
   const { defaultValue, globalValue, workspaceFolderValue, workspaceValue } = configSection;
 

@@ -7,11 +7,12 @@ import * as outputWindow from './results-output/results-doc';
 import * as utilities from './utilities';
 import * as replSession from './nrepl/repl-session';
 import { NReplSession } from './nrepl';
+import { assertIsDefined } from './type-checks';
 
 export function getNamespace(doc?: vscode.TextDocument) {
   if (outputWindow.isResultsDoc(doc)) {
     const outputWindowNs = outputWindow.getNs();
-    utilities.assertIsDefined(outputWindowNs, 'Expected output window to have a namespace!');
+    assertIsDefined(outputWindowNs, 'Expected output window to have a namespace!');
     return outputWindowNs;
   }
   let ns = 'user';
