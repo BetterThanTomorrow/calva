@@ -61,7 +61,7 @@ async function fetchConfig(configName: string): Promise<DramConfig> {
 
 async function downloadDram(storageUri: vscode.Uri, configPath: string, filePath: string) {
   const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
-  const calvaVersion = calva.packageJSON.version;
+  const calvaVersion = calva?.packageJSON.version;
   const isDebug = process.env['IS_DEBUG'] === 'true';
   const branch = isDebug || calvaVersion.match(/-.+$/) ? 'dev' : 'published';
   const dramBaseUrl = `${DRAM_BASE_URL}/${branch}/drams`;
@@ -167,7 +167,9 @@ export async function startStandaloneRepl(
     void clojureLsp.startClientCommand();
   }
 
-  const [mainDoc, mainEditor] = await openStoredDoc(storageUri, tempDirUri, config.files[0]);
+  const main = await openStoredDoc(storageUri, tempDirUri, config.files[0]);
+  utilities.assertIsDefined(main, 'Expected to be able to open the stored doc!');
+  const [mainDoc, mainEditor] = main;
   for (const file of config.files.slice(1)) {
     await openStoredDoc(storageUri, tempDirUri, file);
   }
@@ -186,7 +188,12 @@ export async function startStandaloneRepl(
       viewColumn: vscode.ViewColumn.One,
       preserveFocus: false,
     });
-    await eval.loadFile({}, getConfig().prettyPrintingOptions);
+    const pprintOptions = getConfig().prettyPrintingOptions;
+    utilities.assertIsDefined(
+      pprintOptions,
+      'Expected there to be pretty printing options configured'
+    );
+    await eval.loadFile({}, pprintOptions);
     outputWindow.appendPrompt();
   });
 }
