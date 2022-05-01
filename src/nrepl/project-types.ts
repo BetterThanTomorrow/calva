@@ -114,18 +114,22 @@ export function leinShadowBuilds(defproject: any): string[] | undefined {
 
 async function selectShadowBuilds(
   connectSequence: ReplConnectSequence,
-  foundBuilds: string[]
+  foundBuilds: string[] | undefined
 ): Promise<{ selectedBuilds: string[] | undefined; args: string[] }> {
-  const menuSelections = connectSequence.menuSelections,
-    selectedBuilds = menuSelections
-      ? menuSelections.cljsLaunchBuilds
-      : await utilities.quickPickMulti({
-          values: foundBuilds.filter((x) => x[0] == ':'),
-          placeHolder: 'Select builds to start',
-          saveAs: `${state.getProjectRootUri().toString()}/shadow-cljs-jack-in`,
-        }),
-    aliases: string[] =
-      menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
+  const menuSelections = connectSequence.menuSelections;
+  let selectedBuilds: string[] | undefined;
+  if (menuSelections) {
+    selectedBuilds = menuSelections.cljsLaunchBuilds;
+  } else {
+    utilities.assertIsDefined(foundBuilds, 'Expected to have foundBuilds when using the picker!');
+    selectedBuilds = await utilities.quickPickMulti({
+      values: foundBuilds.filter((x) => x[0] == ':'),
+      placeHolder: 'Select builds to start',
+      saveAs: `${state.getProjectRootUri().toString()}/shadow-cljs-jack-in`,
+    });
+  }
+  const aliases: string[] =
+    menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
   const aliasesOption = aliases.length > 0 ? `-A${aliases.join('')}` : '';
   const args: string[] = [];
   if (aliasesOption && aliasesOption.length) {
@@ -399,7 +403,6 @@ const projectTypes: { [id: string]: ProjectType } = {
 
       const defproject = await leinDefProject();
       const foundBuilds = leinShadowBuilds(defproject);
-      utilities.assertIsDefined(foundBuilds, 'Expected to find lein shadow builds for project!');
 
       const { selectedBuilds } = await selectShadowBuilds(connectSequence, foundBuilds);
 
