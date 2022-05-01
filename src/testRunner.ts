@@ -237,6 +237,7 @@ function reportTests(
 // FIXME: use cljs session where necessary
 async function runAllTests(controller: vscode.TestController, document = {}) {
   const session = getSession(util.getFileType(document));
+  util.assertIsDefined(session, 'Expected there to be a current session!');
   outputWindow.append('; Running all project tests…');
   try {
     reportTests(controller, session, [await session.testAll()]);
@@ -293,6 +294,7 @@ async function runNamespaceTestsImpl(
   }
 
   const session = getSession(util.getFileType(document));
+  util.assertIsDefined(session, 'Expected there to be a current session!');
 
   // TODO.marc: Should we be passing the `document` argument to `loadFile`?
   await evaluate.loadFile({}, disabledPrettyPrinter);
@@ -318,6 +320,7 @@ async function runNamespaceTests(controller: vscode.TestController, document: vs
     return;
   }
   const session = getSession(util.getFileType(document));
+  util.assertIsDefined(session, 'Expected there to be a current session!');
   const ns = namespace.getNamespace(doc);
   const nss = await considerTestNS(ns, session);
   void runNamespaceTestsImpl(controller, document, nss);
@@ -333,6 +336,7 @@ function getTestUnderCursor() {
 async function runTestUnderCursor(controller: vscode.TestController) {
   const doc = util.tryToGetDocument({});
   const session = getSession(util.getFileType(doc));
+  util.assertIsDefined(session, 'Expected there to be a current session!');
   const ns = namespace.getNamespace(doc);
   const test = getTestUnderCursor();
 
@@ -376,6 +380,7 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
 
 async function rerunTests(controller: vscode.TestController, document = {}) {
   const session = getSession(util.getFileType(document));
+  util.assertIsDefined(session, 'Expected there to be a current session!');
   await evaluate.loadFile({}, disabledPrettyPrinter);
   outputWindow.append('; Running previously failed tests…');
 
