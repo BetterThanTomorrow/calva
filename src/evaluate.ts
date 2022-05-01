@@ -153,6 +153,7 @@ async function evaluateCode(
           if (context.stacktrace) {
             outputWindow.saveStacktrace(context.stacktrace);
             outputWindow.append(errMsg, (_, afterResultLocation) => {
+              util.assertIsDefined(afterResultLocation, 'Expected there to be a location!');
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
           } else {
@@ -193,6 +194,7 @@ async function evaluateCode(
             }
           }
           if (context.stacktrace && context.stacktrace.stacktrace) {
+            util.assertIsDefined(afterResultLocation, 'Expected there to be a location!');
             outputWindow.markLastStacktraceRange(afterResultLocation);
           }
         });
@@ -409,6 +411,7 @@ async function loadFile(
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
     state.analytics().logEvent('Evaluation', 'LoadFile').send();
+    util.assertIsDefined(session, 'Expected there to be a repl session!');
     const docUri = outputWindow.isResultsDoc(doc)
       ? await namespace.getUriForNamespace(session, ns)
       : doc.uri;
@@ -489,6 +492,7 @@ async function requireREPLUtilitiesCommand() {
 async function copyLastResultCommand() {
   const chan = state.outputChannel();
   const session = replSession.getSession(util.getFileType(util.tryToGetDocument({})));
+  util.assertIsDefined(session, 'Expected there to be a repl session!');
 
   const value = await session.eval('*1', session.client.ns).value;
   if (value !== null) {
@@ -503,6 +507,7 @@ async function togglePrettyPrint() {
   const config = vscode.workspace.getConfiguration('calva'),
     pprintConfigKey = 'prettyPrintingOptions',
     pprintOptions = config.get<PrettyPrintingOptions>(pprintConfigKey);
+  util.assertIsDefined(pprintOptions, 'Expected there to be pprint options!');
   pprintOptions.enabled = !pprintOptions.enabled;
   if (pprintOptions.enabled && !(pprintOptions.printEngine || pprintOptions.printFn)) {
     pprintOptions.printEngine = 'pprint';
@@ -548,6 +553,7 @@ export async function evaluateInOutputWindow(
     const session = replSession.getSession(sessionType);
     replSession.updateReplSessionType();
     if (outputWindow.getNs() !== ns) {
+      util.assertIsDefined(session, 'Expected there to be a repl session!');
       await session.switchNS(ns);
       outputWindow.setSession(session, ns);
       if (options.evaluationSendCodeToOutputWindow !== false) {
