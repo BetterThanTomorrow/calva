@@ -15,8 +15,9 @@ export async function findProjectRootPaths() {
   const excludeDirsGlob = excludePattern();
   const t0 = new Date().getTime();
   const rootPaths: string[] = [];
-  if (vscode.workspace.workspaceFolders?.length > 0) {
-    const wsRootPaths = vscode.workspace.workspaceFolders.map((f) => f.uri.fsPath);
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  if (workspaceFolders && workspaceFolders.length > 0) {
+    const wsRootPaths = workspaceFolders.map((f) => f.uri.fsPath);
     rootPaths.push(...wsRootPaths);
   }
   const candidateUris = await vscode.workspace.findFiles(projectFilesGlob, excludeDirsGlob, 10000);
