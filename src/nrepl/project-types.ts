@@ -168,7 +168,7 @@ async function leinProfilesAndAlias(
           leinAlias = menuSelections ? menuSelections.leinAlias : undefined;
         if (leinAlias) {
           alias = unKeywordize(leinAlias);
-        } else if (leinAlias === null) {
+        } else if (leinAlias === undefined) {
           alias = undefined;
         } else {
           let aliases: string[] = [];

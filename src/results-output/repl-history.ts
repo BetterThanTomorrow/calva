@@ -126,7 +126,7 @@ function showNextReplHistoryEntry(): void {
   const doc = editor.document;
   const replSessionType = getSessionType();
   const history = getHistory(replSessionType);
-  if (!isResultsDoc(doc) || historyIndex === null) {
+  if (!isResultsDoc(doc) || historyIndex === undefined) {
     return;
   }
   if (historyIndex === history.length - 1) {
