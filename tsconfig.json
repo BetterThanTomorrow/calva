@@ -18,17 +18,9 @@
     "module": "commonjs",
     "target": "es6",
     "outDir": "out",
-    "lib": [
-      "es2020",
-      "dom"
-    ],
+    "lib": ["es2020", "dom"],
     "sourceMap": true,
     "rootDir": "src"
   },
-  "exclude": [
-    "node_modules",
-    "src/webview",
-    "src/webview.ts",
-    ".vscode-test"
-  ]
+  "exclude": ["node_modules", "src/webview", "src/webview.ts", ".vscode-test"]
 }
