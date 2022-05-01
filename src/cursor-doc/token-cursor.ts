@@ -27,7 +27,7 @@ export class TokenCursor {
   }
 
   /** Return the position */
-  get rowCol() {
+  get rowCol(): [number, number] {
     return [this.line, this.getToken().offset];
   }
 
@@ -117,26 +117,21 @@ export class TokenCursor {
  * If you are particular about which list type that should be considered, supply an `openingBracket`.
  */
 
-function _rangesForSexpsInList(
+const collectRanges = <
+  StartFieldKey extends keyof LispTokenCursor,
+  EndFieldKey extends keyof LispTokenCursor
+>(
   cursor: LispTokenCursor,
-  useRowCol = false,
-  openingBracket?: string
-): [number, number][] | [[number, number], [number, number]][] {
-  if (openingBracket !== undefined) {
-    if (!cursor.backwardListOfType(openingBracket)) {
-      return undefined;
-    }
-  } else {
-    if (!cursor.backwardList()) {
-      return undefined;
-    }
-  }
-  const ranges = [];
+  cursorStartField: StartFieldKey,
+  cursorEndField: EndFieldKey
+): [LispTokenCursor[StartFieldKey], LispTokenCursor[EndFieldKey]][] => {
+  const ranges: [LispTokenCursor[StartFieldKey], LispTokenCursor[EndFieldKey]][] = [];
   // TODO: Figure out how to do this ignore skipping more generally in forward/backward this or that.
   let ignoreCounter = 0;
+
   while (true) {
     cursor.forwardWhitespace();
-    const start = useRowCol ? cursor.rowCol : cursor.offsetStart;
+    const start = cursor[cursorStartField];
     if (cursor.getToken().type === 'ignore') {
       ignoreCounter++;
       cursor.forwardSexp();
@@ -144,7 +139,7 @@ function _rangesForSexpsInList(
     }
     if (cursor.forwardSexp()) {
       if (ignoreCounter === 0) {
-        const end = useRowCol ? cursor.rowCol : cursor.offsetStart;
+        const end = cursor[cursorEndField];
         ranges.push([start, end]);
       } else {
         ignoreCounter--;
@@ -154,6 +149,28 @@ function _rangesForSexpsInList(
     }
   }
   return ranges;
+};
+
+function _rangesForSexpsInList(
+  cursor: LispTokenCursor,
+  useRowCol = false,
+  openingBracket?: string
+): [number, number][] | [[number, number], [number, number]][] | undefined {
+  if (openingBracket !== undefined) {
+    if (!cursor.backwardListOfType(openingBracket)) {
+      return undefined;
+    }
+  } else {
+    if (!cursor.backwardList()) {
+      return undefined;
+    }
+  }
+
+  if (useRowCol) {
+    return collectRanges(cursor, 'rowCol', 'rowCol');
+  } else {
+    return collectRanges(cursor, 'offsetStart', 'offsetEnd');
+  }
 }
 
 export class LispTokenCursor extends TokenCursor {
