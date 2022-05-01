@@ -170,7 +170,7 @@ export class REPLInfoParser {
         const signatures = argListStrings.map((argList) => {
           const signature = new SignatureInformation(`(${symbol} ${argList})`);
           // Skip parameter help on special forms and forms with optional arguments, for now
-          if (this._arglist && !argList.match(/\?/)) {
+          if (this._arglist && !argList.includes('?')) {
             const parameters = this.getParameters(symbol, argList);
 
             if (parameters) {
