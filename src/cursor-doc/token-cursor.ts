@@ -169,7 +169,7 @@ function _rangesForSexpsInList(
   if (useRowCol) {
     return collectRanges(cursor, 'rowCol', 'rowCol');
   } else {
-    return collectRanges(cursor, 'offsetStart', 'offsetEnd');
+    return collectRanges(cursor, 'offsetStart', 'offsetStart');
   }
 }
 
