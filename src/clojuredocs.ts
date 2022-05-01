@@ -174,6 +174,7 @@ async function clojureDocsLookup(
   const symbol = util.getWordAtPosition(doc, position);
   const ns = namespace.getNamespace(doc);
   const session = replSession.getSession(util.getFileType(doc));
+
   const docsFromCider = await clojureDocsCiderNReplLookup(session, symbol, ns);
   if (docsFromCider) {
     return docsFromCider;
