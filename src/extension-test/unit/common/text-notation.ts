@@ -12,7 +12,9 @@ import * as model from '../../../cursor-doc/model';
  *   * Selections with direction left->right are denoted with `|<|` at the range boundaries
  */
 
-function textNotationToTextAndSelection(s: string): [string, { anchor: number; active: number }] {
+function textNotationToTextAndSelection(
+  s: string
+): [string, { anchor: number; active: number | undefined }] {
   const text = s.replace(/•/g, '\n').replace(/\|?[<>]?\|/g, '');
   let anchor: undefined | number = undefined;
   let active: undefined | number = undefined;

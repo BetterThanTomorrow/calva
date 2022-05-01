@@ -25,7 +25,7 @@ describe('addToHistory', () => {
   });
   it('should not push null to history array', () => {
     const history = [];
-    const newHistory = util.addToHistory(history, null);
+    const newHistory = util.addToHistory(history, undefined);
     expect(newHistory.length).toBe(history.length);
   });
 });
