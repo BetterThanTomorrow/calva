@@ -88,7 +88,7 @@ export function getSession(): NReplSession | undefined {
   return _sessionInfo[_sessionType].session;
 }
 
-export function setSession(session: NReplSession, newNs?: string): void {
+export function setSession(session: NReplSession | undefined, newNs?: string): void {
   if (session) {
     if (session.replType) {
       _sessionType = session.replType;

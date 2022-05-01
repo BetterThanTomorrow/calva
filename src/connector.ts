@@ -39,6 +39,7 @@ async function readJarContent(uri: string) {
 }
 
 async function readRuntimeConfigs() {
+  util.assertIsDefined(nClient, 'Expected there to be an nREPL client!');
   const classpath = await nClient.session.classpath().catch((e) => {
     console.error('readRuntimeConfigs:', e);
   });
@@ -79,7 +80,10 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       host: hostname,
       port: +port,
       onError: (e) => {
-        const scheme = state.getProjectRootUri().scheme;
+        const projectRootUri = state.getProjectRootUri();
+        util.assertIsDefined(projectRootUri, 'Expected a project root URI');
+
+        const scheme = projectRootUri.scheme;
         if (scheme === 'vsls') {
           outputWindow.append('; nREPL connection failed; did the host share the nREPL port?');
         }
@@ -112,12 +116,9 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
 
     if (connectSequence.afterCLJReplJackInCode) {
       outputWindow.append(`\n; Evaluating 'afterCLJReplJackInCode'`);
-      await evaluateInOutputWindow(
-        connectSequence.afterCLJReplJackInCode,
-        'clj',
-        outputWindow.getNs(),
-        {}
-      );
+      const ns = outputWindow.getNs();
+      util.assertIsDefined(ns, 'Expected outputWindow to have a namespace!');
+      await evaluateInOutputWindow(connectSequence.afterCLJReplJackInCode, 'clj', ns, {});
     }
 
     outputWindow.appendPrompt();
@@ -188,7 +189,10 @@ function setUpCljsRepl(session, build) {
 }
 
 async function getFigwheelMainBuilds() {
-  const res = await vscode.workspace.fs.readDirectory(state.getProjectRootUri());
+  const projectRootUri = state.getProjectRootUri();
+  util.assertIsDefined(projectRootUri, 'Expected a project root URI');
+
+  const res = await vscode.workspace.fs.readDirectory(projectRootUri);
   const builds = res
     .filter(([name, type]) => type !== vscode.FileType.Directory && name.match(/\.cljs\.edn/))
     .map(([name, _]) => name.replace(/\.cljs\.edn$/, ''));
@@ -371,20 +375,28 @@ function createCLJSReplType(
         'cljsReplTypeHasBuilds',
         cljsType.buildsRequired
       );
-      let initCode = cljsType.connectCode,
-        build: string = null;
+      let initCode: typeof cljsType.connectCode | undefined = cljsType.connectCode,
+        build: string | null = null;
       if (menuSelections && menuSelections.cljsDefaultBuild && useDefaultBuild) {
         build = menuSelections.cljsDefaultBuild;
         useDefaultBuild = false;
       } else {
         if (typeof initCode === 'object' || initCode.includes('%BUILD%')) {
+          const projectRootUri = state.getProjectRootUri();
+          util.assertIsDefined(projectRootUri, 'Expected a project root URI');
+
+          const buildsForSelection = startedBuilds
+            ? startedBuilds
+            : await figwheelOrShadowBuilds(cljsTypeName);
+          util.assertIsDefined(
+            buildsForSelection,
+            'Expected there to be figwheel or shadowcljs builds!'
+          );
+
           build = await util.quickPickSingle({
-            values: startedBuilds ? startedBuilds : await figwheelOrShadowBuilds(cljsTypeName),
+            values: buildsForSelection,
             placeHolder: 'Select which build to connect to',
-            saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
-              ' ',
-              '-'
-            )}-build`,
+            saveAs: `${projectRootUri.toString()}/${cljsTypeName.replace(' ', '-')}-build`,
             autoSelect: true,
           });
         }
@@ -415,12 +427,10 @@ function createCLJSReplType(
       );
     },
     connected: (result, out, err) => {
-      if (cljsType.isConnectedRegExp) {
-        return (
-          [...out, result].find((x) => {
-            return x.search(cljsType.isConnectedRegExp) >= 0;
-          }) != undefined
-        );
+      const { isConnectedRegExp } = cljsType;
+
+      if (isConnectedRegExp) {
+        return [...out, result].find((x) => x.search(isConnectedRegExp) >= 0) !== undefined;
       } else {
         return true;
       }
@@ -431,22 +441,23 @@ function createCLJSReplType(
     replType.start = async (session, name, checkFn) => {
       let startCode = cljsType.startCode;
       if (!hasStarted) {
-        if (startCode.includes('%BUILDS')) {
+        if (startCode && startCode.includes('%BUILDS')) {
           let builds: string[];
           if (menuSelections && menuSelections.cljsLaunchBuilds) {
             builds = menuSelections.cljsLaunchBuilds;
           } else {
             const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
+            util.assertIsDefined(allBuilds, 'Expected there to be figwheel or shadowcljs builds!');
+            const projectRootUri = state.getProjectRootUri();
+            util.assertIsDefined(projectRootUri, 'Expected a project root URI');
+
             builds =
               allBuilds.length <= 1
                 ? allBuilds
                 : await util.quickPickMulti({
                     values: allBuilds,
                     placeHolder: 'Please select which builds to start',
-                    saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
-                      ' ',
-                      '-'
-                    )}-builds`,
+                    saveAs: `${projectRootUri.toString()}/${cljsTypeName.replace(' ', '-')}-builds`,
                   });
           }
           if (builds) {
@@ -476,7 +487,7 @@ function createCLJSReplType(
             outputWindow.append('; Aborted starting cljs repl.');
             throw 'Aborted';
           }
-        } else {
+        } else if (startCode) {
           outputWindow.append('; Starting cljs repl for: ' + projectTypeName + '...');
           return evalConnectCode(
             session,
@@ -494,11 +505,11 @@ function createCLJSReplType(
   }
 
   replType.started = (result, out, err) => {
-    if (cljsType.isReadyToStartRegExp && !hasStarted) {
+    const { isReadyToStartRegExp } = cljsType;
+
+    if (isReadyToStartRegExp && !hasStarted) {
       const started =
-        [...out, ...err].find((x) => {
-          return x.search(cljsType.isReadyToStartRegExp) >= 0;
-        }) != undefined;
+        [...out, ...err].find((x) => x.search(isReadyToStartRegExp) >= 0) !== undefined;
       if (started) {
         hasStarted = true;
       }
@@ -512,7 +523,7 @@ function createCLJSReplType(
   return replType;
 }
 
-async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: string) {
+async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: string | undefined) {
   outputWindow.append('; Creating cljs repl session...');
   let newCljsSession = await session.clone();
   newCljsSession.replType = 'cljs';
@@ -521,7 +532,8 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
     outputWindow.append(
       ';   The Calva Connection Log might have more connection progress information.'
     );
-    if (repl.start != undefined) {
+    if (repl.start !== undefined) {
+      util.assertIsDefined(repl.started, "Expected repl to have a 'started' check function!");
       if (await repl.start(newCljsSession, repl.name, repl.started)) {
         state.analytics().logEvent('REPL', 'StartedCLJS', repl.name).send();
         outputWindow.append('; Cljs builds started');
@@ -534,6 +546,9 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
         return [null, null];
       }
     }
+
+    util.assertIsDefined(repl.connect, 'Expected repl to have a connect function!');
+
     if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
       state.analytics().logEvent('REPL', 'ConnectedCLJS', repl.name).send();
       setStateValue('cljs', (cljsSession = newCljsSession));
@@ -588,7 +603,7 @@ async function promptForNreplUrlAndConnect(port, connectSequence: ReplConnectSeq
   return true;
 }
 
-export let nClient: NReplClient;
+export let nClient: NReplClient | undefined;
 export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
@@ -694,13 +709,17 @@ export default {
     status.update();
 
     if (nClient) {
-      if (state.getProjectRootUri().scheme === 'vsls') {
+      const projectRootUri = state.getProjectRootUri();
+      util.assertIsDefined(projectRootUri, 'Expected a project root URI');
+
+      if (projectRootUri.scheme === 'vsls') {
         nClient.disconnect();
       } else {
         // the connection may be ended before
         // the REPL client was connected.
         nClient.close();
       }
+
       liveShareSupport.didDisconnectRepl();
       nClient = undefined;
     }
@@ -708,7 +727,7 @@ export default {
     callback();
   },
   toggleCLJCSession: () => {
-    let newSession: NReplSession;
+    let newSession: NReplSession | undefined;
 
     if (getStateValue('connected')) {
       if (replSession.getSession('cljc') == replSession.getSession('cljs')) {
@@ -727,8 +746,10 @@ export default {
   },
   switchCljsBuild: async () => {
     const cljSession = replSession.getSession('clj');
-    const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName'),
-      cljTypeName: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
+    const cljsTypeName: string | undefined =
+        state.extensionContext.workspaceState.get('selectedCljsTypeName'),
+      cljTypeName: string | undefined =
+        state.extensionContext.workspaceState.get('selectedCljTypeName');
     state.analytics().logEvent('REPL', 'switchCljsBuild', cljsTypeName).send();
 
     const [session, build] = await makeCljsSessionClone(
