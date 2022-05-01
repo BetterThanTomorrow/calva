@@ -652,7 +652,7 @@ export async function connect(
   return true;
 }
 
-async function standaloneConnect(connectSequence: ReplConnectSequence) {
+async function standaloneConnect(connectSequence: ReplConnectSequence | undefined) {
   await outputWindow.initResultsDoc();
   await outputWindow.openResultsDoc();
 
