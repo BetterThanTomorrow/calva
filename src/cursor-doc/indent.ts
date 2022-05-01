@@ -66,11 +66,11 @@ export function collectIndents(
     const match = pattern.match(/^#"(.*)"$/);
 
     if (match) {
-      regexpMap.set(pattern, RegExp(match[1]));
+      regexpMap[pattern] = RegExp(match[1]);
     }
 
     return regexpMap;
-  }, new Map<string, RegExp>());
+  }, {} as Record<string, RegExp>);
 
   do {
     if (!cursor.backwardSexp()) {
