@@ -186,8 +186,7 @@ function setUpCljsRepl(session, build) {
 }
 
 async function getFigwheelMainBuilds() {
-  const projectRootUri = state.getProjectRootUri();
-  const res = await vscode.workspace.fs.readDirectory(projectRootUri);
+  const res = await vscode.workspace.fs.readDirectory(state.getProjectRootUri());
   const builds = res
     .filter(([name, type]) => type !== vscode.FileType.Directory && name.match(/\.cljs\.edn/))
     .map(([name, _]) => name.replace(/\.cljs\.edn$/, ''));
@@ -377,8 +376,6 @@ function createCLJSReplType(
         useDefaultBuild = false;
       } else {
         if (typeof initCode === 'object' || initCode.includes('%BUILD%')) {
-          const projectRootUri = state.getProjectRootUri();
-
           const buildsForSelection = startedBuilds
             ? startedBuilds
             : await figwheelOrShadowBuilds(cljsTypeName);
@@ -390,7 +387,10 @@ function createCLJSReplType(
           build = await util.quickPickSingle({
             values: buildsForSelection,
             placeHolder: 'Select which build to connect to',
-            saveAs: `${projectRootUri.toString()}/${cljsTypeName.replace(' ', '-')}-build`,
+            saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
+              ' ',
+              '-'
+            )}-build`,
             autoSelect: true,
           });
         }
@@ -435,14 +435,14 @@ function createCLJSReplType(
     replType.start = async (session, name, checkFn) => {
       let startCode = cljsType.startCode;
       if (!hasStarted) {
-        if (startCode && startCode.includes('%BUILDS')) {
+        util.assertIsDefined(startCode, 'Expected startCode to be defined!');
+        if (startCode.includes('%BUILDS')) {
           let builds: string[];
           if (menuSelections && menuSelections.cljsLaunchBuilds) {
             builds = menuSelections.cljsLaunchBuilds;
           } else {
             const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
             util.assertIsDefined(allBuilds, 'Expected there to be figwheel or shadowcljs builds!');
-            const projectRootUri = state.getProjectRootUri();
 
             builds =
               allBuilds.length <= 1
@@ -450,7 +450,10 @@ function createCLJSReplType(
                 : await util.quickPickMulti({
                     values: allBuilds,
                     placeHolder: 'Please select which builds to start',
-                    saveAs: `${projectRootUri.toString()}/${cljsTypeName.replace(' ', '-')}-builds`,
+                    saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
+                      ' ',
+                      '-'
+                    )}-builds`,
                   });
           }
           if (builds) {
@@ -480,7 +483,7 @@ function createCLJSReplType(
             outputWindow.append('; Aborted starting cljs repl.');
             throw 'Aborted';
           }
-        } else if (startCode) {
+        } else {
           outputWindow.append('; Starting cljs repl for: ' + projectTypeName + '...');
           return evalConnectCode(
             session,
