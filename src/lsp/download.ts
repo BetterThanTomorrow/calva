@@ -101,6 +101,7 @@ async function unzipFile(zipFilePath: string, extensionPath: string): Promise<vo
 }
 
 async function downloadClojureLsp(extensionPath: string, version: string): Promise<string> {
+  console.log({ extensionPath, version, platform: process.platform });
   const zipFileName = getZipFileName(process.platform);
   const urlPath = `/clojure-lsp/clojure-lsp/releases/download/${version}/${zipFileName}`;
   const zipFilePath = getZipFilePath(extensionPath, process.platform);
