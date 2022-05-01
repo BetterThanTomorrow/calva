@@ -704,9 +704,7 @@ export default {
     status.update();
 
     if (nClient) {
-      const projectRootUri = state.getProjectRootUri();
-
-      if (projectRootUri.scheme === 'vsls') {
+      if (state.getProjectRootUri().scheme === 'vsls') {
         nClient.disconnect();
       } else {
         // the connection may be ended before
