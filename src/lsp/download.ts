@@ -18,12 +18,25 @@ async function getLatestVersion(): Promise<string> {
   }
 }
 
+const zipFileNames = {
+  darwin: 'clojure-lsp-native-macos-amd64.zip',
+  linux: 'clojure-lsp-native-static-linux-amd64.zip',
+  win32: 'clojure-lsp-native-windows-amd64.zip',
+};
+
+const validPlatforms = Object.keys(zipFileNames);
+type ValidPlatform = keyof typeof zipFileNames;
+
+function assertValidPlatform(platform: string): asserts platform is ValidPlatform {
+  if (!validPlatforms.includes(platform)) {
+    throw new Error(`Expected a valid clojure-lsp platform but got ${platform}`);
+  }
+}
+
 function getZipFileName(platform: string): string {
-  return {
-    darwin: 'clojure-lsp-native-macos-amd64.zip',
-    linux: 'clojure-lsp-native-static-linux-amd64.zip',
-    win32: 'clojure-lsp-native-windows-amd64.zip',
-  }[platform];
+  assertValidPlatform(platform);
+
+  return zipFileNames[platform];
 }
 
 function getZipFilePath(extensionPath: string, platform: string): string {
