@@ -33,7 +33,7 @@ const instrumentedSymbolDecorationType = vscode.window.createTextEditorDecoratio
 
 async function update(
   editor: vscode.TextEditor,
-  cljSession: NReplSession,
+  cljSession: NReplSession | undefined,
   lspClient: LanguageClient
 ): Promise<void> {
   if (/(\.clj)$/.test(editor.document.fileName)) {
@@ -49,6 +49,7 @@ async function update(
           const docUri = vscode.Uri.parse(namespacePath, true);
           const decodedDocUri = decodeURIComponent(docUri.toString());
           const docSymbols = (await lsp.getDocumentSymbols(lspClient, decodedDocUri))[0].children;
+          util.assertIsDefined(docSymbols, 'Expected to get document symbols from the LSP server!');
           const instrumentedDocSymbols = docSymbols.filter((s) =>
             instrumentedDefs.includes(s.name)
           );

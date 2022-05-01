@@ -84,8 +84,8 @@ class CalvaDebugSession extends LoggingDebugSession {
     response: DebugProtocol.InitializeResponse,
     args: DebugProtocol.InitializeRequestArguments
   ): void {
-    this.setDebuggerLinesStartAt1(args.linesStartAt1);
-    this.setDebuggerColumnsStartAt1(args.columnsStartAt1);
+    this.setDebuggerLinesStartAt1(!!args.linesStartAt1);
+    this.setDebuggerColumnsStartAt1(!!args.columnsStartAt1);
 
     // Build and return the capabilities of this debug adapter
     response.body = {
@@ -271,6 +271,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     // Pass scheme in path argument to Source contructor so that if it's a jar file it's handled correctly
     const source = new Source(basename(debugResponse.file), debugResponse.file);
     const name = tokenCursor.getFunctionName();
+    util.assertIsDefined(name, 'Expected to find a function name!');
     const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
 
     response.body = {
@@ -439,6 +440,7 @@ function handleNeedDebugInput(response: any): void {
     }
   } else {
     const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    util.assertIsDefined(cljSession, 'Expected there to be a repl session!');
     void cljSession.sendDebugInput(':quit', response.id, response.key);
     void vscode.window.showInformationMessage(
       'Forms containing breakpoints that were not evaluated in the editor (such as if you evaluated a form in the REPL window) cannot be debugged. Evaluate the form in the editor in order to debug it.'
