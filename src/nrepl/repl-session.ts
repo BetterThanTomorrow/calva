@@ -3,7 +3,7 @@ import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
 import * as outputWindow from '../results-output/results-doc';
 import { isUndefined } from 'lodash';
 
-function getSession(fileType?: string): NReplSession {
+function getSession(fileType?: string): NReplSession | undefined {
   const doc = tryToGetDocument({});
 
   if (isUndefined(fileType)) {
@@ -48,7 +48,7 @@ function updateReplSessionType() {
   cljsLib.setStateValue('current-session-type', replSessionType);
 }
 
-function getReplSessionTypeFromState() {
+function getReplSessionTypeFromState(): string | undefined {
   return cljsLib.getStateValue('current-session-type');
 }
 
