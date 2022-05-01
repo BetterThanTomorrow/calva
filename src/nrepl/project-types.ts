@@ -20,7 +20,7 @@ export type ProjectType = {
   resolveBundledPathUnix?: () => string;
   processShellWin: boolean;
   processShellUnix: boolean;
-  commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => any;
+  commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes | undefined) => any;
   useWhenExists: string | undefined;
   nReplPortFile: string[];
 };
@@ -471,7 +471,10 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
 };
 
-async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: CljsTypes) {
+async function cljCommandLine(
+  connectSequence: ReplConnectSequence,
+  cljsType: CljsTypes | undefined
+) {
   const out: string[] = [];
   let depsUri: vscode.Uri;
 
@@ -582,7 +585,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
 
 async function leinCommandLine(
   command: string[],
-  cljsType: CljsTypes,
+  cljsType: CljsTypes | undefined,
   connectSequence: ReplConnectSequence
 ) {
   const out: string[] = [];
