@@ -176,8 +176,11 @@ async function replCompletions(
     replContext = `${contextStart}__prefix__${contextEnd}`,
     toplevelIsValidForm = toplevelStartCursor.withinValidList() && replContext != '__prefix__',
     ns = namespace.getNamespace(document),
-    client = replSession.getSession(util.getFileType(document)),
-    res = await client.complete(ns, text, toplevelIsValidForm ? replContext : undefined),
+    client = replSession.getSession(util.getFileType(document));
+
+  util.assertIsDefined(client, 'Expected there to be a repl client!');
+
+  const res = await client.complete(ns, text, toplevelIsValidForm ? replContext : undefined),
     results = res.completions || [];
 
   results.forEach((element) => {
