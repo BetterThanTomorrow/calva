@@ -18,7 +18,7 @@ const indentRules: IndentRules = {
  */
 export interface IndentInformation {
   /** The first token in the expression (after the open paren/bracket etc.), as a raw string */
-  first: string;
+  first: string | null;
 
   /** The indent immediately after the open paren/bracket etc */
   startIndent: number;
@@ -61,6 +61,17 @@ export function collectIndents(
   let lastIndent = 0;
   const indents: IndentInformation[] = [];
   const rules = config['cljfmt-options']['indents'];
+  const patterns = _.keys(rules);
+  const regexpPatterns = patterns.reduce((regexpMap, pattern) => {
+    const match = pattern.match(/^#"(.*)"$/);
+
+    if (match) {
+      regexpMap.set(pattern, RegExp(match[1]));
+    }
+
+    return regexpMap;
+  }, new Map<string, RegExp>());
+
   do {
     if (!cursor.backwardSexp()) {
       // this needs some work..
@@ -91,7 +102,10 @@ export function collectIndents(
 
       const pattern =
         isList &&
-        _.find(_.keys(rules), (pattern) => pattern === token || testCljRe(pattern, token));
+        patterns.find(
+          (pattern) =>
+            pattern === token || (regexpPatterns[pattern] && regexpPatterns[pattern].test(token))
+        );
       const indentRule = pattern ? rules[pattern] : [];
       indents.unshift({
         first: token,
@@ -137,11 +151,6 @@ export function collectIndents(
   }
   return indents;
 }
-
-const testCljRe = (re, str) => {
-  const matches = re.match(/^#"(.*)"$/);
-  return matches && RegExp(matches[1]).test(str);
-};
 
 /** Returns the expected newline indent for the given position, in characters. */
 export function getIndent(document: EditableModel, offset: number, config?: any): number {
