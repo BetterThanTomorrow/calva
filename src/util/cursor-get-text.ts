@@ -3,6 +3,7 @@
  */
 
 import { EditableDocument } from '../cursor-doc/model';
+import { assertIsDefined } from '../utilities';
 
 export type RangeAndText = [[number, number], string] | [undefined, ''];
 
@@ -11,7 +12,10 @@ export function currentTopLevelFunction(
   active: number = doc.selection.active
 ): RangeAndText {
   const defunCursor = doc.getTokenCursor(active);
-  const defunStart = defunCursor.rangeForDefun(active)[0];
+  assertIsDefined(defunCursor, 'Expected a token cursor!');
+  const defunRange = defunCursor.rangeForDefun(active);
+  assertIsDefined(defunRange, 'Expected a range representing the current defun!');
+  const defunStart = defunRange[0];
   const cursor = doc.getTokenCursor(defunStart);
   while (cursor.downList()) {
     cursor.forwardWhitespace();
@@ -41,7 +45,7 @@ export function currentTopLevelForm(doc: EditableDocument): RangeAndText {
 
 function rangeOrStartOfFileToCursor(
   doc: EditableDocument,
-  foldRange: [number, number],
+  foldRange: [number, number] | undefined,
   startFrom: number
 ): RangeAndText {
   if (foldRange) {
@@ -65,12 +69,17 @@ function rangeOrStartOfFileToCursor(
 export function currentEnclosingFormToCursor(doc: EditableDocument): RangeAndText {
   const cursor = doc.getTokenCursor(doc.selection.active);
   const enclosingRange = cursor.rangeForList(1);
+  assertIsDefined(enclosingRange, 'Expected to get the range that encloses the current form!');
   return rangeOrStartOfFileToCursor(doc, enclosingRange, enclosingRange[0]);
 }
 
 export function currentTopLevelFormToCursor(doc: EditableDocument): RangeAndText {
   const cursor = doc.getTokenCursor(doc.selection.active);
   const defunRange = cursor.rangeForDefun(doc.selection.active);
+  assertIsDefined(
+    defunRange,
+    'Expected to get the range that encloses the current top-level form!'
+  );
   return rangeOrStartOfFileToCursor(doc, defunRange, defunRange[0]);
 }
 
