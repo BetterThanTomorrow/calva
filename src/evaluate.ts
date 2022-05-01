@@ -492,8 +492,7 @@ async function requireREPLUtilitiesCommand() {
 
 async function copyLastResultCommand() {
   const chan = state.outputChannel();
-  const session = replSession.tryToGetSession(util.getFileType(util.tryToGetDocument({})));
-  util.assertIsDefined(session, 'Expected there to be a repl session!');
+  const session = replSession.getSession(util.getFileType(util.tryToGetDocument({})));
 
   const value = await session.eval('*1', session.client.ns).value;
   if (value !== null) {

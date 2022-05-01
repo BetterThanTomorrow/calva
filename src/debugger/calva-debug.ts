@@ -439,8 +439,7 @@ function handleNeedDebugInput(response: any): void {
       void debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
     }
   } else {
-    const cljSession = replSession.tryToGetSession(CLOJURE_SESSION_NAME);
-    util.assertIsDefined(cljSession, 'Expected there to be a repl session!');
+    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
     void cljSession.sendDebugInput(':quit', response.id, response.key);
     void vscode.window.showInformationMessage(
       'Forms containing breakpoints that were not evaluated in the editor (such as if you evaluated a form in the REPL window) cannot be debugged. Evaluate the form in the editor in order to debug it.'
