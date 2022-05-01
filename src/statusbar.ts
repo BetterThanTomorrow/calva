@@ -83,7 +83,7 @@ function update(context = state.extensionContext) {
     connectionStatus.command = 'calva.startOrConnectRepl';
     typeStatus.color = colorValue('typeStatusColor', currentConf);
     const replType = getReplSessionTypeFromState();
-    if (replType !== null) {
+    if (replType !== undefined) {
       typeStatus.text = ['cljc', config.REPL_FILE_EXT].includes(fileType)
         ? `cljc/${replType}`
         : replType;
