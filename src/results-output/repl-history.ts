@@ -14,7 +14,7 @@ const replHistoryCommandsActiveContext = 'calva:replHistoryCommandsActive';
 let historyIndex: number | undefined = undefined;
 let lastTextAtPrompt: string | undefined = undefined;
 
-function setReplHistoryCommandsActiveContext(editor: vscode.TextEditor): void {
+function setReplHistoryCommandsActiveContext(editor: vscode.TextEditor | undefined): void {
   if (editor && util.getConnectedState() && isResultsDoc(editor.document)) {
     const document = editor.document;
     const selection = editor.selection;
