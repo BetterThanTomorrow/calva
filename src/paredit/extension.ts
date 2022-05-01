@@ -109,7 +109,9 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.rangeForDefun',
     handler: (doc: EditableDocument) => {
-      paredit.selectRange(doc, paredit.rangeForDefun(doc));
+      const range = paredit.rangeForDefun(doc);
+      assertIsDefined(range, 'Expected to find a range for the current defun!');
+      paredit.selectRange(doc, range);
     },
   },
   {
