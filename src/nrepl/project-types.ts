@@ -21,7 +21,7 @@ export type ProjectType = {
   processShellWin: boolean;
   processShellUnix: boolean;
   commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => any;
-  useWhenExists: string;
+  useWhenExists: string | undefined;
   nReplPortFile: string[];
 };
 
@@ -30,8 +30,14 @@ function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string
   if (connectSequence.nReplPortFile) {
     subPath = path.join(...connectSequence.nReplPortFile);
   } else {
-    const projectType: ProjectType | string = connectSequence.projectType;
-    subPath = path.join(...getProjectTypeForName(projectType).nReplPortFile);
+    const projectTypeName: ProjectType | string = connectSequence.projectType;
+    const projectType = getProjectTypeForName(projectTypeName);
+    utilities.assertIsDefined(
+      projectType,
+      `Expected a project type given project type name of ${projectTypeName}`
+    );
+
+    subPath = path.join(...projectType.nReplPortFile);
   }
   return subPath;
 }
@@ -69,7 +75,9 @@ export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.U
 }
 
 export function shadowConfigFile(): vscode.Uri {
-  return vscode.Uri.joinPath(state.getProjectRootUri(), 'shadow-cljs.edn');
+  const projectRootUri = state.getProjectRootUri();
+  utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
+  return vscode.Uri.joinPath(projectRootUri, 'shadow-cljs.edn');
 }
 
 export async function shadowBuilds(): Promise<string[]> {
@@ -85,7 +93,7 @@ export async function shadowBuilds(): Promise<string[]> {
   ];
 }
 
-export function leinShadowBuilds(defproject: any): string[] {
+export function leinShadowBuilds(defproject: any): string[] | undefined {
   if (defproject) {
     const shadowIndex = defproject.indexOf('shadow-cljs');
     if (shadowIndex > -1) {
@@ -109,14 +117,17 @@ export function leinShadowBuilds(defproject: any): string[] {
 async function selectShadowBuilds(
   connectSequence: ReplConnectSequence,
   foundBuilds: string[]
-): Promise<{ selectedBuilds: string[]; args: string[] }> {
+): Promise<{ selectedBuilds: string[] | undefined; args: string[] }> {
+  const projectRootUri = state.getProjectRootUri();
+  utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
+
   const menuSelections = connectSequence.menuSelections,
     selectedBuilds = menuSelections
       ? menuSelections.cljsLaunchBuilds
       : await utilities.quickPickMulti({
           values: foundBuilds.filter((x) => x[0] == ':'),
           placeHolder: 'Select builds to start',
-          saveAs: `${state.getProjectRootUri().toString()}/shadow-cljs-jack-in`,
+          saveAs: `${projectRootUri.toString()}/shadow-cljs-jack-in`,
         }),
     aliases: string[] =
       menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
@@ -129,8 +140,11 @@ async function selectShadowBuilds(
 }
 
 async function leinDefProject(): Promise<any> {
+  const projectRootUri = state.getProjectRootUri();
+  utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
+
   const bytes = await vscode.workspace.fs.readFile(
-    vscode.Uri.joinPath(state.getProjectRootUri(), 'project.clj')
+    vscode.Uri.joinPath(projectRootUri, 'project.clj')
   );
   const data = new TextDecoder('utf-8').decode(bytes);
   try {
@@ -145,9 +159,9 @@ async function leinDefProject(): Promise<any> {
 async function leinProfilesAndAlias(
   defproject: any,
   connectSequence: ReplConnectSequence
-): Promise<{ profiles: string[]; alias: string }> {
+): Promise<{ profiles: string[]; alias: string | undefined }> {
   let profiles: string[] = [],
-    alias: string;
+    alias: string | undefined;
 
   if (defproject) {
     const aliasesIndex = defproject.indexOf('aliases');
@@ -164,13 +178,17 @@ async function leinProfilesAndAlias(
           const aliasesMap = defproject[aliasesIndex + 1];
           aliases = Object.keys(aliasesMap).map((v, k) => v);
           if (aliases.length) {
+            const projectRootUri = state.getProjectRootUri();
+            utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
+
+            state.getProjectRootUri();
             aliases.unshift('No alias');
             alias = await utilities.quickPickSingle({
               values: aliases,
-              saveAs: `${state.getProjectRootUri().toString()}/lein-cli-alias`,
+              saveAs: `${projectRootUri.toString()}/lein-cli-alias`,
               placeHolder: 'Choose alias to launch with',
             });
-            alias = alias == 'No alias' ? undefined : alias;
+            alias = alias === 'No alias' ? undefined : alias;
           }
         }
       } catch (error) {
@@ -193,9 +211,12 @@ async function leinProfilesAndAlias(
       if (projectProfiles.length) {
         profiles = projectProfiles.map(keywordize);
         if (profiles.length) {
+          const projectRootUri = state.getProjectRootUri();
+          utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
+
           profiles = await utilities.quickPickMulti({
             values: profiles,
-            saveAs: `${state.getProjectRootUri().toString()}/lein-cli-profiles`,
+            saveAs: `${projectRootUri.toString()}/lein-cli-profiles`,
             placeHolder: 'Pick any profiles to launch with',
           });
         }
@@ -211,9 +232,15 @@ export enum JackInDependency {
   'cider/piggieback' = 'cider/piggieback',
 }
 
-const NREPL_VERSION = () => getConfig().jackInDependencyVersions['nrepl'],
-  CIDER_NREPL_VERSION = () => getConfig().jackInDependencyVersions['cider-nrepl'],
-  PIGGIEBACK_VERSION = () => getConfig().jackInDependencyVersions['cider/piggieback'];
+const jackInDependencyVersions = getConfig().jackInDependencyVersions;
+utilities.assertIsDefined(
+  jackInDependencyVersions,
+  'Expected jackInDependencyVersions to be set in the config!'
+);
+
+const NREPL_VERSION = () => jackInDependencyVersions['nrepl'],
+  CIDER_NREPL_VERSION = () => jackInDependencyVersions['cider-nrepl'],
+  PIGGIEBACK_VERSION = () => jackInDependencyVersions['cider/piggieback'];
 
 const cliDependencies = () => {
   return {
@@ -386,11 +413,10 @@ const projectTypes: { [id: string]: ProjectType } = {
       const chan = state.outputChannel();
 
       const defproject = await leinDefProject();
-      const foundBuilds = leinShadowBuilds(defproject),
-        { selectedBuilds, args: extraArgs } = await selectShadowBuilds(
-          connectSequence,
-          foundBuilds
-        );
+      const foundBuilds = leinShadowBuilds(defproject);
+      utilities.assertIsDefined(foundBuilds, 'Expected to find lein shadow builds for project!');
+
+      const { selectedBuilds } = await selectShadowBuilds(connectSequence, foundBuilds);
 
       if (selectedBuilds && selectedBuilds.length) {
         return leinCommandLine(['shadow', 'watch', ...selectedBuilds], cljsType, connectSequence);
@@ -448,16 +474,20 @@ const projectTypes: { [id: string]: ProjectType } = {
 async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: CljsTypes) {
   const out: string[] = [];
   let depsUri: vscode.Uri;
+
+  const projectRootUri = state.getProjectRootUri();
+  utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
+
   try {
-    depsUri = vscode.Uri.joinPath(state.getProjectRootUri(), 'deps.edn');
+    depsUri = vscode.Uri.joinPath(projectRootUri, 'deps.edn');
   } catch {
-    depsUri = vscode.Uri.file(path.join(state.getProjectRootUri().fsPath, 'deps.edn'));
+    depsUri = vscode.Uri.file(path.join(projectRootUri.fsPath, 'deps.edn'));
   }
   let parsed;
   if (connectSequence.projectType !== 'generic') {
     void vscode.workspace.fs.stat(depsUri);
     const bytes = await vscode.workspace.fs.readFile(
-      vscode.Uri.joinPath(state.getProjectRootUri(), 'deps.edn')
+      vscode.Uri.joinPath(projectRootUri, 'deps.edn')
     );
     const data = new TextDecoder('utf-8').decode(bytes);
     try {
@@ -510,7 +540,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
     if (projectAliases.length) {
       aliases = await utilities.quickPickMulti({
         values: projectAliases.map(keywordize),
-        saveAs: `${state.getProjectRootUri().toString()}/clj-cli-aliases`,
+        saveAs: `${projectRootUri.toString()}/clj-cli-aliases`,
         placeHolder: 'Pick any aliases to launch with',
       });
     }
@@ -616,13 +646,15 @@ export function getProjectTypeForName(name: string) {
 }
 
 export async function detectProjectTypes(): Promise<string[]> {
-  const rootUri = state.getProjectRootUri();
+  const projectRootUri = state.getProjectRootUri();
+  utilities.assertIsDefined(projectRootUri, 'Expected a project root URI');
   const cljProjTypes = ['generic', 'cljs-only', 'babashka', 'nbb'];
   for (const clj in projectTypes) {
     if (projectTypes[clj].useWhenExists) {
       try {
         const projectFileName = projectTypes[clj].useWhenExists;
-        const uri = vscode.Uri.joinPath(rootUri, projectFileName);
+        utilities.assertIsDefined(projectFileName, 'Expected there to be a project filename!');
+        const uri = vscode.Uri.joinPath(projectRootUri, projectFileName);
         await vscode.workspace.fs.readFile(uri);
         cljProjTypes.push(clj);
       } catch {
