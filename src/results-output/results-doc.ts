@@ -177,7 +177,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
               promptCursor.previous();
             } while (promptCursor.getPrevToken().type !== 'prompt' && !promptCursor.atStart());
             const submitRange = selectionCursor.rangeForCurrentForm(idx);
-            submitOnEnter = submitRange && submitRange[1] > promptCursor.offsetStart;
+            submitOnEnter = !!submitRange && submitRange[1] > promptCursor.offsetStart;
           }
         }
       }
@@ -227,6 +227,7 @@ export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
 
 export async function setNamespaceFromCurrentFile() {
   const session = replSession.getSession();
+  util.assertIsDefined(session, 'Expected there to be a session!');
   const ns = namespace.getNamespace(util.tryToGetDocument({}));
   if (getNs() !== ns && util.isDefined(ns)) {
     await session.switchNS(ns);
@@ -238,6 +239,7 @@ export async function setNamespaceFromCurrentFile() {
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
   const session = replSession.getSession();
+  util.assertIsDefined(session, 'Expected there to be a session!');
   const ns = namespace.getNamespace(util.tryToGetDocument({}));
   const editor = util.getActiveTextEditor();
   const doc = editor.document;
@@ -338,7 +340,8 @@ async function writeNextOutputBatch() {
   // Any entries that contain onAppended are not batched with other pending
   // entries to simplify providing the correct insert position to the callback.
   if (resultsBuffer[0].onAppended) {
-    return await writeToResultsDoc(resultsBuffer.shift());
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return await writeToResultsDoc(resultsBuffer.shift()!);
   }
   // Batch all remaining entries up until another onAppended callback.
   const [nextText, remaining] = splitEditQueueForTextBatching(resultsBuffer);
@@ -433,5 +436,9 @@ export function appendPrompt(onAppended?: OnAppendedCallback) {
 }
 
 function getUriForCurrentNamespace(): Promise<vscode.Uri> {
-  return namespace.getUriForNamespace(getSession(), getNs());
+  const session = getSession();
+  util.assertIsDefined(session, 'Expected there to be a current session!');
+  const ns = getNs();
+  util.assertIsDefined(ns, 'Expected there to be a current namespace!');
+  return namespace.getUriForNamespace(session, ns);
 }
