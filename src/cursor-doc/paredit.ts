@@ -130,7 +130,7 @@ export function rangeForDefun(
   doc: EditableDocument,
   offset: number = doc.selection.active,
   commentCreatesTopLevel = true
-): [number, number] {
+): [number, number] | undefined {
   const cursor = doc.getTokenCursor(offset);
   return cursor.rangeForDefun(offset, commentCreatesTopLevel);
 }
@@ -992,7 +992,9 @@ export function raiseSexp(
   end = doc.selection.active
 ) {
   const cursor = doc.getTokenCursor(end);
-  const [formStart, formEnd] = cursor.rangeForCurrentForm(start);
+  const formRange = cursor.rangeForCurrentForm(start);
+  assertIsDefined(formRange, 'Expected to find a range for the current form!');
+  const [formStart, formEnd] = formRange;
   const isCaretTrailing = formEnd - start < start - formStart;
   const startCursor = doc.getTokenCursor(formStart);
   const endCursor = startCursor.clone();
@@ -1146,6 +1148,7 @@ function currentSexpsRange(
   usePairs = false
 ): [number, number] {
   const currentSingleRange = cursor.rangeForCurrentForm(offset);
+  assertIsDefined(currentSingleRange, 'Expected to find a range for the current form!');
   if (usePairs) {
     const ranges = cursor.rangesForSexpsInList();
     if (ranges.length > 1) {
@@ -1246,6 +1249,7 @@ export function collectWhitespaceInfo(
 ): WhitespaceInfo {
   const cursor = doc.getTokenCursor(p);
   const currentRange = cursor.rangeForCurrentForm(p);
+  assertIsDefined(currentRange, 'Expected to find a range for the current form!');
   const leftWsRight = currentRange[0];
   const leftWsCursor = doc.getTokenCursor(leftWsRight);
   const rightWsLeft = currentRange[1];
@@ -1275,6 +1279,7 @@ export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selection.act
   const cursor = doc.getTokenCursor(p);
   const currentRange = cursor.rangeForCurrentForm(p);
   if (cursor.backwardList() && cursor.backwardUpList()) {
+    assertIsDefined(currentRange, 'Expected to find a range for the current form!');
     const listStart = cursor.offsetStart;
     const newPosOffset = p - currentRange[0];
     const newCursorPos = listStart + newPosOffset;
@@ -1314,6 +1319,7 @@ export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selection.act
 export function dragSexprForwardDown(doc: EditableDocument, p = doc.selection.active) {
   const wsInfo = collectWhitespaceInfo(doc, p);
   const currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p);
+  assertIsDefined(currentRange, 'Expected to find a range for the current form!');
   const newPosOffset = p - currentRange[0];
   const cursor = doc.getTokenCursor(currentRange[0]);
   while (cursor.forwardSexp()) {
@@ -1352,6 +1358,7 @@ export function dragSexprForwardUp(doc: EditableDocument, p = doc.selection.acti
   const cursor = doc.getTokenCursor(p);
   const currentRange = cursor.rangeForCurrentForm(p);
   if (cursor.forwardList() && cursor.upList()) {
+    assertIsDefined(currentRange, 'Expected to find a range for the current form!');
     const listEnd = cursor.offsetStart;
     const newPosOffset = p - currentRange[0];
     const listWsInfo = collectWhitespaceInfo(doc, listEnd);
@@ -1381,6 +1388,7 @@ export function dragSexprForwardUp(doc: EditableDocument, p = doc.selection.acti
 export function dragSexprBackwardDown(doc: EditableDocument, p = doc.selection.active) {
   const wsInfo = collectWhitespaceInfo(doc, p);
   const currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p);
+  assertIsDefined(currentRange, 'Expected to find a range for the current form!');
   const newPosOffset = p - currentRange[0];
   const cursor = doc.getTokenCursor(currentRange[1]);
   while (cursor.backwardSexp()) {
@@ -1429,6 +1437,7 @@ export function addRichComment(doc: EditableDocument, p = doc.selection.active, 
   const richComment = `(comment\n  ${contents ? adaptContentsToRichComment(contents) : ''}\n  )`;
   let cursor = doc.getTokenCursor(p);
   const topLevelRange = rangeForDefun(doc, p, false);
+  assertIsDefined(topLevelRange, 'Expected to find a range for the current defun!');
   const isInsideForm = !(p <= topLevelRange[0] || p >= topLevelRange[1]);
   const checkIfAtStartCursor = doc.getTokenCursor(p);
   checkIfAtStartCursor.backwardWhitespace(true);
