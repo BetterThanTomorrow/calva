@@ -175,7 +175,6 @@ async function getJackInTerminalOptions(
   utilities.assertIsDefined(projectType, 'Expected to find a project type!');
 
   const projectRootLocal = state.getProjectRootLocal();
-  utilities.assertIsDefined(projectRootLocal, 'Expected to find a local project root!');
 
   let args: string[] = await projectType.commandLine(projectConnectSequence, selectedCljsType);
   let cmd: string[];

@@ -46,11 +46,19 @@ const PROJECT_DIR_KEY = 'connect.projectDir';
 const PROJECT_DIR_URI_KEY = 'connect.projectDirNew';
 const PROJECT_CONFIG_MAP = 'config';
 
-export function getProjectRootLocal(useCache = true): string | undefined {
+export function tryToGetProjectRootLocal(useCache = true): string | undefined {
   if (useCache) {
     return getStateValue(PROJECT_DIR_KEY);
   }
 }
+
+export const getProjectRootLocal = (useCache = true): string => {
+  const projectRootLocal = tryToGetProjectRootLocal(useCache);
+
+  util.assertIsDefined(projectRootLocal, 'Expected to find a local project root!');
+
+  return projectRootLocal;
+};
 
 export function getProjectConfig(useCache = true) {
   if (useCache) {

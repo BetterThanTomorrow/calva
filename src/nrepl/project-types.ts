@@ -50,7 +50,7 @@ function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string
  */
 export function nreplPortFileLocalPath(connectSequence: ReplConnectSequence): string {
   const relativePath = nreplPortFileRelativePath(connectSequence);
-  const projectRoot = state.getProjectRootLocal();
+  const projectRoot = state.tryToGetProjectRootLocal();
   if (projectRoot) {
     try {
       return path.resolve(projectRoot, relativePath);
