@@ -221,7 +221,7 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
   const cljTypes: string[] = await projectTypes.detectProjectTypes();
   if (cljTypes.length > 1) {
     const connectSequence = await askForConnectSequence(
-      cljTypes.filter((t) => !['generic', 'cljs-only'].includes(t)),
+      cljTypes.filter((t) => !['generic', 'cljs-only', 'joyride'].includes(t)),
       'jack-in-type',
       'JackInInterrupted'
     );

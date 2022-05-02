@@ -21,7 +21,7 @@ async function getLatestVersion(): Promise<string> {
 function getZipFileName(platform: string): string {
   return {
     darwin: 'clojure-lsp-native-macos-amd64.zip',
-    linux: 'clojure-lsp-native-linux-amd64.zip',
+    linux: 'clojure-lsp-native-static-linux-amd64.zip',
     win32: 'clojure-lsp-native-windows-amd64.zip',
   }[platform];
 }

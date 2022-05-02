@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.270] - 2022-05-02
+- Fix: [Downloaded clojure-lsp not working for static linux distros](https://github.com/BetterThanTomorrow/calva/issues/1692)
+- [Add dedicated Joyride nREPL Connect option](https://github.com/BetterThanTomorrow/calva/issues/1704)
+
 ## [2.0.269] - 2022-04-20
 - [How about a command converting JavaScript to ClojureScript?](https://github.com/BetterThanTomorrow/calva/issues/1687)
 

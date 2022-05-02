@@ -617,7 +617,7 @@ export function getProjectTypeForName(name: string) {
 
 export async function detectProjectTypes(): Promise<string[]> {
   const rootUri = state.getProjectRootUri();
-  const cljProjTypes = ['generic', 'cljs-only', 'babashka', 'nbb'];
+  const cljProjTypes = ['generic', 'cljs-only', 'babashka', 'nbb', 'joyride'];
   for (const clj in projectTypes) {
     if (projectTypes[clj].useWhenExists) {
       try {
