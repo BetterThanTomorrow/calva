@@ -68,6 +68,7 @@ nav:
     - reveal.md
     - babashka.md
     - nbb.md
+    - joyride.md
     - luminus.md
     - re-frame-template.md
     - polylith.md

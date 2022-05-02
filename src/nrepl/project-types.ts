@@ -443,6 +443,19 @@ const projectTypes: { [id: string]: ProjectType } = {
       return ['nbb', 'nrepl-server', ':port', await getPort()];
     },
   },
+  //joyride: {
+  //  name: 'joyride',
+  //  cljsTypes: [],
+  //  cmd: [],
+  //  winCmd: [],
+  //  processShellUnix: true,
+  //  processShellWin: true,
+  //  useWhenExists: undefined,
+  //  nReplPortFile: ['.joyride', '.nrepl-port'],
+  //  commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+  //    return [];
+  //  },
+  //},
 };
 
 async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: CljsTypes) {
@@ -617,7 +630,7 @@ export function getProjectTypeForName(name: string) {
 
 export async function detectProjectTypes(): Promise<string[]> {
   const rootUri = state.getProjectRootUri();
-  const cljProjTypes = ['generic', 'cljs-only', 'babashka', 'nbb'];
+  const cljProjTypes = ['generic', 'cljs-only', 'babashka', 'nbb', 'joyride'];
   for (const clj in projectTypes) {
     if (projectTypes[clj].useWhenExists) {
       try {

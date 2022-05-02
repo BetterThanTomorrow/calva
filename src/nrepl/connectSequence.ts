@@ -10,6 +10,7 @@ enum ProjectTypes {
   'lein-shadow' = 'lein-shadow',
   'babashka' = 'babashka',
   'nbb' = 'nbb',
+  'joyride' = 'joyride',
   'generic' = 'generic',
   'cljs-only' = 'cljs-only',
 }
@@ -174,7 +175,16 @@ const nbbDefaults: ReplConnectSequence[] = [
     name: 'nbb',
     projectType: ProjectTypes['nbb'],
     cljsType: CljsTypes['ClojureScript nREPL'],
-    nReplPortFile: ['.nbb-nrepl.port'],
+    nReplPortFile: ['.nrepl-port'],
+  },
+];
+
+const joyrideDefaults: ReplConnectSequence[] = [
+  {
+    name: 'joyride',
+    projectType: ProjectTypes['joyride'],
+    cljsType: CljsTypes['ClojureScript nREPL'],
+    nReplPortFile: ['.nrepl-port'],
   },
 ];
 
@@ -186,6 +196,7 @@ const defaultSequences = {
   generic: genericDefaults,
   babashka: babashkaDefaults,
   nbb: nbbDefaults,
+  joyride: joyrideDefaults,
   'cljs-only': cljsOnlyDefaults,
 };
 

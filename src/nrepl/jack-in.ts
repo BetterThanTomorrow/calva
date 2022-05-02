@@ -218,7 +218,9 @@ async function getJackInTerminalOptions(
 }
 
 async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
-  const cljTypes: string[] = await projectTypes.detectProjectTypes();
+  const cljTypes: string[] = (await projectTypes.detectProjectTypes()).filter((type) => {
+    return projectTypes.getProjectTypeForName(type) !== undefined;
+  });
   if (cljTypes.length > 1) {
     const connectSequence = await askForConnectSequence(
       cljTypes.filter((t) => !['generic', 'cljs-only'].includes(t)),
