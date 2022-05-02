@@ -6,11 +6,11 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Calva provides commands and facilities that make running your Clojure tests easier">
+        <meta name="description" content="Calva is your perfect companion when Joyriding VS Code.">
       
       
       
-        <link rel="canonical" href="https://calva.io/test-runner/">
+        <link rel="canonical" href="https://calva.io/joyride/">
       
       
         
@@ -20,7 +20,7 @@
     
     
       
-        <title>Test Runner - Calva User Guide</title>
+        <title>Joyride - Calva User Guide</title>
       
     
     
@@ -67,11 +67,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Test Runner - Calva User Guide" >
+        <meta  property="og:title"  content="Joyride - Calva User Guide" >
       
-        <meta  property="og:description"  content="Calva provides commands and facilities that make running your Clojure tests easier" >
+        <meta  property="og:description"  content="Calva is your perfect companion when Joyriding VS Code." >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/test-runner.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/joyride.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -79,15 +79,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/test-runner/" >
+        <meta  property="og:url"  content="https://calva.io/joyride/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Test Runner - Calva User Guide" >
+        <meta  name="twitter:title"  content="Joyride - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Calva provides commands and facilities that make running your Clojure tests easier" >
+        <meta  name="twitter:description"  content="Calva is your perfect companion when Joyriding VS Code." >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/test-runner.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/joyride.png" >
       
     
     
@@ -215,7 +215,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#test-runner" class="md-skip">
+        <a href="#using-calva-with-joyride" class="md-skip">
           Skip to content
         </a>
       
@@ -247,7 +247,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Test Runner
+              Joyride
             
           </span>
         </div>
@@ -536,14 +536,12 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
       
       
       
@@ -759,28 +757,9 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Test Runner
-  </span>
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../test-runner/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -788,86 +767,6 @@
   </span>
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#test-commands" class="md-nav__link">
-    <span class="md-ellipsis">
-      Test Commands
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#test-on-save" class="md-nav__link">
-    <span class="md-ellipsis">
-      Test on Save
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#vs-code-test-ui" class="md-nav__link">
-    <span class="md-ellipsis">
-      VS Code Test UI
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#tests-are-not-found" class="md-nav__link">
-    <span class="md-ellipsis">
-      Tests Are Not Found
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#toggle-between-implementation-and-test-command-not-working-as-intended" class="md-nav__link">
-    <span class="md-ellipsis">
-      Toggle between implementation and test command not working as intended
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1044,12 +943,14 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" checked>
       
       
       
@@ -1208,9 +1109,28 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../joyride/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Joyride
+  </span>
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -1218,6 +1138,35 @@
   </span>
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-connect" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to connect
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1726,62 +1675,11 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#test-commands" class="md-nav__link">
+  <a href="#how-to-connect" class="md-nav__link">
     <span class="md-ellipsis">
-      Test Commands
+      How to connect
     </span>
   </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#test-on-save" class="md-nav__link">
-    <span class="md-ellipsis">
-      Test on Save
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#vs-code-test-ui" class="md-nav__link">
-    <span class="md-ellipsis">
-      VS Code Test UI
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#tests-are-not-found" class="md-nav__link">
-    <span class="md-ellipsis">
-      Tests Are Not Found
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#toggle-between-implementation-and-test-command-not-working-as-intended" class="md-nav__link">
-    <span class="md-ellipsis">
-      Toggle between implementation and test command not working as intended
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1797,72 +1695,28 @@
             <article class="md-content__inner md-typeset">
               
                 
-  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/test-runner.md" title="Edit this page" class="md-content__button md-icon">
+  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/joyride.md" title="Edit this page" class="md-content__button md-icon">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
   </a>
 
 
 
-<h1 id="test-runner">Test Runner</h1>
-<p>Calva provides commands that make running your Clojure tests easier.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Since the test commands utilize cider-nrepl, they only work with Clojure, not ClojureScript. See <a href="https://github.com/clojure-emacs/cider-nrepl/issues/555">this issue</a> for more details.</p>
-</div>
-<h2 id="test-commands">Test Commands</h2>
-<table>
-<thead>
-<tr>
-<th>Command</th>
-<th>Shortcut</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Run All Tests</td>
-<td><code>ctrl+alt+c shift+t</code></td>
-<td>Runs all tests</td>
-</tr>
-<tr>
-<td>Run Failing Tests</td>
-<td><code>ctrl+alt+c ctrl+t</code></td>
-<td>Runs the tests that failed</td>
-</tr>
-<tr>
-<td>Run Tests for Current Namespace</td>
-<td><code>ctrl+alt+c t</code></td>
-<td>Runs the tests for the current namespace. If not a <code>-test</code> namespace, tests for the current namespace plus its corresponding <code>&lt;current-namespace&gt;-test</code> namespace will be run.</td>
-</tr>
-<tr>
-<td>Run Current Test</td>
-<td><code>ctrl+alt+c ctrl+alt+t</code></td>
-<td>Runs the test at the cursor. This includes a <code>defn</code> with a <code>:test</code> in its metadata, a <code>defn</code> defined in a <code>with-test</code>, and a <code>deftest</code>.</td>
-</tr>
-<tr>
-<td>Toggle between implementation and test</td>
-<td>-</td>
-<td>Switches the file between implementation and test, prompts to create a new file if not found.</td>
-</tr>
-</tbody>
-</table>
-<h2 id="test-on-save">Test on Save</h2>
-<p>You can enable the Calva setting "Test on Save" to have tests for the current namespace run on file save.</p>
-<h2 id="vs-code-test-ui">VS Code Test UI</h2>
-<p>Calva has experimental support for showing test results in VS Code's Test UI. You can enable this support by setting <code>calva.useTestExplorer</code> to <code>true</code>. When you enable this setting, the Testing icon will appear in the Testing tab of VS Code's Activity Bar.</p>
-<p>With this feature enabled you will be able to browse and run tests directly from the Testing tab.</p>
-<p>Please join the <a href="https://clojurians.slack.com/messages/calva">#calva channel</a> on the Clojurians Slack if you have any feedback on this new feature.</p>
-<h2 id="troubleshooting">Troubleshooting</h2>
-<h3 id="tests-are-not-found">Tests Are Not Found</h3>
-<p>If you have tests in a test directory separate from your source directory, and those tests are not being found by the test runner, make sure the test directory is included in your paths. This will not be the case by default with a tools.deps (deps.edn) project. If your project is a tools.deps project, you can create an alias in your deps.edn file with <code>:extra-paths</code> that includes <code>"test"</code> (or the name of your test directory).</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:aliases</span><span class="w"> </span><span class="p">{</span><span class="ss">:dev</span><span class="w"> </span><span class="p">{</span><span class="ss">:extra-paths</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;test&quot;</span><span class="p">]}}}</span><span class="w"></span>
-</code></pre></div>
-<p>Having added the above to your deps.edn, when you jack-in, choose the <code>:dev</code> alias and the <code>test</code> directory will be added to your paths, which will allow tests located in the directory to be found by the test runner.</p>
-<h3 id="toggle-between-implementation-and-test-command-not-working-as-intended">Toggle between implementation and test command not working as intended</h3>
-<p>This feature mostly works with projects that has leiningen style folder structure and makes some assumption about your folder structure and test file names.
-- It assumes that the test files ends with <code>_test</code> prefix.
-- It assumes that your implementation files are in <code>src</code> folder and the test files are in <code>test</code> folder.</p>
-<p>If you are using any non leiningen style folder structure, you may have to add source paths inside <code>.lsp/config.edn</code>.</p>
+<h1 id="using-calva-with-joyride">Using Calva With Joyride</h1>
+<p><a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> is a VS Code extension for user space scripting of VS Code itself. The scripting language for Joyride is the best you language imaginable: Clojure. And, as is proper for a Clojure implementation, it has a REPL, even an nREPL server.</p>
+<p>This means you can connect Calva to Joyride and interactively develop your VS Code scripts.</p>
+<p>This video shows Joyride in action, using Calva as the nREPL client.</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/V1oTf-1EchU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<h2 id="how-to-connect">How to connect</h2>
+<ol>
+<li>Install <a href="https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.joyride">the Joyride Extension</a></li>
+<li>Issue the command <strong>Joyride: Start nREPL server</strong></li>
+<li>Issue the command <strong>Calva: Connect to a REPL in your Project</strong></li>
+<li>Select the project root: <code>&lt;workspace-path&gt;/.joyride</code></li>
+<li>Select the <code>joyride</code> project type</li>
+<li>Submit the suggested <code>localhost:&lt;port&gt;</code> prompt</li>
+</ol>
+<p>Happy Joyriding! ❤️</p>
 
   
 
@@ -1882,7 +1736,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../refactoring/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Refactoring" rel="prev">
+        <a href="../nbb/" class="md-footer__link md-footer__link--prev" aria-label="Previous: nbb" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
@@ -1891,20 +1745,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Refactoring
+              nbb
             </div>
           </div>
         </a>
       
       
         
-        <a href="../syntax-highlighting/" class="md-footer__link md-footer__link--next" aria-label="Next: Clojure Syntax Highlighting" rel="next">
+        <a href="../luminus/" class="md-footer__link md-footer__link--next" aria-label="Next: Luminus" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Clojure Syntax Highlighting
+              Luminus
             </div>
           </div>
           <div class="md-footer__button md-icon">
