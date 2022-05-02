@@ -443,19 +443,6 @@ const projectTypes: { [id: string]: ProjectType } = {
       return ['nbb', 'nrepl-server', ':port', await getPort()];
     },
   },
-  //joyride: {
-  //  name: 'joyride',
-  //  cljsTypes: [],
-  //  cmd: [],
-  //  winCmd: [],
-  //  processShellUnix: true,
-  //  processShellWin: true,
-  //  useWhenExists: undefined,
-  //  nReplPortFile: ['.joyride', '.nrepl-port'],
-  //  commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
-  //    return [];
-  //  },
-  //},
 };
 
 async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: CljsTypes) {
