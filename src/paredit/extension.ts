@@ -7,14 +7,17 @@ import {
   Event,
   EventEmitter,
   ExtensionContext,
+  env,
   workspace,
   ConfigurationChangeEvent,
 } from 'vscode';
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
-import { EditableDocument } from '../cursor-doc/model';
+import { EditableDocument, ModelEditResult } from '../cursor-doc/model';
 import { assertIsDefined } from '../utilities';
-
+import * as textNotation from '../extension-test/unit/common/text-notation';
+import * as calvaState from '../state';
+import _ = require('lodash');
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
 const languages = new Set(['clojure', 'lisp', 'scheme']);
@@ -25,59 +28,93 @@ const enabled = true;
  * @param doc
  * @param range
  */
-function copyRangeToClipboard(doc: EditableDocument, [start, end]) {
-  const text = doc.model.getText(start, end);
-  void vscode.env.clipboard.writeText(text);
+export function copyRangeToClipboard(
+  doc: EditableDocument,
+  ranges: Array<[number, number]> = _(doc.selections)
+    .map((s) => s.asRange)
+    .value()
+) {
+  const texts: string[] = _(ranges)
+    // Why do we reorder the ranges? Because vscode does consider the cursor order when pasting, and considers the cursors sorted in the order they appear in the document (ascending)
+    .orderBy((r) => Math.min(...r), 'asc')
+    .map(([start, end]) => doc.model.getText(start, end))
+    .value();
+  // TODO: Evaluate if we need to use a different line ending per os for the clipboard multiline copy/paste
+  void env.clipboard.writeText(texts.join('\n'));
 }
 
 /**
  * Answers true when `calva.paredit.killAlsoCutsToClipboard` is enabled.
  * @returns boolean
  */
-function shouldKillAlsoCutToClipboard() {
+export function shouldKillAlsoCutToClipboard(): boolean {
   return workspace.getConfiguration().get('calva.paredit.killAlsoCutsToClipboard');
 }
 
 type PareditCommand = {
   command: string;
-  handler: (doc: EditableDocument) => void | Promise<void>;
+  handler: (doc: EditableDocument) => void | Thenable<void> | Thenable<ModelEditResult>;
 };
 const pareditCommands: PareditCommand[] = [
   // NAVIGATING
   {
     command: 'paredit.forwardSexp',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeRight(doc, paredit.forwardSexpRange(doc));
+      paredit.moveToRangeRight(
+        doc,
+        paredit.forwardSexpRange(
+          doc,
+          doc.selections.map((s) => s.active)
+        )
+      );
     },
   },
   {
     command: 'paredit.backwardSexp',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeLeft(doc, paredit.backwardSexpRange(doc));
+      paredit.moveToRangeLeft(
+        doc,
+        paredit.backwardSexpRange(
+          doc,
+          doc.selections.map((s) => s.active)
+        )
+      );
     },
   },
   {
     command: 'paredit.forwardDownSexp',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeRight(doc, paredit.rangeToForwardDownList(doc));
+      paredit.moveToRangeRight(
+        doc,
+        doc.selections.map((s) => paredit.rangeToForwardDownList(doc, s.active))
+      );
     },
   },
   {
     command: 'paredit.backwardDownSexp',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeLeft(doc, paredit.rangeToBackwardDownList(doc));
+      paredit.moveToRangeLeft(
+        doc,
+        doc.selections.map((s) => paredit.rangeToBackwardDownList(doc, s.active))
+      );
     },
   },
   {
     command: 'paredit.forwardUpSexp',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeRight(doc, paredit.rangeToForwardUpList(doc));
+      paredit.moveToRangeRight(
+        doc,
+        doc.selections.map((s) => paredit.rangeToForwardUpList(doc, s.active))
+      );
     },
   },
   {
     command: 'paredit.backwardUpSexp',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeLeft(doc, paredit.rangeToBackwardUpList(doc));
+      paredit.moveToRangeLeft(
+        doc,
+        doc.selections.map((s) => paredit.rangeToBackwardUpList(doc, s.active))
+      );
     },
   },
   {
@@ -95,13 +132,19 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.closeList',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeRight(doc, paredit.rangeToForwardList(doc));
+      paredit.moveToRangeRight(
+        doc,
+        doc.selections.map((s) => paredit.rangeToForwardList(doc, s.active))
+      );
     },
   },
   {
     command: 'paredit.openList',
     handler: (doc: EditableDocument) => {
-      paredit.moveToRangeLeft(doc, paredit.rangeToBackwardList(doc));
+      paredit.moveToRangeLeft(
+        doc,
+        doc.selections.map((s) => paredit.rangeToBackwardList(doc, s.active))
+      );
     },
   },
 
@@ -109,7 +152,10 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.rangeForDefun',
     handler: (doc: EditableDocument) => {
-      paredit.selectRange(doc, paredit.rangeForDefun(doc));
+      paredit.selectRange(
+        doc,
+        doc.selections.map((selection) => paredit.rangeForDefun(doc, selection.active))
+      );
     },
   },
   {
@@ -235,74 +281,69 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.killRight',
     handler: (doc: EditableDocument) => {
-      const range = paredit.forwardHybridSexpRange(doc);
+      const ranges = paredit.forwardHybridSexpRange(doc);
       if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
+        copyRangeToClipboard(doc, ranges);
       }
-      paredit.killRange(doc, range);
+      return paredit.killRange(doc, ranges);
     },
   },
   {
     command: 'paredit.killSexpForward',
-    handler: (doc: EditableDocument) => {
-      const range = paredit.forwardSexpRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
-      }
-      paredit.killRange(doc, range);
-    },
+    handler: (doc: EditableDocument) =>
+      paredit.killSexpForward(doc, shouldKillAlsoCutToClipboard, copyRangeToClipboard),
   },
   {
     command: 'paredit.killSexpBackward',
-    handler: (doc: EditableDocument) => {
-      const range = paredit.backwardSexpRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
-      }
-      paredit.killRange(doc, range);
-    },
+    handler: (doc: EditableDocument) =>
+      paredit.killSexpBackward(doc, shouldKillAlsoCutToClipboard, copyRangeToClipboard),
   },
   {
     command: 'paredit.killListForward',
     handler: (doc: EditableDocument) => {
-      const range = paredit.forwardListRange(doc);
+      const ranges = doc.selections.map((s) => paredit.forwardListRange(doc, s.active));
+
       if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
+        copyRangeToClipboard(doc, ranges);
       }
-      return paredit.killForwardList(doc, range);
+      void paredit.killForwardList(doc, ranges);
     },
   }, // TODO: Implement with killRange
   {
     command: 'paredit.killListBackward',
     handler: (doc: EditableDocument) => {
-      const range = paredit.backwardListRange(doc);
+      const ranges = doc.selections.map((s) => paredit.backwardListRange(doc, s.active));
       if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
+        copyRangeToClipboard(doc, ranges);
       }
-      return paredit.killBackwardList(doc, range);
+      return ranges;
+      void paredit.killBackwardList(doc, ranges);
     },
   }, // TODO: Implement with killRange
   {
     command: 'paredit.spliceSexpKillForward',
     handler: (doc: EditableDocument) => {
-      const range = paredit.forwardListRange(doc);
+      const ranges = doc.selections.map((s) => paredit.forwardListRange(doc, s.active));
+
       if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
+        copyRangeToClipboard(doc, ranges);
       }
-      void paredit.killForwardList(doc, range).then((isFulfilled) => {
-        return paredit.spliceSexp(doc, doc.selection.active, false);
+      return ranges;
+      void paredit.killForwardList(doc, ranges).then(() => {
+        return paredit.spliceSexp(doc, /* s.active, */ false);
       });
     },
   },
   {
     command: 'paredit.spliceSexpKillBackward',
     handler: (doc: EditableDocument) => {
-      const range = paredit.backwardListRange(doc);
+      const ranges = doc.selections.map((s) => paredit.backwardListRange(doc, s.active));
+
       if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
+        copyRangeToClipboard(doc, ranges);
       }
-      void paredit.killBackwardList(doc, range).then((isFulfilled) => {
-        return paredit.spliceSexp(doc, doc.selection.active, false);
+      void paredit.killBackwardList(doc, ranges).then(() => {
+        return paredit.spliceSexp(doc, /* s.active, */ false);
       });
     },
   },
@@ -427,6 +468,36 @@ export function activate(context: ExtensionContext) {
           .getConfiguration()
           .update('calva.paredit.defaultKeyMap', 'original', vscode.ConfigurationTarget.Global);
       }
+    }),
+    commands.registerCommand('calva.diagnostics.printTextNotationFromDocument', () => {
+      const doc = vscode.window.activeTextEditor?.document;
+      if (doc && doc.languageId === 'clojure') {
+        const mirrorDoc = docMirror.getDocument(vscode.window.activeTextEditor?.document);
+        const notation = textNotation.textNotationFromDoc(mirrorDoc);
+        const chan = calvaState.outputChannel();
+        const relPath = vscode.workspace.asRelativePath(doc.uri);
+        chan.appendLine(`Text notation for: ${relPath}:\n${notation}`);
+      }
+    }),
+    commands.registerCommand('calva.diagnostics.createDocumentFromTextNotation', async () => {
+      const tn = await vscode.window.showInputBox({
+        placeHolder: 'Text-notation',
+        prompt: 'Type the text-notation for the document you want to create',
+      });
+      const cursorDoc = textNotation.docFromTextNotation(tn);
+      await vscode.workspace
+        .openTextDocument({ language: 'clojure', content: textNotation.getText(cursorDoc) })
+        .then(async (doc) => {
+          const editor = await vscode.window.showTextDocument(doc, {
+            preview: false,
+            preserveFocus: false,
+          });
+          editor.selections = cursorDoc.selections.map((selection) => {
+            const anchor = doc.positionAt(selection.anchor),
+              active = doc.positionAt(selection.active);
+            return new vscode.Selection(anchor, active);
+          });
+        });
     }),
     window.onDidChangeActiveTextEditor(
       (e) => e && e.document && languages.has(e.document.languageId)

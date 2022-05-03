@@ -1,6 +1,19 @@
+import { isEqual, last, pick, property, clone, isBoolean, orderBy, isNil, flatten } from 'lodash';
+import _ = require('lodash');
 import { validPair } from './clojure-lexer';
-import { ModelEdit, EditableDocument, ModelEditSelection } from './model';
+import {
+  EditableDocument,
+  ModelEdit,
+  ModelEditSelection,
+  ModelEditResult,
+  ModelEditFunctionArgs,
+} from './model';
 import { LispTokenCursor } from './token-cursor';
+import { mapToItemAndOrder, mapToOriginalItem, mapToOriginalOrder, replaceAt } from '../util/array';
+import {
+  mapRangeOrSelectionToOffset,
+  repositionRangeOrSelectionByCumulativeOffsets,
+} from './cursor-doc-utils';
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -12,113 +25,207 @@ import { LispTokenCursor } from './token-cursor';
 //       Example: paredit.moveToRangeRight(this.readline, paredit.forwardSexpRange(this.readline))
 //                => paredit.moveForwardSexp(this.readline)
 
-export function killRange(
-  doc: EditableDocument,
-  range: [number, number],
-  start = doc.selection.anchor,
-  end = doc.selection.active
-) {
-  const [left, right] = [Math.min(...range), Math.max(...range)];
-  void doc.model.edit([new ModelEdit('deleteRange', [left, right - left, [start, end]])], {
-    selection: new ModelEditSelection(left),
+export function killRange(doc: EditableDocument, ranges: Array<[number, number]>) {
+  const edits = [],
+    // use tuple to track
+    // [selection, original selection/cursor order before sorting by location, and amount of text deleted]
+    selections: [ModelEditSelection, number, number][] = [];
+
+  /**
+   * Sorting by location backwards simplifies the underlying "deleteRange" operation,
+   *  as the operation logic doesn't have to translate the range by the sum of each prior deletion.
+   *
+   * We still however have to do the aforementioned translation/relocation for the post-delete cursor replacement,
+   *  but that happens ONCE, at the end of this whole range killing series,
+   *  and also seems to not be subject to as many strange bugs as
+   *  when we do the translation/relocation for deletion operations.
+   *
+   * For example, it appears that sometimes a series of deletions DOESN'T take into account
+   *  prior (ascending order of location) deletions,
+   *  so in order to prevent incorrect text being deleted, we might want to precalculate the updated offsets
+   *  on behalf of the delete operations, as we suggested NOT doing above.
+   *
+   * However, sometimes, it DOES take into account the prior deletions (or at least some of them)
+   *
+   * Of course, if the latter occurs, yet we thought the former would, our preventative
+   *  precalculated offset adjustments would then cause
+   *  incorrect text to be deleted anyways.
+   */
+
+  _(ranges)
+    .map((r, idx) => [r, idx] as const)
+    .orderBy(([r]) => Math.min(...r), 'desc')
+    .forEach(([range, idx]) => {
+      // we assume the ranges passed above are some transformation of the current selections
+      // therefore doc.selections[index] should be the range before the transformation... maybe
+      const [left, right] = [Math.min(...range), Math.max(...range)];
+      const length = right - left;
+      edits.push(new ModelEdit('deleteRange', [left, length]));
+      selections.push([new ModelEditSelection(left), idx, length]);
+    });
+
+  return doc.model.edit(edits, {
+    selections: _(selections)
+      // return to original selection/cursor order
+      .orderBy(([_, idx]) => idx)
+      // pull each cursor backwards by the amount of text deleted by every prior (by location) cursor's delete operation
+      .map(
+        ([selection], _index, others) =>
+          new ModelEditSelection(
+            selection.start -
+              _(others)
+                .filter(([s]) => s.start < selection.start)
+                .reduce((sum, [_, __, length]) => sum + length, 0)
+          )
+      )
+      .value(),
   });
 }
 
-export function moveToRangeLeft(doc: EditableDocument, range: [number, number]) {
-  doc.selection = new ModelEditSelection(Math.min(range[0], range[1]));
+export function moveToRangeLeft(doc: EditableDocument, ranges: Array<[number, number]>) {
+  // doc.selections = [new ModelEditSelection(Math.min(range[0], range[1]))];
+  doc.selections = ranges.map((range) => new ModelEditSelection(Math.min(range[0], range[1])));
 }
 
-export function moveToRangeRight(doc: EditableDocument, range: [number, number]) {
-  doc.selection = new ModelEditSelection(Math.max(range[0], range[1]));
+export function moveToRangeRight(doc: EditableDocument, ranges: Array<[number, number]>) {
+  doc.selections = ranges.map((range) => new ModelEditSelection(Math.max(range[0], range[1])));
 }
 
-export function selectRange(doc: EditableDocument, range: [number, number]) {
-  growSelectionStack(doc, range);
+export function selectRange(doc: EditableDocument, ranges: Array<[number, number]>) {
+  growSelectionStack(doc, ranges);
 }
 
-export function selectRangeForward(doc: EditableDocument, range: [number, number]) {
-  const selectionLeft = doc.selection.anchor;
-  const rangeRight = Math.max(range[0], range[1]);
-  growSelectionStack(doc, [selectionLeft, rangeRight]);
+export function selectRangeForward(
+  doc: EditableDocument,
+  // selections: Array<[number, number]> = doc.selections.map(s => ([s.anchor, s.active]))
+  ranges: Array<[number, number]> = doc.selections.map((s) => [s.anchor, s.active])
+) {
+  growSelectionStack(
+    doc,
+    ranges.map((range, index) => {
+      const selectionLeft = doc.selections[index].anchor;
+      const rangeRight = Math.max(range[0], range[1]);
+      return [selectionLeft, rangeRight];
+    })
+  );
 }
 
-export function selectRangeBackward(doc: EditableDocument, range: [number, number]) {
-  const selectionRight = doc.selection.anchor;
-  const rangeLeft = Math.min(range[0], range[1]);
-  growSelectionStack(doc, [selectionRight, rangeLeft]);
+export function selectRangeBackward(doc: EditableDocument, ranges: Array<[number, number]>) {
+  growSelectionStack(
+    doc,
+    ranges.map((range, index) => {
+      const selectionRight = doc.selections[index].anchor;
+      const rangeLeft = Math.min(range[0], range[1]);
+      return [selectionRight, rangeLeft];
+    })
+  );
 }
 
+// TODO: could prob use ModelEditSelection semantics for `end` versus checking for active >= anchor
 export function selectForwardSexp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selection.active >= doc.selection.anchor
-      ? forwardSexpRange
-      : (doc: EditableDocument) => forwardSexpRange(doc, doc.selection.active, true);
-  selectRangeForward(doc, rangeFn(doc));
+  const ranges = doc.selections.map((selection) => {
+    const rangeFn =
+      selection.active >= selection.anchor
+        ? forwardSexpRange
+        : (doc: EditableDocument) => forwardSexpRange(doc, [selection.active], true);
+    return rangeFn(doc, [selection.start])[0];
+  });
+  selectRangeForward(doc, ranges);
 }
 
+// TODO: could prob use ModelEditSelection semantics for `end` versus checking for active >= anchor
 export function selectRight(doc: EditableDocument) {
-  const rangeFn =
-    doc.selection.active >= doc.selection.anchor
-      ? forwardHybridSexpRange
-      : (doc: EditableDocument) => forwardHybridSexpRange(doc, doc.selection.active, true);
-  selectRangeForward(doc, rangeFn(doc));
+  const ranges = doc.selections.map((selection) => {
+    const rangeFn =
+      selection.active >= selection.anchor
+        ? (doc) => forwardHybridSexpRange(doc, [selection.end])[0]
+        : (doc: EditableDocument) => forwardHybridSexpRange(doc, [selection.active], true)[0];
+    return rangeFn(doc);
+  });
+  selectRangeForward(doc, ranges);
 }
 
 export function selectForwardSexpOrUp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selection.active >= doc.selection.anchor
-      ? forwardSexpOrUpRange
-      : (doc: EditableDocument) => forwardSexpOrUpRange(doc, doc.selection.active, true);
-
-  selectRangeForward(doc, rangeFn(doc));
+  const ranges = doc.selections.map((selection) => {
+    const rangeFn =
+      selection.active >= selection.anchor
+        ? (doc) => forwardSexpOrUpRange(doc, [selection.end])[0]
+        : (doc: EditableDocument) => forwardSexpOrUpRange(doc, [selection.active], true)[0];
+    return rangeFn(doc);
+  });
+  selectRangeForward(doc, ranges);
 }
 
 export function selectBackwardSexp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selection.active <= doc.selection.anchor
-      ? backwardSexpRange
-      : (doc: EditableDocument) => backwardSexpRange(doc, doc.selection.active, false);
-  selectRangeBackward(doc, rangeFn(doc));
+  const ranges = doc.selections.map((selection) => {
+    const rangeFn =
+      selection.active <= selection.anchor
+        ? backwardSexpRange
+        : (doc: EditableDocument) => backwardSexpRange(doc, [selection.active], false);
+    return rangeFn(doc, [selection.start])[0];
+  });
+  selectRangeBackward(doc, ranges);
 }
 
 export function selectForwardDownSexp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selection.active >= doc.selection.anchor
-      ? (doc: EditableDocument) => rangeToForwardDownList(doc, doc.selection.active, true)
-      : (doc: EditableDocument) => rangeToForwardDownList(doc, doc.selection.active, true);
-  selectRangeForward(doc, rangeFn(doc));
+  const ranges = doc.selections.map((selection) => {
+    const rangeFn =
+      selection.active >= selection.anchor
+        ? (doc: EditableDocument) => rangeToForwardDownList(doc, selection.active, true)
+        : (doc: EditableDocument) => rangeToForwardDownList(doc, selection.active, true);
+    return rangeFn(doc);
+  });
+  selectRangeForward(doc, ranges);
 }
 
 export function selectBackwardDownSexp(doc: EditableDocument) {
-  selectRangeBackward(doc, rangeToBackwardDownList(doc));
+  selectRangeBackward(
+    doc,
+    doc.selections.map((selection) => rangeToBackwardDownList(doc, selection.start))
+  );
 }
 
 export function selectForwardUpSexp(doc: EditableDocument) {
-  selectRangeForward(doc, rangeToForwardUpList(doc, doc.selection.active));
+  selectRangeForward(
+    doc,
+    doc.selections.map((selection) => rangeToForwardUpList(doc, selection.end))
+  );
 }
 
 export function selectBackwardUpSexp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selection.active <= doc.selection.anchor
-      ? (doc: EditableDocument) => rangeToBackwardUpList(doc, doc.selection.active, false)
-      : (doc: EditableDocument) => rangeToBackwardUpList(doc, doc.selection.active, false);
-  selectRangeBackward(doc, rangeFn(doc));
+  const ranges = doc.selections.map((selection) => {
+    const rangeFn =
+      selection.active <= selection.anchor
+        ? (doc: EditableDocument) => rangeToBackwardUpList(doc, selection.active, false)
+        : (doc: EditableDocument) => rangeToBackwardUpList(doc, selection.active, false);
+    return rangeFn(doc);
+  });
+  selectRangeBackward(doc, ranges);
 }
 
 export function selectBackwardSexpOrUp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selection.active <= doc.selection.anchor
-      ? (doc: EditableDocument) => backwardSexpOrUpRange(doc, doc.selection.active, false)
-      : (doc: EditableDocument) => backwardSexpOrUpRange(doc, doc.selection.active, false);
-  selectRangeBackward(doc, rangeFn(doc));
+  const ranges = doc.selections.map((selection) => {
+    const rangeFn =
+      selection.active <= selection.anchor
+        ? (doc: EditableDocument) => backwardSexpOrUpRange(doc, [selection.active], false)
+        : (doc: EditableDocument) => backwardSexpOrUpRange(doc, [selection.active], false);
+    return rangeFn(doc)[0];
+  });
+  selectRangeBackward(doc, ranges);
 }
 
 export function selectCloseList(doc: EditableDocument) {
-  selectRangeForward(doc, rangeToForwardList(doc, doc.selection.active));
+  selectRangeForward(
+    doc,
+    doc.selections.map((selection) => rangeToForwardList(doc, selection.end))
+  );
 }
 
 export function selectOpenList(doc: EditableDocument) {
-  selectRangeBackward(doc, rangeToBackwardList(doc));
+  selectRangeBackward(
+    doc,
+    doc.selections.map((selection) => rangeToBackwardList(doc, selection.start))
+  );
 }
 
 /**
@@ -127,7 +234,7 @@ export function selectOpenList(doc: EditableDocument) {
  */
 export function rangeForDefun(
   doc: EditableDocument,
-  offset: number = doc.selection.active,
+  offset: number = doc.selections[0].active,
   commentCreatesTopLevel = true
 ): [number, number] {
   const cursor = doc.getTokenCursor(offset);
@@ -150,34 +257,36 @@ enum GoUpSexpOption {
  */
 function _forwardSexpRange(
   doc: EditableDocument,
-  offset = Math.max(doc.selection.anchor, doc.selection.active),
+  offsets = doc.selections.map((s) => s.end),
   goUpSexp: GoUpSexpOption,
   goPastWhitespace = false
-): [number, number] {
-  const cursor = doc.getTokenCursor(offset);
+): Array<[number, number]> {
+  return offsets.map((offset) => {
+    const cursor = doc.getTokenCursor(offset);
 
-  if (goUpSexp == GoUpSexpOption.Never || goUpSexp == GoUpSexpOption.WhenAtLimit) {
-    // Normalize our position by scooting to the beginning of the closest sexp
-    cursor.forwardWhitespace();
+    if (goUpSexp == GoUpSexpOption.Never || goUpSexp == GoUpSexpOption.WhenAtLimit) {
+      // Normalize our position by scooting to the beginning of the closest sexp
+      cursor.forwardWhitespace();
 
-    if (cursor.forwardSexp(true, true)) {
-      if (goPastWhitespace) {
-        cursor.forwardWhitespace();
+      if (cursor.forwardSexp(true, true)) {
+        if (goPastWhitespace) {
+          cursor.forwardWhitespace();
+        }
+        return [offset, cursor.offsetStart];
       }
-      return [offset, cursor.offsetStart];
     }
-  }
 
-  if (goUpSexp == GoUpSexpOption.Required || goUpSexp == GoUpSexpOption.WhenAtLimit) {
-    cursor.forwardList();
-    if (cursor.upList()) {
-      if (goPastWhitespace) {
-        cursor.forwardWhitespace();
+    if (goUpSexp == GoUpSexpOption.Required || goUpSexp == GoUpSexpOption.WhenAtLimit) {
+      cursor.forwardList();
+      if (cursor.upList()) {
+        if (goPastWhitespace) {
+          cursor.forwardWhitespace();
+        }
+        return [offset, cursor.offsetStart];
       }
-      return [offset, cursor.offsetStart];
     }
-  }
-  return [offset, offset];
+    return [offset, offset];
+  });
 }
 
 /**
@@ -185,62 +294,64 @@ function _forwardSexpRange(
  */
 function _backwardSexpRange(
   doc: EditableDocument,
-  offset: number = Math.min(doc.selection.anchor, doc.selection.active),
+  offsets: number[] = doc.selections.map((s) => s.start),
   goUpSexp: GoUpSexpOption,
   goPastWhitespace = false
-): [number, number] {
-  const cursor = doc.getTokenCursor(offset);
+): Array<[number, number]> {
+  return offsets.map((offset) => {
+    const cursor = doc.getTokenCursor(offset);
 
-  if (goUpSexp == GoUpSexpOption.Never || goUpSexp == GoUpSexpOption.WhenAtLimit) {
-    if (!cursor.isWhiteSpace() && cursor.offsetStart < offset) {
-      // This is because cursor.backwardSexp() can't move backwards when "on" the first sexp inside a list
-      // TODO: Try to fix this in LispTokenCursor instead.
-      cursor.forwardSexp();
-    }
-    cursor.backwardWhitespace();
-
-    if (cursor.backwardSexp(true, true)) {
-      if (goPastWhitespace) {
-        cursor.backwardWhitespace();
+    if (goUpSexp == GoUpSexpOption.Never || goUpSexp == GoUpSexpOption.WhenAtLimit) {
+      if (!cursor.isWhiteSpace() && cursor.offsetStart < offset) {
+        // This is because cursor.backwardSexp() can't move backwards when "on" the first sexp inside a list
+        // TODO: Try to fix this in LispTokenCursor instead.
+        cursor.forwardSexp();
       }
-      return [cursor.offsetStart, offset];
-    }
-  }
+      cursor.backwardWhitespace();
 
-  if (goUpSexp == GoUpSexpOption.Required || goUpSexp == GoUpSexpOption.WhenAtLimit) {
-    cursor.backwardList();
-    if (cursor.backwardUpList()) {
-      cursor.forwardSexp(true, true);
-      cursor.backwardSexp(true, true);
-      if (goPastWhitespace) {
-        cursor.backwardWhitespace();
+      if (cursor.backwardSexp(true, true)) {
+        if (goPastWhitespace) {
+          cursor.backwardWhitespace();
+        }
+        return [cursor.offsetStart, offset];
       }
-      return [cursor.offsetStart, offset];
     }
-  }
 
-  return [offset, offset];
+    if (goUpSexp == GoUpSexpOption.Required || goUpSexp == GoUpSexpOption.WhenAtLimit) {
+      cursor.backwardList();
+      if (cursor.backwardUpList()) {
+        cursor.forwardSexp(true, true);
+        cursor.backwardSexp(true, true);
+        if (goPastWhitespace) {
+          cursor.backwardWhitespace();
+        }
+        return [cursor.offsetStart, offset];
+      }
+    }
+
+    return [offset, offset];
+  });
 }
 
 export function forwardSexpRange(
   doc: EditableDocument,
-  offset = Math.max(doc.selection.anchor, doc.selection.active),
+  offsets: number[] = doc.selections.map((s) => s.end),
   goPastWhitespace = false
-): [number, number] {
-  return _forwardSexpRange(doc, offset, GoUpSexpOption.Never, goPastWhitespace);
+): Array<[number, number]> {
+  return _forwardSexpRange(doc, offsets, GoUpSexpOption.Never, goPastWhitespace);
 }
 
 export function backwardSexpRange(
   doc: EditableDocument,
-  offset: number = Math.min(doc.selection.anchor, doc.selection.active),
+  offsets: number[] = doc.selections.map((s) => s.start),
   goPastWhitespace = false
-): [number, number] {
-  return _backwardSexpRange(doc, offset, GoUpSexpOption.Never, goPastWhitespace);
+): Array<[number, number]> {
+  return _backwardSexpRange(doc, offsets, GoUpSexpOption.Never, goPastWhitespace);
 }
 
 export function forwardListRange(
   doc: EditableDocument,
-  start: number = doc.selection.active
+  start: number = doc.selections[0].active
 ): [number, number] {
   const cursor = doc.getTokenCursor(start);
   cursor.forwardList();
@@ -249,7 +360,7 @@ export function forwardListRange(
 
 export function backwardListRange(
   doc: EditableDocument,
-  start: number = doc.selection.active
+  start: number = doc.selections[0].active
 ): [number, number] {
   const cursor = doc.getTokenCursor(start);
   cursor.backwardList();
@@ -270,108 +381,120 @@ export function backwardListRange(
  * @param goPastWhitespace
  * @returns [number, number]
  */
+
 export function forwardHybridSexpRange(
   doc: EditableDocument,
-  offset = Math.max(doc.selection.anchor, doc.selection.active),
+  // offset = Math.max(doc.selections.anchor, doc.selections.active),
+  // offset?: number = doc.selections[0].end,
+  // selections: ModelEditSelection[] = doc.selections,
+  offsets: number[] = doc.selections.map((s) => s.end),
   goPastWhitespace = false
-): [number, number] {
-  let cursor = doc.getTokenCursor(offset);
-  if (cursor.getToken().type === 'open') {
-    return forwardSexpRange(doc);
-  } else if (cursor.getToken().type === 'close') {
-    return [offset, offset];
-  }
+): Array<[number, number]> {
+  return offsets.map<[number, number]>((offset) => {
+    // const { end: offset } = selection;
 
-  const currentLineText = doc.model.getLineText(cursor.line);
-  const lineStart = doc.model.getOffsetForLine(cursor.line);
-  const currentLineNewlineOffset = lineStart + currentLineText.length;
-  const remainderLineText = doc.model.getText(offset, currentLineNewlineOffset + 1);
-
-  cursor.forwardList(); // move to the end of the current form
-  const currentFormEndToken = cursor.getToken();
-  // when we've advanced the cursor but start is behind us then go to the end
-  // happens when in a clojure comment i.e:  ;; ----
-  const cursorOffsetEnd = cursor.offsetStart <= offset ? cursor.offsetEnd : cursor.offsetStart;
-  const text = doc.model.getText(offset, cursorOffsetEnd);
-  let hasNewline = text.indexOf('\n') > -1;
-  let end = cursorOffsetEnd;
-
-  // Want the min of closing token or newline
-  // After moving forward, the cursor is not yet at the end of the current line,
-  // and it is not a close token. So we include the newline
-  // because what forms are here extend beyond the end of the current line
-  if (currentLineNewlineOffset > cursor.offsetEnd && currentFormEndToken.type != 'close') {
-    hasNewline = true;
-    end = currentLineNewlineOffset;
-  }
-
-  if (remainderLineText === '' || remainderLineText === '\n') {
-    end = currentLineNewlineOffset + doc.model.lineEndingLength;
-  } else if (hasNewline) {
-    // Try to find the first open token to the right of the document's cursor location if any
-    let nearestOpenTokenOffset = -1;
-
-    // Start at the newline.
-    // Work backwards to find the smallest open token offset
-    // greater than the document's cursor location if any
-    cursor = doc.getTokenCursor(currentLineNewlineOffset);
-    while (cursor.offsetStart > offset) {
-      while (cursor.backwardSexp()) {
-        // move backward until the cursor cannot move backward anymore
-      }
-      if (cursor.offsetStart > offset) {
-        nearestOpenTokenOffset = cursor.offsetStart;
-        cursor = doc.getTokenCursor(cursor.offsetStart - 1);
-      }
+    let cursor = doc.getTokenCursor(offset);
+    if (cursor.getToken().type === 'open') {
+      const [forwarded] = forwardSexpRange(doc, [offset]);
+      return forwarded;
+    } else if (cursor.getToken().type === 'close') {
+      return [offset, offset];
     }
 
-    if (nearestOpenTokenOffset > 0) {
-      cursor = doc.getTokenCursor(nearestOpenTokenOffset);
-      cursor.forwardList();
-      end = cursor.offsetEnd; // include the closing token
-    } else {
-      // no open tokens found so the end is the newline
+    const currentLineText = doc.model.getLineText(cursor.line);
+    const lineStart = doc.model.getOffsetForLine(cursor.line);
+    const currentLineNewlineOffset = lineStart + currentLineText.length;
+    const remainderLineText = doc.model.getText(offset, currentLineNewlineOffset + 1);
+
+    cursor.forwardList(); // move to the end of the current form
+    const currentFormEndToken = cursor.getToken();
+    // when we've advanced the cursor but start is behind us then go to the end
+    // happens when in a clojure comment i.e:  ;; ----
+    const cursorOffsetEnd = cursor.offsetStart <= offset ? cursor.offsetEnd : cursor.offsetStart;
+    const text = doc.model.getText(offset, cursorOffsetEnd);
+    let hasNewline = text.indexOf('\n') > -1;
+    let end = cursorOffsetEnd;
+
+    // Want the min of closing token or newline
+    // After moving forward, the cursor is not yet at the end of the current line,
+    // and it is not a close token. So we include the newline
+    // because what forms are here extend beyond the end of the current line
+    if (currentLineNewlineOffset > cursor.offsetEnd && currentFormEndToken.type != 'close') {
+      hasNewline = true;
       end = currentLineNewlineOffset;
     }
-  }
-  return [offset, end];
+
+    if (remainderLineText === '' || remainderLineText === '\n') {
+      end = currentLineNewlineOffset + doc.model.lineEndingLength;
+    } else if (hasNewline) {
+      // Try to find the first open token to the right of the document's cursor location if any
+      let nearestOpenTokenOffset = -1;
+
+      // Start at the newline.
+      // Work backwards to find the smallest open token offset
+      // greater than the document's cursor location if any
+      cursor = doc.getTokenCursor(currentLineNewlineOffset);
+      while (cursor.offsetStart > offset) {
+        while (cursor.backwardSexp()) {
+          // move backward until the cursor cannot move backward anymore
+        }
+        if (cursor.offsetStart > offset) {
+          nearestOpenTokenOffset = cursor.offsetStart;
+          cursor = doc.getTokenCursor(cursor.offsetStart - 1);
+        }
+      }
+
+      if (nearestOpenTokenOffset > 0) {
+        cursor = doc.getTokenCursor(nearestOpenTokenOffset);
+        cursor.forwardList();
+        end = cursor.offsetEnd; // include the closing token
+      } else {
+        // no open tokens found so the end is the newline
+        end = currentLineNewlineOffset;
+      }
+    }
+    return [offset, end];
+  });
 }
 
 export function rangeToForwardUpList(
   doc: EditableDocument,
-  offset: number = Math.max(doc.selection.anchor, doc.selection.active),
+  // offset: number = Math.max(doc.selections.anchor, doc.selections.active),
+  offset: number = doc.selections[0].end,
   goPastWhitespace = false
 ): [number, number] {
-  return _forwardSexpRange(doc, offset, GoUpSexpOption.Required, goPastWhitespace);
+  return _forwardSexpRange(doc, [offset], GoUpSexpOption.Required, goPastWhitespace)[0];
 }
 
 export function rangeToBackwardUpList(
   doc: EditableDocument,
-  offset: number = Math.min(doc.selection.anchor, doc.selection.active),
+  // offset: number = Math.min(doc.selections.anchor, doc.selections.active),
+  offset: number = doc.selections[0].start,
   goPastWhitespace = false
 ): [number, number] {
-  return _backwardSexpRange(doc, offset, GoUpSexpOption.Required, goPastWhitespace);
+  return _backwardSexpRange(doc, [offset], GoUpSexpOption.Required, goPastWhitespace)[0];
 }
 
 export function forwardSexpOrUpRange(
   doc: EditableDocument,
-  offset = Math.max(doc.selection.anchor, doc.selection.active),
+  offsets: number[] = doc.selections.map((s) => s.end),
   goPastWhitespace = false
-): [number, number] {
-  return _forwardSexpRange(doc, offset, GoUpSexpOption.WhenAtLimit, goPastWhitespace);
+): Array<[number, number]> {
+  return _forwardSexpRange(doc, offsets, GoUpSexpOption.WhenAtLimit, goPastWhitespace);
 }
 
 export function backwardSexpOrUpRange(
   doc: EditableDocument,
-  offset: number = Math.min(doc.selection.anchor, doc.selection.active),
+  offsets: number[] = doc.selections.map((s) => s.start),
   goPastWhitespace = false
-): [number, number] {
-  return _backwardSexpRange(doc, offset, GoUpSexpOption.WhenAtLimit, goPastWhitespace);
+): Array<[number, number]> {
+  return _backwardSexpRange(doc, offsets, GoUpSexpOption.WhenAtLimit, goPastWhitespace);
 }
 
 export function rangeToForwardDownList(
   doc: EditableDocument,
-  offset: number = Math.max(doc.selection.anchor, doc.selection.active),
+  // offset: number = Math.max(doc.selections.anchor, doc.selections.active),
+  offset: number = doc.selections[0].end,
   goPastWhitespace = false
 ): [number, number] {
   const cursor = doc.getTokenCursor(offset);
@@ -387,7 +510,8 @@ export function rangeToForwardDownList(
 
 export function rangeToBackwardDownList(
   doc: EditableDocument,
-  offset: number = Math.min(doc.selection.anchor, doc.selection.active),
+  // offsets: number[] = Math.min(doc.selections.anchor, doc.selections.active),
+  offset: number = doc.selections[0].start,
   goPastWhitespace = false
 ): [number, number] {
   const cursor = doc.getTokenCursor(offset);
@@ -409,7 +533,8 @@ export function rangeToBackwardDownList(
 
 export function rangeToForwardList(
   doc: EditableDocument,
-  offset: number = Math.max(doc.selection.anchor, doc.selection.active)
+  // offset: number = Math.max(doc.selections.anchor, doc.selections.active)
+  offset: number = doc.selections[0].end
 ): [number, number] {
   const cursor = doc.getTokenCursor(offset);
   if (cursor.forwardList()) {
@@ -421,7 +546,8 @@ export function rangeToForwardList(
 
 export function rangeToBackwardList(
   doc: EditableDocument,
-  offset: number = Math.min(doc.selection.anchor, doc.selection.active)
+  // offset: number = Math.min(doc.selections.anchor, doc.selections.active)
+  offset: number = doc.selections[0].start
 ): [number, number] {
   const cursor = doc.getTokenCursor(offset);
   if (cursor.backwardList()) {
@@ -435,91 +561,108 @@ export function wrapSexpr(
   doc: EditableDocument,
   open: string,
   close: string,
-  start: number = doc.selection.anchor,
-  end: number = doc.selection.active,
   options = { skipFormat: false }
-): Thenable<boolean> {
-  const cursor = doc.getTokenCursor(end);
-  if (cursor.withinString() && open == '"') {
-    open = close = '\\"';
-  }
-  if (start == end) {
-    // No selection
-    const currentFormRange = cursor.rangeForCurrentForm(start);
-    if (currentFormRange) {
-      const range = currentFormRange;
-      return doc.model.edit(
-        [
-          new ModelEdit('insertString', [range[1], close]),
-          new ModelEdit('insertString', [
-            range[0],
-            open,
-            [end, end],
-            [start + open.length, start + open.length],
-          ]),
-        ],
-        {
-          selection: new ModelEditSelection(start + open.length),
-          skipFormat: options.skipFormat,
-        }
-      );
-    }
-  } else {
-    // there is a selection
-    const range = [Math.min(start, end), Math.max(start, end)];
-    return doc.model.edit(
-      [
-        new ModelEdit('insertString', [range[1], close]),
-        new ModelEdit('insertString', [range[0], open]),
-      ],
-      {
-        selection: new ModelEditSelection(start + open.length),
-        skipFormat: options.skipFormat,
+): Thenable<ModelEditResult> {
+  // TODO: (The following applies to all multi cursor work that involved a ModelEditResult and where not every cursor has a valid operation) Restore all cursors to their original positions after batch edit, except those explicitly operated upon.
+
+  const edits = [],
+    // selections = clone(doc.selections).map(mapToItemAndOrder);
+    selections = clone(doc.selections);
+
+  _(doc.selections)
+    // iterate backwards to simplify dealing with cumulative cursor position offsets as document's text is added to with
+    // parens or whatever is being wrapped with.
+    .map(mapToItemAndOrder)
+    .orderBy(([r]) => mapRangeOrSelectionToOffset('start')(r), 'desc')
+    .forEach(([sel, index]) => {
+      const { start, end } = sel;
+      const cursor = doc.getTokenCursor(end);
+      if (cursor.withinString() && open == '"') {
+        open = close = '\\"';
       }
-    );
-  }
+      if (start == end) {
+        // No selection
+        const currentFormRange = cursor.rangeForCurrentForm(start);
+        if (currentFormRange) {
+          const range = currentFormRange;
+          edits.push(
+            new ModelEdit('insertString', [range[1], close]),
+            new ModelEdit('insertString', [
+              range[0],
+              open,
+              // [end, end],
+              // [start + open.length, start + open.length],
+            ])
+          );
+          // don't forget to include the index with the selection for later reordering to original order;
+          // selections[index] = [new ModelEditSelection(start + open.length), index];
+          selections[index] = new ModelEditSelection(start + open.length);
+        }
+      } else {
+        // there is a selection
+        const range = [Math.min(start, end), Math.max(start, end)];
+        edits.push(
+          new ModelEdit('insertString', [range[1], close]),
+          new ModelEdit('insertString', [range[0], open])
+        );
+        // don't forget to include the index with the selection for later reordering to original order;
+        // selections[index] = [new ModelEditSelection(start + open.length), index];
+        selections[index] = new ModelEditSelection(start + open.length);
+      }
+      return undefined;
+    });
+  return doc.model.edit(edits, {
+    selections: selections.map(repositionRangeOrSelectionByCumulativeOffsets(2)),
+    skipFormat: options.skipFormat,
+  });
 }
 
-export function rewrapSexpr(
-  doc: EditableDocument,
-  open: string,
-  close: string,
-  start: number = doc.selection.anchor,
-  end: number = doc.selection.active
-): Thenable<boolean> {
-  const cursor = doc.getTokenCursor(end);
-  if (cursor.backwardList()) {
-    const openStart = cursor.offsetStart - 1,
-      openEnd = cursor.offsetStart;
-    if (cursor.forwardList()) {
-      const closeStart = cursor.offsetStart,
-        closeEnd = cursor.offsetEnd;
-      return doc.model.edit(
-        [
-          new ModelEdit('changeRange', [closeStart, closeEnd, close]),
-          new ModelEdit('changeRange', [openStart, openEnd, open]),
-        ],
-        { selection: new ModelEditSelection(end) }
-      );
+// TODO: test
+export function rewrapSexpr(doc: EditableDocument, open: string, close: string) {
+  doc.selections.forEach((sel) => {
+    const { start, end } = sel;
+    const cursor = doc.getTokenCursor(end);
+    if (cursor.backwardList()) {
+      const openStart = cursor.offsetStart - 1,
+        openEnd = cursor.offsetStart;
+      if (cursor.forwardList()) {
+        const closeStart = cursor.offsetStart,
+          closeEnd = cursor.offsetEnd;
+        void doc.model.edit(
+          [
+            new ModelEdit('changeRange', [closeStart, closeEnd, close]),
+            new ModelEdit('changeRange', [openStart, openEnd, open]),
+          ],
+          { selections: [new ModelEditSelection(end)] }
+        );
+      }
     }
-  }
+  });
 }
 
-export function splitSexp(doc: EditableDocument, start: number = doc.selection.active) {
-  const cursor = doc.getTokenCursor(start);
-  if (!cursor.withinString() && !(cursor.isWhiteSpace() || cursor.previousIsWhiteSpace())) {
-    cursor.forwardWhitespace();
-  }
-  const splitPos = cursor.withinString() ? start : cursor.offsetStart;
-  if (cursor.backwardList()) {
-    const open = cursor.getPrevToken().raw;
-    if (cursor.forwardList()) {
-      const close = cursor.getToken().raw;
-      void doc.model.edit([new ModelEdit('changeRange', [splitPos, splitPos, `${close}${open}`])], {
-        selection: new ModelEditSelection(splitPos + 1),
-      });
+// TODO: test
+export function splitSexp(doc: EditableDocument) {
+  const edits = [],
+    selections = clone(doc.selections);
+  doc.selections.forEach((selection, index) => {
+    const { start, end } = selection;
+    const cursor = doc.getTokenCursor(start);
+    if (!cursor.withinString() && !(cursor.isWhiteSpace() || cursor.previousIsWhiteSpace())) {
+      cursor.forwardWhitespace();
     }
-  }
+    const splitPos = cursor.withinString() ? start : cursor.offsetStart;
+    if (cursor.backwardList()) {
+      const open = cursor.getPrevToken().raw;
+      if (cursor.forwardList()) {
+        const close = cursor.getToken().raw;
+        edits.push(new ModelEdit('changeRange', [splitPos, splitPos, `${close}${open}`]));
+        selections[index] = new ModelEditSelection(splitPos + 1);
+      }
+    }
+  });
+  return doc.model.edit(edits, {
+    selections,
+  });
 }
 
 /**
@@ -527,99 +670,218 @@ export function splitSexp(doc: EditableDocument, start: number = doc.selection.a
  * @param doc
  * @param start
  */
-export function joinSexp(
-  doc: EditableDocument,
-  start: number = doc.selection.active
-): Thenable<boolean> {
-  const cursor = doc.getTokenCursor(start);
-  cursor.backwardWhitespace();
-  const prevToken = cursor.getPrevToken(),
-    prevEnd = cursor.offsetStart;
-  if (['close', 'str-end', 'str'].includes(prevToken.type)) {
-    cursor.forwardWhitespace();
-    const nextToken = cursor.getToken(),
-      nextStart = cursor.offsetStart;
-    if (validPair(nextToken.raw[0], prevToken.raw[prevToken.raw.length - 1])) {
-      return doc.model.edit(
-        [
+// TODO: test
+export function joinSexp(doc: EditableDocument): Thenable<ModelEditResult> {
+  const edits = [],
+    selections = clone(doc.selections);
+  doc.selections.forEach((selection, index) => {
+    const { start, end } = selection;
+
+    const cursor = doc.getTokenCursor(start);
+    cursor.backwardWhitespace();
+    const prevToken = cursor.getPrevToken(),
+      prevEnd = cursor.offsetStart;
+    if (['close', 'str-end', 'str'].includes(prevToken.type)) {
+      cursor.forwardWhitespace();
+      const nextToken = cursor.getToken(),
+        nextStart = cursor.offsetStart;
+      if (validPair(nextToken.raw[0], prevToken.raw[prevToken.raw.length - 1])) {
+        //
+        edits.push(
           new ModelEdit('changeRange', [
             prevEnd - 1,
             nextStart + 1,
             prevToken.type === 'close' ? ' ' : '',
-            [start, start],
-            [prevEnd, prevEnd],
-          ]),
-        ],
-        { selection: new ModelEditSelection(prevEnd), formatDepth: 2 }
-      );
+            // [start, start],
+            // [prevEnd, prevEnd],
+          ])
+        );
+        selections[index] = new ModelEditSelection(prevEnd);
+      }
     }
-  }
+  });
+  return doc.model.edit(edits, { selections, formatDepth: 2 });
 }
 
 export function spliceSexp(
   doc: EditableDocument,
-  start: number = doc.selection.active,
+  // start: number = doc.selections.active,
   undoStopBefore = true
-): Thenable<boolean> {
-  const cursor = doc.getTokenCursor(start);
-  // TODO: this should unwrap the string, not the enclosing list.
+): Thenable<ModelEditResult> {
+  const edits = [],
+    selections = clone(doc.selections);
 
-  cursor.backwardList();
-  const open = cursor.getPrevToken();
-  const beginning = cursor.offsetStart;
-  if (open.type == 'open') {
-    cursor.forwardList();
-    const close = cursor.getToken();
-    const end = cursor.offsetStart;
-    if (close.type == 'close' && validPair(open.raw, close.raw)) {
-      return doc.model.edit(
-        [
-          new ModelEdit('changeRange', [end, end + close.raw.length, '']),
-          new ModelEdit('changeRange', [beginning - open.raw.length, beginning, '']),
-        ],
-        { undoStopBefore, selection: new ModelEditSelection(start - 1) }
-      );
-    }
-  }
+  _(doc.selections)
+    .map(mapToItemAndOrder)
+    .orderBy(mapRangeOrSelectionToOffset(), 'desc')
+    .forEach(([selection, originalOrder]) => {
+      const { start, end } = selection;
+      const cursor = doc.getTokenCursor(start);
+      // TODO: this should unwrap the string, not the enclosing list.
+      cursor.backwardList();
+      const open = cursor.getPrevToken();
+      const beginning = cursor.offsetStart;
+      if (open.type == 'open') {
+        cursor.forwardList();
+        const close = cursor.getToken();
+        const end = cursor.offsetStart;
+        if (close.type == 'close' && validPair(open.raw, close.raw)) {
+          edits.push(
+            new ModelEdit('changeRange', [end, end + close.raw.length, '']),
+            new ModelEdit('changeRange', [beginning - open.raw.length, beginning, ''])
+          );
+          selections[originalOrder] = new ModelEditSelection(start - 1);
+        }
+      }
+    });
+
+  return doc.model.edit(edits, {
+    undoStopBefore,
+    selections: _(selections).map(repositionRangeOrSelectionByCumulativeOffsets(-2)).value(),
+  });
 }
 
+export function killSexpBackward(
+  doc: EditableDocument,
+  shouldKillAlsoCutToClipboard = () => false,
+  copyRangeToClipboard = (doc: EditableDocument, range: Array<[number, number]>) => undefined
+) {
+  const ranges = backwardSexpRange(
+    doc,
+    doc.selections.map((s) => s.active)
+  );
+  if (shouldKillAlsoCutToClipboard()) {
+    copyRangeToClipboard(doc, ranges);
+  }
+  return killRange(doc, ranges);
+}
+
+export function killSexpForward(
+  doc: EditableDocument,
+  shouldKillAlsoCutToClipboard = () => false,
+  copyRangeToClipboard = (doc: EditableDocument, range: Array<[number, number]>) => undefined
+) {
+  const ranges = forwardSexpRange(doc);
+  if (shouldKillAlsoCutToClipboard()) {
+    copyRangeToClipboard(doc, ranges);
+  }
+  return killRange(doc, ranges);
+}
+
+/**
+ * In making this compatible with multi-cursor,
+ *  we had to complicate the logic somewhat to make sure
+ *  deletions by prior cursors are taken into account by
+ *  later ones, and are relocated accordingly.
+ *
+ * See comments in paredit.killRange() for more details.
+ */
 export function killBackwardList(
   doc: EditableDocument,
-  [start, end]: [number, number]
-): Thenable<boolean> {
-  return doc.model.edit(
-    [new ModelEdit('changeRange', [start, end, '', [end, end], [start, start]])],
-    {
-      selection: new ModelEditSelection(start),
-    }
-  );
+  ranges: Array<[number, number]> = doc.selections.map((s) => [s.start, s.end])
+): Thenable<ModelEditResult> {
+  const edits: ModelEdit<'deleteRange'>[] = [],
+    selections: [ModelEditSelection, number, number][] = [];
+
+  _(ranges)
+    .map((r, idx) => [r, idx] as const)
+    .orderBy(([r]) => Math.min(...r), 'desc')
+    .forEach(([r, originalIndex]) => {
+      const [left, right] = r;
+      const cursor = doc.getTokenCursor(left);
+      cursor.backwardList();
+      // const offset = selections
+      // .filter((s) => s.start < left)
+      // .reduce((sum, s) => sum + s.distance, 0);
+      // const start = cursor.offsetStart - offset;
+      // const end = right - offset;
+      // edits.push(new ModelEdit('deleteRange', [start, Math.abs(end - start)]));
+      const start = cursor.offsetStart;
+      const end = right;
+      const length = Math.abs(end - start);
+      edits.push(new ModelEdit('deleteRange', [start, length]));
+      // selections.push([new ModelEditSelection(start, end), originalIndex, length]);
+      selections.push([new ModelEditSelection(start, end), originalIndex, length]);
+    });
+
+  return doc.model.edit(edits, {
+    selections: _(selections)
+      .orderBy(([_, originalIndex]) => originalIndex)
+      .map(
+        ([selection], _idx, others) =>
+          new ModelEditSelection(
+            selection.start -
+              _(others)
+                .filter(([s]) => s.start < selection.start)
+                .reduce((sum, [_, __, lengthDeleted]) => sum + lengthDeleted, 0)
+          )
+      )
+      .value(),
+  });
 }
 
+/**
+ * In making this compatible with multi-cursor,
+ *  we had to complicate the logic somewhat to make sure
+ *  deletions by prior cursors are taken into account by
+ *  later ones, and are relocated accordingly.
+ *
+ * See comments in paredit.killRange() for more details.
+ */
 export function killForwardList(
   doc: EditableDocument,
-  [start, end]: [number, number]
-): Thenable<boolean> {
-  const cursor = doc.getTokenCursor(start);
-  const inComment =
-    (cursor.getToken().type == 'comment' && start > cursor.offsetStart) ||
-    cursor.getPrevToken().type == 'comment';
-  return doc.model.edit(
-    [
-      new ModelEdit('changeRange', [
-        start,
-        end,
-        inComment ? '\n' : '',
-        [start, start],
-        [start, start],
-      ]),
-    ],
-    { selection: new ModelEditSelection(start) }
-  );
+  ranges: Array<[number, number]> = doc.selections.map((s) => [s.start, s.end])
+): Thenable<ModelEditResult> {
+  const edits: ModelEdit<'changeRange'>[] = [],
+    selections: [ModelEditSelection, number, number][] = [];
+
+  _(ranges)
+    .map((r, idx) => [r, idx] as const)
+    .orderBy(([r]) => Math.min(...r), 'desc')
+    .forEach(([r, originalIndex]) => {
+      const [left, right] = r;
+      const cursor = doc.getTokenCursor(left);
+      cursor.forwardList();
+      const inComment =
+        (cursor.getToken().type == 'comment' && left > cursor.offsetStart) ||
+        cursor.getPrevToken().type == 'comment';
+
+      const start = cursor.offsetStart;
+      const end = right;
+      const length = Math.abs(end - start);
+      edits.push(new ModelEdit('changeRange', [start, end, inComment ? '\n' : '']));
+      selections.push([new ModelEditSelection(start, end), originalIndex, length]);
+    });
+
+  return doc.model.edit(edits, {
+    selections: _(selections)
+      .orderBy(([_, originalIndex]) => originalIndex)
+      .map(
+        ([selection], _idx, others) =>
+          new ModelEditSelection(
+            selection.start -
+              _(others)
+                .filter(([s]) => s.start < selection.start)
+                .reduce((sum, [_, __, lengthDeleted]) => sum + lengthDeleted, 0)
+          )
+      )
+      .value(),
+  });
 }
 
-export function forwardSlurpSexp(
+// FIXME: check if this forEach solution works vs map into modelEdit batch
+export function forwardSlurpSexp(doc: EditableDocument) {
+  const startOffsets: number[] = doc.selections.map(property('active'));
+  startOffsets.forEach((offset) => {
+    const extraOpts = { formatDepth: 1 };
+
+    _forwardSlurpSexpSingle(doc, offset, extraOpts);
+  });
+}
+
+export function _forwardSlurpSexpSingle(
   doc: EditableDocument,
-  start: number = doc.selection.active,
+  start: number,
   extraOpts = { formatDepth: 1 }
 ) {
   const cursor = doc.getTokenCursor(start);
@@ -632,12 +894,13 @@ export function forwardSlurpSexp(
     const wsStartOffset = wsInsideCursor.offsetStart;
     cursor.upList();
     const wsOutSideCursor = cursor.clone();
+    // check if we're about to hit the end of our current scope
     if (cursor.forwardSexp(true, true)) {
       wsOutSideCursor.forwardWhitespace(false);
       const wsEndOffset = wsOutSideCursor.offsetStart;
       const newCloseOffset = cursor.offsetStart;
       const replacedText = doc.model.getText(wsStartOffset, wsEndOffset);
-      const changeArgs =
+      const changeArgs: ModelEditFunctionArgs<'changeRange'> =
         replacedText.indexOf('\n') >= 0
           ? [currentCloseOffset, currentCloseOffset + close.length, '']
           : [wsStartOffset, wsEndOffset, ' '];
@@ -654,19 +917,24 @@ export function forwardSlurpSexp(
         }
       );
     } else {
+      // the
       const formatDepth = extraOpts['formatDepth'] ? extraOpts['formatDepth'] : 1;
-      forwardSlurpSexp(doc, cursor.offsetStart, {
+      _forwardSlurpSexpSingle(doc, cursor.offsetStart, {
         formatDepth: formatDepth + 1,
       });
     }
   }
 }
 
-export function backwardSlurpSexp(
-  doc: EditableDocument,
-  start: number = doc.selection.active,
-  extraOpts = {}
-) {
+// FIXME: check if this forEach solution works vs map into modelEdit batch
+export function backwardSlurpSexp(doc: EditableDocument) {
+  doc.selections.forEach((selection) => {
+    const extraOpts = { formatDepth: 1 };
+    _backwardSlurpSexpSingle(doc, selection.active, extraOpts);
+  });
+}
+
+export function _backwardSlurpSexpSingle(doc: EditableDocument, start: number, extraOpts = {}) {
   const cursor = doc.getTokenCursor(start);
   cursor.backwardList();
   const tk = cursor.getPrevToken();
@@ -691,78 +959,97 @@ export function backwardSlurpSexp(
       );
     } else {
       const formatDepth = extraOpts['formatDepth'] ? extraOpts['formatDepth'] : 1;
-      backwardSlurpSexp(doc, cursor.offsetStart, {
+      _backwardSlurpSexpSingle(doc, cursor.offsetStart, {
         formatDepth: formatDepth + 1,
       });
     }
   }
 }
 
-export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selection.active) {
-  const cursor = doc.getTokenCursor(start);
-  cursor.forwardList();
-  if (cursor.getToken().type == 'close') {
-    const offset = cursor.offsetStart,
-      close = cursor.getToken().raw;
-    cursor.backwardSexp(true, true);
-    cursor.backwardWhitespace();
-    void doc.model.edit(
-      [
+export function forwardBarfSexp(doc: EditableDocument) {
+  const edits = [],
+    selections = clone(doc.selections);
+  doc.selections.forEach((selection, index) => {
+    const { start, end } = selection;
+    const cursor = doc.getTokenCursor(start);
+    cursor.forwardList();
+    if (cursor.getToken().type == 'close') {
+      const offset = cursor.offsetStart,
+        close = cursor.getToken().raw;
+      cursor.backwardSexp(true, true);
+      cursor.backwardWhitespace();
+      edits.push(
         new ModelEdit('deleteRange', [offset, close.length]),
-        new ModelEdit('insertString', [cursor.offsetStart, close]),
-      ],
-      start >= cursor.offsetStart
-        ? {
-            selection: new ModelEditSelection(cursor.offsetStart),
-            formatDepth: 2,
-          }
-        : { formatDepth: 2 }
-    );
-  }
+        new ModelEdit('insertString', [cursor.offsetStart, close])
+      );
+      if (start >= cursor.offsetStart) {
+        selections[index] = new ModelEditSelection(cursor.offsetStart);
+      } else {
+        selections[index] = selection;
+      }
+    }
+  });
+  void doc.model.edit(edits, { selections, formatDepth: 2 });
 }
 
-export function backwardBarfSexp(doc: EditableDocument, start: number = doc.selection.active) {
-  const cursor = doc.getTokenCursor(start);
-  cursor.backwardList();
-  const tk = cursor.getPrevToken();
-  if (tk.type == 'open') {
-    cursor.previous();
-    const offset = cursor.offsetStart;
-    const close = cursor.getToken().raw;
-    cursor.next();
-    cursor.forwardSexp(true, true);
-    cursor.forwardWhitespace(false);
-    void doc.model.edit(
-      [
+export function backwardBarfSexp(doc: EditableDocument) {
+  const edits = [],
+    selections = clone(doc.selections);
+
+  doc.selections.forEach((sel, index) => {
+    const { start, end } = sel;
+    const cursor = doc.getTokenCursor(start);
+    cursor.backwardList();
+    const tk = cursor.getPrevToken();
+    if (tk.type == 'open') {
+      cursor.previous();
+      const offset = cursor.offsetStart;
+      const close = cursor.getToken().raw;
+      cursor.next();
+      cursor.forwardSexp(true, true);
+      cursor.forwardWhitespace(false);
+
+      edits.push(
         new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
-        new ModelEdit('deleteRange', [offset, tk.raw.length]),
-      ],
-      start <= cursor.offsetStart
-        ? {
-            selection: new ModelEditSelection(cursor.offsetStart),
-            formatDepth: 2,
-          }
-        : { formatDepth: 2 }
-    );
-  }
+        new ModelEdit('deleteRange', [offset, tk.raw.length])
+      );
+
+      if (start <= cursor.offsetStart) {
+        selections[index] = new ModelEditSelection(cursor.offsetStart);
+      }
+    }
+  });
+
+  void doc.model.edit(edits, { selections, formatDepth: 2 });
 }
 
+// FIXME: open() is defined and tested but is never used or referenced?
 export function open(
   doc: EditableDocument,
   open: string,
   close: string,
-  start: number = doc.selection.active
+  start: number = doc.selections[0].active
 ) {
-  const [cs, ce] = [doc.selection.anchor, doc.selection.active];
-  doc.insertString(open + doc.getSelectionText() + close);
+  const [cs, ce] = [doc.selections[0].anchor, doc.selections[0].active];
+  doc.insertString(open + doc.getSelectionTexts() + close);
   if (cs != ce) {
-    doc.selection = new ModelEditSelection(cs + open.length, ce + open.length);
+    // TODO(multi-cursor): make multi cursor compat?
+    doc.selections = replaceAt(
+      doc.selections,
+      0,
+      new ModelEditSelection(cs + open.length, ce + open.length)
+    );
   } else {
-    doc.selection = new ModelEditSelection(start + open.length);
+    // TODO(multi-cursor): make multi cursor compat?
+    doc.selections = replaceAt(doc.selections, 0, new ModelEditSelection(start + open.length));
   }
 }
 
-function docIsBalanced(doc: EditableDocument, start: number = doc.selection.active): boolean {
+// TODO: docIsBalanced() needs testing
+function docIsBalanced(
+  doc: EditableDocument
+  // start: number = doc.selections.active
+): boolean {
   const cursor = doc.getTokenCursor(0);
   while (cursor.forwardSexp(true, true, true)) {
     // move forward until the cursor cannot move forward anymore
@@ -771,102 +1058,187 @@ function docIsBalanced(doc: EditableDocument, start: number = doc.selection.acti
   return cursor.atEnd();
 }
 
-export function close(doc: EditableDocument, close: string, start: number = doc.selection.active) {
-  const cursor = doc.getTokenCursor(start);
-  const inString = cursor.withinString();
-  cursor.forwardWhitespace(false);
-  if (cursor.getToken().raw === close) {
-    doc.selection = new ModelEditSelection(cursor.offsetEnd);
-  } else {
-    if (!inString && docIsBalanced(doc)) {
-      // Do nothing when there is balance
+export function close(
+  doc: EditableDocument,
+  close: string,
+  startOffsets: number[] = doc.selections.map(property('active'))
+) {
+  const edits = [],
+    selections = clone(doc.selections);
+
+  startOffsets.forEach((start, index) => {
+    const cursor = doc.getTokenCursor(start);
+    const inString = cursor.withinString();
+    cursor.forwardWhitespace(false);
+    if (cursor.getToken().raw === close) {
+      selections[index] = new ModelEditSelection(cursor.offsetEnd);
     } else {
-      void doc.model.edit([new ModelEdit('insertString', [start, close])], {
-        selection: new ModelEditSelection(start + close.length),
-      });
+      if (!inString && docIsBalanced(doc)) {
+        // Do nothing when there is balance
+      } else {
+        edits.push(new ModelEdit('insertString', [start, close]));
+        selections[index] = new ModelEditSelection(start + close.length);
+      }
     }
-  }
+  });
+  return doc.model.edit(edits, {
+    selections,
+  });
 }
 
 export function backspace(
-  doc: EditableDocument,
-  start: number = doc.selection.anchor,
-  end: number = doc.selection.active
-): Thenable<boolean> {
-  if (start != end) {
-    return doc.backspace();
-  } else {
-    const cursor = doc.getTokenCursor(start);
-    const nextToken = cursor.getToken();
-    const p = start;
-    const prevToken =
-      p > cursor.offsetStart && !['open', 'close'].includes(nextToken.type)
-        ? nextToken
-        : cursor.getPrevToken();
-    if (prevToken.type == 'prompt') {
-      return new Promise<boolean>((resolve) => resolve(true));
-    } else if (nextToken.type == 'prompt') {
-      return new Promise<boolean>((resolve) => resolve(true));
-    } else if (doc.model.getText(p - 2, p, true) == '\\"') {
-      return doc.model.edit([new ModelEdit('deleteRange', [p - 2, 2])], {
-        selection: new ModelEditSelection(p - 2),
-      });
-    } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-      return doc.model.edit(
-        [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
-        {
-          selection: new ModelEditSelection(p - prevToken.raw.length),
+  doc: EditableDocument
+  // _start: number, // = doc.selections.anchor,
+  // _end: number // = doc.selections.active
+  // ): Thenable<ModelEditResult> {
+): Thenable<boolean[]> {
+  // const selections = clone(doc.selections);
+
+  return Promise.all(
+    doc.selections.map<Promise<readonly [boolean | 'backspace', ModelEditSelection, number?]>>(
+      async (selection, index) => {
+        const { start, end } = selection;
+
+        if (start != end) {
+          // const res = await doc.backspace();
+
+          // return res.selections[0];
+          // return [res.success, res.selections[0]];
+          return ['backspace', selection, index] as const;
+        } else {
+          const cursor = doc.getTokenCursor(start);
+          const nextToken = cursor.getToken();
+          const p = start;
+          const prevToken =
+            p > cursor.offsetStart && !['open', 'close'].includes(nextToken.type)
+              ? nextToken
+              : cursor.getPrevToken();
+          if (prevToken.type == 'prompt') {
+            // return new Promise<boolean>((resolve) => resolve(true));
+            // return selection;
+            return [true, selection] as const;
+          } else if (nextToken.type == 'prompt') {
+            // return new Promise<boolean>((resolve) => resolve(true));
+            return [true, selection] as const;
+            // return selection;
+          } else if (doc.model.getText(p - 2, p, true) == '\\"') {
+            // return doc.model.edit([new ModelEdit('deleteRange', [p - 2, 2])], {
+            const sel = new ModelEditSelection(p - 2);
+            // selections[index] = sel;
+            const res = await doc.model.edit([new ModelEdit('deleteRange', [p - 2, 2])], {
+              // selections: [new ModelEditSelection(p - 2)],
+              // selections: Object.assign([...selections], {[index]: new ModelEditSelection(p - 2)})
+              selections: replaceAt(doc.selections, index, sel),
+            });
+            // return sel;
+            // selections[index] = res.selections[index];
+            return [res.success, res.selections[index]] as const;
+          } else if (prevToken.type === 'open' && nextToken.type === 'close') {
+            // return doc.model.edit(
+            const sel = new ModelEditSelection(p - prevToken.raw.length);
+            // selections[index] = sel;
+            const res = await doc.model.edit(
+              [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
+              {
+                // selections: [new ModelEditSelection(p - prevToken.raw.length)],
+                // selections: Object.assign([...selections], {[index]: new ModelEditSelection(p - prevToken.raw.length)},
+                selections: replaceAt(doc.selections, index, sel),
+              }
+            );
+            // selections[index] = res.selections[index];
+            return [res.success, res.selections[index]] as const;
+          } else {
+            if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
+              // doc.selection = new ModelEditSelection(p - prevToken.raw.length);
+              // return new ModelEditSelection(p - prevToken.raw.length);
+              // selections[index] = new ModelEditSelection(p - prevToken.raw.length);
+              // return new Promise<boolean>((resolve) => resolve(true));
+              return [true, new ModelEditSelection(p - prevToken.raw.length)] as const;
+            } else {
+              // const res = await doc.backspace();
+              // selections[index] = res.selections[0];
+              // return [res.success, res.selections[0]] as const;
+              return ['backspace', selection, index] as const;
+            }
+          }
         }
-      );
-    } else {
-      if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
-        doc.selection = new ModelEditSelection(p - prevToken.raw.length);
-        return new Promise<boolean>((resolve) => resolve(true));
-      } else {
-        return doc.backspace();
       }
-    }
-  }
+    )
+  ).then<Array<boolean>>(async (results) => {
+    // run native backspace on non edited cursors
+    const nativeBackspaceSelections = results
+      .filter((result) => result[0] === 'backspace')
+      .map((result) => result[1]);
+    doc.selections = nativeBackspaceSelections;
+    await doc.backspace();
+    // set edited selections
+    doc.selections.push(...results.filter((r) => r[0] === true).map(([_, sel]) => sel));
+    return results.map(([success]) => (success === 'backspace' ? true : success));
+  });
 }
 
-export function deleteForward(
-  doc: EditableDocument,
-  start: number = doc.selection.anchor,
-  end: number = doc.selection.active
+export async function deleteForward(
+  doc: EditableDocument
+  // _start: number = doc.selections.anchor,
+  // _end: number = doc.selections.active
 ) {
-  if (start != end) {
-    void doc.delete();
-  } else {
-    const cursor = doc.getTokenCursor(start);
-    const prevToken = cursor.getPrevToken();
-    const nextToken = cursor.getToken();
-    const p = start;
-    if (doc.model.getText(p, p + 2, true) == '\\"') {
-      return doc.model.edit([new ModelEdit('deleteRange', [p, 2])], {
-        selection: new ModelEditSelection(p),
-      });
-    } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-      void doc.model.edit(
-        [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
-        {
-          selection: new ModelEditSelection(p - prevToken.raw.length),
-        }
-      );
-    } else {
-      if (['open', 'close'].includes(nextToken.type) && docIsBalanced(doc)) {
-        doc.selection = new ModelEditSelection(p + 1);
-        return new Promise<boolean>((resolve) => resolve(true));
+  const results = await Promise.all(
+    doc.selections.map(async (selection, index) => {
+      const { start, end } = selection;
+      if (start != end) {
+        // await doc.delete();
+        // return selection;
+        return ['delete', selection, index] as const;
       } else {
-        return doc.delete();
+        const cursor = doc.getTokenCursor(start);
+        const prevToken = cursor.getPrevToken();
+        const nextToken = cursor.getToken();
+        const p = start;
+        if (doc.model.getText(p, p + 2, true) == '\\"') {
+          const res = await doc.model.edit([new ModelEdit('deleteRange', [p, 2])], {
+            selections: replaceAt(doc.selections, index, new ModelEditSelection(p)),
+          });
+          return [res.success, res.selections[index], index] as const;
+        } else if (prevToken.type === 'open' && nextToken.type === 'close') {
+          const res = await doc.model.edit(
+            [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
+            {
+              selections: replaceAt(
+                doc.selections,
+                index,
+                new ModelEditSelection(p - prevToken.raw.length)
+              ),
+            }
+          );
+          return [res.success, res.selections[index], index] as const;
+        } else {
+          if (['open', 'close'].includes(nextToken.type) && docIsBalanced(doc)) {
+            // doc.selections = replaceAt(doc.selections, index, new ModelEditSelection(p + 1));
+            // return new Promise<boolean>((resolve) => resolve(true));
+            return [true, new ModelEditSelection(p + 1), index] as const;
+          } else {
+            // return doc.delete();
+            // return selection;
+            return ['delete', selection, index] as const;
+          }
+        }
       }
-    }
-  }
+    })
+  );
+  const postCalvaEditSelections = results.filter((r) => isBoolean(r[0]));
+  const cursorsNeedingNativeDeletion = results.filter((r) => r[0] === 'delete');
+  doc.selections = cursorsNeedingNativeDeletion.map((r) => r[1]);
+  await doc.delete();
+
+  doc.selections.push(...postCalvaEditSelections.map((s) => s[1]));
+  return results.map((r) => (r[0] === 'delete' ? true : r[0]));
 }
 
+// FIXME: stringQuote() is defined and tested but is never used or referenced?
 export function stringQuote(
   doc: EditableDocument,
-  start: number = doc.selection.anchor,
-  end: number = doc.selection.active
+  start: number = doc.selections[0].start,
+  end: number = doc.selections[0].end
 ) {
   if (start != end) {
     doc.insertString('"');
@@ -877,229 +1249,333 @@ export function stringQuote(
       if (cursor.getToken().type == 'close') {
         if (doc.model.getText(0, start).endsWith('\\')) {
           void doc.model.edit([new ModelEdit('changeRange', [start, start, '"'])], {
-            selection: new ModelEditSelection(start + 1),
+            selections: [new ModelEditSelection(start + 1)],
           });
         } else {
-          close(doc, '"', start);
+          // close(doc, '"', start);
+          // close(doc, '"', replaceAt(doc.selections.map(property('active')), 0, start));
+          void close(doc, '"', replaceAt(doc.selections.map(property('active')), 0, start));
         }
       } else {
         if (doc.model.getText(0, start).endsWith('\\')) {
           void doc.model.edit([new ModelEdit('changeRange', [start, start, '"'])], {
-            selection: new ModelEditSelection(start + 1),
+            selections: [new ModelEditSelection(start + 1)],
           });
         } else {
           void doc.model.edit([new ModelEdit('changeRange', [start, start, '\\"'])], {
-            selection: new ModelEditSelection(start + 2),
+            selections: [new ModelEditSelection(start + 2)],
           });
         }
       }
     } else {
       void doc.model.edit([new ModelEdit('changeRange', [start, start, '""'])], {
-        selection: new ModelEditSelection(start + 1),
+        selections: [new ModelEditSelection(start + 1)],
       });
     }
   }
 }
 
+/**
+ * Given the set of selections in the given document,
+ * edit the set of selections therein such that for each selection:
+ * the selection expands to encompass just the contents of the form
+ * (where this selection or its cursor lies), the entire form itself
+ * (including open/close symbols) or the full contents of the form
+ * immediately enclosing this one, repeating each time the function is
+ * called, for each selection in the doc.
+ *
+ * (Or in other words, the S-expression powered equivalent to vs-code's
+ * built-in Expand Selection/Shrink Selection commands)
+ */
 export function growSelection(
-  doc: EditableDocument,
-  start: number = doc.selection.anchor,
-  end: number = doc.selection.active
+  doc: EditableDocument
+  // start: number = doc.selections.anchor,
+  // end: number = doc.selections.active
 ) {
-  const startC = doc.getTokenCursor(start),
-    endC = doc.getTokenCursor(end),
-    emptySelection = startC.equals(endC);
+  const newRanges = doc.selections.map<[number, number]>(({ anchor: start, active: end }) => {
+    // init start/end TokenCursors, ascertain emptiness of selection
+    const startC = doc.getTokenCursor(start),
+      endC = doc.getTokenCursor(end),
+      emptySelection = startC.equals(endC);
 
-  if (emptySelection) {
-    const currentFormRange = startC.rangeForCurrentForm(start);
-    if (currentFormRange) {
-      growSelectionStack(doc, currentFormRange);
-    }
-  } else {
-    if (startC.getPrevToken().type == 'open' && endC.getToken().type == 'close') {
-      startC.backwardList();
-      startC.backwardUpList();
-      endC.forwardList();
-      growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
-    } else {
-      if (startC.backwardList()) {
-        // we are in an sexpr.
-        endC.forwardList();
-        endC.previous();
-      } else {
-        if (startC.backwardDownList()) {
-          startC.backwardList();
-          if (emptySelection) {
-            endC.set(startC);
-            endC.forwardList();
-            endC.next();
-          }
-          startC.previous();
-        } else if (startC.downList()) {
-          if (emptySelection) {
-            endC.set(startC);
-            endC.forwardList();
-            endC.next();
-          }
-          startC.previous();
-        }
+    // check if selection is empty - means just a cursor
+    if (emptySelection) {
+      const currentFormRange = startC.rangeForCurrentForm(start);
+      // check if there's a form associated with the current cursor
+      if (currentFormRange) {
+        // growSelectionStack(doc, currentFormRange);
+        return currentFormRange;
       }
-      growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
+      // if there's not, do nothing, we will not be expanding this cursor
+      return [start, end];
+    } else {
+      if (startC.getPrevToken().type == 'open' && endC.getToken().type == 'close') {
+        startC.backwardList();
+        startC.backwardUpList();
+        endC.forwardList();
+        // growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
+        return [startC.offsetStart, endC.offsetEnd];
+      } else {
+        if (startC.backwardList()) {
+          // we are in an sexpr.
+          endC.forwardList();
+          endC.previous();
+        } else {
+          if (startC.backwardDownList()) {
+            startC.backwardList();
+            if (emptySelection) {
+              endC.set(startC);
+              endC.forwardList();
+              endC.next();
+            }
+            startC.previous();
+          } else if (startC.downList()) {
+            if (emptySelection) {
+              endC.set(startC);
+              endC.forwardList();
+              endC.next();
+            }
+            startC.previous();
+          }
+        }
+        // growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
+        return [startC.offsetStart, endC.offsetEnd];
+      }
     }
-  }
+  });
+  growSelectionStack(doc, newRanges);
 }
 
-export function growSelectionStack(doc: EditableDocument, range: [number, number]) {
-  const [start, end] = range;
-  if (doc.selectionStack.length > 0) {
-    const prev = doc.selectionStack[doc.selectionStack.length - 1];
-    if (!(doc.selection.anchor == prev.anchor && doc.selection.active == prev.active)) {
+/**
+ * When growing a stack, we want a temporary selection undo/redo history,
+ * so to speak, such that each time the growSelection (labelled "Expand Selection")
+ * command is invoked, the selection keeps expanding by s-expression level, without
+ * "losing" prior selections.
+ *
+ * Recall that one cannot arbitrarily "Shrink Selection" _without_ such a history stack
+ * or outside of the context of a series of "Expand Selection" operations,
+ * as there is no way to know to which symbol(s) a user could hypothetically intend on
+ * "zooming in" on via selection shrinking.
+ *
+ * Thus to implement the above, we store a stack of selections (each item in the stack
+ * is an array of selection items, one per cursor) and grow or traverse this stack
+ * as the user expands or shrinks their selection(s).
+ *
+ * @param doc EditableDocument
+ * @param ranges the new ranges to grow the selection into
+ * @returns
+ */
+export function growSelectionStack(doc: EditableDocument, ranges: Array<[number, number]>) {
+  // Check if user has already at least once invoked "Expand Selection":
+  if (doc.selectionsStack.length > 0) {
+    // User indeed already has a selection set expansion history.
+    const prev = last(doc.selectionsStack);
+    // Check if the current document selection set DOES NOT match the widest (latest) selection set
+    // in the history.
+    if (
+      !(
+        isEqual(doc.selections.map(property('anchor')), prev.map(property('anchor'))) &&
+        isEqual(doc.selections.map(property('active')), prev.map(property('active')))
+      )
+    ) {
+      // FIXME(multi-cursor): This means there's some kind of mismatch. Why?
+      // Therefore, let's reset the selection set history
       setSelectionStack(doc);
-    } else if (prev.anchor === range[0] && prev.active === range[1]) {
+
+      // Check if the intended new selection set to grow into is already the widest (latest) selection set
+      // in the history.
+    } else if (
+      isEqual(prev.map(property('anchor')), ranges.map(property(0))) &&
+      isEqual(prev.map(property('active')), ranges.map(property(1)))
+    ) {
       return;
     }
   } else {
-    doc.selectionStack = [doc.selection];
+    // start a "fresh" selection set expansion history
+    // FIXME(multi-cursor): why doesn't this use `setSelectionStack(doc)` from below?
+    doc.selectionsStack = [doc.selections];
   }
-  doc.selection = new ModelEditSelection(start, end);
-  doc.selectionStack.push(doc.selection);
+  doc.selections = ranges.map((range) => new ModelEditSelection(...range));
+  doc.selectionsStack.push(doc.selections);
 }
 
+// FIXME(multi-cursor): prob needs rethinking
 export function shrinkSelection(doc: EditableDocument) {
-  if (doc.selectionStack.length) {
-    const latest = doc.selectionStack.pop();
+  if (doc.selectionsStack.length) {
+    const latest = doc.selectionsStack.pop();
     if (
-      doc.selectionStack.length &&
-      latest.anchor == doc.selection.anchor &&
-      latest.active == doc.selection.active
+      doc.selectionsStack.length &&
+      latest.every((selection, index) =>
+        isEqual(
+          pick(selection, ['anchor, active']),
+          pick(doc.selections[index], ['anchor, active'])
+        )
+      )
     ) {
-      doc.selection = doc.selectionStack[doc.selectionStack.length - 1];
+      doc.selections = last(doc.selectionsStack);
     }
   }
 }
 
-export function setSelectionStack(doc: EditableDocument, selection = doc.selection) {
-  doc.selectionStack = [selection];
-}
-
-export function raiseSexp(
+export function setSelectionStack(
   doc: EditableDocument,
-  start = doc.selection.anchor,
-  end = doc.selection.active
+  selections: ModelEditSelection[][] = [doc.selections]
 ) {
-  const cursor = doc.getTokenCursor(end);
-  const [formStart, formEnd] = cursor.rangeForCurrentForm(start);
-  const isCaretTrailing = formEnd - start < start - formStart;
-  const startCursor = doc.getTokenCursor(formStart);
-  const endCursor = startCursor.clone();
-  if (endCursor.forwardSexp()) {
-    const raised = doc.model.getText(startCursor.offsetStart, endCursor.offsetStart);
-    startCursor.backwardList();
-    endCursor.forwardList();
-    if (startCursor.getPrevToken().type == 'open') {
-      startCursor.previous();
-      if (endCursor.getToken().type == 'close') {
-        void doc.model.edit(
-          [new ModelEdit('changeRange', [startCursor.offsetStart, endCursor.offsetEnd, raised])],
-          {
-            selection: new ModelEditSelection(
-              isCaretTrailing ? startCursor.offsetStart + raised.length : startCursor.offsetStart
-            ),
+  doc.selectionsStack = selections;
+}
+
+/**
+ * In making this compatible with multi-cursor,
+ *  we had to complicate the logic somewhat to make sure
+ *  deletions by prior cursors are taken into account by
+ *  later ones, and are relocated accordingly.
+ *
+ * See comments in paredit.killRange() for more details.
+ */
+export function raiseSexp(doc: EditableDocument) {
+  const edits: ModelEdit<'changeRange'>[] = [],
+    selections = doc.selections.map((s) => [0, s.clone()] as [number, ModelEditSelection]);
+
+  _(doc.selections)
+    .map((s, index) => [s, index] as const)
+    .orderBy(([s]) => s.start, 'desc')
+    .forEach(([selection, originalIndex], index) => {
+      const { start, end } = selection;
+
+      const cursor = doc.getTokenCursor(end);
+      const [formStart, formEnd] = cursor.rangeForCurrentForm(start);
+      const isCaretTrailing = formEnd - start < start - formStart;
+      const startCursor = doc.getTokenCursor(formStart);
+      const endCursor = startCursor.clone();
+      if (endCursor.forwardSexp()) {
+        const raised = doc.model.getText(startCursor.offsetStart, endCursor.offsetStart);
+        startCursor.backwardList();
+        endCursor.forwardList();
+        if (startCursor.getPrevToken().type == 'open') {
+          startCursor.previous();
+          if (endCursor.getToken().type == 'close') {
+            edits.push(
+              new ModelEdit('changeRange', [startCursor.offsetStart, endCursor.offsetEnd, raised])
+            );
+            const cursorPos = isCaretTrailing
+              ? startCursor.offsetStart + raised.length
+              : startCursor.offsetStart;
+
+            selections[originalIndex] = [
+              endCursor.offsetEnd - startCursor.offsetStart - raised.length,
+              new ModelEditSelection(cursorPos),
+            ];
           }
-        );
+        }
       }
-    }
-  }
+    });
+  return doc.model.edit(edits, {
+    selections: selections.map(([_, selection], __, others) => {
+      const s = selection.clone();
+
+      const offsetSum = others
+        .filter(([_, otherSel]) => otherSel.start < selection.start)
+        .reduce((sum, o) => sum + o[0], 0);
+
+      s.anchor -= offsetSum;
+      s.active -= offsetSum;
+
+      return s;
+    }),
+  });
 }
 
 export function convolute(
-  doc: EditableDocument,
-  start = doc.selection.anchor,
-  end = doc.selection.active
+  doc: EditableDocument
+  // start = doc.selections.anchor,
+  // end = doc.selections.active
 ) {
-  if (start == end) {
-    const cursorStart = doc.getTokenCursor(end);
-    const cursorEnd = cursorStart.clone();
+  doc.selections.forEach((selection) => {
+    const { start, end } = selection;
 
-    if (cursorStart.backwardList()) {
-      if (cursorEnd.forwardList()) {
-        const head = doc.model.getText(cursorStart.offsetStart, end);
-        if (cursorStart.getPrevToken().type == 'open') {
-          cursorStart.previous();
-          const headStart = cursorStart.clone();
+    if (start == end) {
+      const cursorStart = doc.getTokenCursor(end);
+      const cursorEnd = cursorStart.clone();
 
-          if (headStart.backwardList() && headStart.backwardUpList()) {
-            const headEnd = cursorStart.clone();
-            if (headEnd.forwardList() && cursorEnd.getToken().type == 'close') {
-              void doc.model.edit(
-                [
-                  new ModelEdit('changeRange', [headEnd.offsetEnd, headEnd.offsetEnd, ')']),
-                  new ModelEdit('changeRange', [cursorEnd.offsetStart, cursorEnd.offsetEnd, '']),
-                  new ModelEdit('changeRange', [cursorStart.offsetStart, end, '']),
-                  new ModelEdit('changeRange', [
-                    headStart.offsetStart,
-                    headStart.offsetStart,
-                    '(' + head,
-                  ]),
-                ],
-                {}
-              );
+      if (cursorStart.backwardList()) {
+        if (cursorEnd.forwardList()) {
+          const head = doc.model.getText(cursorStart.offsetStart, end);
+          if (cursorStart.getPrevToken().type == 'open') {
+            cursorStart.previous();
+            const headStart = cursorStart.clone();
+
+            if (headStart.backwardList() && headStart.backwardUpList()) {
+              const headEnd = cursorStart.clone();
+              if (headEnd.forwardList() && cursorEnd.getToken().type == 'close') {
+                void doc.model.edit(
+                  [
+                    new ModelEdit('changeRange', [headEnd.offsetEnd, headEnd.offsetEnd, ')']),
+                    new ModelEdit('changeRange', [cursorEnd.offsetStart, cursorEnd.offsetEnd, '']),
+                    new ModelEdit('changeRange', [cursorStart.offsetStart, end, '']),
+                    new ModelEdit('changeRange', [
+                      headStart.offsetStart,
+                      headStart.offsetStart,
+                      '(' + head,
+                    ]),
+                  ],
+                  {}
+                );
+              }
             }
           }
         }
       }
     }
-  }
+  });
 }
 
 export function transpose(
   doc: EditableDocument,
-  left = doc.selection.anchor,
-  right = doc.selection.active,
+  // left = doc.selections.anchor,
+  // right = doc.selections.active,
   newPosOffset: { fromLeft?: number; fromRight?: number } = {}
 ) {
-  const cursor = doc.getTokenCursor(right);
-  cursor.backwardWhitespace();
-  if (cursor.getPrevToken().type == 'open') {
-    cursor.forwardSexp();
-  }
-  cursor.forwardWhitespace();
-  if (cursor.getToken().type == 'close') {
-    cursor.backwardSexp();
-  }
-  if (cursor.getToken().type != 'close') {
-    const rightStart = cursor.offsetStart;
-    if (cursor.forwardSexp()) {
-      const rightEnd = cursor.offsetStart;
+  const edits = [],
+    selections = clone(doc.selections);
+  doc.selections.forEach((selection, index) => {
+    const { start: left, end: right } = selection;
+
+    const cursor = doc.getTokenCursor(right);
+    cursor.backwardWhitespace();
+    if (cursor.getPrevToken().type == 'open') {
+      cursor.forwardSexp();
+    }
+    cursor.forwardWhitespace();
+    if (cursor.getToken().type == 'close') {
       cursor.backwardSexp();
-      cursor.backwardWhitespace();
-      const leftEnd = cursor.offsetStart;
-      if (cursor.backwardSexp()) {
-        const leftStart = cursor.offsetStart,
-          leftText = doc.model.getText(leftStart, leftEnd),
-          rightText = doc.model.getText(rightStart, rightEnd);
-        let newCursorPos = leftStart + rightText.length;
-        if (newPosOffset.fromLeft != undefined) {
-          newCursorPos = leftStart + newPosOffset.fromLeft;
-        } else if (newPosOffset.fromRight != undefined) {
-          newCursorPos = rightEnd - newPosOffset.fromRight;
-        }
-        void doc.model.edit(
-          [
+    }
+    if (cursor.getToken().type != 'close') {
+      const rightStart = cursor.offsetStart;
+      if (cursor.forwardSexp()) {
+        const rightEnd = cursor.offsetStart;
+        cursor.backwardSexp();
+        cursor.backwardWhitespace();
+        const leftEnd = cursor.offsetStart;
+        if (cursor.backwardSexp()) {
+          const leftStart = cursor.offsetStart,
+            leftText = doc.model.getText(leftStart, leftEnd),
+            rightText = doc.model.getText(rightStart, rightEnd);
+          let newCursorPos = leftStart + rightText.length;
+          if (newPosOffset.fromLeft != undefined) {
+            newCursorPos = leftStart + newPosOffset.fromLeft;
+          } else if (newPosOffset.fromRight != undefined) {
+            newCursorPos = rightEnd - newPosOffset.fromRight;
+          }
+          edits.push(
             new ModelEdit('changeRange', [rightStart, rightEnd, leftText]),
-            new ModelEdit('changeRange', [
-              leftStart,
-              leftEnd,
-              rightText,
-              [left, left],
-              [newCursorPos, newCursorPos],
-            ]),
-          ],
-          { selection: new ModelEditSelection(newCursorPos) }
-        );
+            new ModelEdit('changeRange', [leftStart, leftEnd, rightText])
+          );
+          selections[index] = new ModelEditSelection(newCursorPos);
+        }
       }
     }
-  }
+  });
+  return doc.model.edit(edits, { selections });
 }
 
 export const bindingForms = [
@@ -1164,60 +1640,71 @@ function currentSexpsRange(
 
 export function dragSexprBackward(
   doc: EditableDocument,
-  pairForms = bindingForms,
-  left = doc.selection.anchor,
-  right = doc.selection.active
+  pairForms = bindingForms
+  // left = doc.selections.anchor,
+  // right = doc.selections.active
 ) {
-  const cursor = doc.getTokenCursor(right);
-  const usePairs = isInPairsList(cursor, pairForms);
-  const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
-  const newPosOffset = right - currentRange[0];
-  const backCursor = doc.getTokenCursor(currentRange[0]);
-  backCursor.backwardSexp();
-  const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs);
-  if (backRange[0] !== currentRange[0]) {
-    // there is a sexp to the left
-    const leftText = doc.model.getText(backRange[0], backRange[1]);
-    const currentText = doc.model.getText(currentRange[0], currentRange[1]);
-    void doc.model.edit(
-      [
+  const edits = [],
+    selections = clone(doc.selections);
+
+  doc.selections.forEach((selection, index) => {
+    const { start: left, end: right } = selection;
+
+    const cursor = doc.getTokenCursor(right);
+    const usePairs = isInPairsList(cursor, pairForms);
+    const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
+    const newPosOffset = right - currentRange[0];
+    const backCursor = doc.getTokenCursor(currentRange[0]);
+    backCursor.backwardSexp();
+    const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs);
+    if (backRange[0] !== currentRange[0]) {
+      // there is a sexp to the left
+      const leftText = doc.model.getText(backRange[0], backRange[1]);
+      const currentText = doc.model.getText(currentRange[0], currentRange[1]);
+      edits.push(
         new ModelEdit('changeRange', [currentRange[0], currentRange[1], leftText]),
-        new ModelEdit('changeRange', [backRange[0], backRange[1], currentText]),
-      ],
-      { selection: new ModelEditSelection(backRange[0] + newPosOffset) }
-    );
-  }
+        new ModelEdit('changeRange', [backRange[0], backRange[1], currentText])
+      );
+      selections[index] = new ModelEditSelection(backRange[0] + newPosOffset);
+    }
+  });
+  return doc.model.edit(edits, { selections });
 }
 
+// TODO: multi
 export function dragSexprForward(
   doc: EditableDocument,
-  pairForms = bindingForms,
-  left = doc.selection.anchor,
-  right = doc.selection.active
+  pairForms = bindingForms
+  // left = doc.selections.anchor,
+  // right = doc.selections.active
 ) {
-  const cursor = doc.getTokenCursor(right);
-  const usePairs = isInPairsList(cursor, pairForms);
-  const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
-  const newPosOffset = currentRange[1] - right;
-  const forwardCursor = doc.getTokenCursor(currentRange[1]);
-  forwardCursor.forwardSexp();
-  const forwardRange = currentSexpsRange(doc, forwardCursor, forwardCursor.offsetStart, usePairs);
-  if (forwardRange[0] !== currentRange[0]) {
-    // there is a sexp to the right
-    const rightText = doc.model.getText(forwardRange[0], forwardRange[1]);
-    const currentText = doc.model.getText(currentRange[0], currentRange[1]);
-    void doc.model.edit(
-      [
+  const edits = [],
+    selections = clone(doc.selections);
+
+  doc.selections.forEach((selection, index) => {
+    const { start: left, end: right } = selection;
+    const cursor = doc.getTokenCursor(right);
+    const usePairs = isInPairsList(cursor, pairForms);
+    const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
+    const newPosOffset = currentRange[1] - right;
+    const forwardCursor = doc.getTokenCursor(currentRange[1]);
+    forwardCursor.forwardSexp();
+    const forwardRange = currentSexpsRange(doc, forwardCursor, forwardCursor.offsetStart, usePairs);
+    if (forwardRange[0] !== currentRange[0]) {
+      // there is a sexp to the right
+      const rightText = doc.model.getText(forwardRange[0], forwardRange[1]);
+      const currentText = doc.model.getText(currentRange[0], currentRange[1]);
+      edits.push(
         new ModelEdit('changeRange', [forwardRange[0], forwardRange[1], currentText]),
-        new ModelEdit('changeRange', [currentRange[0], currentRange[1], rightText]),
-      ],
-      {
-        selection: new ModelEditSelection(
-          currentRange[1] + (forwardRange[1] - currentRange[1]) - newPosOffset
-        ),
-      }
-    );
-  }
+        new ModelEdit('changeRange', [currentRange[0], currentRange[1], rightText])
+      );
+
+      selections[index] = new ModelEditSelection(
+        currentRange[1] + (forwardRange[1] - currentRange[1]) - newPosOffset
+      );
+    }
+  });
+  return doc.model.edit(edits, { selections });
 }
 
 export type WhitespaceInfo = {
@@ -1238,7 +1725,7 @@ export type WhitespaceInfo = {
  */
 export function collectWhitespaceInfo(
   doc: EditableDocument,
-  p = doc.selection.active
+  p /*  = doc.selections.active */
 ): WhitespaceInfo {
   const cursor = doc.getTokenCursor(p);
   const currentRange = cursor.rangeForCurrentForm(p);
@@ -1266,151 +1753,178 @@ export function collectWhitespaceInfo(
   };
 }
 
-export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selection.active) {
-  const wsInfo = collectWhitespaceInfo(doc, p);
-  const cursor = doc.getTokenCursor(p);
-  const currentRange = cursor.rangeForCurrentForm(p);
-  if (cursor.backwardList() && cursor.backwardUpList()) {
-    const listStart = cursor.offsetStart;
-    const newPosOffset = p - currentRange[0];
-    const newCursorPos = listStart + newPosOffset;
-    const listIndent = cursor.getToken().offset;
-    let dragText: string, deleteEdit: ModelEdit;
-    if (wsInfo.hasLeftWs) {
-      dragText =
-        doc.model.getText(...currentRange) +
-        (wsInfo.leftWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
-      const lineCommentCursor = doc.getTokenCursor(wsInfo.leftWsRange[0]);
-      const havePrecedingLineComment = lineCommentCursor.getPrevToken().type === 'comment';
-      const wsLeftStart = wsInfo.leftWsRange[0] + (havePrecedingLineComment ? 1 : 0);
-      deleteEdit = new ModelEdit('deleteRange', [wsLeftStart, currentRange[1] - wsLeftStart]);
-    } else {
-      dragText =
-        doc.model.getText(...currentRange) +
-        (wsInfo.rightWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
-      deleteEdit = new ModelEdit('deleteRange', [
-        currentRange[0],
-        wsInfo.rightWsRange[1] - currentRange[0],
-      ]);
-    }
-    void doc.model.edit(
-      [
-        deleteEdit,
-        new ModelEdit('insertString', [listStart, dragText, [p, p], [newCursorPos, newCursorPos]]),
-      ],
-      {
-        selection: new ModelEditSelection(newCursorPos),
-        skipFormat: false,
-        undoStopBefore: true,
-      }
-    );
-  }
-}
+// TODO: multi
+export function dragSexprBackwardUp(
+  doc: EditableDocument
+  // p = doc.selections.active
+) {
+  const edits = [],
+    selections = clone(doc.selections);
 
-export function dragSexprForwardDown(doc: EditableDocument, p = doc.selection.active) {
-  const wsInfo = collectWhitespaceInfo(doc, p);
-  const currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p);
-  const newPosOffset = p - currentRange[0];
-  const cursor = doc.getTokenCursor(currentRange[0]);
-  while (cursor.forwardSexp()) {
-    cursor.forwardWhitespace();
-    const token = cursor.getToken();
-    if (token.type === 'open') {
+  doc.selections.forEach((selection, index) => {
+    const { active: p } = selection;
+    const wsInfo = collectWhitespaceInfo(doc, p);
+    const cursor = doc.getTokenCursor(p);
+    const currentRange = cursor.rangeForCurrentForm(p);
+    if (cursor.backwardList() && cursor.backwardUpList()) {
       const listStart = cursor.offsetStart;
-      const deleteLength = wsInfo.rightWsRange[1] - currentRange[0];
-      const insertStart = listStart + token.raw.length;
-      const newCursorPos = insertStart - deleteLength + newPosOffset;
-      const insertText =
-        doc.model.getText(...currentRange) + (wsInfo.rightWsHasNewline ? '\n' : ' ');
-      void doc.model.edit(
-        [
-          new ModelEdit('insertString', [
-            insertStart,
-            insertText,
-            [p, p],
-            [newCursorPos, newCursorPos],
-          ]),
-          new ModelEdit('deleteRange', [currentRange[0], deleteLength]),
-        ],
-        {
-          selection: new ModelEditSelection(newCursorPos),
-          skipFormat: false,
-          undoStopBefore: true,
-        }
-      );
-      break;
-    }
-  }
-}
-
-export function dragSexprForwardUp(doc: EditableDocument, p = doc.selection.active) {
-  const wsInfo = collectWhitespaceInfo(doc, p);
-  const cursor = doc.getTokenCursor(p);
-  const currentRange = cursor.rangeForCurrentForm(p);
-  if (cursor.forwardList() && cursor.upList()) {
-    const listEnd = cursor.offsetStart;
-    const newPosOffset = p - currentRange[0];
-    const listWsInfo = collectWhitespaceInfo(doc, listEnd);
-    const dragText =
-      (listWsInfo.rightWsHasNewline ? '\n' : ' ') + doc.model.getText(...currentRange);
-    let deleteStart = wsInfo.leftWsRange[0];
-    let deleteLength = currentRange[1] - deleteStart;
-    if (wsInfo.hasRightWs) {
-      deleteStart = currentRange[0];
-      deleteLength = wsInfo.rightWsRange[1] - deleteStart;
-    }
-    const newCursorPos = listEnd + newPosOffset + 1 - deleteLength;
-    void doc.model.edit(
-      [
-        new ModelEdit('insertString', [listEnd, dragText, [p, p], [newCursorPos, newCursorPos]]),
-        new ModelEdit('deleteRange', [deleteStart, deleteLength]),
-      ],
-      {
-        selection: new ModelEditSelection(newCursorPos),
-        skipFormat: false,
-        undoStopBefore: true,
+      const newPosOffset = p - currentRange[0];
+      const newCursorPos = listStart + newPosOffset;
+      const listIndent = cursor.getToken().offset;
+      let dragText: string, deleteEdit: ModelEdit;
+      if (wsInfo.hasLeftWs) {
+        dragText =
+          doc.model.getText(...currentRange) +
+          (wsInfo.leftWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
+        const lineCommentCursor = doc.getTokenCursor(wsInfo.leftWsRange[0]);
+        const havePrecedingLineComment = lineCommentCursor.getPrevToken().type === 'comment';
+        const wsLeftStart = wsInfo.leftWsRange[0] + (havePrecedingLineComment ? 1 : 0);
+        deleteEdit = new ModelEdit('deleteRange', [wsLeftStart, currentRange[1] - wsLeftStart]);
+      } else {
+        dragText =
+          doc.model.getText(...currentRange) +
+          (wsInfo.rightWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
+        deleteEdit = new ModelEdit('deleteRange', [
+          currentRange[0],
+          wsInfo.rightWsRange[1] - currentRange[0],
+        ]);
       }
-    );
-  }
+      edits.push(deleteEdit, new ModelEdit('insertString', [listStart, dragText]));
+      selections[index] = new ModelEditSelection(newCursorPos);
+    }
+  });
+  void doc.model.edit(edits, {
+    selections,
+    skipFormat: false,
+    undoStopBefore: true,
+  });
 }
 
-export function dragSexprBackwardDown(doc: EditableDocument, p = doc.selection.active) {
-  const wsInfo = collectWhitespaceInfo(doc, p);
-  const currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p);
-  const newPosOffset = p - currentRange[0];
-  const cursor = doc.getTokenCursor(currentRange[1]);
-  while (cursor.backwardSexp()) {
-    cursor.backwardWhitespace();
-    const token = cursor.getPrevToken();
-    if (token.type === 'close') {
-      cursor.previous();
-      const listEnd = cursor.offsetStart;
-      cursor.backwardWhitespace();
-      const siblingWsInfo = collectWhitespaceInfo(doc, cursor.offsetStart);
-      const deleteLength = currentRange[1] - wsInfo.leftWsRange[0];
-      const insertStart = listEnd;
-      const newCursorPos = insertStart + newPosOffset + 1;
-      let insertText = doc.model.getText(...currentRange);
-      insertText = (siblingWsInfo.leftWsHasNewline ? '\n' : ' ') + insertText;
-      void doc.model.edit(
-        [
-          new ModelEdit('deleteRange', [wsInfo.leftWsRange[0], deleteLength]),
-          new ModelEdit('insertString', [
-            insertStart,
-            insertText,
-            [p, p],
-            [newCursorPos, newCursorPos],
-          ]),
-        ],
-        {
-          selection: new ModelEditSelection(newCursorPos),
-          skipFormat: false,
-          undoStopBefore: true,
-        }
-      );
-      break;
+// TODO: test
+// TODO: either forEach and batch edit or forEach sequential
+export function dragSexprForwardDown(
+  doc: EditableDocument
+  // p = doc.selections.active
+) {
+  const edits = [],
+    selections = clone(doc.selections);
+
+  doc.selections.forEach((selection, index) => {
+    const { active: p } = selection;
+
+    const wsInfo = collectWhitespaceInfo(doc, p);
+    const currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p);
+    const newPosOffset = p - currentRange[0];
+    const cursor = doc.getTokenCursor(currentRange[0]);
+    while (cursor.forwardSexp()) {
+      cursor.forwardWhitespace();
+      const token = cursor.getToken();
+      if (token.type === 'open') {
+        const listStart = cursor.offsetStart;
+        const deleteLength = wsInfo.rightWsRange[1] - currentRange[0];
+        const insertStart = listStart + token.raw.length;
+        const newCursorPos = insertStart - deleteLength + newPosOffset;
+        const insertText =
+          doc.model.getText(...currentRange) + (wsInfo.rightWsHasNewline ? '\n' : ' ');
+        edits.push(
+          new ModelEdit('insertString', [insertStart, insertText]),
+          new ModelEdit('deleteRange', [currentRange[0], deleteLength])
+        );
+        selections[index] = new ModelEditSelection(newCursorPos);
+        break;
+      }
     }
-  }
+  });
+  void doc.model.edit(edits, {
+    selections,
+    skipFormat: false,
+    undoStopBefore: true,
+  });
+}
+
+// TODO: multi
+export function dragSexprForwardUp(
+  doc: EditableDocument
+  // p = doc.selections.active
+) {
+  const edits = [],
+    selections = clone(doc.selections);
+
+  doc.selections.forEach((selection, index) => {
+    const { active: p } = selection;
+
+    const wsInfo = collectWhitespaceInfo(doc, p);
+    const cursor = doc.getTokenCursor(p);
+    const currentRange = cursor.rangeForCurrentForm(p);
+    if (cursor.forwardList() && cursor.upList()) {
+      const listEnd = cursor.offsetStart;
+      const newPosOffset = p - currentRange[0];
+      const listWsInfo = collectWhitespaceInfo(doc, listEnd);
+      const dragText =
+        (listWsInfo.rightWsHasNewline ? '\n' : ' ') + doc.model.getText(...currentRange);
+      let deleteStart = wsInfo.leftWsRange[0];
+      let deleteLength = currentRange[1] - deleteStart;
+      if (wsInfo.hasRightWs) {
+        deleteStart = currentRange[0];
+        deleteLength = wsInfo.rightWsRange[1] - deleteStart;
+      }
+      const newCursorPos = listEnd + newPosOffset + 1 - deleteLength;
+      edits.push(
+        new ModelEdit('insertString', [listEnd, dragText]),
+        new ModelEdit('deleteRange', [deleteStart, deleteLength])
+      );
+      selections[index] = new ModelEditSelection(newCursorPos);
+    }
+  });
+  void doc.model.edit(edits, {
+    selections,
+    skipFormat: false,
+    undoStopBefore: true,
+  });
+}
+
+// TODO: multi
+export function dragSexprBackwardDown(
+  doc: EditableDocument
+  // p = doc.selections.active
+) {
+  const edits = [],
+    selections = clone(doc.selections);
+
+  doc.selections.forEach((selection, index) => {
+    const { active: p } = selection;
+
+    const wsInfo = collectWhitespaceInfo(doc, p);
+    const currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p);
+    const newPosOffset = p - currentRange[0];
+    const cursor = doc.getTokenCursor(currentRange[1]);
+    while (cursor.backwardSexp()) {
+      cursor.backwardWhitespace();
+      const token = cursor.getPrevToken();
+      if (token.type === 'close') {
+        cursor.previous();
+        const listEnd = cursor.offsetStart;
+        cursor.backwardWhitespace();
+        const siblingWsInfo = collectWhitespaceInfo(doc, cursor.offsetStart);
+        const deleteLength = currentRange[1] - wsInfo.leftWsRange[0];
+        const insertStart = listEnd;
+        const newCursorPos = insertStart + newPosOffset + 1;
+        let insertText = doc.model.getText(...currentRange);
+        insertText = (siblingWsInfo.leftWsHasNewline ? '\n' : ' ') + insertText;
+        edits.push(
+          new ModelEdit('deleteRange', [wsInfo.leftWsRange[0], deleteLength]),
+          new ModelEdit('insertString', [insertStart, insertText])
+        );
+        selections[index] = new ModelEditSelection(newCursorPos);
+        break;
+      }
+    }
+  });
+  void doc.model.edit(edits, {
+    selections,
+    skipFormat: false,
+    undoStopBefore: true,
+  });
 }
 
 function adaptContentsToRichComment(contents: string): string {
@@ -1421,7 +1935,12 @@ function adaptContentsToRichComment(contents: string): string {
     .trim();
 }
 
-export function addRichComment(doc: EditableDocument, p = doc.selection.active, contents?: string) {
+// it only warrants multi cursor when invoking the simple "Add Rich Comment" command, if even that
+export function addRichComment(
+  doc: EditableDocument,
+  p = doc.selections[0].active,
+  contents?: string
+) {
   const richComment = `(comment\n  ${contents ? adaptContentsToRichComment(contents) : ''}\n  )`;
   let cursor = doc.getTokenCursor(p);
   const topLevelRange = rangeForDefun(doc, p, false);
@@ -1448,21 +1967,11 @@ export function addRichComment(doc: EditableDocument, p = doc.selection.active, 
       checkIfRichCommentExistsCursor.forwardWhitespace(false);
       // insert nothing, just place cursor
       const newCursorPos = checkIfRichCommentExistsCursor.offsetStart;
-      void doc.model.edit(
-        [
-          new ModelEdit('insertString', [
-            newCursorPos,
-            '',
-            [newCursorPos, newCursorPos],
-            [newCursorPos, newCursorPos],
-          ]),
-        ],
-        {
-          selection: new ModelEditSelection(newCursorPos),
-          skipFormat: true,
-          undoStopBefore: false,
-        }
-      );
+      void doc.model.edit([new ModelEdit('insertString', [newCursorPos, ''])], {
+        selections: [new ModelEditSelection(newCursorPos)],
+        skipFormat: true,
+        undoStopBefore: false,
+      });
       return;
     }
   }
@@ -1476,19 +1985,9 @@ export function addRichComment(doc: EditableDocument, p = doc.selection.active, 
   const append = '\n'.repeat(numAppendNls);
   const insertText = `${prepend}${richComment}${append}`;
   const newCursorPos = insertStart + 11 + numPrependNls * doc.model.lineEndingLength;
-  void doc.model.edit(
-    [
-      new ModelEdit('insertString', [
-        insertStart,
-        insertText,
-        [insertStart, insertStart],
-        [newCursorPos, newCursorPos],
-      ]),
-    ],
-    {
-      selection: new ModelEditSelection(newCursorPos),
-      skipFormat: false,
-      undoStopBefore: true,
-    }
-  );
+  void doc.model.edit([new ModelEdit('insertString', [insertStart, insertText])], {
+    selections: [new ModelEditSelection(newCursorPos)],
+    skipFormat: false,
+    undoStopBefore: true,
+  });
 }

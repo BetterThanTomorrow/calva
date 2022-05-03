@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Multi cursor support for Paredit](https://github.com/BetterThanTomorrow/calva/issues/610)
+- [Remove when-contexts as a way to control when commands move by sexp or by word](https://github.com/BetterThanTomorrow/calva/pull/1606#issuecomment-1086567905)
 
 ## [2.0.270] - 2022-05-02
 - Fix: [Downloaded clojure-lsp not working for static linux distros](https://github.com/BetterThanTomorrow/calva/issues/1692)
@@ -20,6 +22,8 @@ Changes to Calva.
 
 ## [2.0.266] - 2022-04-11
 - Fix: [Jump between source/test does not work properly with multiple workspace folders](https://github.com/BetterThanTomorrow/calva/issues/1219)
+- [New diagnostics command, Print TextNotation from current document](https://github.com/BetterThanTomorrow/calva/issues/1675) (See [this CalvaTV video](https://www.youtube.com/watch?v=Sy3arG-Degw))
+- [New diagnostics command, Create untitled document from TextNotation](https://github.com/BetterThanTomorrow/calva/issues/1676)
 
 ## [2.0.265] - 2022-04-08
 - [Update paredit sexp forward/backward command labels](https://github.com/BetterThanTomorrow/calva/issues/1660)

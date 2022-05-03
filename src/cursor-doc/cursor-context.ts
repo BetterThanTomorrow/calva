@@ -1,12 +1,12 @@
 import { EditableDocument } from './model';
 
 export const allCursorContexts = [
-  'calva:cursorInString',
-  'calva:cursorInComment',
-  'calva:cursorAtStartOfLine',
-  'calva:cursorAtEndOfLine',
-  'calva:cursorBeforeComment',
-  'calva:cursorAfterComment',
+  // 'calva:cursorInString',
+  // 'calva:cursorInComment',
+  // 'calva:cursorAtStartOfLine',
+  // 'calva:cursorAtEndOfLine',
+  // 'calva:cursorBeforeComment',
+  // 'calva:cursorAfterComment',
 ] as const;
 
 export type CursorContext = typeof allCursorContexts[number];
@@ -15,7 +15,7 @@ export type CursorContext = typeof allCursorContexts[number];
  * Returns true if documentOffset is either at the first char of the token under the cursor, or
  * in the whitespace between the token and the first preceding EOL, otherwise false
  */
-export function isAtLineStartInclWS(doc: EditableDocument, offset = doc.selection.active) {
+export function isAtLineStartInclWS(doc: EditableDocument, offset = doc.selections[0].active) {
   const tokenCursor = doc.getTokenCursor(offset);
   let startOfLine = false;
   //  only at start if we're in ws, or at the 1st char of a non-ws sexp
@@ -33,7 +33,7 @@ export function isAtLineStartInclWS(doc: EditableDocument, offset = doc.selectio
  * Returns true if position is after the last char of the last lisp token on the line, including
  * any trailing whitespace or EOL, otherwise false
  */
-export function isAtLineEndInclWS(doc: EditableDocument, offset = doc.selection.active) {
+export function isAtLineEndInclWS(doc: EditableDocument, offset = doc.selections[0].active) {
   const tokenCursor = doc.getTokenCursor(offset);
   if (tokenCursor.getToken().type === 'eol') {
     return true;
@@ -56,27 +56,29 @@ export function isAtLineEndInclWS(doc: EditableDocument, offset = doc.selection.
   return false;
 }
 
+// TODO: setting the vscode ext context for cursor context might not work for multi-cursor
 export function determineContexts(
   doc: EditableDocument,
-  offset = doc.selection.active
-): CursorContext[] {
+  offset = doc.selections[0].active
+): readonly CursorContext[] {
   const tokenCursor = doc.getTokenCursor(offset);
-  const contexts: CursorContext[] = [];
+  // const contexts: CursorContext[] = [];
+  const contexts: readonly CursorContext[] = allCursorContexts;
 
   if (isAtLineStartInclWS(doc)) {
-    contexts.push('calva:cursorAtStartOfLine');
+    // contexts.push('calva:cursorAtStartOfLine');
   } else if (isAtLineEndInclWS(doc)) {
-    contexts.push('calva:cursorAtEndOfLine');
+    // contexts.push('calva:cursorAtEndOfLine');
   }
 
   if (tokenCursor.withinString()) {
-    contexts.push('calva:cursorInString');
+    // contexts.push('calva:cursorInString');
   } else if (tokenCursor.withinComment()) {
-    contexts.push('calva:cursorInComment');
+    // contexts.push('calva:cursorInComment');
   }
 
   // Compound contexts
-  if (contexts.includes('calva:cursorInComment')) {
+  /*   if (contexts.includes('calva:cursorInComment')) {
     if (contexts.includes('calva:cursorAtEndOfLine')) {
       tokenCursor.forwardWhitespace(false);
       if (tokenCursor.getToken().type != 'comment') {
@@ -88,7 +90,7 @@ export function determineContexts(
         contexts.push('calva:cursorBeforeComment');
       }
     }
-  }
+  } */
 
   return contexts;
 }

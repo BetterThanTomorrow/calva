@@ -9,6 +9,8 @@
 ;;
 
 
+(a| b (c
+       d) e)
 
 (a| b (c
        d) e)
@@ -17,8 +19,14 @@
 (aa| (c (e
          f)) g)
 
+(aa| (c (e
+         f)) g)
+
 ;; === Example 2 - comments
 ;; Comment killed
+(a| ;; comment
+ e)
+
 (a| ;; comment
  e)
 
@@ -27,8 +35,14 @@
 (a|
  e)
 
+(a|
+ e)
+
 ;; Example 4 - end of list
 ;; Don't kill past it
+
+(a b (c |)
+   e)
 
 (a b (c |)
    e)
@@ -53,8 +67,22 @@ string. "
       d 19 e 31]
   (+ a b))
 
+(let [a 23
+      b (+ 4
+           5
+           9)
+      m {:a 1}
+      c "hello"
+      d 19 e 31]
+  (+ a b))
+
 ;; Exmaple 8 -- map key value pairs
 ;; killing from :c includes the corresponding value
+{:a 1
+ :b 2
+ :c {:d 4
+     :e 5}}
+
 {:a 1
  :b 2
  :c {:d 4
@@ -64,14 +92,21 @@ string. "
 [#_(comment
      (+ 2 3))]
 
+[#_(comment
+     (+ 2 3))]
+
 ;; Example 10 -- deleting from | should delete to eol
 ;; | (23 34
 ;;   )
 
 
-
 ;; Example 11 -- Deleting should delete whole expr to closing ]
 | 24 [1]
+
+| 24 [1]
+
+43 [1 2
+    3]
 
 43 [1 2
     3]
@@ -84,9 +119,17 @@ string. "
 ;; Example 14 -- newline in string, deletes to end of string
 ["abc| def\n ghi" "this stays"]
 
+["abc| def\n ghi" "this stays"]
 
 ;; Example 15 -- Heisenbug should delete up to and including g]
 #_|[a b (c d
            e
            f) g]
+
+#_|[a b (c d
+           e
+           f) g]
+
+:a
+
 :a

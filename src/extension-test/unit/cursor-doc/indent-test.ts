@@ -1,7 +1,7 @@
 import * as expect from 'expect';
 import * as model from '../../../cursor-doc/model';
 import * as indent from '../../../cursor-doc/indent';
-import { docFromTextNotation, textAndSelection, text } from '../common/text-notation';
+import { docFromTextNotation, textAndSelection, getText } from '../common/text-notation';
 import { ModelEditSelection } from '../../../cursor-doc/model';
 
 model.initScanner(20000);
@@ -11,22 +11,22 @@ describe('indent', () => {
     describe('lists', () => {
       it('calculates indents for cursor in empty list', () => {
         const doc = docFromTextNotation('(|)');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0])).toEqual(1);
+        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0][0])).toEqual(1);
       });
       it('calculates indents for cursor in empty list prepended by text', () => {
         const doc = docFromTextNotation('  a b (|)');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0])).toEqual(7);
+        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0][0])).toEqual(7);
       });
       it('calculates indents for empty list inside vector', () => {
         const doc = docFromTextNotation('[(|)]');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0])).toEqual(2);
+        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0][0])).toEqual(2);
       });
       it("calculates indents for cursor in at arg 0 in `[['inner' 0]]`", () => {
         const doc = docFromTextNotation('(foo|)');
         expect(
           indent.getIndent(
             doc.model,
-            textAndSelection(doc)[1][0],
+            textAndSelection(doc)[1][0][0],
             mkConfig({
               '#"^\\w"': [['inner', 0]],
             })
@@ -38,7 +38,7 @@ describe('indent', () => {
         expect(
           indent.getIndent(
             doc.model,
-            textAndSelection(doc)[1][0],
+            textAndSelection(doc)[1][0][0],
             mkConfig({
               '#"^\\w"': [['inner', 0]],
             })
@@ -50,7 +50,7 @@ describe('indent', () => {
         expect(
           indent.getIndent(
             doc.model,
-            textAndSelection(doc)[1][0],
+            textAndSelection(doc)[1][0][0],
             mkConfig({
               '#"^\\w"': [['block', 1]],
             })
@@ -62,7 +62,7 @@ describe('indent', () => {
         expect(
           indent.getIndent(
             doc.model,
-            textAndSelection(doc)[1][0],
+            textAndSelection(doc)[1][0][0],
             mkConfig({
               '#"^\\w"': [['block', 1]],
             })
@@ -74,11 +74,11 @@ describe('indent', () => {
     describe('vectors', () => {
       it('calculates indents for cursor in empty vector', () => {
         const doc = docFromTextNotation('[|]');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0])).toEqual(1);
+        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0][0])).toEqual(1);
       });
       it('calculates indents for cursor in empty vector inside list', () => {
         const doc = docFromTextNotation('([|])');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0])).toEqual(2);
+        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0][0])).toEqual(2);
       });
       it('does not use indent rules for vectors with symbols at ”call” position', () => {
         // https://github.com/BetterThanTomorrow/calva/issues/1622
@@ -86,7 +86,7 @@ describe('indent', () => {
         expect(
           indent.getIndent(
             doc.model,
-            textAndSelection(doc)[1][0],
+            textAndSelection(doc)[1][0][0],
             mkConfig({
               '#"^\\w"': [['inner', 0]],
             })
@@ -98,11 +98,11 @@ describe('indent', () => {
     describe('maps', () => {
       it('calculates indents for cursor in empty map', () => {
         const doc = docFromTextNotation('{|}');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0])).toEqual(1);
+        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0][0])).toEqual(1);
       });
       it('calculates indents for cursor in empty map inside list inside a vector', () => {
         const doc = docFromTextNotation('([{|}])');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0])).toEqual(3);
+        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0][0])).toEqual(3);
       });
       it('does not use indent rules for maps with symbols at ”call” position', () => {
         // https://github.com/BetterThanTomorrow/calva/issues/1622
@@ -110,7 +110,7 @@ describe('indent', () => {
         expect(
           indent.getIndent(
             doc.model,
-            textAndSelection(doc)[1][0],
+            textAndSelection(doc)[1][0][0],
             mkConfig({
               '#"^\\w"': [['inner', 0]],
             })
@@ -122,11 +122,11 @@ describe('indent', () => {
     describe('sets', () => {
       it('calculates indents for cursor in empty set', () => {
         const doc = docFromTextNotation('#{|}');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0])).toEqual(2);
+        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0][0])).toEqual(2);
       });
       it('calculates indents for cursor in empty set inside list inside a vector', () => {
         const doc = docFromTextNotation('([#{|}])');
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0])).toEqual(4);
+        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0][0])).toEqual(4);
       });
       it('does not use indent rules for maps with symbols at ”call” position', () => {
         // https://github.com/BetterThanTomorrow/calva/issues/1622
@@ -134,7 +134,7 @@ describe('indent', () => {
         expect(
           indent.getIndent(
             doc.model,
-            textAndSelection(doc)[1][0],
+            textAndSelection(doc)[1][0][0],
             mkConfig({
               '#"^\\w"': [['inner', 0]],
             })
@@ -153,7 +153,7 @@ describe('indent', () => {
         };
         const state: indent.IndentInformation[] = indent.collectIndents(
           doc.model,
-          textAndSelection(doc)[1][0],
+          textAndSelection(doc)[1][0][0],
           mkConfig(rules)
         );
         expect(state.length).toEqual(1);
@@ -166,14 +166,14 @@ describe('indent', () => {
         };
         const state: indent.IndentInformation[] = indent.collectIndents(
           doc.model,
-          textAndSelection(doc)[1][0],
+          textAndSelection(doc)[1][0][0],
           mkConfig(rules)
         );
         expect(state.length).toEqual(1);
         expect(state[0].rules).toEqual([]);
       });
       it('collects indents for cursor in nested structure', () => {
-        const doc = docFromTextNotation('[]•(aa []•(bb•(cc :dd|)))•[]');
+        const doc = docFromTextNotation('[]§(aa []§(bb§(cc :dd|)))§[]');
         const rule1: indent.IndentRule[] = [
           ['inner', 0],
           ['block', 1],
@@ -183,7 +183,7 @@ describe('indent', () => {
         };
         const state: indent.IndentInformation[] = indent.collectIndents(
           doc.model,
-          textAndSelection(doc)[1][0],
+          textAndSelection(doc)[1][0][0],
           mkConfig(rules)
         );
         expect(state.length).toEqual(1);
@@ -196,7 +196,7 @@ describe('indent', () => {
         };
         const state: indent.IndentInformation[] = indent.collectIndents(
           doc.model,
-          textAndSelection(doc)[1][0],
+          textAndSelection(doc)[1][0][0],
           mkConfig(rules)
         );
         expect(state.length).toEqual(1);
@@ -210,7 +210,7 @@ describe('indent', () => {
         };
         const state: indent.IndentInformation[] = indent.collectIndents(
           doc.model,
-          textAndSelection(doc)[1][0],
+          textAndSelection(doc)[1][0][0],
           mkConfig(rules)
         );
         expect(state.length).toEqual(1);
@@ -228,7 +228,7 @@ describe('indent', () => {
         };
         const state: indent.IndentInformation[] = indent.collectIndents(
           doc.model,
-          textAndSelection(doc)[1][0],
+          textAndSelection(doc)[1][0][0],
           mkConfig(rules)
         );
         expect(state.length).toEqual(1);
@@ -246,7 +246,7 @@ describe('indent', () => {
         };
         const state: indent.IndentInformation[] = indent.collectIndents(
           doc.model,
-          textAndSelection(doc)[1][0],
+          textAndSelection(doc)[1][0][0],
           mkConfig(rules)
         );
         expect(state.length).toEqual(1);
