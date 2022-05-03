@@ -135,6 +135,9 @@ And like so (wait for it):
 
 ![](images/paredit/drag-pairs-in-maps.gif)
 
+!!! Note
+    clojure-lsp also contributes commands for dragging forms backward and forward. You might prefer those, because they have better comment affinity—comments stay affiliated with clauses as they're dragged—and better contextual support—clauses within many common functions (e.g. assoc, case and cond) move intuitively. Note however that these commands won't work in the REPL and other places where clojure-lsp is unavailable. See [this PR](https://github.com/BetterThanTomorrow/calva/pull/1698) for more details. To use the clojure-lsp commands, search for "clojure-lsp drag" in the command palette or the keyboard shortcut preferences menu, or choose them from the _Quick Fix_ suggestion lightbulb.
+
 ## About the Keyboard Shortcuts
 
 Care has been put in to making the default keybindings somewhat logical, easy to use, and work with most keyboard layouts. Slurp and barf forward are extra accessible to go with the recommendation to learn using these two super handy editing commands.
