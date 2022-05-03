@@ -202,9 +202,11 @@ const clojureLspCommands: ClojureLspCommand[] = [
   },
   {
     command: 'drag-backward',
+    category: 'clojureLsp',
   },
   {
     command: 'drag-forward',
+    category: 'clojureLsp',
   },
   {
     command: 'expand-let',
@@ -259,7 +261,7 @@ function sendCommandRequest(command: string, args: (number | string)[]): void {
 }
 
 function registerLspCommand(command: ClojureLspCommand): vscode.Disposable {
-  const category = command.category ? command.category : 'calva.refactor';
+  const category = command.category ? command.category : 'clojureLsp.refactor';
   const vscodeCommand = `${category}.${command.command.replace(/-[a-z]/g, (m) =>
     m.substring(1).toUpperCase()
   )}`;
