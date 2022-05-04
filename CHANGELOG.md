@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [Toggle between implementation and test command should set editor focus](https://github.com/BetterThanTomorrow/calva/issues/1707)
+- Fix: [Hijacked shortcuts only works on strict](https://github.com/BetterThanTomorrow/calva/issues/1711)
 
 ## [2.0.270] - 2022-05-02
 - Fix: [Downloaded clojure-lsp not working for static linux distros](https://github.com/BetterThanTomorrow/calva/issues/1692)
