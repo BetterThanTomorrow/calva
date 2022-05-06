@@ -123,7 +123,8 @@ Default keybinding                | Action | Description
 !!! Note "Copy to Clipboard when killing text"
     You can have the *kill* commands always copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToClipboard` to `true`.  If you want to do this more on-demand, you can kill text by using the [selection commands](#selecting) and then *Cut* once you have the selection.
 
-
+!!! Note "clojure-lsp drag fwd/back overlap"
+    As an experimental feature, the two commands for dragging forms forward and backward have clojure-lsp alternativs. See the [clojure-lsp](clojure-lsp.md#clojure-lsp-drag-fwdback) page.
 
 ### Drag bindings forward/backward
 

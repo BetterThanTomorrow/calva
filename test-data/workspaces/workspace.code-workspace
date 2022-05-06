@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"name": "ws-b",
+			"path": "ws-b"
+		},
+		{
+			"name": "pirate-lang",
+			"path": "../projects/pirate-lang"
+		},
+		{
+			"name": "lab",
+			"path": "../lab"
+		},
+		{
+			"name": "ws-a",
+			"path": "ws-a"
+		}
+	],
+	"settings": {}
+}
