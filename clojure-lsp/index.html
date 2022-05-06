@@ -1019,6 +1019,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#clojure-lsp-drag-fwdback" class="md-nav__link">
+    <span class="md-ellipsis">
+      clojure-lsp drag fwd/back
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       Troubleshooting
@@ -1901,6 +1910,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#clojure-lsp-drag-fwdback" class="md-nav__link">
+    <span class="md-ellipsis">
+      clojure-lsp drag fwd/back
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       Troubleshooting
@@ -2020,6 +2038,26 @@
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.clojureLspPath&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/usr/local/bin/clojure-lsp&quot;</span><span class="w"></span>
 </code></pre></div>
+<h2 id="clojure-lsp-drag-fwdback">clojure-lsp drag fwd/back</h2>
+<p>clojure-lsp contributes two commands for dragging forms forward or backward. They are similar to Calva's <a href="../paredit/">Paredit</a> corresponding commands.</p>
+<div class="admonition warning">
+<p class="admonition-title">Experimental</p>
+<p>Consider the addition of these commands to the command palette as an experimental feature. We might remove the commands later if they cause confusion or if Calva's commands improve about contextual support.</p>
+</div>
+<p>There are reasons you might prefer the clojure-lsp versions over the Calva built-ins:</p>
+<ul>
+<li>Better comment affinity. Comments stay affiliated with clauses as they're dragged.</li>
+<li>Better contextual support. In addition to the <a href="#drag-bindings-forwardbackward">bindings mentioned below</a>, also <code>assoc</code>, <code>case</code>, <code>cond</code>, and some more forms get adapted drag treatment.</li>
+</ul>
+<p>There are also reasons why you might want to stick with Calva's built-ins. See <a href="https://github.com/BetterThanTomorrow/calva/pull/1698">this PR</a> and its links for a detailed discussion of the differences. TL;DR:</p>
+<ul>
+<li>clojure-lsp is not active in all Calva Clojure files, the <a href="../output/">REPL/output window</a> being an extra noticeable example. If you bind the clojure-lsp commands in a way that replaces the key bindings for Calva's drag commands, add <code>&amp;&amp; !calva:outputWindowActive</code> to the <code>when</code> clause.</li>
+<li>clojure-lsp does not honor Calva's <a href="https://www.youtube.com/watch?v=8ygw7LLLU1w">Current Form</a> semantics. You might be in for some surprises in what gets dragged.</li>
+<li>The cursor does not stay in place within the dragged form when dragging, breaking with how all Paredit edit commands work, and with how VS Code built in drag-line works.</li>
+<li>Performance is not as as good as Calva's built-ins. This gets noticeable in large files.</li>
+<li>Semantic token styling gets out-of-wack, leaving symbols having several stylings and other artifacts. (With Calva's commands, the styling gets invalidated for the current enclosing form, which looks less jarring.)</li>
+</ul>
+<p>To use the clojure-lsp commands, search for "clojure-lsp drag" in the command palette or the keyboard shortcut preferences menu, or choose them from the <em>Quick Fix</em> suggestion lightbulb.</p>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <h3 id="viewing-the-logs-between-the-client-and-server">Viewing the Logs Between the Client and Server</h3>
 <p>If something doesn't seem to be working correctly, and you suspect the issue is related to clojure-lsp, a good place to start investigating is the request and response logs between the LSP client and server. In your settings, set <code>clojure.trace.server</code> to <code>verbose</code>, then in the VS Code output tab, select the <code>Clojure Language Client</code> output channel.</p>

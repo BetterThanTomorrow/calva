@@ -2244,6 +2244,10 @@
 <p class="admonition-title">Copy to Clipboard when killing text</p>
 <p>You can have the <em>kill</em> commands always copy the deleted code to the clipboard by setting <code>calva.paredit.killAlsoCutsToClipboard</code> to <code>true</code>.  If you want to do this more on-demand, you can kill text by using the <a href="#selecting">selection commands</a> and then <em>Cut</em> once you have the selection.</p>
 </div>
+<div class="admonition note">
+<p class="admonition-title">clojure-lsp drag fwd/back overlap</p>
+<p>As an experimental feature, the two commands for dragging forms forward and backward have clojure-lsp alternativs. See the <a href="../clojure-lsp/#clojure-lsp-drag-fwdback">clojure-lsp</a> page.</p>
+</div>
 <h3 id="drag-bindings-forwardbackward">Drag bindings forward/backward</h3>
 <p>When dragging forms inside maps and binding boxes, such as with <code>let</code>, <code>for</code>, <code>binding</code>, etcetera, it often makes most sense to drag each binding as a pair. And this is what Calva will do. Like so:</p>
 <p><img alt="" src="../images/paredit/drag-pairs-in-binding-box.gif" /></p>
