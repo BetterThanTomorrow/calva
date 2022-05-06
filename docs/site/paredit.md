@@ -123,7 +123,8 @@ Default keybinding                | Action | Description
 !!! Note "Copy to Clipboard when killing text"
     You can have the *kill* commands always copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToClipboard` to `true`.  If you want to do this more on-demand, you can kill text by using the [selection commands](#selecting) and then *Cut* once you have the selection.
 
-
+!!! Note "clojure-lsp drag fwd/back overlap"
+    As an experimental feature, the two commands for dragging forms forward and backward have clojure-lsp alternativs. See the [clojure-lsp](clojure-lsp.md#clojure-lsp-drag-fwdback) page.
 
 ### Drag bindings forward/backward
 
@@ -134,9 +135,6 @@ When dragging forms inside maps and binding boxes, such as with `let`, `for`, `b
 And like so (wait for it):
 
 ![](images/paredit/drag-pairs-in-maps.gif)
-
-!!! Note
-    clojure-lsp also contributes commands for dragging forms backward and forward. You might prefer those, because they have better comment affinity—comments stay affiliated with clauses as they're dragged—and better contextual support—clauses within many common functions (e.g. assoc, case and cond) move intuitively. Note however that these commands won't work in the REPL and other places where clojure-lsp is unavailable. Unlike Calva's drag commands, clojure-lsp's drag commands will not move words within strings. To use the clojure-lsp commands, search for "clojure-lsp drag" in the command palette or the keyboard shortcut preferences menu, or choose them from the _Quick Fix_ suggestion lightbulb. See [this PR](https://github.com/BetterThanTomorrow/calva/pull/1698) and its links for more discussion of this feature.
 
 ## About the Keyboard Shortcuts
 
