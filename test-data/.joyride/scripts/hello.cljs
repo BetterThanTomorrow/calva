@@ -4,4 +4,4 @@
 
 (require '["vscode" :as vscode])
 
-(vscode/window.showInformationMessage "Hello")
+(vscode/window.showInformationMessage "Hello", "OK")

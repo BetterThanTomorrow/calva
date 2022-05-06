@@ -13,6 +13,7 @@ import * as outputWindow from '../results-output/results-doc';
 import { JackInTerminal, JackInTerminalOptions, createCommandLine } from './jack-in-terminal';
 import * as liveShareSupport from '../live-share';
 import { getConfig } from '../config';
+import * as joyride from '../joyride';
 
 let jackInPTY: JackInTerminal = undefined;
 let jackInTerminal: vscode.Terminal = undefined;
@@ -220,10 +221,8 @@ async function getJackInTerminalOptions(
 async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
   const cljTypes: string[] = await projectTypes.detectProjectTypes();
   const excludes = ['generic', 'cljs-only'];
-  const joyride = utilities.cljsLib.getStateValue('joyrideExtension');
-  if (joyride && joyride.isActive) {
-    const joyApi = joyride.exports;
-    if (joyApi.getContextValue('joyride.isNReplServerRunning')) {
+  if (joyride.isJoyrideExtensionActive()) {
+    if (joyride.isJoyrideNReplServerRunning()) {
       excludes.push('joyride');
     }
   } else {

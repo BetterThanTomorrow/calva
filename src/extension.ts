@@ -35,6 +35,7 @@ import { setStateValue } from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
+import * as joyride from './joyride';
 
 import * as clojureDocs from './clojuredocs';
 async function onDidSave(testController: vscode.TestController, document: vscode.TextDocument) {
@@ -187,9 +188,9 @@ async function activate(context: vscode.ExtensionContext) {
   // COMMANDS
   context.subscriptions.push(
     vscode.commands.registerCommand('calva.startJoyrideReplAndConnect', async () => {
-      const projectDir: string = await replStart.prepareForJackingOrConnect();
+      const projectDir: string = await joyride.prepareForJackingOrConnect();
       if (projectDir !== undefined) {
-        void replStart.joyrideJackIn(joyrideExtension, projectDir);
+        void joyride.joyrideJackIn(joyrideExtension, projectDir);
       }
     })
   );

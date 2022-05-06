@@ -8,7 +8,7 @@ import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
 import { parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
-import * as replStart from './repl-start';
+import * as joyride from '../joyride';
 
 export const isWin = /^win/.test(process.platform);
 
@@ -456,10 +456,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     nReplPortFile: ['.joyride', '.nrepl-port'],
     commandLine: undefined,
     startFunction: () =>
-      void replStart.joyrideJackIn(
-        utilities.cljsLib.getStateValue('joyrideExtension'),
-        state.getProjectRootLocal()
-      ),
+      void joyride.joyrideJackIn(joyride.getJoyrideExtension(), state.getProjectRootLocal()),
   },
 };
 
