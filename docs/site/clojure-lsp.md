@@ -114,3 +114,4 @@ See also:
 
 * [Connecting the REPL](connect.md)
 * [Refactoring](refactoring.md)
+* [Dragging forms](paredit.md#drag-bindings-forwardbackward)

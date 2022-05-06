@@ -1630,93 +1630,105 @@
         "category": "Calva"
       },
       {
-        "command": "calva.refactor.cleanNs",
+        "command": "clojureLsp.refactor.cleanNs",
         "title": "Clean NS Form",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.addMissingLibspec",
+        "command": "clojureLsp.refactor.addMissingLibspec",
         "title": "Add Missing Require",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.cyclePrivacy",
+        "command": "clojureLsp.dragBackward",
+        "title": "Drag Sexp Backward",
+        "category": "clojure-lsp",
+        "enablement": "editorLangId == clojure && clojureLsp:active"
+      },
+      {
+        "command": "clojureLsp.dragForward",
+        "title": "Drag Sexp Forward",
+        "category": "clojure-lsp",
+        "enablement": "editorLangId == clojure && clojureLsp:active"
+      },
+      {
+        "command": "clojureLsp.refactor.cyclePrivacy",
         "title": "Cycle/Toggle Privacy",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.expandLet",
+        "command": "clojureLsp.refactor.expandLet",
         "title": "Expand Let",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.inlineSymbol",
+        "command": "clojureLsp.refactor.inlineSymbol",
         "title": "Inline Symbol",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.threadFirst",
+        "command": "clojureLsp.refactor.threadFirst",
         "title": "Thread First",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.threadFirstAll",
+        "command": "clojureLsp.refactor.threadFirstAll",
         "title": "Thread First All",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.threadLast",
+        "command": "clojureLsp.refactor.threadLast",
         "title": "Thread Last",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.threadLastAll",
+        "command": "clojureLsp.refactor.threadLastAll",
         "title": "Thread Last All",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.unwindAll",
+        "command": "clojureLsp.refactor.unwindAll",
         "title": "Unwind All",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.unwindThread",
+        "command": "clojureLsp.refactor.unwindThread",
         "title": "Unwind Thread",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.introduceLet",
+        "command": "clojureLsp.refactor.introduceLet",
         "title": "Introduce let",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.moveToLet",
+        "command": "clojureLsp.refactor.moveToLet",
         "title": "Move to Previous let Box",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.extractFunction",
+        "command": "clojureLsp.refactor.extractFunction",
         "title": "Extract to New Function",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.diagnostics.clojureLspServerInfo",
+        "command": "clojureLsp.diagnostics.clojureLspServerInfo",
         "title": "Clojure-lsp Server Info",
-        "category": "Calva Diagnostics",
+        "category": "clojure-lsp Diagnostics",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
