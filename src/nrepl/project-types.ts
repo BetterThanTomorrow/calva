@@ -453,10 +453,13 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: false,
     processShellWin: false,
     useWhenExists: undefined,
-    nReplPortFile: ['.nrepl-port'],
+    nReplPortFile: ['.joyride', '.nrepl-port'],
     commandLine: undefined,
     startFunction: () =>
-      replStart.joyrideJackIn(utilities.cljsLib.getStateValue('joyrideExtension')),
+      void replStart.joyrideJackIn(
+        utilities.cljsLib.getStateValue('joyrideExtension'),
+        state.getProjectRootLocal()
+      ),
   },
 };
 

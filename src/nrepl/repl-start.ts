@@ -193,19 +193,29 @@ export async function startStandaloneRepl(
   });
 }
 
-export async function joyrideJackIn(joyrideExtension: vscode.Extension<any>) {
+export async function prepareForJackingOrConnect() {
   status.updateNeedReplUi(true);
   await state.initProjectDir().catch((e) => {
     void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
   });
   await outputWindow.initResultsDoc();
   await outputWindow.openResultsDoc();
-  const port = await joyrideExtension.exports.startNReplServer();
-  utilities.setLaunchingState(null);
-  return connector.connect(joyrideDefaults[0], true, 'localhost', port).then(() => {
-    outputWindow.append('; Jack-in done.');
-    outputWindow.appendPrompt();
-  });
+  return state.getProjectRootLocal();
+}
+
+export function joyrideJackIn(joyrideExtension: vscode.Extension<any>, projectDir: string) {
+  joyrideExtension.exports
+    .startNReplServer(projectDir)
+    .then((port) => {
+      utilities.setLaunchingState(null);
+      return connector.connect(joyrideDefaults[0], true, 'localhost', port).then(() => {
+        outputWindow.append('; Jack-in done.');
+        outputWindow.appendPrompt();
+      });
+    })
+    .catch((e: Error) => {
+      console.error('Joyride REPL start failed: ', e);
+    });
 }
 
 export function startOrConnectRepl() {

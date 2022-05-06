@@ -184,7 +184,6 @@ const joyrideDefaults: ReplConnectSequence[] = [
     name: 'joyride',
     projectType: ProjectTypes['joyride'],
     cljsType: CljsTypes['ClojureScript nREPL'],
-    nReplPortFile: ['.nrepl-port'],
   },
 ];
 

@@ -219,9 +219,19 @@ async function getJackInTerminalOptions(
 
 async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
   const cljTypes: string[] = await projectTypes.detectProjectTypes();
+  const excludes = ['generic', 'cljs-only'];
+  const joyride = utilities.cljsLib.getStateValue('joyrideExtension');
+  if (joyride && joyride.isActive) {
+    const joyApi = joyride.exports;
+    if (joyApi.getContextValue('joyride.isNReplServerRunning')) {
+      excludes.push('joyride');
+    }
+  } else {
+    excludes.push('joyride');
+  }
   if (cljTypes.length > 1) {
     const connectSequence = await askForConnectSequence(
-      cljTypes.filter((t) => !['generic', 'cljs-only'].includes(t)),
+      cljTypes.filter((t) => !excludes.includes(t)),
       'jack-in-type',
       'JackInInterrupted'
     );

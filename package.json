@@ -681,6 +681,7 @@
               ".git",
               ".hg",
               ".idea",
+              ".joyride",
               ".lsp",
               "node_modules",
               ".pijul",
@@ -881,7 +882,7 @@
       {
         "command": "calva.startJoyrideReplAndConnect",
         "title": "Start Joyride REPL and Connect",
-        "enablement": "calva:joyrideAvailable",
+        "enablement": "calva:joyrideAvailable && !joyride.isNReplServerRunning",
         "category": "Calva"
       },
       {

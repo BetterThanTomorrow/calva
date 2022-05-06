@@ -186,9 +186,12 @@ async function activate(context: vscode.ExtensionContext) {
 
   // COMMANDS
   context.subscriptions.push(
-    vscode.commands.registerCommand('calva.startJoyrideReplAndConnect', () =>
-      replStart.joyrideJackIn(joyrideExtension)
-    )
+    vscode.commands.registerCommand('calva.startJoyrideReplAndConnect', async () => {
+      const projectDir: string = await replStart.prepareForJackingOrConnect();
+      if (projectDir !== undefined) {
+        void replStart.joyrideJackIn(joyrideExtension, projectDir);
+      }
+    })
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('calva.startOrConnectRepl', replStart.startOrConnectRepl)
