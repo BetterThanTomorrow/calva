@@ -8,21 +8,23 @@ import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
 import { parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
+import * as replStart from './repl-start';
 
 export const isWin = /^win/.test(process.platform);
 
 export type ProjectType = {
   name: string;
-  cljsTypes: string[];
-  cmd: string[];
-  winCmd: string[];
+  cljsTypes?: string[];
+  cmd?: string[];
+  winCmd?: string[];
   resolveBundledPathWin?: () => string;
   resolveBundledPathUnix?: () => string;
-  processShellWin: boolean;
-  processShellUnix: boolean;
-  commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => any;
-  useWhenExists: string;
+  processShellWin?: boolean;
+  processShellUnix?: boolean;
+  commandLine?: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => any;
+  useWhenExists?: string;
   nReplPortFile: string[];
+  startFunction?: () => Thenable<boolean | void>;
 };
 
 function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string {
@@ -438,10 +440,23 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: undefined,
-    nReplPortFile: ['.nbb-nrepl-port'],
+    nReplPortFile: ['.nrepl-port'],
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
       return ['nbb', 'nrepl-server', ':port', await getPort()];
     },
+  },
+  joyride: {
+    name: 'joyride',
+    cljsTypes: [],
+    cmd: [],
+    winCmd: [],
+    processShellUnix: false,
+    processShellWin: false,
+    useWhenExists: undefined,
+    nReplPortFile: ['.nrepl-port'],
+    commandLine: undefined,
+    startFunction: () =>
+      replStart.joyrideJackIn(utilities.cljsLib.getStateValue('joyrideExtension')),
   },
 };
 

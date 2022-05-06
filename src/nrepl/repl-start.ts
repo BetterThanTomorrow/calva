@@ -9,9 +9,11 @@ import * as outputWindow from '../results-output/results-doc';
 import { getConfig } from '../config';
 import * as replSession from './repl-session';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
-import { ReplConnectSequence } from './connectSequence';
+import { ReplConnectSequence, joyrideDefaults } from './connectSequence';
 import * as clojureLsp from '../lsp/main';
 import * as calvaConfig from '../config';
+import status from '../status';
+import * as connector from '../connector';
 
 const TEMPLATES_SUB_DIR = 'bundled';
 const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
@@ -187,6 +189,21 @@ export async function startStandaloneRepl(
       preserveFocus: false,
     });
     await eval.loadFile({}, getConfig().prettyPrintingOptions);
+    outputWindow.appendPrompt();
+  });
+}
+
+export async function joyrideJackIn(joyrideExtension: vscode.Extension<any>) {
+  status.updateNeedReplUi(true);
+  await state.initProjectDir().catch((e) => {
+    void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
+  });
+  await outputWindow.initResultsDoc();
+  await outputWindow.openResultsDoc();
+  const port = await joyrideExtension.exports.startNReplServer();
+  utilities.setLaunchingState(null);
+  return connector.connect(joyrideDefaults[0], true, 'localhost', port).then(() => {
+    outputWindow.append('; Jack-in done.');
     outputWindow.appendPrompt();
   });
 }

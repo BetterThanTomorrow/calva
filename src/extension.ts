@@ -116,6 +116,7 @@ async function activate(context: vscode.ExtensionContext) {
   const cwExtension = vscode.extensions.getExtension('tonsky.clojure-warrior');
   const vimExtension = vscode.extensions.getExtension('vscodevim.vim');
   const clojureExtension = vscode.extensions.getExtension('avli.clojure');
+  const joyrideExtension = vscode.extensions.getExtension('betterthantomorrow.joyride');
   const customCljsRepl = config.getConfig().customCljsRepl;
   const replConnectSequences = config.getConfig().replConnectSequences;
   const BUTTON_GOTO_DOC = 'Open the docs';
@@ -140,6 +141,11 @@ async function activate(context: vscode.ExtensionContext) {
           });
         }
       });
+  }
+
+  if (joyrideExtension) {
+    void vscode.commands.executeCommand('setContext', 'calva:joyrideAvailable', true);
+    setStateValue('joyrideExtension', joyrideExtension);
   }
 
   if (legacyExtension) {
@@ -179,6 +185,11 @@ async function activate(context: vscode.ExtensionContext) {
   status.update(context);
 
   // COMMANDS
+  context.subscriptions.push(
+    vscode.commands.registerCommand('calva.startJoyrideReplAndConnect', () =>
+      replStart.joyrideJackIn(joyrideExtension)
+    )
+  );
   context.subscriptions.push(
     vscode.commands.registerCommand('calva.startOrConnectRepl', replStart.startOrConnectRepl)
   );

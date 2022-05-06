@@ -879,6 +879,12 @@
     ],
     "commands": [
       {
+        "command": "calva.startJoyrideReplAndConnect",
+        "title": "Start Joyride REPL and Connect",
+        "enablement": "calva:joyrideAvailable",
+        "category": "Calva"
+      },
+      {
         "command": "calva.clojureLsp.showClojureLspStartedMenu",
         "title": "Show clojure-lsp menu",
         "enablement": "clojureLsp:active",

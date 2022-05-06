@@ -221,7 +221,7 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
   const cljTypes: string[] = await projectTypes.detectProjectTypes();
   if (cljTypes.length > 1) {
     const connectSequence = await askForConnectSequence(
-      cljTypes.filter((t) => !['generic', 'cljs-only', 'joyride'].includes(t)),
+      cljTypes.filter((t) => !['generic', 'cljs-only'].includes(t)),
       'jack-in-type',
       'JackInInterrupted'
     );
@@ -261,9 +261,14 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
     }
   }
   if (projectConnectSequence) {
-    const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
-    if (terminalJackInOptions) {
-      executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
+    const projectType = projectTypes.getProjectTypeForName(projectConnectSequence.projectType);
+    if (projectType.startFunction) {
+      void projectType.startFunction();
+    } else {
+      const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
+      if (terminalJackInOptions) {
+        executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
+      }
     }
   } else {
     void vscode.window.showInformationMessage(

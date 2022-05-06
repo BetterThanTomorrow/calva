@@ -350,4 +350,5 @@ export {
   genericDefaults,
   cljsOnlyDefaults,
   cljDefaults,
+  joyrideDefaults,
 };
