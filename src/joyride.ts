@@ -3,11 +3,23 @@ import * as connector from './connector';
 import * as state from './state';
 import * as vscode from 'vscode';
 import * as connectSequences from './nrepl/connectSequence';
+import * as open from 'open';
 import * as outputWindow from './results-output/results-doc';
 import * as utilities from './utilities';
 
-export function getJoyrideExtension() {
-  return utilities.cljsLib.getStateValue('joyrideExtension');
+type JoyrideContext = 'joyride.isNReplServerRunning';
+
+interface JoyrideExtensionApi {
+  getContextValue: (arg0: JoyrideContext) => boolean;
+  startNReplServer: (arg0?: string) => Promise<number>;
+}
+
+interface JoyrideExtension extends vscode.Extension<any> {
+  exports: JoyrideExtensionApi;
+}
+
+export function getJoyrideExtension(): JoyrideExtension {
+  return vscode.extensions.getExtension('betterthantomorrow.joyride');
 }
 
 export function isJoyrideExtensionActive() {
@@ -34,19 +46,28 @@ export async function prepareForJackingOrConnect() {
   return state.getProjectRootLocal();
 }
 
-export function joyrideJackIn(joyrideExtension: vscode.Extension<any>, projectDir: string) {
-  joyrideExtension.exports
-    .startNReplServer(projectDir)
-    .then((port) => {
-      utilities.setLaunchingState(null);
-      return connector
-        .connect(connectSequences.joyrideDefaults[0], true, 'localhost', port)
-        .then(() => {
-          outputWindow.append('; Jack-in done.');
-          outputWindow.appendPrompt();
-        });
-    })
-    .catch((e: Error) => {
-      console.error('Joyride REPL start failed: ', e);
-    });
+export async function joyrideJackIn(projectDir: string) {
+  const joyrideExtension = getJoyrideExtension();
+  if (joyrideExtension) {
+    joyrideExtension.exports
+      .startNReplServer(projectDir)
+      .then(async (port) => {
+        utilities.setLaunchingState(null);
+        await connector.connect(connectSequences.joyrideDefaults[0], true, 'localhost', `${port}`);
+        outputWindow.append('; Jack-in done.');
+        outputWindow.appendPrompt();
+      })
+      .catch((e: Error) => {
+        console.error('Joyride REPL start failed: ', e);
+      });
+  } else {
+    const OPEN_REPO_OPTION = 'Open Joyride Project page';
+    const choice = await vscode.window.showInformationMessage(
+      'Joyride is an extension that embeds a Clojure REPL in VS Code and lets you script the editor while you are using it.',
+      ...[OPEN_REPO_OPTION]
+    );
+    if (choice === OPEN_REPO_OPTION) {
+      void open('https://github.com/BetterThanTomorrow/joyride');
+    }
+  }
 }

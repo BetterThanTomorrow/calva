@@ -455,8 +455,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     useWhenExists: undefined,
     nReplPortFile: ['.joyride', '.nrepl-port'],
     commandLine: undefined,
-    startFunction: () =>
-      void joyride.joyrideJackIn(joyride.getJoyrideExtension(), state.getProjectRootLocal()),
+    startFunction: () => void joyride.joyrideJackIn(state.getProjectRootLocal()),
   },
 };
 

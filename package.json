@@ -882,7 +882,7 @@
       {
         "command": "calva.startJoyrideReplAndConnect",
         "title": "Start Joyride REPL and Connect",
-        "enablement": "calva:joyrideAvailable && !joyride.isNReplServerRunning",
+        "enablement": "!joyride.isNReplServerRunning",
         "category": "Calva"
       },
       {
