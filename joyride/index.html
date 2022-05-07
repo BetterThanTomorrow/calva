@@ -1163,6 +1163,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#how-to-get-started-with-joyride" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to Get Started with Joyride
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1683,6 +1692,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#how-to-get-started-with-joyride" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to Get Started with Joyride
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1702,21 +1720,30 @@
 
 
 <h1 id="using-calva-with-joyride">Using Calva With Joyride</h1>
-<p><a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> is a VS Code extension for user space scripting of VS Code itself. The scripting language for Joyride is the best you language imaginable: Clojure. And, as is proper for a Clojure implementation, it has a REPL, even an nREPL server.</p>
+<p><a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> is a VS Code extension for user space scripting of VS Code itself. You find the extension <a href="https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.joyride">here</a>. The scripting language for Joyride is the best you language imaginable: <a href="https://clojure.org">Clojure</a>. And, as is proper for a Clojure implementation, it has a REPL, even an nREPL server.</p>
 <p>This means you can connect Calva to Joyride and interactively develop your VS Code scripts.</p>
 <p>This video shows Joyride in action, using Calva as the nREPL client.</p>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/V1oTf-1EchU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <h2 id="how-to-connect">How to connect</h2>
+<p>Once you have the Joyride extension installed you can start its REPL and connect Calva to it (a.k.a <strong>Jack-in</strong>).</p>
+<div class="admonition info">
+<p class="admonition-title">Start the Joyride REPL and Connect</p>
+<p>This <strong>1 minute</strong> video shows the following steps:</p>
 <ol>
-<li>Install <a href="https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.joyride">the Joyride Extension</a></li>
-<li>Issue the command <strong>Joyride: Start nREPL server</strong></li>
-<li>Issue the command <strong>Calva: Connect to a REPL in your Project</strong></li>
-<li>Select the project root: <code>&lt;workspace-path&gt;/.joyride</code></li>
-<li>Select the <code>joyride</code> project type</li>
-<li>Submit the suggested <code>localhost:&lt;port&gt;</code> prompt</li>
+<li>Installing <a href="https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.joyride">the Joyride Extension</a></li>
+<li>Isssuing the command <strong>Calva: Start a REPL in your Project and (a.k.a Jack-in)</strong></li>
+<li>Selecting <code>joyride</code> project type</li>
+<li>Isssuing the command <strong>Calva: Load Current File and Dependencies</strong></li>
+<li>Evaluating some non-vscode code</li>
+<li>Evaluating code exercising something from the <a href="https://code.visualstudio.com/api">VS Code API</a></li>
 </ol>
-<p>Happy Joyriding! ❤️</p>
+<p>(Right-click the video and choose <strong>Full Screeen</strong> if it is too tiny embedded.)</p>
+<video src="https://user-images.githubusercontent.com/30010/167246562-24638f12-120b-48e9-893a-7408d5beeb77.mp4" data-canonical-src="https://user-images.githubusercontent.com/30010/167246562-24638f12-120b-48e9-893a-7408d5beeb77.mp4" controls="controls" muted="muted" class="" style="width: 100%;">
+</div>
+<h2 id="how-to-get-started-with-joyride">How to Get Started with Joyride</h2>
+<p>The <a href="https://github.com/BetterThanTomorrow/joyride/blob/master/README.md">Joyride README</a> has some Quick Start pointers for you. Please feel invited to the <code>#joyride</code> channel on the <a href="http://clojurians.net">Clojurians Slack</a> and chat with us and other Joyride users.</p>
+<p>Come on, Join the Joyride! ❤️</p>
 
   
 
@@ -1792,7 +1819,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "search": "../assets/javascripts/workers/search.ec8bae80.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.283c1e5e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d682fb64.min.js"></script>
       
     
   </body>
