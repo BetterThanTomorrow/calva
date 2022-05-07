@@ -15,6 +15,12 @@
 		{
 			"name": "ws-a",
 			"path": "ws-a"
+		},
+		{
+			"path": "ws-no-proj"
+		},
+		{
+			"path": "ws-sub-projs"
 		}
 	],
 	"settings": {}

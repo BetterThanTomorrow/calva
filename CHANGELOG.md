@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add Joyride REPL server start and connect, a.k.a. Jack-in](https://github.com/BetterThanTomorrow/calva/issues/1714)
 
 ## [2.0.271] - 2022-05-06
 - Fix: [Toggle between implementation and test command should set editor focus](https://github.com/BetterThanTomorrow/calva/issues/1707)

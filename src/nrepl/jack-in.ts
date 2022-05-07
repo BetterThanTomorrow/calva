@@ -13,6 +13,7 @@ import * as outputWindow from '../results-output/results-doc';
 import { JackInTerminal, JackInTerminalOptions, createCommandLine } from './jack-in-terminal';
 import * as liveShareSupport from '../live-share';
 import { getConfig } from '../config';
+import * as joyride from '../joyride';
 
 let jackInPTY: JackInTerminal = undefined;
 let jackInTerminal: vscode.Terminal = undefined;
@@ -219,9 +220,13 @@ async function getJackInTerminalOptions(
 
 async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
   const cljTypes: string[] = await projectTypes.detectProjectTypes();
+  const excludes = ['generic', 'cljs-only'];
+  if (joyride.isJoyrideExtensionActive() && joyride.isJoyrideNReplServerRunning()) {
+    excludes.push('joyride');
+  }
   if (cljTypes.length > 1) {
     const connectSequence = await askForConnectSequence(
-      cljTypes.filter((t) => !['generic', 'cljs-only', 'joyride'].includes(t)),
+      cljTypes.filter((t) => !excludes.includes(t)),
       'jack-in-type',
       'JackInInterrupted'
     );
@@ -261,9 +266,14 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
     }
   }
   if (projectConnectSequence) {
-    const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
-    if (terminalJackInOptions) {
-      executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
+    const projectType = projectTypes.getProjectTypeForName(projectConnectSequence.projectType);
+    if (projectType.startFunction) {
+      void projectType.startFunction();
+    } else {
+      const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
+      if (terminalJackInOptions) {
+        executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
+      }
     }
   } else {
     void vscode.window.showInformationMessage(
