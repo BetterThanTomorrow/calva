@@ -17,34 +17,20 @@ This video shows Joyride in action, using Calva as the nREPL client.
 
 Once you have the Joyride extension installed you can start its REPL and connect Calva to it (a.k.a **Jack-in**).
 
-<details open="" class="admonition info">
-  <summary class="">
-    <span aria-label="Video description Calva.Start.a.Joyride.REPL.and.Connect.-.Jack-in.mp4" class="m-1">Calva.Start.a.Joyride.REPL.and.Connect.-.Jack-in.mp4</span>
-    <span class=""></span>
-  </summary>
-
-  <video src="https://user-images.githubusercontent.com/30010/167246562-24638f12-120b-48e9-893a-7408d5beeb77.mp4" data-canonical-src="https://user-images.githubusercontent.com/30010/167246562-24638f12-120b-48e9-893a-7408d5beeb77.mp4" controls="controls" muted="muted" class="" style="width: 100%;">
-  </video>
- 
-</details>
-
 !!! Info "Start the Joyride REPL and Connect"
 
     This **1 minute** video shows the following steps:
 
     1. Installing [the Joyride Extension](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.joyride)
     1. Isssuing the command **Calva: Start a REPL in your Project and (a.k.a Jack-in)**
+       - Selecting `joyride` project type
     1. Isssuing the command **Calva: Load Current File and Dependencies**
-    1. Evaluating some non-vscode code.
+    1. Evaluating some non-vscode code
     1. Evaluating code exercising something from the [VS Code API](https://code.visualstudio.com/api)
 
     (Right-click the video and choose <strong>Full Screeen</strong> if it is too tiny embedded.)
 
     <video src="https://user-images.githubusercontent.com/30010/167246562-24638f12-120b-48e9-893a-7408d5beeb77.mp4" data-canonical-src="https://user-images.githubusercontent.com/30010/167246562-24638f12-120b-48e9-893a-7408d5beeb77.mp4" controls="controls" muted="muted" class="" style="width: 100%;">
-
-
-
-
 
 ## How to Get Started with Joyride
 
