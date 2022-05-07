@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.272] - 2022-05-07
+- [Add Joyride REPL server start and connect, a.k.a. Jack-in](https://github.com/BetterThanTomorrow/calva/issues/1714)
+
 ## [2.0.271] - 2022-05-06
 - Fix: [Toggle between implementation and test command should set editor focus](https://github.com/BetterThanTomorrow/calva/issues/1707)
 - Fix: [Hijacked shortcuts only works on strict](https://github.com/BetterThanTomorrow/calva/issues/1711)

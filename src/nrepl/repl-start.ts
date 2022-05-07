@@ -196,6 +196,8 @@ export function startOrConnectRepl() {
   const JACK_IN_COMMAND = 'calva.jackIn';
   const START_REPL_OPTION = 'Start a standalone REPL';
   const START_REPL_COMMAND = 'calva.startStandaloneRepl';
+  const START_JOYRIDE_REPL_OPTION = 'Start a Joyride REPL and Connect';
+  const START_JOYRIDE_REPL_COMMAND = 'calva.startJoyrideReplAndConnect';
   const START_HELLO_REPL_OPTION = 'Fire up the ”Getting Started” REPL';
   const START_HELLO_REPL_COMMAND = 'calva.startStandaloneHelloRepl';
   const START_HELLO_CLJS_BROWSER_OPTION = 'Fire up the ”ClojureScript Quick Start” Browser REPL';
@@ -214,6 +216,7 @@ export function startOrConnectRepl() {
     JACK_IN_OPTION,
     CONNECT_PROJECT_OPTION,
     START_REPL_OPTION,
+    START_JOYRIDE_REPL_OPTION,
     START_HELLO_REPL_OPTION,
     START_HELLO_CLJS_BROWSER_OPTION,
     START_HELLO_CLJS_NODE_OPTION,
@@ -237,6 +240,7 @@ export function startOrConnectRepl() {
       commands[CONNECT_STANDALONE_OPTION] = CONNECT_STANDALONE_COMMAND;
       commands[START_REPL_OPTION] = START_REPL_COMMAND;
     }
+    commands[START_JOYRIDE_REPL_OPTION] = START_JOYRIDE_REPL_COMMAND;
     commands[START_HELLO_REPL_OPTION] = START_HELLO_REPL_COMMAND;
     commands[START_HELLO_CLJS_BROWSER_OPTION] = START_HELLO_CLJS_BROWSER_COMMAND;
     commands[START_HELLO_CLJS_NODE_OPTION] = START_HELLO_CLJS_NODE_COMMAND;
