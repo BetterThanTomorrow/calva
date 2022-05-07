@@ -1,4 +1,5 @@
 import status from './status';
+import * as semver from 'semver';
 import * as connector from './connector';
 import * as state from './state';
 import * as vscode from 'vscode';
@@ -6,6 +7,8 @@ import * as connectSequences from './nrepl/connectSequence';
 import * as open from 'open';
 import * as outputWindow from './results-output/results-doc';
 import * as utilities from './utilities';
+
+const JOYRIDE_NREPL_START_API_VERSION = '0.0.5';
 
 type JoyrideContext = 'joyride.isNReplServerRunning';
 
@@ -18,14 +21,19 @@ interface JoyrideExtension extends vscode.Extension<any> {
   exports: JoyrideExtensionApi;
 }
 
-export function getJoyrideExtension(): JoyrideExtension {
+function getJoyrideExtension(): JoyrideExtension {
   return vscode.extensions.getExtension('betterthantomorrow.joyride');
+}
+
+function isJoyrideExtensionCompliant(joyrideExt: JoyrideExtension) {
+  return joyrideExt && semver.gte(joyrideExt.packageJSON.version, JOYRIDE_NREPL_START_API_VERSION);
 }
 
 export function isJoyrideExtensionActive() {
   const joyrideExt = getJoyrideExtension();
   return joyrideExt && joyrideExt.isActive;
 }
+
 export function isJoyrideNReplServerRunning() {
   const joyrideExt = getJoyrideExtension();
   if (isJoyrideExtensionActive()) {
@@ -48,7 +56,7 @@ export async function prepareForJackingOrConnect() {
 
 export async function joyrideJackIn(projectDir: string) {
   const joyrideExtension = getJoyrideExtension();
-  if (joyrideExtension) {
+  if (joyrideExtension && isJoyrideExtensionCompliant(joyrideExtension)) {
     joyrideExtension.exports
       .startNReplServer(projectDir)
       .then(async (port) => {
@@ -63,7 +71,7 @@ export async function joyrideJackIn(projectDir: string) {
   } else {
     const OPEN_REPO_OPTION = 'Open Joyride Project page';
     const choice = await vscode.window.showInformationMessage(
-      'Joyride is an extension that embeds a Clojure REPL in VS Code and lets you script the editor while you are using it.',
+      'Joyride is an extension that embeds a Clojure REPL in VS Code and lets you script the editor while you are using it. You need version 0.0.5, or later.',
       ...[OPEN_REPO_OPTION]
     );
     if (choice === OPEN_REPO_OPTION) {
