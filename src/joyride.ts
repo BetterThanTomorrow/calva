@@ -69,13 +69,13 @@ export async function joyrideJackIn(projectDir: string) {
         console.error('Joyride REPL start failed: ', e);
       });
   } else {
-    const OPEN_REPO_OPTION = 'Open Joyride Project page';
+    const OPEN_OPTION = 'Open Joyride Extension page';
     const choice = await vscode.window.showInformationMessage(
       'Joyride is an extension that embeds a Clojure REPL in VS Code and lets you script the editor while you are using it. You need version 0.0.5, or later.',
-      ...[OPEN_REPO_OPTION]
+      ...[OPEN_OPTION]
     );
-    if (choice === OPEN_REPO_OPTION) {
-      void open('https://github.com/BetterThanTomorrow/joyride');
+    if (choice === OPEN_OPTION) {
+      void open('https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.joyride');
     }
   }
 }
