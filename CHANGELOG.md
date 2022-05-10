@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Pressing "enter" in the REPL window while editor suggestions are active evaluates whatever's typed without applying the suggestion](https://github.com/BetterThanTomorrow/calva/issues/1696#issuecomment-1121829584)
 
 ## [2.0.272] - 2022-05-07
 - [Add Joyride REPL server start and connect, a.k.a. Jack-in](https://github.com/BetterThanTomorrow/calva/issues/1714)
