@@ -1843,7 +1843,7 @@
       {
         "command": "calva.evaluateOutputWindowForm",
         "key": "enter",
-        "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
+        "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus && !suggestWidgetVisible"
       },
       {
         "command": "calva.evaluateSelectionReplace",
