@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+
 - Fix: [Pressing "enter" in the REPL window while editor suggestions are active evaluates whatever's typed without applying the suggestion](https://github.com/BetterThanTomorrow/calva/issues/1696)
 - Fix: [Calva fails finding project root if a file from outside the workspace is the active editor](https://github.com/BetterThanTomorrow/calva/issues/1721)
 
