@@ -55,6 +55,7 @@
     "onCommand:calva.startStandaloneHelloRepl",
     "onCommand:calva.startStandaloneCljsBrowserRepl",
     "onCommand:calva.startStandaloneCljsNodeRepl",
+    "onCommand:calva.calva.startJoyrideReplAndConnect",
     "onCommand:calva.jackIn",
     "onCommand:calva.startOrConnectRepl",
     "onCommand:calva.connect",
