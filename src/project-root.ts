@@ -41,9 +41,11 @@ export async function findClosestProjectRootPath(candidatePaths?: string[]) {
         .sort()
         .reverse()[0]
     : candidatePaths[0];
-  return closestRootPath ?? (candidatePaths && candidatePaths.length) > 0
-    ? candidatePaths[0]
-    : undefined;
+  if (closestRootPath) {
+    return closestRootPath;
+  } else if (candidatePaths && candidatePaths.length > 0) {
+    return candidatePaths[0];
+  }
 }
 
 export async function pickProjectRootPath(candidatePaths: string[], closestRootPath: string) {

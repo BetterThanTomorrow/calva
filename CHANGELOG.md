@@ -4,8 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [**Toggle between implementation and test** doesn't work in multi-root workspaces](https://github.com/BetterThanTomorrow/calva/issues/1725)
+
 ## [2.0.273] - 2022-05-11
-- Fix: [Pressing "enter" in the REPL window while editor suggestions are active evaluates whatever's typed without applying the suggestion](https://github.com/BetterThanTomorrow/calva/issues/1696)
 - Fix: [Calva fails finding project root if a file from outside the workspace is the active editor](https://github.com/BetterThanTomorrow/calva/issues/1721)
 
 ## [2.0.272] - 2022-05-07
