@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.274] - 2022-05-12
 - Fix: [**Toggle between implementation and test** doesn't work in multi-root workspaces](https://github.com/BetterThanTomorrow/calva/issues/1725)
 
 ## [2.0.273] - 2022-05-11
