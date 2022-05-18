@@ -6,7 +6,7 @@ Changes to Calva.
 
 ## [2.0.275] - 2022-05-18
 
-- Addressing: [Better REPL feedback while waiting for evaluation](https://github.com/BetterThanTomorrow/calva/issues/1725)
+- Addressing: [Better REPL feedback while waiting for evaluation](https://github.com/BetterThanTomorrow/calva/issues/1543)
 
 ## [2.0.274] - 2022-05-12
 
