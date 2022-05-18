@@ -108,12 +108,13 @@ async function evaluateCode(
     });
 
     try {
-      let value = await context.value;
-      value = util.stripAnsi(context.pprintOut || value);
-
+      // Show feedback before waiting for the result
       if (evaluationSendCodeToOutputWindow) {
         outputWindow.append(code);
       }
+
+      let value = await context.value;
+      value = util.stripAnsi(context.pprintOut || value);
 
       result = value;
 
