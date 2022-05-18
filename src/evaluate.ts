@@ -108,7 +108,6 @@ async function evaluateCode(
     });
 
     try {
-      // Show feedback before waiting for the result
       if (evaluationSendCodeToOutputWindow) {
         outputWindow.append(code);
       }
