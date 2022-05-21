@@ -25,9 +25,9 @@ const enabled = true;
  * @param doc
  * @param range
  */
-function copyRangeToClipboard(doc: EditableDocument, [start, end]) {
+async function copyRangeToClipboard(doc: EditableDocument, [start, end]) {
   const text = doc.model.getText(start, end);
-  void vscode.env.clipboard.writeText(text);
+  await vscode.env.clipboard.writeText(text);
 }
 
 /**
@@ -40,7 +40,7 @@ function shouldKillAlsoCutToClipboard() {
 
 type PareditCommand = {
   command: string;
-  handler: (doc: EditableDocument) => void | Promise<void>;
+  handler: (doc: EditableDocument) => void | Promise<any>;
 };
 const pareditCommands: PareditCommand[] = [
   // NAVIGATING
@@ -234,154 +234,160 @@ const pareditCommands: PareditCommand[] = [
   },
   {
     command: 'paredit.killRight',
-    handler: (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument) => {
       const range = paredit.forwardHybridSexpRange(doc);
       if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
+        await copyRangeToClipboard(doc, range);
       }
-      paredit.killRange(doc, range);
+      await paredit.killRange(doc, range);
     },
   },
   {
     command: 'paredit.killSexpForward',
-    handler: (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument) => {
       const range = paredit.forwardSexpRange(doc);
       if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
+        await copyRangeToClipboard(doc, range);
       }
-      paredit.killRange(doc, range);
+      await paredit.killRange(doc, range);
     },
   },
   {
     command: 'paredit.killSexpBackward',
-    handler: (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument) => {
       const range = paredit.backwardSexpRange(doc);
       if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
+        await copyRangeToClipboard(doc, range);
       }
-      paredit.killRange(doc, range);
+      await paredit.killRange(doc, range);
     },
   },
   {
     command: 'paredit.killListForward',
-    handler: (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument) => {
       const range = paredit.forwardListRange(doc);
       if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
+        await copyRangeToClipboard(doc, range);
       }
-      return paredit.killForwardList(doc, range);
+      return await paredit.killForwardList(doc, range);
     },
   }, // TODO: Implement with killRange
   {
     command: 'paredit.killListBackward',
-    handler: (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument) => {
       const range = paredit.backwardListRange(doc);
       if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
+        await copyRangeToClipboard(doc, range);
       }
-      return paredit.killBackwardList(doc, range);
+      return await paredit.killBackwardList(doc, range);
     },
   }, // TODO: Implement with killRange
   {
     command: 'paredit.spliceSexpKillForward',
-    handler: (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument) => {
       const range = paredit.forwardListRange(doc);
       if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
+        await copyRangeToClipboard(doc, range);
       }
-      void paredit.killForwardList(doc, range).then((isFulfilled) => {
+      await paredit.killForwardList(doc, range).then((isFulfilled) => {
         return paredit.spliceSexp(doc, doc.selection.active, false);
       });
     },
   },
   {
     command: 'paredit.spliceSexpKillBackward',
-    handler: (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument) => {
       const range = paredit.backwardListRange(doc);
       if (shouldKillAlsoCutToClipboard()) {
-        copyRangeToClipboard(doc, range);
+        await copyRangeToClipboard(doc, range);
       }
-      void paredit.killBackwardList(doc, range).then((isFulfilled) => {
+      await paredit.killBackwardList(doc, range).then((isFulfilled) => {
         return paredit.spliceSexp(doc, doc.selection.active, false);
       });
     },
   },
   {
     command: 'paredit.wrapAroundParens',
-    handler: (doc: EditableDocument) => {
-      void paredit.wrapSexpr(doc, '(', ')');
+    handler: async (doc: EditableDocument) => {
+      await paredit.wrapSexpr(doc, '(', ')');
     },
   },
   {
     command: 'paredit.wrapAroundSquare',
-    handler: (doc: EditableDocument) => {
-      void paredit.wrapSexpr(doc, '[', ']');
+    handler: async (doc: EditableDocument) => {
+      await paredit.wrapSexpr(doc, '[', ']');
     },
   },
   {
     command: 'paredit.wrapAroundCurly',
-    handler: (doc: EditableDocument) => {
-      void paredit.wrapSexpr(doc, '{', '}');
+    handler: async (doc: EditableDocument) => {
+      await paredit.wrapSexpr(doc, '{', '}');
     },
   },
   {
     command: 'paredit.wrapAroundQuote',
-    handler: (doc: EditableDocument) => {
-      void paredit.wrapSexpr(doc, '"', '"');
+    handler: async (doc: EditableDocument) => {
+      await paredit.wrapSexpr(doc, '"', '"');
     },
   },
   {
     command: 'paredit.rewrapParens',
-    handler: (doc: EditableDocument) => {
-      void paredit.rewrapSexpr(doc, '(', ')');
+    handler: async (doc: EditableDocument) => {
+      await paredit.rewrapSexpr(doc, '(', ')');
     },
   },
   {
     command: 'paredit.rewrapSquare',
-    handler: (doc: EditableDocument) => {
-      void paredit.rewrapSexpr(doc, '[', ']');
+    handler: async (doc: EditableDocument) => {
+      await paredit.rewrapSexpr(doc, '[', ']');
     },
   },
   {
     command: 'paredit.rewrapCurly',
-    handler: (doc: EditableDocument) => {
-      void paredit.rewrapSexpr(doc, '{', '}');
+    handler: async (doc: EditableDocument) => {
+      await paredit.rewrapSexpr(doc, '{', '}');
     },
   },
   {
     command: 'paredit.rewrapQuote',
-    handler: (doc: EditableDocument) => {
-      void paredit.rewrapSexpr(doc, '"', '"');
+    handler: async (doc: EditableDocument) => {
+      await paredit.rewrapSexpr(doc, '"', '"');
     },
   },
   {
     command: 'paredit.deleteForward',
-    handler: paredit.deleteForward,
+    handler: async (doc: EditableDocument) => {
+      await paredit.deleteForward(doc);
+    },
   },
   {
     command: 'paredit.deleteBackward',
-    handler: paredit.backspace,
+    handler: async (doc: EditableDocument) => {
+      await paredit.backspace(doc);
+    },
   },
   {
     command: 'paredit.forceDeleteForward',
-    handler: () => {
-      void vscode.commands.executeCommand('deleteRight');
+    handler: async () => {
+      await vscode.commands.executeCommand('deleteRight');
     },
   },
   {
     command: 'paredit.forceDeleteBackward',
-    handler: () => {
-      void vscode.commands.executeCommand('deleteLeft');
+    handler: async () => {
+      await vscode.commands.executeCommand('deleteLeft');
     },
   },
   {
     command: 'paredit.addRichComment',
-    handler: paredit.addRichComment,
+    handler: async (doc: EditableDocument) => {
+      await paredit.addRichComment(doc);
+    },
   },
 ];
 
 function wrapPareditCommand(command: PareditCommand) {
-  return () => {
+  return async () => {
     try {
       const textEditor = window.activeTextEditor;
 
@@ -391,7 +397,7 @@ function wrapPareditCommand(command: PareditCommand) {
       if (!enabled || !languages.has(textEditor.document.languageId)) {
         return;
       }
-      void command.handler(mDoc);
+      await command.handler(mDoc);
     } catch (e) {
       console.error(e.message);
     }
