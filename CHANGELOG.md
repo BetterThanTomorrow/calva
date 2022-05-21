@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Enable awaiting Calva Paredit commands when using `vscode.commands.executeCommand()`](https://github.com/BetterThanTomorrow/calva/issues/1733)
+
 ## [2.0.275] - 2022-05-18
 
 - Addressing: [Better REPL feedback while waiting for evaluation](https://github.com/BetterThanTomorrow/calva/issues/1543)
