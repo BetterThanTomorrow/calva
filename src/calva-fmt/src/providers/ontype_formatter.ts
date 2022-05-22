@@ -22,10 +22,11 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
         if (tokenCursor.withinComment()) {
           return undefined;
         }
-        return paredit.backspace(mDoc).then((fulfilled) => {
-          paredit.close(mDoc, ch);
-          return undefined;
-        });
+        // TODO: We should make a function in/for the MirrorDoc that can return
+        // edits instead of performing them. It is not awesome to perform edits
+        // here, since we are expected to return them.
+        await paredit.backspace(mDoc);
+        await paredit.close(mDoc, ch);
       } else {
         return undefined;
       }
