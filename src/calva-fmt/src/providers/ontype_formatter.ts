@@ -22,10 +22,8 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
         if (tokenCursor.withinComment()) {
           return undefined;
         }
-        return paredit.backspace(mDoc).then((fulfilled) => {
-          paredit.close(mDoc, ch);
-          return undefined;
-        });
+        await paredit.backspace(mDoc);
+        await paredit.close(mDoc, ch);
       } else {
         return undefined;
       }
