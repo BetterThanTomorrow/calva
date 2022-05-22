@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.276] - 2022-05-22
+
+- Fix: [Hover documentation shows "undefined" for functions that don't have a doc string](https://github.com/BetterThanTomorrow/calva/issues/1735)
+- [Enable awaiting Calva Paredit commands when using `vscode.commands.executeCommand()`](https://github.com/BetterThanTomorrow/calva/issues/1733)
+
 ## [2.0.275] - 2022-05-18
 
 - Addressing: [Better REPL feedback while waiting for evaluation](https://github.com/BetterThanTomorrow/calva/issues/1543)
