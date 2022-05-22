@@ -7,7 +7,7 @@ import { ModelEditSelection } from '../../../cursor-doc/model';
 model.initScanner(20000);
 
 /**
- * TODO: Use text-notation for these tests
+ * TODO: Use await instead of void on edit operations
  */
 
 describe('paredit', () => {
@@ -609,7 +609,7 @@ describe('paredit', () => {
       it('dragSexprForward', async () => {
         const a = docFromTextNotation('(c•#f•|(#b •[:f :b :z])•#x•#y•1)');
         const b = docFromTextNotation('(c•#x•#y•1•#f•|(#b •[:f :b :z]))');
-        await paredit.dragSexprForward(a);
+        return paredit.dragSexprForward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
@@ -1134,7 +1134,8 @@ describe('paredit', () => {
     });
 
     describe('Kill character backwards (backspace)', () => {
-      it('Leaves closing paren of empty list alone', async () => {
+      // TODO: Change to await instead of void
+      it('Leaves closing paren of empty list alone', () => {
         const a = docFromTextNotation('{::foo ()|• ::bar :foo}');
         const b = docFromTextNotation('{::foo (|)• ::bar :foo}');
         await paredit.backspace(a);

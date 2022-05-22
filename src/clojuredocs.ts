@@ -53,18 +53,18 @@ export async function printClojureDocsToRichComment() {
   if (!docs) {
     return;
   } else {
-    await printTextToRichComment(docsEntry2ClojureCode(docs));
+    return printTextToRichComment(docsEntry2ClojureCode(docs));
   }
 }
 
-export async function printTextToRichCommentCommand(args: { [x: string]: string }) {
-  await printTextToRichComment(args['text'], Number.parseInt(args['position']));
+export function printTextToRichCommentCommand(args: { [x: string]: string }) {
+  return printTextToRichComment(args['text'], Number.parseInt(args['position']));
 }
 
 async function printTextToRichComment(text: string, position?: number) {
   const doc = util.getDocument({});
   const mirrorDoc = docMirror.getDocument(doc);
-  await paredit.addRichComment(mirrorDoc, position ? position : mirrorDoc.selection.active, text);
+  return paredit.addRichComment(mirrorDoc, position ? position : mirrorDoc.selection.active, text);
 }
 
 export async function getExamplesHover(

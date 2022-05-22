@@ -239,7 +239,7 @@ const pareditCommands: PareditCommand[] = [
       if (shouldKillAlsoCutToClipboard()) {
         await copyRangeToClipboard(doc, range);
       }
-      await paredit.killRange(doc, range);
+      return paredit.killRange(doc, range);
     },
   },
   {
@@ -249,7 +249,7 @@ const pareditCommands: PareditCommand[] = [
       if (shouldKillAlsoCutToClipboard()) {
         await copyRangeToClipboard(doc, range);
       }
-      await paredit.killRange(doc, range);
+      return paredit.killRange(doc, range);
     },
   },
   {
@@ -259,7 +259,7 @@ const pareditCommands: PareditCommand[] = [
       if (shouldKillAlsoCutToClipboard()) {
         await copyRangeToClipboard(doc, range);
       }
-      await paredit.killRange(doc, range);
+      return paredit.killRange(doc, range);
     },
   },
   {
@@ -308,50 +308,50 @@ const pareditCommands: PareditCommand[] = [
   },
   {
     command: 'paredit.wrapAroundParens',
-    handler: async (doc: EditableDocument) => {
-      await paredit.wrapSexpr(doc, '(', ')');
+    handler: (doc: EditableDocument) => {
+      return paredit.wrapSexpr(doc, '(', ')');
     },
   },
   {
     command: 'paredit.wrapAroundSquare',
-    handler: async (doc: EditableDocument) => {
-      await paredit.wrapSexpr(doc, '[', ']');
+    handler: (doc: EditableDocument) => {
+      return paredit.wrapSexpr(doc, '[', ']');
     },
   },
   {
     command: 'paredit.wrapAroundCurly',
-    handler: async (doc: EditableDocument) => {
-      await paredit.wrapSexpr(doc, '{', '}');
+    handler: (doc: EditableDocument) => {
+      return paredit.wrapSexpr(doc, '{', '}');
     },
   },
   {
     command: 'paredit.wrapAroundQuote',
-    handler: async (doc: EditableDocument) => {
-      await paredit.wrapSexpr(doc, '"', '"');
+    handler: (doc: EditableDocument) => {
+      return paredit.wrapSexpr(doc, '"', '"');
     },
   },
   {
     command: 'paredit.rewrapParens',
-    handler: async (doc: EditableDocument) => {
-      await paredit.rewrapSexpr(doc, '(', ')');
+    handler: (doc: EditableDocument) => {
+      return paredit.rewrapSexpr(doc, '(', ')');
     },
   },
   {
     command: 'paredit.rewrapSquare',
-    handler: async (doc: EditableDocument) => {
-      await paredit.rewrapSexpr(doc, '[', ']');
+    handler: (doc: EditableDocument) => {
+      return paredit.rewrapSexpr(doc, '[', ']');
     },
   },
   {
     command: 'paredit.rewrapCurly',
-    handler: async (doc: EditableDocument) => {
-      await paredit.rewrapSexpr(doc, '{', '}');
+    handler: (doc: EditableDocument) => {
+      return paredit.rewrapSexpr(doc, '{', '}');
     },
   },
   {
     command: 'paredit.rewrapQuote',
-    handler: async (doc: EditableDocument) => {
-      await paredit.rewrapSexpr(doc, '"', '"');
+    handler: (doc: EditableDocument) => {
+      return paredit.rewrapSexpr(doc, '"', '"');
     },
   },
   {
@@ -368,14 +368,14 @@ const pareditCommands: PareditCommand[] = [
   },
   {
     command: 'paredit.forceDeleteForward',
-    handler: async () => {
-      await vscode.commands.executeCommand('deleteRight');
+    handler: () => {
+      return vscode.commands.executeCommand('deleteRight');
     },
   },
   {
     command: 'paredit.forceDeleteBackward',
-    handler: async () => {
-      await vscode.commands.executeCommand('deleteLeft');
+    handler: () => {
+      return vscode.commands.executeCommand('deleteLeft');
     },
   },
   {
@@ -397,7 +397,7 @@ function wrapPareditCommand(command: PareditCommand) {
       if (!enabled || !languages.has(textEditor.document.languageId)) {
         return;
       }
-      await command.handler(mDoc);
+      return command.handler(mDoc);
     } catch (e) {
       console.error(e.message);
     }
