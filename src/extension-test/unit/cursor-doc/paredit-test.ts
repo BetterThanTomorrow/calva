@@ -1135,7 +1135,7 @@ describe('paredit', () => {
 
     describe('Kill character backwards (backspace)', () => {
       // TODO: Change to await instead of void
-      it('Leaves closing paren of empty list alone', () => {
+      it('Leaves closing paren of empty list alone', async () => {
         const a = docFromTextNotation('{::foo ()|• ::bar :foo}');
         const b = docFromTextNotation('{::foo (|)• ::bar :foo}');
         await paredit.backspace(a);

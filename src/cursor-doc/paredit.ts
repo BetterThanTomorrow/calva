@@ -448,7 +448,7 @@ export async function wrapSexpr(
     const currentFormRange = cursor.rangeForCurrentForm(start);
     if (currentFormRange) {
       const range = currentFormRange;
-      return await doc.model.edit(
+      return doc.model.edit(
         [
           new ModelEdit('insertString', [range[1], close]),
           new ModelEdit('insertString', [
@@ -467,7 +467,7 @@ export async function wrapSexpr(
   } else {
     // there is a selection
     const range = [Math.min(start, end), Math.max(start, end)];
-    return await doc.model.edit(
+    return doc.model.edit(
       [
         new ModelEdit('insertString', [range[1], close]),
         new ModelEdit('insertString', [range[0], open]),
@@ -494,7 +494,7 @@ export async function rewrapSexpr(
     if (cursor.forwardList()) {
       const closeStart = cursor.offsetStart,
         closeEnd = cursor.offsetEnd;
-      return await doc.model.edit(
+      return doc.model.edit(
         [
           new ModelEdit('changeRange', [closeStart, closeEnd, close]),
           new ModelEdit('changeRange', [openStart, openEnd, open]),
@@ -543,7 +543,7 @@ export async function joinSexp(
     const nextToken = cursor.getToken(),
       nextStart = cursor.offsetStart;
     if (validPair(nextToken.raw[0], prevToken.raw[prevToken.raw.length - 1])) {
-      return await doc.model.edit(
+      return doc.model.edit(
         [
           new ModelEdit('changeRange', [
             prevEnd - 1,
@@ -575,7 +575,7 @@ export async function spliceSexp(
     const close = cursor.getToken();
     const end = cursor.offsetStart;
     if (close.type == 'close' && validPair(open.raw, close.raw)) {
-      return await doc.model.edit(
+      return doc.model.edit(
         [
           new ModelEdit('changeRange', [end, end + close.raw.length, '']),
           new ModelEdit('changeRange', [beginning - open.raw.length, beginning, '']),
@@ -600,7 +600,7 @@ export async function killForwardList(doc: EditableDocument, [start, end]: [numb
   const inComment =
     (cursor.getToken().type == 'comment' && start > cursor.offsetStart) ||
     cursor.getPrevToken().type == 'comment';
-  return await doc.model.edit(
+  return doc.model.edit(
     [
       new ModelEdit('changeRange', [
         start,
@@ -808,15 +808,15 @@ export async function backspace(
         ? nextToken
         : cursor.getPrevToken();
     if (prevToken.type == 'prompt') {
-      return await new Promise<boolean>((resolve) => resolve(true));
+      return new Promise<boolean>((resolve) => resolve(true));
     } else if (nextToken.type == 'prompt') {
-      return await new Promise<boolean>((resolve) => resolve(true));
+      return new Promise<boolean>((resolve) => resolve(true));
     } else if (doc.model.getText(p - 2, p, true) == '\\"') {
-      return await doc.model.edit([new ModelEdit('deleteRange', [p - 2, 2])], {
+      return doc.model.edit([new ModelEdit('deleteRange', [p - 2, 2])], {
         selection: new ModelEditSelection(p - 2),
       });
     } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-      return await doc.model.edit(
+      return doc.model.edit(
         [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
         {
           selection: new ModelEditSelection(p - prevToken.raw.length),
@@ -825,9 +825,9 @@ export async function backspace(
     } else {
       if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
         doc.selection = new ModelEditSelection(p - prevToken.raw.length);
-        return await new Promise<boolean>((resolve) => resolve(true));
+        return new Promise<boolean>((resolve) => resolve(true));
       } else {
-        return await doc.backspace();
+        return doc.backspace();
       }
     }
   }
@@ -846,7 +846,7 @@ export async function deleteForward(
     const nextToken = cursor.getToken();
     const p = start;
     if (doc.model.getText(p, p + 2, true) == '\\"') {
-      return await doc.model.edit([new ModelEdit('deleteRange', [p, 2])], {
+      return doc.model.edit([new ModelEdit('deleteRange', [p, 2])], {
         selection: new ModelEditSelection(p),
       });
     } else if (prevToken.type === 'open' && nextToken.type === 'close') {
@@ -861,7 +861,7 @@ export async function deleteForward(
         doc.selection = new ModelEditSelection(p + 1);
         return new Promise<boolean>((resolve) => resolve(true));
       } else {
-        return await doc.delete();
+        return doc.delete();
       }
     }
   }
