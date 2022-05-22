@@ -117,7 +117,7 @@ export class REPLInfoParser {
       } else {
         hover.appendText('\n');
       }
-      hover.appendMarkdown(this._docString);
+      hover.appendMarkdown(this._docString || '*(No doc string)*');
     }
     return hover;
   }
