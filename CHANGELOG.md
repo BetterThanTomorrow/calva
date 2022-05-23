@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [alt+<up,down> arrow inside map destruction is not working properly](https://github.com/BetterThanTomorrow/calva/issues/1737)
+- [Name change for loading/evaluating a whole file for better command lookup](https://github.com/BetterThanTomorrow/calva/issues/1731)
 
 ## [2.0.276] - 2022-05-22
 

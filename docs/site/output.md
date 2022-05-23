@@ -80,7 +80,7 @@ For printed stacktraces, when source locations are available (Clojure files) you
 
 ## Load Current Namespace
 
-When navigating namespaces it is easy to [forget to first require them](https://clojure.org/guides/repl/navigating_namespaces#_how_things_can_go_wrong) and that can be a bit tricky to fix. To help with this Calva's command **Load Current File** also works in the output window, but then acts like **Load Current Namespace**.
+When navigating namespaces it is easy to [forget to first require them](https://clojure.org/guides/repl/navigating_namespaces#_how_things_can_go_wrong) and that can be a bit tricky to fix. To help with this Calva's command **Load/Evaluate Current File and its Requires/Dependencies** also works in the output window, but then acts like **Load Current Namespace**.
 
 Consider you have two files, `pez/xxx.clj` and `pez/yyy.clj`, where `pez.yyy` requires `pez.xxx`.
 
@@ -101,7 +101,7 @@ Consider you have two files, `pez/xxx.clj` and `pez/yyy.clj`, where `pez.yyy` re
 (println "Hello" pez.xxx/a)
 ```
 
-Then with a freshly jacked-in REPL you do `(ns pez.yyy)` and want to work with the vars defined there. Clojure will complain. But if you **Load Current File**, it will start working. Something like so:
+Then with a freshly jacked-in REPL you do `(ns pez.yyy)` and want to work with the vars defined there. Clojure will complain. But if you **Load/Evaluate Current File and its Requires/Dependencies**, it will start working. Something like so:
 
 ![Load Current Namespace in the Calva Output Window](images/howto/output/load-current-namespace.png)
 
