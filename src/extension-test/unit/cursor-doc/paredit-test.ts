@@ -816,6 +816,20 @@ describe('paredit', () => {
         await paredit.dragSexprForward(b, ['c']);
         expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
       });
+
+      it('drags single sexpr forward in destructing lists', async () => {
+        const a = docFromTextNotation(`(let [{:keys [a |b c d]} some-map])`);
+        const b = docFromTextNotation(`(let [{:keys [a c |b d]} some-map])`);
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags single sexpr backward in destructing lists', async () => {
+        const a = docFromTextNotation(`(let [{:keys [a b c |d]} some-map])`);
+        const b = docFromTextNotation(`(let [{:keys [a b |d c]} some-map])`);
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
     });
 
     describe('backwardUp - one line', () => {
