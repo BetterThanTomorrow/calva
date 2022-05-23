@@ -1118,7 +1118,7 @@
       },
       {
         "command": "calva.loadFile",
-        "title": "Load Current File and Dependencies",
+        "title": "Load/Evaluate Current File and its Requires/Dependencies",
         "enablement": "calva:connected",
         "category": "Calva"
       },
