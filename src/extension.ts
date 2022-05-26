@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as api from './api/index';
 import * as paredit from './paredit/extension';
 import * as fmt from './calva-fmt/src/extension';
 import * as highlight from './highlight/src/extension';
@@ -651,10 +652,7 @@ async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  return {
-    hasParedit: true,
-    hasFormatter: true,
-  };
+  return api.getApi();
 }
 
 function deactivate(): Promise<void> | undefined {
