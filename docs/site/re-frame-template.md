@@ -19,6 +19,6 @@ The [re-frame template](https://github.com/day8/re-frame-template)(https://githu
 1. When the app is compiled
     1. Open http://localhost:8280 in your browser.
     1. Confirm that it says *Hello from re-frame*. (Depending on how long the app takes to compile, you might need to reload the page a few times.)
-1. Open the `views.cljs` file from `src/<your-project-name>` and issue **Calva: Load Current File and Dependencies**. `ctrl+alt+c enter`.
+1. Open the `views.cljs` file from `src/<your-project-name>` and issue **Calva: Load/Evaluate Current File and its Requires/Dependencies**. `ctrl+alt+c enter`.
     1. Confirm that you are connected by adding evaluating `(js/alert "Hello from Calva")` (`alt+enter` and `ctrl+enter` are your friends).
     1. Confirm that Shadow is hot reloading by changing the greeting message.

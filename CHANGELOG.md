@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.277] - 2022-05-26
+
+- [Extension API: Evaluate via Calva's REPL connection](https://github.com/BetterThanTomorrow/calva/issues/1719)
+- Fix: [alt+<up,down> arrow inside map destruction is not working properly](https://github.com/BetterThanTomorrow/calva/issues/1737)
+- [Name change for loading/evaluating a whole file for better command lookup](https://github.com/BetterThanTomorrow/calva/issues/1731)
+
 ## [2.0.276] - 2022-05-22
 
 - Fix: [Hover documentation shows "undefined" for functions that don't have a doc string](https://github.com/BetterThanTomorrow/calva/issues/1735)

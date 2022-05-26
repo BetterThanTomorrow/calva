@@ -36,6 +36,7 @@ import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
 import * as joyride from './joyride';
+import * as api from './api/index';
 
 import * as clojureDocs from './clojuredocs';
 async function onDidSave(testController: vscode.TestController, document: vscode.TextDocument) {
@@ -651,10 +652,7 @@ async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  return {
-    hasParedit: true,
-    hasFormatter: true,
-  };
+  return api.getApi();
 }
 
 function deactivate(): Promise<void> | undefined {
