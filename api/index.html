@@ -6,11 +6,11 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Learn about how to get ClojureDocs example directly in Calva, straight into the REPL powered editor">
+        <meta name="description" content="Documentation for Calva's API to other VS Code extensions (such as Joyride)">
       
       
       
-        <link rel="canonical" href="https://calva.io/clojuredocs/">
+        <link rel="canonical" href="https://calva.io/api/">
       
       
         
@@ -20,7 +20,7 @@
     
     
       
-        <title>ClojureDocs Integration - Calva User Guide</title>
+        <title>Extension API - Calva User Guide</title>
       
     
     
@@ -67,11 +67,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="ClojureDocs Integration - Calva User Guide" >
+        <meta  property="og:title"  content="Extension API - Calva User Guide" >
       
-        <meta  property="og:description"  content="Learn about how to get ClojureDocs example directly in Calva, straight into the REPL powered editor" >
+        <meta  property="og:description"  content="Documentation for Calva's API to other VS Code extensions (such as Joyride)" >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/clojuredocs.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/api.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -79,15 +79,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/clojuredocs/" >
+        <meta  property="og:url"  content="https://calva.io/api/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="ClojureDocs Integration - Calva User Guide" >
+        <meta  name="twitter:title"  content="Extension API - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Learn about how to get ClojureDocs example directly in Calva, straight into the REPL powered editor" >
+        <meta  name="twitter:description"  content="Documentation for Calva's API to other VS Code extensions (such as Joyride)" >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/clojuredocs.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/api.png" >
       
     
     
@@ -217,7 +217,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#clojuredocs-integration" class="md-skip">
+        <a href="#the-calva-extension-api" class="md-skip">
           Skip to content
         </a>
       
@@ -249,7 +249,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ClojureDocs Integration
+              Extension API
             
           </span>
         </div>
@@ -540,17 +540,15 @@
 
   
   
-    
-  
   
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-          <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+          <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
         
         
           <label class="md-nav__link" for="__nav_4">
@@ -631,28 +629,9 @@
                 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    ClojureDocs Integration
-  </span>
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../clojuredocs/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -660,44 +639,6 @@
   </span>
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#clojuredocs-repl-surfing" class="md-nav__link">
-    <span class="md-ellipsis">
-      ClojureDocs REPL Surfing
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quirks" class="md-nav__link">
-    <span class="md-ellipsis">
-      Quirks
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1478,9 +1419,28 @@
 
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../api/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Extension API
+  </span>
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -1488,6 +1448,68 @@
   </span>
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#accessing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accessing
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluatecode" class="md-nav__link">
+    <span class="md-ellipsis">
+      evaluateCode()
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="evaluateCode()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#handling-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Handling Output
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feedback-welcome" class="md-nav__link">
+    <span class="md-ellipsis">
+      Feedback Welcome
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1731,18 +1753,42 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#clojuredocs-repl-surfing" class="md-nav__link">
+  <a href="#accessing" class="md-nav__link">
     <span class="md-ellipsis">
-      ClojureDocs REPL Surfing
+      Accessing
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#quirks" class="md-nav__link">
+  <a href="#evaluatecode" class="md-nav__link">
     <span class="md-ellipsis">
-      Quirks
+      evaluateCode()
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="evaluateCode()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#handling-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Handling Output
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feedback-welcome" class="md-nav__link">
+    <span class="md-ellipsis">
+      Feedback Welcome
     </span>
   </a>
   
@@ -1760,81 +1806,122 @@
             <article class="md-content__inner md-typeset">
               
                 
-  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/clojuredocs.md" title="Edit this page" class="md-content__button md-icon">
+  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/api.md" title="Edit this page" class="md-content__button md-icon">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
   </a>
 
 
 
-<h1 id="clojuredocs-integration">ClojureDocs integration</h1>
-<p><a href="https://clojuredocs.org">clojuredocs.org</a> is the goto place #1 for finding out more about Clojure core(-ish) functions, macros, etcetera. It contains the doc strings from the functions and adds crowd sourced examples of usage and see alsos. You can surf for quite long on that site without getting bored. 😄</p>
-<figure>
-<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/a4sm_B_mqhs" title="YouTube video player" width="560"></iframe>
-<figcaption>You can surf ClojureDocs in Calva</figcaption>
-</figure>
-<p>Calva integrates this information in two ways:</p>
-<ol>
-<li>Commands for requesting the ClojureDocs information for a symbol under the cursor:<ul>
-<li><strong>Print clojuredocs.org examples to Rich Comment</strong>, default keybinding: <code>ctrl+alt+r d</code></li>
-<li><strong>Print clojuredocs.org examples to OutputWindow</strong>, <code>ctrl+alt+o d</code></li>
-</ul>
-</li>
-<li>ClojureDocs information is included in the symbol lookup hovers, where each example has two buttons:<ul>
-<li><strong>To Rich Comment</strong></li>
-<li><strong>To Output Window</strong> </li>
-</ul>
-</li>
-</ol>
-<p>That means that if you just want to glance at the examples, you look in the hover. And when you want to bring the examples to the REPL to play with them, you can do so very easily.</p>
-<div class="admonition note">
-<p class="admonition-title">ClojureScript support</p>
-<p>ClojureDocs information is available both for Clojure and ClojureScript files. However, clojuredocs.org only keeps info for Clojure. Thus: <em>All information Calva shows about a symbol will be about the Clojure respresentation of that symbol.</em> (The symbol might not even exist in ClojureScript.)</p>
+<h1 id="the-calva-extension-api">The Calva Extension API</h1>
+<p>Calva exposes an API for use from other VS Code extensions (such as <a href="../joyride/">Joyride</a>). The API is rather small for now, consisting of only one function. It is also in an experimental state, while we are figuring out what is a good shape for this API.</p>
+<h2 id="accessing">Accessing</h2>
+<p>To access the API the Calva extension needs to be <a href="https://code.visualstudio.com/api/references/vscode-api#Extension%3CT%3E">activated</a>. The API is exposed under the <code>v0</code> key on the extension's <code>exports</code>:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">ClojureScript</label><label for="__tabbed_1_2">JavaScript</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">calva</span><span class="w"> </span><span class="p">(</span><span class="nf">vscode/extensions.getExtension</span><span class="w"> </span><span class="s">&quot;betterthantomorrow.calva&quot;</span><span class="p">))</span><span class="w"></span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">calvaApi</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt; </span><span class="nv">calva</span><span class="w"></span>
+<span class="w">                  </span><span class="nv">.-exports</span><span class="w"></span>
+<span class="w">                  </span><span class="nv">.-v0</span><span class="w"></span>
+<span class="w">                  </span><span class="p">(</span><span class="nf">js-&gt;clj</span><span class="w"> </span><span class="ss">:keywordize-keys</span><span class="w"> </span><span class="nv">true</span><span class="p">)))</span><span class="w"></span>
+</code></pre></div>
 </div>
-<h2 id="clojuredocs-repl-surfing">ClojureDocs REPL Surfing</h2>
-<p>Since the ClojureDocs information includes see-alsos, you can go for super interactive ClojureDocs surfing right in the file you are editing. Say you have this function:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">trim-text</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;Returns text without surrounding whitespace if not empty, otherwise nil&quot;</span><span class="w"></span>
-<span class="w">  </span><span class="p">[</span><span class="nv">text</span><span class="p">]</span><span class="w"></span>
-<span class="w">  </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">trimmed-text</span><span class="w"> </span><span class="p">(</span><span class="nf">clojure.string/trim</span><span class="w"> </span><span class="nv">text</span><span class="p">)]</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="nb">when-not </span><span class="p">(</span><span class="nf">empty?</span><span class="w"> </span><span class="nv">trimmed-text</span><span class="p">)</span><span class="w"></span>
-<span class="w">      </span><span class="nv">trimmed-text</span><span class="p">)))</span><span class="w"></span>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">calva</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">vscode</span><span class="p">.</span><span class="nx">extensions</span><span class="p">.</span><span class="nx">getExtension</span><span class="p">(</span><span class="s2">&quot;betterthantomorrow.calva&quot;</span><span class="p">);</span><span class="w"></span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">calvaApi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">calva</span><span class="p">.</span><span class="nx">exports</span><span class="p">.</span><span class="nx">v0</span><span class="p">;</span><span class="w"></span>
 </code></pre></div>
-<p>Then you hover on <code>when-not</code> and scroll down a bit in the hover:</p>
-<p><img alt="when-not ClojureDocs Hover Example 1" src="../images/clojuredocs-hover-when-not-example-1.png" /></p>
-<p>That first example would be interesting to play with, right? Click <strong>To Rich Comment</strong> and you will get:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">trim-text</span><span class="w"></span>
-<span class="w">  </span><span class="s">&quot;Returns text without surrounding whitespace if not empty, otherwise nil&quot;</span><span class="w"></span>
-<span class="w">  </span><span class="p">[</span><span class="nv">text</span><span class="p">]</span><span class="w"></span>
-<span class="w">  </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">trimmed-text</span><span class="w"> </span><span class="p">(</span><span class="nf">clojure.string/trim</span><span class="w"> </span><span class="nv">text</span><span class="p">)]</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="nb">when-not </span><span class="p">(</span><span class="nf">empty?</span><span class="w"> </span><span class="nv">trimmed-text</span><span class="p">)</span><span class="w"></span>
-<span class="w">      </span><span class="nv">trimmed-text</span><span class="p">)))</span><span class="w"></span>
-
-<span class="p">(</span><span class="nf">comment</span><span class="w"></span>
-<span class="w">  </span><span class="c1">;; = when-not - Example 1 = </span><span class="w"></span>
-
-<span class="w">  </span><span class="c1">;; build tuples over sets with the same cardinality </span><span class="w"></span>
-<span class="w">  </span><span class="p">(</span><span class="nf">map</span><span class="w"></span>
-<span class="w">   </span><span class="o">#</span><span class="p">(</span><span class="nb">when-not </span><span class="p">(</span><span class="nb">= </span><span class="nv">%2</span><span class="w"> </span><span class="nv">%3</span><span class="p">)</span><span class="w"> </span><span class="p">[</span><span class="nv">%1</span><span class="w"> </span><span class="nv">%2</span><span class="w"> </span><span class="nv">%3</span><span class="p">])</span><span class="w"></span>
-<span class="w">   </span><span class="p">(</span><span class="nb">iterate inc </span><span class="mi">0</span><span class="p">)</span><span class="w">   </span><span class="c1">; a lazy list of indices</span><span class="w"></span>
-<span class="w">   </span><span class="p">[</span><span class="ss">:a</span><span class="w"> </span><span class="ss">:b</span><span class="w"> </span><span class="ss">:c</span><span class="p">]</span><span class="w"></span>
-<span class="w">   </span><span class="p">[</span><span class="ss">:a</span><span class="w"> </span><span class="ss">:a</span><span class="w"> </span><span class="ss">:a</span><span class="p">])</span><span class="w"></span>
-<span class="w">  </span><span class="c1">;;=&gt; (nil [1 :b :a] [2 :c :a])</span><span class="w"></span>
-
-<span class="w">  </span><span class="c1">;; See also:</span><span class="w"></span>
-<span class="w">  </span><span class="nv">when</span><span class="w"></span>
-<span class="w">  </span><span class="nv">when-let</span><span class="w"></span>
-<span class="w">  </span><span class="nv">if</span><span class="w"></span>
-<span class="w">  </span><span class="p">)</span><span class="w"></span>
+</div>
+</div>
+</div>
+<h2 id="evaluatecode"><code>evaluateCode()</code></h2>
+<p>This function lets you evaluate Clojure code through Calva's nREPL connection. Calling it returns a promise that resolves to a <code>Result</code> object. It's signature looks like so (TypeScript):</p>
+<div class="highlight"><pre><span></span><code><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">evaluateCode</span><span class="p">(</span><span class="w"></span>
+<span class="w">  </span><span class="nx">sessionKey</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;clj&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;cljs&#39;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nx">code</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nx">output</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nx">stdout</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="nx">stderr</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">Result</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span>
 </code></pre></div>
-<p>There you can evaluate the <code>(map ...)</code> form using <code>alt+enter</code>, modify it and evaluate again. You can also hover over <code>map</code>, <code>iterate</code>, or any of the ”See also:” symbols to find more fun examples to play with. And so on and so forth.</p>
-<p>See these two tweets for some videos of early versions of this functionality:</p>
-<ul>
-<li><a href="https://twitter.com/pappapez/status/1452325865933746185">Rich Comments surfing ClojureDocs Examples</a></li>
-<li><a href="https://twitter.com/pappapez/status/1452409528511762444">Clojuredocs in #Calva WIP 2: Hover examples -&gt; RFC</a></li>
-</ul>
-<p>Please retweet!</p>
-<h2 id="quirks">Quirks</h2>
-<p>Some of the ClojureDocs entries have text that is not really Clojure code, and sometimes even structural errors. This can break the structural integrity of your Clojure file. If you run into trouble trying to heal things, you can always use <strong>Undo</strong> until the Rich Comment is gone.</p>
+<p>Where <code>Result</code> is:</p>
+<div class="highlight"><pre><span></span><code><span class="kr">type</span><span class="w"> </span><span class="nx">Result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nx">result</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="nx">ns</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="nx">output</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="nx">errorOutput</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+</code></pre></div>
+<p>As you can see, the required arguments to the function are <code>sessionKey</code> and <code>code</code>. <code>sessionKey</code> should be either <code>clj</code> or <code>cljs</code> depending on which of Calva's REPL sessions/connections that should be used. It will depend on your project, and how you connect to it, if both or only one of them is valid.</p>
+<p>An example:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">ClojureScript</label><label for="__tabbed_2_2">JavaScript</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">evaluate</span><span class="w"> </span><span class="p">(</span><span class="ss">:evaluateCode</span><span class="w"> </span><span class="nv">calvaApi</span><span class="p">))</span><span class="w"></span>
+<span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">p/let</span><span class="w"> </span><span class="p">[</span><span class="nv">evaluation</span><span class="w"> </span><span class="p">(</span><span class="nf">evaluate</span><span class="w"> </span><span class="s">&quot;clj&quot;</span><span class="w"> </span><span class="s">&quot;(+ 2 40)&quot;</span><span class="p">)]</span><span class="w"></span>
+<span class="w">      </span><span class="p">(</span><span class="nb">println </span><span class="p">(</span><span class="nf">.-result</span><span class="w"> </span><span class="nv">evaluation</span><span class="p">)))</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="nf">p/catch</span><span class="w"> </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">e</span><span class="p">]</span><span class="w"></span>
+<span class="w">               </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Evaluation error:&quot;</span><span class="w"> </span><span class="nv">e</span><span class="p">))))</span><span class="w"></span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">calvaApi</span><span class="p">.</span><span class="nx">evaluateCode</span><span class="p">(</span><span class="s2">&quot;clj&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;(+ 2 40)&quot;</span><span class="p">).</span><span class="k">catch</span><span class="p">((</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&quot;Evaluation error:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">e</span><span class="p">);</span><span class="w"></span>
+<span class="p">});</span><span class="w"></span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">result</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">evaluation</span><span class="p">.</span><span class="nx">result</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<h3 id="handling-output">Handling Output</h3>
+<p>The <code>output</code> member on the <code>Result</code> object will have any output produced during evaluation. (The <code>errorOutput</code> member should contain error output produced, but currently some Calva bug makes this not work.) By default the stdout and stderr output is not printed anywhere.</p>
+<p>If you want to do something with either regular output or error output during, or after, evaluation, you'll need to provide the <code>output</code> argument to <code>evaluateCode()</code>. (The <code>stderr</code> callback function works, so this is the only way to get at any error output, until the above mentioned Calva bug is fixed.)</p>
+<p>An example:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">ClojureScript</label><label for="__tabbed_3_2">JavaScript</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">oc</span><span class="w"> </span><span class="p">(</span><span class="nf">joyride.core/output-channel</span><span class="p">))</span><span class="w"> </span><span class="c1">;; Assuming Joyride is used</span><span class="w"></span>
+<span class="p">(</span><span class="k">def </span><span class="nv">evaluate</span><span class="w"> </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">code</span><span class="p">]</span><span class="w"></span>
+<span class="w">                </span><span class="p">((</span><span class="ss">:evaluateCode</span><span class="w"> </span><span class="nv">calvaApi</span><span class="p">)</span><span class="w"></span>
+<span class="w">                 </span><span class="s">&quot;clj&quot;</span><span class="w"></span>
+<span class="w">                 </span><span class="nv">code</span><span class="w"></span>
+<span class="w">                 </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:stdout</span><span class="w"> </span><span class="o">#</span><span class="p">(</span><span class="nf">.append</span><span class="w"> </span><span class="nv">oc</span><span class="w"> </span><span class="nv">%</span><span class="p">)</span><span class="w"></span>
+<span class="w">                      </span><span class="ss">:stderr</span><span class="w"> </span><span class="o">#</span><span class="p">(</span><span class="nf">.append</span><span class="w"> </span><span class="nv">oc</span><span class="w"> </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;Error: &quot;</span><span class="w"> </span><span class="nv">%</span><span class="p">))})))</span><span class="w"></span>
+
+<span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">p/let</span><span class="w"> </span><span class="p">[</span><span class="nv">evaluation</span><span class="w"> </span><span class="p">(</span><span class="nf">evaluate</span><span class="w"> </span><span class="s">&quot;(println :foo) (+ 2 40)&quot;</span><span class="p">)]</span><span class="w"></span>
+<span class="w">      </span><span class="p">(</span><span class="nf">.appendLine</span><span class="w"> </span><span class="nv">oc</span><span class="w"> </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;=&gt; &quot;</span><span class="w"> </span><span class="p">(</span><span class="nf">.-result</span><span class="w"> </span><span class="nv">evaluation</span><span class="p">))))</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="nf">p/catch</span><span class="w"> </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">e</span><span class="p">]</span><span class="w"></span>
+<span class="w">               </span><span class="p">(</span><span class="nf">.appendLine</span><span class="w"> </span><span class="nv">oc</span><span class="w"> </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;Evaluation error: &quot;</span><span class="w"> </span><span class="nv">e</span><span class="p">)))))</span><span class="w"></span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">evaluate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">code</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nx">calvaApi</span><span class="p">.</span><span class="nx">evaluateCode</span><span class="p">(</span><span class="s2">&quot;clj&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">code</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nx">stdout</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">s</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nx">stderr</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">s</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="p">});</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">calvaApi</span><span class="p">.</span><span class="nx">evaluateCode</span><span class="p">(</span><span class="s2">&quot;(println :foo) (+ 2 40)&quot;</span><span class="p">).</span><span class="k">catch</span><span class="p">((</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&quot;Evaluation error:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">e</span><span class="p">);</span><span class="w"></span>
+<span class="p">});</span><span class="w"></span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">result</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;=&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">evaluation</span><span class="p">.</span><span class="nx">result</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<h2 id="feedback-welcome">Feedback Welcome</h2>
+<p>Please let us know how you fare using this API. Either in the #calva or #joyride channels on Slack or via the issues/discussions sections on the repositories. (Whichever seems to apply best.)</p>
 
   
 
@@ -1856,7 +1943,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../rich-comments/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Rich Comments Support" rel="prev">
+        <a href="../clj-java-decompiler/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Add custom commands for decompiling generated Clojure code" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
@@ -1865,20 +1952,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Rich Comments Support
+              Add custom commands for decompiling generated Clojure code
             </div>
           </div>
         </a>
       
       
         
-        <a href="../output/" class="md-footer__link md-footer__link--next" aria-label="Next: The Output/REPL Window" rel="next">
+        <a href="../jack-in-guide/" class="md-footer__link md-footer__link--next" aria-label="Next: The Jack-in Academy" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              The Output/REPL Window
+              The Jack-in Academy
             </div>
           </div>
           <div class="md-footer__button md-icon">
