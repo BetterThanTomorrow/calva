@@ -24,12 +24,12 @@ export async function evaluateCode(
   const stdout = output
     ? output.stdout
     : (m: string) => {
-        state.outputChannel().append(m);
+        // Do nothing
       };
   const stderr = output
     ? output.stdout
     : (m: string) => {
-        state.outputChannel().append(`Error: ${m}`);
+        // Do nothing
       };
   const evaluation = session.eval(code, undefined, {
     stdout: stdout,
