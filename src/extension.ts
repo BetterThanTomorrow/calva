@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as api from './api/index';
 import * as paredit from './paredit/extension';
 import * as fmt from './calva-fmt/src/extension';
 import * as highlight from './highlight/src/extension';
@@ -37,6 +36,7 @@ import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
 import * as joyride from './joyride';
+import * as api from './api/index';
 
 import * as clojureDocs from './clojuredocs';
 async function onDidSave(testController: vscode.TestController, document: vscode.TextDocument) {
