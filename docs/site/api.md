@@ -111,8 +111,8 @@ An example:
 === "JavaScript"
 
     ```javascript
-    const evaluate = (code) => calvaApi
-      .evaluateCode("clj", code, {
+    const evaluate = (code) =>
+      calvaApi.evaluateCode("clj", code, {
         stdout: (s) => {
           console.log(s);
         },
@@ -124,7 +124,7 @@ An example:
     try {
       const evaluation = await evaluate("(println :foo) (+ 2 40)");
       console.log("=>", evaluation.result);
-    } catch(e) {
+    } catch (e) {
       console.error("Evaluation error:", e);
     }
     ```
