@@ -78,7 +78,7 @@ An example:
     try {
       const evaluation = await calvaApi.evaluateCode("clj", "(+ 2 40)");
       console.log(evaluation.result);
-    } catch(e) {
+    } catch (e) {
       console.error("Evaluation error:", e);
     }
     ```
