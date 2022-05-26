@@ -75,11 +75,11 @@ An example:
 === "JavaScript"
 
     ```javascript
-    const result = await calvaApi.evaluateCode("clj", "(+ 2 40)").catch((e) => {
-      console.error("Evaluation error:", e);
-    });
-    if (result) {
+    try {
+      const evaluation = await calvaApi.evaluateCode("clj", "(+ 2 40)");
       console.log(evaluation.result);
+    } catch(e) {
+      console.error("Evaluation error:", e);
     }
     ```
 
@@ -111,8 +111,8 @@ An example:
 === "JavaScript"
 
     ```javascript
-    const evaluate = (code) => {
-      calvaApi.evaluateCode("clj", code, {
+    const evaluate = (code) => calvaApi
+      .evaluateCode("clj", code, {
         stdout: (s) => {
           console.log(s);
         },
@@ -120,13 +120,12 @@ An example:
           console.error(s);
         },
       });
-    };
 
-    const result = await calvaApi.evaluateCode("(println :foo) (+ 2 40)").catch((e) => {
-      console.error("Evaluation error:", e);
-    });
-    if (result) {
+    try {
+      const evaluation = await evaluate("(println :foo) (+ 2 40)");
       console.log("=>", evaluation.result);
+    } catch(e) {
+      console.error("Evaluation error:", e);
     }
     ```
 
