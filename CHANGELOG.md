@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Extension API: Fix Javascript examples & align them with their ClojureScript versions](https://github.com/BetterThanTomorrow/calva/issues/1742)
+
 ## [2.0.277] - 2022-05-26
 
 - [Extension API: Evaluate via Calva's REPL connection](https://github.com/BetterThanTomorrow/calva/issues/1719)
