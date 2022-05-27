@@ -81,7 +81,7 @@ With the cursor somewhere directly inside the comment form (denoted with a `|`):
 ```
 
 !!! Note "Only for the current comment form”
-    The special formatting only applies in the current `comment` form. When outside it, formatting tucks the closing paren in again. That's why fold when done, [below]](#fold-when-done) works like it does. This also applies to VS Code commands like **Format Document**, or when you have **Format On Save** enabled. There are several reasons for this, and one is that there is no `cljfmt` config for it and leaving the closing comment un-tucked might give you troubles with CI pipelines that enforce some cljfmt config be followed. (Another reason is that it would be pretty hard to do on the whole document.)
+    The special formatting only applies in the current `comment` form. When outside it, formatting tucks the closing paren in again. That's why fold when done, [below](#fold-when-done) works like it does. This also applies to VS Code commands like **Format Document**, or when you have **Format On Save** enabled. There are several reasons for this, and one is that there is no `cljfmt` config for it and leaving the closing comment un-tucked might give you troubles with CI pipelines that enforce some cljfmt config be followed. (Another reason is that it would be pretty hard to do on the whole document.)
 
 #### Thinking space is kept
 
