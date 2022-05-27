@@ -1268,6 +1268,23 @@ describe('paredit', () => {
         await paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
+      it('Deletes whitespace to the left of the cursor', async () => {
+        const a = docFromTextNotation(
+          `
+(defn nil-if-blank [s]
+  (if (str/blank? s) 
+    |nil s))
+        `.trim()
+        );
+        const b = docFromTextNotation(
+          `
+(defn nil-if-blank [s]
+  (if (str/blank? s) |nil s))
+        `.trim()
+        );
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
     });
 
     describe('Kill character forwards (delete)', () => {

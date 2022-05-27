@@ -792,6 +792,64 @@ export async function close(
   }
 }
 
+function onlyWhitespaceOnSameLineAsCursor(cursor: LispTokenCursor) {
+  cursor = cursor.clone();
+  while (!cursor.atStart()) {
+    switch (cursor.getPrevToken().type) {
+      case 'eol':
+        return true;
+      case 'ws':
+        cursor.previous();
+        continue;
+      default:
+        return false;
+    }
+  }
+}
+
+function backspaceOnWhitespaceEdit(doc: EditableDocument, cursor: LispTokenCursor) {
+  const start = doc.selection.anchor;
+  let trimStart = -1;
+  let linesSkipped = 0;
+  loop: while (!cursor.atStart()) {
+    cursor.previous();
+    switch (cursor.getToken().type) {
+      case 'eol':
+        if (linesSkipped > 0) {
+          trimStart = cursor.offsetEnd + 1;
+          break loop;
+        } else {
+          linesSkipped += 1;
+        }
+        break;
+      case 'ws':
+        trimStart = cursor.offsetStart;
+        break;
+      default:
+        trimStart = cursor.offsetEnd;
+        break loop;
+    }
+  }
+
+  if (trimStart === -1) {
+    return;
+  }
+
+  let selectionStart = trimStart;
+  const modelEdits = [new ModelEdit('deleteRange', [trimStart, start - trimStart])];
+  const cursorTokenType = cursor.getToken().type;
+  const destLineIsAllWhitespace =
+    cursorTokenType === 'ws' && onlyWhitespaceOnSameLineAsCursor(cursor);
+  if (!destLineIsAllWhitespace && cursorTokenType !== 'open') {
+    modelEdits.push(new ModelEdit('insertString', [trimStart, ' ']));
+    selectionStart += 1;
+  }
+  return doc.model.edit(modelEdits, {
+    selection: new ModelEditSelection(selectionStart),
+    skipFormat: false,
+  });
+}
+
 export async function backspace(
   doc: EditableDocument,
   start: number = doc.selection.anchor,
@@ -822,6 +880,8 @@ export async function backspace(
           selection: new ModelEditSelection(p - prevToken.raw.length),
         }
       );
+    } else if (!cursor.withinString() && onlyWhitespaceOnSameLineAsCursor(cursor)) {
+      return backspaceOnWhitespaceEdit(doc, cursor);
     } else {
       if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
         doc.selection = new ModelEditSelection(p - prevToken.raw.length);

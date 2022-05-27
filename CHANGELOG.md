@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Align behavior of backspace in paredit with other editors (Cursive, Emacs)](https://github.com/BetterThanTomorrow/calva/issues/1741)
+
 ## [2.0.277] - 2022-05-26
 
 - [Extension API: Evaluate via Calva's REPL connection](https://github.com/BetterThanTomorrow/calva/issues/1719)
