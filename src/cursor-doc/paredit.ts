@@ -792,19 +792,9 @@ export async function close(
   }
 }
 
-function onlyWhitespaceOnSameLineAsCursor(cursor: LispTokenCursor) {
-  cursor = cursor.clone();
-  while (!cursor.atStart()) {
-    switch (cursor.getPrevToken().type) {
-      case 'eol':
-        return true;
-      case 'ws':
-        cursor.previous();
-        continue;
-      default:
-        return false;
-    }
-  }
+function onlyWhitespaceLeftOfCursor(cursor: LispTokenCursor) {
+  const prevToken = cursor.getPrevToken();
+  return prevToken.type === 'ws' && prevToken.offset === 0;
 }
 
 function backspaceOnWhitespaceEdit(doc: EditableDocument, cursor: LispTokenCursor) {
@@ -838,8 +828,7 @@ function backspaceOnWhitespaceEdit(doc: EditableDocument, cursor: LispTokenCurso
   let selectionStart = trimStart;
   const modelEdits = [new ModelEdit('deleteRange', [trimStart, start - trimStart])];
   const cursorTokenType = cursor.getToken().type;
-  const destLineIsAllWhitespace =
-    cursorTokenType === 'ws' && onlyWhitespaceOnSameLineAsCursor(cursor);
+  const destLineIsAllWhitespace = cursorTokenType === 'ws' && onlyWhitespaceLeftOfCursor(cursor);
   if (!destLineIsAllWhitespace && cursorTokenType !== 'open') {
     modelEdits.push(new ModelEdit('insertString', [trimStart, ' ']));
     selectionStart += 1;
@@ -880,7 +869,7 @@ export async function backspace(
           selection: new ModelEditSelection(p - prevToken.raw.length),
         }
       );
-    } else if (!cursor.withinString() && onlyWhitespaceOnSameLineAsCursor(cursor)) {
+    } else if (!cursor.withinString() && onlyWhitespaceLeftOfCursor(cursor)) {
       return backspaceOnWhitespaceEdit(doc, cursor);
     } else {
       if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
