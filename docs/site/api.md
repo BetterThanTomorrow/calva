@@ -7,7 +7,7 @@ search:
 
 # The Calva Extension API
 
-Calva exposes an API for use from other VS Code extensions (such as [Joyride](./joyride.md)). The API is rather small for now, consisting of only one function. It is also in an experimental state, while we are figuring out what is a good shape for this API.
+Calva exposes an API for use from other VS Code extensions (such as [Joyride](./joyride.md)). The API is in an experimental state, while we are figuring out what is a good shape for this API. It is also rather small, and will grow to expose more of Calva's functionality.
 
 ## Accessing
 
@@ -32,13 +32,33 @@ To access the API the Calva extension needs to be [activated](https://code.visua
     const calvaApi = calva.exports.v0;
     ```
 
-## `evaluateCode()`
+## `repl`
+
+The `repl` module contains provides access to Calva's REPL connection.
+
+### `repl.currentSessionKey()`
+
+Use `repl.currentSessionKey()` find out which REPL/session Calva's REPL is currently connected to (depends on the active file). Returns either `"clj"`, or `"cljs"`, or `nil` if no REPL is connected.
+
+=== "ClojureScript"
+
+    ```clojure
+    (def session-key ((get-in [:repl :currentSessionKey] calvaApi)))
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    const sessionKey = calvaApi.repl.evaluateCode()
+    ```
+
+### `repl.evaluateCode()`
 
 This function lets you evaluate Clojure code through Calva's nREPL connection. Calling it returns a promise that resolves to a `Result` object. It's signature looks like so (TypeScript):
 
 ```typescript
 export async function evaluateCode(
-  sessionKey: 'clj' | 'cljs',
+  sessionKey: 'clj' | 'cljs' | 'cljc' | undefined,
   code: string,
   output?: {
     stdout: (m: string) => void;
@@ -58,14 +78,14 @@ type Result = {
 };
 ```
 
-As you can see, the required arguments to the function are `sessionKey` and `code`. `sessionKey` should be either `clj` or `cljs` depending on which of Calva's REPL sessions/connections that should be used. It will depend on your project, and how you connect to it, if both or only one of them is valid.
+As you can see, the required arguments to the function are `sessionKey` and `code`. `sessionKey` should be `"clj"`, `"cljs"`, `"cljc"`, or `undefined` depending on which of Calva's REPL sessions/connections that should be used. It will depend on your project, and how you connect to it, which session keys are valid. Use `cljc` to request whatever REPL session `"cljc"` files are connected to. Use `undefined` to use the current REPL connection Calva would use (depends on which file is active).
 
 An example:
 
 === "ClojureScript"
 
     ```clojure
-    (def evaluate (:evaluateCode calvaApi))
+    (def evaluate (get-in [:repl :evaluateCode] calvaApi))
     (-> (p/let [evaluation (evaluate "clj" "(+ 2 40)")]
           (println (.-result evaluation)))
         (p/catch (fn [e]
@@ -75,15 +95,15 @@ An example:
 === "JavaScript"
 
     ```javascript
-    const result = await calvaApi.evaluateCode("clj", "(+ 2 40)").catch((e) => {
-      console.error("Evaluation error:", e);
-    });
-    if (result) {
+    try {
+      const evaluation = await calvaApi.repl.evaluateCode("clj", "(+ 2 40)");
       console.log(evaluation.result);
+    } catch (e) {
+      console.error("Evaluation error:", e);
     }
     ```
 
-### Handling Output
+#### Handling Output
 
 The `output` member on the `Result` object will have any output produced during evaluation. (The `errorOutput` member should contain error output produced, but currently some Calva bug makes this not work.) By default the stdout and stderr output is not printed anywhere.
 
@@ -96,7 +116,7 @@ An example:
     ```clojure
     (def oc (joyride.core/output-channel)) ;; Assuming Joyride is used
     (def evaluate (fn [code]
-                    ((:evaluateCode calvaApi)
+                    ((get-in [:repl :evaluateCode] calvaApi)
                      "clj"
                      code
                      #js {:stdout #(.append oc %)
@@ -111,8 +131,8 @@ An example:
 === "JavaScript"
 
     ```javascript
-    const evaluate = (code) => {
-      calvaApi.evaluateCode("clj", code, {
+    const evaluate = (code) =>
+      calvaApi.repl.evaluateCode("clj", code, {
         stdout: (s) => {
           console.log(s);
         },
@@ -120,14 +140,78 @@ An example:
           console.error(s);
         },
       });
-    };
 
-    const result = await calvaApi.evaluateCode("(println :foo) (+ 2 40)").catch((e) => {
-      console.error("Evaluation error:", e);
-    });
-    if (result) {
+    try {
+      const evaluation = await evaluate("(println :foo) (+ 2 40)");
       console.log("=>", evaluation.result);
+    } catch (e) {
+      console.error("Evaluation error:", e);
     }
+    ```
+
+## `ranges`
+
+The `ranges` module contains functions for retreiving [vscode.Range](https://code.visualstudio.com/api/references/vscode-api#Range)s and text for pieces of interest in a Clojure document.
+
+All functions in this module have the following TypeScript signature:
+
+```typescript
+(editor = vscode.window.activeTextEditor, position = editor?.selection?.active) => [vscode.Range, string];
+```
+
+I.e. they expect a [vscode.TextEditor](https://code.visualstudio.com/api/references/vscode-api#TextEditor) – defaulting to the currently active editor – and a [vscode.Position](https://code.visualstudio.com/api/references/vscode-api#Position) – defaulting to the current active position in the editor (or the first active position if multiple selections/positions exist, and will return a tuple with the range, and the text for the piece of interest requested.
+
+!!! Note "Custom REPL Commands"
+    The `ranges` function have corresponding [REPL Snippets/Commands](custom-commands.md) substitution variables. It is the same implementation functions used in both cases.
+
+The functions available are:
+
+### `ranges.currentForm()`
+
+Retrieves information about the current form, as determined from the editor and position.
+
+_Corresponding [REPL Snippet](custom-commands.md) variable: `$current-form`._
+
+See also about Calva's [Current Form](https://www.youtube.com/watch?v=8ygw7LLLU1w) on YouTube.
+
+### `ranges.currentEnclosingForm()`
+
+The list/vector/etcetera form comtaining the current form.
+
+_Corresponding [REPL Snippet](custom-commands.md) variable: `$enclosing-form`._
+
+### `ranges.currentTopLevelForm()`
+
+The current top level form. Outside `(comment ...)` (Rich comments) forms this is most often (`(def ...), (defgn ...)`, etcetera. Inside Rich comments it will be the current immediate child to the `(comment ...)` form.
+
+_Corresponding [REPL Snippet](custom-commands.md) variable: `$top-level-form`._
+
+### `ranges.currentFunction()`
+
+The current function, i.e. the form in ”call position” of the closest enclosing list.
+
+_Corresponding [REPL Snippet](custom-commands.md) variable: `$current-fn`._
+
+### `ranges.currentTopLevelDef()`
+
+The symbol being defined by the current top level form. NB: Will stupidly assume it is the second form. I.e. it does not check that it is an actual definition, and will often return nonsense if used in Rich comments.
+
+_Corresponding [REPL Snippet](custom-commands.md) variable: `$top-level-defined-symbol`._
+
+### Example: `ranges.currentTopLevelForm()`
+
+=== "ClojureScript"
+
+    ```clojure
+    (def top-level-form (get-in [:ranges :currentTopLevelForm] calvaApi))
+    (def text (-> (top-level-form)
+                  second))
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    const text = ranges.currentTopLevelForm()[1];
     ```
 
 ## Feedback Welcome

@@ -9,6 +9,9 @@ search:
 
 Calva supports configuration of custom command snippets that you can evaluate in the REPL at will. If your workflow has you repeatedly evaluate a particular piece of code, you can use the setting `calva.customREPLCommandSnippets` to configure it. Then either bind keyboard shortcuts to them or use the command **Run Custom REPL Command** to access it. The command will give you a menu with the snippets you have configured.
 
+!!! Note "Joyride"
+    For some use cases you might be better served by/want to combine these with using the [VS Code Extension API](https://code.visualstudio.com/api/references/vscode-ap), and [that of Calva](api.md), or any other extension, through [Joyride](joyride.md).
+
 The `calva.customREPLCommandSnippets` is an array of objects with the following fields (required fields in **bold**):
 
 * **`name`**: The name of the snippet as it will appear in the picker menu
@@ -137,7 +140,5 @@ A new experimental feature lets library authors ship snippets inside their jar f
  [{:name "edn hover"
    :snippet "(str \"$hover-tex\")"}
   {:name "edn hover show val"
-   :snippet "(str \"### EDN show val\n```clojure\n\" (pr-str (eval (symbol (str \"$ns\" \"/\" \"$hover-top-level-defined-symbol\")))) \"\n```\")"}
- ]
- }
+   :snippet "(str \"### EDN show val\n```clojure\n\" (pr-str (eval (symbol (str \"$ns\" \"/\" \"$hover-top-level-defined-symbol\")))) \"\n```\")"}]}
 ```
