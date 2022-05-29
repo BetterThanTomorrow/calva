@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Support use of nightly clojure-lsp builds](https://github.com/BetterThanTomorrow/calva/issues/1746)
+
 ## [2.0.278] - 2022-05-29
 
 - [Extension API: Fix Javascript examples & align them with their ClojureScript versions](https://github.com/BetterThanTomorrow/calva/issues/1742)
