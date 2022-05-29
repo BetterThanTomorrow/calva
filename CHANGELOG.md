@@ -5,6 +5,8 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Extension API: Fix Javascript examples & align them with their ClojureScript versions](https://github.com/BetterThanTomorrow/calva/issues/1742)
+- [Extension API for retrieving the current REPL session key](https://github.com/BetterThanTomorrow/calva/issues/1747)
+- [Extension API for some common ranges, like current form and top level form](https://github.com/BetterThanTomorrow/calva/issues/1748)
 
 ## [2.0.277] - 2022-05-26
 
