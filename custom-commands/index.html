@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.15+insiders-4.16.0">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.16+insiders-4.16.1">
     
     
       
@@ -24,10 +24,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.bec4e691.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ca782038.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.96b5c56e.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
         
       
       
@@ -1822,6 +1822,10 @@
 
 <h1 id="custom-repl-commands">Custom REPL Commands</h1>
 <p>Calva supports configuration of custom command snippets that you can evaluate in the REPL at will. If your workflow has you repeatedly evaluate a particular piece of code, you can use the setting <code>calva.customREPLCommandSnippets</code> to configure it. Then either bind keyboard shortcuts to them or use the command <strong>Run Custom REPL Command</strong> to access it. The command will give you a menu with the snippets you have configured.</p>
+<div class="admonition note">
+<p class="admonition-title">Joyride</p>
+<p>For some use cases you might be better served by/want to combine these with using the <a href="https://code.visualstudio.com/api/references/vscode-ap">VS Code Extension API</a>, and <a href="../api/">that of Calva</a>, or any other extension, through <a href="../joyride/">Joyride</a>.</p>
+</div>
 <p>The <code>calva.customREPLCommandSnippets</code> is an array of objects with the following fields (required fields in <strong>bold</strong>):</p>
 <ul>
 <li><strong><code>name</code></strong>: The name of the snippet as it will appear in the picker menu</li>
@@ -1928,9 +1932,7 @@ These will not get synced through vscode settings sync.</p>
  [{:name &quot;edn hover&quot;
    :snippet &quot;(str \&quot;$hover-tex\&quot;)&quot;}
   {:name &quot;edn hover show val&quot;
-   :snippet &quot;(str \&quot;### EDN show val\n```clojure\n\&quot; (pr-str (eval (symbol (str \&quot;$ns\&quot; \&quot;/\&quot; \&quot;$hover-top-level-defined-symbol\&quot;)))) \&quot;\n```\&quot;)&quot;}
- ]
- }
+   :snippet &quot;(str \&quot;### EDN show val\n```clojure\n\&quot; (pr-str (eval (symbol (str \&quot;$ns\&quot; \&quot;/\&quot; \&quot;$hover-top-level-defined-symbol\&quot;)))) \&quot;\n```\&quot;)&quot;}]}
 </code></pre></div>
 
   
@@ -2009,7 +2011,7 @@ These will not get synced through vscode settings sync.</p>
     <script id="__config" type="application/json">{"base": "..", "features": ["content.tabs.link"], "search": "../assets/javascripts/workers/search.4bc08946.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.560c3827.min.js"></script>
+      <script src="../assets/javascripts/bundle.1a3bf749.min.js"></script>
       
     
   </body>
