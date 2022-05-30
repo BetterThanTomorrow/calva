@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Expose Calva's `registerSymbolProvider` function in the extension API](https://github.com/BetterThanTomorrow/calva/issues/1752)
+- [Update Calva's Extension api docs with Joyride sections](https://github.com/BetterThanTomorrow/calva/issues/1754)
 
 ## [2.0.278] - 2022-05-29
 
