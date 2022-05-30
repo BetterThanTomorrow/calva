@@ -94,6 +94,7 @@ async function downloadClojureLsp(extensionPath: string, version: string): Promi
   try {
     await downloadZipFile(url, zipFilePath);
     await unzipFile(zipFilePath, extensionPath);
+    fs.chmodSync(clojureLspPath, 0o775);
     writeVersionFile(extensionPath, version);
   } catch (e) {
     console.log('Error downloading clojure-lsp.', e);
