@@ -688,6 +688,7 @@ async function ensureServerDownloaded(forceDownLoad = false): Promise<string> {
   if (
     (currentVersion !== downloadVersion && downloadVersion !== '') ||
     forceDownLoad ||
+    downloadVersion === 'nightly' ||
     !util.pathExists(clojureLspPath)
   ) {
     const downloadPromise = downloadClojureLsp(extensionContext.extensionPath, downloadVersion);
