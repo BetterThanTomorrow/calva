@@ -11,25 +11,42 @@ Calva exposes an API for use from other VS Code extensions (such as [Joyride](./
 
 ## Accessing
 
-To access the API the Calva extension needs to be [activated](https://code.visualstudio.com/api/references/vscode-api#Extension%3CT%3E). The API is exposed under the `v0` key on the extension's `exports`:
+To access the API the Calva extension needs to be [activated](https://code.visualstudio.com/api/references/vscode-api#Extension%3CT%3E). The API is exposed under the `v0` key on the extension's `exports`, and split up into submodules, like `repl`, and `ranges`.
+
+When using Joyride you can use its unique `require` API, for which one of the benefits is better lookup IDE support. When using the API from regular ClojureScript, you'll pick it up from the Calva extension instance. (Which you can do from Joyride as well, but why would you?). Here is how you access the API, with an example of usage as a bonus:
+
+
+=== "Joyride"
+
+    ```clojure
+    (ns ... (:require ["ext://betterthantomorrow.calva$v0" :as calva]))
+    ;; OR
+    (require '["ext://betterthantomorrow.calva$v0" :as calva])
+
+    (calva/repl.currentSessionKey) => "cljs" ; or "clj", depending
+    ```
 
 === "ClojureScript"
 
     ```clojure
-    (def calva (vscode/extensions.getExtension "betterthantomorrow.calva"))
-
-    (def calvaApi (-> calva
-                      .-exports
-                      .-v0
-                      (js->clj :keywordize-keys true)))
+    (def calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
+    
+    (def calva (-> calvaExt
+                 .-exports
+                 .-v0
+                 (js->clj :keywordize-keys true)))
+    
+    ((get-in calva [:repl :currentSessionKey])) => "cljs" ; or "clj", depending
     ```
 
 === "JavaScript"
 
     ```javascript
-    const calva = vscode.extensions.getExtension("betterthantomorrow.calva");
+    const calvaExt = vscode.extensions.getExtension("betterthantomorrow.calva");
 
-    const calvaApi = calva.exports.v0;
+    const calva = calvaExt.exports.v0;
+
+    const sessionKey = calva.repl.currentSessionKey()
     ```
 
 ## `repl`
@@ -40,6 +57,12 @@ The `repl` module contains provides access to Calva's REPL connection.
 
 Use `repl.currentSessionKey()` find out which REPL/session Calva's REPL is currently connected to (depends on the active file). Returns either `"clj"`, or `"cljs"`, or `nil` if no REPL is connected.
 
+=== "Joyride"
+
+    ```clojure
+    (def session-key (calva/repl.currentSessionKey))
+    ```
+
 === "ClojureScript"
 
     ```clojure
@@ -49,7 +72,7 @@ Use `repl.currentSessionKey()` find out which REPL/session Calva's REPL is curre
 === "JavaScript"
 
     ```javascript
-    const sessionKey = calvaApi.repl.evaluateCode()
+    const sessionKey = calva.repl.currentSessionKey()
     ```
 
 ### `repl.evaluateCode()`
@@ -82,6 +105,15 @@ As you can see, the required arguments to the function are `sessionKey` and `cod
 
 An example:
 
+=== "Joyride"
+
+    ```clojure
+    (-> (p/let [evaluation (calva/repl.evaluateCode "clj" "(+ 2 40)")]
+          (println (.-result evaluation)))
+        (p/catch (fn [e]
+                   (println "Evaluation error:" e))))
+    ```
+
 === "ClojureScript"
 
     ```clojure
@@ -110,6 +142,23 @@ The `output` member on the `Result` object will have any output produced during 
 If you want to do something with either regular output or error output during, or after, evaluation, you'll need to provide the `output` argument to `evaluateCode()`. (The `stderr` callback function works, so this is the only way to get at any error output, until the above mentioned Calva bug is fixed.)
 
 An example:
+
+=== "Joyride"
+
+    ```clojure
+    (def oc (joyride.core/output-channel)) ;; Assuming Joyride is used
+    (def evaluate (fn [code]
+                    (calva/repl.evaluateCode
+                     "clj"
+                     code
+                     #js {:stdout #(.append oc %)
+                          :stderr #(.append oc (str "Error: " %))})))
+
+    (-> (p/let [evaluation (evaluate "(println :foo) (+ 2 40)")]
+          (.appendLine oc (str "=> " (.-result evaluation))))
+        (p/catch (fn [e]
+                   (.appendLine oc (str "Evaluation error: " e)))))
+    ```
 
 === "ClojureScript"
 
@@ -200,19 +249,56 @@ _Corresponding [REPL Snippet](custom-commands.md) variable: `$top-level-defined-
 
 ### Example: `ranges.currentTopLevelForm()`
 
+=== "Joyride"
+
+    ```clojure
+    (let [[range text] (calva/ranges.currentTopLevelForm)]
+      ...)
+    ```
+
 === "ClojureScript"
 
     ```clojure
-    (def top-level-form (get-in [:ranges :currentTopLevelForm] calvaApi))
-    (def text (-> (top-level-form)
-                  second))
+    (let [[range text] ((get-in [:ranges :currentTopLevelForm]))]
+      ...)
     ```
 
 === "JavaScript"
 
     ```javascript
-    const text = ranges.currentTopLevelForm()[1];
+    const [range, text] = ranges.currentTopLevelForm();
     ```
+
+## `vscode`
+
+In the its `vscode` submodule, Calva exposes access to things from its own `vscode` module instance. It gets important in some situations.
+
+### `vscode.registerDocumentSymbolProvider()`
+
+This is the `[vscode.languages](https://code.visualstudio.com/api/references/vscode-api#languages).registerDocumentSymbolProvider()` function from the Calva extension. Use it if you want to provide symbols for Clojure files together with the ones that Calva provides. (If you use the `vscode.languages.registerDocumentSymbolProvider()` function from your extension (or Joyride) you will provide a separate group.)
+
+=== "Joyride"
+
+    ```clojure
+    (-> (joyride/extension-context)
+      .-subscriptions
+      (.push (calva/vscode.registerDocumentSymbolProvider ...)))
+    ```
+
+=== "ClojureScript"
+
+    ```clojure
+    (-> yourExtensionContext
+      .-subscriptions
+      (.push ((get-in calva [:vscode :registerDocumentSymbolProvider]) ...)))
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    yourExtensionContext.subscriptions.push(calva.vscode.registerDocumentSymbolProvider(...));
+    ```
+
 
 ## Feedback Welcome
 
