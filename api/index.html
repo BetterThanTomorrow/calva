@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.16+insiders-4.16.1">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.16+insiders-4.16.2">
     
     
       
@@ -1591,6 +1591,30 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#vscode" class="md-nav__link">
+    <span class="md-ellipsis">
+      vscode
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="vscode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vscoderegisterdocumentsymbolprovider" class="md-nav__link">
+    <span class="md-ellipsis">
+      vscode.registerDocumentSymbolProvider()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#feedback-welcome" class="md-nav__link">
     <span class="md-ellipsis">
       Feedback Welcome
@@ -1972,6 +1996,30 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#vscode" class="md-nav__link">
+    <span class="md-ellipsis">
+      vscode
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="vscode">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vscoderegisterdocumentsymbolprovider" class="md-nav__link">
+    <span class="md-ellipsis">
+      vscode.registerDocumentSymbolProvider()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#feedback-welcome" class="md-nav__link">
     <span class="md-ellipsis">
       Feedback Welcome
@@ -2001,22 +2049,35 @@
 <h1 id="the-calva-extension-api">The Calva Extension API</h1>
 <p>Calva exposes an API for use from other VS Code extensions (such as <a href="../joyride/">Joyride</a>). The API is in an experimental state, while we are figuring out what is a good shape for this API. It is also rather small, and will grow to expose more of Calva's functionality.</p>
 <h2 id="accessing">Accessing</h2>
-<p>To access the API the Calva extension needs to be <a href="https://code.visualstudio.com/api/references/vscode-api#Extension%3CT%3E">activated</a>. The API is exposed under the <code>v0</code> key on the extension's <code>exports</code>:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">ClojureScript</label><label for="__tabbed_1_2">JavaScript</label></div>
+<p>To access the API the Calva extension needs to be <a href="https://code.visualstudio.com/api/references/vscode-api#Extension%3CT%3E">activated</a>. The API is exposed under the <code>v0</code> key on the extension's <code>exports</code>, and split up into submodules, like <code>repl</code>, and <code>ranges</code>.</p>
+<p>When using Joyride you can use its unique <code>require</code> API, for which one of the benefits is better lookup IDE support. When using the API from regular ClojureScript, you'll pick it up from the Calva extension instance. (Which you can do from Joyride as well, but why would you?). Here is how you access the API, with an example of usage as a bonus:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Joyride</label><label for="__tabbed_1_2">ClojureScript</label><label for="__tabbed_1_3">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">calva</span><span class="w"> </span><span class="p">(</span><span class="nf">vscode/extensions.getExtension</span><span class="w"> </span><span class="s">&quot;betterthantomorrow.calva&quot;</span><span class="p">))</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">ns </span><span class="nv">...</span><span class="w"> </span><span class="p">(</span><span class="ss">:require</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;ext://betterthantomorrow.calva$v0&quot;</span><span class="w"> </span><span class="ss">:as</span><span class="w"> </span><span class="nv">calva</span><span class="p">]))</span><span class="w"></span>
+<span class="c1">;; OR</span><span class="w"></span>
+<span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">&#39;</span><span class="p">[</span><span class="s">&quot;ext://betterthantomorrow.calva$v0&quot;</span><span class="w"> </span><span class="ss">:as</span><span class="w"> </span><span class="nv">calva</span><span class="p">])</span><span class="w"></span>
 
-<span class="p">(</span><span class="k">def </span><span class="nv">calvaApi</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt; </span><span class="nv">calva</span><span class="w"></span>
-<span class="w">                  </span><span class="nv">.-exports</span><span class="w"></span>
-<span class="w">                  </span><span class="nv">.-v0</span><span class="w"></span>
-<span class="w">                  </span><span class="p">(</span><span class="nf">js-&gt;clj</span><span class="w"> </span><span class="ss">:keywordize-keys</span><span class="w"> </span><span class="nv">true</span><span class="p">)))</span><span class="w"></span>
+<span class="p">(</span><span class="nf">calva/repl.currentSessionKey</span><span class="p">)</span><span class="w"> </span><span class="nv">=&gt;</span><span class="w"> </span><span class="s">&quot;cljs&quot;</span><span class="w"> </span><span class="c1">; or &quot;clj&quot;, depending</span><span class="w"></span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">calva</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">vscode</span><span class="p">.</span><span class="nx">extensions</span><span class="p">.</span><span class="nx">getExtension</span><span class="p">(</span><span class="s2">&quot;betterthantomorrow.calva&quot;</span><span class="p">);</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">calvaExt</span><span class="w"> </span><span class="p">(</span><span class="nf">vscode/extensions.getExtension</span><span class="w"> </span><span class="s">&quot;betterthantomorrow.calva&quot;</span><span class="p">))</span><span class="w"></span>
 
-<span class="kd">const</span><span class="w"> </span><span class="nx">calvaApi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">calva</span><span class="p">.</span><span class="nx">exports</span><span class="p">.</span><span class="nx">v0</span><span class="p">;</span><span class="w"></span>
+<span class="p">(</span><span class="k">def </span><span class="nv">calva</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt; </span><span class="nv">calvaExt</span><span class="w"></span>
+<span class="w">             </span><span class="nv">.-exports</span><span class="w"></span>
+<span class="w">             </span><span class="nv">.-v0</span><span class="w"></span>
+<span class="w">             </span><span class="p">(</span><span class="nf">js-&gt;clj</span><span class="w"> </span><span class="ss">:keywordize-keys</span><span class="w"> </span><span class="nv">true</span><span class="p">)))</span><span class="w"></span>
+
+<span class="p">((</span><span class="nf">get-in</span><span class="w"> </span><span class="nv">calva</span><span class="w"> </span><span class="p">[</span><span class="ss">:repl</span><span class="w"> </span><span class="ss">:currentSessionKey</span><span class="p">]))</span><span class="w"> </span><span class="nv">=&gt;</span><span class="w"> </span><span class="s">&quot;cljs&quot;</span><span class="w"> </span><span class="c1">; or &quot;clj&quot;, depending</span><span class="w"></span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">calvaExt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">vscode</span><span class="p">.</span><span class="nx">extensions</span><span class="p">.</span><span class="nx">getExtension</span><span class="p">(</span><span class="s2">&quot;betterthantomorrow.calva&quot;</span><span class="p">);</span><span class="w"></span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">calva</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">calvaExt</span><span class="p">.</span><span class="nx">exports</span><span class="p">.</span><span class="nx">v0</span><span class="p">;</span><span class="w"></span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">sessionKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">calva</span><span class="p">.</span><span class="nx">repl</span><span class="p">.</span><span class="nx">currentSessionKey</span><span class="p">()</span><span class="w"></span>
 </code></pre></div>
 </div>
 </div>
@@ -2025,14 +2086,18 @@
 <p>The <code>repl</code> module contains provides access to Calva's REPL connection.</p>
 <h3 id="replcurrentsessionkey"><code>repl.currentSessionKey()</code></h3>
 <p>Use <code>repl.currentSessionKey()</code> find out which REPL/session Calva's REPL is currently connected to (depends on the active file). Returns either <code>"clj"</code>, or <code>"cljs"</code>, or <code>nil</code> if no REPL is connected.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">ClojureScript</label><label for="__tabbed_2_2">JavaScript</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Joyride</label><label for="__tabbed_2_2">ClojureScript</label><label for="__tabbed_2_3">JavaScript</label></div>
 <div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">session-key</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/repl.currentSessionKey</span><span class="p">))</span><span class="w"></span>
+</code></pre></div>
+</div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">session-key</span><span class="w"> </span><span class="p">((</span><span class="nf">get-in</span><span class="w"> </span><span class="p">[</span><span class="ss">:repl</span><span class="w"> </span><span class="ss">:currentSessionKey</span><span class="p">]</span><span class="w"> </span><span class="nv">calvaApi</span><span class="p">)))</span><span class="w"></span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">sessionKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">calvaApi</span><span class="p">.</span><span class="nx">repl</span><span class="p">.</span><span class="nx">evaluateCode</span><span class="p">()</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">sessionKey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">calva</span><span class="p">.</span><span class="nx">repl</span><span class="p">.</span><span class="nx">currentSessionKey</span><span class="p">()</span><span class="w"></span>
 </code></pre></div>
 </div>
 </div>
@@ -2058,8 +2123,15 @@
 </code></pre></div>
 <p>As you can see, the required arguments to the function are <code>sessionKey</code> and <code>code</code>. <code>sessionKey</code> should be <code>"clj"</code>, <code>"cljs"</code>, <code>"cljc"</code>, or <code>undefined</code> depending on which of Calva's REPL sessions/connections that should be used. It will depend on your project, and how you connect to it, which session keys are valid. Use <code>cljc</code> to request whatever REPL session <code>"cljc"</code> files are connected to. Use <code>undefined</code> to use the current REPL connection Calva would use (depends on which file is active).</p>
 <p>An example:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">ClojureScript</label><label for="__tabbed_3_2">JavaScript</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:3"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Joyride</label><label for="__tabbed_3_2">ClojureScript</label><label for="__tabbed_3_3">JavaScript</label></div>
 <div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">p/let</span><span class="w"> </span><span class="p">[</span><span class="nv">evaluation</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/repl.evaluateCode</span><span class="w"> </span><span class="s">&quot;clj&quot;</span><span class="w"> </span><span class="s">&quot;(+ 2 40)&quot;</span><span class="p">)]</span><span class="w"></span>
+<span class="w">      </span><span class="p">(</span><span class="nb">println </span><span class="p">(</span><span class="nf">.-result</span><span class="w"> </span><span class="nv">evaluation</span><span class="p">)))</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="nf">p/catch</span><span class="w"> </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">e</span><span class="p">]</span><span class="w"></span>
+<span class="w">               </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Evaluation error:&quot;</span><span class="w"> </span><span class="nv">e</span><span class="p">))))</span><span class="w"></span>
+</code></pre></div>
+</div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">evaluate</span><span class="w"> </span><span class="p">(</span><span class="nf">get-in</span><span class="w"> </span><span class="p">[</span><span class="ss">:repl</span><span class="w"> </span><span class="ss">:evaluateCode</span><span class="p">]</span><span class="w"> </span><span class="nv">calvaApi</span><span class="p">))</span><span class="w"></span>
 <span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">p/let</span><span class="w"> </span><span class="p">[</span><span class="nv">evaluation</span><span class="w"> </span><span class="p">(</span><span class="nf">evaluate</span><span class="w"> </span><span class="s">&quot;clj&quot;</span><span class="w"> </span><span class="s">&quot;(+ 2 40)&quot;</span><span class="p">)]</span><span class="w"></span>
@@ -2083,8 +2155,23 @@
 <p>The <code>output</code> member on the <code>Result</code> object will have any output produced during evaluation. (The <code>errorOutput</code> member should contain error output produced, but currently some Calva bug makes this not work.) By default the stdout and stderr output is not printed anywhere.</p>
 <p>If you want to do something with either regular output or error output during, or after, evaluation, you'll need to provide the <code>output</code> argument to <code>evaluateCode()</code>. (The <code>stderr</code> callback function works, so this is the only way to get at any error output, until the above mentioned Calva bug is fixed.)</p>
 <p>An example:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">ClojureScript</label><label for="__tabbed_4_2">JavaScript</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:3"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><input id="__tabbed_4_3" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Joyride</label><label for="__tabbed_4_2">ClojureScript</label><label for="__tabbed_4_3">JavaScript</label></div>
 <div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">oc</span><span class="w"> </span><span class="p">(</span><span class="nf">joyride.core/output-channel</span><span class="p">))</span><span class="w"> </span><span class="c1">;; Assuming Joyride is used</span><span class="w"></span>
+<span class="p">(</span><span class="k">def </span><span class="nv">evaluate</span><span class="w"> </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">code</span><span class="p">]</span><span class="w"></span>
+<span class="w">                </span><span class="p">(</span><span class="nf">calva/repl.evaluateCode</span><span class="w"></span>
+<span class="w">                 </span><span class="s">&quot;clj&quot;</span><span class="w"></span>
+<span class="w">                 </span><span class="nv">code</span><span class="w"></span>
+<span class="w">                 </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:stdout</span><span class="w"> </span><span class="o">#</span><span class="p">(</span><span class="nf">.append</span><span class="w"> </span><span class="nv">oc</span><span class="w"> </span><span class="nv">%</span><span class="p">)</span><span class="w"></span>
+<span class="w">                      </span><span class="ss">:stderr</span><span class="w"> </span><span class="o">#</span><span class="p">(</span><span class="nf">.append</span><span class="w"> </span><span class="nv">oc</span><span class="w"> </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;Error: &quot;</span><span class="w"> </span><span class="nv">%</span><span class="p">))})))</span><span class="w"></span>
+
+<span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">p/let</span><span class="w"> </span><span class="p">[</span><span class="nv">evaluation</span><span class="w"> </span><span class="p">(</span><span class="nf">evaluate</span><span class="w"> </span><span class="s">&quot;(println :foo) (+ 2 40)&quot;</span><span class="p">)]</span><span class="w"></span>
+<span class="w">      </span><span class="p">(</span><span class="nf">.appendLine</span><span class="w"> </span><span class="nv">oc</span><span class="w"> </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;=&gt; &quot;</span><span class="w"> </span><span class="p">(</span><span class="nf">.-result</span><span class="w"> </span><span class="nv">evaluation</span><span class="p">))))</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="nf">p/catch</span><span class="w"> </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">e</span><span class="p">]</span><span class="w"></span>
+<span class="w">               </span><span class="p">(</span><span class="nf">.appendLine</span><span class="w"> </span><span class="nv">oc</span><span class="w"> </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;Evaluation error: &quot;</span><span class="w"> </span><span class="nv">e</span><span class="p">)))))</span><span class="w"></span>
+</code></pre></div>
+</div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">oc</span><span class="w"> </span><span class="p">(</span><span class="nf">joyride.core/output-channel</span><span class="p">))</span><span class="w"> </span><span class="c1">;; Assuming Joyride is used</span><span class="w"></span>
 <span class="p">(</span><span class="k">def </span><span class="nv">evaluate</span><span class="w"> </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">code</span><span class="p">]</span><span class="w"></span>
@@ -2149,16 +2236,44 @@
 <p>The symbol being defined by the current top level form. NB: Will stupidly assume it is the second form. I.e. it does not check that it is an actual definition, and will often return nonsense if used in Rich comments.</p>
 <p><em>Corresponding <a href="../custom-commands/">REPL Snippet</a> variable: <code>$top-level-defined-symbol</code>.</em></p>
 <h3 id="example-rangescurrenttoplevelform">Example: <code>ranges.currentTopLevelForm()</code></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">ClojureScript</label><label for="__tabbed_5_2">JavaScript</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:3"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><input id="__tabbed_5_3" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Joyride</label><label for="__tabbed_5_2">ClojureScript</label><label for="__tabbed_5_3">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">top-level-form</span><span class="w"> </span><span class="p">(</span><span class="nf">get-in</span><span class="w"> </span><span class="p">[</span><span class="ss">:ranges</span><span class="w"> </span><span class="ss">:currentTopLevelForm</span><span class="p">]</span><span class="w"> </span><span class="nv">calvaApi</span><span class="p">))</span><span class="w"></span>
-<span class="p">(</span><span class="k">def </span><span class="nv">text</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">top-level-form</span><span class="p">)</span><span class="w"></span>
-<span class="w">              </span><span class="nv">second</span><span class="p">))</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[[</span><span class="nb">range </span><span class="nv">text</span><span class="p">]</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/ranges.currentTopLevelForm</span><span class="p">)]</span><span class="w"></span>
+<span class="w">  </span><span class="nv">...</span><span class="p">)</span><span class="w"></span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">ranges</span><span class="p">.</span><span class="nx">currentTopLevelForm</span><span class="p">()[</span><span class="mf">1</span><span class="p">];</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[[</span><span class="nb">range </span><span class="nv">text</span><span class="p">]</span><span class="w"> </span><span class="p">((</span><span class="nf">get-in</span><span class="w"> </span><span class="p">[</span><span class="ss">:ranges</span><span class="w"> </span><span class="ss">:currentTopLevelForm</span><span class="p">]))]</span><span class="w"></span>
+<span class="w">  </span><span class="nv">...</span><span class="p">)</span><span class="w"></span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">[</span><span class="nx">range</span><span class="p">,</span><span class="w"> </span><span class="nx">text</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">ranges</span><span class="p">.</span><span class="nx">currentTopLevelForm</span><span class="p">();</span><span class="w"></span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<h2 id="vscode"><code>vscode</code></h2>
+<p>In the its <code>vscode</code> submodule, Calva exposes access to things from its own <code>vscode</code> module instance. It gets important in some situations.</p>
+<h3 id="vscoderegisterdocumentsymbolprovider"><code>vscode.registerDocumentSymbolProvider()</code></h3>
+<p>This is the <code>[vscode.languages](https://code.visualstudio.com/api/references/vscode-api#languages).registerDocumentSymbolProvider()</code> function from the Calva extension. Use it if you want to provide symbols for Clojure files together with the ones that Calva provides. (If you use the <code>vscode.languages.registerDocumentSymbolProvider()</code> function from your extension (or Joyride) you will provide a separate group.)</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="6:3"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><input id="__tabbed_6_3" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">Joyride</label><label for="__tabbed_6_2">ClojureScript</label><label for="__tabbed_6_3">JavaScript</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">joyride/extension-context</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="nv">.-subscriptions</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="nf">.push</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/vscode.registerDocumentSymbolProvider</span><span class="w"> </span><span class="nv">...</span><span class="p">)))</span><span class="w"></span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="nv">yourExtensionContext</span><span class="w"></span>
+<span class="w">  </span><span class="nv">.-subscriptions</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="nf">.push</span><span class="w"> </span><span class="p">((</span><span class="nf">get-in</span><span class="w"> </span><span class="nv">calva</span><span class="w"> </span><span class="p">[</span><span class="ss">:vscode</span><span class="w"> </span><span class="ss">:registerDocumentSymbolProvider</span><span class="p">])</span><span class="w"> </span><span class="nv">...</span><span class="p">)))</span><span class="w"></span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nx">yourExtensionContext</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">calva</span><span class="p">.</span><span class="nx">vscode</span><span class="p">.</span><span class="nx">registerDocumentSymbolProvider</span><span class="p">(...));</span><span class="w"></span>
 </code></pre></div>
 </div>
 </div>

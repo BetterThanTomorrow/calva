@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.16+insiders-4.16.1">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.16+insiders-4.16.2">
     
     
       
@@ -2079,12 +2079,23 @@
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.clojureLspVersion&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2021.04.07-16.34.10&quot;</span><span class="w"></span>
 </code></pre></div>
-<p>If you have specified a version and want to use the latest release, either remove the setting, or set it to <code>latest</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Special ”version” values</p>
+<p>Apart from the actual versions you can use two special values for this setting:</p>
+<ul>
+<li><code>latest</code>: Will download and use the latest stable build of clojure-lsp, when one becomes available. This is the default</li>
+<li><code>nightly</code>: Will always download and use the latest nightly build, <em>whether there is a new version available or not</em>.</li>
+</ul>
+</div>
 <h3 id="using-a-custom-clojure-lsp-native-binary">Using a Custom Clojure-lsp Native Binary</h3>
-<p>You can set a path to a clojure-lsp binary to be used by Calva by setting the <code>calva.clojureLspPath</code> setting. This should be an absolute path. When this is set, the binary at the path will be used and the <code>calva.clojureLspVersion</code> setting will be ignored.</p>
+<p>You can set a path to a clojure-lsp binary to be used by Calva by setting the <code>calva.clojureLspPath</code> setting. This should be an absolute path. The binary at this path will then be used.</p>
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.clojureLspPath&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/usr/local/bin/clojure-lsp&quot;</span><span class="w"></span>
 </code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Will override any <code>calva.clojureLspVersion</code> setting</p>
+<p>When <code>calva.clojureLspPath</code> is set, the binary at the path will be used uncoditionally, and the <code>calva.clojureLspVersion</code> setting will be ignored.</p>
+</div>
 <h2 id="clojure-lsp-drag-fwdback">clojure-lsp drag fwd/back</h2>
 <p>clojure-lsp contributes two commands for dragging forms forward or backward. They are similar to Calva's <a href="../paredit/">Paredit</a> corresponding commands.</p>
 <div class="admonition warning">
