@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Expose Calva's `registerSymbolProvider` function in the extension API](https://github.com/BetterThanTomorrow/calva/issues/1752)
+
 ## [2.0.278] - 2022-05-29
 
 - [Extension API: Fix Javascript examples & align them with their ClojureScript versions](https://github.com/BetterThanTomorrow/calva/issues/1742)
