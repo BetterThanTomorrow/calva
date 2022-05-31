@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Debugger decorations are not working properly](https://github.com/BetterThanTomorrow/calva/issues/1165)
+
 ## [2.0.279] - 2022-05-30
 
 - [Expose Calva's `registerSymbolProvider` function in the extension API](https://github.com/BetterThanTomorrow/calva/issues/1752)
