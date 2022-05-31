@@ -39,6 +39,7 @@ import * as joyride from './joyride';
 import * as api from './api/index';
 
 import * as clojureDocs from './clojuredocs';
+import { CalvaDocumentSymbolsProvider } from './providers/symbols';
 async function onDidSave(testController: vscode.TestController, document: vscode.TextDocument) {
   const { evaluate, test } = config.getConfig();
 
@@ -517,6 +518,12 @@ async function activate(context: vscode.ExtensionContext) {
       new CalvaSignatureHelpProvider(),
       ' ',
       ' '
+    )
+  );
+  context.subscriptions.push(
+    vscode.languages.registerDocumentSymbolProvider(
+      config.documentSelector,
+      new CalvaDocumentSymbolsProvider()
     )
   );
 

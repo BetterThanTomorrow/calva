@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Provide document symbols via Calva's provider](https://github.com/BetterThanTomorrow/calva/issues/1755)
+
 ## [2.0.279] - 2022-05-30
 
 - [Expose Calva's `registerSymbolProvider` function in the extension API](https://github.com/BetterThanTomorrow/calva/issues/1752)

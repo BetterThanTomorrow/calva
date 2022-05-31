@@ -3,7 +3,6 @@ import {
   LanguageClient,
   ServerOptions,
   LanguageClientOptions,
-  DocumentSymbol,
   Position,
   StaticFeature,
   ClientCapabilities,
@@ -113,6 +112,9 @@ function createClient(clojureLspPath: string, fallbackFolder: FallbackFolder): L
           return next(change);
         },
         provideLinkedEditingRange: (_document, _position, _token, _next): null => {
+          return null;
+        },
+        provideDocumentSymbols(_document, _token, _next) {
           return null;
         },
         handleDiagnostics(uri, diagnostics, next) {
@@ -721,15 +723,18 @@ async function getReferences(
   return result;
 }
 
-async function getDocumentSymbols(
+function getDocumentSymbols(
   lspClient: LanguageClient,
   uri: string
-): Promise<DocumentSymbol[]> {
-  const result: DocumentSymbol[] = await lspClient.sendRequest('textDocument/documentSymbol', {
-    textDocument: {
-      uri,
-    },
-  });
+): Promise<vscode.DocumentSymbol[]> {
+  const result: Promise<vscode.DocumentSymbol[]> = lspClient.sendRequest(
+    'textDocument/documentSymbol',
+    {
+      textDocument: {
+        uri,
+      },
+    }
+  );
   return result;
 }
 
