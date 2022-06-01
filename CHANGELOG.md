@@ -6,6 +6,11 @@ Changes to Calva.
 
 - [Provide document symbols via Calva's provider](https://github.com/BetterThanTomorrow/calva/issues/1755)
 
+## [2.0.280] - 2022-05-31
+
+- Fix: [Debugger decorations are not working properly](https://github.com/BetterThanTomorrow/calva/issues/1165)
+- Add some logging when Calva starts and finishes activating 
+
 ## [2.0.279] - 2022-05-30
 
 - [Expose Calva's `registerSymbolProvider` function in the extension API](https://github.com/BetterThanTomorrow/calva/issues/1752)

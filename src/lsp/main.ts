@@ -707,13 +707,13 @@ function deactivate(): Promise<void> {
 
 async function getReferences(
   lspClient: LanguageClient,
-  uri: string,
+  documentUri: vscode.Uri,
   position: Position,
   includeDeclaration: boolean = true
 ): Promise<Location[] | null> {
   const result: Location[] = await lspClient.sendRequest('textDocument/references', {
     textDocument: {
-      uri,
+      uri: documentUri.toString(),
     },
     position,
     context: {
@@ -723,15 +723,15 @@ async function getReferences(
   return result;
 }
 
-function getDocumentSymbols(
+async function getDocumentSymbols(
   lspClient: LanguageClient,
-  uri: string
+  documentUri: vscode.Uri
 ): Promise<vscode.DocumentSymbol[]> {
-  const result: Promise<vscode.DocumentSymbol[]> = lspClient.sendRequest(
+  const result: vscode.DocumentSymbol[] = await lspClient.sendRequest(
     'textDocument/documentSymbol',
     {
       textDocument: {
-        uri,
+        uri: documentUri.toString(),
       },
     }
   );

@@ -93,6 +93,7 @@ function initializeState() {
 }
 
 async function activate(context: vscode.ExtensionContext) {
+  console.info('Calva activate START');
   initializeState();
   await config.readEdnWorkspaceConfig();
 
@@ -658,6 +659,8 @@ async function activate(context: vscode.ExtensionContext) {
       ...['Got it.', 'Will do!']
     );
   }
+
+  console.info('Calva activate END');
 
   return api.getApi();
 }

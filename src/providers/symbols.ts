@@ -7,9 +7,6 @@ export class CalvaDocumentSymbolsProvider implements vscode.DocumentSymbolProvid
     document: vscode.TextDocument,
     _token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.SymbolInformation[] | vscode.DocumentSymbol[]> {
-    return lsp.getDocumentSymbols(
-      util.cljsLib.getStateValue(lsp.LSP_CLIENT_KEY),
-      decodeURIComponent(document.uri.toString())
-    );
+    return lsp.getDocumentSymbols(util.cljsLib.getStateValue(lsp.LSP_CLIENT_KEY), document.uri);
   }
 }
