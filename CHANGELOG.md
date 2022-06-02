@@ -4,6 +4,14 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- clojure-lsp changes:
+  - Use OS and architecture to identify native binary to download
+  - Fall back to `clojure-lsp-standalone.jar` for environments with no native binary
+  - Use system Java to execute clojure-lsp if a JAR file is provided
+  - Fix: [Calva downloads the wrong clojure-lsp when running in devcontainer
+](https://github.com/BetterThanTomorrow/calva/issues/1598)
+  - Fix: [start clojure-lsp client failed](https://github.com/BetterThanTomorrow/calva/issues/1590)
+
 ## [2.0.280] - 2022-05-31
 
 - Fix: [Debugger decorations are not working properly](https://github.com/BetterThanTomorrow/calva/issues/1165)

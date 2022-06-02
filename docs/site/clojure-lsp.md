@@ -84,9 +84,9 @@ Example:
     * `latest`: Will download and use the latest stable build of clojure-lsp, when one becomes available. This is the default
     * `nightly`: Will always download and use the latest nightly build, _whether there is a new version available or not_.
 
-### Using a Custom Clojure-lsp Native Binary
+### Using a Custom Clojure-lsp
 
-You can set a path to a clojure-lsp binary to be used by Calva by setting the `calva.clojureLspPath` setting. This should be an absolute path. The binary at this path will then be used.
+You can set a path to a custom clojure-lsp to be used by Calva by configuring the `calva.clojureLspPath` setting. This should be an absolute path to a native binary or JAR file.
 
 Example:
 
