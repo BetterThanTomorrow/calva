@@ -80,7 +80,9 @@ async function downloadClojureLsp(extensionPath: string, version: string): Promi
       : `https://nightly.link/clojure-lsp/clojure-lsp/workflows/nightly/master/${artifactName}`;
   const downloadPath = path.join(extensionPath, artifactName);
   const clojureLspPath = lspUtil.getClojureLspPath(extensionPath);
-  const backupPath = fs.existsSync(clojureLspPath) ? backupExistingFile(clojureLspPath) : clojureLspPath;
+  const backupPath = fs.existsSync(clojureLspPath)
+    ? backupExistingFile(clojureLspPath)
+    : clojureLspPath;
   try {
     await downloadArtifact(url, downloadPath);
     if (path.extname(downloadPath) === '.zip') {

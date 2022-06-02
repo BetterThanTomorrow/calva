@@ -58,7 +58,7 @@ class TestTreeFeature implements StaticFeature {
 
 function createClient(clojureLspPath: string, fallbackFolder: FallbackFolder): LanguageClient {
   // Run JARs with system Java; anything else execute directly
-  const serverOptions : ServerOptions =
+  const serverOptions: ServerOptions =
     path.extname(clojureLspPath) === '.jar'
       ? {
           command: path.join(process.env.JAVA_HOME, 'bin', 'java'),
