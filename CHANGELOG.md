@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Updates to how we choose clojure-lsp executable for different platforms](https://github.com/BetterThanTomorrow/calva/pull/1758), fixes: [#1590](https://github.com/BetterThanTomorrow/calva/issues/1590), and [#1598](https://github.com/BetterThanTomorrow/calva/issues/1598)
+
 ## [2.0.280] - 2022-05-31
 
 - Fix: [Debugger decorations are not working properly](https://github.com/BetterThanTomorrow/calva/issues/1165)
