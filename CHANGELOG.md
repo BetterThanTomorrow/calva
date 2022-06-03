@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Updates to how we choose clojure-lsp executable for different platforms](https://github.com/BetterThanTomorrow/calva/pull/1758), fixes: [#1590](https://github.com/BetterThanTomorrow/calva/issues/1590), and [#1598](https://github.com/BetterThanTomorrow/calva/issues/1598)
+- [Add sponsor link to the Calva extension manifest](https://github.com/BetterThanTomorrow/calva/issues/1759)
 
 ## [2.0.280] - 2022-05-31
 
