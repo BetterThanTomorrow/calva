@@ -45,8 +45,6 @@ async function update(
           iSymbolRefLocations: Promise<InstrumentedSymbolReferenceLocations>,
           [namespace, ...instrumentedDefs]: string[]
         ) => {
-          const docUri = editor.document.uri; //vscode.Uri.parse(namespacePath, true);
-          const decodedDocUri = decodeURIComponent(docUri.toString());
           const docSymbols = (await lsp.getDocumentSymbols(lspClient, editor.document.uri))[0]
             .children;
           const instrumentedDocSymbols = docSymbols.filter((s) =>
