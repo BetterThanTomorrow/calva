@@ -58,7 +58,7 @@ async function addAsComment(
   editor.selection = selection;
 }
 
-async function evaluateCode(
+async function evaluateCodeUpdatingUI(
   code: string,
   options,
   selection?: vscode.Selection
@@ -108,12 +108,12 @@ async function evaluateCode(
     });
 
     try {
-      let value = await context.value;
-      value = util.stripAnsi(context.pprintOut || value);
-
       if (evaluationSendCodeToOutputWindow) {
         outputWindow.append(code);
       }
+
+      let value = await context.value;
+      value = util.stripAnsi(context.pprintOut || value);
 
       result = value;
 
@@ -239,7 +239,11 @@ async function evaluateSelection(document = {}, options) {
         undefined,
         annotations.AnnotationStatus.PENDING
       );
-      await evaluateCode(code, { ...options, ns, line, column, filePath, session }, codeSelection);
+      await evaluateCodeUpdatingUI(
+        code,
+        { ...options, ns, line, column, filePath, session },
+        codeSelection
+      );
       outputWindow.appendPrompt();
     }
   } else {
@@ -555,7 +559,7 @@ export async function evaluateInOutputWindow(
       }
     }
 
-    return await evaluateCode(code, {
+    return await evaluateCodeUpdatingUI(code, {
       ...options,
       filePath: outputDocument.fileName,
       session,
@@ -588,7 +592,6 @@ export default {
   evaluateToCursor,
   evaluateTopLevelFormToCursor,
   evaluateStartOfFileToCursor,
-  evaluateCode,
   evaluateUser,
   copyLastResultCommand,
   requireREPLUtilitiesCommand,

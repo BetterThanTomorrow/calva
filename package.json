@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.270",
+  "version": "2.0.282",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -17,6 +17,9 @@
   "engines": {
     "node": ">=16",
     "vscode": "^1.66.0"
+  },
+  "sponsor": {
+    "url": "https://calva.io/sponsors/"
   },
   "categories": [
     "Programming Languages",
@@ -55,6 +58,7 @@
     "onCommand:calva.startStandaloneHelloRepl",
     "onCommand:calva.startStandaloneCljsBrowserRepl",
     "onCommand:calva.startStandaloneCljsNodeRepl",
+    "onCommand:calva.calva.startJoyrideReplAndConnect",
     "onCommand:calva.jackIn",
     "onCommand:calva.startOrConnectRepl",
     "onCommand:calva.connect",
@@ -681,6 +685,7 @@
               ".git",
               ".hg",
               ".idea",
+              ".joyride",
               ".lsp",
               "node_modules",
               ".pijul",
@@ -878,6 +883,12 @@
       }
     ],
     "commands": [
+      {
+        "command": "calva.startJoyrideReplAndConnect",
+        "title": "Start Joyride REPL and Connect",
+        "enablement": "!joyride.isNReplServerRunning",
+        "category": "Calva"
+      },
       {
         "command": "calva.clojureLsp.showClojureLspStartedMenu",
         "title": "Show clojure-lsp menu",
@@ -1110,7 +1121,7 @@
       },
       {
         "command": "calva.loadFile",
-        "title": "Load Current File and Dependencies",
+        "title": "Load/Evaluate Current File and its Requires/Dependencies",
         "enablement": "calva:connected",
         "category": "Calva"
       },
@@ -1630,93 +1641,105 @@
         "category": "Calva"
       },
       {
-        "command": "calva.refactor.cleanNs",
+        "command": "clojureLsp.refactor.cleanNs",
         "title": "Clean NS Form",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.addMissingLibspec",
+        "command": "clojureLsp.refactor.addMissingLibspec",
         "title": "Add Missing Require",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.cyclePrivacy",
+        "command": "clojureLsp.dragBackward",
+        "title": "Drag Sexp Backward",
+        "category": "clojure-lsp",
+        "enablement": "editorLangId == clojure && clojureLsp:active"
+      },
+      {
+        "command": "clojureLsp.dragForward",
+        "title": "Drag Sexp Forward",
+        "category": "clojure-lsp",
+        "enablement": "editorLangId == clojure && clojureLsp:active"
+      },
+      {
+        "command": "clojureLsp.refactor.cyclePrivacy",
         "title": "Cycle/Toggle Privacy",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.expandLet",
+        "command": "clojureLsp.refactor.expandLet",
         "title": "Expand Let",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.inlineSymbol",
+        "command": "clojureLsp.refactor.inlineSymbol",
         "title": "Inline Symbol",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.threadFirst",
+        "command": "clojureLsp.refactor.threadFirst",
         "title": "Thread First",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.threadFirstAll",
+        "command": "clojureLsp.refactor.threadFirstAll",
         "title": "Thread First All",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.threadLast",
+        "command": "clojureLsp.refactor.threadLast",
         "title": "Thread Last",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.threadLastAll",
+        "command": "clojureLsp.refactor.threadLastAll",
         "title": "Thread Last All",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.unwindAll",
+        "command": "clojureLsp.refactor.unwindAll",
         "title": "Unwind All",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.unwindThread",
+        "command": "clojureLsp.refactor.unwindThread",
         "title": "Unwind Thread",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.introduceLet",
+        "command": "clojureLsp.refactor.introduceLet",
         "title": "Introduce let",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.moveToLet",
+        "command": "clojureLsp.refactor.moveToLet",
         "title": "Move to Previous let Box",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.refactor.extractFunction",
+        "command": "clojureLsp.refactor.extractFunction",
         "title": "Extract to New Function",
-        "category": "Calva Refactor",
+        "category": "clojure-lsp Refactor",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "calva.diagnostics.clojureLspServerInfo",
+        "command": "clojureLsp.diagnostics.clojureLspServerInfo",
         "title": "Clojure-lsp Server Info",
-        "category": "Calva Diagnostics",
+        "category": "clojure-lsp Diagnostics",
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
@@ -1824,7 +1847,7 @@
       {
         "command": "calva.evaluateOutputWindowForm",
         "key": "enter",
-        "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
+        "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus && !suggestWidgetVisible"
       },
       {
         "command": "calva.evaluateSelectionReplace",
@@ -2084,12 +2107,12 @@
       {
         "command": "paredit.dragSexprBackward",
         "key": "alt+up",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment"
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment"
       },
       {
         "command": "paredit.dragSexprForward",
         "key": "alt+down",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment"
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment"
       },
       {
         "command": "paredit.dragSexprBackwardUp",
@@ -2736,7 +2759,6 @@
     "integration-test": "node ./out/extension-test/integration/runTests.js",
     "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
     "unit-test-watch": "npx mocha --watch --require ts-node/register --watch-extensions ts --watch-files src 'src/extension-test/unit/**/*-test.ts'",
-    "publish": "bb publish.clj",
     "prettier-format": "npx prettier --write './**/*.{ts,js,json}'",
     "prettier-check": "npx prettier --check './**/*.{ts,js,json}'",
     "prettier-check-watch": "npx onchange './**/*.{ts,js,json}' -- prettier --check {{changed}}",
@@ -2765,6 +2787,7 @@
     "net": "1.0.2",
     "open": "^6.3.0",
     "parinfer": "^3.12.0",
+    "semver": "^7.3.7",
     "tree-kill": "^1.2.2",
     "universal-analytics": "^0.5.3",
     "uuidv4": "6.2.12",
@@ -2779,6 +2802,7 @@
     "@types/glob": "^7.1.1",
     "@types/lodash": "^4.14.167",
     "@types/mocha": "^9.1.0",
+    "@types/semver": "^7.3.9",
     "@types/vscode": "^1.45.0",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
@@ -2810,7 +2834,7 @@
     "ts-node": "^10.3.0",
     "typescript": "^4.6.3",
     "url-loader": "^4.1.1",
-    "vsce": "^2.6.7",
+    "vsce": "^2.9.1",
     "vscode-test": "^1.3.0",
     "webpack": "^5.27.1",
     "webpack-cli": "^4.5.0"

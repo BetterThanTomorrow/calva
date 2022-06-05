@@ -7,7 +7,7 @@ import { getActiveTextEditor } from '../utilities';
 function openFile(file) {
   return vscode.workspace
     .openTextDocument(vscode.Uri.file(file))
-    .then((doc) => vscode.window.showTextDocument(doc, { preserveFocus: true }));
+    .then((doc) => vscode.window.showTextDocument(doc, { preserveFocus: false }));
 }
 
 function showConfirmationDialog(text, button) {

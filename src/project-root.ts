@@ -41,23 +41,29 @@ export async function findClosestProjectRootPath(candidatePaths?: string[]) {
         .sort()
         .reverse()[0]
     : candidatePaths[0];
-  return closestRootPath;
+  if (closestRootPath) {
+    return closestRootPath;
+  } else if (candidatePaths && candidatePaths.length > 0) {
+    return candidatePaths[0];
+  }
 }
 
 export async function pickProjectRootPath(candidatePaths: string[], closestRootPath: string) {
-  const pickedRootPath =
-    candidatePaths.length < 2
-      ? undefined
-      : await util.quickPickSingle({
-          title: 'Project root',
-          values: candidatePaths,
-          default: closestRootPath,
-          placeHolder: 'Multiple Clojure projects found. Please pick the one you want to use.',
-          saveAs: `projectRoot`,
-          autoSelect: true,
-        });
-  const projectRootPath = candidatePaths.includes(pickedRootPath)
-    ? pickedRootPath
-    : closestRootPath;
-  return projectRootPath;
+  if (closestRootPath !== undefined) {
+    const pickedRootPath =
+      candidatePaths.length < 2
+        ? undefined
+        : await util.quickPickSingle({
+            title: 'Project root',
+            values: candidatePaths,
+            default: closestRootPath,
+            placeHolder: 'Multiple Clojure projects found. Please pick the one you want to use.',
+            saveAs: `projectRoot`,
+            autoSelect: true,
+          });
+    const projectRootPath = candidatePaths.includes(pickedRootPath)
+      ? pickedRootPath
+      : closestRootPath;
+    return projectRootPath;
+  }
 }

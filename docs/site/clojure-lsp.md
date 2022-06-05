@@ -78,17 +78,47 @@ Example:
 "calva.clojureLspVersion": "2021.04.07-16.34.10"
 ```
 
-If you have specified a version and want to use the latest release, either remove the setting, or set it to `latest`.
+!!! Note "Special ”version” values"
+    Apart from the actual versions you can use two special values for this setting:
 
-### Using a Custom Clojure-lsp Native Binary
+    * `latest`: Will download and use the latest stable build of clojure-lsp, when one becomes available. This is the default
+    * `nightly`: Will always download and use the latest nightly build, _whether there is a new version available or not_.
 
-You can set a path to a clojure-lsp binary to be used by Calva by setting the `calva.clojureLspPath` setting. This should be an absolute path. When this is set, the binary at the path will be used and the `calva.clojureLspVersion` setting will be ignored.
+### Using a Custom Clojure-lsp
+
+You can set a path to a custom clojure-lsp to be used by Calva by configuring the `calva.clojureLspPath` setting. This should be an absolute path to a native binary or JAR file.
 
 Example:
 
 ```json
 "calva.clojureLspPath": "/usr/local/bin/clojure-lsp"
 ```
+
+!!! Note "Will override any `calva.clojureLspVersion` setting"
+    When `calva.clojureLspPath` is set, the binary at the path will be used uncoditionally, and the `calva.clojureLspVersion` setting will be ignored.
+
+## clojure-lsp drag fwd/back
+
+clojure-lsp contributes two commands for dragging forms forward or backward. They are similar to Calva's [Paredit](paredit.md) corresponding commands.
+
+!!! Warning "Experimental"
+
+    Consider the addition of these commands to the command palette as an experimental feature. We might remove the commands later if they cause confusion or if Calva's commands improve about contextual support.
+
+There are reasons you might prefer the clojure-lsp versions over the Calva built-ins:
+
+* Better comment affinity. Comments stay affiliated with clauses as they're dragged.
+* Better contextual support. In addition to the [bindings mentioned below](#drag-bindings-forwardbackward), also `assoc`, `case`, `cond`, and some more forms get adapted drag treatment.
+
+There are also reasons why you might want to stick with Calva's built-ins. See [this PR](https://github.com/BetterThanTomorrow/calva/pull/1698) and its links for a detailed discussion of the differences. TL;DR:
+
+* clojure-lsp is not active in all Calva Clojure files, the [REPL/output window](output.md) being an extra noticeable example. If you bind the clojure-lsp commands in a way that replaces the key bindings for Calva's drag commands, add `&& !calva:outputWindowActive` to the `when` clause.
+* clojure-lsp does not honor Calva's [Current Form](https://www.youtube.com/watch?v=8ygw7LLLU1w) semantics. You might be in for some surprises in what gets dragged.
+* The cursor does not stay in place within the dragged form when dragging, breaking with how all Paredit edit commands work, and with how VS Code built in drag-line works.
+* Performance is not as as good as Calva's built-ins. This gets noticeable in large files.
+* Semantic token styling gets out-of-wack, leaving symbols having several stylings and other artifacts. (With Calva's commands, the styling gets invalidated for the current enclosing form, which looks less jarring.)
+
+To use the clojure-lsp commands, search for "clojure-lsp drag" in the command palette or the keyboard shortcut preferences menu, or choose them from the _Quick Fix_ suggestion lightbulb.
 
 ## Troubleshooting
 

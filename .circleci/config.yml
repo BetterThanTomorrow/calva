@@ -258,7 +258,7 @@ jobs:
             fi
             [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+) ]]
             TAG_VERSION=${BASH_REMATCH[1]}
-            BODY=$(awk '/^## \['${TAG_VERSION}'\]/, /^ *$/ { gsub(/["$]/, "\\\\&"); print }' CHANGELOG.md | tail -n +2)
+            BODY=$(awk '/^## \['${TAG_VERSION}'\]/, started && /^##/ { started=1; if ($0 !~ /(^#|^\s*$)/) { gsub(/["$]/, "\\\\&"); print } }' CHANGELOG.md)
             echo Changes: "\n" $BODY
             if [ "${IS_LOCAL}" = YES ]
             then

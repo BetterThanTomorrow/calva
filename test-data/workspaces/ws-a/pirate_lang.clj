@@ -1,4 +1,4 @@
-(ns pirate-lang
+(ns pez.pirate-lang
   (:require [clojure.string :as string]))
 
 (def english-o {:alphabet    "abcdefghijklmnopqrstuvwxyz"
@@ -8,11 +8,12 @@
 (def swedish-o {:alphabet    "abcdefghijklmnopqrstuvwxyzåäö"
                 :vowels      "aeiouåäö"
                 :pirate-char "o"})
+
 (defn- configure
   [{:keys [alphabet vowels pirate-char]}]
   (let [alphabet   (set (seq (string/upper-case alphabet)))
-        vowels     (set (seq (string/upper-case vowels)))
         consonants (set (remove vowels alphabet))
+        vowels     (set (seq (string/upper-case vowels)))
         pirates    (if (vowels pirate-char)
                      vowels
                      consonants)]
@@ -37,14 +38,21 @@
 
 (comment
   (to-pirate-talk "Have you heard about Pirate talk?" english-o)
-  ;; => "HoHavove yoyou hohearordod aboboutot PoPiroratote totalolkok?"
-
-  (from-pirate-talk "HoHavove yoyou hohearordod aboboutot PoPiroratote totalolkok?" english-o)
   ;; => "Have you heard about Pirate talk?"
 
   (to-pirate-talk "Har du hört talas om rövarspråket?" swedish-o)
   ;; => "HoHaror dodu hohörortot totalolasos omom rorövovarorsospoproråkoketot?"
 
   (from-pirate-talk "HoHaror dodu hohörortot totalolasos omom rorövovarorsospoproråkoketot?" swedish-o)
+  ;; => "HoHavove yoyou hohearordod aboboutot PoPiroratote totalolkok?"
+
+  (from-pirate-talk "HoHavove yoyou hohearordod aboboutot PoPiroratote totalolkok?" english-o)
   ;; => "Har du hört talas om rövarspråket?"
+  )
+
+(comment
+  ['foo-bar-baz #'bar-baz-foo
+   :bazillion-gazillions
+   'gazillion-foo-bar-bazilions
+   :who-am-i]
   )

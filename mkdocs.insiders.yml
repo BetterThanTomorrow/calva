@@ -7,3 +7,6 @@ plugins:
       cards_color:
         fill: "#db9550"
         text: "#fafafa"
+theme:
+  features:
+    - content.tabs.link

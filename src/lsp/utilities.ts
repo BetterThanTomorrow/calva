@@ -1,11 +1,42 @@
 import * as path from 'path';
 import * as fs from 'fs';
+import * as process from 'process';
 
 const versionFileName = 'clojure-lsp-version';
 
-function getClojureLspPath(extensionPath: string, isWindows: boolean): string {
-  const fileExtension = isWindows ? '.exe' : '';
-  return path.join(extensionPath, `clojure-lsp${fileExtension}`);
+const artifacts = {
+  darwin: {
+    x64: 'clojure-lsp-native-macos-amd64.zip',
+    // Should M1 Macs use emulated native binary or native standalone jar until M1 native available?
+    // For now, let's use the Intel binary
+    arm64: 'clojure-lsp-native-macos-amd64.zip',
+  },
+  linux: {
+    x64: 'clojure-lsp-native-static-linux-amd64.zip',
+    arm64: 'clojure-lsp-native-linux-aarch64.zip',
+  },
+  win32: {
+    x64: 'clojure-lsp-native-windows-amd64.zip',
+  },
+};
+
+function getArtifactDownloadName(
+  platform: string = process.platform,
+  arch: string = process.arch
+): string {
+  return artifacts[platform]?.[arch] ?? 'clojure-lsp-standalone.jar';
+}
+
+function getClojureLspPath(
+  extensionPath: string,
+  platform: string = process.platform,
+  arch: string = process.arch
+): string {
+  let name = getArtifactDownloadName(platform, arch);
+  if (path.extname(name).toLowerCase() !== '.jar') {
+    name = arch === 'win32' ? 'clojure-lsp.exe' : 'clojure-lsp';
+  }
+  return path.join(extensionPath, name);
 }
 
 function getVersionFilePath(extensionPath: string): string {
@@ -23,4 +54,4 @@ function readVersionFile(extensionPath: string): string {
   }
 }
 
-export { getClojureLspPath, getVersionFilePath, readVersionFile };
+export { getArtifactDownloadName, getClojureLspPath, getVersionFilePath, readVersionFile };

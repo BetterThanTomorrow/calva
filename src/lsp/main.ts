@@ -57,10 +57,16 @@ class TestTreeFeature implements StaticFeature {
 }
 
 function createClient(clojureLspPath: string, fallbackFolder: FallbackFolder): LanguageClient {
-  const serverOptions: ServerOptions = {
-    run: { command: clojureLspPath },
-    debug: { command: clojureLspPath },
-  };
+  // Run JARs with system Java; anything else execute directly
+  const serverOptions: ServerOptions =
+    path.extname(clojureLspPath) === '.jar'
+      ? {
+          command: path.join(process.env.JAVA_HOME, 'bin', 'java'),
+          args: ['-jar', clojureLspPath],
+        }
+      : {
+          command: clojureLspPath,
+        };
   const clientOptions: LanguageClientOptions = {
     // clojure-lsp croaks w/o a valid rootUri and  VS Code will only send
     // one if it has a folder open. So we check this and when there is no
@@ -201,6 +207,14 @@ const clojureLspCommands: ClojureLspCommand[] = [
     command: 'cycle-privacy',
   },
   {
+    command: 'drag-backward',
+    category: 'clojureLsp',
+  },
+  {
+    command: 'drag-forward',
+    category: 'clojureLsp',
+  },
+  {
     command: 'expand-let',
   },
   {
@@ -253,7 +267,7 @@ function sendCommandRequest(command: string, args: (number | string)[]): void {
 }
 
 function registerLspCommand(command: ClojureLspCommand): vscode.Disposable {
-  const category = command.category ? command.category : 'calva.refactor';
+  const category = command.category ? command.category : 'clojureLsp.refactor';
   const vscodeCommand = `${category}.${command.command.replace(/-[a-z]/g, (m) =>
     m.substring(1).toUpperCase()
   )}`;
@@ -673,13 +687,14 @@ async function downloadLSPServerCommand() {
 async function ensureServerDownloaded(forceDownLoad = false): Promise<string> {
   const currentVersion = readVersionFile(extensionContext.extensionPath);
   const configuredVersion: string = config.getConfig().clojureLspVersion;
-  clojureLspPath = getClojureLspPath(extensionContext.extensionPath, util.isWindows);
+  clojureLspPath = getClojureLspPath(extensionContext.extensionPath);
   const downloadVersion = ['', 'latest'].includes(configuredVersion)
     ? await getLatestVersion()
     : configuredVersion;
   if (
     (currentVersion !== downloadVersion && downloadVersion !== '') ||
     forceDownLoad ||
+    downloadVersion === 'nightly' ||
     !util.pathExists(clojureLspPath)
   ) {
     const downloadPromise = downloadClojureLsp(extensionContext.extensionPath, downloadVersion);
@@ -696,13 +711,13 @@ function deactivate(): Promise<void> {
 
 async function getReferences(
   lspClient: LanguageClient,
-  uri: string,
+  documentUri: vscode.Uri,
   position: Position,
   includeDeclaration: boolean = true
 ): Promise<Location[] | null> {
   const result: Location[] = await lspClient.sendRequest('textDocument/references', {
     textDocument: {
-      uri,
+      uri: documentUri.toString(),
     },
     position,
     context: {
@@ -714,11 +729,11 @@ async function getReferences(
 
 async function getDocumentSymbols(
   lspClient: LanguageClient,
-  uri: string
+  documentUri: vscode.Uri
 ): Promise<DocumentSymbol[]> {
   const result: DocumentSymbol[] = await lspClient.sendRequest('textDocument/documentSymbol', {
     textDocument: {
-      uri,
+      uri: documentUri.toString(),
     },
   });
   return result;

@@ -31,6 +31,8 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.inlinehilite
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
 nav:
   - index.md
   - Start Here:
@@ -68,6 +70,7 @@ nav:
     - reveal.md
     - babashka.md
     - nbb.md
+    - joyride.md
     - luminus.md
     - re-frame-template.md
     - polylith.md
@@ -81,6 +84,7 @@ nav:
     - quirks.md
     - async-out.md
     - clj-java-decompiler.md
+  - api.md
   - In Depth:
     - jack-in-guide.md
   - Guides:

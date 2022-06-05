@@ -8,7 +8,7 @@ description: Ten (or so) Calva commands you should master. They will take you fa
 There are not all that many Calva commands. You can learn them all if you like, but here are the most important ones to know about for effective Clojure/ClojureScript coding:
 
 * **Grow/expand selection**: `ctrl+w` (`shift+alt+right` on Windows and Linux)
-* **Load current file**: `alt+ctrl+c enter`, evaluates the namespace code in the active editor tab. This also loads any required namespaces, and generally gives Calva what it needs to work.
+* **Load/Evaluate Current File and its Requires/Dependencies**: `alt+ctrl+c enter`, evaluates the namespace code in the active editor tab. This also loads any required namespaces, and generally gives Calva what it needs to work.
 * **Evaluate current form**:  `ctrl+enter` finds the form from the cursor position, evaluates it and displays the result inline. Hit `esc` to dismiss the results display.
 * **Evaluate current top-level form**: `alt+enter`: inline evaluate the current top-level form. This also works inside `(comment)` forms. Use it to (re)define vars and then inside comment forms you can verify that they do what you want them to do.
 * **Dismiss the display of results**: `escape`: (VIM Extension users should read [Using Calva with the VIM Extension](vim.md)).
