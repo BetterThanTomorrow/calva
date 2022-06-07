@@ -1293,6 +1293,27 @@ describe('paredit', () => {
         await paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
+
+      it('Deletes whitespace to the left and inserts a space when arriving at the end of a line', async () => {
+        const a = docFromTextNotation('(if :foo•  |:bar   :baz)');
+        const b = docFromTextNotation('(if :foo |:bar   :baz)');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Deletes whitespace to the left and inserts a single space when ending up on a line with trailing whitespace', async () => {
+        const a = docFromTextNotation('(if :foo    •  |:bar   :baz)');
+        const b = docFromTextNotation('(if :foo |:bar   :baz)');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Deletes whitespace to the left and avoids inserting a space if on a close token', async () => {
+        const a = docFromTextNotation('(if :foo•    |)');
+        const b = docFromTextNotation('(if :foo|)');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
     });
 
     describe('Kill character forwards (delete)', () => {

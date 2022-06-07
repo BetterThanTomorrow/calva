@@ -805,6 +805,7 @@ function onlyWhitespaceLeftOfCursor(doc: EditableDocument, cursor: LispTokenCurs
 
 function backspaceOnWhitespaceEdit(doc: EditableDocument, cursor: LispTokenCursor) {
   const origIndent = getIndent(doc.model, cursor.offsetStart);
+  const onCloseToken = cursor.getToken().type === 'close';
   let start = doc.selection.anchor;
   let token = cursor.getToken();
   if (token.type === 'ws') {
@@ -832,7 +833,7 @@ function backspaceOnWhitespaceEdit(doc: EditableDocument, cursor: LispTokenCurso
 
   const destTokenType = cursor.getToken().type;
   let indent = destTokenType === 'eol' ? origIndent : 1;
-  if (destTokenType === 'open') {
+  if (destTokenType === 'open' || onCloseToken) {
     indent = 0;
   }
   const changeArgs = [start, end, ' '.repeat(indent)];
