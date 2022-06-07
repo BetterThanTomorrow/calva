@@ -6,6 +6,33 @@ Changes to Calva.
 
 - Fix: [Align behavior of backspace in paredit with other editors (Cursive, Emacs)](https://github.com/BetterThanTomorrow/calva/issues/1741)
 
+## [2.0.282] - 2022-06-04
+
+- Fix: [clojure-lsp fails to download for some Apple M1 users](https://github.com/BetterThanTomorrow/calva/pull/1761)
+
+## [2.0.281] - 2022-06-03
+
+- [Updates to how we choose clojure-lsp executable for different platforms](https://github.com/BetterThanTomorrow/calva/pull/1758), fixes: [#1590](https://github.com/BetterThanTomorrow/calva/issues/1590), and [#1598](https://github.com/BetterThanTomorrow/calva/issues/1598)
+- [Add sponsor link to the Calva extension manifest](https://github.com/BetterThanTomorrow/calva/issues/1759)
+
+## [2.0.280] - 2022-05-31
+
+- Fix: [Debugger decorations are not working properly](https://github.com/BetterThanTomorrow/calva/issues/1165)
+- Add some logging when Calva starts and finishes activating 
+
+## [2.0.279] - 2022-05-30
+
+- [Expose Calva's `registerDocumentSymbolProvider` function in the extension API](https://github.com/BetterThanTomorrow/calva/issues/1752)
+- [Support use of nightly clojure-lsp builds](https://github.com/BetterThanTomorrow/calva/issues/1746)
+- [Update Calva's Extension api docs with Joyride sections](https://github.com/BetterThanTomorrow/calva/issues/1754)
+
+## [2.0.278] - 2022-05-29
+
+- [Extension API: Fix Javascript examples & align them with their ClojureScript versions](https://github.com/BetterThanTomorrow/calva/issues/1742)
+- [Extension API for retrieving the current REPL session key](https://github.com/BetterThanTomorrow/calva/issues/1747)
+- [Extension API for some common ranges, like current form and top level form](https://github.com/BetterThanTomorrow/calva/issues/1748)
+
+
 ## [2.0.277] - 2022-05-26
 
 - [Extension API: Evaluate via Calva's REPL connection](https://github.com/BetterThanTomorrow/calva/issues/1719)

@@ -78,17 +78,24 @@ Example:
 "calva.clojureLspVersion": "2021.04.07-16.34.10"
 ```
 
-If you have specified a version and want to use the latest release, either remove the setting, or set it to `latest`.
+!!! Note "Special ”version” values"
+    Apart from the actual versions you can use two special values for this setting:
 
-### Using a Custom Clojure-lsp Native Binary
+    * `latest`: Will download and use the latest stable build of clojure-lsp, when one becomes available. This is the default
+    * `nightly`: Will always download and use the latest nightly build, _whether there is a new version available or not_.
 
-You can set a path to a clojure-lsp binary to be used by Calva by setting the `calva.clojureLspPath` setting. This should be an absolute path. When this is set, the binary at the path will be used and the `calva.clojureLspVersion` setting will be ignored.
+### Using a Custom Clojure-lsp
+
+You can set a path to a custom clojure-lsp to be used by Calva by configuring the `calva.clojureLspPath` setting. This should be an absolute path to a native binary or JAR file.
 
 Example:
 
 ```json
 "calva.clojureLspPath": "/usr/local/bin/clojure-lsp"
 ```
+
+!!! Note "Will override any `calva.clojureLspVersion` setting"
+    When `calva.clojureLspPath` is set, the binary at the path will be used uncoditionally, and the `calva.clojureLspVersion` setting will be ignored.
 
 ## clojure-lsp drag fwd/back
 

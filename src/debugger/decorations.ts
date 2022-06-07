@@ -45,10 +45,8 @@ async function update(
           iSymbolRefLocations: Promise<InstrumentedSymbolReferenceLocations>,
           [namespace, ...instrumentedDefs]: string[]
         ) => {
-          const namespacePath = (await cljSession.nsPath(namespace)).path;
-          const docUri = vscode.Uri.parse(namespacePath, true);
-          const decodedDocUri = decodeURIComponent(docUri.toString());
-          const docSymbols = (await lsp.getDocumentSymbols(lspClient, decodedDocUri))[0].children;
+          const docSymbols = (await lsp.getDocumentSymbols(lspClient, editor.document.uri))[0]
+            .children;
           const instrumentedDocSymbols = docSymbols.filter((s) =>
             instrumentedDefs.includes(s.name)
           );
@@ -58,7 +56,7 @@ async function update(
                 line: s.selectionRange.start.line,
                 character: s.selectionRange.start.character,
               };
-              return lsp.getReferences(lspClient, decodedDocUri, position);
+              return lsp.getReferences(lspClient, editor.document.uri, position);
             })
           );
           const currentNsSymbolsReferenceLocations = instrumentedDocSymbols.reduce(
