@@ -1,4 +1,5 @@
 import { validPair } from './clojure-lexer';
+import { getIndent } from './indent';
 import { ModelEdit, EditableDocument, ModelEditSelection } from './model';
 import { LispTokenCursor } from './token-cursor';
 
@@ -792,50 +793,52 @@ export async function close(
   }
 }
 
-function onlyWhitespaceLeftOfCursor(cursor: LispTokenCursor) {
+function onlyWhitespaceLeftOfCursor(doc: EditableDocument, cursor: LispTokenCursor) {
+  const token = cursor.getToken();
+  if (token.type === 'ws') {
+    return token.offset === 0;
+  }
   const prevToken = cursor.getPrevToken();
+
   return prevToken.type === 'ws' && prevToken.offset === 0;
 }
 
 function backspaceOnWhitespaceEdit(doc: EditableDocument, cursor: LispTokenCursor) {
-  const start = doc.selection.anchor;
-  let trimStart = -1;
-  let linesSkipped = 0;
-  loop: while (!cursor.atStart()) {
+  const origIndent = getIndent(doc.model, cursor.offsetStart);
+  let start = doc.selection.anchor;
+  let token = cursor.getToken();
+  if (token.type === 'ws') {
+    start = cursor.offsetEnd;
+  }
+  cursor.previous();
+  let prevToken = cursor.getToken();
+  if (prevToken.type === 'ws' && start === cursor.offsetEnd) {
+    token = prevToken;
+  }
+
+  let end = start;
+  if (token.type === 'ws') {
+    end = cursor.offsetStart;
     cursor.previous();
-    switch (cursor.getToken().type) {
-      case 'eol':
-        if (linesSkipped > 0) {
-          trimStart = cursor.offsetEnd + 1;
-          break loop;
-        } else {
-          linesSkipped += 1;
-        }
-        break;
-      case 'ws':
-        trimStart = cursor.offsetStart;
-        break;
-      default:
-        trimStart = cursor.offsetEnd;
-        break loop;
+    if (cursor.getToken().type === 'eol') {
+      end = cursor.offsetStart;
+      cursor.previous();
+      if (cursor.getToken().type === 'ws') {
+        end = cursor.offsetStart;
+        cursor.previous();
+      }
     }
   }
 
-  if (trimStart === -1) {
-    return;
+  const destTokenType = cursor.getToken().type;
+  let indent = destTokenType === 'eol' ? origIndent : 1;
+  if (destTokenType === 'open') {
+    indent = 0;
   }
-
-  let selectionStart = trimStart;
-  const modelEdits = [new ModelEdit('deleteRange', [trimStart, start - trimStart])];
-  const cursorTokenType = cursor.getToken().type;
-  const destLineIsAllWhitespace = cursorTokenType === 'ws' && onlyWhitespaceLeftOfCursor(cursor);
-  if (!destLineIsAllWhitespace && cursorTokenType !== 'open') {
-    modelEdits.push(new ModelEdit('insertString', [trimStart, ' ']));
-    selectionStart += 1;
-  }
-  return doc.model.edit(modelEdits, {
-    selection: new ModelEditSelection(selectionStart),
-    skipFormat: false,
+  const changeArgs = [start, end, ' '.repeat(indent)];
+  return doc.model.edit([new ModelEdit('changeRange', changeArgs)], {
+    selection: new ModelEditSelection(end + indent),
+    skipFormat: true,
   });
 }
 
@@ -869,7 +872,7 @@ export async function backspace(
           selection: new ModelEditSelection(p - prevToken.raw.length),
         }
       );
-    } else if (!cursor.withinString() && onlyWhitespaceLeftOfCursor(cursor)) {
+    } else if (!cursor.withinString() && onlyWhitespaceLeftOfCursor(doc, cursor)) {
       return backspaceOnWhitespaceEdit(doc, cursor);
     } else {
       if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {

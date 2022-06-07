@@ -1271,17 +1271,25 @@ describe('paredit', () => {
       it('Deletes whitespace to the left of the cursor', async () => {
         const a = docFromTextNotation(
           `
-(defn nil-if-blank [s]
-  (if (str/blank? s) 
-    |nil s))
+(if false nil
+  |true)
         `.trim()
         );
-        const b = docFromTextNotation(
-          `
-(defn nil-if-blank [s]
-  (if (str/blank? s) |nil s))
-        `.trim()
-        );
+        const b = docFromTextNotation(`(if false nil |true)`.trim());
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Deletes whitespace to the left of the cursor without crossing multiple lines', async () => {
+        const a = docFromTextNotation('[•• |::foo]');
+        const b = docFromTextNotation('[• |::foo]');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Deletes whitespace to the left and right of the cursor when inside whitespace', async () => {
+        const a = docFromTextNotation('[• | ::foo]');
+        const b = docFromTextNotation('[|::foo]');
         await paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
