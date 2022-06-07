@@ -20,7 +20,7 @@ Changes to Calva.
 
 ## [2.0.279] - 2022-05-30
 
-- [Expose Calva's `registerSymbolProvider` function in the extension API](https://github.com/BetterThanTomorrow/calva/issues/1752)
+- [Expose Calva's `registerDocumentSymbolProvider` function in the extension API](https://github.com/BetterThanTomorrow/calva/issues/1752)
 - [Support use of nightly clojure-lsp builds](https://github.com/BetterThanTomorrow/calva/issues/1746)
 - [Update Calva's Extension api docs with Joyride sections](https://github.com/BetterThanTomorrow/calva/issues/1754)
 
