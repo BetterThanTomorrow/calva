@@ -21,6 +21,7 @@ We use checklists in order to not forget about important lessons we and others h
 -->
 
 ## What has Changed?
+
 <!-- Introduce the change(s) briefly here. Consider explaining why a particular change was implemented the way it was. If you have considered alternative ways to introduce the change, please elaborate a bit on that as well. -->
 
 -
@@ -34,7 +35,16 @@ Fixes #
 ## My Calva PR Checklist
 <!-- Strike out (using `~`) items that do not apply, as Github reports how many are not ticked. If you want to add checkboxes, please do. -->
 
-I have:
+If this PR involves only documentation changes, I have:
+
+- [ ] Read [Editing Documentation](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Hack-on-Calva#editing-documentation)
+- [ ] Directed this pull request at the `published` branch.
+- [ ] Built the site locally (if the changes were more involved than simple typo fixes), and verified that the site is presented as expected.
+- [ ] Referenced the issue I am fixing/addressing _in a commit message for the pull request_ (if there was is an issue for the documentation change)
+  - [ ] If I am fixing the issue, I have used [GitHub's fixes/closes syntax](https://help.github.com/en/articles/closing-issues-using-keywords)
+  - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
+
+If this PR involves code changes, I have:
 
 - [ ] Read [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute#before-sending-pull-requests).
 - [ ] Directed this pull request at the `dev` branch. (Or have specific reasons to target some other branch.)
@@ -43,13 +53,13 @@ I have:
 - [ ] Figured if **anything** about the fix warrants tests on Mac/Linux/Windows/Remote/Whatever, and either tested it there if so, or mentioned it in the PR.
 - [ ] Added to or updated docs in this branch, if appropriate
 - [ ] Tests
-     - [ ] Tested the particular change
-     - [ ] Figured if the change might have some side effects and tested those as well.
-     - [ ] Smoke tested the extension as such.
-     - [ ] Tested the VSIX built from the PR (so, after you've submitted the PR). You'll find the artifacts by clicking _Show all checks_ in the CI section of the PR page, and then _Details_ on the `ci/circleci: build` test.
+  - [ ] Tested the particular change
+  - [ ] Figured if the change might have some side effects and tested those as well.
+  - [ ] Smoke tested the extension as such.
+  - [ ] Tested the VSIX built from the PR (so, after you've submitted the PR). You'll find the artifacts by clicking _Show all checks_ in the CI section of the PR page, and then _Details_ on the `ci/circleci: build` test.
 - [ ] Referenced the issue I am fixing/addressing _in a commit message for the pull request_.
-     - [ ] If I am fixing the issue, I have used [GitHub's fixes/closes syntax](https://help.github.com/en/articles/closing-issues-using-keywords)
-     - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
+  - [ ] If I am fixing the issue, I have used [GitHub's fixes/closes syntax](https://help.github.com/en/articles/closing-issues-using-keywords)
+  - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
 - [ ] Created the issue I am fixing/addressing, if it was not present.
 - [ ] Formatted all JavaScript and TypeScript code that was changed. (use the [prettier extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) or run `npm run prettier-format`)
 - [ ] Confirmed that there are no linter warnings or errors (use the [eslint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint), run `npm run eslint` before creating your PR, or run `npm run eslint-watch` to eslint as you go).
