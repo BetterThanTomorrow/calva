@@ -812,7 +812,7 @@ function backspaceOnWhitespaceEdit(doc: EditableDocument, cursor: LispTokenCurso
     start = cursor.offsetEnd;
   }
   cursor.previous();
-  let prevToken = cursor.getToken();
+  const prevToken = cursor.getToken();
   if (prevToken.type === 'ws' && start === cursor.offsetEnd) {
     token = prevToken;
   }
