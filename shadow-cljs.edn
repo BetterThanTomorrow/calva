@@ -1,8 +1,4 @@
-{:dependencies [[zprint "1.2.2"]
-                [cljfmt "0.8.0"]]
-
- :source-paths ["src/cljs-lib/src"
-                "src/cljs-lib/test"]
+{:deps true
 
  :builds       {:calva-lib
                 {:target    :node-library
@@ -22,7 +18,8 @@
                              :getStateValue calva.state/get-state-value
                              :getState calva.state/get-state
                              :removeStateValue calva.state/remove-state-value!
-                             :js2cljs calva.js2cljs.converter/convert-bridge}
+                             :js2cljs calva.js2cljs.converter/convert-bridge
+                             :dart2clj calva.dartclojure/convert-bridge}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test

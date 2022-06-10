@@ -33,7 +33,7 @@ jobs:
             - build
   build:
     docker:
-      - image: cimg/openjdk:17.0.1-node
+      - image: cimg/clojure:1.11.1-openjdk-17.0-node
     working_directory: ~/calva
     steps:
       - attach_workspace:

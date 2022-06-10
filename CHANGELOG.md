@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Add a Dart->ClojureDart converter](https://github.com/BetterThanTomorrow/calva/pull/1763)
+
 ## [2.0.282] - 2022-06-04
 
 - Fix: [clojure-lsp fails to download for some Apple M1 users](https://github.com/BetterThanTomorrow/calva/pull/1761)
