@@ -6,8 +6,8 @@ Changes to Calva.
 
 ## [2.0.283] - 2022-06-10
 
-- Fix: [Add a Dart->ClojureDart converter](https://github.com/BetterThanTomorrow/calva/pull/1763)
-- Fix: [Make Paredit strict backspace smarter, removing empty lines](https://github.com/BetterThanTomorrow/calva/issues/1741)
+- [Add a Dart->ClojureDart converter](https://github.com/BetterThanTomorrow/calva/pull/1763)
+- [Make Paredit strict backspace smarter, removing empty lines](https://github.com/BetterThanTomorrow/calva/issues/1741)
 
 ## [2.0.282] - 2022-06-04
 
