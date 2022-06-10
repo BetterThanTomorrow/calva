@@ -144,4 +144,4 @@ That's somewhat similar to Nikita Prokopov's [Better Clojure Formatting](https:/
 
 ## Rich Comments
 
-To encourage use of `(comment ...)` forms for development, the deafult settings give these forms get a special treatment when formatting. Use the `calva.fmt.keepCommentTrailParenOnOwnLine` setting to control this behaviour. See [Rich Comments](rich-comments.md) first.
+To encourage use of `(comment ...)` forms for development, the default settings give these forms get a special treatment when formatting. Use the `calva.fmt.keepCommentTrailParenOnOwnLine` setting to control this behaviour. See [Rich Comments](rich-comments.md) first.
