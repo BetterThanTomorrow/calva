@@ -64,6 +64,7 @@
     "onCommand:calva.connect",
     "onCommand:calva.connectNonProjectREPL",
     "onCommand:calva.convertJs2Cljs",
+    "onCommand:calva.convertDart2Clj",
     "workspaceContains:**/project.clj",
     "workspaceContains:**/shadow-cljs.edn",
     "workspaceContains:**/deps.edn",
@@ -897,7 +898,12 @@
       },
       {
         "command": "calva.convertJs2Cljs",
-        "title": "Convert JavaScript to ClojureScript",
+        "title": "Convert JavaScript code to ClojureScript",
+        "category": "Calva"
+      },
+      {
+        "command": "calva.convertDart2Clj",
+        "title": "Convert Dart code to Clojure/ClojureDart",
         "category": "Calva"
       },
       {
@@ -2826,7 +2832,7 @@
     "ovsx": "^0.3.0",
     "prettier": "2.5.1",
     "rimraf": "^2.7.1",
-    "shadow-cljs": "^2.11.18",
+    "shadow-cljs": "^2.19.2",
     "source-map-support": "^0.5.16",
     "style-loader": "^0.23.1",
     "tar": "^4.4.18",

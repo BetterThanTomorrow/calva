@@ -1,38 +1,45 @@
 import * as vscode from 'vscode';
 import * as calvaLib from '../out/cljs-lib/cljs-lib';
 
-type Js2CljsResult = {
+type ConverterResult = {
   result: string;
 };
 
-type Js2CljsException = {
+type ConverterException = {
   name: string;
   message: string;
 };
 
 type JS2CljsError = {
-  exception: Js2CljsException;
+  exception: ConverterException;
   message: string;
   'number-of-parsed-lines': number;
 };
 
-type Js2CljsInvalidResult = {
-  error: JS2CljsError;
+type DartClojureError = {
+  exception: ConverterException;
+  message: string;
 };
 
-const isJs2CljsResult = (input: any): input is Js2CljsResult => input.result !== undefined;
+type ConverterInvalidResult = {
+  error: JS2CljsError | DartClojureError;
+};
 
-export async function js2cljs() {
+const isConverterResult = (input: any): input is ConverterResult => input.result !== undefined;
+
+type ConvertFn = (code: string) => ConverterResult | ConverterInvalidResult;
+
+async function convert(convertFn: ConvertFn) {
   const editor = vscode.window.activeTextEditor;
   const selection = editor.selection;
   const doc = editor.document;
-  const js = doc.getText(
+  const code = doc.getText(
     selection.active.isEqual(selection.anchor)
       ? new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity))
       : new vscode.Range(selection.start, selection.end)
   );
-  const results: Js2CljsResult | Js2CljsInvalidResult = calvaLib.jsify(calvaLib.js2cljs(js));
-  if (isJs2CljsResult(results)) {
+  const results: ConverterResult | ConverterInvalidResult = calvaLib.jsify(convertFn(code));
+  if (isConverterResult(results)) {
     await vscode.workspace
       .openTextDocument({ language: 'clojure', content: results.result })
       .then(async (doc) => {
@@ -47,4 +54,12 @@ export async function js2cljs() {
       detail: `${results.error.exception.name}: ${results.error.exception.message}`,
     });
   }
+}
+
+export async function js2cljs() {
+  return convert(calvaLib.js2cljs);
+}
+
+export async function dart2clj() {
+  return convert(calvaLib.dart2clj);
 }
