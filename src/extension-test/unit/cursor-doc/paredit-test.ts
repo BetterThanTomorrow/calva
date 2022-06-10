@@ -1268,6 +1268,52 @@ describe('paredit', () => {
         await paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
+      it('Deletes whitespace to the left of the cursor', async () => {
+        const a = docFromTextNotation(
+          `
+(if false nil
+  |true)
+        `.trim()
+        );
+        const b = docFromTextNotation(`(if false nil |true)`.trim());
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Deletes whitespace to the left of the cursor without crossing multiple lines', async () => {
+        const a = docFromTextNotation('[•• |::foo]');
+        const b = docFromTextNotation('[• |::foo]');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Deletes whitespace to the left and right of the cursor when inside whitespace', async () => {
+        const a = docFromTextNotation('[• | ::foo]');
+        const b = docFromTextNotation('[|::foo]');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Deletes whitespace to the left and inserts a space when arriving at the end of a line', async () => {
+        const a = docFromTextNotation('(if :foo•  |:bar   :baz)');
+        const b = docFromTextNotation('(if :foo |:bar   :baz)');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Deletes whitespace to the left and inserts a single space when ending up on a line with trailing whitespace', async () => {
+        const a = docFromTextNotation('(if :foo    •  |:bar   :baz)');
+        const b = docFromTextNotation('(if :foo |:bar   :baz)');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Deletes whitespace to the left and avoids inserting a space if on a close token', async () => {
+        const a = docFromTextNotation('(if :foo•    |)');
+        const b = docFromTextNotation('(if :foo|)');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
     });
 
     describe('Kill character forwards (delete)', () => {
