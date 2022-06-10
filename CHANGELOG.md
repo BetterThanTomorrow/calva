@@ -4,7 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Align behavior of backspace in paredit with other editors (Cursive, Emacs)](https://github.com/BetterThanTomorrow/calva/issues/1741)
+- Fix: [Add a Dart->ClojureDart converter](https://github.com/BetterThanTomorrow/calva/pull/1763)
+- Fix: [Make Paredit strict backspace smarter, removing empty lines](https://github.com/BetterThanTomorrow/calva/issues/1741)
 
 ## [2.0.282] - 2022-06-04
 

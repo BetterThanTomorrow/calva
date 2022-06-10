@@ -62,7 +62,7 @@ nav:
   - clojure-lsp.md
   - nrepl_and_cider-nrepl.md
   - customizing.md
-  - Using Calva with X:
+  - Using Calva with ...:
     - wsl.md
     - remote-development.md
     - live-share.md
@@ -71,6 +71,7 @@ nav:
     - babashka.md
     - nbb.md
     - joyride.md
+    - clojuredart.md
     - luminus.md
     - re-frame-template.md
     - polylith.md

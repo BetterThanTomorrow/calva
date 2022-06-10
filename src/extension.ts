@@ -482,6 +482,9 @@ async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('calva.convertJs2Cljs', converters.js2cljs)
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('calva.convertDart2Clj', converters.dart2clj)
+  );
 
   // Initial set of the provided contexts
   outputWindow.setContextForOutputWindowActive(false);
