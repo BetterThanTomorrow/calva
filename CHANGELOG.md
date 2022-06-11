@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.284] - 2022-06-11
+
 - [Add a command to restart clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/1727)
 
 ## [2.0.283] - 2022-06-10
