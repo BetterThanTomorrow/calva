@@ -1314,6 +1314,13 @@ describe('paredit', () => {
         await paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
+
+      it('Deletes a character when inside a token on a blank line', async () => {
+        const a = docFromTextNotation('(if• :|foo)');
+        const b = docFromTextNotation('(if• |foo)');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
     });
 
     describe('Kill character forwards (delete)', () => {

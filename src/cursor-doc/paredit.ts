@@ -797,6 +797,8 @@ function onlyWhitespaceLeftOfCursor(doc: EditableDocument, cursor: LispTokenCurs
   const token = cursor.getToken();
   if (token.type === 'ws') {
     return token.offset === 0;
+  } else if (doc.selection.anchor > cursor.offsetStart) {
+    return false;
   }
   const prevToken = cursor.getPrevToken();
 
