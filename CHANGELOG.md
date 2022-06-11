@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Fix a problem when using paredit backspace on the leftmost token](https://github.com/BetterThanTomorrow/calva/pull/1768)
+
 ## [2.0.283] - 2022-06-10
 
 - [Add a Dart->ClojureDart converter](https://github.com/BetterThanTomorrow/calva/pull/1763)
