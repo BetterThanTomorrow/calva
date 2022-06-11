@@ -448,11 +448,6 @@ export async function startClientCommand() {
   await startClient(await getFallbackFolder());
 }
 
-async function restartClient() {
-  await stopClient();
-  await startClientCommand();
-}
-
 function handleShowMessageRequest(params) {
   // showInformationMessage can't handle some of the menus that clojure-lsp uses
   // https://github.com/BetterThanTomorrow/calva/issues/1539
@@ -584,9 +579,6 @@ function registerLifeCycleCommands(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('calva.clojureLsp.start', startClientCommand)
   );
   context.subscriptions.push(vscode.commands.registerCommand('calva.clojureLsp.stop', stopClient));
-  context.subscriptions.push(
-    vscode.commands.registerCommand('calva.clojureLsp.restart', restartClient)
-  );
   context.subscriptions.push(
     vscode.commands.registerCommand('calva.clojureLsp.download', downloadLSPServerCommand)
   );
