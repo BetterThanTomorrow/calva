@@ -20,7 +20,7 @@ We use checklists in order to not forget about important lessons we and others h
 
 -->
 
-## What has Changed?
+## What has changed?
 
 <!-- Introduce the change(s) briefly here. Consider explaining why a particular change was implemented the way it was. If you have considered alternative ways to introduce the change, please elaborate a bit on that as well. -->
 
