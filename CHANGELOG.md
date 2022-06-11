@@ -4,8 +4,6 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- [Add a command to restart clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/1727)
-
 ## [2.0.283] - 2022-06-10
 
 - [Add a Dart->ClojureDart converter](https://github.com/BetterThanTomorrow/calva/pull/1763)
