@@ -27,9 +27,9 @@ A lot of effort has been put into making Calva a good choice to start if you are
 Crispin Bennett's review:
 > This is great, and makes VS Code a truly viable IDE/editor for clojure development. It has great REPL support (including inline evaluation), an extensive Paredit implementation, and excellent linting (care of the bundled clj-kondo). Calva is being improved on at an impressive clip by maintainers who appear solidly committed to its ongoing development. It's well-documented, and manages to be both approachable and capable. A no-brainer if you're already a VS Code user, and well worth a look if you're not.
 
-## It's Easy to get Started
+## It's Easy to Get Started
 
-https://www.youtube.com/embed/O6GrXXhCzCc
+[Get Started with Clojure in VS Code in 20 seconds](https://www.youtube.com/embed/O6GrXXhCzCc)
 
 ## There is Documentation
 
