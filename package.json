@@ -931,6 +931,12 @@
         "category": "Calva Clojure LSP"
       },
       {
+        "command": "calva.clojureLsp.restart",
+        "title": "Restart the Clojure LSP Server",
+        "enablement": "clojureLsp:active",
+        "category": "Calva Clojure LSP"
+      },
+      {
         "command": "calva.diagnostics.openClojureLspLogFile",
         "title": "Open Clojure LSP Log File",
         "category": "Calva Diagnostics"
