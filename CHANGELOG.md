@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.285] - 2022-06-11
+
 - Fix: [Paredit strict backspace in the leftmost symbol/keyword/thing inserts a space instead](https://github.com/BetterThanTomorrow/calva/pull/1771)
 
 ## [2.0.284] - 2022-06-11
