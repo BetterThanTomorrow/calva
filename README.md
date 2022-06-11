@@ -29,7 +29,7 @@ Crispin Bennett's review:
 
 ## It's Easy to get Started
 
-https://www.youtube.com/embed/O6GrXXhCzCc
+[Get Started with Clojure in VS Code in 20 seconds](https://www.youtube.com/embed/O6GrXXhCzCc)
 
 ## There is Documentation
 
