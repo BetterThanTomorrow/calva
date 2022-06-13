@@ -840,14 +840,18 @@ function stoppedMenuCommand() {
 function startedMenuCommand() {
   const STOP_OPTION = 'Stop';
   const STOP_COMMAND = 'calva.clojureLsp.stop';
+  const RESTART_OPTION = 'Restart';
+  const RESTART_COMMAND = 'calva.clojureLsp.restart';
   const INFO_OPTION = 'Show server info';
   const INFO_COMMAND = 'calva.diagnostics.clojureLspServerInfo';
   const LOG_OPTION = 'Open log';
   const LOG_COMMAND = 'calva.diagnostics.openClojureLspLogFile';
-  const commands = {};
-  commands[STOP_OPTION] = STOP_COMMAND;
-  commands[INFO_OPTION] = INFO_COMMAND;
-  commands[LOG_OPTION] = LOG_COMMAND;
+  const commands = {
+    [STOP_OPTION]: STOP_COMMAND,
+    [INFO_OPTION]: INFO_COMMAND,
+    [LOG_OPTION]: LOG_COMMAND,
+    [RESTART_OPTION]: RESTART_COMMAND,
+  };
   const items: vscode.QuickPickItem[] = [
     {
       label: INFO_OPTION,
@@ -860,6 +864,10 @@ function startedMenuCommand() {
     {
       label: STOP_OPTION,
       description: 'Stop the clojure-lsp server',
+    },
+    {
+      label: RESTART_OPTION,
+      description: 'Restart the clojure-lsp server',
     },
   ];
   showMenu(items, commands);

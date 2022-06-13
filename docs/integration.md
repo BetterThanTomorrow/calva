@@ -37,7 +37,7 @@ When a PR looks good:
 When a VSIX is good enough for release, and someone authorized to commit to the `published` branch has _at least half an hour of spare time_, the following will bring it to the Marketplace:
 
 1. Checkout `dev`
-1. Run `npm run publish`
+1. Run `bb publish.clj`
    * This updates the changelog to move the Unreleased items to a new section for the new version, commits, tags the commit, and pushes with `--follow-tags` so that the CI publish workflow is kicked off.
 1. Click to approve the publishing of the extension in the CircleCI web app
 1. When the new version is live, immediately install it and see that it works.
@@ -47,7 +47,7 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
 
 ### The Publishing Process and Rationale
 
-We develop features off the `dev` branch and manually dictate (via `npm run publish`) when to release a new version from this branch. This is so that we have the option of accumulating features for release on this branch, rather than releasing a new version for every PR merged into `published`.
+We develop features off the `dev` branch and manually dictate (via `bb publish.clj`) when to release a new version from this branch. This is so that we have the option of accumulating features for release on this branch, rather than releasing a new version for every PR merged into `published`.
 
 We want to keep the `published` branch in sync with the released version. After a release is published, the CI merges the `dev` branch into `published`. It then deploys the docs from `published` and bumps the version on `dev`. Bumping the version on `dev` after a publish lines up with our process of `dev` representing the next version of Calva.
 

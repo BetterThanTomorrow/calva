@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.286] - 2022-06-13
+
+- [Add option in clojure-lsp quick pick to restart clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/1770)
+
 ## [2.0.285] - 2022-06-11
 
 - Fix: [Paredit strict backspace in the leftmost symbol/keyword/thing inserts a space instead](https://github.com/BetterThanTomorrow/calva/pull/1771)

@@ -22,6 +22,7 @@ It is highly recommended to let clojure-lsp start automatically, and most often 
 * Read the clojure-lsp server log
 * Stopping clojure-lsp
 * Starting clojure-lsp
+* Restarting clojure-lsp
 * Download the configured clojure-lsp version
 
 In the status bar, Calva will show an indicator with the clojure-lsp status.
