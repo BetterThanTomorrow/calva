@@ -64,7 +64,7 @@ Go to the [documentation](https://calva.io/) to find info on how to connect Calv
   * Highlights misplaced brackets
   * LISP friendly bracket matching
   * Ignore form (`#_`) dimming and `(comment)` form highlighting
-* Code formatting and autoindent according to https://github.com/bbatsov/clojure-style-guide
+* Code formatting and autoindent according to [The Clojure Style Guide](https://github.com/bbatsov/clojure-style-guide)
 * Structural Editing (via [Paredit](https://calva.io/paredit/))
 * [Linting](https://calva.io/linting/)
 * Intellisense
