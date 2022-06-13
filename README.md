@@ -33,7 +33,7 @@ Crispin Bennett's review:
 
 ## There is Documentation
 
-Head over to https://calva.io/ to learn more about how to use Calva. The most important stuff would be:
+Head over to [calva.io](https://calva.io/) to learn more about how to use Calva. The most important stuff would be:
 
 * [Connect Calva to Your Project](https://calva.io/connect/) (TL;DR; Use **Jack in**.)
 * [Quirks](https://calva.io/quirks/) (Yes, there are quirks.)
