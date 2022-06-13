@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add option in clojure-lsp quick pick to restart clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/1770)
+
 ## [2.0.284] - 2022-06-11
 
 - [Add a command to restart clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/1727)
