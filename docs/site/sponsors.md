@@ -36,7 +36,7 @@ Please see [this statement from Cognitect](https://cognitect.com/blog/2020/12/15
 </div>
 
 <div>
-<div><a href="https://www.thortech-solutions.com/" title="ThorTech"><img src="https://www.thortech-solutions.com/wp-content/uploads/2022/04/ThorTechSolutionsLogo-01-copy-1.png" style="height: 80px;" alt="Cognitect"/></a></div>
+<div><a href="https://www.thortech-solutions.com/" title="ThorTech"><img src="https://www.thortech-solutions.com/wp-content/uploads/2022/04/ThorTechSolutionsLogo-01-copy-1.png" style="height: 80px;" alt="ThorTech Solutions"/></a></div>
 <!--<div><i>Grow your Clojure & ClojureScript business</i></div>-->
 </div>
 
