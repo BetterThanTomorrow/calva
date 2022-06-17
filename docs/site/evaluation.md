@@ -18,10 +18,10 @@ Calva has many commands for evaluating forms, including the **current form** and
 Some of the commands also let you choose what should happen with the results:
 
 1. **Inline.** This will display the results (or some of it, if it is long) inline in the editor.
-    * This also creates a hover pane including the full results and a button which will copy the results to the clipboard.
-    * There is also a command for copying the last result to the clipboard.
-    * The full results are always available in the [output window](output.md).
-        * There is a command for showing the output window, allowing for a workflow where you either generally have it closed, or have it as one of the tabs in the same editor group as the files you are working with.
+   - This also creates a hover pane including the full results and a button which will copy the results to the clipboard.
+   - There is also a command for copying the last result to the clipboard.
+   - The full results are always available in the [output window](output.md).
+     - There is a command for showing the output window, allowing for a workflow where you either generally have it closed, or have it as one of the tabs in the same editor group as the files you are working with.
 1. **To comments.** This will add the results as line comments below the current line.
 1. **Replace the evaluated code.** This will do what it says, the evaluated code will be replaced with its results.
 
@@ -39,22 +39,22 @@ The **current form** either means the current selection, or otherwise is based o
 
 1. If text is selected, then that text
 1. If the cursor is ”in” a symbol, then that symbol
-    ```clojure
-    foob|ar ; foobar
-    ```
+   ```clojure
+   foob|ar ; foobar
+   ```
 1. If the cursor is adjacent to a form (a symbol or a list of some kind), then that form
-    ```clojure
-    (foo bar |(baz)) ; (baz)
-    ```
+   ```clojure
+   (foo bar |(baz)) ; (baz)
+   ```
 1. If the cursor is between to forms, then the left side form
-    ```clojure
-    (foo bar | (baz)) ; bar
-    ```
+   ```clojure
+   (foo bar | (baz)) ; bar
+   ```
 1. If the cursor is before the first form of a line, then that form
-    ```clojure
-    (foo
-    | bar (baz)) ; bar
-    ```
+   ```clojure
+   (foo
+   | bar (baz)) ; bar
+   ```
 
 ### Current Top-level Form
 
