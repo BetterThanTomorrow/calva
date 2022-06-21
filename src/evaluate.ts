@@ -438,12 +438,15 @@ async function loadFile(
         outputWindow.append('; No results from file evaluation.');
       }
     } catch (e) {
-      if (res.stacktrace) {
-        outputWindow.saveStacktrace(res.stacktrace.stacktrace);
-      }
-      outputWindow.append(`; Evaluation of file ${fileName} failed: ${e}`, (_location, nextLocation) => {
-        outputWindow.markLastStacktraceRange(nextLocation);
-      });
+      outputWindow.append(
+        `; Evaluation of file ${fileName} failed: ${e}`,
+        (_location, nextLocation) => {
+          if (res.stacktrace) {
+            outputWindow.saveStacktrace(res.stacktrace.stacktrace);
+            outputWindow.markLastStacktraceRange(nextLocation);
+          }
+        }
+      );
     }
     outputWindow.setSession(session, res.ns || ns);
     replSession.updateReplSessionType();
