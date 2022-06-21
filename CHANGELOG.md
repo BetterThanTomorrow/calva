@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Error reporting for load file differs from evaluate code](https://github.com/BetterThanTomorrow/calva/issues/1774)
+
 ## [2.0.286] - 2022-06-13
 
 - [Add option in clojure-lsp quick pick to restart clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/1770)
