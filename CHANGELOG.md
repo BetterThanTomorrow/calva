@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Error reporting for load file differs from evaluate code](https://github.com/BetterThanTomorrow/calva/issues/1774)
+- Fix: [Accepting and rejecting Github Copilot suggestions does not work](https://github.com/BetterThanTomorrow/calva/issues/1781)
 
 ## [2.0.286] - 2022-06-13
 

@@ -1809,7 +1809,7 @@
       {
         "command": "calva.clearInlineResults",
         "key": "escape",
-        "when": "calva:keybindingsEnabled && editorTextFocus && !editorHasMultipleSelections && !editorHasSelection && !editorReadOnly && !hasOtherSuggestions && !parameterHintsVisible && !selectionAnchorSet && !suggestWidgetVisible && editorLangId == clojure"
+        "when": "calva:keybindingsEnabled && editorTextFocus && !editorHasMultipleSelections && !editorHasSelection && !editorReadOnly && !hasOtherSuggestions && !parameterHintsVisible && !selectionAnchorSet && !suggestWidgetVisible && !inlineSuggestionVisible && editorLangId == clojure"
       },
       {
         "command": "calva.evaluateSelection",
@@ -2251,7 +2251,7 @@
       {
         "command": "calva-fmt.formatCurrentForm",
         "key": "tab",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !inSnippetMode && !suggestWidgetVisible && !hasOtherSuggestions && !inSnippetMode"
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !inSnippetMode && !suggestWidgetVisible && !hasOtherSuggestions && !inSnippetMode && !inlineSuggestionVisible"
       },
       {
         "command": "calva-fmt.alignCurrentForm",
