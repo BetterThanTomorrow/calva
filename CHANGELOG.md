@@ -6,6 +6,7 @@ Changes to Calva.
 
 - Fix: [Error reporting for load file differs from evaluate code](https://github.com/BetterThanTomorrow/calva/issues/1774)
 - Fix: [Accepting and rejecting Github Copilot suggestions does not work](https://github.com/BetterThanTomorrow/calva/issues/1781)
+- [Use Apple Silicon clojure-lsp builds on M1 and M2 macs when available](https://github.com/BetterThanTomorrow/calva/issues/1780)
 
 ## [2.0.286] - 2022-06-13
 

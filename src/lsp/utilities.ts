@@ -7,9 +7,7 @@ const versionFileName = 'clojure-lsp-version';
 const artifacts = {
   darwin: {
     x64: 'clojure-lsp-native-macos-amd64.zip',
-    // Should M1 Macs use emulated native binary or native standalone jar until M1 native available?
-    // For now, let's use the Intel binary
-    arm64: 'clojure-lsp-native-macos-amd64.zip',
+    arm64: 'clojure-lsp-native-macos-aarch64.zip',
   },
   linux: {
     x64: 'clojure-lsp-native-static-linux-amd64.zip',

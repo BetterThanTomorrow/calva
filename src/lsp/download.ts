@@ -73,7 +73,11 @@ async function unzipFile(zipFilePath: string, extensionPath: string): Promise<vo
 }
 
 async function downloadClojureLsp(extensionPath: string, version: string): Promise<string> {
-  const artifactName = lspUtil.getArtifactDownloadName();
+  // There were no Apple Silicon builds prior to version 2022.06.22-14.09.50
+  const artifactName =
+    version >= '2022.06.22-14.09.50' || process.platform !== 'darwin'
+      ? lspUtil.getArtifactDownloadName()
+      : lspUtil.getArtifactDownloadName('darwin', 'x64');
   const url =
     version !== 'nightly'
       ? `https://github.com/clojure-lsp/clojure-lsp/releases/download/${version}/${artifactName}`
