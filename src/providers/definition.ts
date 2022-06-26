@@ -5,13 +5,17 @@ import annotations from './annotations';
 import * as namespace from '../namespace';
 import * as outputWindow from '../results-output/results-doc';
 import * as replSession from '../nrepl/repl-session';
+import * as config from '../config';
 import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
 import { getClient } from '../lsp/main';
 import { DefinitionRequest } from 'vscode-languageclient';
 
 const converter = createConverter(undefined, undefined);
 
-const definitionProviderOptions = { priority: ['lsp', 'repl'] };
+const definitionProviderOptions = {
+  replThenLsp: { priority: ['repl', 'lsp'] },
+  lspThenRepl: { priority: ['lsp', 'repl'] },
+};
 
 const definitionFunctions = { lsp: lspDefinition, repl: provideClojureDefinition };
 
@@ -49,7 +53,8 @@ export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
   }
 
   async provideDefinition(document, position: vscode.Position, token) {
-    for (const provider of definitionProviderOptions.priority) {
+    const priority = config.getConfig().definitionProviderPriority;
+    for (const provider of definitionProviderOptions[priority].priority) {
       const definition = await definitionFunctions[provider](document, position, token);
 
       if (definition) {
