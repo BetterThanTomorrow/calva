@@ -12,11 +12,6 @@ import { DefinitionRequest } from 'vscode-languageclient';
 
 const converter = createConverter(undefined, undefined);
 
-const definitionProviderOptions = {
-  replThenLsp: { priority: ['repl', 'lsp'] },
-  lspThenRepl: { priority: ['lsp', 'repl'] },
-};
-
 const definitionFunctions = { lsp: lspDefinition, repl: provideClojureDefinition };
 
 async function provideClojureDefinition(document, position: vscode.Position, _token) {
@@ -53,19 +48,23 @@ export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
   }
 
   async provideDefinition(document, position: vscode.Position, token) {
-    const priority = config.getConfig().definitionProviderPriority;
-    for (const provider of definitionProviderOptions[priority].priority) {
-      const definition = await definitionFunctions[provider](document, position, token);
-
-      if (definition) {
-        if (definition instanceof vscode.Location) {
-          return definition;
+    const providers = config.getConfig().definitionProviderPriority;
+    for (const provider of providers) {
+      const providerFunction = definitionFunctions[provider];
+      if (providerFunction) {
+        const definition = await providerFunction(document, position, token);
+        if (definition) {
+          if (definition instanceof vscode.Location) {
+            return definition;
+          }
+          return converter.asLocation(definition);
         }
-
-        return converter.asLocation(definition);
+      } else {
+        void vscode.window.showErrorMessage(
+          `Bad 'calva.definitionProviderPriority' setting, '${provider}' is not supported.`
+        );
       }
     }
-
     return null;
   }
 }

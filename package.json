@@ -731,12 +731,25 @@
             "default": true
           },
           "calva.definitionProviderPriority": {
-            "enum": [
-              "replThenLsp",
-              "lspThenRepl"
-            ],
             "markdownDescription": "Calva can provide definitions using both the REPL connection and via clojure-lsp. Which provider should Calva prioritize when both are available?",
-            "default": "replThenLsp"
+            "enum": [
+              [
+                "repl",
+                "lsp"
+              ],
+              [
+                "lsp",
+                "repl"
+              ]
+            ],
+            "markdownEnumDescriptions": [
+              "Use dynamic (REPL) definitions when available.",
+              "Use static (clojure-lsp) definitions when available."
+            ],
+            "default": [
+              "repl",
+              "lsp"
+            ]
           }
         }
       },
