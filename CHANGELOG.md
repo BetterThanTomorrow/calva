@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add configuration for which symbol definition provider to use](https://github.com/BetterThanTomorrow/calva/issues/1785)
+
 ## [2.0.287] - 2022-06-25
 
 - Fix: [Error reporting for load file differs from evaluate code](https://github.com/BetterThanTomorrow/calva/issues/1774)
