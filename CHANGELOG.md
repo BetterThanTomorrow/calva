@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.288] - 2022-07-02
+
+- [Add configuration for which symbol definition provider to use](https://github.com/BetterThanTomorrow/calva/issues/1785)
+- [Update clojure-lsp version and path settings documentation](https://github.com/BetterThanTomorrow/calva/issues/1791)
+
 ## [2.0.287] - 2022-06-25
 
 - Fix: [Error reporting for load file differs from evaluate code](https://github.com/BetterThanTomorrow/calva/issues/1774)
