@@ -389,12 +389,13 @@
           "calva.clojureLspVersion": {
             "type": "string",
             "default": "latest",
-            "markdownDescription": "The version of `clojure-lsp` to download and use. A release tag-name or `latest`. (Will take effect after a reload of the project window.) Remove this setting to switch back to using the current Calva default (`latest`)."
+            "markdownDescription": "The version of `clojure-lsp` to download and use. This should be a release tag-name, or `latest` (default), or `nightly`. Will take effect after a restart of clojure-lsp. See [calva.io/clojure-lsp](https://calva.io/clojure-lsp) for information about how to manage the clojure-lsp process. NB: _This setting will be ignored if `calva.clojureLspPath` is set to something non-blank._",
+            "pattern": "^(latest|nightly|\\d{4}\\.\\d{2}\\.\\d{2}-\\d{2}\\.\\d{2}\\.\\d{2})$"
           },
           "calva.clojureLspPath": {
             "type": "string",
             "default": "",
-            "markdownDescription": "The absolute path to the `clojure-lsp` native binary you want Calva to use. When this setting is non-blank, the `calva.clojureLspVersion` setting will be ignored. The binary at the path set here will be used and Calva will not overwrite it. (Will take effect after a reload of the project window.)"
+            "markdownDescription": "The absolute path to the `clojure-lsp` native binary you want Calva to use. When non-blank the `calva.clojureLspVersion` setting will be ignored, and the binary at the path set will be used instead. Will take effect after a restart of clojure-lsp. See [calva.io/clojure-lsp](https://calva.io/clojure-lsp) for information about how to manage the clojure-lsp process."
           },
           "calva.openBrowserWhenFigwheelStarted": {
             "type": "boolean",
