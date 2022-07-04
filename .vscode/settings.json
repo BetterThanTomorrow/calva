@@ -203,7 +203,11 @@
   ],
   "cSpell.languageSettings": [
     {
-      "languageId": ["clojure", "json", "typescript"],
+      "languageId": [
+        "clojure",
+        "json",
+        "typescript"
+      ],
       "allowCompoundWords": false
     }
   ],
@@ -226,7 +230,10 @@
       "cljsType": "shadow-cljs",
       "menuSelections": {
         "cljsDefaultBuild": ":calva-lib",
-        "cljsLaunchBuilds": [":calva-lib", ":test"]
+        "cljsLaunchBuilds": [
+          ":calva-lib",
+          ":test"
+        ]
       }
     }
   ],
@@ -236,5 +243,6 @@
     "titleBar.activeForeground": "#131722",
     "titleBar.inactiveBackground": "#db9550d5",
     "titleBar.inactiveForeground": "#13172299"
-  }
+  },
+  "json.format.enable": false
 }
