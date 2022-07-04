@@ -203,11 +203,7 @@
   ],
   "cSpell.languageSettings": [
     {
-      "languageId": [
-        "clojure",
-        "json",
-        "typescript"
-      ],
+      "languageId": ["clojure", "json", "typescript"],
       "allowCompoundWords": false
     }
   ],
@@ -230,10 +226,7 @@
       "cljsType": "shadow-cljs",
       "menuSelections": {
         "cljsDefaultBuild": ":calva-lib",
-        "cljsLaunchBuilds": [
-          ":calva-lib",
-          ":test"
-        ]
+        "cljsLaunchBuilds": [":calva-lib", ":test"]
       }
     }
   ],
