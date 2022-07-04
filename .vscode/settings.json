@@ -236,5 +236,6 @@
     "titleBar.activeForeground": "#131722",
     "titleBar.inactiveBackground": "#db9550d5",
     "titleBar.inactiveForeground": "#13172299"
-  }
+  },
+  "json.format.enable": false
 }
