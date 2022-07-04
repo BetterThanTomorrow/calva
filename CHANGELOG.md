@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [:refer-clojure :exclude doesn't work as expected](https://github.com/BetterThanTomorrow/calva/issues/1718)
+- Fix: [Shadowing of Clojure vars doesn't work in the REPL, even with :refer-clojure :exclude](https://github.com/BetterThanTomorrow/calva/issues/1153)
 
 ## [2.0.288] - 2022-07-02
 
