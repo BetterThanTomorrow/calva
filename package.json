@@ -1771,7 +1771,7 @@
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
-        "command": "clojureLsp.diagnostics.clojureLspServerInfo",
+        "command": "calva.diagnostics.clojureLspServerInfo",
         "title": "Clojure-lsp Server Info",
         "category": "clojure-lsp Diagnostics",
         "enablement": "editorLangId == clojure && clojureLsp:active"

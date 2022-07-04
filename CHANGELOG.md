@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Command not found error shown when clojure-lsp server info command is run](https://github.com/BetterThanTomorrow/calva/issues/1790)
+
 ## [2.0.288] - 2022-07-02
 
 - [Add configuration for which symbol definition provider to use](https://github.com/BetterThanTomorrow/calva/issues/1785)
