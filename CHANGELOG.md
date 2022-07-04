@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.289] - 2022-07-04
+
 - Fix: [:refer-clojure :exclude doesn't work as expected](https://github.com/BetterThanTomorrow/calva/issues/1718)
 - Fix: [Shadowing of Clojure vars doesn't work in the REPL, even with :refer-clojure :exclude](https://github.com/BetterThanTomorrow/calva/issues/1153)
 - Fix: [Command not found error shown when clojure-lsp server info command is run](https://github.com/BetterThanTomorrow/calva/issues/1790)
