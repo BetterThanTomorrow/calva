@@ -403,6 +403,7 @@ jobs:
             npm run bump-version
             git add .
             git commit -m "Bring on version $(node -p "require('./package').version")!"
+            git pull
             git push origin HEAD
 workflows:
   version: 2
