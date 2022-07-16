@@ -132,7 +132,11 @@ baz))"
   (is (= 11
          (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(foo\n (bar)\n )" :range [0 14] :idx 11}))))
   (is (= 1
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 14] :idx 2})))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 14] :idx 2}))))
+  (is (= 3
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "[a b c]" :range [0 7] :idx 3}))))
+  (is (= 2
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "a b c" :range [0 5] :idx 2})))))
 
 
 (def head-and-tail-text "(def a 1)
