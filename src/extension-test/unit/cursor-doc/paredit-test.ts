@@ -1404,6 +1404,34 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
+
+    describe('killRange', () => {
+      it('Deletes top-level range with backward direction', async () => {
+        const a = docFromTextNotation('a |<|b |<|c');
+        const b = docFromTextNotation('a |c');
+        await paredit.killRange(a, textAndSelection(a)[1]);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Deletes top-level range with forward direction', async () => {
+        const a = docFromTextNotation('a |>|b |>|c');
+        const b = docFromTextNotation('a |c');
+        await paredit.killRange(a, textAndSelection(a)[1]);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Deletes nested range with backward direction', async () => {
+        const a = docFromTextNotation('{a |<|b |<|c}');
+        const b = docFromTextNotation('{a |c}');
+        await paredit.killRange(a, textAndSelection(a)[1]);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Deletes nested range with forward direction', async () => {
+        const a = docFromTextNotation('{a |>|b |>|c}');
+        const b = docFromTextNotation('{a |c}');
+        await paredit.killRange(a, textAndSelection(a)[1]);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
     describe('addRichComment', () => {
       it('Adds Rich Comment after Top Level form', async () => {
         const a = docFromTextNotation('(fo|o)••(bar)');
