@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Make the clojure-lsp server info command always enabled](https://github.com/BetterThanTomorrow/calva/issues/1810)
+- Fix: [Clojure-lsp server info command is not enabled if a non-clojure file is open in the active editor](https://github.com/BetterThanTomorrow/calva/issues/1810)
 
 ## [2.0.289] - 2022-07-04
 
