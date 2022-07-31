@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.289",
+  "version": "2.0.290",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -1773,8 +1773,7 @@
       {
         "command": "calva.diagnostics.clojureLspServerInfo",
         "title": "Clojure-lsp Server Info",
-        "category": "Calva Diagnostics",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "category": "Calva Diagnostics"
       },
       {
         "category": "Calva",
@@ -2795,17 +2794,13 @@
     "unit-test-watch": "npx mocha --watch --require ts-node/register --watch-extensions ts --watch-files src 'src/extension-test/unit/**/*-test.ts'",
     "prettier-format": "npx prettier --write './**/*.{ts,js,json}'",
     "prettier-check": "npx prettier --check './**/*.{ts,js,json}'",
-    "prettier-check-watch": "npx onchange './**/*.{ts,js,json}' -- prettier --check {{changed}}",
-    "prettier-format-watch": "npx onchange './**/*.{ts,js,json}' -- prettier --write {{changed}}",
+    "prettier-check-watch": "onchange './**/*.{ts,js,json}' -- prettier --check {{changed}}",
+    "prettier-format-watch": "onchange './**/*.{ts,js,json}' -- prettier --write {{changed}}",
     "preprettier-format-watch": "npm run prettier-format",
     "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
     "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch"
   },
   "dependencies": {
-    "@types/escape-html": "0.0.20",
-    "@types/node": "^16.11.26",
-    "@types/universal-analytics": "^0.4.2",
-    "@types/uuid": "^8.3.1",
     "acorn": "^6.4.1",
     "ansi-to-html": "^0.6.13",
     "escape-html": "^1.0.3",
@@ -2827,17 +2822,21 @@
     "uuidv4": "6.2.12",
     "vscode-debugadapter": "1.38.0",
     "vscode-extension-telemetry": "0.0.15",
-    "vscode-languageclient": "^7.0.0",
+    "vscode-languageclient": "^8.0.2",
     "vsls": "^1.0.4753"
   },
   "devDependencies": {
     "@types/chai": "^4.2.6",
+    "@types/escape-html": "^1.0.2",
     "@types/follow-redirects": "^1.13.0",
     "@types/glob": "^7.1.1",
     "@types/lodash": "^4.14.167",
     "@types/mocha": "^9.1.0",
+    "@types/node": "^18.6.3",
     "@types/semver": "^7.3.9",
-    "@types/vscode": "^1.45.0",
+    "@types/universal-analytics": "^0.4.5",
+    "@types/uuid": "^8.3.4",
+    "@types/vscode": "^1.66.0",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
     "chai": "^4.2.0",
@@ -2857,6 +2856,7 @@
     "mocha-multi-reporters": "^1.5.1",
     "node-gyp": "^8.4.1",
     "nodemon": "^2.0.3",
+    "onchange": "^7.1.0",
     "ovsx": "^0.3.0",
     "prettier": "2.5.1",
     "rimraf": "^2.7.1",

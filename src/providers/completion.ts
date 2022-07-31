@@ -20,6 +20,7 @@ import * as replSession from '../nrepl/repl-session';
 import { getClient } from '../lsp/main';
 import { CompletionRequest, CompletionResolveRequest } from 'vscode-languageserver-protocol';
 import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
+import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 
 const mappings = {
   nil: CompletionItemKind.Value,
@@ -33,7 +34,7 @@ const mappings = {
   method: CompletionItemKind.Method,
 };
 
-const converter = createConverter(undefined, undefined);
+const converter = createConverter(undefined, undefined, true);
 
 const completionProviderOptions = { priority: ['lsp', 'repl'], merge: true };
 
@@ -66,7 +67,11 @@ async function provideCompletionItems(
     }
   }
 
-  return new CompletionList(results.map(converter.asCompletionItem), true);
+  const completionItems: ProtocolCompletionItem[] = results.map((completion) =>
+    converter.asCompletionItem(completion)
+  );
+
+  return new CompletionList(completionItems, true);
 }
 
 export default class CalvaCompletionItemProvider implements CompletionItemProvider {
