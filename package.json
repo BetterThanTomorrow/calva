@@ -1773,8 +1773,7 @@
       {
         "command": "calva.diagnostics.clojureLspServerInfo",
         "title": "Clojure-lsp Server Info",
-        "category": "Calva Diagnostics",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "category": "Calva Diagnostics"
       },
       {
         "category": "Calva",
