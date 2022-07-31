@@ -2794,8 +2794,8 @@
     "unit-test-watch": "npx mocha --watch --require ts-node/register --watch-extensions ts --watch-files src 'src/extension-test/unit/**/*-test.ts'",
     "prettier-format": "npx prettier --write './**/*.{ts,js,json}'",
     "prettier-check": "npx prettier --check './**/*.{ts,js,json}'",
-    "prettier-check-watch": "npx onchange './**/*.{ts,js,json}' -- prettier --check {{changed}}",
-    "prettier-format-watch": "npx onchange './**/*.{ts,js,json}' -- prettier --write {{changed}}",
+    "prettier-check-watch": "onchange './**/*.{ts,js,json}' -- prettier --check {{changed}}",
+    "prettier-format-watch": "onchange './**/*.{ts,js,json}' -- prettier --write {{changed}}",
     "preprettier-format-watch": "npm run prettier-format",
     "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
     "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch"
@@ -2856,6 +2856,7 @@
     "mocha-multi-reporters": "^1.5.1",
     "node-gyp": "^8.4.1",
     "nodemon": "^2.0.3",
+    "onchange": "^7.1.0",
     "ovsx": "^0.3.0",
     "prettier": "2.5.1",
     "rimraf": "^2.7.1",
