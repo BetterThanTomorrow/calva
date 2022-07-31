@@ -10,6 +10,7 @@ import {
   ServerCapabilities,
   DocumentSelector,
   MessageType,
+  FeatureState,
 } from 'vscode-languageclient/node';
 import * as util from '../utilities';
 import * as config from '../config';
@@ -37,7 +38,7 @@ let testTreeHandler: TestTreeHandler;
 let lspCommandsRegistered = false;
 
 // The Node LSP client requires the client code to jump through a few hoops in
-// order to enable an experimental feature. This class exists solely to set
+// order to enable an experimental feature. This class exists solely to
 // enable the `experimental.testTree` feature.
 class TestTreeFeature implements StaticFeature {
   initialize(
@@ -53,6 +54,10 @@ class TestTreeFeature implements StaticFeature {
 
   dispose(): void {
     // do nothing
+  }
+
+  getState(): FeatureState {
+    return { kind: 'static' };
   }
 }
 
@@ -496,18 +501,16 @@ async function startClient(fallbackFolder: FallbackFolder): Promise<boolean> {
     });
   }
   setStateValue(LSP_CLIENT_KEY, undefined);
-  const client = createClient(clojureLspPath, fallbackFolder);
+  const client: LanguageClient = createClient(clojureLspPath, fallbackFolder);
   console.log('Starting clojure-lsp at', clojureLspPath);
 
   const testTree: StaticFeature = new TestTreeFeature();
   client.registerFeature(testTree);
 
-  const onReadyPromise = client.onReady();
   updateStatus('starting');
 
-  client.start();
   try {
-    await onReadyPromise;
+    await client.start();
     setStateValue(LSP_CLIENT_KEY, client);
     const serverInfo = await getServerInfo(client);
     if (serverInfo) {
