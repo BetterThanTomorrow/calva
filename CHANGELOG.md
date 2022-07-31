@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Make the clojure-lsp server info command always enabled](https://github.com/BetterThanTomorrow/calva/issues/1810)
+
 ## [2.0.289] - 2022-07-04
 
 - Fix: [:refer-clojure :exclude doesn't work as expected](https://github.com/BetterThanTomorrow/calva/issues/1718)
