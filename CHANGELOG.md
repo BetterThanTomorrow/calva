@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.290] - 2022-07-31
+
 - Fix: [Clojure-lsp server info command is not enabled if a non-clojure file is open in the active editor](https://github.com/BetterThanTomorrow/calva/issues/1810)
 - Fix: [An error is thrown when the clojure-lsp server is stopped via Calva's command for stopping it](https://github.com/BetterThanTomorrow/calva/issues/1773)
 
