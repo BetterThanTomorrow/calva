@@ -10,7 +10,7 @@ import { createConverter } from 'vscode-languageclient/lib/common/protocolConver
 import { getClient } from '../lsp/main';
 import { DefinitionRequest } from 'vscode-languageclient';
 
-const converter = createConverter(undefined, undefined);
+const converter = createConverter(undefined, undefined, true);
 
 const definitionFunctions = { lsp: lspDefinition, repl: provideClojureDefinition };
 
