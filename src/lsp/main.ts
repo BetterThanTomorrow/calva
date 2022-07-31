@@ -107,19 +107,19 @@ function createClient(clojureLspPath: string, fallbackFolder: FallbackFolder): L
       middleware: {
         didOpen: (document, next) => {
           if (isResultsDoc(document)) {
-            return;
+            return Promise.resolve();
           }
           return next(document);
         },
         didSave: (document, next) => {
           if (isResultsDoc(document)) {
-            return;
+            return Promise.resolve();
           }
           return next(document);
         },
         didChange: (change, next) => {
           if (isResultsDoc(change.document)) {
-            return;
+            return Promise.resolve();
           }
           return next(change);
         },
