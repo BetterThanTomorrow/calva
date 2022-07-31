@@ -2836,7 +2836,7 @@
     "@types/semver": "^7.3.9",
     "@types/universal-analytics": "^0.4.5",
     "@types/uuid": "^8.3.4",
-    "@types/vscode": "^1.69.0",
+    "@types/vscode": "^1.66.0",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
     "chai": "^4.2.0",
