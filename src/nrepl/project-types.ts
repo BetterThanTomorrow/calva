@@ -260,6 +260,14 @@ const leinDependencies = () => {
     nrepl: NREPL_VERSION(),
   };
 };
+
+const gradleDependencies = () => {
+  return {
+    'nrepl:nrepl': NREPL_VERSION(),
+    'cider:cider-nrepl': CIDER_NREPL_VERSION(),
+  };
+};
+
 const middleware = ['cider.nrepl/cider-middleware'];
 const cljsMiddlewareNames = {
   wrapCljsRepl: 'cider.piggieback/wrap-cljs-repl',
@@ -401,6 +409,23 @@ const projectTypes: { [id: string]: ProjectType } = {
         chan.appendLine('Aborting. No valid shadow-cljs build selected.');
         throw 'No shadow-cljs build selected';
       }
+    },
+  },
+  gradle: {
+    name: 'Gradle',
+    cljsTypes: [],
+    cmd: ['./gradlew'],
+    winCmd: ['cmd.exe', '/d', '/c', 'gradlew.bat'],
+    processShellUnix: true,
+    processShellWin: false,
+    useWhenExists: 'settings.gradle',
+    nReplPortFile: ['.nrepl-port'],
+    /**
+     * Build the command line args for a gradle.
+     * Add needed middleware deps to args
+     */
+    commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
+      return gradleCommandLine(['clojureRepl'], cljsType, connectSequence);
     },
   },
   generic: {
@@ -616,6 +641,34 @@ async function leinCommandLine(
   }
 
   out.push(...command);
+
+  return out;
+}
+
+function gradleCommandLine(
+  command: string[],
+  cljsType: CljsTypes,
+  connectSequence: ReplConnectSequence
+) {
+  const out: string[] = [];
+  const dependencies = {
+    ...gradleDependencies(),
+    ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
+    ...serverPrinterDependencies,
+  };
+  const keys = Object.keys(dependencies);
+  const q = isWin ? '' : "'",
+    dQ = '"';
+
+  const depsValue = keys.map((dep) => `${dep}:${dependencies[dep]}`).join(',');
+  const depsProp = `${q}-Pdev.clojurephant.jack-in.nrepl=${depsValue}${q}`;
+
+  out.push(depsProp, ...command);
+
+  const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
+  for (const mw of useMiddleware) {
+    out.push(`${q}--middleware=${mw}${q}`);
+  }
 
   return out;
 }
