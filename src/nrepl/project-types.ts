@@ -22,7 +22,7 @@ export type ProjectType = {
   processShellWin?: boolean;
   processShellUnix?: boolean;
   commandLine?: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => any;
-  useWhenExists?: string;
+  useWhenExists: string[];
   nReplPortFile: string[];
   startFunction?: () => Thenable<boolean | void>;
 };
@@ -302,7 +302,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: ['cmd.exe', '/d', '/c', 'lein'],
     processShellUnix: true,
     processShellWin: false,
-    useWhenExists: 'project.clj',
+    useWhenExists: ['project.clj'],
     nReplPortFile: ['.nrepl-port'],
     /** Build the command line args for a lein-project.
      * 1. Parsing the project.clj
@@ -329,7 +329,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     resolveBundledPathWin: depsCljWindowsPath,
     processShellUnix: true,
     processShellWin: true,
-    useWhenExists: 'deps.edn',
+    useWhenExists: ['deps.edn'],
     nReplPortFile: ['.nrepl-port'],
     /** Build the command line args for a clj-project.
      * 1. Read the deps.edn and parsed it
@@ -350,7 +350,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: ['npx.cmd'],
     processShellUnix: true,
     processShellWin: false,
-    useWhenExists: 'shadow-cljs.edn',
+    useWhenExists: ['shadow-cljs.edn'],
     nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
     /**
      *  Build the command line args for a shadow-project.
@@ -387,7 +387,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: ['cmd.exe', '/d', '/c', 'lein'],
     processShellUnix: true,
     processShellWin: false,
-    useWhenExists: 'project.clj',
+    useWhenExists: ['project.clj'],
     nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
     /**
      *  Build the command line args for a lein-shadow project.
@@ -418,7 +418,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: ['cmd.exe', '/d', '/c', 'gradlew.bat'],
     processShellUnix: true,
     processShellWin: false,
-    useWhenExists: 'settings.gradle',
+    useWhenExists: ['settings.gradle', 'settings.gradle.kts'],
     nReplPortFile: ['.nrepl-port'],
     /**
      * Build the command line args for a gradle.
@@ -438,7 +438,7 @@ const projectTypes: { [id: string]: ProjectType } = {
       `'${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}'`,
     processShellUnix: true,
     processShellWin: true,
-    useWhenExists: undefined,
+    useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
     commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
       return cljCommandLine(connectSequence, CljsTypes.none);
@@ -451,7 +451,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: ['bb'],
     processShellUnix: true,
     processShellWin: true,
-    useWhenExists: undefined,
+    useWhenExists: [],
     nReplPortFile: ['.bb-nrepl-port'],
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
       return ['--nrepl-server', await getPort()];
@@ -464,7 +464,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: ['npx.cmd'],
     processShellUnix: true,
     processShellWin: true,
-    useWhenExists: undefined,
+    useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
       return ['nbb', 'nrepl-server', ':port', await getPort()];
@@ -477,7 +477,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: [],
     processShellUnix: false,
     processShellWin: false,
-    useWhenExists: undefined,
+    useWhenExists: [],
     nReplPortFile: ['.joyride', '.nrepl-port'],
     commandLine: undefined,
     startFunction: () => void joyride.joyrideJackIn(state.getProjectRootLocal()),
@@ -686,12 +686,12 @@ export async function detectProjectTypes(): Promise<string[]> {
   const rootUri = state.getProjectRootUri();
   const cljProjTypes = ['generic', 'cljs-only', 'babashka', 'nbb', 'joyride'];
   for (const clj in projectTypes) {
-    if (projectTypes[clj].useWhenExists) {
+    for (const projectFileName of projectTypes[clj].useWhenExists) {
       try {
-        const projectFileName = projectTypes[clj].useWhenExists;
         const uri = vscode.Uri.joinPath(rootUri, projectFileName);
         await vscode.workspace.fs.readFile(uri);
         cljProjTypes.push(clj);
+        break;
       } catch {
         // continue regardless of error
       }
