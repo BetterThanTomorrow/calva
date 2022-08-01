@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.291] - 2022-08-01
+
+- Fix: [Clojure-lsp silently fails to start on versions of VS Code lower than 1.67.0](https://github.com/BetterThanTomorrow/calva/issues/1818)
+
 ## [2.0.290] - 2022-07-31
 
 - Fix: [Clojure-lsp server info command is not enabled if a non-clojure file is open in the active editor](https://github.com/BetterThanTomorrow/calva/issues/1810)
