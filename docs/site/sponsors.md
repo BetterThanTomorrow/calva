@@ -7,9 +7,9 @@ search:
 
 # Calva Sponsors
 
-Calva is open source and free to use. It is actively maintained during our free time, and it keeps improving. You can contribute in many different ways, one of which is sponsoring.
+Calva is open source and free to use. It is actively maintained during our free time, and it keeps improving. You can contribute in many different ways, one of which is sponsoring. You can sponsor Calva by directly [sponsoring any of us](#our-sponsoring-profiles).
 
-If you are working at a company which benefits from Calva's existence and continued development, please consider sponsoring at the Calva Gold Sponsor tier. 
+If you are working at a company which benefits from Calva's existence and continued development, please consider sponsoring at the Calva Gold Sponsor tier.
 
 Please see [this statement from Cognitect](https://cognitect.com/blog/2020/12/15/sponsoring-open-source-developers) about the importance of supporting open source developers.
 
@@ -59,7 +59,7 @@ Significant additions to Calva have been made possible by funding from [Clojuris
 
 ## Our Sponsoring Profiles
 
-These are the sponsoring profiles for the active maintainers of Calva (a.k.a. The Calva Team):
+These are the sponsoring profiles for the active maintainers of Calva (a.k.a. The Calva Team).
 
 * [Peter Strömberg](https://github.com/sponsors/PEZ)
 * [Brandon Ringe](https://github.com/sponsors/bpringe)
