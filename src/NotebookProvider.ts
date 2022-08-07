@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 import { TextDecoder, TextEncoder } from 'util';
-import { parseForms, prettyPrint } from '../out/cljs-lib/cljs-lib';
-import { LispTokenCursor } from './cursor-doc/token-cursor';
-import { LineInputModel } from './cursor-doc/model';
+import { prettyPrint } from '../out/cljs-lib/cljs-lib';
+import * as tokenCursor from './cursor-doc/token-cursor';
 import * as repl from './api/repl';
 
 export class NotebookProvider implements vscode.NotebookSerializer {
@@ -31,9 +30,8 @@ export class NotebookProvider implements vscode.NotebookSerializer {
 }
 
 function parseClojure(content: string): vscode.NotebookCellData[] {
-  const model = new LineInputModel();
-  model.insertString(0, content);
-  const cursor = model.getTokenCursor(0);
+  const cursor = tokenCursor.createStringCursor(content);
+
   const ranges = cursor.rangesForTopLevelForms().map(([start, end]) => {
     return {
       value: content.substring(start, end),
