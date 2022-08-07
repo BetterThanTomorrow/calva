@@ -20,7 +20,6 @@ export class NotebookProvider implements vscode.NotebookSerializer {
     _token: vscode.CancellationToken
   ): vscode.NotebookData | Thenable<vscode.NotebookData> {
     const content = this.decoder.decode(data);
-    console.log(content);
     const cellRawData = parseClojure(content);
 
     return {
@@ -98,13 +97,20 @@ async function doExecution(
   execution.start(Date.now());
 
   try {
-    const response = repl.evaluateCode(undefined, cell.document.getText());
+    const response = (await repl.evaluateCode(undefined, cell.document.getText())).result;
+    const pretty = prettyPrint(response).value;
+    const output = [
+      vscode.NotebookCellOutputItem.text(response),
+      vscode.NotebookCellOutputItem.text('```clojure\n' + pretty + '\n```', 'text/markdown'),
+      vscode.NotebookCellOutputItem.text(response, 'x-application/edn'),
+    ];
 
-    await execution.replaceOutput([
-      new vscode.NotebookCellOutput([
-        vscode.NotebookCellOutputItem.text(prettyPrint((await response).result).value),
-      ]),
-    ]);
+    if (response.replace(/^"|"$/g, '').startsWith('<html')) {
+      output.push(vscode.NotebookCellOutputItem.text(response.replace(/^"|"$/g, ''), 'text/html'));
+    }
+
+    await execution.replaceOutput([new vscode.NotebookCellOutput(output)]);
+
     execution.end(true, Date.now());
   } catch (err) {
     await execution.replaceOutput([
