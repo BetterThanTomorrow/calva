@@ -5,12 +5,6 @@ import { LispTokenCursor } from './cursor-doc/token-cursor';
 import { LineInputModel } from './cursor-doc/model';
 import * as repl from './api/repl';
 
-export interface RawNotebookCell {
-  language: string;
-  content: string;
-  kind: vscode.NotebookCellKind;
-}
-
 export class NotebookProvider implements vscode.NotebookSerializer {
   private readonly decoder = new TextDecoder();
   private readonly encoder = new TextEncoder();
@@ -32,7 +26,7 @@ export class NotebookProvider implements vscode.NotebookSerializer {
     _token: vscode.CancellationToken
   ): Uint8Array | Thenable<Uint8Array> {
     const stringOutput = writeCellsToClojure(data.cells);
-    return this.encoder.encode('stringOutput');
+    return this.encoder.encode(stringOutput);
   }
 }
 
@@ -52,7 +46,7 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
 }
 
 function writeCellsToClojure(cells: vscode.NotebookCellData[]) {
-  throw new Error('Function not implemented.');
+  return cells.map((x) => x.value).join('\n\n');
 }
 
 export class NotebookKernel {
