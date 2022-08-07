@@ -2770,17 +2770,17 @@
       ]
     },
     "notebooks": [
-			{
-				"type": "calva-notebook",
-				"displayName": "Calva Notebook",
-				"priority": "option",
-				"selector": [
-					{
-						"filenamePattern": "*.{clj,cljc,cljs,cljx}"
-					}
-				]
-			}
-		]
+      {
+        "type": "calva-notebook",
+        "displayName": "Calva Notebook",
+        "priority": "option",
+        "selector": [
+          {
+            "filenamePattern": "*.{clj,cljc,cljs,cljx}"
+          }
+        ]
+      }
+    ]
   },
   "scripts": {
     "watch-docs": "mkdocs serve",
