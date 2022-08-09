@@ -3,6 +3,7 @@ import { TextDecoder, TextEncoder } from 'util';
 import { prettyPrint } from '../out/cljs-lib/cljs-lib';
 import * as tokenCursor from './cursor-doc/token-cursor';
 import * as repl from './api/repl';
+import _ = require('lodash');
 
 export class NotebookProvider implements vscode.NotebookSerializer {
   private readonly decoder = new TextDecoder();
@@ -31,20 +32,31 @@ export class NotebookProvider implements vscode.NotebookSerializer {
 
 function parseClojure(content: string): vscode.NotebookCellData[] {
   const cursor = tokenCursor.createStringCursor(content);
+  const topLevelRanges = cursor.rangesForTopLevelForms().flat();
 
-  const ranges = cursor.rangesForTopLevelForms().map(([start, end]) => {
+  // grab only the ends of ranges, so we can include all of the file in the notebook
+  const fullRanges = _.filter(topLevelRanges, (_, index) => {
+    return index % 2 !== 0;
+  });
+
+  // last range should include end of file
+  fullRanges[fullRanges.length - 1] = content.length;
+
+  // start of file to end of top level sexp pairs
+  const allRanges = _.zip(_.dropRight([_.first(topLevelRanges), ...fullRanges], 1), fullRanges);
+
+  const ranges = allRanges.map(([start, end]) => {
     return {
       value: content.substring(start, end),
       kind: vscode.NotebookCellKind.Code,
       languageId: 'clojure',
     };
   });
-  console.log(ranges);
   return ranges;
 }
 
 function writeCellsToClojure(cells: vscode.NotebookCellData[]) {
-  return cells.map((x) => x.value).join('\n\n');
+  return cells.map((x) => x.value).join('');
 }
 
 export class NotebookKernel {
