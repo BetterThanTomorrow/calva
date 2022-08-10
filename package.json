@@ -2771,8 +2771,8 @@
     },
     "notebooks": [
       {
-        "type": "calva-notebook",
-        "displayName": "Calva Notebook",
+        "type": "calva-clojure-notebook",
+        "displayName": "Clojure Notebook",
         "priority": "option",
         "selector": [
           {

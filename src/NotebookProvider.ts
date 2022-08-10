@@ -33,6 +33,9 @@ export class NotebookProvider implements vscode.NotebookSerializer {
 function parseClojure(content: string): vscode.NotebookCellData[] {
   const cursor = tokenCursor.createStringCursor(content);
   const topLevelRanges = cursor.rangesForTopLevelForms().flat();
+  if (topLevelRanges.length) {
+    topLevelRanges[0] = 0;
+  }
 
   // grab only the ends of ranges, so we can include all of the file in the notebook
   const fullRanges = _.filter(topLevelRanges, (_, index) => {
@@ -61,8 +64,8 @@ function writeCellsToClojure(cells: vscode.NotebookCellData[]) {
 
 export class NotebookKernel {
   readonly id: string = 'calva-book-kernel';
-  readonly notebookType: string = 'calva-notebook';
-  readonly label: string = 'Calva Notebook';
+  readonly notebookType: string = 'calva-clojure-notebook';
+  readonly label: string = 'Clojure Notebook';
   readonly supportedLanguages = ['clojure'];
 
   private readonly _controller: vscode.NotebookController;

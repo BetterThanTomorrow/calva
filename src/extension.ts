@@ -602,7 +602,7 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(factory);
   }
   context.subscriptions.push(
-    vscode.workspace.registerNotebookSerializer('calva-notebook', new NotebookProvider(), {
+    vscode.workspace.registerNotebookSerializer('calva-clojure-notebook', new NotebookProvider(), {
       transientOutputs: true,
     })
   );
