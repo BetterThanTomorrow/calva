@@ -13,7 +13,7 @@ search:
 
    Please help test the feature. We're looking forward to your feedback!
 
-You can open any clojure file as a notebook by right clicking the file -> `Open with...` -> `Calva Notebook`.
+You can open any Clojure file as a notebook by right clicking the file -> `Open with...` -> `Clojure Notebook`.
 
 Running cells sends them to the REPL and pretty prints the results. If the return is a string that starts with `<html` it will be displayed in an html webview.
 
