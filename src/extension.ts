@@ -6,6 +6,7 @@ import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
 import * as replStart from './nrepl/repl-start';
 import * as util from './utilities';
+import { NotebookKernel, NotebookProvider } from './NotebookProvider';
 import status from './status';
 import connector from './connector';
 import CalvaCompletionItemProvider from './providers/completion';
@@ -600,6 +601,12 @@ async function activate(context: vscode.ExtensionContext) {
   if ('dispose' in factory) {
     context.subscriptions.push(factory);
   }
+  context.subscriptions.push(
+    vscode.workspace.registerNotebookSerializer('calva-clojure-notebook', new NotebookProvider(), {
+      transientOutputs: true,
+    })
+  );
+  context.subscriptions.push(new NotebookKernel());
 
   void vscode.commands.executeCommand('setContext', 'calva:activated', true);
 

@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Clojure Notebooks](https://github.com/BetterThanTomorrow/calva/issues/1824)
 
 ## [2.0.291] - 2022-08-01
 
