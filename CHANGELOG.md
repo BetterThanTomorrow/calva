@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Clojure Notebooks](https://github.com/BetterThanTomorrow/calva/issues/1824)
+- Fix: [Wrong 'when condition' for command 'paredit.togglemode'](https://github.com/BetterThanTomorrow/calva/issues/1804)
 
 ## [2.0.291] - 2022-08-01
 

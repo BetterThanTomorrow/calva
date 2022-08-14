@@ -1950,7 +1950,7 @@
       {
         "command": "paredit.togglemode",
         "key": "ctrl+alt+p ctrl+alt+m",
-        "when": "editorLangId == clojure calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
+        "when": "editorLangId == clojure && calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.backwardSexp",
