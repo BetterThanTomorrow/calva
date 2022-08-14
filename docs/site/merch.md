@@ -25,30 +25,10 @@ Calva Merch is available on Zazzle and on Amazon
 
 ## Zazzle
 
-At Zazzle you'll find both t-shirts and stickers.
-
-### Calva Symbol + Logo T-shirt
-
-<div style="text-align:center;line-height:150%"> <a href="https://www.zazzle.com/calva_symbol_logo_t_shirt-235445172572508642" rel="nofollow" > <img src="https://rlv.zcache.com/calva_symbol_logo_t_shirt-r6cb272285fb14880a99b91d0de9f438e_uii4o_325.jpg?bg=0xffffff" alt="Calva Symbol + Logo T-Shirt" style="border:0;" /> </a> <br /> <a href="https://www.zazzle.com/calva_symbol_logo_t_shirt-235445172572508642" rel="nofollow" >Calva Symbol + Logo T-Shirt</a> <br />by <a href="https://www.zazzle.com/store/betterthantomorrow" rel="nofollow">BetterThanTomorrow</a> </div>
-
-
-### Calva Rich Comments T-Shirt
-
-(It has the Calva symbol + logo at the front.)
-
-<div style="text-align:center;line-height:150%"> <a href="https://www.zazzle.com/calva_rich_comments_t_shirt-235935486353097195" rel="nofollow" > <img src="https://rlv.zcache.com/calva_rich_comments_t_shirt-rf6c5a26ef4144350a33a26dfcc994c4c_k2gmv_325.jpg?bg=0xffffff" alt="Calva Rich Comments T-Shirt" style="border:0;" /> </a> <br /> <a href="https://www.zazzle.com/calva_rich_comments_t_shirt-235935486353097195" rel="nofollow" >Calva Rich Comments T-Shirt</a> <br />by <a href="https://www.zazzle.com/store/betterthantomorrow" rel="nofollow">BetterThanTomorrow</a> </div>
-
 ### Calva Symbol Sticker
 
 <div style="text-align:center;line-height:150%"> <a href="https://www.zazzle.com/calva_symbol_sticker-256317900409469244" rel="nofollow" > <img src="https://rlv.zcache.com/calva_symbol_sticker-rbafc86bf7a504ac5a0171442a102babc_u092j_325.jpg?rlvnet=1&bg=0xffffff" alt="Calva Symbol Sticker" style="border:0;" /> </a> <br /> <a href="https://www.zazzle.com/calva_symbol_sticker-256317900409469244" rel="nofollow" >Calva Symbol Sticker</a> <br />by <a href="https://www.zazzle.com/store/betterthantomorrow" rel="nofollow">BetterThanTomorrow</a> </div>
 
-### Joyride Logo T-shirt
-
-<div style="text-align:center;line-height:150%"> <a href="https://www.zazzle.com/joyride_t_shirt-235848299736930459" rel="nofollow" > <img src="https://rlv.zcache.com/joyride_t_shirt-r7b9d2652ce5144db92a1d720d1cbce60_uii4o_325.jpg?bg=0xffffff" alt="Joyride T-shirt" style="border:0;" /> </a> <br /> <a href="https://www.zazzle.com/joyride_t_shirt-235848299736930459" rel="nofollow" >Joyride T-shirt</a> <br />by <a href="https://www.zazzle.com/store/betterthantomorrow" rel="nofollow">BetterThanTomorrow</a> </div>
-
-### Joyride Symbol T-shirt
-
-<div style="text-align:center;line-height:150%"> <a href="https://www.zazzle.com/joyride_symbol_t_shirt-235733958154503626" rel="nofollow" > <img src="https://rlv.zcache.com/joyride_symbol_t_shirt-rfa4e7cb039014522bb19af96f1caf79b_k2gm8_325.jpg?bg=0xffffff" alt="Joyride Symbol T-Shirt" style="border:0;" /> </a> <br /> <a href="https://www.zazzle.com/joyride_symbol_t_shirt-235733958154503626" rel="nofollow" >Joyride Symbol T-Shirt</a> <br />by <a href="https://www.zazzle.com/store/betterthantomorrow" rel="nofollow">BetterThanTomorrow</a> </div>
 
 ### Joyride Symbol Sticker
 
