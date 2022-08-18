@@ -47,6 +47,19 @@ Calva's pretty printing mode can be configured a bit. See [Pretty Printing](ppri
 
 This is highly customizable. See [Syntax highlighting](syntax-highlighting.md)
 
+## Color customizations 
+
+Calva defines a set of themable colors which can be provided by the user using [workbench.colorCustomizations](https://code.visualstudio.com/docs/getstarted/themes#_customize-a-color-theme).
+
+```json
+    "workbench.colorCustomizations": {
+        "calva.inlineErrorForegroundColor": "#ff0000",
+        "calva.inlineForegroundColor": "#ff9000"
+    }
+```
+
+<img width="1188" alt="image" src="https://user-images.githubusercontent.com/616193/185307813-c3e9ec7f-9c72-49a5-b1e6-8e350803c4ea.png">
+
 ## Automatic Parameter Hints Poppup
 
 Calva has helpful parameter hints to aid when typing function calls. They look like so:

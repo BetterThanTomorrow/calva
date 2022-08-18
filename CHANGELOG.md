@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Color customization for inline result](https://github.com/BetterThanTomorrow/calva/issues/1831)
+
 ## [2.0.292] - 2022-08-18
 
 - [Clojure Notebooks](https://github.com/BetterThanTomorrow/calva/issues/1824)
