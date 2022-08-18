@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Staged file gets evaluated instead of uncommitted file](https://github.com/BetterThanTomorrow/calva/issues/1833)
+
 ## [2.0.293] - 2022-08-18
 
 - [Add jack-in support for Gradle/Clojurephant](https://github.com/BetterThanTomorrow/calva/pull/1815)
