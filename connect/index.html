@@ -1980,7 +1980,7 @@
 <p>The recommended way is to:</p>
 <h2 id="jack-in-let-calva-start-the-repl-for-you">Jack-in: Let Calva Start the REPL For You</h2>
 <p>This way Calva can make sure it is started with the dependencies needed for a working Clojure and/or ClojureScript session. This is often referred to as <strong>Jack in</strong> (because that is what it is called in CIDER).</p>
-<p>Jack-in supports both CLJ and for CLJS, and has built-in configurations for <strong>Leiningen</strong>, <strong>deps.edn</strong>, and <strong>shadow-cljs</strong> projects, as well as for the CLJS repl types: <strong>Figwheel Main</strong>, <strong>lein-figwheel</strong> (legacy Figwheel), <strong>shadow-cljs</strong>, and ClojureScript built-ins for both browser and node.js. Using jack-in provides your development environment with all the dependencies you need for Calva to work.</p>
+<p>Jack-in supports both CLJ and for CLJS, and has built-in configurations for <strong>Leiningen</strong>, <strong>deps.edn</strong>, <strong>shadow-cljs</strong>, <strong>Gradle</strong> projects, as well as for the CLJS repl types: <strong>Figwheel Main</strong>, <strong>lein-figwheel</strong> (legacy Figwheel), <strong>shadow-cljs</strong>, and ClojureScript built-ins for both browser and node.js. Using jack-in provides your development environment with all the dependencies you need for Calva to work.</p>
 <p>It works like so:</p>
 <ol>
 <li>Open your project in VS Code.</li>
@@ -1990,7 +1990,7 @@
 <p>See also: <a href="../workspace-layouts/">Workspace Layouts</a></p>
 <div class="admonition note">
 <p class="admonition-title">About project roots</p>
-<p>You must have a project file, such as <code>project.clj</code> for Leiningen, or <code>deps.edn</code> for deps.edn, or <code>shadow-cljs.edn</code> for shadow-cljs, in the directory opened in VS Code in order for jack-in to work. If, after adding the project file, you experience an error during jack-in that says something could not be located, make sure you have the correct dependencies in your project file. For example, when using the <strong>Figwheel Main</strong> project type, you should have <code>com.bhauman/figwheel-main</code> in your project dependencies.</p>
+<p>You must have a project file, such as <code>project.clj</code> for Leiningen, or <code>deps.edn</code> for deps.edn, or <code>shadow-cljs.edn</code> for shadow-cljs, or <code>settings.gradle</code>/<code>settings.gradle.kts</code> for Gradle in the directory opened in VS Code in order for jack-in to work. If, after adding the project file, you experience an error during jack-in that says something could not be located, make sure you have the correct dependencies in your project file. For example, when using the <strong>Figwheel Main</strong> project type, you should have <code>com.bhauman/figwheel-main</code> in your project dependencies.</p>
 <p>See also below, regarding <a href="#monorepos-multiple-clojure-projects-in-one-workspace">multiple projects in a workspace</a></p>
 </div>
 <h3 id="aliases-profiles-builds">Aliases, Profiles, Builds</h3>
@@ -2129,7 +2129,7 @@ Jack-in process exited. Status: <span class="m">127</span>
     <script id="__config" type="application/json">{"base": "..", "features": ["content.tabs.link"], "search": "../assets/javascripts/workers/search.720157f5.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.f846be03.min.js"></script>
+      <script src="../assets/javascripts/bundle.9132161f.min.js"></script>
       
     
   </body>
