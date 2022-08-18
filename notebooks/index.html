@@ -6,11 +6,11 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Automate your workflow with Calva's rich custom REPL commands facilities">
+        <meta name="description" content="Work with Clojure notebook files directly in VSCode">
       
       
       
-        <link rel="canonical" href="https://calva.io/custom-commands/">
+        <link rel="canonical" href="https://calva.io/notebooks/">
       
       
         
@@ -20,7 +20,7 @@
     
     
       
-        <title>Custom REPL Commands - Calva User Guide</title>
+        <title>Clojure Notebooks - Calva User Guide</title>
       
     
     
@@ -67,11 +67,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Custom REPL Commands - Calva User Guide" >
+        <meta  property="og:title"  content="Clojure Notebooks - Calva User Guide" >
       
-        <meta  property="og:description"  content="Automate your workflow with Calva's rich custom REPL commands facilities" >
+        <meta  property="og:description"  content="Work with Clojure notebook files directly in VSCode" >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/custom-commands.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/notebooks.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -79,15 +79,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/custom-commands/" >
+        <meta  property="og:url"  content="https://calva.io/notebooks/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Custom REPL Commands - Calva User Guide" >
+        <meta  name="twitter:title"  content="Clojure Notebooks - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Automate your workflow with Calva's rich custom REPL commands facilities" >
+        <meta  name="twitter:description"  content="Work with Clojure notebook files directly in VSCode" >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/custom-commands.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/notebooks.png" >
       
     
     
@@ -219,11 +219,6 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
-        
-        <a href="#custom-repl-commands" class="md-skip">
-          Skip to content
-        </a>
-      
     </div>
     <div data-md-component="announce">
       
@@ -252,7 +247,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Custom REPL Commands
+              Clojure Notebooks
             
           </span>
         </div>
@@ -825,28 +820,9 @@
                 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Custom REPL Commands
-  </span>
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../custom-commands/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -854,71 +830,6 @@
   </span>
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#user-and-workspace-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      User and Workspace settings
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#binding-keyboard-shortcuts" class="md-nav__link">
-    <span class="md-ellipsis">
-      Binding keyboard shortcuts
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-repl-hover-snippets" class="md-nav__link">
-    <span class="md-ellipsis">
-      Custom REPL hover snippets
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configedn" class="md-nav__link">
-    <span class="md-ellipsis">
-      config.edn
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#snippets-inside-deps" class="md-nav__link">
-    <span class="md-ellipsis">
-      Snippets inside deps
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -966,9 +877,16 @@
                 
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../notebooks/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -976,6 +894,7 @@
   </span>
 
       </a>
+      
     </li>
   
 
@@ -1790,61 +1709,6 @@
   
   
   
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#user-and-workspace-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      User and Workspace settings
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#binding-keyboard-shortcuts" class="md-nav__link">
-    <span class="md-ellipsis">
-      Binding keyboard shortcuts
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-repl-hover-snippets" class="md-nav__link">
-    <span class="md-ellipsis">
-      Custom REPL hover snippets
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configedn" class="md-nav__link">
-    <span class="md-ellipsis">
-      config.edn
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#snippets-inside-deps" class="md-nav__link">
-    <span class="md-ellipsis">
-      Snippets inside deps
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
   
 </nav>
                   </div>
@@ -1856,126 +1720,26 @@
             <article class="md-content__inner md-typeset">
               
                 
-  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/custom-commands.md" title="Edit this page" class="md-content__button md-icon">
+  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/notebooks.md" title="Edit this page" class="md-content__button md-icon">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
   </a>
 
 
 
-<h1 id="custom-repl-commands">Custom REPL Commands</h1>
-<p>Calva supports configuration of custom command snippets that you can evaluate in the REPL at will. If your workflow has you repeatedly evaluate a particular piece of code, you can use the setting <code>calva.customREPLCommandSnippets</code> to configure it. Then either bind keyboard shortcuts to them or use the command <strong>Run Custom REPL Command</strong> to access it. The command will give you a menu with the snippets you have configured.</p>
-<div class="admonition note">
-<p class="admonition-title">Joyride</p>
-<p>For some use cases you might be better served by/want to combine these with using the <a href="https://code.visualstudio.com/api/references/vscode-ap">VS Code Extension API</a>, and <a href="../api/">that of Calva</a>, or any other extension, through <a href="../joyride/">Joyride</a>.</p>
+  <h1>Clojure Notebooks</h1>
+
+<div class="admonition warning">
+<p class="admonition-title">WIP: Notebook support is very basic and experimental</p>
 </div>
-<p>The <code>calva.customREPLCommandSnippets</code> is an array of objects with the following fields (required fields in <strong>bold</strong>):</p>
 <ul>
-<li><strong><code>name</code></strong>: The name of the snippet as it will appear in the picker menu</li>
-<li><strong><code>snippet</code></strong>: The code that will be evaluated</li>
-<li><code>key</code>: A key can be used to reference the snippet from <strong>Run Custom REPL Command</strong> keyboard shortcut arguments. It will also be used in the quick-pick menu.</li>
-<li><code>ns</code>: A namespace to evaluate the command in. If omitted the command will be executed in the namespace of the current editor.</li>
-<li><code>repl</code>: Which repl session to use for the evaluation. Either <code>"clj"</code> or <code>"cljs"</code>. Omit if you want to use the session of the current editor.</li>
+<li>You might experience loss of file contents when saving a Clojure Notebook. <em>Have backups of any files you open as notebooks.</em></li>
+<li>Tooling around autocomplete, go to def, linting and such does not work at all yet.</li>
+<li>There is no Markdown support.</li>
+<li>Etcetera.</li>
 </ul>
-<p>There are also substitutions available, which will take elements from the current state of Calva and splice them in to the text of your command before executing it. They are</p>
-<ul>
-<li><code>$line</code>: Current line number in editor</li>
-<li><code>$column</code>: Current column number in editor</li>
-<li><code>$file</code>: Full name of current file edited</li>
-<li><code>$ns</code>: The namespace used for evaluating the command</li>
-<li><code>$selection</code>: The currently selected text</li>
-<li><code>$current-form</code>: The text of the <a href="../evaluation/#current-form">current form</a></li>
-<li><code>$enclosing-form</code>: The text of the <a href="../evaluation/#evaluate-enclosing-form">current enclosing form</a></li>
-<li><code>$top-level-form</code> The text of the <a href="../evaluation/#current-top-level-form">current top level form</a></li>
-<li><code>$current-fn</code>: The sexpr/form at call position in the current list, e.g. <code>str</code> with <code>(defn foo [] (str "foo" "bar|"))</code></li>
-<li><code>$top-level-defined-symbol</code>: The second symbol of the top level form, e.g. <code>foo</code> with <code>(defn foo [] (str "foo" "bar|"))</code></li>
-<li><code>$head</code>: The text between the start of the current list to the cursor</li>
-<li><code>$tail</code>: The text between the cursor and the end of the current list</li>
-</ul>
-<h2 id="user-and-workspace-settings">User and Workspace settings</h2>
-<p>Settings from your User (global) level and the workspace are merged.</p>
-<p>With these <strong>User</strong> settings:</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
-<span class="w">        </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Call Current Form&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;($current-form)&quot;</span><span class="w"></span>
-<span class="w">        </span><span class="p">},</span><span class="w"></span>
-<span class="w">        </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Call Current Top Level Form&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;t&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;($top-level-form)&quot;</span><span class="w"></span>
-<span class="w">        </span><span class="p">},</span><span class="w"></span>
-<span class="w">        </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CLJ Test Top Level Defined Symbol&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;clj&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(clojure.test/test-var #&#39;$top-level-defined-symbol)&quot;</span><span class="w"></span>
-<span class="w">        </span><span class="p">},</span><span class="w"></span>
-<span class="w">        </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CLJS Test Top Level Defined Symbol&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cljs&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(cljs.test/test-var #&#39;$top-level-defined-symbol)&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tab&quot;</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="p">],</span><span class="w"></span>
-</code></pre></div>
-<p>And these <strong>Workspace</strong> settings:</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
-<span class="w">        </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Remount CLJS App&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;r&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cljs&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;ns&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;example.app&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(start)&quot;</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="p">],</span><span class="w"></span>
-</code></pre></div>
-<p>Issuing <strong>Run Custom REPL Command</strong> will then render this VS Code menu:</p>
-<p><img alt="" src="../images/custom-command-menu.png" /></p>
-<p>The default keyboard shortcut for the command is <code>ctrl+alt+space space</code>.</p>
-<h2 id="binding-keyboard-shortcuts">Binding keyboard shortcuts</h2>
-<p>There are three ways to bind shortcuts to custom commands:</p>
-<ol>
-<li>Use a predefined <code>key</code> shortcut. These are predefined as <code>ctrl+alt+space &lt;something&gt;</code>, where <code>&lt;something&gt;</code> is one of:<ul>
-<li>The digits <code>0</code> through <code>9</code></li>
-<li>The English letters <code>a</code> through <code>z</code></li>
-<li>Arrow keys <code>right</code>, <code>left</code>, <code>up</code>, or <code>down</code></li>
-<li>One of <code>tab</code>, <code>backspace</code>, <code>,</code>, <code>.</code>, or <code>-</code> </li>
-</ul>
-</li>
-<li>Bind <code>calva.runCustomREPLCommand</code> to a shortcut with whatever code you want to evaluate in <code>args</code> key. You have access to the substitution variables here as well.</li>
-<li>Bind <code>calva.runCustomREPLCommand</code> to a keyboard shortcut referencing the <code>key</code> of one of your <code>calva.customREPLCommandSnippets</code>. (If not using any of the <code>key</code>s mentioned in <strong>1.</strong>)</li>
-</ol>
-<h2 id="custom-repl-hover-snippets">Custom REPL hover snippets</h2>
-<p>Calva supports custom snippets that will display their result inside the tooltip. They will only work when connected to a repl, since they eval code in it.
-This is mostly useful for tooling authors that want to integrate with calva.
-Be careful with these, since they will be executed anytime Calva displays a tooltip. So they should be fast and probably not have any side effects.</p>
-<p>The hover snippets accept the same inputs as the Custom REPL Commands, except for the hotkey:</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.customREPLHoverSnippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
-<span class="w">        </span><span class="p">{</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;eval text on hover&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;clj&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;ns&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;example.app&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(str \&quot;$hover-text\&quot;)&quot;</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="p">]</span><span class="w"></span>
-</code></pre></div>
-<p>With this setting anything the mouse is over will also be shown inside its tooltip.
-There are now also <code>hover-</code> versions of most substitutions. Those currently only work inside the hover snippets.</p>
-<h2 id="configedn">config.edn</h2>
-<p>Your project can have a <code>.calva/config.edn</code> file that holds a map with calva configs. Currently only <code>:customREPLCommandSnippets</code> and <code>:customREPLHoverSnippets</code> get loaded.
-These will not get synced through vscode settings sync.</p>
-<h2 id="snippets-inside-deps">Snippets inside deps</h2>
-<p>A new experimental feature lets library authors ship snippets inside their jar files. These accept the same options as above but should be placed in "resources/calva.exports/config.edn" inside the jar.</p>
-<div class="highlight"><pre><span></span><code>{:customREPLCommandSnippets
- [{:name &quot;edn test&quot;
-   :key &quot;a&quot;
-   :snippet &quot;($current-form)&quot;}]
- :customREPLHoverSnippets
- [{:name &quot;edn hover&quot;
-   :snippet &quot;(str \&quot;$hover-tex\&quot;)&quot;}
-  {:name &quot;edn hover show val&quot;
-   :snippet &quot;(str \&quot;### EDN show val\n```clojure\n\&quot; (pr-str (eval (symbol (str \&quot;$ns\&quot; \&quot;/\&quot; \&quot;$hover-top-level-defined-symbol\&quot;)))) \&quot;\n```\&quot;)&quot;}]}
-</code></pre></div>
+<p>Please help test the feature. We're looking forward to your feedback!</p>
+<p>You can open any Clojure file as a notebook by right clicking the file -&gt; <code>Open with...</code> -&gt; <code>Clojure Notebook</code>.</p>
+<p>Running cells sends them to the REPL and pretty prints the results. If the return is a string that starts with <code>&lt;html</code> it will be displayed in an html webview.</p>
 
   
   
@@ -2003,7 +1767,7 @@ These will not get synced through vscode settings sync.</p>
     <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
         
-        <a href="../connect-sequences/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Custom REPL Connect Sequences" rel="prev">
+        <a href="../namespace-form-auto-creation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Namespace Form Auto-creation" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
@@ -2012,20 +1776,20 @@ These will not get synced through vscode settings sync.</p>
               <span class="md-footer__direction">
                 Previous
               </span>
-              Custom REPL Connect Sequences
+              Namespace Form Auto-creation
             </div>
           </div>
         </a>
       
       
         
-        <a href="../linting/" class="md-footer__link md-footer__link--next" aria-label="Next: Superb Clojure Linting" rel="next">
+        <a href="../clojure-lsp/" class="md-footer__link md-footer__link--next" aria-label="Next: clojure-lsp" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Superb Clojure Linting
+              clojure-lsp
             </div>
           </div>
           <div class="md-footer__button md-icon">
