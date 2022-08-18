@@ -4,8 +4,16 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Clojure-lsp silently fails to start on versions of VS Code lower than 1.67.0](https://github.com/BetterThanTomorrow/calva/issues/1818)
 - [Add jack-in support for Gradle/Clojurephant](https://github.com/BetterThanTomorrow/calva/pull/1815)
+
+## [2.0.292] - 2022-08-18
+
+- [Clojure Notebooks](https://github.com/BetterThanTomorrow/calva/issues/1824)
+- Fix: [Wrong 'when condition' for command 'paredit.togglemode'](https://github.com/BetterThanTomorrow/calva/issues/1804)
+
+## [2.0.291] - 2022-08-01
+
+- Fix: [Clojure-lsp silently fails to start on versions of VS Code lower than 1.67.0](https://github.com/BetterThanTomorrow/calva/issues/1818)
 
 ## [2.0.290] - 2022-07-31
 
