@@ -1,0 +1,13 @@
+# Gradle
+/.gradle/
+/build/
+
+# Eclipse
+/.settings/
+/.project
+/.classpath
+/bin/
+
+# Calva
+/.clj-kondo/
+/.lsp/

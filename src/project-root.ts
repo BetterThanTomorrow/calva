@@ -10,6 +10,8 @@ export async function findProjectRootPaths() {
     'deps.edn',
     'bb.edn',
     '.nrepl-port',
+    'settings.gradle',
+    'settings.gradle.kts',
   ];
   const projectFilesGlob = `**/{${projectFileNames.join(',')}}`;
   const excludeDirsGlob = excludePattern();

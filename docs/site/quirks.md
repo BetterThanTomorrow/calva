@@ -28,6 +28,7 @@ See [Using Calva with the VIM Extension](vim.md).
 * `clojure` for tools.deps/deps.edn
 * `lein` for Leiningen
 * `npx` for shadow-cljs
+* `gradlew` for Gradle (in your project)
 
 Also, in some circumstances VS Code is not spawned from a shell with the environment variables, especially `$PATH`, which might mean that even though you have the tools installed, they are not found when VS Code/Calva tries to execute them. To fix this you will need to do one of these two things:
 

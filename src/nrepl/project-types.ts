@@ -22,7 +22,7 @@ export type ProjectType = {
   processShellWin?: boolean;
   processShellUnix?: boolean;
   commandLine?: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => any;
-  useWhenExists?: string;
+  useWhenExists: string[];
   nReplPortFile: string[];
   startFunction?: () => Thenable<boolean | void>;
 };
@@ -260,6 +260,14 @@ const leinDependencies = () => {
     nrepl: NREPL_VERSION(),
   };
 };
+
+const gradleDependencies = () => {
+  return {
+    'nrepl:nrepl': NREPL_VERSION(),
+    'cider:cider-nrepl': CIDER_NREPL_VERSION(),
+  };
+};
+
 const middleware = ['cider.nrepl/cider-middleware'];
 const cljsMiddlewareNames = {
   wrapCljsRepl: 'cider.piggieback/wrap-cljs-repl',
@@ -294,7 +302,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: ['cmd.exe', '/d', '/c', 'lein'],
     processShellUnix: true,
     processShellWin: false,
-    useWhenExists: 'project.clj',
+    useWhenExists: ['project.clj'],
     nReplPortFile: ['.nrepl-port'],
     /** Build the command line args for a lein-project.
      * 1. Parsing the project.clj
@@ -321,7 +329,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     resolveBundledPathWin: depsCljWindowsPath,
     processShellUnix: true,
     processShellWin: true,
-    useWhenExists: 'deps.edn',
+    useWhenExists: ['deps.edn'],
     nReplPortFile: ['.nrepl-port'],
     /** Build the command line args for a clj-project.
      * 1. Read the deps.edn and parsed it
@@ -342,7 +350,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: ['npx.cmd'],
     processShellUnix: true,
     processShellWin: false,
-    useWhenExists: 'shadow-cljs.edn',
+    useWhenExists: ['shadow-cljs.edn'],
     nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
     /**
      *  Build the command line args for a shadow-project.
@@ -379,7 +387,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: ['cmd.exe', '/d', '/c', 'lein'],
     processShellUnix: true,
     processShellWin: false,
-    useWhenExists: 'project.clj',
+    useWhenExists: ['project.clj'],
     nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
     /**
      *  Build the command line args for a lein-shadow project.
@@ -403,6 +411,23 @@ const projectTypes: { [id: string]: ProjectType } = {
       }
     },
   },
+  gradle: {
+    name: 'Gradle',
+    cljsTypes: [],
+    cmd: ['./gradlew'],
+    winCmd: ['cmd.exe', '/d', '/c', 'gradlew.bat'],
+    processShellUnix: true,
+    processShellWin: false,
+    useWhenExists: ['settings.gradle', 'settings.gradle.kts'],
+    nReplPortFile: ['.nrepl-port'],
+    /**
+     * Build the command line args for a gradle.
+     * Add needed middleware deps to args
+     */
+    commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
+      return gradleCommandLine(['clojureRepl'], cljsType, connectSequence);
+    },
+  },
   generic: {
     name: 'generic',
     cljsTypes: [],
@@ -413,7 +438,7 @@ const projectTypes: { [id: string]: ProjectType } = {
       `'${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}'`,
     processShellUnix: true,
     processShellWin: true,
-    useWhenExists: undefined,
+    useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
     commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
       return cljCommandLine(connectSequence, CljsTypes.none);
@@ -426,7 +451,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: ['bb'],
     processShellUnix: true,
     processShellWin: true,
-    useWhenExists: undefined,
+    useWhenExists: [],
     nReplPortFile: ['.bb-nrepl-port'],
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
       return ['--nrepl-server', await getPort()];
@@ -439,7 +464,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: ['npx.cmd'],
     processShellUnix: true,
     processShellWin: true,
-    useWhenExists: undefined,
+    useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
       return ['nbb', 'nrepl-server', ':port', await getPort()];
@@ -452,7 +477,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: [],
     processShellUnix: false,
     processShellWin: false,
-    useWhenExists: undefined,
+    useWhenExists: [],
     nReplPortFile: ['.joyride', '.nrepl-port'],
     commandLine: undefined,
     startFunction: () => void joyride.joyrideJackIn(state.getProjectRootLocal()),
@@ -620,6 +645,34 @@ async function leinCommandLine(
   return out;
 }
 
+function gradleCommandLine(
+  command: string[],
+  cljsType: CljsTypes,
+  connectSequence: ReplConnectSequence
+) {
+  const out: string[] = [];
+  const dependencies = {
+    ...gradleDependencies(),
+    ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
+    ...serverPrinterDependencies,
+  };
+  const keys = Object.keys(dependencies);
+  const q = isWin ? '' : "'",
+    dQ = '"';
+
+  const depsValue = keys.map((dep) => `${dep}:${dependencies[dep]}`).join(',');
+  const depsProp = `${q}-Pdev.clojurephant.jack-in.nrepl=${depsValue}${q}`;
+
+  out.push(depsProp, ...command);
+
+  const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
+  for (const mw of useMiddleware) {
+    out.push(`${q}--middleware=${mw}${q}`);
+  }
+
+  return out;
+}
+
 /** Given the name of a project in project types, find that project. */
 export function getProjectTypeForName(name: string) {
   for (const id in projectTypes) {
@@ -633,12 +686,12 @@ export async function detectProjectTypes(): Promise<string[]> {
   const rootUri = state.getProjectRootUri();
   const cljProjTypes = ['generic', 'cljs-only', 'babashka', 'nbb', 'joyride'];
   for (const clj in projectTypes) {
-    if (projectTypes[clj].useWhenExists) {
+    for (const projectFileName of projectTypes[clj].useWhenExists) {
       try {
-        const projectFileName = projectTypes[clj].useWhenExists;
         const uri = vscode.Uri.joinPath(rootUri, projectFileName);
         await vscode.workspace.fs.readFile(uri);
         cljProjTypes.push(clj);
+        break;
       } catch {
         // continue regardless of error
       }

@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.292",
+  "version": "2.0.293",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -2779,6 +2779,26 @@
             "filenamePattern": "*.{clj,cljc,cljs,cljx}"
           }
         ]
+      }
+    ],
+    "colors": [
+      {
+        "id": "calva.inlineForegroundColor",
+        "description": "Specifies the foreground color of the inline result",
+        "defaults": {
+          "dark": "#ffffffff",
+          "light": "#00000000",
+          "highContrast": "#00000000"
+        }
+      },
+      {
+        "id": "calva.inlineErrorForegroundColor",
+        "description": "Specifies the foreground color of the inline result with error",
+        "defaults": {
+          "dark": "#ffafaf",
+          "light": "#ff7f7f",
+          "highContrast": "#ff7f7f"
+        }
       }
     ]
   },

@@ -8,6 +8,7 @@ enum ProjectTypes {
   'deps.edn' = 'deps.edn',
   'shadow-cljs' = 'shadow-cljs',
   'lein-shadow' = 'lein-shadow',
+  'Gradle' = 'Gradle',
   'babashka' = 'babashka',
   'nbb' = 'nbb',
   'joyride' = 'joyride',
@@ -143,6 +144,14 @@ const leinShadowDefaults: ReplConnectSequence[] = [
   },
 ];
 
+const gradleDefaults: ReplConnectSequence[] = [
+  {
+    name: 'Gradle',
+    projectType: ProjectTypes.Gradle,
+    cljsType: CljsTypes.none,
+  },
+];
+
 const genericDefaults: ReplConnectSequence[] = [
   {
     name: 'Generic',
@@ -192,6 +201,7 @@ const defaultSequences = {
   clj: cljDefaults,
   'shadow-cljs': shadowCljsDefaults,
   'lein-shadow': leinShadowDefaults,
+  gradle: gradleDefaults,
   generic: genericDefaults,
   babashka: babashkaDefaults,
   nbb: nbbDefaults,

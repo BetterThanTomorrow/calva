@@ -51,16 +51,9 @@ function evaluated(contentText, hoverText, hasError) {
       after: {
         contentText: contentText.replace(/ /g, '\u00a0'),
         overflow: 'hidden',
-      },
-      light: {
-        after: {
-          color: hasError ? 'rgb(255, 127, 127)' : 'black',
-        },
-      },
-      dark: {
-        after: {
-          color: hasError ? 'rgb(255, 175, 175)' : 'white',
-        },
+        color: hasError
+          ? new vscode.ThemeColor('calva.inlineErrorForegroundColor')
+          : new vscode.ThemeColor('calva.inlineForegroundColor'),
       },
     },
   };
