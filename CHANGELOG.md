@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.293] - 2022-08-18
+
 - [Add jack-in support for Gradle/Clojurephant](https://github.com/BetterThanTomorrow/calva/pull/1815)
 - [Color customization for inline result](https://github.com/BetterThanTomorrow/calva/issues/1831)
 
