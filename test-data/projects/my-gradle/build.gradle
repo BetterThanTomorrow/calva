@@ -1,0 +1,27 @@
+plugins {
+  id 'dev.clojurephant.clojure' version '0.7.0'
+  id 'maven-publish'
+}
+
+group = 'my.group'
+version = '0.1.0-SNAPSHOT'
+
+repositories {
+  mavenCentral()
+  maven {
+    name = 'clojars'
+    url = 'https://repo.clojars.org'
+  }
+}
+
+dependencies {
+  implementation 'org.clojure:clojure:1.11.0'
+
+  testRuntimeOnly 'org.ajoberstar:jovial:0.3.0'
+
+  devImplementation 'org.clojure:tools.namespace:1.3.0'
+}
+
+tasks.withType(Test) {
+  useJUnitPlatform()
+}
