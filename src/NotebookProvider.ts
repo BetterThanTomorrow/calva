@@ -65,33 +65,44 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
       const commentRange = afterForm.rangeForCurrentForm(0);
       const commentStartCursor = cursor.doc.getTokenCursor(commentRange[0]);
       const commentCells = [];
-      let count = 0;
+      let previouseEnd = start;
 
       commentStartCursor.downList();
       commentStartCursor.forwardSexp();
 
       while (commentStartCursor.forwardSexp()) {
+        const range = commentStartCursor.rangeForDefun(commentStartCursor.offsetStart);
+        let leading = '';
+
+        leading = content.substring(previouseEnd, range[0]);
+        previouseEnd = range[1];
+
         commentCells.push({
-          value: substring(
-            content,
-            commentStartCursor.rangeForDefun(commentStartCursor.offsetStart)
-          ),
+          value: substring(content, range),
           kind: vscode.NotebookCellKind.Code,
           languageId: 'clojure',
           metadata: {
-            richComment: { index: count },
+            leading: leading,
+            range,
+            richComment: true,
+            trailing: '',
           },
         });
-        count++;
       }
-      commentCells.forEach((x) => (x.metadata.richComment.count = count));
+
+      _.last(commentCells).metadata.trailing = content.substring(previouseEnd, end);
 
       return commentCells;
     }
+
     return {
       value: content.substring(start, end),
       kind: vscode.NotebookCellKind.Code,
       languageId: 'clojure',
+      metadata: {
+        leading: '',
+        trailing: '',
+      },
     };
   });
 
@@ -101,17 +112,13 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
 function writeCellsToClojure(cells: vscode.NotebookCellData[]) {
   return cells.reduce((acc, x) => {
     if (x.kind === vscode.NotebookCellKind.Code) {
-      let result: string = x.value;
-      if (x.metadata?.richComment) {
-        if (x.metadata.richComment.index === 0) {
-          result = '\n(comment\n'.concat(result);
-        }
+      let result = '';
 
-        if (x.metadata.richComment.index === x.metadata.richComment.count - 1) {
-          result = result.concat(')');
-        } else {
-          result = result.concat('\n');
-        }
+      // created inside the notebook
+      if (undefined === x.metadata.leading) {
+        result = '\n\n' + x.value;
+      } else {
+        result = x.metadata.leading + x.value + x.metadata.trailing;
       }
 
       return acc.concat(result);
