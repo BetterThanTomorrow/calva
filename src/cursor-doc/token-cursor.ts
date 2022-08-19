@@ -794,6 +794,18 @@ export class LispTokenCursor extends TokenCursor {
     return ranges;
   }
 
+  rangesForCommentForms(offset: number): [number, number][] {
+    const cursor = this.doc.getTokenCursor(offset);
+    const ranges: [number, number][] = [];
+    while (cursor.forwardSexp()) {
+      const end = cursor.offsetStart;
+      cursor.backwardSexp();
+      ranges.push([cursor.offsetStart, end]);
+      cursor.forwardSexp();
+    }
+    return ranges;
+  }
+
   isWhiteSpace(): boolean {
     return tokenIsWhiteSpace(this.getToken());
   }
