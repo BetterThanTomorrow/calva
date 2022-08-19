@@ -73,6 +73,7 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
       while (commentStartCursor.forwardSexp()) {
         const range = commentStartCursor.rangeForDefun(commentStartCursor.offsetStart);
         let leading = '';
+        const indent = commentStartCursor.doc.getRowCol(range[0])[1]; // will break with tabs?
 
         leading = content.substring(previouseEnd, range[0]);
         previouseEnd = range[1];
@@ -83,6 +84,7 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
           languageId: 'clojure',
           metadata: {
             leading: leading,
+            indent,
             range,
             richComment: true,
             trailing: '',
@@ -100,6 +102,7 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
       kind: vscode.NotebookCellKind.Code,
       languageId: 'clojure',
       metadata: {
+        indent: 0,
         leading: '',
         trailing: '',
       },
@@ -110,13 +113,15 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
 }
 
 function writeCellsToClojure(cells: vscode.NotebookCellData[]) {
-  return cells.reduce((acc, x) => {
+  return cells.reduce((acc, x, index) => {
     if (x.kind === vscode.NotebookCellKind.Code) {
       let result = '';
 
       // created inside the notebook
       if (undefined === x.metadata.leading) {
-        result = '\n\n' + x.value;
+        const indent = index > 0 ? _.repeat(' ', cells[index - 1].metadata.indent) : '';
+
+        result = '\n\n' + indent + x.value;
       } else {
         result = x.metadata.leading + x.value + x.metadata.trailing;
       }
