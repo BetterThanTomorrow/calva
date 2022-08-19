@@ -4,6 +4,7 @@ import { prettyPrint } from '../out/cljs-lib/cljs-lib';
 import * as tokenCursor from './cursor-doc/token-cursor';
 import * as repl from './api/repl';
 import _ = require('lodash');
+import { isInteger } from 'lodash';
 
 export class NotebookProvider implements vscode.NotebookSerializer {
   private readonly decoder = new TextDecoder();
@@ -30,9 +31,17 @@ export class NotebookProvider implements vscode.NotebookSerializer {
   }
 }
 
+function substring(content: string, [start, end]) {
+  if (isInteger(start) && isInteger(end)) {
+    return content.substring(start, end);
+  }
+  return '';
+}
+
 function parseClojure(content: string): vscode.NotebookCellData[] {
   const cursor = tokenCursor.createStringCursor(content);
   const topLevelRanges = cursor.rangesForTopLevelForms().flat();
+
   if (topLevelRanges.length) {
     topLevelRanges[0] = 0;
   }
@@ -48,18 +57,68 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
   // start of file to end of top level sexp pairs
   const allRanges = _.zip(_.dropRight([_.first(topLevelRanges), ...fullRanges], 1), fullRanges);
 
-  const ranges = allRanges.map(([start, end]) => {
+  const ranges = allRanges.flatMap(([start, end]) => {
+    const endForm = cursor.doc.getTokenCursor(end - 1);
+    const afterForm = cursor.doc.getTokenCursor(end);
+
+    if (endForm.getFunctionName() === 'comment') {
+      const commentRange = afterForm.rangeForCurrentForm(0);
+      const commentStartCursor = cursor.doc.getTokenCursor(commentRange[0]);
+      const commentCells = [];
+      let count = 0;
+
+      commentStartCursor.downList();
+      commentStartCursor.forwardSexp();
+
+      while (commentStartCursor.forwardSexp()) {
+        commentCells.push({
+          value: substring(
+            content,
+            commentStartCursor.rangeForDefun(commentStartCursor.offsetStart)
+          ),
+          kind: vscode.NotebookCellKind.Code,
+          languageId: 'clojure',
+          metadata: {
+            richComment: { index: count },
+          },
+        });
+        count++;
+      }
+      commentCells.forEach((x) => (x.metadata.richComment.count = count));
+
+      return commentCells;
+    }
     return {
       value: content.substring(start, end),
       kind: vscode.NotebookCellKind.Code,
       languageId: 'clojure',
     };
   });
+
   return ranges;
 }
 
 function writeCellsToClojure(cells: vscode.NotebookCellData[]) {
-  return cells.map((x) => x.value).join('');
+  return cells.reduce((acc, x) => {
+    if (x.kind === vscode.NotebookCellKind.Code) {
+      let result: string = x.value;
+      if (x.metadata?.richComment) {
+        if (x.metadata.richComment.index === 0) {
+          result = '\n(comment\n'.concat(result);
+        }
+
+        if (x.metadata.richComment.index === x.metadata.richComment.count - 1) {
+          result = result.concat(')');
+        } else {
+          result = result.concat('\n');
+        }
+      }
+
+      return acc.concat(result);
+    } else {
+      return acc.concat(x.value);
+    }
+  }, '');
 }
 
 export class NotebookKernel {
