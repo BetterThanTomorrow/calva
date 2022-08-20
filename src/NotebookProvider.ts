@@ -57,6 +57,109 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
   // start of file to end of top level sexp pairs
   const allRanges = _.zip(_.dropRight([_.first(topLevelRanges), ...fullRanges], 1), fullRanges);
 
+  let offset = 0;
+  let cells = [];
+
+  while (cursor.forwardSexp()) {
+    const start = offset;
+    const end = cursor.offsetStart;
+    offset = end;
+
+    const endForm = cursor.doc.getTokenCursor(end - 1);
+    const afterForm = cursor.doc.getTokenCursor(end);
+
+    if (endForm.getFunctionName() === 'comment') {
+      const commentRange = afterForm.rangeForCurrentForm(0);
+      const commentStartCursor = cursor.doc.getTokenCursor(commentRange[0]);
+      const commentCells = [];
+      let previouseEnd = start;
+
+      commentStartCursor.downList();
+      commentStartCursor.forwardSexp();
+
+      while (commentStartCursor.forwardSexp()) {
+        const range = commentStartCursor.rangeForDefun(commentStartCursor.offsetStart);
+
+        let leading = '';
+        const indent = commentStartCursor.doc.getRowCol(range[0])[1]; // will break with tabs?
+
+        leading = content.substring(previouseEnd, range[0]);
+        previouseEnd = range[1];
+
+        commentCells.push({
+          value: substring(content, range),
+          kind: vscode.NotebookCellKind.Code,
+          languageId: 'clojure',
+          metadata: {
+            leading: leading,
+            indent,
+            range,
+            richComment: true,
+            trailing: '',
+          },
+        });
+      }
+
+      _.last(commentCells).metadata.trailing = content.substring(previouseEnd, end);
+
+      cells = cells.concat(commentCells);
+
+      continue;
+    }
+
+    const range = cursor.rangeForDefun(cursor.offsetStart);
+
+    const leading = content.substring(start, range[0]);
+
+    if (leading.indexOf(';; ') === -1) {
+      cells.push({
+        value: leading,
+        kind: vscode.NotebookCellKind.Markup,
+        languageId: 'markdown',
+        metadata: {
+          indent: 0,
+          range,
+          leading: '',
+          trailing: '',
+        },
+      });
+    } else {
+      cells.push({
+        value: leading.replace(/;; /g, ''),
+        kind: vscode.NotebookCellKind.Markup,
+        languageId: 'markdown',
+        metadata: {
+          indent: 0,
+          range,
+          markdownComment: true,
+          leading: '',
+          trailing: '',
+        },
+      });
+    }
+
+    cells.push({
+      value: substring(content, range),
+      kind: vscode.NotebookCellKind.Code,
+      languageId: 'clojure',
+      metadata: {
+        indent: 0,
+        range,
+        leading: '',
+        trailing: '',
+      },
+    });
+  }
+
+  _.last(cells).metadata.trailing = content.substring(
+    _.last(cells).metadata.range[1],
+    content.length
+  );
+
+  console.log(cells);
+
+  return cells;
+
   const ranges = allRanges.flatMap(([start, end]) => {
     const endForm = cursor.doc.getTokenCursor(end - 1);
     const afterForm = cursor.doc.getTokenCursor(end);
@@ -128,6 +231,13 @@ function writeCellsToClojure(cells: vscode.NotebookCellData[]) {
 
       return acc.concat(result);
     } else {
+      if (x.metadata.markdownComment) {
+        let result = x.value.replace(/\n(?!$)/g, '\n;; ');
+        if (index === 0) {
+          result = ';; ' + result;
+        }
+        return acc.concat(result);
+      }
       return acc.concat(x.value);
     }
   }, '');
