@@ -40,23 +40,6 @@ function substring(content: string, [start, end]) {
 
 function parseClojure(content: string): vscode.NotebookCellData[] {
   const cursor = tokenCursor.createStringCursor(content);
-  const topLevelRanges = cursor.rangesForTopLevelForms().flat();
-
-  if (topLevelRanges.length) {
-    topLevelRanges[0] = 0;
-  }
-
-  // grab only the ends of ranges, so we can include all of the file in the notebook
-  const fullRanges = _.filter(topLevelRanges, (_, index) => {
-    return index % 2 !== 0;
-  });
-
-  // last range should include end of file
-  fullRanges[fullRanges.length - 1] = content.length;
-
-  // start of file to end of top level sexp pairs
-  const allRanges = _.zip(_.dropRight([_.first(topLevelRanges), ...fullRanges], 1), fullRanges);
-
   let offset = 0;
   let cells = [];
 
@@ -159,60 +142,6 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
   console.log(cells);
 
   return cells;
-
-  const ranges = allRanges.flatMap(([start, end]) => {
-    const endForm = cursor.doc.getTokenCursor(end - 1);
-    const afterForm = cursor.doc.getTokenCursor(end);
-
-    if (endForm.getFunctionName() === 'comment') {
-      const commentRange = afterForm.rangeForCurrentForm(0);
-      const commentStartCursor = cursor.doc.getTokenCursor(commentRange[0]);
-      const commentCells = [];
-      let previouseEnd = start;
-
-      commentStartCursor.downList();
-      commentStartCursor.forwardSexp();
-
-      while (commentStartCursor.forwardSexp()) {
-        const range = commentStartCursor.rangeForDefun(commentStartCursor.offsetStart);
-        let leading = '';
-        const indent = commentStartCursor.doc.getRowCol(range[0])[1]; // will break with tabs?
-
-        leading = content.substring(previouseEnd, range[0]);
-        previouseEnd = range[1];
-
-        commentCells.push({
-          value: substring(content, range),
-          kind: vscode.NotebookCellKind.Code,
-          languageId: 'clojure',
-          metadata: {
-            leading: leading,
-            indent,
-            range,
-            richComment: true,
-            trailing: '',
-          },
-        });
-      }
-
-      _.last(commentCells).metadata.trailing = content.substring(previouseEnd, end);
-
-      return commentCells;
-    }
-
-    return {
-      value: content.substring(start, end),
-      kind: vscode.NotebookCellKind.Code,
-      languageId: 'clojure',
-      metadata: {
-        indent: 0,
-        leading: '',
-        trailing: '',
-      },
-    };
-  });
-
-  return ranges;
 }
 
 function writeCellsToClojure(cells: vscode.NotebookCellData[]) {
