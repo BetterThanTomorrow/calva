@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Output metadata on notebooks](https://github.com/BetterThanTomorrow/calva/issues/1836)
 - Fix: [Staged file gets evaluated instead of uncommitted file](https://github.com/BetterThanTomorrow/calva/issues/1833)
 
 ## [2.0.293] - 2022-08-18
