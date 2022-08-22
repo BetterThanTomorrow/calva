@@ -104,7 +104,24 @@ async function doExecution(
   execution.start(Date.now());
 
   try {
-    const response = (await repl.evaluateCode(undefined, cell.document.getText())).result;
+    const response = (
+      await repl.evaluateCode(
+        undefined,
+        cell.document.getText(),
+        {
+          stdout: (_) => {
+            return;
+          },
+          stderr: (_) => {
+            return;
+          },
+        },
+        {
+          'nrepl.middleware.print/print': 'nrepl.util.print/pr',
+          'nrepl.middleware.print/options': { 'print-meta': true },
+        }
+      )
+    ).result;
     const pretty = prettyPrint(response).value;
     const output = [
       vscode.NotebookCellOutputItem.text(response),
