@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.294] - 2022-08-25
+
+- [Output metadata on notebooks](https://github.com/BetterThanTomorrow/calva/issues/1836)
+- Fix: [Staged file gets evaluated instead of uncommitted file](https://github.com/BetterThanTomorrow/calva/issues/1833)
+- [Update nrepl jack-in dependency to 1.0 ](https://github.com/BetterThanTomorrow/calva/issues/1839)
+
 ## [2.0.293] - 2022-08-18
 
 - [Add jack-in support for Gradle/Clojurephant](https://github.com/BetterThanTomorrow/calva/pull/1815)

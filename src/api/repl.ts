@@ -15,7 +15,8 @@ export const evaluateCode = async (
   output?: {
     stdout: (m: string) => void;
     stderr: (m: string) => void;
-  }
+  },
+  opts = {}
 ): Promise<Result> => {
   const session = replSession.getSession(sessionKey || undefined);
   if (!session) {
@@ -35,6 +36,7 @@ export const evaluateCode = async (
     stdout: stdout,
     stderr: stderr,
     pprintOptions: printer.disabledPrettyPrinter,
+    ...opts,
   });
   return {
     result: await evaluation.value,

@@ -378,7 +378,9 @@ function scrollToBottom(editor: vscode.TextEditor) {
 }
 
 async function getFileContents(path: string) {
-  const doc = vscode.workspace.textDocuments.find((document) => document.uri.path === path);
+  const doc = vscode.workspace.textDocuments.find(
+    (d) => d.uri.path === path && d.uri.scheme === 'file'
+  );
   if (doc) {
     return doc.getText();
   }

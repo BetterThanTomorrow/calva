@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.293",
+  "version": "2.0.294",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -381,7 +381,7 @@
               }
             },
             "default": {
-              "nrepl": "0.9.0",
+              "nrepl": "1.0.0",
               "cider-nrepl": "0.28.5",
               "cider/piggieback": "0.5.3"
             }
