@@ -4,3 +4,7 @@
 /.vscode-test
 /site
 .cache
+**/public/
+**/target/
+**/.shadow-cljs/
+**/out/

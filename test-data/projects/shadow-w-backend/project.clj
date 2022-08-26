@@ -1,8 +1,12 @@
 (defproject lein-app "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
   :dependencies [[org.clojure/clojure "1.11.1"]
-                 [thheller/shadow-cljs "2.19.9"]]
-  :main ^:skip-aot lein-app.server
+                 [org.clojure/clojurescript "1.11.60"]
+                 [thheller/shadow-cljs "2.19.9"]
+                 [binaryage/devtools "1.0.6"]
+                 [reagent "1.1.1"]]
+  :source-paths ["src"]
+  :main ^:skip-aot shadow-lein.server
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})
