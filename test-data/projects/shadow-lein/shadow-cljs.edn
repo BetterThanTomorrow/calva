@@ -1,4 +1,3 @@
-;; shadow-cljs configuration
 {;:lein true
  :source-paths
  ["src"]
@@ -10,17 +9,13 @@
  {:app {:target :browser
         :output-dir "public/js/compiled"
         :asset-path "/js/compiled"
-
         :modules
         {:main
          {:entries [shadow-lein.core]}}
 
         :devtools
-        ;; before live-reloading any code call this function
         {:before-load shadow-lein.core/stop
-         ;; after live-reloading finishes call this function
          :after-load shadow-lein.core/start
-         ;; serve the public directory over http at port 8700
          :http-root    "public"
          :http-port    8700
          :preloads     [devtools.preload]}
