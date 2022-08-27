@@ -237,13 +237,15 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     buildsRequired: true,
     isStarted: false,
     // isReadyToStartRegExp: /To quit, type: :cljs\/quit/,
+    startCode:
+      "(do (require 'shadow.cljs.devtools.server) (shadow.cljs.devtools.server/start!) (require 'shadow.cljs.devtools.api) (shadow.cljs.devtools.api/watch %BUILDS%))",
     connectCode: {
       build: `(do (require 'shadow.cljs.devtools.api) (shadow.cljs.devtools.api/nrepl-select %BUILD%))`,
       repl: `(do (require 'shadow.cljs.devtools.api) (shadow.cljs.devtools.api/%REPL%))`,
     },
     shouldOpenUrl: false,
     isConnectedRegExp: /To quit, type: :cljs\/quit/,
-    //isConnectedRegExp: /:selected/
+    // isConnectedRegExp: /:selected/,
   },
   'ClojureScript built-in for browser': {
     name: 'ClojureScript built-in for browser',

@@ -302,9 +302,15 @@ function createCLJSReplType(
     haveShownStartMessage = false,
     haveShownAppURL = false,
     haveShownStartSuffix = false,
-    hasStarted = cljsType.isStarted,
     useDefaultBuild = true,
     startedBuilds: string[];
+
+  if (connectSequence.projectType === 'shadow-cljs') {
+    cljsType.isStarted = true;
+  }
+
+  let hasStarted = cljsType.isStarted;
+
   // The output processors are used to keep the user informed about the connection process
   // The output from Figwheel is meant for printing to the REPL prompt,
   // and since we print to Calva says we, only print some of the messages.
@@ -436,7 +442,9 @@ function createCLJSReplType(
           if (menuSelections && menuSelections.cljsLaunchBuilds) {
             builds = menuSelections.cljsLaunchBuilds;
           } else {
-            const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
+            const allBuilds = (await figwheelOrShadowBuilds(cljsTypeName)).filter(
+              (build) => !['browser-repl', 'node-repl'].includes(build)
+            );
             builds =
               allBuilds.length <= 1
                 ? allBuilds
@@ -456,7 +464,7 @@ function createCLJSReplType(
               '%BUILDS%',
               builds
                 .map((x) => {
-                  return `"${x}"`;
+                  return x.startsWith(':') ? x : `"${x}"`;
                 })
                 .join(' ')
             );
@@ -548,14 +556,6 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
           : '');
       outputWindow.append(`; ${failed}`);
       setStateValue('cljsBuild', null);
-      void vscode.window
-        .showInformationMessage(failed, { modal: true }, ...['Ok'])
-        .then((value) => {
-          if (value == 'Ok') {
-            const outputChannel = state.connectionLogChannel();
-            outputChannel.show();
-          }
-        });
     }
   }
   return [null, null];
