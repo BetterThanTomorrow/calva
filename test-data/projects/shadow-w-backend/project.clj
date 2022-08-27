@@ -5,8 +5,9 @@
                  [thheller/shadow-cljs "2.19.9"]
                  [binaryage/devtools "1.0.6"]
                  [reagent "1.1.1"]]
+  :repl-options {:nrepl-middleware [shadow.cljs.devtools.server.nrepl/middleware]}
   :source-paths ["src"]
-  :main ^:skip-aot shadow-lein.server
+  :main ^:skip-aot main.server
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})

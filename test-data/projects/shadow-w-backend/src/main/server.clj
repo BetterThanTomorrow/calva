@@ -1,4 +1,4 @@
-(ns shadow-lein.server
+(ns main.server
   (:gen-class))
 
 (defn -main

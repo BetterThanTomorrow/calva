@@ -1,4 +1,4 @@
-(ns shadow-lein.core
+(ns main.core
   (:require [reagent.core :as r]
             [reagent.dom :as rdom]))
 
@@ -9,17 +9,14 @@
    [:h1 (:text @app-state)]
    [:h3 "Edit this and watch it change!"]])
 
-(defn start []
+(defn ^:dev/after-load start []
+  (js/console.log "start")
   (rdom/render [hello-world]
                (. js/document (getElementById "app"))))
 
 (defn ^:export init []
-  ;; init is called ONCE when the page loads
-  ;; this is called in the index.html and must be exported
-  ;; so it is available even in :advanced release builds
+  (js/console.log "init")
   (start))
 
-(defn stop []
-  ;; stop is called before any code is reloaded
-  ;; this is controlled by :before-load in the config
+(defn ^:dev/before-load stop []
   (js/console.log "stop"))

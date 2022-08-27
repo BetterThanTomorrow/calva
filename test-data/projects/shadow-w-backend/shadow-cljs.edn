@@ -1,22 +1,10 @@
-{;:lein true
- :source-paths
- ["src"]
-
- :dependencies [[binaryage/devtools "1.0.6"]
-                [reagent "1.1.1"]]
-
+{:lein true
+;; :source-paths ["src"]
+;; :dependencies [[binaryage/devtools "1.0.6"]
+;;                [reagent "1.1.1"]]
+ :dev-http {8700 "public"}
  :builds
  {:app {:target :browser
         :output-dir "public/js/compiled"
         :asset-path "/js/compiled"
-        :modules
-        {:main
-         {:entries [shadow-lein.core]}}
-
-        :devtools
-        {:before-load shadow-lein.core/stop
-         :after-load shadow-lein.core/start
-         :http-root    "public"
-         :http-port    8700
-         :preloads     [devtools.preload]}
-        }}}
+        :modules {:main {:init-fn main.core/init}}}}}
