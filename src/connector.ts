@@ -298,13 +298,17 @@ function createCLJSReplType(
 ): ReplType {
   const projectTypeName: string = connectSequence.name,
     menuSelections = connectSequence.menuSelections;
-  let appURL: string,
-    haveShownStartMessage = false,
-    haveShownAppURL = false,
-    haveShownStartSuffix = false,
-    hasStarted = cljsType.isStarted,
-    useDefaultBuild = true,
-    startedBuilds: string[];
+  let appURL: string;
+  let haveShownStartMessage = false;
+  let haveShownAppURL = false;
+  let haveShownStartSuffix = false;
+  let useDefaultBuild = true;
+  let startedBuilds: string[];
+  const shouldRunStartCode =
+    !cljsType.isStarted && !(connectSequence.projectType === 'shadow-cljs');
+
+  let hasStarted = cljsType.isStarted || !shouldRunStartCode;
+
   // The output processors are used to keep the user informed about the connection process
   // The output from Figwheel is meant for printing to the REPL prompt,
   // and since we print to Calva says we, only print some of the messages.
@@ -427,7 +431,7 @@ function createCLJSReplType(
     },
   };
 
-  if (cljsType.startCode) {
+  if (cljsType.startCode && shouldRunStartCode) {
     replType.start = async (session, name, checkFn) => {
       let startCode = cljsType.startCode;
       if (!hasStarted) {
@@ -436,7 +440,9 @@ function createCLJSReplType(
           if (menuSelections && menuSelections.cljsLaunchBuilds) {
             builds = menuSelections.cljsLaunchBuilds;
           } else {
-            const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
+            const allBuilds = (await figwheelOrShadowBuilds(cljsTypeName)).filter(
+              (build) => !['browser-repl', 'node-repl'].includes(build)
+            );
             builds =
               allBuilds.length <= 1
                 ? allBuilds
@@ -456,7 +462,7 @@ function createCLJSReplType(
               '%BUILDS%',
               builds
                 .map((x) => {
-                  return `"${x}"`;
+                  return x.startsWith(':') ? x : `"${x}"`;
                 })
                 .join(' ')
             );
@@ -548,14 +554,6 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
           : '');
       outputWindow.append(`; ${failed}`);
       setStateValue('cljsBuild', null);
-      void vscode.window
-        .showInformationMessage(failed, { modal: true }, ...['Ok'])
-        .then((value) => {
-          if (value == 'Ok') {
-            const outputChannel = state.connectionLogChannel();
-            outputChannel.show();
-          }
-        });
     }
   }
   return [null, null];
@@ -675,8 +673,12 @@ export default {
     await liveShareSupport.setupLiveShareListener().catch((e) => {
       console.error('Error initializing LiveShare support: ', e);
     });
-    const cljTypes = await projectTypes.detectProjectTypes(),
-      connectSequence = await askForConnectSequence(cljTypes, 'connect-type', 'ConnectInterrupted');
+    const cljTypes = await projectTypes.detectProjectTypes();
+    const connectSequence = await askForConnectSequence(
+      cljTypes,
+      'connect-type',
+      'ConnectInterrupted'
+    );
     void standaloneConnect(connectSequence);
   },
   disconnect: (

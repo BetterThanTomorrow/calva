@@ -26,7 +26,7 @@ A connect sequence configures the following:
     * `dependsOn`: (required) Calva will use this to determine which dependencies it will add when starting the project (Jacking in). This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", or ”User provided”. If it is "User provided", then you need to provide the dependencies in the project or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed.
     * `isStarted`: Boolean. For CLJS REPLs that Calva does not need to start, set this to true. (If you base your custom cljs repl on a shadow-cljs workflow, for instance.)
     * `startCode`: Clojure code to be evaluated to create and/or start your custom CLJS REPL.
-    * `isStartedRegExp`: A regular expression which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated.
+    * `isReadyToStartRegExp`: A regular expression which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated.
     * `openUrlRegExp`: A regular expression, matched against the stdout of cljsType evaluations, for extracting the URL with which the app can be started. The expression should have a capturing group named `url`. E.g. "Open URL: (?\<url\>S+)"
     * `shouldOpenUrl`: Choose if Calva should automatically open the URL for you or not.
     * `connectCode`: (required) Clojure code to be evaluated to convert the REPL to a CLJS REPL that Calva can use to connect to the application. (For some setups this could also conditionally start the CLJS REPL. If so: `startCode` should be omitted.)
@@ -59,7 +59,7 @@ Setting for a full-stack application. It starts the backend server when the CLJ 
             "afterCLJReplJackInCode": "(go)",
             "cljsType": {
                 "startCode": "(do (require '[cljs-test.main :refer :all])(start-nrepl+fig))",
-                "isStartedRegExp": "Prompt will show",
+                "isReadyToStartRegExp": "Prompt will show",
                 "connectCode": "(do (use 'cljs-test.main) (cljs-repl))",
                 "isConnectedRegExp": "To quit, type: :cljs/quit",
                 "printThisLineRegExp": "\\[Figwheel\\] Starting Server at.*"

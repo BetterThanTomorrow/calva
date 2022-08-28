@@ -76,6 +76,30 @@ When searching for project roots in your workspace, Calva will glob for all file
 !!! Note "Exclude entry globs"
     Each entry is a partial *glob* and will be part of a resulting *glob* of the form `**/{glob1,glob2,...,globN}`. This means that all directories in the workspace matching an entry will be excluded, regardless of where in the workspace they reside.
 
+## shadow-cljs in full stack projects
+
+shadow-cljs is a bit special in regards to Calva REPL connection. Mainly because you can start shadow-cljs and it's nREPL server in two ways:
+
+1. Using the shadow-cljs npm executable
+2. Via the Clojure REPL in your Leiningen or deps.edn project
+
+These options show up as **project types** when connecting or jacking in:
+
+1. Project type: **shadow-cljs**
+2. Project type: **deps.edn + shadow-cljs** or **Leiningen + shadow-cljs**
+
+**NB**: Unless you have good reasons, use the **shadow-cljs** project type and configure shadow-cljs to use deps.edn or Leiningen for source paths, and for dependency resolution.
+
+Although the other project types work, the wiring is different. When the npm shadow-cljs executable is used, it outputs both shadow-cljs and Clojure related messages in the Jack-in terminal. Whereas when started from Clojure most shadow-cljs output ends up in the Output/REPL window. This gets extra important if you have shadow-cljs tests running automatically.
+
+### Leiningen + shadow-cljs middleware issue
+
+Please note that for Leiningen, [the command line dependency injection of the shadow-cljs nrepl middleware doesn't work](https://codeberg.org/leiningen/leiningen/issues/10). You need to add it to your `project.clj`:
+
+```clojure
+  :repl-options {:nrepl-middleware [shadow.cljs.devtools.server.nrepl/middleware]}
+```
+
 ## Troubleshooting
 
 ### Command Not Found Errors When Jacking In

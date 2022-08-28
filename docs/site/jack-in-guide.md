@@ -139,7 +139,7 @@ It is the piggieback middleware there telling you that you can unpromote the REP
 
 Because Calva uses the Clojure REPL connection to spawn the ClojureScript REPL, and because Calva only handles one Clojure REPL per VS Code window, some projects need special handling by the user.
 
-If your full stack project is using shadow-cljs for the frontend, like [this Fulcro template project](https://github.com/fulcrologic/fulcro-template) does, maybe you first try to Jack-In to your backend Clojure REPL, and then to your shadow-cljs frontend. This works if you do it in separate VS Code windows, but if you do it in the same window, the second Jack-In will kill the backend session!
+If your full stack project is using shadow-cljs for the frontend, like [this Fulcro template project](https://github.com/fulcrologic/fulcro-template) does, maybe you first try to Jack-In to your backend Clojure REPL, and then to your shadow-cljs frontend. This works if you do it in separate VS Code windows, but if you do it in the same window, the second Jack-In will kill the backend session! See also [connect shadow-cljs in fullstack projects](connect.md#shadow-cljs-in-full-stack-projects).
 
 See [Workspace Layouts](workspace-layouts.md) for tips about how to open the same project folder in two separate VS Code windows.
 

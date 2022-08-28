@@ -6,3 +6,4 @@
 /.lsp
 /.clj-kondo
 /site
+/test-data
