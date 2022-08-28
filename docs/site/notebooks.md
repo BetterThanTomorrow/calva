@@ -17,3 +17,4 @@ You can open any Clojure file as a notebook by right clicking the file -> `Open 
 
 Running cells sends them to the REPL and pretty prints the results. If the return is a string that starts with `<html` it will be displayed in an html webview.
 
+Forms inside `(comment)` blocks get shown as their own cells. When adding code blocks in between those cells they get saved with the same indentation as the first form.
