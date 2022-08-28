@@ -1,0 +1,10 @@
+{:lein true
+;; :source-paths ["src"]
+;; :dependencies [[binaryage/devtools "1.0.6"]
+;;                [reagent "1.1.1"]]
+ :dev-http {8700 "public"}
+ :builds
+ {:app {:target :browser
+        :output-dir "public/js/compiled"
+        :asset-path "/js/compiled"
+        :modules {:main {:init-fn main.core/init}}}}}

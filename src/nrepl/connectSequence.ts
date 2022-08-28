@@ -64,32 +64,37 @@ const leiningenDefaults: ReplConnectSequence[] = [
     name: 'Leiningen',
     projectType: ProjectTypes.Leiningen,
     cljsType: CljsTypes.none,
+    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + Figwheel Main',
     projectType: ProjectTypes.Leiningen,
     cljsType: CljsTypes['Figwheel Main'],
+    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + shadow-cljs',
     projectType: ProjectTypes.Leiningen,
     cljsType: CljsTypes['shadow-cljs'],
-    nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
+    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + ClojureScript built-in for browser',
     projectType: ProjectTypes.Leiningen,
     cljsType: CljsTypes['ClojureScript built-in for browser'],
+    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + ClojureScript built-in for node',
     projectType: ProjectTypes.Leiningen,
     cljsType: CljsTypes['ClojureScript built-in for node'],
+    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + Legacy Figwheel',
     projectType: ProjectTypes.Leiningen,
     cljsType: CljsTypes['lein-figwheel'],
+    nReplPortFile: ['.nrepl-port'],
   },
 ];
 
@@ -98,32 +103,37 @@ const cljDefaults: ReplConnectSequence[] = [
     name: 'deps.edn',
     projectType: ProjectTypes['deps.edn'],
     cljsType: CljsTypes.none,
+    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + Figwheel Main',
     projectType: ProjectTypes['deps.edn'],
     cljsType: CljsTypes['Figwheel Main'],
+    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + shadow-cljs',
     projectType: ProjectTypes['deps.edn'],
     cljsType: CljsTypes['shadow-cljs'],
-    nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
+    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + ClojureScript built-in for browser',
     projectType: ProjectTypes['deps.edn'],
     cljsType: CljsTypes['ClojureScript built-in for browser'],
+    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + ClojureScript built-in for node',
     projectType: ProjectTypes['deps.edn'],
     cljsType: CljsTypes['ClojureScript built-in for node'],
+    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + Legacy Figwheel',
     projectType: ProjectTypes['deps.edn'],
     cljsType: CljsTypes['lein-figwheel'],
+    nReplPortFile: ['.nrepl-port'],
   },
 ];
 
@@ -132,6 +142,7 @@ const shadowCljsDefaults: ReplConnectSequence[] = [
     name: 'shadow-cljs',
     projectType: ProjectTypes['shadow-cljs'],
     cljsType: CljsTypes['shadow-cljs'],
+    nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
   },
 ];
 
@@ -157,7 +168,7 @@ const genericDefaults: ReplConnectSequence[] = [
     name: 'Generic',
     projectType: ProjectTypes['generic'],
     cljsType: CljsTypes.none,
-    nReplPortFile: ['nrepl.port'],
+    nReplPortFile: ['.nrepl-port'],
   },
 ];
 
@@ -166,7 +177,7 @@ const cljsOnlyDefaults: ReplConnectSequence[] = [
     name: 'ClojureScript nREPL Server',
     projectType: ProjectTypes['cljs-only'],
     cljsType: CljsTypes['ClojureScript nREPL'],
-    nReplPortFile: ['nrepl.port'],
+    nReplPortFile: ['.nrepl-port'],
   },
 ];
 
@@ -237,13 +248,15 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     buildsRequired: true,
     isStarted: false,
     // isReadyToStartRegExp: /To quit, type: :cljs\/quit/,
+    startCode:
+      "(do (require 'shadow.cljs.devtools.server) (shadow.cljs.devtools.server/start!) (require 'shadow.cljs.devtools.api) (shadow.cljs.devtools.api/watch %BUILDS%))",
     connectCode: {
       build: `(do (require 'shadow.cljs.devtools.api) (shadow.cljs.devtools.api/nrepl-select %BUILD%))`,
       repl: `(do (require 'shadow.cljs.devtools.api) (shadow.cljs.devtools.api/%REPL%))`,
     },
     shouldOpenUrl: false,
     isConnectedRegExp: /To quit, type: :cljs\/quit/,
-    //isConnectedRegExp: /:selected/
+    // isConnectedRegExp: /:selected/,
   },
   'ClojureScript built-in for browser': {
     name: 'ClojureScript built-in for browser',

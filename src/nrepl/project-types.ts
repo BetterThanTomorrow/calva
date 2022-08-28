@@ -272,10 +272,11 @@ const middleware = ['cider.nrepl/cider-middleware'];
 const cljsMiddlewareNames = {
   wrapCljsRepl: 'cider.piggieback/wrap-cljs-repl',
 };
+const shadowSLjsMiddleware = 'shadow.cljs.devtools.server.nrepl/middleware';
 const cljsMiddleware: { [id: string]: string[] } = {
   'lein-figwheel': [cljsMiddlewareNames.wrapCljsRepl],
   'Figwheel Main': [cljsMiddlewareNames.wrapCljsRepl],
-  'shadow-cljs': [],
+  'shadow-cljs': [shadowSLjsMiddleware],
   'lein-shadow': [cljsMiddlewareNames.wrapCljsRepl],
   'ClojureScript built-in for browser': [cljsMiddlewareNames.wrapCljsRepl],
   'ClojureScript built-in for node': [cljsMiddlewareNames.wrapCljsRepl],

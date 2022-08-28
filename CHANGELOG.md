@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Leiningen and deps.edn projects with shadow-cljs is too hard to connect to](https://github.com/BetterThanTomorrow/calva/issues/1842)
+
 ## [2.0.294] - 2022-08-25
 
 - [Output metadata on notebooks](https://github.com/BetterThanTomorrow/calva/issues/1836)
