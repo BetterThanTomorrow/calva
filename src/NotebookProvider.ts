@@ -92,7 +92,9 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
         });
       }
 
-      _.last(commentCells).metadata.trailing = content.substring(previouseEnd, end);
+      if (commentCells.length) {
+        _.last(commentCells).metadata.trailing = content.substring(previouseEnd, end);
+      }
 
       return commentCells;
     }
