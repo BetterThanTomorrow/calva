@@ -40,24 +40,14 @@ function substring(content: string, [start, end]) {
 
 function parseClojure(content: string): vscode.NotebookCellData[] {
   const cursor = tokenCursor.createStringCursor(content);
-  const topLevelRanges = cursor.rangesForTopLevelForms().flat();
+  let offset = 0;
+  let cells = [];
 
-  if (topLevelRanges.length) {
-    topLevelRanges[0] = 0;
-  }
+  while (cursor.forwardSexp()) {
+    const start = offset;
+    const end = cursor.offsetStart;
+    offset = end;
 
-  // grab only the ends of ranges, so we can include all of the file in the notebook
-  const fullRanges = _.filter(topLevelRanges, (_, index) => {
-    return index % 2 !== 0;
-  });
-
-  // last range should include end of file
-  fullRanges[fullRanges.length - 1] = content.length;
-
-  // start of file to end of top level sexp pairs
-  const allRanges = _.zip(_.dropRight([_.first(topLevelRanges), ...fullRanges], 1), fullRanges);
-
-  const ranges = allRanges.flatMap(([start, end]) => {
     const endForm = cursor.doc.getTokenCursor(end - 1);
     const afterForm = cursor.doc.getTokenCursor(end);
 
@@ -72,6 +62,7 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
 
       while (commentStartCursor.forwardSexp()) {
         const range = commentStartCursor.rangeForDefun(commentStartCursor.offsetStart);
+
         let leading = '';
         const indent = commentStartCursor.doc.getRowCol(range[0])[1]; // will break with tabs?
 
@@ -96,22 +87,63 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
         _.last(commentCells).metadata.trailing = content.substring(previouseEnd, end);
       }
 
-      return commentCells;
+      cells = cells.concat(commentCells);
+
+      continue;
     }
 
-    return {
-      value: content.substring(start, end),
+    const range = cursor.rangeForDefun(cursor.offsetStart);
+
+    const leading = content.substring(start, range[0]);
+
+    if (leading.indexOf(';; ') === -1) {
+      cells.push({
+        value: leading,
+        kind: vscode.NotebookCellKind.Markup,
+        languageId: 'markdown',
+        metadata: {
+          indent: 0,
+          range,
+          leading: '',
+          trailing: '',
+        },
+      });
+    } else {
+      cells.push({
+        value: leading.replace(/;; /g, ''),
+        kind: vscode.NotebookCellKind.Markup,
+        languageId: 'markdown',
+        metadata: {
+          indent: 0,
+          range,
+          markdownComment: true,
+          leading: '',
+          trailing: '',
+        },
+      });
+    }
+
+    cells.push({
+      value: substring(content, range),
       kind: vscode.NotebookCellKind.Code,
       languageId: 'clojure',
       metadata: {
         indent: 0,
+        range,
         leading: '',
         trailing: '',
       },
-    };
-  });
+    });
+  }
 
-  return ranges;
+  _.last(cells).metadata.trailing = content.substring(
+    _.last(cells).metadata.range[1],
+    content.length
+  );
+
+  console.log(cells);
+
+  return cells;
 }
 
 function writeCellsToClojure(cells: vscode.NotebookCellData[]) {
@@ -130,6 +162,13 @@ function writeCellsToClojure(cells: vscode.NotebookCellData[]) {
 
       return acc.concat(result);
     } else {
+      if (x.metadata.markdownComment) {
+        let result = x.value.replace(/\n(?!$)/g, '\n;; ');
+        if (index === 0) {
+          result = ';; ' + result;
+        }
+        return acc.concat(result);
+      }
       return acc.concat(x.value);
     }
   }, '');
