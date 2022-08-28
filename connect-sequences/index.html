@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.4.1+insiders-4.22.0">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.4.2+insiders-4.22.0">
     
     
       
@@ -56,7 +56,7 @@
   
 
 
-  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-69796730-5","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){if(document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document.forms.feedback){var e,a=document.forms.feedback;for(e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}"undefined"!=typeof location$&&location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-69796730-5","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
 
   
     <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
@@ -1776,7 +1776,7 @@
 <li><code>dependsOn</code>: (required) Calva will use this to determine which dependencies it will add when starting the project (Jacking in). This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", or ”User provided”. If it is "User provided", then you need to provide the dependencies in the project or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed.</li>
 <li><code>isStarted</code>: Boolean. For CLJS REPLs that Calva does not need to start, set this to true. (If you base your custom cljs repl on a shadow-cljs workflow, for instance.)</li>
 <li><code>startCode</code>: Clojure code to be evaluated to create and/or start your custom CLJS REPL.</li>
-<li><code>isStartedRegExp</code>: A regular expression which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated.</li>
+<li><code>isReadyToStartRegExp</code>: A regular expression which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated.</li>
 <li><code>openUrlRegExp</code>: A regular expression, matched against the stdout of cljsType evaluations, for extracting the URL with which the app can be started. The expression should have a capturing group named <code>url</code>. E.g. "Open URL: (?\&lt;url>S+)"</li>
 <li><code>shouldOpenUrl</code>: Choose if Calva should automatically open the URL for you or not.</li>
 <li><code>connectCode</code>: (required) Clojure code to be evaluated to convert the REPL to a CLJS REPL that Calva can use to connect to the application. (For some setups this could also conditionally start the CLJS REPL. If so: <code>startCode</code> should be omitted.)</li>
@@ -1810,7 +1810,7 @@
 <span class="w">            </span><span class="nt">&quot;afterCLJReplJackInCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(go)&quot;</span><span class="p">,</span><span class="w"></span>
 <span class="w">            </span><span class="nt">&quot;cljsType&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">                </span><span class="nt">&quot;startCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(do (require &#39;[cljs-test.main :refer :all])(start-nrepl+fig))&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">                </span><span class="nt">&quot;isStartedRegExp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Prompt will show&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">&quot;isReadyToStartRegExp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Prompt will show&quot;</span><span class="p">,</span><span class="w"></span>
 <span class="w">                </span><span class="nt">&quot;connectCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(do (use &#39;cljs-test.main) (cljs-repl))&quot;</span><span class="p">,</span><span class="w"></span>
 <span class="w">                </span><span class="nt">&quot;isConnectedRegExp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;To quit, type: :cljs/quit&quot;</span><span class="p">,</span><span class="w"></span>
 <span class="w">                </span><span class="nt">&quot;printThisLineRegExp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;\\[Figwheel\\] Starting Server at.*&quot;</span><span class="w"></span>

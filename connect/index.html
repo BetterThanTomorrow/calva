@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.4.1+insiders-4.22.0">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.4.2+insiders-4.22.0">
     
     
       
@@ -56,7 +56,7 @@
   
 
 
-  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-69796730-5","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){if(document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document.forms.feedback){var e,a=document.forms.feedback;for(e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}"undefined"!=typeof location$&&location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-69796730-5","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
 
   
     <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
@@ -423,6 +423,30 @@
       Monorepos / multiple Clojure projects in one workspace
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shadow-cljs-in-full-stack-projects" class="md-nav__link">
+    <span class="md-ellipsis">
+      shadow-cljs in full stack projects
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="shadow-cljs in full stack projects">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#leiningen-shadow-cljs-middleware-issue" class="md-nav__link">
+    <span class="md-ellipsis">
+      Leiningen + shadow-cljs middleware issue
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1858,6 +1882,30 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#shadow-cljs-in-full-stack-projects" class="md-nav__link">
+    <span class="md-ellipsis">
+      shadow-cljs in full stack projects
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="shadow-cljs in full stack projects">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#leiningen-shadow-cljs-middleware-issue" class="md-nav__link">
+    <span class="md-ellipsis">
+      Leiningen + shadow-cljs middleware issue
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       Troubleshooting
@@ -1978,6 +2026,23 @@
 <p class="admonition-title">Exclude entry globs</p>
 <p>Each entry is a partial <em>glob</em> and will be part of a resulting <em>glob</em> of the form <code>**/{glob1,glob2,...,globN}</code>. This means that all directories in the workspace matching an entry will be excluded, regardless of where in the workspace they reside.</p>
 </div>
+<h2 id="shadow-cljs-in-full-stack-projects">shadow-cljs in full stack projects</h2>
+<p>shadow-cljs is a bit special in regards to Calva REPL connection. Mainly because you can start shadow-cljs and it's nREPL server in two ways:</p>
+<ol>
+<li>Using the shadow-cljs npm executable</li>
+<li>Via the Clojure REPL in your Leiningen or deps.edn project</li>
+</ol>
+<p>These options show up as <strong>project types</strong> when connecting or jacking in:</p>
+<ol>
+<li>Project type: <strong>shadow-cljs</strong></li>
+<li>Project type: <strong>deps.edn + shadow-cljs</strong> or <strong>Leiningen + shadow-cljs</strong></li>
+</ol>
+<p><strong>NB</strong>: Unless you have good reasons, use the <strong>shadow-cljs</strong> project type and configure shadow-cljs to use deps.edn or Leiningen for source paths, and for dependency resolution.</p>
+<p>Although the other project types work, the wiring is different. When the npm shadow-cljs executable is used, it outputs both shadow-cljs and Clojure related messages in the Jack-in terminal. Whereas when started from Clojure most shadow-cljs output ends up in the Output/REPL window. This gets extra important if you have shadow-cljs tests running automatically.</p>
+<h3 id="leiningen-shadow-cljs-middleware-issue">Leiningen + shadow-cljs middleware issue</h3>
+<p>Please note that for Leiningen, <a href="https://codeberg.org/leiningen/leiningen/issues/10">the command line dependency injection of the shadow-cljs nrepl middleware doesn't work</a>. You need to add it to your <code>project.clj</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="ss">:repl-options</span><span class="w"> </span><span class="p">{</span><span class="ss">:nrepl-middleware</span><span class="w"> </span><span class="p">[</span><span class="nv">shadow.cljs.devtools.server.nrepl/middleware</span><span class="p">]}</span><span class="w"></span>
+</code></pre></div>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <h3 id="command-not-found-errors-when-jacking-in">Command Not Found Errors When Jacking In</h3>
 <p>If you get <code>command not found</code> error when Calva tries to start your project, and you know you have the command installed, it's probably because VS Code starts from an environment where the command is not on the <code>$PATH</code>. It can look like so:</p>
