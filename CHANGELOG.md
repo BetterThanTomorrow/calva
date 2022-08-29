@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.296] - 2022-08-29
+
 - [Rich comment handling in notebooks](https://github.com/BetterThanTomorrow/calva/issues/1845)
 - [Default to use deps.clj instead of clojure for starting deps.edn projects](https://github.com/BetterThanTomorrow/calva/issues/1846)
 - Update deps.clj to version 0.1.1100
