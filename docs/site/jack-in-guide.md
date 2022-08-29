@@ -143,6 +143,8 @@ If your full stack project is using shadow-cljs for the frontend, like [this Ful
 
 See [Workspace Layouts](workspace-layouts.md) for tips about how to open the same project folder in two separate VS Code windows.
 
+Please also consider to play around with starting the REPL and ClojureScript wiring entirely from the terminal, see [this example project](https://github.com/PEZ/shadow-w-backend) for some instructions on that. You can also use that project together with the `nil` for `connectCode` sequence mentioned above.
+
 ## Please Grab your Calva Jack-In Certificate
 
 There, you now know all there is to know about Calva Jack-In.
@@ -150,3 +152,4 @@ There, you now know all there is to know about Calva Jack-In.
 Just kidding, there are a few more details to it, some of which might find their way into this article at a later time.
 
 To really get to know it all, you will need to spend some time with the Calva Jack-In code. Head over to the [Calva Development Wiki](https://github.com/BetterThanTomorrow/calva/wiki) to learn how to hack on Calva.
+

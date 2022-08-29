@@ -4,6 +4,7 @@ import { prettyPrint } from '../out/cljs-lib/cljs-lib';
 import * as tokenCursor from './cursor-doc/token-cursor';
 import * as repl from './api/repl';
 import _ = require('lodash');
+import { isInteger } from 'lodash';
 
 export class NotebookProvider implements vscode.NotebookSerializer {
   private readonly decoder = new TextDecoder();
@@ -30,9 +31,17 @@ export class NotebookProvider implements vscode.NotebookSerializer {
   }
 }
 
+function substring(content: string, [start, end]) {
+  if (isInteger(start) && isInteger(end)) {
+    return content.substring(start, end);
+  }
+  return '';
+}
+
 function parseClojure(content: string): vscode.NotebookCellData[] {
   const cursor = tokenCursor.createStringCursor(content);
   const topLevelRanges = cursor.rangesForTopLevelForms().flat();
+
   if (topLevelRanges.length) {
     topLevelRanges[0] = 0;
   }
@@ -48,18 +57,82 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
   // start of file to end of top level sexp pairs
   const allRanges = _.zip(_.dropRight([_.first(topLevelRanges), ...fullRanges], 1), fullRanges);
 
-  const ranges = allRanges.map(([start, end]) => {
+  const ranges = allRanges.flatMap(([start, end]) => {
+    const endForm = cursor.doc.getTokenCursor(end - 1);
+    const afterForm = cursor.doc.getTokenCursor(end);
+
+    if (endForm.getFunctionName() === 'comment') {
+      const commentRange = afterForm.rangeForCurrentForm(0);
+      const commentStartCursor = cursor.doc.getTokenCursor(commentRange[0]);
+      const commentCells = [];
+      let previouseEnd = start;
+
+      commentStartCursor.downList();
+      commentStartCursor.forwardSexp();
+
+      while (commentStartCursor.forwardSexp()) {
+        const range = commentStartCursor.rangeForDefun(commentStartCursor.offsetStart);
+        let leading = '';
+        const indent = commentStartCursor.doc.getRowCol(range[0])[1]; // will break with tabs?
+
+        leading = content.substring(previouseEnd, range[0]);
+        previouseEnd = range[1];
+
+        commentCells.push({
+          value: substring(content, range),
+          kind: vscode.NotebookCellKind.Code,
+          languageId: 'clojure',
+          metadata: {
+            leading: leading,
+            indent,
+            range,
+            richComment: true,
+            trailing: '',
+          },
+        });
+      }
+
+      if (commentCells.length) {
+        _.last(commentCells).metadata.trailing = content.substring(previouseEnd, end);
+      }
+
+      return commentCells;
+    }
+
     return {
       value: content.substring(start, end),
       kind: vscode.NotebookCellKind.Code,
       languageId: 'clojure',
+      metadata: {
+        indent: 0,
+        leading: '',
+        trailing: '',
+      },
     };
   });
+
   return ranges;
 }
 
 function writeCellsToClojure(cells: vscode.NotebookCellData[]) {
-  return cells.map((x) => x.value).join('');
+  return cells.reduce((acc, x, index) => {
+    if (x.kind === vscode.NotebookCellKind.Code) {
+      let result = '';
+
+      // created inside the notebook
+      if (undefined === x.metadata.leading) {
+        const indent = index > 0 ? _.repeat(' ', cells[index - 1].metadata.indent) : '';
+
+        result = '\n\n' + indent + x.value;
+      } else {
+        result = x.metadata.leading + x.value + x.metadata.trailing;
+      }
+
+      return acc.concat(result);
+    } else {
+      return acc.concat(x.value);
+    }
+  }, '');
 }
 
 export class NotebookKernel {

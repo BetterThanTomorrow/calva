@@ -15,7 +15,7 @@ export const isWin = /^win/.test(process.platform);
 export type ProjectType = {
   name: string;
   cljsTypes?: string[];
-  cmd?: string[];
+  cmd?: string[] | (() => string[]);
   winCmd?: string[];
   resolveBundledPathWin?: () => string;
   resolveBundledPathUnix?: () => string;
@@ -325,7 +325,10 @@ const projectTypes: { [id: string]: ProjectType } = {
       'ClojureScript built-in for browser',
       'ClojureScript built-in for node',
     ],
-    cmd: ['clojure'],
+    cmd: () =>
+      getConfig().depsEdnJackInExecutable === 'deps.clj'
+        ? ['java', '-jar', `'${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}'`]
+        : ['clojure'],
     winCmd: ['java', '-jar'],
     resolveBundledPathWin: depsCljWindowsPath,
     processShellUnix: true,

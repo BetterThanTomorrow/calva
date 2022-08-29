@@ -195,7 +195,7 @@ async function getJackInTerminalOptions(
       cmd = [...cmd, projectType.resolveBundledPathWin()];
     }
   } else {
-    cmd = projectType.cmd;
+    cmd = typeof projectType.cmd === 'function' ? projectType.cmd() : projectType.cmd;
     if (projectType.resolveBundledPathUnix) {
       cmd = [...cmd, projectType.resolveBundledPathUnix()];
     }
