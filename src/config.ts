@@ -164,6 +164,7 @@ function getConfig() {
     projectRootsSearchExclude: configOptions.get<string[]>('projectRootsSearchExclude', []),
     useLiveShare: configOptions.get<boolean>('useLiveShare'),
     definitionProviderPriority: configOptions.get<string[]>('definitionProviderPriority'),
+    depsEdnJackInExecutable: configOptions.get<string>('depsEdnJackInExecutable'),
   };
 }
 
