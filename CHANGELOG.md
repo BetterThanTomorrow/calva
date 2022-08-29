@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.297] - 2022-08-29
+
+- Update deps.clj to version 0.1.1155
+
 ## [2.0.296] - 2022-08-29
 
 - [Rich comment handling in notebooks](https://github.com/BetterThanTomorrow/calva/issues/1845)
