@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+[Rich comment handling in notebooks](https://github.com/BetterThanTomorrow/calva/issues/1845)
+
 ## [2.0.295] - 2022-08-28
 
 - Fix: [Leiningen and deps.edn projects with shadow-cljs is too hard to connect to](https://github.com/BetterThanTomorrow/calva/issues/1842)
