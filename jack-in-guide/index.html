@@ -2098,6 +2098,7 @@
 <p>Because Calva uses the Clojure REPL connection to spawn the ClojureScript REPL, and because Calva only handles one Clojure REPL per VS Code window, some projects need special handling by the user.</p>
 <p>If your full stack project is using shadow-cljs for the frontend, like <a href="https://github.com/fulcrologic/fulcro-template">this Fulcro template project</a> does, maybe you first try to Jack-In to your backend Clojure REPL, and then to your shadow-cljs frontend. This works if you do it in separate VS Code windows, but if you do it in the same window, the second Jack-In will kill the backend session! See also <a href="../connect/#shadow-cljs-in-full-stack-projects">connect shadow-cljs in fullstack projects</a>.</p>
 <p>See <a href="../workspace-layouts/">Workspace Layouts</a> for tips about how to open the same project folder in two separate VS Code windows.</p>
+<p>Please also consider to play around with starting the REPL and ClojureScript wiring entirely from the terminal, see <a href="https://github.com/PEZ/shadow-w-backend">this example project</a> for some instructions on that. You can also use that project together with the <code>nil</code> for <code>connectCode</code> sequence mentioned above.</p>
 <h2 id="please-grab-your-calva-jack-in-certificate">Please Grab your Calva Jack-In Certificate</h2>
 <p>There, you now know all there is to know about Calva Jack-In.</p>
 <p>Just kidding, there are a few more details to it, some of which might find their way into this article at a later time.</p>
