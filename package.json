@@ -753,12 +753,18 @@
             ]
           },
           "calva.depsEdnJackInExecutable": {
-            "markdownDescription": "Which executable should Calva Jack-in use for starting a deps.edn project? Use `clojure` if you have it installed and it works. If you run into troubles you can revert back to the default of using `deps.clj`, which is bundled with Calva.",
+            "markdownDescription": "Which executable should Calva Jack-in use for starting a deps.edn project? Use `clojure` if you have it installed and it works. If you run into troubles you can revert back to the default of using `deps.clj`, which is bundled with Calva. (This settings has no effect on Windows, where `deps.clj` will always be used.)",
             "enum": [
               "clojure",
-              "deps.clj"
+              "deps.clj",
+              "clojure or deps.clj"
             ],
-            "default": "deps.clj",
+            "markdownEnumDescriptions": [
+              "Always use `clojure`",
+              "Always use `deps.clj`",
+              "Prefer `clojure`, but use `deps.clj` if `clojure` doesn't seem to work"
+            ],
+            "default": "clojure or deps.clj",
             "type": "string"
           }
         }
