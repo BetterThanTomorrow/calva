@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.298] - 2022-08-31
+
 - [Check if `clojure` is installed and working before selecting default `deps.edn` Jack-in](https://github.com/BetterThanTomorrow/calva/issues/1848)
 
 ## [2.0.297] - 2022-08-29
