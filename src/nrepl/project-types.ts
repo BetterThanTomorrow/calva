@@ -7,7 +7,7 @@ import * as pprint from '../printer';
 import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
-import { parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
+import { getStateValue, parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
 import * as joyride from '../joyride';
 
 export const isWin = /^win/.test(process.platform);
@@ -325,10 +325,15 @@ const projectTypes: { [id: string]: ProjectType } = {
       'ClojureScript built-in for browser',
       'ClojureScript built-in for node',
     ],
-    cmd: () =>
-      getConfig().depsEdnJackInExecutable === 'deps.clj'
+    cmd: () => {
+      const configuredCmd =
+        getConfig().depsEdnJackInExecutable === 'clojure or deps.clj'
+          ? getStateValue('depsEdnJackInDefaultExecutable') ?? 'deps.clj'
+          : getConfig().depsEdnJackInExecutable;
+      return configuredCmd === 'deps.clj'
         ? ['java', '-jar', `'${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}'`]
-        : ['clojure'],
+        : ['clojure'];
+    },
     winCmd: ['java', '-jar'],
     resolveBundledPathWin: depsCljWindowsPath,
     processShellUnix: true,

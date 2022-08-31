@@ -46,7 +46,7 @@ There are also these settings:
 * `calva.myCljAliases`: An array of `deps.edn` aliases not found in the project file. Use this to tell Calva Jack-in to launch your REPL using your user defined aliases.
 * `calva.myLeinProfiles`: An array of Leiningen profiles not found in `project.clj`. Use this to tell Calva Jack-in to launch your REPL using your user defined profiles.
 * `calva.openBrowserWhenFigwheelStarted`: _For Legacy Figwheel only._ A boolean controlling if Calva should automatically launch your ClojureScript app, once it is compiled by Figwheel. Defaults to `true`.
-* `calva.depsEdnJackInExecutable`: A string which should either be `clojure` or `deps.clj` (default). It determines which executable Calva Jack-in should use for starting a deps.edn project. Use `clojure` if you have it installed and it works. If you run into troubles you can revert back to the default of using `deps.clj`, which is bundled with Calva.
+* `calva.depsEdnJackInExecutable`: A string which should either be `clojure` or `deps.clj`, or `clojure or deps.clj` (default). It determines which executable Calva Jack-in should use for starting a `deps.edn` project. With this setting at its default, `clojure or deps.clj`, Calva will test if the `clojure` executable works, and use it if it does, otherwise `deps.clj` will be used, which is bundled with Calva.
 
 !!! Note
     When processing the `calva.jackInEnv` setting you can refer to existing ENV variables with `${env:VARIABLE}`.
