@@ -154,6 +154,7 @@ async function activate(context: vscode.ExtensionContext) {
   }
 
   state.setExtensionContext(context);
+  state.initDepsEdnJackInExecutable();
 
   if (!fmtExtension) {
     try {

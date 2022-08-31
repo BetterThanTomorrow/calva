@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import Analytics from './analytics';
 import * as util from './utilities';
 import * as path from 'path';
-import * as os from 'os';
+import * as child from 'child_process';
 import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
 import * as projectRoot from './project-root';
 
@@ -12,6 +12,26 @@ export function setExtensionContext(context: vscode.ExtensionContext) {
   if (context.workspaceState.get('selectedCljTypeName') == undefined) {
     void context.workspaceState.update('selectedCljTypeName', 'unknown');
   }
+}
+
+export function initDepsEdnJackInExecutable() {
+  console.log('deps.edn launcher check, executing: `clojure -M -e :clojure-works` ...');
+  child.exec('clojure -M -e :clojure-works', (err, stdout, stderr) => {
+    console.log(`deps.edn launcher check - stdout: ${stdout}`);
+    console.log(`deps.edn launcher check - stderr: ${stderr}`);
+    if (err) {
+      console.log('deps.edn launcher check: Error running `clojure` command');
+      setStateValue('depsEdnJackInDefaultExecutable', 'deps.clj');
+      return;
+    }
+    if (stdout.startsWith(':clojure-works')) {
+      console.log('deps.edn launcher check: `clojure` command works');
+      setStateValue('depsEdnJackInDefaultExecutable', 'clojure');
+    } else {
+      console.log('deps.edn launcher check: `clojure` command not returning expected output');
+      setStateValue('depsEdnJackInDefaultExecutable', 'deps.clj');
+    }
+  });
 }
 
 // Super-quick fix for: https://github.com/BetterThanTomorrow/calva/issues/144
