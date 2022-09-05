@@ -10,21 +10,60 @@ import * as replSession from './nrepl/repl-session';
 import * as evaluate from './evaluate';
 import * as state from './state';
 
-type snippetDefinition = {
+type SnippetDefinition = {
   snippet: string;
   ns: string;
   repl: string;
+  evaluationSendCodeToOutputWindow?: boolean;
 };
 
-async function evaluateCustomCodeSnippetCommand(codeOrKeyOrSnippet?: string | snippetDefinition) {
-  await evaluateCodeOrKey(codeOrKeyOrSnippet);
+export async function evaluateCustomCodeSnippetCommand(
+  codeOrKeyOrSnippet?: string | SnippetDefinition
+) {
+  await evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet);
 }
 
-async function evaluateCodeOrKey(codeOrKeyOrSnippet?: string | snippetDefinition) {
+async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetDefinition) {
   const editor = util.getActiveTextEditor();
-  const currentLine = editor.selection.active.line;
-  const currentColumn = editor.selection.active.character;
-  const currentFilename = editor.document.fileName;
+  const editorNS =
+    editor && editor.document && editor.document.languageId === 'clojure'
+      ? namespace.getNamespace(editor.document)
+      : undefined;
+  const editorRepl =
+    editor && editor.document && editor.document.languageId === 'clojure'
+      ? replSession.getReplSessionTypeFromState()
+      : 'clj';
+  const snippetDefinition: SnippetDefinition =
+    typeof codeOrKeyOrSnippet !== 'string' && codeOrKeyOrSnippet !== undefined
+      ? codeOrKeyOrSnippet
+      : await getSnippetDefinition(codeOrKeyOrSnippet as string, editorNS, editorRepl);
+
+  snippetDefinition.ns = snippetDefinition.ns ?? editorNS;
+  snippetDefinition.repl = snippetDefinition.repl ?? editorRepl;
+  snippetDefinition.evaluationSendCodeToOutputWindow =
+    snippetDefinition.evaluationSendCodeToOutputWindow ?? true;
+
+  const options = {};
+
+  options['evaluationSendCodeToOutputWindow'] = snippetDefinition.evaluationSendCodeToOutputWindow;
+  // don't allow addToHistory if we don't show the code but are inside the repl
+  options['addToHistory'] =
+    state.extensionContext.workspaceState.get('outputWindowActive') &&
+    !snippetDefinition.evaluationSendCodeToOutputWindow
+      ? false
+      : undefined;
+
+  const context = makeContext(editor, snippetDefinition.ns, editorNS, snippetDefinition.repl);
+  await evaluateCodeInContext(snippetDefinition.snippet, context, options);
+}
+
+async function evaluateCodeInContext(code: string, context: any, options: any) {
+  const result = await evaluateSnippet(code, context, options);
+  outputWindow.appendPrompt();
+  return result;
+}
+
+async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorRepl: string) {
   const configErrors: { name: string; keys: string[] }[] = [];
   const globalSnippets = getConfig().customREPLCommandSnippetsGlobal;
   const workspaceSnippets = getConfig().customREPLCommandSnippetsWorkspace;
@@ -40,14 +79,6 @@ async function evaluateCodeOrKey(codeOrKeyOrSnippet?: string | snippetDefinition
   const snippetsDict = {};
   const snippetsKeyDict = {};
   const snippetsMenuItems: string[] = [];
-  const editorNS =
-    editor && editor.document && editor.document.languageId === 'clojure'
-      ? namespace.getNamespace(editor.document)
-      : undefined;
-  const editorRepl =
-    editor && editor.document && editor.document.languageId === 'clojure'
-      ? replSession.getReplSessionTypeFromState()
-      : 'clj';
   snippets.forEach((c: customREPLCommandSnippet) => {
     const undefs = ['name', 'snippet'].filter((k) => {
       return !c[k];
@@ -75,7 +106,7 @@ async function evaluateCodeOrKey(codeOrKeyOrSnippet?: string | snippetDefinition
   }
 
   let pick: string;
-  if (codeOrKeyOrSnippet === undefined) {
+  if (codeOrKey === undefined) {
     // Called without args, show snippets menu
     if (snippetsMenuItems.length > 0) {
       try {
@@ -99,41 +130,19 @@ async function evaluateCodeOrKey(codeOrKeyOrSnippet?: string | snippetDefinition
     }
   }
 
-  let snippet: string;
-  let ns: string;
-  let repl: string;
-
-  if (typeof codeOrKeyOrSnippet !== 'string' && codeOrKeyOrSnippet !== undefined) {
-    snippet = codeOrKeyOrSnippet.snippet;
-    ns = codeOrKeyOrSnippet.ns;
-    repl = codeOrKeyOrSnippet.repl;
-  } else {
-    if (pick === undefined) {
-      // still no pick, but codeOrKey might be one
-      pick = snippetsKeyDict[codeOrKeyOrSnippet as string];
-    }
-    snippet = pick !== undefined ? snippetsDict[pick].snippet : codeOrKeyOrSnippet;
-    ns = pick !== undefined ? snippetsDict[pick].ns : editorNS;
-    repl = pick !== undefined ? snippetsDict[pick].repl : editorRepl;
+  if (pick === undefined) {
+    // still no pick, but codeOrKey might be one
+    pick = snippetsKeyDict[codeOrKey];
   }
 
-  const options = {};
+  return pick !== undefined ? snippetsDict[pick] : { snippet: codeOrKey };
+}
 
-  if (pick !== undefined) {
-    options['evaluationSendCodeToOutputWindow'] =
-      snippetsDict[pick].evaluationSendCodeToOutputWindow;
-    // don't allow addToHistory if we don't show the code but are inside the repl
-    options['addToHistory'] =
-      state.extensionContext.workspaceState.get('outputWindowActive') &&
-      !snippetsDict[pick].evaluationSendCodeToOutputWindow
-        ? false
-        : undefined;
-  }
-
-  const context = {
-    currentLine,
-    currentColumn,
-    currentFilename,
+function makeContext(editor: vscode.TextEditor, ns: string, editorNS: string, repl: string) {
+  return {
+    currentLine: editor.selection.active.line,
+    currentColumn: editor.selection.active.character,
+    currentFilename: editor.document.fileName,
     ns,
     editorNS,
     repl,
@@ -150,14 +159,9 @@ async function evaluateCodeOrKey(codeOrKeyOrSnippet?: string | snippetDefinition
     tail: getText.toEndOfList(editor?.document)[1],
     ...getText.currentContext(editor.document, editor.selection.active),
   };
-  const result = await evaluateSnippet(snippet, context, options);
-
-  outputWindow.appendPrompt();
-
-  return result;
 }
 
-async function evaluateSnippet(code, context, options) {
+export async function evaluateSnippet(code, context, options) {
   const ns = context.ns;
   const repl = context.repl;
   const interpolatedCode = interpolateCode(code, context);
@@ -192,5 +196,3 @@ function interpolateCode(code: string, context): string {
     .replace(/\$hover-head/g, context.hoverhead)
     .replace(/\$hover-tail/g, context.hovertail);
 }
-
-export { evaluateCustomCodeSnippetCommand, evaluateSnippet };
