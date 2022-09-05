@@ -10,11 +10,17 @@ import * as replSession from './nrepl/repl-session';
 import * as evaluate from './evaluate';
 import * as state from './state';
 
-async function evaluateCustomCodeSnippetCommand(codeOrKey?: string) {
-  await evaluateCodeOrKey(codeOrKey);
+type snippetDefinition = {
+  snippet: string;
+  ns: string;
+  repl: string;
+};
+
+async function evaluateCustomCodeSnippetCommand(codeOrKeyOrSnippet?: string | snippetDefinition) {
+  await evaluateCodeOrKey(codeOrKeyOrSnippet);
 }
 
-async function evaluateCodeOrKey(codeOrKey?: string) {
+async function evaluateCodeOrKey(codeOrKeyOrSnippet?: string | snippetDefinition) {
   const editor = util.getActiveTextEditor();
   const currentLine = editor.selection.active.line;
   const currentColumn = editor.selection.active.character;
@@ -69,8 +75,8 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
   }
 
   let pick: string;
-  if (codeOrKey === undefined) {
-    // Without codeOrKey always show snippets menu
+  if (codeOrKeyOrSnippet === undefined) {
+    // Called without args, show snippets menu
     if (snippetsMenuItems.length > 0) {
       try {
         pick = await util.quickPickSingle({
@@ -92,13 +98,24 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
       return;
     }
   }
-  if (pick === undefined) {
-    // still no pick, but codeOrKey might be one
-    pick = snippetsKeyDict[codeOrKey];
+
+  let snippet: string;
+  let ns: string;
+  let repl: string;
+
+  if (typeof codeOrKeyOrSnippet !== 'string' && codeOrKeyOrSnippet !== undefined) {
+    snippet = codeOrKeyOrSnippet.snippet;
+    ns = codeOrKeyOrSnippet.ns;
+    repl = codeOrKeyOrSnippet.repl;
+  } else {
+    if (pick === undefined) {
+      // still no pick, but codeOrKey might be one
+      pick = snippetsKeyDict[codeOrKeyOrSnippet as string];
+    }
+    snippet = pick !== undefined ? snippetsDict[pick].snippet : codeOrKeyOrSnippet;
+    ns = pick !== undefined ? snippetsDict[pick].ns : editorNS;
+    repl = pick !== undefined ? snippetsDict[pick].repl : editorRepl;
   }
-  const code = pick !== undefined ? snippetsDict[pick].snippet : codeOrKey;
-  const ns = pick !== undefined ? snippetsDict[pick].ns : editorNS;
-  const repl = pick !== undefined ? snippetsDict[pick].repl : editorRepl;
 
   const options = {};
 
@@ -118,6 +135,7 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
     currentColumn,
     currentFilename,
     ns,
+    editorNS,
     repl,
     selection: editor.document.getText(editor.selection),
     currentForm: getText.currentFormText(editor?.document, editor?.selection.active)[1],
@@ -132,17 +150,16 @@ async function evaluateCodeOrKey(codeOrKey?: string) {
     tail: getText.toEndOfList(editor?.document)[1],
     ...getText.currentContext(editor.document, editor.selection.active),
   };
-  const result = await evaluateSnippet({ snippet: code }, context, options);
+  const result = await evaluateSnippet(snippet, context, options);
 
   outputWindow.appendPrompt();
 
   return result;
 }
 
-async function evaluateSnippet(snippet, context, options) {
-  const code = snippet.snippet;
-  const ns = snippet.ns ?? context.ns;
-  const repl = snippet.repl ?? context.repl;
+async function evaluateSnippet(code, context, options) {
+  const ns = context.ns;
+  const repl = context.repl;
   const interpolatedCode = interpolateCode(code, context);
   return await evaluate.evaluateInOutputWindow(interpolatedCode, repl, ns, options);
 }
@@ -156,6 +173,7 @@ function interpolateCode(code: string, context): string {
     .replace(/\$file/g, context.currentFilename)
     .replace(/\$hover-file/g, context.hoverFilename)
     .replace(/\$ns/g, context.ns)
+    .replace(/\$editor-ns/g, context.editorNS)
     .replace(/\$repl/g, context.repl)
     .replace(/\$selection/g, context.selection)
     .replace(/\$hover-text/g, context.hoverText)
