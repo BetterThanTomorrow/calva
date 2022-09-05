@@ -405,7 +405,7 @@
           "calva.customREPLCommandSnippets": {
             "type": "array",
             "default": [],
-            "description": "Configuration for the command **Run Custom REPL Command**",
+            "markdownDescription": "Configuration for the command **Run Custom REPL Command**",
             "$schema": "http://json-schema.org/draft-06/schema#",
             "items": {
               "title": "replCommand",
@@ -424,25 +424,34 @@
                     "string",
                     "array"
                   ],
-                  "description": "Command to send to the REPL"
+                  "markDownDescription": "Command to send to the REPL"
                 },
                 "ns": {
                   "type": "string",
-                  "description": "(optional) Namespace to evaluate the command in. If omitted the command will be executed in the namespace of the current file."
+                  "markDownDescription": "(optional) Namespace to evaluate the command in. If omitted the command will be executed in the namespace of the current file."
                 },
                 "repl": {
                   "type": "string",
-                  "description": "Choose which REPL should the code should be evaluated in. If omitted, the same REPL as for the current file will be used.",
+                  "markDownDescription": "Choose which REPL should the code should be evaluated in. If omitted, the same REPL as for the current file will be used.",
                   "enum": [
                     "clj",
                     "cljs"
                   ]
+                },
+                "evaluationSendCodeToOutputWindow": {
+                  "type": "boolean",
+                  "markDownDescription": "Should the code snippet evaluated be echoed to the Output/REPL Window?"
                 }
               },
               "required": [
                 "name",
                 "snippet"
-              ]
+              ],
+              "default": {
+                "name": "",
+                "snippet": "",
+                "evaluationSendCodeToOutputWindow": true
+              }
             }
           },
           "calva.customREPLHoverSnippets": {
