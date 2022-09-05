@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Bind any keys to custom custom repl commands](https://github.com/BetterThanTomorrow/calva/issues/1853)
+
 ## [2.0.298] - 2022-08-31
 
 - [Check if `clojure` is installed and working before selecting default `deps.edn` Jack-in](https://github.com/BetterThanTomorrow/calva/issues/1848)
