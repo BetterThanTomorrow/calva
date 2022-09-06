@@ -2801,9 +2801,10 @@
         "id": "calva.inlineForegroundColor",
         "description": "Specifies the foreground color of the inline result",
         "defaults": {
-          "dark": "#ffffffff",
-          "light": "#00000000",
-          "highContrast": "#00000000"
+          "dark": "#fafafaff",
+          "light": "#0c0c0cff",
+          "highContrast": "#ffffffff",
+          "highContrastLight": "#000000ff"
         }
       },
       {
