@@ -1,0 +1,8 @@
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.11.1"}}
+ :aliases
+ {:reveal-nrepl-middleware
+  {:extra-deps {vlaaad/reveal {:mvn/version "1.3.275"}}
+   :jvm-opts ["--add-opens" "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED"]
+   :main-opts  ["-m" "nrepl.cmdline"
+                "--middleware" "[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]"]}}}
