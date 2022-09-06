@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Bind any keys to custom custom repl commands](https://github.com/BetterThanTomorrow/calva/issues/1853)
+- [Inline evaluation results not visible in Light themes](https://github.com/BetterThanTomorrow/calva/issues/1855)
 
 ## [2.0.298] - 2022-08-31
 
