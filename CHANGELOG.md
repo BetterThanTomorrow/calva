@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.299] - 2022-09-06
+
+- [Bind any keys to custom custom repl commands](https://github.com/BetterThanTomorrow/calva/issues/1853)
+- [Inline evaluation results not visible in Light themes](https://github.com/BetterThanTomorrow/calva/issues/1855)
+
 ## [2.0.298] - 2022-08-31
 
 - [Check if `clojure` is installed and working before selecting default `deps.edn` Jack-in](https://github.com/BetterThanTomorrow/calva/issues/1848)
