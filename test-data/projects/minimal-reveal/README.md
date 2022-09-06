@@ -18,8 +18,7 @@ You should see the Reveal window open. Blank.
 In another terminal:
 
 ```sh
-clojure -Sdeps '{:deps {reply/reply {:mvn/version "0.5.1"}}}' -M -m reply.main --attach
-`< .nrepl-port`
+clojure -Sdeps '{:deps {reply/reply {:mvn/version "0.5.1"}}}' -M -m reply.main --attach `< .nrepl-port`
 REPL-y 0.5.1, nREPL 1.0.0
 Clojure 1.11.1
 OpenJDK 64-Bit Server VM 18.0.2.1+1
