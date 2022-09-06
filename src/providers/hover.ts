@@ -33,6 +33,7 @@ export async function provideHover(document: vscode.TextDocument, position: vsco
 
       const context = {
         ns,
+        editorNs: ns,
         repl: document.languageId === 'clojure' ? replSession.getReplSessionTypeFromState() : 'clj',
         hoverText: text,
         hoverLine: position.line + 1,
