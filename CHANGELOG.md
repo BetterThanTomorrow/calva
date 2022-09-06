@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Inline evaluation results not visible in Light themes](https://github.com/BetterThanTomorrow/calva/issues/1855)
+
 ## [2.0.298] - 2022-08-31
 
 - [Check if `clojure` is installed and working before selecting default `deps.edn` Jack-in](https://github.com/BetterThanTomorrow/calva/issues/1848)
