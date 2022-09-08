@@ -51,8 +51,8 @@ suite('Jack-in suite', () => {
     await commands.executeCommand('calva.loadFile');
     const reversedLines = resultsDoc.model.lineInputModel.lines.reverse();
     assert.deepEqual(
-      ['; Evaluating file: test.clj', 'bar', 'nil', 'clj꞉test꞉> ', ''].reverse(),
-      reversedLines.slice(0, 5).map((v) => v.text)
+      ['bar', 'nil', 'clj꞉test꞉> ', ''].reverse(),
+      reversedLines.slice(0, 4).map((v) => v.text)
     );
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
