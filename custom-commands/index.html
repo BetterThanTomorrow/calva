@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.4.2+insiders-4.22.0">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.4.3+insiders-4.22.1">
     
     
       
@@ -785,7 +785,7 @@
         <li class="md-nav__item">
   <a href="#user-and-workspace-settings" class="md-nav__link">
     <span class="md-ellipsis">
-      User and Workspace settings
+      User and Workspace Settings
     </span>
   </a>
   
@@ -794,7 +794,7 @@
         <li class="md-nav__item">
   <a href="#binding-keyboard-shortcuts" class="md-nav__link">
     <span class="md-ellipsis">
-      Binding keyboard shortcuts
+      Binding Keyboard Shortcuts
     </span>
   </a>
   
@@ -803,7 +803,7 @@
         <li class="md-nav__item">
   <a href="#custom-repl-hover-snippets" class="md-nav__link">
     <span class="md-ellipsis">
-      Custom REPL hover snippets
+      Custom REPL Hover Snippets
     </span>
   </a>
   
@@ -821,7 +821,7 @@
         <li class="md-nav__item">
   <a href="#snippets-inside-deps" class="md-nav__link">
     <span class="md-ellipsis">
-      Snippets inside deps
+      Snippets Inside Deps
     </span>
   </a>
   
@@ -1752,7 +1752,7 @@
         <li class="md-nav__item">
   <a href="#user-and-workspace-settings" class="md-nav__link">
     <span class="md-ellipsis">
-      User and Workspace settings
+      User and Workspace Settings
     </span>
   </a>
   
@@ -1761,7 +1761,7 @@
         <li class="md-nav__item">
   <a href="#binding-keyboard-shortcuts" class="md-nav__link">
     <span class="md-ellipsis">
-      Binding keyboard shortcuts
+      Binding Keyboard Shortcuts
     </span>
   </a>
   
@@ -1770,7 +1770,7 @@
         <li class="md-nav__item">
   <a href="#custom-repl-hover-snippets" class="md-nav__link">
     <span class="md-ellipsis">
-      Custom REPL hover snippets
+      Custom REPL Hover Snippets
     </span>
   </a>
   
@@ -1788,7 +1788,7 @@
         <li class="md-nav__item">
   <a href="#snippets-inside-deps" class="md-nav__link">
     <span class="md-ellipsis">
-      Snippets inside deps
+      Snippets Inside Deps
     </span>
   </a>
   
@@ -1814,10 +1814,10 @@
 
 
 <h1 id="custom-repl-commands">Custom REPL Commands</h1>
-<p>Calva supports configuration of custom command snippets that you can evaluate in the REPL at will. If your workflow has you repeatedly evaluate a particular piece of code. There are two ways to use these</p>
+<p>Calva supports configuration of custom command snippets that you can evaluate in the REPL at will. This is useful if your workflow has you repeatedly evaluating a particular piece of code. There are two ways to use these:</p>
 <ol>
 <li>You can use the setting <code>calva.customREPLCommandSnippets</code> to configure it. Then either bind keyboard shortcuts to them or use the command <strong>Run Custom REPL Command</strong> to access it. The command will give you a menu with the snippets you have configured.</li>
-<li>You can define a keyboard shortcut directly to a custom command snippet by inlining it in the shortcut definition. See <a href="#binding-keyboard-shortcuts">Binding keyboard shortcuts</a></li>
+<li>You can bind a keyboard shortcut directly to a custom command snippet by inlining it in the shortcut definition. See <a href="#binding-keyboard-shortcuts">Binding Keyboard Shortcuts</a></li>
 </ol>
 <div class="admonition note">
 <p class="admonition-title">Joyride</p>
@@ -1830,7 +1830,7 @@
 <li><code>key</code>: A key can be used to reference the snippet from <strong>Run Custom REPL Command</strong> keyboard shortcut arguments. It will also be used in the quick-pick menu.</li>
 <li><code>ns</code>: A namespace to evaluate the command in. If omitted the command will be executed in the namespace of the current editor.</li>
 <li><code>repl</code>: Which repl session to use for the evaluation. Either <code>"clj"</code> or <code>"cljs"</code>. Omit if you want to use the session of the current editor.</li>
-<li><code>evaluationSendCodeToOutputWindow</code>: (default <code>true</code>) Wether the evaluated code should be echoed tp the Output/REPL window </li>
+<li><code>evaluationSendCodeToOutputWindow</code>: (default <code>true</code>) Whether the evaluated code should be echoed to the Output/REPL window.</li>
 </ul>
 <p>There are also substitutions available, which will take elements from the current state of Calva and splice them in to the text of your command before executing it. They are</p>
 <ul>
@@ -1848,7 +1848,7 @@
 <li><code>$head</code>: The text between the start of the current list to the cursor</li>
 <li><code>$tail</code>: The text between the cursor and the end of the current list</li>
 </ul>
-<h2 id="user-and-workspace-settings">User and Workspace settings</h2>
+<h2 id="user-and-workspace-settings">User and Workspace Settings</h2>
 <p>Settings from your User (global) level and the workspace are merged.</p>
 <p>With these <strong>User</strong> settings:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
@@ -1889,7 +1889,7 @@
 <p>Issuing <strong>Run Custom REPL Command</strong> will then render this VS Code menu:</p>
 <p><img alt="" src="../images/custom-command-menu.png" /></p>
 <p>The default keyboard shortcut for the command is <code>ctrl+alt+space space</code>.</p>
-<h2 id="binding-keyboard-shortcuts">Binding keyboard shortcuts</h2>
+<h2 id="binding-keyboard-shortcuts">Binding Keyboard Shortcuts</h2>
 <p>There are four ways to bind shortcuts to custom commands:</p>
 <ol>
 <li>Use a predefined <code>key</code> shortcut. These are predefined as <code>ctrl+alt+space &lt;something&gt;</code>, where <code>&lt;something&gt;</code> is one of:<ul>
@@ -1914,7 +1914,7 @@
 <span class="w">    </span><span class="p">},</span><span class="w"></span>
 </code></pre></div>
 <p>This would evaluate the current form in the <code>user</code> namespace. Please note that this Custom REPL Command will not show up in the custom commands menu mentioned above.</p>
-<h2 id="custom-repl-hover-snippets">Custom REPL hover snippets</h2>
+<h2 id="custom-repl-hover-snippets">Custom REPL Hover Snippets</h2>
 <p>Calva supports custom snippets that will display their result inside the tooltip. They will only work when connected to a repl, since they eval code in it.
 This is mostly useful for tooling authors that want to integrate with calva.
 Be careful with these, since they will be executed anytime Calva displays a tooltip. So they should be fast and probably not have any side effects.</p>
@@ -1933,7 +1933,7 @@ There are now also <code>hover-</code> versions of most substitutions. Those cur
 <h2 id="configedn">config.edn</h2>
 <p>Your project can have a <code>.calva/config.edn</code> file that holds a map with calva configs. Currently only <code>:customREPLCommandSnippets</code> and <code>:customREPLHoverSnippets</code> get loaded.
 These will not get synced through vscode settings sync.</p>
-<h2 id="snippets-inside-deps">Snippets inside deps</h2>
+<h2 id="snippets-inside-deps">Snippets Inside Deps</h2>
 <p>A new experimental feature lets library authors ship snippets inside their jar files. These accept the same options as above but should be placed in "resources/calva.exports/config.edn" inside the jar.</p>
 <div class="highlight"><pre><span></span><code>{:customREPLCommandSnippets
  [{:name &quot;edn test&quot;
@@ -2028,7 +2028,7 @@ These will not get synced through vscode settings sync.</p>
     <script id="__config" type="application/json">{"base": "..", "features": ["content.tabs.link"], "search": "../assets/javascripts/workers/search.720157f5.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.acfd5702.min.js"></script>
+      <script src="../assets/javascripts/bundle.3b7001d3.min.js"></script>
       
     
   </body>
