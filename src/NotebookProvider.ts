@@ -71,9 +71,11 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
 
       commentStartCursor.downList();
       commentStartCursor.forwardSexp();
+      commentStartCursor.forwardSexp(true, true);
 
-      while (commentStartCursor.forwardSexp()) {
+      do {
         const range = commentStartCursor.rangeForDefun(commentStartCursor.offsetStart);
+        const commentCellCursor = cursor.doc.getTokenCursor(range[0]);
         let leading = '';
         const indent = commentStartCursor.doc.getRowCol(range[0])[1]; // will break with tabs?
 
@@ -92,7 +94,7 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
             trailing: '',
           },
         });
-      }
+      } while (commentStartCursor.forwardSexp(true, true));
 
       if (commentCells.length) {
         _.last(commentCells).metadata.trailing = content.substring(previouseEnd, end);
