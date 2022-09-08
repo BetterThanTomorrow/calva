@@ -7,10 +7,10 @@ search:
 
 # Custom REPL Commands
 
-Calva supports configuration of custom command snippets that you can evaluate in the REPL at will. If your workflow has you repeatedly evaluate a particular piece of code. There are two ways to use these
+Calva supports configuration of custom command snippets that you can evaluate in the REPL at will. This is useful if your workflow has you repeatedly evaluating a particular piece of code. There are two ways to use these:
 
 1. You can use the setting `calva.customREPLCommandSnippets` to configure it. Then either bind keyboard shortcuts to them or use the command **Run Custom REPL Command** to access it. The command will give you a menu with the snippets you have configured.
-2. You can define a keyboard shortcut directly to a custom command snippet by inlining it in the shortcut definition. See [Binding keyboard shortcuts](#binding-keyboard-shortcuts)
+2. You can bind a keyboard shortcut directly to a custom command snippet by inlining it in the shortcut definition. See [Binding Keyboard Shortcuts](#binding-keyboard-shortcuts)
 
 !!! Note "Joyride"
     For some use cases you might be better served by/want to combine these with using the [VS Code Extension API](https://code.visualstudio.com/api/references/vscode-ap), and [that of Calva](api.md), or any other extension, through [Joyride](joyride.md).
@@ -22,7 +22,7 @@ The `calva.customREPLCommandSnippets` is an array of objects with the following 
 * `key`: A key can be used to reference the snippet from **Run Custom REPL Command** keyboard shortcut arguments. It will also be used in the quick-pick menu.
 * `ns`: A namespace to evaluate the command in. If omitted the command will be executed in the namespace of the current editor.
 * `repl`: Which repl session to use for the evaluation. Either `"clj"` or `"cljs"`. Omit if you want to use the session of the current editor.
-* `evaluationSendCodeToOutputWindow`: (default `true`) Wether the evaluated code should be echoed tp the Output/REPL window 
+* `evaluationSendCodeToOutputWindow`: (default `true`) Whether the evaluated code should be echoed to the Output/REPL window.
 
 There are also substitutions available, which will take elements from the current state of Calva and splice them in to the text of your command before executing it. They are
 
@@ -40,7 +40,7 @@ There are also substitutions available, which will take elements from the curren
 * `$head`: The text between the start of the current list to the cursor
 * `$tail`: The text between the cursor and the end of the current list
 
-## User and Workspace settings
+## User and Workspace Settings
 
 Settings from your User (global) level and the workspace are merged.
 
@@ -93,7 +93,7 @@ Issuing **Run Custom REPL Command** will then render this VS Code menu:
 
 The default keyboard shortcut for the command is `ctrl+alt+space space`.
 
-## Binding keyboard shortcuts
+## Binding Keyboard Shortcuts
 
 There are four ways to bind shortcuts to custom commands:
 
@@ -121,7 +121,7 @@ Here's an example shortcut entry for the **4th** option:
 
 This would evaluate the current form in the `user` namespace. Please note that this Custom REPL Command will not show up in the custom commands menu mentioned above.
 
-## Custom REPL hover snippets
+## Custom REPL Hover Snippets
 
 Calva supports custom snippets that will display their result inside the tooltip. They will only work when connected to a repl, since they eval code in it.
 This is mostly useful for tooling authors that want to integrate with calva.
@@ -148,7 +148,7 @@ There are now also `hover-` versions of most substitutions. Those currently only
 Your project can have a `.calva/config.edn` file that holds a map with calva configs. Currently only `:customREPLCommandSnippets` and `:customREPLHoverSnippets` get loaded.
 These will not get synced through vscode settings sync.
 
-## Snippets inside deps
+## Snippets Inside Deps
 
 A new experimental feature lets library authors ship snippets inside their jar files. These accept the same options as above but should be placed in "resources/calva.exports/config.edn" inside the jar.
 
