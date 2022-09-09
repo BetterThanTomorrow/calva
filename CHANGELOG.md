@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Notebooks don't recognize rich comments at the end](https://github.com/BetterThanTomorrow/calva/issues/1857)
+
 ## [2.0.299] - 2022-09-06
 
 - [Bind any keys to custom custom repl commands](https://github.com/BetterThanTomorrow/calva/issues/1853)

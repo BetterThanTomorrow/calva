@@ -45,3 +45,12 @@ meta-test
    40
    1
    1))
+
+(comment
+  forty-two
+
+  (foo)
+  ^{:portal.viewer/default :portal.viewer/hiccup}
+  [:h1 "hiccup rocks"]
+  ;; rich or poor comment?
+  (tap> "stuff"))

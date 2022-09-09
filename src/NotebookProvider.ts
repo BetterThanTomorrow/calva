@@ -51,14 +51,16 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
     return index % 2 !== 0;
   });
 
+  const lastRangeAdjustment = content.length - fullRanges[fullRanges.length - 1];
   // last range should include end of file
   fullRanges[fullRanges.length - 1] = content.length;
 
   // start of file to end of top level sexp pairs
   const allRanges = _.zip(_.dropRight([_.first(topLevelRanges), ...fullRanges], 1), fullRanges);
 
-  const ranges = allRanges.flatMap(([start, end]) => {
-    const endForm = cursor.doc.getTokenCursor(end - 1);
+  const ranges = allRanges.flatMap(([start, end], index) => {
+    const endAdjustment = index + 1 === allRanges.length ? lastRangeAdjustment + 1 : 1;
+    const endForm = cursor.doc.getTokenCursor(end - endAdjustment);
     const afterForm = cursor.doc.getTokenCursor(end);
 
     if (endForm.getFunctionName() === 'comment') {
@@ -69,9 +71,11 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
 
       commentStartCursor.downList();
       commentStartCursor.forwardSexp();
+      commentStartCursor.forwardSexp(true, true);
 
-      while (commentStartCursor.forwardSexp()) {
+      do {
         const range = commentStartCursor.rangeForDefun(commentStartCursor.offsetStart);
+        const commentCellCursor = cursor.doc.getTokenCursor(range[0]);
         let leading = '';
         const indent = commentStartCursor.doc.getRowCol(range[0])[1]; // will break with tabs?
 
@@ -90,7 +94,7 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
             trailing: '',
           },
         });
-      }
+      } while (commentStartCursor.forwardSexp(true, true));
 
       if (commentCells.length) {
         _.last(commentCells).metadata.trailing = content.substring(previouseEnd, end);
