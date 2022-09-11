@@ -1,7 +1,5 @@
 import * as vscode from 'vscode';
-import evaluate from './evaluate';
 import * as util from './utilities';
-import { disabledPrettyPrinter } from './printer';
 import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as cider from './nrepl/cider';
