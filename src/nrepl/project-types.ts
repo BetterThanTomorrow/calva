@@ -528,7 +528,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
       const aliasKey = unKeywordize(projectAlias);
       if (parsed && parsed.aliases) {
         const alias = parsed.aliases[aliasKey];
-        if (alias && alias['main-opts'] != undefined) {
+        if (alias && alias['main-opts'] != undefined && alias['main-opts'].length > 0) {
           aliasesWithMain.push(`:${projectAlias}`);
         }
       }
