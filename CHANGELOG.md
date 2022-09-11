@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.300] - 2022-09-11
+
+- Fix: [Notebooks don't recognize rich comments at the end](https://github.com/BetterThanTomorrow/calva/issues/1857)
+- [Make Calva `deps.edn` Jack-in smarter about if an alias has empty `:main-opts`](https://github.com/BetterThanTomorrow/calva/issues/1859)
+
 ## [2.0.299] - 2022-09-06
 
 - [Bind any keys to custom custom repl commands](https://github.com/BetterThanTomorrow/calva/issues/1853)
