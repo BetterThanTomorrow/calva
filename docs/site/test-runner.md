@@ -47,7 +47,12 @@ Having added the above to your deps.edn, when you jack-in, choose the `:dev` ali
 ### Toggle between implementation and test command not working as intended
 
 This feature mostly works with projects that has leiningen style folder structure and makes some assumption about your folder structure and test file names.
+
 - It assumes that the test files ends with `_test` prefix.
 - It assumes that your implementation files are in `src` folder and the test files are in `test` folder.
 
 If you are using any non leiningen style folder structure, you may have to add source paths inside `.lsp/config.edn`.
+
+### Changes Aren't Taking Effect When Running Tests
+
+In order for changes in code to take effect, you need to load the file or evaluate the changed code before running a test command. Prior to version 2.0.301, Calva would load the file for you when running some test commands, but that behavior was removed in favor of leaving control to the user, and to avoid a [potential issue](https://github.com/BetterThanTomorrow/calva/issues/1821).
