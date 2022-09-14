@@ -9,7 +9,7 @@ function selectionFromOffsetRange(
   return new vscode.Selection(doc.positionAt(range[0]), doc.positionAt(range[1]));
 }
 
-function getFormSelection(
+export function getFormSelection(
   doc: vscode.TextDocument,
   pos: vscode.Position,
   topLevel: boolean

@@ -953,6 +953,11 @@
         "category": "Calva"
       },
       {
+        "command": "calva.prettyPrintReplaceCurrentForm",
+        "title": "Replace Current Form (or Selection) with Pretty Printed Form",
+        "category": "Calva"
+      },
+      {
         "command": "calva.clojureLsp.showClojureLspStoppedMenu",
         "title": "Show clojure-lsp menu",
         "enablement": "!clojureLsp:active",

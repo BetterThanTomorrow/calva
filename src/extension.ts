@@ -487,6 +487,12 @@ async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('calva.convertDart2Clj', converters.dart2clj)
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'calva.prettyPrintReplaceCurrentForm',
+      edit.prettyPrintReplaceCurrentForm
+    )
+  );
 
   // Initial set of the provided contexts
   outputWindow.setContextForOutputWindowActive(false);

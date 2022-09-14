@@ -17,10 +17,13 @@
     result))
 
 
-(defn pretty-print-js [s {:keys [width, maxLength, maxDepth]}]
+(defn pretty-print-js [s {:keys [width, maxLength, maxDepth, map-commas?]}]
   (let [opts (into {} (remove (comp nil? val) {:width width
                                                :max-length maxLength
-                                               :max-depth maxDepth}))]
+                                               :max-depth maxDepth}))
+        opts (if (nil? map-commas?)
+               opts
+               (assoc opts :map {:comma? map-commas?}))]
     (jsify (pretty-print s opts))))
 
 (defn pretty-print-js-bridge [s ^js opts]
@@ -28,7 +31,8 @@
 
 
 ;; SCRAP
-(comment
+(comment 
+  (pretty-print "{:a 1, :b 2 :c 3}" {:map {:comma? false}})
   (pretty-print "[    [ [:foo
                       ]]        ]" nil)
   ;; => {:value "[[[:foo]]]"}
