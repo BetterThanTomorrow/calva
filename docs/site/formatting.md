@@ -63,7 +63,7 @@ Basically, it behaves like if `:remove-multiple-non-indenting-spaces? true` was 
 
 ### 3. Replace Current Form (or Selection) with Pretty Printed Form
 
-This will run the code of the [Current Form](evaluation.md#current-form) through Calva's [pretty printer](pprint.md) (the engine named `calva`, which is using [zprint](https://github.com/kkinnear/zprint)) and replace the current form inline in the editor with the pretty printed results.
+This command will run the code of the [Current Form](evaluation.md#current-form) through Calva's [pretty printer](pprint.md) (the engine named `calva`, which is using [zprint](https://github.com/kkinnear/zprint)) and replace the current form inline in the editor with the pretty printed results.
 
 Unlike with the ”real” Calva Formatter, which never breaks up lines, this one will follow your [pretty printing](pprint.md) options and break up lines if you have set `maxWidth` to something that calls for breaking up lines.
 
