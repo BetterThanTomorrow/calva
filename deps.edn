@@ -1,4 +1,4 @@
-{:deps {zprint/zprint {:mvn/version "1.2.2"}
+{:deps {zprint/zprint {:mvn/version "1.2.4"}
         cljfmt/cljfmt {:mvn/version "0.8.0"}
         thheller/shadow-cljs {:mvn/version "2.18.0"}
         org.clojars.liverm0r/dartclojure {:mvn/version "0.1.10-SNAPSHOT"}
