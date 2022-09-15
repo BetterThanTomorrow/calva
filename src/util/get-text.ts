@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import select from '../select';
+import * as select from '../select';
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import * as cursorTextGetter from './cursor-get-text';
