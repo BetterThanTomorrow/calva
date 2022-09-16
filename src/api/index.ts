@@ -1,6 +1,9 @@
 import * as repl from './repl';
 import * as ranges from './ranges';
 import * as calvaVsCode from './vscode';
+import * as editor from './editor';
+import * as pprint from './pprint';
+
 export function getApi() {
   return {
     // If we can avoid it we don't want to ever break our callers.
@@ -11,6 +14,8 @@ export function getApi() {
       repl,
       ranges,
       vscode: calvaVsCode,
+      editor,
+      pprint,
     },
   };
 }

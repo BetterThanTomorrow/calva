@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.301] - 2022-09-16
+
+- Fix test running issue: [Two references to the same class in the same namespace can refer to two different instances of the class](https://github.com/BetterThanTomorrow/calva/issues/1821)
+- [Make it possible to format Clojure code using the pretty printer](https://github.com/BetterThanTomorrow/calva/issues/1843)
+
 ## [2.0.300] - 2022-09-11
 
 - Fix: [Notebooks don't recognize rich comments at the end](https://github.com/BetterThanTomorrow/calva/issues/1857)

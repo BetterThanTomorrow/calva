@@ -2,14 +2,14 @@ import * as vscode from 'vscode';
 import * as util from './utilities';
 import * as docMirror from './doc-mirror/index';
 
-function selectionFromOffsetRange(
+export function selectionFromOffsetRange(
   doc: vscode.TextDocument,
   range: [number, number]
 ): vscode.Selection {
   return new vscode.Selection(doc.positionAt(range[0]), doc.positionAt(range[1]));
 }
 
-function getFormSelection(
+export function getFormSelection(
   doc: vscode.TextDocument,
   pos: vscode.Position,
   topLevel: boolean
@@ -22,7 +22,7 @@ function getFormSelection(
   }
 }
 
-function getEnclosingFormSelection(
+export function getEnclosingFormSelection(
   doc: vscode.TextDocument,
   pos: vscode.Position
 ): vscode.Selection | undefined {
@@ -59,13 +59,6 @@ function selectForm(
   }
 }
 
-function selectCurrentForm(document = {}) {
+export function selectCurrentForm(document = {}) {
   selectForm(document, getFormSelection, false);
 }
-
-export default {
-  getFormSelection,
-  getEnclosingFormSelection,
-  selectCurrentForm,
-  selectionFromOffsetRange,
-};

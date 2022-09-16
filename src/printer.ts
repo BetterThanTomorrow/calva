@@ -1,5 +1,6 @@
 import { getConfig } from './config';
 import { assertIsDefined } from './utilities';
+import * as calvaLib from '../out/cljs-lib/cljs-lib';
 
 export type PrintFnOptions = {
   name: string;
@@ -125,4 +126,8 @@ export function getServerSidePrinterDependencies() {
   } else {
     return {};
   }
+}
+
+export function prettyPrint(value: any, options: any = prettyPrintingOptions()) {
+  return calvaLib.prettyPrint(value, options);
 }

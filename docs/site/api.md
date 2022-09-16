@@ -51,7 +51,7 @@ When using Joyride you can use its unique `require` API, for which one of the be
 
 ## `repl`
 
-The `repl` module contains provides access to Calva's REPL connection.
+The `repl` module provides access to Calva's REPL connection.
 
 ### `repl.currentSessionKey()`
 
@@ -268,6 +268,65 @@ _Corresponding [REPL Snippet](custom-commands.md) variable: `$top-level-defined-
     ```javascript
     const [range, text] = ranges.currentTopLevelForm();
     ```
+## `editor`
+
+The `editor` module has facilites (well, a facility, so far) for editing Clojure documents.
+
+### `editor.replace()`
+
+With `editor.replace()` you can replace a range in a Clojure editor with new text. The arguments are:
+
+* `editor`, a `vscode.TextEditor`
+* `range`, a `vscode.Range`
+* `newText`, a string
+
+=== "Joyride"
+
+    ```clojure
+    (-> (p/let [top-level-form-range (first (calva/ranges.currentTopLevelForm))
+                _ (calva/editor.replace vscode/window.activeTextEditor top-level-form-range "Some new text")]
+          (println "Text replaced!"))
+        (p/catch (fn [e]
+                   (println "Error replacing text:" e))))
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    const topLevelRange = calvaApi.ranges.currentTopLevelForm();
+    calva.editor.replace(topLevelRange, "Some new text")
+      .then((_) => console.log("Text replaced!"))
+      .catch((e) => console.log("Error replacing text:", e));
+    ```
+
+## `pprint`
+
+The `pprint` module lets you pretty print Clojure code/data using Calva's [pretty printing](pprint.md) engine (which in turn uses [zprint](https://github.com/kkinnear/zprint)).
+
+### `pprint.prettyPrint()`
+
+Use `pprint.prettyPrint()` to pretty print some Clojure data using your Calva pretty printing options. It accepts these arguments:
+
+* `text`, a `string` with the text to pretty print
+* `options`, a JavaScript object with [pretty printing](pprint.md) options, this is optional and will default to the current settings.
+
+The function is synchronous and returns the prettified text.
+
+=== "Joyride"
+
+    ``` clojure
+    (println (calva/pprint.prettyPrint "Some text")))
+    ```
+
+=== "JavaScript"
+
+    ``` javascript
+    console.log(calvaApi.pprint.prettyPrint();
+    ```
+
+### `pprint.prettyPrintingOptions()`
+
+Use to get the current pretty printint options:
 
 ## `vscode`
 
@@ -298,7 +357,8 @@ This is the `[vscode.languages](https://code.visualstudio.com/api/references/vsc
     ```javascript
     yourExtensionContext.subscriptions.push(calva.vscode.registerDocumentSymbolProvider(...));
     ```
-
+!!! Warning "Deprecation candidate"
+    VS Code is still creating a separate group, just with the same name as Calva's, so this API is not good for anything, and we will probably remove it.
 
 ## Feedback Welcome
 

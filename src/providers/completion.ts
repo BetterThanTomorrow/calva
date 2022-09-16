@@ -12,7 +12,7 @@ import {
   CompletionItemLabel,
 } from 'vscode';
 import * as util from '../utilities';
-import select from '../select';
+import * as select from '../select';
 import * as docMirror from '../doc-mirror/index';
 import * as infoparser from './infoparser';
 import * as namespace from '../namespace';

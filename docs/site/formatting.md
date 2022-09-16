@@ -35,13 +35,13 @@ Not a fan of some default setting? The formatter is quite [configurable](#config
 
 ## Format current form command variants
 
-There are two special commands for formatting the current form:
+There are _three_ special commands for formatting the current form:
 
-### Format and Align Current Form
+### 1. Format and Align Current Form
 
 Aligns associative structures and bindings in two columns. See more [below](#about-aligning-associative-forms).
 
-### Format Current Form and trim space between forms
+### 2. Format Current Form and trim space between forms
 
 This formats the text, and trims consecutive, non-indent, whitespace on a line to just one space. Something like:
 
@@ -60,6 +60,15 @@ Becomes:
 ```
 
 Basically, it behaves like if `:remove-multiple-non-indenting-spaces? true` was added to the `cljfmt` config. Which, in fact, is what happens. Calva merges that onto your cljfmt config when this command is used.
+
+### 3. Replace Current Form (or Selection) with Pretty Printed Form
+
+This command will run the code of the [Current Form](evaluation.md#current-form) through Calva's [pretty printer](pprint.md) (the engine named `calva`, which is using [zprint](https://github.com/kkinnear/zprint)) and replace the current form inline in the editor with the pretty printed results.
+
+Unlike with the ”real” Calva Formatter, which never breaks up lines, this one will follow your [pretty printing](pprint.md) options and break up lines if you have set `maxWidth` to something that calls for breaking up lines.
+
+!!! Note "Applies to the other Current Form"
+    Unlike the other Format commands, which applies to the current _enclosing_ form, this one applies to the [Current Form, same as with evaluations](evaluation.md#current-form). That is because this is not really part of the Calva formatter, but rather is a convenience command for tidying up code or data.
 
 ## Configuration
 

@@ -1,7 +1,5 @@
 import * as vscode from 'vscode';
-import evaluate from './evaluate';
 import * as util from './utilities';
-import { disabledPrettyPrinter } from './printer';
 import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as cider from './nrepl/cider';
@@ -294,8 +292,6 @@ async function runNamespaceTestsImpl(
 
   const session = getSession(util.getFileType(document));
 
-  // TODO.marc: Should we be passing the `document` argument to `loadFile`?
-  await evaluate.loadFile({}, disabledPrettyPrinter);
   outputWindow.append(`; Running tests for ${nss[0]}...`);
 
   const resultPromises = nss.map((ns) => {
@@ -337,7 +333,6 @@ async function runTestUnderCursor(controller: vscode.TestController) {
   const test = getTestUnderCursor();
 
   if (test) {
-    await evaluate.loadFile(doc, disabledPrettyPrinter);
     outputWindow.append(`; Running test: ${test}…`);
     try {
       reportTests(controller, session, [await session.test(ns, test)]);
@@ -376,9 +371,7 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
 
 async function rerunTests(controller: vscode.TestController, document = {}) {
   const session = getSession(util.getFileType(document));
-  await evaluate.loadFile({}, disabledPrettyPrinter);
   outputWindow.append('; Running previously failed tests…');
-
   try {
     reportTests(controller, session, [await session.retest()]);
   } catch (e) {
