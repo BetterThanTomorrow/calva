@@ -32,4 +32,10 @@
           (is (<= width 40)))
         (let [width (apply count (pretty-line-of 25 "foo" {:max-length 2}))]
           (is (< width 20)))
-        (is (re-find #"#" (:value (pretty-print shallow {:max-depth 1}))))))))
+        (is (re-find #"#" (:value (pretty-print shallow {:max-depth 1})))))
+      (testing "Commas added in maps with default options"
+        (is (= {:value "{:a 1, :b 1, :c 1}"}
+               (pretty-print "{:a 1, :b 1 :c 1}" nil))))
+      (testing "Can opt out of added commas in maps"
+        (is (= {:value "{:a 1 :b 1 :c 1}"}
+               (pretty-print "{:a 1, :b 1 :c 1}" {:map {:comma? false}})))))))

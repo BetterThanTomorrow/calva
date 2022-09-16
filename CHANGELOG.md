@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix test running issue: [Two references to the same class in the same namespace can refer to two different instances of the class](https://github.com/BetterThanTomorrow/calva/issues/1821)
+- [Make it possible to format Clojure code using the pretty printer](https://github.com/BetterThanTomorrow/calva/issues/1843)
 
 ## [2.0.300] - 2022-09-11
 

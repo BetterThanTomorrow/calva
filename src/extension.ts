@@ -16,7 +16,7 @@ import * as definition from './providers/definition';
 import { CalvaSignatureHelpProvider } from './providers/signature';
 import testRunner from './testRunner';
 import annotations from './providers/annotations';
-import select from './select';
+import * as select from './select';
 import eval from './evaluate';
 import refresh from './refresh';
 import * as greetings from './greet';
@@ -486,6 +486,12 @@ async function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('calva.convertDart2Clj', converters.dart2clj)
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'calva.prettyPrintReplaceCurrentForm',
+      edit.prettyPrintReplaceCurrentForm
+    )
   );
 
   // Initial set of the provided contexts

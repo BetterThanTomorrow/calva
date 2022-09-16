@@ -1,5 +1,5 @@
 (ns calva.pprint.printer
-  (:require [zprint.core :refer [zprint-str]]
+  (:require [zprint.core :as zprint]
             [calva.js-utils :refer [jsify cljify]]
             [clojure.string]))
 
@@ -10,25 +10,31 @@
   [s opts]
   (let [result (try
                  {:value
-                  (zprint-str s (assoc opts :parse-string? (string? s)))}
+                  (zprint/zprint-file-str s "Calva" opts)}
                  (catch js/Error e
                    {:value s
                     :error (str "Plain printing, b/c pprint failed. (" (.-message e) ")")}))]
     result))
 
 
-(defn pretty-print-js [s {:keys [width, maxLength, maxDepth]}]
+(defn pretty-print-js [s {:keys [width, maxLength, maxDepth, map-commas?]}]
   (let [opts (into {} (remove (comp nil? val) {:width width
                                                :max-length maxLength
-                                               :max-depth maxDepth}))]
+                                               :max-depth maxDepth}))
+        opts (if (nil? map-commas?)
+               opts
+               (assoc opts :map {:comma? map-commas?}))]
     (jsify (pretty-print s opts))))
 
-(defn pretty-print-js-bridge [s ^js opts]
+(defn ^:export pretty-print-js-bridge [s ^js opts]
   (pretty-print-js s (cljify opts)))
 
 
 ;; SCRAP
-(comment
+(comment 
+  (zprint/zprint-file-str "{:a 1, :b 2 :c 3} {:a 1, :b 2 :c 3}" "id" {:map {:comma? false}})
+  (zprint/zprint-file-str "a s" "id" {})
+  (zprint/zprint-str "a s" {:parse-string? true})
   (pretty-print "[    [ [:foo
                       ]]        ]" nil)
   ;; => {:value "[[[:foo]]]"}

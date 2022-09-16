@@ -4,7 +4,7 @@ import * as state from '../state';
 import { highlight } from '../highlight/src/extension';
 import { NReplSession } from '../nrepl';
 import * as util from '../utilities';
-import select from '../select';
+import * as select from '../select';
 import { formatCode } from '../calva-fmt/src/format';
 import * as namespace from '../namespace';
 import * as config from '../config';

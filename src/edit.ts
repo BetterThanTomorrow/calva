@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import * as util from './utilities';
 import * as docMirror from './doc-mirror/index';
+import { EditableDocument, ModelEdit } from './cursor-doc/model';
+import * as select from './select';
+import * as printer from './printer';
 
 // Relies on that `when` claus guards this from being called
 // when the cursor is before the comment marker
@@ -35,5 +38,44 @@ export function continueCommentCommand() {
           editor.selection = new vscode.Selection(newPosition, newPosition);
         }
       });
+  }
+}
+
+export function replace(
+  editor: vscode.TextEditor,
+  range: vscode.Range,
+  newText: string,
+  options = {}
+) {
+  const document = editor.document;
+  const mirrorDoc: EditableDocument = docMirror.getDocument(document);
+  return mirrorDoc.model.edit(
+    [
+      new ModelEdit('changeRange', [
+        document.offsetAt(range.start),
+        document.offsetAt(range.end),
+        newText,
+      ]),
+    ],
+    {
+      ...{
+        undoStopBefore: true,
+      },
+      ...options,
+    }
+  );
+}
+
+export function prettyPrintReplaceCurrentForm(options = { enabled: true }) {
+  const editor = util.getActiveTextEditor();
+  const document = editor.document;
+  const selection = editor.selection;
+  const range = selection.isEmpty
+    ? select.getFormSelection(document, selection.active, false)
+    : selection;
+  const text = document.getText(range);
+  const result = printer.prettyPrint(text, { ...options, 'map-commas?': false });
+  if (result) {
+    return replace(editor, range, result.value);
   }
 }
