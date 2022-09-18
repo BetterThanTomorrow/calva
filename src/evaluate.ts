@@ -423,11 +423,15 @@ async function loadFile(
 
     await session.switchNS(ns);
 
+    const errorMessages = [];
     const res = session.loadFile(fileContents, {
       fileName,
       filePath: docUri.path,
       stdout: (m) => outputWindow.append(normalizeNewLines(m)),
-      stderr: (m) => outputWindow.append('; ' + normalizeNewLines(m, true)),
+      stderr: (m) => {
+        outputWindow.append('; ' + normalizeNewLines(m, true));
+        errorMessages.push(normalizeNewLines(m, true));
+      },
       pprintOptions: pprintOptions,
     });
     try {
@@ -447,6 +451,22 @@ async function loadFile(
           }
         }
       );
+      if (
+        !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
+          outputWindow.isResultsDoc(editor.document)
+        )
+      ) {
+        void vscode.window
+          .showErrorMessage(
+            `Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`,
+            'Show output'
+          )
+          .then((choice) => {
+            if (choice === 'Show output') {
+              void vscode.commands.executeCommand('calva.showOutputWindow');
+            }
+          });
+      }
     }
     outputWindow.setSession(session, res.ns || ns);
     replSession.updateReplSessionType();

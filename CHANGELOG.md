@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Show error message if loading file results in an error](https://github.com/BetterThanTomorrow/calva/issues/1767)
+
 ## [2.0.301] - 2022-09-16
 
 - Fix test running issue: [Two references to the same class in the same namespace can refer to two different instances of the class](https://github.com/BetterThanTomorrow/calva/issues/1821)
