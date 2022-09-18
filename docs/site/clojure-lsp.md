@@ -156,9 +156,11 @@ In such cases, when opening the folder `reporoot`, clojure-lsp doesn't help you.
 First, if you do need access to `otherstuff` inside `reporoot`, you can:
 
 1. open folder `reporoot`
-2. File -> Add Folder to Workspace...
+2. **File -> Add Folder to Workspace...**
 3. Add the `subfolder`
 4. The File Explorer now shows 2 project roots: drag the `subfolder` root above the `reporoot` root.
+
+Save the resulting Workspace to not have to repeat these steps.
 
 The second option, if you don't need access to `otherstuff` inside `reporoot`, is to just open the folder `subfolder` instead. 
 
