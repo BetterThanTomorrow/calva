@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Download of clojure-lsp nightly build fails on Apple M1/M2](https://github.com/BetterThanTomorrow/calva/issues/1869)
+
 ## [2.0.302] - 2022-09-18
 
 - [Show error message if loading file results in an error](https://github.com/BetterThanTomorrow/calva/issues/1767)
