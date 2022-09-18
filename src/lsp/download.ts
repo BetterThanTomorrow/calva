@@ -81,7 +81,7 @@ async function downloadClojureLsp(extensionPath: string, version: string): Promi
   const url =
     version !== 'nightly'
       ? `https://github.com/clojure-lsp/clojure-lsp/releases/download/${version}/${artifactName}`
-      : `https://nightly.link/clojure-lsp/clojure-lsp/workflows/nightly/master/${artifactName}`;
+      : `https://github.com/clojure-lsp/clojure-lsp-dev-builds/releases/latest/download/${artifactName}`;
   const downloadPath = path.join(extensionPath, artifactName);
   const clojureLspPath = lspUtil.getClojureLspPath(extensionPath);
   const backupPath = fs.existsSync(clojureLspPath)
