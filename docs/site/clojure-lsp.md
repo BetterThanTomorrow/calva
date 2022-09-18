@@ -139,6 +139,31 @@ You can run the `Clojure-lsp Server Info` command to get information about the r
 
 You can open the clojure-lsp log file by running the command `Calva Diagnostics: Open Clojure-lsp Log File`. The log file will only be opened with this command if the clojure-lsp server is running and has finished initializing. If you need to open the file when the server is failing to run or initialize, see the [clojure-lsp docs](https://clojure-lsp.io/troubleshooting/#server-log) for information on the file location.
 
+### Leiningen project in subfolder
+
+Sometimes your Leiningen project root with its `project.clj` is located in a subfolder and not directly inside your repository root:
+
+```
+- reporoot
+  - subfolder (= project root)
+    - project.clj
+  - otherstuff
+  - .git
+```
+
+In such cases, when opening the folder `reporoot`, clojure-lsp doesn't help you. There are two workarounds:
+
+First, if you do need access to `otherstuff` inside `reporoot`, you can:
+
+1. open folder `reporoot`
+2. **File -> Add Folder to Workspace...**
+3. Add the `subfolder`
+4. The File Explorer now shows 2 project roots: drag the `subfolder` root above the `reporoot` root.
+
+Save the resulting Workspace to not have to repeat these steps.
+
+The second option, if you don't need access to `otherstuff` inside `reporoot`, is to just open the folder `subfolder` instead. 
+
 ## Related
 
 See also:

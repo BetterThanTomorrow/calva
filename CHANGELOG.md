@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.302] - 2022-09-18
+
+- [Show error message if loading file results in an error](https://github.com/BetterThanTomorrow/calva/issues/1767)
+- Document workaround for: [Allow sending a different project-root-uri during LSP initialize request](https://github.com/BetterThanTomorrow/calva/issues/1866) 
+
 ## [2.0.301] - 2022-09-16
 
 - Fix test running issue: [Two references to the same class in the same namespace can refer to two different instances of the class](https://github.com/BetterThanTomorrow/calva/issues/1821)
