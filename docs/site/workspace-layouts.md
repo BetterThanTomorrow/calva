@@ -5,7 +5,7 @@ description: Single project repos, monorepos, polyrepos, project directory layou
 
 # Workspace Layouts
 
-Project directory layouts can vary quite a lot. From the ”template” projects where the Clojure project files are at the root, to, well, let's just say that the project files are not always at the root. And sometimes there is more than one project.
+Project directory layouts can vary quite a lot. From the ”template” projects where the Clojure project files are at the root, to, well, let's just say that the project files are not always at the root. And sometimes there is more than one project ([read here how to get clojure-lsp support with a Leiningen project in a subfolder](clojure-lsp.md#leiningen-project-in-subfolder)).
 
 Calva only really supports working with one project at a time per VS Code window. Here's a short guide for some different setups:
 
