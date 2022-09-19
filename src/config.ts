@@ -165,6 +165,7 @@ function getConfig() {
     useLiveShare: configOptions.get<boolean>('useLiveShare'),
     definitionProviderPriority: configOptions.get<string[]>('definitionProviderPriority'),
     depsEdnJackInExecutable: configOptions.get<string>('depsEdnJackInExecutable'),
+    depsCljPath: configOptions.get<string>('depsCljPath'),
   };
 }
 

@@ -76,7 +76,6 @@ report.*
 output.calva-repl
 .clj-kondo
 /clojure-lsp*
-backup/clojure-lsp
 
 # MkDocs
 /site/
@@ -84,3 +83,4 @@ backup/clojure-lsp
 # Calva dev
 clojure.tmLanguage.json
 .cpcache/
+backup/
