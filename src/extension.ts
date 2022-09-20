@@ -38,7 +38,7 @@ import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
 import * as joyride from './joyride';
 import * as api from './api/index';
-
+import * as depsClj from './nrepl/deps-clj';
 import * as clojureDocs from './clojuredocs';
 async function onDidSave(testController: vscode.TestController, document: vscode.TextDocument) {
   const { evaluate, test } = config.getConfig();
@@ -155,6 +155,7 @@ async function activate(context: vscode.ExtensionContext) {
 
   state.setExtensionContext(context);
   state.initDepsEdnJackInExecutable();
+  void depsClj.downloadDepsClj(context.extensionPath);
 
   if (!fmtExtension) {
     try {
