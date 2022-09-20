@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.304] - 2022-09-20
+
+- [Keep deps.clj updated](https://github.com/BetterThanTomorrow/calva/issues/1871)
+
 ## [2.0.303] - 2022-09-18
 
 - Fix: [Download of clojure-lsp nightly build fails on Apple M1/M2](https://github.com/BetterThanTomorrow/calva/issues/1869)
