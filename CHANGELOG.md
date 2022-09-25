@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make it easier to find the clojure-lsp server trace log level](https://github.com/BetterThanTomorrow/calva/issues/1876)
+
 ## [2.0.304] - 2022-09-20
 
 - [Keep deps.clj updated](https://github.com/BetterThanTomorrow/calva/issues/1871)
