@@ -993,6 +993,11 @@
         "category": "Calva Diagnostics"
       },
       {
+        "command": "calva.diagnostics.showLspTraceLevelSettings",
+        "title": "Show LSP Trace Level Settings",
+        "category": "Calva Diagnostics"
+      },
+      {
         "command": "calva.diagnostics.toggleNreplLoggingEnabled",
         "title": "Toggle nREPL Logging Enabled",
         "category": "Calva Diagnostics"
