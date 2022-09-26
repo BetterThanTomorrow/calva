@@ -132,7 +132,7 @@ jobs:
           command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Update system package lists
-          command: sudo apt-get update && sudo apt-get clean && sudo apt-get autoremove
+          command: sudo apt-get update
       - run:
           name: Install some pre-requisite packages
           command: sudo apt-get --assume-yes --quiet install curl xvfb libasound2 libgbm-dev
