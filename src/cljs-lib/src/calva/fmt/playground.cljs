@@ -156,3 +156,20 @@
   (= t f)
   (pr-str f)
   (println f))
+
+(comment
+  (comment
+  ;; rewrite-clj/rewrite-clj {:mvn/version "1.1.45"}
+    (require '[rewrite-clj.zip :as z])
+    (def data-string
+      "(defn my-function [a]
+  ;; a comment
+  (* a 3))")
+    (def zloc (z/of-string data-string))
+    (def data-string2 "[ns (str k 
+            (when (and tabbed-id tab-id) (str 1 (inc tab-id))))]")
+    (def zloc (z/of-string data-string2)))
+  
+  [ns '(str 0
+              1)]
+  )
