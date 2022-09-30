@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.305] - 2022-09-30
+
 - [Make it easier to find the clojure-lsp server trace log level](https://github.com/BetterThanTomorrow/calva/issues/1876)
 - [Bump cljfmt dependency to `v0.9.0`](https://github.com/BetterThanTomorrow/calva/issues/1878)
 - [Not honoring `calva.evalOnSave` when `calva.testOnSave` is enabled](https://github.com/BetterThanTomorrow/calva/issues/1880)
