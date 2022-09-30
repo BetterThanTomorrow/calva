@@ -48,15 +48,17 @@ async function onDidSave(testController: vscode.TestController, document: vscode
     return;
   }
 
-  if (testOnSave && util.getConnectedState()) {
-    void testRunner.runNamespaceTests(testController, document);
-    state.analytics().logEvent('Calva', 'OnSaveTest').send();
-  } else if (evalOnSave) {
+  if (evalOnSave) {
     if (!outputWindow.isResultsDoc(document)) {
       await eval.loadFile(document, config.getConfig().prettyPrintingOptions);
       outputWindow.appendPrompt();
       state.analytics().logEvent('Calva', 'OnSaveLoad').send();
     }
+  }
+
+  if (testOnSave && util.getConnectedState()) {
+    void testRunner.runNamespaceTests(testController, document);
+    state.analytics().logEvent('Calva', 'OnSaveTest').send();
   }
 }
 
