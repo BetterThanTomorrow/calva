@@ -10,7 +10,7 @@ import * as calvaConfig from '../../config';
 function getLanguageConfiguration(autoIndentOn: boolean): vscode.LanguageConfiguration {
   return {
     onEnterRules:
-      autoIndentOn && calvaConfig.getConfig().format
+      autoIndentOn && calvaConfig.getConfig().formatOnSave
         ? [
             // When Calva is the formatter disable all vscode default indentation
             // (By outdenting a lot, which is the only way I have found that works)

@@ -617,6 +617,12 @@ function registerDiagnosticsCommands(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.commands.registerCommand('calva.diagnostics.openClojureLspLogFile', openLogFile)
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'calva.diagnostics.showLspTraceLevelSettings',
+      configureTraceLogLevel
+    )
+  );
 }
 
 export type LspStatus = 'stopped' | 'starting' | 'started' | 'downloading' | 'error';
@@ -767,6 +773,10 @@ async function openLogFile(): Promise<void> {
   }
 }
 
+function configureTraceLogLevel() {
+  void vscode.commands.executeCommand('workbench.action.openSettings', 'clojure.trace.server');
+}
+
 export async function getClojuredocs(symName: string, symNs: string): Promise<any> {
   if (serverVersion > '2021.10.20-16.49.47') {
     const client: LanguageClient = getStateValue(LSP_CLIENT_KEY);
@@ -819,14 +829,30 @@ function showMenu(items: vscode.QuickPickItem[], commands: Record<string, string
   });
 }
 
+function commonMenuCommands(): [vscode.QuickPickItem[], Record<string, string>] {
+  const SHOW_TRACE_LEVEL_SETTINGS_COMMAND = 'calva.diagnostics.showLspTraceLevelSettings';
+  const SHOW_TRACE_LEVEL_SETTINGS_OPTION = 'Open Trace Level Settings';
+  const commands = {
+    [SHOW_TRACE_LEVEL_SETTINGS_OPTION]: SHOW_TRACE_LEVEL_SETTINGS_COMMAND,
+  };
+  const items: vscode.QuickPickItem[] = [
+    {
+      label: SHOW_TRACE_LEVEL_SETTINGS_OPTION,
+      description: 'Opens the client/server trace level in VS Code Settings',
+    },
+  ];
+  return [items, commands];
+}
+
 function stoppedMenuCommand() {
   const START_OPTION = 'Start';
   const START_COMMAND = 'calva.clojureLsp.start';
   const DOWNLOAD_OPTION = 'Download configured version';
   const DOWNLOAD_COMMAND = 'calva.clojureLsp.download';
-  const commands = {};
-  commands[START_OPTION] = START_COMMAND;
-  commands[DOWNLOAD_OPTION] = DOWNLOAD_COMMAND;
+  const commands: Record<string, string> = {
+    [START_OPTION]: START_COMMAND,
+    [DOWNLOAD_OPTION]: DOWNLOAD_COMMAND,
+  };
   const items: vscode.QuickPickItem[] = [
     {
       label: START_OPTION,
@@ -837,7 +863,8 @@ function stoppedMenuCommand() {
       description: `${config.getConfig().clojureLspVersion}`,
     },
   ];
-  showMenu(items, commands);
+  const [commonItems, commonCommands] = commonMenuCommands();
+  showMenu([...items, ...commonItems], { ...commands, ...commonCommands });
 }
 
 function startedMenuCommand() {
@@ -857,14 +884,6 @@ function startedMenuCommand() {
   };
   const items: vscode.QuickPickItem[] = [
     {
-      label: INFO_OPTION,
-      description: 'Print clojure-lsp server info to `Calva says`',
-    },
-    {
-      label: LOG_OPTION,
-      description: 'Open the clojure-lsp log file',
-    },
-    {
       label: STOP_OPTION,
       description: 'Stop the clojure-lsp server',
     },
@@ -872,8 +891,17 @@ function startedMenuCommand() {
       label: RESTART_OPTION,
       description: 'Restart the clojure-lsp server',
     },
+    {
+      label: INFO_OPTION,
+      description: 'Print clojure-lsp server info to `Calva says`',
+    },
+    {
+      label: LOG_OPTION,
+      description: 'Open the clojure-lsp log file',
+    },
   ];
-  showMenu(items, commands);
+  const [commonItems, commonCommands] = commonMenuCommands();
+  showMenu([...items, ...commonItems], { ...commands, ...commonCommands });
 }
 
 export default {

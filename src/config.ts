@@ -116,9 +116,9 @@ function getConfig() {
   ).concat((state.getProjectConfig()?.customREPLHoverSnippets as customREPLCommandSnippet[]) ?? []);
 
   return {
-    format: configOptions.get('formatOnSave'),
-    evaluate: configOptions.get('evalOnSave'),
-    test: configOptions.get('testOnSave'),
+    formatOnSave: configOptions.get('formatOnSave'),
+    evalOnSave: configOptions.get('evalOnSave'),
+    testOnSave: configOptions.get('testOnSave'),
     showDocstringInParameterHelp: configOptions.get<boolean>('showDocstringInParameterHelp'),
     jackInEnv: configOptions.get('jackInEnv'),
     jackInDependencyVersions: configOptions.get<{
