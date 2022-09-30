@@ -40,17 +40,18 @@ import * as joyride from './joyride';
 import * as api from './api/index';
 import * as depsClj from './nrepl/deps-clj';
 import * as clojureDocs from './clojuredocs';
+
 async function onDidSave(testController: vscode.TestController, document: vscode.TextDocument) {
-  const { evaluate, test } = config.getConfig();
+  const { evalOnSave, testOnSave } = config.getConfig();
 
   if (document.languageId !== 'clojure') {
     return;
   }
 
-  if (test && util.getConnectedState()) {
+  if (testOnSave && util.getConnectedState()) {
     void testRunner.runNamespaceTests(testController, document);
     state.analytics().logEvent('Calva', 'OnSaveTest').send();
-  } else if (evaluate) {
+  } else if (evalOnSave) {
     if (!outputWindow.isResultsDoc(document)) {
       await eval.loadFile(document, config.getConfig().prettyPrintingOptions);
       outputWindow.appendPrompt();
