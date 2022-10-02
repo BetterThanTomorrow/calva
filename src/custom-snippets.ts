@@ -151,7 +151,8 @@ function makeContext(editor: vscode.TextEditor, ns: string, editorNS: string, re
     enclosingForm: getText.currentEnclosingFormText(editor.document, editor?.selection.active)[1],
     topLevelForm: getText.currentTopLevelFormText(editor?.document, editor?.selection.active)[1],
     currentFn: getText.currentFunction(editor?.document)[1],
-    topLevelDefinedForm: getText.currentTopLevelFunction(
+    topLevelFn: getText.currentTopLevelFunction(editor?.document)[1],
+    topLevelDefinedForm: getText.currentTopLevelDefined(
       editor?.document,
       editor?.selection.active
     )[1],
@@ -185,6 +186,7 @@ function interpolateCode(code: string, context): string {
     .replace(/\$enclosing-form/g, context.enclosingForm)
     .replace(/\$top-level-form/g, context.topLevelForm)
     .replace(/\$current-fn/g, context.currentFn)
+    .replace(/\$top-level-fn/g, context.topLevelFn)
     .replace(/\$top-level-defined-symbol/g, context.topLevelDefinedForm)
     .replace(/\$head/g, context.head)
     .replace(/\$tail/g, context.tail)

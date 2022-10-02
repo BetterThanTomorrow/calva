@@ -41,9 +41,15 @@ export function currentEnclosingFormText(
   return [undefined, ''];
 }
 
-export function currentFunction(doc: vscode.TextDocument): SelectionAndText {
+export function _currentFunction(doc: vscode.TextDocument, topLevel = false): SelectionAndText {
   if (doc) {
-    const tokenCursor = docMirror.getDocument(doc).getTokenCursor();
+    const cursorDoc = docMirror.getDocument(doc);
+    const tokenCursor = cursorDoc.getTokenCursor();
+    if (topLevel) {
+      tokenCursor.set(
+        cursorDoc.getTokenCursor(tokenCursor.rangeForDefun(cursorDoc.selection.active)[1] - 1)
+      );
+    }
     const [start, end] = tokenCursor.getFunctionSexpRange();
     if (start && end) {
       const startPos = doc.positionAt(start);
@@ -53,6 +59,14 @@ export function currentFunction(doc: vscode.TextDocument): SelectionAndText {
     }
   }
   return [undefined, ''];
+}
+
+export function currentFunction(doc: vscode.TextDocument): SelectionAndText {
+  return _currentFunction(doc, false);
+}
+
+export function currentTopLevelFunction(doc: vscode.TextDocument): SelectionAndText {
+  return _currentFunction(doc, true);
 }
 
 function selectionAndText(
@@ -77,11 +91,11 @@ export function currentEnclosingFormToCursor(
   return selectionAndText(doc, cursorTextGetter.currentEnclosingFormToCursor, pos);
 }
 
-export function currentTopLevelFunction(
+export function currentTopLevelDefined(
   doc: vscode.TextDocument,
   pos: vscode.Position
 ): SelectionAndText {
-  return selectionAndText(doc, cursorTextGetter.currentTopLevelFunction, pos);
+  return selectionAndText(doc, cursorTextGetter.currentTopLevelDefined, pos);
 }
 
 export function currentTopLevelFormToCursor(
@@ -126,7 +140,7 @@ export function currentContext(document: vscode.TextDocument, pos: vscode.Positi
   result[prefix + 'enclosingForm'] = currentEnclosingFormText(document, pos)[1];
   result[prefix + 'topLevelForm'] = currentTopLevelFormText(document, pos)[1];
   result[prefix + 'currentFn'] = currentFunction(document)[1];
-  result[prefix + 'topLevelDefinedForm'] = currentTopLevelFunction(document, pos)[1];
+  result[prefix + 'topLevelDefinedForm'] = currentTopLevelDefined(document, pos)[1];
   result[prefix + 'head'] = toStartOfList(document)[1];
   result[prefix + 'tail'] = toEndOfList(document)[1];
 
