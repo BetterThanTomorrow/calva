@@ -147,17 +147,6 @@ function makeContext(editor: vscode.TextEditor, ns: string, editorNS: string, re
     editorNS,
     repl,
     selection: editor.document.getText(editor.selection),
-    currentForm: getText.currentFormText(editor?.document, editor?.selection.active)[1],
-    enclosingForm: getText.currentEnclosingFormText(editor.document, editor?.selection.active)[1],
-    topLevelForm: getText.currentTopLevelFormText(editor?.document, editor?.selection.active)[1],
-    currentFn: getText.currentFunction(editor?.document)[1],
-    topLevelFn: getText.currentTopLevelFunction(editor?.document)[1],
-    topLevelDefinedForm: getText.currentTopLevelDefined(
-      editor?.document,
-      editor?.selection.active
-    )[1],
-    head: getText.toStartOfList(editor?.document)[1],
-    tail: getText.toEndOfList(editor?.document)[1],
     ...getText.currentContext(editor.document, editor.selection.active),
   };
 }
@@ -182,19 +171,29 @@ function interpolateCode(code: string, context): string {
     .replace(/\$repl/g, context.repl)
     .replace(/\$selection/g, context.selection)
     .replace(/\$hover-text/g, context.hoverText)
-    .replace(/\$current-form/g, context.currentForm)
-    .replace(/\$enclosing-form/g, context.enclosingForm)
-    .replace(/\$top-level-form/g, context.topLevelForm)
-    .replace(/\$current-fn/g, context.currentFn)
-    .replace(/\$top-level-fn/g, context.topLevelFn)
-    .replace(/\$top-level-defined-symbol/g, context.topLevelDefinedForm)
-    .replace(/\$head/g, context.head)
-    .replace(/\$tail/g, context.tail)
-    .replace(/\$hover-current-form/g, context.hovercurrentForm)
-    .replace(/\$hover-enclosing-form/g, context.hoverenclosingForm)
-    .replace(/\$hover-top-level-form/g, context.hovertopLevelForm)
-    .replace(/\$hover-current-fn/g, context.hovercurrentFn)
-    .replace(/\$hover-top-level-defined-symbol/g, context.hovertopLevelDefinedForm)
-    .replace(/\$hover-head/g, context.hoverhead)
-    .replace(/\$hover-tail/g, context.hovertail);
+    .replace(/\$current-form/g, context.currentForm[1])
+    .replace(/\$enclosing-form/g, context.enclosingForm[1])
+    .replace(/\$top-level-form/g, context.topLevelForm[1])
+    .replace(/\$current-fn/g, context.currentFn[1])
+    .replace(/\$top-level-fn/g, context.topLevelFn[1])
+    .replace(/\$top-level-defined-symbol/g, context.topLevelDefinedForm[1])
+    .replace(/\$head/g, context.head[1])
+    .replace(/\$tail/g, context.tail[1])
+    .replace(/\$hover-current-form/g, context.hovercurrentForm ? context.hovercurrentForm[1] : '')
+    .replace(
+      /\$hover-enclosing-form/g,
+      context.hoverenclosingForm ? context.hoverenclosingForm[1] : ''
+    )
+    .replace(
+      /\$hover-top-level-form/g,
+      context.hovertopLevelForm ? context.hovertopLevelForm[1] : ''
+    )
+    .replace(/\$hover-current-fn/g, context.hovercurrentFn ? context.hovercurrentFn[1] : '')
+    .replace(/\$hover-current-fn/g, context.hovertopLevelFn ? context.hovertopLevelFn[1] : '')
+    .replace(
+      /\$hover-top-level-defined-symbol/g,
+      context.hovertopLevelDefinedForm ? context.hovertopLevelDefinedForm[1] : ''
+    )
+    .replace(/\$hover-head/g, context.hoverhead ? context.hoverhead[1] : '')
+    .replace(/\$hover-tail/g, context.hovertail ? context.hovertail[1] : '');
 }

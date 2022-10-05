@@ -136,13 +136,14 @@ export function toEndOfList(doc: vscode.TextDocument): SelectionAndText {
 
 export function currentContext(document: vscode.TextDocument, pos: vscode.Position, prefix = '') {
   const result = {};
-  result[prefix + 'currentForm'] = currentFormText(document, pos)[1];
-  result[prefix + 'enclosingForm'] = currentEnclosingFormText(document, pos)[1];
-  result[prefix + 'topLevelForm'] = currentTopLevelFormText(document, pos)[1];
-  result[prefix + 'currentFn'] = currentFunction(document)[1];
-  result[prefix + 'topLevelDefinedForm'] = currentTopLevelDefined(document, pos)[1];
-  result[prefix + 'head'] = toStartOfList(document)[1];
-  result[prefix + 'tail'] = toEndOfList(document)[1];
+  result[prefix + 'currentForm'] = currentFormText(document, pos);
+  result[prefix + 'enclosingForm'] = currentEnclosingFormText(document, pos);
+  result[prefix + 'topLevelForm'] = currentTopLevelFormText(document, pos);
+  result[prefix + 'currentFn'] = currentFunction(document);
+  result[prefix + 'topLevelDefinedForm'] = currentTopLevelDefined(document, pos);
+  result[prefix + 'topLevelFn'] = currentTopLevelFunction(document);
+  result[prefix + 'head'] = toStartOfList(document);
+  result[prefix + 'tail'] = toEndOfList(document);
 
   return result;
 }
