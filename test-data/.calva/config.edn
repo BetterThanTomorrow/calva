@@ -8,5 +8,8 @@
   {:name "edn hover show val"
    :snippet "(str \"### EDN show val\n```clojure\n\" (pr-str (eval (symbol (str \"$ns\" \"/\" \"$hover-top-level-defined-symbol\")))) \"\n```\")"}
   {:name "edn hover current-form"
-   :snippet "(str \"**EDN edn hover current-form** \" \"$current-form\")"}]}
+   :snippet "(str \"**EDN edn hover current-form** \" \"$current-form\")"}]
+ :customREPLCommandSnippets
+ [{:name "EDN current form"
+   :snippet (str "**EDN edn current-form**: " $current-form)}]}
 
