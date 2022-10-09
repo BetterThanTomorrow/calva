@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { customREPLCommandSnippet } from './evaluate';
 import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
-import { parseEdn } from '../out/cljs-lib/cljs-lib';
+import { readConfigEdn } from '../out/cljs-lib/cljs-lib';
 import * as state from './state';
 import _ = require('lodash');
 import { isDefined } from './utilities';
@@ -65,13 +65,13 @@ function mergeSnippets(
 
 /**
  * Saves the EDN config in the state to be merged into the actual vsconfig.
- * Currently only `:customREPLCommandSnippets` is supported and the `:snippet` has to be a string.
+ * Currently only `:customREPLCommandSnippets` and `customREPLHoverSnippets? are supported.
  * @param {string} data a string representation of a clojure map
  * @returns an error of one was thrown
  */
 function addEdnConfig(data: string) {
   try {
-    const parsed = parseEdn(data);
+    const parsed = readConfigEdn(data);
     const old = state.getProjectConfig();
 
     state.setProjectConfig({

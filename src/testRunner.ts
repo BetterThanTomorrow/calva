@@ -322,7 +322,7 @@ async function runNamespaceTests(controller: vscode.TestController, document: vs
 function getTestUnderCursor() {
   const editor = util.tryToGetActiveTextEditor();
   if (editor) {
-    return getText.currentTopLevelFunction(editor?.document, editor?.selection.active)[1];
+    return getText.currentTopLevelDefined(editor?.document, editor?.selection.active)[1];
   }
 }
 

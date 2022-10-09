@@ -8,7 +8,7 @@ describe('get text', () => {
       const a = docFromTextNotation('(foo bar)•(deftest a-test•  (baz |gaz))');
       const b = docFromTextNotation('(foo bar)•(deftest |a-test|•  (baz gaz))');
       const range: [number, number] = [b.selection.anchor, b.selection.active];
-      expect(getText.currentTopLevelFunction(a, a.selection.active)).toEqual([
+      expect(getText.currentTopLevelDefined(a, a.selection.active)).toEqual([
         range,
         b.model.getText(...range),
       ]);
@@ -18,7 +18,7 @@ describe('get text', () => {
       const a = docFromTextNotation('(foo bar)•(with-test•  (deftest a-test•    (baz |gaz)))');
       const b = docFromTextNotation('(foo bar)•(with-test•  (deftest |a-test|•    (baz gaz)))');
       const range: [number, number] = [b.selection.anchor, b.selection.active];
-      expect(getText.currentTopLevelFunction(a, a.selection.active)).toEqual([
+      expect(getText.currentTopLevelDefined(a, a.selection.active)).toEqual([
         range,
         b.model.getText(...range),
       ]);
@@ -29,7 +29,7 @@ describe('get text', () => {
       const a = docFromTextNotation('(foo bar)•(with-test•  (t/deftest a-test•    (baz |gaz)))');
       const b = docFromTextNotation('(foo bar)•(with-test•  (t/deftest |a-test|•    (baz gaz)))');
       const range: [number, number] = [b.selection.anchor, b.selection.active];
-      expect(getText.currentTopLevelFunction(a, a.selection.active)).toEqual([
+      expect(getText.currentTopLevelDefined(a, a.selection.active)).toEqual([
         range,
         b.model.getText(...range),
       ]);
@@ -39,7 +39,7 @@ describe('get text', () => {
       const a = docFromTextNotation('(foo bar)•(deftest ^{:some :thing} a-test•  (baz |gaz))');
       const b = docFromTextNotation('(foo bar)•(deftest ^{:some :thing} |a-test|•  (baz gaz))');
       const range: [number, number] = [b.selection.anchor, b.selection.active];
-      expect(getText.currentTopLevelFunction(a, a.selection.active)).toEqual([
+      expect(getText.currentTopLevelDefined(a, a.selection.active)).toEqual([
         range,
         b.model.getText(...range),
       ]);
