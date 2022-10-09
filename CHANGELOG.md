@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Allow Clojure code in `.calva/config.edn` repl and hover snippets](https://github.com/BetterThanTomorrow/calva/issues/1885)
+
 ## [2.0.305] - 2022-09-30
 
 - [Make it easier to find the clojure-lsp server trace log level](https://github.com/BetterThanTomorrow/calva/issues/1876)

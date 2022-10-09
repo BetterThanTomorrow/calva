@@ -6,7 +6,7 @@ import { EditableDocument } from '../cursor-doc/model';
 
 export type RangeAndText = [[number, number], string] | [undefined, ''];
 
-export function currentTopLevelFunction(
+export function currentTopLevelDefined(
   doc: EditableDocument,
   active: number = doc.selection.active
 ): RangeAndText {

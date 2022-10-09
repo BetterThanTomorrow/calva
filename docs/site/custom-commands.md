@@ -152,14 +152,14 @@ These will not get synced through vscode settings sync.
 
 A new experimental feature lets library authors ship snippets inside their jar files. These accept the same options as above but should be placed in "resources/calva.exports/config.edn" inside the jar.
 
-```edn
+``` clojure
 {:customREPLCommandSnippets
  [{:name "edn test"
    :key "a"
-   :snippet "($current-form)"}]
+   :snippet ($current-form)}]
  :customREPLHoverSnippets
  [{:name "edn hover"
-   :snippet "(str \"$hover-tex\")"}
+   :snippet (str "$hover-tex")}
   {:name "edn hover show val"
-   :snippet "(str \"### EDN show val\n```clojure\n\" (pr-str (eval (symbol (str \"$ns\" \"/\" \"$hover-top-level-defined-symbol\")))) \"\n```\")"}]}
+   :snippet (str "### EDN show val\n```clojure\n" (pr-str (eval (symbol (str "$ns" "/" "$hover-top-level-defined-symbol")))) "\n```")}]}
 ```

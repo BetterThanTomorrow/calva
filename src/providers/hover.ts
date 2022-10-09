@@ -50,7 +50,7 @@ export async function provideHover(document: vscode.TextDocument, position: vsco
       await Promise.all(
         customREPLHoverSnippets.map(async (snippet) => {
           try {
-            const text = await evaluateSnippet(snippet, context, {
+            const text = await evaluateSnippet(snippet.snippet, context, {
               evaluationSendCodeToOutputWindow: false,
               showErrorMessage: false,
               showResult: false,

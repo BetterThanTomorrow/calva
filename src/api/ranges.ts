@@ -17,4 +17,4 @@ export const currentForm = wrapSelectionAndTextFunction(getText.currentFormText)
 export const currentEnclosingForm = wrapSelectionAndTextFunction(getText.currentEnclosingFormText);
 export const currentTopLevelForm = wrapSelectionAndTextFunction(getText.currentTopLevelFormText);
 export const currentFunction = wrapSelectionAndTextFunction(getText.currentFunction);
-export const currentTopLevelDef = wrapSelectionAndTextFunction(getText.currentTopLevelFunction);
+export const currentTopLevelDef = wrapSelectionAndTextFunction(getText.currentTopLevelDefined);
