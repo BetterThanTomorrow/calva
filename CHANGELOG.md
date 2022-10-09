@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.306] - 2022-10-09
+
 - [Allow Clojure code in `.calva/config.edn` repl and hover snippets](https://github.com/BetterThanTomorrow/calva/issues/1885)
 
 ## [2.0.305] - 2022-09-30
