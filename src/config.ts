@@ -65,7 +65,7 @@ function mergeSnippets(
 
 /**
  * Saves the EDN config in the state to be merged into the actual vsconfig.
- * Currently only `:customREPLCommandSnippets` is supported and the `:snippet` has to be a string.
+ * Currently only `:customREPLCommandSnippets` and `customREPLHoverSnippets? are supported.
  * @param {string} data a string representation of a clojure map
  * @returns an error of one was thrown
  */
