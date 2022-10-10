@@ -84,7 +84,7 @@ function setKeybindingsEnabledContext() {
   );
 }
 
-function initializeState() {
+async function initializeState() {
   setStateValue('connected', false);
   setStateValue('connecting', false);
   setStateValue('outputChannel', vscode.window.createOutputChannel('Calva says'));
@@ -93,12 +93,13 @@ function initializeState() {
     'diagnosticCollection',
     vscode.languages.createDiagnosticCollection('calva: Evaluation errors')
   );
+  await config.updateCalvaConfigFromUserConfigEdn();
 }
 
 async function activate(context: vscode.ExtensionContext) {
   console.info('Calva activate START');
-  initializeState();
-  await config.readEdnWorkspaceConfig();
+  await initializeState();
+  await config.updateCalvaConfigFromEdn();
 
   status.updateNeedReplUi(false, context);
 
@@ -495,6 +496,12 @@ async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       'calva.prettyPrintReplaceCurrentForm',
       edit.prettyPrintReplaceCurrentForm
+    )
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'calva.rereadUserConfigEdn',
+      config.updateCalvaConfigFromUserConfigEdn
     )
   );
 

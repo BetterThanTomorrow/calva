@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Support user level `~/.config/calva/config.edn`](https://github.com/BetterThanTomorrow/calva/issues/1887)
+
 ## [2.0.306] - 2022-10-09
 
 - [Allow Clojure code in `.calva/config.edn` repl and hover snippets](https://github.com/BetterThanTomorrow/calva/issues/1885)

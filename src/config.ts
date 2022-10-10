@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as os from 'os';
+import * as fs from 'fs';
 import { customREPLCommandSnippet } from './evaluate';
 import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
@@ -32,7 +34,19 @@ function _trimAliasName(name: string): string {
   return name.replace(/^[\s,:]*/, '').replace(/[\s,:]*$/, '');
 }
 
-async function readEdnWorkspaceConfig(uri?: vscode.Uri) {
+async function updateCalvaConfigFromUserConfigEdn() {
+  const userConfigFileUri = vscode.Uri.joinPath(
+    vscode.Uri.file(os.homedir()),
+    '.config',
+    'calva',
+    'config.edn'
+  );
+  return fs.promises
+    .access(userConfigFileUri.fsPath, fs.constants.F_OK)
+    .then(async () => await updateCalvaConfigFromEdn(userConfigFileUri));
+}
+
+async function updateCalvaConfigFromEdn(uri?: vscode.Uri) {
   try {
     let resolvedUri: vscode.Uri;
     const configPath = state.resolvePath('.calva/config.edn');
@@ -96,7 +110,7 @@ const watcher = vscode.workspace.createFileSystemWatcher(
 );
 
 watcher.onDidChange((uri: vscode.Uri) => {
-  void readEdnWorkspaceConfig(uri);
+  void updateCalvaConfigFromEdn(uri);
 });
 
 // TODO find a way to validate the configs
@@ -104,10 +118,10 @@ function getConfig() {
   const configOptions = vscode.workspace.getConfiguration('calva');
   const pareditOptions = vscode.workspace.getConfiguration('calva.paredit');
 
-  const w =
+  const commands = (
     configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')
-      ?.workspaceValue ?? [];
-  const commands = w.concat(
+      ?.workspaceValue ?? []
+  ).concat(
     (state.getProjectConfig()?.customREPLCommandSnippets as customREPLCommandSnippet[]) ?? []
   );
   const hoverSnippets = (
@@ -170,7 +184,8 @@ function getConfig() {
 }
 
 export {
-  readEdnWorkspaceConfig,
+  updateCalvaConfigFromEdn,
+  updateCalvaConfigFromUserConfigEdn,
   addEdnConfig,
   REPL_FILE_EXT,
   KEYBINDINGS_ENABLED_CONFIG_KEY,
