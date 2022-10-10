@@ -958,6 +958,11 @@
         "category": "Calva"
       },
       {
+        "command": "calva.rereadUserConfigEdn",
+        "title": "Refresh REPL snippets from User config.edn",
+        "category": "Calva"
+      },
+      {
         "command": "calva.clojureLsp.showClojureLspStoppedMenu",
         "title": "Show clojure-lsp menu",
         "enablement": "!clojureLsp:active",
