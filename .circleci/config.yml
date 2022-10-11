@@ -33,7 +33,7 @@ jobs:
             - build
   build:
     docker:
-      - image: cimg/clojure:1.11.1-openjdk-17.0-node
+      - image: cimg/clojure:1.11-node
     working_directory: ~/calva
     steps:
       - attach_workspace:
@@ -219,7 +219,7 @@ jobs:
           path: ~/calva/junit
   test-integration:
     docker:
-      - image: circleci/clojure:openjdk-11-tools-deps-bullseye-node-browsers-legacy
+      - image: cimg/clojure:1.11-node
     working_directory: ~/calva
     steps:
       - attach_workspace:
