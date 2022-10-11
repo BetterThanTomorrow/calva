@@ -958,6 +958,11 @@
         "category": "Calva"
       },
       {
+        "command": "calva.openUserConfigEdn",
+        "title": "Open REPL snippets User config.edn",
+        "category": "Calva"
+      },
+      {
         "command": "calva.rereadUserConfigEdn",
         "title": "Refresh REPL snippets from User config.edn",
         "category": "Calva"

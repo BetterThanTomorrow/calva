@@ -34,17 +34,60 @@ function _trimAliasName(name: string): string {
   return name.replace(/^[\s,:]*/, '').replace(/[\s,:]*$/, '');
 }
 
-async function updateCalvaConfigFromUserConfigEdn() {
-  const userConfigFileUri = vscode.Uri.joinPath(
-    vscode.Uri.file(os.homedir()),
-    '.config',
-    'calva',
-    'config.edn'
-  );
+const userConfigFileUri = vscode.Uri.joinPath(
+  vscode.Uri.file(os.homedir()),
+  '.config',
+  'calva',
+  'config.edn'
+);
+
+async function openCalvaConfigEdn() {
+  const configPath = state.resolvePath('.calva/config.edn');
+  return fs.promises
+    .access(userConfigFileUri.fsPath, fs.constants.F_OK)
+    .then(async () => await vscode.window.showTextDocument(userConfigFileUri))
+    .catch(async (error) => {
+      if (error.code === 'ENOENT') {
+        try {
+          await fs.promises.writeFile(
+            userConfigFileUri.fsPath,
+            '{:customREPLHoverSnippets []\n :customREPLCommandSnippets []}'
+          );
+          await vscode.window.showTextDocument(userConfigFileUri);
+        } catch (error) {
+          console.error('Error creating user config.edn', error);
+        }
+      } else {
+        void vscode.window.showErrorMessage(
+          'Could not find a config.edn file in the workspace. Please create one and try again.'
+        );
+      }
+    });
+}
+
+async function updateCalvaConfigFromUserConfigEdn(onDemand = true) {
   return fs.promises
     .access(userConfigFileUri.fsPath, fs.constants.F_OK)
     .then(async () => await updateCalvaConfigFromEdn(userConfigFileUri))
-    .catch((error) => console.error(error));
+    .catch(async (error) => {
+      if (error.code === 'ENOENT') {
+        console.log('No user config.edn found');
+        if (onDemand) {
+          void vscode.window
+            .showInformationMessage(
+              'User config.edn file does not exist. Create one and open it?',
+              'Yes, please'
+            )
+            .then((choice) => {
+              if (choice === 'Yes, please') {
+                void openCalvaConfigEdn();
+              }
+            });
+        }
+      } else {
+        console.error('Error reading user config.edn' + error);
+      }
+    });
 }
 
 async function updateCalvaConfigFromEdn(uri?: vscode.Uri) {
@@ -187,6 +230,7 @@ function getConfig() {
 export {
   updateCalvaConfigFromEdn,
   updateCalvaConfigFromUserConfigEdn,
+  openCalvaConfigEdn,
   addEdnConfig,
   REPL_FILE_EXT,
   KEYBINDINGS_ENABLED_CONFIG_KEY,
