@@ -153,6 +153,8 @@ There are now also `hover-` versions of most substitutions. Those currently only
 
 As for **2.**: There is a command **Calva: Refresh REPL snippets from User config.edn**.
 
+There is also a command to open the User config.edn, for convenience: **Calva: Open REPL snippets User config.edn**. This command creates the file if it doesn't previously exist.
+
 ## Snippets Inside Deps
 
 A new experimental feature lets library authors ship snippets inside their jar files. These accept the same options as above but should be placed in "resources/calva.exports/config.edn" inside the jar.
