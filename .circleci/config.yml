@@ -231,6 +231,9 @@ jobs:
           name: Compile Extension Tests
           command: npm run compile-test
       - run:
+          name: Install linnss
+          command: sudo apt install -y libnss3
+      - run:
           name: Run Extension Tests
           command: npm run integration-test
       - store_test_results:
