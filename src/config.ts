@@ -69,7 +69,7 @@ async function updateCalvaConfigFromUserConfigEdn(onDemand = true) {
   return fs.promises
     .access(userConfigFileUri.fsPath, fs.constants.F_OK)
     .then(async () => await updateCalvaConfigFromEdn(userConfigFileUri))
-    .catch(async (error) => {
+    .catch((error) => {
       if (error.code === 'ENOENT') {
         console.log('No user config.edn found');
         if (onDemand) {
