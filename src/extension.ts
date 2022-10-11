@@ -84,7 +84,7 @@ function setKeybindingsEnabledContext() {
   );
 }
 
-async function initializeState() {
+function initializeState() {
   setStateValue('connected', false);
   setStateValue('connecting', false);
   setStateValue('outputChannel', vscode.window.createOutputChannel('Calva says'));
@@ -93,12 +93,12 @@ async function initializeState() {
     'diagnosticCollection',
     vscode.languages.createDiagnosticCollection('calva: Evaluation errors')
   );
-  await config.updateCalvaConfigFromUserConfigEdn();
 }
 
 async function activate(context: vscode.ExtensionContext) {
   console.info('Calva activate START');
-  await initializeState();
+  initializeState();
+  await config.updateCalvaConfigFromUserConfigEdn();
   await config.updateCalvaConfigFromEdn();
 
   status.updateNeedReplUi(false, context);

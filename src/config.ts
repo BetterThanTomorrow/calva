@@ -43,7 +43,8 @@ async function updateCalvaConfigFromUserConfigEdn() {
   );
   return fs.promises
     .access(userConfigFileUri.fsPath, fs.constants.F_OK)
-    .then(async () => await updateCalvaConfigFromEdn(userConfigFileUri));
+    .then(async () => await updateCalvaConfigFromEdn(userConfigFileUri))
+    .catch((error) => console.error(error));
 }
 
 async function updateCalvaConfigFromEdn(uri?: vscode.Uri) {
