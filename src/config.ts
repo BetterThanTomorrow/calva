@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as os from 'os';
+import * as fs from 'fs';
 import { customREPLCommandSnippet } from './evaluate';
 import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
@@ -32,7 +34,63 @@ function _trimAliasName(name: string): string {
   return name.replace(/^[\s,:]*/, '').replace(/[\s,:]*$/, '');
 }
 
-async function readEdnWorkspaceConfig(uri?: vscode.Uri) {
+const userConfigFileUri = vscode.Uri.joinPath(
+  vscode.Uri.file(os.homedir()),
+  '.config',
+  'calva',
+  'config.edn'
+);
+
+async function openCalvaConfigEdn() {
+  const configPath = state.resolvePath('.calva/config.edn');
+  return fs.promises
+    .access(userConfigFileUri.fsPath, fs.constants.F_OK)
+    .then(async () => await vscode.window.showTextDocument(userConfigFileUri))
+    .catch(async (error) => {
+      if (error.code === 'ENOENT') {
+        try {
+          await fs.promises.writeFile(
+            userConfigFileUri.fsPath,
+            '{:customREPLHoverSnippets []\n :customREPLCommandSnippets []}'
+          );
+          await vscode.window.showTextDocument(userConfigFileUri);
+        } catch (error) {
+          console.error('Error creating user config.edn', error);
+        }
+      } else {
+        void vscode.window.showErrorMessage(
+          'Could not find a config.edn file in the workspace. Please create one and try again.'
+        );
+      }
+    });
+}
+
+async function updateCalvaConfigFromUserConfigEdn(onDemand = true) {
+  return fs.promises
+    .access(userConfigFileUri.fsPath, fs.constants.F_OK)
+    .then(async () => await updateCalvaConfigFromEdn(userConfigFileUri))
+    .catch((error) => {
+      if (error.code === 'ENOENT') {
+        console.log('No user config.edn found');
+        if (onDemand) {
+          void vscode.window
+            .showInformationMessage(
+              'User config.edn file does not exist. Create one and open it?',
+              'Yes, please'
+            )
+            .then((choice) => {
+              if (choice === 'Yes, please') {
+                void openCalvaConfigEdn();
+              }
+            });
+        }
+      } else {
+        console.error('Error reading user config.edn' + error);
+      }
+    });
+}
+
+async function updateCalvaConfigFromEdn(uri?: vscode.Uri) {
   try {
     let resolvedUri: vscode.Uri;
     const configPath = state.resolvePath('.calva/config.edn');
@@ -96,7 +154,7 @@ const watcher = vscode.workspace.createFileSystemWatcher(
 );
 
 watcher.onDidChange((uri: vscode.Uri) => {
-  void readEdnWorkspaceConfig(uri);
+  void updateCalvaConfigFromEdn(uri);
 });
 
 // TODO find a way to validate the configs
@@ -104,10 +162,10 @@ function getConfig() {
   const configOptions = vscode.workspace.getConfiguration('calva');
   const pareditOptions = vscode.workspace.getConfiguration('calva.paredit');
 
-  const w =
+  const commands = (
     configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')
-      ?.workspaceValue ?? [];
-  const commands = w.concat(
+      ?.workspaceValue ?? []
+  ).concat(
     (state.getProjectConfig()?.customREPLCommandSnippets as customREPLCommandSnippet[]) ?? []
   );
   const hoverSnippets = (
@@ -170,7 +228,9 @@ function getConfig() {
 }
 
 export {
-  readEdnWorkspaceConfig,
+  updateCalvaConfigFromEdn,
+  updateCalvaConfigFromUserConfigEdn,
+  openCalvaConfigEdn,
   addEdnConfig,
   REPL_FILE_EXT,
   KEYBINDINGS_ENABLED_CONFIG_KEY,

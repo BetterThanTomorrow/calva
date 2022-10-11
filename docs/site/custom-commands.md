@@ -145,8 +145,15 @@ There are now also `hover-` versions of most substitutions. Those currently only
 
 ## config.edn
 
-Your project can have a `.calva/config.edn` file that holds a map with calva configs. Currently only `:customREPLCommandSnippets` and `:customREPLHoverSnippets` get loaded.
-These will not get synced through vscode settings sync.
+`:customREPLCommandSnippets` and `:customREPLHoverSnippets` can be also be configured in your user config at `.config/calva/config.edn` realative to your system home directory, or `.calva/config.edn` relative to the workspace root. Three things to note about this:
+
+1. None of these two configs get synced through VS Code Settings Sync.
+2. Changes to workspace `.calva/config.edn` will be automatically noticed by Calva, and refresh the config. _This will not happen with the user config file._
+3. Internally in Calva, the settings are keyed on the snippet `:name` entry, and if you change the name, the old entry won't be removed until the VS Code window is reloaded.
+
+As for **2.**: There is a command **Calva: Refresh REPL snippets from User config.edn**.
+
+There is also a command to open the User config.edn, for convenience: **Calva: Open REPL snippets User config.edn**. This command creates the file if it doesn't previously exist.
 
 ## Snippets Inside Deps
 

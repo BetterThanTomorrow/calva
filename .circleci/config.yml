@@ -33,7 +33,7 @@ jobs:
             - build
   build:
     docker:
-      - image: cimg/clojure:1.11.1-openjdk-17.0-node
+      - image: cimg/clojure:1.11-node
     working_directory: ~/calva
     steps:
       - attach_workspace:
@@ -219,7 +219,7 @@ jobs:
           path: ~/calva/junit
   test-integration:
     docker:
-      - image: circleci/clojure:openjdk-11-tools-deps-bullseye-node-browsers-legacy
+      - image: cimg/clojure:1.11-browsers
     working_directory: ~/calva
     steps:
       - attach_workspace:
@@ -230,6 +230,9 @@ jobs:
       - run:
           name: Compile Extension Tests
           command: npm run compile-test
+      - run:
+          name: Apt install missing dependencies
+          command: sudo apt update && sudo apt install -y libnss3
       - run:
           name: Run Extension Tests
           command: npm run integration-test

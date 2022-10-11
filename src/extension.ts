@@ -98,7 +98,8 @@ function initializeState() {
 async function activate(context: vscode.ExtensionContext) {
   console.info('Calva activate START');
   initializeState();
-  await config.readEdnWorkspaceConfig();
+  await config.updateCalvaConfigFromUserConfigEdn(false);
+  await config.updateCalvaConfigFromEdn();
 
   status.updateNeedReplUi(false, context);
 
@@ -496,6 +497,15 @@ async function activate(context: vscode.ExtensionContext) {
       'calva.prettyPrintReplaceCurrentForm',
       edit.prettyPrintReplaceCurrentForm
     )
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'calva.rereadUserConfigEdn',
+      config.updateCalvaConfigFromUserConfigEdn
+    )
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('calva.openUserConfigEdn', config.openCalvaConfigEdn)
   );
 
   // Initial set of the provided contexts
