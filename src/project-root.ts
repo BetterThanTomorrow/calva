@@ -3,7 +3,7 @@ import * as util from './utilities';
 import * as config from './config';
 import * as path from 'path';
 
-export async function findProjectRootPaths() {
+export async function findProjectRoots(): Promise<vscode.Uri[]> {
   const projectFileNames: string[] = [
     'project.clj',
     'shadow-cljs.edn',
@@ -33,10 +33,10 @@ export function excludePattern(moreExcludes: string[] = []) {
   return `**/{${[...moreExcludes, ...config.getConfig().projectRootsSearchExclude].join(',')}}`;
 }
 
-export async function findClosestProjectRootPath(candidatePaths?: vscode.Uri[]) {
+export async function findClosestProjectRoot(candidatePaths?: vscode.Uri[]): Promise<vscode.Uri> {
   const doc = util.tryToGetDocument({});
   const docDir = doc && doc.uri ? doc.uri.with({ path: path.dirname(doc.uri.fsPath) }) : undefined;
-  candidatePaths = candidatePaths ?? (await findProjectRootPaths());
+  candidatePaths = candidatePaths ?? (await findProjectRoots());
   const closestRootPath = docDir
     ? candidatePaths
         .filter((u) => docDir.fsPath.startsWith(u.fsPath))
@@ -50,10 +50,10 @@ export async function findClosestProjectRootPath(candidatePaths?: vscode.Uri[]) 
   }
 }
 
-export async function pickProjectRootPath(
+export async function pickProjectRoot(
   candidatePaths: vscode.Uri[],
   closestRootPath: vscode.Uri
-) {
+): Promise<vscode.Uri> {
   if (closestRootPath !== undefined) {
     const pickedRootPath =
       candidatePaths.length < 2
