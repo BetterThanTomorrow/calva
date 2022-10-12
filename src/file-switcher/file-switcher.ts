@@ -4,9 +4,10 @@ import * as util from './util';
 import * as projectRoot from '../project-root';
 import { getActiveTextEditor } from '../utilities';
 
-function openFile(file) {
+function openFile(file: string | vscode.Uri) {
+  const fileUri: vscode.Uri = file instanceof vscode.Uri ? file : vscode.Uri.file(file);
   return vscode.workspace
-    .openTextDocument(vscode.Uri.file(file))
+    .openTextDocument(fileUri)
     .then((doc) => vscode.window.showTextDocument(doc, { preserveFocus: false }));
 }
 
@@ -14,22 +15,19 @@ function showConfirmationDialog(text, button) {
   return vscode.window.showWarningMessage(text, { modal: true }, button);
 }
 
-async function createNewFile(dir, file) {
-  const uriDir = vscode.Uri.file(dir);
-  const uriFile = vscode.Uri.file(path.join(dir, file));
+async function createNewFile(dir: vscode.Uri, fileUri: vscode.Uri) {
+  await vscode.workspace.fs.createDirectory(dir);
   const ws = new vscode.WorkspaceEdit();
-
-  await vscode.workspace.fs.createDirectory(uriDir);
-  ws.createFile(uriFile);
+  ws.createFile(fileUri);
   await vscode.workspace.applyEdit(ws);
 }
 
-function askToCreateANewFile(dir, file) {
-  const filePath = path.join(dir, file);
-  return showConfirmationDialog(`Create ${filePath}?`, 'Create').then((answer) => {
+function askToCreateANewFile(dir: vscode.Uri, filename: string) {
+  const fileUri = vscode.Uri.joinPath(dir, filename);
+  return showConfirmationDialog(`Create ${fileUri.fsPath}?`, 'Create').then((answer) => {
     if (answer === 'Create') {
-      void createNewFile(dir, file).then(() => {
-        void openFile(filePath);
+      void createNewFile(dir, fileUri).then(() => {
+        void openFile(fileUri);
       });
     }
   });
@@ -38,7 +36,8 @@ function askToCreateANewFile(dir, file) {
 export async function toggleBetweenImplAndTest() {
   const activeFile = getActiveTextEditor();
   const openedFilename = activeFile.document.fileName;
-  const projectRootPath = await projectRoot.findClosestProjectRootPath();
+  const projectRootUri = await projectRoot.findClosestProjectRootPath();
+  const projectRootPath = projectRootUri.fsPath;
   const pathAfterRoot = openedFilename.replace(projectRootPath, '');
   const fullFileName = path.basename(openedFilename);
   const extension = path.extname(fullFileName);
@@ -54,13 +53,19 @@ export async function toggleBetweenImplAndTest() {
   const newFilename = util.getNewFilename(fileName, extension);
 
   const filePath = path.join(projectRootPath, sourcePath, newFilename);
-  const fileToOpen = vscode.workspace.asRelativePath(filePath, false);
+  let fileToOpen = vscode.workspace.asRelativePath(filePath, false);
+  if (fileToOpen[0] === '/') {
+    // When connected over live share, the above will result in an absolute path,
+    // which causes that workspace.findFiles won't find the file. So we strip the
+    // leading slash to prevent such scenario's.
+    fileToOpen = fileToOpen.substring(1);
+  }
 
   void vscode.workspace.findFiles(fileToOpen, projectRoot.excludePattern()).then((files) => {
     if (!files.length) {
-      void askToCreateANewFile(path.join(projectRootPath, sourcePath), newFilename);
+      void askToCreateANewFile(vscode.Uri.joinPath(projectRootUri, sourcePath), newFilename);
     } else {
-      const file = files[0].fsPath;
+      const file = files[0];
       void openFile(file);
     }
   });
