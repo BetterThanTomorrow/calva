@@ -78,8 +78,7 @@ async function startJackInProcedure(suite: string, cmdId: string, projectType: s
   await testUtil.openFile(testFilePath);
   testUtil.log(suite, 'test.clj opened');
 
-  const projectRootPath = await projectRoot.findClosestProjectRootPath();
-  const projetcRootUri = projectRootPath;
+  const projetcRootUri = await projectRoot.findClosestProjectRootPath();
   // Project type pre-select, qps = quickPickSingle
   const saveAs = `qps-${projetcRootUri.toString()}/jack-in-type`;
   await state.extensionContext.workspaceState.update(saveAs, projectType);
