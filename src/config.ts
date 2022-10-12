@@ -98,7 +98,7 @@ async function updateCalvaConfigFromEdn(uri?: vscode.Uri) {
     if (isDefined(uri)) {
       resolvedUri = uri;
     } else if (isDefined(configPath)) {
-      resolvedUri = vscode.Uri.file(configPath);
+      resolvedUri = configPath;
     } else {
       throw new Error('Expected a uri to be passed in or a config to exist at .calva/config.edn');
     }

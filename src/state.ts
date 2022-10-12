@@ -183,12 +183,17 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
  * Tries to resolve absolute path in relation to project root
  * @param filePath - absolute or relative to the project
  */
-export function resolvePath(filePath?: string) {
+export function resolvePath(filePath?: string): vscode.Uri {
   const root = getProjectWsFolder();
-  if (filePath && path.isAbsolute(filePath)) {
-    return filePath;
+
+  if (root.uri.scheme !== 'file') {
+    return vscode.Uri.joinPath(root.uri, filePath);
   }
-  return filePath && root && path.resolve(root.uri.fsPath, filePath);
+
+  if (filePath && path.isAbsolute(filePath)) {
+    return vscode.Uri.file(filePath);
+  }
+  return filePath && root && vscode.Uri.file(path.resolve(root.uri.fsPath, filePath));
 }
 
 export { extensionContext, outputChannel, connectionLogChannel, analytics };
