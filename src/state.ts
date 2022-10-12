@@ -168,7 +168,7 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
       closestRootPath
     );
     if (projectRootPath !== undefined) {
-      setStateValue(PROJECT_DIR_KEY, projectRootPath);
+      setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
       setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
     } else {
       await setOrCreateNonProjectRoot(extensionContext, true);
