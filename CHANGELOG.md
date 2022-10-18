@@ -5,6 +5,8 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Jack-in as live share guest not working](https://github.com/BetterThanTomorrow/calva/issues/1625)
+- [A more flexible evaluate-to-cursor command](https://github.com/BetterThanTomorrow/calva/
+issues/1901)
 
 ## [2.0.307] - 2022-10-11
 
