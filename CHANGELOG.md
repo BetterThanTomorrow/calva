@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [A more flexible evaluate-to-cursor command](https://github.com/BetterThanTomorrow/calva/
+issues/1901)
+
 ## [2.0.307] - 2022-10-11
 
 - [Support user level `~/.config/calva/config.edn`](https://github.com/BetterThanTomorrow/calva/issues/1887)

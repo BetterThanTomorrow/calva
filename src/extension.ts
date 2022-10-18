@@ -268,6 +268,9 @@ async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('calva.evaluateToCursor', eval.evaluateToCursor)
   );
   context.subscriptions.push(
+    vscode.commands.registerCommand('calva.evaluateSelectionToSelectionEnd', eval.evaluateToCursor)
+  );
+  context.subscriptions.push(
     vscode.commands.registerCommand(
       'calva.evaluateTopLevelFormToCursor',
       eval.evaluateTopLevelFormToCursor

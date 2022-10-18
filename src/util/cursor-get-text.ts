@@ -39,14 +39,15 @@ export function currentTopLevelForm(doc: EditableDocument): RangeAndText {
   return defunRange ? [defunRange, doc.model.getText(...defunRange)] : [undefined, ''];
 }
 
-function rangeOrStartOfFileToCursor(
+function rangeToCursor(
   doc: EditableDocument,
   foldRange: [number, number],
-  startFrom: number
+  startFrom: number,
+  active: number
 ): RangeAndText {
   if (foldRange) {
     const closeBrackets: string[] = [];
-    const bracketCursor = doc.getTokenCursor(doc.selection.active);
+    const bracketCursor = doc.getTokenCursor(active);
     bracketCursor.backwardWhitespace(true);
     const rangeEnd = bracketCursor.offsetStart;
     while (
@@ -65,17 +66,25 @@ function rangeOrStartOfFileToCursor(
 export function currentEnclosingFormToCursor(doc: EditableDocument): RangeAndText {
   const cursor = doc.getTokenCursor(doc.selection.active);
   const enclosingRange = cursor.rangeForList(1);
-  return rangeOrStartOfFileToCursor(doc, enclosingRange, enclosingRange[0]);
+  return rangeToCursor(doc, enclosingRange, enclosingRange[0], doc.selection.active);
 }
 
 export function currentTopLevelFormToCursor(doc: EditableDocument): RangeAndText {
   const cursor = doc.getTokenCursor(doc.selection.active);
   const defunRange = cursor.rangeForDefun(doc.selection.active);
-  return rangeOrStartOfFileToCursor(doc, defunRange, defunRange[0]);
+  return rangeToCursor(doc, defunRange, defunRange[0], doc.selection.active);
 }
 
 export function startOfFileToCursor(doc: EditableDocument): RangeAndText {
   const cursor = doc.getTokenCursor(doc.selection.active);
   const defunRange = cursor.rangeForDefun(doc.selection.active, false);
-  return rangeOrStartOfFileToCursor(doc, defunRange, 0);
+  return rangeToCursor(doc, defunRange, 0, doc.selection.active);
+}
+
+export function selectionAddingBrackets(doc: EditableDocument): RangeAndText {
+  const [left, right] = [doc.selection.anchor, doc.selection.active].sort();
+  const cursor = doc.getTokenCursor(left);
+  cursor.forwardSexp(true, true, true);
+  const rangeEnd = cursor.offsetStart;
+  return rangeToCursor(doc, [left, rangeEnd], left, right);
 }
