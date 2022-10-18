@@ -66,9 +66,22 @@ An ”exception” is introduced by the `comment` form. It will create a new top
 
 At the top level the selection of which form is the current top level form follows the same rules as those for [the current form](#current-form).
 
+### Evaluate Enclosing Form
+
+The default keyboard shortcut for evaluating the current enclosing form (the list the cursor is in) is `ctrl+shift+enter`.
+
+```clojure
+(let [foo :bar]
+  (when false (str| foo))) ; => ":bar"
+```
+
 ### Evaluate to Cursor
 
-There is also a command for evaluating the text from the start of the current list to where the cursor is. Convenient for checking intermediate results in thread or `doto`, or similar pipelines. The cursor is right behind `:d` in this form:
+There are several commands for evaluating a piece of code, closing brackets. It's good, especially in threads, but can also come in handy in other situations, for instance when you want to evaluate something that depends on bindings, such as in a `let` form.
+
+### Evaluate From Start of List to Cursor, Closing Brackets
+
+This command evaluates the text from the start of the current enclosing list to where the cursor is, and it adds the missing closing bracket for you. Convenient for checking intermediate results in thread or `doto`, or similar pipelines. The cursor is right behind `:d` in this form:
 
 ```clojure
   (->> [1 1 2 3 5 8 13 21]
@@ -79,11 +92,40 @@ There is also a command for evaluating the text from the start of the current li
        (Math/abs))
 ```
 
-The default shortcut for this command is `ctrl+alt+enter`.
+The default shortcut for this command is <kbd>ctrl+alt+enter</kbd>.
 
-### Evaluate Top Level Form to Cursor
+### Evaluate Selection, Closing Brackets
 
-This command has a default shortcut keybinding of `shift+alt+enter`. It will create a form from the start of the current top level form, up to the cursor, then fold the form, closing all brackets, and this will then be evaluated. Good for examining code blocks up to a certain point.
+This is the most versatile of the ”evaluation, closing brackets” commands. It will do what it says. 😄 It's extra handy in combination with the command **Paredit: Select Backward Up Sexp/Form** (<kbd>shift+ctrl+up</kbd>). Consider this contrieved form (buggy code, because it was supposed to result in `42`, not `-42`):
+
+```clojure
+(defn fortytwo-from-thirty
+  []
+  (let [thirty 30]
+    (-> thirty
+        inc            ;1
+        (send-off)
+        (+ 1 2 3)
+        (->>
+         (+ 2 2)       ;2
+         (+))
+        list
+        (->>
+         (into [1])
+         (reduce + 1))
+        (- 1)          ;3
+        (* -1))))
+```
+
+At `;1`, you can do **backward up sexp** (<kbd>shift+ctrl+up</kbd>) twice to select up to the `(let ..)`, then issue **Evaluate Selection, Closing Brackets**. It has the same default keybinding as the command for [evaluating the current list up to the cursor](#evaluate-from-start-of-list-to-cursor-closing-brackets): <kbd>ctrl+alt+enter</kbd>.
+
+At `;2` you need select backwards up three times.
+
+`;3` is included because it is close to the bug. (Which was introduced when the thread-last, `->>` was added to make this example.) Please practice the **Evaluate Selection, Closing Brackets** command to fix the bug.
+
+### Evaluate From Start of Top Level Form to Cursor, Closing Brackets
+
+This command has a default shortcut keybinding of `shift+alt+enter`. It will create a form from the start of the current top level form, up to the cursor, close all brackets, and this will then be evaluated. Good for examining code blocks up to a certain point. Often comes in handy in Rich comments (`(comment ...)`).
 
 Take this example and paste it in a file loaded into the REPL, then place the cursor in front of each line comment and try the command.
 
@@ -116,16 +158,11 @@ Take this example and paste it in a file loaded into the REPL, then place the cu
           ))))
 ```
 
-### Evaluate Enclosing Form
+### Evaluate From Start of File to Cursor, Closing Brackets
 
-The default keyboard shortcut for evaluating the current enclosing form (the list the cursor is in) is `ctrl+shift+enter`.
+Yup, that command also exists. 😄
 
-```clojure
-(let [foo :bar]
-  (when false (str| foo))) ; => ":bar"
-```
-
-### Copying the inline results
+## Copying the inline results
 
 There is a command called **Copy last evaluation results**, `ctrl+alt+c ctrl+c`.
 
