@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Test runner does not show stacktrace on error](https://github.com/BetterThanTomorrow/calva/issues/424)
+
 ## [2.0.307] - 2022-10-11
 
 - [Support user level `~/.config/calva/config.edn`](https://github.com/BetterThanTomorrow/calva/issues/1887)

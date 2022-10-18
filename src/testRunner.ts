@@ -168,7 +168,7 @@ function useTestExplorer(): boolean | undefined {
   return vscode.workspace.getConfiguration('calva').get('useTestExplorer');
 }
 
-function reportTests(
+async function reportTests(
   controller: vscode.TestController,
   session: NReplSession,
   possibleResults: cider.TestResults[]
@@ -208,7 +208,15 @@ function reportTests(
           cider.cleanUpWhiteSpace(a);
 
           const messages = cider.detailedMessage(a);
-          if (messages) {
+
+          if (a.type == 'error') {
+            const stackTrace = await session.testStacktrace(ns, test, a.index);
+
+            outputWindow.saveStacktrace(stackTrace.stacktrace);
+            outputWindow.append(messages, (_, afterResultLocation) => {
+              outputWindow.markLastStacktraceRange(afterResultLocation);
+            });
+          } else if (messages) {
             outputWindow.append(messages);
           }
 
