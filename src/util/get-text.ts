@@ -105,6 +105,13 @@ export function currentTopLevelFormToCursor(
   return selectionAndText(doc, cursorTextGetter.currentTopLevelFormToCursor, pos);
 }
 
+export function selectionAddingBrackets(
+  doc: vscode.TextDocument,
+  pos: vscode.Position
+): SelectionAndText {
+  return selectionAndText(doc, cursorTextGetter.selectionAddingBrackets, pos);
+}
+
 export function startOFileToCursor(
   doc: vscode.TextDocument,
   pos: vscode.Position

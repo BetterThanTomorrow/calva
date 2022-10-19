@@ -377,7 +377,9 @@ function evaluateUsingTextAndSelectionGetter(
 
 function evaluateToCursor(document = {}, options = {}) {
   evaluateUsingTextAndSelectionGetter(
-    getText.currentEnclosingFormToCursor,
+    vscode.window.activeTextEditor.selection.isEmpty
+      ? getText.currentEnclosingFormToCursor
+      : getText.selectionAddingBrackets,
     (code) => `${code}`,
     document,
     options
