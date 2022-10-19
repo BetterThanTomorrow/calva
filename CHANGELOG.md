@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [A more flexible evaluate-to-cursor command](https://github.com/BetterThanTomorrow/calva/
+issues/1901)
 - [Test runner does not show stacktrace on error](https://github.com/BetterThanTomorrow/calva/issues/424)
 
 ## [2.0.307] - 2022-10-11
@@ -32,7 +34,7 @@ Changes to Calva.
 ## [2.0.302] - 2022-09-18
 
 - [Show error message if loading file results in an error](https://github.com/BetterThanTomorrow/calva/issues/1767)
-- Document workaround for: [Allow sending a different project-root-uri during LSP initialize request](https://github.com/BetterThanTomorrow/calva/issues/1866) 
+- Document workaround for: [Allow sending a different project-root-uri during LSP initialize request](https://github.com/BetterThanTomorrow/calva/issues/1866)
 
 ## [2.0.301] - 2022-09-16
 
@@ -139,7 +141,7 @@ Changes to Calva.
 ## [2.0.280] - 2022-05-31
 
 - Fix: [Debugger decorations are not working properly](https://github.com/BetterThanTomorrow/calva/issues/1165)
-- Add some logging when Calva starts and finishes activating 
+- Add some logging when Calva starts and finishes activating
 
 ## [2.0.279] - 2022-05-30
 
