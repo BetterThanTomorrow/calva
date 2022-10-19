@@ -517,7 +517,7 @@ export class NReplSession {
 
   testStacktrace(ns: string, test: string, index: number) {
     return new Promise<any>((resolve, reject) => {
-      let id = this.client.nextId;
+      const id = this.client.nextId;
       this.messageHandlers[id] = (msg) => {
         resolve(msg);
         return true;

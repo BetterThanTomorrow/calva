@@ -245,7 +245,7 @@ async function runAllTests(controller: vscode.TestController, document = {}) {
   const session = getSession(util.getFileType(document));
   outputWindow.append('; Running all project tests…');
   try {
-    reportTests(controller, session, [await session.testAll()]);
+    await reportTests(controller, session, [await session.testAll()]);
   } catch (e) {
     outputWindow.append('; ' + e);
   }
@@ -306,7 +306,7 @@ async function runNamespaceTestsImpl(
     return session.testNs(ns);
   });
   try {
-    reportTests(controller, session, await Promise.all(resultPromises));
+    await reportTests(controller, session, await Promise.all(resultPromises));
   } catch (e) {
     outputWindow.append('; ' + e);
   }
@@ -343,7 +343,7 @@ async function runTestUnderCursor(controller: vscode.TestController) {
   if (test) {
     outputWindow.append(`; Running test: ${test}…`);
     try {
-      reportTests(controller, session, [await session.test(ns, test)]);
+      await reportTests(controller, session, [await session.test(ns, test)]);
     } catch (e) {
       outputWindow.append('; ' + e);
     }
@@ -381,7 +381,7 @@ async function rerunTests(controller: vscode.TestController, document = {}) {
   const session = getSession(util.getFileType(document));
   outputWindow.append('; Running previously failed tests…');
   try {
-    reportTests(controller, session, [await session.retest()]);
+    await reportTests(controller, session, [await session.retest()]);
   } catch (e) {
     outputWindow.append('; ' + e);
   }
