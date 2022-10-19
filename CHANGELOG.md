@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.308] - 2022-10-19
+
 - [A more flexible evaluate-to-cursor command](https://github.com/BetterThanTomorrow/calva/
 issues/1901)
 - [Test runner does not show stacktrace on error](https://github.com/BetterThanTomorrow/calva/issues/424)
