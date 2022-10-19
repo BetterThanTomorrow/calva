@@ -48,6 +48,31 @@ The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/
 
 ## Example Sequences
 
+Wether you hust want to speed up your workflow, or encode some workflow/mechanics into it, there's often that you can create a custyom sequence that helps.
+
+### Minimal menus with full stack shadow-cljs REPLs
+
+Minimize the amount of selecting from the Jack-in/Connect menu when working with a full-stack shadow-cljs + deps/lein project:
+
+``` json
+    {
+      "name": "backend + frontend",
+      "projectType": "shadow-cljs",
+      "cljsType": "shadow-cljs",
+      "menuSelections": {
+        "cljsLaunchBuilds": [
+          ":app",
+          ":test",
+        ],
+        "cljsDefaultBuild": ":app"
+      }
+    }
+```
+
+See [shadow-cljs + Clojure with Calva: The basics](https://blog.agical.se/en/posts/shadow-cljs-clojure-cljurescript-calva-nrepl-basics/) for how Calva and nREPL work with ClojureScript.
+
+### Minimal menus with full stack deps.edn and Figwheel Main REPLs
+
 Setting for a full-stack application. It starts the backend server when the CLJ REPL has started. Then proceeds to create a custom CLJS REPL (calling in to the application code for this). And then connects to it.
 
 ```json
@@ -68,6 +93,8 @@ Setting for a full-stack application. It starts the backend server when the CLJ 
     ]
 }
 ```
+
+### JUXT Edge
 
 Here is an example from the [JUXT Edge](https://juxt.pro/blog/posts/edge.html) project template. It adds two sequences, one for when only the Clojure REPL should be launched and one for when the customized Edge cljs repl should also be connected. The **Edge backend + frontend** sequence specifies that the web app should be opened by Calva, making cljs repl connection more stable, and also adds `menuSelections` to skip the **launch aliases** prompt.
 
@@ -103,6 +130,8 @@ Here is an example from the [JUXT Edge](https://juxt.pro/blog/posts/edge.html) p
     ]
 }
 ```
+
+### Plain deps.edn
 
 A deps.edn sequence that does not promote the ClojureScript repl at all (leaving it a Clojure REPL), and leaves that up to you to do interactively. (Could be useful while you are developing a custom cljs repl.) The example is for when adapting a Figwheel Main repl.
 
