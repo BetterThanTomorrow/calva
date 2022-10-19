@@ -168,7 +168,7 @@ function useTestExplorer(): boolean | undefined {
   return vscode.workspace.getConfiguration('calva').get('useTestExplorer');
 }
 
-function reportTests(
+async function reportTests(
   controller: vscode.TestController,
   session: NReplSession,
   possibleResults: cider.TestResults[]
@@ -208,7 +208,15 @@ function reportTests(
           cider.cleanUpWhiteSpace(a);
 
           const messages = cider.detailedMessage(a);
-          if (messages) {
+
+          if (a.type == 'error') {
+            const stackTrace = await session.testStacktrace(ns, test, a.index);
+
+            outputWindow.saveStacktrace(stackTrace.stacktrace);
+            outputWindow.append(messages, (_, afterResultLocation) => {
+              outputWindow.markLastStacktraceRange(afterResultLocation);
+            });
+          } else if (messages) {
             outputWindow.append(messages);
           }
 
@@ -237,7 +245,7 @@ async function runAllTests(controller: vscode.TestController, document = {}) {
   const session = getSession(util.getFileType(document));
   outputWindow.append('; Running all project tests…');
   try {
-    reportTests(controller, session, [await session.testAll()]);
+    await reportTests(controller, session, [await session.testAll()]);
   } catch (e) {
     outputWindow.append('; ' + e);
   }
@@ -298,7 +306,7 @@ async function runNamespaceTestsImpl(
     return session.testNs(ns);
   });
   try {
-    reportTests(controller, session, await Promise.all(resultPromises));
+    await reportTests(controller, session, await Promise.all(resultPromises));
   } catch (e) {
     outputWindow.append('; ' + e);
   }
@@ -335,7 +343,7 @@ async function runTestUnderCursor(controller: vscode.TestController) {
   if (test) {
     outputWindow.append(`; Running test: ${test}…`);
     try {
-      reportTests(controller, session, [await session.test(ns, test)]);
+      await reportTests(controller, session, [await session.test(ns, test)]);
     } catch (e) {
       outputWindow.append('; ' + e);
     }
@@ -373,7 +381,7 @@ async function rerunTests(controller: vscode.TestController, document = {}) {
   const session = getSession(util.getFileType(document));
   outputWindow.append('; Running previously failed tests…');
   try {
-    reportTests(controller, session, [await session.retest()]);
+    await reportTests(controller, session, [await session.retest()]);
   } catch (e) {
     outputWindow.append('; ' + e);
   }
