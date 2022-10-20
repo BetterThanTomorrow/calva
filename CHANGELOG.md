@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Filter out code action errors](https://github.com/BetterThanTomorrow/calva/pull/1904), addressing [this issue](https://github.com/BetterThanTomorrow/calva/issues/1889)
+
 ## [2.0.308] - 2022-10-19
 
 - [A more flexible evaluate-to-cursor command](https://github.com/BetterThanTomorrow/calva/issues/1901)

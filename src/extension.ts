@@ -40,6 +40,7 @@ import * as joyride from './joyride';
 import * as api from './api/index';
 import * as depsClj from './nrepl/deps-clj';
 import * as clojureDocs from './clojuredocs';
+import * as overrides from './overrides';
 
 async function onDidSave(testController: vscode.TestController, document: vscode.TextDocument) {
   const { evalOnSave, testOnSave } = config.getConfig();
@@ -97,6 +98,9 @@ function initializeState() {
 
 async function activate(context: vscode.ExtensionContext) {
   console.info('Calva activate START');
+
+  overrides.activate();
+
   initializeState();
   await config.updateCalvaConfigFromUserConfigEdn(false);
   await config.updateCalvaConfigFromEdn();
