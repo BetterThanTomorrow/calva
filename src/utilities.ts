@@ -15,6 +15,10 @@ import { isNullOrUndefined } from 'util';
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
 
+export function capitalize(str: string) {
+  return str.length === 0 ? str : str[0].toUpperCase() + str.substring(1);
+}
+
 export function stripAnsi(str: string) {
   return str.replace(
     // eslint-disable-next-line no-control-regex
