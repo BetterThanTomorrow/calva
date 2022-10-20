@@ -3,6 +3,10 @@
     {
       "name": "Double current",
       "snippet": "(tap> [$current-form $current-form])"
+    },
+    {
+      "name": "JSON selection",
+      "snippet": "$selection"
     }
   ],
   "calva.customREPLHoverSnippets": [
