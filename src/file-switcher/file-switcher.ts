@@ -56,7 +56,7 @@ export async function toggleBetweenImplAndTest() {
   let fileToOpen = vscode.workspace.asRelativePath(filePath, false);
   if (fileToOpen[0] === '/') {
     // When connected over live share, the above will result in an absolute path,
-    // which causes that workspace.findFiles won't find the file. So we strip the
+    // which causes workspace.findFiles to not find the file. So we strip the
     // leading slash to prevent such scenario's.
     fileToOpen = fileToOpen.substring(1);
   }
