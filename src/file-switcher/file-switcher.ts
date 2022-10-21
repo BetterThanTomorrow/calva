@@ -57,7 +57,7 @@ export async function toggleBetweenImplAndTest() {
   if (fileToOpen[0] === '/') {
     // When connected over live share, the above will result in an absolute path,
     // which causes workspace.findFiles to not find the file. So we strip the
-    // leading slash to prevent such scenario's.
+    // leading slash to prevent such scenarios.
     fileToOpen = fileToOpen.substring(1);
   }
 
