@@ -11,5 +11,7 @@
    :snippet (str "**EDN edn hover current-form** " "$current-form ")}]
  :customREPLCommandSnippets
  [{:name "EDN current form"
-   :snippet (str "**EDN edn current-form**: " $current-form)}]}
+   :snippet (str "**EDN edn current-form**: " $current-form)}
+  {:name "EDN selection"
+   :snippet (str "foo" $selection)}]}
 

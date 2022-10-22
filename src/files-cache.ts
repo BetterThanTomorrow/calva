@@ -21,13 +21,13 @@ function writeToCache(uri: vscode.Uri) {
 export const content = (path: string | undefined) => {
   const resolvedPath = state.resolvePath(path);
   if (resolvedPath) {
-    if (!filesCache.has(resolvedPath)) {
-      writeToCache(vscode.Uri.file(resolvedPath));
-      const filesWatcher = vscode.workspace.createFileSystemWatcher(resolvedPath);
+    if (!filesCache.has(resolvedPath.fsPath)) {
+      writeToCache(resolvedPath);
+      const filesWatcher = vscode.workspace.createFileSystemWatcher(resolvedPath.fsPath);
       filesWatcher.onDidChange(writeToCache);
       filesWatcher.onDidCreate(writeToCache);
       filesWatcher.onDidDelete((uri) => filesCache.delete(uri.fsPath));
     }
-    return filesCache.get(resolvedPath);
+    return filesCache.get(resolvedPath.fsPath);
   }
 };

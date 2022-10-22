@@ -161,12 +161,15 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
     setStateValue(PROJECT_DIR_KEY, path.resolve(uri.fsPath));
     setStateValue(PROJECT_DIR_URI_KEY, uri);
   } else {
-    const candidatePaths = await projectRoot.findProjectRootPaths();
-    const closestRootPath = await projectRoot.findClosestProjectRootPath(candidatePaths);
-    const projectRootPath = await projectRoot.pickProjectRootPath(candidatePaths, closestRootPath);
+    const candidatePaths: vscode.Uri[] = await projectRoot.findProjectRoots();
+    const closestRootPath: vscode.Uri = await projectRoot.findClosestProjectRoot(candidatePaths);
+    const projectRootPath: vscode.Uri = await projectRoot.pickProjectRoot(
+      candidatePaths,
+      closestRootPath
+    );
     if (projectRootPath !== undefined) {
-      setStateValue(PROJECT_DIR_KEY, projectRootPath);
-      setStateValue(PROJECT_DIR_URI_KEY, vscode.Uri.file(projectRootPath));
+      setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
+      setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
     } else {
       await setOrCreateNonProjectRoot(extensionContext, true);
     }
@@ -178,12 +181,17 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
  * Tries to resolve absolute path in relation to project root
  * @param filePath - absolute or relative to the project
  */
-export function resolvePath(filePath?: string) {
+export function resolvePath(filePath?: string): vscode.Uri {
   const root = getProjectWsFolder();
-  if (filePath && path.isAbsolute(filePath)) {
-    return filePath;
+
+  if (root.uri.scheme !== 'file') {
+    return vscode.Uri.joinPath(root.uri, filePath);
   }
-  return filePath && root && path.resolve(root.uri.fsPath, filePath);
+
+  if (filePath && path.isAbsolute(filePath)) {
+    return vscode.Uri.file(filePath);
+  }
+  return filePath && root && vscode.Uri.file(path.resolve(root.uri.fsPath, filePath));
 }
 
 export { extensionContext, outputChannel, connectionLogChannel, analytics };
