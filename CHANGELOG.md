@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Refactor
+  `extension.ts` for less boilerplate and improved readability](https://github.com/BetterThanTomorrow/calva/issues/1906)
+
 ## [2.0.309] - 2022-10-22
 
 - Fix: [Jack-in as live share guest not working](https://github.com/BetterThanTomorrow/calva/issues/1625)
