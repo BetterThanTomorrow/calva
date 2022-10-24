@@ -123,38 +123,38 @@ jobs:
       APM_TEST_PACKAGES: ''
       ATOM_CHANNEL: 'stable'
     docker:
-      - image: circleci/node:latest
+      - image: arcanemagus/atom-docker-ci
     steps:
       - attach_workspace:
           at: /tmp
       - run:
           name: Restore build
           command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: Update system package lists
-          command: sudo apt-get update
-      - run:
-          name: Install some pre-requisite packages
-          command: sudo apt-get --assume-yes --quiet install curl xvfb libasound2 libgbm-dev
+      #- run:
+      #    name: Update system package lists
+      #    command: sudo apt-get update
+      #- run:
+      #    name: Install some pre-requisite packages
+      #    command: sudo apt-get --assume-yes --quiet install curl xvfb libasound2 libgbm-dev
       - run:
           name: Start display server for Atom
           command: /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1024x768x16 +extension RANDR
           background: true
-      - run:
-          name: Download Atom build script
-          command: |
-            cd src/calva-fmt/atom-language-clojure
-            curl -s -OL https://raw.githubusercontent.com/atom/ci/master/build-package.sh
-      - run:
-          name: Make build script executable
-          command: |
-            cd src/calva-fmt/atom-language-clojure
-            chmod u+x build-package.sh
+      #- run:
+      #    name: Download Atom build script
+      #    command: |
+      #      cd src/calva-fmt/atom-language-clojure
+      #      curl -s -OL https://raw.githubusercontent.com/atom/ci/master/build-package.sh
+      #- run:
+      #    name: Make build script executable
+      #    command: |
+      #      cd src/calva-fmt/atom-language-clojure
+      #      chmod u+x build-package.sh
       - run:
           name: Run package tests
           command: |
             cd src/calva-fmt/atom-language-clojure
-            ./build-package.sh
+            ./run-grammar-tests.sh
       - save_cache:
           name: Save dependencies
           key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}

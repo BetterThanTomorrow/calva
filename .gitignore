@@ -84,3 +84,6 @@ output.calva-repl
 clojure.tmLanguage.json
 .cpcache/
 backup/
+
+# Calva grammars
+src/calva-fmt/atom-language-clojure/.cache/
