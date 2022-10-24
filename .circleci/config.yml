@@ -419,7 +419,7 @@ workflows:
             - checkout
       - eslint-check:
           requires:
-            - build
+            - checkout
       - test-grammar:
           requires:
             - checkout
