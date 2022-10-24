@@ -112,7 +112,7 @@
         'name': 'constant.numeric.symbol.clojure'
       }
       {
-        'match': '([-+]?\\d+/\\d+foo)'
+        'match': '([-+]?\\d+/\\d+)'
         'name': 'constant.numeric.ratio.clojure'
       }
       {
