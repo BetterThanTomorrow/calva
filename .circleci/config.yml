@@ -417,15 +417,15 @@ workflows:
       - prettier-check:
           requires:
             - checkout
-      - eslint-check:
-          requires:
-            - checkout
       - test-grammar:
           requires:
             - checkout
       - build:
           requires:
             - checkout
+      - eslint-check:
+          requires:
+            - build
       - test-cljslib:
           requires:
             - build
