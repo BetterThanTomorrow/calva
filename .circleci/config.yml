@@ -433,13 +433,13 @@ workflows:
       - prettier-check:
           requires:
             - checkout
+      - test-grammar:
+          requires:
+            - checkout
       - build:
           requires:
             - checkout
       - eslint-check:
-          requires:
-            - build
-      - test-grammar:
           requires:
             - build
       - test-cljslib:
