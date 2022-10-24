@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.310] - 2022-10-24
+
+- Calva development: [Refactor `extension.ts` for less boilerplate and improved readability](https://github.com/BetterThanTomorrow/calva/issues/1906)
+- Calva development, Fix: [Docs publishing in CI is failing](https://github.com/BetterThanTomorrow/calva/issues/1909)
+- Calva development, Fix: [Grammar tests fail too often](https://github.com/BetterThanTomorrow/calva/issues/1910)
+
 ## [2.0.309] - 2022-10-22
 
 - Fix: [Jack-in as live share guest not working](https://github.com/BetterThanTomorrow/calva/issues/1625)

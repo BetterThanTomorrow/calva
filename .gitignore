@@ -84,3 +84,7 @@ output.calva-repl
 clojure.tmLanguage.json
 .cpcache/
 backup/
+
+# Calva grammars (running the atom-ci docker image locally)
+src/calva-fmt/atom-language-clojure/.cache/
+src/calva-fmt/atom-language-clojure/.bash_history
