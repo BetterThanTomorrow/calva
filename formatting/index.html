@@ -693,9 +693,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#about-aligning-associative-forms" class="md-nav__link">
+  <a href="#providing-configuration-via-a-config-file" class="md-nav__link">
     <span class="md-ellipsis">
-      About aligning associative forms
+      Providing configuration via a config file
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#providing-configuration-via-clojure-lsp" class="md-nav__link">
+    <span class="md-ellipsis">
+      Providing configuration via clojure-lsp
     </span>
   </a>
   
@@ -721,6 +730,30 @@
       Rich Comments
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etecetera" class="md-nav__link">
+    <span class="md-ellipsis">
+      Etecetera
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Etecetera">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#about-aligning-associative-forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      About aligning associative forms
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1903,9 +1936,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#about-aligning-associative-forms" class="md-nav__link">
+  <a href="#providing-configuration-via-a-config-file" class="md-nav__link">
     <span class="md-ellipsis">
-      About aligning associative forms
+      Providing configuration via a config file
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#providing-configuration-via-clojure-lsp" class="md-nav__link">
+    <span class="md-ellipsis">
+      Providing configuration via clojure-lsp
     </span>
   </a>
   
@@ -1931,6 +1973,30 @@
       Rich Comments
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etecetera" class="md-nav__link">
+    <span class="md-ellipsis">
+      Etecetera
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Etecetera">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#about-aligning-associative-forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      About aligning associative forms
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2010,18 +2076,7 @@
 <h2 id="configuration">Configuration</h2>
 <p>You configure Calva's formatting using <a href="https://github.com/weavejester/cljfmt#configuration">cljfmt's configuration EDN</a>. This means that you can adjust the above mentioned defaults, including the indenting.</p>
 <p>This configuration can either be provided via a file or via clojure-lsp (see <a href="https://clojure-lsp.io/settings/">Clojure LSP Settings</a>).</p>
-<details class="note">
-<summary>Only use the clojure-lsp config option if you need it</summary>
-<p>The option to read formatting config from clojure-lsp is there to let teams where some members use clojure-lsp for formatting, share the config. To provide the settings via clojure-lsp, set <code>calva.fmt.configPath</code> to <code>CLOJURE-LSP</code> (case sensitive). However, there are limitations:</p>
-<ol>
-<li>There is no config hot reloading support (see below)</li>
-<li>clojure-lsp's cljfmt config is special in that it does not support regular Clojure syntax for regular expressions. This can make it difficult to run cljfmt as part of a CI pipline.</li>
-</ol>
-</details>
-<details class="note">
-<summary>No Leiningen config support</summary>
-<p>The <strong>cljfmt</strong> docs mention the <code>:cljfmt</code> config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.</p>
-</details>
+<h3 id="providing-configuration-via-a-config-file">Providing configuration via a config file</h3>
 <p>If providing settings via a file, start changing the Calva formatting defaults by pasting the following map into a file and save it. It could be somewhere in the project workspace (supporting hot reload), or some other place (no hot reload), depending on your requirements:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span><span class="w"> </span><span class="nv">true</span><span class="w"></span>
 <span class="w"> </span><span class="ss">:remove-trailing-whitespace?</span><span class="w"> </span><span class="nv">true</span><span class="w"></span>
@@ -2036,22 +2091,21 @@
 <li>then save</li>
 <li>then hit <code>tab</code>, and see what happens.</li>
 </ol>
+<div class="admonition note">
+<p class="admonition-title">Hot reloding requirements</p>
+<p>The hot reloading of the config file only works for config files inside the project directory structure. You will not have it if your configuration is outside the workspace or if you are providing the settings via clojure-lsp (see below).</p>
+</div>
 <details class="note">
 <summary><code>:align-associative?</code> is experimental</summary>
 <p>This particular setting is experimental and known to cause trouble together with namespaced keywords. Consider using <code>ctrl+alt+l</code> instead of <code>tab</code> as your formatting command, instead of enabling this setting. See below for more info about this. See <a href="#about-aligning-associative-forms">more below</a> about this.</p>
 </details>
-<div class="admonition note">
-<p class="admonition-title">Hot reloding requirements</p>
-<p>The hot reloading of the config file only works for config files inside the project directory structure. And if you are providing the settings via clojure-lsp: no hot-reload for you.</p>
-</div>
-<h3 id="about-aligning-associative-forms">About aligning associative forms</h3>
-<p>Calva loooks in the config map for the key <code>:align-associative?</code> and if it is <code>true</code> it will use an old version of <strong>cljfmt</strong> which is <a href="https://github.com/weavejester/cljfmt/pull/77">patched</a> with functionality for doing this alignment. Note, though:</p>
-<ul>
-<li>The implementation is a bit buggy and can do a bit crazy formatting on certain forms.</li>
-<li>The older version of cljfmt lacks updates for some new Clojure features and also some bugs fixed since the fork are not applied.</li>
-</ul>
-<p>You are hereby warned, and let us also remind you about the <strong>Format and Align Current Form</strong> command which lets you apply this formatting a bit more surgically, and on demand.</p>
-<p>This old version of <strong>cljfmt</strong> is inlined in the Calva repository along with the discontinued <code>rewrite-cljs</code> project. Regard it as frozen code. If you want Calva's formatter to have full support for newer Clojure constructs and the bugs in the alignment code fixed, contribute to <strong>cljfmt</strong>. See <a href="https://github.com/weavejester/cljfmt/issues/36">this issue</a> for starting to collect context.</p>
+<details class="note">
+<summary>No Leiningen config support</summary>
+<p>The <strong>cljfmt</strong> docs mention the <code>:cljfmt</code> config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.</p>
+</details>
+<h3 id="providing-configuration-via-clojure-lsp">Providing configuration via clojure-lsp</h3>
+<p>If you work in a team where some members use clojure-lsp for formatting, you can make Calva format using the same configuration by telling setting <code>calva.fmt.configPath</code> to <code>CLOJURE-LSP</code> (case sensitive).</p>
+<p>Note that doing this you will not have hot reload of the formatting configuration, and of course you will be depending on that clojure-lsp is running and functioning.</p>
 <h3 id="indentation-rules">Indentation rules</h3>
 <p>The <code>cljfmt</code> indents are highly configurable. They, and the rest of the configuration options, are masterly detailed <a href="https://github.com/weavejester/cljfmt#configuration">here</a>.</p>
 <p>Calva is an extra good tool for experimenting with these settings. <code>cljfmt</code> doesn't care about keys in the map that it doesn't know about so you can sneak in test code there to quickly see how it will get formatted by certain rules. Try this, for instance:</p>
@@ -2076,6 +2130,15 @@
 <p>That's somewhat similar to Nikita Prokopov's <a href="https://tonsky.me/blog/clojurefmt/">Better Clojure Formatting</a> suggestion. (Please be aware that this setting might not be sufficient to get complete <strong>Tonsky Formatting</strong>, please share any settings you use to get full compliance.)</p>
 <h2 id="rich-comments">Rich Comments</h2>
 <p>To encourage use of <code>(comment ...)</code> forms for development, the default settings give these forms get a special treatment when formatting. Use the <code>calva.fmt.keepCommentTrailParenOnOwnLine</code> setting to control this behaviour. See <a href="../rich-comments/">Rich Comments</a> first.</p>
+<h2 id="etecetera">Etecetera</h2>
+<h3 id="about-aligning-associative-forms">About aligning associative forms</h3>
+<p>Calva loooks in the config map for the key <code>:align-associative?</code> and if it is <code>true</code> it will use an old version of <strong>cljfmt</strong> which is <a href="https://github.com/weavejester/cljfmt/pull/77">patched</a> with functionality for doing this alignment. Note, though:</p>
+<ul>
+<li>The implementation is a bit buggy and can do a bit crazy formatting on certain forms.</li>
+<li>The older version of cljfmt lacks updates for some new Clojure features and also some bugs fixed since the fork are not applied.</li>
+</ul>
+<p>You are hereby warned, and let us also remind you about the <strong>Format and Align Current Form</strong> command which lets you apply this formatting a bit more surgically, and on demand.</p>
+<p>This old version of <strong>cljfmt</strong> is inlined in the Calva repository along with the discontinued <code>rewrite-cljs</code> project. Regard it as frozen code. If you want Calva's formatter to have full support for newer Clojure constructs and the bugs in the alignment code fixed, contribute to <strong>cljfmt</strong>. See <a href="https://github.com/weavejester/cljfmt/issues/36">this issue</a> for starting to collect context.</p>
 
   
   
