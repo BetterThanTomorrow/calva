@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Calva development: [Use requirements.txt in CI for publishing docs](https://github.com/BetterThanTomorrow/calva/issues/1913)
+
 ## [2.0.310] - 2022-10-24
 
 - Calva development: [Refactor `extension.ts` for less boilerplate and improved readability](https://github.com/BetterThanTomorrow/calva/issues/1906)
