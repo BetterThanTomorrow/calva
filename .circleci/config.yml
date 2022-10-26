@@ -366,8 +366,7 @@ jobs:
       - run:
           name: Install mkdocs and mkdocs-material
           command: |
-            pip install mkdocs
-            pip install pillow cairosvg
+            pip install -r requirements.txt
             pip install git+https://${GITHUB_MKDOCS_MATERIAL_TOKEN}@github.com/squidfunk/mkdocs-material-insiders.git
       - run:
           name: Deploy docs
