@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as os from 'os';
 import * as fs from 'fs';
+import * as path from 'path';
 import { customREPLCommandSnippet } from './evaluate';
 import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
@@ -42,13 +43,13 @@ const userConfigFileUri = vscode.Uri.joinPath(
 );
 
 async function openCalvaConfigEdn() {
-  const configPath = state.resolvePath('.calva/config.edn');
   return fs.promises
     .access(userConfigFileUri.fsPath, fs.constants.F_OK)
     .then(async () => await vscode.window.showTextDocument(userConfigFileUri))
     .catch(async (error) => {
       if (error.code === 'ENOENT') {
         try {
+          await fs.promises.mkdir(path.dirname(userConfigFileUri.fsPath), { recursive: true });
           await fs.promises.writeFile(
             userConfigFileUri.fsPath,
             '{:customREPLHoverSnippets []\n :customREPLCommandSnippets []}'
@@ -58,9 +59,7 @@ async function openCalvaConfigEdn() {
           console.error('Error creating user config.edn', error);
         }
       } else {
-        void vscode.window.showErrorMessage(
-          'Could not find a config.edn file in the workspace. Please create one and try again.'
-        );
+        void vscode.window.showErrorMessage('Could not open user config.edn. ' + error.message);
       }
     });
 }

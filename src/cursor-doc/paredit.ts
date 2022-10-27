@@ -1181,7 +1181,7 @@ function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
     if (opening.endsWith('[')) {
       probeCursor.backwardUpList();
       probeCursor.backwardList();
-      if (probeCursor.getPrevToken().raw.endsWith('{')) {
+      if (!probeCursor.getPrevToken().raw.endsWith('(')) {
         return false;
       }
       const fn = probeCursor.getFunctionName();
