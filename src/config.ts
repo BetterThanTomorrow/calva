@@ -59,9 +59,7 @@ async function openCalvaConfigEdn() {
           console.error('Error creating user config.edn', error);
         }
       } else {
-        void vscode.window.showErrorMessage(
-          'Could not open user config.edn. ' + error.message
-        );
+        void vscode.window.showErrorMessage('Could not open user config.edn. ' + error.message);
       }
     });
 }
