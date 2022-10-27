@@ -5,6 +5,9 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Calva: Open REPL snippets User config.edn couldn't create the file if parent folders doesn't exist](https://github.com/BetterThanTomorrow/calva/issues/1916)
+- Calva development: [Use requirements.txt in CI for publishing docs](https://github.com/BetterThanTomorrow/calva/issues/1913)
+- Bump deps.clj to v1.11.1.1182
+- Fix: [Drag sexps in value part of doseq sometimes jumps 2 sexps instead of 1](https://github.com/BetterThanTomorrow/calva/issues/1914)
 
 ## [2.0.310] - 2022-10-24
 

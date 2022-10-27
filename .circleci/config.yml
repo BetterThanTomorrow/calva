@@ -118,10 +118,6 @@ jobs:
     environment:
       # Required:
       DISPLAY: ':99'
-      # Configurable
-      ATOM_LINT_WITH_BUNDLED_NODE: 'true'
-      APM_TEST_PACKAGES: ''
-      ATOM_CHANNEL: 'stable'
     docker:
       - image: arcanemagus/atom-docker-ci
     steps:
@@ -366,8 +362,8 @@ jobs:
       - run:
           name: Install mkdocs and mkdocs-material
           command: |
-            pip install mkdocs
-            pip install pillow cairosvg
+            pip install -r requirements.txt
+            # Overwrite with insiders version of mkdocs-material
             pip install git+https://${GITHUB_MKDOCS_MATERIAL_TOKEN}@github.com/squidfunk/mkdocs-material-insiders.git
       - run:
           name: Deploy docs
