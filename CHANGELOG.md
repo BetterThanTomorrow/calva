@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Calva: Open REPL snippets User config.edn couldn't create the file if parent folders doesn't exist](https://github.com/BetterThanTomorrow/calva/issues/1916)
+
 ## [2.0.310] - 2022-10-24
 
 - Calva development: [Refactor `extension.ts` for less boilerplate and improved readability](https://github.com/BetterThanTomorrow/calva/issues/1906)
