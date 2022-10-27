@@ -184,7 +184,7 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
 export function resolvePath(filePath?: string): vscode.Uri {
   const root = getProjectWsFolder();
 
-  if (root.uri.scheme !== 'file') {
+  if (root && root.uri.scheme !== 'file') {
     return vscode.Uri.joinPath(root.uri, filePath);
   }
 
