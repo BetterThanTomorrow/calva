@@ -7,6 +7,7 @@ Changes to Calva.
 - Calva development: [Use requirements.txt in CI for publishing docs](https://github.com/BetterThanTomorrow/calva/issues/1913)
 - Bump deps.clj to v1.11.1.1182
 - Fix: [Drag sexps in value part of doseq sometimes jumps 2 sexps instead of 1](https://github.com/BetterThanTomorrow/calva/issues/1914)
+- Fix: [Can't do formatting code from Calva: Fire up the Getting Started REPL on hello_repl.clj](https://github.com/BetterThanTomorrow/calva/issues/1918)
 
 ## [2.0.310] - 2022-10-24
 
