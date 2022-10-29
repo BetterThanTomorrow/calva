@@ -23,7 +23,7 @@ function interruptAllEvaluations() {
       msgs.push(msg);
     });
     if (msgs.length) {
-      outputWindow.appendLine(normalizeNewLinesAndJoin(msgs));
+      outputWindow.appendLine(msgs.join('\n'));
     }
     NReplSession.getInstances().forEach((session, _index) => {
       session.interruptAll();
@@ -101,7 +101,7 @@ async function evaluateCodeUpdatingUI(
       line: line + 1,
       column: column + 1,
       stdout: (m) => {
-        outputWindow.append(normalizeNewLines(m));
+        outputWindow.append(m);
       },
       stderr: (m) => err.push(m),
       pprintOptions: pprintOptions,
@@ -149,7 +149,7 @@ async function evaluateCodeUpdatingUI(
         });
         // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
         if (err.length > 0) {
-          const errMsg = `; ${normalizeNewLinesAndJoin(err, true)}`;
+          const errMsg = `; ${asLineCommentAndJoin(err)}`;
           if (context.stacktrace) {
             outputWindow.saveStacktrace(context.stacktrace);
             outputWindow.appendLine(errMsg, (_, afterResultLocation) => {
@@ -163,7 +163,7 @@ async function evaluateCodeUpdatingUI(
     } catch (e) {
       if (showErrorMessage) {
         const outputWindowError = err.length
-          ? `; ${normalizeNewLinesAndJoin(err, true)}`
+          ? `; ${asLineCommentAndJoin(err)}`
           : formatAsLineComments(e);
         outputWindow.appendLine(outputWindowError, async (resultLocation, afterResultLocation) => {
           if (selection) {
@@ -255,15 +255,12 @@ function printWarningForError(e: any) {
   console.warn(`Unhandled error: ${e.message}`);
 }
 
-function normalizeNewLines(str: string, asLineComment = false): string {
-  //const s = str.replace(/\n\r?$/, '');
-  return asLineComment ? str.replace(/\n\r?/, '\n; ') : str;
+function asLineComment(str: string): string {
+  return str.replace(/\n\r?/, '\n; ');
 }
 
-function normalizeNewLinesAndJoin(strings: string[], asLineComment = false): string {
-  return strings
-    .map((s) => normalizeNewLines(s, asLineComment), asLineComment)
-    .join(`\n${asLineComment ? '; ' : ''}`);
+function asLineCommentAndJoin(strings: string[]): string {
+  return strings.map((s) => asLineComment(s)).join('\n; ');
 }
 
 function _currentSelectionElseCurrentForm(editor: vscode.TextEditor): getText.SelectionAndText {
@@ -429,10 +426,10 @@ async function loadFile(
     const res = session.loadFile(fileContents, {
       fileName,
       filePath: docUri.path,
-      stdout: (m) => outputWindow.append(normalizeNewLines(m)),
+      stdout: (m) => outputWindow.append(m),
       stderr: (m) => {
-        outputWindow.appendLine('; ' + normalizeNewLines(m, true));
-        errorMessages.push(normalizeNewLines(m, true));
+        outputWindow.appendLine('; ' + asLineComment(m));
+        errorMessages.push(asLineComment(m));
       },
       pprintOptions: pprintOptions,
     });
