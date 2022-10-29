@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Use format-as-you-type for Paredit](https://github.com/BetterThanTomorrow/calva/issues/1924)
+- Fix: [Calva Paredit: Kill/Delete Right deletes also the space before the form](https://github.com/BetterThanTomorrow/calva/issues/1922)
+
 ## [2.0.311] - 2022-10-27
 
 - Fix: [Drag sexps in value part of doseq sometimes jumps 2 sexps instead of 1](https://github.com/BetterThanTomorrow/calva/issues/1914)
