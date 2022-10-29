@@ -254,7 +254,7 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
       await session.switchNS(ns);
     }
     setSession(session, ns);
-    append(code, (_) => revealResultsDoc(false));
+    appendLine(code, (_) => revealResultsDoc(false));
   }
 }
 
@@ -296,13 +296,7 @@ async function writeToResultsDoc({ text, onAppended }: ResultsBufferEntry): Prom
   const doc = await vscode.workspace.openTextDocument(docUri);
   const insertPosition = doc.positionAt(Infinity);
   const edit = new vscode.WorkspaceEdit();
-  let editText = util.stripAnsi(text);
-  if (!lastLineIsEmpty(doc)) {
-    editText = '\n' + editText;
-  }
-  if (!editText.endsWith('\n')) {
-    editText += '\n';
-  }
+  const editText = util.stripAnsi(text);
   edit.insert(docUri, insertPosition, editText);
   if (!((await vscode.workspace.applyEdit(edit)) && (await doc.save()))) {
     return;
@@ -343,7 +337,7 @@ async function writeNextOutputBatch() {
   // Batch all remaining entries up until another onAppended callback.
   const [nextText, remaining] = splitEditQueueForTextBatching(resultsBuffer);
   resultsBuffer = remaining;
-  await writeToResultsDoc({ text: nextText.join('\n') });
+  await writeToResultsDoc({ text: nextText.join('') });
 }
 
 // Ensures that writeNextOutputBatch is called on buffer sequentially.
@@ -368,6 +362,10 @@ async function flushOutput() {
 export function append(text: string, onAppended?: OnAppendedCallback): void {
   resultsBuffer.push({ text, onAppended });
   void flushOutput();
+}
+
+export function appendLine(text: string, onAppended?: OnAppendedCallback): void {
+  append(`${text}\n`, onAppended);
 }
 
 export function discardPendingPrints(): void {
@@ -423,13 +421,13 @@ export function getLastStackTraceRange(): vscode.Range | undefined {
 
 export function printLastStacktrace(): void {
   const text = _lastStacktrace.map((entry) => entry.string).join('\n');
-  append(text, (_location) => {
+  appendLine(text, (_location) => {
     _lastStackTraceRange = undefined;
   });
 }
 
 export function appendPrompt(onAppended?: OnAppendedCallback) {
-  append(getPrompt(), onAppended);
+  appendLine(getPrompt(), onAppended);
 }
 
 function getUriForCurrentNamespace(): Promise<vscode.Uri> {

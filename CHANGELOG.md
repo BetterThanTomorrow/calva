@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Unwanted newlines are added to REPL output of Kaocha test run](https://github.com/BetterThanTomorrow/calva/issues/1826)
+
 ## [2.0.311] - 2022-10-27
 
 - Fix: [Drag sexps in value part of doseq sometimes jumps 2 sexps instead of 1](https://github.com/BetterThanTomorrow/calva/issues/1914)

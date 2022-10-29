@@ -23,7 +23,7 @@ function interruptAllEvaluations() {
       msgs.push(msg);
     });
     if (msgs.length) {
-      outputWindow.append(normalizeNewLinesAndJoin(msgs));
+      outputWindow.appendLine(normalizeNewLinesAndJoin(msgs));
     }
     NReplSession.getInstances().forEach((session, _index) => {
       session.interruptAll();
@@ -109,7 +109,7 @@ async function evaluateCodeUpdatingUI(
 
     try {
       if (evaluationSendCodeToOutputWindow) {
-        outputWindow.append(code);
+        outputWindow.appendLine(code);
       }
 
       let value = await context.value;
@@ -118,7 +118,7 @@ async function evaluateCodeUpdatingUI(
       result = value;
 
       if (showResult) {
-        outputWindow.append(value, async (resultLocation) => {
+        outputWindow.appendLine(value, async (resultLocation) => {
           if (selection) {
             const c = selection.start.character;
             if (options.replace) {
@@ -152,11 +152,11 @@ async function evaluateCodeUpdatingUI(
           const errMsg = `; ${normalizeNewLinesAndJoin(err, true)}`;
           if (context.stacktrace) {
             outputWindow.saveStacktrace(context.stacktrace);
-            outputWindow.append(errMsg, (_, afterResultLocation) => {
+            outputWindow.appendLine(errMsg, (_, afterResultLocation) => {
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
           } else {
-            outputWindow.append(errMsg);
+            outputWindow.appendLine(errMsg);
           }
         }
       }
@@ -165,7 +165,7 @@ async function evaluateCodeUpdatingUI(
         const outputWindowError = err.length
           ? `; ${normalizeNewLinesAndJoin(err, true)}`
           : formatAsLineComments(e);
-        outputWindow.append(outputWindowError, async (resultLocation, afterResultLocation) => {
+        outputWindow.appendLine(outputWindowError, async (resultLocation, afterResultLocation) => {
           if (selection) {
             const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
             const currentCursorPos = editor.selection.active;
@@ -256,8 +256,8 @@ function printWarningForError(e: any) {
 }
 
 function normalizeNewLines(str: string, asLineComment = false): string {
-  const s = str.replace(/\n\r?$/, '');
-  return asLineComment ? s.replace(/\n\r?/, '\n; ') : s;
+  //const s = str.replace(/\n\r?$/, '');
+  return asLineComment ? str.replace(/\n\r?/, '\n; ') : str;
 }
 
 function normalizeNewLinesAndJoin(strings: string[], asLineComment = false): string {
@@ -421,7 +421,7 @@ async function loadFile(
     const fileName = path.basename(docUri.path);
     const fileContents = await util.getFileContents(docUri.path);
 
-    outputWindow.append('; Evaluating file: ' + fileName);
+    outputWindow.appendLine(`; Evaluating file: ${fileName}`);
 
     await session.switchNS(ns);
 
@@ -431,7 +431,7 @@ async function loadFile(
       filePath: docUri.path,
       stdout: (m) => outputWindow.append(normalizeNewLines(m)),
       stderr: (m) => {
-        outputWindow.append('; ' + normalizeNewLines(m, true));
+        outputWindow.appendLine('; ' + normalizeNewLines(m, true));
         errorMessages.push(normalizeNewLines(m, true));
       },
       pprintOptions: pprintOptions,
@@ -439,12 +439,12 @@ async function loadFile(
     try {
       const value = await res.value;
       if (value) {
-        outputWindow.append(value);
+        outputWindow.appendLine(value);
       } else {
-        outputWindow.append('; No results from file evaluation.');
+        outputWindow.appendLine('; No results from file evaluation.');
       }
     } catch (e) {
-      outputWindow.append(
+      outputWindow.appendLine(
         `; Evaluation of file ${fileName} failed: ${e}`,
         (_location, nextLocation) => {
           if (res.stacktrace) {
@@ -594,7 +594,7 @@ export async function evaluateInOutputWindow(
       column: evalPos.character,
     });
   } catch (e) {
-    outputWindow.append('; Evaluation failed.');
+    outputWindow.appendLine('; Evaluation failed.');
   }
 }
 
