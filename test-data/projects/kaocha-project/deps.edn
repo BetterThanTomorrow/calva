@@ -1,0 +1,4 @@
+{:paths ["src"]
+ :aliases {:dev {:extra-paths ["env/dev"]}
+           :test {:extra-paths ["test"]
+                  :extra-deps {lambdaisland/kaocha {:mvn/version "1.71.1119"}}}}}
