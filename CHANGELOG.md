@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Unwanted newlines are added to REPL output of Kaocha test run](https://github.com/BetterThanTomorrow/calva/issues/1826)
+- Fix: [Unexpected newline character in the output](https://github.com/BetterThanTomorrow/calva/issues/998)
 
 ## [2.0.311] - 2022-10-27
 
