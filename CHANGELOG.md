@@ -5,7 +5,11 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Use format-as-you-type for Paredit](https://github.com/BetterThanTomorrow/calva/issues/1924)
-- Fix: [Calva Paredit: Kill/Delete Right deletes also the space before the form](https://github.com/BetterThanTomorrow/calva/issues/1922)
+
+## [2.0.312] - 2022-10-30
+
+- Fix: [Unwanted newlines are added to REPL output of Kaocha test run](https://github.com/BetterThanTomorrow/calva/issues/1826)
+- Fix: [Unexpected newline character in the output](https://github.com/BetterThanTomorrow/calva/issues/998)
 
 ## [2.0.311] - 2022-10-27
 
