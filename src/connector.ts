@@ -310,9 +310,7 @@ function createCLJSReplType(
   let hasStarted = cljsType.isStarted || !shouldRunStartCode;
 
   // The output processors are used to keep the user informed about the connection process
-  // The output from Figwheel is meant for printing to the REPL prompt,
-  // and since we print to Calva says we, only print some of the messages.
-  // TODO: We actually print to the REPL now, so we should review this.
+  // TODO: Consider changing this to do-not-print semantics instead
   const printThisPrinter: processOutputFn = (x) => {
       if (cljsType.printThisLineRegExp) {
         if (x.search(cljsType.printThisLineRegExp) >= 0) {

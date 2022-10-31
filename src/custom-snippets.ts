@@ -123,7 +123,7 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
       }
     }
     if (pick === undefined) {
-      outputWindow.append(
+      outputWindow.appendLine(
         '; No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.'
       );
       return;

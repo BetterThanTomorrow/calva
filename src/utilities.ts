@@ -273,14 +273,14 @@ function logSuccess(results) {
 }
 
 function logError(error) {
-  outputWindow.append('; ' + error.reason);
+  outputWindow.appendLine('; ' + error.reason);
   if (
     error.line !== undefined &&
     error.line !== null &&
     error.column !== undefined &&
     error.column !== null
   ) {
-    outputWindow.append(';   at line: ' + error.line + ' and column: ' + error.column);
+    outputWindow.appendLine(';   at line: ' + error.line + ' and column: ' + error.column);
   }
 }
 
@@ -313,12 +313,12 @@ function markError(error) {
 }
 
 function logWarning(warning) {
-  outputWindow.append('; ' + warning.reason);
+  outputWindow.appendLine('; ' + warning.reason);
   if (warning.line !== null) {
     if (warning.column !== null) {
-      outputWindow.append(';   at line: ' + warning.line + ' and column: ' + warning.column);
+      outputWindow.appendLine(';   at line: ' + warning.line + ' and column: ' + warning.column);
     } else {
-      outputWindow.append(';   at line: ' + warning.line);
+      outputWindow.appendLine(';   at line: ' + warning.line);
     }
   }
 }

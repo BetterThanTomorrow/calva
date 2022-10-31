@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Use format-as-you-type for Paredit](https://github.com/BetterThanTomorrow/calva/issues/1924)
+- Fix: [Newline missing in some prints to Output/REPL window](https://github.com/BetterThanTomorrow/calva/issues/1927)
 
 ## [2.0.312] - 2022-10-30
 
