@@ -66,7 +66,7 @@ function executeJackInTask(
       (_p, hostname: string, port: string) => {
         utilities.setLaunchingState(null);
         void connector.connect(connectSequence, true, hostname, port).then(() => {
-          outputWindow.append('; Jack-in done.');
+          outputWindow.appendLine('; Jack-in done.');
           outputWindow.appendPrompt();
           if (cb) {
             cb();
@@ -74,9 +74,9 @@ function executeJackInTask(
         });
       },
       (errorMessage) => {
-        outputWindow.append('; Error in Jack-in: unable to read port file');
-        outputWindow.append(`; ${errorMessage}`);
-        outputWindow.append(
+        outputWindow.appendLine('; Error in Jack-in: unable to read port file');
+        outputWindow.appendLine(`; ${errorMessage}`);
+        outputWindow.appendLine(
           '; You may have chosen the wrong jack-in configuration for your project.'
         );
         void vscode.window.showErrorMessage(
@@ -245,15 +245,15 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
     console.error('An error occurred while setting up Live Share listener.', e);
   }
   if (state.getProjectRootUri().scheme === 'vsls') {
-    outputWindow.append("; Aborting Jack-in, since you're the guest of a live share session.");
-    outputWindow.append(
+    outputWindow.appendLine("; Aborting Jack-in, since you're the guest of a live share session.");
+    outputWindow.appendLine(
       '; Please use this command instead: Connect to a running REPL server in the project.'
     );
     return;
   }
   state.analytics().logEvent('REPL', 'JackInInitiated').send();
   await outputWindow.initResultsDoc();
-  outputWindow.append('; Jacking in...');
+  outputWindow.appendLine('; Jacking in...');
   await outputWindow.openResultsDoc();
 
   let projectConnectSequence: ReplConnectSequence = connectSequence;
@@ -261,7 +261,7 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
     try {
       projectConnectSequence = await getProjectConnectSequence();
     } catch (e) {
-      outputWindow.append('; Aborting jack-in. No project type selected.');
+      outputWindow.appendLine('; Aborting jack-in. No project type selected.');
       return;
     }
   }
@@ -314,7 +314,7 @@ export function calvaDisconnect() {
           utilities.setLaunchingState(null);
           utilities.setConnectingState(false);
           statusbar.update();
-          outputWindow.append('; Interrupting Jack-in process.');
+          outputWindow.appendLine('; Interrupting Jack-in process.');
         }
       });
     return;

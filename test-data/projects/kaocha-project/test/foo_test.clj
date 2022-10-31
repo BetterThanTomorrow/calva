@@ -9,3 +9,7 @@
 (deftest bar
   (testing "The bar"
     (is (= :baz (sut/bar)))))
+
+(deftest boom
+  (testing "The boom"
+    (is (= :boom (/ 1 0)))))
