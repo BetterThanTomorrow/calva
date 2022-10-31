@@ -32,7 +32,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
   ) {}
 
   open(initialDimensions: vscode.TerminalDimensions | undefined): void {
-    outputWindow.append(
+    outputWindow.appendLine(
       `; Starting Jack-in Terminal: ${createCommandLine(
         this.options.executable,
         this.options.args

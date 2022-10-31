@@ -213,11 +213,11 @@ async function reportTests(
             const stackTrace = await session.testStacktrace(ns, test, a.index);
 
             outputWindow.saveStacktrace(stackTrace.stacktrace);
-            outputWindow.append(messages, (_, afterResultLocation) => {
+            outputWindow.appendLine(messages, (_, afterResultLocation) => {
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
           } else if (messages) {
-            outputWindow.append(messages);
+            outputWindow.appendLine(messages);
           }
 
           if (a.type === 'fail') {
@@ -229,7 +229,7 @@ async function reportTests(
   }
 
   const summary = cider.totalSummary(results.map((r) => r.summary));
-  outputWindow.append('; ' + cider.summaryMessage(summary));
+  outputWindow.appendLine('; ' + cider.summaryMessage(summary));
 
   if (!useTestExplorer()) {
     for (const fileName in diagnostics) {
@@ -243,11 +243,11 @@ async function reportTests(
 // FIXME: use cljs session where necessary
 async function runAllTests(controller: vscode.TestController, document = {}) {
   const session = getSession(util.getFileType(document));
-  outputWindow.append('; Running all project tests…');
+  outputWindow.appendLine('; Running all project tests…');
   try {
     await reportTests(controller, session, [await session.testAll()]);
   } catch (e) {
-    outputWindow.append('; ' + e);
+    outputWindow.appendLine('; ' + e);
   }
   updateReplSessionType();
   outputWindow.appendPrompt();
@@ -300,7 +300,7 @@ async function runNamespaceTestsImpl(
 
   const session = getSession(util.getFileType(document));
 
-  outputWindow.append(`; Running tests for ${nss[0]}...`);
+  outputWindow.appendLine(`; Running tests for ${nss[0]}...`);
 
   const resultPromises = nss.map((ns) => {
     return session.testNs(ns);
@@ -308,7 +308,7 @@ async function runNamespaceTestsImpl(
   try {
     await reportTests(controller, session, await Promise.all(resultPromises));
   } catch (e) {
-    outputWindow.append('; ' + e);
+    outputWindow.appendLine('; ' + e);
   }
 
   outputWindow.setSession(session, nss[0]);
@@ -341,14 +341,14 @@ async function runTestUnderCursor(controller: vscode.TestController) {
   const test = getTestUnderCursor();
 
   if (test) {
-    outputWindow.append(`; Running test: ${test}…`);
+    outputWindow.appendLine(`; Running test: ${test}…`);
     try {
       await reportTests(controller, session, [await session.test(ns, test)]);
     } catch (e) {
-      outputWindow.append('; ' + e);
+      outputWindow.appendLine('; ' + e);
     }
   } else {
-    outputWindow.append('; No test found at cursor');
+    outputWindow.appendLine('; No test found at cursor');
   }
   outputWindow.appendPrompt();
 }
@@ -379,11 +379,11 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
 
 async function rerunTests(controller: vscode.TestController, document = {}) {
   const session = getSession(util.getFileType(document));
-  outputWindow.append('; Running previously failed tests…');
+  outputWindow.appendLine('; Running previously failed tests…');
   try {
     await reportTests(controller, session, [await session.retest()]);
   } catch (e) {
-    outputWindow.append('; ' + e);
+    outputWindow.appendLine('; ' + e);
   }
 
   outputWindow.appendPrompt();

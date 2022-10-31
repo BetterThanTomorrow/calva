@@ -44,7 +44,7 @@ export function printTextToOutputWindowCommand(args: { [x: string]: string }) {
 }
 
 function printTextToOutputWindow(text: string) {
-  outputWindow.append(text);
+  outputWindow.appendLine(text);
   outputWindow.appendPrompt();
 }
 
