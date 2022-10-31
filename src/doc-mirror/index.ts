@@ -54,7 +54,7 @@ export class DocumentModel implements EditableModel {
             this.document.selection = options.selection;
           }
           if (!options.skipFormat) {
-            return formatter.formatPosition(editor, false, {
+            return formatter.formatPosition(editor, true, {
               'format-depth': options.formatDepth ? options.formatDepth : 1,
             });
           }
