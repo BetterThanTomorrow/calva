@@ -247,12 +247,11 @@ export class NReplSession {
 
     if ((msgData.out || msgData.err) && this.replType) {
       if (msgData.out) {
-        const out = msgData.out.replace(/\n\r?$/, '');
-        outputWindow.append(out);
+        outputWindow.appendLine(msgData.out);
       } else if (msgData.err) {
         const err = formatAsLineComments(msgData.err);
-        outputWindow.append(err, (_) => {
-          outputWindow.append(outputWindow.getPrompt());
+        outputWindow.appendLine(err, (_) => {
+          outputWindow.appendPrompt();
         });
       }
     }

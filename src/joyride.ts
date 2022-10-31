@@ -62,7 +62,7 @@ export async function joyrideJackIn(projectDir: string) {
       .then(async (port) => {
         utilities.setLaunchingState(null);
         await connector.connect(connectSequences.joyrideDefaults[0], true, 'localhost', `${port}`);
-        outputWindow.append('; Jack-in done.');
+        outputWindow.appendLine('; Jack-in done.');
         outputWindow.appendPrompt();
       })
       .catch((e: Error) => {
