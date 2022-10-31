@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Calva formatting does not trim spaces when applying Paredit: Kill/Delete Right](https://github.com/BetterThanTomorrow/calva/issues/1923)
+
 ## [2.0.313] - 2022-10-31
 
 - [Use format-as-you-type for Paredit](https://github.com/BetterThanTomorrow/calva/issues/1924)
