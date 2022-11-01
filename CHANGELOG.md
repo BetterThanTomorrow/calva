@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.314] - 2022-11-01
+
 - [Squash spaces when Paredit Kill/Delete Right](https://github.com/BetterThanTomorrow/calva/issues/1923)
 - Fix: [Newline lacking before results when evaluating at the REPL prompt](https://github.com/BetterThanTomorrow/calva/issues/1931)
 
