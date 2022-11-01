@@ -547,6 +547,14 @@ function pathExists(path: string): boolean {
   return fs.existsSync(path);
 }
 
+export function lastLineIsEmpty(
+  doc: vscode.TextDocument = vscode.window.activeTextEditor.document
+): boolean {
+  const { lineCount } = doc;
+  const lastLine = doc.getText(new vscode.Range(lineCount - 1, 0, lineCount - 1, Infinity));
+  return lastLine === '';
+}
+
 export {
   distinct,
   getWordAtPosition,
