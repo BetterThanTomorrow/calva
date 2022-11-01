@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Newline lacking before results when evaluating at the REPL prompt](https://github.com/BetterThanTomorrow/calva/issues/1931)
+
 ## [2.0.313] - 2022-10-31
 
 - [Use format-as-you-type for Paredit](https://github.com/BetterThanTomorrow/calva/issues/1924)

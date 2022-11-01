@@ -239,6 +239,12 @@ async function evaluateSelection(document = {}, options) {
         undefined,
         annotations.AnnotationStatus.PENDING
       );
+      if (
+        state.extensionContext.workspaceState.get('outputWindowActive') &&
+        !(await outputWindow.lastLineIsEmpty())
+      ) {
+        outputWindow.appendLine();
+      }
       await evaluateCodeUpdatingUI(
         code,
         { ...options, ns, line, column, filePath, session },
