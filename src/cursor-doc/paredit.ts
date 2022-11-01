@@ -61,7 +61,7 @@ export function selectRight(doc: EditableDocument) {
   const rangeFn =
     doc.selection.active >= doc.selection.anchor
       ? forwardHybridSexpRange
-      : (doc: EditableDocument) => forwardHybridSexpRange(doc, doc.selection.active, true);
+      : (doc: EditableDocument) => forwardHybridSexpRange(doc);
   selectRangeForward(doc, rangeFn(doc));
 }
 
@@ -268,13 +268,13 @@ export function backwardListRange(
  *
  * @param doc
  * @param offset
- * @param goPastWhitespace
+ * @param squashWhitespace
  * @returns [number, number]
  */
 export function forwardHybridSexpRange(
   doc: EditableDocument,
   offset = Math.max(doc.selection.anchor, doc.selection.active),
-  goPastWhitespace = false
+  squashWhitespace = true
 ): [number, number] {
   let cursor = doc.getTokenCursor(offset);
   if (cursor.getToken().type === 'open') {
@@ -294,7 +294,7 @@ export function forwardHybridSexpRange(
   // happens when in a clojure comment i.e:  ;; ----
   const cursorOffsetEnd = cursor.offsetStart <= offset ? cursor.offsetEnd : cursor.offsetStart;
   const text = doc.model.getText(offset, cursorOffsetEnd);
-  let hasNewline = text.indexOf('\n') > -1;
+  let hasNewline = text.indexOf('\n') !== -1;
   let end = cursorOffsetEnd;
 
   // Want the min of closing token or newline
@@ -307,7 +307,16 @@ export function forwardHybridSexpRange(
   }
 
   if (remainderLineText === '' || remainderLineText === '\n') {
-    end = currentLineNewlineOffset + doc.model.lineEndingLength;
+    const squashCursor = doc.getTokenCursor(currentLineNewlineOffset);
+    if (squashWhitespace && squashCursor.next().getToken().raw.endsWith(' ')) {
+      end =
+        currentLineNewlineOffset +
+        doc.model.lineEndingLength +
+        squashCursor.getToken().raw.length -
+        1;
+    } else {
+      end = currentLineNewlineOffset + doc.model.lineEndingLength;
+    }
   } else if (hasNewline) {
     // Try to find the first open token to the right of the document's cursor location if any
     let nearestOpenTokenOffset = -1;

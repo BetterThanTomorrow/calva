@@ -214,6 +214,22 @@ describe('paredit', () => {
         expect(actual).toEqual(expected);
       });
 
+      it('Advances past newline, preserving leading whitepace when invoked on newline with squash off', () => {
+        const a = docFromTextNotation('(a|\n   e) g)');
+        const b = docFromTextNotation('(a|\n|   e)');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a, a.selection.active, false);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Advances past newline, squashing leading whitepace when invoked on newline', () => {
+        const a = docFromTextNotation('(a|\n   e) g)');
+        const b = docFromTextNotation('(a|\n  | e) g)');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
       it('Finds end of vectors', () => {
         const a = docFromTextNotation('[a [b |c d e f] g h]');
         const b = docFromTextNotation('[a [b |c d e f|] g h]');

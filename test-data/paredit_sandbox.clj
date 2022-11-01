@@ -90,3 +90,16 @@ string. "
            e
            f) g]
 :a
+
+;; Kill right
+
+"This |
+    needs to find the end of the string."
+
+
+(map inc (map inc|
+              (range 3)))
+
+(map inc (map inc|
+              ))
+
