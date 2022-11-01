@@ -266,10 +266,13 @@ export function appendCurrentTopLevelForm() {
   void appendFormGrabbingSessionAndNS(true);
 }
 
-function lastLineIsEmpty(doc: vscode.TextDocument): boolean {
-  const { lineCount } = doc;
-  const lastLine = doc.getText(new vscode.Range(lineCount - 1, 0, lineCount - 1, Infinity));
-  return lastLine === '';
+export async function lastLineIsEmpty(): Promise<boolean> {
+  try {
+    const doc = await vscode.workspace.openTextDocument(DOC_URI());
+    return util.lastLineIsEmpty(doc);
+  } catch (error) {
+    console.error('Failed opening results doc', error);
+  }
 }
 
 function visibleResultsEditors(): vscode.TextEditor[] {
@@ -364,7 +367,7 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
   void flushOutput();
 }
 
-export function appendLine(text: string, onAppended?: OnAppendedCallback): void {
+export function appendLine(text = '', onAppended?: OnAppendedCallback): void {
   append(`${text}\n`, onAppended);
 }
 
