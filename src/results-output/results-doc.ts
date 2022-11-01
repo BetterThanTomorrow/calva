@@ -364,7 +364,7 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
   void flushOutput();
 }
 
-export function appendLine(text: string, onAppended?: OnAppendedCallback): void {
+export function appendLine(text = '', onAppended?: OnAppendedCallback): void {
   append(`${text}\n`, onAppended);
 }
 
