@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Warnings printed with an added `;` on a line of its own](https://github.com/BetterThanTomorrow/calva/issues/1930)
+
 ## [2.0.314] - 2022-11-01
 
 - [Squash spaces when Paredit Kill/Delete Right](https://github.com/BetterThanTomorrow/calva/issues/1923)
