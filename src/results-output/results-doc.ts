@@ -13,32 +13,35 @@ import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index';
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 import * as replSession from '../nrepl/repl-session';
-import { splitEditQueueForTextBatching } from './util';
+import { formatAsLineComments, splitEditQueueForTextBatching } from './util';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
-const PROMPT_HINT = '; Use `alt+enter` to evaluate';
+const PROMPT_HINT = 'Use `alt+enter` to evaluate';
 
-const START_GREETINGS =
-  '; This is the Calva evaluation results output window.\n\
-; TIPS: The keyboard shortcut `ctrl+alt+o o` shows and focuses this window\n\
-;   when connected to a REPL session.\n\
-; Please see https://calva.io/output/ for more info.\n\
-; Happy coding! ♥️';
+const START_GREETINGS = [
+  'This is the Calva evaluation results output window.',
+  'TIPS: The keyboard shortcut `ctrl+alt+o o` shows and focuses this window',
+  '  when connected to a REPL session.',
+  'Please see https://calva.io/output/ for more info.',
+  'Happy coding! ♥️',
+].join(`\n`);
 
-export const CLJ_CONNECT_GREETINGS =
-  '; TIPS:\n\
-;   - You can edit the contents here. Use it as a REPL if you like.\n\
-;   - `alt+enter` evaluates the current top level form.\n\
-;   - `ctrl+enter` evaluates the current form.\n\
-;   - `alt+up` and `alt+down` traverse up and down the REPL command history\n\
-;      when the cursor is after the last contents at the prompt\n\
-;   - Clojure lines in stack traces are peekable and clickable.';
+export const CLJ_CONNECT_GREETINGS = [
+  'TIPS:',
+  '  - You can edit the contents here. Use it as a REPL if you like.',
+  '  - `alt+enter` evaluates the current top level form.',
+  '  - `ctrl+enter` evaluates the current form.',
+  '  - `alt+up` and `alt+down` traverse up and down the REPL command history',
+  '     when the cursor is after the last contents at the prompt',
+  '  - Clojure lines in stack traces are peekable and clickable.',
+].join(`\n`);
 
-export const CLJS_CONNECT_GREETINGS =
-  '; TIPS: You can choose which REPL to use (clj or cljs):\n\
-;    *Calva: Toggle REPL connection*\n\
-;    (There is a button in the status bar for this)';
+export const CLJS_CONNECT_GREETINGS = [
+  'TIPS: You can choose which REPL to use (clj or cljs):',
+  '   *Calva: Toggle REPL connection*',
+  '   (There is a button in the status bar for this)',
+].join(`\n`);
 
 function outputFileDir() {
   const projectRoot = state.getProjectRootUri();
@@ -71,7 +74,7 @@ export function getPrompt(): string {
   let prompt = `${_sessionType}꞉${getNs()}꞉> `;
   if (showPrompt[_sessionType]) {
     showPrompt[_sessionType] = false;
-    prompt = `${prompt} ${PROMPT_HINT}`;
+    prompt = `${prompt} ${formatAsLineComments(PROMPT_HINT)}`;
   }
   return prompt;
 }
@@ -140,7 +143,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     return resultsDoc;
   }
 
-  const greetings = `${START_GREETINGS}\n\n`;
+  const greetings = `${formatAsLineComments(START_GREETINGS)}\n\n`;
   const edit = new vscode.WorkspaceEdit();
   const fullRange = new vscode.Range(resultsDoc.positionAt(0), resultsDoc.positionAt(Infinity));
   edit.replace(docUri, fullRange, greetings);

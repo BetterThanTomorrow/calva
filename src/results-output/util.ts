@@ -13,8 +13,8 @@ function addToHistory(history: string[], content?: string): string[] {
   return history;
 }
 
-function formatAsLineComments(error: string): string {
-  return `; ${error.trim().replace(/\n\r?/, '\n; ')}`;
+function formatAsLineComments(str: string): string {
+  return `; ${str}`.replace(/\n\r?$/, '').replace(/\n\r?/g, '\n; ');
 }
 
 function splitEditQueueForTextBatching(

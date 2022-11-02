@@ -16,6 +16,7 @@ import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
 import * as outputWindow from './results-output/results-doc';
+import { formatAsLineComments } from './results-output/util';
 import { evaluateInOutputWindow } from './evaluate';
 import * as liveShareSupport from './live-share';
 import * as calvaDebug from './debugger/calva-debug';
@@ -103,7 +104,9 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     setStateValue('clj', cljSession);
     setStateValue('cljc', cljSession);
     status.update();
-    outputWindow.appendLine(`; Connected session: clj\n${outputWindow.CLJ_CONNECT_GREETINGS}`);
+    outputWindow.appendLine(
+      `; Connected session: clj\n${formatAsLineComments(outputWindow.CLJ_CONNECT_GREETINGS)}`
+    );
     replSession.updateReplSessionType();
 
     initializeDebugger(cljSession);
@@ -179,9 +182,9 @@ function setUpCljsRepl(session, build) {
   setStateValue('cljs', session);
   status.update();
   outputWindow.appendLine(
-    `; Connected session: cljs${build ? ', repl: ' + build : ''}\n${
+    `; Connected session: cljs${build ? ', repl: ' + build : ''}\n${formatAsLineComments(
       outputWindow.CLJS_CONNECT_GREETINGS
-    }`
+    )}`
   );
   outputWindow.setSession(session, 'cljs.user');
   replSession.updateReplSessionType();
