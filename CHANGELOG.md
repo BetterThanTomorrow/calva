@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Calva does not fall back on lsp definitions when nrepl definitions fail](https://github.com/BetterThanTomorrow/calva/issues/1933)
+
 ## [2.0.314] - 2022-11-01
 
 - [Squash spaces when Paredit Kill/Delete Right](https://github.com/BetterThanTomorrow/calva/issues/1923)
