@@ -7,7 +7,9 @@ search:
 
 # Connect Calva to Your Project
 
-The recommended way is to:
+When connected to your project's REPL Calva let's you evaluate code, supporting Interactive Programming. The REPL connection is also used to provide IDE functionality through the dynamic knowledge about the project that the REPL enables. The REPL communication depends on that your project has an [nREPL](https://github.com/nrepl/nrepl) server running, and that the [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) middleware is enabled.
+
+For the easiest way to provide your project with these dependencies, the recommended way to connect is to use the so called **Jack-in** command.
 
 ## Jack-in: Let Calva Start the REPL For You
 
