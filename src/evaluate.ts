@@ -149,7 +149,7 @@ async function evaluateCodeUpdatingUI(
         });
         // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
         if (err.length > 0) {
-          const errMsg = `; ${asLineCommentAndJoin(err)}`;
+          const errMsg = formatAsLineComments(err.join('\n'));
           if (context.stacktrace) {
             outputWindow.saveStacktrace(context.stacktrace);
             outputWindow.appendLine(errMsg, (_, afterResultLocation) => {
@@ -163,7 +163,7 @@ async function evaluateCodeUpdatingUI(
     } catch (e) {
       if (showErrorMessage) {
         const outputWindowError = err.length
-          ? `; ${asLineCommentAndJoin(err)}`
+          ? formatAsLineComments(err.join('\n'))
           : formatAsLineComments(e);
         outputWindow.appendLine(outputWindowError, async (resultLocation, afterResultLocation) => {
           if (selection) {
@@ -259,14 +259,6 @@ async function evaluateSelection(document = {}, options) {
 
 function printWarningForError(e: any) {
   console.warn(`Unhandled error: ${e.message}`);
-}
-
-function asLineComment(str: string): string {
-  return str.replace(/\n\r?/, '\n; ');
-}
-
-function asLineCommentAndJoin(strings: string[]): string {
-  return strings.map((s) => asLineComment(s)).join('\n; ');
 }
 
 function _currentSelectionElseCurrentForm(editor: vscode.TextEditor): getText.SelectionAndText {
@@ -434,8 +426,8 @@ async function loadFile(
       filePath: docUri.path,
       stdout: (m) => outputWindow.append(m),
       stderr: (m) => {
-        outputWindow.appendLine('; ' + asLineComment(m));
-        errorMessages.push(asLineComment(m));
+        outputWindow.appendLine(formatAsLineComments(m));
+        errorMessages.push(m);
       },
       pprintOptions: pprintOptions,
     });

@@ -205,8 +205,6 @@ async function reportTests(
       const resultSet = result.results[ns];
       for (const test in resultSet) {
         for (const a of resultSet[test]) {
-          cider.cleanUpWhiteSpace(a);
-
           const messages = cider.detailedMessage(a);
 
           if (a.type == 'error') {

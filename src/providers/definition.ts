@@ -52,7 +52,16 @@ export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
     for (const provider of providers) {
       const providerFunction = definitionFunctions[provider];
       if (providerFunction) {
-        const definition = await providerFunction(document, position, token);
+        const definition = await providerFunction(document, position, token).catch((e) => {
+          console.error(
+            `Definition lookup failed for provider '${provider}', ${
+              provider === 'lsp'
+                ? 'is clojure-lsp running and configured correctly?'
+                : 'do you have the cider-nrepl dependency loaded in your project? See https://calva.io/connect'
+            }`,
+            e
+          );
+        });
         if (definition) {
           if (definition instanceof vscode.Location) {
             return definition;

@@ -4,6 +4,13 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.315] - 2022-11-03
+
+- [Inform if Calva nREPL dependencies are not fulfilled](https://github.com/BetterThanTomorrow/calva/issues/1935)
+- Fix: [Calva does not fall back on lsp definitions when nrepl definitions fail](https://github.com/BetterThanTomorrow/calva/issues/1933)
+- Fix: [Warnings printed with an added `;` on a line of its own](https://github.com/BetterThanTomorrow/calva/issues/1930)
+- Fix: [Extra newlines are printed in output from function called from test](https://github.com/BetterThanTomorrow/calva/issues/1937)
+
 ## [2.0.314] - 2022-11-01
 
 - [Squash spaces when Paredit Kill/Delete Right](https://github.com/BetterThanTomorrow/calva/issues/1923)

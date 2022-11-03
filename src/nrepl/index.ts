@@ -247,7 +247,7 @@ export class NReplSession {
 
     if ((msgData.out || msgData.err) && this.replType) {
       if (msgData.out) {
-        outputWindow.appendLine(msgData.out);
+        outputWindow.append(msgData.out);
       } else if (msgData.err) {
         const err = formatAsLineComments(msgData.err);
         outputWindow.appendLine(err, (_) => {

@@ -1,0 +1,3 @@
+(ns foo)
+
+(defn abs [])
