@@ -423,6 +423,10 @@ export class NReplSession {
     }
   ) {
     const id = this.client.nextId;
+    const pprintOptions = opts.pprintOptions;
+    opts['pprint'] = pprintOptions.enabled;
+    delete opts.pprintOptions;
+    const extraOpts = getServerSidePrinter(pprintOptions);
     const evaluation = new NReplEvaluation(
       id,
       this,
@@ -433,12 +437,14 @@ export class NReplSession {
         this.messageHandlers[id] = (msg) => {
           evaluation.setHandlers(resolve, reject);
           debugDecorations.triggerUpdateAndRenderDecorations();
-          if (evaluation.onMessage(msg, opts.pprintOptions)) {
+          if (evaluation.onMessage(msg, pprintOptions)) {
             return true;
           }
         };
         this.addRunningID(id);
         this.client.write({
+          ...extraOpts,
+          ...opts,
           op: 'load-file',
           session: this.sessionId,
           file,
