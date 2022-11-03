@@ -14,7 +14,7 @@ function addToHistory(history: string[], content?: string): string[] {
 }
 
 function formatAsLineComments(str: string): string {
-  return `; ${str}`.replace(/\n\r?$/, '').replace(/\n\r?/g, '\n; ');
+  return `; ${str}`.replace(/\r?\n$/, '').replace(/\r?\n/g, '\n; ');
 }
 
 function splitEditQueueForTextBatching(

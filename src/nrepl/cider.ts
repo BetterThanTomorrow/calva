@@ -74,14 +74,6 @@ function resultMessage(resultItem: Readonly<TestResult>): string {
   return `${msg.length > 0 ? stripTrailingNewlines(msg.join(': ')) : ''}`;
 }
 
-// Remove any trailing blank lines from any of the string in result.
-export function cleanUpWhiteSpace(result: TestResult) {
-  for (const prop in result) {
-    if (typeof result[prop] === 'string') {
-      result[prop] = stripTrailingNewlines(result[prop]);
-    }
-  }
-}
 // Given a summary, return a message suitable for printing in the REPL to show
 // the user a quick summary of the test run.
 // Examples:
