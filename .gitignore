@@ -88,3 +88,6 @@ backup/
 # Calva grammars (running the atom-ci docker image locally)
 src/calva-fmt/atom-language-clojure/.cache/
 src/calva-fmt/atom-language-clojure/.bash_history
+
+# Leiningen
+.lein-repl-history
