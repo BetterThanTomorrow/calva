@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Bundle deps.clj.jar v1.11.1.1189
+- [Honor pretty-print settings for load-file](https://github.com/BetterThanTomorrow/calva/issues/1905)
 
 ## [2.0.315] - 2022-11-03
 
