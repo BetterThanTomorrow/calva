@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bundle deps.clj.jar v1.11.1.1189
+
 ## [2.0.315] - 2022-11-03
 
 - [Inform if Calva nREPL dependencies are not fulfilled](https://github.com/BetterThanTomorrow/calva/issues/1935)
