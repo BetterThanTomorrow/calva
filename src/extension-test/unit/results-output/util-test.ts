@@ -10,7 +10,7 @@ describe('addToHistory', () => {
   });
   it('should push text to history array without whitespace or eol characters', () => {
     const history = [];
-    const newHistory = util.addToHistory(history, ' \t\nhello \n\r');
+    const newHistory = util.addToHistory(history, ' \t\nhello \r\n');
     expect(newHistory[0]).toBe('hello');
   });
   it('should not push text to history array if empty string', () => {
@@ -36,8 +36,8 @@ describe('formatAsLineComments', () => {
     const formattedError = util.formatAsLineComments(error);
     expect(formattedError).toBe('; hello\n; world');
   });
-  it('should account for \\n\\r line endings', () => {
-    const error = 'hello\n\rworld\n\r';
+  it('should account for \\r\\n line endings', () => {
+    const error = 'hello\r\nworld\r\n';
     const formattedError = util.formatAsLineComments(error);
     expect(formattedError).toBe('; hello\n; world');
   });
