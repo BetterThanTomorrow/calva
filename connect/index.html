@@ -2039,7 +2039,8 @@
 
 
 <h1 id="connect-calva-to-your-project">Connect Calva to Your Project</h1>
-<p>The recommended way is to:</p>
+<p>When connected to your project's REPL Calva let's you evaluate code, supporting Interactive Programming. The REPL connection is also used to provide IDE functionality through the dynamic knowledge about the project that the REPL enables. The REPL communication depends on that your project has an <a href="https://github.com/nrepl/nrepl">nREPL</a> server running, and that the <a href="https://github.com/clojure-emacs/cider-nrepl">cider-nrepl</a> middleware is enabled.</p>
+<p>For the easiest way to provide your project with these dependencies, the recommended way to connect is to use the so called <strong>Jack-in</strong> command.</p>
 <h2 id="jack-in-let-calva-start-the-repl-for-you">Jack-in: Let Calva Start the REPL For You</h2>
 <p>This way Calva can make sure it is started with the dependencies needed for a working Clojure and/or ClojureScript session. This is often referred to as <strong>Jack in</strong> (because that is what it is called in CIDER).</p>
 <p>Jack-in supports both CLJ and for CLJS, and has built-in configurations for <strong>Leiningen</strong>, <strong>deps.edn</strong>, <strong>shadow-cljs</strong>, <strong>Gradle</strong> projects, as well as for the CLJS repl types: <strong>Figwheel Main</strong>, <strong>lein-figwheel</strong> (legacy Figwheel), <strong>shadow-cljs</strong>, and ClojureScript built-ins for both browser and node.js. Using jack-in provides your development environment with all the dependencies you need for Calva to work.</p>
