@@ -19,7 +19,6 @@
       },
       "outFiles": ["${workspaceFolder}/dist/**/*.js"]
     },
-
     {
       "name": "Launch Extension w/o extensions",
       "type": "extensionHost",
@@ -29,6 +28,21 @@
       "stopOnEntry": false,
       "sourceMaps": true,
       "env": {
+        "IS_DEBUG": "true",
+        "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "DEBUG": "no-debug-universal-analytics"
+      },
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "name": "Launch Extension w/o extensions --throw-deprecation",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}", "--disable-extensions"],
+      "sourceMaps": true,
+      "env": {
+        "NODE_OPTIONS": "--throw-deprecation",
         "IS_DEBUG": "true",
         "CALVA_DEV_GA": "FUBAR-69796730-4",
         "DEBUG": "no-debug-universal-analytics"
