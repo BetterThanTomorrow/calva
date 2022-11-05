@@ -9,6 +9,7 @@ Changes to Calva.
 - [Add editor snippet for Rich Comments marked with trailing `:rcf`](https://github.com/BetterThanTomorrow/calva/issues/1941)
 - [Add custom REPL command snippet `$current-pair` variable](https://github.com/BetterThanTomorrow/calva/issues/1943)
 - [Add custom REPL command snippet `$file-text` variable](https://github.com/BetterThanTomorrow/calva/issues/1944)
+- [Remove `calva.fmt.formatAsYouType` setting](https://github.com/BetterThanTomorrow/calva/issues/1827)
 
 ## [2.0.315] - 2022-11-03
 
