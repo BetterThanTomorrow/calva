@@ -164,7 +164,12 @@ function interpolateCode(code: string, context): string {
     .replace(/\$hover-line/g, context.hoverLine)
     .replace(/\$column/g, context.currentColumn)
     .replace(/\$hover-column/g, context.hoverColumn)
+    .replace(/\$file-text/g, context.currentFileText[1])
     .replace(/\$file/g, context.currentFilename)
+    .replace(
+      /\$hover-file-text/g,
+      context.hovercurrentFileText ? context.hovercurrentFileText[1] : ''
+    )
     .replace(/\$hover-file/g, context.hoverFilename)
     .replace(/\$ns/g, context.ns)
     .replace(/\$editor-ns/g, context.editorNS)

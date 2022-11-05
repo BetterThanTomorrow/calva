@@ -11,6 +11,10 @@
     {
       "name": "Current pair",
       "snippet": "'($current-pair)"
+    },
+    {
+      "name": "Current file text",
+      "snippet": "'($file-text)"
     }
   ],
   "calva.customREPLHoverSnippets": [
@@ -25,6 +29,10 @@
     {
       "name": "Show current pair",
       "snippet": "'\"Current pair: $hover-current-pair\""
+    },
+    {
+      "name": "Show current file text",
+      "snippet": "'(\"Current file text: $hover-file-text\")"
     }
   ],
   "workbench.colorCustomizations": {
