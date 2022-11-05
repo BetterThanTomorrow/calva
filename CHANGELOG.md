@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.316] - 2022-11-05
+
 - Bundle deps.clj.jar v1.11.1.1189
 - [Honor pretty-print settings for load-file](https://github.com/BetterThanTomorrow/calva/issues/1905)
 - [Add editor snippet for Rich Comments marked with trailing `:rcf`](https://github.com/BetterThanTomorrow/calva/issues/1941)
