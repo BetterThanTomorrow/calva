@@ -7,6 +7,10 @@
     {
       "name": "JSON selection",
       "snippet": "$selection"
+    },
+    {
+      "name": "Current pair",
+      "snippet": "'($current-pair)"
     }
   ],
   "calva.customREPLHoverSnippets": [
@@ -17,6 +21,10 @@
     {
       "name": "Show doc string",
       "snippet": "(clojure.string/replace (with-out-str (clojure.repl/doc $hover-text)) \"\n\" \"\n\n\")"
+    },
+    {
+      "name": "Show current pair",
+      "snippet": "'\"Current pair: $hover-current-pair\""
     }
   ],
   "workbench.colorCustomizations": {

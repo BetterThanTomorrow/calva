@@ -1180,7 +1180,7 @@ export const bindingForms = [
   'with-redefs',
 ];
 
-function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
+export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
@@ -1207,7 +1207,7 @@ function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
  * Returns the range of the current form
  * or the current form pair, if usePairs is true
  */
-function currentSexpsRange(
+export function currentSexpsRange(
   doc: EditableDocument,
   cursor: LispTokenCursor,
   offset: number,

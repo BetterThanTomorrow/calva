@@ -172,6 +172,7 @@ function interpolateCode(code: string, context): string {
     .replace(/\$selection/g, context.selection)
     .replace(/\$hover-text/g, context.hoverText)
     .replace(/\$current-form/g, context.currentForm[1])
+    .replace(/\$current-pair/g, context.currentPair[1])
     .replace(/\$enclosing-form/g, context.enclosingForm[1])
     .replace(/\$top-level-form/g, context.topLevelForm[1])
     .replace(/\$current-fn/g, context.currentFn[1])
@@ -180,6 +181,7 @@ function interpolateCode(code: string, context): string {
     .replace(/\$head/g, context.head[1])
     .replace(/\$tail/g, context.tail[1])
     .replace(/\$hover-current-form/g, context.hovercurrentForm ? context.hovercurrentForm[1] : '')
+    .replace(/\$hover-current-pair/g, context.hovercurrentPair ? context.hovercurrentPair[1] : '')
     .replace(
       /\$hover-enclosing-form/g,
       context.hoverenclosingForm ? context.hoverenclosingForm[1] : ''
