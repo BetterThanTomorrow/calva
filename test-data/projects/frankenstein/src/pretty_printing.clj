@@ -29,3 +29,19 @@
    [:.error {:color :white, :opacity "100%"}]])
 
 some-data
+
+(comment
+
+  satisfies?
+  
+
+  )
+
+#_{:clj-kondo/ignore [:redefined-var]}
+(comment
+  ;; Add-lib library for hot-loading
+  (require '[clojure.tools.deps.alpha.repl :refer [add-libs]])
+  (add-libs '{domain/library-name {:mvn/version "1.0.0"}})
+  #__)
+
+
