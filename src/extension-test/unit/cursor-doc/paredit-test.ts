@@ -1485,31 +1485,31 @@ describe('paredit', () => {
     describe('addRichComment', () => {
       it('Adds Rich Comment after Top Level form', async () => {
         const a = docFromTextNotation('(fo|o)••(bar)');
-        const b = docFromTextNotation('(foo)••(comment•  |•  )••(bar)');
+        const b = docFromTextNotation('(foo)••(comment•  |•  :rcf)••(bar)');
         await paredit.addRichComment(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Inserts Rich Comment between Top Levels', async () => {
         const a = docFromTextNotation('(foo)•|•(bar)');
-        const b = docFromTextNotation('(foo)••(comment•  |•  )••(bar)');
+        const b = docFromTextNotation('(foo)••(comment•  |•  :rcf)••(bar)');
         await paredit.addRichComment(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Inserts Rich Comment between Top Levels, before Top Level form', async () => {
         const a = docFromTextNotation('(foo)••|(bar)');
-        const b = docFromTextNotation('(foo)••(comment•  |•  )••(bar)');
+        const b = docFromTextNotation('(foo)••(comment•  |•  :rcf)••(bar)');
         await paredit.addRichComment(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Inserts Rich Comment between Top Levels, after Top Level form', async () => {
         const a = docFromTextNotation('(foo)|••(bar)');
-        const b = docFromTextNotation('(foo)••(comment•  |•  )••(bar)');
+        const b = docFromTextNotation('(foo)••(comment•  |•  :rcf)••(bar)');
         await paredit.addRichComment(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Inserts Rich Comment between Top Levels, in comment', async () => {
         const a = docFromTextNotation('(foo)•;foo| bar•(bar)');
-        const b = docFromTextNotation('(foo)•;foo bar••(comment•  |•  )••(bar)');
+        const b = docFromTextNotation('(foo)•;foo bar••(comment•  |•  :rcf)••(bar)');
         await paredit.addRichComment(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });

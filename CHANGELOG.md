@@ -4,6 +4,14 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.316] - 2022-11-05
+
+- Bundle deps.clj.jar v1.11.1.1189
+- [Honor pretty-print settings for load-file](https://github.com/BetterThanTomorrow/calva/issues/1905)
+- [Add editor snippet for Rich Comments marked with trailing `:rcf`](https://github.com/BetterThanTomorrow/calva/issues/1941)
+- [Add custom REPL command snippet `$current-pair` variable](https://github.com/BetterThanTomorrow/calva/issues/1943)
+- [Add custom REPL command snippet `$file-text` variable](https://github.com/BetterThanTomorrow/calva/issues/1944)
+
 ## [2.0.315] - 2022-11-03
 
 - [Inform if Calva nREPL dependencies are not fulfilled](https://github.com/BetterThanTomorrow/calva/issues/1935)

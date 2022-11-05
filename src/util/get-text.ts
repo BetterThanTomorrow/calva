@@ -30,6 +30,28 @@ export function currentFormText(doc: vscode.TextDocument, pos: vscode.Position):
   return _currentFormText(doc, false, pos);
 }
 
+export function currentPairText(doc: vscode.TextDocument, pos: vscode.Position): SelectionAndText {
+  const cursorDoc = docMirror.getDocument(doc);
+  const cursorPos = doc.offsetAt(pos);
+  const cursor = cursorDoc.getTokenCursor(cursorPos);
+  if (paredit.isInPairsList(cursor, paredit.bindingForms)) {
+    const range = paredit.currentSexpsRange(cursorDoc, cursor, cursorPos, true);
+    const selection = select.selectionFromOffsetRange(doc, range);
+    return [selection, doc.getText(selection)];
+  } else {
+    return [undefined, ''];
+  }
+}
+
+export function currentFileText(doc: vscode.TextDocument): SelectionAndText {
+  const text = doc.getText();
+  if (text) {
+    return [select.selectionFromOffsetRange(doc, [0, text.length - 1]), text];
+  } else {
+    return [undefined, ''];
+  }
+}
+
 export function currentEnclosingFormText(
   doc: vscode.TextDocument,
   pos: vscode.Position
@@ -144,6 +166,8 @@ export function toEndOfList(doc: vscode.TextDocument): SelectionAndText {
 export function currentContext(document: vscode.TextDocument, pos: vscode.Position, prefix = '') {
   const result = {};
   result[prefix + 'currentForm'] = currentFormText(document, pos);
+  result[prefix + 'currentFileText'] = currentFileText(document);
+  result[prefix + 'currentPair'] = currentPairText(document, pos);
   result[prefix + 'enclosingForm'] = currentEnclosingFormText(document, pos);
   result[prefix + 'topLevelForm'] = currentTopLevelFormText(document, pos);
   result[prefix + 'currentFn'] = currentFunction(document);
