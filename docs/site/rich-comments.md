@@ -44,9 +44,12 @@ To develop or refine a function you might:
 Calva has several features to facilitate the Rich comments workflow, e.g.
 
 1. A command that helps you create a new Rich comment form quickly: **Calva: Add Rich Comment**, <kbd>ctrl+alt+r c</kbd>
+1. A snippet for creating Rich comment form quickly. Typing `(rcf`, will make it appear.
 1. Special [Syntax highlight](customizing.md#calva-highlight). By default `comment` forms are rendered in _italics_
 1. Special [top-level form](evaluation.md#current-top-level-form) context
 1. Special formatting
+
+Note that the command and snippet for creating Rich comments add the keyword `:rcf` right before the closing paren. This makes the closing paren stay and not fold when you format the code. The special formatting (see below) will treat this and also any ignored (with `#_`) form at the end of the form specially.
 
 ### `comment` is top-level
 
@@ -82,6 +85,28 @@ With the cursor somewhere directly inside the comment form (denoted with a `|`):
 
 !!! Note "Only for the current comment form”
     The special formatting only applies in the current `comment` form. When outside it, formatting tucks the closing paren in again. That's why fold when done, [below](#fold-when-done) works like it does. This also applies to VS Code commands like **Format Document**, or when you have **Format On Save** enabled. There are several reasons for this, and one is that there is no `cljfmt` config for it and leaving the closing comment un-tucked might give you troubles with CI pipelines that enforce some cljfmt config be followed. (Another reason is that it would be pretty hard to do on the whole document.)
+
+#### Special formatting disabled for trailing `:rcf`
+
+If the Rich comment ends with `:rcf` (or an ignored form), the special formatting doesn't happen. So if you have:
+
+``` clojure
+(comment
+  (def foo
+:foo)
+  |
+  :rcf)
+```
+
+And hit <kbd>tab</kbd>, you will get:
+
+``` clojure
+(comment
+  (def foo
+    :foo)
+  |
+  :rcf)
+```
 
 #### Thinking space is kept
 
@@ -130,9 +155,6 @@ To fold the trailing paren automatically, place the cursor immediately outside (
 #### Enabled by default
 
 You can disable this behavior with the setting: `calva.fmt.keepCommentTrailParenOnOwnLine`.
-
-But why would you? It is awesome! 😄
-
 
 #### Only for the Current Form
 

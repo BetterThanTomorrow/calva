@@ -116,6 +116,12 @@
         "path": "./clojure.tmLanguage.json"
       }
     ],
+    "snippets": [
+      {
+        "language": "clojure",
+        "path": "./snippets.jsonc"
+      }
+    ],
     "configurationDefaults": {
       "[clojure]": {
         "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",

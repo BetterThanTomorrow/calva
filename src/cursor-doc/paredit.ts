@@ -1497,7 +1497,9 @@ export async function addRichComment(
   p = doc.selection.active,
   contents?: string
 ) {
-  const richComment = `(comment\n  ${contents ? adaptContentsToRichComment(contents) : ''}\n  )`;
+  const richComment = `(comment\n  ${
+    contents ? adaptContentsToRichComment(contents) : ''
+  }\n  :rcf)`;
   let cursor = doc.getTokenCursor(p);
   const topLevelRange = rangeForDefun(doc, p, false);
   const isInsideForm = !(p <= topLevelRange[0] || p >= topLevelRange[1]);

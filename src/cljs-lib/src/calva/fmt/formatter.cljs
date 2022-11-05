@@ -192,16 +192,19 @@
 
 (def trailing-bracket_symbol "_calva-fmt-trail-symbol_")
 (def trailing-bracket_pattern (re-pattern (str "_calva-fmt-trail-symbol_\\)$")))
+(def rich-comment-keyword :rcf)
+(def trailing-rcf-marker-pattern (re-pattern (str "(" rich-comment-keyword "|#_\\S+)\\s*\\)$")))
 
 (defn add-trail-symbol-if-comment
   "If the `range-text` is a comment, add a symbol at the end, preventing the last paren from folding"
   [{:keys [range all-text config idx] :as m}]
-  (let [keep-trailing-bracket-on-own-line?
+  (let [range-text (extract-range-text m)
+        keep-trailing-bracket-on-own-line?
         (and (:keep-comment-forms-trail-paren-on-own-line? config)
-             (:comment-form? config))]
+             (:comment-form? config)
+             (not (re-find trailing-rcf-marker-pattern range-text)))]
     (if keep-trailing-bracket-on-own-line?
-      (let [range-text (extract-range-text m)
-            new-range-text (clojure.string/replace
+      (let [new-range-text (clojure.string/replace
                             range-text
                             #"\n{0,1}[ \t,]*\)$"
                             (str "\n" trailing-bracket_symbol ")"))
@@ -254,7 +257,9 @@
       (index-for-tail-in-range)
       (remove-indent-token-if-empty-current-line)
       (remove-trail-symbol-if-comment range)))
-
+(comment
+  
+  :rcf)
 (defn format-text-at-idx-on-type
   "Relax formating some when used as an on-type handler"
   [m]
