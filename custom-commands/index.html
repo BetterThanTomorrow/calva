@@ -17,7 +17,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.1, mkdocs-material-8.5.7+insiders-4.26.1">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.8+insiders-4.26.2">
     
     
       
@@ -28,7 +28,7 @@
       <link rel="stylesheet" href="../assets/stylesheets/main.fa1d38d9.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.815d1a91.min.css">
         
       
       
@@ -1899,11 +1899,13 @@
 <ul>
 <li><code>$line</code>: Current line number in editor</li>
 <li><code>$column</code>: Current column number in editor</li>
-<li><code>$file</code>: Full name of current file edited</li>
+<li><code>$file</code>: Full name of the current file edited</li>
+<li><code>$file-text</code>: The text of the current file edited</li>
 <li><code>$ns</code>: The namespace used for evaluating the command</li>
 <li><code>$editor-ns</code>: The namespace of the editor from which the command was run</li>
 <li><code>$selection</code>: The currently selected text</li>
 <li><code>$current-form</code>: The text of the <a href="../evaluation/#current-form">current form</a></li>
+<li><code>$current-pair</code>: The text of the current pair if in a binding, otherwise empty string</li>
 <li><code>$enclosing-form</code>: The text of the <a href="../evaluation/#evaluate-enclosing-form">current enclosing form</a></li>
 <li><code>$top-level-form</code> The text of the <a href="../evaluation/#current-top-level-form">current top level form</a></li>
 <li><code>$current-fn</code>: The sexpr/form at call position in the current list, e.g. <code>str</code> with <code>(defn foo [] (str "foo" "bar|"))</code></li>
@@ -2099,7 +2101,7 @@ There are now also <code>hover-</code> versions of most substitutions. Those cur
     <script id="__config" type="application/json">{"base": "..", "features": ["content.tabs.link"], "search": "../assets/javascripts/workers/search.939a4419.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.01b2e45f.min.js"></script>
+      <script src="../assets/javascripts/bundle.b9c29124.min.js"></script>
       
     
   </body>

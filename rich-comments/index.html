@@ -17,7 +17,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.1, mkdocs-material-8.5.7+insiders-4.26.1">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.8+insiders-4.26.2">
     
     
       
@@ -28,7 +28,7 @@
       <link rel="stylesheet" href="../assets/stylesheets/main.fa1d38d9.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.815d1a91.min.css">
         
       
       
@@ -611,6 +611,15 @@
   
     <nav class="md-nav" aria-label="Special formatting">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#special-formatting-disabled-for-trailing-rcf" class="md-nav__link">
+    <span class="md-ellipsis">
+      Special formatting disabled for trailing :rcf
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#thinking-space-is-kept" class="md-nav__link">
@@ -1889,6 +1898,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#special-formatting-disabled-for-trailing-rcf" class="md-nav__link">
+    <span class="md-ellipsis">
+      Special formatting disabled for trailing :rcf
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#thinking-space-is-kept" class="md-nav__link">
     <span class="md-ellipsis">
       Thinking space is kept
@@ -1987,10 +2005,12 @@
 <p>Calva has several features to facilitate the Rich comments workflow, e.g.</p>
 <ol>
 <li>A command that helps you create a new Rich comment form quickly: <strong>Calva: Add Rich Comment</strong>, <kbd>ctrl+alt+r c</kbd></li>
+<li>A snippet for creating Rich comment form quickly. Typing <code>(rcf</code>, will make it appear.</li>
 <li>Special <a href="../customizing/#calva-highlight">Syntax highlight</a>. By default <code>comment</code> forms are rendered in <em>italics</em></li>
 <li>Special <a href="../evaluation/#current-top-level-form">top-level form</a> context</li>
 <li>Special formatting</li>
 </ol>
+<p>Note that the command and snippet for creating Rich comments add the keyword <code>:rcf</code> right before the closing paren. This makes the closing paren stay and not fold when you format the code. The special formatting (see below) will treat this and also any ignored (with <code>#_</code>) form at the end of the form specially.</p>
 <h3 id="comment-is-top-level"><code>comment</code> is top-level</h3>
 <p>To make it easy to evaluate forms in <code>(comment ...)</code> forms, they create a new top-level context. Instead of you having to place the cursor with precision before evaluating the <strong>current form</strong>, you can have the cursor anywhere within a <code>comment</code> enclosed form and <a href="../evaluation/#current-top-level-form"><strong>Evaluate Top-Level Form</strong></a>.</p>
 <p>This carries over to all commands in Calva which deal with the top level form. Including <a href="../custom-commands/">custom command snippets</a>.</p>
@@ -2012,6 +2032,21 @@
 </code></pre></div>
 <p>!!! Note "Only for the current comment form”
     The special formatting only applies in the current <code>comment</code> form. When outside it, formatting tucks the closing paren in again. That's why fold when done, <a href="#fold-when-done">below</a> works like it does. This also applies to VS Code commands like <strong>Format Document</strong>, or when you have <strong>Format On Save</strong> enabled. There are several reasons for this, and one is that there is no <code>cljfmt</code> config for it and leaving the closing comment un-tucked might give you troubles with CI pipelines that enforce some cljfmt config be followed. (Another reason is that it would be pretty hard to do on the whole document.)</p>
+<h4 id="special-formatting-disabled-for-trailing-rcf">Special formatting disabled for trailing <code>:rcf</code></h4>
+<p>If the Rich comment ends with <code>:rcf</code> (or an ignored form), the special formatting doesn't happen. So if you have:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span><span class="w"></span>
+<span class="ss">:foo</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="nv">|</span><span class="w"></span>
+<span class="w">  </span><span class="ss">:rcf</span><span class="p">)</span><span class="w"></span>
+</code></pre></div>
+<p>And hit <kbd>tab</kbd>, you will get:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span><span class="w"></span>
+<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span><span class="w"></span>
+<span class="w">    </span><span class="ss">:foo</span><span class="p">)</span><span class="w"></span>
+<span class="w">  </span><span class="nv">|</span><span class="w"></span>
+<span class="w">  </span><span class="ss">:rcf</span><span class="p">)</span><span class="w"></span>
+</code></pre></div>
 <h4 id="thinking-space-is-kept">Thinking space is kept</h4>
 <p>The formatter will not remove newlines between the cursor and the closing bracket. So if you have entered a few lines to get ”thinking” room:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span><span class="w"></span>
@@ -2044,7 +2079,6 @@
 </code></pre></div>
 <h4 id="enabled-by-default">Enabled by default</h4>
 <p>You can disable this behavior with the setting: <code>calva.fmt.keepCommentTrailParenOnOwnLine</code>.</p>
-<p>But why would you? It is awesome! 😄</p>
 <h4 id="only-for-the-current-form">Only for the Current Form</h4>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -2135,7 +2169,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["content.tabs.link"], "search": "../assets/javascripts/workers/search.939a4419.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.01b2e45f.min.js"></script>
+      <script src="../assets/javascripts/bundle.b9c29124.min.js"></script>
       
     
   </body>
