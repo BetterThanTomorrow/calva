@@ -164,7 +164,12 @@ function interpolateCode(code: string, context): string {
     .replace(/\$hover-line/g, context.hoverLine)
     .replace(/\$column/g, context.currentColumn)
     .replace(/\$hover-column/g, context.hoverColumn)
+    .replace(/\$file-text/g, context.currentFileText[1])
     .replace(/\$file/g, context.currentFilename)
+    .replace(
+      /\$hover-file-text/g,
+      context.hovercurrentFileText ? context.hovercurrentFileText[1] : ''
+    )
     .replace(/\$hover-file/g, context.hoverFilename)
     .replace(/\$ns/g, context.ns)
     .replace(/\$editor-ns/g, context.editorNS)
@@ -172,6 +177,7 @@ function interpolateCode(code: string, context): string {
     .replace(/\$selection/g, context.selection)
     .replace(/\$hover-text/g, context.hoverText)
     .replace(/\$current-form/g, context.currentForm[1])
+    .replace(/\$current-pair/g, context.currentPair[1])
     .replace(/\$enclosing-form/g, context.enclosingForm[1])
     .replace(/\$top-level-form/g, context.topLevelForm[1])
     .replace(/\$current-fn/g, context.currentFn[1])
@@ -180,6 +186,7 @@ function interpolateCode(code: string, context): string {
     .replace(/\$head/g, context.head[1])
     .replace(/\$tail/g, context.tail[1])
     .replace(/\$hover-current-form/g, context.hovercurrentForm ? context.hovercurrentForm[1] : '')
+    .replace(/\$hover-current-pair/g, context.hovercurrentPair ? context.hovercurrentPair[1] : '')
     .replace(
       /\$hover-enclosing-form/g,
       context.hoverenclosingForm ? context.hoverenclosingForm[1] : ''

@@ -28,11 +28,13 @@ There are also substitutions available, which will take elements from the curren
 
 * `$line`: Current line number in editor
 * `$column`: Current column number in editor
-* `$file`: Full name of current file edited
+* `$file`: Full name of the current file edited
+* `$file-text`: The text of the current file edited
 * `$ns`: The namespace used for evaluating the command
 * `$editor-ns`: The namespace of the editor from which the command was run
 * `$selection`: The currently selected text
 * `$current-form`: The text of the [current form](evaluation.md#current-form)
+* `$current-pair`: The text of the current pair if in a binding, otherwise empty string
 * `$enclosing-form`: The text of the [current enclosing form](evaluation.md#evaluate-enclosing-form)
 * `$top-level-form` The text of the [current top level form](evaluation.md#current-top-level-form)
 * `$current-fn`: The sexpr/form at call position in the current list, e.g. `str` with `(defn foo [] (str "foo" "bar|"))`
