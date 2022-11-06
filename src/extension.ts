@@ -426,16 +426,14 @@ async function activate(context: vscode.ExtensionContext) {
     chan.appendLine(`VIM Extension detected. Please read: ${VIM_DOC_URL} now and then.\n`);
     if (!context.globalState.get(VIEWED_VIM_DOCS)) {
       void vscode.window
-        .showErrorMessage(
+        .showInformationMessage(
           'VIM Extension detected. Please view the docs for tips (and to stop this info box from appearing).',
           ...[BUTTON_GOTO_DOC]
         )
         .then((v) => {
           if (v == BUTTON_GOTO_DOC) {
             void context.globalState.update(VIEWED_VIM_DOCS, true);
-            open(VIM_DOC_URL).catch(() => {
-              // do nothing
-            });
+            void vscode.commands.executeCommand('simpleBrowser.show', VIM_DOC_URL);
           }
         });
     }
