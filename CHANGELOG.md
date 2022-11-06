@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Remove `calva.fmt.formatAsYouType` setting](https://github.com/BetterThanTomorrow/calva/issues/1827)
+
 ## [2.0.316] - 2022-11-05
 
 - Bundle deps.clj.jar v1.11.1.1189
