@@ -79,7 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
     )
   );
   vscode.window.onDidChangeActiveTextEditor(inferer.updateState);
-  vscode.workspace.onDidChangeConfiguration(async (e) => {
+  vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration('calva.fmt.formatAsYouType')) {
       vscode.languages.setLanguageConfiguration('clojure', getLanguageConfiguration());
     }
