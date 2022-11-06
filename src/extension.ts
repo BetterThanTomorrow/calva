@@ -182,7 +182,7 @@ async function activate(context: vscode.ExtensionContext) {
 
   // COMMANDS
   const commands = {
-    clearInlineResults: annotations.clearEvaluationDecorations,
+    clearInlineResults: annotations.clearAllEvaluationDecorations,
     clearReplHistory: replHistory.clearHistory,
     connect: connector.connectCommand,
     connectNonProjectREPL: () => void connector.connectNonProjectREPLCommand(context),

@@ -1886,7 +1886,7 @@
       {
         "command": "calva.clearInlineResults",
         "key": "escape",
-        "when": "calva:keybindingsEnabled && editorTextFocus && !editorHasMultipleSelections && !editorHasSelection && !editorReadOnly && !hasOtherSuggestions && !parameterHintsVisible && !selectionAnchorSet && !suggestWidgetVisible && !inlineSuggestionVisible && editorLangId == clojure"
+        "when": "calva:keybindingsEnabled && calva:hasInlineResults && editorTextFocus && !editorHasMultipleSelections && !editorHasSelection && !editorReadOnly && !hasOtherSuggestions && !parameterHintsVisible && !selectionAnchorSet && !suggestWidgetVisible && !inlineSuggestionVisible && editorLangId == clojure"
       },
       {
         "command": "calva.evaluateSelection",
