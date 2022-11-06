@@ -26,24 +26,29 @@ export async function indentPosition(position: vscode.Position, document: vscode
     getDocumentOffset(document, position),
     await config.getConfig()
   );
-  let delta = document.lineAt(position.line).firstNonWhitespaceCharacterIndex - indent;
+  const newPosition = new vscode.Position(position.line, indent);
+  const delta = document.lineAt(position.line).firstNonWhitespaceCharacterIndex - indent;
   if (delta > 0) {
-    return editor.edit(
-      (edits) => edits.delete(new vscode.Range(pos, new vscode.Position(pos.line, delta))),
-      {
+    return editor
+      .edit((edits) => edits.delete(new vscode.Range(pos, new vscode.Position(pos.line, delta))), {
         undoStopAfter: false,
         undoStopBefore: false,
-      }
-    );
+      })
+      .then((onFulfilled) => {
+        editor.selection = new vscode.Selection(newPosition, newPosition);
+        return onFulfilled;
+      });
   } else if (delta < 0) {
-    let str = '';
-    while (delta++ < 0) {
-      str += ' ';
-    }
-    return editor.edit((edits) => edits.insert(pos, str), {
-      undoStopAfter: false,
-      undoStopBefore: false,
-    });
+    const str = ' '.repeat(-delta);
+    return editor
+      .edit((edits) => edits.insert(pos, str), {
+        undoStopAfter: false,
+        undoStopBefore: false,
+      })
+      .then((onFulfilled) => {
+        editor.selection = new vscode.Selection(newPosition, newPosition);
+        return onFulfilled;
+      });
   }
 }
 
