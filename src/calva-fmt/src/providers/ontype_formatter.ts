@@ -5,6 +5,7 @@ import { EditableDocument } from '../../../cursor-doc/model';
 import * as paredit from '../../../cursor-doc/paredit';
 import { getConfig } from '../../../config';
 import * as util from '../../../utilities';
+import * as formatterConfig from '../config';
 
 export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProvider {
   async provideOnTypeFormattingEdits(
@@ -34,13 +35,7 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
     const editor = util.getActiveTextEditor();
 
     const pos = editor.selection.active;
-    if (
-      vscode.workspace.getConfiguration('editor').get('formatOnType') ||
-      vscode.workspace
-        .getConfiguration('editor')
-        .inspect('formatOnType')
-        .languageIds.includes(document.languageId)
-    ) {
+    if (formatterConfig.formatOnTypeEnabled()) {
       if (vscode.workspace.getConfiguration('calva.fmt').get('newIndentEngine')) {
         void formatter.indentPosition(pos, document);
       } else {

@@ -15,7 +15,7 @@ let lspFormatConfig: string | undefined;
 
 function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmt: string) {
   return {
-    'format-as-you-type': !!workspaceConfig.get<boolean>('formatAsYouType'),
+    'format-as-you-type': !!formatOnTypeEnabled(),
     'keep-comment-forms-trail-paren-on-own-line?': !!workspaceConfig.get<boolean>(
       'keepCommentTrailParenOnOwnLine'
     ),
@@ -65,4 +65,14 @@ async function readConfiguration(): Promise<{
 export async function getConfig() {
   const config = await readConfiguration();
   return config;
+}
+
+export function formatOnTypeEnabled() {
+  return (
+    vscode.workspace.getConfiguration('editor').get('formatOnType') ||
+    vscode.workspace
+      .getConfiguration('editor')
+      .inspect('formatOnType')
+      .languageIds.includes('clojure')
+  );
 }

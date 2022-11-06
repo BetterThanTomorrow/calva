@@ -5,38 +5,19 @@ description: Calva and the VIM Extension
 
 # Calva and the VIM Extension
 
-First thing first. The [VIM Extension](https://github.com/VSCodeVim/Vim) and Calva has some friction between them. The alternative [VSCode Neovim](https://github.com/asvetliakov/vscode-neovim) extension may fare a bit better as it unbinds keystrokes from VS Code while not in insert mode and uses Neovim as a backend.
-
-## Selection commands
-
-Calva's various structural selection commands [do not put VIM into VISUAL mode](https://github.com/BetterThanTomorrow/calva/issues/297). This is true for many [VS Code selection scenarios](https://github.com/VSCodeVim/Vim/issues/2224) too, so it is not really Calva's fault, but it will be problematic for VIM Extension Calva users, regardless.
+First thing first. The [VIM Extension](https://github.com/VSCodeVim/Vim) and Calva has a history of friction between them. Less so these days, but you might still encounter some rough edges. Please don't hesitate to reach out to the Calva team, as we might be able to fix things if only we are aware of them.
 
 ## Key bindings
 
 In general Calva's default key bindings are not very VI-ish.
 
-You can add these keybindings to your `init.vim` if you are using the VSCode Neovim extension. It is inspired by and tries to emulate the keybindings found in [vim-fireplace](https://github.com/tpope/vim-fireplace) which is the most popular vim plugin for Clojure.
+### Expand selection on Mac
 
-```
-nmap cqp :call VSCodeNotify('calva.jackIn')<CR>
-nmap cqq :call VSCodeNotify('calva.disconnect')<CR>
-nmap cpr :call VSCodeNotify('calva.loadFile')<CR>
-nmap cpR :call VSCodeNotify('calva.loadNamespace')<CR>
-nmap cpp :call VSCodeNotify('calva.evaluateSelection')<CR>
-nmap cqc :call VSCodeNotify('calva.evalCurrentFormInREPLWindow')<CR>
-```
-
-Unfortunately these key combinations will not work in the normal VIM extension as `c` is an [operator key](https://github.com/VSCodeVim/Vim/issues/4464) and cannot be remapped. **This is a call for someone to share their VIM re-mappings**.
-
-### Expand selection
-
-Calva binds **expand selection** to `ctrl+w` (`shift+alt+right` on Windows and Linux). This conflicts with the VIM Extension's default mapping of window splitting shortcuts. You'll need to remap it either with Calva or with the VIM Extension.
+Om Mac Calva binds **expand selection** to `ctrl+w`. This conflicts with the VIM Extension's default mapping of window splitting shortcuts. You'll need to remap it either with Calva or with the VIM Extension.
 
 ### The `esc` key
 
-Calva binds the `esc` key to dismiss the display of inline results. This gets into conflict with any `vi` coding since `esc` then is used to go back to command mode. You can either change Calva's default keybinding or the VIM extension's.
-
-Alternatively, you can use the native Vim command `Ctrl + [` to escape and get back to command mode. Rebinding your keyboard's CapsLock key to Control may make this even easier.
+While showing inline evaluation results, Calva binds the `esc` key to dismiss the display of inline results. If you want to be able to use the `esc` key to enter command mode while inline results are showing, you'll need to rebind Calva's command for dismissing the inline results.
 
 #### Remap Calva's `clearInlineResults`
 
@@ -74,3 +55,18 @@ Remap vim's insert mode keybinding to go into command mode by adding the followi
 ```
 
 (Change `before` to whatever keybinding you are comfortable with!)
+
+### Vim Fireplace-ish keybindings
+
+You can add these keybindings to your `init.vim` if you are using the VSCode Neovim extension. It is inspired by and tries to emulate the keybindings found in [vim-fireplace](https://github.com/tpope/vim-fireplace) which is the most popular vim plugin for Clojure.
+
+```
+nmap cqp :call VSCodeNotify('calva.jackIn')<CR>
+nmap cqq :call VSCodeNotify('calva.disconnect')<CR>
+nmap cpr :call VSCodeNotify('calva.loadFile')<CR>
+nmap cpR :call VSCodeNotify('calva.loadNamespace')<CR>
+nmap cpp :call VSCodeNotify('calva.evaluateSelection')<CR>
+nmap cqc :call VSCodeNotify('calva.evalCurrentFormInREPLWindow')<CR>
+```
+
+Unfortunately these key combinations will not work in the normal VIM extension as `c` is an [operator key](https://github.com/VSCodeVim/Vim/issues/4464) and cannot be remapped. **This is a call for someone to share their VIM re-mappings**.
