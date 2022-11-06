@@ -827,11 +827,6 @@
             "type": "string",
             "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Absolute or relative to the project root directory. To provide the config via [clojure-lsp](https://clojure-lsp.io), set this to `CLOJURE-LSP` (case sensitive)."
           },
-          "calva.fmt.formatAsYouType": {
-            "type": "boolean",
-            "default": true,
-            "description": "Auto-adjust indentation and format as you enter new lines."
-          },
           "calva.fmt.newIndentEngine": {
             "type": "boolean",
             "default": true,
