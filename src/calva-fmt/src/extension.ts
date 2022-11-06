@@ -7,32 +7,29 @@ import * as docmirror from '../../doc-mirror/index';
 import * as config from './config';
 import * as calvaConfig from '../../config';
 
-function getLanguageConfiguration(autoIndentOn: boolean): vscode.LanguageConfiguration {
-  return {
-    onEnterRules:
-      autoIndentOn && calvaConfig.getConfig().formatOnSave
-        ? [
-            // When Calva is the formatter disable all vscode default indentation
-            // (By outdenting a lot, which is the only way I have found that works)
-            // TODO: Make it actually consider whether Calva is the formatter or not
-            {
-              beforeText: /.*/,
-              action: {
-                indentAction: vscode.IndentAction.Outdent,
-                removeText: Number.MAX_VALUE,
-              },
+function getLanguageConfiguration(): vscode.LanguageConfiguration {
+  const languageConfiguration = {
+    onEnterRules: config.formatOnTypeEnabled()
+      ? [
+          // When Calva is the formatter disable all vscode default indentation
+          // (By outdenting a lot, which is the only way I have found that works)
+          // TODO: Make it actually consider whether Calva is the formatter or not
+          {
+            beforeText: /.*/,
+            action: {
+              indentAction: vscode.IndentAction.Outdent,
+              removeText: Number.MAX_VALUE,
             },
-          ]
-        : [],
+          },
+        ]
+      : [],
   };
+  return languageConfiguration;
 }
 
-export async function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
   docmirror.activate();
-  vscode.languages.setLanguageConfiguration(
-    'clojure',
-    getLanguageConfiguration(await config.getConfig()['format-as-you-type'])
-  );
+  vscode.languages.setLanguageConfiguration('clojure', getLanguageConfiguration());
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
       'calva-fmt.formatCurrentForm',
@@ -84,10 +81,7 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.window.onDidChangeActiveTextEditor(inferer.updateState);
   vscode.workspace.onDidChangeConfiguration(async (e) => {
     if (e.affectsConfiguration('calva.fmt.formatAsYouType')) {
-      vscode.languages.setLanguageConfiguration(
-        'clojure',
-        getLanguageConfiguration(await config.getConfig()['format-as-you-type'])
-      );
+      vscode.languages.setLanguageConfiguration('clojure', getLanguageConfiguration());
     }
   });
 }
