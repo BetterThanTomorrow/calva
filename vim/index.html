@@ -1076,15 +1076,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#selection-commands" class="md-nav__link">
-    <span class="md-ellipsis">
-      Selection commands
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#key-bindings" class="md-nav__link">
     <span class="md-ellipsis">
       Key bindings
@@ -1095,9 +1086,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#expand-selection" class="md-nav__link">
+  <a href="#expand-selection-on-mac" class="md-nav__link">
     <span class="md-ellipsis">
-      Expand selection
+      Expand selection on Mac
     </span>
   </a>
   
@@ -1133,6 +1124,15 @@
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vim-fireplace-ish-keybindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vim Fireplace-ish keybindings
+    </span>
+  </a>
   
 </li>
         
@@ -1833,15 +1833,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#selection-commands" class="md-nav__link">
-    <span class="md-ellipsis">
-      Selection commands
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#key-bindings" class="md-nav__link">
     <span class="md-ellipsis">
       Key bindings
@@ -1852,9 +1843,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#expand-selection" class="md-nav__link">
+  <a href="#expand-selection-on-mac" class="md-nav__link">
     <span class="md-ellipsis">
-      Expand selection
+      Expand selection on Mac
     </span>
   </a>
   
@@ -1893,6 +1884,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#vim-fireplace-ish-keybindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Vim Fireplace-ish keybindings
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1919,25 +1919,13 @@
 
 
 <h1 id="calva-and-the-vim-extension">Calva and the VIM Extension</h1>
-<p>First thing first. The <a href="https://github.com/VSCodeVim/Vim">VIM Extension</a> and Calva has some friction between them. The alternative <a href="https://github.com/asvetliakov/vscode-neovim">VSCode Neovim</a> extension may fare a bit better as it unbinds keystrokes from VS Code while not in insert mode and uses Neovim as a backend.</p>
-<h2 id="selection-commands">Selection commands</h2>
-<p>Calva's various structural selection commands <a href="https://github.com/BetterThanTomorrow/calva/issues/297">do not put VIM into VISUAL mode</a>. This is true for many <a href="https://github.com/VSCodeVim/Vim/issues/2224">VS Code selection scenarios</a> too, so it is not really Calva's fault, but it will be problematic for VIM Extension Calva users, regardless.</p>
+<p>First thing first. The <a href="https://github.com/VSCodeVim/Vim">VIM Extension</a> and Calva has a history of friction between them. Less so these days, but you might still encounter some rough edges. Please don't hesitate to reach out to the Calva team, as we might be able to fix things if only we are aware of them.</p>
 <h2 id="key-bindings">Key bindings</h2>
 <p>In general Calva's default key bindings are not very VI-ish.</p>
-<p>You can add these keybindings to your <code>init.vim</code> if you are using the VSCode Neovim extension. It is inspired by and tries to emulate the keybindings found in <a href="https://github.com/tpope/vim-fireplace">vim-fireplace</a> which is the most popular vim plugin for Clojure.</p>
-<div class="highlight"><pre><span></span><code>nmap cqp :call VSCodeNotify(&#39;calva.jackIn&#39;)&lt;CR&gt;
-nmap cqq :call VSCodeNotify(&#39;calva.disconnect&#39;)&lt;CR&gt;
-nmap cpr :call VSCodeNotify(&#39;calva.loadFile&#39;)&lt;CR&gt;
-nmap cpR :call VSCodeNotify(&#39;calva.loadNamespace&#39;)&lt;CR&gt;
-nmap cpp :call VSCodeNotify(&#39;calva.evaluateSelection&#39;)&lt;CR&gt;
-nmap cqc :call VSCodeNotify(&#39;calva.evalCurrentFormInREPLWindow&#39;)&lt;CR&gt;
-</code></pre></div>
-<p>Unfortunately these key combinations will not work in the normal VIM extension as <code>c</code> is an <a href="https://github.com/VSCodeVim/Vim/issues/4464">operator key</a> and cannot be remapped. <strong>This is a call for someone to share their VIM re-mappings</strong>.</p>
-<h3 id="expand-selection">Expand selection</h3>
-<p>Calva binds <strong>expand selection</strong> to <code>ctrl+w</code> (<code>shift+alt+right</code> on Windows and Linux). This conflicts with the VIM Extension's default mapping of window splitting shortcuts. You'll need to remap it either with Calva or with the VIM Extension.</p>
+<h3 id="expand-selection-on-mac">Expand selection on Mac</h3>
+<p>Om Mac Calva binds <strong>expand selection</strong> to <code>ctrl+w</code>. This conflicts with the VIM Extension's default mapping of window splitting shortcuts. You'll need to remap it either with Calva or with the VIM Extension.</p>
 <h3 id="the-esc-key">The <code>esc</code> key</h3>
-<p>Calva binds the <code>esc</code> key to dismiss the display of inline results. This gets into conflict with any <code>vi</code> coding since <code>esc</code> then is used to go back to command mode. You can either change Calva's default keybinding or the VIM extension's.</p>
-<p>Alternatively, you can use the native Vim command <code>Ctrl + [</code> to escape and get back to command mode. Rebinding your keyboard's CapsLock key to Control may make this even easier.</p>
+<p>While showing inline evaluation results, Calva binds the <code>esc</code> key to dismiss the display of inline results. If you want to be able to use the <code>esc</code> key to enter command mode while inline results are showing, you'll need to rebind Calva's command for dismissing the inline results.</p>
 <h4 id="remap-calvas-clearinlineresults">Remap Calva's <code>clearInlineResults</code></h4>
 <ul>
 <li>Open the Keyboard Shortcuts JSON file from the Command Palette</li>
@@ -1967,6 +1955,16 @@ nmap cqc :call VSCodeNotify(&#39;calva.evalCurrentFormInREPLWindow&#39;)&lt;CR&g
 <span class="p">]</span><span class="w"></span>
 </code></pre></div>
 <p>(Change <code>before</code> to whatever keybinding you are comfortable with!)</p>
+<h3 id="vim-fireplace-ish-keybindings">Vim Fireplace-ish keybindings</h3>
+<p>You can add these keybindings to your <code>init.vim</code> if you are using the VSCode Neovim extension. It is inspired by and tries to emulate the keybindings found in <a href="https://github.com/tpope/vim-fireplace">vim-fireplace</a> which is the most popular vim plugin for Clojure.</p>
+<div class="highlight"><pre><span></span><code>nmap cqp :call VSCodeNotify(&#39;calva.jackIn&#39;)&lt;CR&gt;
+nmap cqq :call VSCodeNotify(&#39;calva.disconnect&#39;)&lt;CR&gt;
+nmap cpr :call VSCodeNotify(&#39;calva.loadFile&#39;)&lt;CR&gt;
+nmap cpR :call VSCodeNotify(&#39;calva.loadNamespace&#39;)&lt;CR&gt;
+nmap cpp :call VSCodeNotify(&#39;calva.evaluateSelection&#39;)&lt;CR&gt;
+nmap cqc :call VSCodeNotify(&#39;calva.evalCurrentFormInREPLWindow&#39;)&lt;CR&gt;
+</code></pre></div>
+<p>Unfortunately these key combinations will not work in the normal VIM extension as <code>c</code> is an <a href="https://github.com/VSCodeVim/Vim/issues/4464">operator key</a> and cannot be remapped. <strong>This is a call for someone to share their VIM re-mappings</strong>.</p>
 
   
   
