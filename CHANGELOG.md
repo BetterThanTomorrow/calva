@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.317] - 2022-11-06
+
+- [Make Calva more VIM friendly](https://github.com/BetterThanTomorrow/calva/issues/1947)
+- [Remove `calva.fmt.formatAsYouType` setting](https://github.com/BetterThanTomorrow/calva/issues/1827)
+
 ## [2.0.316] - 2022-11-05
 
 - Bundle deps.clj.jar v1.11.1.1189

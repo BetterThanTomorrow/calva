@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.316",
+  "version": "2.0.317",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -826,11 +826,6 @@
           "calva.fmt.configPath": {
             "type": "string",
             "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Absolute or relative to the project root directory. To provide the config via [clojure-lsp](https://clojure-lsp.io), set this to `CLOJURE-LSP` (case sensitive)."
-          },
-          "calva.fmt.formatAsYouType": {
-            "type": "boolean",
-            "default": true,
-            "description": "Auto-adjust indentation and format as you enter new lines."
           },
           "calva.fmt.newIndentEngine": {
             "type": "boolean",
@@ -1886,7 +1881,7 @@
       {
         "command": "calva.clearInlineResults",
         "key": "escape",
-        "when": "calva:keybindingsEnabled && editorTextFocus && !editorHasMultipleSelections && !editorHasSelection && !editorReadOnly && !hasOtherSuggestions && !parameterHintsVisible && !selectionAnchorSet && !suggestWidgetVisible && !inlineSuggestionVisible && editorLangId == clojure"
+        "when": "calva:keybindingsEnabled && calva:hasInlineResults && editorTextFocus && !editorHasMultipleSelections && !editorHasSelection && !editorReadOnly && !hasOtherSuggestions && !parameterHintsVisible && !selectionAnchorSet && !suggestWidgetVisible && !inlineSuggestionVisible && editorLangId == clojure"
       },
       {
         "command": "calva.evaluateSelection",

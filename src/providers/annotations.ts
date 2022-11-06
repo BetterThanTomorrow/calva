@@ -109,6 +109,7 @@ function clearAllEvaluationDecorations() {
   vscode.window.visibleTextEditors.forEach((editor) => {
     clearEvaluationDecorations(editor);
   });
+  void vscode.commands.executeCommand('setContext', 'calva:hasInlineResults', false);
 }
 
 function decorateResults(
@@ -128,6 +129,7 @@ function decorateResults(
   decoration['range'] = new vscode.Selection(codeSelection.end, codeSelection.end);
   decorationRanges.push(decoration);
   setResultDecorations(editor, decorationRanges);
+  void vscode.commands.executeCommand('setContext', 'calva:hasInlineResults', true);
 }
 
 function decorateSelection(
