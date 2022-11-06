@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.317] - 2022-11-06
+
 - [Make Calva more VIM friendly](https://github.com/BetterThanTomorrow/calva/issues/1947)
 - [Remove `calva.fmt.formatAsYouType` setting](https://github.com/BetterThanTomorrow/calva/issues/1827)
 
