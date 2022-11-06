@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make Calva more VIM friendly](https://github.com/BetterThanTomorrow/calva/issues/1947)
+
 ## [2.0.316] - 2022-11-05
 
 - Bundle deps.clj.jar v1.11.1.1189
