@@ -93,7 +93,7 @@ Issuing **Run Custom REPL Command** will then render this VS Code menu:
 
 ![](images/custom-command-menu.png)
 
-The default keyboard shortcut for the command is `ctrl+alt+space space`.
+The default keyboard shortcut for the command is `ctrl+alt+space space`. (Beware: on MacOS it may conflict with the default shortuct for Input Sources - Select next source in Input menu.)
 
 ## Binding Keyboard Shortcuts
 
