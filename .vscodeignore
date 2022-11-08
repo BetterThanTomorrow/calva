@@ -16,3 +16,4 @@
 !clojure-lsp.jar
 !deps.clj.jar
 !bundled/**
+!snippets.jsonc
