@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.318] - 2022-11-08
+
 - Fix: [Calva doesn't show action buttons in error message boxes](https://github.com/BetterThanTomorrow/calva/issues/1949)
 - Fix: [The snippets file is not included in the Calva extension VSIX](https://github.com/BetterThanTomorrow/calva/issues/1953)
 
