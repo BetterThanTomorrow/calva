@@ -42,5 +42,5 @@
     "titleBar.inactiveBackground": "#90B4FEd5",
     "titleBar.inactiveForeground": "#13172299"
   },
-  "calva.fmt.configPath": "projects/pirate-lang/.cljfmt.edn"
+  "calva.fmt.configPath": "cljfmt.edn"
 }
