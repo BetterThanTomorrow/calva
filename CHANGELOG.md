@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [The indenter fails matching cljfmt rules on qualified symbols](https://github.com/BetterThanTomorrow/calva/issues/1956)
+
 ## [2.0.318] - 2022-11-08
 
 - Fix: [Calva doesn't show action buttons in error message boxes](https://github.com/BetterThanTomorrow/calva/issues/1949)
