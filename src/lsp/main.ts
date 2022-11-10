@@ -563,7 +563,6 @@ function quickPick(message: string, actions: { title: string }[]): Promise<{ tit
 function sayClientVersionInfo(serverVersion: string, serverInfo: any) {
   const cljKondoVersion = serverInfo['clj-kondo-version'];
   const calvaSaysChannel = state.outputChannel();
-  calvaSaysChannel.appendLine('');
   calvaSaysChannel.appendLine(`clojure-lsp version used: ${serverVersion}`);
   calvaSaysChannel.appendLine(`clj-kondo version used: ${cljKondoVersion}`);
 }
