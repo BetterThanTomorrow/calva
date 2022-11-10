@@ -66,6 +66,10 @@ All this said, I still recommend you challenge the conclusion that you can't use
 !!! Note
     There is a Calva command for copying the Jack-in command line to the clipboard.
 
+### Starting the REPL from application code?
+
+If your project is setup so that the REPL server is started by the application code, you will need to get the cider-nrepl middleware in place. See the cider-nrepl docs about [embedding nREPL in your application](https://docs.cider.mx/cider-nrepl/usage.html#via-embedding-nrepl-in-your-application).
+
 ## Monorepos / multiple Clojure projects in one workspace
 
 If the workspace is a monorepo, Polylith repo or just a repository with more than one Clojure project, Calva will start the connect sequence with prompting for which project to start/connect to.
