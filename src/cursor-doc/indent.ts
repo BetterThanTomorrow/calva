@@ -91,7 +91,7 @@ export function collectIndents(
 
       const pattern =
         isList &&
-        _.find(_.keys(rules), (pattern) => pattern === token || testCljRe(pattern, token));
+        _.find(_.keys(rules), (p) => testCljRe(`#"^(.*/)?${p}$"`, token) || testCljRe(p, token));
       const indentRule = pattern ? rules[pattern] : [];
       indents.unshift({
         first: token,
@@ -140,7 +140,7 @@ export function collectIndents(
 
 const testCljRe = (re, str) => {
   const matches = re.match(/^#"(.*)"$/);
-  return matches && RegExp(matches[1]).test(str);
+  return matches && RegExp(matches[1]).test(str.replace(/^.*\//, ''));
 };
 
 /** Returns the expected newline indent for the given position, in characters. */

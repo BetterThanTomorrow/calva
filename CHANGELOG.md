@@ -4,6 +4,13 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.319] - 2022-11-10
+
+- Fix: [The indenter fails matching cljfmt rules on qualified symbols](https://github.com/BetterThanTomorrow/calva/issues/1956)
+- [Add info about cider-nrepl docs to calva.io/connect](https://github.com/BetterThanTomorrow/calva/issues/1955)
+- [Inform about Calva version on startup](https://github.com/BetterThanTomorrow/calva/issues/1954)
+- Fix: [Calva docs site theme color not used](https://github.com/BetterThanTomorrow/calva/issues/1960)
+
 ## [2.0.318] - 2022-11-08
 
 - Fix: [Calva doesn't show action buttons in error message boxes](https://github.com/BetterThanTomorrow/calva/issues/1949)

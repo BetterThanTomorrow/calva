@@ -5,7 +5,8 @@
             [calva.js-utils :refer [jsify cljify]]
             [calva.fmt.util :as util]
             [calva.parse :refer [parse-clj-edn]]
-            [clojure.string]))
+            [clojure.string]
+            [clojure.core :as c]))
 
 (defn- merge-default-indents
   "Merges onto default-indents.
