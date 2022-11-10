@@ -6,6 +6,7 @@ Changes to Calva.
 
 - Fix: [The indenter fails matching cljfmt rules on qualified symbols](https://github.com/BetterThanTomorrow/calva/issues/1956)
 - [Add info about cider-nrepl docs to calva.io/connect](https://github.com/BetterThanTomorrow/calva/issues/1955)
+- [Inform about Calva version on startup](https://github.com/BetterThanTomorrow/calva/issues/1954)
 
 ## [2.0.318] - 2022-11-08
 

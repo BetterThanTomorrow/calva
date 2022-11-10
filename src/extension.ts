@@ -423,7 +423,6 @@ async function activate(context: vscode.ExtensionContext) {
   greetings.activationGreetings(chan);
 
   if (vimExtension) {
-    chan.appendLine(`VIM Extension detected. Please read: ${VIM_DOC_URL} now and then.\n`);
     if (!context.globalState.get(VIEWED_VIM_DOCS)) {
       void vscode.window
         .showInformationMessage(

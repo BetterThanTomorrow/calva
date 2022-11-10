@@ -35,11 +35,11 @@ export function activationGreetings(chan: vscode.OutputChannel) {
     chan.appendLine(`  clojure-lsp version configured: ${clojureLspVersion}`);
   }
   chan.appendLine('');
-  chan.appendLine('If you are new to Calva, please consider starting with the command:');
-  chan.appendLine('  **Calva: Fire up the Getting Started REPL**');
-  chan.appendLine('  https://calva.io/getting-started/');
+  chan.appendLine('If you are new to Calva, please see: https://calva.io/getting-started/');
+  chan.appendLine('  And please consider the command: **Calva: Fire up the Getting Started REPL**');
   chan.appendLine('');
   chan.appendLine(
-    '(See `showCalvaSaysOnStart` in Settings to control the auto-showing of this message panel.)'
+    'Calva version used: v' +
+      vscode.extensions.getExtension('betterthantomorrow.calva').packageJSON.version
   );
 }
