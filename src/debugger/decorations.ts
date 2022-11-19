@@ -38,43 +38,45 @@ async function update(
 ): Promise<void> {
   if (/(\.clj)$/.test(editor.document.fileName)) {
     if (cljSession && util.getConnectedState() && lspClient) {
-      const instrumentedDefLists = (await cljSession.listDebugInstrumentedDefs()).list;
-
-      instrumentedSymbolReferenceLocations = await instrumentedDefLists.reduce(
-        async (
-          iSymbolRefLocations: Promise<InstrumentedSymbolReferenceLocations>,
-          [namespace, ...instrumentedDefs]: string[]
-        ) => {
-          const docSymbols = (await lsp.getDocumentSymbols(lspClient, editor.document.uri))[0]
-            .children;
-          const instrumentedDocSymbols = docSymbols.filter((s) =>
-            instrumentedDefs.includes(s.name)
-          );
-          const instrumentedDocSymbolsReferenceRanges = await Promise.all(
-            instrumentedDocSymbols.map((s) => {
-              const position = {
-                line: s.selectionRange.start.line,
-                character: s.selectionRange.start.character,
-              };
-              return lsp.getReferences(lspClient, editor.document.uri, position);
-            })
-          );
-          const currentNsSymbolsReferenceLocations = instrumentedDocSymbols.reduce(
-            (currentLocations, symbol, i) => {
-              return {
-                ...currentLocations,
-                [symbol.name]: instrumentedDocSymbolsReferenceRanges[i],
-              };
-            },
-            {}
-          );
-          return {
-            ...(await iSymbolRefLocations),
-            [namespace]: currentNsSymbolsReferenceLocations,
-          };
-        },
-        {}
-      );
+      const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
+      if (instrumentedDefs) {
+        const instrumentedDefLists = await instrumentedDefs.list;
+        instrumentedSymbolReferenceLocations = await instrumentedDefLists.reduce(
+          async (
+            iSymbolRefLocations: Promise<InstrumentedSymbolReferenceLocations>,
+            [namespace, ...instrumentedDefs]: string[]
+          ) => {
+            const docSymbols = (await lsp.getDocumentSymbols(lspClient, editor.document.uri))[0]
+              .children;
+            const instrumentedDocSymbols = docSymbols.filter((s) =>
+              instrumentedDefs.includes(s.name)
+            );
+            const instrumentedDocSymbolsReferenceRanges = await Promise.all(
+              instrumentedDocSymbols.map((s) => {
+                const position = {
+                  line: s.selectionRange.start.line,
+                  character: s.selectionRange.start.character,
+                };
+                return lsp.getReferences(lspClient, editor.document.uri, position);
+              })
+            );
+            const currentNsSymbolsReferenceLocations = instrumentedDocSymbols.reduce(
+              (currentLocations, symbol, i) => {
+                return {
+                  ...currentLocations,
+                  [symbol.name]: instrumentedDocSymbolsReferenceRanges[i],
+                };
+              },
+              {}
+            );
+            return {
+              ...(await iSymbolRefLocations),
+              [namespace]: currentNsSymbolsReferenceLocations,
+            };
+          },
+          {}
+        );
+      }
     } else {
       instrumentedSymbolReferenceLocations = {};
     }
