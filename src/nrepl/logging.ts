@@ -39,15 +39,18 @@ function loggingEnabled(): boolean {
 }
 
 function log(message: any, direction: Direction): void {
-  const channel = getMessageChannel();
-  if (channel) {
-    const formattedMessage = `${direction}\n${formatNreplMessage(message)}\n`;
-    channel.appendLine(formattedMessage);
+  if (loggingEnabled()) {
+    const channel = getMessageChannel();
+    if (channel) {
+      const formattedMessage = `${direction}\n${formatNreplMessage(message)}\n`;
+      channel.appendLine(formattedMessage);
+    }
   }
 }
 
 const enum Direction {
   ClientToServer = '-> sent',
+  ClientToServerNotSupported = '->| not sent! (not supported by the server)',
   ServerToClient = '<- received',
 }
 
