@@ -243,7 +243,7 @@ function rawDocs2DocsEntry(docsResult: any, symbol: string, ns: string): DocsEnt
       urlPath: docs.href.replace(/^\/?/, ''),
       seeAlsos:
         docsResult.fromServer === 'clojure-lsp'
-          ? docs['see-alsos'].map((also) => `${also.sym.ns}/${also.sym.name}`)
+          ? docs['seeAlsos'].map((also) => `${also.sym.ns}/${also.sym.name}`)
           : docs['see-alsos'],
       tag: docs.tag,
       type: docs.type,
