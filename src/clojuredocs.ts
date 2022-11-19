@@ -189,8 +189,12 @@ async function clojureDocsCiderNReplLookup(
   ns: string
 ): Promise<DocsEntry | undefined> {
   const ciderNReplDocs = await session.clojureDocsLookup(ns, symbol);
-  ciderNReplDocs.fromServer = 'cider-nrepl';
-  return rawDocs2DocsEntry(ciderNReplDocs, symbol, ns);
+  if (ciderNReplDocs) {
+    ciderNReplDocs.fromServer = 'cider-nrepl';
+    return rawDocs2DocsEntry(ciderNReplDocs, symbol, ns);
+  } else {
+    return undefined;
+  }
 }
 
 async function clojureDocsLspLookup(
@@ -199,20 +203,28 @@ async function clojureDocsLspLookup(
   ns: string
 ): Promise<DocsEntry | undefined> {
   const resolved = await session.info(ns, symbol);
-  const symNs = resolved.ns.replace(/^cljs\./, 'clojure.');
-  try {
-    const docs = await lsp.getClojuredocs(resolved.name, symNs);
-    return rawDocs2DocsEntry(
-      { clojuredocs: docs, fromServer: 'clojure-lsp' },
-      resolved.name,
-      resolved.ns
-    );
-  } catch {
-    return rawDocs2DocsEntry(
-      { clojuredocs: null, fromServer: 'clojure-lsp' },
-      resolved.name,
-      resolved.ns
-    );
+  if (resolved && resolved.ns) {
+    const symNs =
+      typeof resolved.ns === 'string' ? resolved.ns : ns.length > 0 ? ns[1] : 'clojure.core';
+    const normalizedSymNs = symNs.replace(/^cljs\./, 'clojure.');
+    try {
+      const docs = await lsp.getClojuredocs(resolved.name, normalizedSymNs);
+      if (docs) {
+        return rawDocs2DocsEntry(
+          { clojuredocs: docs, fromServer: 'clojure-lsp' },
+          resolved.name,
+          resolved.ns
+        );
+      } else {
+        return undefined;
+      }
+    } catch {
+      return rawDocs2DocsEntry(
+        { clojuredocs: null, fromServer: 'clojure-lsp' },
+        resolved.name,
+        resolved.ns
+      );
+    }
   }
 }
 
