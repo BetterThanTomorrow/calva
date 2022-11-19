@@ -75,7 +75,7 @@ export async function createNamespaceFromDocumentIfNotExists(doc) {
       const client = replSession.getSession(utilities.getFileType(document));
       if (client) {
         const nsList = await client.listNamespaces([]);
-        if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
+        if (nsList && nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
           return;
         }
         await client.eval('(ns ' + ns + ')', client.client.ns).value;
