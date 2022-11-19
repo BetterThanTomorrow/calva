@@ -109,8 +109,6 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     );
     replSession.updateReplSessionType();
 
-    initializeDebugger(cljSession);
-
     outputWindow.setSession(cljSession, nClient.ns);
 
     if (connectSequence.afterCLJReplJackInCode) {
@@ -634,9 +632,10 @@ export async function connect(
   } catch (e) {
     console.error(e);
   }
-  if (!['babashka', 'nbb', 'joyride', 'generic'].includes(connectSequence.projectType)) {
-    // Give the describe a chance to run
-    setTimeout(() => {
+  // Give the describe a chance to run
+  setTimeout(() => {
+    initializeDebugger(nClient.session);
+    if (!['babashka', 'nbb', 'joyride', 'generic'].includes(connectSequence.projectType)) {
       if (!nClient.session.supports('info')) {
         void vscode.window
           .showWarningMessage(
@@ -653,8 +652,8 @@ export async function connect(
           });
         console.error(`Basic cider-nrepl dependencies not met (no 'info' op)`);
       }
-    }, 1000);
-  }
+    }
+  }, 1000);
   return true;
 }
 
