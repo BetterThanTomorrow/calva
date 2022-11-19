@@ -3,6 +3,7 @@
             [promesa.core :as p]))
 
 (defn -main []
+  ; Calva needs to have provided its nrepl client on globalThis
   (-> (p/let [session (.-session js/nClient)
               info (.info session "clojure.core", "map")
               doc (.-doc info)]
