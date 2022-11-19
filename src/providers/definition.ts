@@ -18,15 +18,17 @@ async function provideClojureDefinition(document, position: vscode.Position, _to
   const evalPos = annotations.getEvaluationPosition(position);
   const posIsEvalPos = evalPos && position.isEqual(evalPos);
   if (util.getConnectedState() && !posIsEvalPos) {
-    const text = util.getWordAtPosition(document, position);
     const client = replSession.getSession(util.getFileType(document));
-    const info = await client.info(namespace.getNamespace(document), text);
-    if (info.file && info.file.length > 0) {
-      const pos = new vscode.Position(info.line - 1, info.column || 0);
-      try {
-        return new vscode.Location(vscode.Uri.parse(info.file, true), pos);
-      } catch (e) {
-        /* ignore */
+    if (client?.supports('info')) {
+      const text = util.getWordAtPosition(document, position);
+      const info = await client.info(namespace.getNamespace(document), text);
+      if (info.file && info.file.length > 0) {
+        const pos = new vscode.Position(info.line - 1, info.column || 0);
+        try {
+          return new vscode.Location(vscode.Uri.parse(info.file, true), pos);
+        } catch (e) {
+          /* ignore */
+        }
       }
     }
   }
