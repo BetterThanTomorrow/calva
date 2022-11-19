@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump bundled deps.clj to v1.11.1.1200
+
 ## [2.0.319] - 2022-11-10
 
 - Fix: [The indenter fails matching cljfmt rules on qualified symbols](https://github.com/BetterThanTomorrow/calva/issues/1956)
