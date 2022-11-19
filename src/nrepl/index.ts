@@ -13,7 +13,6 @@ import type { ReplSessionType } from '../config';
 import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
 import { log, Direction, loggingEnabled } from './logging';
-import { resolve } from 'path';
 
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
@@ -51,7 +50,7 @@ export class NReplClient {
   private decoder = new BDecoderStream();
   session: NReplSession;
 
-  /** Result of running describe at boot, unused */
+  /** Result of running describe at boot */
   describe: any;
 
   /** Tracks all sessions */
@@ -222,7 +221,6 @@ export class NReplSession {
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
-        resolve(undefined);
       }
     } catch (error) {
       console.error(error);
@@ -457,7 +455,6 @@ export class NReplSession {
       this.client.write(msg);
     } else {
       log(msg, Direction.ClientToServerNotSupported);
-      resolve(undefined);
     }
   }
 
@@ -819,7 +816,6 @@ export class NReplSession {
       this.client.write(msg);
     } else {
       log(msg, Direction.ClientToServerNotSupported);
-      resolve(undefined);
     }
   }
 
