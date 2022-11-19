@@ -635,19 +635,25 @@ export async function connect(
     console.error(e);
   }
   if (!['babashka', 'nbb', 'joyride', 'generic'].includes(connectSequence.projectType)) {
-    await nClient.session.info('clojure.core', 'map').catch((e) => {
-      void vscode.window
-        .showWarningMessage(
-          "Calva failed to perform a basic nREPL 'info' call. You need to start the REPL with cider-nrepl dependencies met",
-          'Show Calva Connect Docs'
-        )
-        .then((choice) => {
-          if (choice === 'Show Calva Connect Docs') {
-            void vscode.commands.executeCommand('simpleBrowser.show', 'https://calva.io/connect/');
-          }
-        });
-      console.error(`cider-nrepl dependencies not met: `, e);
-    });
+    // Give the describe a chance to run
+    setTimeout(() => {
+      if (!nClient.session.supports('info')) {
+        void vscode.window
+          .showWarningMessage(
+            'The nREPL server does not support cider-nrepl `info` op, which indicates troubles ahead. You need to start the REPL with cider-nrepl dependencies met',
+            'Show Calva Connect Docs'
+          )
+          .then((choice) => {
+            if (choice === 'Show Calva Connect Docs') {
+              void vscode.commands.executeCommand(
+                'simpleBrowser.show',
+                'https://calva.io/connect/'
+              );
+            }
+          });
+        console.error(`Basic cider-nrepl dependencies not met (no 'info' op)`);
+      }
+    }, 1000);
   }
   return true;
 }
