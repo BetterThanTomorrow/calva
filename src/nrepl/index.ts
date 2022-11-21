@@ -150,12 +150,14 @@ export class NReplClient {
               verbose: true,
               session: data['new-session'],
             });
-            resolve(client);
           } else if (data['session']) {
             const session = client.sessions[data['session']];
             if (session) {
               session._response(data);
             }
+          }
+          if (client.session && client.describe) {
+            resolve(client);
           }
         });
         client.encoder.write({ op: 'eval', code: '*ns*', id: nsId });
