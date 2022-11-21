@@ -108,7 +108,7 @@ function getHoverForDocs(
     );
   });
   hover.appendMarkdown('### See also\n\n');
-  hover.appendCodeblock(seeAlsos.join('\n'), 'clojure');
+  hover.appendMarkdown(seeAlsos.map((also) => `* [${also}](${docs.baseUrl}/${also})`).join('\n'));
   return hover;
 }
 
