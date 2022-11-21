@@ -441,7 +441,7 @@ export class NReplSession {
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
-        resolve(undefined);
+        reject('interrupt not supported by the nREPL server');
       }
     });
   }
@@ -801,7 +801,7 @@ export class NReplSession {
       this._runningIds = [];
       ids.forEach((id, index) => {
         this.interrupt(id).catch((e) => {
-          // do nothing
+          throw new Error("Couldn't interrupt " + id + ': ' + e);
         });
       });
       return ids.length;
@@ -1058,8 +1058,8 @@ export class NReplEvaluation {
       this._interrupted = true;
       this._exception = 'Evaluation was interrupted';
       this._stacktrace = {};
-      this.session.interrupt(this.id).catch(() => {
-        // do nothing
+      this.session.interrupt(this.id).catch((e) => {
+        throw new Error("Couldn't interrupt evaluation: " + e);
       });
       this.doReject(this.exception);
       // make sure the message handler is removed.
