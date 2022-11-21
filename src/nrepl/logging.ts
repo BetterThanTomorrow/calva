@@ -1,31 +1,23 @@
 import * as vscode from 'vscode';
-import { getStateValue, setStateValue, removeStateValue } from '../../out/cljs-lib/cljs-lib';
 import * as nodeUtil from 'util';
 
-const NREPL_MESSAGES_CHANNEL_KEY = 'nReplMessagesChannel';
+let NREPL_LOGGING_ENABLED = false;
 const NREPL_MESSAGES_CHANNEL_NAME = 'nREPL Messages';
+let NREPL_MESSAGE_CHANNEL = null;
 
 function getMessageChannel(): vscode.OutputChannel {
-  return getStateValue(NREPL_MESSAGES_CHANNEL_KEY);
+  return NREPL_MESSAGE_CHANNEL;
 }
 
 function createMessageChannel(): void {
-  const channel = vscode.window.createOutputChannel(NREPL_MESSAGES_CHANNEL_NAME);
-  setStateValue(NREPL_MESSAGES_CHANNEL_KEY, channel);
-  channel.show();
+  NREPL_MESSAGE_CHANNEL = vscode.window.createOutputChannel(NREPL_MESSAGES_CHANNEL_NAME);
+  NREPL_MESSAGE_CHANNEL.show(true);
 }
 
-function deleteMessageChannel(channel: vscode.OutputChannel): void {
-  channel.hide();
-  channel.dispose();
-  removeStateValue(NREPL_MESSAGES_CHANNEL_KEY);
-}
-
-function toggleEnabled(): void {
+export function toggleEnabled(): void {
+  NREPL_LOGGING_ENABLED = !NREPL_LOGGING_ENABLED;
   const channel = getMessageChannel();
-  if (channel) {
-    deleteMessageChannel(channel);
-  } else {
+  if (NREPL_LOGGING_ENABLED && !channel) {
     createMessageChannel();
   }
 }
@@ -34,12 +26,8 @@ function formatNreplMessage(message: any): string {
   return nodeUtil.inspect(message, false, 2, false);
 }
 
-function loggingEnabled(): boolean {
-  return getMessageChannel() ? true : false;
-}
-
-function log(message: any, direction: Direction): void {
-  if (loggingEnabled()) {
+export function log(message: any, direction: Direction): void {
+  if (NREPL_LOGGING_ENABLED) {
     const channel = getMessageChannel();
     if (channel) {
       const formattedMessage = `${direction}\n${formatNreplMessage(message)}\n`;
@@ -48,10 +36,8 @@ function log(message: any, direction: Direction): void {
   }
 }
 
-const enum Direction {
+export const enum Direction {
   ClientToServer = '-> sent',
   ClientToServerNotSupported = '->| not sent! (not supported by the server)',
   ServerToClient = '<- received',
 }
-
-export { toggleEnabled, log, Direction, loggingEnabled };
