@@ -304,13 +304,13 @@ export class NReplSession {
   listSessions() {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
       const msg = {
         op: 'ls-sessions',
         id: id,
         session: this.sessionId,
       };
       if (this.supports('ls-sessions')) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -323,13 +323,13 @@ export class NReplSession {
     // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#stacktrace
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
       const msg = {
         op: 'stacktrace',
         id,
         session: this.sessionId,
       };
       if (this.supports('stacktrace')) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -401,17 +401,17 @@ export class NReplSession {
       opts.stdout,
       opts.stdin,
       new Promise((resolve, reject) => {
-        this.messageHandlers[opMsg.id] = (msg) => {
-          evaluation.setHandlers(resolve, reject);
-          if (opts.line && opts.column && opts.file) {
-            debugDecorations.triggerUpdateAndRenderDecorations();
-          }
-          if (evaluation.onMessage(msg, pprintOptions)) {
-            return true;
-          }
-        };
-        this.addRunningID(opMsg.id);
         if (this.supports(opMsg.op)) {
+          this.messageHandlers[opMsg.id] = (msg) => {
+            evaluation.setHandlers(resolve, reject);
+            if (opts.line && opts.column && opts.file) {
+              debugDecorations.triggerUpdateAndRenderDecorations();
+            }
+            if (evaluation.onMessage(msg, pprintOptions)) {
+              return true;
+            }
+          };
+          this.addRunningID(opMsg.id);
           this.client.write(opMsg);
         } else {
           log(opMsg, Direction.ClientToServerNotSupported);
@@ -430,7 +430,6 @@ export class NReplSession {
     }
     const id = this.client.nextId;
     return new Promise<void>((resolve, reject) => {
-      this.messageHandlers[id] = resultHandler(resolve, reject);
       const msg = {
         op: 'interrupt',
         session: this.sessionId,
@@ -438,6 +437,7 @@ export class NReplSession {
         id,
       };
       if (this.supports('interrupt')) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -483,14 +483,6 @@ export class NReplSession {
       opts.stdout,
       null,
       new Promise((resolve, reject) => {
-        this.messageHandlers[id] = (msg) => {
-          evaluation.setHandlers(resolve, reject);
-          debugDecorations.triggerUpdateAndRenderDecorations();
-          if (evaluation.onMessage(msg, pprintOptions)) {
-            return true;
-          }
-        };
-        this.addRunningID(id);
         const msg = {
           ...extraOpts,
           ...opts,
@@ -502,6 +494,14 @@ export class NReplSession {
           'file-path': opts.filePath,
         };
         if (this.supports('load-file')) {
+          this.messageHandlers[id] = (msg) => {
+            evaluation.setHandlers(resolve, reject);
+            debugDecorations.triggerUpdateAndRenderDecorations();
+            if (evaluation.onMessage(msg, pprintOptions)) {
+              return true;
+            }
+          };
+          this.addRunningID(id);
           this.client.write(msg);
         } else {
           log(msg, Direction.ClientToServerNotSupported);
@@ -517,7 +517,6 @@ export class NReplSession {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId,
         extraOpts = getConfig().enableJSCompletions ? { 'enhanced-cljs-completion?': 't' } : {};
-      this.messageHandlers[id] = resultHandler(resolve, reject);
       const msg = {
         op: 'complete',
         ns,
@@ -528,6 +527,7 @@ export class NReplSession {
         ...extraOpts,
       };
       if (this.supports('complete')) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -539,7 +539,6 @@ export class NReplSession {
   info(ns: string, symbol: string) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
       const msg = {
         op: 'info',
         ns,
@@ -548,6 +547,7 @@ export class NReplSession {
         session: this.sessionId,
       };
       if (this.supports('info')) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -559,13 +559,13 @@ export class NReplSession {
   classpath() {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
       const msg = {
         op: 'classpath',
         id,
         session: this.sessionId,
       };
       if (this.supports('classpath')) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -577,7 +577,6 @@ export class NReplSession {
   testVarQuery(query: cider.VarQuery): Promise<cider.TestResults> {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
       const msg = {
         op: 'test-var-query',
         id,
@@ -585,6 +584,7 @@ export class NReplSession {
         ...query,
       };
       if (this.supports('test-var-query')) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -606,10 +606,6 @@ export class NReplSession {
   testStacktrace(ns: string, test: string, index: number) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = (msg) => {
-        resolve(msg);
-        return true;
-      };
       const msg = {
         op: 'test-stacktrace',
         id,
@@ -619,6 +615,10 @@ export class NReplSession {
         index: index,
       };
       if (this.supports('test-stacktrace')) {
+        this.messageHandlers[id] = (msg) => {
+          resolve(msg);
+          return true;
+        };
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -644,9 +644,9 @@ export class NReplSession {
   retest() {
     return new Promise<cider.TestResults>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
       const msg = { op: 'retest', id, session: this.sessionId };
       if (this.supports('retest')) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -658,13 +658,13 @@ export class NReplSession {
   loadAll() {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
       const msg = {
         op: 'ns-load-all',
         id,
         session: this.sessionId,
       };
       if (this.supports('ns-load-all')) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -676,7 +676,6 @@ export class NReplSession {
   listNamespaces(regexps: string[]) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
       const msg = {
         op: 'ns-list',
         id,
@@ -684,6 +683,7 @@ export class NReplSession {
         'filter-regexps': regexps,
       };
       if (this.supports('list-ns')) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -695,7 +695,6 @@ export class NReplSession {
   nsPath(ns: string) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
       const msg = {
         op: 'ns-path',
         id,
@@ -703,6 +702,7 @@ export class NReplSession {
         ns,
       };
       if (this.supports('ns-path')) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -714,41 +714,6 @@ export class NReplSession {
   private _refresh(cmd, opts: { dirs?: string[]; before?: string[]; after?: string[] } = {}) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      let reloaded = [];
-      let error,
-        errorNs,
-        status,
-        err = '';
-      this.messageHandlers[id] = (msg) => {
-        if (msg.reloading) {
-          reloaded = msg.reloading;
-        }
-        if (hasStatus(msg, 'ok')) {
-          status = 'ok';
-        }
-        if (hasStatus(msg, 'error')) {
-          status = 'error';
-          error = msg.error;
-          errorNs = msg['error-ns'];
-        }
-        if (msg.err) {
-          err += msg.err;
-        }
-        if (hasStatus(msg, 'done')) {
-          const res = { reloaded, status } as any;
-          if (error) {
-            res.error = error;
-          }
-          if (errorNs) {
-            res.errorNs = errorNs;
-          }
-          if (err) {
-            res.err = err;
-          }
-          resolve(res);
-          return true;
-        }
-      };
       const msg = {
         op: cmd,
         id,
@@ -756,6 +721,41 @@ export class NReplSession {
         ...opts,
       };
       if (this.supports(cmd)) {
+        let reloaded = [];
+        let error: any;
+        let errorNs: any;
+        let status: string;
+        let err = '';
+        this.messageHandlers[id] = (msg) => {
+          if (msg.reloading) {
+            reloaded = msg.reloading;
+          }
+          if (hasStatus(msg, 'ok')) {
+            status = 'ok';
+          }
+          if (hasStatus(msg, 'error')) {
+            status = 'error';
+            error = msg.error;
+            errorNs = msg['error-ns'];
+          }
+          if (msg.err) {
+            err += msg.err;
+          }
+          if (hasStatus(msg, 'done')) {
+            const res = { reloaded, status } as any;
+            if (error) {
+              res.error = error;
+            }
+            if (errorNs) {
+              res.errorNs = errorNs;
+            }
+            if (err) {
+              res.err = err;
+            }
+            resolve(res);
+            return true;
+          }
+        };
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -775,7 +775,6 @@ export class NReplSession {
   formatCode(code: string, options?: string) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
       const msg = {
         op: 'format-code',
         id,
@@ -784,6 +783,7 @@ export class NReplSession {
         options,
       };
       if (this.supports('format-code')) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -822,8 +822,6 @@ export class NReplSession {
 
   sendDebugInput(input: any, debugResponseId: string, debugResponseKey: string): Promise<any> {
     return new Promise<any>((resolve, reject) => {
-      this.messageHandlers[debugResponseId] = resultHandler(resolve, reject);
-
       const data: any = {
         id: debugResponseId,
         op: 'debug-input',
@@ -832,6 +830,7 @@ export class NReplSession {
         session: this.sessionId,
       };
       if (this.supports('debug-input')) {
+        this.messageHandlers[debugResponseId] = resultHandler(resolve, reject);
         this.client.write(data);
       } else {
         log(data, Direction.ClientToServerNotSupported);
@@ -843,13 +842,13 @@ export class NReplSession {
   listDebugInstrumentedDefs(): Promise<any> {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
       const msg = {
         op: 'debug-instrumented-defs',
         id,
         session: this.sessionId,
       };
       if (this.supports('debug-instrumented-defs')) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -861,16 +860,16 @@ export class NReplSession {
   clojureDocsRefreshCache() {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = (msg) => {
-        resolve(msg);
-        return true;
-      };
       const msg = {
         op: 'clojuredocs-refresh-cache',
         id,
         session: this.sessionId,
       };
       if (this.supports('clojuredocs-refresh-cache')) {
+        this.messageHandlers[id] = (msg) => {
+          resolve(msg);
+          return true;
+        };
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -882,10 +881,6 @@ export class NReplSession {
   clojureDocsLookup(ns: string, symbol: string) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = (msg) => {
-        resolve(msg);
-        return true;
-      };
       const msg = {
         op: 'clojuredocs-lookup',
         id,
@@ -894,6 +889,10 @@ export class NReplSession {
         sym: symbol,
       };
       if (this.supports('clojuredocs-lookup')) {
+        this.messageHandlers[id] = (msg) => {
+          resolve(msg);
+          return true;
+        };
         this.client.write(msg);
       } else {
         resolve(undefined);
