@@ -639,7 +639,7 @@ export async function connect(
       if (!nClient.session.supports('info')) {
         void vscode.window
           .showWarningMessage(
-            'The nREPL server does not support cider-nrepl `info` op, which indicates troubles ahead. You need to start the REPL with cider-nrepl dependencies met',
+            'The nREPL server does not support cider-nrepl `info` op, which indicates troubles ahead. You need to start the REPL with cider-nrepl dependencies met.',
             'Show Calva Connect Docs'
           )
           .then((choice) => {
