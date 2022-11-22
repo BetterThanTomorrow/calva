@@ -93,7 +93,7 @@ function getHoverForDocs(
   hover.isTrusted = true;
   hover.appendMarkdown('## ClojureDocs Examples\n\n');
   hover.appendMarkdown(`${linkMd} via ${docs.fromServer}\n\n`);
-  const seeAlsos = docs.seeAlsos.map((also) => `${also.replace(/^clojure.core\//, '')}`);
+  const seeAlsos = docs.seeAlsos;
   docs.examples.forEach((example, i) => {
     const symbol = `${docs.ns}/${docs.name}`.replace(/^clojure.core\//, '');
     hover.appendMarkdown(
@@ -108,7 +108,11 @@ function getHoverForDocs(
     );
   });
   hover.appendMarkdown('### See also\n\n');
-  hover.appendMarkdown(seeAlsos.map((also) => `* [${also}](${docs.baseUrl}/${also})`).join('\n'));
+  hover.appendMarkdown(
+    seeAlsos
+      .map((also) => `* [${also.replace(/^clojure.core\//, '')}](${docs.baseUrl}/${also})`)
+      .join('\n')
+  );
   return hover;
 }
 
