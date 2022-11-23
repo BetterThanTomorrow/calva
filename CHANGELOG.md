@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.320] - 2022-11-23
+
 - [Stop the nrepl client from spamming the server with ops it doesn't support](https://github.com/BetterThanTomorrow/calva/issues/1969)
 - Bump bundled deps.clj to v1.11.1.1200
 
