@@ -9,7 +9,7 @@ function getSession(fileType?: string): NReplSession {
   if (isUndefined(fileType)) {
     fileType = getFileType(doc);
   }
-  if (fileType.match(/^clj[sc]?/)) {
+  if (fileType.match(/^clj[sc]?/) && cljsLib.getStateValue(fileType)) {
     return cljsLib.getStateValue(fileType);
   } else {
     if (outputWindow.isResultsDoc(doc)) {

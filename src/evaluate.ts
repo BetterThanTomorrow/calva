@@ -25,9 +25,14 @@ function interruptAllEvaluations() {
     if (msgs.length) {
       outputWindow.appendLine(msgs.join('\n'));
     }
-    NReplSession.getInstances().forEach((session, _index) => {
-      session.interruptAll();
-    });
+    try {
+      NReplSession.getInstances().forEach((session, _index) => {
+        session.interruptAll();
+      });
+    } catch (error) {
+      // TODO: Figure out why we never get here.
+      console.error(error);
+    }
     if (nums > 0) {
       void vscode.window.showInformationMessage(`Interrupted ${nums} running evaluation(s).`);
     } else {

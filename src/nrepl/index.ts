@@ -12,7 +12,7 @@ import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
 import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
-import { log, Direction, loggingEnabled } from './logging';
+import { log, Direction } from './logging';
 
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
@@ -50,7 +50,7 @@ export class NReplClient {
   private decoder = new BDecoderStream();
   session: NReplSession;
 
-  /** Result of running describe at boot, unused */
+  /** Result of running describe at boot */
   describe: any;
 
   /** Tracks all sessions */
@@ -104,9 +104,7 @@ export class NReplClient {
    */
   write(data: any) {
     this.encoder.write(data);
-    if (loggingEnabled()) {
-      log(data, Direction.ClientToServer);
-    }
+    log(data, Direction.ClientToServer);
   }
 
   close() {
@@ -131,9 +129,7 @@ export class NReplClient {
         const describeId = client.nextId;
 
         client.decoder.on('data', (data) => {
-          if (loggingEnabled()) {
-            log(data, Direction.ServerToClient);
-          }
+          log(data, Direction.ServerToClient);
 
           debug.onNreplMessage(data);
 
@@ -154,12 +150,14 @@ export class NReplClient {
               verbose: true,
               session: data['new-session'],
             });
-            resolve(client);
           } else if (data['session']) {
             const session = client.sessions[data['session']];
             if (session) {
               session._response(data);
             }
+          }
+          if (client.session && client.describe) {
+            resolve(client);
           }
         });
         client.encoder.write({ op: 'eval', code: '*ns*', id: nsId });
@@ -209,8 +207,24 @@ export class NReplSession {
   messageHandlers: { [id: string]: (msg: any) => boolean } = {};
   replType: ReplSessionType = null;
 
+  /**
+   * Returns a boolean telling if the operation is supported by the server.
+   */
+  public supports(op: string): boolean {
+    return this.client.describe && !!this.client.describe.ops[op];
+  }
+
   close() {
-    this.client.write({ op: 'close', session: this.sessionId });
+    try {
+      const msg = { op: 'close', session: this.sessionId };
+      if (this.supports(msg.op)) {
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+      }
+    } catch (error) {
+      console.error(error);
+    }
     this._runningIds = [];
     delete this.client.sessions[this.sessionId];
     const index = NReplSession.Instances.indexOf(this);
@@ -228,7 +242,13 @@ export class NReplSession {
         resolve(sess);
         return true;
       };
-      this.client.write({ op: 'clone', session: this.sessionId, id });
+      const msg = { op: 'clone', session: this.sessionId, id };
+      if (this.supports(msg.op)) {
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
@@ -284,24 +304,37 @@ export class NReplSession {
   listSessions() {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
-      this.client.write({
+      const msg = {
         op: 'ls-sessions',
         id: id,
         session: this.sessionId,
-      });
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
   stacktrace() {
+    // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#stacktrace
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
-      this.client.write({
+      const msg = {
         op: 'stacktrace',
         id,
         session: this.sessionId,
-      });
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
@@ -368,17 +401,22 @@ export class NReplSession {
       opts.stdout,
       opts.stdin,
       new Promise((resolve, reject) => {
-        this.messageHandlers[opMsg.id] = (msg) => {
-          evaluation.setHandlers(resolve, reject);
-          if (opts.line && opts.column && opts.file) {
-            debugDecorations.triggerUpdateAndRenderDecorations();
-          }
-          if (evaluation.onMessage(msg, pprintOptions)) {
-            return true;
-          }
-        };
-        this.addRunningID(opMsg.id);
-        this.client.write(opMsg);
+        if (this.supports(opMsg.op)) {
+          this.messageHandlers[opMsg.id] = (msg) => {
+            evaluation.setHandlers(resolve, reject);
+            if (opts.line && opts.column && opts.file) {
+              debugDecorations.triggerUpdateAndRenderDecorations();
+            }
+            if (evaluation.onMessage(msg, pprintOptions)) {
+              return true;
+            }
+          };
+          this.addRunningID(opMsg.id);
+          this.client.write(opMsg);
+        } else {
+          log(opMsg, Direction.ClientToServerNotSupported);
+          resolve(undefined);
+        }
       })
     );
 
@@ -392,22 +430,33 @@ export class NReplSession {
     }
     const id = this.client.nextId;
     return new Promise<void>((resolve, reject) => {
-      this.messageHandlers[id] = resultHandler(resolve, reject);
-      this.client.write({
+      const msg = {
         op: 'interrupt',
         session: this.sessionId,
         'interrupt-id': interruptId,
         id,
-      });
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        reject('interrupt not supported by the nREPL server');
+      }
     });
   }
 
   stdin(message: string) {
-    this.client.write({
+    const msg = {
       op: 'stdin',
       stdin: message,
       session: this.sessionId,
-    });
+    };
+    if (this.supports(msg.op)) {
+      this.client.write(msg);
+    } else {
+      log(msg, Direction.ClientToServerNotSupported);
+    }
   }
 
   loadFile(
@@ -434,15 +483,7 @@ export class NReplSession {
       opts.stdout,
       null,
       new Promise((resolve, reject) => {
-        this.messageHandlers[id] = (msg) => {
-          evaluation.setHandlers(resolve, reject);
-          debugDecorations.triggerUpdateAndRenderDecorations();
-          if (evaluation.onMessage(msg, pprintOptions)) {
-            return true;
-          }
-        };
-        this.addRunningID(id);
-        this.client.write({
+        const msg = {
           ...extraOpts,
           ...opts,
           op: 'load-file',
@@ -451,7 +492,21 @@ export class NReplSession {
           id,
           'file-name': opts.fileName,
           'file-path': opts.filePath,
-        });
+        };
+        if (this.supports(msg.op)) {
+          this.messageHandlers[id] = (msg) => {
+            evaluation.setHandlers(resolve, reject);
+            debugDecorations.triggerUpdateAndRenderDecorations();
+            if (evaluation.onMessage(msg, pprintOptions)) {
+              return true;
+            }
+          };
+          this.addRunningID(id);
+          this.client.write(msg);
+        } else {
+          log(msg, Direction.ClientToServerNotSupported);
+          resolve(undefined);
+        }
       })
     );
 
@@ -462,8 +517,7 @@ export class NReplSession {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId,
         extraOpts = getConfig().enableJSCompletions ? { 'enhanced-cljs-completion?': 't' } : {};
-      this.messageHandlers[id] = resultHandler(resolve, reject);
-      this.client.write({
+      const msg = {
         op: 'complete',
         ns,
         symbol,
@@ -471,42 +525,71 @@ export class NReplSession {
         session: this.sessionId,
         context,
         ...extraOpts,
-      });
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
   info(ns: string, symbol: string) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
-      this.client.write({
+      const msg = {
         op: 'info',
         ns,
         symbol,
         id,
         session: this.sessionId,
-      });
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
   classpath() {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
-      this.client.write({ op: 'classpath', id, session: this.sessionId });
+      const msg = {
+        op: 'classpath',
+        id,
+        session: this.sessionId,
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
   testVarQuery(query: cider.VarQuery): Promise<cider.TestResults> {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
-      this.client.write({
+      const msg = {
         op: 'test-var-query',
         id,
         session: this.sessionId,
-        'var-query': query,
-      });
+        ...query,
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
@@ -523,18 +606,24 @@ export class NReplSession {
   testStacktrace(ns: string, test: string, index: number) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = (msg) => {
-        resolve(msg);
-        return true;
-      };
-      this.client.write({
+      const msg = {
         op: 'test-stacktrace',
         id,
         session: this.sessionId,
         ns,
         var: test,
         index: index,
-      });
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = (msg) => {
+          resolve(msg);
+          return true;
+        };
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
@@ -555,93 +644,123 @@ export class NReplSession {
   retest() {
     return new Promise<cider.TestResults>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
-      this.client.write({ op: 'retest', id, session: this.sessionId });
+      const msg = { op: 'retest', id, session: this.sessionId };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
   loadAll() {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
-      this.client.write({
+      const msg = {
         op: 'ns-load-all',
         id,
         session: this.sessionId,
-      });
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
   listNamespaces(regexps: string[]) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
-      this.client.write({
+      const msg = {
         op: 'ns-list',
         id,
         session: this.sessionId,
         'filter-regexps': regexps,
-      });
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
   nsPath(ns: string) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
-      this.client.write({
+      const msg = {
         op: 'ns-path',
         id,
-        ns,
         session: this.sessionId,
-      });
+        ns,
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
   private _refresh(cmd, opts: { dirs?: string[]; before?: string[]; after?: string[] } = {}) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      let reloaded = [];
-      let error,
-        errorNs,
-        status,
-        err = '';
-      this.messageHandlers[id] = (msg) => {
-        if (msg.reloading) {
-          reloaded = msg.reloading;
-        }
-        if (hasStatus(msg, 'ok')) {
-          status = 'ok';
-        }
-        if (hasStatus(msg, 'error')) {
-          status = 'error';
-          error = msg.error;
-          errorNs = msg['error-ns'];
-        }
-        if (msg.err) {
-          err += msg.err;
-        }
-        if (hasStatus(msg, 'done')) {
-          const res = { reloaded, status } as any;
-          if (error) {
-            res.error = error;
-          }
-          if (errorNs) {
-            res.errorNs = errorNs;
-          }
-          if (err) {
-            res.err = err;
-          }
-          resolve(res);
-          return true;
-        }
-      };
-      this.client.write({
+      const msg = {
         op: cmd,
         id,
         session: this.sessionId,
         ...opts,
-      });
+      };
+      if (this.supports(cmd)) {
+        let reloaded = [];
+        let error: any;
+        let errorNs: any;
+        let status: string;
+        let err = '';
+        this.messageHandlers[id] = (msg) => {
+          if (msg.reloading) {
+            reloaded = msg.reloading;
+          }
+          if (hasStatus(msg, 'ok')) {
+            status = 'ok';
+          }
+          if (hasStatus(msg, 'error')) {
+            status = 'error';
+            error = msg.error;
+            errorNs = msg['error-ns'];
+          }
+          if (msg.err) {
+            err += msg.err;
+          }
+          if (hasStatus(msg, 'done')) {
+            const res = { reloaded, status } as any;
+            if (error) {
+              res.error = error;
+            }
+            if (errorNs) {
+              res.errorNs = errorNs;
+            }
+            if (err) {
+              res.err = err;
+            }
+            resolve(res);
+            return true;
+          }
+        };
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
@@ -656,8 +775,20 @@ export class NReplSession {
   formatCode(code: string, options?: string) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
-      this.client.write({ op: 'format-code', code, options });
+      const msg = {
+        op: 'format-code',
+        id,
+        session: this.sessionId,
+        code,
+        options,
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
@@ -670,7 +801,7 @@ export class NReplSession {
       this._runningIds = [];
       ids.forEach((id, index) => {
         this.interrupt(id).catch((e) => {
-          // do nothing
+          throw new Error("Couldn't interrupt " + id + ': ' + e);
         });
       });
       return ids.length;
@@ -681,66 +812,91 @@ export class NReplSession {
   initDebugger(): void {
     const id = this.client.nextId;
     // init-debugger op does not return immediately, but a response will be sent with the same id when a breakpoint is hit later
-    this.client.write({ op: 'init-debugger', id, session: this.sessionId });
+    const msg = { op: 'init-debugger', id, session: this.sessionId };
+    if (this.supports(msg.op)) {
+      this.client.write(msg);
+    } else {
+      log(msg, Direction.ClientToServerNotSupported);
+    }
   }
 
   sendDebugInput(input: any, debugResponseId: string, debugResponseKey: string): Promise<any> {
     return new Promise<any>((resolve, reject) => {
-      this.messageHandlers[debugResponseId] = resultHandler(resolve, reject);
-
-      const data: any = {
+      const msg: any = {
         id: debugResponseId,
         op: 'debug-input',
         input,
         key: debugResponseKey,
         session: this.sessionId,
       };
-
-      this.client.write(data);
+      if (this.supports(msg.op)) {
+        this.messageHandlers[debugResponseId] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
   listDebugInstrumentedDefs(): Promise<any> {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = resultHandler(resolve, reject);
-      this.client.write({
+      const msg = {
         op: 'debug-instrumented-defs',
         id,
         session: this.sessionId,
-      });
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
   clojureDocsRefreshCache() {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = (msg) => {
-        resolve(msg);
-        return true;
-      };
-      this.client.write({
+      const msg = {
         op: 'clojuredocs-refresh-cache',
         id,
         session: this.sessionId,
-      });
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = (msg) => {
+          resolve(msg);
+          return true;
+        };
+        this.client.write(msg);
+      } else {
+        log(msg, Direction.ClientToServerNotSupported);
+        resolve(undefined);
+      }
     });
   }
 
   clojureDocsLookup(ns: string, symbol: string) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
-      this.messageHandlers[id] = (msg) => {
-        resolve(msg);
-        return true;
-      };
-      this.client.write({
+      const msg = {
         op: 'clojuredocs-lookup',
         id,
         ns,
         session: this.sessionId,
         sym: symbol,
-      });
+      };
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = (msg) => {
+          resolve(msg);
+          return true;
+        };
+        this.client.write(msg);
+      } else {
+        resolve(undefined);
+      }
     });
   }
 }
@@ -901,8 +1057,8 @@ export class NReplEvaluation {
       this._interrupted = true;
       this._exception = 'Evaluation was interrupted';
       this._stacktrace = {};
-      this.session.interrupt(this.id).catch(() => {
-        // do nothing
+      this.session.interrupt(this.id).catch((e) => {
+        throw new Error("Couldn't interrupt evaluation: " + e);
       });
       this.doReject(this.exception);
       // make sure the message handler is removed.
@@ -975,20 +1131,19 @@ export class NReplEvaluation {
       if (hasStatus(msg, 'done') || hasStatus(msg, 'need-debug-input')) {
         this.remove();
         if (this.exception && this.msgValue !== debug.DEBUG_QUIT_VALUE) {
-          this.session
-            .stacktrace()
-            .then((stacktrace) => {
-              this._stacktrace = stacktrace;
-              this.doReject(this.exception);
-            })
-            .catch((e) => {
-              // This failure occurs  when the `stacktrace` cider-nrepl
-              // middleware is not available. In this case we can still
-              // display the error message, but we won't have a stacktrace
-              // to show.
-              // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#stacktrace
-              this.doReject(this.exception);
-            });
+          if (this.session.supports('stacktrace')) {
+            this.session
+              .stacktrace()
+              .then((stacktrace) => {
+                this._stacktrace = stacktrace;
+                this.doReject(this.exception);
+              })
+              .catch((e) => {
+                this.doReject(this.exception);
+              });
+          } else {
+            this.doReject(this.exception);
+          }
         } else if (this.pprintOut) {
           this.doResolve(this.pprintOut);
         } else if (this.stacktrace) {

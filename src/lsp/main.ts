@@ -822,7 +822,7 @@ export async function getCljFmtConfig(): Promise<string | undefined> {
 
 function showMenu(items: vscode.QuickPickItem[], commands: Record<string, string>) {
   void vscode.window.showQuickPick(items, { title: 'clojure-lsp' }).then((v) => {
-    if (commands[v.label]) {
+    if (v && commands[v.label]) {
       void vscode.commands.executeCommand(commands[v.label]);
     }
   });

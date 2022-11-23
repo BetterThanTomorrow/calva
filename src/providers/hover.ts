@@ -14,7 +14,7 @@ export async function provideHover(document: vscode.TextDocument, position: vsco
     const text = util.getWordAtPosition(document, position);
     const ns = namespace.getNamespace(document);
     const client = replSession.getSession(util.getFileType(document));
-    if (client) {
+    if (client && client.supports('info')) {
       await namespace.createNamespaceFromDocumentIfNotExists(document);
       const res = await client.info(ns, text);
       const customREPLHoverSnippets = getConfig().customREPLHoverSnippets;

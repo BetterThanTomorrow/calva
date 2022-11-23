@@ -93,7 +93,7 @@ function getHoverForDocs(
   hover.isTrusted = true;
   hover.appendMarkdown('## ClojureDocs Examples\n\n');
   hover.appendMarkdown(`${linkMd} via ${docs.fromServer}\n\n`);
-  const seeAlsos = docs.seeAlsos.map((also) => `${also.replace(/^clojure.core\//, '')}`);
+  const seeAlsos = docs.seeAlsos;
   docs.examples.forEach((example, i) => {
     const symbol = `${docs.ns}/${docs.name}`.replace(/^clojure.core\//, '');
     hover.appendMarkdown(
@@ -108,7 +108,11 @@ function getHoverForDocs(
     );
   });
   hover.appendMarkdown('### See also\n\n');
-  hover.appendCodeblock(seeAlsos.join('\n'), 'clojure');
+  hover.appendMarkdown(
+    seeAlsos
+      .map((also) => `* [${also.replace(/^clojure.core\//, '')}](${docs.baseUrl}/${also})`)
+      .join('\n')
+  );
   return hover;
 }
 
@@ -189,8 +193,12 @@ async function clojureDocsCiderNReplLookup(
   ns: string
 ): Promise<DocsEntry | undefined> {
   const ciderNReplDocs = await session.clojureDocsLookup(ns, symbol);
-  ciderNReplDocs.fromServer = 'cider-nrepl';
-  return rawDocs2DocsEntry(ciderNReplDocs, symbol, ns);
+  if (ciderNReplDocs) {
+    ciderNReplDocs.fromServer = 'cider-nrepl';
+    return rawDocs2DocsEntry(ciderNReplDocs, symbol, ns);
+  } else {
+    return undefined;
+  }
 }
 
 async function clojureDocsLspLookup(
@@ -199,20 +207,28 @@ async function clojureDocsLspLookup(
   ns: string
 ): Promise<DocsEntry | undefined> {
   const resolved = await session.info(ns, symbol);
-  const symNs = resolved.ns.replace(/^cljs\./, 'clojure.');
-  try {
-    const docs = await lsp.getClojuredocs(resolved.name, symNs);
-    return rawDocs2DocsEntry(
-      { clojuredocs: docs, fromServer: 'clojure-lsp' },
-      resolved.name,
-      resolved.ns
-    );
-  } catch {
-    return rawDocs2DocsEntry(
-      { clojuredocs: null, fromServer: 'clojure-lsp' },
-      resolved.name,
-      resolved.ns
-    );
+  if (resolved && resolved.ns) {
+    const symNs =
+      typeof resolved.ns === 'string' ? resolved.ns : ns.length > 0 ? ns[1] : 'clojure.core';
+    const normalizedSymNs = symNs.replace(/^cljs\./, 'clojure.');
+    try {
+      const docs = await lsp.getClojuredocs(resolved.name, normalizedSymNs);
+      if (docs) {
+        return rawDocs2DocsEntry(
+          { clojuredocs: docs, fromServer: 'clojure-lsp' },
+          resolved.name,
+          resolved.ns
+        );
+      } else {
+        return undefined;
+      }
+    } catch {
+      return rawDocs2DocsEntry(
+        { clojuredocs: null, fromServer: 'clojure-lsp' },
+        resolved.name,
+        resolved.ns
+      );
+    }
   }
 }
 
@@ -229,10 +245,7 @@ function rawDocs2DocsEntry(docsResult: any, symbol: string, ns: string): DocsEnt
       notes: docs.notes,
       ns: docs.ns,
       urlPath: docs.href.replace(/^\/?/, ''),
-      seeAlsos:
-        docsResult.fromServer === 'clojure-lsp'
-          ? docs['see-alsos'].map((also) => `${also.sym.ns}/${also.sym.name}`)
-          : docs['see-alsos'],
+      seeAlsos: docsResult.fromServer === 'clojure-lsp' ? docs['seeAlsos'] : docs['see-alsos'],
       tag: docs.tag,
       type: docs.type,
       fromServer: docsResult.fromServer,

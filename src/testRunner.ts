@@ -263,20 +263,15 @@ function runAllTestsCommand(controller: vscode.TestController) {
   });
 }
 
-async function considerTestNS(ns: string, session: NReplSession): Promise<string[]> {
-  if (!ns.endsWith('-test')) {
-    const testNS = ns + '-test';
-    const nsPath = await session.nsPath(testNS);
-    const testFilePath = nsPath.path;
-    if (testFilePath && testFilePath !== '') {
-      const filePath = vscode.Uri.parse(testFilePath).path;
-      const loadForms = `(load-file "${filePath}")`;
-      await session.eval(loadForms, testNS).value;
-    }
-
-    return [ns, testNS];
+async function loadTestNS(ns: string, session: NReplSession) {
+  const testNS = !ns.endsWith('-test') ? ns + '-test' : ns;
+  const nsPath = await session.nsPath(testNS);
+  const testFilePath = nsPath.path;
+  if (testFilePath && testFilePath !== '') {
+    const filePath = vscode.Uri.parse(testFilePath).path;
+    const loadForms = `(load-file "${filePath}")`;
+    await session.eval(loadForms, testNS).value;
   }
-  return [ns];
 }
 
 async function runNamespaceTestsImpl(
@@ -321,8 +316,8 @@ async function runNamespaceTests(controller: vscode.TestController, document: vs
   }
   const session = getSession(util.getFileType(document));
   const ns = namespace.getNamespace(doc);
-  const nss = await considerTestNS(ns, session);
-  void runNamespaceTestsImpl(controller, document, nss);
+  await loadTestNS(ns, session);
+  void runNamespaceTestsImpl(controller, document, [ns]);
 }
 
 function getTestUnderCursor() {
