@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix [Suppling a custom printFn to the pretty printer does not work](https://github.com/BetterThanTomorrow/calva/issues/1979)
+
 ## [2.0.320] - 2022-11-23
 
 - [Stop the nrepl client from spamming the server with ops it doesn't support](https://github.com/BetterThanTomorrow/calva/issues/1969)
