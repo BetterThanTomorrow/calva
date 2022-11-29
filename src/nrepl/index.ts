@@ -581,7 +581,7 @@ export class NReplSession {
         op: 'test-var-query',
         id,
         session: this.sessionId,
-        ...query,
+        'var-query': query,
       };
       if (this.supports(msg.op)) {
         this.messageHandlers[id] = resultHandler(resolve, reject);
