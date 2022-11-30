@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix [Suppling a custom printFn to the pretty printer does not work](https://github.com/BetterThanTomorrow/calva/issues/1979)
+- Fix [CI: Webpack build throws with an error: [webpack-cli] Error: error:0308010C:digital envelope routines::unsupported](https://github.com/BetterThanTomorrow/calva/issues/1985)
 
 ## [2.0.320] - 2022-11-23
 
