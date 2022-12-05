@@ -17,7 +17,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.10+insiders-4.26.3">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.11+insiders-4.26.6">
     
     
       
@@ -837,48 +837,6 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#get-started" class="md-nav__link">
-    <span class="md-ellipsis">
-      Get Started
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Get Started">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Examples
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exclude-entire-folders-from-the-linter" class="md-nav__link">
-    <span class="md-ellipsis">
-      Exclude entire folders from the linter
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#to-go-further" class="md-nav__link">
-    <span class="md-ellipsis">
-      To go further
-    </span>
-  </a>
-  
-</li>
       
         <li class="md-nav__item">
   <a href="#resolve-macro-as" class="md-nav__link">
@@ -1818,48 +1776,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#get-started" class="md-nav__link">
-    <span class="md-ellipsis">
-      Get Started
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Get Started">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Examples
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exclude-entire-folders-from-the-linter" class="md-nav__link">
-    <span class="md-ellipsis">
-      Exclude entire folders from the linter
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#to-go-further" class="md-nav__link">
-    <span class="md-ellipsis">
-      To go further
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#resolve-macro-as" class="md-nav__link">
     <span class="md-ellipsis">
       Resolve Macro As
@@ -1890,33 +1806,9 @@
 
 <h1 id="linting">Linting</h1>
 <p>Calva does no linting, yet with Calva you get excellent linting. That is because Calva uses <a href="https://github.com/clojure-lsp/clojure-lsp">clojure-lsp</a>, which provides linting powered by clj-kondo.</p>
-<h2 id="get-started">Get Started</h2>
 <p>clj-kondo comes with great default rules, and the configuration <a href="https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md">can be customized</a>. One of your options for the configuration file is to  placed a <code>config.edn</code> file in <code>.clj-kondo/</code> at the root of your project. This folder may or may not already exist. It is safe to create it manually if it doesn't.</p>
 <p>The configuration will be merged with the default set of rules, you can only specify the rules you want to override. The full list of available options can be found on <a href="https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md">clj-kondo's github</a></p>
-<h3 id="examples">Examples</h3>
-<p>The following examples show how to turn on/off linting rules in your configuration:</p>
-<p><strong>Display missing docstring as warning:</strong>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:linters</span><span class="w"> </span><span class="p">{</span><span class="ss">:missing-docstring</span><span class="w"> </span><span class="p">{</span><span class="ss">:level</span><span class="w"> </span><span class="ss">:warning</span><span class="p">}}}</span><span class="w"></span>
-</code></pre></div></p>
-<p><strong>Display an error when the <code>:require</code>s are not sorted in the namespace:</strong>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:linters</span><span class="w"> </span><span class="p">{</span><span class="ss">:unsorted-required-namespaces</span><span class="w"> </span><span class="p">{</span><span class="ss">:level</span><span class="w"> </span><span class="ss">:error</span><span class="p">}}}</span><span class="w"></span>
-</code></pre></div></p>
-<p><strong>Turn off the 'Not empty?' idiom:</strong>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:linters</span><span class="w"> </span><span class="p">{</span><span class="ss">:not-empty?</span><span class="w"> </span><span class="p">{</span><span class="ss">:level</span><span class="w"> </span><span class="ss">:off</span><span class="p">}}}</span><span class="w"></span>
-</code></pre></div></p>
-<p><strong>Multiple rules in a single config:</strong>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:linters</span><span class="w"> </span><span class="p">{</span><span class="ss">:missing-docstring</span><span class="w"> </span><span class="p">{</span><span class="ss">:level</span><span class="w"> </span><span class="ss">:warning</span><span class="p">}</span><span class="w"></span>
-<span class="w">           </span><span class="ss">:unsorted-required-namespaces</span><span class="w"> </span><span class="p">{</span><span class="ss">:level</span><span class="w"> </span><span class="ss">:error</span><span class="p">}</span><span class="w"></span>
-<span class="w">           </span><span class="ss">:not-empty?</span><span class="w"> </span><span class="p">{</span><span class="ss">:level</span><span class="w"> </span><span class="ss">:off</span><span class="p">}}}</span><span class="w"></span>
-</code></pre></div></p>
-<h3 id="exclude-entire-folders-from-the-linter">Exclude entire folders from the linter</h3>
-<p>The linter is run by clojure-lsp. By default clojure-lsp runs on the entire classpath of the project. There are cases where you may not want that. For example when using clojurescript it is very likely that you will have a <code>target/</code> folder in your classpath which you want to exclude from linting. </p>
 <p>clojure-lsp is customizable, see <a href="https://clojure-lsp.io/settings/">Clojure LSP Settings</a> for your options. It is safe to manually create the <code>.lsp</code> folder if it doesn't exist.</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:use-source-paths-from-classpath</span><span class="w"> </span><span class="nv">false</span><span class="w"></span>
-<span class="w"> </span><span class="ss">:source-paths</span><span class="w"> </span><span class="o">#</span><span class="p">{</span><span class="s">&quot;folder-you-want-1&quot;</span><span class="w"></span>
-<span class="w">                 </span><span class="s">&quot;folder-you-want-2&quot;</span><span class="p">}}</span><span class="w"></span>
-</code></pre></div>
-<h2 id="to-go-further">To go further</h2>
 <p>You might want to read about <a href="https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#configuration">how to configure clj-kondo</a>. These two sections might be of extra interest:</p>
 <ul>
 <li><a href="https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#unrecognized-macros">Unrecognized macros</a></li>
@@ -2011,8 +1903,9 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["content.tabs.link"], "search": "../assets/javascripts/workers/search.939a4419.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.02d7801c.min.js"></script>
+      <script src="../assets/javascripts/bundle.af94fead.min.js"></script>
       
+    
     
   </body>
 </html>
