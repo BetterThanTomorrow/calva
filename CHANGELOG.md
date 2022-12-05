@@ -4,6 +4,13 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.321] - 2022-12-05
+
+- Fix: [Supplying a custom printFn to the pretty printer does not work](https://github.com/BetterThanTomorrow/calva/issues/1979)
+- Fix: [CI: Webpack build throws with an error: [webpack-cli] Error: error:0308010C:digital envelope routines::unsupported](https://github.com/BetterThanTomorrow/calva/issues/1985)
+- Fix: [Running a single test runs all tests](https://github.com/BetterThanTomorrow/calva/issues/1981)
+- [Update Calva docs to no longer mention removed clojure-lsp setting](https://github.com/BetterThanTomorrow/calva/issues/1988)
+
 ## [2.0.320] - 2022-11-23
 
 - [Stop the nrepl client from spamming the server with ops it doesn't support](https://github.com/BetterThanTomorrow/calva/issues/1969)
