@@ -7,48 +7,11 @@ description: Powered by clj-kondo, Calva comes with state-of-the-art Clojure and
 
 Calva does no linting, yet with Calva you get excellent linting. That is because Calva uses [clojure-lsp](https://github.com/clojure-lsp/clojure-lsp), which provides linting powered by clj-kondo.
 
-## Get Started
 clj-kondo comes with great default rules, and the configuration [can be customized](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md). One of your options for the configuration file is to  placed a `config.edn` file in `.clj-kondo/` at the root of your project. This folder may or may not already exist. It is safe to create it manually if it doesn't.
 
 The configuration will be merged with the default set of rules, you can only specify the rules you want to override. The full list of available options can be found on [clj-kondo's github](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md)
 
-### Examples
-The following examples show how to turn on/off linting rules in your configuration:
-
-**Display missing docstring as warning:**
-```clj
-{:linters {:missing-docstring {:level :warning}}}
-```
-
-**Display an error when the `:require`s are not sorted in the namespace:**
-```clj
-{:linters {:unsorted-required-namespaces {:level :error}}}
-```
-
-**Turn off the 'Not empty?' idiom:**
-```clj
-{:linters {:not-empty? {:level :off}}}
-```
-
-**Multiple rules in a single config:**
-```clj
-{:linters {:missing-docstring {:level :warning}
-           :unsorted-required-namespaces {:level :error}
-           :not-empty? {:level :off}}}
-```
-
-### Exclude entire folders from the linter
-The linter is run by clojure-lsp. By default clojure-lsp runs on the entire classpath of the project. There are cases where you may not want that. For example when using clojurescript it is very likely that you will have a `target/` folder in your classpath which you want to exclude from linting. 
-
 clojure-lsp is customizable, see [Clojure LSP Settings](https://clojure-lsp.io/settings/) for your options. It is safe to manually create the `.lsp` folder if it doesn't exist.
-
-```clj
-{:use-source-paths-from-classpath false
- :source-paths #{"folder-you-want-1"
-                 "folder-you-want-2"}}
-```
-
-## To go further
 
 You might want to read about [how to configure clj-kondo](https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#configuration). These two sections might be of extra interest:
 
