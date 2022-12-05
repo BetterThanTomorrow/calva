@@ -12,6 +12,7 @@ Depending on wether you want to just start a Clojure REPL or you have a project 
 ## Install VS Code and Calva
 
 1. [Downloading VS Code](https://code.visualstudio.com/Download) and run the installer.
+    * Also get aquainted to the basics of VS Code, if you aren't already. Here's an excellent intro: [Getting Started with VS Code](https://code.visualstudio.com/docs/introvideos/basics)
 2. Install Calva. The easiest way to do that is to start VS Code and search for `Calva` in the [VS Code Extension pane](https://code.visualstudio.com/docs/editor/extension-marketplace), then click **Install**.
 
 ## Say hello to Calva
