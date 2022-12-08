@@ -1,5 +1,5 @@
 import * as expect from 'expect';
-import { LispTokenCursor } from '../../../cursor-doc/token-cursor';
+import { createStringCursor, LispTokenCursor } from '../../../cursor-doc/token-cursor';
 import { docFromTextNotation, textAndSelection } from '../common/text-notation';
 
 describe('Token Cursor', () => {
@@ -24,6 +24,20 @@ describe('Token Cursor', () => {
     it('moves from beginning to end of symbol', () => {
       const a = docFromTextNotation('(|c•#f)');
       const b = docFromTextNotation('(c|•#f)');
+      const cursor: LispTokenCursor = a.getTokenCursor(a.selection.anchor);
+      cursor.forwardSexp();
+      expect(cursor.offsetStart).toBe(b.selection.anchor);
+    });
+    it('forwardSexp with newline', () => {
+      const a = docFromTextNotation('|(a\n(b))');
+      const b = docFromTextNotation('(a\n(b))|');
+      const cursor: LispTokenCursor = a.getTokenCursor(a.selection.anchor);
+      cursor.forwardSexp();
+      expect(cursor.offsetStart).toBe(b.selection.anchor);
+    });
+    it('forwardSexp with newline (MS-Windows)', () => {
+      const a = docFromTextNotation('|(a\r\n(b))');
+      const b = docFromTextNotation('(a\r\n(b))|');
       const cursor: LispTokenCursor = a.getTokenCursor(a.selection.anchor);
       cursor.forwardSexp();
       expect(cursor.offsetStart).toBe(b.selection.anchor);
@@ -874,6 +888,18 @@ describe('Token Cursor', () => {
         const a = docFromTextNotation('([|');
         const cursor: LispTokenCursor = a.getTokenCursor(a.selection.anchor);
         expect(cursor.getFunctionName()).toBeUndefined();
+      });
+    });
+    describe('createStringCursor', () => {
+      it('Ranges account for newline', () => {
+        const cursor = createStringCursor('(a\n(b))');
+        const topLevelRanges = cursor.rangesForTopLevelForms().flat();
+        expect(topLevelRanges).toEqual([0, 7]);
+      });
+      it('Ranges account for newline (MS-Windows)', () => {
+        const cursor = createStringCursor('(a\r\n(b))');
+        const topLevelRanges = cursor.rangesForTopLevelForms().flat();
+        expect(topLevelRanges).toEqual([0, 8]);
       });
     });
   });
