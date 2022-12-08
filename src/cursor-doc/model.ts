@@ -10,14 +10,11 @@ export function initScanner(maxLength: number) {
 }
 
 /**
- * @param text The text to look at for the line ending seq.
- * @returns The first line ending sequence found in TEXT, if any.
+ * @param text The text to look in for the end of line seq.
+ * @returns The first end of line sequence found in TEXT, if any.
  */
-export function getFirstLineEndingSeq(text: string) {
-  const found = text.match(/\r\n|\n/g);
-  if (found) {
-    return found[0];
-  }
+export function getFirstEol(text: string) {
+  return text.match(/\r\n|\n/g)?.[0];
 }
 
 export class TextLine {
@@ -538,11 +535,9 @@ export class LineInputModel implements EditableModel {
 
 export class StringDocument implements EditableDocument {
   constructor(contents?: string) {
-    let lineEndingSeq = null;
-    if (contents) {
-      lineEndingSeq = getFirstLineEndingSeq(contents);
-    }
-    this.model = new LineInputModel(lineEndingSeq ? lineEndingSeq.length : 1, this);
+    const eol = contents ? getFirstEol(contents) : null;
+
+    this.model = new LineInputModel(eol ? eol.length : 1, this);
     if (contents) {
       this.insertString(contents);
     }

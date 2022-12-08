@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- [Fix breakage with notebooks containing CRLF newlines on MS-Windows](https://github.com/BetterThanTomorrow/calva/issues/1994)
+- Fix: [Clojure notebooks don't seem to work on MS-Windows](https://github.com/BetterThanTomorrow/calva/issues/1994)
 
 ## [2.0.321] - 2022-12-05
 
