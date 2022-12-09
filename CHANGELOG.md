@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Clojure notebooks don't seem to work on MS-Windows](https://github.com/BetterThanTomorrow/calva/issues/1994)
+
 ## [2.0.321] - 2022-12-05
 
 - Fix: [Supplying a custom printFn to the pretty printer does not work](https://github.com/BetterThanTomorrow/calva/issues/1979)
