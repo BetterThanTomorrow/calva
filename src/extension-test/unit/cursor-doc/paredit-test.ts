@@ -177,8 +177,7 @@ describe('paredit', () => {
         const b = docFromTextNotation('(a| b (c\r\n d)| e)');
         const [start, end] = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
-        // off by 1 because \r\n is treated as 1 char?
-        expect(actual).toEqual([start, end - 1]);
+        expect(actual).toEqual([start, end]);
       });
 
       it('Maintains balanced delimiters 2', () => {
@@ -194,8 +193,7 @@ describe('paredit', () => {
         const b = docFromTextNotation('(aa| (c (e\r\nf))|g)');
         const [start, end] = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
-        // off by 1 because \r\n is treated as 1 char?
-        expect(actual).toEqual([start, end - 1]);
+        expect(actual).toEqual([start, end]);
       });
 
       it('Maintains balanced delimiters 3', () => {

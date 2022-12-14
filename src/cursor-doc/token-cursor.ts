@@ -1,4 +1,4 @@
-import { LineInputModel } from './model';
+import { getFirstEol, LineInputModel } from './model';
 import { Token, validPair } from './clojure-lexer';
 
 function tokenIsWhiteSpace(token: Token) {
@@ -943,7 +943,8 @@ export class LispTokenCursor extends TokenCursor {
  * Creates a `LispTokenCursor` for walking and manipulating the string `s`.
  */
 export function createStringCursor(s: string): LispTokenCursor {
-  const model = new LineInputModel();
+  const eol = getFirstEol(s);
+  const model = new LineInputModel(eol ? eol.length : 1);
   model.insertString(0, s);
   return model.getTokenCursor(0);
 }
