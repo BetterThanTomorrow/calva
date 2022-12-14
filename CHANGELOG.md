@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.322] - 2022-12-14
+
 - Fix: [Clojure notebooks don't seem to work on MS-Windows](https://github.com/BetterThanTomorrow/calva/issues/1994)
 - Fix: [Calva development: npm run prettier-format fails on MS-Windows](https://github.com/BetterThanTomorrow/calva/issues/1996)
 - Bump bundled deps.clj to v1.11.1.1208
