@@ -42,5 +42,16 @@
     "titleBar.inactiveBackground": "#90B4FEd5",
     "titleBar.inactiveForeground": "#13172299"
   },
-  "calva.fmt.configPath": "cljfmt.edn"
+  "calva.fmt.configPath": "cljfmt.edn",
+  "calva.replConnectSequences": [
+    {
+      "name": "pirate-lang",
+      "projectType": "deps.edn",
+      "afterCLJReplJackInCode": "(require 'repl)",
+      "cljsType": "none",
+      "menuSelections": {
+        "cljAliases": ["dev", "test"]
+      }
+    }
+  ]
 }
