@@ -142,6 +142,18 @@ describe('indent', () => {
         ).toEqual(2);
       });
     });
+
+    describe('deftype', () => {
+      it('calculates indents for cursor on the new line of a method implementation', () => {
+        const doc = docFromTextNotation(`
+(deftype MyType [arg1 arg2]
+  IMyProto
+  (method1 [this]
+|(print "hello")))`);
+
+        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0])).toEqual(4);
+      });
+    });
   });
 
   describe('collectIndents', () => {
