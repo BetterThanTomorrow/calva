@@ -151,7 +151,19 @@ describe('indent', () => {
   (method1 [this]
 |(print "hello")))`);
 
-        expect(indent.getIndent(doc.model, textAndSelection(doc)[1][0])).toEqual(4);
+        expect(
+          indent.getIndent(
+            doc.model,
+            textAndSelection(doc)[1][0],
+            mkConfig({
+              deftype: [
+                ['block', 2],
+                ['inner', 1],
+              ],
+              '#"^def(?!ault)(?!late)(?!er)"': [['inner', 0]],
+            })
+          )
+        ).toEqual(4);
       });
     });
   });
