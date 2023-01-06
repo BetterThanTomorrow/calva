@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Provider completions not handling errors gracefully](https://github.com/BetterThanTomorrow/calva/issues/2006)
+
 ## [2.0.322] - 2022-12-14
 
 - Fix: [Clojure notebooks don't seem to work on MS-Windows](https://github.com/BetterThanTomorrow/calva/issues/1994)
