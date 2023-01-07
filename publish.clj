@@ -3,9 +3,10 @@
 ;; Note: The shell commands may need to be modified if you're using Windows.
 ;;       At the time of this writing, both people who push use Unix-based machines.
 
-(require '[clojure.string :as str]
-         '[cheshire.core :as json]
-         '[clojure.java.shell :as shell])
+(ns publish
+  (:require [clojure.string :as str]
+            [cheshire.core :as json]
+            [clojure.java.shell :as shell]))
 
 (def changelog-filename "CHANGELOG.md")
 (def changelog-text (slurp changelog-filename))
@@ -37,11 +38,12 @@
                   (format "[Unreleased]\n\n%s\n\n" new-header))]
     new-text))
 
-(defn throw-if-error [{:keys [exit out err]}]
-  (when-not (= exit 0)
+(defn throw-if-error [{:keys [exit out err] :as result}]
+  (if-not (= exit 0)
     (throw (Exception. (if (empty? out)
                          err
-                         out)))))
+                         out)))
+    result))
 
 (defn commit-changelog [file-name message]
   (println "Committing")
@@ -60,6 +62,18 @@
   (println "Pushing")
   (throw-if-error (shell/sh "git" "push" "--follow-tags")))
 
+(defn git-status []
+  (println "Checking git status")
+  (let [result (throw-if-error (shell/sh "git" "status"))
+        out (:out result)
+        [_ branch] (re-find #"^On branch (\S+)\n" out)
+        up-to-date (re-find #"Your branch is up to date" out)
+        clean (re-find #"nothing to commit, working tree clean" out)]
+    (cond-> #{}
+      (not= "dev" branch) (conj :not-on-dev)
+      (not up-to-date) (conj :not-up-to-date)
+      (not clean) (conj :branch-not-clean))))
+
 (defn publish []
   (tag calva-version)
   (push)
@@ -69,15 +83,22 @@
 (when (= *file* (System/getProperty "babashka.file"))
   (let [unreleased-changelog-text (get-unreleased-changelog-text
                                    changelog-text
-                                   unreleased-header-re)]
+                                   unreleased-header-re)
+        status (git-status)]
+    (when (or (seq status)
+              (empty? unreleased-changelog-text))
+      (when (seq status)
+        (println "Git status issues: " status))
+      (when (empty? unreleased-changelog-text)
+        (print "There are no unreleased changes in the changelog."))
+      (println "Release anyway? YES/NO: ")
+      (flush)
+      (let [answer (read)]
+        (when-not (= "YES" answer)
+          (println "Aborting publish.")
+          (System/exit 0))))
     (if (empty? unreleased-changelog-text)
-      (do
-        (print "There are no unreleased changes in the changelog. Release anyway? y/n: ")
-        (flush)
-        (let [answer (read)]
-          (if (= (str answer) "y")
-            (publish)
-            (println "Aborting publish."))))
+      (publish)
       (let [updated-changelog-text (new-changelog-text changelog-text
                                                        unreleased-header-re
                                                        calva-version)]

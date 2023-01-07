@@ -1,7 +1,7 @@
 (ns calva.fmt.formatter-test
-  (:require [cljs.test :include-macros true :refer [deftest is testing]]
-            [cljfmt.core :as cljfmt]
-            [calva.fmt.formatter :as sut]))
+  (:require [calva.fmt.formatter :as sut]
+            [cljfmt.core :as cljfmt :refer [includes?]]
+            [cljs.test :include-macros true :refer [deftest is testing]]))
 
 (deftest format-text-at-range
   (is (= "(foo)\n(defn bar\n  [x]\n  baz)"
@@ -51,7 +51,7 @@ ccc {:a b :aa bb :ccc ccc}]
                                                  :config {:align-associative? true}
                                                  :range    [0 56]
                                                  :idx      0})))))
-  
+
   (testing "Does not align associative structures when `:align-associative` is not `true`"
     (is (= "(def foo
   (let [a   b
@@ -73,7 +73,7 @@ ccc {:a b :aa bb :ccc ccc}]
                                                  :config {:remove-multiple-non-indenting-spaces? true}
                                                  :range    [0 56]
                                                  :idx      0})))))
-  
+
   (testing "Does not trim space between forms when `:remove-multiple-non-indenting-spaces?` is missing"
     (is (= "(def foo
   (let [a   b
@@ -314,7 +314,7 @@ bar))" :range [22 25]})))
   (is (= (+ 2 (count cljfmt/default-indents))
          (count (:indents (sut/read-cljfmt "{:indents {foo [[:inner 0]] bar [[:block 1]]}}"))))
       "merges indents on top of cljfmt indent rules")
-  (is (= {'a [[:inner 0]]}
+  (is (= '([a [[:inner 0]]])
          (:indents (sut/read-cljfmt "{:indents ^:replace {a [[:inner 0]]}}")))
       "with :replace metadata hint overrides default indents")
   (is (= false
@@ -330,7 +330,11 @@ bar))" :range [22 25]})))
          (:remove-surrounding-whitespace? (sut/read-cljfmt "{:remove-surrounding-whitespace? false}")))
       "including keys in cljfmt such as :remove-surrounding-whitespace? will override defaults.")
   (is (nil? (:foo (sut/read-cljfmt "{:bar false}")))
-      "most keys don't have any defaults."))
+      "most keys don't have any defaults.")
+  (is (empty? (let [indents (map (comp str first) (:indents (sut/read-cljfmt "{}")))
+                    indents-after-default (drop-while #(not= (str #"^def(?!ault)(?!late)(?!er)") %) indents)]
+                (filter (partial re-find #"^def") indents-after-default)))
+      "places default rule '^def(?!ault)(?!late)(?!er)' after all specific def rules"))
 
 (deftest cljfmt-options
   (is (= (count cljfmt/default-indents)
@@ -339,12 +343,12 @@ bar))" :range [22 25]})))
   (is (= (+ 2 (count cljfmt/default-indents))
          (count (:indents (sut/merge-cljfmt '{:indents {foo [[:inner 0]] bar [[:block 1]]}}))))
       "merges indents on top of cljfmt indent rules")
-  (is (= {'a [[:inner 0]]}
+  (is (= '([a [[:inner 0]]])
          (:indents (sut/merge-cljfmt '{:indents ^:replace {a [[:inner 0]]}})))
       "with :replace metadata hint overrides default indents")
   (is (= true
          (:align-associative? (sut/merge-cljfmt {:align-associative? true
-                                                   :cljfmt-string "{:align-associative? false}"})))
+                                                 :cljfmt-string "{:align-associative? false}"})))
       "cljfmt :align-associative? has lower priority than config's option")
   (is (= false
          (:align-associative? (sut/merge-cljfmt {:cljfmt-string "{}"})))

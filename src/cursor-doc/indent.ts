@@ -143,54 +143,84 @@ const testCljRe = (re, str) => {
   return matches && RegExp(matches[1]).test(str.replace(/^.*\//, ''));
 };
 
-/** Returns the expected newline indent for the given position, in characters. */
-export function getIndent(document: EditableModel, offset: number, config?: any): number {
-  if (!config) {
-    config = {
-      'cljfmt-options': {
-        indents: indentRules,
-      },
-    };
+const calculateDefaultIndent = (indentInfo: IndentInformation) =>
+  indentInfo.exprsOnLine > 0 ? indentInfo.firstItemIdent : indentInfo.startIndent;
+
+const calculateInnerIndent = (
+  currentIndent: number,
+  rule: IndentRule,
+  indentInfo: IndentInformation
+) => {
+  if (rule.length !== 3 || rule[2] > indentInfo.argPos) {
+    return indentInfo.startIndent + 1;
   }
+
+  return currentIndent;
+};
+
+const calculateBlockIndent = (
+  currentIndent: number,
+  rule: IndentRule,
+  indentInfo: IndentInformation
+) => {
+  if (indentInfo.exprsOnLine > rule[1]) {
+    return indentInfo.firstItemIdent;
+  }
+
+  if (indentInfo.argPos >= rule[1]) {
+    return indentInfo.startIndent + 1;
+  }
+
+  return currentIndent;
+};
+
+const calculateIndent = (
+  currentIndent: number,
+  rule: IndentRule,
+  indentInfo: IndentInformation,
+  stateSize: number,
+  pos: number
+) => {
+  if (rule[0] === 'inner' && pos + rule[1] === stateSize) {
+    return calculateInnerIndent(currentIndent, rule, indentInfo);
+  }
+
+  if (rule[0] === 'block' && pos === stateSize) {
+    return calculateBlockIndent(currentIndent, rule, indentInfo);
+  }
+
+  return currentIndent;
+};
+
+/** Returns the expected newline indent for the given position, in characters. */
+export function getIndent(
+  document: EditableModel,
+  offset: number,
+  config: any = {
+    'cljfmt-options': {
+      indents: indentRules,
+    },
+  }
+): number {
   const state = collectIndents(document, offset, config);
-  // now find applicable indent rules
-  let indent = -1;
-  const thisBlock = state[state.length - 1];
   if (!state.length) {
     return 0;
   }
 
-  for (let pos = state.length - 1; pos >= 0; pos--) {
-    for (const rule of state[pos].rules) {
-      if (rule[0] == 'inner') {
-        if (pos + rule[1] == state.length - 1) {
-          if (rule.length == 3) {
-            if (rule[2] > thisBlock.argPos) {
-              indent = thisBlock.startIndent + 1;
-            }
-          } else {
-            indent = thisBlock.startIndent + 1;
-          }
-        }
-      } else if (rule[0] == 'block' && pos == state.length - 1) {
-        if (thisBlock.exprsOnLine <= rule[1]) {
-          if (thisBlock.argPos >= rule[1]) {
-            indent = thisBlock.startIndent + 1;
-          }
-        } else {
-          indent = thisBlock.firstItemIdent;
-        }
-      }
-    }
+  // now find applicable indent rules
+  let indent = -1;
+  const stateSize = state.length - 1;
+  const thisBlock = state.at(-1);
+  for (let pos = stateSize; pos >= 0; pos--) {
+    indent = state[pos].rules.reduce(
+      (currentIndent, rule) => calculateIndent(currentIndent, rule, thisBlock, stateSize, pos),
+      indent
+    );
   }
 
   if (indent == -1) {
-    // no indentation styles applied, so use default style.
-    if (thisBlock.exprsOnLine > 0) {
-      indent = thisBlock.firstItemIdent;
-    } else {
-      indent = thisBlock.startIndent;
-    }
+    return calculateDefaultIndent(thisBlock);
   }
+
   return indent;
 }

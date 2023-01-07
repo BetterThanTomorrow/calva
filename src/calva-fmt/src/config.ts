@@ -13,6 +13,16 @@ const defaultCljfmtContent =
 const LSP_CONFIG_KEY = 'CLOJURE-LSP';
 let lspFormatConfig: string | undefined;
 
+function cljfmtOptionsFromString(cljfmt: string) {
+  const options = cljsLib.cljfmtOptionsFromString(cljfmt);
+  return {
+    ...options,
+    // because we can't correctly pass ordered map from cljs
+    // but we need it to determine the order of applying indent rules
+    indents: Object.fromEntries(options['indents']),
+  };
+}
+
 function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmt: string) {
   return {
     'format-as-you-type': !!formatOnTypeEnabled(),
@@ -20,7 +30,7 @@ function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmt: s
       'keepCommentTrailParenOnOwnLine'
     ),
     'cljfmt-options-string': cljfmt,
-    'cljfmt-options': cljsLib.cljfmtOptionsFromString(cljfmt),
+    'cljfmt-options': cljfmtOptionsFromString(cljfmt),
   };
 }
 

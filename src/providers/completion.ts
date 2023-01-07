@@ -51,7 +51,15 @@ async function provideCompletionItems(
     if (results.length && !completionProviderOptions.merge) {
       break;
     }
-    const completions = await completionFunctions[provider](document, position, token, context);
+
+    const completions = await completionFunctions[provider](
+      document,
+      position,
+      token,
+      context
+    ).catch((err) => {
+      console.log('Failed to get results from remote', err);
+    });
 
     if (completions) {
       results = [

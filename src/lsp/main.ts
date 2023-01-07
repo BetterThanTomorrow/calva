@@ -788,6 +788,17 @@ export async function getClojuredocs(symName: string, symNs: string): Promise<an
   }
 }
 
+export async function getCursorInfo(
+  textDocument: vscode.TextDocument,
+  position: vscode.Position
+): Promise<any> {
+  const client: LanguageClient = getStateValue(LSP_CLIENT_KEY);
+  return client.sendRequest('clojure/cursorInfo/raw', {
+    textDocument: { uri: textDocument.uri.toString() },
+    position: { line: position.line, character: position.character },
+  });
+}
+
 // TODO: This feels a bit brute, what are other ways to wait for the client to initialize?
 export function getClient(timeout: number): Promise<LanguageClient> {
   const start = Date.now();

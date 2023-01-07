@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.323] - 2023-01-07
+
+- Fix: [Provider completions not handling errors gracefully](https://github.com/BetterThanTomorrow/calva/issues/2006)
+- Partly fix (indenter): [Indenter and formatter fails while typing out body of deftype method](https://github.com/BetterThanTomorrow/calva/issues/1957)
+
 ## [2.0.322] - 2022-12-14
 
 - Fix: [Clojure notebooks don't seem to work on MS-Windows](https://github.com/BetterThanTomorrow/calva/issues/1994)
