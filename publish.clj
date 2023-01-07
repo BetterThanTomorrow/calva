@@ -3,9 +3,10 @@
 ;; Note: The shell commands may need to be modified if you're using Windows.
 ;;       At the time of this writing, both people who push use Unix-based machines.
 
-(require '[clojure.string :as str]
-         '[cheshire.core :as json]
-         '[clojure.java.shell :as shell])
+(ns publish
+  (:require [clojure.string :as str]
+            [cheshire.core :as json]
+            [clojure.java.shell :as shell]))
 
 (def changelog-filename "CHANGELOG.md")
 (def changelog-text (slurp changelog-filename))
@@ -37,11 +38,12 @@
                   (format "[Unreleased]\n\n%s\n\n" new-header))]
     new-text))
 
-(defn throw-if-error [{:keys [exit out err]}]
-  (when-not (= exit 0)
+(defn throw-if-error [{:keys [exit out err] :as result}]
+  (if-not (= exit 0)
     (throw (Exception. (if (empty? out)
                          err
-                         out)))))
+                         out)))
+    result))
 
 (defn commit-changelog [file-name message]
   (println "Committing")
