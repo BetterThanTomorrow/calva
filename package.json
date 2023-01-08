@@ -770,6 +770,11 @@
               "lsp"
             ]
           },
+          "calva.replOutputThrottleRate": {
+            "markdownDescription": "If the repl outputs too quickly then results will be dropped from the output window. Setting this to 0 will disable throttling.",
+            "type": "number",
+            "default": 100
+          },
           "calva.depsEdnJackInExecutable": {
             "markdownDescription": "Which executable should Calva Jack-in use for starting a deps.edn project? The default is to let Calva choose. It will choose `clojure` if that is installed and working. Otherwise `deps.clj`, which is bundled with Calva, will be used. (This settings has no effect on Windows, where `deps.clj` will always be used.)",
             "enum": [

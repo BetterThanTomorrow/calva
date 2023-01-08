@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Rogue loops that print output to stdout cause Calva to hang](https://github.com/BetterThanTomorrow/calva/issues/2010)
 ## [2.0.323] - 2023-01-07
 
 - Fix: [Provider completions not handling errors gracefully](https://github.com/BetterThanTomorrow/calva/issues/2006)
