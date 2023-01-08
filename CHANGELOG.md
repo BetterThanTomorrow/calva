@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix (formatter): [Indenter and formatter fails while typing out body of deftype method](https://github.com/BetterThanTomorrow/calva/issues/1957)
+
 ## [2.0.323] - 2023-01-07
 
 - Fix: [Provider completions not handling errors gracefully](https://github.com/BetterThanTomorrow/calva/issues/2006)
