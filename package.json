@@ -775,6 +775,11 @@
             "type": "number",
             "default": 100
           },
+          "calva.replOutputMaxLines": {
+            "markdownDescription": "The maximum number of lines to retain in the repl output window. Having the repl output window grow too large can significantly affect performance. Setting this to 0 will disable truncating",
+            "type": "number",
+            "default": 1000
+          },
           "calva.depsEdnJackInExecutable": {
             "markdownDescription": "Which executable should Calva Jack-in use for starting a deps.edn project? The default is to let Calva choose. It will choose `clojure` if that is installed and working. Otherwise `deps.clj`, which is bundled with Calva, will be used. (This settings has no effect on Windows, where `deps.clj` will always be used.)",
             "enum": [

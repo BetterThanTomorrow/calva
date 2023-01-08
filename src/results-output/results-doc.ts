@@ -20,6 +20,10 @@ const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 const REPL_OUTPUT_THROTTLE_RATE = vscode.workspace
   .getConfiguration()
   .get<number>(config.REPL_OUTPUT_THROTTLE_RATE_CONFIG_KEY);
+const REPL_OUTPUT_MAX_LINES = vscode.workspace
+  .getConfiguration()
+  .get<number>(config.REPL_OUTPUT_MAX_LINES_CONFIG_KEY);
+
 const PROMPT_HINT = 'Use `alt+enter` to evaluate';
 
 const START_GREETINGS = [
@@ -306,10 +310,22 @@ async function writeToResultsDoc({ text, onAppended }: ResultsBufferEntry): Prom
   const insertPosition = doc.positionAt(Infinity);
   const edit = new vscode.WorkspaceEdit();
   const editText = util.stripAnsi(text);
+
+  if (REPL_OUTPUT_MAX_LINES > 0 && doc.lineCount > REPL_OUTPUT_MAX_LINES) {
+    edit.delete(
+      docUri,
+      new vscode.Range(
+        new vscode.Position(0, 0),
+        new vscode.Position(doc.lineCount - REPL_OUTPUT_MAX_LINES, 0)
+      )
+    );
+  }
+
   edit.insert(docUri, insertPosition, editText);
   if (!((await vscode.workspace.applyEdit(edit)) && (await doc.save()))) {
     return;
   }
+
   onAppended?.(
     new vscode.Location(docUri, insertPosition),
     new vscode.Location(docUri, doc.positionAt(Infinity))
