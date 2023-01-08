@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Rogue loops that print output to stdout cause Calva to hang](https://github.com/BetterThanTomorrow/calva/issues/2010)
+- Fix: [Output window becomes very slow when number of lines of content is very high](https://github.com/BetterThanTomorrow/calva/issues/804)
+- Partial Fix: [Output window becomes very slow when number of lines of content is very high](https://github.com/BetterThanTomorrow/calva/issues/942)
+
 ## [2.0.323] - 2023-01-07
 
 - Fix: [Provider completions not handling errors gracefully](https://github.com/BetterThanTomorrow/calva/issues/2006)

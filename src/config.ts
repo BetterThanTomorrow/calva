@@ -14,6 +14,9 @@ const REPL_FILE_EXT = 'calva-repl';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
 const KEYBINDINGS_ENABLED_CONTEXT_KEY = 'calva:keybindingsEnabled';
 
+const REPL_OUTPUT_THROTTLE_RATE_CONFIG_KEY = 'calva.replOutputThrottleRate';
+const REPL_OUTPUT_MAX_LINES_CONFIG_KEY = 'calva.replOutputMaxLines';
+
 type ReplSessionType = 'clj' | 'cljs';
 
 // include the 'file' and 'untitled' to the
@@ -234,6 +237,8 @@ export {
   REPL_FILE_EXT,
   KEYBINDINGS_ENABLED_CONFIG_KEY,
   KEYBINDINGS_ENABLED_CONTEXT_KEY,
+  REPL_OUTPUT_THROTTLE_RATE_CONFIG_KEY,
+  REPL_OUTPUT_MAX_LINES_CONFIG_KEY,
   documentSelector,
   ReplSessionType,
   getConfig,

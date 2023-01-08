@@ -17,6 +17,13 @@ import { formatAsLineComments, splitEditQueueForTextBatching } from './util';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
+const REPL_OUTPUT_THROTTLE_RATE = vscode.workspace
+  .getConfiguration()
+  .get<number>(config.REPL_OUTPUT_THROTTLE_RATE_CONFIG_KEY);
+const REPL_OUTPUT_MAX_LINES = vscode.workspace
+  .getConfiguration()
+  .get<number>(config.REPL_OUTPUT_MAX_LINES_CONFIG_KEY);
+
 const PROMPT_HINT = 'Use `alt+enter` to evaluate';
 
 const START_GREETINGS = [
@@ -303,10 +310,22 @@ async function writeToResultsDoc({ text, onAppended }: ResultsBufferEntry): Prom
   const insertPosition = doc.positionAt(Infinity);
   const edit = new vscode.WorkspaceEdit();
   const editText = util.stripAnsi(text);
+
+  if (REPL_OUTPUT_MAX_LINES > 0 && doc.lineCount > REPL_OUTPUT_MAX_LINES) {
+    edit.delete(
+      docUri,
+      new vscode.Range(
+        new vscode.Position(0, 0),
+        new vscode.Position(doc.lineCount - REPL_OUTPUT_MAX_LINES, 0)
+      )
+    );
+  }
+
   edit.insert(docUri, insertPosition, editText);
   if (!((await vscode.workspace.applyEdit(edit)) && (await doc.save()))) {
     return;
   }
+
   onAppended?.(
     new vscode.Location(docUri, insertPosition),
     new vscode.Location(docUri, doc.positionAt(Infinity))
@@ -330,6 +349,16 @@ export interface OnAppendedCallback {
 }
 
 let resultsBuffer: ResultsBuffer = [];
+
+type BufferThrottleState = {
+  count: number;
+  dropped: number;
+  timeout?: NodeJS.Timeout;
+};
+const throttleState: BufferThrottleState = {
+  count: 0,
+  dropped: 0,
+};
 
 async function writeNextOutputBatch() {
   if (!resultsBuffer[0]) {
@@ -366,6 +395,30 @@ async function flushOutput() {
 
 /* If something must be done after a particular edit, use the onAppended callback. */
 export function append(text: string, onAppended?: OnAppendedCallback): void {
+  if (REPL_OUTPUT_THROTTLE_RATE > 0) {
+    throttleState.count++;
+
+    if (!throttleState.timeout) {
+      throttleState.timeout = setTimeout(() => {
+        if (throttleState.dropped > 0) {
+          resultsBuffer.push({
+            text: `;; Dropped ${throttleState.dropped} items from output due to throttling\n`,
+          });
+          void flushOutput();
+        }
+
+        throttleState.timeout = undefined;
+        throttleState.count = 0;
+        throttleState.dropped = 0;
+      }, 500);
+    }
+
+    if (throttleState.count > REPL_OUTPUT_THROTTLE_RATE) {
+      throttleState.dropped++;
+      return;
+    }
+  }
+
   resultsBuffer.push({ text, onAppended });
   void flushOutput();
 }
