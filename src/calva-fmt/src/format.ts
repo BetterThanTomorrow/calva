@@ -142,11 +142,11 @@ function _calculateFormatRange(
   cursor: LispTokenCursor,
   index: number
 ) {
-  const formatDepth = config?.['format-depth'] ?? _defaultFormatDepth(cursor);
+  const formatDepth = config?.['format-depth'] ?? _formatDepth(cursor);
   return cursor.rangeForList(formatDepth) ?? cursor.rangeForCurrentForm(index);
 }
 
-function _defaultFormatDepth(cursor: LispTokenCursor) {
+function _formatDepth(cursor: LispTokenCursor) {
   const cursorClone = cursor.clone();
   cursorClone.backwardFunction(1);
   return FormatDepthDefaults?.[cursorClone.getFunctionName()] ?? 1;
