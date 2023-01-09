@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Evaluating blocking snippets deadlocks the editor](https://github.com/BetterThanTomorrow/calva/issues/2012)
+
 ## [2.0.323] - 2023-01-07
 
 - Fix: [Provider completions not handling errors gracefully](https://github.com/BetterThanTomorrow/calva/issues/2006)

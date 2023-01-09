@@ -17,10 +17,10 @@ type SnippetDefinition = {
   evaluationSendCodeToOutputWindow?: boolean;
 };
 
-export async function evaluateCustomCodeSnippetCommand(
-  codeOrKeyOrSnippet?: string | SnippetDefinition
-) {
-  await evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet);
+export function evaluateCustomCodeSnippetCommand(codeOrKeyOrSnippet?: string | SnippetDefinition) {
+  evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet).catch((err) => {
+    console.log('Failed to run snippet', err);
+  });
 }
 
 async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetDefinition) {
