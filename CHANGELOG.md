@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Evaluating blocking snippets deadlocks the editor](https://github.com/BetterThanTomorrow/calva/issues/2012)
 - Fix (formatter): [Indenter and formatter fails while typing out body of deftype method](https://github.com/BetterThanTomorrow/calva/issues/1957)
 
 ## [2.0.323] - 2023-01-07
