@@ -171,7 +171,7 @@
           },
           "calva.enableClojureLspOnStart": {
             "type": "boolean",
-            "markdownDescription": "**Recommended**: Start [clojure-lsp](https://calva.io/clojure-lsp/) automatically when Calva starts",
+            "markdownDescription": "**Recommended**: Start [clojure-lsp](https://calva.io/clojure-lsp/) automatically when Clojure files are opened",
             "default": true
           },
           "calva.prettyPrintingOptions": {
@@ -941,9 +941,8 @@
         "category": "Calva"
       },
       {
-        "command": "calva.clojureLsp.showClojureLspStartedMenu",
+        "command": "calva.clojureLsp.showClojureLspMenu",
         "title": "Show clojure-lsp menu",
-        "enablement": "clojureLsp:active",
         "category": "Calva Clojure LSP"
       },
       {
@@ -972,12 +971,6 @@
         "category": "Calva"
       },
       {
-        "command": "calva.clojureLsp.showClojureLspStoppedMenu",
-        "title": "Show clojure-lsp menu",
-        "enablement": "!clojureLsp:active",
-        "category": "Calva Clojure LSP"
-      },
-      {
         "command": "calva.clojureLsp.download",
         "title": "Download the configured Clojure LSP Server version",
         "enablement": "!clojureLsp:active",
@@ -986,19 +979,16 @@
       {
         "command": "calva.clojureLsp.start",
         "title": "Start the Clojure LSP Server",
-        "enablement": "!clojureLsp:active",
         "category": "Calva Clojure LSP"
       },
       {
         "command": "calva.clojureLsp.stop",
         "title": "Stop the Clojure LSP Server",
-        "enablement": "clojureLsp:active",
         "category": "Calva Clojure LSP"
       },
       {
         "command": "calva.clojureLsp.restart",
         "title": "Restart the Clojure LSP Server",
-        "enablement": "clojureLsp:active",
         "category": "Calva Clojure LSP"
       },
       {
@@ -1732,97 +1722,97 @@
         "command": "clojureLsp.refactor.cleanNs",
         "title": "Clean NS Form",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.addMissingLibspec",
         "title": "Add Missing Require",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.dragBackward",
         "title": "Drag Sexp Backward",
         "category": "clojure-lsp",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.dragForward",
         "title": "Drag Sexp Forward",
         "category": "clojure-lsp",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.cyclePrivacy",
         "title": "Cycle/Toggle Privacy",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.expandLet",
         "title": "Expand Let",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.inlineSymbol",
         "title": "Inline Symbol",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.threadFirst",
         "title": "Thread First",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.threadFirstAll",
         "title": "Thread First All",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.threadLast",
         "title": "Thread Last",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.threadLastAll",
         "title": "Thread Last All",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.unwindAll",
         "title": "Unwind All",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.unwindThread",
         "title": "Unwind Thread",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.introduceLet",
         "title": "Introduce let",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.moveToLet",
         "title": "Move to Previous let Box",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.extractFunction",
         "title": "Extract to New Function",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "calva.diagnostics.clojureLspServerInfo",

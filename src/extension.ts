@@ -31,7 +31,6 @@ import * as replHistory from './results-output/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
-import lsp from './lsp/main';
 import { setStateValue } from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
@@ -42,6 +41,7 @@ import * as depsClj from './nrepl/deps-clj';
 import * as clojureDocs from './clojuredocs';
 import { capitalize } from './utilities';
 import * as overrides from './overrides';
+import * as lsp from './lsp';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -73,6 +73,17 @@ function initializeState() {
 async function activate(context: vscode.ExtensionContext) {
   console.info('Calva activate START');
 
+  const testController = vscode.tests.createTestController('calvaTestController', 'Calva');
+  const clientProvider = lsp.createClientProvider({
+    context,
+    testTreeHandler: (tree) => {
+      testRunner.onTestTree(testController, tree);
+    },
+  });
+  clientProvider.init();
+
+  lsp.registerGlobally(clientProvider);
+
   overrides.activate();
 
   initializeState();
@@ -81,13 +92,8 @@ async function activate(context: vscode.ExtensionContext) {
 
   status.updateNeedReplUi(false, context);
 
-  const controller = vscode.tests.createTestController('calvaTestController', 'Calva');
-  context.subscriptions.push(controller);
-  testRunner.initialize(controller);
-
-  void lsp.activate(context, (testTree) => {
-    testRunner.onTestTree(controller, testTree);
-  });
+  context.subscriptions.push(testController);
+  testRunner.initialize(testController);
 
   setStateValue('analytics', new Analytics(context));
   state.analytics().logPath('/start').logEvent('LifeCycle', 'Started').send();
@@ -239,11 +245,11 @@ async function activate(context: vscode.ExtensionContext) {
     refreshAll: refresh.refreshAll,
     requireREPLUtilities: eval.requireREPLUtilitiesCommand,
     rereadUserConfigEdn: config.updateCalvaConfigFromUserConfigEdn,
-    rerunTests: () => testRunner.rerunTestsCommand(controller),
-    runAllTests: () => testRunner.runAllTestsCommand(controller),
+    rerunTests: () => testRunner.rerunTestsCommand(testController),
+    runAllTests: () => testRunner.runAllTestsCommand(testController),
     runCustomREPLCommand: snippets.evaluateCustomCodeSnippetCommand,
-    runNamespaceTests: () => testRunner.runNamespaceTestsCommand(controller),
-    runTestUnderCursor: () => testRunner.runTestUnderCursorCommand(controller),
+    runNamespaceTests: () => testRunner.runNamespaceTestsCommand(testController),
+    runTestUnderCursor: () => testRunner.runTestUnderCursorCommand(testController),
     selectCurrentForm: select.selectCurrentForm,
     sendCurrentFormToOutputWindow: outputWindow.appendCurrentForm,
     sendCurrentTopLevelFormToOutputWindow: outputWindow.appendCurrentTopLevelForm,
@@ -303,18 +309,18 @@ async function activate(context: vscode.ExtensionContext) {
 
   const languageProviders = {
     completionItemProvider: {
-      provider: new CalvaCompletionItemProvider(),
+      provider: new CalvaCompletionItemProvider(clientProvider),
     },
     definitionProvider: [
       {
-        provider: new definition.ClojureDefinitionProvider(),
+        provider: new definition.ClojureDefinitionProvider(clientProvider),
       },
       {
         provider: new definition.StackTraceDefinitionProvider(),
       },
     ],
     hoverProvider: {
-      provider: new HoverProvider(),
+      provider: new HoverProvider(clientProvider),
     },
     signatureHelpProvider: {
       provider: new CalvaSignatureHelpProvider(),
@@ -354,7 +360,7 @@ async function activate(context: vscode.ExtensionContext) {
         }
 
         if (testOnSave && util.getConnectedState()) {
-          void testRunner.runNamespaceTests(controller, document);
+          void testRunner.runNamespaceTests(testController, document);
           state.analytics().logEvent('Calva', 'OnSaveTest').send();
         }
       },
@@ -475,11 +481,11 @@ async function activate(context: vscode.ExtensionContext) {
   return api.getApi();
 }
 
-function deactivate(): Promise<void> | undefined {
+async function deactivate(): Promise<void> | undefined {
   state.analytics().logEvent('LifeCycle', 'Deactivated').send();
   jackIn.calvaJackout();
   paredit.deactivate();
-  return lsp.deactivate();
+  await lsp.getClientProvider().shutdown();
 }
 
 export { activate, deactivate };

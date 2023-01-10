@@ -161,8 +161,14 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
     setStateValue(PROJECT_DIR_KEY, path.resolve(uri.fsPath));
     setStateValue(PROJECT_DIR_URI_KEY, uri);
   } else {
-    const candidatePaths: vscode.Uri[] = await projectRoot.findProjectRoots();
-    const closestRootPath: vscode.Uri = await projectRoot.findClosestProjectRoot(candidatePaths);
+    const candidatePaths = await projectRoot.findProjectRootsWithReasons();
+    const active_uri = vscode.window.activeTextEditor?.document.uri;
+    const closestRootPath: vscode.Uri = active_uri
+      ? projectRoot.findClosestParent(
+          vscode.window.activeTextEditor?.document.uri,
+          candidatePaths.map((path) => path.uri)
+        )
+      : undefined;
     const projectRootPath: vscode.Uri = await projectRoot.pickProjectRoot(
       candidatePaths,
       closestRootPath

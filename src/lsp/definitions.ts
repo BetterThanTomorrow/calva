@@ -1,6 +1,7 @@
-// This file contains type definitions for LSP message payloads.
+// This file contains type definitions related to the language server protocol
+import * as vscode_lsp from 'vscode-languageclient/node';
 
-interface Position {
+export interface Position {
   line: number;
   character: number;
 }
@@ -34,3 +35,5 @@ export interface TestTreeParams {
 // specific knowledge of LSP, and also write the LSP client without any specific
 // knowledge of the testRunner code.
 export type TestTreeHandler = (tree: TestTreeParams) => void;
+
+export type LSPClientMap = Map<string, vscode_lsp.LanguageClient>;

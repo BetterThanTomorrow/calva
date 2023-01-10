@@ -3,7 +3,7 @@ import * as util from './utilities';
 import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as cider from './nrepl/cider';
-import * as lsp from './lsp/types';
+import * as lsp from './lsp/definitions';
 import * as namespace from './namespace';
 import { getSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
