@@ -1771,6 +1771,12 @@
         "enablement": "editorLangId == clojure && clojureLsp:active"
       },
       {
+        "command": "clojureLsp.refactor.moveForm",
+        "title": "Move form",
+        "category": "clojure-lsp Refactor",
+        "enablement": "editorLangId == clojure && clojureLsp:active"
+      },
+      {
         "command": "clojureLsp.refactor.threadFirst",
         "title": "Thread First",
         "category": "clojure-lsp Refactor",

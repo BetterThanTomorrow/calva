@@ -185,6 +185,7 @@ type ClojureLspCommand = {
   command: string;
   extraParamFn?: () => Thenable<string>;
   category?: string;
+  requireLocalFile?: boolean;
 };
 
 function makePromptForInput(placeHolder: string) {
@@ -194,6 +195,20 @@ function makePromptForInput(placeHolder: string) {
       placeHolder: placeHolder,
       validateInput: (input) => (input.trim() === '' ? 'Empty input' : null),
     });
+  };
+}
+
+function makeQuickPickForInput() {
+  return async () => {
+    const uris = await vscode.window.showOpenDialog({
+      canSelectFolders: false,
+      canSelectFiles: true,
+      canSelectMany: false,
+      openLabel: 'Select destination',
+      title: 'Select destination',
+      filters: { 'Clojure(Script)': ['clj', 'cljc', 'cljs', 'cljx'] },
+    });
+    return uris?.length > 0 ? uris[0].path : undefined;
   };
 }
 
@@ -255,6 +270,11 @@ const clojureLspCommands: ClojureLspCommand[] = [
     command: 'extract-function',
     extraParamFn: makePromptForInput('Function name'),
   },
+  {
+    command: 'move-form',
+    extraParamFn: makeQuickPickForInput(),
+    requireLocalFile: true,
+  },
 ];
 
 function sendCommandRequest(command: string, args: (number | string)[]): void {
@@ -284,9 +304,15 @@ function registerLspCommand(command: ClojureLspCommand): vscode.Disposable {
       const column = editor.selection.start.character;
       const docUri = `${document.uri.scheme}://${document.uri.path}`;
       const params = [docUri, line, column];
-      const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
-      if (!command.extraParamFn || (command.extraParamFn && extraParam)) {
-        sendCommandRequest(command.command, extraParam ? [...params, extraParam] : params);
+      if (command.requireLocalFile === true && document.uri.scheme !== 'file') {
+        await vscode.window.showErrorMessage('This function only works on local files');
+      } else {
+        const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
+        if (command.command === 'execute-lsp-command' && command.extraParamFn && extraParam) {
+          sendCommandRequest(extraParam, params);
+        } else if (!command.extraParamFn || (command.extraParamFn && extraParam)) {
+          sendCommandRequest(command.command, extraParam ? [...params, extraParam] : params);
+        }
       }
     }
   });
