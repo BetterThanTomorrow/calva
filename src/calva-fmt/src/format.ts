@@ -21,6 +21,7 @@ import { LispTokenCursor } from '../../cursor-doc/token-cursor';
 
 const FormatDepthDefaults = {
   deftype: 2,
+  defprotocol: 2,
 };
 
 export async function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
@@ -103,7 +104,7 @@ export async function formatPositionInfo(
   const cursor = getDocument(doc).getTokenCursor(index);
 
   const formatRange = _calculateFormatRange(extraConfig, cursor, index);
-  if (!formatRange?.includes(index)) {
+  if (!formatRange) {
     return;
   }
 
@@ -143,7 +144,16 @@ function _calculateFormatRange(
   index: number
 ) {
   const formatDepth = config?.['format-depth'] ?? _formatDepth(cursor);
-  return cursor.rangeForList(formatDepth) ?? cursor.rangeForCurrentForm(index);
+
+  const rangeForList = cursor.rangeForList(formatDepth);
+  if (rangeForList) {
+    return rangeForList;
+  }
+
+  const rangeForCurrentForm = cursor.rangeForCurrentForm(index);
+  if (rangeForCurrentForm?.includes(index)) {
+    return rangeForCurrentForm;
+  }
 }
 
 function _formatDepth(cursor: LispTokenCursor) {
