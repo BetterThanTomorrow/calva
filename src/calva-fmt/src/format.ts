@@ -21,6 +21,7 @@ import { LispTokenCursor } from '../../cursor-doc/token-cursor';
 
 const FormatDepthDefaults = {
   deftype: 2,
+  defprotocol: 2,
 };
 
 export async function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
