@@ -103,7 +103,7 @@ export async function formatPositionInfo(
   const cursor = getDocument(doc).getTokenCursor(index);
 
   const formatRange = _calculateFormatRange(extraConfig, cursor, index);
-  if (!formatRange?.includes(index)) {
+  if (!formatRange) {
     return;
   }
 
@@ -143,7 +143,16 @@ function _calculateFormatRange(
   index: number
 ) {
   const formatDepth = config?.['format-depth'] ?? _formatDepth(cursor);
-  return cursor.rangeForList(formatDepth) ?? cursor.rangeForCurrentForm(index);
+
+  const rangeForList = cursor.rangeForList(formatDepth);
+  if (rangeForList) {
+    return rangeForList;
+  }
+
+  const rangeForCurrentForm = cursor.rangeForCurrentForm(index);
+  if (rangeForCurrentForm?.includes(index)) {
+    return rangeForCurrentForm;
+  }
 }
 
 function _formatDepth(cursor: LispTokenCursor) {
