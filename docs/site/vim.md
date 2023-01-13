@@ -13,7 +13,7 @@ In general Calva's default key bindings are not very VI-ish.
 
 ### Expand selection on Mac
 
-Om Mac Calva binds **expand selection** to `ctrl+w`. This conflicts with the VIM Extension's default mapping of window splitting shortcuts. You'll need to remap it either with Calva or with the VIM Extension.
+On Mac, Calva binds **expand selection** to `ctrl+w`. This conflicts with the VIM Extension's default mapping of window splitting shortcuts. You'll need to remap it either with Calva or with the VIM Extension.
 
 ### The `esc` key
 
