@@ -71,7 +71,9 @@ function resultMessage(resultItem: Readonly<TestResult>): string {
   if (resultItem.message) {
     msg.push(resultItem.message);
   }
-  return `${msg.length > 0 ? stripTrailingNewlines(msg.join(': ')) : ''}`;
+  return `${
+    msg.length > 0 ? stripTrailingNewlines(msg.filter((m) => typeof m === 'string').join(': ')) : ''
+  }`;
 }
 
 // Given a summary, return a message suitable for printing in the REPL to show
