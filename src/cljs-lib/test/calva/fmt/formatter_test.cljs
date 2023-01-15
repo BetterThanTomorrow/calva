@@ -14,6 +14,9 @@
 
 baz)")
 
+(def deftype-all-text
+  "(deftype MyType [arg1 arg2]\n  IMyProto\n  (method1 [this]\n           (smth)))")
+
 (deftest format-text-at-idx
   (is (= "(defn bar
     [x]
@@ -28,6 +31,8 @@ baz)")
          (:range (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 5] :idx 2}))))
   (is (= "()"
          (:range-text (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 5] :idx 2}))))
+  (is (= "(deftype MyType [arg1 arg2]\n  IMyProto\n  (method1 [this]\n    (smth)))"
+         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text deftype-all-text :range [0 76] :idx 68}))))
   ;; TODO: Figure out why the extra space is not removed
   #_(is (= "a c"
          (:range-text (sut/format-text-at-idx {:eol "\n" :all-text "a  c" :range [0 4] :idx 2})))))

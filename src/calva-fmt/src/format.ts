@@ -17,6 +17,12 @@ import {
 } from '../../../out/cljs-lib/cljs-lib';
 import * as util from '../../utilities';
 import { isUndefined, cloneDeep } from 'lodash';
+import { LispTokenCursor } from '../../cursor-doc/token-cursor';
+
+const FormatDepthDefaults = {
+  deftype: 2,
+  defprotocol: 2,
+};
 
 export async function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
   const editor = util.getActiveTextEditor();
@@ -67,7 +73,7 @@ export async function formatRangeEdits(
       text,
       document.getText(),
       rangeTuple,
-      document.eol == 2 ? '\r\n' : '\n'
+      _convertEolNumToStringNotation(document.eol)
     );
     if (newText) {
       return [vscode.TextEdit.replace(range, newText)];
@@ -94,20 +100,14 @@ export async function formatPositionInfo(
   extraConfig = {}
 ) {
   const doc: vscode.TextDocument = editor.document;
-  const pos: vscode.Position = editor.selection.active;
-  const index = doc.offsetAt(pos);
-  const mirroredDoc: MirroredDocument = getDocument(doc);
-  const cursor = mirroredDoc.getTokenCursor(index);
-  const formatDepth = extraConfig['format-depth'] ? extraConfig['format-depth'] : 1;
-  const isComment = cursor.getFunctionName() === 'comment';
-  const config = { ...extraConfig, 'comment-form?': isComment };
-  let formatRange = cursor.rangeForList(formatDepth);
+  const index = doc.offsetAt(editor.selection.active);
+  const cursor = getDocument(doc).getTokenCursor(index);
+
+  const formatRange = _calculateFormatRange(extraConfig, cursor, index);
   if (!formatRange) {
-    formatRange = cursor.rangeForCurrentForm(index);
-    if (!formatRange || !formatRange.includes(index)) {
-      return;
-    }
+    return;
   }
+
   const formatted: {
     'range-text': string;
     range: number[];
@@ -116,9 +116,12 @@ export async function formatPositionInfo(
     doc.getText(),
     formatRange,
     index,
-    doc.eol == 2 ? '\r\n' : '\n',
+    _convertEolNumToStringNotation(doc.eol),
     onType,
-    config
+    {
+      ...extraConfig,
+      'comment-form?': cursor.getFunctionName() === 'comment',
+    }
   );
   const range: vscode.Range = new vscode.Range(
     doc.positionAt(formatted.range[0]),
@@ -133,6 +136,30 @@ export async function formatPositionInfo(
     previousIndex: index,
     newIndex: newIndex,
   };
+}
+
+function _calculateFormatRange(
+  config: { 'format-depth'?: number },
+  cursor: LispTokenCursor,
+  index: number
+) {
+  const formatDepth = config?.['format-depth'] ?? _formatDepth(cursor);
+
+  const rangeForList = cursor.rangeForList(formatDepth);
+  if (rangeForList) {
+    return rangeForList;
+  }
+
+  const rangeForCurrentForm = cursor.rangeForCurrentForm(index);
+  if (rangeForCurrentForm?.includes(index)) {
+    return rangeForCurrentForm;
+  }
+}
+
+function _formatDepth(cursor: LispTokenCursor) {
+  const cursorClone = cursor.clone();
+  cursorClone.backwardFunction(1);
+  return FormatDepthDefaults?.[cursorClone.getFunctionName()] ?? 1;
 }
 
 export async function formatPosition(
@@ -195,7 +222,7 @@ export function trimWhiteSpacePositionCommand(editor: vscode.TextEditor) {
 export async function formatCode(code: string, eol: number) {
   const d = {
     'range-text': code,
-    eol: eol == 2 ? '\r\n' : '\n',
+    eol: _convertEolNumToStringNotation(eol),
     config: await config.getConfig(),
   };
   const result = jsify(formatText(d));
@@ -248,4 +275,8 @@ async function _formatRange(
   if (!result['error']) {
     return result['range-text'];
   }
+}
+
+function _convertEolNumToStringNotation(eol: vscode.EndOfLine) {
+  return eol == 2 ? '\r\n' : '\n';
 }
