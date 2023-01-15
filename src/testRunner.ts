@@ -321,7 +321,6 @@ async function runNamespaceTests(controller: vscode.TestController, document: vs
   const session = getSession(util.getFileType(document));
   const currentDocNs = namespace.getNamespace(doc);
   await loadTestNS(currentDocNs, session);
-  // TODO: Write tests
   const namespacesToRunTestsFor = [
     currentDocNs,
     currentDocNs.endsWith('-test') ? currentDocNs.slice(0, -5) : currentDocNs + '-test',
