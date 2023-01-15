@@ -72,6 +72,8 @@ function resultMessage(resultItem: Readonly<TestResult>): string {
     msg.push(resultItem.message);
   }
   return `${
+    // We filter on typeof m === 'string' because a case has been seen in which the first element is actually an array instead of a string,
+    // which results in a string like ": <some message>".
     msg.length > 0 ? stripTrailingNewlines(msg.filter((m) => typeof m === 'string').join(': ')) : ''
   }`;
 }
