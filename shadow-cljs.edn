@@ -1,5 +1,4 @@
 {:deps true
-
  :builds       {:calva-lib
                 {:target    :node-library
                  :exports   {:formatText calva.fmt.formatter/format-text-bridge
@@ -26,5 +25,19 @@
                 {:target    :node-test
                  :output-to "out/cljs-lib/test/cljs-lib-tests.js"
                  :ns-regexp "-test$"
-                 :autorun   true}}}
+                 :autorun   true}
+                :extension
+                {:target :node-library
+                 :js-options {:js-provider :shadow
+                              ;; TODO: Test if this is necessary
+                              :keep-native-requires true
+                              ;; TODO: Test if this is necessary
+                              :keep-as-require #{"vscode"}}
+                 :compiler-options {:infer-externs :auto}
+                 :exports {:activate calva.extension/activate
+                           :deactivate calva.extension/deactivate}
+                 :output-dir "lib/js"
+                 :output-to "lib/main.js"
+                 :devtools {:before-load-async calva.extension/before-load-async
+                            :after-load calva.extension/after-load}}}}
 

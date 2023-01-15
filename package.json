@@ -73,7 +73,7 @@
     "workspaceContains:**/deps.edn",
     "onDebugResolve:type"
   ],
-  "main": "./out/extension",
+  "main": "./lib/main.js",
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": false,
@@ -934,6 +934,11 @@
       }
     ],
     "commands": [
+      {
+        "command": "calva.sayHello",
+        "category": "Calva",
+        "title": "Say Hello"
+      },
       {
         "command": "calva.startJoyrideReplAndConnect",
         "title": "Start Joyride REPL and Connect",
