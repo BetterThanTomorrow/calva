@@ -3,7 +3,7 @@ import { TextDecoder, TextEncoder } from 'util';
 import { prettyPrint } from '../out/cljs-lib/cljs-lib';
 import * as tokenCursor from './cursor-doc/token-cursor';
 import * as repl from './api/repl';
-import _ = require('lodash');
+import * as _ from 'lodash';
 import { isInteger } from 'lodash';
 
 export class NotebookProvider implements vscode.NotebookSerializer {

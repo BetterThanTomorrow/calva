@@ -7,7 +7,7 @@ import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
 import { readConfigEdn } from '../out/cljs-lib/cljs-lib';
 import * as state from './state';
-import _ = require('lodash');
+import * as _ from 'lodash';
 import { isDefined } from './utilities';
 
 const REPL_FILE_EXT = 'calva-repl';

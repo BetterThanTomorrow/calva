@@ -1,5 +1,10 @@
 (ns calva.extension
-  (:require ["vscode" :as vscode :refer [window]]))
+  (:require ["vscode" :as vscode :refer [window]]
+            ["/foo" :as foo]))
+
+(comment
+  (.. foo (hello))
+  :rcf)
 
 (defonce current-context (atom nil))
 (defonce disposables (atom []))

@@ -6,4 +6,5 @@
         #_#_org.clojars.liverm0r/dartclojure {:local/root "../DartClojure"}}
  :paths ["src/cljs-lib/src"
          "src/cljs-lib/test"
-         "src"]}
+         "src"
+         "out"]}

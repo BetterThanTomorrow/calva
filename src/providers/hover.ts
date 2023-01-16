@@ -7,7 +7,7 @@ import * as clojureDocs from '../clojuredocs';
 import { getConfig } from '../config';
 import { evaluateSnippet } from '../custom-snippets';
 import * as getText from '../util/get-text';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 export async function provideHover(document: vscode.TextDocument, position: vscode.Position) {
   if (util.getConnectedState()) {

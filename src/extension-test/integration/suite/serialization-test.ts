@@ -1,11 +1,11 @@
-import assert = require('assert');
+import * as assert from 'assert';
 import * as fsPromises from 'fs/promises';
-import path = require('path');
+import * as path from 'path';
 import * as testUtil from './util';
 import { NotebookProvider } from '../../../NotebookProvider';
 import { before, after } from 'mocha';
 import { serialize } from 'v8';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 const tester = new NotebookProvider();
 const suiteName = 'notebook';
