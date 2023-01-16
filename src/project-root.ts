@@ -5,6 +5,9 @@ import * as path from 'path';
 export type ProjectRoot = {
   uri: vscode.Uri;
   reason: string;
+
+  workspace_root?: boolean;
+  valid_project?: boolean;
 };
 
 export const rootToUri = (root_or_uri: ProjectRoot | vscode.Uri) => {
@@ -44,6 +47,7 @@ export async function findProjectRootsWithReasons(params?: FindRootParams) {
       return {
         uri: f.uri,
         reason: 'Workspace Root',
+        workspace_root: true,
       };
     });
     rootPaths.push(...wsRootPaths);
@@ -54,6 +58,7 @@ export async function findProjectRootsWithReasons(params?: FindRootParams) {
     return {
       uri: dir,
       reason: path.basename(uri.path),
+      valid_project: true,
     };
   });
   rootPaths.push(...projectFilePaths);
@@ -62,6 +67,8 @@ export async function findProjectRootsWithReasons(params?: FindRootParams) {
     const existing = roots.find(({ uri }) => root.uri.path === uri.path);
     if (existing) {
       existing.reason = `${existing.reason}, ${root.reason}`;
+      existing.workspace_root = root.workspace_root ? true : existing.workspace_root;
+      existing.valid_project = root.valid_project ? true : existing.valid_project;
       return roots;
     }
     roots.push(root);

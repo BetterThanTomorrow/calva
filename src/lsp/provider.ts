@@ -35,7 +35,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
   const clients = new Map<string, vscode_lsp.LanguageClient>();
 
   const status_bar_item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
-  status_bar_item.command = 'calva.clojureLsp.showClojureLspMenu';
+  status_bar_item.command = 'calva.clojureLsp.manage';
 
   const updateStatusBar = () => {
     const active_editor = vscode.window.activeTextEditor?.document;

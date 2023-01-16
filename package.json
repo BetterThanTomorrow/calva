@@ -973,7 +973,6 @@
       {
         "command": "calva.clojureLsp.download",
         "title": "Download the configured Clojure LSP Server version",
-        "enablement": "!clojureLsp:active",
         "category": "Calva Clojure LSP"
       },
       {
@@ -989,6 +988,11 @@
       {
         "command": "calva.clojureLsp.restart",
         "title": "Restart the Clojure LSP Server",
+        "category": "Calva Clojure LSP"
+      },
+      {
+        "command": "calva.clojureLsp.manage",
+        "title": "Manage Clojure LSP Servers",
         "category": "Calva Clojure LSP"
       },
       {

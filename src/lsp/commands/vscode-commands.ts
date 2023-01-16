@@ -11,9 +11,12 @@ export const filterOutRootsWithClients = (
   clients: defs.LSPClientMap
 ) => {
   return uris.filter((root) => {
-    return !clients.has(root.uri.path);
+    const client = clients.get(root.uri.path);
+    return !client || client.state === vscode_lsp.State.Stopped;
   });
 };
+
+type StartHandler = (uri: vscode.Uri) => Promise<void>;
 
 /**
  * Handle the start lsp command.
@@ -22,30 +25,26 @@ export const filterOutRootsWithClients = (
  * root they would like to start an LSP server under. All clojure files at and below this root will be served by
  * this LSP client.
  */
-const startHandler = async (
-  clients: defs.LSPClientMap,
-  handler: (uri: vscode.Uri) => Promise<void>
-) => {
+const startHandler = async (clients: defs.LSPClientMap, handler: StartHandler, uri?: string) => {
+  if (uri) {
+    await handler(vscode.Uri.parse(uri));
+    return;
+  }
+
   const document = vscode.window.activeTextEditor?.document;
   if (!document || document.languageId !== 'clojure') {
     return;
   }
 
-  // Find the furthest valid root, excluding workspace folders (unless they are also valid roots).
-  const valid_project_roots = await project_utils
-    .findProjectRootsWithReasons({
-      include_workspace_folders: false,
-    })
-    .then((roots) => {
-      return filterOutRootsWithClients(roots, clients).map((root) => root.uri);
-    });
-  const selected = project_utils.findFurthestParent(document.uri, valid_project_roots);
-
   const roots = await project_utils.findProjectRootsWithReasons().then((roots) => {
     return filterOutRootsWithClients(roots, clients);
   });
+  const pre_selected = project_utils.findFurthestParent(
+    document.uri,
+    roots.filter((root) => root.valid_project).map((root) => root.uri)
+  );
 
-  const selected_root = await project_utils.pickProjectRoot(roots, selected);
+  const selected_root = await project_utils.pickProjectRoot(roots, pre_selected);
   if (!selected_root) {
     return;
   }
@@ -53,14 +52,12 @@ const startHandler = async (
   await handler(selected_root);
 };
 
-const pickClient = async (
-  clients: defs.LSPClientMap
-): Promise<undefined | [string, vscode_lsp.LanguageClient]> => {
+const pickClient = async (clients: defs.LSPClientMap) => {
   if (clients.size === 0) {
     return;
   }
   if (clients.size === 1) {
-    return Array.from(clients.entries())[0];
+    return Array.from(clients.keys())[0];
   }
   const choices = Array.from(clients.keys()).map((uri) => {
     return {
@@ -68,48 +65,47 @@ const pickClient = async (
     };
   });
   const selected_client = await vscode.window.showQuickPick(choices, { title: 'clojure-lsp' });
-  if (!selected_client) {
-    return;
-  }
-  return [selected_client.label, clients.get(selected_client.label)];
+  return selected_client?.label;
 };
 
-const stopHandler = async (clients: defs.LSPClientMap) => {
-  const res = await pickClient(clients);
-  if (!res) {
-    return;
-  }
-  const [id, client] = res;
-  client?.stop().catch((err) => {
+const stopClient = (clients: defs.LSPClientMap, id: string) => {
+  const client = clients.get(id);
+  clients.delete(id);
+  return client?.stop().catch((err) => {
     console.error(`Failed to stop client ${id}`, err);
   });
+};
+
+const stopHandler = async (clients: defs.LSPClientMap, uri?: string) => {
+  if (uri) {
+    void stopClient(clients, uri);
+    return;
+  }
+  const id = await pickClient(clients);
+  if (!id) {
+    return;
+  }
+  void stopClient(clients, id);
 };
 
 const restartHandler = async (
   clients: defs.LSPClientMap,
-  startHandler: (uri: vscode.Uri) => Promise<void>
+  startHandler: (uri: vscode.Uri) => Promise<void>,
+  uri?: string
 ) => {
-  const res = await pickClient(clients);
-  if (!res) {
+  const id = uri ? uri : await pickClient(clients);
+  if (!id) {
     return;
   }
-  const [id, client] = res;
 
-  await client?.stop().catch((err) => {
-    console.error(`Failed to stop client ${id}`, err);
-  });
-
+  await stopClient(clients, id);
   clients.delete(id);
 
   await startHandler(vscode.Uri.parse(id));
 };
 
-async function serverInfoHandler(clients: defs.LSPClientMap) {
-  const res = await pickClient(clients);
-  if (!res) {
-    return;
-  }
-  const [, client] = res;
+async function showServerInfo(clients: defs.LSPClientMap, id: string) {
+  const client = clients.get(id);
 
   const serverInfo = await api.getServerInfo(client);
   const calvaSaysChannel = state.outputChannel();
@@ -119,93 +115,252 @@ async function serverInfoHandler(clients: defs.LSPClientMap) {
   calvaSaysChannel.show(true);
 }
 
-async function openLogFileHandler(clients: defs.LSPClientMap) {
-  const res = await pickClient(clients);
-  if (!res) {
-    return;
-  }
-  const [, client] = res;
+async function openLogFile(clients: defs.LSPClientMap, id: string) {
+  const client = clients.get(id);
 
   const serverInfo = await api.getServerInfo(client);
   const logPath = serverInfo['log-path'];
   void vscode.window.showTextDocument(vscode.Uri.file(logPath));
 }
 
+const downloadServerHandler = async (context: vscode.ExtensionContext) => {
+  void vscode.window.showInformationMessage(`Downloading clojure-lsp server binary...`);
+  const path = await downloader.ensureLSPServer(context, true);
+  void vscode.window.showInformationMessage(`Downloaded clojure-lsp to: ${path}`);
+};
+
 function configureTraceLogLevelHandler() {
   void vscode.commands.executeCommand('workbench.action.openSettings', 'clojure.trace.server');
 }
 
-const showMenuHandler = async () => {
-  const items = [
-    {
-      label: 'Start',
-      description: 'Start a clojure-lsp server at a directory',
-      value: 'calva.clojureLsp.start',
-    },
-    {
-      label: 'Stop',
-      description: 'Stop a running clojure-lsp server',
-      value: 'calva.clojureLsp.stop',
-    },
-    {
-      label: 'Restart',
-      description: 'Restart a running clojure-lsp server',
-      value: 'calva.clojureLsp.restart',
-    },
-    {
-      label: 'Show server info',
-      description: 'Print clojure-lsp server info to `Calva says`',
-      value: 'calva.diagnostics.clojureLspServerInfo',
-    },
-    {
-      label: 'Open log',
-      description: 'Open the clojure-lsp log file',
-      value: 'calva.diagnostics.openClojureLspLogFile',
-    },
-    {
-      label: 'Open Trace Level Settings',
-      description: 'Opens the client/server trace level in VS Code Settings',
-      value: 'calva.diagnostics.showLspTraceLevelSettings',
-    },
-  ];
+const manageHandler = async (
+  clients: defs.LSPClientMap,
+  start: StartHandler,
+  context: vscode.ExtensionContext
+) => {
+  const document = vscode.window.activeTextEditor?.document;
+  const roots = await project_utils.findProjectRootsWithReasons();
+  let pre_selected: vscode.Uri | undefined;
+  if (document) {
+    pre_selected = project_utils.findClosestParent(
+      document.uri,
+      roots.filter((root) => root.valid_project).map((root) => root.uri)
+    );
+  }
 
-  const choice = await vscode.window.showQuickPick(items, { title: 'clojure-lsp' });
+  const inactive_roots = await project_utils.findProjectRootsWithReasons().then((roots) => {
+    return filterOutRootsWithClients(roots, clients).map((root) => {
+      return {
+        label: `$(circle-outline) ${root.uri.path}`,
+        value: root.uri.path,
+        detail: root.reason,
+        active: false,
+      };
+    });
+  });
+
+  const active_roots = Array.from(clients.entries())
+    .filter(([, client]) => client.state !== vscode_lsp.State.Stopped)
+    .map(([key, client]) => {
+      let icon = '$(circle-filled)';
+      if (client.state === vscode_lsp.State.Starting) {
+        icon = '$(sync~spin)';
+      }
+
+      return {
+        label: `${icon} ${key}`,
+        value: key,
+        active: true,
+      };
+    });
+
+  type Choice = vscode.QuickPickItem & { value?: string; active?: boolean };
+  const choices: Choice[] = [];
+
+  if (active_roots.length > 0) {
+    choices.push(
+      {
+        label: 'Active',
+        kind: vscode.QuickPickItemKind.Separator,
+      },
+      ...active_roots
+    );
+  }
+
+  if (inactive_roots.length > 0) {
+    choices.push(
+      {
+        label: 'Inactive',
+        kind: vscode.QuickPickItemKind.Separator,
+      },
+      ...inactive_roots
+    );
+  }
+
+  choices.push(
+    {
+      label: 'General',
+      kind: vscode.QuickPickItemKind.Separator,
+    },
+    {
+      label: 'Open trace level settings',
+      value: '::trace-settings',
+    }
+  );
+  if (active_roots.length === 0) {
+    choices.push({
+      label: 'Download latest clojure-lsp version',
+      value: '::download',
+    });
+  }
+
+  const picker = vscode.window.createQuickPick();
+  picker.items = choices;
+  picker.title = 'clojure-lsp';
+  picker.placeholder = 'Pick a Clojure project';
+
+  if (pre_selected) {
+    picker.activeItems = choices.filter((choice) => {
+      return choice.value === pre_selected?.path;
+    });
+  }
+
+  picker.show();
+
+  const choice = await new Promise<Choice | undefined>((resolve) => {
+    picker.onDidAccept(() => resolve(picker.selectedItems[0]));
+    picker.onDidHide(() => resolve(undefined));
+  });
+
+  picker.dispose();
+
   if (!choice) {
     return;
   }
 
-  await vscode.commands.executeCommand(choice.value);
+  switch (choice.value) {
+    case '::download': {
+      void downloadServerHandler(context).catch((err) => console.error(err));
+      return;
+    }
+    case '::trace-settings': {
+      configureTraceLogLevelHandler();
+      return;
+    }
+  }
+
+  const action_choices: Array<vscode.QuickPickItem & { value: string }> = [];
+  if (choice.active) {
+    action_choices.push(
+      {
+        label: 'Stop',
+        value: '::stop',
+      },
+      {
+        label: 'Restart',
+        value: '::restart',
+      },
+      {
+        label: 'Show server info',
+        value: '::info',
+      },
+      {
+        label: 'Show server logs',
+        value: '::logs',
+      }
+    );
+  } else {
+    action_choices.push({
+      label: 'Start',
+      value: '::start',
+    });
+  }
+
+  const action = await vscode.window.showQuickPick(action_choices, {
+    title: `clojure-lsp: ${choice.value}`,
+  });
+  if (!action) {
+    return;
+  }
+
+  switch (action.value) {
+    case '::start': {
+      void start(vscode.Uri.parse(choice.value));
+      return;
+    }
+    case '::stop': {
+      void stopClient(clients, choice.value);
+      return;
+    }
+    case '::restart': {
+      await stopClient(clients, choice.value);
+      clients.delete(choice.value);
+
+      void start(vscode.Uri.parse(choice.value));
+      return;
+    }
+    case '::info': {
+      showServerInfo(clients, choice.value).catch((err) => console.error(err));
+      return;
+    }
+    case '::logs': {
+      openLogFile(clients, choice.value).catch((err) => console.error(err));
+      return;
+    }
+  }
 };
+
+async function showServerInfoHandler(clients: defs.LSPClientMap) {
+  const id = await pickClient(clients);
+  if (!id) {
+    return;
+  }
+  return showServerInfo(clients, id);
+}
+
+async function openLogFileHandler(clients: defs.LSPClientMap) {
+  const id = await pickClient(clients);
+  if (!id) {
+    return;
+  }
+  return openLogFile(clients, id);
+}
 
 type RegisterCommandsParams = {
   clients: defs.LSPClientMap;
   context: vscode.ExtensionContext;
-  handleStartRequest: (uri: vscode.Uri) => Promise<void>;
+  handleStartRequest: StartHandler;
 };
 export const registerVSCodeCommands = (params: RegisterCommandsParams) => {
   return [
-    vscode.commands.registerCommand('calva.clojureLsp.start', () => {
-      startHandler(params.clients, params.handleStartRequest).catch((err) =>
+    vscode.commands.registerCommand('calva.clojureLsp.start', (uri) => {
+      startHandler(params.clients, params.handleStartRequest, uri).catch((err) =>
         console.error('Failed to run start command', err)
       );
     }),
-    vscode.commands.registerCommand('calva.clojureLsp.stop', () => {
-      stopHandler(params.clients).catch((err) => console.error('Failed to run stop command', err));
+    vscode.commands.registerCommand('calva.clojureLsp.stop', (uri) => {
+      stopHandler(params.clients, uri).catch((err) =>
+        console.error('Failed to run stop command', err)
+      );
     }),
-    vscode.commands.registerCommand('calva.clojureLsp.restart', () => {
-      restartHandler(params.clients, params.handleStartRequest).catch((err) =>
+    vscode.commands.registerCommand('calva.clojureLsp.restart', (uri) => {
+      restartHandler(params.clients, params.handleStartRequest, uri).catch((err) =>
         console.error('Failed to run restart command', err)
       );
     }),
 
-    vscode.commands.registerCommand('calva.clojureLsp.download', async () => {
-      void vscode.window.showInformationMessage(`Downloading clojure-lsp server binary...`);
-      const version = await downloader.ensureLSPServer(params.context, true);
-      void vscode.window.showInformationMessage(`Downloaded clojure-lsp version: ${version}`);
+    vscode.commands.registerCommand('calva.clojureLsp.manage', () => {
+      manageHandler(params.clients, params.handleStartRequest, params.context).catch((err) =>
+        console.error('Failed to run manage command', err)
+      );
+    }),
+
+    vscode.commands.registerCommand('calva.clojureLsp.download', () => {
+      void downloadServerHandler(params.context);
     }),
 
     vscode.commands.registerCommand('calva.diagnostics.clojureLspServerInfo', () => {
-      serverInfoHandler(params.clients).catch((err) =>
+      showServerInfoHandler(params.clients).catch((err) =>
         console.error('Failed to run server info command', err)
       );
     }),
@@ -220,9 +375,5 @@ export const registerVSCodeCommands = (params: RegisterCommandsParams) => {
       'calva.diagnostics.showLspTraceLevelSettings',
       configureTraceLogLevelHandler
     ),
-
-    vscode.commands.registerCommand('calva.clojureLsp.showClojureLspMenu', () => {
-      showMenuHandler().catch((err) => console.error('Failed to run lsp menu', err));
-    }),
   ];
 };
