@@ -170,9 +170,19 @@
             "default": false
           },
           "calva.enableClojureLspOnStart": {
-            "type": "boolean",
-            "markdownDescription": "**Recommended**: Start [clojure-lsp](https://calva.io/clojure-lsp/) automatically when Clojure files are opened",
-            "default": true
+            "type": "string",
+            "enum": [
+              "when-workspace-opened-use-workspace-root",
+              "when-file-opened-use-furthest-project",
+              "never"
+            ],
+            "enumDescriptions": [
+              "Start clojure-lsp automatically when a workspace containing a Clojure project is opened. The server will be started with its project root set to the workspace root. Best option for many single-Clojure-project workspaces and Polylith-like projects.",
+              "Start clojure-lsp automatically when a Clojure file is opened. The server will be started with its project root set to the project found furthest from the opened file. Best option for many monorepos with several Clojure projects.",
+              "Don't start clojure-lsp automatically. You can always start clojure-lsp at will via the  command palette or from the statusbar. Good option in multi-project workspaces where you want to start a clojure-lsp for a particular project. Also useful if you are running on a machine with limited resources, like a Raspberry Pi."
+            ],
+            "markdownDescription": "Determines if clojure-lsp should start automatically, and what triggers it. See [calva.io/clojure-lsp](https://calva.io/clojure-lsp/) for info about how using clojure-lsp with Calva.",
+            "default": "when-workspace-opened-use-workspace-root"
           },
           "calva.prettyPrintingOptions": {
             "type": "object",

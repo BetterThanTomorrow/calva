@@ -6,6 +6,7 @@ import * as status_bar from './status-bar';
 import * as commands from './commands';
 import * as lsp_client from './client';
 import * as defs from './definitions';
+import * as config from './config';
 import * as state from '../state';
 import * as queue from './queue';
 import * as utils from './utils';
@@ -60,8 +61,6 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
 
     status_bar.updateStatusBar(status_bar_item, status_bar.lspClientStateToStatus(client.state));
   };
-
-  const config = vscode.workspace.getConfiguration('calva');
 
   /**
    * Newly opened documents are added to a queue and processed synchronously. This is to prevent multiple LSP clients being
@@ -156,16 +155,25 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
       // Provision new LSP clients when clojure files are opened and for all already opened clojure files.
       params.context.subscriptions.push(
         vscode.workspace.onDidOpenTextDocument((document) => {
-          if (config.get<boolean>('enableClojureLspOnStart')) {
+          if (config.getAutoStartBehaviour() === config.AutoStartBehaviour.FileOpened) {
             void provision_queue.push(document).catch((err) => console.error(err));
           }
         })
       );
-      const auto_start = config.get<boolean>('enableClojureLspOnStart');
-      if (auto_start) {
-        vscode.workspace.textDocuments.forEach((document) => {
-          void provision_queue.push(document).catch((err) => console.error(err));
-        });
+
+      switch (config.getAutoStartBehaviour()) {
+        case config.AutoStartBehaviour.WorkspaceOpened: {
+          vscode.workspace.workspaceFolders.forEach((folder) => {
+            void provision_queue.push(folder.uri).catch((err) => console.error(err));
+          });
+          break;
+        }
+        case config.AutoStartBehaviour.FileOpened: {
+          vscode.workspace.textDocuments.forEach((document) => {
+            void provision_queue.push(document).catch((err) => console.error(err));
+          });
+          break;
+        }
       }
 
       params.context.subscriptions.push(
@@ -189,6 +197,12 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
               }
             });
           });
+
+          if (config.getAutoStartBehaviour() === config.AutoStartBehaviour.WorkspaceOpened) {
+            event.added.forEach((folder) => {
+              void provision_queue.push(folder.uri).catch((err) => console.error(err));
+            });
+          }
         })
       );
 
