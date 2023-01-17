@@ -71,7 +71,11 @@ function resultMessage(resultItem: Readonly<TestResult>): string {
   if (resultItem.message) {
     msg.push(resultItem.message);
   }
-  return `${msg.length > 0 ? stripTrailingNewlines(msg.join(': ')) : ''}`;
+  return `${
+    // We filter on typeof m === 'string' because a case has been seen in which the first element is actually an array instead of a string,
+    // which results in a string like ": <some message>".
+    msg.length > 0 ? stripTrailingNewlines(msg.filter((m) => typeof m === 'string').join(': ')) : ''
+  }`;
 }
 
 // Given a summary, return a message suitable for printing in the REPL to show

@@ -293,7 +293,11 @@ async function runNamespaceTestsImpl(
 
   const session = getSession(util.getFileType(document));
 
-  outputWindow.appendLine(`; Running tests for ${nss[0]}...`);
+  outputWindow.appendLine(
+    `; Running tests for the following namespaces:\n${
+      nss.map((item) => `;   ${item}`).join('\n') + '\n'
+    }`
+  );
 
   const resultPromises = nss.map((ns) => {
     return session.testNs(ns);
@@ -315,9 +319,13 @@ async function runNamespaceTests(controller: vscode.TestController, document: vs
     return;
   }
   const session = getSession(util.getFileType(document));
-  const ns = namespace.getNamespace(doc);
-  await loadTestNS(ns, session);
-  void runNamespaceTestsImpl(controller, document, [ns]);
+  const currentDocNs = namespace.getNamespace(doc);
+  await loadTestNS(currentDocNs, session);
+  const namespacesToRunTestsFor = [
+    currentDocNs,
+    currentDocNs.endsWith('-test') ? currentDocNs.slice(0, -5) : currentDocNs + '-test',
+  ];
+  void runNamespaceTestsImpl(controller, document, namespacesToRunTestsFor);
 }
 
 function getTestUnderCursor() {
