@@ -143,7 +143,7 @@ export const createClient = async (params: CreateClientParams) => {
           };
         },
       },
-      progressOnInitialization: true,
+      progressOnInitialization: false,
       initializationOptions: {
         'dependency-scheme': 'jar',
         'auto-add-ns-to-new-files?': true,
