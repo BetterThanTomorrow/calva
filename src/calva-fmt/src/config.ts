@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as filesCache from '../../files-cache';
-import * as cljsLib from '../../../out/cljs-lib/cljs-lib.js';
+import * as cljsLib from '../../cljs-lib/out/cljs-lib.js';
 import * as lsp from '../../lsp/main';
 const defaultCljfmtContent =
   '\

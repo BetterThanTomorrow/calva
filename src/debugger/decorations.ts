@@ -5,7 +5,7 @@ import * as _ from 'lodash';
 import { NReplSession } from '../nrepl';
 import * as util from '../utilities';
 import lsp from '../lsp/main';
-import { getStateValue } from '../../out/cljs-lib/cljs-lib';
+import { getStateValue } from '../cljs-lib/out/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
 
 let enabled = false;

@@ -5,7 +5,7 @@ import * as path from 'path';
 import { customREPLCommandSnippet } from './evaluate';
 import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
-import { readConfigEdn } from '../out/cljs-lib/cljs-lib';
+import { readConfigEdn } from './cljs-lib/out/cljs-lib';
 import * as state from './state';
 import * as _ from 'lodash';
 import { isDefined } from './utilities';

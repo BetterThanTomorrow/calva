@@ -20,7 +20,7 @@ import { formatAsLineComments } from './results-output/util';
 import { evaluateInOutputWindow } from './evaluate';
 import * as liveShareSupport from './live-share';
 import * as calvaDebug from './debugger/calva-debug';
-import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
+import { setStateValue, getStateValue } from './cljs-lib/out/cljs-lib';
 import * as replSession from './nrepl/repl-session';
 import * as clojureDocs from './clojuredocs';
 import * as jszip from 'jszip';

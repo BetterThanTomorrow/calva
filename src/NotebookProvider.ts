@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { TextDecoder, TextEncoder } from 'util';
-import { prettyPrint } from '../out/cljs-lib/cljs-lib';
+import { prettyPrint } from './cljs-lib/out/cljs-lib';
 import * as tokenCursor from './cursor-doc/token-cursor';
 import * as repl from './api/repl';
 import * as _ from 'lodash';

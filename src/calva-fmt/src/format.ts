@@ -14,7 +14,7 @@ import {
   formatText,
   cljify,
   jsify,
-} from '../../../out/cljs-lib/cljs-lib';
+} from '../../cljs-lib/out/cljs-lib.js';
 import * as util from '../../utilities';
 import { isUndefined, cloneDeep } from 'lodash';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';

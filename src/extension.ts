@@ -32,7 +32,7 @@ import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
 import lsp from './lsp/main';
-import { setStateValue } from '../out/cljs-lib/cljs-lib';
+import { setStateValue } from './cljs-lib/out/cljs-lib';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';

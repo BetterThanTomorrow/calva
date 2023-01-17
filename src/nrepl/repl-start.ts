@@ -8,7 +8,7 @@ import * as jackIn from './jack-in';
 import * as outputWindow from '../results-output/results-doc';
 import { getConfig } from '../config';
 import * as replSession from './repl-session';
-import * as cljsLib from '../../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../cljs-lib/out/cljs-lib';
 import { ReplConnectSequence } from './connectSequence';
 import * as clojureLsp from '../lsp/main';
 import * as calvaConfig from '../config';

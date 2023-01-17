@@ -3,7 +3,7 @@ import * as state from './state';
 import * as util from './utilities';
 import * as config from './config';
 import status from './status';
-import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import { getStateValue } from './cljs-lib/out/cljs-lib';
 import { getSession, getReplSessionTypeFromState } from './nrepl/repl-session';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);

@@ -10,7 +10,7 @@ import debugDecorations from '../debugger/decorations';
 import * as outputWindow from '../results-output/results-doc';
 import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
-import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
+import { getStateValue, prettyPrint } from '../cljs-lib/out/cljs-lib';
 import { getConfig } from '../config';
 import { log, Direction } from './logging';
 

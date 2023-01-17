@@ -7,7 +7,7 @@ import * as pprint from '../printer';
 import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
-import { getStateValue, parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
+import { getStateValue, parseForms, parseEdn } from '../cljs-lib/out/cljs-lib';
 import * as joyride from '../joyride';
 
 export const isWin = /^win/.test(process.platform);

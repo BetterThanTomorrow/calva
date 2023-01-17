@@ -7,7 +7,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
 import * as outputWindow from './results-output/results-doc';
-import * as cljsLib from '../out/cljs-lib/cljs-lib';
+import * as cljsLib from './cljs-lib/out/cljs-lib';
 import * as url from 'url';
 import { isUndefined } from 'lodash';
 import { isNullOrUndefined } from 'util';

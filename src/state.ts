@@ -3,7 +3,7 @@ import Analytics from './analytics';
 import * as util from './utilities';
 import * as path from 'path';
 import * as child from 'child_process';
-import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
+import { getStateValue, setStateValue } from './cljs-lib/out/cljs-lib';
 import * as projectRoot from './project-root';
 
 let extensionContext: vscode.ExtensionContext;

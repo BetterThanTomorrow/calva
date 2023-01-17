@@ -14,7 +14,7 @@ import {
 } from 'vscode-languageclient/node';
 import * as util from '../utilities';
 import * as config from '../config';
-import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
+import { setStateValue, getStateValue } from '../cljs-lib/out/cljs-lib';
 import { downloadClojureLsp, getLatestVersion } from './download';
 import { readVersionFile, getClojureLspPath } from './utilities';
 import { TestTreeHandler, TestTreeParams } from './types';
