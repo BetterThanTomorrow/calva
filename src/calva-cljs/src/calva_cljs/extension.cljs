@@ -1,4 +1,4 @@
-(ns calva.extension
+(ns calva-cljs.extension
   (:require ["vscode" :as vscode :refer [window]]
             ["/foo" :as foo]))
 

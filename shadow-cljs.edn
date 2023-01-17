@@ -34,10 +34,10 @@
                               ;; TODO: Test if this is necessary
                               :keep-as-require #{"vscode"}}
                  :compiler-options {:infer-externs :auto}
-                 :exports {:activate calva.extension/activate
-                           :deactivate calva.extension/deactivate}
+                 :exports {:activate calva-cljs.extension/activate
+                           :deactivate calva-cljs.extension/deactivate}
                  :output-dir "lib/js"
                  :output-to "lib/main.js"
-                 :devtools {:before-load-async calva.extension/before-load-async
-                            :after-load calva.extension/after-load}}}}
+                 :devtools {:before-load-async calva-cljs.extension/before-load-async
+                            :after-load calva-cljs.extension/after-load}}}}
 

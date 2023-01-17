@@ -91,3 +91,6 @@ src/calva-fmt/atom-language-clojure/.bash_history
 
 # Leiningen
 .lein-repl-history
+
+# Portal
+.portal
