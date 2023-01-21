@@ -9,11 +9,7 @@
             [clojure.java.shell :as shell]))
 
 (def changelog-filename "CHANGELOG.md")
-(def changelog-text (slurp changelog-filename))
 (def unreleased-header-re #"\[Unreleased\]\s+")
-(def calva-version (-> (slurp "package.json")
-                       json/parse-string
-                       (get "version")))
 
 (defn get-unreleased-changelog-text
   [changelog-text unreleased-header-re]
@@ -74,14 +70,18 @@
       (not up-to-date) (conj :not-up-to-date)
       (not clean) (conj :branch-not-clean))))
 
-(defn publish []
-  (tag calva-version)
+(defn publish [version]
+  (tag version)
   (push)
   (println "Open to follow the progress of the release:")
   (println "  https://app.circleci.com/pipelines/github/BetterThanTomorrow/calva"))
 
 (when (= *file* (System/getProperty "babashka.file"))
-  (let [unreleased-changelog-text (get-unreleased-changelog-text
+  (let [changelog-text (slurp changelog-filename)
+        calva-version (-> (slurp "package.json")
+                          json/parse-string
+                          (get "version"))
+        unreleased-changelog-text (get-unreleased-changelog-text
                                    changelog-text
                                    unreleased-header-re)
         status (git-status)]
@@ -98,11 +98,11 @@
           (println "Aborting publish.")
           (System/exit 0))))
     (if (empty? unreleased-changelog-text)
-      (publish)
+      (publish calva-version)
       (let [updated-changelog-text (new-changelog-text changelog-text
                                                        unreleased-header-re
                                                        calva-version)]
         (spit changelog-filename updated-changelog-text)
         (commit-changelog changelog-filename
                           (str "Add changelog section for v" calva-version " [skip ci]"))
-        (publish)))))
+        (publish calva-version)))))
