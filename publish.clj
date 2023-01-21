@@ -93,7 +93,7 @@
         (print "There are no unreleased changes in the changelog."))
       (println "Release anyway? YES/NO: ")
       (flush)
-      (let [answer (read)]
+      (let [answer (str (read))]
         (when-not (= "YES" answer)
           (println "Aborting publish.")
           (System/exit 0))))
