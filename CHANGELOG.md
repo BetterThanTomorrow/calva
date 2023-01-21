@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.325] - 2023-01-21
+
 - Fix: [Setting calva.testOnSave broken: no tests found](https://github.com/BetterThanTomorrow/calva/issues/2005)
 
 ## [2.0.324] - 2023-01-15
