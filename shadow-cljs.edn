@@ -20,7 +20,7 @@
                              :js2cljs calva.js2cljs.converter/convert-bridge
                              :dart2clj calva.dartclojure/convert-bridge
                              :readConfigEdn calva.read-config/config-edn->js-bridge}
-                 :output-to "src/cljs-lib/out/cljs-lib.js"}
+                 :output-to "out/cljs-lib/out/cljs-lib.js"}
                 :test
                 {:target    :node-test
                  ;; TODO: Change this to match cljs-lib output location
