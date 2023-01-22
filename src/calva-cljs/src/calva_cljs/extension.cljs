@@ -4,7 +4,9 @@
             #_["/utilities" :as util]))
 
 (comment
-  ;;(.. foo (hello))
+  (.. foo (hello))
+  (.. foo (platform))
+  (.. foo (showMessage "hello worlddddd"))
   :rcf)
 
 (defonce current-context (atom nil))

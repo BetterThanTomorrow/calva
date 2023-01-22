@@ -15,13 +15,19 @@
     // "noUnusedParameters": true,            /* Report errors on unused parameters. */
     // "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
     // "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
-    "module": "ES6",
+    "module": "es2022",
     "moduleResolution": "node",
-    "target": "ES6",
+    "esModuleInterop": true,
+    "target": "es2022",
     "outDir": "out",
-    "lib": ["es2020", "dom"],
-    "sourceMap": true,
+    // TODO: Remove if things seem to work fine without it.
+    //"lib": ["es2020", "dom"],
+    // To prevent an error from shadow-cljs "Failed to resolve sourcemap..."
+    // We may be able to use a different method to prevent that error if
+    // inline source maps are problematic.
+    "inlineSourceMap": true,
     "rootDir": "src"
   },
-  "exclude": ["node_modules", "src/webview", "src/webview.ts", ".vscode-test"]
+  "exclude": ["node_modules", "src/webview", "src/webview.ts", ".vscode-test"],
+  "include": ["src/foo.ts"]
 }

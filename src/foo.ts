@@ -1,5 +1,5 @@
-//import * as vscode from 'vscode';
-import * as os from 'os';
+import vscode from 'vscode';
+import os from 'os';
 
 const bar = 'bar';
 
@@ -11,8 +11,8 @@ function platform() {
   return os.platform();
 }
 
-// function showMessage(message) {
-//   void vscode.window.showInformationMessage(message);
-// }
+function showMessage(message: string) {
+  void vscode.window.showInformationMessage(message);
+}
 
-export { bar, hello };
+export { bar, hello, platform, showMessage };
