@@ -280,7 +280,7 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
           executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
         }
       } catch (e) {
-        void vscode.window.showErrorMessage(`Error creating Jack-in command line: ${e}`, 'OK');
+        void vscode.window.showErrorMessage(`Error creating jack-in command line: ${e}`, 'OK');
       }
     }
   } else {
