@@ -1,0 +1,10 @@
+{
+  "calva.replConnectSequences": [
+    {
+      "name": "Test broken jack-in code evaluation",
+      "projectType": "deps.edn",
+      "afterCLJReplJackInCode": "\"afterCLJReplJackInCode evaluated\"",
+      "cljsType": "none"
+    }
+  ]
+}
