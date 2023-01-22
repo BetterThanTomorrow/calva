@@ -127,6 +127,9 @@ async function selectShadowBuilds(
   if (aliasesOption && aliasesOption.length) {
     args.push(aliasesOption);
   }
+  if (selectedBuilds.length == 0) {
+    throw new Error('No builds selected');
+  }
   return { selectedBuilds, args };
 }
 
