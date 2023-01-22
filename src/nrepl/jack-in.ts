@@ -144,10 +144,14 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
     return;
   }
   if (projectConnectSequence) {
-    const { executable, args } = await getJackInTerminalOptions(projectConnectSequence);
-    if (executable && args) {
-      void vscode.env.clipboard.writeText(createCommandLine(executable, args));
-      void vscode.window.showInformationMessage('Jack-in command copied to the clipboard.');
+    try {
+      const { executable, args } = await getJackInTerminalOptions(projectConnectSequence);
+      if (executable && args) {
+        void vscode.env.clipboard.writeText(createCommandLine(executable, args));
+        void vscode.window.showInformationMessage('Jack-in command copied to the clipboard.');
+      }
+    } catch (e) {
+      void vscode.window.showErrorMessage(`Error creating Jack-in command line: ${e}`, 'OK');
     }
   } else {
     void vscode.window.showInformationMessage('No supported project types detected.');
@@ -270,9 +274,13 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
     if (projectType.startFunction) {
       void projectType.startFunction();
     } else {
-      const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
-      if (terminalJackInOptions) {
-        executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
+      try {
+        const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
+        if (terminalJackInOptions) {
+          executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
+        }
+      } catch (e) {
+        void vscode.window.showErrorMessage(`Error creating Jack-in command line: ${e}`, 'OK');
       }
     }
   } else {
