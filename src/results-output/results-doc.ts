@@ -390,12 +390,14 @@ export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
 }
 
 function stackEntryString(entry: any): string {
-  const type = entry.type;
   const name = entry.var || entry.name;
   return `${name} (${entry.file}:${entry.line})`;
 }
 
 export function saveStacktrace(stacktrace: any[]): void {
+  if (stacktrace === undefined || stacktrace.length === 0) {
+    return;
+  }
   _lastStacktrace = [];
   stacktrace
     .filter((entry) => {
