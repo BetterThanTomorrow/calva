@@ -1024,7 +1024,7 @@
       },
       {
         "command": "calva.copyJackInCommandToClipboard",
-        "title": "Copy Jack-In Command to Clipboard",
+        "title": "Copy Jack-In Command Line to Clipboard",
         "category": "Calva",
         "enablement": "workspaceFolderCount > 0"
       },
