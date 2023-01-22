@@ -901,6 +901,20 @@ export class NReplSession {
   }
 }
 
+type StackTraceItem = {
+  class: string;
+  file: string;
+  line: number;
+  method: string;
+  name: string;
+  type: string;
+};
+type NReplEvaluationErrorStackTrace = {
+  class: string;
+  message: string;
+  stacktrace: StackTraceItem[];
+};
+
 /**
  * A running nREPL eval call.
  */
@@ -919,7 +933,7 @@ export class NReplEvaluation {
 
   private _exception: string;
 
-  private _stacktrace: any;
+  private _stacktrace: NReplEvaluationErrorStackTrace | undefined | any;
 
   private _msgs: any[] = [];
 
@@ -1093,6 +1107,7 @@ export class NReplEvaluation {
         const cause = msg.causes[0];
         const errorMessage = `${cause.class}: ${cause.message}`;
         this._stacktrace = { stacktrace: cause.stacktrace };
+        console.log('HAS STATUS', msg);
         this.err(errorMessage);
       }
       if (msg.value !== undefined || msg['debug-value'] !== undefined) {
@@ -1135,6 +1150,7 @@ export class NReplEvaluation {
             this.session
               .stacktrace()
               .then((stacktrace) => {
+                console.log('GOT THING', stacktrace);
                 this._stacktrace = stacktrace;
                 this.doReject(this.exception);
               })

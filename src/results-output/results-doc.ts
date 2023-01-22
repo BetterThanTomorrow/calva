@@ -389,7 +389,7 @@ export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
   return _stacktraceEntries[key];
 }
 
-function stackEntryString(entry: any): string {
+export function stackEntryString(entry: any): string {
   const name = entry.var || entry.name;
   return `${name} (${entry.file}:${entry.line})`;
 }
