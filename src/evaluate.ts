@@ -63,6 +63,7 @@ async function addAsComment(
   editor.selection = selection;
 }
 
+// TODO: Clean up this mess
 async function evaluateCodeUpdatingUI(
   code: string,
   options,
@@ -86,7 +87,12 @@ async function evaluateCodeUpdatingUI(
   const filePath = options.filePath;
   const session: NReplSession = options.session;
   const ns = options.ns;
-  const editor = util.getActiveTextEditor();
+  let editor: vscode.TextEditor;
+  try {
+    editor = util.getActiveTextEditor();
+  } catch (error) {
+    console.log('No active editor');
+  }
   let result = null;
 
   if (code.length > 0) {
@@ -126,17 +132,17 @@ async function evaluateCodeUpdatingUI(
         outputWindow.appendLine(value, async (resultLocation) => {
           if (selection) {
             const c = selection.start.character;
-            if (options.replace) {
+            if (editor && options.replace) {
               const indent = `${' '.repeat(c)}`,
                 edit = vscode.TextEdit.replace(selection, value.replace(/\n/gm, '\n' + indent)),
                 wsEdit = new vscode.WorkspaceEdit();
               wsEdit.set(editor.document.uri, [edit]);
               void vscode.workspace.applyEdit(wsEdit);
             } else {
-              if (options.comment) {
+              if (editor && options.comment) {
                 await addAsComment(c, value, selection, editor, editor.selection);
               }
-              if (!outputWindow.isResultsDoc(editor.document)) {
+              if (editor && !outputWindow.isResultsDoc(editor.document)) {
                 annotations.decorateSelection(
                   value,
                   selection,
@@ -174,7 +180,7 @@ async function evaluateCodeUpdatingUI(
           if (selection) {
             const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
             const currentCursorPos = editor.selection.active;
-            if (options.comment) {
+            if (editor && options.comment) {
               await addAsComment(
                 selection.start.character,
                 editorError,
@@ -183,7 +189,7 @@ async function evaluateCodeUpdatingUI(
                 editor.selection
               );
             }
-            if (!outputWindow.isResultsDoc(editor.document)) {
+            if (editor && !outputWindow.isResultsDoc(editor.document)) {
               annotations.decorateSelection(
                 editorError,
                 selection,

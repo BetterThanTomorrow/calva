@@ -9,4 +9,4 @@ This project has a connect sequence with a simple `afterCLJReplJackInCode` code 
 2. Jack-in, selecting the **Test broken jack-in code evaluation** sequence.
 
 * **Expected**: `"afterCLJReplJackInCode evaluated"` is printed in the REPL window
-* **Actual**: It ^ is not happening
+* **Actual**: `; Evaluation failed.` is printed in the REPL window
