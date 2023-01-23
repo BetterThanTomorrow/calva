@@ -11,7 +11,7 @@ import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import * as replHistory from './results-output/repl-history';
 import { formatAsLineComments } from './results-output/util';
-import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import { getStateValue, prettyPrint } from '../out/cljs-lib/cljs-lib';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
@@ -156,7 +156,7 @@ async function evaluateCodeUpdatingUI(
         if (err.length > 0) {
           const errMsg = formatAsLineComments(err.join('\n'));
           if (context.stacktrace) {
-            outputWindow.saveStacktrace(context.stacktrace);
+            outputWindow.saveStacktrace(context.stacktrace as any);
             outputWindow.appendLine(errMsg, (_, afterResultLocation) => {
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
@@ -166,43 +166,46 @@ async function evaluateCodeUpdatingUI(
         }
       }
     } catch (e) {
+      const cause = `"${context.stacktrace.message.replace(/\"/g, '\\"').trim()}"`;
+      const data = context.stacktrace.data ? `\n  :data ${context.stacktrace.data}` : '';
+      const stacktrace = context.stacktrace.stacktrace
+        .map((item) => `[${outputWindow.stackEntryString(item)}]`)
+        .join('\n');
+
+      const formattedError = `#${context.stacktrace.class.trim()} {
+  :type ${context.stacktrace.class}
+  :cause ${cause}${data}
+  :trace [${stacktrace}]
+}`;
+
       if (showErrorMessage) {
-        const outputWindowError = err.length
-          ? formatAsLineComments(err.join('\n'))
-          : formatAsLineComments(e);
-        outputWindow.appendLine(outputWindowError, async (resultLocation, afterResultLocation) => {
-          if (selection) {
-            const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
-            const currentCursorPos = editor.selection.active;
-            if (options.comment) {
-              await addAsComment(
-                selection.start.character,
-                editorError,
-                selection,
-                editor,
-                editor.selection
-              );
-            }
-            if (!outputWindow.isResultsDoc(editor.document)) {
-              annotations.decorateSelection(
-                editorError,
-                selection,
-                editor,
-                currentCursorPos,
-                resultLocation,
-                annotations.AnnotationStatus.ERROR
-              );
-              if (!options.comment) {
-                annotations.decorateResults(editorError, true, selection, editor);
-              }
+        outputWindow.appendLine(prettyPrint(formattedError).value);
+
+        if (selection) {
+          const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
+          const currentCursorPos = editor.selection.active;
+          if (options.comment) {
+            await addAsComment(
+              selection.start.character,
+              editorError,
+              selection,
+              editor,
+              editor.selection
+            );
+          }
+          if (!outputWindow.isResultsDoc(editor.document)) {
+            annotations.decorateSelection(
+              editorError,
+              selection,
+              editor,
+              currentCursorPos,
+              null,
+              annotations.AnnotationStatus.ERROR
+            );
+            if (!options.comment) {
+              annotations.decorateResults(editorError, true, selection, editor);
             }
           }
-          if (context.stacktrace && context.stacktrace.stacktrace) {
-            outputWindow.markLastStacktraceRange(afterResultLocation);
-          }
-        });
-        if (context.stacktrace && context.stacktrace.stacktrace) {
-          outputWindow.saveStacktrace(context.stacktrace.stacktrace);
         }
       }
     }
