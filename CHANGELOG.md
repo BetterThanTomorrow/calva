@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.326] - 2023-01-24
+
+- Fix: [`afterCLJReplJackInCode` fails if no editor is open](https://github.com/BetterThanTomorrow/calva/issues/2025)
+- Fix: [shadow-cljs jack-in silently fails when no builds are selected](https://github.com/BetterThanTomorrow/calva/issues/2022)
+
 ## [2.0.325] - 2023-01-21
 
 - Fix: [Setting calva.testOnSave broken: no tests found](https://github.com/BetterThanTomorrow/calva/issues/2005)
