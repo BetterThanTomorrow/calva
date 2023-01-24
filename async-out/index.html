@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6+insiders-4.28.1">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6+insiders-4.29.0">
     
     
       
@@ -2028,7 +2028,7 @@
 <h1 id="viewing-async-output-while-working-on-node-projects-with-shadow-cljs">Viewing Async Output While Working On Node Projects with <code>shadow-cljs</code></h1>
 <p>When working on NodeJS projects with <code>shadow-cljs</code> and Calva, async output does not always appear in the Calva output window. To work around this problem, follow these steps:</p>
 <ol>
-<li>Run the command "Calva: Copy Jack-in Command to Clipboard", then paste the command in a terminal and run it.</li>
+<li>Run the command "Calva: Copy Jack-in Command Line to Clipboard", then paste the command in a terminal and run it.</li>
 <li>Wait for the message <code>shadow-cljs - nREPL server started on port &lt;some-port&gt;</code></li>
 <li>Issue the command <strong>Calva: Connect to a running REPL server in your project</strong>, <code>ctrl+alt+c ctrl+alt+c</code>. For project type select <code>shadow-cljs</code>, accept the proposed <code>localhost:&lt;some-port&gt;</code>, and for <code>build</code> select <code>node-repl</code>.</li>
 <li>Load a file from your project with the command <code>ctrl+alt+c Enter.</code> Evaluating forms in Calva will show results in the output window. Synchronous <code>stdout</code> output will be printed in both the output window and in the terminal where you started the repl. Some asynchronous output may show up in the output window, but all will appear in the terminal.</li>

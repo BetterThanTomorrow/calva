@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6+insiders-4.28.1">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6+insiders-4.29.0">
     
     
       
@@ -2717,8 +2717,8 @@
 <p>If you want a breakpoint to work within the test, evaluate the test form with a breakpoint tag in it, then call the test directly.</p>
 <p><img alt="Hitting a breakpoint in a test" src="../images/debugger/breakpoint-in-test.png" title="Hitting a breakpoint in a test" /></p>
 <h3 id="no-reader-function-for-tag-error">"No reader function for tag" error</h3>
-<p>If you get an error like this, it's likely that you connected to a REPL instead of jacking in, and you don't have the proper dependencies loaded in your REPL. You can run the command "Copy Jack-in Command to Clipboard" to see what command would be run if you jacked in.</p>
-<p>Most importantly, make sure you have <code>cider/cider-nrepl</code> as a dependency, and <code>cider.nrepl/cider-middleware</code> as middleware loaded in your REPL. For example, this is a jack-in command for a deps.edn project:</p>
+<p>If you get an error like this, it's likely that you connected to a REPL instead of jacking in, and you don't have the proper dependencies loaded in your REPL. You can run the command "Copy Jack-in Command Line to Clipboard" to see what command would be run if you jacked in.</p>
+<p>Most importantly, make sure you have <code>cider/cider-nrepl</code> as a dependency, and <code>cider.nrepl/cider-middleware</code> as middleware loaded in your REPL. For example, this is a jack-in command line for a deps.edn project:</p>
 <div class="highlight"><pre><span></span><code>clojure<span class="w"> </span>-Sdeps<span class="w"> </span><span class="s1">&#39;{:deps {nrepl/nrepl {:mvn/version,&quot;0.8.3&quot;},cider/cider-nrepl {:mvn/version,&quot;0.25.8&quot;}}}&#39;</span><span class="w"> </span>-m<span class="w"> </span>nrepl.cmdline<span class="w"> </span>--middleware<span class="w"> </span><span class="s2">&quot;[cider.nrepl/cider-middleware]&quot;</span>
 </code></pre></div>
 <h2 id="passing-options-to-the-repl-jvm">Passing options to the REPL JVM</h2>
