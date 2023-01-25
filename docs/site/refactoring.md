@@ -31,6 +31,7 @@ Thread Last | `clojureLsp.refactor.threadLast` | ![](images/refactoring/threadLa
 Thread Last All | `clojureLsp.refactor.threadLastAll` | ![](images/refactoring/threadLastAll.gif)
 Unwind All | `clojureLsp.refactor.unwindAll` | ![](images/refactoring/unwindAll.gif)
 Unwind Thread | `clojureLsp.refactor.unwindThread` | ![](images/refactoring/unwindThread.gif)
+Move Form | `clojureLsp.refactor.moveForm` | Opens a file picker to select the file to move a given form to. After selecting the destination, the form is moved and references to the form are updated.
 
 !!! Note "Formatting"
     The way that some of the refactorings are applied to the document, makes it difficult for Calva to format the results. So, sometimes you'll need to navigate the cursor to the enclosing form and hit `tab` to tidy up the formatting after a refactoring. See also [Formatting](formatting.md).
