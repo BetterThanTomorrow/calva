@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [The move-form clojure-lsp refactoring is missing in Calva](https://github.com/BetterThanTomorrow/calva/issues/2015)
+
 ## [2.0.326] - 2023-01-24
 
 - Fix: [`afterCLJReplJackInCode` fails if no editor is open](https://github.com/BetterThanTomorrow/calva/issues/2025)
