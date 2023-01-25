@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Getting Started REPLs download config from dram dev branch](https://github.com/BetterThanTomorrow/calva/issues/1977)
+
 ## [2.0.326] - 2023-01-24
 
 - Fix: [`afterCLJReplJackInCode` fails if no editor is open](https://github.com/BetterThanTomorrow/calva/issues/2025)
