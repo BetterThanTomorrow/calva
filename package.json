@@ -35,14 +35,11 @@
   "keywords": [
     "Clojure",
     "ClojureScript",
-    "Cider",
-    "REPL",
-    "Formatting",
-    "Pretty",
     "EDN",
+    "REPL",
     "Interactive Programming",
-    "bracket",
-    "rainbow"
+    "Structural Editing",
+    "CIDER"
   ],
   "galleryBanner": {
     "color": "#EFEFEF",
