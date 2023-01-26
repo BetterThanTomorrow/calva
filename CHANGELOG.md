@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Sort aliases for deps.edn projects](https://github.com/BetterThanTomorrow/calva/issues/2035)
+
 ## [2.0.327] - 2023-01-26
 
 - [LSP support for multi-project and multi-workspace](https://github.com/BetterThanTomorrow/calva/pull/2020)
