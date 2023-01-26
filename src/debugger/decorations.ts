@@ -4,7 +4,7 @@ import { Location } from 'vscode-languageserver-protocol';
 import * as _ from 'lodash';
 import { NReplSession } from '../nrepl';
 import * as util from '../utilities';
-import lsp from '../lsp/main';
+import * as lsp from '../lsp';
 import { getStateValue } from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
 
@@ -46,7 +46,7 @@ async function update(
             iSymbolRefLocations: Promise<InstrumentedSymbolReferenceLocations>,
             [namespace, ...instrumentedDefs]: string[]
           ) => {
-            const docSymbols = (await lsp.getDocumentSymbols(lspClient, editor.document.uri))[0]
+            const docSymbols = (await lsp.api.getDocumentSymbols(lspClient, editor.document.uri))[0]
               .children;
             const instrumentedDocSymbols = docSymbols.filter((s) =>
               instrumentedDefs.includes(s.name)
@@ -57,7 +57,7 @@ async function update(
                   line: s.selectionRange.start.line,
                   character: s.selectionRange.start.character,
                 };
-                return lsp.getReferences(lspClient, editor.document.uri, position);
+                return lsp.api.getReferences(lspClient, editor.document.uri, position);
               })
             );
             const currentNsSymbolsReferenceLocations = instrumentedDocSymbols.reduce(
@@ -118,8 +118,9 @@ function triggerUpdateAndRenderDecorations() {
     const editor = util.tryToGetActiveTextEditor();
     if (editor) {
       timeout = setTimeout(() => {
+        const clientProvider = lsp.getClientProvider();
         const cljSession = replSession.getSession('clj');
-        const lspClient = getStateValue(lsp.LSP_CLIENT_KEY);
+        const lspClient = clientProvider.getClientForDocumentUri(editor.document.uri);
         void update(editor, cljSession, lspClient).then(renderInAllVisibleEditors);
       }, 50);
     }

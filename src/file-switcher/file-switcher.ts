@@ -36,7 +36,10 @@ function askToCreateANewFile(dir: vscode.Uri, filename: string) {
 export async function toggleBetweenImplAndTest() {
   const activeFile = getActiveTextEditor();
   const openedFilename = activeFile.document.fileName;
-  const projectRootUri = await projectRoot.findClosestProjectRoot();
+  const projectRootUri = projectRoot.findClosestParent(
+    vscode.window.activeTextEditor?.document.uri,
+    await projectRoot.findProjectRoots()
+  );
   const projectRootPath = projectRootUri.fsPath;
   const pathAfterRoot = openedFilename.replace(projectRootPath, '');
   const fullFileName = path.basename(openedFilename);

@@ -84,8 +84,12 @@ export function setProjectConfig(config) {
 
 export function getProjectRootUri(useCache = true): vscode.Uri | undefined {
   if (useCache) {
-    return getStateValue(PROJECT_DIR_URI_KEY);
+    const res = getStateValue(PROJECT_DIR_URI_KEY);
+    if (res) {
+      return res;
+    }
   }
+  return vscode.workspace.workspaceFolders[0]?.uri;
 }
 
 const NON_PROJECT_DIR_KEY = 'calva.connect.nonProjectDir';
@@ -156,24 +160,25 @@ function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
 /**
  * Figures out the current clojure project root, and stores it in Calva state
  */
-export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
-  if (uri) {
-    setStateValue(PROJECT_DIR_KEY, path.resolve(uri.fsPath));
-    setStateValue(PROJECT_DIR_URI_KEY, uri);
-  } else {
-    const candidatePaths: vscode.Uri[] = await projectRoot.findProjectRoots();
-    const closestRootPath: vscode.Uri = await projectRoot.findClosestProjectRoot(candidatePaths);
-    const projectRootPath: vscode.Uri = await projectRoot.pickProjectRoot(
-      candidatePaths,
-      closestRootPath
-    );
-    if (projectRootPath !== undefined) {
-      setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
-      setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
-    } else {
-      await setOrCreateNonProjectRoot(extensionContext, true);
-    }
+export async function initProjectDir() {
+  const candidatePaths = await projectRoot.findProjectRootsWithReasons();
+  const active_uri = vscode.window.activeTextEditor?.document.uri;
+  const closestRootPath: vscode.Uri = active_uri
+    ? projectRoot.findClosestParent(
+        active_uri,
+        candidatePaths.map((path) => path.uri)
+      )
+    : undefined;
+  const projectRootPath: vscode.Uri = await projectRoot.pickProjectRoot(
+    candidatePaths,
+    closestRootPath
+  );
+  if (projectRootPath) {
+    setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
+    setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
+    return projectRootPath;
   }
+  return setOrCreateNonProjectRoot(extensionContext, true);
 }
 
 /**

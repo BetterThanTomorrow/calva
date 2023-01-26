@@ -8,52 +8,52 @@ description: Learn about how Calva leverages clojure-lsp for a lot of the featur
 Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from [clojure-lsp](https://github.com/snoe/clojure-lsp). This enables you to check something up in a project, with a lot of navigational and contextual support, without starting a REPL for it. (And once you do start a REPL you'll get even more capabilities, enabled by the dynamic analysis.)
 
 !!! Note "Which clojure-lsp does Calva use?"
-    Calva defaults to using the `latest` clojure-lsp released. To use a different version of clojure-lsp, see the [configuration](#configuration) section. **Calva does not use the clojure-lsp installed on your system, unless you [set the path for clojure-lsp](#using-a-custom-clojure-lsp-native-binary) to the installed binary in your settings**. You can see what version is being used by running the `Clojure-lsp Server Info` command, which will also show the version of clj-kondo that's being used as well as other info. 
+    Calva defaults to using the `latest` clojure-lsp released. To use a different version of clojure-lsp, see the [configuration](#configuration) section. **Calva does not use the clojure-lsp installed on your system, unless you [set the path for clojure-lsp](#using-a-custom-clojure-lsp-native-binary) to the installed binary in your settings**. You can see what version is being used by running the `Clojure-lsp Server Info` command, which will also show the version of clj-kondo that's being used as well as other info.
 
-## The LSP server starts automatically
+## The LSP server lifecycle
 
-Unless you set `calva.enableClojureLspOnStart` to `false`, Calva will automatically start clojure-lsp. And you won't need to install antyting, because Calva handles that. It can take a while for clojure-lsp to start, especially the first time for a new project, when clojure-lsp (via `clj-kondo`) indexes the project files.
+By default you won't need to install/setup anything as Calva handles that for you by automatically downloading the latest clojure-lsp binary. It can take a while for clojure-lsp to start, especially the first time opening a new project, as clojure-lsp (via `clj-kondo`) indexes the project files.
 
-## LSP server process control
+Calva is able to automatically start the clojure-lsp server for you and can be configured to start the server under various different conditions. These behaviours can be configured through the `calva.enableClojureLspOnStart` setting, which takes the following options:
 
-It is highly recommended to let clojure-lsp start automatically, and most often you can just let it do its wonderful magic without bothering with it. There are times when you might want to control and inspect the process, though. Calva has commands for:
++ "when-workspace-opened-use-workspace-root"
++ "when-file-opened-use-furthest-project"
++ "never"
+
+#### "when-workspace-opened-use-workspace-root" [default]
+
+When set to `"when-workspace-opened-use-workspace-root"` Calva will start the clojure-lsp in the root of all opened vscode workspaces. All Clojure files in a workspace will be serviced by the clojure-lsp server running in that workspace. This behavior requires that you are opening workspaces with a valid Clojure project in the root (the directory must contain a `deps.edn`, `project.clj` or `shadow-cljs.edn` file).
+
+This is the default auto-start behaviour.
+
+#### "when-file-opened-use-furthest-project"
+
+When set to `"when-file-opened-use-furthest-project"` Calva will attempt to start the clojure-lsp server whenever a Clojure file is opened. The LSP server will be started in the outermost valid Clojure project or will fall back to starting in the workspace root if no valid Clojure project can be found. A directory is considered a Clojure project if it contains typical Clojure project files such as a `deps.edn`, `project.clj`, or `shadow-cljs.edn` file. When working in a mono-repo style project or in a multi-workspace VS Code configuration you may have multiple LSP servers running, one for each independent Clojure project opened.
+
+#### "never"
+
+When set to `"never"` Calva will never attempt to automatically start the clojure-lsp server. In this case you are responsible for manually starting the server. More advanced users might want to do this in order to have more control over which projects have a clojure-lsp server running for them. To manually start the clojure-lsp server you can run the `calva.clojureLsp.start` or the `calva.clojureLsp.manage` command and pick the project root. You can also click the `clojure-lsp` status bar icon to open the Management Menu.
+
+Additionally Calva has commands for:
 
 * Inspecting the clojure-lsp server information
 * Read the clojure-lsp server log
-* Stopping clojure-lsp
+* Stopping any running clojure-lsp processes
 * Starting clojure-lsp
-* Restarting clojure-lsp
-* Download the configured clojure-lsp version
+* Restarting any running clojure-lsp processes
+* Downloading the configured clojure-lsp version
 
-In the status bar, Calva will show an indicator with the clojure-lsp status.
+Note that the download command will download the configured clojure-lsp version regardless if it is already installed or not. This can be useful when some earlier download has failed resulting in that clojure-lsp can't be started. *NB: It will not download anything if `calva.clojureLspPath` is set to something non-blank.*
 
-### Active clojure-lsp
+### Status bar
 
-When clojure-lsp is downloaded, started and initialized the status bar indicator will look like so:
+In the status bar Calva will show an indicator with the clojure-lsp status. This status will track the currently open project, showing the status (`stopped`, `starting` or `active`) for the relevant clojure-lsp server.
 
-!["Active clojure-lsp status bar item"](images/clojure-lsp/calva-clojure-lsp-statusbar-active.png "Active clojure-lsp status bar item")
+You can click on the status-bar item to open the clojure-lsp management menu which will look as follows:
 
-Clicking the item will bring up this menu:
+!["Clojure server management menu"](images/clojure-lsp/management-menu.png "Clojure management menu")
 
-!["Active clojure-lsp menu"](images/clojure-lsp/calva-clojure-lsp-menu-active.png "Active clojure-lsp menu")
-
-See below about the [server info](#server-info-command) and [server log](#opening-the-server-log-file) commands.
-
-### Stopped clojure-lsp
-
-When clojure-lsp is stopped the status bar indicator will look like so:
-
-!["Inactive clojure-lsp status bar item"](images/clojure-lsp/calva-clojure-lsp-statusbar-inactive.png "Inactive clojure-lsp status bar item")
-
-The clojure-lsp inactive menu:
-
-!["Inactive clojure-lsp  menu"](images/clojure-lsp/calva-clojure-lsp-menu-inactive.png "Inactive clojure-lsp menu")
-
-The download option here will download the configured clojure-lsp version regardless if it is already installed or not. This can be useful when some earlier download has failed resulting in that clojure-lsp can't be started. *NB: It will not download anything if `calva.clojureLspPath` is set to something non-blank.*
-
-### Downloading and starting
-
-The statusbar item also will indicate when clojure-lsp is being downloaded and while it is starting.
+The menu shows which clojure-lsp servers are active and which are stopped. Selecting a project will allow you to start/stop/restart the server for that project.
 
 ## Ignoring LSP cache files
 
@@ -138,31 +138,6 @@ You can run the `Clojure-lsp Server Info` command to get information about the r
 ### Opening the Server Log File
 
 You can open the clojure-lsp log file by running the command `Calva Diagnostics: Open Clojure-lsp Log File`. The log file will only be opened with this command if the clojure-lsp server is running and has finished initializing. If you need to open the file when the server is failing to run or initialize, see the [clojure-lsp docs](https://clojure-lsp.io/troubleshooting/#server-log) for information on the file location.
-
-### Leiningen project in subfolder
-
-Sometimes your Leiningen project root with its `project.clj` is located in a subfolder and not directly inside your repository root:
-
-```
-- reporoot
-  - subfolder (= project root)
-    - project.clj
-  - otherstuff
-  - .git
-```
-
-In such cases, when opening the folder `reporoot`, clojure-lsp doesn't help you. There are two workarounds:
-
-First, if you do need access to `otherstuff` inside `reporoot`, you can:
-
-1. open folder `reporoot`
-2. **File -> Add Folder to Workspace...**
-3. Add the `subfolder`
-4. The File Explorer now shows 2 project roots: drag the `subfolder` root above the `reporoot` root.
-
-Save the resulting Workspace to not have to repeat these steps.
-
-The second option, if you don't need access to `otherstuff` inside `reporoot`, is to just open the folder `subfolder` instead. 
 
 ## Related
 

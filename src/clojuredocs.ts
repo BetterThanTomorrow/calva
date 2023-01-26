@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
 import * as util from './utilities';
 import * as nrepl from './nrepl';
-import * as lsp from './lsp/main';
+import * as lsp from './lsp';
 import * as outputWindow from './results-output/results-doc';
 import * as namespace from './namespace';
-import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as docMirror from './doc-mirror/index';
 import * as paredit from './cursor-doc/paredit';
@@ -31,8 +30,8 @@ export function init(cljSession: nrepl.NReplSession) {
   });
 }
 
-export async function printClojureDocsToOutputWindow() {
-  const docs = await clojureDocsLookup();
+export async function printClojureDocsToOutputWindow(clientProvider: lsp.ClientProvider) {
+  const docs = await clojureDocsLookup(clientProvider);
   if (!docs) {
     return;
   }
@@ -48,8 +47,8 @@ function printTextToOutputWindow(text: string) {
   outputWindow.appendPrompt();
 }
 
-export async function printClojureDocsToRichComment() {
-  const docs = await clojureDocsLookup();
+export async function printClojureDocsToRichComment(clientProvider: lsp.ClientProvider) {
+  const docs = await clojureDocsLookup(clientProvider);
   if (!docs) {
     return;
   } else {
@@ -68,10 +67,11 @@ async function printTextToRichComment(text: string, position?: number) {
 }
 
 export async function getExamplesHover(
+  clientProvider: lsp.ClientProvider,
   document: vscode.TextDocument,
   position: vscode.Position
 ): Promise<vscode.MarkdownString | undefined> {
-  const docs = await clojureDocsLookup(document, position);
+  const docs = await clojureDocsLookup(clientProvider, document, position);
   if (!docs) {
     return undefined;
   }
@@ -170,6 +170,7 @@ function docsEntry2ClojureCode(docs: DocsEntry, printDocString = false): string 
 }
 
 async function clojureDocsLookup(
+  clientProvider: lsp.ClientProvider,
   d?: vscode.TextDocument,
   p?: vscode.Position
 ): Promise<DocsEntry | undefined> {
@@ -183,7 +184,7 @@ async function clojureDocsLookup(
   if (docsFromCider) {
     return docsFromCider;
   } else {
-    return clojureDocsLspLookup(session, symbol, ns);
+    return clojureDocsLspLookup(clientProvider, session, doc.uri, symbol, ns);
   }
 }
 
@@ -202,7 +203,9 @@ async function clojureDocsCiderNReplLookup(
 }
 
 async function clojureDocsLspLookup(
+  clientProvider: lsp.ClientProvider,
   session: nrepl.NReplSession,
+  uri: vscode.Uri,
   symbol: string,
   ns: string
 ): Promise<DocsEntry | undefined> {
@@ -212,16 +215,24 @@ async function clojureDocsLspLookup(
       typeof resolved.ns === 'string' ? resolved.ns : ns.length > 0 ? ns[1] : 'clojure.core';
     const normalizedSymNs = symNs.replace(/^cljs\./, 'clojure.');
     try {
-      const docs = await lsp.getClojuredocs(resolved.name, normalizedSymNs);
-      if (docs) {
-        return rawDocs2DocsEntry(
-          { clojuredocs: docs, fromServer: 'clojure-lsp' },
-          resolved.name,
-          resolved.ns
-        );
-      } else {
-        return undefined;
+      const client = clientProvider.getClientForDocumentUri(uri);
+      if (!client) {
+        return;
       }
+
+      const docs = await lsp.api.getClojureDocs(client, {
+        symName: resolved.name,
+        symNs: normalizedSymNs,
+      });
+      if (!docs) {
+        return;
+      }
+
+      return rawDocs2DocsEntry(
+        { clojuredocs: docs, fromServer: 'clojure-lsp' },
+        resolved.name,
+        resolved.ns
+      );
     } catch {
       return rawDocs2DocsEntry(
         { clojuredocs: null, fromServer: 'clojure-lsp' },

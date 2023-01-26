@@ -8,3 +8,4 @@
 **/target/
 **/.shadow-cljs/
 **/out/
+clojure.tmLanguage.json

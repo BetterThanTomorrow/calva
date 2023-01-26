@@ -3,13 +3,13 @@ import {
   Position,
   CancellationToken,
   CompletionContext,
-  Hover,
   CompletionItemKind,
   window,
   CompletionList,
   CompletionItemProvider,
   CompletionItem,
   CompletionItemLabel,
+  Uri,
 } from 'vscode';
 import * as util from '../utilities';
 import * as select from '../select';
@@ -17,10 +17,10 @@ import * as docMirror from '../doc-mirror/index';
 import * as infoparser from './infoparser';
 import * as namespace from '../namespace';
 import * as replSession from '../nrepl/repl-session';
-import { getClient } from '../lsp/main';
 import { CompletionRequest, CompletionResolveRequest } from 'vscode-languageserver-protocol';
 import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
+import * as lsp from '../lsp';
 
 const mappings = {
   nil: CompletionItemKind.Value,
@@ -41,6 +41,7 @@ const completionProviderOptions = { priority: ['lsp', 'repl'], merge: true };
 const completionFunctions = { lsp: lspCompletions, repl: replCompletions };
 
 async function provideCompletionItems(
+  clientProvider: lsp.ClientProvider,
   document: TextDocument,
   position: Position,
   token: CancellationToken,
@@ -53,12 +54,13 @@ async function provideCompletionItems(
     }
 
     const completions = await completionFunctions[provider](
+      clientProvider,
       document,
       position,
       token,
       context
     ).catch((err) => {
-      console.log('Failed to get results from remote', err);
+      console.log(`Failed to get results from completions provider '${provider}'`, err);
     });
 
     if (completions) {
@@ -83,13 +85,15 @@ async function provideCompletionItems(
 }
 
 export default class CalvaCompletionItemProvider implements CompletionItemProvider {
+  constructor(private readonly clientProvider: lsp.ClientProvider) {}
+
   async provideCompletionItems(
     document: TextDocument,
     position: Position,
     token: CancellationToken,
     context: CompletionContext
   ) {
-    return provideCompletionItems(document, position, token, context);
+    return provideCompletionItems(this.clientProvider, document, position, token, context);
   }
 
   async resolveCompletionItem(item: CompletionItem, token: CancellationToken) {
@@ -113,37 +117,49 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
 
       return item;
     } else {
-      const res = await lspResolveCompletions(item, token);
+      const res = await lspResolveCompletions(
+        this.clientProvider,
+        window.activeTextEditor.document.uri,
+        item,
+        token
+      );
 
       return converter.asCompletionItem(res);
     }
   }
 }
 
-async function lspCompletions(
+function lspCompletions(
+  clientProvider: lsp.ClientProvider,
   document: TextDocument,
   position: Position,
   token: CancellationToken,
   context: CompletionContext
 ) {
-  const lspClient = await getClient(20);
-  return lspClient.sendRequest(
+  const client = clientProvider.getClientForDocumentUri(document.uri);
+  return client?.sendRequest(
     CompletionRequest.type,
-    lspClient.code2ProtocolConverter.asCompletionParams(document, position, context),
+    client.code2ProtocolConverter.asCompletionParams(document, position, context),
     token
   );
 }
 
-async function lspResolveCompletions(item: CompletionItem, token: CancellationToken) {
-  const lspClient = await getClient(20);
-  return lspClient.sendRequest(
+async function lspResolveCompletions(
+  clientProvider: lsp.ClientProvider,
+  uri: Uri,
+  item: CompletionItem,
+  token: CancellationToken
+) {
+  const client = clientProvider.getClientForDocumentUri(uri);
+  return await client?.sendRequest(
     CompletionResolveRequest.type,
-    lspClient.code2ProtocolConverter.asCompletionItem(item),
+    client.code2ProtocolConverter.asCompletionItem(item),
     token
   );
 }
 
 async function replCompletions(
+  clientProvider: lsp.ClientProvider,
   document: TextDocument,
   position: Position,
   _token: CancellationToken,

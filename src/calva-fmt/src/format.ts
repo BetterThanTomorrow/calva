@@ -30,7 +30,7 @@ export async function indentPosition(position: vscode.Position, document: vscode
   const indent = getIndent(
     getDocument(document).model.lineInputModel,
     getDocumentOffset(document, position),
-    await config.getConfig()
+    await config.getConfig(document)
   );
   const newPosition = new vscode.Position(position.line, indent);
   const delta = document.lineAt(position.line).firstNonWhitespaceCharacterIndex - indent;
