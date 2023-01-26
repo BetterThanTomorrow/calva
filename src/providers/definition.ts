@@ -7,14 +7,19 @@ import * as outputWindow from '../results-output/results-doc';
 import * as replSession from '../nrepl/repl-session';
 import * as config from '../config';
 import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
-import { getClient } from '../lsp/main';
 import { DefinitionRequest } from 'vscode-languageclient';
+import * as lsp from '../lsp';
 
 const converter = createConverter(undefined, undefined, true);
 
 const definitionFunctions = { lsp: lspDefinition, repl: provideClojureDefinition };
 
-async function provideClojureDefinition(document, position: vscode.Position, _token) {
+async function provideClojureDefinition(
+  clientProvider: lsp.ClientProvider,
+  document,
+  position: vscode.Position,
+  _token
+) {
   const evalPos = annotations.getEvaluationPosition(position);
   const posIsEvalPos = evalPos && position.isEqual(evalPos);
   if (util.getConnectedState() && !posIsEvalPos) {
@@ -34,27 +39,35 @@ async function provideClojureDefinition(document, position: vscode.Position, _to
   }
 }
 
-async function lspDefinition(document, position: vscode.Position, token) {
-  const lspClient = await getClient(20);
-  return lspClient.sendRequest(
+function lspDefinition(
+  clientProvider: lsp.ClientProvider,
+  document,
+  position: vscode.Position,
+  token
+) {
+  const client = clientProvider.getClientForDocumentUri(document.uri);
+  return client?.sendRequest(
     DefinitionRequest.type,
-    lspClient.code2ProtocolConverter.asTextDocumentPositionParams(document, position),
+    client?.code2ProtocolConverter.asTextDocumentPositionParams(document, position),
     token
   );
 }
 
 export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
-  state: any;
-  constructor() {
-    this.state = state;
-  }
+  state = state;
+  constructor(private readonly clientProvider: lsp.ClientProvider) {}
 
   async provideDefinition(document, position: vscode.Position, token) {
     const providers = config.getConfig().definitionProviderPriority;
     for (const provider of providers) {
       const providerFunction = definitionFunctions[provider];
       if (providerFunction) {
-        const definition = await providerFunction(document, position, token).catch((e) => {
+        const definition = await providerFunction(
+          this.clientProvider,
+          document,
+          position,
+          token
+        )?.catch((e) => {
           console.error(
             `Definition lookup failed for provider '${provider}', ${
               provider === 'lsp'
