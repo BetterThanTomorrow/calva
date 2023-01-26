@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.327] - 2023-01-26
+
 - [LSP support for multi-project and multi-workspace](https://github.com/BetterThanTomorrow/calva/pull/2020)
 - Fix: [Clojure-lsp caching in multi-project workspace](https://github.com/BetterThanTomorrow/calva/issues/934)
 - Fix: [With multi-root workspaces the clojure-lsp project root is always the first folder](https://github.com/BetterThanTomorrow/calva/issues/1706)
