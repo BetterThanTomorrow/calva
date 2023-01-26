@@ -60,8 +60,7 @@ The menu shows which clojure-lsp servers are active and which are stopped. Selec
 Clojure-lsp stores its project analysis information in your project. Git users can add these lines to their project root directory `.gitignore`:
 
 ```
-.clj-kondo/cache/
-.clj-kondo/.cache/
+.lsp/.cache/
 .lsp/sqlite.*.db
 ```
 
