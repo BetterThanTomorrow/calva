@@ -1037,33 +1037,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-lsp-server-starts-automatically" class="md-nav__link">
+  <a href="#the-lsp-server-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The LSP server starts automatically
+        The LSP server lifecycle
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#lsp-server-process-control" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        LSP server process control
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="LSP server process control">
+    <nav class="md-nav" aria-label="The LSP server lifecycle">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#active-clojure-lsp" class="md-nav__link">
+  <a href="#when-workspace-opened-use-workspace-root-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Active clojure-lsp
+        "when-workspace-opened-use-workspace-root" [default]
       
     </span>
   </a>
@@ -1071,10 +1060,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#stopped-clojure-lsp" class="md-nav__link">
+  <a href="#when-file-opened-use-furthest-project" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Stopped clojure-lsp
+        "when-file-opened-use-furthest-project"
       
     </span>
   </a>
@@ -1082,10 +1071,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#downloading-and-starting" class="md-nav__link">
+  <a href="#never" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Downloading and starting
+        "never"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status bar
       
     </span>
   </a>
@@ -1197,17 +1197,6 @@
     <span class="md-ellipsis">
       
         Opening the Server Log File
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#leiningen-project-in-subfolder" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Leiningen project in subfolder
       
     </span>
   </a>
@@ -2242,33 +2231,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-lsp-server-starts-automatically" class="md-nav__link">
+  <a href="#the-lsp-server-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The LSP server starts automatically
+        The LSP server lifecycle
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#lsp-server-process-control" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        LSP server process control
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="LSP server process control">
+    <nav class="md-nav" aria-label="The LSP server lifecycle">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#active-clojure-lsp" class="md-nav__link">
+  <a href="#when-workspace-opened-use-workspace-root-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Active clojure-lsp
+        "when-workspace-opened-use-workspace-root" [default]
       
     </span>
   </a>
@@ -2276,10 +2254,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#stopped-clojure-lsp" class="md-nav__link">
+  <a href="#when-file-opened-use-furthest-project" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Stopped clojure-lsp
+        "when-file-opened-use-furthest-project"
       
     </span>
   </a>
@@ -2287,10 +2265,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#downloading-and-starting" class="md-nav__link">
+  <a href="#never" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Downloading and starting
+        "never"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status bar
       
     </span>
   </a>
@@ -2408,17 +2397,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#leiningen-project-in-subfolder" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Leiningen project in subfolder
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -2459,39 +2437,41 @@
 <p>Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from <a href="https://github.com/snoe/clojure-lsp">clojure-lsp</a>. This enables you to check something up in a project, with a lot of navigational and contextual support, without starting a REPL for it. (And once you do start a REPL you'll get even more capabilities, enabled by the dynamic analysis.)</p>
 <div class="admonition note">
 <p class="admonition-title">Which clojure-lsp does Calva use?</p>
-<p>Calva defaults to using the <code>latest</code> clojure-lsp released. To use a different version of clojure-lsp, see the <a href="#configuration">configuration</a> section. <strong>Calva does not use the clojure-lsp installed on your system, unless you <a href="#using-a-custom-clojure-lsp-native-binary">set the path for clojure-lsp</a> to the installed binary in your settings</strong>. You can see what version is being used by running the <code>Clojure-lsp Server Info</code> command, which will also show the version of clj-kondo that's being used as well as other info. </p>
+<p>Calva defaults to using the <code>latest</code> clojure-lsp released. To use a different version of clojure-lsp, see the <a href="#configuration">configuration</a> section. <strong>Calva does not use the clojure-lsp installed on your system, unless you <a href="#using-a-custom-clojure-lsp-native-binary">set the path for clojure-lsp</a> to the installed binary in your settings</strong>. You can see what version is being used by running the <code>Clojure-lsp Server Info</code> command, which will also show the version of clj-kondo that's being used as well as other info.</p>
 </div>
-<h2 id="the-lsp-server-starts-automatically">The LSP server starts automatically</h2>
-<p>Unless you set <code>calva.enableClojureLspOnStart</code> to <code>false</code>, Calva will automatically start clojure-lsp. And you won't need to install antyting, because Calva handles that. It can take a while for clojure-lsp to start, especially the first time for a new project, when clojure-lsp (via <code>clj-kondo</code>) indexes the project files.</p>
-<h2 id="lsp-server-process-control">LSP server process control</h2>
-<p>It is highly recommended to let clojure-lsp start automatically, and most often you can just let it do its wonderful magic without bothering with it. There are times when you might want to control and inspect the process, though. Calva has commands for:</p>
+<h2 id="the-lsp-server-lifecycle">The LSP server lifecycle</h2>
+<p>By default you won't need to install/setup anything as Calva handles that for you by automatically downloading the latest clojure-lsp binary. It can take a while for clojure-lsp to start, especially the first time opening a new project, as clojure-lsp (via <code>clj-kondo</code>) indexes the project files.</p>
+<p>Calva is able to automatically start the clojure-lsp server for you and can be configured to start the server under various different conditions. These behaviours can be configured through the <code>calva.enableClojureLspOnStart</code> setting, which takes the following options:</p>
+<ul>
+<li>"when-workspace-opened-use-workspace-root"</li>
+<li>"when-file-opened-use-furthest-project"</li>
+<li>"never"</li>
+</ul>
+<h4 id="when-workspace-opened-use-workspace-root-default">"when-workspace-opened-use-workspace-root" [default]</h4>
+<p>When set to <code>"when-workspace-opened-use-workspace-root"</code> Calva will start the clojure-lsp in the root of all opened vscode workspaces. All Clojure files in a workspace will be serviced by the clojure-lsp server running in that workspace. This behavior requires that you are opening workspaces with a valid Clojure project in the root (the directory must contain a <code>deps.edn</code>, <code>project.clj</code> or <code>shadow-cljs.edn</code> file).</p>
+<p>This is the default auto-start behaviour.</p>
+<h4 id="when-file-opened-use-furthest-project">"when-file-opened-use-furthest-project"</h4>
+<p>When set to <code>"when-file-opened-use-furthest-project"</code> Calva will attempt to start the clojure-lsp server whenever a Clojure file is opened. The LSP server will be started in the outermost valid Clojure project or will fall back to starting in the workspace root if no valid Clojure project can be found. A directory is considered a Clojure project if it contains typical Clojure project files such as a <code>deps.edn</code>, <code>project.clj</code>, or <code>shadow-cljs.edn</code> file. When working in a mono-repo style project or in a multi-workspace VS Code configuration you may have multiple LSP servers running, one for each independent Clojure project opened.</p>
+<h4 id="never">"never"</h4>
+<p>When set to <code>"never"</code> Calva will never attempt to automatically start the clojure-lsp server. In this case you are responsible for manually starting the server. More advanced users might want to do this in order to have more control over which projects have a clojure-lsp server running for them. To manually start the clojure-lsp server you can run the <code>calva.clojureLsp.start</code> or the <code>calva.clojureLsp.manage</code> command and pick the project root. You can also click the <code>clojure-lsp</code> status bar icon to open the Management Menu.</p>
+<p>Additionally Calva has commands for:</p>
 <ul>
 <li>Inspecting the clojure-lsp server information</li>
 <li>Read the clojure-lsp server log</li>
-<li>Stopping clojure-lsp</li>
+<li>Stopping any running clojure-lsp processes</li>
 <li>Starting clojure-lsp</li>
-<li>Restarting clojure-lsp</li>
-<li>Download the configured clojure-lsp version</li>
+<li>Restarting any running clojure-lsp processes</li>
+<li>Downloading the configured clojure-lsp version</li>
 </ul>
-<p>In the status bar, Calva will show an indicator with the clojure-lsp status.</p>
-<h3 id="active-clojure-lsp">Active clojure-lsp</h3>
-<p>When clojure-lsp is downloaded, started and initialized the status bar indicator will look like so:</p>
-<p><img alt="&quot;Active clojure-lsp status bar item&quot;" src="../images/clojure-lsp/calva-clojure-lsp-statusbar-active.png" title="Active clojure-lsp status bar item" /></p>
-<p>Clicking the item will bring up this menu:</p>
-<p><img alt="&quot;Active clojure-lsp menu&quot;" src="../images/clojure-lsp/calva-clojure-lsp-menu-active.png" title="Active clojure-lsp menu" /></p>
-<p>See below about the <a href="#server-info-command">server info</a> and <a href="#opening-the-server-log-file">server log</a> commands.</p>
-<h3 id="stopped-clojure-lsp">Stopped clojure-lsp</h3>
-<p>When clojure-lsp is stopped the status bar indicator will look like so:</p>
-<p><img alt="&quot;Inactive clojure-lsp status bar item&quot;" src="../images/clojure-lsp/calva-clojure-lsp-statusbar-inactive.png" title="Inactive clojure-lsp status bar item" /></p>
-<p>The clojure-lsp inactive menu:</p>
-<p><img alt="&quot;Inactive clojure-lsp  menu&quot;" src="../images/clojure-lsp/calva-clojure-lsp-menu-inactive.png" title="Inactive clojure-lsp menu" /></p>
-<p>The download option here will download the configured clojure-lsp version regardless if it is already installed or not. This can be useful when some earlier download has failed resulting in that clojure-lsp can't be started. <em>NB: It will not download anything if <code>calva.clojureLspPath</code> is set to something non-blank.</em></p>
-<h3 id="downloading-and-starting">Downloading and starting</h3>
-<p>The statusbar item also will indicate when clojure-lsp is being downloaded and while it is starting.</p>
+<p>Note that the download command will download the configured clojure-lsp version regardless if it is already installed or not. This can be useful when some earlier download has failed resulting in that clojure-lsp can't be started. <em>NB: It will not download anything if <code>calva.clojureLspPath</code> is set to something non-blank.</em></p>
+<h3 id="status-bar">Status bar</h3>
+<p>In the status bar Calva will show an indicator with the clojure-lsp status. This status will track the currently open project, showing the status (<code>stopped</code>, <code>starting</code> or <code>active</code>) for the relevant clojure-lsp server.</p>
+<p>You can click on the status-bar item to open the clojure-lsp management menu which will look as follows:</p>
+<p><img alt="&quot;Clojure server management menu&quot;" src="../images/clojure-lsp/management-menu.png" title="Clojure management menu" /></p>
+<p>The menu shows which clojure-lsp servers are active and which are stopped. Selecting a project will allow you to start/stop/restart the server for that project.</p>
 <h2 id="ignoring-lsp-cache-files">Ignoring LSP cache files</h2>
 <p>Clojure-lsp stores its project analysis information in your project. Git users can add these lines to their project root directory <code>.gitignore</code>:</p>
-<div class="highlight"><pre><span></span><code>.clj-kondo/cache/
-.clj-kondo/.cache/
+<div class="highlight"><pre><span></span><code>.lsp/.cache/
 .lsp/sqlite.*.db
 </code></pre></div>
 <h2 id="configuration">Configuration</h2>
@@ -2547,24 +2527,6 @@
 <p>You can run the <code>Clojure-lsp Server Info</code> command to get information about the running clojure-lsp server, such as the version the server being used, the version of clj-kondo it's using, and more. This info is printed to the "Calva says" output channel.</p>
 <h3 id="opening-the-server-log-file">Opening the Server Log File</h3>
 <p>You can open the clojure-lsp log file by running the command <code>Calva Diagnostics: Open Clojure-lsp Log File</code>. The log file will only be opened with this command if the clojure-lsp server is running and has finished initializing. If you need to open the file when the server is failing to run or initialize, see the <a href="https://clojure-lsp.io/troubleshooting/#server-log">clojure-lsp docs</a> for information on the file location.</p>
-<h3 id="leiningen-project-in-subfolder">Leiningen project in subfolder</h3>
-<p>Sometimes your Leiningen project root with its <code>project.clj</code> is located in a subfolder and not directly inside your repository root:</p>
-<div class="highlight"><pre><span></span><code>- reporoot
-  - subfolder (= project root)
-    - project.clj
-  - otherstuff
-  - .git
-</code></pre></div>
-<p>In such cases, when opening the folder <code>reporoot</code>, clojure-lsp doesn't help you. There are two workarounds:</p>
-<p>First, if you do need access to <code>otherstuff</code> inside <code>reporoot</code>, you can:</p>
-<ol>
-<li>open folder <code>reporoot</code></li>
-<li><strong>File -&gt; Add Folder to Workspace...</strong></li>
-<li>Add the <code>subfolder</code></li>
-<li>The File Explorer now shows 2 project roots: drag the <code>subfolder</code> root above the <code>reporoot</code> root.</li>
-</ol>
-<p>Save the resulting Workspace to not have to repeat these steps.</p>
-<p>The second option, if you don't need access to <code>otherstuff</code> inside <code>reporoot</code>, is to just open the folder <code>subfolder</code> instead. </p>
 <h2 id="related">Related</h2>
 <p>See also:</p>
 <ul>
