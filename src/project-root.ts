@@ -134,18 +134,9 @@ export async function pickProjectRoot(
     return rootToUri(uris[0]);
   }
 
-  uris.sort((a, b) => {
-    if (!selected) {
-      return 0;
-    }
-    return rootToUri(a).fsPath === selected.fsPath
-      ? -1
-      : rootToUri(b).fsPath === selected.fsPath
-      ? 1
-      : 0;
-  });
+  const sorted = sortPreSelectedFirst(uris, selected);
 
-  const project_root_options = uris.map((root_or_uri) => {
+  const project_root_options = sorted.map((root_or_uri) => {
     let uri;
     let reason;
     if (root_or_uri instanceof vscode.Uri) {
@@ -179,4 +170,17 @@ export async function pickProjectRoot(
   picker.dispose();
 
   return selected_root?.value;
+}
+
+function sortPreSelectedFirst(uris: (ProjectRoot | vscode.Uri)[], selected: vscode.Uri) {
+  return [...uris].sort((a, b) => {
+    if (!selected) {
+      return 0;
+    }
+    return rootToUri(a).fsPath === selected.fsPath
+      ? -1
+      : rootToUri(b).fsPath === selected.fsPath
+      ? 1
+      : 0;
+  });
 }
