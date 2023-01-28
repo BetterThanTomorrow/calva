@@ -8,7 +8,10 @@ Changes to Calva.
 - Fix: [Indenter and formatter not in agreement about some forms](https://github.com/BetterThanTomorrow/calva/issues/2032)
 - [Sort pre-selected project at the top in REPL connect menu](https://github.com/BetterThanTomorrow/calva/issues/2043)
 
-## [2.0.327] - 2023-01-26
+## [2.0.328] - 2023-01-27
+- Rollback, first part of: [Regressions introduced with clojure-lsp multi-project support in 2.0.327](https://github.com/BetterThanTomorrow/calva/issues/2041)
+
+## [2.0.327] - 2023-01-27
 
 - [LSP support for multi-project and multi-workspace](https://github.com/BetterThanTomorrow/calva/pull/2020)
 - Fix: [Clojure-lsp caching in multi-project workspace](https://github.com/BetterThanTomorrow/calva/issues/934)
