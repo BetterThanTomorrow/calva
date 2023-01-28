@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Sort aliases for deps.edn projects](https://github.com/BetterThanTomorrow/calva/issues/2035)
+- Fix: [Indenter and formatter not in agreement about some forms](https://github.com/BetterThanTomorrow/calva/issues/2032)
 
 ## [2.0.327] - 2023-01-26
 

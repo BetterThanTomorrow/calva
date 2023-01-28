@@ -1,5 +1,6 @@
 import { EditableModel } from './model';
 import * as _ from 'lodash';
+import { testCljOrJsRegex } from '../util/regex';
 
 const whitespace = new Set(['ws', 'comment', 'eol']);
 
@@ -91,7 +92,10 @@ export function collectIndents(
 
       const pattern =
         isList &&
-        _.find(_.keys(rules), (p) => testCljRe(`#"^(.*/)?${p}$"`, token) || testCljRe(p, token));
+        _.find(
+          _.keys(rules),
+          (p) => testCljOrJsRegex(`#"^(.*/)?${p}$"`, token) || testCljOrJsRegex(p, token)
+        );
       const indentRule = pattern ? rules[pattern] : [];
       indents.unshift({
         first: token,
@@ -137,11 +141,6 @@ export function collectIndents(
   }
   return indents;
 }
-
-const testCljRe = (re, str) => {
-  const matches = re.match(/^#"(.*)"$/);
-  return matches && RegExp(matches[1]).test(str.replace(/^.*\//, ''));
-};
 
 const calculateDefaultIndent = (indentInfo: IndentInformation) =>
   indentInfo.exprsOnLine > 0 ? indentInfo.firstItemIdent : indentInfo.startIndent;
