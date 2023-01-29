@@ -1,6 +1,7 @@
 import { EditableModel } from './model';
 import * as _ from 'lodash';
 import { testCljOrJsRegex } from '../util/regex';
+import { FormatterConfig } from '../formatter-config';
 
 const whitespace = new Set(['ws', 'comment', 'eol']);
 
@@ -49,7 +50,7 @@ export interface IndentInformation {
 export function collectIndents(
   document: EditableModel,
   offset: number,
-  config: any,
+  config: FormatterConfig,
   maxDepth: number = 3,
   maxLines: number = 20
 ): IndentInformation[] {
@@ -195,7 +196,7 @@ const calculateIndent = (
 export function getIndent(
   document: EditableModel,
   offset: number,
-  config: any = {
+  config: FormatterConfig = {
     'cljfmt-options': {
       indents: indentRules,
     },

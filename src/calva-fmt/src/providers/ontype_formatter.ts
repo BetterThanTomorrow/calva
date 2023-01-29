@@ -5,7 +5,7 @@ import { EditableDocument } from '../../../cursor-doc/model';
 import * as paredit from '../../../cursor-doc/paredit';
 import { getConfig } from '../../../config';
 import * as util from '../../../utilities';
-import * as formatterConfig from '../config';
+import * as formatterConfig from '../../../formatter-config';
 
 export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProvider {
   async provideOnTypeFormattingEdits(

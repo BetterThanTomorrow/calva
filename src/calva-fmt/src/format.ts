@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as config from './config';
+import * as config from '../../formatter-config';
 import * as outputWindow from '../../results-output/results-doc';
 import {
   getIndent,

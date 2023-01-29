@@ -1,3 +1,4 @@
+import { FormatterConfig } from '../formatter-config';
 import { validPair } from './clojure-lexer';
 import { getIndent } from './indent';
 import { ModelEdit, EditableDocument, ModelEditSelection } from './model';
@@ -814,8 +815,12 @@ function onlyWhitespaceLeftOfCursor(doc: EditableDocument, cursor: LispTokenCurs
   return prevToken.type === 'ws' && prevToken.offset === 0;
 }
 
-function backspaceOnWhitespaceEdit(doc: EditableDocument, cursor: LispTokenCursor) {
-  const origIndent = getIndent(doc.model, cursor.offsetStart);
+function backspaceOnWhitespaceEdit(
+  doc: EditableDocument,
+  cursor: LispTokenCursor,
+  config?: FormatterConfig
+) {
+  const origIndent = getIndent(doc.model, cursor.offsetStart, config);
   const onCloseToken = cursor.getToken().type === 'close';
   let start = doc.selection.anchor;
   let token = cursor.getToken();
@@ -856,6 +861,7 @@ function backspaceOnWhitespaceEdit(doc: EditableDocument, cursor: LispTokenCurso
 
 export async function backspace(
   doc: EditableDocument,
+  config?: FormatterConfig,
   start: number = doc.selection.anchor,
   end: number = doc.selection.active
 ): Promise<boolean> {
@@ -885,7 +891,7 @@ export async function backspace(
         }
       );
     } else if (!cursor.withinString() && onlyWhitespaceLeftOfCursor(doc, cursor)) {
-      return backspaceOnWhitespaceEdit(doc, cursor);
+      return backspaceOnWhitespaceEdit(doc, cursor, config);
     } else {
       if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
         doc.selection = new ModelEditSelection(p - prevToken.raw.length);
