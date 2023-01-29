@@ -293,6 +293,11 @@ async function activate(context: vscode.ExtensionContext) {
         );
     },
     togglePrettyPrint: eval.togglePrettyPrint,
+    activateCalva: () => {
+      return new Promise((resolve, _reject) => {
+        resolve(true);
+      });
+    },
   };
 
   function registerCalvaCommand([command, callback]) {

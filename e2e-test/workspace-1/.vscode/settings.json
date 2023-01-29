@@ -1,0 +1,10 @@
+{
+  "workbench.colorCustomizations": {
+    "sash.hoverBorder": "#DB9550",
+    "titleBar.activeBackground": "#90B4FE",
+    "titleBar.activeForeground": "#131722",
+    "titleBar.inactiveBackground": "#90B4FEd5",
+    "titleBar.inactiveForeground": "#13172299"
+  },
+  "window.zoomLevel": 0
+}
