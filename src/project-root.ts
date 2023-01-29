@@ -86,6 +86,14 @@ export function excludePattern(moreExcludes: string[] = []) {
   return `**/{${[...moreExcludes, ...config.getConfig().projectRootsSearchExclude].join(',')}}/**`;
 }
 
+export async function isValidClojureProject(uri: vscode.Uri) {
+  return findProjectRootsWithReasons().then((roots) => {
+    return !!roots.find((root) => {
+      return uri.path === root.uri.path && root.valid_project;
+    });
+  });
+}
+
 function findMatchingParent(
   from: vscode.Uri,
   uris: vscode.Uri[],
