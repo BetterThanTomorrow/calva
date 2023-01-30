@@ -111,7 +111,7 @@ function registerInternalLspCommand(
   clients: defs.LSPClientMap,
   command: ClojureLspCommand
 ): vscode.Disposable {
-  return vscode.commands.registerCommand(command.command, async (...args) => {
+  return vscode.commands.registerCommand(command.command, (...args) => {
     sendCommandRequest(clients, command.command, args);
   });
 }

@@ -80,7 +80,7 @@ async function activate(context: vscode.ExtensionContext) {
       testRunner.onTestTree(testController, tree);
     },
   });
-  clientProvider.init();
+  await clientProvider.init();
 
   lsp.registerGlobally(clientProvider);
 

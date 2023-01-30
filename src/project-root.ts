@@ -61,7 +61,7 @@ export async function findProjectRootsWithReasons(params?: FindRootParams) {
     const dir = uri.with({ path: path.dirname(uri.fsPath) });
     return {
       uri: dir,
-      label: getPathRelativeToWorkspace(uri),
+      label: getPathRelativeToWorkspace(dir),
       reason: path.basename(uri.path),
       valid_project: true,
     };
