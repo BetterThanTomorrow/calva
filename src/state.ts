@@ -161,13 +161,10 @@ function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
  * Figures out the current clojure project root, and stores it in Calva state
  */
 export async function initProjectDir() {
-  const candidatePaths = await projectRoot.findProjectRootsWithReasons();
+  const candidatePaths = await projectRoot.findProjectRoots();
   const active_uri = vscode.window.activeTextEditor?.document.uri;
   const closestRootPath: vscode.Uri = active_uri
-    ? projectRoot.findClosestParent(
-        active_uri,
-        candidatePaths.map((path) => path.uri)
-      )
+    ? projectRoot.findClosestParent(active_uri, candidatePaths)
     : undefined;
   const projectRootPath: vscode.Uri = await projectRoot.pickProjectRoot(
     candidatePaths,

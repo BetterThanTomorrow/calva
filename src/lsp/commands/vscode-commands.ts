@@ -44,7 +44,10 @@ const startHandler = async (clients: defs.LSPClientMap, handler: StartHandler, u
     roots.filter((root) => root.valid_project).map((root) => root.uri)
   );
 
-  const selected_root = await project_utils.pickProjectRoot(roots, pre_selected);
+  const selected_root = await project_utils.pickProjectRoot(
+    roots.map((root) => root.uri),
+    pre_selected
+  );
   if (!selected_root) {
     return;
   }
@@ -148,16 +151,23 @@ const manageHandler = async (
     );
   }
 
-  const inactive_roots = await project_utils.findProjectRootsWithReasons().then((roots) => {
-    return filterOutRootsWithClients(roots, clients).map((root) => {
+  const inactive_roots = filterOutRootsWithClients(roots, clients)
+    .sort((a, b) => {
+      if (a.uri.path < b.uri.path) {
+        return -1;
+      }
+      if (a.uri.path > b.uri.path) {
+        return 1;
+      }
+      return 0;
+    })
+    .map((root) => {
       return {
-        label: `$(circle-outline) ${root.uri.path}`,
+        label: `$(circle-outline) ${root.label}`,
         value: root.uri.path,
-        detail: root.reason,
         active: false,
       };
     });
-  });
 
   const active_roots = Array.from(clients.entries())
     .filter(([, client]) => client.state !== vscode_lsp.State.Stopped)
@@ -168,7 +178,7 @@ const manageHandler = async (
       }
 
       return {
-        label: `${icon} ${key}`,
+        label: `${icon} ${project_utils.getPathRelativeToWorkspace(vscode.Uri.parse(key))}`,
         value: key,
         active: true,
       };
