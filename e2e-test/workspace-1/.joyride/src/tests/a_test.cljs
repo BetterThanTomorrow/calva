@@ -1,11 +1,11 @@
 (ns tests.a-test
-  (:require [cljs.test :refer [testing is]]
+  (:require [cljs.test :refer [deftest testing is]]
             [promesa.core :as p]
             ["ext://betterthantomorrow.joyride" :as joyride]
             ["ext://betterthantomorrow.calva$v0" :as calva]
             [macros :refer [deftest-async]]))
 
-(deftest-async calva-required
+(deftest calva-required
   (testing "Requires Calva"
     (is (not= nil? calva/ranges))))
 
