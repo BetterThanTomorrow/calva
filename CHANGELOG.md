@@ -7,6 +7,7 @@ Changes to Calva.
 - [Sort aliases for deps.edn projects](https://github.com/BetterThanTomorrow/calva/issues/2035)
 - Fix: [Indenter and formatter not in agreement about some forms](https://github.com/BetterThanTomorrow/calva/issues/2032)
 - [Sort pre-selected project at the top in REPL connect menu](https://github.com/BetterThanTomorrow/calva/issues/2043)
+- Fix: [Formatting issues on backspace](https://github.com/BetterThanTomorrow/calva/issues/2038)
 
 ## [2.0.328] - 2023-01-27
 - Rollback, first part of: [Regressions introduced with clojure-lsp multi-project support in 2.0.327](https://github.com/BetterThanTomorrow/calva/issues/2041)
