@@ -44,7 +44,13 @@ async function main() {
       testWorkspace,
       '--disable-workspace-trust',
       '--install-extension',
+      // TODO: Build the extension first, and use the built version here
+      //       In CI we will have built the extension already, so it is
+      //       more a TODO to figure out where to find the built extension
       'calva-2.0.329.vsix',
+      // WHen debugging tests, it can be good to use the development version of Joyride
+      // If you do, comment out the install of the Joyride extension here
+      // And set the `extensionDevelopmentPath` in the `runTests` call below
       '--install-extension',
       'betterthantomorrow.joyride',
     ];
@@ -55,6 +61,8 @@ async function main() {
     });
 
     await runTests({
+      // When debugging tests, it can be good to use the development version Joyride
+      // extensionDevelopmentPath: '/Users/pez/Projects/joyride',
       vscodeExecutablePath,
       reuseMachineInstall: true,
       extensionTestsPath,
