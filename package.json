@@ -54,6 +54,7 @@
   ],
   "activationEvents": [
     "onLanguage:clojure",
+    "onCommand:calva.activateCalva",
     "onCommand:calva.startStandaloneRepl",
     "onCommand:calva.startStandaloneHelloRepl",
     "onCommand:calva.startStandaloneCljsBrowserRepl",
@@ -941,6 +942,11 @@
       }
     ],
     "commands": [
+      {
+        "command": "calva.activateCalva",
+        "title": "Activate the Calva Extension",
+        "category": "Calva"
+      },
       {
         "command": "calva.startJoyrideReplAndConnect",
         "title": "Start Joyride REPL and Connect",
@@ -2883,6 +2889,7 @@
     "bump-version": "npm set git-tag-version false && npm version patch",
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
     "integration-test": "node ./out/extension-test/integration/runTests.js",
+    "vsix-test": "node ./vsix-test/launch.js",
     "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
     "unit-test-watch": "npx mocha --watch --require ts-node/register --watch-extensions ts --watch-files src 'src/extension-test/unit/**/*-test.ts'",
     "prettier-format": "npx prettier --write \"./**/*.{ts,js,json}\"",
@@ -2932,6 +2939,7 @@
     "@types/vscode": "^1.67.0",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
+    "@vscode/test-electron": "^2.2.2",
     "chai": "^4.2.0",
     "concurrently": "^6.3.0",
     "cson-parser": "^4.0.3",

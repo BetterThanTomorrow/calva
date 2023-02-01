@@ -218,6 +218,24 @@ jobs:
           command: npm run integration-test
       - store_test_results:
           path: ~/calva/junit
+  test-vsix:
+    docker:
+      - image: cimg/clojure:1.11-browsers
+    working_directory: ~/calva
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Restore build
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
+      - run:
+          name: Apt install missing dependencies
+          command: sudo apt update && sudo apt install -y libnss3
+      - run:
+          name: Run VSIX E2E Tests
+          command: npm run vsix-test /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix
+      - store_test_results:
+          path: ~/calva/junit
   github-release:
     docker:
       - image: cibuilds/github:0.10
@@ -428,6 +446,9 @@ workflows:
       - test-integration:
           requires:
             - build
+      - test-vsix:
+          requires:
+            - build
       - test-ts-unit:
           requires:
             - build
@@ -438,6 +459,7 @@ workflows:
             - test-grammar
             - test-cljslib
             - test-integration
+            - test-vsix
             - test-ts-unit
           filters:
             branches:
@@ -499,6 +521,14 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
+      - test-vsix:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
       - test-ts-unit:
           requires:
             - build
@@ -514,6 +544,7 @@ workflows:
             - test-grammar
             - test-cljslib
             - test-integration
+            - test-vsix
             - test-ts-unit
           filters:
             branches:
