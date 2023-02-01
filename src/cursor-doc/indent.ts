@@ -1,5 +1,7 @@
 import { EditableModel } from './model';
 import * as _ from 'lodash';
+import { testCljOrJsRegex } from '../util/regex';
+import { FormatterConfig } from '../formatter-config';
 
 const whitespace = new Set(['ws', 'comment', 'eol']);
 
@@ -48,7 +50,7 @@ export interface IndentInformation {
 export function collectIndents(
   document: EditableModel,
   offset: number,
-  config: any,
+  config: FormatterConfig,
   maxDepth: number = 3,
   maxLines: number = 20
 ): IndentInformation[] {
@@ -91,7 +93,10 @@ export function collectIndents(
 
       const pattern =
         isList &&
-        _.find(_.keys(rules), (p) => testCljRe(`#"^(.*/)?${p}$"`, token) || testCljRe(p, token));
+        _.find(
+          _.keys(rules),
+          (p) => testCljOrJsRegex(`#"^(.*/)?${p}$"`, token) || testCljOrJsRegex(p, token)
+        );
       const indentRule = pattern ? rules[pattern] : [];
       indents.unshift({
         first: token,
@@ -137,11 +142,6 @@ export function collectIndents(
   }
   return indents;
 }
-
-const testCljRe = (re, str) => {
-  const matches = re.match(/^#"(.*)"$/);
-  return matches && RegExp(matches[1]).test(str.replace(/^.*\//, ''));
-};
 
 const calculateDefaultIndent = (indentInfo: IndentInformation) =>
   indentInfo.exprsOnLine > 0 ? indentInfo.firstItemIdent : indentInfo.startIndent;
@@ -196,7 +196,7 @@ const calculateIndent = (
 export function getIndent(
   document: EditableModel,
   offset: number,
-  config: any = {
+  config: FormatterConfig = {
     'cljfmt-options': {
       indents: indentRules,
     },

@@ -1,20 +1,23 @@
 import * as config from './config';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as _ from 'lodash';
 
 export type ProjectRoot = {
   uri: vscode.Uri;
+  label: string;
   reason: string;
 
   workspace_root?: boolean;
   valid_project?: boolean;
 };
 
-export const rootToUri = (root_or_uri: ProjectRoot | vscode.Uri) => {
-  if (root_or_uri instanceof vscode.Uri) {
-    return root_or_uri;
+export const getPathRelativeToWorkspace = (uri: vscode.Uri) => {
+  const root = vscode.workspace.getWorkspaceFolder(uri);
+  if (!root) {
+    return uri.path;
   }
-  return root_or_uri.uri;
+  return path.relative(path.dirname(root.uri.path), uri.path);
 };
 
 type FindRootParams = {
@@ -46,6 +49,7 @@ export async function findProjectRootsWithReasons(params?: FindRootParams) {
     const wsRootPaths = vscode.workspace.workspaceFolders.map((f) => {
       return {
         uri: f.uri,
+        label: path.basename(f.uri.path),
         reason: 'Workspace Root',
         workspace_root: true,
       };
@@ -57,6 +61,7 @@ export async function findProjectRootsWithReasons(params?: FindRootParams) {
     const dir = uri.with({ path: path.dirname(uri.fsPath) });
     return {
       uri: dir,
+      label: getPathRelativeToWorkspace(dir),
       reason: path.basename(uri.path),
       valid_project: true,
     };
@@ -84,6 +89,14 @@ export async function findProjectRoots(params?: FindRootParams) {
 
 export function excludePattern(moreExcludes: string[] = []) {
   return `**/{${[...moreExcludes, ...config.getConfig().projectRootsSearchExclude].join(',')}}/**`;
+}
+
+export async function isValidClojureProject(uri: vscode.Uri) {
+  return findProjectRootsWithReasons().then((roots) => {
+    return !!roots.find((root) => {
+      return uri.path === root.uri.path && root.valid_project;
+    });
+  });
 }
 
 function findMatchingParent(
@@ -123,39 +136,101 @@ export function findFurthestParent(from: vscode.Uri, uris: vscode.Uri[]) {
   });
 }
 
-export async function pickProjectRoot(
-  uris: Array<vscode.Uri | ProjectRoot>,
-  selected?: vscode.Uri
-) {
+const groupByProject = (uris: vscode.Uri[]) => {
+  return Object.values(
+    _.groupBy(uris, (uri) => {
+      return vscode.workspace.getWorkspaceFolder(uri)?.uri.path;
+    })
+  );
+};
+
+const groupsToChoices = (groups: vscode.Uri[][]) => {
+  return groups.reduce((choices: (vscode.QuickPickItem & { value?: vscode.Uri })[], uris) => {
+    choices.push({
+      kind: vscode.QuickPickItemKind.Separator,
+      label: 'Workspace Root',
+    });
+
+    const items = uris.map((uri) => {
+      return {
+        label: getPathRelativeToWorkspace(uri),
+        value: uri,
+      };
+    });
+
+    choices.push(...items);
+
+    return choices;
+  }, []);
+};
+
+function groupContainsUri(uris: vscode.Uri[], uri: vscode.Uri) {
+  return !!uris.find((next) => next.path === uri.path);
+}
+
+function sortPreSelectedFirst(groups: vscode.Uri[][], selected: vscode.Uri) {
+  // First sort the groups, bringing the group containing the preselected item to the top.
+  const sorted_groups = groups.sort((a, b) => {
+    if (!selected) {
+      return 0;
+    }
+    if (groupContainsUri(a, selected)) {
+      return -1;
+    }
+    if (groupContainsUri(b, selected)) {
+      return 1;
+    }
+    return 0;
+  });
+
+  // Next sort the items within each group, first attempting to bring the preselected item to the top and then
+  // falling back to sorting by path length
+  return sorted_groups.map((group) => {
+    const [root, ...remaining] = group;
+
+    const sorted = remaining.sort((a, b) => {
+      // Try bring the pre-selected entry to the top
+      if (selected) {
+        if (a.path === selected.path) {
+          return -1;
+        }
+        if (b.path === selected.path) {
+          return 1;
+        }
+      }
+
+      // Fall back to sorting by length
+      if (a.path < b.path) {
+        return -1;
+      }
+      if (a.path > b.path) {
+        return 1;
+      }
+
+      return 0;
+    });
+
+    return [root, ...sorted];
+  });
+}
+
+export async function pickProjectRoot(uris: vscode.Uri[], selected?: vscode.Uri) {
   if (uris.length === 0) {
     return;
   }
   if (uris.length === 1) {
-    return rootToUri(uris[0]);
+    return uris[0];
   }
 
-  const project_root_options = uris.map((root_or_uri) => {
-    let uri;
-    let reason;
-    if (root_or_uri instanceof vscode.Uri) {
-      uri = root_or_uri;
-    } else {
-      uri = root_or_uri.uri;
-      reason = root_or_uri.reason;
-    }
-    return {
-      label: uri.path,
-      detail: reason,
-      picked: uri.path === selected?.path,
-      value: uri,
-    };
-  });
+  const grouped = groupByProject(uris);
+  const sorted = sortPreSelectedFirst(grouped, selected);
+  const choices = groupsToChoices(sorted);
 
   const picker = vscode.window.createQuickPick();
-  picker.items = project_root_options;
+  picker.items = choices;
   picker.title = 'Project Selection';
   picker.placeholder = 'Pick the Clojure project you want to use as the root';
-  picker.activeItems = project_root_options.filter((root) => root.label === selected?.path);
+  picker.activeItems = choices.filter((root) => root.value?.path === selected?.path);
   picker.show();
 
   const selected_root = await new Promise<any>((resolve) => {

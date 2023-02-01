@@ -1,8 +1,7 @@
 import * as expect from 'expect';
 import * as model from '../../../cursor-doc/model';
 import * as indent from '../../../cursor-doc/indent';
-import { docFromTextNotation, textAndSelection, text } from '../common/text-notation';
-import { ModelEditSelection } from '../../../cursor-doc/model';
+import { docFromTextNotation, textAndSelection } from '../common/text-notation';
 
 model.initScanner(20000);
 
@@ -164,6 +163,36 @@ describe('indent', () => {
             })
           )
         ).toEqual(4);
+      });
+    });
+    describe('and', () => {
+      it('calculates indents for cursor on the new line before the second argument with clojure regex config', () => {
+        const doc = docFromTextNotation(`
+(and x
+|y)`);
+        expect(
+          indent.getIndent(
+            doc.model,
+            textAndSelection(doc)[1][0],
+            mkConfig({
+              '#"\\S+"': [['inner', 0]],
+            })
+          )
+        ).toEqual(2);
+      });
+      it('calculates indents for cursor on the new line before the second argument with js regex config', () => {
+        const doc = docFromTextNotation(`
+(and x
+|y)`);
+        expect(
+          indent.getIndent(
+            doc.model,
+            textAndSelection(doc)[1][0],
+            mkConfig({
+              '/\\S+/': [['inner', 0]],
+            })
+          )
+        ).toEqual(2);
       });
     });
   });

@@ -14,6 +14,7 @@ import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import { EditableDocument } from '../cursor-doc/model';
 import { assertIsDefined } from '../utilities';
+import * as config from '../formatter-config';
 
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
@@ -363,7 +364,7 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.deleteBackward',
     handler: async (doc: EditableDocument) => {
-      await paredit.backspace(doc);
+      await paredit.backspace(doc, await config.getConfig());
     },
   },
   {

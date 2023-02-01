@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import * as filesCache from '../../files-cache';
-import * as cljsLib from '../../../out/cljs-lib/cljs-lib.js';
-import * as lsp from '../../lsp';
+import * as filesCache from './files-cache';
+import * as cljsLib from '../out/cljs-lib/cljs-lib.js';
+import * as lsp from './lsp';
 
 const defaultCljfmtContent =
   '\
@@ -34,6 +34,8 @@ function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmt: s
     'cljfmt-options': cljfmtOptionsFromString(cljfmt),
   };
 }
+
+export type FormatterConfig = Partial<Awaited<ReturnType<typeof getConfig>>>;
 
 export async function getConfig(
   document: vscode.TextDocument = vscode.window.activeTextEditor?.document

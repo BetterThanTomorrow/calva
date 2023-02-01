@@ -1,3 +1,4 @@
+import * as vscode_lsp from 'vscode-languageclient/node';
 import * as calva_utils from '../../utilities';
 import * as defs from '../definitions';
 import * as vscode from 'vscode';
@@ -53,16 +54,37 @@ function sendCommandRequest(
   }
 
   client
-    .sendRequest('workspace/executeCommand', {
+    .sendRequest(vscode_lsp.ExecuteCommandRequest.type, {
       command,
       arguments: args,
+    })
+    .catch((error) => {
+      return client.handleFailedRequest(
+        vscode_lsp.ExecuteCommandRequest.type,
+        undefined,
+        error,
+        undefined
+      );
     })
     .catch((e) => {
       console.error('Failed to execute lsp command', e);
     });
 }
 
-function registerLspCommand(
+const getLSPCommandParams = () => {
+  const editor = calva_utils.getActiveTextEditor();
+  const document = calva_utils.tryToGetDocument(editor.document);
+  if (!document || document.languageId !== 'clojure') {
+    return;
+  }
+
+  const line = editor.selection.start.line;
+  const column = editor.selection.start.character;
+  const doc_uri = `${document.uri.scheme}://${document.uri.path}`;
+  return [doc_uri, line, column];
+};
+
+function registerUserspaceLspCommand(
   clients: defs.LSPClientMap,
   command: ClojureLspCommand
 ): vscode.Disposable {
@@ -71,18 +93,26 @@ function registerLspCommand(
     m.substring(1).toUpperCase()
   )}`;
   return vscode.commands.registerCommand(vscodeCommand, async () => {
-    const editor = calva_utils.getActiveTextEditor();
-    const document = calva_utils.tryToGetDocument(editor.document);
-    if (document && document.languageId === 'clojure') {
-      const line = editor.selection.start.line;
-      const column = editor.selection.start.character;
-      const docUri = `${document.uri.scheme}://${document.uri.path}`;
-      const params = [docUri, line, column];
-      const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
-      if (!command.extraParamFn || (command.extraParamFn && extraParam)) {
-        sendCommandRequest(clients, command.command, extraParam ? [...params, extraParam] : params);
-      }
+    const params = getLSPCommandParams();
+    if (!params) {
+      return;
     }
+
+    const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
+    if (command.extraParamFn && !extraParam) {
+      return;
+    }
+
+    sendCommandRequest(clients, command.command, extraParam ? [...params, extraParam] : params);
+  });
+}
+
+function registerInternalLspCommand(
+  clients: defs.LSPClientMap,
+  command: ClojureLspCommand
+): vscode.Disposable {
+  return vscode.commands.registerCommand(command.command, (...args) => {
+    sendCommandRequest(clients, command.command, args);
   });
 }
 
@@ -124,51 +154,46 @@ export function registerLspCommands(clients: defs.LSPClientMap) {
   ];
 
   const clojureLspCommands: ClojureLspCommand[] = [
-    {
-      command: 'clean-ns',
-    },
-    {
-      command: 'add-missing-libspec',
-    },
-    // This seems to be similar to Calva's rewrap commands
-    //{
-    //    command: 'cycle-coll'
-    //},
-    {
-      command: 'cycle-privacy',
-    },
-    {
-      command: 'drag-backward',
-      category: 'clojureLsp',
-    },
-    {
-      command: 'drag-forward',
-      category: 'clojureLsp',
-    },
-    {
-      command: 'expand-let',
-    },
-    {
-      command: 'thread-first',
-    },
-    {
-      command: 'thread-first-all',
-    },
-    {
-      command: 'thread-last',
-    },
-    {
-      command: 'thread-last-all',
-    },
-    {
-      command: 'inline-symbol',
-    },
-    {
-      command: 'unwind-all',
-    },
-    {
-      command: 'unwind-thread',
-    },
+    { command: 'add-import-to-namespace' },
+    { command: 'add-missing-import' },
+    { command: 'add-missing-libspec' },
+    { command: 'add-require-suggestion' },
+    { command: 'change-coll' },
+    { command: 'clean-ns' },
+    { command: 'create-function' },
+    { command: 'create-test' },
+    { command: 'cycle-coll' },
+    { command: 'cycle-keyword-auto-resolve' },
+    { command: 'cycle-privacy' },
+    { command: 'demote-fn' },
+    { command: 'destructure-keys' },
+    { command: 'drag-backward', category: 'clojureLsp' },
+    { command: 'drag-forward', category: 'clojureLsp' },
+    { command: 'drag-param-backward' },
+    { command: 'drag-param-forward' },
+    { command: 'expand-let' },
+    { command: 'extract-to-def' },
+    { command: 'get-in-all' },
+    { command: 'get-in-less' },
+    { command: 'get-in-more' },
+    { command: 'get-in-none' },
+    { command: 'inline-symbol' },
+    { command: 'move-coll-entry-down' },
+    { command: 'move-coll-entry-up' },
+    { command: 'move-form' },
+    { command: 'promote-fn' },
+    { command: 'resolve-macro-as' },
+    { command: 'restructure-keys' },
+    { command: 'sort-clauses' },
+    { command: 'sort-map' },
+    { command: 'suppress-diagnostic' },
+    { command: 'thread-first' },
+    { command: 'thread-first-all' },
+    { command: 'thread-last' },
+    { command: 'thread-last-all' },
+    { command: 'unwind-all' },
+    { command: 'unwind-thread' },
+
     {
       command: 'introduce-let',
       extraParamFn: makePromptForInput('Bind to'),
@@ -193,7 +218,19 @@ export function registerLspCommands(clients: defs.LSPClientMap) {
       });
     }),
 
-    ...clojureLspCommands.map((command) => registerLspCommand(clients, command)),
+    ...clojureLspCommands.map((command) => registerUserspaceLspCommand(clients, command)),
+
+    /**
+     * The clojure-lsp server previously used to dynamically register all of these top-level commands. However, that behaviour was
+     * disabled to add support for provisioning multiple lsp clients in the same vscode window. The built-in behaviour resulted
+     * in command registration conflicts.
+     *
+     * There are several vscode operations (such as organise-imports) which are bound to execute these internal lsp commands which
+     * would no longer function if these commands are not correctly registered (as they used to be).
+     *
+     * We therefore manually register them here with added support for selecting the appropriate active lsp client on execution.
+     */
+    ...clojureLspCommands.map((command) => registerInternalLspCommand(clients, command)),
   ];
 }
 

@@ -4,7 +4,7 @@ import { RangeEditProvider } from './providers/range_formatter';
 import * as formatter from './format';
 import * as inferer from './infer';
 import * as docmirror from '../../doc-mirror/index';
-import * as config from './config';
+import * as config from '../../formatter-config';
 import * as calvaConfig from '../../config';
 
 function getLanguageConfiguration(): vscode.LanguageConfiguration {
