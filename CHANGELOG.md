@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.329] - 2023-02-01
+
 - [Sort aliases for deps.edn projects](https://github.com/BetterThanTomorrow/calva/issues/2035)
 - [Sort pre-selected project at the top in REPL connect menu](https://github.com/BetterThanTomorrow/calva/issues/2043)
 - Fix: [Indenter and formatter not in agreement about some forms](https://github.com/BetterThanTomorrow/calva/issues/2032)
