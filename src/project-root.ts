@@ -164,19 +164,20 @@ const groupsToChoices = (groups: vscode.Uri[][]) => {
   }, []);
 };
 
+function groupContainsUri(uris: vscode.Uri[], uri: vscode.Uri) {
+  return !!uris.find((next) => next.path === uri.path);
+}
+
 function sortPreSelectedFirst(groups: vscode.Uri[][], selected: vscode.Uri) {
   // First sort the groups, bringing the group containing the preselected item to the top.
   const sorted_groups = groups.sort((a, b) => {
     if (!selected) {
       return 0;
     }
-    function groupContainsUri(uris: vscode.Uri[]) {
-      return !!uris.find((uri) => uri.path === selected.path);
-    }
-    if (groupContainsUri(a)) {
+    if (groupContainsUri(a, selected)) {
       return -1;
     }
-    if (groupContainsUri(b)) {
+    if (groupContainsUri(b, selected)) {
       return 1;
     }
     return 0;
