@@ -10,6 +10,7 @@ Changes to Calva.
 - Fix: [Regressions introduced with clojure-lsp multi-project support in 2.0.327](https://github.com/BetterThanTomorrow/calva/issues/2041)
 - Fix: [Can't use add require feature after updating to 2.0.327 version](https://github.com/BetterThanTomorrow/calva/issues/2040)
 - Fix: [Formatting issues on backspace](https://github.com/BetterThanTomorrow/calva/issues/2038)
+- Calva development: [Test the built VSIX extension in CI](https://github.com/BetterThanTomorrow/calva/issues/2051)
 
 ## [2.0.328] - 2023-01-27
 - Rollback, first part of: [Regressions introduced with clojure-lsp multi-project support in 2.0.327](https://github.com/BetterThanTomorrow/calva/issues/2041)
