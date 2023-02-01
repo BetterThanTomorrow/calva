@@ -84,7 +84,7 @@ if (!calvaVSIXPath) {
 }
 
 void init()
-  .then(() => main())
+  .then(() => main(calvaVSIXPath))
   .catch((error) => {
     console.error('Failed to initialize test running environment:', error);
     process.exit(1);
