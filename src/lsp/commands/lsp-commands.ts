@@ -221,7 +221,7 @@ export function registerLspCommands(clients: defs.LSPClientMap) {
     ...clojureLspCommands.map((command) => registerUserspaceLspCommand(clients, command)),
 
     /**
-     * The clojure-lsp server previously used to dynamically register all of these top-level commands however that behaviour was
+     * The clojure-lsp server previously used to dynamically register all of these top-level commands. However, that behaviour was
      * disabled to add support for provisioning multiple lsp clients in the same vscode window. The built-in behaviour resulted
      * in command registration conflicts.
      *
