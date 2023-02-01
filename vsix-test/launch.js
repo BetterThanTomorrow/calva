@@ -29,16 +29,12 @@ function init() {
   });
 }
 
-async function main() {
+async function main(calvaVSIXPath) {
   try {
     const extensionTestsPath = path.resolve(__dirname, 'runTests');
-
     const vscodeExecutablePath = await downloadAndUnzipVSCode('insiders');
-    console.log(`BOOM! vscodeExecutablePath: ${vscodeExecutablePath}`);
     const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
-    console.log(`BOOM! cliPath: ${cliPath}`);
-
-    const testWorkspace = path.resolve(__dirname, 'workspace-1');
+    const testWorkspace = path.resolve(__dirname);
 
     const launchArgs = [
       testWorkspace,
@@ -47,7 +43,7 @@ async function main() {
       // TODO: Build the extension first, and use the built version here
       //       In CI we will have built the extension already, so it is
       //       more a TODO to figure out where to find the built extension
-      'calva-2.0.329.vsix',
+      calvaVSIXPath,
       // WHen debugging tests, it can be good to use the development version of Joyride
       // If you do, comment out the install of the Joyride extension here
       // And set the `extensionDevelopmentPath` in the `runTests` call below
@@ -79,6 +75,12 @@ async function main() {
     console.error('Failed to run tests:', err);
     process.exit(1);
   }
+}
+
+const calvaVSIXPath = process.argv[2];
+if (!calvaVSIXPath) {
+  console.error('Missing path to Calva VSIX file');
+  process.exit(1);
 }
 
 void init()

@@ -1,7 +1,7 @@
 {
-  "name": "workspace-1",
+  "name": "calva-vsix-test-workspace",
   "version": "1.0.0",
-  "description": "E2e test workspace for Calva",
+  "description": "VSIX e2e test workspace for Calva",
   "scripts": {},
   "keywords": [],
   "author": {

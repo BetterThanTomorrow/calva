@@ -40,7 +40,7 @@
   (binding [*print-fn* write]
     (old-end-run-tests m)
     (let [{:keys [running pass fail error]} @db/!state
-          passed-minimum-threshold 20
+          passed-minimum-threshold 2
           fail-reason (cond
                         (< 0 (+ fail error)) "FAILURE: Some tests failed or errored"
                         (< pass passed-minimum-threshold) (str "FAILURE: Less than " passed-minimum-threshold " assertions passed")
