@@ -1,4 +1,5 @@
 import * as vscode_lsp from 'vscode-languageclient/node';
+import * as project_utils from '../project-root';
 import * as vscode from 'vscode';
 import * as path from 'node:path';
 
@@ -143,7 +144,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
   return {
     getClientForDocumentUri: (uri: vscode.Uri) => api.getClientForDocumentUri(clients, uri),
 
-    init: () => {
+    init: async () => {
       status_bar_item.show();
 
       if (vscode.window.activeTextEditor?.document.languageId === 'clojure') {
@@ -163,8 +164,15 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
 
       switch (config.getAutoStartBehaviour()) {
         case config.AutoStartBehaviour.WorkspaceOpened: {
-          vscode.workspace.workspaceFolders.forEach((folder) => {
-            void provision_queue.push(folder.uri).catch((err) => console.error(err));
+          const roots = await project_utils.findProjectRootsWithReasons();
+          const workspace_folders = roots
+            .filter((root) => {
+              return root.valid_project && root.workspace_root;
+            })
+            .map((root) => root.uri);
+
+          workspace_folders.forEach((root) => {
+            void provision_queue.push(root).catch((err) => console.error(err));
           });
           break;
         }
@@ -199,9 +207,13 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
           });
 
           if (config.getAutoStartBehaviour() === config.AutoStartBehaviour.WorkspaceOpened) {
-            event.added.forEach((folder) => {
-              void provision_queue.push(folder.uri).catch((err) => console.error(err));
-            });
+            void Promise.allSettled(
+              event.added.map(async (folder) => {
+                if (await project_utils.isValidClojureProject(folder.uri)) {
+                  void provision_queue.push(folder.uri).catch((err) => console.error(err));
+                }
+              })
+            );
           }
         })
       );
