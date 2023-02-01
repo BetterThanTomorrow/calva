@@ -5,15 +5,16 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Sort aliases for deps.edn projects](https://github.com/BetterThanTomorrow/calva/issues/2035)
+- [Sort pre-selected project at the top in REPL connect menu](https://github.com/BetterThanTomorrow/calva/issues/2043)
 - Fix: [Indenter and formatter not in agreement about some forms](https://github.com/BetterThanTomorrow/calva/issues/2032)
-- Fix: [Sort pre-selected project at the top in REPL connect menu](https://github.com/BetterThanTomorrow/calva/issues/2043)
 - Fix: [Regressions introduced with clojure-lsp multi-project support in 2.0.327](https://github.com/BetterThanTomorrow/calva/issues/2041)
 - Fix: [Can't use add require feature after updating to 2.0.327 version](https://github.com/BetterThanTomorrow/calva/issues/2040)
 - Fix: [Formatting issues on backspace](https://github.com/BetterThanTomorrow/calva/issues/2038)
 - Calva development: [Test the built VSIX extension in CI](https://github.com/BetterThanTomorrow/calva/issues/2051)
+- Calva development, Fix: [We build Calva twice in CI](https://github.com/BetterThanTomorrow/calva/issues/2052)
 
 ## [2.0.328] - 2023-01-27
-- Rollback, first part of: [Regressions introduced with clojure-lsp multi-project support in 2.0.327](https://github.com/BetterThanTomorrow/calva/issues/2041)
+- Rollback of 2.0.327, first part of: [Regressions introduced with clojure-lsp multi-project support in 2.0.327](https://github.com/BetterThanTomorrow/calva/issues/2041)
 
 ## [2.0.327] - 2023-01-27
 
