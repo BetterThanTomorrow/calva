@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Clojure-lsp does not automatically start when using VSCode on Windows in Calva version 2.0.329](https://github.com/BetterThanTomorrow/calva/issues/2054)
+
 ## [2.0.329] - 2023-02-01
 
 - [Sort aliases for deps.edn projects](https://github.com/BetterThanTomorrow/calva/issues/2035)
