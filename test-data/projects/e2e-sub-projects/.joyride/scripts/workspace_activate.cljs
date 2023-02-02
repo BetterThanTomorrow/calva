@@ -1,0 +1,1 @@
+../../../../../src/extension-test/e2e-test/.joyride/scripts/workspace_activate.cljs
