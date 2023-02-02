@@ -218,7 +218,7 @@ jobs:
           command: npm run integration-test
       - store_test_results:
           path: ~/calva/junit
-  test-vsix:
+  test-e2e:
     docker:
       - image: cimg/clojure:1.11-browsers
     working_directory: ~/calva
@@ -233,7 +233,25 @@ jobs:
           command: sudo apt update && sudo apt install -y libnss3
       - run:
           name: Run VSIX E2E Tests
-          command: npm run vsix-test /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix
+          command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=src/extension-test/e2e-test
+      - store_test_results:
+          path: ~/calva/junit
+  test-e2e-sub-projects:
+    docker:
+      - image: cimg/clojure:1.11-browsers
+    working_directory: ~/calva
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Restore build
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
+      - run:
+          name: Apt install missing dependencies
+          command: sudo apt update && sudo apt install -y libnss3
+      - run:
+          name: Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
+          command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=test-data/projects/e2e-sub-projects
       - store_test_results:
           path: ~/calva/junit
   github-release:
@@ -446,7 +464,10 @@ workflows:
       - test-integration:
           requires:
             - build
-      - test-vsix:
+      - test-e2e:
+          requires:
+            - build
+      - test-e2e-sub-projects:
           requires:
             - build
       - test-ts-unit:
@@ -459,7 +480,8 @@ workflows:
             - test-grammar
             - test-cljslib
             - test-integration
-            - test-vsix
+            - test-e2e
+            - test-e2e-sub-projects
             - test-ts-unit
           filters:
             branches:
@@ -521,7 +543,15 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
-      - test-vsix:
+      - test-e2e:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - test-e2e-sub-projects:
           requires:
             - build
           filters:
@@ -544,7 +574,8 @@ workflows:
             - test-grammar
             - test-cljslib
             - test-integration
-            - test-vsix
+            - test-e2e
+            - test-e2e-sub-projects
             - test-ts-unit
           filters:
             branches:
