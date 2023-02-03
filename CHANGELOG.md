@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.330] - 2023-02-03
+
 - Fix: [Clojure-lsp does not automatically start when using VSCode on Windows in Calva version 2.0.329](https://github.com/BetterThanTomorrow/calva/issues/2054)
 - Calva development: [Make e2e test runner re-usable](https://github.com/BetterThanTomorrow/calva/issues/2058)
 
