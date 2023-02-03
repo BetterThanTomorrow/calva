@@ -2911,7 +2911,7 @@
     "get-port": "^5.1.1",
     "immutable": "3.8.1",
     "immutable-cursor": "2.0.1",
-    "jszip": "3.7.0",
+    "jszip": "3.8.0",
     "lodash": "^4.17.19",
     "lodash.isequal": "4.5.0",
     "net": "1.0.2",
