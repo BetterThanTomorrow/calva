@@ -9,5 +9,7 @@
     "email": "pez@pezius.com"
   },
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {
+    "minimist": "^1.2.7"
+  }
 }

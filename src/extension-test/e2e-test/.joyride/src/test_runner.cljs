@@ -1,6 +1,7 @@
 (ns test-runner
   (:require [clojure.string :as string]
             [cljs.test]
+            [config :as config]
             [db :as db]
             [promesa.core :as p]))
 
@@ -16,7 +17,7 @@
 (def old-pass (get-method cljs.test/report [:cljs.test/default :pass]))
 
 (defmethod cljs.test/report [:cljs.test/default :pass] [m]
-  (binding [*print-fn* write] (old-pass m)) 
+  (binding [*print-fn* write] (old-pass m))
   (write "✅")
   (swap! db/!state update :pass inc))
 
@@ -55,16 +56,19 @@
   (if (:ws-activated? @db/!state)
     (do
       (println "Runner: Workspace activated, running tests...")
-      (require '[tests.a-test])
-      (cljs.test/run-tests 'tests.a-test))
+      (try
+        (doseq [ns-sym (config/ns-symbols)]
+          (require ns-sym)
+          (cljs.test/run-tests ns-sym))
+        (catch :default e
+          (p/reject! (:running @db/!state) e))))
     (do
       (println "Runner: Workspace not activated yet, tries: " tries "- trying again in a jiffy")
       (js/setTimeout #(run-when-ws-activated (inc tries)) 10))))
 
 (defn run-all-tests []
   (let [running (p/deferred)]
-    (swap! db/!state assoc
-           :running running)
+    (swap! db/!state assoc :running running)
     (run-when-ws-activated 1)
     running))
 
