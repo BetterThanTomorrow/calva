@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Bump jszip from 3.7.0 to 3.8.0](https://github.com/BetterThanTomorrow/calva/pull/2056)
+
 ## [2.0.330] - 2023-02-03
 
 - Fix: [Clojure-lsp does not automatically start when using VSCode on Windows in Calva version 2.0.329](https://github.com/BetterThanTomorrow/calva/issues/2054)
