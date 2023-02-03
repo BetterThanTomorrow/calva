@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- [Bump jszip from 3.7.0 to 3.8.0](https://github.com/BetterThanTomorrow/calva/pull/2056)
+- Bump npm deps [jszip](https://github.com/BetterThanTomorrow/calva/pull/2056), [http-cache-semantics](https://github.com/BetterThanTomorrow/calva/pull/2059)
 
 ## [2.0.330] - 2023-02-03
 
