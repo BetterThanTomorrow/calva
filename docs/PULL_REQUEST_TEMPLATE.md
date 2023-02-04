@@ -57,7 +57,6 @@ I have:
 - [ ] Tests
   - [ ] Tested the particular change
   - [ ] Figured if the change might have some side effects and tested those as well.
-  - [ ] Sanity tested the extension with my changes. 
 - [ ] Referenced the issue I am fixing/addressing _in a commit message for the pull request_.
   - [ ] If I am fixing the issue, I have used [GitHub's fixes/closes syntax](https://help.github.com/en/articles/closing-issues-using-keywords)
   - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
