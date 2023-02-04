@@ -1,4 +1,13 @@
-<!-- ❤️ Thanks for filing a Pull Request on Calva! You are contributing to a better Clojure coding experience. ❤️
+<!--
+❤️ Thanks for filing a Pull Request on Calva! You are contributing to a better Clojure coding experience. ❤️
+
+PLEASE NOTE:
+If you want to file a Pull Request on the documentation of Calva (calva.io),
+then use the Documentation PR template by adding 'template=docs.md' to the
+query parameters of the URL of this page.
+
+The rest of this template is about changes to the Calva source code.
+
 ## What you can expect:
 
 Here are some things we consider before we merge:
@@ -33,18 +42,11 @@ We use checklists in order to not forget about important lessons we and others h
 Fixes #
 
 ## My Calva PR Checklist
-<!-- Strike out (using `~`) items that do not apply, as Github reports how many are not ticked. If you want to add checkboxes, please do. -->
+<!--
+PLEASE DO NOT REMOVE THIS CHECKLIST. You are supposed to fill it in.
+Strike out (using `~`) items that do not apply, If you want to add items, please do. -->
 
-If this PR involves only documentation changes, I have:
-
-- [ ] Read [Editing Documentation](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Hack-on-Calva#editing-documentation)
-- [ ] Directed this pull request at the `published` branch.
-- [ ] Built the site locally (if the changes were more involved than simple typo fixes), and verified that the site is presented as expected.
-- [ ] Referenced the issue I am fixing/addressing _in a commit message for the pull request_ (if there was is an issue for the documentation change)
-  - [ ] If I am fixing the issue, I have used [GitHub's fixes/closes syntax](https://help.github.com/en/articles/closing-issues-using-keywords)
-  - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
-
-If this PR involves code changes, I have:
+I have:
 
 - [ ] Read [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute#before-sending-pull-requests).
 - [ ] Directed this pull request at the `dev` branch. (Or have specific reasons to target some other branch.)
@@ -55,8 +57,7 @@ If this PR involves code changes, I have:
 - [ ] Tests
   - [ ] Tested the particular change
   - [ ] Figured if the change might have some side effects and tested those as well.
-  - [ ] Smoke tested the extension as such.
-  - [ ] Tested the VSIX built from the PR (so, after you've submitted the PR). You'll find the artifacts by clicking _Show all checks_ in the CI section of the PR page, and then _Details_ on the `ci/circleci: build` test.
+  - [ ] Sanity tested the extension with my changes. 
 - [ ] Referenced the issue I am fixing/addressing _in a commit message for the pull request_.
   - [ ] If I am fixing the issue, I have used [GitHub's fixes/closes syntax](https://help.github.com/en/articles/closing-issues-using-keywords)
   - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
