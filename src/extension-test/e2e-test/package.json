@@ -1,0 +1,15 @@
+{
+  "name": "calva-vsix-test-workspace",
+  "version": "1.0.0",
+  "description": "VSIX e2e test workspace for Calva",
+  "scripts": {},
+  "keywords": [],
+  "author": {
+    "name": "Better Than Tomorrow",
+    "email": "pez@pezius.com"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "minimist": "^1.2.7"
+  }
+}

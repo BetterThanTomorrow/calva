@@ -78,28 +78,24 @@ async function startJackInProcedure(suite: string, cmdId: string, projectType: s
   await testUtil.openFile(testFilePath);
   testUtil.log(suite, 'test.clj opened');
 
-  const projectRootUri = await projectRoot.findClosestProjectRoot();
+  const projectRootUri = projectRoot.findClosestParent(
+    vscode.window.activeTextEditor?.document.uri,
+    await projectRoot.findProjectRoots()
+  );
   // Project type pre-select, qps = quickPickSingle
   const saveAs = `qps-${projectRootUri.toString()}/jack-in-type`;
   await state.extensionContext.workspaceState.update(saveAs, projectType);
 
-  const res = commands.executeCommand(cmdId);
+  let resolved = false;
+  void commands.executeCommand(cmdId).then(() => {
+    resolved = true;
+  });
 
   // Project root quick pick
-  while (util.quickPickActive === undefined) {
+  while (!resolved) {
+    await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
     await testUtil.sleep(50);
   }
-  await util.quickPickActive;
-  await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
 
-  // Project type quickpick
-  // pre-select deps.edn as the repl connect sequence
-  while (util.quickPickActive === undefined) {
-    await testUtil.sleep(50);
-  }
-  await util.quickPickActive;
-  await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
-
-  await res;
   return testFilePath;
 }

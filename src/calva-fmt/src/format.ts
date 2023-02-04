@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as config from './config';
+import * as config from '../../formatter-config';
 import * as outputWindow from '../../results-output/results-doc';
 import {
   getIndent,
@@ -7,17 +7,11 @@ import {
   MirroredDocument,
   getDocument,
 } from '../../doc-mirror/index';
-import {
-  formatTextAtRange,
-  formatTextAtIdx,
-  formatTextAtIdxOnType,
-  formatText,
-  cljify,
-  jsify,
-} from '../../cljs-lib/out/cljs-lib.js';
+import { formatTextAtRange, formatText, jsify } from '../../cljs-lib/out/cljs-lib.js';
 import * as util from '../../utilities';
 import { isUndefined, cloneDeep } from 'lodash';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
+import { formatIndex } from './format-index';
 
 const FormatDepthDefaults = {
   deftype: 2,
@@ -30,7 +24,7 @@ export async function indentPosition(position: vscode.Position, document: vscode
   const indent = getIndent(
     getDocument(document).model.lineInputModel,
     getDocumentOffset(document, position),
-    await config.getConfig()
+    await config.getConfig(document)
   );
   const newPosition = new vscode.Position(position.line, indent);
   const delta = document.lineAt(position.line).firstNonWhitespaceCharacterIndex - indent;
@@ -112,13 +106,14 @@ export async function formatPositionInfo(
     'range-text': string;
     range: number[];
     'new-index': number;
-  } = await _formatIndex(
+  } = formatIndex(
     doc.getText(),
     formatRange,
     index,
     _convertEolNumToStringNotation(doc.eol),
     onType,
     {
+      ...(await config.getConfig()),
       ...extraConfig,
       'comment-form?': cursor.getFunctionName() === 'comment',
     }
@@ -231,30 +226,6 @@ export async function formatCode(code: string, eol: number) {
   } else {
     console.error('Error in `formatCode`:', result['error']);
     return code;
-  }
-}
-
-async function _formatIndex(
-  allText: string,
-  range: [number, number],
-  index: number,
-  eol: string,
-  onType: boolean = false,
-  extraConfig = {}
-): Promise<{ 'range-text': string; range: number[]; 'new-index': number }> {
-  const d = {
-    'all-text': allText,
-    idx: index,
-    eol: eol,
-    range: range,
-    config: { ...(await config.getConfig()), ...extraConfig },
-  };
-  const result = jsify(onType ? formatTextAtIdxOnType(d) : formatTextAtIdx(d));
-  if (!result['error']) {
-    return result;
-  } else {
-    console.error('Error in `_formatIndex`:', result['error']);
-    throw result['error'];
   }
 }
 

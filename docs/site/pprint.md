@@ -72,6 +72,6 @@ The current options are limited, because our time developing Calva is limited. B
 
 #### pprint is not working
 
-If pprint is not working, try a different pprint engine or use Calva's jack-in to make sure the necessary dependencies are loaded in your REPL. If you are starting your REPL without jack-in and want to continue doing so, you can use the command `Copy Jack-in Command to Clipboard` then paste the command somewhere to see what dependencies it injects. You can then add these dependencies to your REPL in whatever way suits your needs.
+If pprint is not working, try a different pprint engine or use Calva's jack-in to make sure the necessary dependencies are loaded in your REPL. If you are starting your REPL without jack-in and want to continue doing so, you can use the command `Copy Jack-in Command Line to Clipboard` then paste the command somewhere to see what dependencies it injects. You can then add these dependencies to your REPL in whatever way suits your needs.
 
 Enjoy Prettiful Printing! ❤️

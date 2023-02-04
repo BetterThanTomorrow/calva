@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
-import * as filesCache from '../../files-cache';
-import * as cljsLib from '../../cljs-lib/out/cljs-lib.js';
-import * as lsp from '../../lsp/main';
+import * as filesCache from './files-cache';
+import * as cljsLib from '../cljs-lib/out/cljs-lib.js';
+import * as lsp from './lsp';
+
 const defaultCljfmtContent =
   '\
 {:remove-surrounding-whitespace? true\n\
@@ -34,7 +35,11 @@ function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmt: s
   };
 }
 
-async function readConfiguration(): Promise<{
+export type FormatterConfig = Partial<Awaited<ReturnType<typeof getConfig>>>;
+
+export async function getConfig(
+  document: vscode.TextDocument = vscode.window.activeTextEditor?.document
+): Promise<{
   'format-as-you-type': boolean;
   'keep-comment-forms-trail-paren-on-own-line?': boolean;
   'cljfmt-options-string': string;
@@ -43,8 +48,12 @@ async function readConfiguration(): Promise<{
   const workspaceConfig = vscode.workspace.getConfiguration('calva.fmt');
   const configPath: string | undefined = workspaceConfig.get('configPath');
 
-  if (configPath === LSP_CONFIG_KEY) {
-    lspFormatConfig = await lsp.getCljFmtConfig();
+  if (configPath === LSP_CONFIG_KEY && document) {
+    const clientProvider = lsp.getClientProvider();
+    const client = clientProvider.getClientForDocumentUri(document.uri);
+    if (client) {
+      lspFormatConfig = await lsp.api.getCljFmtConfig(client);
+    }
   }
   if (configPath === LSP_CONFIG_KEY && !lspFormatConfig) {
     void vscode.window.showErrorMessage(
@@ -70,11 +79,6 @@ async function readConfiguration(): Promise<{
     );
     return configuration(workspaceConfig, defaultCljfmtContent);
   }
-}
-
-export async function getConfig() {
-  const config = await readConfiguration();
-  return config;
 }
 
 export function formatOnTypeEnabled() {

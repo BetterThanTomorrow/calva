@@ -127,6 +127,9 @@ async function selectShadowBuilds(
   if (aliasesOption && aliasesOption.length) {
     args.push(aliasesOption);
   }
+  if (selectedBuilds.length == 0) {
+    throw new Error('No builds selected');
+  }
   return { selectedBuilds, args };
 }
 
@@ -557,7 +560,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
     }
     if (projectAliases.length) {
       aliases = await utilities.quickPickMulti({
-        values: projectAliases.map(keywordize),
+        values: projectAliases.map(keywordize).sort(),
         saveAs: `${state.getProjectRootUri().toString()}/clj-cli-aliases`,
         placeHolder: 'Pick any aliases to launch with',
       });

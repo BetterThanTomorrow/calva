@@ -1,7 +1,8 @@
+import { FormatterConfig } from '../formatter-config';
 import { validPair } from './clojure-lexer';
-import { getIndent } from './indent';
 import { ModelEdit, EditableDocument, ModelEditSelection } from './model';
 import { LispTokenCursor } from './token-cursor';
+import { backspaceOnWhitespace } from './backspace-on-whitespace';
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -814,48 +815,30 @@ function onlyWhitespaceLeftOfCursor(doc: EditableDocument, cursor: LispTokenCurs
   return prevToken.type === 'ws' && prevToken.offset === 0;
 }
 
-function backspaceOnWhitespaceEdit(doc: EditableDocument, cursor: LispTokenCursor) {
-  const origIndent = getIndent(doc.model, cursor.offsetStart);
-  const onCloseToken = cursor.getToken().type === 'close';
-  let start = doc.selection.anchor;
-  let token = cursor.getToken();
-  if (token.type === 'ws') {
-    start = cursor.offsetEnd;
-  }
-  cursor.previous();
-  const prevToken = cursor.getToken();
-  if (prevToken.type === 'ws' && start === cursor.offsetEnd) {
-    token = prevToken;
-  }
-
-  let end = start;
-  if (token.type === 'ws') {
-    end = cursor.offsetStart;
-    cursor.previous();
-    if (cursor.getToken().type === 'eol') {
-      end = cursor.offsetStart;
-      cursor.previous();
-      if (cursor.getToken().type === 'ws') {
-        end = cursor.offsetStart;
-        cursor.previous();
-      }
+function backspaceOnWhitespaceEdit(
+  doc: EditableDocument,
+  cursor: LispTokenCursor,
+  config?: FormatterConfig
+) {
+  const changeArgs = backspaceOnWhitespace(doc, cursor, config);
+  return doc.model.edit(
+    [
+      new ModelEdit('changeRange', [
+        changeArgs.start,
+        changeArgs.end,
+        ' '.repeat(changeArgs.indent),
+      ]),
+    ],
+    {
+      selection: new ModelEditSelection(changeArgs.end + changeArgs.indent),
+      skipFormat: true,
     }
-  }
-
-  const destTokenType = cursor.getToken().type;
-  let indent = destTokenType === 'eol' ? origIndent : 1;
-  if (destTokenType === 'open' || onCloseToken) {
-    indent = 0;
-  }
-  const changeArgs = [start, end, ' '.repeat(indent)];
-  return doc.model.edit([new ModelEdit('changeRange', changeArgs)], {
-    selection: new ModelEditSelection(end + indent),
-    skipFormat: true,
-  });
+  );
 }
 
 export async function backspace(
   doc: EditableDocument,
+  config?: FormatterConfig,
   start: number = doc.selection.anchor,
   end: number = doc.selection.active
 ): Promise<boolean> {
@@ -885,7 +868,7 @@ export async function backspace(
         }
       );
     } else if (!cursor.withinString() && onlyWhitespaceLeftOfCursor(doc, cursor)) {
-      return backspaceOnWhitespaceEdit(doc, cursor);
+      return backspaceOnWhitespaceEdit(doc, cursor, config);
     } else {
       if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
         doc.selection = new ModelEditSelection(p - prevToken.raw.length);

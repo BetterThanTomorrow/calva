@@ -4,6 +4,39 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump npm deps [jszip](https://github.com/BetterThanTomorrow/calva/pull/2056), [http-cache-semantics](https://github.com/BetterThanTomorrow/calva/pull/2059)
+
+## [2.0.330] - 2023-02-03
+
+- Fix: [Clojure-lsp does not automatically start when using VSCode on Windows in Calva version 2.0.329](https://github.com/BetterThanTomorrow/calva/issues/2054)
+- Calva development: [Make e2e test runner re-usable](https://github.com/BetterThanTomorrow/calva/issues/2058)
+
+## [2.0.329] - 2023-02-01
+
+- [Sort aliases for deps.edn projects](https://github.com/BetterThanTomorrow/calva/issues/2035)
+- [Sort pre-selected project at the top in REPL connect menu](https://github.com/BetterThanTomorrow/calva/issues/2043)
+- Fix: [Indenter and formatter not in agreement about some forms](https://github.com/BetterThanTomorrow/calva/issues/2032)
+- Fix: [Regressions introduced with clojure-lsp multi-project support in 2.0.327](https://github.com/BetterThanTomorrow/calva/issues/2041)
+- Fix: [Can't use add require feature after updating to 2.0.327 version](https://github.com/BetterThanTomorrow/calva/issues/2040)
+- Fix: [Formatting issues on backspace](https://github.com/BetterThanTomorrow/calva/issues/2038)
+- Calva development: [Test the built VSIX extension in CI](https://github.com/BetterThanTomorrow/calva/issues/2051)
+- Calva development, Fix: [We build Calva twice in CI](https://github.com/BetterThanTomorrow/calva/issues/2052)
+
+## [2.0.328] - 2023-01-27
+- Rollback of 2.0.327, first part of: [Regressions introduced with clojure-lsp multi-project support in 2.0.327](https://github.com/BetterThanTomorrow/calva/issues/2041)
+
+## [2.0.327] - 2023-01-27
+
+- [LSP support for multi-project and multi-workspace](https://github.com/BetterThanTomorrow/calva/pull/2020)
+- Fix: [Clojure-lsp caching in multi-project workspace](https://github.com/BetterThanTomorrow/calva/issues/934)
+- Fix: [With multi-root workspaces the clojure-lsp project root is always the first folder](https://github.com/BetterThanTomorrow/calva/issues/1706)
+- Fix: [Getting Started REPLs download config from dram dev branch](https://github.com/BetterThanTomorrow/calva/issues/1977)
+
+## [2.0.326] - 2023-01-24
+
+- Fix: [`afterCLJReplJackInCode` fails if no editor is open](https://github.com/BetterThanTomorrow/calva/issues/2025)
+- Fix: [shadow-cljs jack-in silently fails when no builds are selected](https://github.com/BetterThanTomorrow/calva/issues/2022)
+
 ## [2.0.325] - 2023-01-21
 
 - Fix: [Setting calva.testOnSave broken: no tests found](https://github.com/BetterThanTomorrow/calva/issues/2005)

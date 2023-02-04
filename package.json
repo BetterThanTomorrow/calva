@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.326",
+  "version": "2.0.331",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -35,14 +35,11 @@
   "keywords": [
     "Clojure",
     "ClojureScript",
-    "Cider",
-    "REPL",
-    "Formatting",
-    "Pretty",
     "EDN",
+    "REPL",
     "Interactive Programming",
-    "bracket",
-    "rainbow"
+    "Structural Editing",
+    "CIDER"
   ],
   "galleryBanner": {
     "color": "#EFEFEF",
@@ -57,6 +54,7 @@
   ],
   "activationEvents": [
     "onLanguage:clojure",
+    "onCommand:calva.activateCalva",
     "onCommand:calva.startStandaloneRepl",
     "onCommand:calva.startStandaloneHelloRepl",
     "onCommand:calva.startStandaloneCljsBrowserRepl",
@@ -170,9 +168,19 @@
             "default": false
           },
           "calva.enableClojureLspOnStart": {
-            "type": "boolean",
-            "markdownDescription": "**Recommended**: Start [clojure-lsp](https://calva.io/clojure-lsp/) automatically when Calva starts",
-            "default": true
+            "markdownDescription": "Determines if clojure-lsp should start automatically, and what triggers it. See [calva.io/clojure-lsp](https://calva.io/clojure-lsp/) for info about how using clojure-lsp with Calva.",
+            "type": "string",
+            "enum": [
+              "when-workspace-opened-use-workspace-root",
+              "when-file-opened-use-furthest-project",
+              "never"
+            ],
+            "enumDescriptions": [
+              "Start clojure-lsp automatically when a workspace containing a Clojure project is opened. The server will be started with its project root set to the workspace root. Best option for many single-Clojure-project workspaces and Polylith-like projects. It is recommended to configure your project so that you can use this option and have only one clojure-lsp server running.",
+              "Start clojure-lsp automatically when a Clojure file is opened. The server will be started with its project root set to the project found furthest from the opened file. Use this option if your monorepo has several Clojure projects, but lacks a governing project file at the workspace root.",
+              "Don't start clojure-lsp automatically. You can always start clojure-lsp at will via the command palette or from the statusbar. Good option in multi-project workspaces where you want to start a clojure-lsp for a particular project. Also useful if you are running on a machine with limited resources, like a Raspberry Pi."
+            ],
+            "default": "when-workspace-opened-use-workspace-root"
           },
           "calva.prettyPrintingOptions": {
             "type": "object",
@@ -935,6 +943,11 @@
     ],
     "commands": [
       {
+        "command": "calva.activateCalva",
+        "title": "Activate the Calva Extension",
+        "category": "Calva"
+      },
+      {
         "command": "calva.sayHello",
         "category": "Calva",
         "title": "Say Hello"
@@ -946,9 +959,8 @@
         "category": "Calva"
       },
       {
-        "command": "calva.clojureLsp.showClojureLspStartedMenu",
+        "command": "calva.clojureLsp.showClojureLspMenu",
         "title": "Show clojure-lsp menu",
-        "enablement": "clojureLsp:active",
         "category": "Calva Clojure LSP"
       },
       {
@@ -977,33 +989,28 @@
         "category": "Calva"
       },
       {
-        "command": "calva.clojureLsp.showClojureLspStoppedMenu",
-        "title": "Show clojure-lsp menu",
-        "enablement": "!clojureLsp:active",
-        "category": "Calva Clojure LSP"
-      },
-      {
         "command": "calva.clojureLsp.download",
         "title": "Download the configured Clojure LSP Server version",
-        "enablement": "!clojureLsp:active",
         "category": "Calva Clojure LSP"
       },
       {
         "command": "calva.clojureLsp.start",
         "title": "Start the Clojure LSP Server",
-        "enablement": "!clojureLsp:active",
         "category": "Calva Clojure LSP"
       },
       {
         "command": "calva.clojureLsp.stop",
         "title": "Stop the Clojure LSP Server",
-        "enablement": "clojureLsp:active",
         "category": "Calva Clojure LSP"
       },
       {
         "command": "calva.clojureLsp.restart",
         "title": "Restart the Clojure LSP Server",
-        "enablement": "clojureLsp:active",
+        "category": "Calva Clojure LSP"
+      },
+      {
+        "command": "calva.clojureLsp.manage",
+        "title": "Manage Clojure LSP Servers",
         "category": "Calva Clojure LSP"
       },
       {
@@ -1029,7 +1036,7 @@
       },
       {
         "command": "calva.copyJackInCommandToClipboard",
-        "title": "Copy Jack-In Command to Clipboard",
+        "title": "Copy Jack-In Command Line to Clipboard",
         "category": "Calva",
         "enablement": "workspaceFolderCount > 0"
       },
@@ -1737,97 +1744,97 @@
         "command": "clojureLsp.refactor.cleanNs",
         "title": "Clean NS Form",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.addMissingLibspec",
         "title": "Add Missing Require",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.dragBackward",
         "title": "Drag Sexp Backward",
         "category": "clojure-lsp",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.dragForward",
         "title": "Drag Sexp Forward",
         "category": "clojure-lsp",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.cyclePrivacy",
         "title": "Cycle/Toggle Privacy",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.expandLet",
         "title": "Expand Let",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.inlineSymbol",
         "title": "Inline Symbol",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.threadFirst",
         "title": "Thread First",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.threadFirstAll",
         "title": "Thread First All",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.threadLast",
         "title": "Thread Last",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.threadLastAll",
         "title": "Thread Last All",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.unwindAll",
         "title": "Unwind All",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.unwindThread",
         "title": "Unwind Thread",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.introduceLet",
         "title": "Introduce let",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.moveToLet",
         "title": "Move to Previous let Box",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "clojureLsp.refactor.extractFunction",
         "title": "Extract to New Function",
         "category": "clojure-lsp Refactor",
-        "enablement": "editorLangId == clojure && clojureLsp:active"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "calva.diagnostics.clojureLspServerInfo",
@@ -2879,7 +2886,7 @@
     "watch-cljs": "npx shadow-cljs watch :calva-lib :test",
     "watch-ts-with-strict-nulls": "npx tsc --watch --project ./tsconfig.json --strictNullChecks",
     "release-cljs": "npx shadow-cljs release :calva-lib :test",
-    "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",
+    "release": "webpack --mode production",
     "prerelease": "npm run precompile && npm run release-cljs",
     "compile-test": "tsc -p ./",
     "postrelease": "",
@@ -2887,6 +2894,8 @@
     "bump-version": "npm set git-tag-version false && npm version patch",
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
     "integration-test": "node ./out/extension-test/integration/runTests.js",
+    "e2e-test": "node ./src/extension-test/e2e-test/launch.js",
+    "pree2e-test": "cd ./src/extension-test/e2e-test/ && npm i",
     "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
     "unit-test-watch": "npx mocha --watch --require ts-node/register --watch-extensions ts --watch-files src 'src/extension-test/unit/**/*-test.ts'",
     "prettier-format": "npx prettier --write \"./**/*.{ts,js,json}\"",
@@ -2907,7 +2916,7 @@
     "get-port": "^5.1.1",
     "immutable": "3.8.1",
     "immutable-cursor": "2.0.1",
-    "jszip": "3.7.0",
+    "jszip": "3.8.0",
     "lodash": "^4.17.19",
     "lodash.isequal": "4.5.0",
     "net": "1.0.2",
@@ -2936,6 +2945,7 @@
     "@types/vscode": "^1.67.0",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
+    "@vscode/test-electron": "^2.2.2",
     "chai": "^4.2.0",
     "concurrently": "^6.3.0",
     "cson-parser": "^4.0.3",

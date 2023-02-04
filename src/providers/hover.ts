@@ -8,8 +8,13 @@ import { getConfig } from '../config';
 import { evaluateSnippet } from '../custom-snippets';
 import * as getText from '../util/get-text';
 import * as _ from 'lodash';
+import * as lsp from '../lsp';
 
-export async function provideHover(document: vscode.TextDocument, position: vscode.Position) {
+export async function provideHover(
+  clientProvider: lsp.ClientProvider,
+  document: vscode.TextDocument,
+  position: vscode.Position
+) {
   if (util.getConnectedState()) {
     const text = util.getWordAtPosition(document, position);
     const ns = namespace.getNamespace(document);
@@ -21,7 +26,11 @@ export async function provideHover(document: vscode.TextDocument, position: vsco
       const hovers: vscode.MarkdownString[] = [];
       if (!res.status.includes('error') && !res.status.includes('no-info')) {
         const docsMd = infoparser.getHover(res);
-        const clojureDocsMd = await clojureDocs.getExamplesHover(document, position);
+        const clojureDocsMd = await clojureDocs.getExamplesHover(
+          clientProvider,
+          document,
+          position
+        );
 
         hovers.push(docsMd);
 
@@ -80,7 +89,9 @@ export async function provideHover(document: vscode.TextDocument, position: vsco
 }
 
 export default class HoverProvider implements vscode.HoverProvider {
+  constructor(private readonly clientProvider: lsp.ClientProvider) {}
+
   async provideHover(document, position, _) {
-    return provideHover(document, position);
+    return provideHover(this.clientProvider, document, position);
   }
 }

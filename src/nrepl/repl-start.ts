@@ -10,7 +10,7 @@ import { getConfig } from '../config';
 import * as replSession from './repl-session';
 import * as cljsLib from '../cljs-lib/out/cljs-lib';
 import { ReplConnectSequence } from './connectSequence';
-import * as clojureLsp from '../lsp/main';
+import * as clojureLsp from '../lsp';
 import * as calvaConfig from '../config';
 
 const TEMPLATES_SUB_DIR = 'bundled';
@@ -51,21 +51,25 @@ export const HELLO_CLJS_NODE_TEMPLATE: DramTemplate = {
   connectSequence: sequence.cljDefaults[4],
 };
 
+const calculateBranch = () => {
+  const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
+  const calvaVersion = calva.packageJSON.version;
+  const isDebug = process.env['IS_DEBUG'] === 'true';
+  return isDebug || calvaVersion.match(/-.+$/) ? 'dev' : 'published';
+};
+
+const dramsBaseUrl = () => {
+  return `${DRAM_BASE_URL}/${calculateBranch()}/drams`;
+};
+
 async function fetchConfig(configName: string): Promise<DramConfig> {
-  const configEdn = await utilities.fetchFromUrl(
-    `${DRAM_BASE_URL}/dev/drams/${configName}/dram.edn`
-  );
+  const configEdn = await utilities.fetchFromUrl(`${dramsBaseUrl()}/${configName}/dram.edn`);
   const config: DramConfig = cljsLib.parseEdn(configEdn);
   return config;
 }
 
 async function downloadDram(storageUri: vscode.Uri, configPath: string, filePath: string) {
-  const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
-  const calvaVersion = calva.packageJSON.version;
-  const isDebug = process.env['IS_DEBUG'] === 'true';
-  const branch = isDebug || calvaVersion.match(/-.+$/) ? 'dev' : 'published';
-  const dramBaseUrl = `${DRAM_BASE_URL}/${branch}/drams`;
-  const downloadUrl = `${dramBaseUrl}/${configPath}/${filePath}`;
+  const downloadUrl = `${dramsBaseUrl()}/${configPath}/${filePath}`;
   const dirUri = vscode.Uri.joinPath(storageUri, path.join(...path.dirname(filePath).split(/\//)));
   await vscode.workspace.fs.createDirectory(dirUri);
   const storeFileUri = vscode.Uri.joinPath(storageUri, path.join(...filePath.split(/\//)));
@@ -162,9 +166,6 @@ export async function startStandaloneRepl(
       console.error(`Error downloading drams: ${err.message}`);
       void vscode.window.showWarningMessage(`Error downloading files: ${err.message}`);
     });
-  }
-  if (clojureLsp.lspStatus === 'stopped' && calvaConfig.getConfig().enableClojureLspOnStart) {
-    void clojureLsp.startClientCommand();
   }
 
   const [mainDoc, mainEditor] = await openStoredDoc(storageUri, tempDirUri, config.files[0]);
