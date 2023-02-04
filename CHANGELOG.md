@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Bump npm deps [jszip](https://github.com/BetterThanTomorrow/calva/pull/2056), [http-cache-semantics](https://github.com/BetterThanTomorrow/calva/pull/2059)
+- Fix: [Missing required argument for "-M ALIASES"](https://github.com/BetterThanTomorrow/calva/issues/2039)
 
 ## [2.0.330] - 2023-02-03
 
