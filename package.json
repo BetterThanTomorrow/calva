@@ -370,11 +370,6 @@
           "calva.customCljsRepl": {
             "deprecationMessage": "This settings is deprecated. Use `cljsType` in a `calva.replConnectSequences` item instead."
           },
-          "calva.jackIn.useDeprecatedAliasFlag": {
-            "type": "boolean",
-            "default": false,
-            "markdownDescription": "Use the `-A` flag instead of `-M` for Clojure CLI versions < `1.10.697`."
-          },
           "calva.jackInEnv": {
             "type": "object",
             "default": {},

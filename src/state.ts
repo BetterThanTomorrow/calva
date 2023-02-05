@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as semver from 'semver';
 import Analytics from './analytics';
 import * as util from './utilities';
 import * as path from 'path';
@@ -15,23 +16,51 @@ export function setExtensionContext(context: vscode.ExtensionContext) {
 }
 
 export function initDepsEdnJackInExecutable() {
-  console.log('deps.edn launcher check, executing: `clojure -M -e :clojure-works` ...');
-  child.exec('clojure -M -e :clojure-works', (err, stdout, stderr) => {
-    console.log(`deps.edn launcher check - stdout: ${stdout}`);
-    console.log(`deps.edn launcher check - stderr: ${stderr}`);
+  const launcherCheckCommand = 'clojure --version';
+  console.log(`deps.edn launcher check, executing: '${launcherCheckCommand}' ...`);
+  child.exec('clojure --version', (err, stdout, stderr) => {
+    console.log(
+      `deps.edn launcher check - '${launcherCheckCommand}' - stdout: ${stdout.replace(
+        /\r?\n$/,
+        ''
+      )}`
+    );
+    console.log(
+      `deps.edn launcher check - '${launcherCheckCommand}' - stderr: ${stderr.replace(
+        /\r?\n$/,
+        ''
+      )}`
+    );
     if (err) {
-      console.log('deps.edn launcher check: Error running `clojure` command');
+      console.warn(
+        `deps.edn launcher check: '${launcherCheckCommand}' command failed, using 'deps.clj'`
+      );
       setStateValue('depsEdnJackInDefaultExecutable', 'deps.clj');
       return;
     }
-    if (stdout.startsWith(':clojure-works')) {
-      console.log('deps.edn launcher check: `clojure` command works');
+    if (stdout.match('version')) {
+      console.info(
+        `deps.edn launcher check: '${launcherCheckCommand}' command works, using 'clojure'`
+      );
       setStateValue('depsEdnJackInDefaultExecutable', 'clojure');
+      const version = stdout.match(/version\s+([\d.]+)/)[1];
+      console.info(`clojure version: ${version}`);
+      ancientCLICheck(version);
     } else {
-      console.log('deps.edn launcher check: `clojure` command not returning expected output');
+      console.warn(
+        `deps.edn launcher check: '${launcherCheckCommand}' command not returning expected output, using 'deps.clj'`
+      );
       setStateValue('depsEdnJackInDefaultExecutable', 'deps.clj');
     }
   });
+}
+
+function ancientCLICheck(version: string) {
+  const ancientVersion = '1.10.697';
+  if (semver.lt(semver.coerce(version), ancientVersion)) {
+    console.warn(`The installed 'clojure' version is ancient, even lower than ${ancientVersion}.`);
+    setStateValue('isClojureCLIVersionAncient', true);
+  }
 }
 
 // Super-quick fix for: https://github.com/BetterThanTomorrow/calva/issues/144
