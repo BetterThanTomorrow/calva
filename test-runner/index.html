@@ -903,6 +903,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Tests Are Not Found">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changes-arent-taking-effect-when-running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changes Aren't Taking Effect When Running Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -910,17 +927,6 @@
     <span class="md-ellipsis">
       
         Toggle between implementation and test command not working as intended
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#changes-arent-taking-effect-when-running-tests" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Changes Aren't Taking Effect When Running Tests
       
     </span>
   </a>
@@ -2186,6 +2192,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Tests Are Not Found">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changes-arent-taking-effect-when-running-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changes Aren't Taking Effect When Running Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2193,17 +2216,6 @@
     <span class="md-ellipsis">
       
         Toggle between implementation and test command not working as intended
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#changes-arent-taking-effect-when-running-tests" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Changes Aren't Taking Effect When Running Tests
       
     </span>
   </a>
@@ -2286,9 +2298,12 @@
 <p>Please join the <a href="https://clojurians.slack.com/messages/calva">#calva channel</a> on the Clojurians Slack if you have any feedback on this new feature.</p>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <h3 id="tests-are-not-found">Tests Are Not Found</h3>
+<p>Calva will not load namespaces in the REPL that you haven't loaded. This is so that you can be in control of what is loaded in the REPL. However, it also means that commands like <strong>Run All tests</strong> actually <strong>Run All Tests <em>That are Loaded in the REPL</em></strong>, since the test-runner only runs tests that it knows about, i.e. are loaded in the REPL. Some developers choose to make sure all test namespaces are loaded as part of starting their REPL. Others register a <a href="../custom-commands/">custom REPL command</a> for loading test namepaces. (Yet others use test-runners such as <a href="https://github.com/cognitect-labs/test-runner">Cognitect's test-runner</a>, <a href="https://github.com/lambdaisland/kaocha">Kaocha</a>, <a href="https://polylith.gitbook.io/poly/workflow/testing">poly test</a>, or some other that runner allows for tests being run automatically, separate from the REPL used for development.)</p>
 <p>If you have tests in a test directory separate from your source directory, and those tests are not being found by the test runner, make sure the test directory is included in your paths. This will not be the case by default with a tools.deps (deps.edn) project. If your project is a tools.deps project, you can create an alias in your deps.edn file with <code>:extra-paths</code> that includes <code>"test"</code> (or the name of your test directory).</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:aliases</span><span class="w"> </span><span class="p">{</span><span class="ss">:dev</span><span class="w"> </span><span class="p">{</span><span class="ss">:extra-paths</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;test&quot;</span><span class="p">]}}}</span>
 </code></pre></div>
+<h4 id="changes-arent-taking-effect-when-running-tests">Changes Aren't Taking Effect When Running Tests</h4>
+<p>In order for changes in code to take effect, you need to load the file or evaluate the changed code before running a test command. Prior to version 2.0.301, Calva would load the file for you when running some test commands, but that behavior was removed in favor of leaving control to the user, and to avoid a <a href="https://github.com/BetterThanTomorrow/calva/issues/1821">potential issue</a>.</p>
 <p>Having added the above to your deps.edn, when you jack-in, choose the <code>:dev</code> alias and the <code>test</code> directory will be added to your paths, which will allow tests located in the directory to be found by the test runner.</p>
 <h3 id="toggle-between-implementation-and-test-command-not-working-as-intended">Toggle between implementation and test command not working as intended</h3>
 <p>This feature mostly works with projects that has leiningen style folder structure and makes some assumption about your folder structure and test file names.</p>
@@ -2297,8 +2312,6 @@
 <li>It assumes that your implementation files are in <code>src</code> folder and the test files are in <code>test</code> folder.</li>
 </ul>
 <p>If you are using any non leiningen style folder structure, you may have to add source paths inside <code>.lsp/config.edn</code>.</p>
-<h3 id="changes-arent-taking-effect-when-running-tests">Changes Aren't Taking Effect When Running Tests</h3>
-<p>In order for changes in code to take effect, you need to load the file or evaluate the changed code before running a test command. Prior to version 2.0.301, Calva would load the file for you when running some test commands, but that behavior was removed in favor of leaving control to the user, and to avoid a <a href="https://github.com/BetterThanTomorrow/calva/issues/1821">potential issue</a>.</p>
 
   
   
