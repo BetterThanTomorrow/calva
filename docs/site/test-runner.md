@@ -36,11 +36,17 @@ Please join the [#calva channel](https://clojurians.slack.com/messages/calva) on
 
 ### Tests Are Not Found
 
+Calva will not load namespaces in the REPL that you haven't loaded. This is so that you can be in control of what is loaded in the REPL. However, it also means that commands like **Run All tests** actually **Run All Tests _That are Loaded in the REPL_**, since the test-runner only runs tests that it knows about, i.e. are loaded in the REPL. Some developers choose to make sure all test namespaces are loaded as part of starting their REPL. Others register a [custom REPL command](custom-commands.md) for loading test namepaces. (Yet others use test-runners such as [Cognitect's test-runner](https://github.com/cognitect-labs/test-runner), [Kaocha](https://github.com/lambdaisland/kaocha), [poly test](https://polylith.gitbook.io/poly/workflow/testing), or some other that runner allows for tests being run automatically, separate from the REPL used for development.)
+
 If you have tests in a test directory separate from your source directory, and those tests are not being found by the test runner, make sure the test directory is included in your paths. This will not be the case by default with a tools.deps (deps.edn) project. If your project is a tools.deps project, you can create an alias in your deps.edn file with `:extra-paths` that includes `"test"` (or the name of your test directory).
 
 ```clojure
 {:aliases {:dev {:extra-paths ["test"]}}}
 ```
+
+#### Changes Aren't Taking Effect When Running Tests
+
+In order for changes in code to take effect, you need to load the file or evaluate the changed code before running a test command. Prior to version 2.0.301, Calva would load the file for you when running some test commands, but that behavior was removed in favor of leaving control to the user, and to avoid a [potential issue](https://github.com/BetterThanTomorrow/calva/issues/1821).
 
 Having added the above to your deps.edn, when you jack-in, choose the `:dev` alias and the `test` directory will be added to your paths, which will allow tests located in the directory to be found by the test runner.
 
@@ -53,6 +59,3 @@ This feature mostly works with projects that has leiningen style folder structur
 
 If you are using any non leiningen style folder structure, you may have to add source paths inside `.lsp/config.edn`.
 
-### Changes Aren't Taking Effect When Running Tests
-
-In order for changes in code to take effect, you need to load the file or evaluate the changed code before running a test command. Prior to version 2.0.301, Calva would load the file for you when running some test commands, but that behavior was removed in favor of leaving control to the user, and to avoid a [potential issue](https://github.com/BetterThanTomorrow/calva/issues/1821).
