@@ -15,20 +15,39 @@ describe('formatter, indenter and paredit comparison', () => {
     ),
     mkConfig(
       {
+        '/\\S+/': [['block', 0]],
+      },
+      '{:indents {#"\\S+" [[:block 0]]}}'
+    ),
+    mkConfig(
+      {
         '/\\S+/': [['inner', 1]],
       },
       '{:indents {#"\\S+" [[:inner 1]]}}'
     ),
   ];
 
-  configs.forEach((config) => {
-    it(`correctly formats 'and' form with formatter, indenter and paredit using config: ${config['cljfmt-options-string']}`, () => {
-      const formatterIndent = getFormatterIndent('(and x\n|y)', config);
-      const indenterIndent = getIndenterIndent('(and x\n|y)', config);
-      const pareditIndent = getPareditIndent('(and x\n\n  |y)', config);
+  describe('indents `and` form the same with formatter, indenter, and paredit', () => {
+    configs.forEach((config) => {
+      it(`indents 'and' form the same with formatter, indenter, and paredit, using config: ${config['cljfmt-options-string']}`, () => {
+        const formatterIndent = getFormatterIndent('(and x\n|y)', config);
+        const indenterIndent = getIndenterIndent('(and x\n|y)', config);
+        const pareditIndent = getPareditIndent('(and x\n\n  |y)', config);
+        expect(formatterIndent).toEqual(indenterIndent);
+        expect(formatterIndent).toEqual(pareditIndent);
+      });
+    });
+  });
 
-      expect(formatterIndent).toEqual(indenterIndent);
-      expect(formatterIndent).toEqual(pareditIndent);
+  describe('indents keyword form the same with formatter, indenter and paredit', () => {
+    configs.forEach((config) => {
+      it(`indents keyword form the same with formatter, indenter, and paredit, using config: ${config['cljfmt-options-string']}`, () => {
+        const formatterIndent = getFormatterIndent('(:kw x\n|y)', config);
+        const indenterIndent = getIndenterIndent('(:kw x\n|y)', config);
+        const pareditIndent = getPareditIndent('(:kw x\n\n  |y)', config);
+        expect(formatterIndent).toEqual(indenterIndent);
+        expect(formatterIndent).toEqual(pareditIndent);
+      });
     });
   });
 });
