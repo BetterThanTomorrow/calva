@@ -575,7 +575,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
   };
   const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
 
-  const aliasesFlag = getConfig().jackIn.useDeprecatedAliasFlag ? ['-A', ''] : ['-M', '-M'];
+  const aliasesFlag = getStateValue('isClojureCLIVersionAncient') ? ['-A', ''] : ['-M', '-M'];
   const aliasesOption =
     aliases.length > 0 ? `${aliasesFlag[0]}${aliases.join('')}` : aliasesFlag[1];
   const q = isWin ? '"' : "'";

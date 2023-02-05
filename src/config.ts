@@ -214,9 +214,6 @@ function getConfig() {
       'strictPreventUnmatchedClosingBracket'
     ),
     showCalvaSaysOnStart: configOptions.get<boolean>('showCalvaSaysOnStart'),
-    jackIn: {
-      useDeprecatedAliasFlag: configOptions.get<boolean>('jackIn.useDeprecatedAliasFlag'),
-    },
     enableClojureLspOnStart: configOptions.get<boolean>('enableClojureLspOnStart'),
     projectRootsSearchExclude: configOptions.get<string[]>('projectRootsSearchExclude', []),
     useLiveShare: configOptions.get<boolean>('useLiveShare'),
