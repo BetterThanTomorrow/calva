@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Bump npm deps [jszip](https://github.com/BetterThanTomorrow/calva/pull/2056), [http-cache-semantics](https://github.com/BetterThanTomorrow/calva/pull/2059)
+- Fix: [Indenter and formatter do not agree on keyword in function position when regex indent rules are involved](https://github.com/BetterThanTomorrow/calva/issues/2044)
 
 ## [2.0.330] - 2023-02-03
 
