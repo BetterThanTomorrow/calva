@@ -1,16 +1,16 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import { before, after } from 'mocha';
-import * as path from 'path';
-import * as testUtil from './util';
-import * as state from '../../../state';
-import * as util from '../../../utilities';
+import path from 'path';
+import testUtil from './util';
+import state from '../../../state';
+import util from '../../../utilities';
 
-import * as vscode from 'vscode';
-// import * as myExtension from '../extension';
-import * as outputWindow from '../../../results-output/results-doc';
+import vscode from 'vscode';
+// import myExtension from '../extension';
+import outputWindow from '../../../results-output/results-doc';
 import { commands } from 'vscode';
 import { getDocument } from '../../../doc-mirror';
-import * as projectRoot from '../../../project-root';
+import projectRoot from '../../../project-root';
 
 // TODO: Add more smoke tests for the extension
 // TODO: Start building integration test coverage

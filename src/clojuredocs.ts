@@ -1,12 +1,12 @@
-import * as vscode from 'vscode';
-import * as util from './utilities';
-import * as nrepl from './nrepl';
-import * as lsp from './lsp';
-import * as outputWindow from './results-output/results-doc';
-import * as namespace from './namespace';
-import * as replSession from './nrepl/repl-session';
-import * as docMirror from './doc-mirror/index';
-import * as paredit from './cursor-doc/paredit';
+import vscode from 'vscode';
+import util from './utilities';
+import nrepl from './nrepl';
+import lsp from './lsp';
+import outputWindow from './results-output/results-doc';
+import namespace from './namespace';
+import replSession from './nrepl/repl-session';
+import docMirror from './doc-mirror/index';
+import paredit from './cursor-doc/paredit';
 
 export type DocsEntry = {
   name: string;

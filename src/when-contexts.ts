@@ -1,17 +1,17 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import { deepEqual } from './util/object';
-import * as docMirror from './doc-mirror';
-import * as context from './cursor-doc/cursor-context';
-import * as util from './utilities';
+import { getDocument } from './doc-mirror';
+import { allCursorContexts, CursorContext, determineContexts } from './cursor-doc/cursor-context';
+import { tryToGetActiveTextEditor } from './utilities';
 
-let lastContexts: context.CursorContext[] = [];
+let lastContexts: CursorContext[] = [];
 
 export function setCursorContextIfChanged(editor: vscode.TextEditor) {
   if (
     !editor ||
     !editor.document ||
     editor.document.languageId !== 'clojure' ||
-    editor !== util.tryToGetActiveTextEditor()
+    editor !== tryToGetActiveTextEditor()
   ) {
     return;
   }
@@ -24,14 +24,14 @@ export function setCursorContextIfChanged(editor: vscode.TextEditor) {
 function determineCursorContexts(
   document: vscode.TextDocument,
   position: vscode.Position
-): context.CursorContext[] {
-  const mirrorDoc = docMirror.getDocument(document);
-  return context.determineContexts(mirrorDoc, document.offsetAt(position));
+): CursorContext[] {
+  const mirrorDoc = getDocument(document);
+  return determineContexts(mirrorDoc, document.offsetAt(position));
 }
 
-function setCursorContexts(currentContexts: context.CursorContext[]) {
+function setCursorContexts(currentContexts: CursorContext[]) {
   lastContexts = currentContexts;
-  context.allCursorContexts.forEach((context) => {
+  allCursorContexts.forEach((context) => {
     void vscode.commands.executeCommand(
       'setContext',
       context,

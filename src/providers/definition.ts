@@ -1,14 +1,14 @@
-import * as vscode from 'vscode';
-import * as state from '../state';
-import * as util from '../utilities';
+import vscode from 'vscode';
+import state from '../state';
+import util from '../utilities';
 import annotations from './annotations';
-import * as namespace from '../namespace';
-import * as outputWindow from '../results-output/results-doc';
-import * as replSession from '../nrepl/repl-session';
-import * as config from '../config';
+import namespace from '../namespace';
+import outputWindow from '../results-output/results-doc';
+import replSession from '../nrepl/repl-session';
+import config from '../config';
 import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
 import { DefinitionRequest } from 'vscode-languageclient';
-import * as lsp from '../lsp';
+import lsp from '../lsp';
 
 const converter = createConverter(undefined, undefined, true);
 

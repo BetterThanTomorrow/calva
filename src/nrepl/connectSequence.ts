@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import * as state from '../state';
-import * as utilities from '../utilities';
+import vscode from 'vscode';
+import state from '../state';
+import utilities from '../utilities';
 import { getConfig } from '../config';
 
 enum ProjectTypes {

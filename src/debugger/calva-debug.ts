@@ -25,18 +25,18 @@ import {
   DebugAdapterServer,
   Position,
 } from 'vscode';
-import * as Net from 'net';
-import * as state from '../state';
+import Net from 'net';
+import state from '../state';
 import { basename } from 'path';
-import * as docMirror from '../doc-mirror/index';
-import * as vscode from 'vscode';
+import docMirror from '../doc-mirror/index';
+import vscode from 'vscode';
 import { moveTokenCursorToBreakpoint } from './util';
 import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
 import { setStateValue, getStateValue } from '../cljs-lib/out/cljs-lib';
-import * as util from '../utilities';
-import * as replSession from '../nrepl/repl-session';
+import util from '../utilities';
+import replSession from '../nrepl/repl-session';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
   type: 'clojure',

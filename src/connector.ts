@@ -1,10 +1,10 @@
-import * as vscode from 'vscode';
-import * as _ from 'lodash';
-import * as state from './state';
-import * as util from './utilities';
-import * as open from 'open';
+import vscode from 'vscode';
+import _ from 'lodash';
+import state from './state';
+import util from './utilities';
+import open from 'open';
 import status from './status';
-import * as projectTypes from './nrepl/project-types';
+import projectTypes from './nrepl/project-types';
 import { NReplClient, NReplSession } from './nrepl';
 import {
   CljsTypeConfig,
@@ -15,15 +15,15 @@ import {
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
-import * as outputWindow from './results-output/results-doc';
+import outputWindow from './results-output/results-doc';
 import { formatAsLineComments } from './results-output/util';
 import { evaluateInOutputWindow } from './evaluate';
-import * as liveShareSupport from './live-share';
-import * as calvaDebug from './debugger/calva-debug';
+import liveShareSupport from './live-share';
+import calvaDebug from './debugger/calva-debug';
 import { setStateValue, getStateValue } from './cljs-lib/out/cljs-lib';
-import * as replSession from './nrepl/repl-session';
-import * as clojureDocs from './clojuredocs';
-import * as jszip from 'jszip';
+import replSession from './nrepl/repl-session';
+import clojureDocs from './clojuredocs';
+import jszip from 'jszip';
 import { addEdnConfig } from './config';
 import { getJarContents } from './utilities';
 

@@ -1,6 +1,6 @@
-import * as path from 'path';
-import * as util from '../utilities';
-import * as fs from 'fs';
+import path from 'path';
+import util from '../utilities';
+import fs from 'fs';
 import { https } from 'follow-redirects';
 
 const DEPS_CLJ_FILE = 'deps.clj.jar';

@@ -1,11 +1,11 @@
-import * as assert from 'assert';
-import * as fsPromises from 'fs/promises';
-import * as path from 'path';
-import * as testUtil from './util';
+import assert from 'assert';
+import fsPromises from 'fs/promises';
+import path from 'path';
+import testUtil from './util';
 import { NotebookProvider } from '../../../NotebookProvider';
 import { before, after } from 'mocha';
 import { serialize } from 'v8';
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 const tester = new NotebookProvider();
 const suiteName = 'notebook';

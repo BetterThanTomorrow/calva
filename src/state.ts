@@ -1,10 +1,10 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import Analytics from './analytics';
-import * as util from './utilities';
-import * as path from 'path';
-import * as child from 'child_process';
+import util from './utilities';
+import path from 'path';
+import child from 'child_process';
 import { getStateValue, setStateValue } from './cljs-lib/out/cljs-lib';
-import * as projectRoot from './project-root';
+import projectRoot from './project-root';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {

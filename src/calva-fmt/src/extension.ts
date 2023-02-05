@@ -1,11 +1,11 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import { FormatOnTypeEditProvider } from './providers/ontype_formatter';
 import { RangeEditProvider } from './providers/range_formatter';
-import * as formatter from './format';
-import * as inferer from './infer';
-import * as docmirror from '../../doc-mirror/index';
-import * as config from '../../formatter-config';
-import * as calvaConfig from '../../config';
+import formatter from './format';
+import inferer from './infer';
+import docmirror from '../../doc-mirror/index';
+import config from '../../formatter-config';
+import calvaConfig from '../../config';
 
 function getLanguageConfiguration(): vscode.LanguageConfiguration {
   const languageConfiguration = {

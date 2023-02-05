@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import statusbar from './statusbar';
-import * as state from './state';
+import state from './state';
 import { getConfig } from './config';
 import { updateReplSessionType } from './nrepl/repl-session';
 

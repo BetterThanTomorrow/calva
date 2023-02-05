@@ -1,4 +1,4 @@
-import * as path from 'path';
+import path from 'path';
 
 function isPrefix(parentPath: string, filePath: string): boolean {
   const relative = path.relative(parentPath, filePath);

@@ -1,14 +1,14 @@
-import * as state from '../state';
-import * as vscode from 'vscode';
-import * as path from 'path';
-import * as getPort from 'get-port';
-import * as utilities from '../utilities';
-import * as pprint from '../printer';
+import state from '../state';
+import vscode from 'vscode';
+import path from 'path';
+import getPort from 'get-port';
+import utilities from '../utilities';
+import pprint from '../printer';
 import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
 import { getStateValue, parseForms, parseEdn } from '../cljs-lib/out/cljs-lib';
-import * as joyride from '../joyride';
+import joyride from '../joyride';
 
 export const isWin = /^win/.test(process.platform);
 

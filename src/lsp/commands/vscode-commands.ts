@@ -1,10 +1,10 @@
-import * as vscode_lsp from 'vscode-languageclient/node';
-import * as project_utils from '../../project-root';
-import * as downloader from '../client/downloader';
-import * as defs from '../definitions';
-import * as state from '../../state';
-import * as vscode from 'vscode';
-import * as api from '../api';
+import vscode_lsp from 'vscode-languageclient/node';
+import project_utils from '../../project-root';
+import downloader from '../client/downloader';
+import defs from '../definitions';
+import state from '../../state';
+import vscode from 'vscode';
+import api from '../api';
 
 export const filterOutRootsWithClients = (
   uris: project_utils.ProjectRoot[],

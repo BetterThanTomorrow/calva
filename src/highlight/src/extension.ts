@@ -1,8 +1,8 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import { Position, Range } from 'vscode';
-import * as isEqual from 'lodash.isequal';
+import isEqual from 'lodash.isequal';
 import { isArray } from 'util';
-import * as docMirror from '../../doc-mirror/index';
+import docMirror from '../../doc-mirror/index';
 import { Token, validPair } from '../../cursor-doc/clojure-lexer';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
 import { tryToGetActiveTextEditor, getActiveTextEditor } from '../../utilities';

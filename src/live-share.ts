@@ -1,6 +1,6 @@
 import { Disposable } from 'vscode';
-import * as vsls from 'vsls';
-import * as config from './config';
+import vsls from 'vsls';
+import config from './config';
 
 // Keeps hold of the LiveShare API instance, so that it is requested only once.
 let liveShare: vsls.LiveShare = null;

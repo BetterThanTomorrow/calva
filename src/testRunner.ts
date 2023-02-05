@@ -1,12 +1,12 @@
-import * as vscode from 'vscode';
-import * as util from './utilities';
-import * as outputWindow from './results-output/results-doc';
+import vscode from 'vscode';
+import util from './utilities';
+import outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
-import * as cider from './nrepl/cider';
-import * as lsp from './lsp/definitions';
-import * as namespace from './namespace';
+import cider from './nrepl/cider';
+import lsp from './lsp/definitions';
+import namespace from './namespace';
 import { getSession, updateReplSessionType } from './nrepl/repl-session';
-import * as getText from './util/get-text';
+import getText from './util/get-text';
 
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 

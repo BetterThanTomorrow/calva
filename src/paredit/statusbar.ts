@@ -1,7 +1,7 @@
 'use strict';
 import { window, StatusBarAlignment, StatusBarItem } from 'vscode';
 import statusbar from '../statusbar';
-import * as paredit from './extension';
+import paredit from './extension';
 
 export class StatusBar {
   private _visible: boolean;

@@ -1,10 +1,10 @@
-import * as extractZip from 'extract-zip';
+import extractZip from 'extract-zip';
 import { https } from 'follow-redirects';
-import * as util from '../../utilities';
-import * as config from '../../config';
-import * as path from 'node:path';
-import * as vscode from 'vscode';
-import * as fs from 'node:fs';
+import util from '../../utilities';
+import config from '../../config';
+import path from 'node:path';
+import vscode from 'vscode';
+import fs from 'node:fs';
 
 const versionFileName = 'clojure-lsp-version';
 

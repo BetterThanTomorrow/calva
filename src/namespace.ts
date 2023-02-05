@@ -1,11 +1,11 @@
-import * as vscode from 'vscode';
-import * as _ from 'lodash';
-import * as docMirror from './doc-mirror/index';
+import vscode from 'vscode';
+import _ from 'lodash';
+import docMirror from './doc-mirror/index';
 import { LispTokenCursor } from './cursor-doc/token-cursor';
 import { Token } from './cursor-doc/clojure-lexer';
-import * as outputWindow from './results-output/results-doc';
-import * as utilities from './utilities';
-import * as replSession from './nrepl/repl-session';
+import outputWindow from './results-output/results-doc';
+import utilities from './utilities';
+import replSession from './nrepl/repl-session';
 import { NReplSession } from './nrepl';
 
 export function getNamespace(doc?: vscode.TextDocument) {

@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import * as Immutable from 'immutable';
-import * as ImmutableCursor from 'immutable-cursor';
+import vscode from 'vscode';
+import Immutable from 'immutable';
+import ImmutableCursor from 'immutable-cursor';
 
 const mode = {
   language: 'clojure',

@@ -1,6 +1,6 @@
-import * as expect from 'expect';
-import * as paredit from '../../../cursor-doc/paredit';
-import * as model from '../../../cursor-doc/model';
+import expect from 'expect';
+import paredit from '../../../cursor-doc/paredit';
+import model from '../../../cursor-doc/model';
 import { docFromTextNotation, textAndSelection, text } from '../common/text-notation';
 import { ModelEditSelection } from '../../../cursor-doc/model';
 

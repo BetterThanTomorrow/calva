@@ -1,8 +1,8 @@
-import * as repl from './repl';
-import * as ranges from './ranges';
-import * as calvaVsCode from './vscode';
-import * as editor from './editor';
-import * as pprint from './pprint';
+import repl from './repl';
+import ranges from './ranges';
+import calvaVsCode from './vscode';
+import editor from './editor';
+import pprint from './pprint';
 
 export function getApi() {
   return {

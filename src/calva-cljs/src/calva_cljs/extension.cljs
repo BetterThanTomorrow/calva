@@ -4,6 +4,7 @@
             #_["/utilities" :as util]))
 
 (comment
+  (.. foo (callFunction2))
   (.. foo (callSomeFunctionFromBar))
   (.. foo (hello))
   (.. foo (platform))

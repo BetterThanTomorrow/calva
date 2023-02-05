@@ -1,13 +1,13 @@
-import * as vscode from 'vscode';
-import * as os from 'os';
-import * as fs from 'fs';
-import * as path from 'path';
+import vscode from 'vscode';
+import os from 'os';
+import fs from 'fs';
+import path from 'path';
 import { customREPLCommandSnippet } from './evaluate';
 import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
 import { readConfigEdn } from './cljs-lib/out/cljs-lib';
-import * as state from './state';
-import * as _ from 'lodash';
+import state from './state';
+import _ from 'lodash';
 import { isDefined } from './utilities';
 
 const REPL_FILE_EXT = 'calva-repl';

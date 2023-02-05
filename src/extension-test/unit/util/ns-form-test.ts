@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import expect from 'expect';
 import { resolveNsName, pathToNs, isPrefix } from '../../../util/ns-form';
 
 describe('test ns-form util', () => {

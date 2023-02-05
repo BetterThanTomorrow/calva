@@ -1,9 +1,9 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import { TextDecoder, TextEncoder } from 'util';
 import { prettyPrint } from './cljs-lib/out/cljs-lib';
-import * as tokenCursor from './cursor-doc/token-cursor';
-import * as repl from './api/repl';
-import * as _ from 'lodash';
+import tokenCursor from './cursor-doc/token-cursor';
+import repl from './api/repl';
+import _ from 'lodash';
 import { isInteger } from 'lodash';
 
 export class NotebookProvider implements vscode.NotebookSerializer {

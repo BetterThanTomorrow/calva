@@ -1,6 +1,7 @@
 import vscode from 'vscode';
 import os from 'os';
 import { someFunction } from './bar';
+import { function2 } from './some-folder/baz';
 
 export function hello() {
   return 'hello';
@@ -16,4 +17,8 @@ export function platform() {
 
 export function showMessage(message: string) {
   void vscode.window.showInformationMessage(message);
+}
+
+export function callFunction2() {
+  return function2();
 }

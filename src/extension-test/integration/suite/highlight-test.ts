@@ -1,10 +1,10 @@
-import * as assert from 'assert';
+import assert from 'assert';
 import { before, after } from 'mocha';
-import * as path from 'path';
-import * as testUtil from './util';
+import path from 'path';
+import testUtil from './util';
 
-import * as vscode from 'vscode';
-import * as highlight from '../../../highlight/src/extension';
+import vscode from 'vscode';
+import highlight from '../../../highlight/src/extension';
 
 suite('Highlight suite', () => {
   const suite = 'Highlight';

@@ -1,17 +1,17 @@
-import * as vscode_lsp from 'vscode-languageclient/node';
-import * as project_utils from '../project-root';
-import * as vscode from 'vscode';
-import * as path from 'node:path';
+import vscode_lsp from 'vscode-languageclient/node';
+import project_utils from '../project-root';
+import vscode from 'vscode';
+import path from 'node:path';
 
-import * as status_bar from './status-bar';
-import * as commands from './commands';
-import * as lsp_client from './client';
-import * as defs from './definitions';
-import * as config from './config';
-import * as state from '../state';
-import * as queue from './queue';
-import * as utils from './utils';
-import * as api from './api';
+import status_bar from './status-bar';
+import commands from './commands';
+import lsp_client from './client';
+import defs from './definitions';
+import config from './config';
+import state from '../state';
+import queue from './queue';
+import utils from './utils';
+import api from './api';
 
 type CreateClientProviderParams = {
   context: vscode.ExtensionContext;

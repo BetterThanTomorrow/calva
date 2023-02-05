@@ -1,7 +1,7 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
-import * as util from './util';
-import * as projectRoot from '../project-root';
+import vscode from 'vscode';
+import path from 'path';
+import util from './util';
+import projectRoot from '../project-root';
 import { getActiveTextEditor } from '../utilities';
 
 function openFile(file: string | vscode.Uri) {

@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 
 export enum AutoStartBehaviour {
   WorkspaceOpened = 'when-workspace-opened-use-workspace-root',

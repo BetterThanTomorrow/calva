@@ -1,5 +1,5 @@
-import * as vscode_lsp from 'vscode-languageclient/node';
-import * as vscode from 'vscode';
+import vscode_lsp from 'vscode-languageclient/node';
+import vscode from 'vscode';
 
 export enum LspStatus {
   Stopped = 'Stopped',

@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import * as config from '../../formatter-config';
-import * as outputWindow from '../../results-output/results-doc';
+import vscode from 'vscode';
+import config from '../../formatter-config';
+import outputWindow from '../../results-output/results-doc';
 import {
   getIndent,
   getDocumentOffset,
@@ -8,7 +8,7 @@ import {
   getDocument,
 } from '../../doc-mirror/index';
 import { formatTextAtRange, formatText, jsify } from '../../cljs-lib/out/cljs-lib.js';
-import * as util from '../../utilities';
+import util from '../../utilities';
 import { isUndefined, cloneDeep } from 'lodash';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
 import { formatIndex } from './format-index';

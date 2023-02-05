@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import * as config from './config';
+import vscode from 'vscode';
+import config from './config';
 
 export function activationGreetings(chan: vscode.OutputChannel) {
   const conf = config.getConfig();

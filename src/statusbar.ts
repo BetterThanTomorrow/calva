@@ -1,7 +1,7 @@
-import * as vscode from 'vscode';
-import * as state from './state';
-import * as util from './utilities';
-import * as config from './config';
+import vscode from 'vscode';
+import state from './state';
+import util from './utilities';
+import config from './config';
 import status from './status';
 import { getStateValue } from './cljs-lib/out/cljs-lib';
 import { getSession, getReplSessionTypeFromState } from './nrepl/repl-session';

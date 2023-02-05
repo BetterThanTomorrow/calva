@@ -1,6 +1,6 @@
 import { NReplSession } from '.';
 import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
-import * as outputWindow from '../results-output/results-doc';
+import outputWindow from '../results-output/results-doc';
 import { isUndefined } from 'lodash';
 
 function getSession(fileType?: string): NReplSession {

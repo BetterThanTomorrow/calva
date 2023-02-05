@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import * as formatter from '../format';
+import vscode from 'vscode';
+import formatter from '../format';
 
 export class RangeEditProvider implements vscode.DocumentRangeFormattingEditProvider {
   provideDocumentRangeFormattingEdits(

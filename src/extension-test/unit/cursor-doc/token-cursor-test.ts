@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import expect from 'expect';
 import { createStringCursor, LispTokenCursor } from '../../../cursor-doc/token-cursor';
 import { docFromTextNotation, textAndSelection } from '../common/text-notation';
 

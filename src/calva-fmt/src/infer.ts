@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import { inferParens, inferIndents } from '../../cljs-lib/out/cljs-lib.js';
 import { isUndefined, cloneDeep } from 'lodash';
 

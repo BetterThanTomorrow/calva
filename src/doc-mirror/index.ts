@@ -1,7 +1,7 @@
 export { getIndent } from '../cursor-doc/indent';
-import * as vscode from 'vscode';
-import * as utilities from '../utilities';
-import * as formatter from '../calva-fmt/src/format';
+import vscode from 'vscode';
+import utilities from '../utilities';
+import formatter from '../calva-fmt/src/format';
 import { LispTokenCursor } from '../cursor-doc/token-cursor';
 import {
   ModelEdit,

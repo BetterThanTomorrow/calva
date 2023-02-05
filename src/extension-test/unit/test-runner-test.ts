@@ -1,5 +1,5 @@
-import * as expect from 'expect';
-import * as cider from '../../nrepl/cider';
+import expect from 'expect';
+import cider from '../../nrepl/cider';
 
 describe('test result processing', () => {
   it('handles absent line data nicely', () => {

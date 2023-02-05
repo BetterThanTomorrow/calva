@@ -1,14 +1,14 @@
-import * as vscode from 'vscode';
+import vscode from 'vscode';
 import { https } from 'follow-redirects';
-import * as _ from 'lodash';
-import * as state from './state';
-import * as path from 'path';
-import * as os from 'os';
-import * as fs from 'fs';
-import * as JSZip from 'jszip';
-import * as outputWindow from './results-output/results-doc';
-import * as cljsLib from './cljs-lib/out/cljs-lib';
-import * as url from 'url';
+import _ from 'lodash';
+import { extensionContext, outputChannel } from './state';
+import path from 'path';
+import os from 'os';
+import fs from 'fs';
+import JSZip from 'jszip';
+import { appendLine } from './results-output/results-doc';
+import cljsLib from './cljs-lib/out/cljs-lib';
+import url from 'url';
 import { isUndefined } from 'lodash';
 import { isNullOrUndefined } from 'util';
 
@@ -62,7 +62,7 @@ async function quickPickSingle(opts: {
     return;
   }
   const saveAs = `qps-${opts.saveAs}`;
-  const selected = opts.default ?? state.extensionContext.workspaceState.get<string>(saveAs);
+  const selected = opts.default ?? extensionContext.workspaceState.get<string>(saveAs);
 
   let result;
   if (opts.autoSelect && opts.values.length == 1) {
@@ -74,19 +74,19 @@ async function quickPickSingle(opts: {
       ignoreFocusOut: true,
     });
   }
-  void state.extensionContext.workspaceState.update(saveAs, result);
+  void extensionContext.workspaceState.update(saveAs, result);
   return result;
 }
 
 async function quickPickMulti(opts: { values: string[]; saveAs: string; placeHolder: string }) {
   const saveAs = `qps-${opts.saveAs}`;
-  const selected = state.extensionContext.workspaceState.get<string[]>(saveAs) || [];
+  const selected = extensionContext.workspaceState.get<string[]>(saveAs) || [];
   const result = await quickPick(opts.values, [], selected, {
     placeHolder: opts.placeHolder,
     canPickMany: true,
     ignoreFocusOut: true,
   });
-  void state.extensionContext.workspaceState.update(saveAs, result);
+  void extensionContext.workspaceState.update(saveAs, result);
   return result;
 }
 
@@ -258,7 +258,7 @@ const ERROR_TYPE = {
 };
 
 function logSuccess(results) {
-  const chan = state.outputChannel();
+  const chan = outputChannel();
   chan.appendLine('Evaluation completed successfully');
   _.each(results, (r) => {
     const value = Object.prototype.hasOwnProperty.call(r, 'value') ? r.value : null;
@@ -273,14 +273,14 @@ function logSuccess(results) {
 }
 
 function logError(error) {
-  outputWindow.appendLine('; ' + error.reason);
+  appendLine('; ' + error.reason);
   if (
     error.line !== undefined &&
     error.line !== null &&
     error.column !== undefined &&
     error.column !== null
   ) {
-    outputWindow.appendLine(';   at line: ' + error.line + ' and column: ' + error.column);
+    appendLine(';   at line: ' + error.line + ' and column: ' + error.column);
   }
 }
 
@@ -313,12 +313,12 @@ function markError(error) {
 }
 
 function logWarning(warning) {
-  outputWindow.appendLine('; ' + warning.reason);
+  appendLine('; ' + warning.reason);
   if (warning.line !== null) {
     if (warning.column !== null) {
-      outputWindow.appendLine(';   at line: ' + warning.line + ' and column: ' + warning.column);
+      appendLine(';   at line: ' + warning.line + ' and column: ' + warning.column);
     } else {
-      outputWindow.appendLine(';   at line: ' + warning.line);
+      appendLine(';   at line: ' + warning.line);
     }
   }
 }

@@ -1,7 +1,7 @@
-import * as vscode from 'vscode';
-import * as UA from 'universal-analytics';
-import * as uuid from 'uuidv4';
-import * as os from 'os';
+import vscode from 'vscode';
+import UA from 'universal-analytics';
+import uuid from 'uuidv4';
+import os from 'os';
 import { isUndefined } from 'lodash';
 
 // var debug = require('debug');

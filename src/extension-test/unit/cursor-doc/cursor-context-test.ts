@@ -1,5 +1,5 @@
-import * as expect from 'expect';
-import * as context from '../../../cursor-doc/cursor-context';
+import expect from 'expect';
+import context from '../../../cursor-doc/cursor-context';
 import { docFromTextNotation, textAndSelection } from '../common/text-notation';
 
 describe('Cursor Contexts', () => {

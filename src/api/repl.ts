@@ -1,5 +1,5 @@
-import * as printer from '../printer';
-import * as replSession from '../nrepl/repl-session';
+import printer from '../printer';
+import replSession from '../nrepl/repl-session';
 import { cljsLib } from '../utilities';
 
 type Result = {

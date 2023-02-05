@@ -1,6 +1,6 @@
-import * as expect from 'expect';
+import expect from 'expect';
 import type { ResultsBuffer } from '../../../results-output/results-doc';
-import * as util from '../../../results-output/util';
+import util from '../../../results-output/util';
 
 describe('addToHistory', () => {
   it('should push text to history array', () => {

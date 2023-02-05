@@ -1,14 +1,14 @@
-import * as vscode from 'vscode';
-import * as _ from 'lodash';
-import * as util from './utilities';
-import * as getText from './util/get-text';
-import * as namespace from './namespace';
-import * as outputWindow from './results-output/results-doc';
+import vscode from 'vscode';
+import _ from 'lodash';
+import util from './utilities';
+import getText from './util/get-text';
+import namespace from './namespace';
+import outputWindow from './results-output/results-doc';
 import { customREPLCommandSnippet } from './evaluate';
 import { getConfig } from './config';
-import * as replSession from './nrepl/repl-session';
-import * as evaluate from './evaluate';
-import * as state from './state';
+import replSession from './nrepl/repl-session';
+import evaluate from './evaluate';
+import state from './state';
 
 type SnippetDefinition = {
   snippet: string;

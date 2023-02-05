@@ -3,7 +3,7 @@
  *
  * Author: Matt Seddon
  */
-import * as stream from 'stream';
+import stream from 'stream';
 import { Buffer } from 'buffer';
 
 /** Bencode the given JSON object */

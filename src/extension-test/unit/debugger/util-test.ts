@@ -1,7 +1,7 @@
-import * as expect from 'expect';
+import expect from 'expect';
 import { moveTokenCursorToBreakpoint } from '../../../debugger/util';
-import * as model from '../../../cursor-doc/model';
-import * as fs from 'fs';
+import model from '../../../cursor-doc/model';
+import fs from 'fs';
 
 function getCoordinates(text: string): (string | number)[] {
   return text

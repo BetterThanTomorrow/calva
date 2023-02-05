@@ -1,18 +1,18 @@
-import * as path from 'path';
-import * as vscode from 'vscode';
-import * as state from '../state';
+import path from 'path';
+import vscode from 'vscode';
+import state from '../state';
 import { highlight } from '../highlight/src/extension';
 import { NReplSession } from '../nrepl';
-import * as util from '../utilities';
-import * as select from '../select';
+import util from '../utilities';
+import select from '../select';
 import { formatCode } from '../calva-fmt/src/format';
-import * as namespace from '../namespace';
-import * as config from '../config';
+import namespace from '../namespace';
+import config from '../config';
 import type { ReplSessionType } from '../config';
-import * as replHistory from './repl-history';
-import * as docMirror from '../doc-mirror/index';
+import replHistory from './repl-history';
+import docMirror from '../doc-mirror/index';
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
-import * as replSession from '../nrepl/repl-session';
+import replSession from '../nrepl/repl-session';
 import { formatAsLineComments, splitEditQueueForTextBatching } from './util';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;

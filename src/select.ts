@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import * as util from './utilities';
-import * as docMirror from './doc-mirror/index';
+import vscode from 'vscode';
+import util from './utilities';
+import docMirror from './doc-mirror/index';
 
 export function selectionFromOffsetRange(
   doc: vscode.TextDocument,

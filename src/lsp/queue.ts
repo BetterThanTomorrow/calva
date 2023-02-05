@@ -1,4 +1,4 @@
-import * as stream from 'node:stream/web';
+import stream from 'node:stream/web';
 
 /**
  * A simple async queue implementation backed by a node transform stream in passthrough mode. This will

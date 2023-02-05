@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as state from './state';
+import vscode from 'vscode';
+import fs from 'fs';
+import state from './state';
 
 const filesCache: Map<string, string> = new Map();
 

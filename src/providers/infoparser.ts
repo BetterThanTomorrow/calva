@@ -1,5 +1,5 @@
 import { SignatureInformation, ParameterInformation, MarkdownString } from 'vscode';
-import * as tokenCursor from '../cursor-doc/token-cursor';
+import tokenCursor from '../cursor-doc/token-cursor';
 import { getConfig } from '../config';
 
 export type Completion =

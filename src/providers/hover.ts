@@ -1,14 +1,14 @@
-import * as vscode from 'vscode';
-import * as util from '../utilities';
-import * as infoparser from './infoparser';
-import * as namespace from '../namespace';
-import * as replSession from '../nrepl/repl-session';
-import * as clojureDocs from '../clojuredocs';
+import vscode from 'vscode';
+import util from '../utilities';
+import infoparser from './infoparser';
+import namespace from '../namespace';
+import replSession from '../nrepl/repl-session';
+import clojureDocs from '../clojuredocs';
 import { getConfig } from '../config';
 import { evaluateSnippet } from '../custom-snippets';
-import * as getText from '../util/get-text';
-import * as _ from 'lodash';
-import * as lsp from '../lsp';
+import getText from '../util/get-text';
+import _ from 'lodash';
+import lsp from '../lsp';
 
 export async function provideHover(
   clientProvider: lsp.ClientProvider,

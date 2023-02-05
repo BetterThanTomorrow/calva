@@ -1,6 +1,6 @@
 import { getConfig } from './config';
 import { assertIsDefined } from './utilities';
-import * as calvaLib from './cljs-lib/out/cljs-lib';
+import calvaLib from './cljs-lib/out/cljs-lib';
 
 export type PrintFnOptions = {
   name: string;

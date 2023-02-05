@@ -1,11 +1,11 @@
 import { provideSignatureHelp } from '../../providers/signature';
 import { isResultsDoc } from '../../results-output/results-doc';
-import * as vscode_lsp from 'vscode-languageclient/node';
-import * as downloader from './downloader';
-import * as config from '../../config';
-import * as messages from './messages';
-import * as vscode from 'vscode';
-import * as path from 'path';
+import vscode_lsp from 'vscode-languageclient/node';
+import downloader from './downloader';
+import config from '../../config';
+import messages from './messages';
+import vscode from 'vscode';
+import path from 'path';
 
 /**
  * This can potentially be used to replace or alter the automatic command instrumentation performed by the

@@ -1,8 +1,8 @@
-import * as vscode_lsp from 'vscode-languageclient/node';
-import * as calva_utils from '../../utilities';
-import * as defs from '../definitions';
-import * as vscode from 'vscode';
-import * as api from '../api';
+import vscode_lsp from 'vscode-languageclient/node';
+import calva_utils from '../../utilities';
+import defs from '../definitions';
+import vscode from 'vscode';
+import api from '../api';
 
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
 

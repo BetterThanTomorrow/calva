@@ -1,20 +1,20 @@
-import * as vscode from 'vscode';
-import * as state from './state';
+import vscode from 'vscode';
+import state from './state';
 import annotations from './providers/annotations';
-import * as path from 'path';
-import * as util from './utilities';
+import path from 'path';
+import util from './utilities';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
-import * as outputWindow from './results-output/results-doc';
+import outputWindow from './results-output/results-doc';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
-import * as namespace from './namespace';
-import * as replHistory from './results-output/repl-history';
+import namespace from './namespace';
+import replHistory from './results-output/repl-history';
 import { formatAsLineComments } from './results-output/util';
 import { getStateValue } from './cljs-lib/out/cljs-lib';
 import { getConfig } from './config';
-import * as replSession from './nrepl/repl-session';
-import * as getText from './util/get-text';
+import replSession from './nrepl/repl-session';
+import getText from './util/get-text';
 
 function interruptAllEvaluations() {
   if (util.getConnectedState()) {

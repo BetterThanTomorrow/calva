@@ -1,5 +1,5 @@
 // This file contains type definitions related to the language server protocol
-import * as vscode_lsp from 'vscode-languageclient/node';
+import vscode_lsp from 'vscode-languageclient/node';
 
 export interface Position {
   line: number;

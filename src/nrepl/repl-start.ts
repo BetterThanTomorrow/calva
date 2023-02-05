@@ -1,17 +1,17 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
-import * as state from '../state';
+import vscode from 'vscode';
+import path from 'path';
+import state from '../state';
 import eval from '../evaluate';
-import * as utilities from '../utilities';
-import * as sequence from './connectSequence';
-import * as jackIn from './jack-in';
-import * as outputWindow from '../results-output/results-doc';
+import utilities from '../utilities';
+import sequence from './connectSequence';
+import jackIn from './jack-in';
+import outputWindow from '../results-output/results-doc';
 import { getConfig } from '../config';
-import * as replSession from './repl-session';
-import * as cljsLib from '../cljs-lib/out/cljs-lib';
+import replSession from './repl-session';
+import cljsLib from '../cljs-lib/out/cljs-lib';
 import { ReplConnectSequence } from './connectSequence';
-import * as clojureLsp from '../lsp';
-import * as calvaConfig from '../config';
+import clojureLsp from '../lsp';
+import calvaConfig from '../config';
 
 const TEMPLATES_SUB_DIR = 'bundled';
 const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';

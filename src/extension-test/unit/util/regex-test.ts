@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import expect from 'expect';
 import { testCljOrJsRegex } from '../../../util/regex';
 
 describe('regex', () => {

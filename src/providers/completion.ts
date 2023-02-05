@@ -11,16 +11,16 @@ import {
   CompletionItemLabel,
   Uri,
 } from 'vscode';
-import * as util from '../utilities';
-import * as select from '../select';
-import * as docMirror from '../doc-mirror/index';
-import * as infoparser from './infoparser';
-import * as namespace from '../namespace';
-import * as replSession from '../nrepl/repl-session';
+import util from '../utilities';
+import select from '../select';
+import docMirror from '../doc-mirror/index';
+import infoparser from './infoparser';
+import namespace from '../namespace';
+import replSession from '../nrepl/repl-session';
 import { CompletionRequest, CompletionResolveRequest } from 'vscode-languageserver-protocol';
 import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
-import * as lsp from '../lsp';
+import lsp from '../lsp';
 
 const mappings = {
   nil: CompletionItemKind.Value,

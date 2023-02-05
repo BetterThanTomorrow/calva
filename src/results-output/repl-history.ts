@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import * as state from '../state';
-import * as util from '../utilities';
+import vscode from 'vscode';
+import state from '../state';
+import util from '../utilities';
 import {
   getIndexAfterLastNonWhitespace,
   getTextAfterLastOccurrenceOfSubstring,

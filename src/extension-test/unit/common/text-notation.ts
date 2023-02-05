@@ -1,4 +1,4 @@
-import * as model from '../../../cursor-doc/model';
+import model from '../../../cursor-doc/model';
 
 /**
  * Text Notation for expressing states of a document, including

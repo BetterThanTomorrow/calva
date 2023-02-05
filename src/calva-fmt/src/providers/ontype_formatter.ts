@@ -1,11 +1,11 @@
-import * as vscode from 'vscode';
-import * as formatter from '../format';
-import * as docMirror from '../../../doc-mirror/index';
+import vscode from 'vscode';
+import formatter from '../format';
+import docMirror from '../../../doc-mirror/index';
 import { EditableDocument } from '../../../cursor-doc/model';
-import * as paredit from '../../../cursor-doc/paredit';
+import paredit from '../../../cursor-doc/paredit';
 import { getConfig } from '../../../config';
-import * as util from '../../../utilities';
-import * as formatterConfig from '../../../formatter-config';
+import util from '../../../utilities';
+import formatterConfig from '../../../formatter-config';
 
 export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProvider {
   async provideOnTypeFormattingEdits(

@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import * as _ from 'lodash';
-import * as util from '../utilities';
+import vscode from 'vscode';
+import _ from 'lodash';
+import util from '../utilities';
 
 enum AnnotationStatus {
   PENDING = 0,

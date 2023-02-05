@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import * as calvaLib from './cljs-lib/out/cljs-lib';
+import vscode from 'vscode';
+import calvaLib from './cljs-lib/out/cljs-lib';
 
 type ConverterResult = {
   result: string;

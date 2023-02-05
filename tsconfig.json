@@ -29,5 +29,5 @@
     "rootDir": "src"
   },
   "exclude": ["node_modules", "src/webview", "src/webview.ts", ".vscode-test"],
-  "include": ["src/foo.ts"]
+  //"include": ["src/foo.ts"]
 }

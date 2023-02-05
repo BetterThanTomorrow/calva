@@ -1,4 +1,4 @@
-import * as state from '../../out/cljs-lib/cljs-lib';
+import state from '../../out/cljs-lib/cljs-lib';
 import { ClientProvider } from './provider';
 
 const STATE_KEY = 'LSP_CLIENT_PROVIDER';

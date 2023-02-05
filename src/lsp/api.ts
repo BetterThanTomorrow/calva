@@ -1,7 +1,7 @@
 import { LanguageClient } from 'vscode-languageclient/node';
-import * as vscode_lsp from 'vscode-languageclient/node';
-import * as defs from './definitions';
-import * as vscode from 'vscode';
+import vscode_lsp from 'vscode-languageclient/node';
+import defs from './definitions';
+import vscode from 'vscode';
 
 /**
  * Find the closest provisioned LSP client to a given document URI. This works by traversing up the given URI

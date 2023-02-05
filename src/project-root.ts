@@ -1,7 +1,7 @@
-import * as config from './config';
-import * as vscode from 'vscode';
-import * as path from 'path';
-import * as _ from 'lodash';
+import config from './config';
+import vscode from 'vscode';
+import path from 'path';
+import _ from 'lodash';
 
 export type ProjectRoot = {
   uri: vscode.Uri;

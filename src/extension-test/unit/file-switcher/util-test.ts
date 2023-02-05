@@ -1,6 +1,6 @@
-import * as expect from 'expect';
-import * as util from '../../../file-switcher/util';
-import * as path from 'path';
+import expect from 'expect';
+import util from '../../../file-switcher/util';
+import path from 'path';
 
 describe('getNewSourcePath', () => {
   it('should get new source path for maven style src folder', () => {

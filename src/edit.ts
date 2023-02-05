@@ -1,9 +1,9 @@
-import * as vscode from 'vscode';
-import * as util from './utilities';
-import * as docMirror from './doc-mirror/index';
+import vscode from 'vscode';
+import util from './utilities';
+import docMirror from './doc-mirror/index';
 import { EditableDocument, ModelEdit } from './cursor-doc/model';
-import * as select from './select';
-import * as printer from './printer';
+import select from './select';
+import printer from './printer';
 
 // Relies on that `when` claus guards this from being called
 // when the cursor is before the comment marker

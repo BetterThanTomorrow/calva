@@ -1,5 +1,5 @@
 import { EditableModel } from './model';
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { testCljOrJsRegex } from '../util/regex';
 import { FormatterConfig } from '../formatter-config';
 

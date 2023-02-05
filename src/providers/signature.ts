@@ -7,12 +7,12 @@ import {
   SignatureHelpProvider,
   SignatureInformation,
 } from 'vscode';
-import * as util from '../utilities';
-import * as infoparser from './infoparser';
+import util from '../utilities';
+import infoparser from './infoparser';
 import { LispTokenCursor } from '../cursor-doc/token-cursor';
-import * as docMirror from '../doc-mirror/index';
-import * as namespace from '../namespace';
-import * as replSession from '../nrepl/repl-session';
+import docMirror from '../doc-mirror/index';
+import namespace from '../namespace';
+import replSession from '../nrepl/repl-session';
 
 export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
   async provideSignatureHelp(

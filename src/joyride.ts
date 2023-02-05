@@ -1,12 +1,12 @@
 import status from './status';
-import * as semver from 'semver';
-import * as connector from './connector';
-import * as state from './state';
-import * as vscode from 'vscode';
-import * as connectSequences from './nrepl/connectSequence';
-import * as open from 'open';
-import * as outputWindow from './results-output/results-doc';
-import * as utilities from './utilities';
+import semver from 'semver';
+import connector from './connector';
+import state from './state';
+import vscode from 'vscode';
+import connectSequences from './nrepl/connectSequence';
+import open from 'open';
+import outputWindow from './results-output/results-doc';
+import utilities from './utilities';
 
 const JOYRIDE_NREPL_START_API_VERSION = '0.0.5';
 

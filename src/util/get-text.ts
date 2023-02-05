@@ -1,8 +1,21 @@
-import * as vscode from 'vscode';
-import * as select from '../select';
-import * as paredit from '../cursor-doc/paredit';
-import * as docMirror from '../doc-mirror/index';
-import * as cursorTextGetter from './cursor-get-text';
+import vscode from 'vscode';
+import { getEnclosingFormSelection, getFormSelection, selectionFromOffsetRange } from '../select';
+import {
+  bindingForms,
+  currentSexpsRange,
+  isInPairsList,
+  rangeToBackwardList,
+  rangeToForwardList,
+} from '../cursor-doc/paredit';
+import { getDocument } from '../doc-mirror/index';
+import {
+  RangeAndText,
+  currentEnclosingFormToCursor as _currentEnclosingFormToCursor,
+  currentTopLevelDefined as _currentTopLevelDefined,
+  currentTopLevelFormToCursor as _currentTopLevelFormToCursor,
+  selectionAddingBrackets as _selectionAddingBrackets,
+  startOfFileToCursor as _startOfFileToCursor,
+} from './cursor-get-text';
 import { EditableDocument } from '../cursor-doc/model';
 
 export type SelectionAndText = [vscode.Selection | undefined, string];
@@ -13,7 +26,7 @@ function _currentFormText(
   pos: vscode.Position
 ): SelectionAndText {
   if (doc) {
-    const codeSelection = select.getFormSelection(doc, pos, topLevel);
+    const codeSelection = getFormSelection(doc, pos, topLevel);
     return [codeSelection, doc.getText(codeSelection)];
   }
   return [undefined, ''];
@@ -31,12 +44,12 @@ export function currentFormText(doc: vscode.TextDocument, pos: vscode.Position):
 }
 
 export function currentPairText(doc: vscode.TextDocument, pos: vscode.Position): SelectionAndText {
-  const cursorDoc = docMirror.getDocument(doc);
+  const cursorDoc = getDocument(doc);
   const cursorPos = doc.offsetAt(pos);
   const cursor = cursorDoc.getTokenCursor(cursorPos);
-  if (paredit.isInPairsList(cursor, paredit.bindingForms)) {
-    const range = paredit.currentSexpsRange(cursorDoc, cursor, cursorPos, true);
-    const selection = select.selectionFromOffsetRange(doc, range);
+  if (isInPairsList(cursor, bindingForms)) {
+    const range = currentSexpsRange(cursorDoc, cursor, cursorPos, true);
+    const selection = selectionFromOffsetRange(doc, range);
     return [selection, doc.getText(selection)];
   } else {
     return [undefined, ''];
@@ -46,7 +59,7 @@ export function currentPairText(doc: vscode.TextDocument, pos: vscode.Position):
 export function currentFileText(doc: vscode.TextDocument): SelectionAndText {
   const text = doc.getText();
   if (text) {
-    return [select.selectionFromOffsetRange(doc, [0, text.length - 1]), text];
+    return [selectionFromOffsetRange(doc, [0, text.length - 1]), text];
   } else {
     return [undefined, ''];
   }
@@ -57,7 +70,7 @@ export function currentEnclosingFormText(
   pos: vscode.Position
 ): SelectionAndText {
   if (doc) {
-    const codeSelection = select.getEnclosingFormSelection(doc, pos);
+    const codeSelection = getEnclosingFormSelection(doc, pos);
     return [codeSelection, doc.getText(codeSelection)];
   }
   return [undefined, ''];
@@ -65,7 +78,7 @@ export function currentEnclosingFormText(
 
 export function _currentFunction(doc: vscode.TextDocument, topLevel = false): SelectionAndText {
   if (doc) {
-    const cursorDoc = docMirror.getDocument(doc);
+    const cursorDoc = getDocument(doc);
     const tokenCursor = cursorDoc.getTokenCursor();
     if (topLevel) {
       tokenCursor.set(
@@ -93,14 +106,14 @@ export function currentTopLevelFunction(doc: vscode.TextDocument): SelectionAndT
 
 function selectionAndText(
   doc: vscode.TextDocument,
-  textGetter: (doc: EditableDocument, active: number) => cursorTextGetter.RangeAndText,
+  textGetter: (doc: EditableDocument, active: number) => RangeAndText,
   pos: vscode.Position
 ): SelectionAndText {
   if (doc) {
-    const mirrorDoc = docMirror.getDocument(doc);
+    const mirrorDoc = getDocument(doc);
     const [range, text] = textGetter(mirrorDoc, doc.offsetAt(pos));
     if (range) {
-      return [select.selectionFromOffsetRange(doc, range), text];
+      return [selectionFromOffsetRange(doc, range), text];
     }
   }
   return [undefined, ''];
@@ -110,35 +123,35 @@ export function currentEnclosingFormToCursor(
   doc: vscode.TextDocument,
   pos: vscode.Position
 ): SelectionAndText {
-  return selectionAndText(doc, cursorTextGetter.currentEnclosingFormToCursor, pos);
+  return selectionAndText(doc, _currentEnclosingFormToCursor, pos);
 }
 
 export function currentTopLevelDefined(
   doc: vscode.TextDocument,
   pos: vscode.Position
 ): SelectionAndText {
-  return selectionAndText(doc, cursorTextGetter.currentTopLevelDefined, pos);
+  return selectionAndText(doc, _currentTopLevelDefined, pos);
 }
 
 export function currentTopLevelFormToCursor(
   doc: vscode.TextDocument,
   pos: vscode.Position
 ): SelectionAndText {
-  return selectionAndText(doc, cursorTextGetter.currentTopLevelFormToCursor, pos);
+  return selectionAndText(doc, _currentTopLevelFormToCursor, pos);
 }
 
 export function selectionAddingBrackets(
   doc: vscode.TextDocument,
   pos: vscode.Position
 ): SelectionAndText {
-  return selectionAndText(doc, cursorTextGetter.selectionAddingBrackets, pos);
+  return selectionAndText(doc, _selectionAddingBrackets, pos);
 }
 
 export function startOFileToCursor(
   doc: vscode.TextDocument,
   pos: vscode.Position
 ): SelectionAndText {
-  return selectionAndText(doc, cursorTextGetter.startOfFileToCursor, pos);
+  return selectionAndText(doc, _startOfFileToCursor, pos);
 }
 
 function fromFn(
@@ -146,9 +159,9 @@ function fromFn(
   cursorDocFn: (doc: EditableDocument, offset?: number) => [number, number]
 ): SelectionAndText {
   if (doc) {
-    const cursorDoc = docMirror.getDocument(doc);
+    const cursorDoc = getDocument(doc);
     const range = cursorDocFn(cursorDoc);
-    const selection = select.selectionFromOffsetRange(doc, range);
+    const selection = selectionFromOffsetRange(doc, range);
     const text = doc.getText(selection);
     return [selection, text];
   }
@@ -156,11 +169,11 @@ function fromFn(
 }
 
 export function toStartOfList(doc: vscode.TextDocument): SelectionAndText {
-  return fromFn(doc, paredit.rangeToBackwardList);
+  return fromFn(doc, rangeToBackwardList);
 }
 
 export function toEndOfList(doc: vscode.TextDocument): SelectionAndText {
-  return fromFn(doc, paredit.rangeToForwardList);
+  return fromFn(doc, rangeToForwardList);
 }
 
 export function currentContext(document: vscode.TextDocument, pos: vscode.Position, prefix = '') {

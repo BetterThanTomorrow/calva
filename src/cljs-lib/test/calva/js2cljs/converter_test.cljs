@@ -20,4 +20,4 @@
 
 (deftest invalid-results-test
   (testing "Returns a map with an `:error` entry when conversion fails"
-    (is (s/valid? ::invalid-result (sut/convert "import * as foo from 'foo';")))))
+    (is (s/valid? ::invalid-result (sut/convert "import foo from 'foo';")))))

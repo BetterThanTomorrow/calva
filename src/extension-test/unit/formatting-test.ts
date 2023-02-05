@@ -1,7 +1,7 @@
-import * as expect from 'expect';
+import expect from 'expect';
 import { formatIndex } from '../../calva-fmt/src/format-index';
 import { backspaceOnWhitespace } from '../../cursor-doc/backspace-on-whitespace';
-import * as indent from '../../cursor-doc/indent';
+import indent from '../../cursor-doc/indent';
 
 import { docFromTextNotation, textAndSelection } from './common/text-notation';
 

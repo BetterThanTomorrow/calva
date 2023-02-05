@@ -1,4 +1,4 @@
-import * as path from 'path';
+import path from 'path';
 
 function isFileValid(fileName, pathAfterRoot) {
   if (!fileName.includes('.')) {

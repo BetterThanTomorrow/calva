@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import * as nodeUtil from 'util';
+import vscode from 'vscode';
+import nodeUtil from 'util';
 
 let NREPL_LOGGING_ENABLED = false;
 const NREPL_MESSAGES_CHANNEL_NAME = 'nREPL Messages';

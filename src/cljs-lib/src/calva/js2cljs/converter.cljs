@@ -31,7 +31,7 @@ MongoClient.connect(url, function(err, db) {
 
   (convert "foo;
             bar;
-            import * as foo from 'foo'")
+            import foo from 'foo'")
 
   (jsc/parse-str "a++")
 
@@ -46,5 +46,4 @@ MongoClient.connect(url, function(err, db) {
                  :parse {:interpose "\n\n"}
                  :width 60
                  :pair {:nl-separator? true}}
-   :format-opts {:debug (atom nil)}}))
-  )
+   :format-opts {:debug (atom nil)}})))

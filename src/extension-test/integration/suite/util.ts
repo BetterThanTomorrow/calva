@@ -1,5 +1,5 @@
-import * as path from 'path';
-import * as vscode from 'vscode';
+import path from 'path';
+import vscode from 'vscode';
 
 export const testDataDir = path.join(
   __dirname,

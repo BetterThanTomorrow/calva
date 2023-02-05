@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import * as getText from '../util/get-text';
+import vscode from 'vscode';
+import getText from '../util/get-text';
 
 const wrapSelectionAndTextFunction = (
   f: (document: vscode.TextDocument, position: vscode.Position) => [vscode.Range, string]

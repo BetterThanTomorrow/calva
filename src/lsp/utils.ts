@@ -1,5 +1,5 @@
-import * as roots from '../project-root';
-import * as vscode from 'vscode';
+import roots from '../project-root';
+import vscode from 'vscode';
 
 /**
  * This will try find the most appropriate project root to use for any given document URI. This is done
