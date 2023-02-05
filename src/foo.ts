@@ -1,18 +1,19 @@
 import vscode from 'vscode';
 import os from 'os';
+import { someFunction } from './bar';
 
-const bar = 'bar';
-
-function hello() {
+export function hello() {
   return 'hello';
 }
 
-function platform() {
+export function callSomeFunctionFromBar() {
+  return someFunction();
+}
+
+export function platform() {
   return os.platform();
 }
 
-function showMessage(message: string) {
+export function showMessage(message: string) {
   void vscode.window.showInformationMessage(message);
 }
-
-export { bar, hello, platform, showMessage };
