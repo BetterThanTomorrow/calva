@@ -2,29 +2,19 @@ import * as expect from 'expect';
 import { formatIndex } from '../../calva-fmt/src/format-index';
 import { backspaceOnWhitespace } from '../../cursor-doc/backspace-on-whitespace';
 import * as indent from '../../cursor-doc/indent';
-
 import { docFromTextNotation, textAndSelection } from './common/text-notation';
 
 describe('formatter, indenter and paredit comparison', () => {
   const configs = [
-    mkConfig(
-      {
-        '/\\S+/': [['inner', 0]],
-      },
-      '{:indents {#"\\S+" [[:inner 0]]}}'
-    ),
-    mkConfig(
-      {
-        '/\\S+/': [['block', 0]],
-      },
-      '{:indents {#"\\S+" [[:block 0]]}}'
-    ),
-    mkConfig(
-      {
-        '/\\S+/': [['inner', 1]],
-      },
-      '{:indents {#"\\S+" [[:inner 1]]}}'
-    ),
+    mkConfig({
+      '#"\\S+"': [['inner', 0]],
+    }),
+    mkConfig({
+      '#"\\S+"': [['block', 0]],
+    }),
+    mkConfig({
+      '#"\\S+"': [['inner', 1]],
+    }),
   ];
 
   describe('indents `and` form the same with formatter, indenter, and paredit', () => {
@@ -72,11 +62,22 @@ function getPareditIndent(notation: string, config: ReturnType<typeof mkConfig>)
   return backspaceOnWhitespace(doc, doc.getTokenCursor(p), config).indent;
 }
 
-function mkConfig(rules: indent.IndentRules, rulesString: string) {
+function mkConfig(rules: indent.IndentRules) {
+  const cljRules = jsRulesToCljsRulesString(rules);
   return {
-    'cljfmt-options-string': rulesString,
+    'cljfmt-options-string': `{:indents {${cljRules}}}`,
     'cljfmt-options': {
       indents: rules,
     },
   };
+}
+
+function jsRulesToCljsRulesString(rules: indent.IndentRules) {
+  return Object.entries(rules).reduce((acc, [k, v], i) => {
+    return acc + `${k} ${jsRuleToCljRuleString(v)} `;
+  }, '');
+}
+
+function jsRuleToCljRuleString(value: indent.IndentRule[]) {
+  return '[' + value.map((a) => `[:${a[0]} ${a[1]}]`).join('') + ']';
 }
