@@ -543,6 +543,11 @@ function getActiveTextEditor(): vscode.TextEditor {
   return editor;
 }
 
+async function showBooleanInformationMessage(title: string): Promise<boolean> {
+  const answer = await vscode.window.showInformationMessage(title, 'Yes', 'No');
+  return answer === 'Yes';
+}
+
 function pathExists(path: string): boolean {
   return fs.existsSync(path);
 }
@@ -597,4 +602,5 @@ export {
   getActiveTextEditor,
   pathExists,
   calvaTmpDir,
+  showBooleanInformationMessage,
 };

@@ -325,6 +325,16 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
   return sequences;
 }
 
+async function askToSetDefaultProjectForJackIn(project: string) {
+  const setAsDefault = await utilities.showBooleanInformationMessage(
+    `Do you want to set "${project}" as a default Jack-in project type for the current workspace?`
+  );
+
+  if (setAsDefault) {
+    await vscode.workspace.getConfiguration('calva').update('jackInProjectType', project);
+  }
+}
+
 /**
  * Returns the CLJS-Type description of one of the build-in.
  * @param cljsType Build-in cljsType
@@ -335,6 +345,35 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
   return defaultCljsTypes[cljsType];
 }
 
+function getDefaultSequence(
+  sequences: ReplConnectSequence[],
+  saveAsPath: string
+): ReplConnectSequence | undefined {
+  const defaultProject = getConfig().jackInProjectType;
+
+  if (defaultProject) {
+    const defaultSequence = sequences.find(
+      (s) => s.name.toLocaleLowerCase() === defaultProject.toLocaleLowerCase()
+    );
+
+    if (defaultSequence) {
+      void vscode.window.showInformationMessage(
+        `Used "${defaultSequence.name}" as a default project for Jack-in.`
+      );
+      void state.extensionContext.workspaceState.update(
+        `d-${saveAsPath}`,
+        defaultSequence.projectType
+      );
+
+      return defaultSequence;
+    } else {
+      void vscode.window.showInformationMessage(
+        `No such project "${defaultProject}" available for Jack-in, please check your config.`
+      );
+    }
+  }
+}
+
 async function askForConnectSequence(
   cljTypes: string[],
   saveAs: string,
@@ -342,17 +381,26 @@ async function askForConnectSequence(
 ): Promise<ReplConnectSequence> {
   // figure out what possible kinds of project we're in
   const sequences: ReplConnectSequence[] = getConnectSequences(cljTypes);
+
   const projectRootUri = state.getProjectRootUri();
-  const saveAsFull = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
+  const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
+
+  const defaultSequence = getDefaultSequence(sequences, saveAsPath);
+
   void state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', true);
-  const projectConnectSequenceName = await utilities.quickPickSingle({
-    values: sequences.map((s) => {
-      return s.name;
-    }),
-    placeHolder: 'Please select a project type',
-    saveAs: saveAsFull,
-    autoSelect: true,
-  });
+  const projectConnectSequenceName =
+    defaultSequence?.name ??
+    (await utilities.quickPickSingle({
+      values: sequences.map((s) => {
+        return s.name;
+      }),
+      placeHolder: 'Please select a project type',
+      saveAs: saveAsPath,
+      autoSelect: true,
+    }));
+
+  !defaultSequence && void askToSetDefaultProjectForJackIn(projectConnectSequenceName);
+
   void state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', false);
   if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
     state.analytics().logEvent('REPL', logLabel, 'NoProjectTypePicked').send();

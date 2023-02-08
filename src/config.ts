@@ -220,6 +220,7 @@ function getConfig() {
     definitionProviderPriority: configOptions.get<string[]>('definitionProviderPriority'),
     depsEdnJackInExecutable: configOptions.get<string>('depsEdnJackInExecutable'),
     depsCljPath: configOptions.get<string>('depsCljPath'),
+    jackInProjectType: configOptions.get<string>('jackInProjectType'),
   };
 }
 
