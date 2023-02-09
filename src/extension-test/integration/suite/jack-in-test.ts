@@ -11,6 +11,7 @@ import * as outputWindow from '../../../results-output/results-doc';
 import { commands } from 'vscode';
 import { getDocument } from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
+import { updateWorkspaceConfig } from '../../../config';
 
 // TODO: Add more smoke tests for the extension
 // TODO: Start building integration test coverage
@@ -23,7 +24,7 @@ suite('Jack-in suite', () => {
   });
 
   after(async () => {
-    await vscode.workspace.getConfiguration('calva').update('jackInProjectType', null);
+    await updateWorkspaceConfig('autoSelectReplConnectProjectType', null);
     testUtil.showMessage(suite, `suite done!`);
   });
 
@@ -56,7 +57,7 @@ suite('Jack-in suite', () => {
   test('Jack-in works with pre-configured project type', async () => {
     testUtil.log(suite, 'start repl and connect (jack-in)');
 
-    await vscode.workspace.getConfiguration('calva').update('jackInProjectType', 'deps.edn');
+    await updateWorkspaceConfig('autoSelectReplConnectProjectType', 'deps.edn');
 
     await startJackInProcedure(suite, 'calva.jackIn', 'Leiningen');
 

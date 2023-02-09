@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
 import * as utilities from '../utilities';
-import { getConfig } from '../config';
+import { getConfig, updateWorkspaceConfig } from '../config';
+import * as outputWindow from '../results-output/results-doc';
 
 enum ProjectTypes {
   'Leiningen' = 'Leiningen',
@@ -331,7 +332,7 @@ async function askToSetDefaultProjectForJackIn(project: string) {
   );
 
   if (setAsDefault) {
-    await vscode.workspace.getConfiguration('calva').update('jackInProjectType', project);
+    await updateWorkspaceConfig('autoSelectReplConnectProjectType', project);
   }
 }
 
@@ -349,7 +350,7 @@ function getDefaultSequence(
   sequences: ReplConnectSequence[],
   saveAsPath: string
 ): ReplConnectSequence | undefined {
-  const defaultProject = getConfig().jackInProjectType;
+  const defaultProject = getConfig().autoSelectReplConnectProjectType;
 
   if (defaultProject) {
     const defaultSequence = sequences.find(
@@ -357,7 +358,7 @@ function getDefaultSequence(
     );
 
     if (defaultSequence) {
-      void vscode.window.showInformationMessage(
+      outputWindow.appendLine(
         `Used "${defaultSequence.name}" as a default project type for jack-in.`
       );
       void state.extensionContext.workspaceState.update(
@@ -367,7 +368,7 @@ function getDefaultSequence(
 
       return defaultSequence;
     } else {
-      void vscode.window.showInformationMessage(
+      outputWindow.appendLine(
         `No such project type - "${defaultProject}" - available for jack-in. Please check your settings.`
       );
     }

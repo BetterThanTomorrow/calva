@@ -54,5 +54,5 @@
       }
     }
   ],
-  "calva.jackInProjectType": null
+  "calva.autoSelectReplConnectProjectType": null
 }
