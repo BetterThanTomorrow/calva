@@ -53,5 +53,6 @@
         "cljAliases": ["dev", "test"]
       }
     }
-  ]
+  ],
+  "calva.jackInProjectType": null
 }

@@ -22,7 +22,8 @@ suite('Jack-in suite', () => {
     testUtil.showMessage(suite, `suite starting!`);
   });
 
-  after(() => {
+  after(async () => {
+    await vscode.workspace.getConfiguration('calva').update('jackInProjectType', null);
     testUtil.showMessage(suite, `suite done!`);
   });
 
@@ -31,14 +32,7 @@ suite('Jack-in suite', () => {
 
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
 
-    while (!util.getConnectedState()) {
-      testUtil.log(suite, 'waiting for connect...');
-      await testUtil.sleep(200);
-    }
-    await testUtil.sleep(500); // wait a little longer for repl output to be done
-    testUtil.log(suite, 'connected to repl');
-
-    const resultsDoc = getDocument(await outputWindow.openResultsDoc());
+    const resultsDoc = await waitForResult(suite);
 
     // focus the clojure file
     await vscode.workspace.openTextDocument(testFilePath).then((doc) =>
@@ -59,6 +53,32 @@ suite('Jack-in suite', () => {
     testUtil.log(suite, 'test.clj closed');
   });
 
+  test('Jack-in works with pre-configured project type', async () => {
+    testUtil.log(suite, 'start repl and connect (jack-in)');
+
+    await vscode.workspace.getConfiguration('calva').update('jackInProjectType', 'deps.edn');
+
+    await startJackInProcedure(suite, 'calva.jackIn', 'Leiningen');
+
+    await waitForResult(suite);
+
+    const projectRootUri = projectRoot.findClosestParent(
+      vscode.window.activeTextEditor?.document.uri,
+      await projectRoot.findProjectRoots()
+    );
+
+    assert.equal(
+      // Project type default setting, d = default
+      await state.extensionContext.workspaceState.get(
+        `d-${projectRootUri.toString()}/jack-in-type`
+      ),
+      'deps.edn'
+    );
+
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    testUtil.log(suite, 'test.clj closed');
+  });
+
   test('Copy Jack-in command line', async function () {
     console.log('Copy Jack-in command line');
 
@@ -72,6 +92,17 @@ suite('Jack-in suite', () => {
     testUtil.log(suite, 'test.clj closed');
   });
 });
+
+async function waitForResult(suite: string) {
+  while (!util.getConnectedState()) {
+    testUtil.log(suite, 'waiting for connect...');
+    await testUtil.sleep(200);
+  }
+  await testUtil.sleep(500); // wait a little longer for repl output to be done
+  testUtil.log(suite, 'connected to repl');
+
+  return getDocument(await outputWindow.openResultsDoc());
+}
 
 async function startJackInProcedure(suite: string, cmdId: string, projectType: string) {
   const testFilePath = path.join(testUtil.testDataDir, 'test.clj');
