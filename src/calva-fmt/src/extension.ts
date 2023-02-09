@@ -7,13 +7,19 @@ import * as docmirror from '../../doc-mirror/index';
 import * as config from '../../formatter-config';
 import * as calvaConfig from '../../config';
 
+function isOldIndentEngineInPlay(): boolean {
+  return (
+    !!config.formatOnTypeEnabled() &&
+    !vscode.workspace.getConfiguration('calva.fmt').get('newIndentEngine')
+  );
+}
+
 function getLanguageConfiguration(): vscode.LanguageConfiguration {
   const languageConfiguration = {
-    onEnterRules: config.formatOnTypeEnabled()
+    onEnterRules: isOldIndentEngineInPlay()
       ? [
-          // When Calva is the formatter disable all vscode default indentation
+          // When cljfmt is used for indenting, disable all vscode default indentation
           // (By outdenting a lot, which is the only way I have found that works)
-          // TODO: Make it actually consider whether Calva is the formatter or not
           {
             beforeText: /.*/,
             action: {
