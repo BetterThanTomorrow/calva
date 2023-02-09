@@ -30,6 +30,12 @@ function getLanguageConfiguration(): vscode.LanguageConfiguration {
         ]
       : [],
   };
+  console.log('Issue #2071: languageConfiguration', languageConfiguration);
+  console.log('Issue #2071: formatOnType?', config.formatOnTypeEnabled());
+  console.log(
+    'Issue #2071: newIndentEngine?',
+    vscode.workspace.getConfiguration('calva.fmt').get('newIndentEngine')
+  );
   return languageConfiguration;
 }
 
@@ -87,6 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.window.onDidChangeActiveTextEditor(inferer.updateState);
   vscode.workspace.onDidChangeConfiguration((e) => {
     if (e.affectsConfiguration('editor.formatOnType')) {
+      console.log('Issue #2071: editor.formatOnType changed, updating language configuration');
       vscode.languages.setLanguageConfiguration('clojure', getLanguageConfiguration());
     }
   });
