@@ -2,6 +2,7 @@ import { LanguageClient } from 'vscode-languageclient/node';
 import * as vscode_lsp from 'vscode-languageclient/node';
 import * as defs from './definitions';
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 /**
  * Find the closest provisioned LSP client to a given document URI. This works by traversing up the given URI
@@ -16,13 +17,13 @@ export const getClientForDocumentUri = (
     return;
   }
 
-  let current = uri;
-  while (current.path >= folder.uri.path) {
-    const client = clients.get(current.path);
+  let current = uri.path;
+  while (current !== '/') {
+    const client = clients.get(current);
     if (client?.state === vscode_lsp.State.Running) {
       return client;
     }
-    current = vscode.Uri.joinPath(current, '..');
+    current = path.join(current, '..');
   }
 };
 

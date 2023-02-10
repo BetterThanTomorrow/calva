@@ -171,7 +171,9 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
             })
             .map((root) => root.uri);
 
-          workspace_folders.forEach((root) => {
+          const distinct = project_utils.filterShortestDistinctPaths(workspace_folders);
+
+          distinct.forEach((root) => {
             void provision_queue.push(root).catch((err) => console.error(err));
           });
           break;
@@ -209,9 +211,14 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
           if (config.getAutoStartBehaviour() === config.AutoStartBehaviour.WorkspaceOpened) {
             void Promise.allSettled(
               event.added.map(async (folder) => {
-                if (await project_utils.isValidClojureProject(folder.uri)) {
-                  void provision_queue.push(folder.uri).catch((err) => console.error(err));
+                // Don't provision an lsp client if this workspace folder is already governed by an existing folder
+                if (api.getClientForDocumentUri(clients, folder.uri)) {
+                  return;
                 }
+                if (!(await project_utils.isValidClojureProject(folder.uri))) {
+                  return;
+                }
+                void provision_queue.push(folder.uri).catch((err) => console.error(err));
               })
             );
           }
