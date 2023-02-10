@@ -179,6 +179,14 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
     return provisionClient(uri);
   };
 
+  const provisionClientInFirstWorkspaceRoot = async () => {
+    const folder = vscode.workspace.workspaceFolders[0];
+    if (folder && (await project_utils.isValidClojureProject(folder.uri))) {
+      return provisionClient(folder.uri);
+    }
+    return provisionFallbackClient();
+  };
+
   return {
     getClientForDocumentUri: (uri: vscode.Uri) => api.getClientForDocumentUri(clients, uri),
 
@@ -224,6 +232,10 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
           });
           break;
         }
+        case config.AutoStartBehaviour.FirstWorkspace: {
+          void provisionClientInFirstWorkspaceRoot().catch((err) => console.error(err));
+          break;
+        }
       }
 
       params.context.subscriptions.push(
@@ -262,16 +274,21 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
             });
           });
 
-          if (config.getAutoStartBehaviour() === config.AutoStartBehaviour.WorkspaceOpened) {
-            void Promise.allSettled(
-              event.added.map(async (folder) => {
-                if (await project_utils.isValidClojureProject(folder.uri)) {
-                  void provisionClient(folder.uri).catch((err) => console.error(err));
-                } else {
-                  void provisionFallbackClient().catch((err) => console.error(err));
-                }
-              })
-            );
+          switch (config.getAutoStartBehaviour()) {
+            case config.AutoStartBehaviour.WorkspaceOpened: {
+              return void Promise.allSettled(
+                event.added.map(async (folder) => {
+                  if (await project_utils.isValidClojureProject(folder.uri)) {
+                    void provisionClient(folder.uri).catch((err) => console.error(err));
+                  } else {
+                    void provisionFallbackClient().catch((err) => console.error(err));
+                  }
+                })
+              );
+            }
+            case config.AutoStartBehaviour.FirstWorkspace: {
+              return void provisionClientInFirstWorkspaceRoot().catch((err) => console.error(err));
+            }
           }
 
           void shutdownFallbackClientIfNeeded(clients);
