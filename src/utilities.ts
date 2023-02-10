@@ -542,8 +542,22 @@ function getActiveTextEditor(): vscode.TextEditor {
   return editor;
 }
 
-async function showBooleanInformationMessage(title: string): Promise<boolean> {
-  const answer = await vscode.window.showInformationMessage(title, 'Yes', 'No');
+async function showBooleanInformationMessage(
+  title: string,
+  doNotShowKey?: string
+): Promise<boolean> {
+  if (state.extensionContext.workspaceState.get<boolean>(doNotShowKey)) {
+    return;
+  }
+  const answer = await vscode.window.showInformationMessage(
+    title,
+    'Yes',
+    'No',
+    'Do not show again'
+  );
+  if (doNotShowKey && answer === 'Do not show again') {
+    void state.extensionContext.workspaceState.update(doNotShowKey, true);
+  }
   return answer === 'Yes';
 }
 
