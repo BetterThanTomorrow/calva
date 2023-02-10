@@ -10,7 +10,6 @@ import * as outputWindow from './results-output/results-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
 import { isUndefined } from 'lodash';
-import { isNullOrUndefined } from 'util';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
@@ -28,7 +27,7 @@ export function stripAnsi(str: string) {
 }
 
 export const isDefined = <T>(value: T | undefined | null): value is T => {
-  return !isNullOrUndefined(value);
+  return !(value === undefined || value === null);
 };
 
 // This needs to be a function and not an arrow function
@@ -37,7 +36,7 @@ export function assertIsDefined<T>(
   value: T | undefined | null,
   message: string | (() => string)
 ): asserts value is T {
-  if (isNullOrUndefined(value)) {
+  if (!isDefined(value)) {
     throw new Error(typeof message === 'string' ? message : message());
   }
 }
@@ -46,7 +45,7 @@ export function escapeStringRegexp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-export function isNonEmptyString(value: any): boolean {
+export function isNonEmptyString(value: any): value is string {
   return typeof value == 'string' && value.length > 0;
 }
 
@@ -57,23 +56,23 @@ async function quickPickSingle(opts: {
   default?: string;
   placeHolder: string;
   autoSelect?: boolean;
-}) {
+}): Promise<string | undefined> {
   if (opts.values.length == 0) {
     return;
   }
   const saveAs = `qps-${opts.saveAs}`;
   const selected = opts.default ?? state.extensionContext.workspaceState.get<string>(saveAs);
 
-  let result;
-  if (opts.autoSelect && opts.values.length == 1) {
-    result = opts.values[0];
-  } else {
-    result = await quickPick(opts.values, selected ? [selected] : [], [], {
-      title: opts.title,
-      placeHolder: opts.placeHolder,
-      ignoreFocusOut: true,
-    });
-  }
+  const hasOnlyOneOption = opts.autoSelect && opts.values.length == 1;
+
+  const result = hasOnlyOneOption
+    ? opts.values[0]
+    : await quickPick(opts.values, selected ? [selected] : [], [], {
+        title: opts.title,
+        placeHolder: opts.placeHolder,
+        ignoreFocusOut: true,
+      });
+
   void state.extensionContext.workspaceState.update(saveAs, result);
   return result;
 }
@@ -140,7 +139,7 @@ async function quickPick(
       quickPickActive = undefined;
     });
     qp.onDidHide(() => {
-      resolve([]);
+      resolve(qp.canSelectMany ? [] : undefined);
       qp.hide();
       quickPickActive = undefined;
     });

@@ -400,7 +400,9 @@ async function askForConnectSequence(
       autoSelect: true,
     }));
 
-  !defaultSequence && void askToSetDefaultProjectForJackIn(projectConnectSequenceName);
+  !defaultSequence &&
+    utilities.isNonEmptyString(projectConnectSequenceName) &&
+    void askToSetDefaultProjectForJackIn(projectConnectSequenceName);
 
   void state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', false);
   if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
