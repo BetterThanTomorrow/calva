@@ -346,15 +346,15 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
   return defaultCljsTypes[cljsType];
 }
 
-function getDefaultSequence(
+function getUserSpecifiedSequence(
   sequences: ReplConnectSequence[],
   saveAsPath: string
 ): ReplConnectSequence | undefined {
-  const defaultProject = getConfig().autoSelectReplConnectProjectType;
+  const userSpecifiedProjectType = getConfig().autoSelectReplConnectProjectType;
 
-  if (defaultProject) {
+  if (userSpecifiedProjectType) {
     const defaultSequence = sequences.find(
-      (s) => s.name.toLocaleLowerCase() === defaultProject.toLocaleLowerCase()
+      (s) => s.name.toLocaleLowerCase() === userSpecifiedProjectType.toLocaleLowerCase()
     );
 
     if (defaultSequence) {
@@ -369,7 +369,7 @@ function getDefaultSequence(
       return defaultSequence;
     } else {
       outputWindow.appendLine(
-        `No such project type - "${defaultProject}" - available for jack-in. Please check your settings.`
+        `No such project type - "${userSpecifiedProjectType}" - available for jack-in. Please check your settings.`
       );
     }
   }
@@ -386,7 +386,7 @@ async function askForConnectSequence(
   const projectRootUri = state.getProjectRootUri();
   const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
 
-  const defaultSequence = getDefaultSequence(sequences, saveAsPath);
+  const defaultSequence = getUserSpecifiedSequence(sequences, saveAsPath);
 
   void state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', true);
   const projectConnectSequenceName =
@@ -400,9 +400,7 @@ async function askForConnectSequence(
       autoSelect: true,
     }));
 
-  !defaultSequence &&
-    utilities.isNonEmptyString(projectConnectSequenceName) &&
-    void askToSetDefaultProjectForJackIn(projectConnectSequenceName);
+  !defaultSequence && void askToSetDefaultProjectForJackIn(projectConnectSequenceName);
 
   void state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', false);
   if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
