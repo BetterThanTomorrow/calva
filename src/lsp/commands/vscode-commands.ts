@@ -1,18 +1,18 @@
-import * as vscode_lsp from 'vscode-languageclient/node';
 import * as project_utils from '../../project-root';
 import * as downloader from '../client/downloader';
 import * as defs from '../definitions';
 import * as state from '../../state';
+import * as utils from '../utils';
 import * as vscode from 'vscode';
 import * as api from '../api';
 
 export const filterOutRootsWithClients = (
   uris: project_utils.ProjectRoot[],
-  clients: defs.LSPClientMap
+  clients: defs.LspClientStore
 ) => {
   return uris.filter((root) => {
     const client = clients.get(root.uri.path);
-    return !client || client.state === vscode_lsp.State.Stopped;
+    return !client || !utils.clientIsAlive(client);
   });
 };
 
@@ -25,7 +25,7 @@ type StartHandler = (uri: vscode.Uri) => Promise<void>;
  * root they would like to start an LSP server under. All clojure files at and below this root will be served by
  * this LSP client.
  */
-const startHandler = async (clients: defs.LSPClientMap, handler: StartHandler, uri?: string) => {
+const startHandler = async (clients: defs.LspClientStore, handler: StartHandler, uri?: string) => {
   if (uri) {
     await handler(vscode.Uri.parse(uri));
     return;
@@ -36,9 +36,11 @@ const startHandler = async (clients: defs.LSPClientMap, handler: StartHandler, u
     return;
   }
 
-  const roots = await project_utils.findProjectRootsWithReasons().then((roots) => {
-    return filterOutRootsWithClients(roots, clients);
-  });
+  const roots = await project_utils
+    .findProjectRootsWithReasons({ include_lsp_directories: true })
+    .then((roots) => {
+      return filterOutRootsWithClients(roots, clients);
+    });
   const pre_selected = project_utils.findFurthestParent(
     document.uri,
     roots.filter((root) => root.valid_project).map((root) => root.uri)
@@ -55,7 +57,7 @@ const startHandler = async (clients: defs.LSPClientMap, handler: StartHandler, u
   await handler(selected_root);
 };
 
-const pickClient = async (clients: defs.LSPClientMap) => {
+const pickClient = async (clients: defs.LspClientStore) => {
   if (clients.size === 0) {
     return;
   }
@@ -71,15 +73,15 @@ const pickClient = async (clients: defs.LSPClientMap) => {
   return selected_client?.label;
 };
 
-const stopClient = (clients: defs.LSPClientMap, id: string) => {
+const stopClient = (clients: defs.LspClientStore, id: string) => {
   const client = clients.get(id);
   clients.delete(id);
-  return client?.stop().catch((err) => {
+  return client?.client.stop().catch((err) => {
     console.error(`Failed to stop client ${id}`, err);
   });
 };
 
-const stopHandler = async (clients: defs.LSPClientMap, uri?: string) => {
+const stopHandler = async (clients: defs.LspClientStore, uri?: string) => {
   if (uri) {
     void stopClient(clients, uri);
     return;
@@ -92,7 +94,7 @@ const stopHandler = async (clients: defs.LSPClientMap, uri?: string) => {
 };
 
 const restartHandler = async (
-  clients: defs.LSPClientMap,
+  clients: defs.LspClientStore,
   startHandler: (uri: vscode.Uri) => Promise<void>,
   uri?: string
 ) => {
@@ -107,10 +109,10 @@ const restartHandler = async (
   await startHandler(vscode.Uri.parse(id));
 };
 
-async function showServerInfo(clients: defs.LSPClientMap, id: string) {
+async function showServerInfo(clients: defs.LspClientStore, id: string) {
   const client = clients.get(id);
 
-  const serverInfo = await api.getServerInfo(client);
+  const serverInfo = await api.getServerInfo(client.client);
   const calvaSaysChannel = state.outputChannel();
   calvaSaysChannel.appendLine(`Clojure-lsp server info:`);
   const serverInfoPretty = JSON.stringify(serverInfo, null, 2);
@@ -118,10 +120,10 @@ async function showServerInfo(clients: defs.LSPClientMap, id: string) {
   calvaSaysChannel.show(true);
 }
 
-async function openLogFile(clients: defs.LSPClientMap, id: string) {
+async function openLogFile(clients: defs.LspClientStore, id: string) {
   const client = clients.get(id);
 
-  const serverInfo = await api.getServerInfo(client);
+  const serverInfo = await api.getServerInfo(client.client);
   const logPath = serverInfo['log-path'];
   void vscode.window.showTextDocument(vscode.Uri.file(logPath));
 }
@@ -137,12 +139,12 @@ function configureTraceLogLevelHandler() {
 }
 
 const manageHandler = async (
-  clients: defs.LSPClientMap,
+  clients: defs.LspClientStore,
   start: StartHandler,
   context: vscode.ExtensionContext
 ) => {
   const document = vscode.window.activeTextEditor?.document;
-  const roots = await project_utils.findProjectRootsWithReasons();
+  const roots = await project_utils.findProjectRootsWithReasons({ include_lsp_directories: true });
   let pre_selected: vscode.Uri | undefined;
   if (document) {
     pre_selected = project_utils.findClosestParent(
@@ -169,17 +171,17 @@ const manageHandler = async (
       };
     });
 
-  const active_roots = Array.from(clients.entries())
-    .filter(([, client]) => client.state !== vscode_lsp.State.Stopped)
-    .map(([key, client]) => {
+  const active_roots = Array.from(clients.values())
+    .filter((client) => utils.clientIsAlive(client))
+    .map((client) => {
       let icon = '$(circle-filled)';
-      if (client.state === vscode_lsp.State.Starting) {
+      if (client.status === defs.LspStatus.Starting) {
         icon = '$(sync~spin)';
       }
 
       return {
-        label: `${icon} ${project_utils.getPathRelativeToWorkspace(vscode.Uri.parse(key))}`,
-        value: key,
+        label: `${icon} ${project_utils.getPathRelativeToWorkspace(vscode.Uri.parse(client.path))}`,
+        value: client.id,
         active: true,
       };
     });
@@ -320,7 +322,7 @@ const manageHandler = async (
   }
 };
 
-async function showServerInfoHandler(clients: defs.LSPClientMap) {
+async function showServerInfoHandler(clients: defs.LspClientStore) {
   const id = await pickClient(clients);
   if (!id) {
     return;
@@ -328,7 +330,7 @@ async function showServerInfoHandler(clients: defs.LSPClientMap) {
   return showServerInfo(clients, id);
 }
 
-async function openLogFileHandler(clients: defs.LSPClientMap) {
+async function openLogFileHandler(clients: defs.LspClientStore) {
   const id = await pickClient(clients);
   if (!id) {
     return;
@@ -337,7 +339,7 @@ async function openLogFileHandler(clients: defs.LSPClientMap) {
 }
 
 type RegisterCommandsParams = {
-  clients: defs.LSPClientMap;
+  clients: defs.LspClientStore;
   context: vscode.ExtensionContext;
   handleStartRequest: StartHandler;
 };

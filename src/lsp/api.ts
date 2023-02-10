@@ -1,29 +1,30 @@
 import { LanguageClient } from 'vscode-languageclient/node';
-import * as vscode_lsp from 'vscode-languageclient/node';
 import * as defs from './definitions';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
+
+export const FALLBACK_CLIENT_ID = '__FALLBACK_LSP_CLIENT__';
 
 /**
  * Find the closest provisioned LSP client to a given document URI. This works by traversing up the given URI
  * path until a client at the same directory level is found.
+ *
+ * If no client is found then we try return the shared fallback lsp-server, if it has been provisioned.
  */
 export const getClientForDocumentUri = (
-  clients: defs.LSPClientMap,
+  clients: defs.LspClientStore,
   uri: vscode.Uri
-): vscode_lsp.LanguageClient | undefined => {
-  const folder = vscode.workspace.getWorkspaceFolder(uri);
-  if (!folder) {
-    return;
-  }
-
-  let current = uri;
-  while (current.path >= folder.uri.path) {
-    const client = clients.get(current.path);
-    if (client?.state === vscode_lsp.State.Running) {
+): defs.LspClient | undefined => {
+  let current = uri.path;
+  while (current !== '/') {
+    const client = clients.get(current);
+    if (client && [defs.LspStatus.Starting, defs.LspStatus.Running].includes(client.status)) {
       return client;
     }
-    current = vscode.Uri.joinPath(current, '..');
+    current = path.resolve(current, '..');
   }
+
+  return clients.get(FALLBACK_CLIENT_ID);
 };
 
 export type ServerInfo = {

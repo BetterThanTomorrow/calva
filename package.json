@@ -709,7 +709,6 @@
               ".hg",
               ".idea",
               ".joyride",
-              ".lsp",
               "node_modules",
               ".pijul",
               ".project",

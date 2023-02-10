@@ -13,7 +13,7 @@ type ClojureLspCommand = {
 };
 
 type LSPCommandHandlerParams = {
-  clients: defs.LSPClientMap;
+  clients: defs.LspClientStore;
   args: any[];
 };
 type LSPCommandHandler = (params: LSPCommandHandlerParams) => Promise<void> | void;
@@ -29,7 +29,7 @@ function makePromptForInput(placeHolder: string) {
 }
 
 function sendCommandRequest(
-  clients: defs.LSPClientMap,
+  clients: defs.LspClientStore,
   command: string,
   args: (number | string)[]
 ): void {
@@ -53,13 +53,13 @@ function sendCommandRequest(
     return;
   }
 
-  client
+  client.client
     .sendRequest(vscode_lsp.ExecuteCommandRequest.type, {
       command,
       arguments: args,
     })
     .catch((error) => {
-      return client.handleFailedRequest(
+      return client.client.handleFailedRequest(
         vscode_lsp.ExecuteCommandRequest.type,
         undefined,
         error,
@@ -85,7 +85,7 @@ const getLSPCommandParams = () => {
 };
 
 function registerUserspaceLspCommand(
-  clients: defs.LSPClientMap,
+  clients: defs.LspClientStore,
   command: ClojureLspCommand
 ): vscode.Disposable {
   const category = command.category ? command.category : 'clojureLsp.refactor';
@@ -108,7 +108,7 @@ function registerUserspaceLspCommand(
 }
 
 function registerInternalLspCommand(
-  clients: defs.LSPClientMap,
+  clients: defs.LspClientStore,
   command: ClojureLspCommand
 ): vscode.Disposable {
   return vscode.commands.registerCommand(command.command, (...args) => {
@@ -140,7 +140,7 @@ const resolveMacroAsCommandHandler: LSPCommandHandler = (params) => {
   }
 };
 
-export function registerLspCommands(clients: defs.LSPClientMap) {
+export function registerLspCommands(clients: defs.LspClientStore) {
   const generalCommands = [
     {
       // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens for a symbol

@@ -28,6 +28,14 @@ type FindRootParams = {
    * @default true
    */
   include_workspace_folders?: boolean;
+
+  /**
+   * Whether or not to include .lsp directories in the heuristic for deciding a directory is a project root.
+   *
+   * This makes sense for systems trying to find a directory to start an lsp server in, but not for systems
+   * showing repl start commands.
+   */
+  include_lsp_directories?: boolean;
 };
 
 /**
@@ -39,6 +47,10 @@ type FindRootParams = {
  */
 export async function findProjectRootsWithReasons(params?: FindRootParams) {
   const projectFileNames: string[] = ['project.clj', 'shadow-cljs.edn', 'deps.edn', 'bb.edn'];
+  if (params?.include_lsp_directories) {
+    projectFileNames.push('.lsp/config.edn');
+  }
+
   const projectFilesGlob = `**/{${projectFileNames.join(',')}}`;
   const excludeDirsGlob = excludePattern();
   const rootPaths: ProjectRoot[] = [];
@@ -58,7 +70,10 @@ export async function findProjectRootsWithReasons(params?: FindRootParams) {
   }
   const candidateUris = await vscode.workspace.findFiles(projectFilesGlob, excludeDirsGlob, 10000);
   const projectFilePaths = candidateUris.map((uri) => {
-    const dir = vscode.Uri.parse(path.dirname(uri.path));
+    let dir = vscode.Uri.parse(path.dirname(uri.path));
+    if (uri.path.endsWith('.lsp/config.edn')) {
+      dir = vscode.Uri.parse(path.join(uri.path, '../..'));
+    }
     return {
       uri: dir,
       label: getPathRelativeToWorkspace(dir),
@@ -92,7 +107,7 @@ export function excludePattern(moreExcludes: string[] = []) {
 }
 
 export async function isValidClojureProject(uri: vscode.Uri) {
-  return findProjectRootsWithReasons().then((roots) => {
+  return findProjectRootsWithReasons({ include_lsp_directories: true }).then((roots) => {
     return !!roots.find((root) => {
       return uri.path === root.uri.path && root.valid_project;
     });

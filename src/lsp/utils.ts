@@ -1,3 +1,5 @@
+import * as vscode_lsp from 'vscode-languageclient/node';
+import { LspStatus, LspClient } from './definitions';
 import * as roots from '../project-root';
 import * as vscode from 'vscode';
 
@@ -28,6 +30,7 @@ export const findClojureProjectRootForUri = async (
     // We exclude workspace roots so that we can look for only valid clojure projects. We manually fallback to
     // using the projects workspace root if no project is found.
     include_workspace_folders: false,
+    include_lsp_directories: true,
   });
 
   const furthest = roots.findFurthestParent(uri, uris);
@@ -36,4 +39,22 @@ export const findClojureProjectRootForUri = async (
   }
 
   return vscode.workspace.getWorkspaceFolder(uri)?.uri;
+};
+
+export const clientIsAlive = (client: LspClient) => {
+  return [LspStatus.Starting, LspStatus.Running].includes(client.status);
+};
+
+export const lspClientStateToStatus = (state: vscode_lsp.State): LspStatus => {
+  switch (state) {
+    case vscode_lsp.State.Stopped: {
+      return LspStatus.Stopped;
+    }
+    case vscode_lsp.State.Starting: {
+      return LspStatus.Starting;
+    }
+    case vscode_lsp.State.Running: {
+      return LspStatus.Running;
+    }
+  }
 };

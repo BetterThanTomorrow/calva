@@ -1,27 +1,5 @@
-import * as vscode_lsp from 'vscode-languageclient/node';
+import { LspStatus } from './definitions';
 import * as vscode from 'vscode';
-
-export enum LspStatus {
-  Stopped = 'Stopped',
-  Starting = 'Starting',
-  Running = 'Running',
-  Failed = 'Failed',
-  Unknown = 'Unknown',
-}
-
-export const lspClientStateToStatus = (state: vscode_lsp.State): LspStatus => {
-  switch (state) {
-    case vscode_lsp.State.Stopped: {
-      return LspStatus.Stopped;
-    }
-    case vscode_lsp.State.Starting: {
-      return LspStatus.Starting;
-    }
-    case vscode_lsp.State.Running: {
-      return LspStatus.Running;
-    }
-  }
-};
 
 export const updateStatusBar = (item: vscode.StatusBarItem, status: LspStatus) => {
   switch (status) {
