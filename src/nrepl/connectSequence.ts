@@ -368,7 +368,7 @@ function getDefaultSequence(
       return defaultSequence;
     } else {
       void vscode.window.showInformationMessage(
-        `No such project "${defaultProject}" available for Jack-in, please check your config.`
+        `No such project type - "${defaultProject}" - available for jack-in. Please check your settings.`
       );
     }
   }
