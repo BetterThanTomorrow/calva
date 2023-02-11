@@ -327,7 +327,7 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
 
 async function askToSetDefaultProjectForJackIn(project: string) {
   const setAsDefault = await utilities.showBooleanInformationMessage(
-    `Do you want to set "${project}" as a default Jack-in project type for the current workspace?`
+    `Do you want to set "${project}" as the jack-in project type for the current workspace?`
   );
 
   if (setAsDefault) {
