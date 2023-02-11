@@ -358,7 +358,7 @@ function getDefaultSequence(
 
     if (defaultSequence) {
       void vscode.window.showInformationMessage(
-        `Used "${defaultSequence.name}" as a default project for Jack-in.`
+        `Used "${defaultSequence.name}" as a default project type for jack-in.`
       );
       void state.extensionContext.workspaceState.update(
         `d-${saveAsPath}`,
