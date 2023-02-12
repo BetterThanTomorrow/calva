@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Multiple LSP processes automatically running, broken LSP features in multi-root workspaces](https://github.com/BetterThanTomorrow/calva/issues/2065)
+
 ## [2.0.331] - 2023-02-05
 
 - Bump npm deps [jszip](https://github.com/BetterThanTomorrow/calva/pull/2056), [http-cache-semantics](https://github.com/BetterThanTomorrow/calva/pull/2059)
