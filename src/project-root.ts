@@ -30,7 +30,7 @@ type FindRootParams = {
   include_workspace_folders?: boolean;
 
   /**
-   * Whether or not to include .lsp directories in the heuristic for deciding a directory is a project root.
+   * Whether or not to include clojure-lsp directories in the heuristic for deciding a directory is a project root.
    *
    * This makes sense for systems trying to find a directory to start an lsp server in, but not for systems
    * showing repl start commands.
@@ -46,19 +46,18 @@ type FindRootParams = {
  * selection menus to help the user.
  */
 export async function findProjectRootsWithReasons(params?: FindRootParams) {
+  const lspDirectories = ['.lsp/config.edn', '.clj-kondo/config.edn'];
+
   const projectFileNames: string[] = ['project.clj', 'shadow-cljs.edn', 'deps.edn', 'bb.edn'];
   if (params?.include_lsp_directories) {
-    projectFileNames.push('.lsp/config.edn');
+    projectFileNames.push(...lspDirectories);
   }
 
   const projectFilesGlob = `**/{${projectFileNames.join(',')}}`;
   const excludeDirsGlob = excludePattern();
   const rootPaths: ProjectRoot[] = [];
-  if (
-    vscode.workspace.workspaceFolders?.length > 0 &&
-    (params?.include_workspace_folders ?? true)
-  ) {
-    const wsRootPaths = vscode.workspace.workspaceFolders.map((f) => {
+  if (params?.include_workspace_folders ?? true) {
+    const wsRootPaths = vscode.workspace.workspaceFolders?.map((f) => {
       return {
         uri: f.uri,
         label: path.basename(f.uri.path),
@@ -66,12 +65,12 @@ export async function findProjectRootsWithReasons(params?: FindRootParams) {
         workspace_root: true,
       };
     });
-    rootPaths.push(...wsRootPaths);
+    rootPaths.push(...(wsRootPaths || []));
   }
   const candidateUris = await vscode.workspace.findFiles(projectFilesGlob, excludeDirsGlob, 10000);
   const projectFilePaths = candidateUris.map((uri) => {
     let dir = vscode.Uri.parse(path.dirname(uri.path));
-    if (uri.path.endsWith('.lsp/config.edn')) {
+    if (lspDirectories.find((file) => uri.path.endsWith(file))) {
       dir = vscode.Uri.parse(path.join(uri.path, '../..'));
     }
     return {

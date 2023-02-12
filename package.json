@@ -695,7 +695,6 @@
               ".ccls-cache",
               ".clangd",
               ".classpath",
-              ".clj-kondo",
               "*.code-search",
               ".cpcache",
               "_darcs",
