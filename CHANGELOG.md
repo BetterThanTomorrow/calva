@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [clojure-lsp does not start in a workspace without project files](https://github.com/BetterThanTomorrow/calva/issues/2069)
+
 ## [2.0.331] - 2023-02-05
 
 - Bump npm deps [jszip](https://github.com/BetterThanTomorrow/calva/pull/2056), [http-cache-semantics](https://github.com/BetterThanTomorrow/calva/pull/2059)
