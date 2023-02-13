@@ -288,12 +288,15 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
 const autoSelectProjectTypeSetting: `calva.${keyof Config}` =
   'calva.autoSelectReplConnectProjectType';
 
+const autoSelectDocLink = `  - See https://calva.io/connect/#auto-select-project-type`;
+
 const defaultProjectSettingMsg = (project: string) =>
   formatAsLineComments(
     [
-      `If you want to set the selected project type as the default for the current workspace`,
-      `please add this setting to your .vscode/settings.json file:`,
-      `  "${autoSelectProjectTypeSetting}": "${project}"`,
+      `Connecting using "${project}" project type.`,
+      `You can make Calva auto-select this:`,
+      `"${autoSelectProjectTypeSetting}": "${project}"`,
+      autoSelectDocLink,
       '\n',
     ].join('\n')
   );
@@ -369,9 +372,9 @@ function getUserSpecifiedSequence(
       outputWindow.appendLine(
         formatAsLineComments(
           [
-            `Used "${defaultSequence.name}" as a default for jack-in.`,
-            `If you want to change it, please remove "${autoSelectProjectTypeSetting}"`,
-            `  from settings.json and re-run the jack-in command.`,
+            `Auto-selecting project type "${defaultSequence.name}".`,
+            `You can change this from settings:`,
+            autoSelectDocLink,
             '\n',
           ].join('\n')
         )
@@ -386,8 +389,9 @@ function getUserSpecifiedSequence(
       outputWindow.appendLine(
         formatAsLineComments(
           [
-            `No such project type - "${userSpecifiedProjectType}" - available for jack-in.`,
-            `Please check your "${autoSelectProjectTypeSetting}" settings.`,
+            `Project type "${userSpecifiedProjectType}" not found.`,
+            `You need to update the auto-select setting.`,
+            autoSelectDocLink,
             '\n',
           ].join('\n')
         )
