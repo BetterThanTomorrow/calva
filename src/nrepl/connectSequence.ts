@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
 import * as utilities from '../utilities';
-import { getConfig, updateWorkspaceConfig } from '../config';
+import { Config, getConfig } from '../config';
 import * as outputWindow from '../results-output/results-doc';
+import { formatAsLineComments } from '../results-output/util';
 
 enum ProjectTypes {
   'Leiningen' = 'Leiningen',
@@ -284,6 +285,19 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
   },
 };
 
+const autoSelectProjectTypeSetting: `calva.${keyof Config}` =
+  'calva.autoSelectReplConnectProjectType';
+
+const defaultProjectSettingMsg = (project: string) =>
+  formatAsLineComments(
+    [
+      `If you want to set the selected project type as the default for the current workspace`,
+      `please add this setting to your .vscode/settings.json file:`,
+      `  "${autoSelectProjectTypeSetting}": "${project}"`,
+      '\n',
+    ].join('\n')
+  );
+
 /** Retrieve the replConnectSequences from the config */
 function getCustomConnectSequences(): ReplConnectSequence[] {
   const sequences: ReplConnectSequence[] = getConfig().replConnectSequences;
@@ -326,15 +340,8 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
   return sequences;
 }
 
-async function askToSetDefaultProjectForJackIn(project: string) {
-  const setAsDefault = await utilities.showBooleanInformationMessage(
-    `Do you want to set "${project}" as the jack-in project type for the current workspace?`,
-    'autoSelectReplConnectProjectTypeNotShow'
-  );
-
-  if (setAsDefault) {
-    await updateWorkspaceConfig('autoSelectReplConnectProjectType', project);
-  }
+function askToSetDefaultProjectForJackIn(project: string) {
+  outputWindow.appendLine(defaultProjectSettingMsg(project));
 }
 
 /**
@@ -360,7 +367,14 @@ function getUserSpecifiedSequence(
 
     if (defaultSequence) {
       outputWindow.appendLine(
-        `Used "${defaultSequence.name}" as a default project type for jack-in.`
+        formatAsLineComments(
+          [
+            `Used "${defaultSequence.name}" as a default for jack-in.`,
+            `If you want to change it, please remove "${autoSelectProjectTypeSetting}"`,
+            `  from settings.json and re-run the jack-in command.`,
+            '\n',
+          ].join('\n')
+        )
       );
       void state.extensionContext.workspaceState.update(
         `d-${saveAsPath}`,
@@ -370,7 +384,13 @@ function getUserSpecifiedSequence(
       return defaultSequence;
     } else {
       outputWindow.appendLine(
-        `No such project type - "${userSpecifiedProjectType}" - available for jack-in. Please check your settings.`
+        formatAsLineComments(
+          [
+            `No such project type - "${userSpecifiedProjectType}" - available for jack-in.`,
+            `Please check your "${autoSelectProjectTypeSetting}" settings.`,
+            '\n',
+          ].join('\n')
+        )
       );
     }
   }

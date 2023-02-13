@@ -224,7 +224,7 @@ function getConfig() {
   };
 }
 
-type Config = ReturnType<typeof getConfig>;
+export type Config = ReturnType<typeof getConfig>;
 
 async function updateWorkspaceConfig<T extends keyof Config>(section: T, value: Config[T]) {
   return vscode.workspace.getConfiguration('calva').update(section, value);
