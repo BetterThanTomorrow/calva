@@ -4,7 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Establish REPL connection without being prompted for the kind of project every time](https://github.com/BetterThanTomorrow/calva/issues/2049)
+- [Establish REPL connection without being prompted for the kind of project every time](https://github.com/BetterThanTomorrow/calva/issues/2049)
+- Bump bundled deps.clj to v1.11.1.1224
 
 ## [2.0.331] - 2023-02-05
 
