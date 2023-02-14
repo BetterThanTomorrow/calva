@@ -181,6 +181,9 @@ const manageHandler = async (
 
       return {
         label: `${icon} ${project_utils.getPathRelativeToWorkspace(vscode.Uri.parse(client.path))}`,
+        detail: api.isFallbackClient(client)
+          ? 'Fallback client for serving workspaces or files that do not belong to a project'
+          : undefined,
         value: client.id,
         active: true,
       };
