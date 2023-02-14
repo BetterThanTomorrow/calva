@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Establish REPL connection without being prompted for the kind of project every time](https://github.com/BetterThanTomorrow/calva/issues/2049)
+
 ## [2.0.331] - 2023-02-05
 
 - Bump npm deps [jszip](https://github.com/BetterThanTomorrow/calva/pull/2056), [http-cache-semantics](https://github.com/BetterThanTomorrow/calva/pull/2059)
@@ -27,6 +29,7 @@ Changes to Calva.
 - Calva development, Fix: [We build Calva twice in CI](https://github.com/BetterThanTomorrow/calva/issues/2052)
 
 ## [2.0.328] - 2023-01-27
+
 - Rollback of 2.0.327, first part of: [Regressions introduced with clojure-lsp multi-project support in 2.0.327](https://github.com/BetterThanTomorrow/calva/issues/2041)
 
 ## [2.0.327] - 2023-01-27
