@@ -14,6 +14,36 @@ import * as state from '../state';
 import * as utils from './utils';
 import * as api from './api';
 
+/**
+ * Can be called to shutdown the fallback lsp server if there are no longer any relevant workspaces or files
+ * open
+ */
+const shutdownFallbackClientIfNeeded = async (clients: defs.LspClientStore) => {
+  const roots = await project_utils.findProjectRootsWithReasons({
+    include_lsp_directories: true,
+  });
+
+  const non_project_folders = roots
+    .filter((root) => {
+      return !root.valid_project && root.workspace_root;
+    })
+    .map((root) => root.uri);
+
+  const contains_external_files = !!vscode.workspace.textDocuments.find((doc) => {
+    const clojure_file = doc.languageId === 'clojure' && doc.uri.scheme !== 'untitled';
+    const external = vscode.workspace.getWorkspaceFolder(doc.uri);
+    return clojure_file && external;
+  });
+
+  if (non_project_folders.length === 0 && !contains_external_files) {
+    console.log('Shutting down fallback lsp client');
+    void clients
+      .get(api.FALLBACK_CLIENT_ID)
+      ?.client.stop()
+      .catch((err) => console.error('Failed to stop fallback client', err));
+  }
+};
+
 type CreateClientProviderParams = {
   context: vscode.ExtensionContext;
   testTreeHandler: defs.TestTreeHandler;
@@ -217,6 +247,12 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
           }
         }),
 
+        vscode.workspace.onDidCloseTextDocument((doc) => {
+          if (doc.languageId === 'clojure') {
+            void shutdownFallbackClientIfNeeded(clients);
+          }
+        }),
+
         // Provision new LSP clients when workspaces folders are added, and shutdown clients when folders are removed
         vscode.workspace.onDidChangeWorkspaceFolders((event) => {
           event.removed.forEach((folder) => {
@@ -242,6 +278,8 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
               })
             );
           }
+
+          void shutdownFallbackClientIfNeeded(clients);
         })
       );
 
