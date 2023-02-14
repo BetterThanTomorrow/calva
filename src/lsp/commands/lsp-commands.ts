@@ -53,13 +53,13 @@ function sendCommandRequest(
     return;
   }
 
-  client.client
+  client
     .sendRequest(vscode_lsp.ExecuteCommandRequest.type, {
       command,
       arguments: args,
     })
     .catch((error) => {
-      return client.client.handleFailedRequest(
+      return client.handleFailedRequest(
         vscode_lsp.ExecuteCommandRequest.type,
         undefined,
         error,

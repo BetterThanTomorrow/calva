@@ -5,26 +5,47 @@ import * as vscode from 'vscode';
 
 export const FALLBACK_CLIENT_ID = '__FALLBACK_LSP_CLIENT__';
 
+export const isFallbackClient = (client: defs.LspClient) => {
+  return client.id === FALLBACK_CLIENT_ID;
+};
+
+export const clientIsAlive = (client: defs.LspClient) => {
+  return [defs.LspStatus.Starting, defs.LspStatus.Running].includes(client.status);
+};
+
 /**
- * Find the closest provisioned LSP client to a given document URI. This works by traversing up the given URI
- * path until a client at the same directory level is found.
+ * Find the closest, active clojure-lsp client to a given URI. This works by traversing up the path component of the
+ * provided URI until a client at the same level is found. This works because clients in the LspClientStore use their
+ * root path as the their address in the Map.
  *
- * If no client is found then we try return the shared fallback lsp-server, if it has been provisioned.
+ * If no client is found then we try return the shared fallback lsp client if it has been provisioned. This client uses
+ * a special key `__FALLBACK_LSP_CLIENT__` and so would never be returned for normal path traversal search but instead
+ * must be explicitly referenced.
  */
-export const getClientForDocumentUri = (
-  clients: defs.LspClientStore,
-  uri: vscode.Uri
-): defs.LspClient | undefined => {
+export const getActiveClientForUri = (clients: defs.LspClientStore, uri: vscode.Uri) => {
   let current = uri.path;
   while (current !== '/') {
     const client = clients.get(current);
-    if (client && [defs.LspStatus.Starting, defs.LspStatus.Running].includes(client.status)) {
+    if (client && clientIsAlive(client)) {
       return client;
     }
     current = path.resolve(current, '..');
   }
+  const fallback_client = clients.get(FALLBACK_CLIENT_ID);
+  if (fallback_client && clientIsAlive(fallback_client)) {
+    return fallback_client;
+  }
+};
 
-  return clients.get(FALLBACK_CLIENT_ID);
+/**
+ * Similar to `getActiveClientForUri` except this only returns the client if it is in a running state. This API
+ * should be used by systems wanting to interact with the LSP client.
+ */
+export const getClientForDocumentUri = (clients: defs.LspClientStore, uri: vscode.Uri) => {
+  const client = getActiveClientForUri(clients, uri);
+  if (client && client.status === defs.LspStatus.Running) {
+    return client.client;
+  }
 };
 
 export type ServerInfo = {

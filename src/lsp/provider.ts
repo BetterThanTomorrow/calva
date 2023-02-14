@@ -91,7 +91,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
       return;
     }
 
-    const client = api.getClientForDocumentUri(clients, active_editor.uri);
+    const client = api.getActiveClientForUri(clients, active_editor.uri);
     if (!client) {
       status_bar.updateStatusBar(status_bar_item, defs.LspStatus.Stopped);
       return;
@@ -122,9 +122,9 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
 
     console.log(`Creating new LSP client using ${uri.path} as the project root`);
     const client = lsp_client.createClient({
+      lsp_server_path: server_path,
       id,
       uri,
-      lsp_server_path: server_path,
     });
 
     clients.set(id, client);
@@ -165,7 +165,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
     }
 
     // Don't provision a client if the document is already governed (ignoring the fallback client)
-    const existing = api.getClientForDocumentUri(clients, document.uri);
+    const existing = api.getActiveClientForUri(clients, document.uri);
     if (existing && existing.id !== api.FALLBACK_CLIENT_ID) {
       return;
     }
@@ -180,12 +180,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
   };
 
   return {
-    getClientForDocumentUri: (uri: vscode.Uri) => {
-      const client = api.getClientForDocumentUri(clients, uri);
-      if (client?.status === defs.LspStatus.Running) {
-        return client.client;
-      }
-    },
+    getClientForDocumentUri: (uri: vscode.Uri) => api.getClientForDocumentUri(clients, uri),
 
     init: async () => {
       status_bar_item.show();

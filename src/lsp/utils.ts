@@ -41,10 +41,6 @@ export const findClojureProjectRootForUri = async (
   return vscode.workspace.getWorkspaceFolder(uri)?.uri;
 };
 
-export const clientIsAlive = (client: LspClient) => {
-  return [LspStatus.Starting, LspStatus.Running].includes(client.status);
-};
-
 export const lspClientStateToStatus = (state: vscode_lsp.State): LspStatus => {
   switch (state) {
     case vscode_lsp.State.Stopped: {

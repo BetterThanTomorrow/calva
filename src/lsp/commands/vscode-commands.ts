@@ -12,7 +12,7 @@ export const filterOutRootsWithClients = (
 ) => {
   return uris.filter((root) => {
     const client = clients.get(root.uri.path);
-    return !client || !utils.clientIsAlive(client);
+    return !client || !api.clientIsAlive(client);
   });
 };
 
@@ -172,7 +172,7 @@ const manageHandler = async (
     });
 
   const active_roots = Array.from(clients.values())
-    .filter((client) => utils.clientIsAlive(client))
+    .filter((client) => api.clientIsAlive(client))
     .map((client) => {
       let icon = '$(circle-filled)';
       if (client.status === defs.LspStatus.Starting) {
