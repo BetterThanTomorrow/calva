@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Partly fixes: [Cursor moves back to start of indented line when typing inside parens on a new line](https://github.com/BetterThanTomorrow/calva/issues/2071)
+
 ## [2.0.331] - 2023-02-05
 
 - Bump npm deps [jszip](https://github.com/BetterThanTomorrow/calva/pull/2056), [http-cache-semantics](https://github.com/BetterThanTomorrow/calva/pull/2059)
