@@ -37,6 +37,7 @@ async function main(calvaVSIXPathOrLabel, testWorkspace) {
 
     const launchArgs = [
       testWorkspace,
+      '--verbose',
       '--disable-workspace-trust',
       // When debugging tests, it can be good to use the development version of Joyride
       // If you do, comment out the install of the Joyride extension here
@@ -44,6 +45,7 @@ async function main(calvaVSIXPathOrLabel, testWorkspace) {
       // (And can't be used if you are testing the development version of Calva)
       '--install-extension',
       'betterthantomorrow.joyride',
+      '--force',
     ];
     if (calvaVSIXPathOrLabel !== 'extension-development') {
       launchArgs.push('--install-extension', calvaVSIXPathOrLabel);
