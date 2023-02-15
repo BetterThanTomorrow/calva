@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.332] - 2023-02-15
+
 - Partly fixes: [Cursor moves back to start of indented line when typing inside parens on a new line](https://github.com/BetterThanTomorrow/calva/issues/2071)
 - [Establish REPL connection without being prompted for the kind of project every time](https://github.com/BetterThanTomorrow/calva/issues/2049)
 - Bump bundled deps.clj to v1.11.1.1224
