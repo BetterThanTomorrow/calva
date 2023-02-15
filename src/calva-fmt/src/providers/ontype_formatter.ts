@@ -7,6 +7,10 @@ import { getConfig } from '../../../config';
 import * as util from '../../../utilities';
 import * as formatterConfig from '../../../formatter-config';
 
+// TODO: Make this provider return a proper edit instead of performing it.
+// Errors like that of https://github.com/BetterThanTomorrow/calva/issues/2071
+// probably happens because of this.
+
 export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProvider {
   async provideOnTypeFormattingEdits(
     document: vscode.TextDocument,
