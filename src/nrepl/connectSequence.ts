@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
 import * as utilities from '../utilities';
-import { getConfig } from '../config';
+import { Config, getConfig } from '../config';
+import * as outputWindow from '../results-output/results-doc';
+import { formatAsLineComments } from '../results-output/util';
 
 enum ProjectTypes {
   'Leiningen' = 'Leiningen',
@@ -283,6 +285,22 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
   },
 };
 
+const autoSelectProjectTypeSetting: `calva.${keyof Config}` =
+  'calva.autoSelectReplConnectProjectType';
+
+const autoSelectDocLink = `  - See https://calva.io/connect/#auto-select-project-type`;
+
+const defaultProjectSettingMsg = (project: string) =>
+  formatAsLineComments(
+    [
+      `Connecting using "${project}" project type.`,
+      `You can make Calva auto-select this:`,
+      `"${autoSelectProjectTypeSetting}": "${project}"`,
+      autoSelectDocLink,
+      '\n',
+    ].join('\n')
+  );
+
 /** Retrieve the replConnectSequences from the config */
 function getCustomConnectSequences(): ReplConnectSequence[] {
   const sequences: ReplConnectSequence[] = getConfig().replConnectSequences;
@@ -325,6 +343,10 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
   return sequences;
 }
 
+function askToSetDefaultProjectForJackIn(project: string) {
+  outputWindow.appendLine(defaultProjectSettingMsg(project));
+}
+
 /**
  * Returns the CLJS-Type description of one of the build-in.
  * @param cljsType Build-in cljsType
@@ -335,6 +357,49 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
   return defaultCljsTypes[cljsType];
 }
 
+function getUserSpecifiedSequence(
+  sequences: ReplConnectSequence[],
+  saveAsPath: string
+): ReplConnectSequence | undefined {
+  const userSpecifiedProjectType = getConfig().autoSelectReplConnectProjectType;
+
+  if (userSpecifiedProjectType) {
+    const defaultSequence = sequences.find(
+      (s) => s.name.toLocaleLowerCase() === userSpecifiedProjectType.toLocaleLowerCase()
+    );
+
+    if (defaultSequence) {
+      outputWindow.appendLine(
+        formatAsLineComments(
+          [
+            `Auto-selecting project type "${defaultSequence.name}".`,
+            `You can change this from settings:`,
+            autoSelectDocLink,
+            '\n',
+          ].join('\n')
+        )
+      );
+      void state.extensionContext.workspaceState.update(
+        `d-${saveAsPath}`,
+        defaultSequence.projectType
+      );
+
+      return defaultSequence;
+    } else {
+      outputWindow.appendLine(
+        formatAsLineComments(
+          [
+            `Project type "${userSpecifiedProjectType}" not found.`,
+            `You need to update the auto-select setting.`,
+            autoSelectDocLink,
+            '\n',
+          ].join('\n')
+        )
+      );
+    }
+  }
+}
+
 async function askForConnectSequence(
   cljTypes: string[],
   saveAs: string,
@@ -342,17 +407,26 @@ async function askForConnectSequence(
 ): Promise<ReplConnectSequence> {
   // figure out what possible kinds of project we're in
   const sequences: ReplConnectSequence[] = getConnectSequences(cljTypes);
+
   const projectRootUri = state.getProjectRootUri();
-  const saveAsFull = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
+  const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
+
+  const defaultSequence = getUserSpecifiedSequence(sequences, saveAsPath);
+
   void state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', true);
-  const projectConnectSequenceName = await utilities.quickPickSingle({
-    values: sequences.map((s) => {
-      return s.name;
-    }),
-    placeHolder: 'Please select a project type',
-    saveAs: saveAsFull,
-    autoSelect: true,
-  });
+  const projectConnectSequenceName =
+    defaultSequence?.name ??
+    (await utilities.quickPickSingle({
+      values: sequences.map((s) => {
+        return s.name;
+      }),
+      placeHolder: 'Please select a project type',
+      saveAs: saveAsPath,
+      autoSelect: true,
+    }));
+
+  !defaultSequence && void askToSetDefaultProjectForJackIn(projectConnectSequenceName);
+
   void state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', false);
   if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
     state.analytics().logEvent('REPL', logLabel, 'NoProjectTypePicked').send();

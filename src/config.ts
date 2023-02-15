@@ -220,7 +220,14 @@ function getConfig() {
     definitionProviderPriority: configOptions.get<string[]>('definitionProviderPriority'),
     depsEdnJackInExecutable: configOptions.get<string>('depsEdnJackInExecutable'),
     depsCljPath: configOptions.get<string>('depsCljPath'),
+    autoSelectReplConnectProjectType: configOptions.get<string>('autoSelectReplConnectProjectType'),
   };
+}
+
+export type Config = ReturnType<typeof getConfig>;
+
+async function updateWorkspaceConfig<T extends keyof Config>(section: T, value: Config[T]) {
+  return vscode.workspace.getConfiguration('calva').update(section, value);
 }
 
 export {
@@ -234,4 +241,5 @@ export {
   documentSelector,
   ReplSessionType,
   getConfig,
+  updateWorkspaceConfig,
 };
