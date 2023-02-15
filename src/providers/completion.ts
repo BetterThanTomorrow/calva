@@ -137,11 +137,15 @@ function lspCompletions(
   context: CompletionContext
 ) {
   const client = clientProvider.getClientForDocumentUri(document.uri);
-  return client?.sendRequest(
-    CompletionRequest.type,
-    client.code2ProtocolConverter.asCompletionParams(document, position, context),
-    token
-  );
+  if (client) {
+    return client.sendRequest(
+      CompletionRequest.type,
+      client.code2ProtocolConverter.asCompletionParams(document, position, context),
+      token
+    );
+  } else {
+    return Promise.resolve([]);
+  }
 }
 
 async function lspResolveCompletions(
