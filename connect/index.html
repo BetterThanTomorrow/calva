@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.11+insiders-4.29.0">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.12+insiders-4.30.2">
     
     
       
@@ -473,6 +473,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-select-project-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-select Project Type
+      
+    </span>
+  </a>
   
 </li>
       
@@ -2284,6 +2295,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#auto-select-project-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-select Project Type
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#monorepos-multiple-clojure-projects-in-one-workspace" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2450,6 +2472,21 @@
 </div>
 <h3 id="starting-the-repl-from-application-code">Starting the REPL from application code?</h3>
 <p>If your project is setup so that the REPL server is started by the application code, you will need to get the cider-nrepl middleware in place. See the cider-nrepl docs about <a href="https://docs.cider.mx/cider-nrepl/usage.html#via-embedding-nrepl-in-your-application">embedding nREPL in your application</a>.</p>
+<h2 id="auto-select-project-type">Auto-select Project Type</h2>
+<p>You can make both Jack-in and Connect stop prompting you for project type in projects where you always want to use the same. The setting <code>calva.autoSelectReplConnectProjectType</code> is used for this. Here's how to use it:</p>
+<ol>
+<li>Connect the REPL and manually select the project type/connect sequence you want to use.</li>
+<li>In the Output/REPL window Calva will print about auto-selecting project type, including the value you need. <strong>Copy this value</strong></li>
+<li>In VS Code Settings, search for ”Calva auto” and you will find the setting</li>
+<li>Make sure you are editing Workspace settings</li>
+<li><strong>Paste the project type value you copied above</strong></li>
+</ol>
+<p>Next time you connect the REPL, Calva will use this value and the project type prompt will not be shown.</p>
+<p>To make Calva prompt for the project type, reset this setting (there's a cog icon there giving you an option to do this).</p>
+<div class="admonition or edit workspace settings json">
+<p class="admonition-title">Or</p>
+<p>You can of course also edit this setting manually in <code>.vscode/settings.json</code> for the workspace. ”Reset” is then equivalent to removing the setting from this file.</p>
+</div>
 <h2 id="monorepos-multiple-clojure-projects-in-one-workspace">Monorepos / multiple Clojure projects in one workspace</h2>
 <p>If the workspace is a monorepo, Polylith repo or just a repository with more than one Clojure project, Calva will start the connect sequence with prompting for which project to start/connect to.</p>
 <p><img alt="The project roots menu" src="../images/calva-monorepo-project-roots-menu.png" /></p>
@@ -2543,7 +2580,7 @@ Jack-in<span class="w"> </span>process<span class="w"> </span>exited.<span class
     <script id="__config" type="application/json">{"base": "..", "features": ["content.tabs.link"], "search": "../assets/javascripts/workers/search.6c7302c4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.7ce0e818.min.js"></script>
+      <script src="../assets/javascripts/bundle.fbce390c.min.js"></script>
       
     
   </body>
