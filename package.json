@@ -375,6 +375,11 @@
             "default": {},
             "description": "Specifies any environment variables your project needs. (Probably mostly for your Workspace Settings.)"
           },
+          "calva.autoSelectReplConnectProjectType": {
+            "type": "string",
+            "default": null,
+            "description": "When set Calva will not prompt for a project type, at Jack-in or Connect. Instead the project name specified here will be used. (Probably mostly for your Workspace Settings.)"
+          },
           "calva.jackInDependencyVersions": {
             "type": "object",
             "description": "Versions of the dependencies injected by Calva Jack-in",
