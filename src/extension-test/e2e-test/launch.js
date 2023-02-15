@@ -45,6 +45,7 @@ async function main(calvaVSIXPathOrLabel, testWorkspace) {
       // (And can't be used if you are testing the development version of Calva)
       '--install-extension',
       'betterthantomorrow.joyride',
+      '--force',
     ];
     if (calvaVSIXPathOrLabel !== 'extension-development') {
       launchArgs.push('--install-extension', calvaVSIXPathOrLabel);
