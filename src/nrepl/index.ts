@@ -343,8 +343,8 @@ export class NReplSession {
   }
 
   private _createEvalOperationMessage(code: string, ns: string, opts: any) {
-    if (vscode.debug.activeDebugSession && this.replType === 'clj') {
-      const debugResponse = getStateValue(debug.DEBUG_RESPONSE_KEY);
+    const debugResponse = getStateValue(debug.DEBUG_RESPONSE_KEY);
+    if (debugResponse && vscode.debug.activeDebugSession && this.replType === 'clj') {
       state
         .analytics()
         .logEvent(
