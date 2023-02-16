@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Rollback clojure-lsp auto-start behaviour default](https://github.com/BetterThanTomorrow/calva/pull/2077)
 - Fix: [clojure-lsp does not start in a workspace without project files](https://github.com/BetterThanTomorrow/calva/issues/2069)
 
 ## [2.0.332] - 2023-02-15
