@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.12+insiders-4.30.2">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.13+insiders-4.32.0">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.b6d2c4d8.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.e95b5de1.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.2505c338.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.6932e648.min.css">
       
       
 
@@ -1049,10 +1049,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#when-workspace-opened-use-workspace-root-default" class="md-nav__link">
+  <a href="#always-use-first-workspace-root-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        "when-workspace-opened-use-workspace-root" [default]
+        "always-use-first-workspace-root" [default]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-workspace-opened-use-workspace-root" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "when-workspace-opened-use-workspace-root"
       
     </span>
   </a>
@@ -1075,6 +1086,17 @@
     <span class="md-ellipsis">
       
         "never"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fallback-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fallback Server
       
     </span>
   </a>
@@ -2243,10 +2265,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#when-workspace-opened-use-workspace-root-default" class="md-nav__link">
+  <a href="#always-use-first-workspace-root-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        "when-workspace-opened-use-workspace-root" [default]
+        "always-use-first-workspace-root" [default]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-workspace-opened-use-workspace-root" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "when-workspace-opened-use-workspace-root"
       
     </span>
   </a>
@@ -2269,6 +2302,17 @@
     <span class="md-ellipsis">
       
         "never"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fallback-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fallback Server
       
     </span>
   </a>
@@ -2432,7 +2476,6 @@
   
 
 
-
 <h1 id="clojure-lsp">Clojure-lsp</h1>
 <p>Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from <a href="https://github.com/snoe/clojure-lsp">clojure-lsp</a>. This enables you to check something up in a project, with a lot of navigational and contextual support, without starting a REPL for it. (And once you do start a REPL you'll get even more capabilities, enabled by the dynamic analysis.)</p>
 <div class="admonition note">
@@ -2443,15 +2486,22 @@
 <p>By default you won't need to install/setup anything as Calva handles that for you by automatically downloading the latest clojure-lsp binary. It can take a while for clojure-lsp to start, especially the first time opening a new project, as clojure-lsp (via <code>clj-kondo</code>) indexes the project files.</p>
 <p>Calva is able to automatically start the clojure-lsp server for you and can be configured to start the server under various different conditions. These behaviours can be configured through the <code>calva.enableClojureLspOnStart</code> setting, which takes the following options:</p>
 <ul>
+<li>"always-use-first-workspace-root"</li>
 <li>"when-workspace-opened-use-workspace-root"</li>
 <li>"when-file-opened-use-furthest-project"</li>
 <li>"never"</li>
 </ul>
-<h4 id="when-workspace-opened-use-workspace-root-default">"when-workspace-opened-use-workspace-root" [default]</h4>
-<p>When set to <code>"when-workspace-opened-use-workspace-root"</code> Calva will start the clojure-lsp in the root of all opened vscode workspaces. All Clojure files in a workspace will be serviced by the clojure-lsp server running in that workspace. This behavior requires that you are opening workspaces with a valid Clojure project in the root (the directory must contain a <code>deps.edn</code>, <code>project.clj</code> or <code>shadow-cljs.edn</code> file).</p>
+<h4 id="always-use-first-workspace-root-default">"always-use-first-workspace-root" [default]</h4>
+<p>When set to <code>"always-use-first-workspace-root"</code> Calva will attempt to start the clojure-lsp in the root of the first workspace folder if it is a valid clojure project. If it is not a valid clojure project it will fall back to starting the <a href="#fallback-server">fallback server</a>.</p>
 <p>This is the default auto-start behaviour.</p>
+<h4 id="when-workspace-opened-use-workspace-root">"when-workspace-opened-use-workspace-root"</h4>
+<p>When set to <code>"when-workspace-opened-use-workspace-root"</code> Calva will start the clojure-lsp in the root of all opened vscode workspaces. All Clojure files in a workspace will be serviced by the clojure-lsp server running in that workspace. This behavior requires that you are opening workspaces with a valid Clojure project in the root (the directory must contain a <code>deps.edn</code>, <code>project.clj</code> or <code>shadow-cljs.edn</code> file).</p>
 <h4 id="when-file-opened-use-furthest-project">"when-file-opened-use-furthest-project"</h4>
 <p>When set to <code>"when-file-opened-use-furthest-project"</code> Calva will attempt to start the clojure-lsp server whenever a Clojure file is opened. The LSP server will be started in the outermost valid Clojure project or will fall back to starting in the workspace root if no valid Clojure project can be found. A directory is considered a Clojure project if it contains typical Clojure project files such as a <code>deps.edn</code>, <code>project.clj</code>, or <code>shadow-cljs.edn</code> file. When working in a mono-repo style project or in a multi-workspace VS Code configuration you may have multiple LSP servers running, one for each independent Clojure project opened.</p>
+<div class="admonition note">
+<p class="admonition-title">Opening files that do not belong to a workspace folder</p>
+<p>When opening files that do not belong to any of the workspace folders currently open then Calva will fallback to starting the <a href="#fallback-server">fallback clojure-lsp server</a></p>
+</div>
 <h4 id="never">"never"</h4>
 <p>When set to <code>"never"</code> Calva will never attempt to automatically start the clojure-lsp server. In this case you are responsible for manually starting the server. More advanced users might want to do this in order to have more control over which projects have a clojure-lsp server running for them. To manually start the clojure-lsp server you can run the <code>calva.clojureLsp.start</code> or the <code>calva.clojureLsp.manage</code> command and pick the project root. You can also click the <code>clojure-lsp</code> status bar icon to open the Management Menu.</p>
 <p>Additionally Calva has commands for:</p>
@@ -2464,6 +2514,10 @@
 <li>Downloading the configured clojure-lsp version</li>
 </ul>
 <p>Note that the download command will download the configured clojure-lsp version regardless if it is already installed or not. This can be useful when some earlier download has failed resulting in that clojure-lsp can't be started. <em>NB: It will not download anything if <code>calva.clojureLspPath</code> is set to something non-blank.</em></p>
+<h3 id="fallback-server">Fallback Server</h3>
+<p>As a fallback behaviour Calva may start a clojure-lsp server in a temporary directory and use this to service lsp requests for clojure files that do not belong to a valid clojure project. This will show up in the management menu looking something like:</p>
+<p><img alt="&quot;Fallback Server&quot;" src="../images/clojure-lsp/fallback-server.png" title="Clojure fallback lsp server" /></p>
+<p>Any files that are handled by this server will have limited classpath analysis and lsp features. It is therefore recommended to setup your project as a clojure project (by creating a <code>deps.edn</code> file in the root, for example).</p>
 <h3 id="status-bar">Status bar</h3>
 <p>In the status bar Calva will show an indicator with the clojure-lsp status. This status will track the currently open project, showing the status (<code>stopped</code>, <code>starting</code> or <code>active</code>) for the relevant clojure-lsp server.</p>
 <p>You can click on the status-bar item to open the clojure-lsp management menu which will look as follows:</p>
@@ -2582,7 +2636,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["content.tabs.link"], "search": "../assets/javascripts/workers/search.6c7302c4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.fbce390c.min.js"></script>
+      <script src="../assets/javascripts/bundle.b7178837.min.js"></script>
       
     
   </body>
