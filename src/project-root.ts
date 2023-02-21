@@ -132,7 +132,7 @@ function findMatchingParent(
 
 export function findClosestParent(from: vscode.Uri, uris: vscode.Uri[]) {
   return findMatchingParent(from, uris, (a, b) => {
-    if (a.fsPath > b.fsPath) {
+    if (a.path > b.path) {
       return a;
     } else {
       return b;
@@ -142,12 +142,49 @@ export function findClosestParent(from: vscode.Uri, uris: vscode.Uri[]) {
 
 export function findFurthestParent(from: vscode.Uri, uris: vscode.Uri[]) {
   return findMatchingParent(from, uris, (a, b) => {
-    if (a.fsPath < b.fsPath) {
+    if (a.path < b.path) {
       return a;
     } else {
       return b;
     }
   });
+}
+
+/**
+ * Filter a given set of URI's down to the set of shortest distinct paths.
+ *
+ * For example, given the input:
+ *
+ * ["/root-1/b", "/root-1/b/c", "/root-2/b", "/root-2/b/c"]
+ *
+ * Produce the output:
+ *
+ * ["/root-1/b", "/root-2/b"]
+ *
+ * Removing the longer trailing paths.
+ */
+export function filterShortestDistinctPaths(uris: vscode.Uri[]) {
+  return Array.from(
+    uris
+      .reduce((uris, uri) => {
+        let distinct = true;
+        Array.from(uris.values()).forEach((previous) => {
+          if (previous.path.startsWith(uri.path)) {
+            distinct = false;
+            uris.delete(previous.path);
+            uris.set(uri.path, uri);
+          }
+          if (uri.path.startsWith(previous.path)) {
+            distinct = false;
+          }
+        });
+        if (distinct) {
+          uris.set(uri.path, uri);
+        }
+        return uris;
+      }, new Map<string, vscode.Uri>())
+      .values()
+  );
 }
 
 const groupByProject = (uris: vscode.Uri[]) => {
@@ -213,11 +250,14 @@ function sortPreSelectedFirst(groups: vscode.Uri[][], selected: vscode.Uri) {
         }
       }
 
+      const length_a = a.path.split('/').length;
+      const length_b = b.path.split('/').length;
+
       // Fall back to sorting by length
-      if (a.path < b.path) {
+      if (length_a < length_b) {
         return -1;
       }
-      if (a.path > b.path) {
+      if (length_a > length_b) {
         return 1;
       }
 

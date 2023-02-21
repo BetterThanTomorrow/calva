@@ -215,7 +215,8 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
             })
             .map((root) => root.uri);
 
-          valid_workspace_folders.forEach((root) => {
+          const distinct = project_utils.filterShortestDistinctPaths(valid_workspace_folders);
+          distinct.forEach((root) => {
             void provisionClient(root).catch((err) => console.error(err));
           });
 
@@ -278,6 +279,11 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
             case config.AutoStartBehaviour.WorkspaceOpened: {
               return void Promise.allSettled(
                 event.added.map(async (folder) => {
+                  // Don't provision an lsp client if this workspace folder is already governed by an existing folder
+                  const existing = api.getActiveClientForUri(clients, folder.uri);
+                  if (existing && existing.id !== api.FALLBACK_CLIENT_ID) {
+                    return;
+                  }
                   if (await project_utils.isValidClojureProject(folder.uri)) {
                     void provisionClient(folder.uri).catch((err) => console.error(err));
                   } else {
