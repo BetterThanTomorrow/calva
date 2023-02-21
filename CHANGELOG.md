@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [clojure-lsp does not start in a workspace without project files](https://github.com/BetterThanTomorrow/calva/issues/2069)
+
 ## [2.0.332] - 2023-02-15
 
 - Partly fixes: [Cursor moves back to start of indented line when typing inside parens on a new line](https://github.com/BetterThanTomorrow/calva/issues/2071)

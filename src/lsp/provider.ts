@@ -1,7 +1,9 @@
 import * as vscode_lsp from 'vscode-languageclient/node';
 import * as project_utils from '../project-root';
-import * as vscode from 'vscode';
+import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
+import * as vscode from 'vscode';
+import * as os from 'node:os';
 
 import * as status_bar from './status-bar';
 import * as commands from './commands';
@@ -9,9 +11,38 @@ import * as lsp_client from './client';
 import * as defs from './definitions';
 import * as config from './config';
 import * as state from '../state';
-import * as queue from './queue';
 import * as utils from './utils';
 import * as api from './api';
+
+/**
+ * Can be called to shutdown the fallback lsp server if there are no longer any relevant workspaces or files
+ * open
+ */
+const shutdownFallbackClientIfNeeded = async (clients: defs.LspClientStore) => {
+  const roots = await project_utils.findProjectRootsWithReasons({
+    include_lsp_directories: true,
+  });
+
+  const non_project_folders = roots
+    .filter((root) => {
+      return !root.valid_project && root.workspace_root;
+    })
+    .map((root) => root.uri);
+
+  const contains_external_files = !!vscode.workspace.textDocuments.find((doc) => {
+    const clojure_file = doc.languageId === 'clojure' && doc.uri.scheme !== 'untitled';
+    const external = vscode.workspace.getWorkspaceFolder(doc.uri);
+    return clojure_file && external;
+  });
+
+  if (non_project_folders.length === 0 && !contains_external_files) {
+    console.log('Shutting down fallback lsp client');
+    void clients
+      .get(api.FALLBACK_CLIENT_ID)
+      ?.client.stop()
+      .catch((err) => console.error('Failed to stop fallback client', err));
+  }
+};
 
 type CreateClientProviderParams = {
   context: vscode.ExtensionContext;
@@ -34,112 +65,119 @@ type CreateClientProviderParams = {
  * current active editor.
  */
 export const createClientProvider = (params: CreateClientProviderParams) => {
-  const clients = new Map<string, vscode_lsp.LanguageClient>();
+  const clients: defs.LspClientStore = new Map();
 
   const status_bar_item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
   status_bar_item.command = 'calva.clojureLsp.manage';
 
   const updateStatusBar = () => {
-    const active_editor = vscode.window.activeTextEditor?.document;
+    const any_starting = Array.from(clients.values()).find(
+      (client) => client.status === defs.LspStatus.Starting
+    );
+    if (any_starting) {
+      return status_bar.updateStatusBar(status_bar_item, defs.LspStatus.Starting);
+    }
 
+    const active_editor = vscode.window.activeTextEditor?.document;
     if (!active_editor || active_editor.languageId !== 'clojure') {
       // If there are multiple clients then we don't know which client to show the status for and we set it to unknown
       if (clients.size !== 1) {
-        status_bar.updateStatusBar(status_bar_item, status_bar.LspStatus.Unknown);
+        status_bar.updateStatusBar(status_bar_item, defs.LspStatus.Unknown);
         return;
       }
 
       const client = Array.from(clients.values())[0];
-      status_bar.updateStatusBar(status_bar_item, status_bar.lspClientStateToStatus(client.state));
+      status_bar.updateStatusBar(status_bar_item, client.status);
       return;
     }
 
-    const client = api.getClientForDocumentUri(clients, active_editor.uri);
+    const client = api.getActiveClientForUri(clients, active_editor.uri);
     if (!client) {
-      status_bar.updateStatusBar(status_bar_item, status_bar.LspStatus.Stopped);
+      status_bar.updateStatusBar(status_bar_item, defs.LspStatus.Stopped);
       return;
     }
 
-    status_bar.updateStatusBar(status_bar_item, status_bar.lspClientStateToStatus(client.state));
+    status_bar.updateStatusBar(status_bar_item, client.status);
   };
 
-  /**
-   * Newly opened documents are added to a queue and processed synchronously. This is to prevent multiple LSP clients being
-   * created for the same shared root and also allows preparation operations (like downloading the LSP server binary) to
-   * not conflict with each other.
-   *
-   * A raw document URI can also be sent instead of a full document. This is to support a user supplied path.
-   */
-  const provision_queue = queue.createQueue<vscode.TextDocument | vscode.Uri>(
-    async (document_or_uri) => {
-      let uri: vscode.Uri;
-
-      if (document_or_uri instanceof vscode.Uri) {
-        uri = document_or_uri;
-      } else {
-        if (document_or_uri.languageId !== 'clojure') {
-          return;
-        }
-
-        // Don't provision a client if the document is already governed
-        if (api.getClientForDocumentUri(clients, document_or_uri.uri)) {
-          return;
-        }
-
-        uri = await utils.findClojureProjectRootForUri(document_or_uri.uri);
-      }
-
-      if (!uri || clients.has(uri.path)) {
+  let lsp_server_path: Promise<string | void> | undefined = undefined;
+  const provisionClient = async (uri: vscode.Uri, id = uri.path) => {
+    if (lsp_server_path === undefined) {
+      lsp_server_path = lsp_client.ensureLSPServer(params.context).catch((err) => {
+        console.error('Failed to download lsp server', err);
         return;
-      }
+      });
+    }
 
-      console.log(`Creating new LSP client using ${uri.toString()} as the project root`);
+    const server_path = await lsp_server_path;
+    if (!server_path) {
+      console.error('Server path could not be resolved');
+      return;
+    }
 
-      try {
-        status_bar.updateStatusBar(status_bar_item, status_bar.LspStatus.Starting);
+    const existing = clients.get(id);
+    if (existing && [defs.LspStatus.Starting, defs.LspStatus.Running].includes(existing.status)) {
+      return;
+    }
 
-        const { client, start } = await lsp_client.createClient({
-          context: params.context,
-          uri: vscode.Uri.parse(uri.path),
-        });
+    console.log(`Creating new LSP client using ${uri.path} as the project root`);
+    const client = lsp_client.createClient({
+      lsp_server_path: server_path,
+      id,
+      uri,
+    });
 
-        clients.set(uri.path, client);
+    clients.set(id, client);
+    updateStatusBar();
 
-        await start();
+    client.client.onDidChangeState(async ({ newState }) => {
+      updateStatusBar();
 
-        // The `client.start()` seems to resolve even when the client fails to start and so we do an explicit check
-        // after `start()` resolves to make sure the client did in fact start correctly.
-        if (client.state === vscode_lsp.State.Stopped) {
-          throw new Error('Clojure-lsp did not transition into a started state');
-        }
-
-        updateStatusBar();
-
-        client.onDidChangeState((state) => {
-          if (state.newState === vscode_lsp.State.Stopped && clients.get(uri.path) === client) {
-            clients.delete(uri.path);
-          }
-          updateStatusBar();
-        });
-        client.onNotification('clojure/textDocument/testTree', (tree: defs.TestTreeParams) => {
-          params.testTreeHandler(tree);
-        });
-
-        const serverInfo = await api.getServerInfo(client);
+      if (newState === vscode_lsp.State.Running) {
+        const serverInfo = await api
+          .getServerInfo(client.client)
+          .catch((err) => console.error(err));
         if (serverInfo) {
           const calvaSaysChannel = state.outputChannel();
           calvaSaysChannel.appendLine(`clojure-lsp version used: ${serverInfo['server-version']}`);
           calvaSaysChannel.appendLine(`clj-kondo version used: ${serverInfo['clj-kondo-version']}`);
         }
-      } catch (err) {
-        clients.delete(uri.path);
-        updateStatusBar();
-
-        console.error(`Failed to provision client for root ${uri.path}`, err);
-        void vscode.window.showErrorMessage('Failed to start clojure-lsp client');
       }
+    });
+
+    client.client.onNotification('clojure/textDocument/testTree', (tree: defs.TestTreeParams) => {
+      params.testTreeHandler(tree);
+    });
+  };
+
+  const provisionFallbackClient = async () => {
+    const dir = path.join(os.tmpdir(), 'calva-clojure-lsp');
+    await fs.mkdir(dir, {
+      recursive: true,
+    });
+    return provisionClient(vscode.Uri.parse(dir), api.FALLBACK_CLIENT_ID);
+  };
+
+  const provisionClientForOpenedDocument = async (document: vscode.TextDocument) => {
+    // We exclude untitled files because clojure-lsp does not support them (yet?)
+    if (document.languageId !== 'clojure' || document.uri.scheme === 'untitled') {
+      return;
     }
-  );
+
+    // Don't provision a client if the document is already governed (ignoring the fallback client)
+    const existing = api.getActiveClientForUri(clients, document.uri);
+    if (existing && existing.id !== api.FALLBACK_CLIENT_ID) {
+      return;
+    }
+
+    // If there is no appropriate project root in any of the workspaces then we provision the fallback client
+    const uri = await utils.findClojureProjectRootForUri(document.uri);
+    if (!uri) {
+      return provisionFallbackClient();
+    }
+
+    return provisionClient(uri);
+  };
 
   return {
     getClientForDocumentUri: (uri: vscode.Uri) => api.getClientForDocumentUri(clients, uri),
@@ -148,37 +186,41 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
       status_bar_item.show();
 
       if (vscode.window.activeTextEditor?.document.languageId === 'clojure') {
-        status_bar.updateStatusBar(status_bar_item, status_bar.LspStatus.Stopped);
+        status_bar.updateStatusBar(status_bar_item, defs.LspStatus.Stopped);
       } else {
-        status_bar.updateStatusBar(status_bar_item, status_bar.LspStatus.Unknown);
+        status_bar.updateStatusBar(status_bar_item, defs.LspStatus.Unknown);
       }
-
-      // Provision new LSP clients when clojure files are opened and for all already opened clojure files.
-      params.context.subscriptions.push(
-        vscode.workspace.onDidOpenTextDocument((document) => {
-          if (config.getAutoStartBehaviour() === config.AutoStartBehaviour.FileOpened) {
-            void provision_queue.push(document).catch((err) => console.error(err));
-          }
-        })
-      );
 
       switch (config.getAutoStartBehaviour()) {
         case config.AutoStartBehaviour.WorkspaceOpened: {
-          const roots = await project_utils.findProjectRootsWithReasons();
-          const workspace_folders = roots
+          const roots = await project_utils.findProjectRootsWithReasons({
+            include_lsp_directories: true,
+          });
+          const valid_workspace_folders = roots
             .filter((root) => {
               return root.valid_project && root.workspace_root;
             })
             .map((root) => root.uri);
+          const invalid_workspace_folders = roots
+            .filter((root) => {
+              return !root.valid_project && root.workspace_root;
+            })
+            .map((root) => root.uri);
 
-          workspace_folders.forEach((root) => {
-            void provision_queue.push(root).catch((err) => console.error(err));
+          valid_workspace_folders.forEach((root) => {
+            void provisionClient(root).catch((err) => console.error(err));
           });
+
+          // If the workspace contains any 'invalid' clojure projects (projects with no project files) then we
+          // provision the fallback lsp client
+          if (invalid_workspace_folders.length > 0) {
+            void provisionFallbackClient().catch((err) => console.error(err));
+          }
           break;
         }
         case config.AutoStartBehaviour.FileOpened: {
           vscode.workspace.textDocuments.forEach((document) => {
-            void provision_queue.push(document).catch((err) => console.error(err));
+            void provisionClientForOpenedDocument(document).catch((err) => console.error(err));
           });
           break;
         }
@@ -193,6 +235,20 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
           updateStatusBar();
         }),
 
+        // Provision new LSP clients when clojure files are opened and for all already opened clojure files.
+        vscode.workspace.onDidOpenTextDocument((document) => {
+          if (config.getAutoStartBehaviour() === config.AutoStartBehaviour.FileOpened) {
+            void provisionClientForOpenedDocument(document).catch((err) => console.error(err));
+          }
+        }),
+
+        vscode.workspace.onDidCloseTextDocument((doc) => {
+          if (doc.languageId === 'clojure') {
+            void shutdownFallbackClientIfNeeded(clients);
+          }
+        }),
+
+        // Provision new LSP clients when workspaces folders are added, and shutdown clients when folders are removed
         vscode.workspace.onDidChangeWorkspaceFolders((event) => {
           event.removed.forEach((folder) => {
             clients.forEach((client, dir) => {
@@ -201,7 +257,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
                 console.log(
                   `Shutting down the LSP client at ${dir} as it belongs to a removed workspace`
                 );
-                void client.stop().catch((err) => console.error(err));
+                void client.client.stop().catch((err) => console.error(err));
               }
             });
           });
@@ -210,11 +266,15 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
             void Promise.allSettled(
               event.added.map(async (folder) => {
                 if (await project_utils.isValidClojureProject(folder.uri)) {
-                  void provision_queue.push(folder.uri).catch((err) => console.error(err));
+                  void provisionClient(folder.uri).catch((err) => console.error(err));
+                } else {
+                  void provisionFallbackClient().catch((err) => console.error(err));
                 }
               })
             );
           }
+
+          void shutdownFallbackClientIfNeeded(clients);
         })
       );
 
@@ -226,7 +286,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
           clients,
           context: params.context,
           handleStartRequest: (uri) => {
-            return provision_queue.push(uri);
+            return provisionClient(uri);
           },
         })
       );
@@ -237,7 +297,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
      */
     shutdown: async () => {
       status_bar_item.dispose();
-      await Promise.allSettled(Array.from(clients.values()).map((client) => client.stop()));
+      await Promise.allSettled(Array.from(clients.values()).map((client) => client.client.stop()));
     },
   };
 };

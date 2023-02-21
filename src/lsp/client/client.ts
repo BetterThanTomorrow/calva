@@ -1,9 +1,9 @@
 import { provideSignatureHelp } from '../../providers/signature';
 import { isResultsDoc } from '../../results-output/results-doc';
 import * as vscode_lsp from 'vscode-languageclient/node';
-import * as downloader from './downloader';
+import * as defs from '../definitions';
 import * as config from '../../config';
-import * as messages from './messages';
+import * as utils from '../utils';
 import * as vscode from 'vscode';
 import * as path from 'path';
 
@@ -91,26 +91,24 @@ class TestTreeFeature implements vscode_lsp.StaticFeature {
 }
 
 type CreateClientParams = {
-  context: vscode.ExtensionContext;
+  lsp_server_path: string;
   uri: vscode.Uri;
+  id: string;
 };
-export const createClient = async (params: CreateClientParams) => {
-  const lsp_bin_path = await downloader.ensureLSPServer(params.context);
-
+export const createClient = (params: CreateClientParams): defs.LspClient => {
   // Run JARs with system Java; anything else execute directly
   let serverOptions: vscode_lsp.ServerOptions;
-  if (path.extname(lsp_bin_path) === '.jar') {
+  if (path.extname(params.lsp_server_path) === '.jar') {
     serverOptions = {
       command: path.join(process.env.JAVA_HOME, 'bin', 'java'),
-      args: ['-jar', lsp_bin_path],
+      args: ['-jar', params.lsp_server_path],
     };
   } else {
     serverOptions = {
-      command: lsp_bin_path,
+      command: params.lsp_server_path,
     };
   }
 
-  const selector_pattern = `${params.uri.fsPath}/**/*`;
   const client = new vscode_lsp.LanguageClient(
     'clojure',
     'Clojure Language Client',
@@ -118,12 +116,12 @@ export const createClient = async (params: CreateClientParams) => {
     {
       workspaceFolder: {
         uri: params.uri,
-        name: 'LSP Root',
+        name: params.id,
         index: 0,
       },
       documentSelector: [
-        { scheme: 'file', language: 'clojure', pattern: selector_pattern },
-        { scheme: 'jar', language: 'clojure', pattern: selector_pattern },
+        { scheme: 'file', language: 'clojure' },
+        { scheme: 'jar', language: 'clojure' },
       ],
       synchronize: {
         configurationSection: 'clojure-lsp',
@@ -219,11 +217,16 @@ export const createClient = async (params: CreateClientParams) => {
 
   // client.registerFeature(new ExecuteCommandDisablement());
 
+  void client.start().catch((err) => {
+    console.error('Client failed to start', err);
+  });
+
   return {
+    id: params.id,
+    path: params.uri.path,
     client,
-    start: async () => {
-      await client.start();
-      client.onRequest('window/showMessageRequest', messages.handleShowMessageRequest);
+    get status() {
+      return utils.lspClientStateToStatus(client.state);
     },
   };
 };
