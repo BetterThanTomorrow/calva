@@ -36,4 +36,18 @@ export interface TestTreeParams {
 // knowledge of the testRunner code.
 export type TestTreeHandler = (tree: TestTreeParams) => void;
 
-export type LSPClientMap = Map<string, vscode_lsp.LanguageClient>;
+export enum LspStatus {
+  Stopped = 'Stopped',
+  Starting = 'Starting',
+  Running = 'Running',
+  Failed = 'Failed',
+  Unknown = 'Unknown',
+}
+
+export type LspClient = {
+  id: string;
+  path: string;
+  client: vscode_lsp.LanguageClient;
+  status: LspStatus;
+};
+export type LspClientStore = Map<string, LspClient>;

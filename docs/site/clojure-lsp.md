@@ -16,19 +16,27 @@ By default you won't need to install/setup anything as Calva handles that for yo
 
 Calva is able to automatically start the clojure-lsp server for you and can be configured to start the server under various different conditions. These behaviours can be configured through the `calva.enableClojureLspOnStart` setting, which takes the following options:
 
++ "always-use-first-workspace-root"
 + "when-workspace-opened-use-workspace-root"
 + "when-file-opened-use-furthest-project"
 + "never"
 
-#### "when-workspace-opened-use-workspace-root" [default]
+#### "always-use-first-workspace-root" [default]
 
-When set to `"when-workspace-opened-use-workspace-root"` Calva will start the clojure-lsp in the root of all opened vscode workspaces. All Clojure files in a workspace will be serviced by the clojure-lsp server running in that workspace. This behavior requires that you are opening workspaces with a valid Clojure project in the root (the directory must contain a `deps.edn`, `project.clj` or `shadow-cljs.edn` file).
+When set to `"always-use-first-workspace-root"` Calva will attempt to start the clojure-lsp in the root of the first workspace folder if it is a valid clojure project. If it is not a valid clojure project it will fall back to starting the [fallback server](#fallback-server).
 
 This is the default auto-start behaviour.
+
+#### "when-workspace-opened-use-workspace-root"
+
+When set to `"when-workspace-opened-use-workspace-root"` Calva will start the clojure-lsp in the root of all opened vscode workspaces. All Clojure files in a workspace will be serviced by the clojure-lsp server running in that workspace. This behavior requires that you are opening workspaces with a valid Clojure project in the root (the directory must contain a `deps.edn`, `project.clj` or `shadow-cljs.edn` file).
 
 #### "when-file-opened-use-furthest-project"
 
 When set to `"when-file-opened-use-furthest-project"` Calva will attempt to start the clojure-lsp server whenever a Clojure file is opened. The LSP server will be started in the outermost valid Clojure project or will fall back to starting in the workspace root if no valid Clojure project can be found. A directory is considered a Clojure project if it contains typical Clojure project files such as a `deps.edn`, `project.clj`, or `shadow-cljs.edn` file. When working in a mono-repo style project or in a multi-workspace VS Code configuration you may have multiple LSP servers running, one for each independent Clojure project opened.
+
+!!! Note "Opening files that do not belong to a workspace folder"
+    When opening files that do not belong to any of the workspace folders currently open then Calva will fallback to starting the [fallback clojure-lsp server](#fallback-server)
 
 #### "never"
 
@@ -44,6 +52,14 @@ Additionally Calva has commands for:
 * Downloading the configured clojure-lsp version
 
 Note that the download command will download the configured clojure-lsp version regardless if it is already installed or not. This can be useful when some earlier download has failed resulting in that clojure-lsp can't be started. *NB: It will not download anything if `calva.clojureLspPath` is set to something non-blank.*
+
+### Fallback Server
+
+As a fallback behaviour Calva may start a clojure-lsp server in a temporary directory and use this to service lsp requests for clojure files that do not belong to a valid clojure project. This will show up in the management menu looking something like:
+
+!["Fallback Server"](images/clojure-lsp/fallback-server.png "Clojure fallback lsp server")
+
+Any files that are handled by this server will have limited classpath analysis and lsp features. It is therefore recommended to setup your project as a clojure project (by creating a `deps.edn` file in the root, for example).
 
 ### Status bar
 

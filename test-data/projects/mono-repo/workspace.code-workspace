@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "projects/a"
+    },
+    {
+      "path": "projects/b"
+    }
+  ],
+  "settings": {
+    // Starts one LSP proecess per workspace root folder with a Clojure project.
+    "calva.enableClojureLspOnStart": "when-workspace-opened-use-workspace-root"
+  }
+}

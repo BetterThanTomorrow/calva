@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.332",
+  "version": "2.0.333",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -173,14 +173,16 @@
             "enum": [
               "when-workspace-opened-use-workspace-root",
               "when-file-opened-use-furthest-project",
+              "always-use-first-workspace-root",
               "never"
             ],
             "enumDescriptions": [
               "Start clojure-lsp automatically when a workspace containing a Clojure project is opened. The server will be started with its project root set to the workspace root. Best option for many single-Clojure-project workspaces and Polylith-like projects. It is recommended to configure your project so that you can use this option and have only one clojure-lsp server running.",
               "Start clojure-lsp automatically when a Clojure file is opened. The server will be started with its project root set to the project found furthest from the opened file. Use this option if your monorepo has several Clojure projects, but lacks a governing project file at the workspace root.",
+              "Start clojure-lsp automatically in the first workspace root. Use this option to avoid starting multiple lsp servers when multiple independent clojure projects are added as workspace folders",
               "Don't start clojure-lsp automatically. You can always start clojure-lsp at will via the command palette or from the statusbar. Good option in multi-project workspaces where you want to start a clojure-lsp for a particular project. Also useful if you are running on a machine with limited resources, like a Raspberry Pi."
             ],
-            "default": "when-workspace-opened-use-workspace-root"
+            "default": "always-use-first-workspace-root"
           },
           "calva.prettyPrintingOptions": {
             "type": "object",
@@ -700,7 +702,6 @@
               ".ccls-cache",
               ".clangd",
               ".classpath",
-              ".clj-kondo",
               "*.code-search",
               ".cpcache",
               "_darcs",
@@ -714,7 +715,6 @@
               ".hg",
               ".idea",
               ".joyride",
-              ".lsp",
               "node_modules",
               ".pijul",
               ".project",
