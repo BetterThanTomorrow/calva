@@ -59,7 +59,7 @@ As a fallback behaviour Calva may start a clojure-lsp server in a temporary dire
 
 !["Fallback Server"](images/clojure-lsp/fallback-server.png "Clojure fallback lsp server")
 
-Any files that are handled by this server will have limited limited classpath analysis and lsp features. It it therefore recommended to setup your project as a clojure project (by creating a `deps.edn` file in the root, for example).
+Any files that are handled by this server will have limited classpath analysis and lsp features. It is therefore recommended to setup your project as a clojure project (by creating a `deps.edn` file in the root, for example).
 
 ### Status bar
 
