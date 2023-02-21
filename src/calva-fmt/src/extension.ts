@@ -7,13 +7,19 @@ import * as docmirror from '../../doc-mirror/index';
 import * as config from '../../formatter-config';
 import * as calvaConfig from '../../config';
 
+function isOldIndentEngineInPlay(): boolean {
+  return (
+    !!config.formatOnTypeEnabled() &&
+    !vscode.workspace.getConfiguration('calva.fmt').get('newIndentEngine')
+  );
+}
+
 function getLanguageConfiguration(): vscode.LanguageConfiguration {
   const languageConfiguration = {
-    onEnterRules: config.formatOnTypeEnabled()
+    onEnterRules: isOldIndentEngineInPlay()
       ? [
-          // When Calva is the formatter disable all vscode default indentation
+          // When cljfmt is used for indenting, disable all vscode default indentation
           // (By outdenting a lot, which is the only way I have found that works)
-          // TODO: Make it actually consider whether Calva is the formatter or not
           {
             beforeText: /.*/,
             action: {
@@ -24,6 +30,12 @@ function getLanguageConfiguration(): vscode.LanguageConfiguration {
         ]
       : [],
   };
+  console.log('Issue #2071: languageConfiguration', languageConfiguration);
+  console.log('Issue #2071: formatOnType?', config.formatOnTypeEnabled());
+  console.log(
+    'Issue #2071: newIndentEngine?',
+    vscode.workspace.getConfiguration('calva.fmt').get('newIndentEngine')
+  );
   return languageConfiguration;
 }
 
@@ -80,7 +92,8 @@ export function activate(context: vscode.ExtensionContext) {
   );
   vscode.window.onDidChangeActiveTextEditor(inferer.updateState);
   vscode.workspace.onDidChangeConfiguration((e) => {
-    if (e.affectsConfiguration('calva.fmt.formatAsYouType')) {
+    if (e.affectsConfiguration('editor.formatOnType')) {
+      console.log('Issue #2071: editor.formatOnType changed, updating language configuration');
       vscode.languages.setLanguageConfiguration('clojure', getLanguageConfiguration());
     }
   });
