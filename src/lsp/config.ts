@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 export enum AutoStartBehaviour {
   WorkspaceOpened = 'when-workspace-opened-use-workspace-root',
+  FirstWorkspace = 'always-use-first-workspace-root',
   FileOpened = 'when-file-opened-use-furthest-project',
   Never = 'never',
 }
