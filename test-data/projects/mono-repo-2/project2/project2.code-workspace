@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "Root",
+			"path": ".."
+		},
+		{
+			"name": "project2",
+			"path": "./src/mycorp/project2"
+		},
+		{
+			"name": "libs/lib1",
+			"path": "../libs/lib1/src/mycorp/lib1"
+		}
+	],
+	"settings": {}
+}
