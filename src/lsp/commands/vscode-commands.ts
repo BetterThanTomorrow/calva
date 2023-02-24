@@ -11,7 +11,7 @@ export const filterOutRootsWithClients = (
   clients: defs.LspClientStore
 ) => {
   return uris.filter((root) => {
-    const client = clients.get(root.uri.path);
+    const client = clients.get(root.uri.fsPath);
     return !client || !api.clientIsAlive(client);
   });
 };

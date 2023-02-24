@@ -101,7 +101,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
   };
 
   let lsp_server_path: Promise<string | void> | undefined = undefined;
-  const provisionClient = async (uri: vscode.Uri, id = uri.path) => {
+  const provisionClient = async (uri: vscode.Uri, id = uri.fsPath) => {
     if (lsp_server_path === undefined) {
       lsp_server_path = lsp_client.ensureLSPServer(params.context).catch((err) => {
         console.error('Failed to download lsp server', err);
