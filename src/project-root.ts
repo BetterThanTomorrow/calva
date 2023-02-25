@@ -69,9 +69,9 @@ export async function findProjectRootsWithReasons(params?: FindRootParams) {
   }
   const candidateUris = await vscode.workspace.findFiles(projectFilesGlob, excludeDirsGlob, 10000);
   const projectFilePaths = candidateUris.map((uri) => {
-    let dir = vscode.Uri.parse(path.dirname(uri.path));
+    let dir = vscode.Uri.file(path.dirname(uri.path));
     if (lspDirectories.find((file) => uri.path.endsWith(file))) {
-      dir = vscode.Uri.parse(path.join(uri.path, '../..'));
+      dir = vscode.Uri.file(path.join(uri.path, '../..'));
     }
     return {
       uri: dir,

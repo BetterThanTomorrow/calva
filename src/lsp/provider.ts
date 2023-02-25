@@ -163,7 +163,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
     await fs.mkdir(dir, {
       recursive: true,
     });
-    return provisionClient(vscode.Uri.parse(dir), api.FALLBACK_CLIENT_ID);
+    return provisionClient(vscode.Uri.file(dir), api.FALLBACK_CLIENT_ID);
   };
 
   const provisionClientForOpenedDocument = async (document: vscode.TextDocument) => {

@@ -223,7 +223,7 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
 
   return {
     id: params.id,
-    path: params.uri.path,
+    uri: params.uri,
     client,
     get status() {
       return utils.lspClientStateToStatus(client.state);
