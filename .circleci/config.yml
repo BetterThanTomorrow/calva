@@ -34,7 +34,7 @@ jobs:
       - image: cimg/openjdk:17.0.1-node
     working_directory: ~/calva
     steps:
-      - <<: *checkout-steps-common
+      - <<: [*checkout-steps-common]
       - run:
           name: Hello World
           command: |
