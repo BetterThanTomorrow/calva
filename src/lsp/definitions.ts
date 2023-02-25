@@ -1,5 +1,6 @@
 // This file contains type definitions related to the language server protocol
 import * as vscode_lsp from 'vscode-languageclient/node';
+import * as vscode from 'vscode';
 
 export interface Position {
   line: number;
@@ -46,7 +47,7 @@ export enum LspStatus {
 
 export type LspClient = {
   id: string;
-  path: string;
+  uri: vscode.Uri;
   client: vscode_lsp.LanguageClient;
   status: LspStatus;
 };

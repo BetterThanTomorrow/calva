@@ -11,7 +11,7 @@ export const filterOutRootsWithClients = (
   clients: defs.LspClientStore
 ) => {
   return uris.filter((root) => {
-    const client = clients.get(root.uri.path);
+    const client = clients.get(root.uri.fsPath);
     return !client || !api.clientIsAlive(client);
   });
 };
@@ -27,7 +27,7 @@ type StartHandler = (uri: vscode.Uri) => Promise<void>;
  */
 const startHandler = async (clients: defs.LspClientStore, handler: StartHandler, uri?: string) => {
   if (uri) {
-    await handler(vscode.Uri.parse(uri));
+    await handler(vscode.Uri.file(uri));
     return;
   }
 
@@ -64,9 +64,9 @@ const pickClient = async (clients: defs.LspClientStore) => {
   if (clients.size === 1) {
     return Array.from(clients.keys())[0];
   }
-  const choices = Array.from(clients.keys()).map((uri) => {
+  const choices = Array.from(clients.keys()).map((id) => {
     return {
-      label: uri,
+      label: id,
     };
   });
   const selected_client = await vscode.window.showQuickPick(choices, { title: 'clojure-lsp' });
@@ -103,10 +103,11 @@ const restartHandler = async (
     return;
   }
 
+  const client = clients.get(id);
   await stopClient(clients, id);
   clients.delete(id);
 
-  await startHandler(vscode.Uri.parse(id));
+  await startHandler(client.uri);
 };
 
 async function showServerInfo(clients: defs.LspClientStore, id: string) {
@@ -180,7 +181,7 @@ const manageHandler = async (
       }
 
       return {
-        label: `${icon} ${project_utils.getPathRelativeToWorkspace(vscode.Uri.parse(client.path))}`,
+        label: `${icon} ${project_utils.getPathRelativeToWorkspace(client.uri)}`,
         detail: api.isFallbackClient(client)
           ? 'Fallback client for serving workspaces or files that do not belong to a project'
           : undefined,
@@ -300,7 +301,7 @@ const manageHandler = async (
 
   switch (action.value) {
     case '::start': {
-      void start(vscode.Uri.parse(choice.value));
+      void start(vscode.Uri.file(choice.value));
       return;
     }
     case '::stop': {
@@ -308,10 +309,7 @@ const manageHandler = async (
       return;
     }
     case '::restart': {
-      await stopClient(clients, choice.value);
-      clients.delete(choice.value);
-
-      void start(vscode.Uri.parse(choice.value));
+      void restartHandler(clients, start, choice.value);
       return;
     }
     case '::info': {

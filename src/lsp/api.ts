@@ -14,6 +14,15 @@ export const clientIsAlive = (client: defs.LspClient) => {
 };
 
 /**
+ * Checks if a given path is the root of the filesystem in a platform agnostic manner (this should
+ * work identically on POSIX and Windows)
+ */
+const isRoot = (dir: string) => {
+  const normalized = path.normalize(dir);
+  return path.dirname(normalized) === normalized;
+};
+
+/**
  * Find the closest, active clojure-lsp client to a given URI. This works by traversing up the path component of the
  * provided URI until a client at the same level is found. This works because clients in the LspClientStore use their
  * root path as the their address in the Map.
@@ -23,13 +32,13 @@ export const clientIsAlive = (client: defs.LspClient) => {
  * must be explicitly referenced.
  */
 export const getActiveClientForUri = (clients: defs.LspClientStore, uri: vscode.Uri) => {
-  let current = uri.path;
-  while (current !== '/') {
+  let current = uri.fsPath;
+  while (!isRoot(current)) {
     const client = clients.get(current);
     if (client && clientIsAlive(client)) {
       return client;
     }
-    current = path.resolve(current, '..');
+    current = path.join(current, '..');
   }
   const fallback_client = clients.get(FALLBACK_CLIENT_ID);
   if (fallback_client && clientIsAlive(fallback_client)) {

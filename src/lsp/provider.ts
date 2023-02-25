@@ -101,7 +101,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
   };
 
   let lsp_server_path: Promise<string | void> | undefined = undefined;
-  const provisionClient = async (uri: vscode.Uri, id = uri.path) => {
+  const provisionClient = async (uri: vscode.Uri, id = uri.fsPath) => {
     if (lsp_server_path === undefined) {
       lsp_server_path = lsp_client.ensureLSPServer(params.context).catch((err) => {
         console.error('Failed to download lsp server', err);
@@ -150,12 +150,20 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
     });
   };
 
+  /**
+   * Provision a fallback lsp client in an OS temp directory to service any clojure files not part of any opened
+   * valid clojure projects.
+   *
+   * This logic has been disabled for now as it does not function correctly on Windows. This can be re-enabled
+   * once support for windows has been added.
+   */
   const provisionFallbackClient = async () => {
+    return;
     const dir = path.join(os.tmpdir(), 'calva-clojure-lsp');
     await fs.mkdir(dir, {
       recursive: true,
     });
-    return provisionClient(vscode.Uri.parse(dir), api.FALLBACK_CLIENT_ID);
+    return provisionClient(vscode.Uri.file(dir), api.FALLBACK_CLIENT_ID);
   };
 
   const provisionClientForOpenedDocument = async (document: vscode.TextDocument) => {
@@ -181,10 +189,16 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
 
   const provisionClientInFirstWorkspaceRoot = async () => {
     const folder = vscode.workspace.workspaceFolders[0];
-    if (folder && (await project_utils.isValidClojureProject(folder.uri))) {
-      return provisionClient(folder.uri);
+    if (!folder) {
+      return;
     }
-    return provisionFallbackClient();
+    return provisionClient(folder.uri);
+
+    // TODO: Rather provision fallback client if not a valid clojure project:
+    // if (folder && (await project_utils.isValidClojureProject(folder.uri))) {
+    //   return provisionClient(folder.uri);
+    // }
+    // return provisionFallbackClient();
   };
 
   return {

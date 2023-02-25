@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Monorepo setup working on v2.0.333, broken on v2.0.334](https://github.com/BetterThanTomorrow/calva/issues/2088)
+- Fix: [Calva v2.0.333 has startup and repl issues on Windows](https://github.com/BetterThanTomorrow/calva/issues/2087)
+
 ## [2.0.334] - 2023-02-22
 
 - Rollback of 2.0.333, first part of: [Calva v2.0.333 is not working for me in VSCode Insiders on Windows 11](https://github.com/BetterThanTomorrow/calva/issues/2087)
