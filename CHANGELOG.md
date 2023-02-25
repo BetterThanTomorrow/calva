@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Reintroducing features in v2.0.333, except the fallback clojure-lsp server, see #2090 for details
 - Fix: [Monorepo setup working on v2.0.333, broken on v2.0.334](https://github.com/BetterThanTomorrow/calva/issues/2088)
 - Fix: [Calva v2.0.333 has startup and repl issues on Windows](https://github.com/BetterThanTomorrow/calva/issues/2087)
 
