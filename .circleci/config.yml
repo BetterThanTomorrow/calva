@@ -1,19 +1,4 @@
 version: 2.1
-
-.test-e2e-head: &test-e2e-head
-  docker:
-    - image: cimg/clojure:1.11-browsers
-  working_directory: ~/calva
-  steps:
-    - attach_workspace:
-        at: /tmp
-    - run:
-        name: Restore build
-        command: rmdir ~/calva && cp -r /tmp/build ~/calva
-    - run:
-        name: Apt install missing dependencies
-        command: sudo apt update && sudo apt install -y libnss3
-
 jobs:
   checkout:
     docker:
@@ -234,17 +219,41 @@ jobs:
       - store_test_results:
           path: ~/calva/junit
   test-e2e:
-    <<: *test-e2e-head
+    docker:
+      - image: cimg/clojure:1.11-browsers
+    working_directory: ~/calva
     steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Restore build
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
+      - run:
+          name: Apt install missing dependencies
+          command: sudo apt update && sudo apt install -y libnss3
       - run:
           name: Run VSIX E2E Tests
           command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=src/extension-test/e2e-test
+      - store_test_results:
+          path: ~/calva/junit
   test-e2e-sub-projects:
-    <<: *test-e2e-head
+    docker:
+      - image: cimg/clojure:1.11-browsers
+    working_directory: ~/calva
     steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Restore build
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
+      - run:
+          name: Apt install missing dependencies
+          command: sudo apt update && sudo apt install -y libnss3
       - run:
           name: Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
           command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=test-data/projects/e2e-sub-projects
+      - store_test_results:
+          path: ~/calva/junit
   github-release:
     docker:
       - image: cibuilds/github:0.10
