@@ -2878,7 +2878,7 @@
     "compile-ts": "npx tsc --project ./tsconfig.json",
     "compile": "npm run compile-cljs && npm run compile-ts",
     "watch-ts": "npx tsc --watch --project ./tsconfig.json",
-    "watch-cljs": "npx shadow-cljs watch :calva-lib :test",
+    "watch-cljs": "npx shadow-cljs -d cider/cider-nrepl:0.28.5 watch :calva-lib :test",
     "watch-ts-with-strict-nulls": "npx tsc --watch --project ./tsconfig.json --strictNullChecks",
     "release-cljs": "npx shadow-cljs release :calva-lib :test",
     "release": "webpack --mode production",
