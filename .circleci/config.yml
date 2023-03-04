@@ -39,14 +39,14 @@ jobs:
   checkout-win:
     executor: 
       name: win/default # executor type
+      shell: bash.exe
     working_directory: C:\calva
     steps:
       - attach_workspace:
           at: C:\tmp
       - checkout:
           path: C:\calva
-      - node/install:
-          shell: bash.exe
+      - node/install
       - restore_cache:
           name: Restore dependencies
           key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
