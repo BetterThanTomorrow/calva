@@ -47,19 +47,16 @@ jobs:
       - checkout:
           path: C:\calva
       - node/install
+      - run:
+          name: Install node_modules
+          command: cp package.json /c/tmp && npm install && cp /c/tmp/package.json .
       - restore_cache:
           name: Restore dependencies
           key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
-          shell: bash.exe
-          name: Install node_modules
-          command: cp package.json /c/tmp && npm install && cp /c/tmp/package.json .
-      - run:
-          shell: bash.exe
           name: Create build workspace
           command: mkdir /c/tmp/build
       - run:
-          shell: bash.exe
           name: Copy build
           command: |
             cp -r . /c/tmp/build
