@@ -1,6 +1,10 @@
 version: 2.1
-
-.checkout-steps: &checkout-steps-common
+jobs:
+  checkout:
+    docker:
+      - image: cimg/openjdk:17.0.1-node
+    working_directory: ~/calva
+    steps:
       - attach_workspace:
           at: /tmp
       - checkout:
@@ -27,18 +31,6 @@ version: 2.1
           root: /tmp
           paths:
             - build
-
-jobs:
-  checkout:
-    docker:
-      - image: cimg/openjdk:17.0.1-node
-    working_directory: ~/calva
-    steps:
-      - <<: [*checkout-steps-common]
-      - run:
-          name: Hello World
-          command: |
-            echo "Hello World!"
   build:
     docker:
       - image: cimg/clojure:1.11-node
