@@ -45,7 +45,8 @@ jobs:
           at: C:\tmp
       - checkout:
           path: C:\calva
-      - node/install
+      - node/install:
+          shell: bash.exe
       - restore_cache:
           name: Restore dependencies
           key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
