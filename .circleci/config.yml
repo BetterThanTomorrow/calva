@@ -35,7 +35,7 @@ jobs:
           root: /tmp
           paths:
             - build
-  windows-checkout:
+  checkout-win:
     executor: 
       name: win/default # executor type
     working_directory: C:\calva
@@ -481,7 +481,7 @@ workflows:
           filters:
             tags:
               ignore: /^v\d+\.\d+\.\d+-?.*/
-      - checkout-windows:
+      - checkout-win:
           filters:
             tags:
               ignore: /^v\d+\.\d+\.\d+-?.*/
