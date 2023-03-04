@@ -48,15 +48,18 @@ jobs:
           name: Restore dependencies
           key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
+          shell: bash.exe
           name: Install node_modules
-          command: copy package.json C:\tmp && npm install && copy C:\tmp\package.json .
+          command: cp package.json /mnt/c/tmp && npm install && cp /mnt/c/tmp/package.json .
       - run:
+          shell: bash.exe
           name: Create build workspace
-          command: mkdir C:\tmp\build
+          command: mkdir /mnt/c/tmp/build
       - run:
+          shell: bash.exe
           name: Copy build
           command: |
-            xcopy /E /I /Y . C:\tmp\build
+            cp -r . /mnt/c/tmp/build
       - save_cache:
           name: Save dependencies
           key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
