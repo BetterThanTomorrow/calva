@@ -1,4 +1,8 @@
 version: 2.1
+
+orbs:
+  ubuntu: circleci/ubuntu@1.0.0
+  
 jobs:
   checkout:
     docker:
