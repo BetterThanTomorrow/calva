@@ -1,8 +1,8 @@
 version: 2.1
 
 orbs:
-  ubuntu: circleci/ubuntu@1.0.0
-  
+  win: circleci/windows@5.0 
+
 jobs:
   checkout:
     docker:
@@ -35,35 +35,35 @@ jobs:
           root: /tmp
           paths:
             - build
-  checkout-windows:
-    executor:
-      name: ubuntu/wsl
-    working_directory: ~/calva
+  windows-checkout:
+    executor: 
+      name: win/default # executor type
+    working_directory: C:\calva
     steps:
       - attach_workspace:
-          at: /tmp
+          at: C:\tmp
       - checkout:
-          path: ~/calva
+          path: C:\calva
       - restore_cache:
           name: Restore dependencies
-          key: windows-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+          key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Install node_modules
-          command: cp package.json /tmp && npm install && cp /tmp/package.json .
+          command: copy package.json C:\tmp && npm install && copy C:\tmp\package.json .
       - run:
           name: Create build workspace
-          command: mkdir /tmp/build
+          command: mkdir C:\tmp\build
       - run:
           name: Copy build
           command: |
-            cp -r . /tmp/build
+            xcopy /E /I /Y . C:\tmp\build
       - save_cache:
           name: Save dependencies
-          key: windows-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+          key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
           paths:
             - ./node_modules
       - persist_to_workspace:
-          root: /tmp
+          root: C:\tmp
           paths:
             - build
   build:
