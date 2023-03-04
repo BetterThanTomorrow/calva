@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump bundled deps.clj to v1.11.1.1237
+
 ## [2.0.335] - 2023-02-25
 
 - Reintroducing features in v2.0.333, except the fallback clojure-lsp server, see #2090 for details
