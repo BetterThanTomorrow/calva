@@ -50,16 +50,16 @@ jobs:
       - run:
           shell: bash.exe
           name: Install node_modules
-          command: cp package.json /mnt/c/tmp && npm install && cp /mnt/c/tmp/package.json .
+          command: cp package.json /c/tmp && npm install && cp /c/tmp/package.json .
       - run:
           shell: bash.exe
           name: Create build workspace
-          command: mkdir /mnt/c/tmp/build
+          command: mkdir /c/tmp/build
       - run:
           shell: bash.exe
           name: Copy build
           command: |
-            cp -r . /mnt/c/tmp/build
+            cp -r . /c/tmp/build
       - save_cache:
           name: Save dependencies
           key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
