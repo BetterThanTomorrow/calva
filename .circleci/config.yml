@@ -481,10 +481,12 @@ workflows:
   build-test:
     jobs:
       - checkout:
+          parallelism: 2
           filters:
             tags:
               ignore: /^v\d+\.\d+\.\d+-?.*/
       - checkout-win:
+          parallelism: 2
           filters:
             tags:
               ignore: /^v\d+\.\d+\.\d+-?.*/
