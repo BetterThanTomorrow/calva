@@ -38,7 +38,8 @@ jobs:
             - build
   checkout-win:
     executor: 
-      name: win/default # executor type
+      name: win/default
+      resource_class: windows.large 
       shell: bash.exe
     working_directory: C:\calva
     steps:
@@ -161,7 +162,8 @@ jobs:
             - env
   build-win:
     executor: 
-      name: win/default # executor type
+      name: win/default
+      resource_class: windows.large 
       shell: bash.exe
     working_directory: C:\calva
     steps:
