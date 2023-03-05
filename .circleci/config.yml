@@ -47,6 +47,9 @@ jobs:
       - checkout:
           path: C:\calva
       #- node/install
+      - restore_cache:
+          name: Restore dependencies
+          key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Install nodejs
           command: |
@@ -55,9 +58,6 @@ jobs:
       - run:
           name: Install node_modules
           command: cp package.json /c/tmp && npm install && cp /c/tmp/package.json .
-      - restore_cache:
-          name: Restore dependencies
-          key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Create build workspace
           command: mkdir /c/tmp/build
@@ -81,6 +81,9 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp
+      - restore_cache:
+          name: Restore dependencies
+          key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Restore build
           command: rmdir ~/calva && cp -r /tmp/build ~/calva
@@ -164,6 +167,9 @@ jobs:
     steps:
       - attach_workspace:
           at: /c/tmp
+      - restore_cache:
+          name: Restore dependencies
+          key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Restore build
           command: rmdir /c/calva && cp -r /c/tmp/build /c/calva
