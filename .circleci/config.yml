@@ -169,7 +169,7 @@ jobs:
           at: /c/tmp
       - run:
           name: Restore build
-          command: rmdir /c/calva && cp -r /c/tmp/build /c/calva
+          command: rm -rf /c/calva && cp -r /c/tmp/build /c/calva
       - restore_cache:
           name: Restore dependencies
           key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
