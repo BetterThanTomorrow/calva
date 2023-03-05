@@ -46,7 +46,12 @@ jobs:
           at: C:\tmp
       - checkout:
           path: C:\calva
-      - node/install
+      #- node/install
+      - run:
+          name: Install nodejs
+          command: |
+            choco install nodejs.install --force -y
+            powershell -c "refreshenv"
       - run:
           name: Install node_modules
           command: cp package.json /c/tmp && npm install && cp /c/tmp/package.json .
