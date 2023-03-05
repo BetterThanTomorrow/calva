@@ -166,13 +166,13 @@ jobs:
           at: /c/tmp
       - run:
           name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
+          command: rmdir /c/calva && cp -r /c/tmp/build /c/calva
       - run:
           name: Install CLJS dependencies
           command: npx shadow-cljs classpath
       - run:
           name: Create artifacts workspace
-          command: mkdir /tmp/artifacts
+          command: mkdir /c/tmp/artifacts
       - run:
           name: Tamper Calva version if not release versioned
           command: |
@@ -219,12 +219,12 @@ jobs:
       - run:
           name: Copy vsix
           command: |
-            cp *.vsix /tmp/artifacts/
+            cp *.vsix /c/tmp/artifacts/
       - run:
           name: Copy build
           command: |
-            cp -r out /tmp/build
-            cp  package.json /tmp/build
+            cp -r out /c/tmp/build
+            cp  package.json /c/tmp/build
       - save_cache:
           name: Save dependencies
           key: win-ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
