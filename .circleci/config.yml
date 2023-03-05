@@ -83,7 +83,7 @@ jobs:
           at: /tmp
       - run:
           name: Restore build
-          command: rmdir ~/calva && cp -r /c/tmp/build ~/calva
+          command: rmdir ~/calva && cp -r /tmp/build ~/calva
       - run:
           name: Install CLJS dependencies
           command: npx shadow-cljs classpath
