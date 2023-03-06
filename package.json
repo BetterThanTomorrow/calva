@@ -2880,7 +2880,7 @@
     "watch-ts": "npx tsc --watch --project ./tsconfig.json",
     "watch-cljs": "npx shadow-cljs -d cider/cider-nrepl:0.28.5 watch :calva-lib :test",
     "watch-ts-with-strict-nulls": "npx tsc --watch --project ./tsconfig.json --strictNullChecks",
-    "release-cljs": "npx shadow-cljs release :calva-lib :test",
+    "release-cljs": "clojure -M -m shadow.cljs.devtools.cli release :calva-lib :test",
     "release": "webpack --mode production",
     "prerelease": "npm run precompile && npm run release-cljs",
     "compile-test": "tsc -p ./",
