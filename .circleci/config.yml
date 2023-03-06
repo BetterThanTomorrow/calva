@@ -186,6 +186,7 @@ jobs:
           command: |
             PowerShell -Command "iwr -useb https://raw.githubusercontent.com/borkdude/deps.clj/master/install.ps1 | iex"
             cp ~/deps.clj/deps.exe /usr/bin/clojure
+            powershell -c "refreshenv"
             clojure --version
       - run:
           name: Install CLJS dependencies
