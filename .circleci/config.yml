@@ -255,7 +255,7 @@ jobs:
       - store_artifacts:
           path: /c/tmp/artifacts
       - persist_to_workspace:
-          root: /c/tmp
+          root: C:\tmp
           paths:
             - artifacts
             - build
