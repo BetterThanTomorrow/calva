@@ -39,7 +39,6 @@ jobs:
   checkout-win:
     executor: 
       name: win/default
-      size: large 
       shell: bash.exe
     working_directory: C:\calva
     steps:
@@ -163,7 +162,6 @@ jobs:
   build-win:
     executor: 
       name: win/default
-      size: large 
       shell: bash.exe
     working_directory: C:\calva
     steps:
@@ -329,6 +327,20 @@ jobs:
           command: npm run calva-lib-test
       - store_test_results:
           path: ~/calva/junit
+  test-cljslib-win:
+    executor: 
+      name: win/default
+      shell: bash.exe
+    working_directory: C:\calva
+    steps:
+      - attach_workspace:
+          at: C:\tmp
+      - run:
+          name: Restore build
+          command: mkdir /c/calva; cp -r /c/tmp/build/* /c/calva/
+      - run:
+          name: Run CLJS Tests
+          command: npm run calva-lib-test
   test-ts-unit:
     docker:
       - image: circleci/node:latest
@@ -344,6 +356,20 @@ jobs:
           command: npm run unit-test
       - store_test_results:
           path: ~/calva/junit
+  test-ts-unit-win:
+    executor: 
+      name: win/default
+      shell: bash.exe
+    working_directory: C:\calva
+    steps:
+      - attach_workspace:
+          at: C:\tmp
+      - run:
+          name: Restore build
+          command: mkdir /c/calva; cp -r /c/tmp/build/* /c/calva/
+      - run:
+          name: Run TS Unit Tests
+          command: npm run unit-test
   test-integration:
     docker:
       - image: cimg/clojure:1.11-browsers
@@ -365,6 +391,23 @@ jobs:
           command: npm run integration-test
       - store_test_results:
           path: ~/calva/junit
+  test-integration-win:
+    executor: 
+      name: win/default
+      shell: bash.exe
+    working_directory: C:\calva
+    steps:
+      - attach_workspace:
+          at: C:\tmp
+      - run:
+          name: Restore build
+          command: mkdir /c/calva; cp -r /c/tmp/build/* /c/calva/
+      - run:
+          name: Compile Extension Tests
+          command: npm run compile-test
+      - run:
+          name: Run Extension Tests
+          command: npm run integration-test
   test-e2e:
     docker:
       - image: cimg/clojure:1.11-browsers
@@ -618,6 +661,12 @@ workflows:
       - test-integration:
           requires:
             - build
+      - test-cljslib-win:
+          requires:
+            - build-win
+      - test-integration-win:
+          requires:
+            - build-win
       - test-e2e:
           requires:
             - build
@@ -627,6 +676,9 @@ workflows:
       - test-ts-unit:
           requires:
             - build
+      - test-ts-unit-win:
+          requires:
+            - build-win
       - marketplace-preview-publish:
           requires:
             - prettier-check
@@ -637,6 +689,9 @@ workflows:
             - test-e2e
             - test-e2e-sub-projects
             - test-ts-unit
+            - test-cljslib-win
+            - test-integration-win
+            - test-ts-unit-win
           filters:
             branches:
               only: disabled # dev (disabled for now because https://github.com/microsoft/vsmarketplace/issues/310)
