@@ -12,4 +12,4 @@
 (deftest-async joyride-required
   (testing "Requires the Joyride extension"
     (p/let [question (joyride/runCode "42")]
-      (is (= 42 question)))))
+      (is (= 43 question)))))
