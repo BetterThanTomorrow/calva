@@ -173,7 +173,10 @@ export const ensureServerDownloaded = async (
       return false;
     });
 
-  if (
+  // If there's no existing clojure-lsp file, and we can't fetch the latest version, throw an error, because the download of clojure-lsp will fail
+  if (downloadVersion === '' && !exists) {
+    throw 'Could not fetch latest version for clojure-lsp. Please check your internet connection and try again. You can also download clojure-lsp manually and set the path in the Calva settings. See https://calva.io/clojure-lsp/#using-a-custom-clojure-lsp for more info.';
+  } else if (
     (currentVersion !== downloadVersion && downloadVersion !== '') ||
     forceDownload ||
     downloadVersion === 'nightly' ||
