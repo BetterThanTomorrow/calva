@@ -77,6 +77,8 @@ jobs:
   build:
     docker:
       - image: cimg/clojure:1.11-node
+    resource_class:
+      large
     working_directory: ~/calva
     steps:
       - attach_workspace:
@@ -339,6 +341,11 @@ jobs:
           name: Restore build
           command: mkdir /c/calva; cp -r /c/tmp/build/* /c/calva/
       - run:
+          name: Install nodejs
+          command: |
+            choco install nodejs.install --force -y
+            powershell -c "refreshenv"
+      - run:
           name: Run CLJS Tests
           command: npm run calva-lib-test
   test-ts-unit:
@@ -367,6 +374,11 @@ jobs:
       - run:
           name: Restore build
           command: mkdir /c/calva; cp -r /c/tmp/build/* /c/calva/
+      - run:
+          name: Install nodejs
+          command: |
+            choco install nodejs.install --force -y
+            powershell -c "refreshenv"
       - run:
           name: Run TS Unit Tests
           command: npm run unit-test
@@ -402,6 +414,11 @@ jobs:
       - run:
           name: Restore build
           command: mkdir /c/calva; cp -r /c/tmp/build/* /c/calva/
+      - run:
+          name: Install nodejs
+          command: |
+            choco install nodejs.install --force -y
+            powershell -c "refreshenv"
       - run:
           name: Compile Extension Tests
           command: npm run compile-test
