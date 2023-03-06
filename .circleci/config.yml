@@ -461,9 +461,7 @@ jobs:
             powershell -c "refreshenv"
       - run:
           name: Run VSIX E2E Tests
-          command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=src/extension-test/e2e-test
-      - store_test_results:
-          path: ~/calva/junit
+          command: npm run e2e-test -- --calva-vsix=/c/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=src/extension-test/e2e-test
   test-e2e-sub-projects:
     docker:
       - image: cimg/clojure:1.11-browsers
@@ -500,9 +498,7 @@ jobs:
             powershell -c "refreshenv"
       - run:
           name: Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
-          command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=test-data/projects/e2e-sub-projects
-      - store_test_results:
-          path: ~/calva/junit
+          command: npm run e2e-test -- --calva-vsix=/c/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=test-data/projects/e2e-sub-projects
   github-release:
     docker:
       - image: cibuilds/github:0.10
