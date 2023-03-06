@@ -443,6 +443,27 @@ jobs:
           command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=src/extension-test/e2e-test
       - store_test_results:
           path: ~/calva/junit
+  test-e2e-win:
+    executor: 
+      name: win/default
+      shell: bash.exe
+    working_directory: C:\calva
+    steps:
+      - attach_workspace:
+          at: C:\tmp
+      - run:
+          name: Restore build
+          command: mkdir /c/calva; cp -r /c/tmp/build/* /c/calva/
+      - run:
+          name: Install nodejs
+          command: |
+            choco install nodejs.install --force -y
+            powershell -c "refreshenv"
+      - run:
+          name: Run VSIX E2E Tests
+          command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=src/extension-test/e2e-test
+      - store_test_results:
+          path: ~/calva/junit
   test-e2e-sub-projects:
     docker:
       - image: cimg/clojure:1.11-browsers
@@ -456,6 +477,27 @@ jobs:
       - run:
           name: Apt install missing dependencies
           command: sudo apt update && sudo apt install -y libnss3
+      - run:
+          name: Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
+          command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=test-data/projects/e2e-sub-projects
+      - store_test_results:
+          path: ~/calva/junit
+  test-e2e-sub-projects-win:
+    executor: 
+      name: win/default
+      shell: bash.exe
+    working_directory: C:\calva
+    steps:
+      - attach_workspace:
+          at: C:\tmp
+      - run:
+          name: Restore build
+          command: mkdir /c/calva; cp -r /c/tmp/build/* /c/calva/
+      - run:
+          name: Install nodejs
+          command: |
+            choco install nodejs.install --force -y
+            powershell -c "refreshenv"
       - run:
           name: Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
           command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=test-data/projects/e2e-sub-projects
@@ -687,9 +729,15 @@ workflows:
       - test-e2e:
           requires:
             - build
+      - test-e2e-win:
+          requires:
+            - build-win
       - test-e2e-sub-projects:
           requires:
             - build
+      - test-e2e-sub-projects-win:
+          requires:
+            - build-win
       - test-ts-unit:
           requires:
             - build
@@ -709,6 +757,8 @@ workflows:
             - test-cljslib-win
             - test-integration-win
             - test-ts-unit-win
+            - test-e2e-win
+            - test-e2e-sub-projects-win
           filters:
             branches:
               only: disabled # dev (disabled for now because https://github.com/microsoft/vsmarketplace/issues/310)
@@ -721,9 +771,23 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
+      - checkout-win:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
       - build:
           requires:
             - checkout
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - build-win:
+          requires:
+            - checkout-win
           filters:
             branches:
               ignore: /.*/
@@ -761,9 +825,25 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
+      - test-cljslib-win:
+          requires:
+            - build-win
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
       - test-integration:
           requires:
             - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - test-integration-win:
+          requires:
+            - build-win
           filters:
             branches:
               ignore: /.*/
@@ -777,9 +857,25 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
+      - test-e2e-win:
+          requires:
+            - build-win
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
       - test-e2e-sub-projects:
           requires:
             - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - test-e2e-sub-projects-win:
+          requires:
+            - build-win
           filters:
             branches:
               ignore: /.*/
@@ -793,16 +889,29 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
+      - test-ts-unit-win:
+          requires:
+            - build-win
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
       - github-release:
           requires:
             - prettier-check
             - eslint-check
             - test-grammar
             - test-cljslib
+            - test-cljslib-win
             - test-integration
+            - test-integration-win
             - test-e2e
+            - test-e2e-win
             - test-e2e-sub-projects
+            - test-e2e-sub-projects-win
             - test-ts-unit
+            - test-ts-unit-win
           filters:
             branches:
               ignore: /.*/
