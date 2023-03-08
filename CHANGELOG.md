@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Bump bundled deps.clj to v1.11.1.1237
+- Bump bundled deps.clj to v1.11.1.1252
 
 ## [2.0.335] - 2023-02-25
 
