@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Move auto-selecting project type config to Connect Sequences](https://github.com/BetterThanTomorrow/calva/issues/2094)
 - Bump bundled deps.clj to v1.11.1.1252
 - Fix: [Calva does not gracefully handle when clojure-lsp cannot be downloaded](https://github.com/BetterThanTomorrow/calva/issues/2064)
 

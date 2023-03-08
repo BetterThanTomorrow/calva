@@ -72,20 +72,7 @@ If your project is setup so that the REPL server is started by the application c
 
 ## Auto-select Project Type
 
-You can make both Jack-in and Connect stop prompting you for project type in projects where you always want to use the same. The setting `calva.autoSelectReplConnectProjectType` is used for this. Here's how to use it:
-
-1. Connect the REPL and manually select the project type/connect sequence you want to use.
-1. In the Output/REPL window Calva will print about auto-selecting project type, including the value you need. **Copy this value**
-1. In VS Code Settings, search for ”Calva auto” and you will find the setting
-1. Make sure you are editing Workspace settings
-1. **Paste the project type value you copied above**
-
-Next time you connect the REPL, Calva will use this value and the project type prompt will not be shown.
-
-To make Calva prompt for the project type, reset this setting (there's a cog icon there giving you an option to do this).
-
-!!! Or edit Workspace Settings JSON
-    You can of course also edit this setting manually in `.vscode/settings.json` for the workspace. ”Reset” is then equivalent to removing the setting from this file.
+You can make both Jack-in and Connect stop prompting you for project type in projects where you always want to use the same. See [Connect Sequences](connect-sequences.md).
 
 ## Monorepos / multiple Clojure projects in one workspace
 

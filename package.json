@@ -378,6 +378,7 @@
             "description": "Specifies any environment variables your project needs. (Probably mostly for your Workspace Settings.)"
           },
           "calva.autoSelectReplConnectProjectType": {
+            "deprecationMessage": "Deprecated in favour of `autoSelect` in `calva.replConnectSequences`",
             "type": "string",
             "default": null,
             "description": "When set Calva will not prompt for a project type, at Jack-in or Connect. Instead the project name specified here will be used. (Probably mostly for your Workspace Settings.)"
@@ -551,6 +552,10 @@
                     "lein-shadow",
                     "generic"
                   ]
+                },
+                "autoSelect": {
+                  "type": "boolean",
+                  "description": "If true, this sequence will be automatically selected, suppressing the Project Type menu when connecting to a REPL or Jacking in."
                 },
                 "nReplPortFile": {
                   "type": "array",

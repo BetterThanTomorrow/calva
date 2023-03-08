@@ -54,6 +54,7 @@ interface MenuSelections {
 interface ReplConnectSequence {
   name: string;
   projectType: ProjectTypes;
+  autoSelect?: boolean;
   afterCLJReplJackInCode?: string;
   cljsType: CljsTypes | CljsTypeConfig;
   menuSelections?: MenuSelections;
@@ -288,15 +289,14 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
 const autoSelectProjectTypeSetting: `calva.${keyof Config}` =
   'calva.autoSelectReplConnectProjectType';
 
-const autoSelectDocLink = `  - See https://calva.io/connect/#auto-select-project-type`;
+const connectSequencesDocLink = `  - See https://calva.io/connect-sequences/`;
 
 const defaultProjectSettingMsg = (project: string) =>
   formatAsLineComments(
     [
       `Connecting using "${project}" project type.`,
-      `You can make Calva auto-select this:`,
-      `"${autoSelectProjectTypeSetting}": "${project}"`,
-      autoSelectDocLink,
+      `You can make Calva auto-select this.`,
+      connectSequencesDocLink,
       '\n',
     ].join('\n')
   );
@@ -361,7 +361,22 @@ function getUserSpecifiedSequence(
   sequences: ReplConnectSequence[],
   saveAsPath: string
 ): ReplConnectSequence | undefined {
-  const userSpecifiedProjectType = getConfig().autoSelectReplConnectProjectType;
+  if (getConfig().autoSelectReplConnectProjectType) {
+    outputWindow.appendLine(
+      formatAsLineComments(
+        [
+          `Note: The config "${autoSelectProjectTypeSetting}" is deprecated.`,
+          connectSequencesDocLink,
+          '\n',
+        ].join('\n')
+      )
+    );
+  }
+
+  const autoSelectedSequence = sequences.find((s) => s.autoSelect);
+  const userSpecifiedProjectType = autoSelectedSequence
+    ? autoSelectedSequence.name
+    : getConfig().autoSelectReplConnectProjectType;
 
   if (userSpecifiedProjectType) {
     const defaultSequence = sequences.find(
@@ -374,7 +389,7 @@ function getUserSpecifiedSequence(
           [
             `Auto-selecting project type "${defaultSequence.name}".`,
             `You can change this from settings:`,
-            autoSelectDocLink,
+            connectSequencesDocLink,
             '\n',
           ].join('\n')
         )
@@ -391,7 +406,7 @@ function getUserSpecifiedSequence(
           [
             `Project type "${userSpecifiedProjectType}" not found.`,
             `You need to update the auto-select setting.`,
-            autoSelectDocLink,
+            connectSequencesDocLink,
             '\n',
           ].join('\n')
         )
