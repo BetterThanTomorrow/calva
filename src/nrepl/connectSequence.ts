@@ -55,6 +55,7 @@ interface ReplConnectSequence {
   name: string;
   projectType: ProjectTypes;
   autoSelect?: boolean;
+  projectRootPath?: string;
   afterCLJReplJackInCode?: string;
   cljsType: CljsTypes | CljsTypeConfig;
   menuSelections?: MenuSelections;
@@ -359,7 +360,7 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
 
 function getUserSpecifiedSequence(
   sequences: ReplConnectSequence[],
-  saveAsPath: string
+  saveAs: string
 ): ReplConnectSequence | undefined {
   if (getConfig().autoSelectReplConnectProjectType) {
     outputWindow.appendLine(
@@ -394,6 +395,9 @@ function getUserSpecifiedSequence(
           ].join('\n')
         )
       );
+
+      const projectRootUri = state.getProjectRootUri();
+      const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
       void state.extensionContext.workspaceState.update(
         `d-${saveAsPath}`,
         defaultSequence.projectType
@@ -426,7 +430,7 @@ async function askForConnectSequence(
   const projectRootUri = state.getProjectRootUri();
   const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
 
-  const defaultSequence = getUserSpecifiedSequence(sequences, saveAsPath);
+  const defaultSequence = getUserSpecifiedSequence(sequences, saveAs);
 
   const projectConnectSequenceName =
     defaultSequence?.name ??
@@ -451,6 +455,7 @@ async function askForConnectSequence(
 }
 
 export {
+  getCustomConnectSequences,
   askForConnectSequence,
   getDefaultCljsType,
   CljsTypes,

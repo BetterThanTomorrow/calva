@@ -6,6 +6,7 @@ import * as path from 'path';
 import * as child from 'child_process';
 import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
 import * as projectRoot from './project-root';
+import { getCustomConnectSequences, ReplConnectSequence } from './nrepl/connectSequence';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -195,10 +196,19 @@ export async function initProjectDir() {
   const closestRootPath: vscode.Uri = active_uri
     ? projectRoot.findClosestParent(active_uri, candidatePaths)
     : undefined;
-  const projectRootPath: vscode.Uri = await projectRoot.pickProjectRoot(
-    candidatePaths,
-    closestRootPath
-  );
+
+  const sequences: ReplConnectSequence[] = getCustomConnectSequences();
+
+  const defaultSequence = sequences.find((s) => s.autoSelect && !!s.projectRootPath);
+
+  const projectRootPath: vscode.Uri = defaultSequence
+    ? vscode.Uri.parse(
+        path.resolve(
+          vscode.workspace.workspaceFolders[0].uri.fsPath,
+          defaultSequence.projectRootPath
+        )
+      )
+    : await projectRoot.pickProjectRoot(candidatePaths, closestRootPath);
   if (projectRootPath) {
     setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
     setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
