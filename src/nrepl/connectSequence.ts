@@ -343,7 +343,7 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
   return sequences;
 }
 
-function askToSetDefaultProjectForJackIn(project: string) {
+function informAboutDefaultProjectForJackIn(project: string) {
   outputWindow.appendLine(defaultProjectSettingMsg(project));
 }
 
@@ -428,7 +428,6 @@ async function askForConnectSequence(
 
   const defaultSequence = getUserSpecifiedSequence(sequences, saveAsPath);
 
-  void state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', true);
   const projectConnectSequenceName =
     defaultSequence?.name ??
     (await utilities.quickPickSingle({
@@ -440,9 +439,8 @@ async function askForConnectSequence(
       autoSelect: true,
     }));
 
-  !defaultSequence && void askToSetDefaultProjectForJackIn(projectConnectSequenceName);
+  !defaultSequence && void informAboutDefaultProjectForJackIn(projectConnectSequenceName);
 
-  void state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', false);
   if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
     state.analytics().logEvent('REPL', logLabel, 'NoProjectTypePicked').send();
     return;
