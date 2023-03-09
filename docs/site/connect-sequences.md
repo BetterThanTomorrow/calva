@@ -20,7 +20,8 @@ A connect sequence configures the following:
 
 * `name`: (required) This will show up in the Jack-in quick-pick menu when you start Jack-in (see above).
 * `projectType`: (required) This is either "Leiningen”, ”deps.edn”, ”shadow-cljs”, ”lein-shadow”, "Gradle", or ”generic".
-* `autoSelect`: A boolean. If true, this sequence will be automatically selected, suppressing the Project Type menu when connecting to a REPL or Jacking in
+* `autoSelect`: A boolean.If true, this sequence will be automatically selected, suppressing the Project Type menu when connecting to a REPL or Jacking in. Use together with `projectRootPath` to also suppress the Project Root menu. Add usage of `menuSelections` to go for a prompt-less REPL connection. If you have more than one sequence with `autoSelect` set to true, the first one will be used.
+* `projectRootPath`: An array of path segments leading to the root of the project for which this connect sequence should go with. Use together with `autoSelect` to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder. So relative paths will only work for this first folder.
 * `nReplPortFile`: An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be `[".shadow-cljs", "nrepl.port"]`.
 * `afterCLJReplJackInCode`: Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.
 * `cljsType`: This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", "none", or a dictionary configuring a custom type. If set to "none", Calva will skip connecting a ClojureScript repl. A custom type has the following fields:
@@ -44,12 +45,12 @@ A connect sequence configures the following:
 
 The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts) also use this format, check them out to get a clearer picture of how these settings work.
 
-!!! Note "Apropos the **ClojureScript nREPL Server** built-in sequence"
-    Because of ancient decisions in the design of Calva session management, the current implementation of the ClojureScript nREPL Server connect sequence is a workaround. Calva will still indicate that it has a Clojure session available, which is nonsense in a pure ClojureScript nREPL environment. This session is also a ClojureScript session.
+!!! Note "Path segments"
+    `projectRootPath` and `nReplPortFile` both take an array of path segments. This is to make the paths wor cross-platform. If you can't be bothered splitting up the path in segments, put the whole path in the first segment, though please note that if you use Windows path separators, these will not work for users with Linux or macOS.
 
 ## Example Sequences
 
-Wether you hust want to speed up your workflow, or encode some workflow/mechanics into it, there's often that you can create a custyom sequence that helps.
+Wether you just want to speed up your workflow, or encode some workflow/mechanics into it, there's often that you can create a custom sequence that helps.
 
 ### Minimal menus with full stack shadow-cljs REPLs
 

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import * as state from '../state';
 import * as utilities from '../utilities';
 import { Config, getConfig } from '../config';
@@ -55,7 +56,7 @@ interface ReplConnectSequence {
   name: string;
   projectType: ProjectTypes;
   autoSelect?: boolean;
-  projectRootPath?: string;
+  projectRootPath?: string[];
   afterCLJReplJackInCode?: string;
   cljsType: CljsTypes | CljsTypeConfig;
   menuSelections?: MenuSelections;
@@ -445,10 +446,13 @@ async function askForConnectSequence(
 
   if (
     sequence.projectRootPath &&
-    state.getProjectRootUri().fsPath !== state.resolvePath(sequence.projectRootPath).fsPath
+    state.getProjectRootUri().fsPath !==
+      state.resolvePath(path.join(...sequence.projectRootPath)).fsPath
   ) {
     throw new Error(
-      `The connect sequence "${sequence.name}" is configured for project root "${sequence.projectRootPath}". Aborting.`
+      `The connect sequence "${sequence.name}" is configured for project root "${path.join(
+        ...sequence.projectRootPath
+      )}". Aborting.`
     );
   }
 

@@ -205,7 +205,7 @@ export async function initProjectDir() {
     ? vscode.Uri.parse(
         path.resolve(
           vscode.workspace.workspaceFolders[0].uri.fsPath,
-          defaultSequence.projectRootPath
+          ...defaultSequence.projectRootPath
         )
       )
     : await projectRoot.pickProjectRoot(candidatePaths, closestRootPath);
