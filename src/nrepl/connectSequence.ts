@@ -442,6 +442,16 @@ async function askForConnectSequence(
     return;
   }
   const sequence = sequences.find((seq) => seq.name === projectConnectSequenceName);
+
+  if (
+    sequence.projectRootPath &&
+    state.getProjectRootUri().fsPath !== state.resolvePath(sequence.projectRootPath).fsPath
+  ) {
+    throw new Error(
+      `The connect sequence "${sequence.name}" is configured for project root "${sequence.projectRootPath}". Aborting.`
+    );
+  }
+
   void state.extensionContext.workspaceState.update('selectedCljTypeName', sequence.projectType);
   return sequence;
 }

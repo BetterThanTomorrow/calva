@@ -229,16 +229,11 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
     excludes.push('joyride');
   }
   if (cljTypes.length > 1) {
-    const connectSequence = await askForConnectSequence(
+    return askForConnectSequence(
       cljTypes.filter((t) => !excludes.includes(t)),
       'jack-in-type',
       'JackInInterrupted'
     );
-    if (connectSequence) {
-      return connectSequence;
-    } else {
-      return Promise.reject();
-    }
   }
 }
 
@@ -262,9 +257,8 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
 
   let projectConnectSequence: ReplConnectSequence = connectSequence;
   if (!projectConnectSequence) {
-    try {
-      projectConnectSequence = await getProjectConnectSequence();
-    } catch (e) {
+    projectConnectSequence = await getProjectConnectSequence();
+    if (!projectConnectSequence) {
       outputWindow.appendLine('; Aborting jack-in. No project type selected.');
       return;
     }
