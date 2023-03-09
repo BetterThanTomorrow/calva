@@ -24,7 +24,7 @@ import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 import * as replSession from './nrepl/repl-session';
 import * as clojureDocs from './clojuredocs';
 import * as jszip from 'jszip';
-import { addEdnConfig } from './config';
+import { addEdnConfig, getConfig } from './config';
 import { getJarContents } from './utilities';
 
 async function readJarContent(uri: string) {
@@ -662,7 +662,7 @@ async function standaloneConnect(connectSequence: ReplConnectSequence) {
       .analytics()
       .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
       .send();
-    await connect(connectSequence, false).catch(() => {
+    await connect(connectSequence, getConfig().autoSelectNReplPortFromPortFile).catch(() => {
       // do nothing
     });
   } else {

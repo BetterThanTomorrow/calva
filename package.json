@@ -383,6 +383,11 @@
             "default": null,
             "markdownDescription": "Use `autoSelect` in `calva.replConnectSequences` instead of this setting."
           },
+          "calva.autoSelectNReplPortFromPortFile": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "If true, Calva will auto-select a REPL connection from the nRepl port file, suppressing the `host:port` prompt if the file exists."
+          },
           "calva.jackInDependencyVersions": {
             "type": "object",
             "description": "Versions of the dependencies injected by Calva Jack-in",

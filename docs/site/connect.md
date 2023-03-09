@@ -66,13 +66,19 @@ All this said, I still recommend you challenge the conclusion that you can't use
 !!! Note
     There is a Calva command for copying the Jack-in command line to the clipboard.
 
+### Customizing Connect
+
+If there is an nRepl port file, Calva will use it and not prompt for `host:port` when connecting. You can make Calva prompt for this by setting the boolean config `calva.autoSelectNReplPortFromPortFile` to `false`.
+
+With this and the below mentioned auto-select options you can make connect a promptless experience. See: [Connect Sequences](connect-sequences.md).
+
+## Auto-select Project Type and Project Root
+
+You can make both Jack-in and Connect stop prompting you for project type and project root path in projects where you always want to use the same. See [Connect Sequences](connect-sequences.md).
+
 ### Starting the REPL from application code?
 
 If your project is setup so that the REPL server is started by the application code, you will need to get the cider-nrepl middleware in place. See the cider-nrepl docs about [embedding nREPL in your application](https://docs.cider.mx/cider-nrepl/usage.html#via-embedding-nrepl-in-your-application).
-
-## Auto-select Project Type
-
-You can make both Jack-in and Connect stop prompting you for project type in projects where you always want to use the same. See [Connect Sequences](connect-sequences.md).
 
 ## Monorepos / multiple Clojure projects in one workspace
 
