@@ -4,7 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Bump bundled deps.clj to v1.11.1.1237
+- Bump bundled deps.clj to v1.11.1.1252
+- Fix: [Calva does not gracefully handle when clojure-lsp cannot be downloaded](https://github.com/BetterThanTomorrow/calva/issues/2064)
 
 ## [2.0.335] - 2023-02-25
 
