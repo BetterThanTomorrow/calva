@@ -72,6 +72,12 @@ If there is an nRepl port file, Calva will use it and not prompt for `host:port`
 
 With this and the below mentioned auto-select options you can make connect a promptless experience. See: [Connect Sequences](connect-sequences.md).
 
+The `calva.connect` command takes arguments for `host` and `port`. Another extension, or a [Joyride](https://github.com/BetterThanTomorrow/joyride) script, or even a keyboard shortcut can use this. For a Joyride script it would look something like so:
+
+```clojure
+(vscode/commands.executeCommand "calva.connect" "localhost" "54798")
+```
+
 ## Auto-select Project Type and Project Root
 
 You can make both Jack-in and Connect stop prompting you for project type and project root path in projects where you always want to use the same. See [Connect Sequences](connect-sequences.md).

@@ -612,12 +612,14 @@ export async function connect(
         await vscode.workspace.fs.stat(portFile);
         const bytes = await vscode.workspace.fs.readFile(portFile);
         port = new TextDecoder('utf-8').decode(bytes);
+        outputWindow.appendLine(`; Read port file: ${portFile}`);
       } catch {
         console.info('No nrepl port found');
       }
     }
     if (port) {
       hostname = hostname !== undefined ? hostname : 'localhost';
+      outputWindow.appendLine(`; Using host:port ${hostname}:${port}`);
       if (isAutoConnect) {
         setStateValue('hostname', hostname);
         setStateValue('port', port);
@@ -651,7 +653,11 @@ export async function connect(
   return true;
 }
 
-async function standaloneConnect(connectSequence: ReplConnectSequence) {
+async function standaloneConnect(
+  connectSequence: ReplConnectSequence,
+  hostname?: string,
+  port?: string
+) {
   await outputWindow.initResultsDoc();
   await outputWindow.openResultsDoc();
 
@@ -662,7 +668,12 @@ async function standaloneConnect(connectSequence: ReplConnectSequence) {
       .analytics()
       .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
       .send();
-    await connect(connectSequence, getConfig().autoSelectNReplPortFromPortFile).catch(() => {
+    return connect(
+      connectSequence,
+      getConfig().autoSelectNReplPortFromPortFile,
+      hostname,
+      port
+    ).catch(() => {
       // do nothing
     });
   } else {
@@ -681,7 +692,7 @@ export default {
     );
     void standaloneConnect(connectSequence);
   },
-  connectCommand: async (_context: vscode.ExtensionContext) => {
+  connectCommand: async (host: string, port: string) => {
     status.updateNeedReplUi(true);
     await state.initProjectDir().catch((e) => {
       void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
@@ -695,7 +706,7 @@ export default {
       'connect-type',
       'ConnectInterrupted'
     );
-    void standaloneConnect(connectSequence);
+    return standaloneConnect(connectSequence, host, port);
   },
   disconnect: (
     options = null,
