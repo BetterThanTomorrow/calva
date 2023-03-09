@@ -359,8 +359,7 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
 }
 
 function getUserSpecifiedSequence(
-  sequences: ReplConnectSequence[],
-  saveAs: string
+  sequences: ReplConnectSequence[]
 ): ReplConnectSequence | undefined {
   if (getConfig().autoSelectReplConnectProjectType) {
     outputWindow.appendLine(
@@ -396,13 +395,6 @@ function getUserSpecifiedSequence(
         )
       );
 
-      const projectRootUri = state.getProjectRootUri();
-      const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
-      void state.extensionContext.workspaceState.update(
-        `d-${saveAsPath}`,
-        defaultSequence.projectType
-      );
-
       return defaultSequence;
     } else {
       outputWindow.appendLine(
@@ -430,7 +422,7 @@ async function askForConnectSequence(
   const projectRootUri = state.getProjectRootUri();
   const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
 
-  const defaultSequence = getUserSpecifiedSequence(sequences, saveAs);
+  const defaultSequence = getUserSpecifiedSequence(sequences);
 
   const projectConnectSequenceName =
     defaultSequence?.name ??

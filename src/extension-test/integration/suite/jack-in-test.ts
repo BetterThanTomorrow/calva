@@ -57,16 +57,21 @@ suite('Jack-in suite', () => {
   test('Jack-in works with pre-configured project type', async () => {
     testUtil.log(suite, 'start repl and connect (jack-in)');
 
-    await updateWorkspaceConfig('autoSelectReplConnectProjectType', 'deps.edn');
-
-    await startJackInProcedure(suite, 'calva.jackIn', 'Leiningen');
-
-    await waitForResult(suite);
+    const projectType = 'deps.edn';
+    await updateWorkspaceConfig('autoSelectReplConnectProjectType', projectType);
 
     const projectRootUri = projectRoot.findClosestParent(
       vscode.window.activeTextEditor?.document.uri,
       await projectRoot.findProjectRoots()
     );
+
+    const saveAs = 'jack-in-type';
+    const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
+    void state.extensionContext.workspaceState.update(`d-${saveAsPath}`, projectType);
+
+    await startJackInProcedure(suite, 'calva.jackIn', 'Leiningen');
+
+    await waitForResult(suite);
 
     assert.equal(
       // Project type default setting, d = default
