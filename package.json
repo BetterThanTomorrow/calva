@@ -381,7 +381,7 @@
             "deprecationMessage": "Deprecated in favour of `autoSelect` in `calva.replConnectSequences`",
             "type": "string",
             "default": null,
-            "description": "When set Calva will not prompt for a project type, at Jack-in or Connect. Instead the project name specified here will be used. (Probably mostly for your Workspace Settings.)"
+            "markdownDescription": "Use `autoSelect` in `calva.replConnectSequences` instead of this setting."
           },
           "calva.jackInDependencyVersions": {
             "type": "object",
