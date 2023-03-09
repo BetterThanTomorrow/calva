@@ -16,8 +16,8 @@
         "IS_DEBUG": "true",
         "CALVA_DEV_GA": "FUBAR-69796730-4",
         "DEBUG": "no-debug-universal-analytics"
-      }
-      //"outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      },
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
       "name": "Launch Extension w/o extensions",
