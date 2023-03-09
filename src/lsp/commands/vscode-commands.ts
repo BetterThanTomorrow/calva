@@ -131,8 +131,12 @@ async function openLogFile(clients: defs.LspClientStore, id: string) {
 
 const downloadServerHandler = async (context: vscode.ExtensionContext) => {
   void vscode.window.showInformationMessage(`Downloading clojure-lsp server binary...`);
-  const path = await downloader.ensureLSPServer(context, true);
-  void vscode.window.showInformationMessage(`Downloaded clojure-lsp to: ${path}`);
+  try {
+    const path = await downloader.ensureLSPServer(context, true);
+    void vscode.window.showInformationMessage(`Downloaded clojure-lsp to: ${path}`);
+  } catch (e) {
+    void vscode.window.showErrorMessage(`Failed to download clojure-lsp server. ${e}`);
+  }
 };
 
 function configureTraceLogLevelHandler() {
