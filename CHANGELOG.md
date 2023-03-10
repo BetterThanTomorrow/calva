@@ -8,6 +8,7 @@ Changes to Calva.
 - [Add option for auto-selection project root](https://github.com/BetterThanTomorrow/calva/issues/2094)
 - [Select connect host:port automatically from port file, without prompting](https://github.com/BetterThanTomorrow/calva/issues/2101)
 - [Make REPL `connect` command accept host and port](https://github.com/BetterThanTomorrow/calva/issues/1984)
+- [Add configuration for automatically connecting to a running REPL](https://github.com/BetterThanTomorrow/calva/issues/1908)
 - Fix: [Calva does not gracefully handle when clojure-lsp cannot be downloaded](https://github.com/BetterThanTomorrow/calva/issues/2064)
 - Bump bundled deps.clj to v1.11.1.1252
 

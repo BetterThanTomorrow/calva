@@ -11,6 +11,7 @@ import {
   ReplConnectSequence,
   getDefaultCljsType,
   askForConnectSequence,
+  getConnectSequences,
 } from './nrepl/connectSequence';
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
@@ -681,6 +682,21 @@ async function standaloneConnect(
   }
 }
 
+async function nReplPortFileExists() {
+  const sequences = getConnectSequences(projectTypes.getAllProjectTypes());
+  const portFiles = sequences.map((sequence) => projectTypes.nreplPortFileUri(sequence));
+  return await Promise.all(
+    portFiles.map(async (portFile) => {
+      try {
+        await vscode.workspace.fs.stat(portFile);
+        return true;
+      } catch {
+        return false;
+      }
+    })
+  );
+}
+
 export default {
   connectNonProjectREPLCommand: async (context: vscode.ExtensionContext) => {
     status.updateNeedReplUi(true);
@@ -707,6 +723,9 @@ export default {
       'ConnectInterrupted'
     );
     return standaloneConnect(connectSequence, host, port);
+  },
+  shouldAutoConnect: async () => {
+    return getConfig().autoConnectRepl && nReplPortFileExists();
   },
   disconnect: (
     options = null,

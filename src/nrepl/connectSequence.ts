@@ -463,6 +463,7 @@ async function askForConnectSequence(
 export {
   getCustomConnectSequences,
   askForConnectSequence,
+  getConnectSequences,
   getDefaultCljsType,
   CljsTypes,
   ReplConnectSequence,

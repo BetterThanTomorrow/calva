@@ -222,6 +222,7 @@ function getConfig() {
     depsCljPath: configOptions.get<string>('depsCljPath'),
     autoSelectReplConnectProjectType: configOptions.get<string>('autoSelectReplConnectProjectType'),
     autoSelectNReplPortFromPortFile: configOptions.get<boolean>('autoSelectNReplPortFromPortFile'),
+    autoConnectRepl: configOptions.get<boolean>('autoConnectRepl'),
   };
 }
 
