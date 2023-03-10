@@ -73,6 +73,30 @@ Minimize the amount of selecting from the Jack-in/Connect menu when working with
 
 See [shadow-cljs + Clojure with Calva: The basics](https://blog.agical.se/en/posts/shadow-cljs-clojure-cljurescript-calva-nrepl-basics/) for how Calva and nREPL work with ClojureScript.
 
+
+### Polylith
+
+This is the connect sequence used in the [Polylith Real World App](https://github.com/furkan3ayraktar/clojure-polylith-realworld-example-app). It let's you jack-in to the project, and starts the Real World App without any prompts.
+
+```json
+    "calva.replConnectSequences": [
+        {
+            "projectType": "deps.edn",
+            "afterCLJReplJackInCode": "(require '[dev.server] :reload) (in-ns 'dev.server) (start! 6003)",
+            "name": "Polylith RealWorld Server REPL",
+            "autoSelect": true,
+            "projectRootPath": ["."],
+            "cljsType": "none",
+            "menuSelections": {
+                "cljAliases": ["dev", "test"]
+            }
+        }
+    ],
+    "calva.autoConnectRepl": true,
+```
+
+The `calva.autoConnectRepl` config makes Calva, at project open, look for the nRepl port file and automatically connect the repl if the file exists. Meaning you can leave the app running when you close the project in VS Code, and Calva will reconnect when you open the project again. (Or maybe you just need to reload the VS Code window, and not loose the REPL state.)
+
 ### Minimal menus with full stack deps.edn and Figwheel Main REPLs
 
 Setting for a full-stack application. It starts the backend server when the CLJ REPL has started. Then proceeds to create a custom CLJS REPL (calling in to the application code for this). And then connects to it.
