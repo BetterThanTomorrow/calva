@@ -133,7 +133,7 @@ export function calvaJackout() {
 
 export async function copyJackInCommandToClipboard(): Promise<void> {
   try {
-    await state.initProjectDir(ConnectType.JackIn);
+    await state.initProjectDir(ConnectType.JackIn, undefined);
   } catch (e) {
     console.error('An error occurred while initializing project directory.', e);
     return;
@@ -297,7 +297,7 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
 export async function jackInCommand(connectSequence?: ReplConnectSequence) {
   status.updateNeedReplUi(true);
   try {
-    await state.initProjectDir(ConnectType.JackIn);
+    await state.initProjectDir(ConnectType.JackIn, connectSequence);
   } catch (e) {
     console.error('An error occurred while initializing project directory.', e);
     return;

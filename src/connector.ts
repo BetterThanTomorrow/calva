@@ -712,23 +712,41 @@ export default {
     );
     return standaloneConnect(connectSequence);
   },
-  connectCommand: async (host: string, port: string) => {
+  connectCommand: async (options?: {
+    host?: string;
+    port?: string;
+    connectSequence?: string | ReplConnectSequence;
+    disableAutoSelect?: boolean;
+  }) => {
     status.updateNeedReplUi(true);
-    await state.initProjectDir(ConnectType.Connect).catch((e) => {
-      void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
-    });
+    const host = options && options.host ? options.host : undefined;
+    const port = options && options.port ? options.port : undefined;
+    const cljTypes = await projectTypes.detectProjectTypes();
+    let connectSequence: ReplConnectSequence;
+    if (options && typeof options.connectSequence === 'string') {
+      connectSequence = getConnectSequences(projectTypes.getAllProjectTypes()).find(
+        (s) => s.name === options.connectSequence
+      );
+    } else if (options && options.connectSequence) {
+      connectSequence = options.connectSequence as ReplConnectSequence;
+    }
+    await state
+      .initProjectDir(ConnectType.Connect, connectSequence, options.disableAutoSelect)
+      .catch((e) => {
+        void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
+      });
+    if (!connectSequence) {
+      try {
+        connectSequence = await askForConnectSequence(cljTypes, ConnectType.Connect);
+      } catch (e) {
+        outputWindow.appendLine(`; ${e}\n; Aborting connect.`);
+        void vscode.window.showErrorMessage(`${e}`, 'OK');
+        return;
+      }
+    }
     await liveShareSupport.setupLiveShareListener().catch((e) => {
       console.error('Error initializing LiveShare support: ', e);
     });
-    const cljTypes = await projectTypes.detectProjectTypes();
-    let connectSequence: ReplConnectSequence;
-    try {
-      connectSequence = await askForConnectSequence(cljTypes, ConnectType.Connect);
-    } catch (e) {
-      outputWindow.appendLine(`; ${e}\n; Aborting connect.`);
-      void vscode.window.showErrorMessage(`${e}`, 'OK');
-      return;
-    }
     return standaloneConnect(connectSequence, host, port).catch((e) => {
       void vscode.window.showErrorMessage('Failed connecting to REPL: ', e);
     });

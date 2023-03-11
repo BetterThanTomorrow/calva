@@ -363,7 +363,8 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
 
 function getUserSpecifiedSequence(
   sequences: ReplConnectSequence[],
-  connectType: ConnectType
+  connectType: ConnectType,
+  disableAutoSelect = false
 ): ReplConnectSequence | undefined {
   if (getConfig().autoSelectReplConnectProjectType) {
     outputWindow.appendLine(
@@ -377,9 +378,11 @@ function getUserSpecifiedSequence(
     );
   }
 
-  const autoSelectedSequence = sequences.find((s) =>
-    connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn
-  );
+  const autoSelectedSequence = disableAutoSelect
+    ? undefined
+    : sequences.find((s) =>
+        connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn
+      );
   const userSpecifiedProjectType = autoSelectedSequence
     ? autoSelectedSequence.name
     : getConfig().autoSelectReplConnectProjectType;

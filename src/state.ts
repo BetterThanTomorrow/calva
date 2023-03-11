@@ -191,7 +191,11 @@ function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
 /**
  * Figures out the current clojure project root, and stores it in Calva state
  */
-export async function initProjectDir(connectType: ConnectType) {
+export async function initProjectDir(
+  connectType: ConnectType,
+  connectSequence: ReplConnectSequence,
+  disableAutoSelect = false
+) {
   const candidatePaths = await projectRoot.findProjectRoots();
   const active_uri = vscode.window.activeTextEditor?.document.uri;
   const closestRootPath: vscode.Uri = active_uri
@@ -200,11 +204,15 @@ export async function initProjectDir(connectType: ConnectType) {
 
   const sequences: ReplConnectSequence[] = getCustomConnectSequences();
 
-  const defaultSequence = sequences.find(
-    (s) =>
-      (connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn) &&
-      !!s.projectRootPath
-  );
+  const defaultSequence = connectSequence
+    ? connectSequence
+    : disableAutoSelect
+    ? undefined
+    : sequences.find(
+        (s) =>
+          (connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn) &&
+          !!s.projectRootPath
+      );
 
   const projectRootPath: vscode.Uri = defaultSequence
     ? vscode.Uri.parse(
