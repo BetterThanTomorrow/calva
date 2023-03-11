@@ -82,10 +82,14 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       host: hostname,
       port: +port,
       onError: (e) => {
+        outputWindow.appendLine(`; nREPL connection failed: ${e}`);
         const scheme = state.getProjectRootUri().scheme;
         if (scheme === 'vsls') {
-          outputWindow.appendLine('; nREPL connection failed; did the host share the nREPL port?');
+          outputWindow.appendLine('; Did the host share the nREPL port?');
         }
+        // TODO: Figure out why the program bails out after here.
+        // For now, we just clean up the connection state (even if we fail to return)
+        return cleanUpAfterError(e);
       },
     });
     nClient.addOnCloseHandler((c) => {
@@ -163,12 +167,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     }
     status.update();
   } catch (e) {
-    util.setConnectingState(false);
-    util.setConnectedState(false);
-    outputWindow.appendLine('; Failed connecting.');
-    state.analytics().logEvent('REPL', 'FailedConnectingCLJ').send();
-    console.error('Failed connecting:', e);
-    return false;
+    return cleanUpAfterError(e);
   }
 
   void liveShareSupport.didConnectRepl(port);
@@ -176,6 +175,16 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
   await readRuntimeConfigs();
 
   return true;
+}
+
+function cleanUpAfterError(e: any) {
+  util.setConnectingState(false);
+  util.setConnectedState(false);
+  outputWindow.appendLine('; Failed connecting.');
+  state.analytics().logEvent('REPL', 'FailedConnectingCLJ').send();
+  console.error('Failed connecting:', e);
+  status.update();
+  return false;
 }
 
 function setUpCljsRepl(session, build) {
@@ -670,14 +679,7 @@ async function standaloneConnect(
       .analytics()
       .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
       .send();
-    return connect(
-      connectSequence,
-      getConfig().autoSelectNReplPortFromPortFile,
-      hostname,
-      port
-    ).catch(() => {
-      // do nothing
-    });
+    return connect(connectSequence, getConfig().autoSelectNReplPortFromPortFile, hostname, port);
   } else {
     outputWindow.appendLine('; Aborting connect, error determining connect sequence.');
   }
@@ -708,7 +710,7 @@ export default {
       projectTypes.getAllProjectTypes(),
       ConnectType.Connect
     );
-    void standaloneConnect(connectSequence);
+    return standaloneConnect(connectSequence);
   },
   connectCommand: async (host: string, port: string) => {
     status.updateNeedReplUi(true);
@@ -727,7 +729,9 @@ export default {
       void vscode.window.showErrorMessage(`${e}`, 'OK');
       return;
     }
-    return standaloneConnect(connectSequence, host, port);
+    return standaloneConnect(connectSequence, host, port).catch((e) => {
+      void vscode.window.showErrorMessage('Failed connecting to REPL: ', e);
+    });
   },
   shouldAutoConnect: async () => {
     return getConfig().autoConnectRepl && nReplPortFileExists();
