@@ -419,11 +419,10 @@ function getUserSpecifiedSequence(
 
 async function askForConnectSequence(
   cljTypes: string[],
-  saveAs: string,
-  logLabel: string,
   connectType: ConnectType
 ): Promise<ReplConnectSequence> {
-  // figure out what possible kinds of project we're in
+  const saveAs = connectType === ConnectType.Connect ? 'connect-type' : 'jack-in-type';
+  const logLabel = connectType === ConnectType.Connect ? 'ConnectInterrupted' : 'JackInInterrupted';
   const sequences: ReplConnectSequence[] = getConnectSequences(cljTypes);
 
   const projectRootUri = state.getProjectRootUri();

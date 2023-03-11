@@ -232,8 +232,6 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
   if (cljTypes.length > 1) {
     return askForConnectSequence(
       cljTypes.filter((t) => !excludes.includes(t)),
-      'jack-in-type',
-      'JackInInterrupted',
       ConnectType.JackIn
     );
   }
