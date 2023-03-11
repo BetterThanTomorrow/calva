@@ -686,16 +686,18 @@ async function standaloneConnect(
 async function nReplPortFileExists() {
   const sequences = getConnectSequences(projectTypes.getAllProjectTypes());
   const portFiles = sequences.map((sequence) => projectTypes.nreplPortFileUri(sequence));
-  return await Promise.all(
+  let fileExists = false;
+  await Promise.all(
     portFiles.map(async (portFile) => {
       try {
         await vscode.workspace.fs.stat(portFile);
-        return true;
+        fileExists = true;
       } catch {
-        return false;
+        // do nothing, file does not exist
       }
     })
   );
+  return fileExists;
 }
 
 export default {
