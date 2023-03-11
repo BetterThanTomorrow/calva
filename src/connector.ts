@@ -731,7 +731,7 @@ export default {
       connectSequence = options.connectSequence as ReplConnectSequence;
     }
     await state
-      .initProjectDir(ConnectType.Connect, connectSequence, options.disableAutoSelect)
+      .initProjectDir(ConnectType.Connect, connectSequence, options?.disableAutoSelect)
       .catch((e) => {
         void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
       });
