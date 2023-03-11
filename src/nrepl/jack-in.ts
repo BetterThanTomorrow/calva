@@ -294,15 +294,22 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
   void liveShareSupport.didJackIn();
 }
 
-export async function jackInCommand(connectSequence?: ReplConnectSequence) {
+export async function jackInCommand(options: {
+  connectSequence?: ReplConnectSequence;
+  disableAutoSelect?: boolean;
+}) {
   status.updateNeedReplUi(true);
   try {
-    await state.initProjectDir(ConnectType.JackIn, connectSequence);
+    await state.initProjectDir(
+      ConnectType.JackIn,
+      options?.connectSequence,
+      options?.disableAutoSelect
+    );
   } catch (e) {
     console.error('An error occurred while initializing project directory.', e);
     return;
   }
-  await jackIn(connectSequence);
+  await jackIn(options?.connectSequence);
 }
 
 export function calvaDisconnect() {
