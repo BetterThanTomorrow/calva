@@ -72,7 +72,7 @@ If there is an nRepl port file, Calva will use it and not prompt for `host:port`
 
 With the setting `calva.autoConnectRepl` you can make Calva automatically connect the REPL if there is an nRepl port file present when the project is opened.
 
-With this and the below mentioned auto-select options you can make connect a promptless experience. See: [Connect Sequences](connect-sequences.md).
+With this and the below mentioned auto-select options you can make connect a prompt-less experience. See: [Connect Sequences](connect-sequences.md).
 
 The `calva.connect` command takes arguments for `host` and `port`. Another extension, or a [Joyride](https://github.com/BetterThanTomorrow/joyride) script, or even a keyboard shortcut can use this. For a Joyride script it would look something like so:
 

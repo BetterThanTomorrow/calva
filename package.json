@@ -569,14 +569,14 @@
                 },
                 "projectRootPath": {
                   "type": "array",
-                  "markdownDescription": "An array of path segments leading to the root of the project for which this connect sequence should go with. Use together with `autoSelect` to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder. So relative paths will only work for this first folder. If you can't be bothered splitting up the path in segments, put the whole path in the first segment, though please note that if you use Windows path separators, these will not work for users with Linux or macOS.",
+                  "markdownDescription": "An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with `autoSelect` to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder. If you can't be bothered splitting up the path in segments, put the whole path in the first segment, though please note that if you use Windows path separators, these will not work for users with Linux or macOS.",
                   "items": {
                     "type": "string"
                   }
                 },
                 "nReplPortFile": {
                   "type": "array",
-                  "description": "An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be [\".shadow-cljs\", \"nrepl.port\"]",
+                  "description": "An array of path segments for the relative path from the project root to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be [\".shadow-cljs\", \"nrepl.port\"]",
                   "items": {
                     "type": "string"
                   }
