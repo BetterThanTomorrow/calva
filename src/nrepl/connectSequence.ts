@@ -458,7 +458,7 @@ async function askForConnectSequence(
     throw new Error(
       `The connect sequence "${sequence.name}" is configured for project root "${path.join(
         ...sequence.projectRootPath
-      )}". Aborting.`
+      )}. Please select a different connect sequence or change the project root setting for the sequence.`
     );
   }
 

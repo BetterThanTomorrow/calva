@@ -259,7 +259,14 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
 
   let projectConnectSequence: ReplConnectSequence = connectSequence;
   if (!projectConnectSequence) {
-    projectConnectSequence = await getProjectConnectSequence();
+    try {
+      projectConnectSequence = await getProjectConnectSequence();
+    } catch (e) {
+      outputWindow.appendLine(`; ${e}\n; Aborting jack-in.`);
+      // TODO: Figure out why this is not shown to the user.
+      void vscode.window.showErrorMessage(e, 'OK');
+      return;
+    }
     if (!projectConnectSequence) {
       outputWindow.appendLine('; Aborting jack-in. No project type selected.');
       return;

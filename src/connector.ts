@@ -721,12 +721,19 @@ export default {
       console.error('Error initializing LiveShare support: ', e);
     });
     const cljTypes = await projectTypes.detectProjectTypes();
-    const connectSequence = await askForConnectSequence(
-      cljTypes,
-      'connect-type',
-      'ConnectInterrupted',
-      ConnectType.Connect
-    );
+    let connectSequence: ReplConnectSequence;
+    try {
+      connectSequence = await askForConnectSequence(
+        cljTypes,
+        'connect-type',
+        'ConnectInterrupted',
+        ConnectType.Connect
+      );
+    } catch (e) {
+      outputWindow.appendLine(`; ${e}\nAborting connect.`);
+      void vscode.window.showErrorMessage(`${e}`, 'OK');
+      return;
+    }
     return standaloneConnect(connectSequence, host, port);
   },
   shouldAutoConnect: async () => {
