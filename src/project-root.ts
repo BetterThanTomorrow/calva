@@ -2,6 +2,7 @@ import * as config from './config';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as _ from 'lodash';
+import { ConnectType } from './nrepl/connect-types';
 
 export type ProjectRoot = {
   uri: vscode.Uri;
@@ -268,7 +269,22 @@ function sortPreSelectedFirst(groups: vscode.Uri[][], selected: vscode.Uri) {
   });
 }
 
-export async function pickProjectRoot(uris: vscode.Uri[], selected?: vscode.Uri) {
+export async function pickProjectRoot(
+  uris: vscode.Uri[],
+  selected: vscode.Uri,
+  connectType?: ConnectType
+) {
+  let menuTitle: string;
+  switch (connectType) {
+    case ConnectType.Connect:
+      menuTitle = 'Connect: Project Root';
+      break;
+    case ConnectType.JackIn:
+      menuTitle = 'Jack-in: Project Root';
+      break;
+    default:
+      menuTitle = 'Project Root';
+  }
   if (uris.length === 0) {
     return;
   }
@@ -282,7 +298,7 @@ export async function pickProjectRoot(uris: vscode.Uri[], selected?: vscode.Uri)
 
   const picker = vscode.window.createQuickPick();
   picker.items = choices;
-  picker.title = 'Project Selection';
+  picker.title = `${menuTitle}`;
   picker.placeholder = 'Pick the Clojure project you want to use as the root';
   picker.activeItems = choices.filter((root) => root.value?.path === selected?.path);
   picker.show();

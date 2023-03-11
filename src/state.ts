@@ -213,7 +213,7 @@ export async function initProjectDir(connectType: ConnectType) {
           ...defaultSequence.projectRootPath
         )
       )
-    : await projectRoot.pickProjectRoot(candidatePaths, closestRootPath);
+    : await projectRoot.pickProjectRoot(candidatePaths, closestRootPath, connectType);
   if (projectRootPath) {
     setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
     setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
