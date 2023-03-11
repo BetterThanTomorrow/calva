@@ -14,6 +14,7 @@ import { JackInTerminal, JackInTerminalOptions, createCommandLine } from './jack
 import * as liveShareSupport from '../live-share';
 import { getConfig } from '../config';
 import * as joyride from '../joyride';
+import { ConnectType } from './connect-types';
 
 let jackInPTY: JackInTerminal = undefined;
 let jackInTerminal: vscode.Terminal = undefined;
@@ -132,7 +133,7 @@ export function calvaJackout() {
 
 export async function copyJackInCommandToClipboard(): Promise<void> {
   try {
-    await state.initProjectDir();
+    await state.initProjectDir(ConnectType.JackIn);
   } catch (e) {
     console.error('An error occurred while initializing project directory.', e);
     return;
@@ -232,7 +233,8 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
     return askForConnectSequence(
       cljTypes.filter((t) => !excludes.includes(t)),
       'jack-in-type',
-      'JackInInterrupted'
+      'JackInInterrupted',
+      ConnectType.JackIn
     );
   }
 }
@@ -290,7 +292,7 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
 export async function jackInCommand(connectSequence?: ReplConnectSequence) {
   status.updateNeedReplUi(true);
   try {
-    await state.initProjectDir();
+    await state.initProjectDir(ConnectType.JackIn);
   } catch (e) {
     console.error('An error occurred while initializing project directory.', e);
     return;

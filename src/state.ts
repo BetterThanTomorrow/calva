@@ -7,6 +7,7 @@ import * as child from 'child_process';
 import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
 import * as projectRoot from './project-root';
 import { getCustomConnectSequences, ReplConnectSequence } from './nrepl/connectSequence';
+import { ConnectType } from './nrepl/connect-types';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -190,7 +191,7 @@ function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
 /**
  * Figures out the current clojure project root, and stores it in Calva state
  */
-export async function initProjectDir() {
+export async function initProjectDir(connectType: ConnectType) {
   const candidatePaths = await projectRoot.findProjectRoots();
   const active_uri = vscode.window.activeTextEditor?.document.uri;
   const closestRootPath: vscode.Uri = active_uri
@@ -199,7 +200,11 @@ export async function initProjectDir() {
 
   const sequences: ReplConnectSequence[] = getCustomConnectSequences();
 
-  const defaultSequence = sequences.find((s) => s.autoSelect && !!s.projectRootPath);
+  const defaultSequence = sequences.find(
+    (s) =>
+      (connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn) &&
+      !!s.projectRootPath
+  );
 
   const projectRootPath: vscode.Uri = defaultSequence
     ? vscode.Uri.parse(

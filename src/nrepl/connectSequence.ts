@@ -5,6 +5,7 @@ import * as utilities from '../utilities';
 import { Config, getConfig } from '../config';
 import * as outputWindow from '../results-output/results-doc';
 import { formatAsLineComments } from '../results-output/util';
+import { ConnectType } from './connect-types';
 
 enum ProjectTypes {
   'Leiningen' = 'Leiningen',
@@ -55,7 +56,8 @@ interface MenuSelections {
 interface ReplConnectSequence {
   name: string;
   projectType: ProjectTypes;
-  autoSelect?: boolean;
+  autoSelectForConnect?: boolean;
+  autoSelectForJackIn?: boolean;
   projectRootPath?: string[];
   afterCLJReplJackInCode?: string;
   cljsType: CljsTypes | CljsTypeConfig;
@@ -360,7 +362,8 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
 }
 
 function getUserSpecifiedSequence(
-  sequences: ReplConnectSequence[]
+  sequences: ReplConnectSequence[],
+  connectType: ConnectType
 ): ReplConnectSequence | undefined {
   if (getConfig().autoSelectReplConnectProjectType) {
     outputWindow.appendLine(
@@ -374,7 +377,9 @@ function getUserSpecifiedSequence(
     );
   }
 
-  const autoSelectedSequence = sequences.find((s) => s.autoSelect);
+  const autoSelectedSequence = sequences.find((s) =>
+    connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn
+  );
   const userSpecifiedProjectType = autoSelectedSequence
     ? autoSelectedSequence.name
     : getConfig().autoSelectReplConnectProjectType;
@@ -415,7 +420,8 @@ function getUserSpecifiedSequence(
 async function askForConnectSequence(
   cljTypes: string[],
   saveAs: string,
-  logLabel: string
+  logLabel: string,
+  connectType: ConnectType
 ): Promise<ReplConnectSequence> {
   // figure out what possible kinds of project we're in
   const sequences: ReplConnectSequence[] = getConnectSequences(cljTypes);
@@ -423,7 +429,7 @@ async function askForConnectSequence(
   const projectRootUri = state.getProjectRootUri();
   const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
 
-  const defaultSequence = getUserSpecifiedSequence(sequences);
+  const defaultSequence = getUserSpecifiedSequence(sequences, connectType);
 
   const projectConnectSequenceName =
     defaultSequence?.name ??

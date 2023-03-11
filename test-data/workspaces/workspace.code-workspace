@@ -30,7 +30,8 @@
 			{
 				"name": "pirate-lang",
 				"projectType": "deps.edn",
-				"autoSelect": true,
+				"autoSelectForJackIn": true,
+				"autoSelectForConnect": true,
 				//"projectRootPath": "/Users/pez/Projects/calva/test-data/projects/pirate-lang",
 				//"projectRootPath": "/Users/pez/Projects/calva/test-data/workspaces/ws-b/pirate-lang",
 				"projectRootPath": ["."],

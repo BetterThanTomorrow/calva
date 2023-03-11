@@ -27,6 +27,7 @@ import * as clojureDocs from './clojuredocs';
 import * as jszip from 'jszip';
 import { addEdnConfig, getConfig } from './config';
 import { getJarContents } from './utilities';
+import { ConnectType } from './nrepl/connect-types';
 
 async function readJarContent(uri: string) {
   try {
@@ -704,13 +705,14 @@ export default {
     const connectSequence = await askForConnectSequence(
       projectTypes.getAllProjectTypes(),
       'connect-type',
-      'ConnectInterrupted'
+      'ConnectInterrupted',
+      ConnectType.Connect
     );
     void standaloneConnect(connectSequence);
   },
   connectCommand: async (host: string, port: string) => {
     status.updateNeedReplUi(true);
-    await state.initProjectDir().catch((e) => {
+    await state.initProjectDir(ConnectType.Connect).catch((e) => {
       void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
     });
     await liveShareSupport.setupLiveShareListener().catch((e) => {
@@ -720,7 +722,8 @@ export default {
     const connectSequence = await askForConnectSequence(
       cljTypes,
       'connect-type',
-      'ConnectInterrupted'
+      'ConnectInterrupted',
+      ConnectType.Connect
     );
     return standaloneConnect(connectSequence, host, port);
   },

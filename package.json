@@ -378,10 +378,10 @@
             "description": "Specifies any environment variables your project needs. (Probably mostly for your Workspace Settings.)"
           },
           "calva.autoSelectReplConnectProjectType": {
-            "deprecationMessage": "Deprecated in favour of `autoSelect` in `calva.replConnectSequences`",
+            "deprecationMessage": "Deprecated in favour of `autoSelectForJackIn`/`autoSelectForConnect` in `calva.replConnectSequences`",
             "type": "string",
             "default": null,
-            "markdownDescription": "Use `autoSelect` in `calva.replConnectSequences` instead of this setting."
+            "markdownDescription": "Use `autoSelectForJackIn`/`autoSelectForConnect` in `calva.replConnectSequences` instead of this setting."
           },
           "calva.autoSelectNReplPortFromPortFile": {
             "type": "boolean",
@@ -563,13 +563,17 @@
                     "generic"
                   ]
                 },
-                "autoSelect": {
+                "autoSelectForJackIn": {
                   "type": "boolean",
-                  "markdownDescription": "If true, this sequence will be automatically selected, suppressing the Project Type menu when connecting to a REPL or Jacking in. Use together with `projectRootPath` to also suppress the Project Root menu. Add usage of `menuSelections` to go for a prompt-less REPL connection. If you have more than one sequence with `autoSelect` set to true, the first one will be used."
+                  "markdownDescription": "If true, this sequence will be automatically selected at **Jack-in**, suppressing the Project Type. Use together with `projectRootPath` to also suppress the Project Root menu. Add usage of `menuSelections` to go for a prompt-less REPL Jack-in. If you have more than one sequence with `autoSelectForJackIn` set to true, the first one will be used."
+                },
+                "autoSelectForConnect": {
+                  "type": "boolean",
+                  "markdownDescription": "If true, this sequence will be automatically selected at **Connect**, suppressing the Project Type menu. Use together with `projectRootPath` to also suppress the Project Root menu. If you have more than one sequence with `autoSelectForConnect` set to true, the first one will be used."
                 },
                 "projectRootPath": {
                   "type": "array",
-                  "markdownDescription": "An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with `autoSelect` to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder. If you can't be bothered splitting up the path in segments, put the whole path in the first segment, though please note that if you use Windows path separators, these will not work for users with Linux or macOS.",
+                  "markdownDescription": "An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with `autoSelectForJackIn`/`autoSelectForConnect` to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder. If you can't be bothered splitting up the path in segments, put the whole path in the first segment, though please note that if you use Windows path separators, these will not work for users with Linux or macOS.",
                   "items": {
                     "type": "string"
                   }
