@@ -46,6 +46,9 @@ A connect sequence configures the following:
 
 The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts) also use this format, check them out to get a clearer picture of how these settings work.
 
+!!! Note "Force the project type menu to show"
+    The convenience of `autoSelectForJackIn/Connect` can be an inconvenience when you want to use another project type/sequence for a project. For this reason, the `calva.connect` and `calva.jackIn` can be provided with an option `disableAutoSelect`, which forces the project root and project type menus to show. See [Options for the Connect Command](connect.md#options-for-the-jack-in-command) and [Options for the Jack-in Command](connect.md#options-for-the-connect-command) for more on this.
+
 !!! Note "Path segments"
     `projectRootPath` and `nReplPortFile` both take an array of path segments. This is to make the paths work cross-platform. If you can't be bothered splitting up the path in segments, put the whole path in the first segment, though please note that if you use Windows path separators, these will not work for users with Linux or macOS.
 
@@ -77,20 +80,27 @@ See [shadow-cljs + Clojure with Calva: The basics](https://blog.agical.se/en/pos
 
 ### Polylith
 
-This is the connect sequence used in the [Polylith Real World App](https://github.com/furkan3ayraktar/clojure-polylith-realworld-example-app). It lets you jack-in to the project, and starts the Real World App without any prompts.
+This is the connect sequences used in the [Polylith Real World App](https://github.com/furkan3ayraktar/clojure-polylith-realworld-example-app). The `(start)` sequence lets you jack-in to the project, and starts the Real World App without any prompts. The `(connect)` sequence can be used if you prefer to start the REPL manually, and want to connect without prompts.
 
 ```json
     "calva.replConnectSequences": [
         {
             "projectType": "deps.edn",
             "afterCLJReplJackInCode": "(require '[dev.server] :reload) (in-ns 'dev.server) (start! 6003)",
-            "name": "Polylith RealWorld Server REPL",
-            "autoSelect": true,
+            "name": "Polylith RealWorld Server REPL (start)",
+            "autoSelectForJackIn": true,
             "projectRootPath": ["."],
             "cljsType": "none",
             "menuSelections": {
                 "cljAliases": ["dev", "test"]
             }
+        },
+        {
+            "projectType": "deps.edn",
+            "name": "Polylith RealWorld Server REPL (connect)",
+            "autoSelectForConnect": true,
+            "projectRootPath": ["."],
+            "cljsType": "none",
         }
     ],
     "calva.autoConnectRepl": true,
