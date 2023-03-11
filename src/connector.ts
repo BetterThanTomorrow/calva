@@ -76,7 +76,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
   util.setConnectingState(true);
   status.update();
   try {
-    outputWindow.appendLine('; Hooking up nREPL sessions...');
+    outputWindow.appendLine('; Hooking up nREPL sessions ...');
     // Create an nREPL client. waiting for the connection to be established.
     nClient = await NReplClient.create({
       host: hostname,
@@ -620,17 +620,17 @@ export async function connect(
   try {
     if (port === undefined) {
       try {
+        outputWindow.appendLine(`; Reading port file: ${portFile} ...`);
         await vscode.workspace.fs.stat(portFile);
         const bytes = await vscode.workspace.fs.readFile(portFile);
         port = new TextDecoder('utf-8').decode(bytes);
-        outputWindow.appendLine(`; Read port file: ${portFile}`);
       } catch {
         console.info('No nrepl port found');
       }
     }
     if (port) {
       hostname = hostname !== undefined ? hostname : 'localhost';
-      outputWindow.appendLine(`; Using host:port ${hostname}:${port}`);
+      outputWindow.appendLine(`; Using host:port ${hostname}:${port} ...`);
       if (isAutoConnect) {
         setStateValue('hostname', hostname);
         setStateValue('port', port);
