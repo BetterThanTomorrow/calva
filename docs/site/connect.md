@@ -53,6 +53,42 @@ There are also these settings:
 !!! Note
     When processing the `calva.jackInEnv` setting you can refer to existing ENV variables with `${env:VARIABLE}`.
 
+#### Options for the Jack-in Command 
+
+The `calva.jackIn` command takes an optional options argument defined like so:
+
+```typescript
+  options?: {
+    connectSequence?: string | ReplConnectSequence;
+    disableAutoSelect?: boolean;
+  }
+```
+
+Where `ReplConnectSequence` is a [Connect Sequences](connect-sequences.md). If you provide a string it needs to match against a built-in or custom connect sequence. With `disableAutoSelect` you can force the jack-in menus to be provided even if a custom connect sequence is set to be autoSelected.
+
+You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
+
+Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with `autoSelectForConnect`.
+
+```json
+    {
+        "command": "calva.jackIn",
+        "args": {"disableAutoSelect": true},
+        "key": "ctrl+alt+c shift+j",
+    },
+```
+
+A Joyride command for starting a `deps.edn` REPL for a project in the root of the workspace.
+
+```clojure
+(vscode/commands.executeCommand
+ "calva.jackIn"
+ (clj->js {:connectSequence {:projectType "deps.edn"
+                             :projectRootPath ["."]}}))
+```
+
+It will prompt for any aliases it finds in the `deps.edn` file.    
+
 ## Connecting Without Jack-in
 
 If, for whatever reasons, you can't use Jack-in with your project (possibly because the REPL is started as part of some other job) all is not lost. Old fashioned **Connect to a running REPL** is still there for you. For all features to work in Calva while connecting to a running REPL, your environment needs to have REPL related dependencies set up.
@@ -74,19 +110,46 @@ With the setting `calva.autoConnectRepl` you can make Calva automatically connec
 
 With this and the below mentioned auto-select options you can make connect a prompt-less experience. See: [Connect Sequences](connect-sequences.md).
 
-The `calva.connect` command takes arguments for `host` and `port`. Another extension, or a [Joyride](https://github.com/BetterThanTomorrow/joyride) script, or even a keyboard shortcut can use this. For a Joyride script it would look something like so:
+#### Options for the Connect Command 
 
-```clojure
-(vscode/commands.executeCommand "calva.connect" "localhost" "54798")
+The `calva.connect` command takes an optional options argument defined like so:
+
+```typescript
+  options?: {
+    host?: string;
+    port?: string;
+    connectSequence?: string | ReplConnectSequence;
+    disableAutoSelect?: boolean;
+  }
 ```
 
-## Auto-select Project Type and Project Root
+Where `ReplConnectSequence` is a [Connect Sequences](connect-sequences.md). If you provide a string it needs to match against a built-in or custom connect sequence. With `disableAutoSelect` you can force the connect menus to be provided even if a custom connect sequence is set to be autoSelected.
 
-You can make both Jack-in and Connect stop prompting you for project type and project root path in projects where you always want to use the same. See [Connect Sequences](connect-sequences.md).
+You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
+
+Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with `autoSelectForConnect`.
+
+```json
+    {
+        "command": "calva.connect",
+        "args": {"disableAutoSelect": true},
+        "key": "ctrl+alt+c shift+c",
+    },
+```
+
+A Joyride command for connecting to a REPL on port 55555, without being asked for project type:
+
+```clojure
+(vscode/commands.executeCommand "calva.connect" (clj->js {:port "55555" :connectSequence "Generic"}))
+```
 
 ### Starting the REPL from application code?
 
 If your project is setup so that the REPL server is started by the application code, you will need to get the cider-nrepl middleware in place. See the cider-nrepl docs about [embedding nREPL in your application](https://docs.cider.mx/cider-nrepl/usage.html#via-embedding-nrepl-in-your-application).
+
+## Auto-select Project Type and Project Root
+
+You can make both Jack-in and Connect stop prompting you for project type and project root path in projects where you always want to use the same. See [Connect Sequences](connect-sequences.md).
 
 ## Monorepos / multiple Clojure projects in one workspace
 
