@@ -421,8 +421,10 @@ async function askForConnectSequence(
   cljTypes: string[],
   connectType: ConnectType
 ): Promise<ReplConnectSequence> {
-  const saveAs = connectType === ConnectType.Connect ? 'connect-type' : 'jack-in-type';
-  const logLabel = connectType === ConnectType.Connect ? 'ConnectInterrupted' : 'JackInInterrupted';
+  const [saveAs, logLabel, menuTitleType] =
+    connectType === ConnectType.Connect
+      ? ['connect-type', 'ConnectInterrupted', 'Connect']
+      : ['jack-in-type', 'JackInInterrupted', 'Jack-in'];
   const sequences: ReplConnectSequence[] = getConnectSequences(cljTypes);
 
   const projectRootUri = state.getProjectRootUri();
@@ -433,6 +435,7 @@ async function askForConnectSequence(
   const projectConnectSequenceName =
     defaultSequence?.name ??
     (await utilities.quickPickSingle({
+      title: `${menuTitleType}: Project Type/Connect Sequence`,
       values: sequences.map((s) => {
         return s.name;
       }),
