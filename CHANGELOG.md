@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.336] - 2023-03-12
+
 - [Move auto-selecting project type config to Connect Sequences](https://github.com/BetterThanTomorrow/calva/issues/2094)
 - [Add option for auto-selection project root](https://github.com/BetterThanTomorrow/calva/issues/2094)
 - [Select connect host:port automatically from port file, without prompting](https://github.com/BetterThanTomorrow/calva/issues/2101)
