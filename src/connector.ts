@@ -708,7 +708,8 @@ export default {
     await state.setOrCreateNonProjectRoot(context, true);
     const connectSequence = await askForConnectSequence(
       projectTypes.getAllProjectTypes(),
-      ConnectType.Connect
+      ConnectType.Connect,
+      undefined
     );
     return standaloneConnect(connectSequence);
   },
@@ -737,7 +738,11 @@ export default {
       });
     if (!connectSequence) {
       try {
-        connectSequence = await askForConnectSequence(cljTypes, ConnectType.Connect);
+        connectSequence = await askForConnectSequence(
+          cljTypes,
+          ConnectType.Connect,
+          options?.disableAutoSelect
+        );
       } catch (e) {
         outputWindow.appendLine(`; ${e}\n; Aborting connect.`);
         void vscode.window.showErrorMessage(`${e}`, 'OK');

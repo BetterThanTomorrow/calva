@@ -145,7 +145,7 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
   }
   let projectConnectSequence: ReplConnectSequence;
   try {
-    projectConnectSequence = await getProjectConnectSequence();
+    projectConnectSequence = await getProjectConnectSequence(false);
   } catch (e) {
     return;
   }
@@ -228,7 +228,7 @@ async function getJackInTerminalOptions(
   return terminalOptions;
 }
 
-async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
+async function getProjectConnectSequence(disableAutoSelect: boolean): Promise<ReplConnectSequence> {
   const cljTypes: string[] = await projectTypes.detectProjectTypes();
   const excludes = ['generic', 'cljs-only'];
   if (joyride.isJoyrideExtensionActive() && joyride.isJoyrideNReplServerRunning()) {
@@ -237,12 +237,17 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
   if (cljTypes.length > 1) {
     return askForConnectSequence(
       cljTypes.filter((t) => !excludes.includes(t)),
-      ConnectType.JackIn
+      ConnectType.JackIn,
+      disableAutoSelect
     );
   }
 }
 
-export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => unknown) {
+export async function jackIn(
+  connectSequence: ReplConnectSequence,
+  disableAutoSelect: boolean,
+  cb?: () => unknown
+) {
   try {
     await liveShareSupport.setupLiveShareListener();
   } catch (e) {
@@ -263,7 +268,7 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
   let projectConnectSequence: ReplConnectSequence = connectSequence;
   if (!projectConnectSequence) {
     try {
-      projectConnectSequence = await getProjectConnectSequence();
+      projectConnectSequence = await getProjectConnectSequence(disableAutoSelect);
     } catch (e) {
       outputWindow.appendLine(`; ${e}\n; Aborting jack-in.`);
       // TODO: Figure out why this is not shown to the user.
@@ -318,7 +323,7 @@ export async function jackInCommand(options: {
     console.error('An error occurred while initializing project directory.', e);
     return;
   }
-  await jackIn(connectSequence);
+  await jackIn(connectSequence, options?.disableAutoSelect);
 }
 
 export function calvaDisconnect() {

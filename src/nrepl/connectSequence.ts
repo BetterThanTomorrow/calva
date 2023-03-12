@@ -360,7 +360,7 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
 function getUserSpecifiedSequence(
   sequences: ReplConnectSequence[],
   connectType: ConnectType,
-  disableAutoSelect = false
+  disableAutoSelect: boolean
 ): ReplConnectSequence | undefined {
   if (getConfig().autoSelectReplConnectProjectType) {
     outputWindow.appendLine(
@@ -418,7 +418,8 @@ function getUserSpecifiedSequence(
 
 async function askForConnectSequence(
   cljTypes: string[],
-  connectType: ConnectType
+  connectType: ConnectType,
+  disableAutoSelect: boolean
 ): Promise<ReplConnectSequence> {
   const [saveAs, logLabel, menuTitleType] =
     connectType === ConnectType.Connect
@@ -429,7 +430,7 @@ async function askForConnectSequence(
   const projectRootUri = state.getProjectRootUri();
   const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
 
-  const defaultSequence = getUserSpecifiedSequence(sequences, connectType);
+  const defaultSequence = getUserSpecifiedSequence(sequences, connectType, disableAutoSelect);
 
   const projectConnectSequenceName =
     defaultSequence?.name ??
