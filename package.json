@@ -369,18 +369,26 @@
               }
             }
           },
-          "calva.customCljsRepl": {
-            "deprecationMessage": "This settings is deprecated. Use `cljsType` in a `calva.replConnectSequences` item instead."
-          },
           "calva.jackInEnv": {
             "type": "object",
             "default": {},
             "description": "Specifies any environment variables your project needs. (Probably mostly for your Workspace Settings.)"
           },
           "calva.autoSelectReplConnectProjectType": {
+            "deprecationMessage": "Deprecated in favour of `autoSelectForJackIn`/`autoSelectForConnect` in `calva.replConnectSequences`",
             "type": "string",
             "default": null,
-            "description": "When set Calva will not prompt for a project type, at Jack-in or Connect. Instead the project name specified here will be used. (Probably mostly for your Workspace Settings.)"
+            "markdownDescription": "Use `autoSelectForJackIn`/`autoSelectForConnect` in `calva.replConnectSequences` instead of this setting."
+          },
+          "calva.autoSelectNReplPortFromPortFile": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "If true, Calva will auto-select a REPL connection from the nRepl port file, suppressing the `host:port` prompt if the file exists."
+          },
+          "calva.autoConnectRepl": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "If true, Calva will auto-connect the REPL when a project is opened and there exists an nRepl port file."
           },
           "calva.jackInDependencyVersions": {
             "type": "object",
@@ -533,8 +541,7 @@
               "type": "object",
               "required": [
                 "name",
-                "projectType",
-                "cljsType"
+                "projectType"
               ],
               "properties": {
                 "name": {
@@ -552,9 +559,24 @@
                     "generic"
                   ]
                 },
+                "autoSelectForJackIn": {
+                  "type": "boolean",
+                  "markdownDescription": "If true, this sequence will be automatically selected at **Jack-in**, suppressing the Project Type. Use together with `projectRootPath` to also suppress the Project Root menu. Add usage of `menuSelections` to go for a prompt-less REPL Jack-in. If you have more than one sequence with `autoSelectForJackIn` set to true, the first one will be used."
+                },
+                "autoSelectForConnect": {
+                  "type": "boolean",
+                  "markdownDescription": "If true, this sequence will be automatically selected at **Connect**, suppressing the Project Type menu. Use together with `projectRootPath` to also suppress the Project Root menu. If you have more than one sequence with `autoSelectForConnect` set to true, the first one will be used."
+                },
+                "projectRootPath": {
+                  "type": "array",
+                  "markdownDescription": "An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with `autoSelectForJackIn`/`autoSelectForConnect` to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder. If you can't be bothered splitting up the path in segments, put the whole path in the first segment, though please note that if you use Windows path separators, these will not work for users with Linux or macOS.",
+                  "items": {
+                    "type": "string"
+                  }
+                },
                 "nReplPortFile": {
                   "type": "array",
-                  "description": "An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be [\".shadow-cljs\", \"nrepl.port\"]",
+                  "description": "An array of path segments for the relative path from the project root to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be [\".shadow-cljs\", \"nrepl.port\"]",
                   "items": {
                     "type": "string"
                   }

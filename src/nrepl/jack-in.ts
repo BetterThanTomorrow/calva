@@ -7,13 +7,19 @@ import status from '../status';
 import * as connector from '../connector';
 import { nClient } from '../connector';
 import statusbar from '../statusbar';
-import { askForConnectSequence, ReplConnectSequence, CljsTypes } from './connectSequence';
+import {
+  askForConnectSequence,
+  ReplConnectSequence,
+  CljsTypes,
+  getConnectSequences,
+} from './connectSequence';
 import * as projectTypes from './project-types';
 import * as outputWindow from '../results-output/results-doc';
 import { JackInTerminal, JackInTerminalOptions, createCommandLine } from './jack-in-terminal';
 import * as liveShareSupport from '../live-share';
 import { getConfig } from '../config';
 import * as joyride from '../joyride';
+import { ConnectType } from './connect-types';
 
 let jackInPTY: JackInTerminal = undefined;
 let jackInTerminal: vscode.Terminal = undefined;
@@ -132,14 +138,14 @@ export function calvaJackout() {
 
 export async function copyJackInCommandToClipboard(): Promise<void> {
   try {
-    await state.initProjectDir();
+    await state.initProjectDir(ConnectType.JackIn, undefined);
   } catch (e) {
     console.error('An error occurred while initializing project directory.', e);
     return;
   }
   let projectConnectSequence: ReplConnectSequence;
   try {
-    projectConnectSequence = await getProjectConnectSequence();
+    projectConnectSequence = await getProjectConnectSequence(false);
   } catch (e) {
     return;
   }
@@ -222,27 +228,26 @@ async function getJackInTerminalOptions(
   return terminalOptions;
 }
 
-async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
+async function getProjectConnectSequence(disableAutoSelect: boolean): Promise<ReplConnectSequence> {
   const cljTypes: string[] = await projectTypes.detectProjectTypes();
   const excludes = ['generic', 'cljs-only'];
   if (joyride.isJoyrideExtensionActive() && joyride.isJoyrideNReplServerRunning()) {
     excludes.push('joyride');
   }
   if (cljTypes.length > 1) {
-    const connectSequence = await askForConnectSequence(
+    return askForConnectSequence(
       cljTypes.filter((t) => !excludes.includes(t)),
-      'jack-in-type',
-      'JackInInterrupted'
+      ConnectType.JackIn,
+      disableAutoSelect
     );
-    if (connectSequence) {
-      return connectSequence;
-    } else {
-      return Promise.reject();
-    }
   }
 }
 
-export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => unknown) {
+export async function jackIn(
+  connectSequence: ReplConnectSequence,
+  disableAutoSelect: boolean,
+  cb?: () => unknown
+) {
   try {
     await liveShareSupport.setupLiveShareListener();
   } catch (e) {
@@ -263,8 +268,14 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
   let projectConnectSequence: ReplConnectSequence = connectSequence;
   if (!projectConnectSequence) {
     try {
-      projectConnectSequence = await getProjectConnectSequence();
+      projectConnectSequence = await getProjectConnectSequence(disableAutoSelect);
     } catch (e) {
+      outputWindow.appendLine(`; ${e}\n; Aborting jack-in.`);
+      // TODO: Figure out why this is not shown to the user.
+      void vscode.window.showErrorMessage(e, 'OK');
+      return;
+    }
+    if (!projectConnectSequence) {
       outputWindow.appendLine('; Aborting jack-in. No project type selected.');
       return;
     }
@@ -293,15 +304,26 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
   void liveShareSupport.didJackIn();
 }
 
-export async function jackInCommand(connectSequence?: ReplConnectSequence) {
+export async function jackInCommand(options: {
+  connectSequence?: ReplConnectSequence | string;
+  disableAutoSelect?: boolean;
+}) {
   status.updateNeedReplUi(true);
+  let connectSequence: ReplConnectSequence;
+  if (options && typeof options.connectSequence === 'string') {
+    connectSequence = getConnectSequences(projectTypes.getAllProjectTypes()).find(
+      (s) => s.name === options.connectSequence
+    );
+  } else if (options && options.connectSequence) {
+    connectSequence = options.connectSequence as ReplConnectSequence;
+  }
   try {
-    await state.initProjectDir();
+    await state.initProjectDir(ConnectType.JackIn, connectSequence, options?.disableAutoSelect);
   } catch (e) {
     console.error('An error occurred while initializing project directory.', e);
     return;
   }
-  await jackIn(connectSequence);
+  await jackIn(connectSequence, options?.disableAutoSelect);
 }
 
 export function calvaDisconnect() {

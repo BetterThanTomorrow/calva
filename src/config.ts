@@ -221,6 +221,8 @@ function getConfig() {
     depsEdnJackInExecutable: configOptions.get<string>('depsEdnJackInExecutable'),
     depsCljPath: configOptions.get<string>('depsCljPath'),
     autoSelectReplConnectProjectType: configOptions.get<string>('autoSelectReplConnectProjectType'),
+    autoSelectNReplPortFromPortFile: configOptions.get<boolean>('autoSelectNReplPortFromPortFile'),
+    autoConnectRepl: configOptions.get<boolean>('autoConnectRepl'),
   };
 }
 

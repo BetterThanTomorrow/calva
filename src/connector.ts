@@ -11,6 +11,7 @@ import {
   ReplConnectSequence,
   getDefaultCljsType,
   askForConnectSequence,
+  getConnectSequences,
 } from './nrepl/connectSequence';
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
@@ -24,8 +25,9 @@ import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 import * as replSession from './nrepl/repl-session';
 import * as clojureDocs from './clojuredocs';
 import * as jszip from 'jszip';
-import { addEdnConfig } from './config';
+import { addEdnConfig, getConfig } from './config';
 import { getJarContents } from './utilities';
+import { ConnectType } from './nrepl/connect-types';
 
 async function readJarContent(uri: string) {
   try {
@@ -74,16 +76,20 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
   util.setConnectingState(true);
   status.update();
   try {
-    outputWindow.appendLine('; Hooking up nREPL sessions...');
+    outputWindow.appendLine('; Hooking up nREPL sessions ...');
     // Create an nREPL client. waiting for the connection to be established.
     nClient = await NReplClient.create({
       host: hostname,
       port: +port,
       onError: (e) => {
+        outputWindow.appendLine(`; nREPL connection failed: ${e}`);
         const scheme = state.getProjectRootUri().scheme;
         if (scheme === 'vsls') {
-          outputWindow.appendLine('; nREPL connection failed; did the host share the nREPL port?');
+          outputWindow.appendLine('; Did the host share the nREPL port?');
         }
+        // TODO: Figure out why the program bails out after here.
+        // For now, we just clean up the connection state (even if we fail to return)
+        return cleanUpAfterError(e);
       },
     });
     nClient.addOnCloseHandler((c) => {
@@ -161,12 +167,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     }
     status.update();
   } catch (e) {
-    util.setConnectingState(false);
-    util.setConnectedState(false);
-    outputWindow.appendLine('; Failed connecting.');
-    state.analytics().logEvent('REPL', 'FailedConnectingCLJ').send();
-    console.error('Failed connecting:', e);
-    return false;
+    return cleanUpAfterError(e);
   }
 
   void liveShareSupport.didConnectRepl(port);
@@ -174,6 +175,16 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
   await readRuntimeConfigs();
 
   return true;
+}
+
+function cleanUpAfterError(e: any) {
+  util.setConnectingState(false);
+  util.setConnectedState(false);
+  outputWindow.appendLine('; Failed connecting.');
+  state.analytics().logEvent('REPL', 'FailedConnectingCLJ').send();
+  console.error('Failed connecting:', e);
+  status.update();
+  return false;
 }
 
 function setUpCljsRepl(session, build) {
@@ -609,6 +620,7 @@ export async function connect(
   try {
     if (port === undefined) {
       try {
+        outputWindow.appendLine(`; Reading port file: ${portFile} ...`);
         await vscode.workspace.fs.stat(portFile);
         const bytes = await vscode.workspace.fs.readFile(portFile);
         port = new TextDecoder('utf-8').decode(bytes);
@@ -618,6 +630,7 @@ export async function connect(
     }
     if (port) {
       hostname = hostname !== undefined ? hostname : 'localhost';
+      outputWindow.appendLine(`; Using host:port ${hostname}:${port} ...`);
       if (isAutoConnect) {
         setStateValue('hostname', hostname);
         setStateValue('port', port);
@@ -651,7 +664,11 @@ export async function connect(
   return true;
 }
 
-async function standaloneConnect(connectSequence: ReplConnectSequence) {
+async function standaloneConnect(
+  connectSequence: ReplConnectSequence,
+  hostname?: string,
+  port?: string
+) {
   await outputWindow.initResultsDoc();
   await outputWindow.openResultsDoc();
 
@@ -662,12 +679,27 @@ async function standaloneConnect(connectSequence: ReplConnectSequence) {
       .analytics()
       .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
       .send();
-    await connect(connectSequence, false).catch(() => {
-      // do nothing
-    });
+    return connect(connectSequence, getConfig().autoSelectNReplPortFromPortFile, hostname, port);
   } else {
     outputWindow.appendLine('; Aborting connect, error determining connect sequence.');
   }
+}
+
+async function nReplPortFileExists() {
+  const sequences = getConnectSequences(projectTypes.getAllProjectTypes());
+  const portFiles = sequences.map((sequence) => projectTypes.nreplPortFileUri(sequence));
+  let fileExists = false;
+  await Promise.all(
+    portFiles.map(async (portFile) => {
+      try {
+        await vscode.workspace.fs.stat(portFile);
+        fileExists = true;
+      } catch {
+        // do nothing, file does not exist
+      }
+    })
+  );
+  return fileExists;
 }
 
 export default {
@@ -676,26 +708,56 @@ export default {
     await state.setOrCreateNonProjectRoot(context, true);
     const connectSequence = await askForConnectSequence(
       projectTypes.getAllProjectTypes(),
-      'connect-type',
-      'ConnectInterrupted'
+      ConnectType.Connect,
+      undefined
     );
-    void standaloneConnect(connectSequence);
+    return standaloneConnect(connectSequence);
   },
-  connectCommand: async (_context: vscode.ExtensionContext) => {
+  connectCommand: async (options?: {
+    host?: string;
+    port?: string;
+    connectSequence?: string | ReplConnectSequence;
+    disableAutoSelect?: boolean;
+  }) => {
     status.updateNeedReplUi(true);
-    await state.initProjectDir().catch((e) => {
-      void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
-    });
+    const host = options && options.host ? options.host : undefined;
+    const port = options && options.port ? options.port : undefined;
+    const cljTypes = await projectTypes.detectProjectTypes();
+    let connectSequence: ReplConnectSequence;
+    if (options && typeof options.connectSequence === 'string') {
+      connectSequence = getConnectSequences(projectTypes.getAllProjectTypes()).find(
+        (s) => s.name === options.connectSequence
+      );
+    } else if (options && options.connectSequence) {
+      connectSequence = options.connectSequence as ReplConnectSequence;
+    }
+    await state
+      .initProjectDir(ConnectType.Connect, connectSequence, options?.disableAutoSelect)
+      .catch((e) => {
+        void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
+      });
+    if (!connectSequence) {
+      try {
+        connectSequence = await askForConnectSequence(
+          cljTypes,
+          ConnectType.Connect,
+          options?.disableAutoSelect
+        );
+      } catch (e) {
+        outputWindow.appendLine(`; ${e}\n; Aborting connect.`);
+        void vscode.window.showErrorMessage(`${e}`, 'OK');
+        return;
+      }
+    }
     await liveShareSupport.setupLiveShareListener().catch((e) => {
       console.error('Error initializing LiveShare support: ', e);
     });
-    const cljTypes = await projectTypes.detectProjectTypes();
-    const connectSequence = await askForConnectSequence(
-      cljTypes,
-      'connect-type',
-      'ConnectInterrupted'
-    );
-    void standaloneConnect(connectSequence);
+    return standaloneConnect(connectSequence, host, port).catch((e) => {
+      void vscode.window.showErrorMessage('Failed connecting to REPL: ', e);
+    });
+  },
+  shouldAutoConnect: async () => {
+    return getConfig().autoConnectRepl && nReplPortFileExists();
   },
   disconnect: (
     options = null,

@@ -1,12 +1,12 @@
 {
 	"folders": [
 		{
-			"name": "ws-b",
-			"path": "ws-b"
-		},
-		{
 			"name": "pirate-lang",
 			"path": "../projects/pirate-lang"
+		},
+		{
+			"name": "ws-b",
+			"path": "ws-b"
 		},
 		{
 			"name": "lab",
@@ -17,11 +17,34 @@
 			"path": "ws-a"
 		},
 		{
+			"name": "ws-no-proj",
 			"path": "ws-no-proj"
 		},
 		{
+			"name": "ws-sub-projs",
 			"path": "ws-sub-projs"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"calva.replConnectSequences": [
+			{
+				"name": "pirate-lang",
+				"projectType": "deps.edn",
+				"autoSelectForJackIn": true,
+				"autoSelectForConnect": true,
+				//"projectRootPath": "/Users/pez/Projects/calva/test-data/projects/pirate-lang",
+				//"projectRootPath": "/Users/pez/Projects/calva/test-data/workspaces/ws-b/pirate-lang",
+				"projectRootPath": ["."],
+				"afterCLJReplJackInCode": "(require 'repl)",
+				"cljsType": "none",
+				"menuSelections": {
+					"cljAliases": [
+						"dev",
+						"test"
+					]
+				}
+			}
+		],
+		"calva.autoConnectRepl": true
+	}
 }

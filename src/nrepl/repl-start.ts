@@ -181,7 +181,7 @@ export async function startStandaloneRepl(
     preserveFocus: false,
   });
 
-  await jackIn.jackIn(dramTemplate.connectSequence, async () => {
+  await jackIn.jackIn(dramTemplate.connectSequence, false, async () => {
     await vscode.window.showTextDocument(mainDoc, {
       preview: false,
       viewColumn: vscode.ViewColumn.One,

@@ -7,6 +7,7 @@ import * as connectSequences from './nrepl/connectSequence';
 import * as open from 'open';
 import * as outputWindow from './results-output/results-doc';
 import * as utilities from './utilities';
+import { ConnectType } from './nrepl/connect-types';
 
 const JOYRIDE_NREPL_START_API_VERSION = '0.0.5';
 
@@ -46,7 +47,7 @@ export function isJoyrideNReplServerRunning() {
 
 export async function prepareForJackingOrConnect() {
   status.updateNeedReplUi(true);
-  await state.initProjectDir().catch((e) => {
+  await state.initProjectDir(ConnectType.JackIn, undefined).catch((e) => {
     void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
   });
   await outputWindow.initResultsDoc();
