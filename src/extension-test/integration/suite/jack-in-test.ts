@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { before, after } from 'mocha';
+import { before, after, beforeEach } from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as state from '../../../state';
@@ -13,19 +13,36 @@ import { getDocument } from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
 import { updateWorkspaceConfig } from '../../../config';
 
+const settingsUri: vscode.Uri = vscode.Uri.joinPath(
+  vscode.workspace.workspaceFolders[0].uri,
+  '.vscode',
+  'settings.json'
+);
+const settingsBackupUri: vscode.Uri = vscode.Uri.joinPath(
+  vscode.workspace.workspaceFolders[0].uri,
+  '.vscode',
+  'settings.json.bak'
+);
+
 // TODO: Add more smoke tests for the extension
 // TODO: Start building integration test coverage
 
 suite('Jack-in suite', () => {
   const suite = 'Jack-in';
 
-  before(() => {
+  before(async () => {
     testUtil.showMessage(suite, `suite starting!`);
+    await vscode.workspace.fs.copy(settingsUri, settingsBackupUri, { overwrite: true });
   });
 
   after(async () => {
-    await updateWorkspaceConfig('autoSelectReplConnectProjectType', null);
+    console.log(suite, 'workspaceRoot', vscode.workspace.workspaceFolders[0].uri.fsPath);
     testUtil.showMessage(suite, `suite done!`);
+    await vscode.workspace.fs.delete(settingsBackupUri);
+  });
+
+  beforeEach(async () => {
+    await vscode.workspace.fs.copy(settingsBackupUri, settingsUri, { overwrite: true });
   });
 
   test('start repl and connect (jack-in)', async function () {
