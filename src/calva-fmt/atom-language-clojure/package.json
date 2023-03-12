@@ -14,15 +14,5 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/atom/language-clojure/issues"
-  },
-  "scripts": {
-    "preinstall": "npx npm-force-resolutions"
-  },
-  "devDependencies": {
-    "coffeelint": "^1.10.1",
-    "minimist": "^1.2.6"
-  },
-  "resolutions": {
-    "minimist": "^1.2.5"
   }
 }

@@ -47,12 +47,12 @@
     {
       "name": "pirate-lang",
       "projectType": "deps.edn",
+      "projectRootPath": ["projects/pirate-lang"],
       "afterCLJReplJackInCode": "(require 'repl)",
       "cljsType": "none",
       "menuSelections": {
         "cljAliases": ["dev", "test"]
       }
     }
-  ],
-  "calva.autoSelectReplConnectProjectType": null
+  ]
 }

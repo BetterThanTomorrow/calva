@@ -7,7 +7,7 @@ search:
 
 # Connect Calva to Your Project
 
-When connected to your project's REPL Calva let's you evaluate code, supporting Interactive Programming. The REPL connection is also used to provide IDE functionality through the dynamic knowledge about the project that the REPL enables. The REPL communication depends on that your project has an [nREPL](https://github.com/nrepl/nrepl) server running, and that the [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) middleware is enabled.
+When connected to your project's REPL Calva lets you evaluate code, supporting Interactive Programming. The REPL connection is also used to provide IDE functionality through the dynamic knowledge about the project that the REPL enables. The REPL communication depends on that your project has an [nREPL](https://github.com/nrepl/nrepl) server running, and that the [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) middleware is enabled.
 
 For the easiest way to provide your project with these dependencies, the recommended way to connect is to use the so called **Jack-in** command.
 
@@ -53,6 +53,42 @@ There are also these settings:
 !!! Note
     When processing the `calva.jackInEnv` setting you can refer to existing ENV variables with `${env:VARIABLE}`.
 
+#### Options for the Jack-in Command 
+
+The `calva.jackIn` command takes an optional options argument defined like so:
+
+```typescript
+  options?: {
+    connectSequence?: string | ReplConnectSequence;
+    disableAutoSelect?: boolean;
+  }
+```
+
+Where `ReplConnectSequence` is a [Connect Sequences](connect-sequences.md). If you provide a string it needs to match against a built-in or custom connect sequence. With `disableAutoSelect` you can force the jack-in menus to be provided even if a custom connect sequence is set to be autoSelected.
+
+You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
+
+Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with `autoSelectForConnect`.
+
+```json
+    {
+        "command": "calva.jackIn",
+        "args": {"disableAutoSelect": true},
+        "key": "ctrl+alt+c shift+j",
+    },
+```
+
+A Joyride command for starting a `deps.edn` REPL for a project in the root of the workspace.
+
+```clojure
+(vscode/commands.executeCommand
+ "calva.jackIn"
+ (clj->js {:connectSequence {:projectType "deps.edn"
+                             :projectRootPath ["."]}}))
+```
+
+It will prompt for any aliases it finds in the `deps.edn` file.    
+
 ## Connecting Without Jack-in
 
 If, for whatever reasons, you can't use Jack-in with your project (possibly because the REPL is started as part of some other job) all is not lost. Old fashioned **Connect to a running REPL** is still there for you. For all features to work in Calva while connecting to a running REPL, your environment needs to have REPL related dependencies set up.
@@ -66,26 +102,54 @@ All this said, I still recommend you challenge the conclusion that you can't use
 !!! Note
     There is a Calva command for copying the Jack-in command line to the clipboard.
 
+### Customizing Connect
+
+If there is an nRepl port file, Calva will use it and not prompt for `host:port` when connecting. You can make Calva prompt for this by setting the boolean config `calva.autoSelectNReplPortFromPortFile` to `false`.
+
+With the setting `calva.autoConnectRepl` you can make Calva automatically connect the REPL if there is an nRepl port file present when the project is opened.
+
+With this and the below mentioned auto-select options you can make connect a prompt-less experience. See: [Connect Sequences](connect-sequences.md).
+
+#### Options for the Connect Command 
+
+The `calva.connect` command takes an optional options argument defined like so:
+
+```typescript
+  options?: {
+    host?: string;
+    port?: string;
+    connectSequence?: string | ReplConnectSequence;
+    disableAutoSelect?: boolean;
+  }
+```
+
+Where `ReplConnectSequence` is a [Connect Sequences](connect-sequences.md). If you provide a string it needs to match against a built-in or custom connect sequence. With `disableAutoSelect` you can force the connect menus to be provided even if a custom connect sequence is set to be autoSelected.
+
+You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
+
+Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with `autoSelectForConnect`.
+
+```json
+    {
+        "command": "calva.connect",
+        "args": {"disableAutoSelect": true},
+        "key": "ctrl+alt+c shift+c",
+    },
+```
+
+A Joyride command for connecting to a REPL on port 55555, without being asked for project type:
+
+```clojure
+(vscode/commands.executeCommand "calva.connect" (clj->js {:port "55555" :connectSequence "Generic"}))
+```
+
 ### Starting the REPL from application code?
 
 If your project is setup so that the REPL server is started by the application code, you will need to get the cider-nrepl middleware in place. See the cider-nrepl docs about [embedding nREPL in your application](https://docs.cider.mx/cider-nrepl/usage.html#via-embedding-nrepl-in-your-application).
 
-## Auto-select Project Type
+## Auto-select Project Type and Project Root
 
-You can make both Jack-in and Connect stop prompting you for project type in projects where you always want to use the same. The setting `calva.autoSelectReplConnectProjectType` is used for this. Here's how to use it:
-
-1. Connect the REPL and manually select the project type/connect sequence you want to use.
-1. In the Output/REPL window Calva will print about auto-selecting project type, including the value you need. **Copy this value**
-1. In VS Code Settings, search for ”Calva auto” and you will find the setting
-1. Make sure you are editing Workspace settings
-1. **Paste the project type value you copied above**
-
-Next time you connect the REPL, Calva will use this value and the project type prompt will not be shown.
-
-To make Calva prompt for the project type, reset this setting (there's a cog icon there giving you an option to do this).
-
-!!! Or edit Workspace Settings JSON
-    You can of course also edit this setting manually in `.vscode/settings.json` for the workspace. ”Reset” is then equivalent to removing the setting from this file.
+You can make both Jack-in and Connect stop prompting you for project type and project root path in projects where you always want to use the same. See [Connect Sequences](connect-sequences.md).
 
 ## Monorepos / multiple Clojure projects in one workspace
 

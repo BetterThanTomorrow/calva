@@ -481,6 +481,10 @@ async function activate(context: vscode.ExtensionContext) {
     );
   }
 
+  if (await connector.shouldAutoConnect()) {
+    void vscode.commands.executeCommand('calva.connect');
+  }
+
   console.info('Calva activate END');
 
   return api.getApi();

@@ -17,7 +17,7 @@
         "CALVA_DEV_GA": "FUBAR-69796730-4",
         "DEBUG": "no-debug-universal-analytics"
       },
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
       "name": "Launch Extension w/o extensions",
@@ -32,7 +32,7 @@
         "CALVA_DEV_GA": "FUBAR-69796730-4",
         "DEBUG": "no-debug-universal-analytics"
       },
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
       "name": "Launch Extension w/o extensions --throw-deprecation",
@@ -47,7 +47,7 @@
         "CALVA_DEV_GA": "FUBAR-69796730-4",
         "DEBUG": "no-debug-universal-analytics"
       },
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
       "name": "Launch w/ test folder",
@@ -62,7 +62,7 @@
         "CALVA_DEV_GA": "FUBAR-69796730-4",
         "DEBUG": "no-debug-universal-analytics"
       },
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
       "name": "Launch w/ /tmp/foo.clj",
@@ -77,7 +77,7 @@
         "CALVA_DEV_GA": "FUBAR-69796730-4",
         "DEBUG": "no-debug-universal-analytics"
       },
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
       "name": "Launch w/ welcome-to-calva.md",
@@ -96,7 +96,7 @@
         "CALVA_DEV_GA": "FUBAR-69796730-4",
         "DEBUG": "no-debug-universal-analytics"
       },
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
       "name": "Launch w/ no folder",
@@ -111,7 +111,7 @@
         "CALVA_DEV_GA": "FUBAR-69796730-4",
         "DEBUG": "no-debug-universal-analytics"
       },
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
       "name": "Launch w/ empty folder",
@@ -129,7 +129,7 @@
         "CALVA_DEV_GA": "FUBAR-69796730-4",
         "DEBUG": "no-debug-universal-analytics"
       },
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
       "name": "Theia node launch",
@@ -151,7 +151,7 @@
         "CALVA_DEV_GA": "FUBAR-69796730-4",
         "DEBUG": "no-debug-universal-analytics"
       },
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
       "name": "Extension Tests",

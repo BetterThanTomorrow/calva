@@ -100,17 +100,18 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
     status_bar.updateStatusBar(status_bar_item, client.status);
   };
 
-  let lsp_server_path: Promise<string | void> | undefined = undefined;
+  let lsp_server_path: string;
   const provisionClient = async (uri: vscode.Uri, id = uri.fsPath) => {
     if (lsp_server_path === undefined) {
-      lsp_server_path = lsp_client.ensureLSPServer(params.context).catch((err) => {
-        console.error('Failed to download lsp server', err);
+      try {
+        lsp_server_path = await lsp_client.ensureLSPServer(params.context);
+      } catch (err) {
+        void vscode.window.showErrorMessage(`Failed to download clojure-lsp server. ${err}`);
         return;
-      });
+      }
     }
 
-    const server_path = await lsp_server_path;
-    if (!server_path) {
+    if (!lsp_server_path) {
       console.error('Server path could not be resolved');
       return;
     }
@@ -122,7 +123,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
 
     console.log(`Creating new LSP client using ${uri.path} as the project root`);
     const client = lsp_client.createClient({
-      lsp_server_path: server_path,
+      lsp_server_path,
       id,
       uri,
     });

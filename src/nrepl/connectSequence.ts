@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import * as state from '../state';
 import * as utilities from '../utilities';
 import { Config, getConfig } from '../config';
 import * as outputWindow from '../results-output/results-doc';
 import { formatAsLineComments } from '../results-output/util';
+import { ConnectType } from './connect-types';
 
 enum ProjectTypes {
   'Leiningen' = 'Leiningen',
@@ -54,6 +56,9 @@ interface MenuSelections {
 interface ReplConnectSequence {
   name: string;
   projectType: ProjectTypes;
+  autoSelectForConnect?: boolean;
+  autoSelectForJackIn?: boolean;
+  projectRootPath?: string[];
   afterCLJReplJackInCode?: string;
   cljsType: CljsTypes | CljsTypeConfig;
   menuSelections?: MenuSelections;
@@ -288,15 +293,14 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
 const autoSelectProjectTypeSetting: `calva.${keyof Config}` =
   'calva.autoSelectReplConnectProjectType';
 
-const autoSelectDocLink = `  - See https://calva.io/connect/#auto-select-project-type`;
+const connectSequencesDocLink = `  - See https://calva.io/connect-sequences/`;
 
 const defaultProjectSettingMsg = (project: string) =>
   formatAsLineComments(
     [
       `Connecting using "${project}" project type.`,
-      `You can make Calva auto-select this:`,
-      `"${autoSelectProjectTypeSetting}": "${project}"`,
-      autoSelectDocLink,
+      `You can make Calva auto-select this.`,
+      connectSequencesDocLink,
       '\n',
     ].join('\n')
   );
@@ -306,11 +310,7 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
   const sequences: ReplConnectSequence[] = getConfig().replConnectSequences;
 
   for (const sequence of sequences) {
-    if (
-      sequence.name == undefined ||
-      sequence.projectType == undefined ||
-      sequence.cljsType == undefined
-    ) {
+    if (sequence.name == undefined || sequence.projectType == undefined) {
       void vscode.window.showWarningMessage(
         'Check your calva.replConnectSequences. You need to supply `name`, `projectType`, and `cljsType` for every sequence.',
         ...['Roger That!']
@@ -343,7 +343,7 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
   return sequences;
 }
 
-function askToSetDefaultProjectForJackIn(project: string) {
+function informAboutDefaultProjectForJackIn(project: string) {
   outputWindow.appendLine(defaultProjectSettingMsg(project));
 }
 
@@ -359,9 +359,29 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
 
 function getUserSpecifiedSequence(
   sequences: ReplConnectSequence[],
-  saveAsPath: string
+  connectType: ConnectType,
+  disableAutoSelect: boolean
 ): ReplConnectSequence | undefined {
-  const userSpecifiedProjectType = getConfig().autoSelectReplConnectProjectType;
+  if (getConfig().autoSelectReplConnectProjectType) {
+    outputWindow.appendLine(
+      formatAsLineComments(
+        [
+          `Note: The config "${autoSelectProjectTypeSetting}" is deprecated.`,
+          connectSequencesDocLink,
+          '\n',
+        ].join('\n')
+      )
+    );
+  }
+
+  const autoSelectedSequence = disableAutoSelect
+    ? undefined
+    : sequences.find((s) =>
+        connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn
+      );
+  const userSpecifiedProjectType = autoSelectedSequence
+    ? autoSelectedSequence.name
+    : getConfig().autoSelectReplConnectProjectType;
 
   if (userSpecifiedProjectType) {
     const defaultSequence = sequences.find(
@@ -374,14 +394,10 @@ function getUserSpecifiedSequence(
           [
             `Auto-selecting project type "${defaultSequence.name}".`,
             `You can change this from settings:`,
-            autoSelectDocLink,
+            connectSequencesDocLink,
             '\n',
           ].join('\n')
         )
-      );
-      void state.extensionContext.workspaceState.update(
-        `d-${saveAsPath}`,
-        defaultSequence.projectType
       );
 
       return defaultSequence;
@@ -391,7 +407,7 @@ function getUserSpecifiedSequence(
           [
             `Project type "${userSpecifiedProjectType}" not found.`,
             `You need to update the auto-select setting.`,
-            autoSelectDocLink,
+            connectSequencesDocLink,
             '\n',
           ].join('\n')
         )
@@ -402,21 +418,24 @@ function getUserSpecifiedSequence(
 
 async function askForConnectSequence(
   cljTypes: string[],
-  saveAs: string,
-  logLabel: string
+  connectType: ConnectType,
+  disableAutoSelect: boolean
 ): Promise<ReplConnectSequence> {
-  // figure out what possible kinds of project we're in
+  const [saveAs, logLabel, menuTitleType] =
+    connectType === ConnectType.Connect
+      ? ['connect-type', 'ConnectInterrupted', 'Connect']
+      : ['jack-in-type', 'JackInInterrupted', 'Jack-in'];
   const sequences: ReplConnectSequence[] = getConnectSequences(cljTypes);
 
   const projectRootUri = state.getProjectRootUri();
   const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
 
-  const defaultSequence = getUserSpecifiedSequence(sequences, saveAsPath);
+  const defaultSequence = getUserSpecifiedSequence(sequences, connectType, disableAutoSelect);
 
-  void state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', true);
   const projectConnectSequenceName =
     defaultSequence?.name ??
     (await utilities.quickPickSingle({
+      title: `${menuTitleType}: Project Type/Connect Sequence`,
       values: sequences.map((s) => {
         return s.name;
       }),
@@ -425,20 +444,34 @@ async function askForConnectSequence(
       autoSelect: true,
     }));
 
-  !defaultSequence && void askToSetDefaultProjectForJackIn(projectConnectSequenceName);
+  !defaultSequence && void informAboutDefaultProjectForJackIn(projectConnectSequenceName);
 
-  void state.extensionContext.workspaceState.update('askForConnectSequenceQuickPick', false);
   if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
     state.analytics().logEvent('REPL', logLabel, 'NoProjectTypePicked').send();
     return;
   }
   const sequence = sequences.find((seq) => seq.name === projectConnectSequenceName);
+
+  if (
+    sequence.projectRootPath &&
+    state.getProjectRootUri().fsPath !==
+      state.resolvePath(path.join(...sequence.projectRootPath)).fsPath
+  ) {
+    throw new Error(
+      `The connect sequence "${sequence.name}" is configured for project root "${path.join(
+        ...sequence.projectRootPath
+      )}. Please select a different connect sequence or change the project root setting for the sequence.`
+    );
+  }
+
   void state.extensionContext.workspaceState.update('selectedCljTypeName', sequence.projectType);
   return sequence;
 }
 
 export {
+  getCustomConnectSequences,
   askForConnectSequence,
+  getConnectSequences,
   getDefaultCljsType,
   CljsTypes,
   ReplConnectSequence,

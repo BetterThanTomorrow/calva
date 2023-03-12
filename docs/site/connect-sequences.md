@@ -20,6 +20,9 @@ A connect sequence configures the following:
 
 * `name`: (required) This will show up in the Jack-in quick-pick menu when you start Jack-in (see above).
 * `projectType`: (required) This is either "Leiningen”, ”deps.edn”, ”shadow-cljs”, ”lein-shadow”, "Gradle", or ”generic".
+* `autoSelectForJackIn`: A boolean. If true, this sequence will be automatically selected at **Jack-in**, suppressing the Project Type. Use together with `projectRootPath` to also suppress the Project Root menu. Add usage of `menuSelections` to go for a prompt-less REPL Jack-in. If you have more than one sequence with `autoSelectForJackIn` set to true, the first one will be used.
+* `autoSelectForConnect`: A boolean. If true, this sequence will be automatically selected at **Connect**, suppressing the Project Type menu. Use together with `projectRootPath` to also suppress the Project Root menu. If you have more than one sequence with `autoSelectForConnect` set to true, the first one will be used.
+* `projectRootPath`: An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with `autoSelectForJackIn`/`autoSelectForConnect` to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder.
 * `nReplPortFile`: An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be `[".shadow-cljs", "nrepl.port"]`.
 * `afterCLJReplJackInCode`: Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.
 * `cljsType`: This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", "none", or a dictionary configuring a custom type. If set to "none", Calva will skip connecting a ClojureScript repl. A custom type has the following fields:
@@ -43,12 +46,15 @@ A connect sequence configures the following:
 
 The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts) also use this format, check them out to get a clearer picture of how these settings work.
 
-!!! Note "Apropos the **ClojureScript nREPL Server** built-in sequence"
-    Because of ancient decisions in the design of Calva session management, the current implementation of the ClojureScript nREPL Server connect sequence is a workaround. Calva will still indicate that it has a Clojure session available, which is nonsense in a pure ClojureScript nREPL environment. This session is also a ClojureScript session.
+!!! Note "Force the project type menu to show"
+    The convenience of `autoSelectForJackIn/Connect` can be an inconvenience when you want to use another project type/sequence for a project. For this reason, the `calva.connect` and `calva.jackIn` can be provided with an option `disableAutoSelect`, which forces the project root and project type menus to show. See [Options for the Connect Command](connect.md#options-for-the-jack-in-command) and [Options for the Jack-in Command](connect.md#options-for-the-connect-command) for more on this.
+
+!!! Note "Path segments"
+    `projectRootPath` and `nReplPortFile` both take an array of path segments. This is to make the paths work cross-platform. If you can't be bothered splitting up the path in segments, put the whole path in the first segment, though please note that if you use Windows path separators, these will not work for users with Linux or macOS.
 
 ## Example Sequences
 
-Wether you hust want to speed up your workflow, or encode some workflow/mechanics into it, there's often that you can create a custyom sequence that helps.
+Whether you just want to speed up your workflow or encode some workflow/mechanics into it, it's often the case that you can create a custom sequence that helps.
 
 ### Minimal menus with full stack shadow-cljs REPLs
 
@@ -70,6 +76,37 @@ Minimize the amount of selecting from the Jack-in/Connect menu when working with
 ```
 
 See [shadow-cljs + Clojure with Calva: The basics](https://blog.agical.se/en/posts/shadow-cljs-clojure-cljurescript-calva-nrepl-basics/) for how Calva and nREPL work with ClojureScript.
+
+
+### Polylith
+
+This is the connect sequences used in the [Polylith Real World App](https://github.com/furkan3ayraktar/clojure-polylith-realworld-example-app). The `(start)` sequence lets you jack-in to the project, and starts the Real World App without any prompts. The `(connect)` sequence can be used if you prefer to start the REPL manually, and want to connect without prompts.
+
+```json
+    "calva.replConnectSequences": [
+        {
+            "projectType": "deps.edn",
+            "afterCLJReplJackInCode": "(require '[dev.server] :reload) (in-ns 'dev.server) (start! 6003)",
+            "name": "Polylith RealWorld Server REPL (start)",
+            "autoSelectForJackIn": true,
+            "projectRootPath": ["."],
+            "cljsType": "none",
+            "menuSelections": {
+                "cljAliases": ["dev", "test"]
+            }
+        },
+        {
+            "projectType": "deps.edn",
+            "name": "Polylith RealWorld Server REPL (connect)",
+            "autoSelectForConnect": true,
+            "projectRootPath": ["."],
+            "cljsType": "none",
+        }
+    ],
+    "calva.autoConnectRepl": true,
+```
+
+The `calva.autoConnectRepl`, when set to `true`, makes Calva, at project open, look for the nRepl port file and automatically connect the repl if the file exists. Therefore, you can leave the app running when you close the project in VS Code, and Calva will reconnect when you open the project again. (Alternatively, maybe you just need to reload the VS Code window and not lose the REPL state.)
 
 ### Minimal menus with full stack deps.edn and Figwheel Main REPLs
 
