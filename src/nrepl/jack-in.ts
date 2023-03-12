@@ -7,7 +7,12 @@ import status from '../status';
 import * as connector from '../connector';
 import { nClient } from '../connector';
 import statusbar from '../statusbar';
-import { askForConnectSequence, ReplConnectSequence, CljsTypes } from './connectSequence';
+import {
+  askForConnectSequence,
+  ReplConnectSequence,
+  CljsTypes,
+  getConnectSequences,
+} from './connectSequence';
 import * as projectTypes from './project-types';
 import * as outputWindow from '../results-output/results-doc';
 import { JackInTerminal, JackInTerminalOptions, createCommandLine } from './jack-in-terminal';
@@ -295,21 +300,25 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: () => un
 }
 
 export async function jackInCommand(options: {
-  connectSequence?: ReplConnectSequence;
+  connectSequence?: ReplConnectSequence | string;
   disableAutoSelect?: boolean;
 }) {
   status.updateNeedReplUi(true);
-  try {
-    await state.initProjectDir(
-      ConnectType.JackIn,
-      options?.connectSequence,
-      options?.disableAutoSelect
+  let connectSequence: ReplConnectSequence;
+  if (options && typeof options.connectSequence === 'string') {
+    connectSequence = getConnectSequences(projectTypes.getAllProjectTypes()).find(
+      (s) => s.name === options.connectSequence
     );
+  } else if (options && options.connectSequence) {
+    connectSequence = options.connectSequence as ReplConnectSequence;
+  }
+  try {
+    await state.initProjectDir(ConnectType.JackIn, connectSequence, options?.disableAutoSelect);
   } catch (e) {
     console.error('An error occurred while initializing project directory.', e);
     return;
   }
-  await jackIn(options?.connectSequence);
+  await jackIn(connectSequence);
 }
 
 export function calvaDisconnect() {
