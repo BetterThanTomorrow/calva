@@ -54,6 +54,5 @@
         "cljAliases": ["dev", "test"]
       }
     }
-  ],
-  "calva.autoSelectReplConnectProjectType": null
+  ]
 }
