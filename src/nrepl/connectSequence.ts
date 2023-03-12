@@ -310,11 +310,7 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
   const sequences: ReplConnectSequence[] = getConfig().replConnectSequences;
 
   for (const sequence of sequences) {
-    if (
-      sequence.name == undefined ||
-      sequence.projectType == undefined ||
-      sequence.cljsType == undefined
-    ) {
+    if (sequence.name == undefined || sequence.projectType == undefined) {
       void vscode.window.showWarningMessage(
         'Check your calva.replConnectSequences. You need to supply `name`, `projectType`, and `cljsType` for every sequence.',
         ...['Roger That!']

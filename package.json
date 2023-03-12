@@ -369,9 +369,6 @@
               }
             }
           },
-          "calva.customCljsRepl": {
-            "deprecationMessage": "This settings is deprecated. Use `cljsType` in a `calva.replConnectSequences` item instead."
-          },
           "calva.jackInEnv": {
             "type": "object",
             "default": {},
@@ -544,8 +541,7 @@
               "type": "object",
               "required": [
                 "name",
-                "projectType",
-                "cljsType"
+                "projectType"
               ],
               "properties": {
                 "name": {
