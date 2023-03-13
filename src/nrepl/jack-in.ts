@@ -60,7 +60,6 @@ function executeJackInTask(
 
   // in case we have a running task present try to end it.
   calvaJackout();
-  status.updateNeedReplUi(true);
   if (jackInTerminal !== undefined) {
     jackInTerminal.dispose();
     jackInTerminal = undefined;
@@ -308,7 +307,6 @@ export async function jackInCommand(options: {
   connectSequence?: ReplConnectSequence | string;
   disableAutoSelect?: boolean;
 }) {
-  status.updateNeedReplUi(true);
   let connectSequence: ReplConnectSequence;
   if (options && typeof options.connectSequence === 'string') {
     connectSequence = getConnectSequences(projectTypes.getAllProjectTypes()).find(

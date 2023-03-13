@@ -90,8 +90,6 @@ async function activate(context: vscode.ExtensionContext) {
   await config.updateCalvaConfigFromUserConfigEdn(false);
   await config.updateCalvaConfigFromEdn();
 
-  status.updateNeedReplUi(false, context);
-
   context.subscriptions.push(testController);
   testRunner.initialize(testController);
 

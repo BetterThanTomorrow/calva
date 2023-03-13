@@ -704,7 +704,6 @@ async function nReplPortFileExists() {
 
 export default {
   connectNonProjectREPLCommand: async (context: vscode.ExtensionContext) => {
-    status.updateNeedReplUi(true);
     await state.setOrCreateNonProjectRoot(context, true);
     const connectSequence = await askForConnectSequence(
       projectTypes.getAllProjectTypes(),
@@ -719,7 +718,6 @@ export default {
     connectSequence?: string | ReplConnectSequence;
     disableAutoSelect?: boolean;
   }) => {
-    status.updateNeedReplUi(true);
     const host = options && options.host ? options.host : undefined;
     const port = options && options.port ? options.port : undefined;
     const cljTypes = await projectTypes.detectProjectTypes();
@@ -765,7 +763,6 @@ export default {
       // do nothing
     }
   ) => {
-    status.updateNeedReplUi(false);
     ['clj', 'cljs'].forEach((sessionType) => {
       setStateValue(sessionType, null);
     });
