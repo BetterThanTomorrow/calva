@@ -115,7 +115,10 @@ export class NReplClient {
     for (const id in this.sessions) {
       this.sessions[id].close();
     }
-    this.disconnect();
+    // TODO: Figure out a way to know when the socket can be destroyed without an error.
+    setTimeout(() => {
+      this.disconnect();
+    }, 1000);
   }
 
   disconnect() {
@@ -219,8 +222,8 @@ export class NReplSession {
   }
 
   close() {
+    const msg = { op: 'close', session: this.sessionId };
     try {
-      const msg = { op: 'close', session: this.sessionId };
       if (this.supports(msg.op)) {
         this.client.write(msg);
       } else {
@@ -228,14 +231,15 @@ export class NReplSession {
       }
     } catch (error) {
       console.error(error);
+    } finally {
+      this._runningIds = [];
+      delete this.client.sessions[this.sessionId];
+      const index = NReplSession.Instances.indexOf(this);
+      if (index > -1) {
+        NReplSession.Instances.splice(index, 1);
+      }
+      this._onCloseHandlers.forEach((x) => x(this));
     }
-    this._runningIds = [];
-    delete this.client.sessions[this.sessionId];
-    const index = NReplSession.Instances.indexOf(this);
-    if (index > -1) {
-      NReplSession.Instances.splice(index, 1);
-    }
-    this._onCloseHandlers.forEach((x) => x(this));
   }
 
   async clone() {
