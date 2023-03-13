@@ -1082,6 +1082,12 @@
         "enablement": "workspaceFolderCount > 0"
       },
       {
+        "command": "calva.jackOut",
+        "title": "Stop the Project REPL started by Calva (aka Jack-Out)",
+        "category": "Calva",
+        "enablement": "calva:jackedIn"
+      },
+      {
         "command": "calva.connect",
         "title": "Connect to a Running REPL Server in the Project",
         "category": "Calva",
