@@ -209,6 +209,8 @@ export function startOrConnectRepl() {
   const CONNECT_PROJECT_COMMAND = 'calva.connect';
   const CONNECT_STANDALONE_OPTION = 'Connect to a running REPL, not in your project';
   const CONNECT_STANDALONE_COMMAND = 'calva.connectNonProjectREPL';
+  const INTERRUPT_OPTION = 'Interrupt running Evaluations';
+  const INTERRUPT_COMMAND = 'calva.interruptAllEvaluations';
   const DISCONNECT_OPTION = 'Disconnect from the REPL';
   const DISCONNECT_COMMAND = 'calva.disconnect';
   const OPEN_WINDOW_OPTION = 'Open the Output Window';
@@ -222,6 +224,7 @@ export function startOrConnectRepl() {
     START_HELLO_CLJS_BROWSER_OPTION,
     START_HELLO_CLJS_NODE_OPTION,
     CONNECT_STANDALONE_OPTION,
+    INTERRUPT_OPTION,
     OPEN_WINDOW_OPTION,
     DISCONNECT_OPTION,
   ];
@@ -246,6 +249,7 @@ export function startOrConnectRepl() {
     commands[START_HELLO_CLJS_BROWSER_OPTION] = START_HELLO_CLJS_BROWSER_COMMAND;
     commands[START_HELLO_CLJS_NODE_OPTION] = START_HELLO_CLJS_NODE_COMMAND;
   } else {
+    commands[INTERRUPT_OPTION] = INTERRUPT_COMMAND;
     commands[DISCONNECT_OPTION] = DISCONNECT_COMMAND;
     if (replSession.getSession('clj')) {
       commands[OPEN_WINDOW_OPTION] = OPEN_WINDOW_COMMAND;
