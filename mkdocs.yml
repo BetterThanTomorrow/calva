@@ -78,7 +78,6 @@ nav:
     - polylith.md
     - krell.md
     - rebl.md
-    - static-only.md
     - parinfer.md
   - Tips and Tricks:
     - emacs-keybindings.md

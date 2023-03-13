@@ -65,12 +65,16 @@ export class NReplClient {
       state.connectionLogChannel().appendLine(e.message);
       onError(e);
     });
-    this.socket.on('close', (e) => {
-      console.log('Socket closed');
+    this.socket.on('close', (v) => {
+      console.log('Socket closed', v);
       state.connectionLogChannel().appendLine('Socket closed');
-      this._closeHandlers.forEach((x) => x(this));
-      for (const x in this.sessions) {
-        this.sessions[x]._onCloseHandlers.forEach((s) => s(this.sessions[x]));
+      try {
+        this._closeHandlers.forEach((x) => x(this));
+        for (const x in this.sessions) {
+          this.sessions[x]._onCloseHandlers.forEach((s) => s(this.sessions[x]));
+        }
+      } catch (e) {
+        console.error(e);
       }
     });
     this.encoder.pipe(this.socket);

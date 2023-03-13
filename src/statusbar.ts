@@ -118,21 +118,14 @@ function update(context = state.extensionContext) {
     connectionStatus.color = colorValue('disconnectedColor', currentConf);
     connectionStatus.command = 'calva.startOrConnectRepl';
   }
-  if (status.shouldshowReplUi(context)) {
-    connectionStatus.show();
-    typeStatus.show();
-    if (cljsBuildStatus.text) {
-      cljsBuildStatus.show();
-    } else {
-      cljsBuildStatus.hide();
-    }
-    prettyPrintToggle.show();
+  connectionStatus.show();
+  typeStatus.show();
+  if (cljsBuildStatus.text) {
+    cljsBuildStatus.show();
   } else {
-    connectionStatus.hide();
-    typeStatus.hide();
     cljsBuildStatus.hide();
-    prettyPrintToggle.hide();
   }
+  prettyPrintToggle.show();
 }
 
 export default {

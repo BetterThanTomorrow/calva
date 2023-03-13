@@ -209,7 +209,6 @@ function getConfig() {
     autoOpenREPLWindow: configOptions.get<boolean>('autoOpenREPLWindow'),
     autoOpenJackInTerminal: configOptions.get('autoOpenJackInTerminal'),
     referencesCodeLensEnabled: configOptions.get<boolean>('referencesCodeLens.enabled'),
-    hideReplUi: configOptions.get<boolean>('hideReplUi'),
     strictPreventUnmatchedClosingBracket: pareditOptions.get<boolean>(
       'strictPreventUnmatchedClosingBracket'
     ),
