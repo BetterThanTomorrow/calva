@@ -846,6 +846,7 @@ export async function backspace(
     return doc.backspace();
   } else {
     const cursor = doc.getTokenCursor(start);
+    const isTopLevel = doc.getTokenCursor(end).atTopLevel();
     const nextToken = cursor.getToken();
     const p = start;
     const prevToken =
@@ -867,7 +868,7 @@ export async function backspace(
           selection: new ModelEditSelection(p - prevToken.raw.length),
         }
       );
-    } else if (!cursor.withinString() && onlyWhitespaceLeftOfCursor(doc, cursor)) {
+    } else if (!isTopLevel && !cursor.withinString() && onlyWhitespaceLeftOfCursor(doc, cursor)) {
       return backspaceOnWhitespaceEdit(doc, cursor, config);
     } else {
       if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {

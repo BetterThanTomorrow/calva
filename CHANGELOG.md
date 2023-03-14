@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Tab to reindent should pull the start of a top level expression to the left margin](https://github.com/BetterThanTomorrow/calva/issues/2096)
+- Fix: [Backspace behaves weirdly when removing indent from top level form](https://github.com/BetterThanTomorrow/calva/issues/2108)
+
 ## [2.0.336] - 2023-03-12
 
 - [Move auto-selecting project type config to Connect Sequences](https://github.com/BetterThanTomorrow/calva/issues/2094)
