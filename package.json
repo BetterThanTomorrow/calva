@@ -1083,7 +1083,7 @@
       },
       {
         "command": "calva.jackOut",
-        "title": "Stop the Project REPL started by Calva (aka Jack-Out)",
+        "title": "Stop/Kill the Project REPL started by Calva (aka Jack-Out)",
         "category": "Calva",
         "enablement": "calva:jackedIn"
       },
