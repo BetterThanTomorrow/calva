@@ -195,6 +195,8 @@ export async function startStandaloneRepl(
 export function startOrConnectRepl() {
   const JACK_IN_OPTION = 'Start your project with a REPL and connect (a.k.a. Jack-in)';
   const JACK_IN_COMMAND = 'calva.jackIn';
+  const RE_JACK_IN_OPTION = 'Restart the Project REPL (a.k.a. Re-jack-in)';
+  const RE_JACK_IN_COMMAND = 'calva.jackIn';
   const JACK_OUT_OPTION = 'Stop/Kill the Project REPL started by Calva (a.k.a. Jack-out)';
   const JACK_OUT_COMMAND = 'calva.jackOut';
   const START_REPL_OPTION = 'Start a standalone REPL';
@@ -228,6 +230,7 @@ export function startOrConnectRepl() {
     START_HELLO_CLJS_NODE_OPTION,
     INTERRUPT_OPTION,
     OPEN_WINDOW_OPTION,
+    RE_JACK_IN_OPTION,
     DISCONNECT_OPTION,
     JACK_OUT_OPTION,
   ];
@@ -258,6 +261,7 @@ export function startOrConnectRepl() {
       commands[OPEN_WINDOW_OPTION] = OPEN_WINDOW_COMMAND;
     }
     if (utilities.getJackedInState()) {
+      commands[RE_JACK_IN_OPTION] = RE_JACK_IN_COMMAND;
       commands[JACK_OUT_OPTION] = JACK_OUT_COMMAND;
     }
   }
