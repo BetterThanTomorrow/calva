@@ -12,6 +12,7 @@ import * as util from '../../utilities';
 import { isUndefined, cloneDeep } from 'lodash';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
 import { formatIndex } from './format-index';
+import * as state from '../../state';
 
 const FormatDepthDefaults = {
   deftype: 2,
@@ -139,15 +140,41 @@ function _calculateFormatRange(
   index: number
 ) {
   const formatDepth = config?.['format-depth'] ?? _formatDepth(cursor);
-
+  const rangeForTopLevelForm = cursor.rangeForDefun(index, false);
+  const topLevelStartCursor = cursor.doc.getTokenCursor(rangeForTopLevelForm[0]);
   const rangeForList = cursor.rangeForList(formatDepth);
   if (rangeForList) {
-    return rangeForList;
+    if (rangeForList[0] === rangeForTopLevelForm[0]) {
+      if (topLevelStartCursor.rowCol[1] !== 0) {
+        const STOP_INFORMING = 'calvaFormat:stopInformingAboutTopLevelAlignment';
+        if (!state.extensionContext.globalState.get(STOP_INFORMING)) {
+          void vscode.window
+            .showInformationMessage(
+              'You are formatting a top level form that is not aligned with the left margin. Calva will not align it for you, because it promises to only format the content of the form. Please align the opening bracket of the form with the left margin and format again. You can also format the whole document by placing the cursor outside of the form and format.',
+              'OK',
+              "Don't show again"
+            )
+            .then((selection) => {
+              if (selection === "Don't show again") {
+                void state.extensionContext.globalState.update(STOP_INFORMING, true);
+              }
+            });
+        }
+      }
+      return rangeForList;
+    }
   }
 
   const rangeForCurrentForm = cursor.rangeForCurrentForm(index);
-  if (rangeForCurrentForm?.includes(index)) {
-    return rangeForCurrentForm;
+  if (!isUndefined(rangeForCurrentForm)) {
+    if (rangeForCurrentForm[0] === rangeForTopLevelForm[0]) {
+      if (topLevelStartCursor.rowCol[1] !== 0) {
+        return;
+      }
+    }
+    if (rangeForCurrentForm.includes(index)) {
+      return rangeForCurrentForm;
+    }
   }
 }
 
