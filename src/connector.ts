@@ -642,6 +642,7 @@ export async function connect(
       outputWindow.appendLine('; No nrepl port file found.');
       await promptForNreplUrlAndConnect(port, connectSequence);
     }
+    status.update();
   } catch (e) {
     console.error(e);
   }

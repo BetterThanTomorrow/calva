@@ -265,9 +265,10 @@ export class NReplSession {
       this.replType = msgData['repl-type'];
     }
 
-    if (msgData.out && !this.replType) {
-      this.replType = 'clj';
-    }
+    // TODO: Don't know why we used to do this, it doesn't make sense! (And it breaks the session state)
+    //if (msgData.out && !this.replType) {
+    //  this.replType = 'clj';
+    //}
 
     if (!(msgData.status && msgData.status == 'done')) {
       this.addRunningID(msgData.id);

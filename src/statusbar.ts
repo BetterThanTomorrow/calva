@@ -74,6 +74,9 @@ function update(context = state.extensionContext) {
   cljsBuildStatus.command = 'calva.switchCljsBuild';
   cljsBuildStatus.tooltip = undefined;
 
+  if (!getStateValue('connected')) {
+    typeStatus.hide();
+  }
   if (getStateValue('connected')) {
     connectionStatus.text = 'REPL $(zap)';
     connectionStatus.color = colorValue('connectedStatusColor', currentConf);
@@ -84,13 +87,16 @@ function update(context = state.extensionContext) {
     typeStatus.color = colorValue('typeStatusColor', currentConf);
     const replType = getReplSessionTypeFromState();
     if (replType !== null) {
+      const cljSession = getSession('clj');
+      const cljsSession = getSession('cljs');
       typeStatus.text = ['cljc', config.REPL_FILE_EXT].includes(fileType)
         ? `cljc/${replType}`
         : replType;
-      if (getSession('clj') !== null && getSession('cljs') !== null) {
+      if (cljSession.replType !== cljsSession.replType) {
         typeStatus.command = 'calva.toggleCLJCSession';
         typeStatus.tooltip = `Click to use ${replType === 'clj' ? 'cljs' : 'clj'} REPL for cljc`;
       } else {
+        typeStatus.command = undefined;
         typeStatus.tooltip = `Connected to ${replTypeNames[replType]} REPL`;
       }
     }
@@ -103,6 +109,7 @@ function update(context = state.extensionContext) {
         cljsBuildStatus.tooltip = 'Click to connect to a CLJS build REPL';
       }
     }
+    typeStatus.show();
   } else if (util.getLaunchingState()) {
     connectionStatus.color = colorValue('launchingColor', currentConf);
     connectionStatus.text = 'Launching REPL using ' + util.getLaunchingState();
@@ -112,6 +119,7 @@ function update(context = state.extensionContext) {
     connectionStatus.text = 'REPL - trying to connect';
     connectionStatus.tooltip = 'Click to interrupt jack-in or Connect to REPL Server';
     connectionStatus.command = 'calva.disconnect';
+    typeStatus.show();
   } else {
     connectionStatus.text = 'REPL $(zap)';
     connectionStatus.tooltip = 'Click to jack-in or Connect to REPL Server';
@@ -119,7 +127,6 @@ function update(context = state.extensionContext) {
     connectionStatus.command = 'calva.startOrConnectRepl';
   }
   connectionStatus.show();
-  typeStatus.show();
   if (cljsBuildStatus.text) {
     cljsBuildStatus.show();
   } else {
