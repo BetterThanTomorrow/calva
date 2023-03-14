@@ -914,6 +914,7 @@ describe('Token Cursor', () => {
         expect(cursor.atTopLevel(true)).toEqual(true);
       });
       // TODO: Figure out if this should be how it works
+      // Related to: https://github.com/BetterThanTomorrow/calva/issues/2109
       it('Returns true when at top level in rich comment if instructed so, even if comment is not at top level', () => {
         const a = docFromTextNotation('(a ( comment (foo []) |(bar :baz)))');
         const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);

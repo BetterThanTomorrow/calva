@@ -1357,6 +1357,21 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
+      // https://github.com/BetterThanTomorrow/calva/issues/2108
+      it('Deletes whitespace to the left and avoids inserting indent if at top level', async () => {
+        const a = docFromTextNotation('a\n\n    |b');
+        const b = docFromTextNotation('a\n\n   |b');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Deletes whitespace to the left, inserting indents if at top level inside RFC', async () => {
+        const a = docFromTextNotation('(comment\n  a\n\n    |b)');
+        const b = docFromTextNotation('(comment\n  a\n  |b)');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
       it('Deletes a character when inside a token on a blank line', async () => {
         const a = docFromTextNotation('(if• :|foo)');
         const b = docFromTextNotation('(if• |foo)');
