@@ -236,6 +236,15 @@ function setConnectedState(value: boolean) {
   cljsLib.setStateValue('connected', value);
 }
 
+function getJackedInState() {
+  return cljsLib.getStateValue('jackedIn');
+}
+
+function setJackedInState(value: boolean) {
+  void vscode.commands.executeCommand('setContext', 'calva:jackedIn', value);
+  cljsLib.setStateValue('jackedIn', value);
+}
+
 function getConnectingState() {
   return cljsLib.getStateValue('connecting');
 }
@@ -583,6 +592,8 @@ export {
   setLaunchingState,
   getConnectedState,
   setConnectedState,
+  getJackedInState,
+  setJackedInState,
   getConnectingState,
   setConnectingState,
   specialWords,

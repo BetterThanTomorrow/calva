@@ -60,18 +60,20 @@ function executeJackInTask(
 
   // in case we have a running task present try to end it.
   calvaJackout();
-  status.updateNeedReplUi(true);
   if (jackInTerminal !== undefined) {
     jackInTerminal.dispose();
     jackInTerminal = undefined;
   }
 
   try {
-    jackInPTY = new JackInTerminal(
+    const pty = new JackInTerminal(
       terminalOptions,
       (_p, hostname: string, port: string) => {
+        jackInPTY = pty;
         utilities.setLaunchingState(null);
         void connector.connect(connectSequence, true, hostname, port).then(() => {
+          utilities.setJackedInState(true);
+          statusbar.update();
           outputWindow.appendLine('; Jack-in done.');
           outputWindow.appendPrompt();
           if (cb) {
@@ -93,12 +95,12 @@ function executeJackInTask(
     );
     jackInTerminal = (<any>vscode.window).createTerminal({
       name: `Calva Jack-in: ${connectSequence.name}`,
-      pty: jackInPTY,
+      pty: pty,
     });
     if (getConfig().autoOpenJackInTerminal) {
       jackInTerminal.show();
     }
-    jackInPTY.onDidClose((e) => {
+    pty.onDidClose((e) => {
       calvaJackout();
     });
   } catch (exception) {
@@ -107,7 +109,7 @@ function executeJackInTask(
 }
 
 export function calvaJackout() {
-  if (jackInPTY != undefined) {
+  if (jackInPTY !== undefined) {
     if (projectTypes.isWin) {
       // this is a hack under Windows to terminate the
       // repl process from the repl client because the
@@ -130,6 +132,7 @@ export function calvaJackout() {
     jackInPTY.killProcess();
     jackInPTY = undefined;
     utilities.setLaunchingState(null);
+    utilities.setJackedInState(false);
     statusbar.update();
   }
 
@@ -304,11 +307,14 @@ export async function jackIn(
   void liveShareSupport.didJackIn();
 }
 
+export function jackOutCommand() {
+  calvaJackout();
+}
+
 export async function jackInCommand(options: {
   connectSequence?: ReplConnectSequence | string;
   disableAutoSelect?: boolean;
 }) {
-  status.updateNeedReplUi(true);
   let connectSequence: ReplConnectSequence;
   if (options && typeof options.connectSequence === 'string') {
     connectSequence = getConnectSequences(projectTypes.getAllProjectTypes()).find(

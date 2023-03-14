@@ -195,6 +195,10 @@ export async function startStandaloneRepl(
 export function startOrConnectRepl() {
   const JACK_IN_OPTION = 'Start your project with a REPL and connect (a.k.a. Jack-in)';
   const JACK_IN_COMMAND = 'calva.jackIn';
+  const RE_JACK_IN_OPTION = 'Restart the Project REPL (a.k.a. Re-jack-in)';
+  const RE_JACK_IN_COMMAND = 'calva.jackIn';
+  const JACK_OUT_OPTION = 'Stop/Kill the Project REPL started by Calva (a.k.a. Jack-out)';
+  const JACK_OUT_COMMAND = 'calva.jackOut';
   const START_REPL_OPTION = 'Start a standalone REPL';
   const START_REPL_COMMAND = 'calva.startStandaloneRepl';
   const START_JOYRIDE_REPL_OPTION = 'Start a Joyride REPL and Connect';
@@ -209,6 +213,8 @@ export function startOrConnectRepl() {
   const CONNECT_PROJECT_COMMAND = 'calva.connect';
   const CONNECT_STANDALONE_OPTION = 'Connect to a running REPL, not in your project';
   const CONNECT_STANDALONE_COMMAND = 'calva.connectNonProjectREPL';
+  const INTERRUPT_OPTION = 'Interrupt running Evaluations';
+  const INTERRUPT_COMMAND = 'calva.interruptAllEvaluations';
   const DISCONNECT_OPTION = 'Disconnect from the REPL';
   const DISCONNECT_COMMAND = 'calva.disconnect';
   const OPEN_WINDOW_OPTION = 'Open the Output Window';
@@ -218,12 +224,15 @@ export function startOrConnectRepl() {
     CONNECT_PROJECT_OPTION,
     START_REPL_OPTION,
     START_JOYRIDE_REPL_OPTION,
+    CONNECT_STANDALONE_OPTION,
     START_HELLO_REPL_OPTION,
     START_HELLO_CLJS_BROWSER_OPTION,
     START_HELLO_CLJS_NODE_OPTION,
-    CONNECT_STANDALONE_OPTION,
+    INTERRUPT_OPTION,
     OPEN_WINDOW_OPTION,
+    RE_JACK_IN_OPTION,
     DISCONNECT_OPTION,
+    JACK_OUT_OPTION,
   ];
   const commands = {};
   if (
@@ -246,9 +255,14 @@ export function startOrConnectRepl() {
     commands[START_HELLO_CLJS_BROWSER_OPTION] = START_HELLO_CLJS_BROWSER_COMMAND;
     commands[START_HELLO_CLJS_NODE_OPTION] = START_HELLO_CLJS_NODE_COMMAND;
   } else {
+    commands[INTERRUPT_OPTION] = INTERRUPT_COMMAND;
     commands[DISCONNECT_OPTION] = DISCONNECT_COMMAND;
     if (replSession.getSession('clj')) {
       commands[OPEN_WINDOW_OPTION] = OPEN_WINDOW_COMMAND;
+    }
+    if (utilities.getJackedInState()) {
+      commands[RE_JACK_IN_OPTION] = RE_JACK_IN_COMMAND;
+      commands[JACK_OUT_OPTION] = JACK_OUT_COMMAND;
     }
   }
 
