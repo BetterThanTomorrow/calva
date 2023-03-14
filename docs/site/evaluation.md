@@ -11,6 +11,10 @@ Calva tries to make it easy to evaluate code, supporting interactive development
 
 NB: _The below assumes you have read about [Finding Calva Commands and Shortcuts](finding-commands.md)._
 
+## Interrupting/stopping running evaluations
+
+Sometimes you evaluate things that take a very long time to complete, or might not even ever complete (infinit loops, lazy sequences, things like that). Calva has a command for interrupting running evaluations. You find it in the VS Code command palette, as well as in the REPL status bar item menu, when the REPL is connected.
+
 ## Evaluation in a File Editor
 
 Calva has many commands for evaluating forms, including the **current form** and the **current top-level form**.

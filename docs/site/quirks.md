@@ -40,3 +40,12 @@ See [this issue](https://github.com/BetterThanTomorrow/calva/issues/591) for mor
 ## Strange linting errors?
 
 This is not really a quirk, and most linting errors are not strange when you learn about why they are there. Calva does not do any linting, btw, see also [linting](linting.md).
+
+## Consider uninstalling these extensions
+
+Without Calva, many users install other nifty extensions (some of which are old pieces of Calva) that help with this or that problem. It might sometimes work together with Calva, sometimes not. Here's a list of some common extensions you should consider to at least disable:
+
+* Strict Paredit - Calva Paredit has evolved a lot since that version
+* Calva-fmt/Calva Formatter - Same here, evolution
+* Clojure Warrior - Calva includes it, in a much evolved way
+* Parinfer - This one you _can_ actually keep, _at some cost_, see [Using Calva with Parinfer](parinfer.md).

@@ -769,11 +769,6 @@
             "default": true,
             "scope": "window"
           },
-          "calva.hideReplUi": {
-            "type": "boolean",
-            "markdownDescription": "Don't surface REPL UI elements when avoidable. (For when using another REPL extension together with Calva's static features.)",
-            "default": false
-          },
           "calva.showCalvaSaysOnStart": {
             "type": "boolean",
             "markdownDescription": "Show the Calva Says output panel on start?",
@@ -1085,6 +1080,12 @@
         "title": "Start a Project REPL and Connect (aka Jack-In)",
         "category": "Calva",
         "enablement": "workspaceFolderCount > 0"
+      },
+      {
+        "command": "calva.jackOut",
+        "title": "Stop/Kill the Project REPL started by Calva (aka Jack-Out)",
+        "category": "Calva",
+        "enablement": "calva:jackedIn"
       },
       {
         "command": "calva.connect",
@@ -2769,7 +2770,7 @@
           "group": "calva/x-connect"
         },
         {
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "enablement": "calva:connected",
           "command": "calva.disconnect",
           "group": "calva/x-connect"
@@ -2780,77 +2781,77 @@
           "group": "calva/a-eval"
         },
         {
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "enablement": "calva:connected",
           "command": "calva.loadFile",
           "group": "calva/b-eval"
         },
         {
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "enablement": "calva:connected",
           "command": "calva.evaluateSelection",
           "group": "calva/b-eval"
         },
         {
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "enablement": "calva:connected",
           "command": "calva.evaluateCurrentTopLevelForm",
           "group": "calva/b-eval"
         },
         {
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "enablement": "calva:connected",
           "command": "calva.evaluateSelectionAsComment",
           "group": "calva/b-eval"
         },
         {
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "enablement": "calva:connected",
           "command": "calva.evaluateTopLevelFormAsComment",
           "group": "calva/b-eval"
         },
         {
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "enablement": "calva:connected",
           "command": "calva.interruptAllEvaluations",
           "group": "calva/b-eval"
         },
         {
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "command": "calva.togglePrettyPrint",
           "group": "calva/b-eval"
         },
         {
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "command": "calva.toggleEvaluationSendCodeToOutputWindow",
           "group": "calva/b-eval"
         },
         {
           "command": "calva.debug.instrument",
           "enablement": "editorLangId == clojure && calva:connected",
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "group": "calva/b-eval"
         },
         {
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "enablement": "calva:connected",
           "command": "calva.runAllTests",
           "group": "calva/d-test"
         },
         {
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "enablement": "calva:connected",
           "command": "calva.runNamespaceTests",
           "group": "calva/d-test"
         },
         {
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "enablement": "calva:connected",
           "command": "calva.rerunTests",
           "group": "calva/d-test"
         },
         {
-          "when": "editorLangId == clojure && calva:showReplUi",
+          "when": "editorLangId == clojure",
           "enablement": "calva:connected",
           "command": "calva.runTestUnderCursor",
           "group": "calva/d-test"
