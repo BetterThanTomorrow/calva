@@ -4,6 +4,14 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Provide option for "Restart the REPL" in REPL status bar menu](https://github.com/BetterThanTomorrow/calva/issues/2104)
+- [Provide option for "Interrupt Running Evaluations" in REPL status bar menu](https://github.com/BetterThanTomorrow/calva/issues/2103)
+- [Make "Interrupting Running Evaluations” more visible, and documented](https://github.com/BetterThanTomorrow/calva/issues/2068)
+- [Add a command for stopping the the Jack-in REPL (a.k.a. Jack-out)](https://github.com/BetterThanTomorrow/calva/issues/2105) (duplicate of [#1286](https://github.com/BetterThanTomorrow/calva/issues/2105))
+- [Improve the output in the jack-in terminal when the jack-in process is killed](https://github.com/BetterThanTomorrow/calva/issues/1394)
+- [Remove configuration for hiding the REPL UI](https://github.com/BetterThanTomorrow/calva/issues/2106)
+
+
 ## [2.0.336] - 2023-03-12
 
 - [Move auto-selecting project type config to Connect Sequences](https://github.com/BetterThanTomorrow/calva/issues/2094)
