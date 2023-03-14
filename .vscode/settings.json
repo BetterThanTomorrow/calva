@@ -59,6 +59,7 @@
     "devtools",
     "docmirror",
     "Docstring",
+    "DONT",
     "Dorg",
     "doseq",
     "dotimes",

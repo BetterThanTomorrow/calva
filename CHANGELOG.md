@@ -9,8 +9,9 @@ Changes to Calva.
 - [Make "Interrupting Running Evaluations” more visible, and documented](https://github.com/BetterThanTomorrow/calva/issues/2068)
 - [Add a command for stopping the the Jack-in REPL (a.k.a. Jack-out)](https://github.com/BetterThanTomorrow/calva/issues/2105) (duplicate of [#1286](https://github.com/BetterThanTomorrow/calva/issues/2105))
 - [Improve the output in the jack-in terminal when the jack-in process is killed](https://github.com/BetterThanTomorrow/calva/issues/1394)
+- Fix: [Tab to reindent should pull the start of a top level expression to the left margin](https://github.com/BetterThanTomorrow/calva/issues/2096)
+- Fix: [Backspace behaves weirdly when removing indent from top level form](https://github.com/BetterThanTomorrow/calva/issues/2108)
 - [Remove configuration for hiding the REPL UI](https://github.com/BetterThanTomorrow/calva/issues/2106)
-
 
 ## [2.0.336] - 2023-03-12
 

@@ -902,6 +902,35 @@ describe('Token Cursor', () => {
         expect(topLevelRanges).toEqual([0, 8]);
       });
     });
+    describe('atTopLevel', () => {
+      it('Returns true when at top level', () => {
+        const a = docFromTextNotation('(foo []) |(bar :baz)');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+        expect(cursor.atTopLevel()).toEqual(true);
+      });
+      it('Returns true when at top level in rich comment if instructed so', () => {
+        const a = docFromTextNotation('( comment (foo []) |(bar :baz))');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+        expect(cursor.atTopLevel(true)).toEqual(true);
+      });
+      // TODO: Figure out if this should be how it works
+      // Related to: https://github.com/BetterThanTomorrow/calva/issues/2109
+      it('Returns true when at top level in rich comment if instructed so, even if comment is not at top level', () => {
+        const a = docFromTextNotation('(a ( comment (foo []) |(bar :baz)))');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+        expect(cursor.atTopLevel(true)).toEqual(true);
+      });
+      it('Returns false when at top level in rich comment if not instructed to treat it so', () => {
+        const a = docFromTextNotation('( comment (foo []) |(bar :baz))');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+        expect(cursor.atTopLevel()).toEqual(false);
+      });
+      it('Returns false when not at top level', () => {
+        const a = docFromTextNotation('(foo |[])');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+        expect(cursor.atTopLevel()).toEqual(false);
+      });
+    });
   });
 
   describe('Location State', () => {
