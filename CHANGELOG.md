@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Jack-in fails with version 2.0.337](https://github.com/BetterThanTomorrow/calva/issues/2113)
+
 ## [2.0.337] - 2023-03-15
 
 - [Provide option for "Restart the REPL" in REPL status bar menu](https://github.com/BetterThanTomorrow/calva/issues/2104)
