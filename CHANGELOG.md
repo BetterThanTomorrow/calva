@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.338] - 2023-03-15
+
 - Fix: [Jack-in fails with version 2.0.337](https://github.com/BetterThanTomorrow/calva/issues/2113)
 
 ## [2.0.337] - 2023-03-15
