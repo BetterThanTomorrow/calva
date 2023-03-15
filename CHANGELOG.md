@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.337] - 2023-03-15
+
 - [Provide option for "Restart the REPL" in REPL status bar menu](https://github.com/BetterThanTomorrow/calva/issues/2104)
 - [Provide option for "Interrupt Running Evaluations" in REPL status bar menu](https://github.com/BetterThanTomorrow/calva/issues/2103)
 - [Make "Interrupting Running Evaluations” more visible, and documented](https://github.com/BetterThanTomorrow/calva/issues/2068)
