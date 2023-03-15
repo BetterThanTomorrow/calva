@@ -38,6 +38,9 @@ export class JackInTerminal implements vscode.Pseudoterminal {
         this.options.args
       )}`
     );
+    this.writeEmitter.fire(
+      'This is a pseudo terminal, only used for hosting the Jack-in REPL process. It takes no input.\r\nPressing ctrl+c with this terminal focused, killing this terminal, or closing/reloading the VS Code window will all stop/kill the Jack-in REPL process.\r\n\r\n'
+    );
     void this.startClojureProgram();
   }
 
@@ -67,6 +70,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
   private async startClojureProgram(): Promise<child.ChildProcess> {
     return new Promise<child.ChildProcess>(() => {
       const data = `${createCommandLine(this.options.executable, this.options.args)}\r\n`;
+      this.writeEmitter.fire('⚡️Starting the REPL ⚡️ using the below command line:\r\n');
       this.writeEmitter.fire(data);
       if (this.process && !this.process.killed) {
         console.log('Restarting Jack-in process');
@@ -109,14 +113,17 @@ export class JackInTerminal implements vscode.Pseudoterminal {
   killProcess(): void {
     console.log('Jack-in process kill requested');
     if (this.process && !this.process.killed) {
-      console.log('Closing any ongoing stdin event');
-      this.writeEmitter.fire('Killing the Jack-in process\r\n');
+      this.writeEmitter.fire('🛑 Stopping/killing the Jacked-in REPL process... 🛑\r\n');
+      console.log('Jack-in terminal killProcess(): Closing any ongoing stdin event');
       this.process.stdin.end(() => {
-        console.log('Killing the Jack-in process');
-        kill(this.process.pid);
+        console.log('Jack-in terminal killProcess(): Closing any ongoing stdin event');
+        this.process.kill();
       });
     } else if (this.process && this.process.killed) {
-      console.error("Jack-in process already killed. We shouldn't get here.");
+      this.writeEmitter.fire(
+        'The Jacked-in REPL process is already killed. Jack-in again to start a new REPL.\r\n'
+      );
+      console.log('Jack-in terminal killProcess(): The Jacked-in REPL process is already killed.');
     }
   }
 }

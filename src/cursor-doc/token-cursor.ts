@@ -937,6 +937,18 @@ export class LispTokenCursor extends TokenCursor {
     }
     return [undefined, undefined];
   }
+
+  /** Return true if cursor is at top level */
+  atTopLevel(commentCreatesTopLevel: boolean = false): boolean {
+    const tlCursor = this.clone();
+    if (tlCursor.forwardList() && tlCursor.upList()) {
+      if (commentCreatesTopLevel && this.getFunctionName() === 'comment') {
+        return true;
+      }
+      return false;
+    }
+    return true;
+  }
 }
 
 /**

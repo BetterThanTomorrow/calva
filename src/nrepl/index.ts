@@ -65,12 +65,16 @@ export class NReplClient {
       state.connectionLogChannel().appendLine(e.message);
       onError(e);
     });
-    this.socket.on('close', (e) => {
-      console.log('Socket closed');
+    this.socket.on('close', (v) => {
+      console.log('Socket closed', v);
       state.connectionLogChannel().appendLine('Socket closed');
-      this._closeHandlers.forEach((x) => x(this));
-      for (const x in this.sessions) {
-        this.sessions[x]._onCloseHandlers.forEach((s) => s(this.sessions[x]));
+      try {
+        this._closeHandlers.forEach((x) => x(this));
+        for (const x in this.sessions) {
+          this.sessions[x]._onCloseHandlers.forEach((s) => s(this.sessions[x]));
+        }
+      } catch (e) {
+        console.error(e);
       }
     });
     this.encoder.pipe(this.socket);
@@ -111,7 +115,10 @@ export class NReplClient {
     for (const id in this.sessions) {
       this.sessions[id].close();
     }
-    this.disconnect();
+    // TODO: Figure out a way to know when the socket can be destroyed without an error.
+    setTimeout(() => {
+      this.disconnect();
+    }, 1000);
   }
 
   disconnect() {
@@ -215,8 +222,8 @@ export class NReplSession {
   }
 
   close() {
+    const msg = { op: 'close', session: this.sessionId };
     try {
-      const msg = { op: 'close', session: this.sessionId };
       if (this.supports(msg.op)) {
         this.client.write(msg);
       } else {
@@ -224,14 +231,15 @@ export class NReplSession {
       }
     } catch (error) {
       console.error(error);
+    } finally {
+      this._runningIds = [];
+      delete this.client.sessions[this.sessionId];
+      const index = NReplSession.Instances.indexOf(this);
+      if (index > -1) {
+        NReplSession.Instances.splice(index, 1);
+      }
+      this._onCloseHandlers.forEach((x) => x(this));
     }
-    this._runningIds = [];
-    delete this.client.sessions[this.sessionId];
-    const index = NReplSession.Instances.indexOf(this);
-    if (index > -1) {
-      NReplSession.Instances.splice(index, 1);
-    }
-    this._onCloseHandlers.forEach((x) => x(this));
   }
 
   async clone() {
@@ -257,9 +265,10 @@ export class NReplSession {
       this.replType = msgData['repl-type'];
     }
 
-    if (msgData.out && !this.replType) {
-      this.replType = 'clj';
-    }
+    // TODO: Don't know why we used to do this, it doesn't make sense! (And it breaks the session state)
+    //if (msgData.out && !this.replType) {
+    //  this.replType = 'clj';
+    //}
 
     if (!(msgData.status && msgData.status == 'done')) {
       this.addRunningID(msgData.id);

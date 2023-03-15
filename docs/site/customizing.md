@@ -106,7 +106,6 @@ The following contexts are available with Calva:
 * `calva:cursorAfterComment`: `true` when the cursor is adjacent after a line comment
 * `calva:cursorAtStartOfLine`: `true` when the cursor is at the start of a line including any leading whitespace
 * `calva:cursorAtEndOfLine`: `true` when the cursor is at the end of a line including any trailing whitespace
-* `calva:showReplUi`: `false` when Calva's REPL UI is disabled through the corresponding setting
 
 ### Some Custom Bindings 
 

@@ -90,8 +90,6 @@ async function activate(context: vscode.ExtensionContext) {
   await config.updateCalvaConfigFromUserConfigEdn(false);
   await config.updateCalvaConfigFromEdn();
 
-  status.updateNeedReplUi(false, context);
-
   context.subscriptions.push(testController);
   testRunner.initialize(testController);
 
@@ -183,6 +181,7 @@ async function activate(context: vscode.ExtensionContext) {
   outputWindow.setContextForOutputWindowActive(false);
   void vscode.commands.executeCommand('setContext', 'calva:launching', false);
   void vscode.commands.executeCommand('setContext', 'calva:connected', false);
+  void vscode.commands.executeCommand('setContext', 'calva:jackedIn', false);
   void vscode.commands.executeCommand('setContext', 'calva:connecting', false);
   setKeybindingsEnabledContext();
 
@@ -215,6 +214,7 @@ async function activate(context: vscode.ExtensionContext) {
     evaluateUser: eval.evaluateUser,
     interruptAllEvaluations: eval.interruptAllEvaluations,
     jackIn: jackIn.jackInCommand,
+    jackOut: jackIn.jackOutCommand,
     loadFile: async () => {
       await eval.loadFile({}, config.getConfig().prettyPrintingOptions);
       return new Promise((resolve) => {
