@@ -116,8 +116,16 @@ export class JackInTerminal implements vscode.Pseudoterminal {
       this.writeEmitter.fire('🛑 Stopping/killing the Jacked-in REPL process... 🛑\r\n');
       console.log('Jack-in terminal killProcess(): Closing any ongoing stdin event');
       this.process.stdin.end(() => {
-        console.log('Jack-in terminal killProcess(): Closing any ongoing stdin event');
-        this.process.kill();
+        // On some machines we need to use tree-kill to kill the process, so we do it always
+        // https://github.com/BetterThanTomorrow/calva/issues/2116
+        console.log('Jack-in terminal killProcess(): Killing process using tree-kill');
+        kill(this.process.pid, 'SIGTERM', (err) => {
+          if (err) {
+            console.log('Jack-in terminal killProcess(): Error killing process', err);
+          }
+          // The test for this.process.killed above needs this to have happened too
+          this.process.kill();
+        });
       });
     } else if (this.process && this.process.killed) {
       this.writeEmitter.fire(
