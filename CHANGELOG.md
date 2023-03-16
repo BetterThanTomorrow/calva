@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Formatting inside top level forms broken since 2.0.337](https://github.com/BetterThanTomorrow/calva/issues/2114)
 - Bump bundled deps.clj to v1.11.1.1257
 
 ## [2.0.338] - 2023-03-15
