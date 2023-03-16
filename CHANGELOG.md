@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump bundled deps.clj to v1.11.1.1257
+
 ## [2.0.338] - 2023-03-15
 
 - Fix: [Jack-in fails with version 2.0.337](https://github.com/BetterThanTomorrow/calva/issues/2113)
