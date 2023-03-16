@@ -161,8 +161,8 @@ function _calculateFormatRange(
             });
         }
       }
-      return rangeForList;
     }
+    return rangeForList;
   }
 
   const rangeForCurrentForm = cursor.rangeForCurrentForm(index);
