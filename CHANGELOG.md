@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.339] - 2023-03-16
+
 - Fix: [Stopping Jacked-in REPL process doesn't kill Unix Java process](https://github.com/BetterThanTomorrow/calva/issues/2116)
 - Fix: [Formatting inside top level forms broken](https://github.com/BetterThanTomorrow/calva/issues/2114)
 - Bump bundled deps.clj to v1.11.1.1257
