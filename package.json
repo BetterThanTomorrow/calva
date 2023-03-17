@@ -2865,7 +2865,7 @@
         "priority": "option",
         "selector": [
           {
-            "filenamePattern": "*.{clj,cljc,cljs,cljx}"
+            "filenamePattern": "*.{cljnb,cljcnb,cljsnb,cljxnb}"
           }
         ]
       }
