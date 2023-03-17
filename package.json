@@ -78,6 +78,9 @@
       "description": "With Calva you might evaluate any code in the project."
     }
   },
+  "extensionPack": [
+    "betterthantomorrow.calva-spritz"
+  ],
   "contributes": {
     "debuggers": [
       {
@@ -2858,18 +2861,6 @@
         }
       ]
     },
-    "notebooks": [
-      {
-        "type": "calva-clojure-notebook",
-        "displayName": "Clojure Notebook",
-        "priority": "option",
-        "selector": [
-          {
-            "filenamePattern": "*.{clj,cljc,cljs,cljx}"
-          }
-        ]
-      }
-    ],
     "colors": [
       {
         "id": "calva.inlineForegroundColor",
