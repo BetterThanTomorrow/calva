@@ -97,7 +97,9 @@ visibility][visibility] of the Live Share documentation.
 
 ## Calva Spritz
 
-Together with Calva there is an extension called **Calva Spritz** installed. It only provides the association of Clojure file types to Clojure Notebooks. This is due to the LiveShare issues mentioned above. So that you can disable the Notebook association when participating as a guest in LiveShare sessions. The issue is tracked here:
+Together with Calva there is an extension called [Calva Spritz](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-spritz) installed. All it does is to provide the association of Clojure file types to Clojure Notebooks. We do it this way because of the LiveShare issues mentioned above. So that you can disable the Notebook association when participating as a guest in LiveShare sessions. The issue is tracked here:
 
 * Calva issue: [LiveShare participants incorrectly opening every Clojure file as if via "Open with Notebook"](https://github.com/BetterThanTomorrow/calva/issues/1850)
 * LiveShare issue: [Guest opens Clojure file as a notebook (incorrectly)](https://github.com/MicrosoftDocs/live-share/issues/4765)
+
+**Calva Spritz** can be disabled and enabled at will, and it will take immediate effect, without any reload of VS Code needed.
