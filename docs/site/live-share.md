@@ -16,6 +16,9 @@ programming, for example.
 An extra nice thing is that each participant is using their own VSCode configuration, including fonts, colors,
 keyboard shortcuts, etc.
 
+!!! Note "Disable Calva Spritz to get rid of Notebooks interference"
+    The headline below **Calva Supports Live Share** is true. However, due to [a bug in LiveShare](https://github.com/MicrosoftDocs/live-share/issues/4765), guest participants always get their Clojure files opened in the Calva [Clojure Notebooks](notebooks.md) editor. To workaround this issue Calva uses a ”side-car” extension named **Calva Spritz** for the Notebooks associations of Clojure files. You can disable that extension when participating in LiveShare sessions.
+
 ## Calva Supports Live Share
 
 When using Calva, you can use Live Share as well. Editing works exactly the same
@@ -91,3 +94,12 @@ visibility][visibility] of the Live Share documentation.
 
 [liveshare]: https://docs.microsoft.com/en-us/visualstudio/liveshare/
 [visibility]: https://docs.microsoft.com/en-us/visualstudio/liveshare/reference/security#controlling-file-access-and-visibility
+
+## Calva Spritz
+
+Together with Calva there is an extension called [Calva Spritz](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-spritz) installed. All it does is to provide the association of Clojure file types to Clojure Notebooks. We do it this way because of the LiveShare issues mentioned above. So that you can disable the Notebook association when participating as a guest in LiveShare sessions. The issue is tracked here:
+
+* Calva issue: [LiveShare participants incorrectly opening every Clojure file as if via "Open with Notebook"](https://github.com/BetterThanTomorrow/calva/issues/1850)
+* LiveShare issue: [Guest opens Clojure file as a notebook (incorrectly)](https://github.com/MicrosoftDocs/live-share/issues/4765)
+
+**Calva Spritz** can be disabled and enabled at will, and it will take immediate effect, without any reload of VS Code needed.

@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.339",
+  "version": "2.0.340",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -78,6 +78,9 @@
       "description": "With Calva you might evaluate any code in the project."
     }
   },
+  "extensionPack": [
+    "betterthantomorrow.calva-spritz"
+  ],
   "contributes": {
     "debuggers": [
       {
@@ -2858,18 +2861,6 @@
         }
       ]
     },
-    "notebooks": [
-      {
-        "type": "calva-clojure-notebook",
-        "displayName": "Clojure Notebook",
-        "priority": "option",
-        "selector": [
-          {
-            "filenamePattern": "*.{clj,cljc,cljs,cljx}"
-          }
-        ]
-      }
-    ],
     "colors": [
       {
         "id": "calva.inlineForegroundColor",
