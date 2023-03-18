@@ -17,7 +17,7 @@ An extra nice thing is that each participant is using their own VSCode configura
 keyboard shortcuts, etc.
 
 !!! Note "Disable Calva Spritz to get rid of Notebooks interference"
-    The headline below **Calva Supports Live Share** is true. However, due to [a bug in LiveShare](https://github.com/MicrosoftDocs/live-share/issues/4765), Guest participants always get their Clojure files opened in the Calva [Clojure Notebooks](notebooks.md) editor. To workaround this issue Calva uses a ”side-car” extension named **Calva Spritz** for the Notebooks associations of Clojure files. You can disable that extension when participating in LiveShare sessions.
+    The headline below **Calva Supports Live Share** is true. However, due to [a bug in LiveShare](https://github.com/MicrosoftDocs/live-share/issues/4765), guest participants always get their Clojure files opened in the Calva [Clojure Notebooks](notebooks.md) editor. To workaround this issue Calva uses a ”side-car” extension named **Calva Spritz** for the Notebooks associations of Clojure files. You can disable that extension when participating in LiveShare sessions.
 
 ## Calva Supports Live Share
 
