@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Workaround: [LiveShare participants incorrectly opening every Clojure file as if via "Open with Notebook"](https://github.com/BetterThanTomorrow/calva/issues/1850)
+
 ## [2.0.339] - 2023-03-16
 
 - Fix: [Stopping Jacked-in REPL process doesn't kill Unix Java process](https://github.com/BetterThanTomorrow/calva/issues/2116)

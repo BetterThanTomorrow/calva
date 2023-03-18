@@ -29,6 +29,7 @@
     "circleci",
     "classpath",
     "cljc",
+    "cljd",
     "cljfmt",
     "cljfx",
     "cljify",
