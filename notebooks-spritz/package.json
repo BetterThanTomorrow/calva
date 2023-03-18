@@ -3,12 +3,12 @@
   "displayName": "Calva Spritz",
   "publisher": "betterthantomorrow",
   "description": "A bubbly connection between Clojure files and Notebooks in VS Code, effervescently crafted to support Calva users.",
+  "version": "1.0.2",
   "icon": "spritz-icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/BetterThanTomorrow/calva.git"
   },
-  "version": "1.0.1",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/BetterThanTomorrow/calva/issues"
@@ -35,7 +35,7 @@
         "priority": "option",
         "selector": [
           {
-            "filenamePattern": "*.{clj,cljc,cljs,cljx}"
+            "filenamePattern": "*.{clj,cljc,cljs,cljd,cljx,bb,calva-repl}"
           }
         ]
       }
