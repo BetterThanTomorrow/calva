@@ -2,8 +2,8 @@
   "name": "calva-spritz",
   "displayName": "Calva Spritz",
   "publisher": "betterthantomorrow",
-  "description": "A bubbly connection between Clojure files and Notebooks in VS Code, effervescently crafted to support Calva users.",
-  "version": "1.0.2",
+  "description": "A bubbly association from Clojure files to Notebooks, effervescently crafted to support Calva + LiveShare users.",
+  "version": "1.0.3",
   "icon": "spritz-icon.png",
   "repository": {
     "type": "git",
