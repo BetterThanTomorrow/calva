@@ -1244,6 +1244,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#calva-spritz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calva Spritz
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2091,6 +2102,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#calva-spritz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calva Spritz
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2120,6 +2142,10 @@ switches to a different file, you will as well). This is great for remote pair
 programming, for example.</p>
 <p>An extra nice thing is that each participant is using their own VSCode configuration, including fonts, colors,
 keyboard shortcuts, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Disable Calva Spritz to get rid of Notebooks interference</p>
+<p>The headline below <strong>Calva Supports Live Share</strong> is true. However, due to <a href="https://github.com/MicrosoftDocs/live-share/issues/4765">a bug in LiveShare</a>, guest participants always get their Clojure files opened in the Calva <a href="../notebooks/">Clojure Notebooks</a> editor. To workaround this issue Calva uses a ”side-car” extension named <strong>Calva Spritz</strong> for the Notebooks associations of Clojure files. You can disable that extension when participating in LiveShare sessions.</p>
+</div>
 <h2 id="calva-supports-live-share">Calva Supports Live Share</h2>
 <p>When using Calva, you can use Live Share as well. Editing works exactly the same
 as for any other programming language. What makes Calva a bit special, is the
@@ -2186,6 +2212,13 @@ visibility</a> of the Live Share documentation.</p>
   guests to have access to your REPL, don't click "Allow" when VSCode asks you
   to share the REPL port.</li>
 </ul>
+<h2 id="calva-spritz">Calva Spritz</h2>
+<p>Together with Calva there is an extension called <a href="https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-spritz">Calva Spritz</a> installed. All it does is to provide the association of Clojure file types to Clojure Notebooks. We do it this way because of the LiveShare issues mentioned above. So that you can disable the Notebook association when participating as a guest in LiveShare sessions. The issue is tracked here:</p>
+<ul>
+<li>Calva issue: <a href="https://github.com/BetterThanTomorrow/calva/issues/1850">LiveShare participants incorrectly opening every Clojure file as if via "Open with Notebook"</a></li>
+<li>LiveShare issue: <a href="https://github.com/MicrosoftDocs/live-share/issues/4765">Guest opens Clojure file as a notebook (incorrectly)</a></li>
+</ul>
+<p><strong>Calva Spritz</strong> can be disabled and enabled at will, and it will take immediate effect, without any reload of VS Code needed.</p>
 
   
   
