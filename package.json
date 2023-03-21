@@ -2931,6 +2931,7 @@
     "net": "1.0.2",
     "open": "^6.3.0",
     "parinfer": "^3.12.0",
+    "posthtml-parser": "^0.11.0",
     "semver": "^7.3.7",
     "tree-kill": "^1.2.2",
     "universal-analytics": "^0.5.3",
