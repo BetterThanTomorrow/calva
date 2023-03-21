@@ -34,8 +34,14 @@
     (is (= [[:foo [:bar]]]
            (sut/html->hiccup "<foo><bar></bar></foo>"))))
   (testing "Multiple top level elements are supported"
-    (is (= [[:foo][:bar]]
+    (is (= [[:foo] [:bar]]
            (sut/html->hiccup "<foo></foo><bar></bar>"))))
   (testing "Auto-closed tags are supported"
     (is (= [[:foo]]
-           (sut/html->hiccup "<foo/>")))))
+           (sut/html->hiccup "<foo/>"))))
+  (testing "html comments `<!--...-->` becomes `(comment ...)`"
+    (is (= [[:foo nil]] ; TODO What's a way to actually test that it was a `(comment ...)`?
+           (sut/html->hiccup "<foo><!-- ... --></foo>"))))
+  (testing "Removes whitespace noise"
+    (is (= [[:foo]]
+           (sut/html->hiccup "<foo> \n </foo>")))))
