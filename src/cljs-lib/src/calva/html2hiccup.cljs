@@ -47,12 +47,10 @@
 
 (comment
   (html->ast "<Foo id='foo-id' class='clz1 clz2' style='color: blue'><!--comment-->  <bar>foo</bar></foo><bar>foo</bar>")
-  (html->ast "<foo id='foo-id' class='clz1 clz2' bar=2>baz</foo>")
 
-  (->> "<Foo id='foo-id' class='clz1 clz2' style='color: blue'><!--comment-->
+  (html->hiccup "<Foo id='foo-id' class='clz1 clz2' style='color: blue'><!--comment-->
         <bar>foo</bar></foo><bar>foo</bar>"
-       html->ast
-       ast->hiccup)
+                )
   (html->hiccup "<div>
   <span style=\"color: blue; border: solid 1\">Hello World!</span>
   <!-- Can handle comments -->
