@@ -46,8 +46,8 @@
     (is (= [[:foo]]
            (sut/html->hiccup "<foo> \n </foo>")))))
 
-(deftest html->hiccup-w-options
-  (testing "camelCase attributes are kebab-cased if :->kebab? enabled"
+(deftest html->hiccup-w->kebab?
+  (testing "camelCase attributes are kebab-cased with :->kebab? enabled"
     (is (= [[:foo {:on-change "bar" :max-height "10px"}]]
            (sut/html->hiccup "<foo onChange='bar' maxHeight='10px'></foo>" {:->kebab? true}))))
   (testing "Special camelCase attributes are retained even when :->kebab? enabled "
@@ -62,3 +62,26 @@
   (testing "UPPERCASE attributes are lowercased if :->kebab? enabled"
     (is (= [[:foo {:onchange "bar"}]]
            (sut/html->hiccup "<foo ONCHANGE='bar'></foo>" {:->kebab? true})))))
+
+(deftest html->hiccup-w-mapify-style?
+  (testing "style attribute is mapified with :mapify-style? enabled"
+    (is (= [[:foo {:style {:color :blue}}]]
+           (sut/html->hiccup "<foo style='color: blue'></foo>" {:mapify-style? true}))))
+  (testing "style attribute single bare word values are keywordized"
+    (is (= [[:foo {:style {:background :none}}]]
+           (sut/html->hiccup "<foo style='background: none'></foo>" {:mapify-style? true}))))
+  (testing "style attribute single unit-less numeric values are left bare"
+    (is (= [[:foo {:style {:border-width 1}}]]
+           (sut/html->hiccup "<foo style='border-width: 1'></foo>" {:mapify-style? true})))
+    (is (= [[:foo {:style {:border-width 0.5}}]]
+           (sut/html->hiccup "<foo style='border-width: 0.5'></foo>" {:mapify-style? true}))))
+  (testing "style attribute single numeric with unit is stringified"
+    (is (= [[:foo {:style {:border-width "1em"}}]]
+           (sut/html->hiccup "<foo style='border-width: 1em'></foo>" {:mapify-style? true}))))
+  (testing "style attribute with multiple unit-less numeric values is stringified"
+    ;; TODO: Make it a vector (some day, not trivial, because css attribute variables can be pretty complex)
+    (is (= [[:foo {:style {:padding "0 0"}}]]
+           (sut/html->hiccup "<foo style='padding: 0 0'></foo>" {:mapify-style? true}))))
+  (testing "style attribute non-bare-word, non bare-numeric is stringified"
+    (is (= [[:foo {:style {:padding "var(--some-padding, 0 0)"}}]]
+           (sut/html->hiccup "<foo style='padding: var(--some-padding, 0 0);'></foo>" {:mapify-style? true})))))

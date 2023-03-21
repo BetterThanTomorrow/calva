@@ -22,9 +22,30 @@
                                                      (string/lower-case s))))]
                     [transformed-k v])) m)))
 
+;; TODO: We can go really fancy here, but for now, just some best effort
+(defn- normalize-css-value [v]
+  (cond
+    (= (str (js/parseFloat v)) v) (js/parseFloat v)
+    (re-find #"^[a-zA-Z]+$" v) (keyword v)
+    :else (str v)))
+
+(defn- mapify-style [style-str]
+  (try 
+    (into {} (for [[_ k v] (re-seq #"(\S+):\s+([^;]+);?" style-str)]
+               [(-> k string/lower-case keyword) (normalize-css-value v)]))
+    (catch :default e
+      (js/console.warn "Failed to mapify style: '" style-str "'." (.-message e))
+      style-str)))
+
+(defn- normalize-attrs [attrs options] 
+  (if (and (:style attrs)
+           (:mapify-style? options))
+    (-> (normalize-attr-keys attrs options) (update :style mapify-style))
+    (normalize-attr-keys attrs options)))
+
 (defn- element->hiccup [{:keys [tag attrs content] :as element} options]
   (if tag
-    (let [normalized-attrs (normalize-attr-keys attrs options)
+    (let [normalized-attrs (normalize-attrs attrs options)
           {:keys [id class]} normalized-attrs
           tag-w-id (str (string/lower-case tag) (some->> id (str "#")))
           classes (some-> class (string/split " "))
@@ -52,9 +73,10 @@
    (-> html html->ast (ast->hiccup options))))
 
 (comment
-  (html->ast "<Foo id='foo-id' class='clz1 clz2' style='color: blue'><!--comment-->  <bar>foo</bar></foo><bar>foo</bar>")
+  (html->ast "<Foo id='foo-id' class='clz1 clz2' style='color: blue'><!--comment-->  <bar>foo</bar></foo><bar>foo</bar>") 
 
-  (html->hiccup "<Foo id='foo-id' class='clz1 clz2' style='color: blue'><!--comment-->
+  (html->hiccup "<foo style='font-family: -apple-system,BlinkMacSystemFont,\"Segoe UI\",\"Noto Sans\",Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\";'></foo>" {:mapify-style? true})
+  (html->hiccup "<Foo id='foo-id' class='clz1 clz2' style='color: blue; foo'><!--comment-->
         <bar>foo</bar></foo><bar>foo</bar>")
   (html->hiccup "<div>
   <span style=\"color: blue; border: solid 1\">Hello World!</span>
