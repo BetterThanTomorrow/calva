@@ -24,7 +24,7 @@
   (testing "Attributes are lowercased"
     (is (= [[:foo#foo-id.clz1.clz2]]
            (sut/html->hiccup "<foo ID='foo-id' Class='clz1 clz2'></foo>"))))
-  (testing "camelCase attributes are lowerCased"
+  (testing "camelCase attributes are lowercased"
     (is (= [[:foo {:onchange "bar" :maxheight "10px"}]]
            (sut/html->hiccup "<foo onChange='bar' maxHeight='10px'></foo>"))))
   (testing "Special camelCase attributes are retained"
@@ -45,3 +45,20 @@
   (testing "Removes whitespace noise"
     (is (= [[:foo]]
            (sut/html->hiccup "<foo> \n </foo>")))))
+
+(deftest html->hiccup-w-options
+  (testing "camelCase attributes are kebab-cased if :->kebab? enabled"
+    (is (= [[:foo {:on-change "bar" :max-height "10px"}]]
+           (sut/html->hiccup "<foo onChange='bar' maxHeight='10px'></foo>" {:->kebab? true}))))
+  (testing "Special camelCase attributes are retained even when :->kebab? enabled "
+    (is (= [[:foo {:viewBox "foo-id" :baseProfile "clz1 clz2"}]]
+           (sut/html->hiccup "<foo viewBox='foo-id' baseProfile='clz1 clz2'></foo>" {:->kebab? true}))))
+  (testing "Capitalized attributes are kebab-cased if :->kebab? enabled"
+    (is (= [[:foo {:on-change "bar" :maxheight "10px"}]]
+           (sut/html->hiccup "<foo OnChange='bar' Maxheight='10px'></foo>" {:->kebab? true}))))
+  (testing "snake_case and SNAKE_CASE attributes are kebab-cased if :->kebab? enabled"
+    (is (= [[:foo {:on-change "bar" :max-height "10px"}]]
+           (sut/html->hiccup "<foo ON_CHANGE='bar' max_height='10px'></foo>" {:->kebab? true}))))
+  (testing "UPPERCASE attributes are lowercased if :->kebab? enabled"
+    (is (= [[:foo {:onchange "bar"}]]
+           (sut/html->hiccup "<foo ONCHANGE='bar'></foo>" {:->kebab? true})))))

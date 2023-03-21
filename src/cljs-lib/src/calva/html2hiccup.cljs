@@ -1,5 +1,6 @@
 (ns calva.html2hiccup
   (:require ["posthtml-parser" :as posthtml-parser]
+            [camel-snake-kebab.core :as csk]
             [clojure.string :as string]))
 
 (defn- html->ast [html]
@@ -12,15 +13,18 @@
 (def ^:private special-attr-cases {"viewbox" "viewBox"
                                    "baseprofile" "baseProfile"})
 
-(defn- normalize-attr-keys [m]
+(defn- normalize-attr-keys [m {:keys [->kebab?]}]
   (into {} (map (fn [[k v]]
-                  (let [s (string/lower-case (name k))
-                        transformed-k (keyword (get special-attr-cases s s))]
+                  (let [s (name k)
+                        transformed-k (keyword (or (special-attr-cases (string/lower-case s))
+                                                   (if ->kebab?
+                                                     (csk/->kebab-case s)
+                                                     (string/lower-case s))))]
                     [transformed-k v])) m)))
 
-(defn- element->hiccup [{:keys [tag attrs content] :as element}]
+(defn- element->hiccup [{:keys [tag attrs content] :as element} options]
   (if tag
-    (let [normalized-attrs (normalize-attr-keys attrs)
+    (let [normalized-attrs (normalize-attr-keys attrs options)
           {:keys [id class]} normalized-attrs
           tag-w-id (str (string/lower-case tag) (some->> id (str "#")))
           classes (some-> class (string/split " "))
@@ -29,28 +33,29 @@
           remaining-attrs (dissoc normalized-attrs :class :id)]
       (into (cond-> [(keyword tag-w-id+classes)]
               (seq remaining-attrs) (conj remaining-attrs))
-            (map element->hiccup (remove string/blank? content))))
+            (map #(element->hiccup % options) (remove string/blank? content))))
     (if (comment? element)
       (list 'comment (string/replace element #"^<!--\s*|\s*-->$" ""))
       element)))
 
-(defn- ast->hiccup [fragments]
-  (mapv #(element->hiccup %) fragments))
+(defn- ast->hiccup [fragments options]
+  (mapv #(element->hiccup % options) fragments))
 
 (defn html->hiccup
   "Returns Hiccup for the provided HTML string
    * Turns HTML comments into `(comment ...)` forms
    * Lowercases tags and attributes
    * Removes whitespace nodes"
-  [html]
-  (->> html html->ast ast->hiccup))
+  ([html]
+   (html->hiccup html nil))
+  ([html options]
+   (-> html html->ast (ast->hiccup options))))
 
 (comment
   (html->ast "<Foo id='foo-id' class='clz1 clz2' style='color: blue'><!--comment-->  <bar>foo</bar></foo><bar>foo</bar>")
 
   (html->hiccup "<Foo id='foo-id' class='clz1 clz2' style='color: blue'><!--comment-->
-        <bar>foo</bar></foo><bar>foo</bar>"
-                )
+        <bar>foo</bar></foo><bar>foo</bar>")
   (html->hiccup "<div>
   <span style=\"color: blue; border: solid 1\">Hello World!</span>
   <!-- Can handle comments -->
