@@ -40,7 +40,7 @@
     (is (= [[:foo]]
            (sut/html->hiccup "<foo/>"))))
   (testing "html comments `<!--...-->` becomes `(comment ...)`"
-    (is (= [[:foo '(comment "...")]] ; TODO What's a way to actually test that it was a `(comment ...)`?
+    (is (= [[:foo '(comment "...")]]
            (sut/html->hiccup "<foo><!-- ... --></foo>"))))
   (testing "Removes whitespace noise"
     (is (= [[:foo]]
