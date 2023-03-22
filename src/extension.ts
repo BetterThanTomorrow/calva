@@ -194,6 +194,13 @@ async function activate(context: vscode.ExtensionContext) {
     continueComment: edit.continueCommentCommand,
     convertDart2Clj: converters.dart2clj,
     convertJs2Cljs: converters.js2cljs,
+    convertHtml2Hiccup: (args?: converters.Html2HiccupArgs) =>
+      args
+        ? converters.html2hiccup(args)
+        : converters.html2hiccup({
+            toUntitled: true,
+            options: config.getConfig().html2HiccupOptions,
+          }),
     copyAnnotationHoverText: annotations.copyHoverTextCommand,
     copyJackInCommandToClipboard: jackIn.copyJackInCommandToClipboard,
     copyLastResults: eval.copyLastResultCommand,

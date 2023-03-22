@@ -27,18 +27,22 @@ type ConverterInvalidResult = {
 
 const isConverterResult = (input: any): input is ConverterResult => input.result !== undefined;
 
-type ConvertFn = (code: string) => ConverterResult | ConverterInvalidResult;
+type ConvertFn = (code: string, options?: any) => ConverterResult | ConverterInvalidResult;
 
-async function convert(convertFn: ConvertFn) {
+async function convertToUntitled(convertFn: ConvertFn, code?: string, options?: any) {
   const editor = vscode.window.activeTextEditor;
   const selection = editor.selection;
   const doc = editor.document;
-  const code = doc.getText(
-    selection.active.isEqual(selection.anchor)
-      ? new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity))
-      : new vscode.Range(selection.start, selection.end)
+  code = code
+    ? code
+    : doc.getText(
+        selection.active.isEqual(selection.anchor)
+          ? new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity))
+          : new vscode.Range(selection.start, selection.end)
+      );
+  const results: ConverterResult | ConverterInvalidResult = calvaLib.jsify(
+    options ? convertFn(code, options) : convertFn(code)
   );
-  const results: ConverterResult | ConverterInvalidResult = calvaLib.jsify(convertFn(code));
   if (isConverterResult(results)) {
     await vscode.workspace
       .openTextDocument({ language: 'clojure', content: results.result })
@@ -57,9 +61,36 @@ async function convert(convertFn: ConvertFn) {
 }
 
 export async function js2cljs() {
-  return convert(calvaLib.js2cljs);
+  return convertToUntitled(calvaLib.js2cljs);
 }
 
 export async function dart2clj() {
-  return convert(calvaLib.dart2clj);
+  return convertToUntitled(calvaLib.dart2clj);
+}
+
+export type HiccupOptions = {
+  'kebab-attrs?': boolean;
+  'mapify-style?': boolean;
+};
+
+export type Html2HiccupArgs = {
+  toUntitled?: boolean;
+  html?: string;
+  options?: HiccupOptions;
+};
+
+export async function html2hiccup(args?: Html2HiccupArgs) {
+  if (args?.toUntitled) {
+    if (args?.html) {
+      return convertToUntitled(calvaLib.html2hiccup, args.html, args?.options);
+    } else {
+      return convertToUntitled(calvaLib.html2hiccup, undefined, args?.options);
+    }
+  } else {
+    if (args?.html) {
+      return calvaLib.html2hiccup(args.html, args?.options);
+    } else {
+      throw new Error('No HTML provided');
+    }
+  }
 }
