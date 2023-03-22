@@ -4,8 +4,10 @@
             [clojure.string :as string]))
 
 (defn- html->ast [html]
-  (-> (.parser posthtml-parser html #js {:recognizeNoValueAttribute true})
-      (js->clj :keywordize-keys true)))
+  (->> (.parser posthtml-parser html #js {:recognizeNoValueAttribute true})
+       cljify
+       (remove string/blank?)
+       (map #(if (string? %) (string/trim %) %))))
 
 (defn- comment? [x]
   (and (string? x) (.startsWith x "<!--") (.endsWith x "-->")))
