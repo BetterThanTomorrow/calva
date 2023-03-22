@@ -36,6 +36,9 @@
   (testing "Multiple top level elements are supported"
     (is (= [[:foo] [:bar]]
            (sut/html->hiccup "<foo></foo><bar></bar>"))))
+  (testing "Multiple top level elements with empty lines creates no extra whitespace nodes"
+    (is (= [[:foo] [:bar]]
+           (sut/html->hiccup "<foo></foo>\n\n<bar></bar>"))))
   (testing "Auto-closed tags are supported"
     (is (= [[:foo]]
            (sut/html->hiccup "<foo/>"))))
