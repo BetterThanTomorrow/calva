@@ -46,22 +46,22 @@
     (is (= [[:foo]]
            (sut/html->hiccup "<foo> \n </foo>")))))
 
-(deftest html->hiccup-w->kebab?
-  (testing "camelCase attributes are kebab-cased with :->kebab? enabled"
+(deftest html->hiccup-wkebab-attrs?
+  (testing "camelCase attributes are kebab-cased with :kebab-attrs? enabled"
     (is (= [[:foo {:on-change "bar" :max-height "10px"}]]
-           (sut/html->hiccup "<foo onChange='bar' maxHeight='10px'></foo>" {:->kebab? true}))))
-  (testing "Special camelCase attributes are retained even when :->kebab? enabled "
+           (sut/html->hiccup "<foo onChange='bar' maxHeight='10px'></foo>" {:kebab-attrs? true}))))
+  (testing "Special camelCase attributes are retained even when :kebab-attrs? enabled "
     (is (= [[:foo {:viewBox "foo-id" :baseProfile "clz1 clz2"}]]
-           (sut/html->hiccup "<foo viewBox='foo-id' baseProfile='clz1 clz2'></foo>" {:->kebab? true}))))
-  (testing "Capitalized attributes are kebab-cased if :->kebab? enabled"
+           (sut/html->hiccup "<foo viewBox='foo-id' baseProfile='clz1 clz2'></foo>" {:kebab-attrs? true}))))
+  (testing "Capitalized attributes are kebab-cased if :kebab-attrs? enabled"
     (is (= [[:foo {:on-change "bar" :maxheight "10px"}]]
-           (sut/html->hiccup "<foo OnChange='bar' Maxheight='10px'></foo>" {:->kebab? true}))))
-  (testing "snake_case and SNAKE_CASE attributes are kebab-cased if :->kebab? enabled"
+           (sut/html->hiccup "<foo OnChange='bar' Maxheight='10px'></foo>" {:kebab-attrs? true}))))
+  (testing "snake_case and SNAKE_CASE attributes are kebab-cased if :kebab-attrs? enabled"
     (is (= [[:foo {:on-change "bar" :max-height "10px"}]]
-           (sut/html->hiccup "<foo ON_CHANGE='bar' max_height='10px'></foo>" {:->kebab? true}))))
-  (testing "UPPERCASE attributes are lowercased if :->kebab? enabled"
+           (sut/html->hiccup "<foo ON_CHANGE='bar' max_height='10px'></foo>" {:kebab-attrs? true}))))
+  (testing "UPPERCASE attributes are lowercased if :kebab-attrs? enabled"
     (is (= [[:foo {:onchange "bar"}]]
-           (sut/html->hiccup "<foo ONCHANGE='bar'></foo>" {:->kebab? true})))))
+           (sut/html->hiccup "<foo ONCHANGE='bar'></foo>" {:kebab-attrs? true})))))
 
 (deftest html->hiccup-w-mapify-style?
   (testing "style attribute is mapified with :mapify-style? enabled"

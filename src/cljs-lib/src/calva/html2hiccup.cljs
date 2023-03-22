@@ -13,11 +13,11 @@
 (def ^:private special-attr-cases {"viewbox" "viewBox"
                                    "baseprofile" "baseProfile"})
 
-(defn- normalize-attr-keys [m {:keys [->kebab?]}]
+(defn- normalize-attr-keys [m {:keys [kebab-attrs?]}]
   (into {} (map (fn [[k v]]
                   (let [s (name k)
                         transformed-k (keyword (or (special-attr-cases (string/lower-case s))
-                                                   (if ->kebab?
+                                                   (if kebab-attrs?
                                                      (csk/->kebab-case s)
                                                      (string/lower-case s))))]
                     [transformed-k v])) m)))
@@ -30,14 +30,14 @@
     :else (str v)))
 
 (defn- mapify-style [style-str]
-  (try 
+  (try
     (into {} (for [[_ k v] (re-seq #"(\S+):\s+([^;]+);?" style-str)]
                [(-> k string/lower-case keyword) (normalize-css-value v)]))
     (catch :default e
       (js/console.warn "Failed to mapify style: '" style-str "'." (.-message e))
       style-str)))
 
-(defn- normalize-attrs [attrs options] 
+(defn- normalize-attrs [attrs options]
   (if (and (:style attrs)
            (:mapify-style? options))
     (-> (normalize-attr-keys attrs options) (update :style mapify-style))
@@ -66,14 +66,19 @@
   "Returns Hiccup for the provided HTML string
    * Turns HTML comments into `(comment ...)` forms
    * Lowercases tags and attributes
-   * Removes whitespace nodes"
+   * Removes whitespace nodes
+   * Normalizes attrs `viewBox` and `baseProfile` to camelCase (for SVG)
+
+   `options` is a map: 
+   * `:mapify-style?`: tuck the style attributes into a map (Reagent style)
+   * `:kebab-attrs?`: kebab-case any camelCase or snake_case attribute names"
   ([html]
    (html->hiccup html nil))
   ([html options]
    (-> html html->ast (ast->hiccup options))))
 
 (comment
-  (html->ast "<Foo id='foo-id' class='clz1 clz2' style='color: blue'><!--comment-->  <bar>foo</bar></foo><bar>foo</bar>") 
+  (html->ast "<Foo id='foo-id' class='clz1 clz2' style='color: blue'><!--comment-->  <bar>foo</bar></foo><bar>foo</bar>")
 
   (html->hiccup "<foo style='font-family: -apple-system,BlinkMacSystemFont,\"Segoe UI\",\"Noto Sans\",Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\";'></foo>" {:mapify-style? true})
   (html->hiccup "<Foo id='foo-id' class='clz1 clz2' style='color: blue; foo'><!--comment-->
