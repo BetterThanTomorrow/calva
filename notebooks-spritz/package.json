@@ -3,7 +3,7 @@
   "displayName": "Calva Spritz",
   "publisher": "betterthantomorrow",
   "description": "A bubbly association from Clojure files to Notebooks, effervescently crafted to support Calva + LiveShare users.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "icon": "spritz-icon.png",
   "repository": {
     "type": "git",
@@ -14,7 +14,7 @@
     "url": "https://github.com/BetterThanTomorrow/calva/issues"
   },
   "engines": {
-    "vscode": "^1.76.0"
+    "vscode": "^1.67.0"
   },
   "sponsor": {
     "url": "https://calva.io/sponsors/"
