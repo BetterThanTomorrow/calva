@@ -2,6 +2,17 @@ import * as vscode from 'vscode';
 import * as calvaLib from '../out/cljs-lib/cljs-lib';
 import * as config from './config';
 
+function getText() {
+  const editor = vscode.window.activeTextEditor;
+  const selection = editor.selection;
+  const doc = editor.document;
+  return doc.getText(
+    selection.active.isEqual(selection.anchor)
+      ? new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity))
+      : new vscode.Range(selection.start, selection.end)
+  );
+}
+
 type ConverterResult = {
   result: string;
 };
@@ -30,17 +41,7 @@ const isConverterResult = (input: any): input is ConverterResult => input.result
 
 type ConvertFn = (code: string, options?: any) => ConverterResult | ConverterInvalidResult;
 
-async function convertToUntitled(convertFn: ConvertFn, code?: string, options?: any) {
-  const editor = vscode.window.activeTextEditor;
-  const selection = editor.selection;
-  const doc = editor.document;
-  code = code
-    ? code
-    : doc.getText(
-        selection.active.isEqual(selection.anchor)
-          ? new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity))
-          : new vscode.Range(selection.start, selection.end)
-      );
+async function convertToUntitled(convertFn: ConvertFn, code: string, options?: any) {
   const results: ConverterResult | ConverterInvalidResult = calvaLib.jsify(
     options ? convertFn(code, options) : convertFn(code)
   );
@@ -62,11 +63,11 @@ async function convertToUntitled(convertFn: ConvertFn, code?: string, options?: 
 }
 
 export async function js2cljs() {
-  return convertToUntitled(calvaLib.js2cljs);
+  return convertToUntitled(calvaLib.js2cljs, getText());
 }
 
 export async function dart2clj() {
-  return convertToUntitled(calvaLib.dart2clj);
+  return convertToUntitled(calvaLib.dart2clj, getText());
 }
 
 export type HiccupOptions = {
@@ -81,21 +82,15 @@ export type Html2HiccupArgs = {
 };
 
 export async function html2hiccup(args?: Html2HiccupArgs) {
-  if (!args) {
-    return convertToUntitled(
-      calvaLib.html2hiccup,
-      undefined,
-      config.getConfig().html2HiccupOptions
-    );
+  const hiccupOptions = args?.options ? args.options : config.getConfig().html2HiccupOptions;
+  const html = args?.html ? args.html : getText();
+  if (!args || args?.toUntitled) {
+    return convertToUntitled(calvaLib.html2hiccup, html, hiccupOptions);
   }
-  if (args?.toUntitled) {
-    if (args?.html) {
-      return convertToUntitled(calvaLib.html2hiccup, args.html, args?.options);
-    }
-    return convertToUntitled(calvaLib.html2hiccup, undefined, args?.options);
-  }
-  if (args?.html) {
-    return calvaLib.html2hiccup(args.html, args?.options);
-  }
-  throw new Error('No HTML provided');
+  return calvaLib.html2hiccup(args.html, hiccupOptions);
 }
+
+//export async function pasteAsHiccup() {
+//  const html = await vscode.env.clipboard.readText();
+//  return html2hiccup({ toUntitled: true, html });
+//}
