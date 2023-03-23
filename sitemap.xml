@@ -111,6 +111,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://calva.io/hiccup/</loc>
+         <lastmod>2023-03-23</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://calva.io/jack-in-guide/</loc>
          <lastmod>2023-03-23</lastmod>
          <changefreq>daily</changefreq>

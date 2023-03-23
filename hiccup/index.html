@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Tips on using Calva to create Node scripts using shadow-cljs">
+        <meta name="description" content="Get that HTML in the file or on the Clipboard to Hiccup without leaving Calva">
       
       
       
-        <link rel="canonical" href="https://calva.io/async-out/">
+        <link rel="canonical" href="https://calva.io/hiccup/">
       
       
-        <link rel="prev" href="../quirks/">
+        <link rel="prev" href="../notebooks/">
       
       
-        <link rel="next" href="../clj-java-decompiler/">
+        <link rel="next" href="../clojure-lsp/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Viewing Async Output with Shadow-CLJS and Node - Calva User Guide</title>
+        <title>Converting HTML to Hiccup - Calva User Guide</title>
       
     
     
@@ -73,11 +73,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Viewing Async Output with Shadow-CLJS and Node - Calva User Guide" >
+        <meta  property="og:title"  content="Converting HTML to Hiccup - Calva User Guide" >
       
-        <meta  property="og:description"  content="Tips on using Calva to create Node scripts using shadow-cljs" >
+        <meta  property="og:description"  content="Get that HTML in the file or on the Clipboard to Hiccup without leaving Calva" >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/async-out.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/hiccup.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -85,15 +85,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/async-out/" >
+        <meta  property="og:url"  content="https://calva.io/hiccup/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Viewing Async Output with Shadow-CLJS and Node - Calva User Guide" >
+        <meta  name="twitter:title"  content="Converting HTML to Hiccup - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Tips on using Calva to create Node scripts using shadow-cljs" >
+        <meta  name="twitter:description"  content="Get that HTML in the file or on the Clipboard to Hiccup without leaving Calva" >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/async-out.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/hiccup.png" >
       
     
     
@@ -114,7 +114,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#viewing-async-output-while-working-on-node-projects-with-shadow-cljs" class="md-skip">
+        <a href="#converting-html-to-hiccup" class="md-skip">
           Skip to content
         </a>
       
@@ -148,7 +148,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Viewing Async Output with Shadow-CLJS and Node
+              Converting HTML to Hiccup
             
           </span>
         </div>
@@ -486,17 +486,19 @@
       
   
   
+    
+  
   
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
             
@@ -515,7 +517,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -972,9 +974,35 @@
                 
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../hiccup/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    
+  
+    Converting HTML to Hiccup
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -989,6 +1017,98 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#there-are-two-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        There are two Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-commands-take-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The commands take arguments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-keyboard-shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example keyboard shortcuts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-from-joyride-or-some-other-vs-code-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using from Joyride (or some other VS Code extension)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using from Joyride (or some other VS Code extension)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#calvapastehtmlashiccup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        calva.pasteHtmlAsHiccup:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calvaconverthtml2hiccup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        calva.convertHtml2Hiccup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1521,19 +1641,17 @@
       
   
   
-    
-  
   
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
         
           <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
             
@@ -1552,7 +1670,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1645,18 +1763,9 @@
                 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../async-out/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1671,7 +1780,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -2009,6 +2117,86 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#there-are-two-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        There are two Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-commands-take-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The commands take arguments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-keyboard-shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example keyboard shortcuts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-from-joyride-or-some-other-vs-code-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using from Joyride (or some other VS Code extension)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using from Joyride (or some other VS Code extension)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#calvapastehtmlashiccup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        calva.pasteHtmlAsHiccup:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calvaconverthtml2hiccup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        calva.convertHtml2Hiccup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2026,16 +2214,99 @@
   
 
 
-<h1 id="viewing-async-output-while-working-on-node-projects-with-shadow-cljs">Viewing Async Output While Working On Node Projects with <code>shadow-cljs</code></h1>
-<p>When working on NodeJS projects with <code>shadow-cljs</code> and Calva, async output does not always appear in the Calva output window. To work around this problem, follow these steps:</p>
-<ol>
-<li>Run the command "Calva: Copy Jack-in Command Line to Clipboard", then paste the command in a terminal and run it.</li>
-<li>Wait for the message <code>shadow-cljs - nREPL server started on port &lt;some-port&gt;</code></li>
-<li>Issue the command <strong>Calva: Connect to a running REPL server in your project</strong>, <code>ctrl+alt+c ctrl+alt+c</code>. For project type select <code>shadow-cljs</code>, accept the proposed <code>localhost:&lt;some-port&gt;</code>, and for <code>build</code> select <code>node-repl</code>.</li>
-<li>Load a file from your project with the command <code>ctrl+alt+c Enter.</code> Evaluating forms in Calva will show results in the output window. Synchronous <code>stdout</code> output will be printed in both the output window and in the terminal where you started the repl. Some asynchronous output may show up in the output window, but all will appear in the terminal.</li>
-</ol>
-<p>If you use an integrated VSCode terminal to start shadow-cljs, all <code>stdout</code> will appear in the Calva window with your code. Alternatively, you can use an external terminal, which is especially nice when using a second monitor.</p>
-<p>For a discussion of this problem and other connection options, see <a href="https://github.com/BetterThanTomorrow/calva/issues/1468">issue #1468</a>.</p>
+<h1 id="converting-html-to-hiccup">Converting HTML to Hiccup</h1>
+<p>Calva can help you convert HTML to Hiccup:</p>
+<video controls>
+  <source src="/images/calva-convert-html-to-hiccup.mp4">
+</video>
+
+<h2 id="there-are-two-commands">There are two Commands</h2>
+<ul>
+<li><strong>Convert HTML to Hiccup</strong>, will convert the selected text, or the entire file, to Hiccup and open up an Untitled Clojure file with the result.</li>
+<li><strong>Paste HTML as Hiccup</strong>, will convert the contents of the clipboard to Hiccup and paste it. (The clipboard will then be restored to the original content.)</li>
+</ul>
+<p>The resulting Hiccup can be tweaked with two options using the setting <code>calva.html2HiccupOptions</code>, which is a map/object:</p>
+<ul>
+<li><code>mapify-style</code>: boolean, default <code>false</code>. When <code>true</code> any <code>style</code> attribute will be converted to a map (Reagent supports this)</li>
+<li><code>kebab-attrs?</code>: boolean, default <code>false</code>. When <code>true</code> attribute names will be converted from <em>camelCase</em>, or <em>snake_case/SNAKE_CASE</em> to <em>kebab-case</em>. (Reagent wants most attribute names like this.)</li>
+</ul>
+<h2 id="the-commands-take-arguments">The commands take arguments</h2>
+<p>This options map can also be provided as an argument to the commands, so you can bind keyboard shortcuts to a particular configuration for the conversion. </p>
+<p>The command <code>calva.convertHtml2Hiccup</code> takes a map as an argument:</p>
+<ul>
+<li><code>toUntitled</code>: <code>boolean</code>, default <code>false</code>. When <code>false</code> the result of the conversion will be returned to the caller (This is intended for Joyride, or some other VS Code extension). When <code>true</code> it will behave like the default command does, placing the result of the conversion in an Untitled Clojure file.</li>
+<li><code>options</code>: Same as those <code>calva.html2HiccupOptions</code> mentioned above.</li>
+</ul>
+<p>The <code>calva.pasteHtmlAsHiccup</code> command takes only a <code>calva.html2HiccupOptions</code> map.</p>
+<h2 id="example-keyboard-shortcuts">Example keyboard shortcuts</h2>
+<p>The commands have no default keyboard shortcuts, you use the Command Palette to execute them, or you bind your own shortcuts. Here are some examples:</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// With args, `&quot;toUntitled&quot;: true` is necessary for keyboard shortcuts</span>
+<span class="w">        </span><span class="c1">// without it, the command just returns the result to the caller</span>
+<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c ctrl+h&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.convertHtml2Hiccup&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;toUntitled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;kebab-attrs?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">}}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Only for testing, providing the HTML is only useful from e.g. Joyride </span>
+<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c shift+h&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.convertHtml2Hiccup&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;html&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;foo style=&#39;a: b&#39; bar=&#39;baz&#39;&gt;gaz&lt;foo&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;toUntitled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Override the `calva.html2HiccupOptions` configuration</span>
+<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c ctrl+alt+h&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.pasteHtmlAsHiccup&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;mapify-style?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kebab-attrs?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Override the `calva.html2HiccupOptions` configuration, using Calva defaults</span>
+<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c alt+h&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.pasteHtmlAsHiccup&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Without args, the command uses the `calva.html2HiccupOptions` configuration</span>
+<span class="w">        </span><span class="c1">// And writes the results to an Untitled document</span>
+<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c cmd+h&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.convertHtml2Hiccup&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Without args, the command uses the `calva.html2HiccupOptions` configuration</span>
+<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c h&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.pasteHtmlAsHiccup&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+</code></pre></div>
+<p>The two default/args-less bindings are placed last <a href="https://github.com/microsoft/vscode/issues/176890">because reasons</a>.</p>
+<h2 id="using-from-joyride-or-some-other-vs-code-extension">Using from Joyride (or some other VS Code extension)</h2>
+<p>As with any VS Code command using these from Joyride is a matter of calling <code>executeCommand</code>.</p>
+<h4 id="calvapastehtmlashiccup"><code>calva.pasteHtmlAsHiccup</code>:</h4>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.pasteHtmlAsHiccup&quot;</span>
+<span class="w">                                    </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:mapify-style?</span><span class="w"> </span><span class="nv">true</span><span class="p">})</span>
+<span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="nv">...</span><span class="p">))</span>
+</code></pre></div>
+<h4 id="calvaconverthtml2hiccup"><code>calva.convertHtml2Hiccup</code></h4>
+<p>Without options the command behaves just like selecting the command from the command palette. If there is a selection it will be converted, otherwise the whole file. The result will be opened in a new Untitled document.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.convertHtml2Hiccup&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="nv">...</span><span class="p">))</span>
+</code></pre></div>
+<p>Called with arguments it will by default return an object with a <code>.-result</code> member which is a string with the Hiccup.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.convertHtml2Hiccup&quot;</span><span class="w"> </span>
+<span class="w">                                    </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="s">&quot;&lt;foo class=&#39;clz1 clz2&gt;bar&lt;/foo&gt;&quot;</span><span class="p">})</span>
+<span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="o">#</span><span class="p">(</span><span class="nb">println </span><span class="p">(</span><span class="nf">.-result</span><span class="w"> </span><span class="nv">%</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.convertHtml2Hiccup&quot;</span><span class="w"> </span>
+<span class="w">                                    </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:options</span><span class="w"> </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:mapify-style?</span><span class="w"> </span><span class="nv">false</span><span class="p">}})</span>
+<span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="o">#</span><span class="p">(</span><span class="nb">println </span><span class="p">(</span><span class="nf">.-result</span><span class="w"> </span><span class="nv">%</span><span class="p">))))</span>
+</code></pre></div>
+<p>To make it put the text in a new Untitled document instead, provide the argument option <code>:toUntitled true</code></p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.convertHtml2Hiccup&quot;</span><span class="w"> </span>
+<span class="w">                                    </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:toUntitled</span><span class="w"> </span><span class="nv">true</span>
+<span class="w">                                         </span><span class="ss">:html</span><span class="w"> </span><span class="s">&quot;&lt;foo class=&#39;clz1 clz2&gt;bar&lt;/foo&gt;&quot;</span>
+<span class="w">                                         </span><span class="ss">:options</span><span class="w"> </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:mapify-style?</span><span class="w"> </span><span class="nv">true</span>
+<span class="w">                                                       </span><span class="ss">:kebab-attrs?</span><span class="w"> </span><span class="nv">true</span><span class="p">}})</span>
+<span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="nv">...</span><span class="p">))</span>
+</code></pre></div>
 
   
   
