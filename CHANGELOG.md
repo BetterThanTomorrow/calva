@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.341] - 2023-03-23
+
 - [Add commands `calva.convertHtml2Hiccup` and `calva.pasteHtmlAsHiccup`](https://github.com/BetterThanTomorrow/calva/issues/407)
 
 ## [2.0.340] - 2023-03-18
