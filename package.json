@@ -66,6 +66,8 @@
     "onCommand:calva.connectNonProjectREPL",
     "onCommand:calva.convertJs2Cljs",
     "onCommand:calva.convertDart2Clj",
+    "onCommand:calva.convertHtml2Hiccup",
+    "onCommand:calva.pasteHtmlAsHiccup",
     "workspaceContains:**/project.clj",
     "workspaceContains:**/shadow-cljs.edn",
     "workspaceContains:**/deps.edn",
@@ -812,6 +814,22 @@
             ],
             "default": "clojure or deps.clj",
             "type": "string"
+          },
+          "calva.html2HiccupOptions": {
+            "type": "object",
+            "markdownDescription": "Options for the `html2hiccup` command. See [the docs](",
+            "properties": {
+              "mapify-style?": {
+                "type": "boolean",
+                "markdownDescription": "Should the `style` attribute be converted to a map?",
+                "default": false
+              },
+              "kebab-attrs?": {
+                "type": "boolean",
+                "markdownDescription": "Should the attribute names be converted to a kebab-case?",
+                "default": false
+              }
+            }
           }
         }
       },
@@ -986,6 +1004,16 @@
       {
         "command": "calva.convertDart2Clj",
         "title": "Convert Dart code to Clojure/ClojureDart",
+        "category": "Calva"
+      },
+      {
+        "command": "calva.convertHtml2Hiccup",
+        "title": "Convert HTML code to Hiccup",
+        "category": "Calva"
+      },
+      {
+        "command": "calva.pasteHtmlAsHiccup",
+        "title": "Paste HTML code as Hiccup",
         "category": "Calva"
       },
       {
@@ -2931,6 +2959,7 @@
     "net": "1.0.2",
     "open": "^6.3.0",
     "parinfer": "^3.12.0",
+    "posthtml-parser": "^0.11.0",
     "semver": "^7.3.7",
     "tree-kill": "^1.2.2",
     "universal-analytics": "^0.5.3",
