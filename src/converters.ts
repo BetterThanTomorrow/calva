@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as calvaLib from '../out/cljs-lib/cljs-lib';
+import * as config from './config';
 
 type ConverterResult = {
   result: string;
@@ -80,17 +81,21 @@ export type Html2HiccupArgs = {
 };
 
 export async function html2hiccup(args?: Html2HiccupArgs) {
+  if (!args) {
+    return convertToUntitled(
+      calvaLib.html2hiccup,
+      undefined,
+      config.getConfig().html2HiccupOptions
+    );
+  }
   if (args?.toUntitled) {
     if (args?.html) {
       return convertToUntitled(calvaLib.html2hiccup, args.html, args?.options);
-    } else {
-      return convertToUntitled(calvaLib.html2hiccup, undefined, args?.options);
     }
-  } else {
-    if (args?.html) {
-      return calvaLib.html2hiccup(args.html, args?.options);
-    } else {
-      throw new Error('No HTML provided');
-    }
+    return convertToUntitled(calvaLib.html2hiccup, undefined, args?.options);
   }
+  if (args?.html) {
+    return calvaLib.html2hiccup(args.html, args?.options);
+  }
+  throw new Error('No HTML provided');
 }
