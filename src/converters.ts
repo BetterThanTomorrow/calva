@@ -75,13 +75,11 @@ export type HiccupOptions = {
   'mapify-style?': boolean;
 };
 
-export type Html2HiccupArgs = {
+export async function html2hiccup(args?: {
   toUntitled?: boolean;
   html?: string;
   options?: HiccupOptions;
-};
-
-export async function html2hiccup(args?: Html2HiccupArgs) {
+}) {
   const hiccupOptions = args?.options ? args.options : config.getConfig().html2HiccupOptions;
   const html = args?.html ? args.html : getText();
   if (!args || args?.toUntitled) {
@@ -90,7 +88,19 @@ export async function html2hiccup(args?: Html2HiccupArgs) {
   return calvaLib.html2hiccup(args.html, hiccupOptions);
 }
 
-//export async function pasteAsHiccup() {
-//  const html = await vscode.env.clipboard.readText();
-//  return html2hiccup({ toUntitled: true, html });
-//}
+export async function pasteHtmlAsHiccup(options?: HiccupOptions) {
+  const hiccupOptions = options ? options : config.getConfig().html2HiccupOptions;
+  const html = await vscode.env.clipboard.readText();
+  const results: ConverterResult | ConverterInvalidResult = calvaLib.jsify(
+    calvaLib.html2hiccup(html, hiccupOptions)
+  );
+  if (isConverterResult(results)) {
+    await vscode.env.clipboard.writeText(results.result);
+    await vscode.commands.executeCommand('editor.action.clipboardPasteAction');
+    return vscode.env.clipboard.writeText(html);
+  }
+  return vscode.window.showErrorMessage(results.error.message, {
+    modal: true,
+    detail: `${results.error.exception.name}: ${results.error.exception.message}`,
+  });
+}

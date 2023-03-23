@@ -67,6 +67,7 @@
     "onCommand:calva.convertJs2Cljs",
     "onCommand:calva.convertDart2Clj",
     "onCommand:calva.convertHtml2Hiccup",
+    "onCommand:calva.pasteHtmlAsHiccup",
     "workspaceContains:**/project.clj",
     "workspaceContains:**/shadow-cljs.edn",
     "workspaceContains:**/deps.edn",
@@ -1008,6 +1009,11 @@
       {
         "command": "calva.convertHtml2Hiccup",
         "title": "Convert HTML code to Hiccup",
+        "category": "Calva"
+      },
+      {
+        "command": "calva.pasteHtmlAsHiccup",
+        "title": "Paste HTML code as Hiccup",
         "category": "Calva"
       },
       {
