@@ -28,13 +28,13 @@ type JS2CljsError = {
   'number-of-parsed-lines': number;
 };
 
-type DartClojureError = {
+type ConversionError = {
   exception: ConverterException;
   message: string;
 };
 
 type ConverterInvalidResult = {
-  error: JS2CljsError | DartClojureError;
+  error: JS2CljsError | ConversionError;
 };
 
 const isConverterResult = (input: any): input is ConverterResult => input.result !== undefined;
@@ -42,9 +42,9 @@ const isConverterResult = (input: any): input is ConverterResult => input.result
 type ConvertFn = (code: string, options?: any) => ConverterResult | ConverterInvalidResult;
 
 async function convertToUntitled(convertFn: ConvertFn, code: string, options?: any) {
-  const results: ConverterResult | ConverterInvalidResult = calvaLib.jsify(
-    options ? convertFn(code, options) : convertFn(code)
-  );
+  const results: ConverterResult | ConverterInvalidResult = options
+    ? convertFn(code, options)
+    : convertFn(code);
   if (isConverterResult(results)) {
     await vscode.workspace
       .openTextDocument({ language: 'clojure', content: results.result })
@@ -85,14 +85,15 @@ export async function html2hiccup(args?: {
   if (!args || args?.toUntitled) {
     return convertToUntitled(calvaLib.html2hiccup, html, hiccupOptions);
   }
-  return calvaLib.html2hiccup(args.html, hiccupOptions);
+  return calvaLib.html2hiccup(html, hiccupOptions);
 }
 
 export async function pasteHtmlAsHiccup(options?: HiccupOptions) {
   const hiccupOptions = options ? options : config.getConfig().html2HiccupOptions;
   const html = await vscode.env.clipboard.readText();
-  const results: ConverterResult | ConverterInvalidResult = calvaLib.jsify(
-    calvaLib.html2hiccup(html, hiccupOptions)
+  const results: ConverterResult | ConverterInvalidResult = calvaLib.html2hiccup(
+    html,
+    hiccupOptions
   );
   if (isConverterResult(results)) {
     await vscode.env.clipboard.writeText(results.result);

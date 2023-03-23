@@ -1,5 +1,6 @@
 (ns calva.js2cljs.converter
-  (:require [js-cljs.core :as jsc]))
+  (:require [calva.js-utils :refer [jsify]]
+            [js-cljs.core :as jsc]))
 
 (defn convert [js-string]
   (let [debug (atom nil)]
@@ -17,7 +18,7 @@
                              :message (.-message e)}}}))))
 
 (defn convert-bridge [js-string]
-  (convert js-string))
+  (jsify (convert js-string)))
 
 (comment
   (convert "var MongoClient = require('mongodb').MongoClient;

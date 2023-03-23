@@ -2,7 +2,7 @@
   (:require ["posthtml-parser" :as posthtml-parser]
             [camel-snake-kebab.core :as csk]
             [clojure.string :as string]
-            [calva.js-utils :refer [cljify]]
+            [calva.js-utils :refer [jsify cljify]]
             [zprint.core :as zprint]))
 
 (defn- html->ast [html]
@@ -97,7 +97,7 @@
                            :message (.-message e)}}})))
 
 (defn ^:export html->hiccup-convert-bridge [html options] 
-  (html->hiccup-convert html options))
+  (jsify (html->hiccup-convert html options)))
 
 (comment
   (def options nil)
