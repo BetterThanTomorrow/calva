@@ -194,6 +194,8 @@ async function activate(context: vscode.ExtensionContext) {
     continueComment: edit.continueCommentCommand,
     convertDart2Clj: converters.dart2clj,
     convertJs2Cljs: converters.js2cljs,
+    convertHtml2Hiccup: converters.html2hiccup,
+    pasteHtmlAsHiccup: converters.pasteHtmlAsHiccup,
     copyAnnotationHoverText: annotations.copyHoverTextCommand,
     copyJackInCommandToClipboard: jackIn.copyJackInCommandToClipboard,
     copyLastResults: eval.copyLastResultCommand,

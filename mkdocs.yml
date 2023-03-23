@@ -60,6 +60,7 @@ nav:
     - linting.md
     - namespace-form-auto-creation.md
     - notebooks.md
+    - hiccup.md
   - clojure-lsp.md
   - nrepl_and_cider-nrepl.md
   - customizing.md

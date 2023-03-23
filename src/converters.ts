@@ -1,5 +1,17 @@
 import * as vscode from 'vscode';
 import * as calvaLib from '../out/cljs-lib/cljs-lib';
+import * as config from './config';
+
+function getText() {
+  const editor = vscode.window.activeTextEditor;
+  const selection = editor.selection;
+  const doc = editor.document;
+  return doc.getText(
+    selection.active.isEqual(selection.anchor)
+      ? new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity))
+      : new vscode.Range(selection.start, selection.end)
+  );
+}
 
 type ConverterResult = {
   result: string;
@@ -16,29 +28,23 @@ type JS2CljsError = {
   'number-of-parsed-lines': number;
 };
 
-type DartClojureError = {
+type ConversionError = {
   exception: ConverterException;
   message: string;
 };
 
 type ConverterInvalidResult = {
-  error: JS2CljsError | DartClojureError;
+  error: JS2CljsError | ConversionError;
 };
 
 const isConverterResult = (input: any): input is ConverterResult => input.result !== undefined;
 
-type ConvertFn = (code: string) => ConverterResult | ConverterInvalidResult;
+type ConvertFn = (code: string, options?: any) => ConverterResult | ConverterInvalidResult;
 
-async function convert(convertFn: ConvertFn) {
-  const editor = vscode.window.activeTextEditor;
-  const selection = editor.selection;
-  const doc = editor.document;
-  const code = doc.getText(
-    selection.active.isEqual(selection.anchor)
-      ? new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity))
-      : new vscode.Range(selection.start, selection.end)
-  );
-  const results: ConverterResult | ConverterInvalidResult = calvaLib.jsify(convertFn(code));
+async function convertToUntitled(convertFn: ConvertFn, code: string, options?: any) {
+  const results: ConverterResult | ConverterInvalidResult = options
+    ? convertFn(code, options)
+    : convertFn(code);
   if (isConverterResult(results)) {
     await vscode.workspace
       .openTextDocument({ language: 'clojure', content: results.result })
@@ -57,9 +63,45 @@ async function convert(convertFn: ConvertFn) {
 }
 
 export async function js2cljs() {
-  return convert(calvaLib.js2cljs);
+  return convertToUntitled(calvaLib.js2cljs, getText());
 }
 
 export async function dart2clj() {
-  return convert(calvaLib.dart2clj);
+  return convertToUntitled(calvaLib.dart2clj, getText());
+}
+
+export type HiccupOptions = {
+  'kebab-attrs?': boolean;
+  'mapify-style?': boolean;
+};
+
+export async function html2hiccup(args?: {
+  toUntitled?: boolean;
+  html?: string;
+  options?: HiccupOptions;
+}) {
+  const hiccupOptions = args?.options ? args.options : config.getConfig().html2HiccupOptions;
+  const html = args?.html ? args.html : getText();
+  if (!args || args?.toUntitled) {
+    return convertToUntitled(calvaLib.html2hiccup, html, hiccupOptions);
+  }
+  return calvaLib.html2hiccup(html, hiccupOptions);
+}
+
+export async function pasteHtmlAsHiccup(options?: HiccupOptions) {
+  const hiccupOptions = options ? options : config.getConfig().html2HiccupOptions;
+  const html = await vscode.env.clipboard.readText();
+  const results: ConverterResult | ConverterInvalidResult = calvaLib.html2hiccup(
+    html,
+    hiccupOptions
+  );
+  if (isConverterResult(results)) {
+    await vscode.env.clipboard.writeText(results.result);
+    await vscode.commands.executeCommand('editor.action.clipboardPasteAction');
+    return vscode.env.clipboard.writeText(html);
+  }
+  return vscode.window.showErrorMessage(results.error.message, {
+    modal: true,
+    detail: `${results.error.exception.name}: ${results.error.exception.message}`,
+  });
 }

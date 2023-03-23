@@ -9,6 +9,7 @@ import { readConfigEdn } from '../out/cljs-lib/cljs-lib';
 import * as state from './state';
 import _ = require('lodash');
 import { isDefined } from './utilities';
+import * as converters from './converters';
 
 const REPL_FILE_EXT = 'calva-repl';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
@@ -222,6 +223,7 @@ function getConfig() {
     autoSelectReplConnectProjectType: configOptions.get<string>('autoSelectReplConnectProjectType'),
     autoSelectNReplPortFromPortFile: configOptions.get<boolean>('autoSelectNReplPortFromPortFile'),
     autoConnectRepl: configOptions.get<boolean>('autoConnectRepl'),
+    html2HiccupOptions: configOptions.get<converters.HiccupOptions>('html2HiccupOptions'),
   };
 }
 

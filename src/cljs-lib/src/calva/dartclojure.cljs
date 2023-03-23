@@ -1,5 +1,6 @@
 (ns calva.dartclojure
-  (:require [dumch.convert :as dart->clj]))
+  (:require [calva.js-utils :refer [jsify]]
+            [dumch.convert :as dart->clj]))
 
 (defn convert [dart-string]
   (try
@@ -11,7 +12,7 @@
                            :message (.-message e)}}})))
 
 (defn convert-bridge [dart-string]
-  (convert dart-string))
+  (jsify (convert dart-string)))
 
 (comment
   (convert
