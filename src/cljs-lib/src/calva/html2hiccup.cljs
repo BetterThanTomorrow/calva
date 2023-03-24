@@ -58,7 +58,10 @@
           remaining-attrs (dissoc normalized-attrs :class :id)]
       (into (cond-> [(keyword tag-w-id+classes)]
               (seq remaining-attrs) (conj remaining-attrs))
-            (map #(element->hiccup % options) (remove string/blank? content))))
+            (map #(element->hiccup % options) 
+                 (->> content
+                      (map #(if (string? %) (string/trim %) %))
+                      (remove string/blank?)))))
     (if (comment? element)
       (list 'comment (string/replace element #"^<!--\s*|\s*-->$" ""))
       element)))

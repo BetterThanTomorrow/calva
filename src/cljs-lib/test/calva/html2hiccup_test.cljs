@@ -6,6 +6,16 @@
   (testing "Converts HTML to Hiccup (sanity check)"
     (is (= [[:foo#foo-id.clz1.clz2 "bar"]]
            (sut/html->hiccup "<foo id='foo-id' class='clz1 clz2'>bar</foo>"))))
+  (testing "Text content is first non-prop arg"
+    (is (= [[:foo#foo-id.clz1.clz2 "bar"]]
+           (sut/html->hiccup "<foo id='foo-id' class='clz1 clz2'>bar</foo>")))
+    (is (= [[:foo#foo-id.clz1.clz2 {:baz "gaz"} "bar"]]
+           (sut/html->hiccup "<foo id='foo-id' class='clz1 clz2' baz=gaz>bar</foo>"))))
+  (testing "Text content is trimmed"
+    (is (= [[:foo "bar"]]
+           (sut/html->hiccup "<foo>\n    bar\n \n </foo>")))
+    (is (= [[:foo]]
+           (sut/html->hiccup "<foo>\n\n  \n </foo>"))))
   (testing "Tag is lowercased"
     (is (= [[:foo]]
            (sut/html->hiccup "<FOO></Foo>"))))
