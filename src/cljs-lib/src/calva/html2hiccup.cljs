@@ -52,7 +52,7 @@
     (let [normalized-attrs (normalize-attrs attrs options)
           {:keys [id class]} normalized-attrs
           tag-w-id (str (string/lower-case tag) (some->> id (str "#")))
-          classes (some-> class (string/split " "))
+          classes (some-> class (string/split #"\s+"))
           tag-w-id+classes (str tag-w-id (when (seq classes)
                                            (str "." (some->> classes (string/join ".")))))
           remaining-attrs (dissoc normalized-attrs :class :id)]

@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [HTML to Hiccup conversion trips a bit on classes separated by more than one space](https://github.com/BetterThanTomorrow/calva/issues/2126)
+
 ## [2.0.341] - 2023-03-23
 
 - [Add commands `calva.convertHtml2Hiccup` and `calva.pasteHtmlAsHiccup`](https://github.com/BetterThanTomorrow/calva/issues/407)
