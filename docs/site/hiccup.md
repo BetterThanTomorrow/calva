@@ -21,16 +21,11 @@ Calva can help you convert HTML to [Hiccup](https://github.com/weavejester/hiccu
 * **Copy HTML as Hiccup**, will convert the selected text, or the entire file, to Hiccup and copy it to the clipboard.
 * **Paste HTML as Hiccup**, will convert the contents of the clipboard to Hiccup and paste it. (The clipboard will then be restored to the original content.)
 
-The Hiccup converstion can be tweaked with two options using the setting `calva.html2HiccupOptions`, which is a map/object:
-
-* `mapify-style`: boolean, default `false`. When `true` any `style` attribute will be converted to a map ([Reagent](https://reagent-project.github.io/) supports this)
-* `kebab-attrs?`: boolean, default `false`. When `true` attribute names will be converted from *camelCase*, or *snake_case/SNAKE_CASE* to *kebab-case*. (Reagent wants most attribute names like this.)
-
 The resulting data structure is formatted with [zprint](https://github.com/kkinnear/zprint) using it's `:style :hiccup` configuration.
 
 ### Conversion capabilities
 
-In addition to, optionally, being able to convert style attributes to maps and kebab-case attributes, the conversion: 
+In addition to, [optionally](#it-is-somewhat-configurable), being able to convert style attributes to maps and kebab-case attributes, the conversion: 
 
 * Opts for producing compact Hiccup:
     * The `id` attribute and classes are made part of the tag, CSS selector style
@@ -49,6 +44,13 @@ In addition to, optionally, being able to convert style attributes to maps and k
     * `<foo><!-- ... --></foo>` => `[:foo (comment "...")]`
 * You can have several top level tags
     *  `<foo></foo><foo></foo>` => `[:foo]\n[:foo]`
+
+#### It is somewhat configurable
+
+The Hiccup converstion can be tweaked with two options using the setting `calva.html2HiccupOptions`, which is a map/object:
+
+* `mapify-style`: boolean, default `false`. When `true` any `style` attribute will be converted to a map ([Reagent](https://reagent-project.github.io/) supports this)
+* `kebab-attrs?`: boolean, default `false`. When `true` attribute names will be converted from *camelCase*, or *snake_case/SNAKE_CASE* to *kebab-case*. (Reagent wants most attribute names like this.)
 
 ### Copy as menus: Copy HTML as Hiccup 
 
