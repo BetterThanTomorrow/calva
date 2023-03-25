@@ -817,7 +817,7 @@
           },
           "calva.html2HiccupOptions": {
             "type": "object",
-            "markdownDescription": "Options for the `html2hiccup` command. See [the docs](",
+            "markdownDescription": "Options for the `html2hiccup` command. See [calva.io/hiccup](https://calva.io/hiccup/)",
             "properties": {
               "mapify-style?": {
                 "type": "boolean",
