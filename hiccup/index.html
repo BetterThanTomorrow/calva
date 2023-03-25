@@ -1034,13 +1034,52 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#there-are-three-commands" class="md-nav__link">
+  <a href="#features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        There are three Commands
+        Features
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#three-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conversion-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conversion capabilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#copy-as-menus-copy-html-as-hiccup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Copy as menus: Copy HTML as Hiccup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1067,17 +1106,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#copy-as-menus-copy-html-as-hiccup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Copy as menus: Copy HTML as Hiccup
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#using-from-joyride-or-some-other-vs-code-extension" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1093,7 +1121,7 @@
   <a href="#calvapastehtmlashiccup-and-calvapastehtmlashiccup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        calva.pasteHtmlAsHiccup and calva.pasteHtmlAsHiccup:
+        calva.pasteHtmlAsHiccup and calva.pasteHtmlAsHiccup
       
     </span>
   </a>
@@ -2135,13 +2163,52 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#there-are-three-commands" class="md-nav__link">
+  <a href="#features" class="md-nav__link">
     <span class="md-ellipsis">
       
-        There are three Commands
+        Features
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#three-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conversion-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conversion capabilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#copy-as-menus-copy-html-as-hiccup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Copy as menus: Copy HTML as Hiccup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2168,17 +2235,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#copy-as-menus-copy-html-as-hiccup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Copy as menus: Copy HTML as Hiccup
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#using-from-joyride-or-some-other-vs-code-extension" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2194,7 +2250,7 @@
   <a href="#calvapastehtmlashiccup-and-calvapastehtmlashiccup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        calva.pasteHtmlAsHiccup and calva.pasteHtmlAsHiccup:
+        calva.pasteHtmlAsHiccup and calva.pasteHtmlAsHiccup
       
     </span>
   </a>
@@ -2237,12 +2293,13 @@
 
 
 <h1 id="converting-html-to-hiccup">Converting HTML to Hiccup</h1>
-<p>Calva can help you convert HTML to Hiccup:</p>
+<p>Calva can help you convert HTML to <a href="https://github.com/weavejester/hiccup">Hiccup</a>.</p>
 <video controls>
   <source src="/images/calva-convert-html-to-hiccup.mp4">
 </video>
 
-<h2 id="there-are-three-commands">There are three Commands</h2>
+<h2 id="features">Features</h2>
+<h3 id="three-commands">Three commands</h3>
 <ul>
 <li><strong>Convert HTML to Hiccup</strong>, will convert the selected text, or the entire file, to Hiccup and open up an Untitled Clojure file with the result.</li>
 <li><strong>Copy HTML as Hiccup</strong>, will convert the selected text, or the entire file, to Hiccup and copy it to the clipboard.</li>
@@ -2250,9 +2307,48 @@
 </ul>
 <p>The Hiccup converstion can be tweaked with two options using the setting <code>calva.html2HiccupOptions</code>, which is a map/object:</p>
 <ul>
-<li><code>mapify-style</code>: boolean, default <code>false</code>. When <code>true</code> any <code>style</code> attribute will be converted to a map (Reagent supports this)</li>
+<li><code>mapify-style</code>: boolean, default <code>false</code>. When <code>true</code> any <code>style</code> attribute will be converted to a map (<a href="https://reagent-project.github.io/">Reagent</a> supports this)</li>
 <li><code>kebab-attrs?</code>: boolean, default <code>false</code>. When <code>true</code> attribute names will be converted from <em>camelCase</em>, or <em>snake_case/SNAKE_CASE</em> to <em>kebab-case</em>. (Reagent wants most attribute names like this.)</li>
 </ul>
+<p>The resulting data structure is formatted with <a href="https://github.com/kkinnear/zprint">zprint</a> using it's <code>:style :hiccup</code> configuration.</p>
+<h3 id="conversion-capabilities">Conversion capabilities</h3>
+<p>In addition to, optionally, being able to convert style attributes to maps and kebab-case attributes, the conversion: </p>
+<ul>
+<li>Opts for producing compact Hiccup:<ul>
+<li>The <code>id</code> attribute and classes are made part of the tag, CSS selector style<ul>
+<li><code>&lt;foo id="bar"&gt;&lt;/foo&gt;</code> =&gt; <code>[:foo#bar]</code></li>
+<li><code>&lt;foo class="c1 c2"&gt;&lt;/foo&gt;</code> =&gt; <code>[:foo.c1.c2]</code></li>
+<li><code>&lt;foo id="bar" class="c1 c2"&gt;&lt;/foo&gt;</code> =&gt; <code>[:foo#bar.c1.c2]</code></li>
+</ul>
+</li>
+<li>Whitespace is trimmed<ul>
+<li><code>&lt;foo&gt; \nbar\n &lt;/foo&gt;</code> =&gt; <code>[:foo "bar"]</code></li>
+<li><code>&lt;foo&gt; \n &lt;/foo&gt;</code> =&gt; <code>[:foo]</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Handles boolean attributes<ul>
+<li><code>&lt;foo disabled&gt;&lt;/foo&gt;</code> =&gt; <code>[:foo {:disabled true}]</code></li>
+<li><code>&lt;foo disabled=disabled&gt;&lt;/foo&gt;</code> =&gt; <code>[:foo {:disabled "disabled"}]</code></li>
+</ul>
+</li>
+<li>Special case for camelCasing attributes <code>viewBox</code> and <code>baseProfile</code> (SVG is picky about it)<ul>
+<li><code>&lt;foo bAsePROFilE=bar viewbox="0 0 1 1"&gt;&lt;/foo&gt;</code> =&gt; <code>[:foo {:baseProfile "bar" :viewBox "0 0 1 1"}]</code></li>
+</ul>
+</li>
+<li>Comments are retained<ul>
+<li><code>&lt;foo&gt;&lt;!-- ... --&gt;&lt;/foo&gt;</code> =&gt; <code>[:foo (comment "...")]</code></li>
+</ul>
+</li>
+<li>You can have several top level tags<ul>
+<li><code>&lt;foo&gt;&lt;/foo&gt;&lt;foo&gt;&lt;/foo&gt;</code> =&gt; <code>[:foo]\n[:foo]</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="copy-as-menus-copy-html-as-hiccup">Copy as menus: Copy HTML as Hiccup</h3>
+<p>The Copy HTML as Hiccup command is available from VS Code's <strong>Edit</strong> menu, as well as the editor context menu, in both cases under the <strong>Copy as</strong> sub menu.</p>
+<p><img alt="" src="../images/calva-copy-html-as-hiccup.png" /></p>
 <h2 id="the-commands-take-arguments">The commands take arguments</h2>
 <p>This options map can also be provided as an argument to the commands, so you can bind keyboard shortcuts to a particular configuration for the conversion. </p>
 <p>The command <code>calva.convertHtml2Hiccup</code> takes a map as an argument:</p>
@@ -2311,12 +2407,9 @@
 <span class="w">    </span><span class="p">},</span>
 </code></pre></div>
 <p>The default/args-less bindings are placed last <a href="https://github.com/microsoft/vscode/issues/176890">because reasons</a>.</p>
-<h2 id="copy-as-menus-copy-html-as-hiccup">Copy as menus: Copy HTML as Hiccup</h2>
-<p>The Copy HTML as Hiccup command is available from VS Code's <strong>Edit</strong> menu, as well as the editor context menu, in both cases under the <strong>Copy as</strong> sub menu.</p>
-<p><img alt="" src="../images/calva-copy-html-as-hiccup.png" /></p>
 <h2 id="using-from-joyride-or-some-other-vs-code-extension">Using from Joyride (or some other VS Code extension)</h2>
 <p>As with any VS Code command using these from Joyride is a matter of calling <code>executeCommand</code>.</p>
-<h4 id="calvapastehtmlashiccup-and-calvapastehtmlashiccup"><code>calva.pasteHtmlAsHiccup</code> and <code>calva.pasteHtmlAsHiccup</code>:</h4>
+<h4 id="calvapastehtmlashiccup-and-calvapastehtmlashiccup"><code>calva.pasteHtmlAsHiccup</code> and <code>calva.pasteHtmlAsHiccup</code></h4>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.pasteHtmlAsHiccup&quot;</span>
 <span class="w">                                    </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:mapify-style?</span><span class="w"> </span><span class="nv">true</span><span class="p">})</span>
 <span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="nv">...</span><span class="p">))</span>
