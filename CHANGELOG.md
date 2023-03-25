@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.343] - 2023-03-25
+
 - Fix: [HTML to Hiccup conversion doesn't consider user settings when used from ”Copy As” menus](https://github.com/BetterThanTomorrow/calva/issues/2130)
 
 ## [2.0.342] - 2023-03-25
