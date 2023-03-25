@@ -40,47 +40,51 @@ The `calva.pasteHtmlAsHiccup` and `calva.copyHtmlAsHiccup` commands takes only a
 The commands have no default keyboard shortcuts, you use the Command Palette to execute them, or you bind your own shortcuts. Here are some examples:
 
 ```json
+    // calva.convertHtml2Hiccup
+    {
+        // Without args, the command uses the `calva.html2HiccupOptions` configuration
+        // And writes the results to an Untitled document
+        "key": "ctrl+alt+c h",
+        "command": "calva.convertHtml2Hiccup",
+    },
     {
         // With args, `"toUntitled": true` is necessary for keyboard shortcuts
         // without it, the command just returns the result to the caller
         "key": "ctrl+alt+c ctrl+h",
         "command": "calva.convertHtml2Hiccup",
-        "args": {"toUntitled": true, "options": {"kebab-attrs?": false}}
+        "args": {"toUntitled": true, "options": {"mapify-style?": false}}
     },
     {
-        // Only for testing, providing the HTML is only useful from e.g. Joyride 
+        // Only for completeness, providing the HTML is only useful from e.g. Joyride 
         "key": "ctrl+alt+c shift+h",
         "command": "calva.convertHtml2Hiccup",
         "args": {"html": "<foo style='a: b' bar='baz'>gaz<foo>", "toUntitled": true}
     },
-    {
-        // Override the `calva.html2HiccupOptions` configuration
-        "key": "ctrl+alt+c ctrl+alt+h",
-        "command": "calva.pasteHtmlAsHiccup",
-        "args": {"mapify-style?": true, "kebab-attrs?": true}
-    },
-    {
-        // Override the `calva.html2HiccupOptions` configuration, using Calva defaults
-        "key": "ctrl+alt+c alt+h",
-        "command": "calva.pasteHtmlAsHiccup",
-        "args": {}
-    },
+
+    // calva.pasteHtmlAsHiccup
     {
         // Without args, the command uses the `calva.html2HiccupOptions` configuration
-        // And writes the results to an Untitled document
-        "key": "ctrl+alt+c cmd+h",
-        "command": "calva.convertHtml2Hiccup",
-    },
-    {
-        // Without args, the command uses the `calva.html2HiccupOptions` configuration
-        "key": "ctrl+alt+c h",
+        "key": "ctrl+alt+h v",
         "command": "calva.pasteHtmlAsHiccup"
     },
     {
         // Override the `calva.html2HiccupOptions` configuration
-        "key": "ctrl+alt+b h",
-        "command": "calva.copyHtmlAsHiccup",
+        "key": "ctrl+alt+h ctrl+v",
+        "command": "calva.pasteHtmlAsHiccup",
         "args": {"mapify-style?": true, "kebab-attrs?": true}
+    },
+
+    // calva.copyHtmlAsHiccup
+    {
+        // Without args, the command uses the `calva.html2HiccupOptions` configuration
+        "key": "ctrl+alt+h c",
+        "command": "calva.copyHtmlAsHiccup"
+    },
+    {
+        // Override the `calva.html2HiccupOptions` configuration
+        "key": "ctrl+alt+h ctrl+c",
+        "command": "calva.copyHtmlAsHiccup",
+        "args": {"mapify-style?": false, "kebab-attrs?": true}
     },
 ```
 
