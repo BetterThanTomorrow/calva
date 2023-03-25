@@ -7,13 +7,15 @@ search:
 
 # Converting HTML to Hiccup
 
-Calva can help you convert HTML to Hiccup:
+Calva can help you convert HTML to [Hiccup](https://github.com/weavejester/hiccup).
 
 <video controls>
   <source src="/images/calva-convert-html-to-hiccup.mp4">
 </video>
 
-## There are three Commands
+## Features
+
+### Three commands
 
 * **Convert HTML to Hiccup**, will convert the selected text, or the entire file, to Hiccup and open up an Untitled Clojure file with the result.
 * **Copy HTML as Hiccup**, will convert the selected text, or the entire file, to Hiccup and copy it to the clipboard.
@@ -21,8 +23,38 @@ Calva can help you convert HTML to Hiccup:
 
 The Hiccup converstion can be tweaked with two options using the setting `calva.html2HiccupOptions`, which is a map/object:
 
-* `mapify-style`: boolean, default `false`. When `true` any `style` attribute will be converted to a map (Reagent supports this)
+* `mapify-style`: boolean, default `false`. When `true` any `style` attribute will be converted to a map ([Reagent](https://reagent-project.github.io/) supports this)
 * `kebab-attrs?`: boolean, default `false`. When `true` attribute names will be converted from *camelCase*, or *snake_case/SNAKE_CASE* to *kebab-case*. (Reagent wants most attribute names like this.)
+
+The resulting data structure is formatted with [zprint](https://github.com/kkinnear/zprint) using it's `:style :hiccup` configuration.
+
+### Conversion capabilities
+
+In addition to, optionally, being able to convert style attributes to maps and kebab-case attributes, the conversion: 
+
+* Opts for producing compact Hiccup:
+    * The `id` attribute and classes are made part of the tag, CSS selector style
+        * `<foo id="bar"></foo>` => `[:foo#bar]`
+        * `<foo class="c1 c2"></foo>` => `[:foo.c1.c2]`
+        *  `<foo id="bar" class="c1 c2"></foo>` => `[:foo#bar.c1.c2]`
+    * Whitespace is trimmed
+        * `<foo> \nbar\n </foo>` => `[:foo "bar"]`
+        * `<foo> \n </foo>` => `[:foo]`
+* Handles boolean attributes
+    * `<foo disabled></foo>` => `[:foo {:disabled true}]`
+    * `<foo disabled=disabled></foo>` => `[:foo {:disabled "disabled"}]`
+* Special case for camelCasing attributes `viewBox` and `baseProfile` (SVG is picky about it)
+    * `<foo bAsePROFilE=bar viewbox="0 0 1 1"></foo>` => `[:foo {:baseProfile "bar" :viewBox "0 0 1 1"}]`
+* Comments are retained
+    * `<foo><!-- ... --></foo>` => `[:foo (comment "...")]`
+* You can have several top level tags
+    *  `<foo></foo><foo></foo>` => `[:foo]\n[:foo]`
+
+### Copy as menus: Copy HTML as Hiccup 
+
+The Copy HTML as Hiccup command is available from VS Code's **Edit** menu, as well as the editor context menu, in both cases under the **Copy as** sub menu.
+
+![](images/calva-copy-html-as-hiccup.png)
 
 ## The commands take arguments
 
@@ -90,17 +122,11 @@ The commands have no default keyboard shortcuts, you use the Command Palette to 
 
 The default/args-less bindings are placed last [because reasons](https://github.com/microsoft/vscode/issues/176890).
 
-## Copy as menus: Copy HTML as Hiccup 
-
-The Copy HTML as Hiccup command is available from VS Code's **Edit** menu, as well as the editor context menu, in both cases under the **Copy as** sub menu.
-
-![](images/calva-copy-html-as-hiccup.png)
-
 ## Using from Joyride (or some other VS Code extension)
 
 As with any VS Code command using these from Joyride is a matter of calling `executeCommand`.
 
-#### `calva.pasteHtmlAsHiccup` and `calva.pasteHtmlAsHiccup`:
+#### `calva.pasteHtmlAsHiccup` and `calva.pasteHtmlAsHiccup`
 
 ```clojure
 (-> (vscode/commands.executeCommand "calva.pasteHtmlAsHiccup"
