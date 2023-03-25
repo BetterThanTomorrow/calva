@@ -105,3 +105,19 @@ export async function pasteHtmlAsHiccup(options?: HiccupOptions) {
     detail: `${results.error.exception.name}: ${results.error.exception.message}`,
   });
 }
+
+export async function copyHtmlAsHiccup(options?: HiccupOptions) {
+  const hiccupOptions = options ? options : config.getConfig().html2HiccupOptions;
+  const html = getText();
+  const results: ConverterResult | ConverterInvalidResult = calvaLib.html2hiccup(
+    html,
+    hiccupOptions
+  );
+  if (isConverterResult(results)) {
+    return vscode.env.clipboard.writeText(results.result);
+  }
+  return vscode.window.showErrorMessage(results.error.message, {
+    modal: true,
+    detail: `${results.error.exception.name}: ${results.error.exception.message}`,
+  });
+}

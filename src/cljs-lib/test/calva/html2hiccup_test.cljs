@@ -6,6 +6,16 @@
   (testing "Converts HTML to Hiccup (sanity check)"
     (is (= [[:foo#foo-id.clz1.clz2 "bar"]]
            (sut/html->hiccup "<foo id='foo-id' class='clz1 clz2'>bar</foo>"))))
+  (testing "Text content is first non-prop arg"
+    (is (= [[:foo#foo-id.clz1.clz2 "bar"]]
+           (sut/html->hiccup "<foo id='foo-id' class='clz1 clz2'>bar</foo>")))
+    (is (= [[:foo#foo-id.clz1.clz2 {:baz "gaz"} "bar"]]
+           (sut/html->hiccup "<foo id='foo-id' class='clz1 clz2' baz=gaz>bar</foo>"))))
+  (testing "Text content is trimmed"
+    (is (= [[:foo "bar"]]
+           (sut/html->hiccup "<foo>\n    bar\n \n </foo>")))
+    (is (= [[:foo]]
+           (sut/html->hiccup "<foo>\n\n  \n </foo>"))))
   (testing "Tag is lowercased"
     (is (= [[:foo]]
            (sut/html->hiccup "<FOO></Foo>"))))
@@ -15,6 +25,9 @@
   (testing "Classes gets part of the tag"
     (is (= [[:foo.clz1.clz2]]
            (sut/html->hiccup "<foo class='clz1 clz2'></foo>"))))
+  (testing "Classes gets part of the tag and trimmed"
+    (is (= [[:foo.clz1.clz2]]
+           (sut/html->hiccup "<foo class='clz1  clz2'></foo>"))))
   (testing "Attributes other than `class` and `id` get tucked in 'props' position"
     (is (= [[:foo#foo-id.clz1.clz2 {:bar "2"} "baz"]]
            (sut/html->hiccup "<foo id='foo-id' class='clz1 clz2' bar=2>baz</foo>"))))

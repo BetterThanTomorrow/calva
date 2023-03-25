@@ -13,12 +13,13 @@ Calva can help you convert HTML to Hiccup:
   <source src="/images/calva-convert-html-to-hiccup.mp4">
 </video>
 
-## There are two Commands
+## There are three Commands
 
 * **Convert HTML to Hiccup**, will convert the selected text, or the entire file, to Hiccup and open up an Untitled Clojure file with the result.
+* **Copy HTML as Hiccup**, will convert the selected text, or the entire file, to Hiccup and copy it to the clipboard.
 * **Paste HTML as Hiccup**, will convert the contents of the clipboard to Hiccup and paste it. (The clipboard will then be restored to the original content.)
 
-The resulting Hiccup can be tweaked with two options using the setting `calva.html2HiccupOptions`, which is a map/object:
+The Hiccup converstion can be tweaked with two options using the setting `calva.html2HiccupOptions`, which is a map/object:
 
 * `mapify-style`: boolean, default `false`. When `true` any `style` attribute will be converted to a map (Reagent supports this)
 * `kebab-attrs?`: boolean, default `false`. When `true` attribute names will be converted from *camelCase*, or *snake_case/SNAKE_CASE* to *kebab-case*. (Reagent wants most attribute names like this.)
@@ -32,7 +33,7 @@ The command `calva.convertHtml2Hiccup` takes a map as an argument:
 * `toUntitled`: `boolean`, default `false`. When `false` the result of the conversion will be returned to the caller (This is intended for Joyride, or some other VS Code extension). When `true` it will behave like the default command does, placing the result of the conversion in an Untitled Clojure file.
 * `options`: Same as those `calva.html2HiccupOptions` mentioned above.
 
-The `calva.pasteHtmlAsHiccup` command takes only a `calva.html2HiccupOptions` map.
+The `calva.pasteHtmlAsHiccup` and `calva.copyHtmlAsHiccup` commands takes only a `calva.html2HiccupOptions` map.
 
 ## Example keyboard shortcuts
 
@@ -75,18 +76,34 @@ The commands have no default keyboard shortcuts, you use the Command Palette to 
         "key": "ctrl+alt+c h",
         "command": "calva.pasteHtmlAsHiccup"
     },
+    {
+        // Override the `calva.html2HiccupOptions` configuration
+        "key": "ctrl+alt+b h",
+        "command": "calva.copyHtmlAsHiccup",
+        "args": {"mapify-style?": true, "kebab-attrs?": true}
+    },
 ```
 
 The two default/args-less bindings are placed last [because reasons](https://github.com/microsoft/vscode/issues/176890).
+
+## Copy as menus: Copy HTML as Hiccup 
+
+The Copy HTML as Hiccup command is available from VS Code's **Edit** menu, as well as the editor context menu, in both cases under the **Copy as** sub menu.
+
+![](images/calva-copy-html-as-hiccup.png)
 
 ## Using from Joyride (or some other VS Code extension)
 
 As with any VS Code command using these from Joyride is a matter of calling `executeCommand`.
 
-#### `calva.pasteHtmlAsHiccup`:
+#### `calva.pasteHtmlAsHiccup` and `calva.pasteHtmlAsHiccup`:
 
 ```clojure
 (-> (vscode/commands.executeCommand "calva.pasteHtmlAsHiccup"
+                                    #js {:mapify-style? true})
+    (.then ...))
+
+(-> (vscode/commands.executeCommand "calva.copyHtmlAsHiccup"
                                     #js {:mapify-style? true})
     (.then ...))
 ```

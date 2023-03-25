@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.341",
+  "version": "2.0.342",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -1014,7 +1014,14 @@
       {
         "command": "calva.pasteHtmlAsHiccup",
         "title": "Paste HTML code as Hiccup",
-        "category": "Calva"
+        "category": "Calva",
+        "icon": "$(paste)"
+      },
+      {
+        "command": "calva.copyHtmlAsHiccup",
+        "title": "Copy HTML code as Hiccup",
+        "category": "Calva",
+        "icon": "$(copy)"
       },
       {
         "command": "calva.prettyPrintReplaceCurrentForm",
@@ -2886,6 +2893,18 @@
           "enablement": "calva:connected",
           "command": "calva.runTestUnderCursor",
           "group": "calva/d-test"
+        }
+      ],
+      "editor/context/copy": [
+        {
+          "command": "calva.copyHtmlAsHiccup",
+          "group": "0-calva"
+        }
+      ],
+      "menuBar/edit/copy": [
+        {
+          "command": "calva.copyHtmlAsHiccup",
+          "group": "0-calva"
         }
       ]
     },
