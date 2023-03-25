@@ -1065,6 +1065,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Conversion capabilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#it-is-somewhat-configurable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        It is somewhat configurable
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2194,6 +2211,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Conversion capabilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#it-is-somewhat-configurable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        It is somewhat configurable
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2305,14 +2339,9 @@
 <li><strong>Copy HTML as Hiccup</strong>, will convert the selected text, or the entire file, to Hiccup and copy it to the clipboard.</li>
 <li><strong>Paste HTML as Hiccup</strong>, will convert the contents of the clipboard to Hiccup and paste it. (The clipboard will then be restored to the original content.)</li>
 </ul>
-<p>The Hiccup converstion can be tweaked with two options using the setting <code>calva.html2HiccupOptions</code>, which is a map/object:</p>
-<ul>
-<li><code>mapify-style</code>: boolean, default <code>false</code>. When <code>true</code> any <code>style</code> attribute will be converted to a map (<a href="https://reagent-project.github.io/">Reagent</a> supports this)</li>
-<li><code>kebab-attrs?</code>: boolean, default <code>false</code>. When <code>true</code> attribute names will be converted from <em>camelCase</em>, or <em>snake_case/SNAKE_CASE</em> to <em>kebab-case</em>. (Reagent wants most attribute names like this.)</li>
-</ul>
 <p>The resulting data structure is formatted with <a href="https://github.com/kkinnear/zprint">zprint</a> using it's <code>:style :hiccup</code> configuration.</p>
 <h3 id="conversion-capabilities">Conversion capabilities</h3>
-<p>In addition to, optionally, being able to convert style attributes to maps and kebab-case attributes, the conversion: </p>
+<p>In addition to, <a href="#it-is-somewhat-configurable">optionally</a>, being able to convert style attributes to maps and kebab-case attributes, the conversion: </p>
 <ul>
 <li>Opts for producing compact Hiccup:<ul>
 <li>The <code>id</code> attribute and classes are made part of the tag, CSS selector style<ul>
@@ -2345,6 +2374,12 @@
 <li><code>&lt;foo&gt;&lt;/foo&gt;&lt;foo&gt;&lt;/foo&gt;</code> =&gt; <code>[:foo]\n[:foo]</code></li>
 </ul>
 </li>
+</ul>
+<h4 id="it-is-somewhat-configurable">It is somewhat configurable</h4>
+<p>The Hiccup converstion can be tweaked with two options using the setting <code>calva.html2HiccupOptions</code>, which is a map/object:</p>
+<ul>
+<li><code>mapify-style</code>: boolean, default <code>false</code>. When <code>true</code> any <code>style</code> attribute will be converted to a map (<a href="https://reagent-project.github.io/">Reagent</a> supports this)</li>
+<li><code>kebab-attrs?</code>: boolean, default <code>false</code>. When <code>true</code> attribute names will be converted from <em>camelCase</em>, or <em>snake_case/SNAKE_CASE</em> to <em>kebab-case</em>. (Reagent wants most attribute names like this.)</li>
 </ul>
 <h3 id="copy-as-menus-copy-html-as-hiccup">Copy as menus: Copy HTML as Hiccup</h3>
 <p>The Copy HTML as Hiccup command is available from VS Code's <strong>Edit</strong> menu, as well as the editor context menu, in both cases under the <strong>Copy as</strong> sub menu.</p>
