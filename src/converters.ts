@@ -75,12 +75,21 @@ export type HiccupOptions = {
   'mapify-style?': boolean;
 };
 
+function hasHiccupOptions(options: any): boolean {
+  return (
+    options && (options['kebab-attrs?'] !== undefined || options['mapify-style?'] !== undefined)
+  );
+}
+
 export async function html2hiccup(args?: {
   toUntitled?: boolean;
   html?: string;
   options?: HiccupOptions;
 }) {
-  const hiccupOptions = args?.options ? args.options : config.getConfig().html2HiccupOptions;
+  const hiccupOptions =
+    args?.options && hasHiccupOptions(args.options)
+      ? args.options
+      : config.getConfig().html2HiccupOptions;
   const html = args?.html ? args.html : getText();
   if (!args || args?.toUntitled) {
     return convertToUntitled(calvaLib.html2hiccup, html, hiccupOptions);
@@ -89,7 +98,7 @@ export async function html2hiccup(args?: {
 }
 
 export async function pasteHtmlAsHiccup(options?: HiccupOptions) {
-  const hiccupOptions = options ? options : config.getConfig().html2HiccupOptions;
+  const hiccupOptions = hasHiccupOptions(options) ? options : config.getConfig().html2HiccupOptions;
   const html = await vscode.env.clipboard.readText();
   const results: ConverterResult | ConverterInvalidResult = calvaLib.html2hiccup(
     html,
@@ -107,7 +116,7 @@ export async function pasteHtmlAsHiccup(options?: HiccupOptions) {
 }
 
 export async function copyHtmlAsHiccup(options?: HiccupOptions) {
-  const hiccupOptions = options ? options : config.getConfig().html2HiccupOptions;
+  const hiccupOptions = hasHiccupOptions(options) ? options : config.getConfig().html2HiccupOptions;
   const html = getText();
   const results: ConverterResult | ConverterInvalidResult = calvaLib.html2hiccup(
     html,
