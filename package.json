@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.342",
+  "version": "2.0.343",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -817,7 +817,7 @@
           },
           "calva.html2HiccupOptions": {
             "type": "object",
-            "markdownDescription": "Options for the `html2hiccup` command. See [the docs](",
+            "markdownDescription": "Options for the `html2hiccup` command. See [calva.io/hiccup](https://calva.io/hiccup/)",
             "properties": {
               "mapify-style?": {
                 "type": "boolean",
