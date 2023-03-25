@@ -52,7 +52,7 @@
   (testing "Multiple top level elements with empty lines creates no extra whitespace nodes"
     (is (= [[:foo] [:bar]]
            (sut/html->hiccup "<foo></foo>\n\n<bar></bar>"))))
-  (testing "Auto-closed tags are supported"
+  (testing "Handle's self closing empty tags (XML style)"
     (is (= [[:foo]]
            (sut/html->hiccup "<foo/>"))))
   (testing "html comments `<!--...-->` becomes `(comment ...)`"
@@ -60,7 +60,14 @@
            (sut/html->hiccup "<foo><!-- ... --></foo>"))))
   (testing "Removes whitespace noise"
     (is (= [[:foo]]
-           (sut/html->hiccup "<foo> \n </foo>")))))
+           (sut/html->hiccup "<foo> \n </foo>"))))
+  (testing "Handle's boolean attributes)"
+    (is (= [[:foo {:disabled true}]]
+           (sut/html->hiccup "<foo disabled></foo>")))
+    (is (= [[:foo {:disabled "disabled"}]]
+           (sut/html->hiccup "<foo disabled=disabled></foo")))
+    (is (= [[:foo {:disabled "disabled"}]]
+           (sut/html->hiccup "<foo disabled='disabled'></foo>")))))
 
 (deftest html->hiccup-wkebab-attrs?
   (testing "camelCase attributes are kebab-cased with :kebab-attrs? enabled"
