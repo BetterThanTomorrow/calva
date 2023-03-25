@@ -2265,12 +2265,6 @@
 <p>The commands have no default keyboard shortcuts, you use the Command Palette to execute them, or you bind your own shortcuts. Here are some examples:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="c1">// calva.convertHtml2Hiccup</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="c1">// Without args, the command uses the `calva.html2HiccupOptions` configuration</span>
-<span class="w">        </span><span class="c1">// And writes the results to an Untitled document</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c h&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.convertHtml2Hiccup&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// With args, `&quot;toUntitled&quot;: true` is necessary for keyboard shortcuts</span>
 <span class="w">        </span><span class="c1">// without it, the command just returns the result to the caller</span>
 <span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c ctrl+h&quot;</span><span class="p">,</span>
@@ -2283,34 +2277,40 @@
 <span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.convertHtml2Hiccup&quot;</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;html&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;foo style=&#39;a: b&#39; bar=&#39;baz&#39;&gt;gaz&lt;foo&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;toUntitled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
 <span class="w">    </span><span class="p">},</span>
-
-<span class="w">    </span><span class="c1">// calva.pasteHtmlAsHiccup</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// Without args, the command uses the `calva.html2HiccupOptions` configuration</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+h v&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.pasteHtmlAsHiccup&quot;</span>
+<span class="w">        </span><span class="c1">// And writes the results to an Untitled document</span>
+<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c h&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.convertHtml2Hiccup&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="p">},</span>
+
+<span class="w">    </span><span class="c1">// calva.pasteHtmlAsHiccup</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// Override the `calva.html2HiccupOptions` configuration</span>
 <span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+h ctrl+v&quot;</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.pasteHtmlAsHiccup&quot;</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;mapify-style?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kebab-attrs?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
 <span class="w">    </span><span class="p">},</span>
-
-<span class="w">    </span><span class="c1">// calva.copyHtmlAsHiccup</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// Without args, the command uses the `calva.html2HiccupOptions` configuration</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+h c&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.copyHtmlAsHiccup&quot;</span>
+<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+h v&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.pasteHtmlAsHiccup&quot;</span>
 <span class="w">    </span><span class="p">},</span>
+
+<span class="w">    </span><span class="c1">// calva.copyHtmlAsHiccup</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// Override the `calva.html2HiccupOptions` configuration</span>
 <span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+h ctrl+c&quot;</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.copyHtmlAsHiccup&quot;</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;mapify-style?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kebab-attrs?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
 <span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Without args, the command uses the `calva.html2HiccupOptions` configuration</span>
+<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+h c&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.copyHtmlAsHiccup&quot;</span>
+<span class="w">    </span><span class="p">},</span>
 </code></pre></div>
-<p>The two default/args-less bindings are placed last <a href="https://github.com/microsoft/vscode/issues/176890">because reasons</a>.</p>
+<p>The default/args-less bindings are placed last <a href="https://github.com/microsoft/vscode/issues/176890">because reasons</a>.</p>
 <h2 id="copy-as-menus-copy-html-as-hiccup">Copy as menus: Copy HTML as Hiccup</h2>
 <p>The Copy HTML as Hiccup command is available from VS Code's <strong>Edit</strong> menu, as well as the editor context menu, in both cases under the <strong>Copy as</strong> sub menu.</p>
 <p><img alt="" src="../images/calva-copy-html-as-hiccup.png" /></p>
