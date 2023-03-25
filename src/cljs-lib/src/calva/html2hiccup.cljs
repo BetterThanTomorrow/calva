@@ -52,13 +52,16 @@
     (let [normalized-attrs (normalize-attrs attrs options)
           {:keys [id class]} normalized-attrs
           tag-w-id (str (string/lower-case tag) (some->> id (str "#")))
-          classes (some-> class (string/split " "))
+          classes (some-> class (string/split #"\s+"))
           tag-w-id+classes (str tag-w-id (when (seq classes)
                                            (str "." (some->> classes (string/join ".")))))
           remaining-attrs (dissoc normalized-attrs :class :id)]
       (into (cond-> [(keyword tag-w-id+classes)]
               (seq remaining-attrs) (conj remaining-attrs))
-            (map #(element->hiccup % options) (remove string/blank? content))))
+            (map #(element->hiccup % options) 
+                 (->> content
+                      (map #(if (string? %) (string/trim %) %))
+                      (remove string/blank?)))))
     (if (comment? element)
       (list 'comment (string/replace element #"^<!--\s*|\s*-->$" ""))
       element)))
