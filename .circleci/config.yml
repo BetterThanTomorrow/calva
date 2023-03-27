@@ -236,7 +236,7 @@ jobs:
           command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=src/extension-test/e2e-test
       - run:
           name: Temporary debug preserving of VS Code network log
-          command: for f in .config/'Code - Insiders'/logs/*/network.log ; do echo "$f"; echo ---; cat "$f"; echo --- ; done
+          command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log ; do echo "$f"; echo ---; cat "$f"; echo --- ; done
       - store_test_results:
           path: ~/calva/junit
   test-e2e-sub-projects:
@@ -257,7 +257,7 @@ jobs:
           command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=test-data/projects/e2e-sub-projects
       - run:
           name: Temporary debug preserving of VS Code network log
-          command: for f in .config/'Code - Insiders'/logs/*/network.log ; do echo "$f"; echo ---; cat "$f"; echo --- ; done
+          command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log ; do echo "$f"; echo ---; cat "$f"; echo --- ; done
       - store_test_results:
           path: ~/calva/junit
   github-release:
