@@ -237,6 +237,7 @@ jobs:
       - run:
           name: Temporary debug preserving of VS Code network log
           command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log ; do echo "$f"; echo ---; cat "$f"; echo --- ; done
+          when: always
       - store_test_results:
           path: ~/calva/junit
   test-e2e-sub-projects:
@@ -258,6 +259,7 @@ jobs:
       - run:
           name: Temporary debug preserving of VS Code network log
           command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log ; do echo "$f"; echo ---; cat "$f"; echo --- ; done
+          when: always
       - store_test_results:
           path: ~/calva/junit
   github-release:
