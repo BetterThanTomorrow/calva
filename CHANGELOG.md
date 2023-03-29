@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.344] - 2023-03-29
+
 - [Calva Notebook nrepl integration flag](https://github.com/BetterThanTomorrow/calva/issues/2133)
 
 ## [2.0.343] - 2023-03-25
