@@ -90,7 +90,7 @@
       (when (seq status)
         (println "Git status issues: " status))
       (when (empty? unreleased-changelog-text)
-        (print "There are no unreleased changes in the changelog."))
+        (println "There are no unreleased changes in the changelog."))
       (println "Release anyway? YES/NO: ")
       (flush)
       (let [answer (str (read))]

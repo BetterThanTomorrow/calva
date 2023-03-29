@@ -196,6 +196,7 @@ async function doExecution(
         {
           'nrepl.middleware.print/print': 'nrepl.util.print/pr',
           'nrepl.middleware.print/options': { 'print-meta': true },
+          'nrepl.middleware.eval/env': { 'calva-notebook': true, notebook: true },
         }
       )
     ).result;
