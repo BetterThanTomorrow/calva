@@ -113,7 +113,27 @@ Example:
 !!! Note "Will override any `calva.clojureLspVersion` setting"
     When `calva.clojureLspPath` is set, the binary at the path will be used uncoditionally, and the `calva.clojureLspVersion` setting will be ignored.
 
-## clojure-lsp drag fwd/back
+## Extra commands
+
+clojure-lsp provides many useful [commands], and Calva has configuration for most of them.
+
+### `clojure-lsp.command`
+
+Though the clojure-lsp team works fast and sometimes Calva might miss some command. Besides, Calva's configuration only really work for clojure-lsp commands that take no argument, or where it makes sense to prompt for the argument. Therefore Calva provides a generic command id, `clojure-lsp.command` which can be used with keyboard shortcuts and that allow for providing arguments that way. (The command can be used from [Joyride](https://github.com/BetterThanTomorrow/joyride) too, of course.)
+
+When using the command, provide the args as an tuple of `[command-name, arguments]`, where `arguments` is an array of any arguments after `file-uri, row, col` which are common for all clojure-lsp extra commands and are provided automatically by Calva, based on active text editor and where the cursor is. It can look like so binding a shortcut for `change-coll` to `set`:
+
+```json
+    {
+        "key": "ctrl+alt+r s",
+        "command": "clojure-lsp.command",
+        "args": ["change-coll", ["set"]]
+    },
+```
+
+Note that even though `change-coll` takes only one argument, you should still provide it via an array.
+
+### clojure-lsp drag fwd/back
 
 clojure-lsp contributes two commands for dragging forms forward or backward. They are similar to Calva's [Paredit](paredit.md) corresponding commands.
 
