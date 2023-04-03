@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.345] - 2023-04-03
+
 - Bump bundled deps.clj to v1.11.1.1267
 - [Rewrap to and from sets (`#{}`)](https://github.com/BetterThanTomorrow/calva/issues/2137)
 
