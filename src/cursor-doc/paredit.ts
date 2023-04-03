@@ -500,17 +500,20 @@ export async function rewrapSexpr(
 ): Promise<Thenable<boolean>> {
   const cursor = doc.getTokenCursor(end);
   if (cursor.backwardList()) {
-    const openStart = cursor.offsetStart - 1,
-      openEnd = cursor.offsetStart;
-    if (cursor.forwardList()) {
-      const closeStart = cursor.offsetStart,
-        closeEnd = cursor.offsetEnd;
+    cursor.backwardUpList();
+    const oldOpenStart = cursor.offsetStart;
+    const oldOpenLength = cursor.getToken().raw.length;
+    const oldOpenEnd = oldOpenStart + oldOpenLength;
+    if (cursor.forwardSexp()) {
+      const oldCloseStart = cursor.offsetStart - close.length;
+      const oldCloseEnd = cursor.offsetStart;
+      const d = open.length - oldOpenLength;
       return doc.model.edit(
         [
-          new ModelEdit('changeRange', [closeStart, closeEnd, close]),
-          new ModelEdit('changeRange', [openStart, openEnd, open]),
+          new ModelEdit('changeRange', [oldCloseStart, oldCloseEnd, close]),
+          new ModelEdit('changeRange', [oldOpenStart, oldOpenEnd, open]),
         ],
-        { selection: new ModelEditSelection(end) }
+        { selection: new ModelEditSelection(end + d) }
       );
     }
   }

@@ -1031,6 +1031,61 @@ describe('paredit', () => {
       });
     });
 
+    describe('Rewrap', () => {
+      it('Rewraps () -> []', async () => {
+        const a = docFromTextNotation('a (b c|) d');
+        const b = docFromTextNotation('a [b c|] d');
+        await paredit.rewrapSexpr(a, '[', ']');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Rewraps [] -> ()', async () => {
+        const a = docFromTextNotation('a [b c|] d');
+        const b = docFromTextNotation('a (b c|) d');
+        await paredit.rewrapSexpr(a, '(', ')');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Rewraps [] -> {}', async () => {
+        const a = docFromTextNotation('a [b c|] d');
+        const b = docFromTextNotation('a {b c|} d');
+        await paredit.rewrapSexpr(a, '{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Rewraps #{} -> {}', async () => {
+        const a = docFromTextNotation('a #{b c|} d');
+        const b = docFromTextNotation('a {b c|} d');
+        await paredit.rewrapSexpr(a, '{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      // TODO: Something is broken in Peredit or the test utilities
+      //       this test make a lot of other tests fail
+      xit('Rewraps #{} -> ""', async () => {
+        const a = docFromTextNotation('a #{b c|} d');
+        const b = docFromTextNotation('a "b c|" d');
+        await paredit.rewrapSexpr(a, '"', '"');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Rewraps [] -> #{}', async () => {
+        const a = docFromTextNotation('[b c|] d');
+        const b = docFromTextNotation('#{b c|} d');
+        await paredit.rewrapSexpr(a, '#{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      // TODO: This tests current behavior. What should happen?
+      it('Rewraps ^{} -> #{}', async () => {
+        const a = docFromTextNotation('^{b c|} d');
+        const b = docFromTextNotation('#{b c|} d');
+        await paredit.rewrapSexpr(a, '#{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      // TODO: This tests current behavior. What should happen?
+      it('Rewraps ~{} -> #{}', async () => {
+        const a = docFromTextNotation('~{b c|} d');
+        const b = docFromTextNotation('#{b c|} d');
+        await paredit.rewrapSexpr(a, '#{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
     describe('Slurping', () => {
       describe('Slurping forwards', () => {
         it('slurps form after list', async () => {

@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump bundled deps.clj to v1.11.1.1267
+- [Rewrap to and from sets (`#{}`)](https://github.com/BetterThanTomorrow/calva/issues/2137)
+
 ## [2.0.344] - 2023-03-29
 
 - [Calva Notebook nrepl integration flag](https://github.com/BetterThanTomorrow/calva/issues/2133)

@@ -350,6 +350,12 @@ const pareditCommands: PareditCommand[] = [
     },
   },
   {
+    command: 'paredit.rewrapSet',
+    handler: (doc: EditableDocument) => {
+      return paredit.rewrapSexpr(doc, '#{', '}');
+    },
+  },
+  {
     command: 'paredit.rewrapQuote',
     handler: (doc: EditableDocument) => {
       return paredit.rewrapSexpr(doc, '"', '"');
