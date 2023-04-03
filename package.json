@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.344",
+  "version": "2.0.345",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -1696,6 +1696,12 @@
       },
       {
         "category": "Calva Paredit",
+        "command": "paredit.rewrapSet",
+        "title": "Rewrap #{}",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva Paredit",
         "command": "paredit.rewrapQuote",
         "title": "Rewrap \"\"",
         "enablement": "editorLangId == clojure"
@@ -2369,6 +2375,11 @@
       {
         "command": "paredit.rewrapCurly",
         "key": "ctrl+alt+r ctrl+alt+c",
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+      },
+      {
+        "command": "paredit.rewrapSet",
+        "key": "ctrl+alt+r ctrl+alt+h",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
       },
       {
