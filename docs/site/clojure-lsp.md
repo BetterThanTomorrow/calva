@@ -115,11 +115,7 @@ Example:
 
 ## Extra commands
 
-clojure-lsp provides many useful [commands], and Calva has configuration for most of them.
-
-### `clojure-lsp.command`
-
-Though the clojure-lsp team works fast and sometimes Calva might miss some command. Besides, Calva's configuration only really work for clojure-lsp commands that take no argument, or where it makes sense to prompt for the argument. Therefore Calva provides a generic command id, `clojure-lsp.command` which can be used with keyboard shortcuts and that allow for providing arguments that way. (The command can be used from [Joyride](https://github.com/BetterThanTomorrow/joyride) too, of course.)
+clojure-lsp provides many useful [commands], and Calva has configuration for most of them. The clojure-lsp team works fast and sometimes Calva might miss some command. And Calva's configuration only really work for clojure-lsp commands that take no argument, or where it makes sense to prompt for the argument. Therefore Calva provides a generic command id, `clojure-lsp.command` which can be used with keyboard shortcuts and that allow for providing arguments that way. (The command can be used from [Joyride](https://github.com/BetterThanTomorrow/joyride) too, of course.)
 
 When using the command, provide the args as an tuple of `[command-name, arguments]`, where `arguments` is an array of any arguments after `file-uri, row, col` which are common for all clojure-lsp extra commands and are provided automatically by Calva, based on active text editor and where the cursor is. It can look like so when binding a shortcut for `extract-function`:
 
@@ -132,29 +128,6 @@ When using the command, provide the args as an tuple of `[command-name, argument
 ```
 
 Note that even though `extract-function` takes only one argument, you should still provide it via an array.
-
-### clojure-lsp drag fwd/back
-
-clojure-lsp contributes two commands for dragging forms forward or backward. They are similar to Calva's [Paredit](paredit.md) corresponding commands.
-
-!!! Warning "Experimental"
-
-    Consider the addition of these commands to the command palette as an experimental feature. We might remove the commands later if they cause confusion or if Calva's commands improve about contextual support.
-
-There are reasons you might prefer the clojure-lsp versions over the Calva built-ins:
-
-* Better comment affinity. Comments stay affiliated with clauses as they're dragged.
-* Better contextual support. In addition to the [bindings mentioned below](#drag-bindings-forwardbackward), also `assoc`, `case`, `cond`, and some more forms get adapted drag treatment.
-
-There are also reasons why you might want to stick with Calva's built-ins. See [this PR](https://github.com/BetterThanTomorrow/calva/pull/1698) and its links for a detailed discussion of the differences. TL;DR:
-
-* clojure-lsp is not active in all Calva Clojure files, the [REPL/output window](output.md) being an extra noticeable example. If you bind the clojure-lsp commands in a way that replaces the key bindings for Calva's drag commands, add `&& !calva:outputWindowActive` to the `when` clause.
-* clojure-lsp does not honor Calva's [Current Form](https://www.youtube.com/watch?v=8ygw7LLLU1w) semantics. You might be in for some surprises in what gets dragged.
-* The cursor does not stay in place within the dragged form when dragging, breaking with how all Paredit edit commands work, and with how VS Code built in drag-line works.
-* Performance is not as as good as Calva's built-ins. This gets noticeable in large files.
-* Semantic token styling gets out-of-wack, leaving symbols having several stylings and other artifacts. (With Calva's commands, the styling gets invalidated for the current enclosing form, which looks less jarring.)
-
-To use the clojure-lsp commands, search for "clojure-lsp drag" in the command palette or the keyboard shortcut preferences menu, or choose them from the _Quick Fix_ suggestion lightbulb.
 
 ## Troubleshooting
 
