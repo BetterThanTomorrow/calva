@@ -751,7 +751,7 @@ describe('Token Cursor', () => {
   });
 
   describe('Top Level Form', () => {
-    it('Finds range when nested down a some forms', () => {
+    it('Finds range when nested down some forms', () => {
       const a = docFromTextNotation(
         'aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b| :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) (ddd eee)'
       );
@@ -784,6 +784,12 @@ describe('Token Cursor', () => {
     it('Finds range for a top level form inside a comment', () => {
       const a = docFromTextNotation('aaa (comment (comment [bbb cc|c]  ddd))');
       const b = docFromTextNotation('aaa (comment (comment |[bbb ccc]|  ddd))');
+      const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+      expect(cursor.rangeForDefun(a.selection.active)).toEqual(textAndSelection(b)[1]);
+    });
+    it('Finds range for a top level form inside a comment inside a form', () => {
+      const a = docFromTextNotation('a (b (comment [c |d] e))');
+      const b = docFromTextNotation('a (b (comment |[c d]| e))');
       const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
       expect(cursor.rangeForDefun(a.selection.active)).toEqual(textAndSelection(b)[1]);
     });
