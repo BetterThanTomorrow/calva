@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.346] - 2023-04-04
+
 - [Add a generic `clojure-lsp.command` for binding to keyboard shortcuts with arguments](https://github.com/BetterThanTomorrow/calva/issues/2139)
 
 ## [2.0.345] - 2023-04-03
