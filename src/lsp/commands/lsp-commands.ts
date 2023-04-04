@@ -116,6 +116,14 @@ function registerInternalLspCommand(
   });
 }
 
+function sendCommand(clients: defs.LspClientStore, command: string, args?: any[]) {
+  const params = getLSPCommandParams();
+  if (!params) {
+    return;
+  }
+  sendCommandRequest(clients, command, [...params, ...(args ? args : [])]);
+}
+
 const codeLensReferencesHandler: LSPCommandHandler = async (params) => {
   const [_, line, character] = params.args;
   calva_utils.getActiveTextEditor().selection = new vscode.Selection(
@@ -231,6 +239,11 @@ export function registerLspCommands(clients: defs.LspClientStore) {
      * We therefore manually register them here with added support for selecting the appropriate active lsp client on execution.
      */
     ...clojureLspCommands.map((command) => registerInternalLspCommand(clients, command)),
+    ...[
+      vscode.commands.registerCommand('clojure-lsp.command', ([command, args]) =>
+        sendCommand(clients, command, args)
+      ),
+    ],
   ];
 }
 
