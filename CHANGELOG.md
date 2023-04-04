@@ -4,8 +4,6 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- [Evaluate Rich Commment forms as top-level when the RCF is nested in other lists](https://github.com/BetterThanTomorrow/calva/issues/2109)
-
 ## [2.0.346] - 2023-04-04
 
 - [Add a generic `clojure-lsp.command` for binding to keyboard shortcuts with arguments](https://github.com/BetterThanTomorrow/calva/issues/2139)

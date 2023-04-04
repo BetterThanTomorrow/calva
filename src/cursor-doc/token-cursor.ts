@@ -771,16 +771,11 @@ export class LispTokenCursor extends TokenCursor {
     while (cursor.forwardList() && cursor.upList()) {
       const commentCursor = cursor.clone();
       commentCursor.backwardDownList();
-      if (commentCreatesTopLevel && commentCursor.getFunctionName() === 'comment') {
-        if (commentCursor.getToken().raw !== ')') {
-          commentCursor.upList();
-          return commentCursor.rangeForCurrentForm(commentCursor.offsetStart)
-        }
-        else {
-          return lastCandidateRange;
-        }
-      }
-      else {
+      if (
+        !commentCreatesTopLevel ||
+        commentCursor.getToken().raw !== ')' ||
+        commentCursor.getFunctionName() !== 'comment'
+      ) {
         lastCandidateRange = cursor.rangeForCurrentForm(cursor.offsetStart);
       }
     }
