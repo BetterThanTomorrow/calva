@@ -551,7 +551,7 @@ export class NReplSession {
       const msg = {
         op: 'info',
         ns,
-        symbol,
+        symbol: symbol.replace(/^'/, ''),
         id,
         session: this.sessionId,
       };

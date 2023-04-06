@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [The nrepl client fails to look up definition on quoted symbols](https://github.com/BetterThanTomorrow/calva/issues/2144)
+
 ## [2.0.347] - 2023-04-04
 
 - [Evaluate Rich Commment forms as top-level when the RCF is nested in other lists](https://github.com/BetterThanTomorrow/calva/issues/2109)
