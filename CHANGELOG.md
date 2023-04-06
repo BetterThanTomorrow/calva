@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.348] - 2023-04-06
+
 - Fix: [The nrepl client fails to look up definition on quoted symbols](https://github.com/BetterThanTomorrow/calva/issues/2144)
 
 ## [2.0.347] - 2023-04-04
