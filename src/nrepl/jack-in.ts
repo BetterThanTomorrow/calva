@@ -154,9 +154,9 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
   }
   if (projectConnectSequence) {
     try {
-      const { executable, args } = await getJackInTerminalOptions(projectConnectSequence);
-      if (executable && args) {
-        void vscode.env.clipboard.writeText(createCommandLine(executable, args));
+      const options = await getJackInTerminalOptions(projectConnectSequence);
+      if (options) {
+        void vscode.env.clipboard.writeText(createCommandLine(options));
         void vscode.window.showInformationMessage('Jack-in command line copied to the clipboard.');
       }
     } catch (e) {

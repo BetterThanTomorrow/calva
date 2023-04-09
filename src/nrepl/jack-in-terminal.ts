@@ -13,8 +13,8 @@ export interface JackInTerminalOptions extends vscode.TerminalOptions {
   useShell: boolean;
 }
 
-export function createCommandLine(executable: string, args: string[]) {
-  return `${executable} ${args.join(' ')}`;
+export function createCommandLine(options: JackInTerminalOptions): string {
+  return `(cd ${options.cwd} && ${options.executable} ${options.args.join(' ')})`;
 }
 
 export class JackInTerminal implements vscode.Pseudoterminal {
@@ -32,12 +32,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
   ) {}
 
   open(initialDimensions: vscode.TerminalDimensions | undefined): void {
-    outputWindow.appendLine(
-      `; Starting Jack-in Terminal: ${createCommandLine(
-        this.options.executable,
-        this.options.args
-      )}`
-    );
+    outputWindow.appendLine(`; Starting Jack-in Terminal: ${createCommandLine(this.options)}`);
     this.writeEmitter.fire(
       'This is a pseudo terminal, only used for hosting the Jack-in REPL process. It takes no input.\r\nPressing ctrl+c with this terminal focused, killing this terminal, or closing/reloading the VS Code window will all stop/kill the Jack-in REPL process.\r\n\r\n'
     );
@@ -69,7 +64,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
 
   private async startClojureProgram(): Promise<child.ChildProcess> {
     return new Promise<child.ChildProcess>(() => {
-      const data = `${createCommandLine(this.options.executable, this.options.args)}\r\n`;
+      const data = `${createCommandLine(this.options)}\r\n`;
       this.writeEmitter.fire('⚡️Starting the REPL ⚡️ using the below command line:\r\n');
       this.writeEmitter.fire(data);
       if (this.process && !this.process.killed) {
