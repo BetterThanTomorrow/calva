@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.349] - 2023-04-09
+
+- Fix: [Indenter and formatter do not agree on some simple forms (and the formatter is right)](https://github.com/BetterThanTomorrow/calva/issues/2148)
+
 ## [2.0.348] - 2023-04-06
 
 - Fix: [The nrepl client fails to look up definition on quoted symbols](https://github.com/BetterThanTomorrow/calva/issues/2144)
