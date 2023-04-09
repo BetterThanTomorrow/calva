@@ -68,6 +68,19 @@ describe('indent', () => {
           )
         ).toEqual(2);
       });
+      it('calculates indents for `foo` given different rules for `fo` and `foo`', () => {
+        const doc = docFromTextNotation('(foo [] |x)');
+        expect(
+          indent.getIndent(
+            doc.model,
+            textAndSelection(doc)[1][0],
+            mkConfig({
+              fo: [['block', 0]],
+              foo: [['block', 1]],
+            })
+          )
+        ).toEqual(2);
+      });
     });
 
     describe('vectors', () => {
@@ -268,6 +281,22 @@ describe('indent', () => {
         );
         expect(state.length).toEqual(1);
         expect(state[0].rules).toEqual(rule1);
+      });
+      it('collects indents for `foo` given different rules for `fo` and `foo`', () => {
+        const doc = docFromTextNotation('(foo|)');
+        const rule1: indent.IndentRule[] = [['inner', 0]];
+        const rule2: indent.IndentRule[] = [['block', 0]];
+        const rules: indent.IndentRules = {
+          fo: rule1,
+          foo: rule2,
+        };
+        const state: indent.IndentInformation[] = indent.collectIndents(
+          doc.model,
+          textAndSelection(doc)[1][0],
+          mkConfig(rules)
+        );
+        expect(state.length).toEqual(1);
+        expect(state[0].rules).toEqual(rule2);
       });
     });
 
