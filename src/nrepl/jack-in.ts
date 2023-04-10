@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as utilities from '../utilities';
 import * as _ from 'lodash';
 import * as state from '../state';
-import status from '../status';
 import * as connector from '../connector';
 import { nClient } from '../connector';
 import statusbar from '../statusbar';
@@ -240,6 +239,7 @@ async function getJackInTerminalOptions(
   const executable: string = projectConnectSequence.customJackInCommandLine
     ? substituteCustomCommandLinePlaceholders(projectConnectSequence.customJackInCommandLine, {
         'PROJECT-ROOT-PATH': state.getProjectRootLocal(),
+        'NREPL-PORT-FILE': projectType.nReplPortFile.join(projectTypes.isWin ? '\\' : '/'),
         ...commandLineInfo.substitutions,
       })
     : cmd[0];
