@@ -14,7 +14,10 @@ export interface JackInTerminalOptions extends vscode.TerminalOptions {
 }
 
 export function createCommandLine(options: JackInTerminalOptions): string {
-  return `(cd ${options.cwd} && ${options.executable} ${options.args.join(' ')})`;
+  const commandSeparator = options.isWin ? '&' : ';';
+  return `pushd ${options.cwd} ${commandSeparator} ${options.executable} ${options.args.join(
+    ' '
+  )} ${commandSeparator} popd`;
 }
 
 export class JackInTerminal implements vscode.Pseudoterminal {
