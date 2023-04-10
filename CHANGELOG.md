@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.350] - 2023-04-10
+
+- [Include a change directory command with the jack-in command line](https://github.com/BetterThanTomorrow/calva/issues/2147)
+
 ## [2.0.349] - 2023-04-09
 
 - Fix: [Indenter and formatter do not agree on some simple forms (and the formatter is right)](https://github.com/BetterThanTomorrow/calva/issues/2148)

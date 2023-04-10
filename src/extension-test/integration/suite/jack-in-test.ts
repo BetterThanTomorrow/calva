@@ -85,7 +85,7 @@ suite('Jack-in suite', () => {
     const cmdLine = await vscode.env.clipboard.readText();
     testUtil.log(suite, 'cmdLine', cmdLine);
 
-    assert.ok(cmdLine.startsWith('clojure'));
+    assert.ok(cmdLine.includes('clojure'));
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
