@@ -238,10 +238,10 @@ async function getJackInTerminalOptions(
     }
   }
   const executable: string = projectConnectSequence.customJackInCommandLine
-    ? substituteCustomCommandLinePlaceholders(
-        projectConnectSequence.customJackInCommandLine,
-        commandLineInfo.substitutions
-      )
+    ? substituteCustomCommandLinePlaceholders(projectConnectSequence.customJackInCommandLine, {
+        'PROJECT-ROOT-PATH': state.getProjectRootLocal(),
+        ...commandLineInfo.substitutions,
+      })
     : cmd[0];
   args = projectConnectSequence.customJackInCommandLine ? [] : [...cmd.slice(1), ...args];
 
