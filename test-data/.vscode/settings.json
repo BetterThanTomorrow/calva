@@ -53,6 +53,13 @@
       "menuSelections": {
         "cljAliases": ["dev", "test"]
       }
+    },
+    {
+      "name": "custom command line",
+      "projectType": "shadow-cljs",
+      "afterCLJReplJackInCode": "(println \"Hello custom command line\")",
+      "customJackInCommandLine": "/Users/pez/Projects/calva/test-data/custom-jack-in.bb --aliases <CLJS-LAUNCH-BUILDS> --cider-nrepl-version <CIDER-NREPL-VERSION>",
+      "cljsType": "shadow-cljs"
     }
   ]
 }

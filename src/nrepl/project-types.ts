@@ -12,6 +12,17 @@ import * as joyride from '../joyride';
 
 export const isWin = /^win/.test(process.platform);
 
+export type CustomCommandLineSubstitutions = {
+  'CIDER-NREPL-VERSION'?: string;
+  'CLJS-LAUNCH-BUILDS'?: string[];
+  'NREPL-PORT'?: number;
+};
+
+export type CommandLineInfo = {
+  args: any;
+  substitutions: CustomCommandLineSubstitutions;
+};
+
 export type ProjectType = {
   name: string;
   cljsTypes?: string[];
@@ -21,7 +32,10 @@ export type ProjectType = {
   resolveBundledPathUnix?: () => string;
   processShellWin?: boolean;
   processShellUnix?: boolean;
-  commandLine?: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => any;
+  commandLine?: (
+    connectSequence: ReplConnectSequence,
+    cljsType: CljsTypes
+  ) => Promise<CommandLineInfo>;
   useWhenExists: string[];
   nReplPortFile: string[];
   startFunction?: () => Thenable<boolean | void>;
@@ -317,7 +331,10 @@ const projectTypes: { [id: string]: ProjectType } = {
      * 6. Use alias if selected otherwise repl :headless
      */
     commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
-      return await leinCommandLine(['repl', ':headless'], cljsType, connectSequence);
+      return {
+        args: await leinCommandLine(['repl', ':headless'], cljsType, connectSequence),
+        substitutions: {},
+      };
     },
   },
   clj: {
@@ -384,12 +401,15 @@ const projectTypes: { [id: string]: ProjectType } = {
           ? await selectShadowBuilds(connectSequence, foundBuilds)
           : { selectedBuilds: undefined, args: [] };
 
-      return [
-        'shadow-cljs',
-        ...defaultArgs,
-        ...args,
-        ...(selectedBuilds ? ['watch', ...selectedBuilds] : ['server']),
-      ];
+      return {
+        args: [
+          'shadow-cljs',
+          ...defaultArgs,
+          ...args,
+          ...(selectedBuilds ? ['watch', ...selectedBuilds] : ['server']),
+        ],
+        substitutions: { 'CLJS-LAUNCH-BUILDS': selectedBuilds },
+      };
     },
   },
   'lein-shadow': {
@@ -415,7 +435,10 @@ const projectTypes: { [id: string]: ProjectType } = {
         );
 
       if (selectedBuilds && selectedBuilds.length) {
-        return leinCommandLine(['shadow', 'watch', ...selectedBuilds], cljsType, connectSequence);
+        return {
+          args: leinCommandLine(['shadow', 'watch', ...selectedBuilds], cljsType, connectSequence),
+          substitutions: {},
+        };
       } else {
         chan.show();
         chan.appendLine('Aborting. No valid shadow-cljs build selected.');
@@ -436,7 +459,7 @@ const projectTypes: { [id: string]: ProjectType } = {
      * Build the command line args for a gradle.
      * Add needed middleware deps to args
      */
-    commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
+    commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
       return gradleCommandLine(['clojureRepl'], cljsType, connectSequence);
     },
   },
@@ -466,7 +489,11 @@ const projectTypes: { [id: string]: ProjectType } = {
     useWhenExists: [],
     nReplPortFile: ['.bb-nrepl-port'],
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
-      return ['--nrepl-server', await getPort()];
+      const port = await getPort();
+      return {
+        args: ['--nrepl-server', port],
+        substitutions: { 'NREPL-PORT': port },
+      };
     },
   },
   nbb: {
@@ -479,7 +506,11 @@ const projectTypes: { [id: string]: ProjectType } = {
     useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
-      return ['nbb', 'nrepl-server', ':port', await getPort()];
+      const port = await getPort();
+      return {
+        args: ['nbb', 'nrepl-server', ':port', port],
+        substitutions: { 'NREPL-PORT': port },
+      };
     },
   },
   joyride: {
@@ -604,7 +635,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
     );
   }
 
-  return args;
+  return { args, substitutions: {} };
 }
 
 async function leinCommandLine(
@@ -668,7 +699,7 @@ function gradleCommandLine(
   cljsType: CljsTypes,
   connectSequence: ReplConnectSequence
 ) {
-  const out: string[] = [];
+  const args: string[] = [];
   const dependencies = {
     ...gradleDependencies(),
     ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
@@ -681,14 +712,14 @@ function gradleCommandLine(
   const depsValue = keys.map((dep) => `${dep}:${dependencies[dep]}`).join(',');
   const depsProp = `${q}-Pdev.clojurephant.jack-in.nrepl=${depsValue}${q}`;
 
-  out.push(depsProp, ...command);
+  args.push(depsProp, ...command);
 
   const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
   for (const mw of useMiddleware) {
-    out.push(`${q}--middleware=${mw}${q}`);
+    args.push(`${q}--middleware=${mw}${q}`);
   }
 
-  return out;
+  return { args, substitutions: {} };
 }
 
 /** Given the name of a project in project types, find that project. */

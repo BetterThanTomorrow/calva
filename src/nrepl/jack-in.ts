@@ -167,6 +167,20 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
   }
 }
 
+function substituteCustomCommandLinePlaceholders(
+  commandLineTemplate: string,
+  connectSequence: ReplConnectSequence,
+  args: any
+) {
+  console.log(
+    'substituteCustomCommandLinePlaceholders',
+    commandLineTemplate,
+    connectSequence,
+    args
+  );
+  return commandLineTemplate;
+}
+
 async function getJackInTerminalOptions(
   projectConnectSequence: ReplConnectSequence
 ): Promise<JackInTerminalOptions> {
@@ -187,7 +201,8 @@ async function getJackInTerminalOptions(
 
   const projectType = projectTypes.getProjectTypeForName(projectTypeName);
 
-  let args: string[] = await projectType.commandLine(projectConnectSequence, selectedCljsType);
+  let args: string[] = (await projectType.commandLine(projectConnectSequence, selectedCljsType))
+    .args;
   let cmd: string[];
   if (projectTypes.isWin) {
     cmd = projectType.winCmd;
@@ -213,8 +228,14 @@ async function getJackInTerminalOptions(
       cmd = [...cmd, projectType.resolveBundledPathUnix()];
     }
   }
-  const executable: string = cmd[0];
-  args = [...cmd.slice(1), ...args];
+  const executable: string = projectConnectSequence.customJackInCommandLine
+    ? substituteCustomCommandLinePlaceholders(
+        projectConnectSequence.customJackInCommandLine,
+        projectConnectSequence,
+        args
+      )
+    : cmd[0];
+  args = projectConnectSequence.customJackInCommandLine ? [] : [...cmd.slice(1), ...args];
 
   const terminalOptions: JackInTerminalOptions = {
     name: `Calva Jack-in: ${projectConnectSequence.name}`,
