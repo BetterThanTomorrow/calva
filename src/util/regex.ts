@@ -13,6 +13,5 @@ export const testCljOrJsRegex = (regexp: string, str: string) => {
   const clojureReMatches = regexp.match(/^#"(.*)"$/);
   const normalizedRe =
     (clojureReMatches && RegExp(clojureReMatches[1])) || RegExp(trim(regexp, '/'));
-  console.log(normalizedRe, str, normalizedRe.test(str.replace(/^.*\//, '')));
   return normalizedRe.test(str.replace(/^.*\//, ''));
 };
