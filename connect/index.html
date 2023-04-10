@@ -2582,7 +2582,7 @@
 <p>All this said, I still recommend you challenge the conclusion that you can't use Jack-in.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>There is a Calva command for copying the Jack-in command line to the clipboard.</p>
+<p>There is a Calva command for copying the Jack-in command line to the clipboard. It will copy the command line including commands to change to the current REPL project root, avoiding hard-to-detect errors when starting the REPL in the wrong directory.</p>
 </div>
 <h3 id="customizing-connect">Customizing Connect</h3>
 <p>If there is an nRepl port file, Calva will use it and not prompt for <code>host:port</code> when connecting. You can make Calva prompt for this by setting the boolean config <code>calva.autoSelectNReplPortFromPortFile</code> to <code>false</code>.</p>
