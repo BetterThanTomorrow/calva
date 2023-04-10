@@ -13,9 +13,7 @@ import * as joyride from '../joyride';
 export const isWin = /^win/.test(process.platform);
 
 export type CustomCommandLineSubstitutions = {
-  'CIDER-NREPL-VERSION'?: string;
-  'CLJS-LAUNCH-BUILDS'?: string[];
-  'NREPL-PORT'?: string;
+  [key: string]: string | string[];
 };
 
 export type CommandLineInfo = {
@@ -285,17 +283,18 @@ const gradleDependencies = () => {
   };
 };
 
-const dependenciesToSubstitutions = (deps: { [id: string]: string }) => {
+const dependenciesToSubstitutions = (deps: CustomCommandLineSubstitutions) => {
   const depKeyToSubKey = {
     'nrepl/nrepl': 'NREPL-VERSION',
     'cider/cider-nrepl': 'CIDER-NREPL-VERSION',
     'cider/piggieback': 'PIGGIEBACK-VERSION',
+    zprint: 'ZPRINT-VERSION',
   };
 
   const substitutions: { [key: string]: string } = {};
 
   Object.keys(deps).forEach((k) => {
-    substitutions[depKeyToSubKey[k]] = deps[k];
+    substitutions[depKeyToSubKey[k]] = deps[k] as string;
   });
 
   return substitutions;
@@ -347,10 +346,7 @@ const projectTypes: { [id: string]: ProjectType } = {
      * 6. Use alias if selected otherwise repl :headless
      */
     commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
-      return {
-        args: await leinCommandLine(['repl', ':headless'], cljsType, connectSequence),
-        substitutions: {},
-      };
+      return await leinCommandLine(['repl', ':headless'], cljsType, connectSequence);
     },
   },
   clj: {
@@ -427,6 +423,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         substitutions: {
           'CLJS-LAUNCH-BUILDS': selectedBuilds,
           ...dependenciesToSubstitutions(cljsDependencies()[cljsType]),
+          ...serverPrinterDependencies,
         },
       };
     },
@@ -662,7 +659,7 @@ async function leinCommandLine(
   cljsType: CljsTypes,
   connectSequence: ReplConnectSequence
 ) {
-  const out: string[] = [];
+  const args: string[] = [];
   const dependencies = {
     ...leinDependencies(),
     ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
@@ -675,7 +672,7 @@ async function leinCommandLine(
     dQ = '"';
   for (let i = 0; i < keys.length; i++) {
     const dep = keys[i];
-    out.push(
+    args.push(
       'update-in',
       ':dependencies',
       'conj',
@@ -686,7 +683,7 @@ async function leinCommandLine(
   keys = Object.keys(leinPluginDependencies());
   for (let i = 0; i < keys.length; i++) {
     const dep = keys[i];
-    out.push(
+    args.push(
       'update-in',
       ':plugins',
       'conj',
@@ -696,7 +693,7 @@ async function leinCommandLine(
   }
   const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
   for (const mw of useMiddleware) {
-    out.push(
+    args.push(
       'update-in',
       `${q + '[:repl-options,:nrepl-middleware]' + q}`,
       'conj',
@@ -705,12 +702,24 @@ async function leinCommandLine(
     );
   }
   if (profiles.length) {
-    out.push('with-profile', profiles.map((x) => `+${unKeywordize(x)}`).join(','));
+    args.push('with-profile', profiles.map((x) => `+${unKeywordize(x)}`).join(','));
   }
 
-  out.push(...command);
+  args.push(...command);
 
-  return out;
+  return {
+    args,
+    substitutions: {
+      ...dependenciesToSubstitutions({
+        ...leinDependencies(),
+        ...leinPluginDependencies(),
+        ...cljsDependencies()[cljsType],
+        ...serverPrinterDependencies,
+      }),
+      'LEIN-PROFILES': profiles.map((x) => unKeywordize(x)).join(','),
+      ...(alias ? { 'LEIN-LAUNCH-ALIAS': alias } : {}),
+    },
+  };
 }
 
 function gradleCommandLine(
