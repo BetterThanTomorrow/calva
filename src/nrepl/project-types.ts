@@ -15,7 +15,7 @@ export const isWin = /^win/.test(process.platform);
 export type CustomCommandLineSubstitutions = {
   'CIDER-NREPL-VERSION'?: string;
   'CLJS-LAUNCH-BUILDS'?: string[];
-  'NREPL-PORT'?: number;
+  'NREPL-PORT'?: string;
 };
 
 export type CommandLineInfo = {
@@ -285,6 +285,22 @@ const gradleDependencies = () => {
   };
 };
 
+const dependenciesToSubstitutions = (deps: { [id: string]: string }) => {
+  const depKeyToSubKey = {
+    'nrepl/nrepl': 'NREPL-VERSION',
+    'cider/cider-nrepl': 'CIDER-NREPL-VERSION',
+    'cider/piggieback': 'PIGGIEBACK-VERSION',
+  };
+
+  const substitutions: { [key: string]: string } = {};
+
+  Object.keys(deps).forEach((k) => {
+    substitutions[depKeyToSubKey[k]] = deps[k];
+  });
+
+  return substitutions;
+};
+
 const middleware = ['cider.nrepl/cider-middleware'];
 const cljsMiddlewareNames = {
   wrapCljsRepl: 'cider.piggieback/wrap-cljs-repl',
@@ -408,7 +424,10 @@ const projectTypes: { [id: string]: ProjectType } = {
           ...args,
           ...(selectedBuilds ? ['watch', ...selectedBuilds] : ['server']),
         ],
-        substitutions: { 'CLJS-LAUNCH-BUILDS': selectedBuilds },
+        substitutions: {
+          'CLJS-LAUNCH-BUILDS': selectedBuilds,
+          ...dependenciesToSubstitutions(cljsDependencies()[cljsType]),
+        },
       };
     },
   },
@@ -492,7 +511,7 @@ const projectTypes: { [id: string]: ProjectType } = {
       const port = await getPort();
       return {
         args: ['--nrepl-server', port],
-        substitutions: { 'NREPL-PORT': port },
+        substitutions: { 'NREPL-PORT': port.toString() },
       };
     },
   },
@@ -509,7 +528,7 @@ const projectTypes: { [id: string]: ProjectType } = {
       const port = await getPort();
       return {
         args: ['nbb', 'nrepl-server', ':port', port],
-        substitutions: { 'NREPL-PORT': port },
+        substitutions: { 'NREPL-PORT': port.toString() },
       };
     },
   },

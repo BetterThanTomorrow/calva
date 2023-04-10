@@ -167,18 +167,26 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
   }
 }
 
+type Substitutions = {
+  [key: string]: string | string[];
+};
+
 function substituteCustomCommandLinePlaceholders(
   commandLineTemplate: string,
-  connectSequence: ReplConnectSequence,
-  args: any
+  substitutions: Substitutions
 ) {
-  console.log(
-    'substituteCustomCommandLinePlaceholders',
-    commandLineTemplate,
-    connectSequence,
-    args
-  );
-  return commandLineTemplate;
+  console.log('substituteCustomCommandLinePlaceholders', commandLineTemplate, substitutions);
+  let substituted = commandLineTemplate;
+
+  for (const k in substitutions) {
+    const placeholder = `<${k}>`;
+    const value: string = Array.isArray(substitutions[k])
+      ? (substitutions[k] as string[]).join(',')
+      : (substitutions[k] as string);
+    substituted = substituted.replace(new RegExp(placeholder, 'g'), value);
+  }
+
+  return substituted;
 }
 
 async function getJackInTerminalOptions(
@@ -201,8 +209,9 @@ async function getJackInTerminalOptions(
 
   const projectType = projectTypes.getProjectTypeForName(projectTypeName);
 
-  let args: string[] = (await projectType.commandLine(projectConnectSequence, selectedCljsType))
-    .args;
+  const commandLineInfo = await projectType.commandLine(projectConnectSequence, selectedCljsType);
+
+  let args: string[] = commandLineInfo.args;
   let cmd: string[];
   if (projectTypes.isWin) {
     cmd = projectType.winCmd;
@@ -231,8 +240,7 @@ async function getJackInTerminalOptions(
   const executable: string = projectConnectSequence.customJackInCommandLine
     ? substituteCustomCommandLinePlaceholders(
         projectConnectSequence.customJackInCommandLine,
-        projectConnectSequence,
-        args
+        commandLineInfo.substitutions
       )
     : cmd[0];
   args = projectConnectSequence.customJackInCommandLine ? [] : [...cmd.slice(1), ...args];
