@@ -100,7 +100,7 @@ Even better: Copying that command line gives you the command to start the REPL w
 All this said, I still recommend you challenge the conclusion that you can't use Jack-in.
 
 !!! Note
-    There is a Calva command for copying the Jack-in command line to the clipboard.
+    There is a Calva command for copying the Jack-in command line to the clipboard. It will copy the command line including commands to change to the current REPL project root, avoiding hard-to-detect errors when starting the REPL in the wrong directory.
 
 ### Customizing Connect
 
