@@ -116,6 +116,9 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     replSession.updateReplSessionType();
 
     outputWindow.setSession(cljSession, nClient.ns);
+    if (getConfig().autoReferReplUtilities !== 'never') {
+      await cljSession.requireREPLUtilities();
+    }
 
     if (connectSequence.afterCLJReplJackInCode) {
       outputWindow.appendLine(`; Evaluating 'afterCLJReplJackInCode'`);
@@ -196,6 +199,9 @@ function setUpCljsRepl(session, build) {
     )}`
   );
   outputWindow.setSession(session, 'cljs.user');
+  if (getConfig().autoReferReplUtilities !== 'never') {
+    session.requireREPLUtilities();
+  }
   replSession.updateReplSessionType();
 }
 

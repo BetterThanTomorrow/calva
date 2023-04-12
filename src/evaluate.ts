@@ -105,6 +105,9 @@ async function evaluateCodeUpdatingUI(
 
     if (outputWindow.getNs() !== ns) {
       await session.switchNS(ns);
+      if (getConfig().autoReferReplUtilities === 'always') {
+        await session.requireREPLUtilities();
+      }
     }
 
     const context: NReplEvaluation = session.eval(code, ns, {
@@ -430,6 +433,9 @@ async function loadFile(
     outputWindow.appendLine(`; Evaluating file: ${fileName}`);
 
     await session.switchNS(ns);
+    if (getConfig().autoReferReplUtilities === 'always') {
+      await session.requireREPLUtilities();
+    }
 
     const errorMessages = [];
     const res = session.loadFile(fileContents, {
@@ -500,10 +506,6 @@ async function requireREPLUtilitiesCommand() {
   if (util.getConnectedState()) {
     const chan = state.outputChannel(),
       ns = namespace.getDocumentNamespace(util.tryToGetDocument({})),
-      CLJS_FORM = "(use '[cljs.repl :only [apropos dir doc find-doc print-doc pst source]])",
-      CLJ_FORM = '(clojure.core/apply clojure.core/require clojure.main/repl-requires)',
-      sessionType = replSession.getReplSessionTypeFromState(),
-      form = sessionType == 'cljs' ? CLJS_FORM : CLJ_FORM,
       fileType = util.getFileType(util.tryToGetDocument({})),
       session = replSession.getSession(fileType);
 
@@ -511,7 +513,7 @@ async function requireREPLUtilitiesCommand() {
       try {
         await namespace.createNamespaceFromDocumentIfNotExists(util.tryToGetDocument({}));
         await session.switchNS(ns);
-        await session.eval(form, ns).value;
+        await session.requireREPLUtilities();
         chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
       } catch (e) {
         chan.appendLine(`REPL utilities could not be acquired for namespace ${ns}: ${e}`);
@@ -585,6 +587,9 @@ export async function evaluateInOutputWindow(
     replSession.updateReplSessionType();
     if (outputWindow.getNs() !== ns) {
       await session.switchNS(ns);
+      if (getConfig().autoReferReplUtilities === 'always') {
+        await session.requireREPLUtilities();
+      }
       outputWindow.setSession(session, ns);
       if (options.evaluationSendCodeToOutputWindow !== false) {
         outputWindow.appendPrompt();

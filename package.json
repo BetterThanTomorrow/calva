@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.350",
+  "version": "2.0.351",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -830,6 +830,21 @@
                 "default": false
               }
             }
+          },
+          "calva.autoReferReplUtilities": {
+            "type": "string",
+            "markdownDescription": "Should Calva automatically refer in the `repl-requires`/REPL utilities (like `source`, `doc`, etcetera), and when should it do that? (There is also a command to do this on demand.)",
+            "enum": [
+              "on-connect",
+              "always",
+              "never"
+            ],
+            "default": "on-connect",
+            "markdownEnumDescriptions": [
+              "Auto-refer the REPL utilities only in the initial namespace immediately after connecting the REPL.",
+              "Auto-refer the REPL utilities in all namespaces.",
+              "Never auto-refer the REPL utilities."
+            ]
           }
         }
       },
@@ -1283,7 +1298,7 @@
       },
       {
         "command": "calva.requireREPLUtilities",
-        "title": "Require REPL utilities, like (doc) etcetera, into Current Namespace",
+        "title": "Require (refer) REPL utilities, like (doc) etcetera, into Current Namespace",
         "enablement": "calva:connected",
         "category": "Calva"
       },
