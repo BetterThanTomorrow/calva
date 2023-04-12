@@ -55,10 +55,17 @@
       }
     },
     {
-      "name": "custom command line",
+      "name": "custom command line shadow",
       "projectType": "shadow-cljs",
       "afterCLJReplJackInCode": "(println \"Hello custom command line\")",
       "customJackInCommandLine": "echo PROJECT-ROOT-PATH: <PROJECT-ROOT-PATH>, NREPL-PORT-FILE: <NREPL-PORT-FILE>; /Users/pez/Projects/calva/test-data/custom-jack-in.bb --aliases <CLJS-LAUNCH-BUILDS> --cider-nrepl-version <CIDER-NREPL-VERSION>",
+      "cljsType": "shadow-cljs"
+    },
+    {
+      "name": "custom command line Leiningen",
+      "projectType": "Leiningen",
+      "afterCLJReplJackInCode": "(println \"Hello custom command line\")",
+      "customJackInCommandLine": "echo PROJECT-ROOT-PATH: '<PROJECT-ROOT-PATH>', NREPL-PORT-FILE: '<NREPL-PORT-FILE>'; NREPL-PORT: '<NREPL-PORT>', LEIN-PROFILES: '<LEIN-PROFILES>', LEIN-LAUNCH-ALIAS '<LEIN-LAUNCH-ALIAS>', CLJ-MIDDLEWARE: '<CLJ-MIDDLEWARE>', CLJS-MIDDLEWARE: '<CLJS-MIDDLEWARE>' /Users/pez/Projects/calva/test-data/custom-jack-in.bb --aliases <CLJS-LAUNCH-BUILDS> --cider-nrepl-version <CIDER-NREPL-VERSION>",
       "cljsType": "shadow-cljs"
     }
   ]

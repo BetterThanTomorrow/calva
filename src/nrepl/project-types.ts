@@ -718,6 +718,8 @@ async function leinCommandLine(
       }),
       'LEIN-PROFILES': profiles.map((x) => unKeywordize(x)).join(','),
       ...(alias ? { 'LEIN-LAUNCH-ALIAS': alias } : {}),
+      'CLJ-MIDDLEWARE': middleware.join(','),
+      ...(cljsType ? { 'CLJS-MIDDLEWARE': cljsMiddleware[cljsType].join(',') } : {}),
     },
   };
 }
