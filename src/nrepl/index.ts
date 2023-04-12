@@ -14,6 +14,8 @@ import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
 import { log, Direction } from './logging';
 
+export type AutoReferReplUtilities = 'on-connect' | 'always' | 'never';
+
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
 }
@@ -349,6 +351,13 @@ export class NReplSession {
 
   async switchNS(ns: any) {
     await this.eval(`(in-ns '${ns})`, this.client.ns).value;
+  }
+
+  async requireREPLUtilities() {
+    const CLJS_FORM =
+      "(require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]])";
+    const CLJ_FORM = '(clojure.core/apply clojure.core/require clojure.main/repl-requires)';
+    await this.eval(this.replType === 'clj' ? CLJ_FORM : CLJS_FORM, this.client.ns).value;
   }
 
   private _createEvalOperationMessage(code: string, ns: string, opts: any) {

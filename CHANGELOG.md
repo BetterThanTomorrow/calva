@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Auto-refer `repl-requires` as part of connecting (or always)](https://github.com/BetterThanTomorrow/calva/issues/2154)
 - Bump bundled deps.clj to v1.11.1.1273
 
 ## [2.0.350] - 2023-04-10

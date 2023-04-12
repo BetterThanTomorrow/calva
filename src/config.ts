@@ -10,6 +10,7 @@ import * as state from './state';
 import _ = require('lodash');
 import { isDefined } from './utilities';
 import * as converters from './converters';
+import * as nrepl from './nrepl/index';
 
 const REPL_FILE_EXT = 'calva-repl';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
@@ -224,6 +225,8 @@ function getConfig() {
     autoSelectNReplPortFromPortFile: configOptions.get<boolean>('autoSelectNReplPortFromPortFile'),
     autoConnectRepl: configOptions.get<boolean>('autoConnectRepl'),
     html2HiccupOptions: configOptions.get<converters.HiccupOptions>('html2HiccupOptions'),
+    autoReferReplUtilities:
+      configOptions.get<nrepl.AutoReferReplUtilities>('autoReferReplUtilities'),
   };
 }
 
