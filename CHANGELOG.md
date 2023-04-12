@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump bundled deps.clj to v1.11.1.1273
+
 ## [2.0.350] - 2023-04-10
 
 - [Include a change directory command with the jack-in command line](https://github.com/BetterThanTomorrow/calva/issues/2147)
