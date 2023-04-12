@@ -233,6 +233,9 @@ export async function setNamespaceFromCurrentFile() {
   const ns = namespace.getNamespace(util.tryToGetDocument({}));
   if (getNs() !== ns && util.isDefined(ns)) {
     await session.switchNS(ns);
+    if (config.getConfig().autoReferReplUtilities === 'always') {
+      await session.requireREPLUtilities();
+    }
   }
   setSession(session, ns);
   replSession.updateReplSessionType();
@@ -255,6 +258,9 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
   if (code != '') {
     if (getNs() !== ns) {
       await session.switchNS(ns);
+      if (config.getConfig().autoReferReplUtilities === 'always') {
+        await session.requireREPLUtilities();
+      }
     }
     setSession(session, ns);
     appendLine(code, (_) => revealResultsDoc(false));
