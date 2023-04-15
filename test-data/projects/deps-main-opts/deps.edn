@@ -1,0 +1,2 @@
+{:aliases {:has-main-opts {:main-opts ["-m" "main-opts.hello"]}
+           :has-main-opts-starting-nrepl {:main-opts ["-m" "nrepl.cmdline" "--middleware" "[cider.nrepl/cider-middleware]"]}}}
