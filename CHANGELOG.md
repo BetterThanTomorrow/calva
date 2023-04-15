@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add docs about main-opts and make the warning link there](https://github.com/BetterThanTomorrow/calva/issues/2157)
+
 ## [2.0.351] - 2023-04-12
 
 - [Auto-refer `repl-requires` as part of connecting (or always)](https://github.com/BetterThanTomorrow/calva/issues/2154)
