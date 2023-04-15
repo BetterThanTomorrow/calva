@@ -541,14 +541,20 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
       if (state.extensionContext.workspaceState.get(alertKey, true)) {
         void vscode.window
           .showInformationMessage(
-            `The aliases [${aliasesWithMain.join(
-              ' '
-            )}] specify :main-opts. Unless the options start an nREPL server, Jack-in will not work with such an alias selected.`,
-            "OK, Don't show again",
-            'OK'
+            `The alias ${aliasesWithMain.join(
+              ', and '
+            )}, specify :main-opts. Only select the alias if it starts an nREPL server, otherwise Jack-in will not work.`,
+            'OK',
+            'Open docs',
+            "Don't show again"
           )
           .then((answer) => {
-            if (answer === "OK, Don't show again") {
+            if (answer === 'Open docs') {
+              void vscode.commands.executeCommand(
+                'vscode.open',
+                vscode.Uri.parse('https://calva.io/connect/#jack-in-and-main-opts')
+              );
+            } else if (answer === "Don't show again") {
               void state.extensionContext.workspaceState.update(alertKey, false);
             }
           });
