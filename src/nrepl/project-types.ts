@@ -651,7 +651,19 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
     );
   }
 
-  return { args, substitutions: {} };
+  return {
+    args,
+    substitutions: {
+      ...dependenciesToSubstitutions({
+        ...cliDependencies(),
+        ...cljsDependencies()[cljsType],
+        ...serverPrinterDependencies,
+      }),
+      'CLJ-ALIASES': aliases.join(','),
+      'CLJ-MIDDLEWARE': middleware.join(','),
+      ...(cljsType ? { 'CLJS-MIDDLEWARE': cljsMiddleware[cljsType].join(',') } : {}),
+    },
+  };
 }
 
 async function leinCommandLine(
