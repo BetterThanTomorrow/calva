@@ -64,9 +64,9 @@ Custom command lines are there to bridge the gap to those situations where stand
 
 A custom command line is executed from same directory as the REPL project root (See `projectRootPath`, above), and can be as simple as `my-repl-jack-in-command`. You  can use a relative or absolute path to your command line.
 
-### Custom Command Line Substitutions/Placeholders
+### Custom Command Line Substitutions/Placeholders/Environment variables
 
-You can use these placeholders in your command line, and Calva will substitute them before executing the command:
+You can use placeholders in your command line, and Calva will substitute them before executing the command. All these placeholders will also be provided to your script via environment variables with the same names:
 
 nREPL dependency versions:
 
@@ -111,19 +111,22 @@ This Babashka script doesn't actually start a REPL, it's provided more for givin
 
 (defn process-args [args]
   (let [aliases (str/split (:aliases args) #",")
-        cider-nrepl-version (:cider-nrepl-version args)]
+        cider-nrepl-version (:cider-nrepl-version args)
+        project-root-path (System/getenv "JACK-IN-PROJECT-ROOT-PATH")]
     (println "Aliases:")
     (doseq [alias aliases]
       (println alias))
-    (println "CIDER nREPL version:" cider-nrepl-version)))
+    (println "CIDER nREPL version:" cider-nrepl-version)
+    (println "JACK-IN-PROJECT-ROOT-PATH:" project-root-path)))
 
 (def parsed-args (parse-args *command-line-args*))
 
 (when (= *file* (System/getProperty "babashka.file"))
   (process-args parsed-args))
+
 ```
 
-It could be configured for use in a custom connect sequence, like this:
+The script reads `JACK-IN-CLJS-LAUNCH-BUILDS` and `JACK-IN-CIDER-NREPL-VERSION` from the command line, and `JACK-IN-PROJECT-ROOT-PATH` from the environment. It could be configured for use in a custom connect sequence like this:
 
 ```json
     "customJackInCommandLine": "../../custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION",

@@ -174,18 +174,13 @@ function substituteCustomCommandLinePlaceholders(
   commandLineTemplate: string,
   substitutions: Substitutions
 ) {
-  console.log('substituteCustomCommandLinePlaceholders', commandLineTemplate, substitutions);
-  let substituted = commandLineTemplate;
-
-  for (const k in substitutions) {
+  return Object.keys(substitutions).reduce((acc: string, k: string) => {
     const placeholder = `JACK-IN-${k}`;
     const value: string = Array.isArray(substitutions[k])
       ? (substitutions[k] as string[]).join(',')
       : (substitutions[k] as string);
-    substituted = substituted.replace(new RegExp(placeholder, 'g'), value);
-  }
-
-  return substituted;
+    return acc.replace(new RegExp(placeholder, 'g'), value);
+  }, commandLineTemplate);
 }
 
 async function getJackInTerminalOptions(
@@ -237,14 +232,18 @@ async function getJackInTerminalOptions(
     }
   }
   const nReplPortFile = projectConnectSequence.nReplPortFile ?? projectType.nReplPortFile;
+  const substitutions = {
+    'PROJECT-ROOT-PATH': state.getProjectRootLocal(),
+    ...(nReplPortFile
+      ? { 'NREPL-PORT-FILE': nReplPortFile.join(projectTypes.isWin ? '\\' : '/') }
+      : {}),
+    ...commandLineInfo.substitutions,
+  };
   const executable: string = projectConnectSequence.customJackInCommandLine
-    ? substituteCustomCommandLinePlaceholders(projectConnectSequence.customJackInCommandLine, {
-        'PROJECT-ROOT-PATH': state.getProjectRootLocal(),
-        ...(nReplPortFile
-          ? { 'NREPL-PORT-FILE': nReplPortFile.join(projectTypes.isWin ? '\\' : '/') }
-          : {}),
-        ...commandLineInfo.substitutions,
-      })
+    ? substituteCustomCommandLinePlaceholders(
+        projectConnectSequence.customJackInCommandLine,
+        substitutions
+      )
     : cmd[0];
   args = projectConnectSequence.customJackInCommandLine ? [] : [...cmd.slice(1), ...args];
 
@@ -255,6 +254,9 @@ async function getJackInTerminalOptions(
     env: {
       ...getGlobalJackInEnv(),
       ...processEnvObject(projectConnectSequence.jackInEnv),
+      ...Object.entries(substitutions).reduce((acc, [key, value]) => {
+        return { ...acc, [`JACK-IN-${key}`]: value };
+      }, {}),
     },
     isWin: projectTypes.isWin,
     cwd: state.getProjectRootLocal(),
