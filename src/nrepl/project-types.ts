@@ -453,7 +453,11 @@ const projectTypes: { [id: string]: ProjectType } = {
       if (selectedBuilds && selectedBuilds.length) {
         return {
           args: leinCommandLine(['shadow', 'watch', ...selectedBuilds], cljsType, connectSequence),
-          substitutions: {},
+          substitutions: {
+            'CLJS-LAUNCH-BUILDS': selectedBuilds,
+            ...dependenciesToSubstitutions(cljsDependencies()[cljsType]),
+            ...serverPrinterDependencies,
+          },
         };
       } else {
         chan.show();
