@@ -87,6 +87,7 @@ Depending on the project type Calva will also look for these placeholders:
 * `JACK-IN-LEIN-LAUNCH-ALIAS`: For Leiningen projects, the launch alias selected by the user
 * `JACK-IN-CLI-ALIASES`: For deps.edn projects, the aliases selected by the user
 * `JACK-IN-CLJS-LAUNCH-BUILDS`: For ClojureScript REPLs that configures builds, the builds selected by the user
+* `JACK-IN-NREPL-PORT`: For some project types (currently `nbb` and `Babashka`) Calva provided the TCP port they should use.
 
 ### Example Custom Jack-in Script
 
