@@ -663,7 +663,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
         ...cljsDependencies()[cljsType],
         ...serverPrinterDependencies,
       }),
-      'CLJ-ALIASES': aliases.join(','),
+      'CLI-ALIASES': aliases.join(','),
       'CLJ-MIDDLEWARE': middleware.join(','),
       ...(cljsType ? { 'CLJS-MIDDLEWARE': cljsMiddleware[cljsType].join(',') } : {}),
     },
