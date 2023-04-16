@@ -575,19 +575,19 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
   const launchAliases = menuSelections ? menuSelections.cljAliases : undefined;
   let aliases: string[] = [];
   const aliasesWithMain: string[] = [];
+  let projectAliases = parsed && parsed.aliases != undefined ? Object.keys(parsed.aliases) : [];
+  for (const projectAlias of projectAliases) {
+    const aliasKey = unKeywordize(projectAlias);
+    if (parsed && parsed.aliases) {
+      const alias = parsed.aliases[aliasKey];
+      if (alias && alias['main-opts'] != undefined && alias['main-opts'].length > 0) {
+        aliasesWithMain.push(`:${projectAlias}`);
+      }
+    }
+  }
   if (launchAliases) {
     aliases = launchAliases.map(keywordize);
   } else {
-    let projectAliases = parsed && parsed.aliases != undefined ? Object.keys(parsed.aliases) : [];
-    for (const projectAlias of projectAliases) {
-      const aliasKey = unKeywordize(projectAlias);
-      if (parsed && parsed.aliases) {
-        const alias = parsed.aliases[aliasKey];
-        if (alias && alias['main-opts'] != undefined && alias['main-opts'].length > 0) {
-          aliasesWithMain.push(`:${projectAlias}`);
-        }
-      }
-    }
     if (aliasesWithMain.length > 0) {
       const alertKey = 'calva.jackInMainOptsWarningEnabled';
       if (state.extensionContext.workspaceState.get(alertKey, true)) {
