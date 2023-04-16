@@ -479,6 +479,7 @@ const projectTypes: { [id: string]: ProjectType } = {
      * Build the command line args for a gradle.
      * Add needed middleware deps to args
      */
+    /* eslint-disable @typescript-eslint/require-await */
     commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
       return gradleCommandLine(['clojureRepl'], cljsType, connectSequence);
     },
