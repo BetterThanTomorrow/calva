@@ -236,10 +236,13 @@ async function getJackInTerminalOptions(
       cmd = [...cmd, projectType.resolveBundledPathUnix()];
     }
   }
+  const nReplPortFile = projectConnectSequence.nReplPortFile ?? projectType.nReplPortFile;
   const executable: string = projectConnectSequence.customJackInCommandLine
     ? substituteCustomCommandLinePlaceholders(projectConnectSequence.customJackInCommandLine, {
         'PROJECT-ROOT-PATH': state.getProjectRootLocal(),
-        'NREPL-PORT-FILE': projectType.nReplPortFile.join(projectTypes.isWin ? '\\' : '/'),
+        ...(nReplPortFile
+          ? { 'NREPL-PORT-FILE': nReplPortFile.join(projectTypes.isWin ? '\\' : '/') }
+          : {}),
         ...commandLineInfo.substitutions,
       })
     : cmd[0];
