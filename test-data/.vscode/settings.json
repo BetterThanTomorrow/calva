@@ -62,6 +62,12 @@
       "cljsType": "shadow-cljs"
     },
     {
+      "name": "custom command line deps windows",
+      "projectType": "deps.edn",
+      "afterCLJReplJackInCode": "(println \"Hello custom command line\")",
+      "customJackInCommandLine": "bb ..\\..\\custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION"
+    },
+    {
       "name": "custom command line Leiningen",
       "projectType": "Leiningen",
       "afterCLJReplJackInCode": "(println \"Hello custom command line\")",
