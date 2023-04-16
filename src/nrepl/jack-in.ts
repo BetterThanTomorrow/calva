@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as utilities from '../utilities';
 import * as _ from 'lodash';
 import * as state from '../state';
-import status from '../status';
 import * as connector from '../connector';
 import { nClient } from '../connector';
 import statusbar from '../statusbar';
@@ -167,6 +166,23 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
   }
 }
 
+type Substitutions = {
+  [key: string]: string | string[];
+};
+
+function substituteCustomCommandLinePlaceholders(
+  commandLineTemplate: string,
+  substitutions: Substitutions
+) {
+  return Object.keys(substitutions).reduce((acc: string, k: string) => {
+    const placeholder = `JACK-IN-${k}`;
+    const value: string = Array.isArray(substitutions[k])
+      ? (substitutions[k] as string[]).join(',')
+      : (substitutions[k] as string);
+    return acc.replace(new RegExp(placeholder, 'g'), value);
+  }, commandLineTemplate);
+}
+
 async function getJackInTerminalOptions(
   projectConnectSequence: ReplConnectSequence
 ): Promise<JackInTerminalOptions> {
@@ -187,7 +203,9 @@ async function getJackInTerminalOptions(
 
   const projectType = projectTypes.getProjectTypeForName(projectTypeName);
 
-  let args: string[] = await projectType.commandLine(projectConnectSequence, selectedCljsType);
+  const commandLineInfo = await projectType.commandLine(projectConnectSequence, selectedCljsType);
+
+  let args: string[] = commandLineInfo.args;
   let cmd: string[];
   if (projectTypes.isWin) {
     cmd = projectType.winCmd;
@@ -213,8 +231,21 @@ async function getJackInTerminalOptions(
       cmd = [...cmd, projectType.resolveBundledPathUnix()];
     }
   }
-  const executable: string = cmd[0];
-  args = [...cmd.slice(1), ...args];
+  const nReplPortFile = projectConnectSequence.nReplPortFile ?? projectType.nReplPortFile;
+  const substitutions = {
+    'PROJECT-ROOT-PATH': state.getProjectRootLocal(),
+    ...(nReplPortFile
+      ? { 'NREPL-PORT-FILE': nReplPortFile.join(projectTypes.isWin ? '\\' : '/') }
+      : {}),
+    ...commandLineInfo.substitutions,
+  };
+  const executable: string = projectConnectSequence.customJackInCommandLine
+    ? substituteCustomCommandLinePlaceholders(
+        projectConnectSequence.customJackInCommandLine,
+        substitutions
+      )
+    : cmd[0];
+  args = projectConnectSequence.customJackInCommandLine ? [] : [...cmd.slice(1), ...args];
 
   const terminalOptions: JackInTerminalOptions = {
     name: `Calva Jack-in: ${projectConnectSequence.name}`,
@@ -223,6 +254,9 @@ async function getJackInTerminalOptions(
     env: {
       ...getGlobalJackInEnv(),
       ...processEnvObject(projectConnectSequence.jackInEnv),
+      ...Object.entries(substitutions).reduce((acc, [key, value]) => {
+        return { ...acc, [`JACK-IN-${key}`]: value };
+      }, {}),
     },
     isWin: projectTypes.isWin,
     cwd: state.getProjectRootLocal(),

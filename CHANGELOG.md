@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.352] - 2023-04-16
+
+- [Add custom Jack-in command lines to connect sequences](https://github.com/BetterThanTomorrow/calva/issues/2152)
+- [Add docs about main-opts and make the warning link there](https://github.com/BetterThanTomorrow/calva/issues/2157)
+
 ## [2.0.351] - 2023-04-12
 
 - [Auto-refer `repl-requires` as part of connecting (or always)](https://github.com/BetterThanTomorrow/calva/issues/2154)

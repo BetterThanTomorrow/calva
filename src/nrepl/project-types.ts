@@ -12,6 +12,15 @@ import * as joyride from '../joyride';
 
 export const isWin = /^win/.test(process.platform);
 
+export type CustomCommandLineSubstitutions = {
+  [key: string]: string | string[];
+};
+
+export type CommandLineInfo = {
+  args: any;
+  substitutions: CustomCommandLineSubstitutions;
+};
+
 export type ProjectType = {
   name: string;
   cljsTypes?: string[];
@@ -21,7 +30,10 @@ export type ProjectType = {
   resolveBundledPathUnix?: () => string;
   processShellWin?: boolean;
   processShellUnix?: boolean;
-  commandLine?: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => any;
+  commandLine?: (
+    connectSequence: ReplConnectSequence,
+    cljsType: CljsTypes
+  ) => Promise<CommandLineInfo>;
   useWhenExists: string[];
   nReplPortFile: string[];
   startFunction?: () => Thenable<boolean | void>;
@@ -271,6 +283,23 @@ const gradleDependencies = () => {
   };
 };
 
+const dependenciesToSubstitutions = (deps: CustomCommandLineSubstitutions) => {
+  const depKeyToSubKey = {
+    'nrepl/nrepl': 'NREPL-VERSION',
+    'cider/cider-nrepl': 'CIDER-NREPL-VERSION',
+    'cider/piggieback': 'PIGGIEBACK-VERSION',
+    zprint: 'ZPRINT-VERSION',
+  };
+
+  const substitutions: { [key: string]: string } = {};
+
+  Object.keys(deps).forEach((k) => {
+    substitutions[depKeyToSubKey[k]] = deps[k] as string;
+  });
+
+  return substitutions;
+};
+
 const middleware = ['cider.nrepl/cider-middleware'];
 const cljsMiddlewareNames = {
   wrapCljsRepl: 'cider.piggieback/wrap-cljs-repl',
@@ -384,12 +413,19 @@ const projectTypes: { [id: string]: ProjectType } = {
           ? await selectShadowBuilds(connectSequence, foundBuilds)
           : { selectedBuilds: undefined, args: [] };
 
-      return [
-        'shadow-cljs',
-        ...defaultArgs,
-        ...args,
-        ...(selectedBuilds ? ['watch', ...selectedBuilds] : ['server']),
-      ];
+      return {
+        args: [
+          'shadow-cljs',
+          ...defaultArgs,
+          ...args,
+          ...(selectedBuilds ? ['watch', ...selectedBuilds] : ['server']),
+        ],
+        substitutions: {
+          'CLJS-LAUNCH-BUILDS': selectedBuilds,
+          ...dependenciesToSubstitutions(cljsDependencies()[cljsType]),
+          ...serverPrinterDependencies,
+        },
+      };
     },
   },
   'lein-shadow': {
@@ -415,7 +451,14 @@ const projectTypes: { [id: string]: ProjectType } = {
         );
 
       if (selectedBuilds && selectedBuilds.length) {
-        return leinCommandLine(['shadow', 'watch', ...selectedBuilds], cljsType, connectSequence);
+        return {
+          args: leinCommandLine(['shadow', 'watch', ...selectedBuilds], cljsType, connectSequence),
+          substitutions: {
+            'CLJS-LAUNCH-BUILDS': selectedBuilds,
+            ...dependenciesToSubstitutions(cljsDependencies()[cljsType]),
+            ...serverPrinterDependencies,
+          },
+        };
       } else {
         chan.show();
         chan.appendLine('Aborting. No valid shadow-cljs build selected.');
@@ -436,7 +479,8 @@ const projectTypes: { [id: string]: ProjectType } = {
      * Build the command line args for a gradle.
      * Add needed middleware deps to args
      */
-    commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
+    /* eslint-disable @typescript-eslint/require-await */
+    commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
       return gradleCommandLine(['clojureRepl'], cljsType, connectSequence);
     },
   },
@@ -466,7 +510,11 @@ const projectTypes: { [id: string]: ProjectType } = {
     useWhenExists: [],
     nReplPortFile: ['.bb-nrepl-port'],
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
-      return ['--nrepl-server', await getPort()];
+      const port = await getPort();
+      return {
+        args: ['--nrepl-server', port],
+        substitutions: { 'NREPL-PORT': port.toString() },
+      };
     },
   },
   nbb: {
@@ -479,7 +527,11 @@ const projectTypes: { [id: string]: ProjectType } = {
     useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
-      return ['nbb', 'nrepl-server', ':port', await getPort()];
+      const port = await getPort();
+      return {
+        args: ['nbb', 'nrepl-server', ':port', port],
+        substitutions: { 'NREPL-PORT': port.toString() },
+      };
     },
   },
   joyride: {
@@ -541,14 +593,20 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
       if (state.extensionContext.workspaceState.get(alertKey, true)) {
         void vscode.window
           .showInformationMessage(
-            `The aliases [${aliasesWithMain.join(
-              ' '
-            )}] specify :main-opts. Unless the options start an nREPL server, Jack-in will not work with such an alias selected.`,
-            "OK, Don't show again",
-            'OK'
+            `The alias ${aliasesWithMain.join(
+              ', and '
+            )}, specify :main-opts. Only select the alias if it starts an nREPL server, otherwise Jack-in will not work.`,
+            'OK',
+            'Open docs',
+            "Don't show again"
           )
           .then((answer) => {
-            if (answer === "OK, Don't show again") {
+            if (answer === 'Open docs') {
+              void vscode.commands.executeCommand(
+                'vscode.open',
+                vscode.Uri.parse('https://calva.io/connect/#jack-in-and-main-opts')
+              );
+            } else if (answer === "Don't show again") {
               void state.extensionContext.workspaceState.update(alertKey, false);
             }
           });
@@ -598,7 +656,19 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
     );
   }
 
-  return args;
+  return {
+    args,
+    substitutions: {
+      ...dependenciesToSubstitutions({
+        ...cliDependencies(),
+        ...cljsDependencies()[cljsType],
+        ...serverPrinterDependencies,
+      }),
+      'CLI-ALIASES': aliases.join(','),
+      'CLJ-MIDDLEWARE': middleware.join(','),
+      ...(cljsType ? { 'CLJS-MIDDLEWARE': cljsMiddleware[cljsType].join(',') } : {}),
+    },
+  };
 }
 
 async function leinCommandLine(
@@ -606,7 +676,7 @@ async function leinCommandLine(
   cljsType: CljsTypes,
   connectSequence: ReplConnectSequence
 ) {
-  const out: string[] = [];
+  const args: string[] = [];
   const dependencies = {
     ...leinDependencies(),
     ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
@@ -619,7 +689,7 @@ async function leinCommandLine(
     dQ = '"';
   for (let i = 0; i < keys.length; i++) {
     const dep = keys[i];
-    out.push(
+    args.push(
       'update-in',
       ':dependencies',
       'conj',
@@ -630,7 +700,7 @@ async function leinCommandLine(
   keys = Object.keys(leinPluginDependencies());
   for (let i = 0; i < keys.length; i++) {
     const dep = keys[i];
-    out.push(
+    args.push(
       'update-in',
       ':plugins',
       'conj',
@@ -640,7 +710,7 @@ async function leinCommandLine(
   }
   const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
   for (const mw of useMiddleware) {
-    out.push(
+    args.push(
       'update-in',
       `${q + '[:repl-options,:nrepl-middleware]' + q}`,
       'conj',
@@ -649,12 +719,26 @@ async function leinCommandLine(
     );
   }
   if (profiles.length) {
-    out.push('with-profile', profiles.map((x) => `+${unKeywordize(x)}`).join(','));
+    args.push('with-profile', profiles.map((x) => `+${unKeywordize(x)}`).join(','));
   }
 
-  out.push(...command);
+  args.push(...command);
 
-  return out;
+  return {
+    args,
+    substitutions: {
+      ...dependenciesToSubstitutions({
+        ...leinDependencies(),
+        ...leinPluginDependencies(),
+        ...cljsDependencies()[cljsType],
+        ...serverPrinterDependencies,
+      }),
+      'LEIN-PROFILES': profiles.map((x) => unKeywordize(x)).join(','),
+      ...(alias ? { 'LEIN-LAUNCH-ALIAS': alias } : {}),
+      'CLJ-MIDDLEWARE': middleware.join(','),
+      ...(cljsType ? { 'CLJS-MIDDLEWARE': cljsMiddleware[cljsType].join(',') } : {}),
+    },
+  };
 }
 
 function gradleCommandLine(
@@ -662,7 +746,7 @@ function gradleCommandLine(
   cljsType: CljsTypes,
   connectSequence: ReplConnectSequence
 ) {
-  const out: string[] = [];
+  const args: string[] = [];
   const dependencies = {
     ...gradleDependencies(),
     ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
@@ -675,14 +759,25 @@ function gradleCommandLine(
   const depsValue = keys.map((dep) => `${dep}:${dependencies[dep]}`).join(',');
   const depsProp = `${q}-Pdev.clojurephant.jack-in.nrepl=${depsValue}${q}`;
 
-  out.push(depsProp, ...command);
+  args.push(depsProp, ...command);
 
   const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
   for (const mw of useMiddleware) {
-    out.push(`${q}--middleware=${mw}${q}`);
+    args.push(`${q}--middleware=${mw}${q}`);
   }
 
-  return out;
+  return {
+    args,
+    substitutions: {
+      ...dependenciesToSubstitutions({
+        ...gradleDependencies(),
+        ...cljsDependencies()[cljsType],
+        ...serverPrinterDependencies,
+      }),
+      'CLJ-MIDDLEWARE': middleware.join(','),
+      ...(cljsType ? { 'CLJS-MIDDLEWARE': cljsMiddleware[cljsType].join(',') } : {}),
+    },
+  };
 }
 
 /** Given the name of a project in project types, find that project. */
