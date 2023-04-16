@@ -56,6 +56,7 @@ interface MenuSelections {
 interface ReplConnectSequence {
   name: string;
   projectType: ProjectTypes;
+  customJackInCommandLine?: string;
   autoSelectForConnect?: boolean;
   autoSelectForJackIn?: boolean;
   projectRootPath?: string[];

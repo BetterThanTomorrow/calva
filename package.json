@@ -551,11 +551,11 @@
               "properties": {
                 "name": {
                   "type": "string",
-                  "description": "This will show up in the Jack-in quick-pick menu when you start Jack-in if you have more than one sequence configured."
+                  "markdownDescription": "This will show up in the Jack-in quick-pick menu when you start Jack-in if you have more than one sequence configured."
                 },
                 "projectType": {
                   "type": "string",
-                  "description": "Select one of the project types supported by Calva.",
+                  "markdownDescription": "Select one of the project types supported by Calva.",
                   "enum": [
                     "Leiningen",
                     "deps.edn",
@@ -582,6 +582,13 @@
                 "nReplPortFile": {
                   "type": "array",
                   "description": "An array of path segments for the relative path from the project root to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be [\".shadow-cljs\", \"nrepl.port\"]",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "customJackInCommandLine": {
+                  "type": "string",
+                  "markdownDescription": "A custom command line, completely up to you.",
                   "items": {
                     "type": "string"
                   }
