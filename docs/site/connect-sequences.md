@@ -25,6 +25,7 @@ A connect sequence configures the following:
 * `projectRootPath`: An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with `autoSelectForJackIn`/`autoSelectForConnect` to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder.
 * `nReplPortFile`: An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be `[".shadow-cljs", "nrepl.port"]`.
 * `afterCLJReplJackInCode`: Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.
+* `customJackInCommandLine`: A string with a command line that should be used to launch the REPL. See [Custom Command Line](#custom-command-line), below.
 * `cljsType`: This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", "none", or a dictionary configuring a custom type. If set to "none", Calva will skip connecting a ClojureScript repl. A custom type has the following fields:
     * `dependsOn`: (required) Calva will use this to determine which dependencies it will add when starting the project (Jacking in). This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", or ”User provided”. If it is "User provided", then you need to provide the dependencies in the project or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed.
     * `isStarted`: Boolean. For CLJS REPLs that Calva does not need to start, set this to true. (If you base your custom cljs repl on a shadow-cljs workflow, for instance.)
@@ -51,6 +52,83 @@ The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/
 
 !!! Note "Path segments"
     `projectRootPath` and `nReplPortFile` both take an array of path segments. This is to make the paths work cross-platform. If you can't be bothered splitting up the path in segments, put the whole path in the first segment, though please note that if you use Windows path separators, these will not work for users with Linux or macOS.
+
+## Custom Command Line
+
+Custom command lines are there to bridge the gap to those situations where standard Jack-in command lines don't reach. Like:
+
+1. You want to provide command line options to a supported tool, which Jack-in does not provide
+2. Your project has some script through which it is started
+3. The REPL is provided by some tool that Calva does not know of
+4. Any other reason...
+
+A custom command line is executed from same directory as the REPL project root (See `projectRootPath`, above), and can be as simple as `my-repl-jack-in-command`. You  can use a relative or absolute path to your command line.
+
+### Custom Command Line Substitutions/Placeholders
+
+You can use these placeholders in your command line, and Calva will substitute them before executing the command:
+
+nREPL dependency versions:
+
+* `JACK-IN-NREPL-VERSION`
+* `JACK-IN-CIDER-NREPL-VERSION`
+* `JACK-IN-CIDER-PIGGIEBACK-VERSION`
+
+Paths:
+
+* `JACK-IN-PROJECT-ROOT-PATH`: (See `projectRootPath`, above)
+* `JACK-IN-NREPL-PORT-FILE`: The path of the nREPL port file (see `nReplPortFile` above)
+
+Depending on the project type Calva will also look for these placeholders:
+
+* `JACK-IN-CLJ-MIDDLEWARE`: The nREPL middleware to be used for the Clojure REPL
+* `JACK-IN-CLJS-MIDDLEWARE`: The nREPL middleware to be used for the ClojureScript REPL
+* `JACK-IN-LEIN-PROFILES`: For Leiningen projects, the profiles selected by the user
+* `JACK-IN-LEIN-LAUNCH-ALIAS`: For Leiningen projects, the launch alias selected by the user
+* `JACK-IN-CLI-ALIASES`: For deps.edn projects, the aliases selected by the user
+* `JACK-IN-CLJS-LAUNCH-BUILDS`: For ClojureScript REPLs that configures builds, the builds selected by the user
+
+### Example Custom Jack-in Script
+
+This Babashka script doesn't actually start a REPL, it's provided more for giving you an idea about what it could look like, and as a starting point for your real scripts:
+
+```clojure
+#!/usr/bin/env bb
+
+(require '[clojure.string :as str])
+
+(defn parse-args [args]
+  (loop [args args
+         parsed {}]
+    (if (empty? args)
+      parsed
+      (let [[flag value & rest-args] args]
+        (case flag
+          "--aliases" (recur rest-args (assoc parsed :aliases value))
+          "--cider-nrepl-version" (recur rest-args (assoc parsed :cider-nrepl-version value))
+          (do (println "Unknown parameter:" flag) (System/exit 1)))))))
+
+(defn process-args [args]
+  (let [aliases (str/split (:aliases args) #",")
+        cider-nrepl-version (:cider-nrepl-version args)]
+    (println "Aliases:")
+    (doseq [alias aliases]
+      (println alias))
+    (println "CIDER nREPL version:" cider-nrepl-version)))
+
+(def parsed-args (parse-args *command-line-args*))
+
+(when (= *file* (System/getProperty "babashka.file"))
+  (process-args parsed-args))
+```
+
+It could be configured for use in a custom connect sequence, like this:
+
+```json
+    "customJackInCommandLine": "../../custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION",
+```
+
+Note how in this case the REPL is started two directories ”down” from the workspace root where the script resides.
 
 ## Example Sequences
 
