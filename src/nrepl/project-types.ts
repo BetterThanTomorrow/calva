@@ -761,7 +761,18 @@ function gradleCommandLine(
     args.push(`${q}--middleware=${mw}${q}`);
   }
 
-  return { args, substitutions: {} };
+  return {
+    args,
+    substitutions: {
+      ...dependenciesToSubstitutions({
+        ...gradleDependencies(),
+        ...cljsDependencies()[cljsType],
+        ...serverPrinterDependencies,
+      }),
+      'CLJ-MIDDLEWARE': middleware.join(','),
+      ...(cljsType ? { 'CLJS-MIDDLEWARE': cljsMiddleware[cljsType].join(',') } : {}),
+    },
+  };
 }
 
 /** Given the name of a project in project types, find that project. */
