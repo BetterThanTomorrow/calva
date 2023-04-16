@@ -178,7 +178,7 @@ function substituteCustomCommandLinePlaceholders(
   let substituted = commandLineTemplate;
 
   for (const k in substitutions) {
-    const placeholder = `<${k}>`;
+    const placeholder = `JACK-IN-${k}`;
     const value: string = Array.isArray(substitutions[k])
       ? (substitutions[k] as string[]).join(',')
       : (substitutions[k] as string);
