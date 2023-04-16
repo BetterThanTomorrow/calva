@@ -58,14 +58,15 @@
       "name": "custom command line shadow",
       "projectType": "shadow-cljs",
       "afterCLJReplJackInCode": "(println \"Hello custom command line\")",
-      "customJackInCommandLine": "echo PROJECT-ROOT-PATH: <PROJECT-ROOT-PATH>, NREPL-PORT-FILE: <NREPL-PORT-FILE>; /Users/pez/Projects/calva/test-data/custom-jack-in.bb --aliases <CLJS-LAUNCH-BUILDS> --cider-nrepl-version <CIDER-NREPL-VERSION>",
+      "customJackInCommandLine": "echo PROJECT-ROOT-PATH: JACK-IN-PROJECT-ROOT-PATH, NREPL-PORT-FILE: JACK-IN-NREPL-PORT-FILE; /Users/pez/Projects/calva/test-data/custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION",
       "cljsType": "shadow-cljs"
     },
     {
       "name": "custom command line Leiningen",
       "projectType": "Leiningen",
       "afterCLJReplJackInCode": "(println \"Hello custom command line\")",
-      "customJackInCommandLine": "echo PROJECT-ROOT-PATH: '<PROJECT-ROOT-PATH>', NREPL-PORT-FILE: '<NREPL-PORT-FILE>'; NREPL-PORT: '<NREPL-PORT>', LEIN-PROFILES: '<LEIN-PROFILES>', LEIN-LAUNCH-ALIAS '<LEIN-LAUNCH-ALIAS>', CLJ-MIDDLEWARE: '<CLJ-MIDDLEWARE>', CLJS-MIDDLEWARE: '<CLJS-MIDDLEWARE>' /Users/pez/Projects/calva/test-data/custom-jack-in.bb --aliases <CLJS-LAUNCH-BUILDS> --cider-nrepl-version <CIDER-NREPL-VERSION>",
+      "nReplPortFile": ["foo", "bar", ".nrepl-port"],
+      "customJackInCommandLine": "echo PROJECT-ROOT-PATH: 'JACK-IN-PROJECT-ROOT-PATH', NREPL-PORT-FILE: 'JACK-IN-NREPL-PORT-FILE', NREPL-PORT: 'JACK-IN-NREPL-PORT', LEIN-PROFILES: 'JACK-IN-LEIN-PROFILES', LEIN-LAUNCH-ALIAS 'JACK-IN-LEIN-LAUNCH-ALIAS', CLJ-MIDDLEWARE: 'JACK-IN-CLJ-MIDDLEWARE', CLJS-MIDDLEWARE: 'JACK-IN-CLJS-MIDDLEWARE' ; ../../custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION",
       "cljsType": "shadow-cljs"
     }
   ]
