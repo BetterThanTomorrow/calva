@@ -586,6 +586,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#jack-in-and-main-opts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jack-in and :main-opts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#command-not-found-errors-when-jacking-in" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2449,6 +2460,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#jack-in-and-main-opts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jack-in and :main-opts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#command-not-found-errors-when-jacking-in" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2640,6 +2662,10 @@
 <div class="highlight"><pre><span></span><code><span class="w">  </span><span class="ss">:repl-options</span><span class="w"> </span><span class="p">{</span><span class="ss">:nrepl-middleware</span><span class="w"> </span><span class="p">[</span><span class="nv">shadow.cljs.devtools.server.nrepl/middleware</span><span class="p">]}</span>
 </code></pre></div>
 <h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="jack-in-and-main-opts">Jack-in and <code>:main-opts</code></h3>
+<p>When Calva starts the project REPL and connects to it (a.k.a. Jack-in), this is done by starting an nREPL server. For deps.edn projects this by default means that Calva will add <code>-m ...</code> with options that starts the server. </p>
+<p><em>However</em>: If you choose an alias at Jack-in that specifies <code>:main-opts</code>, it will make the Clojure CLI to add main opts and Calva will then not override these by adding <code>-m ...</code> to the command line. This means that an alias that specify <code>:main-opts</code> must result in an nREPL server being started, or else Calva won't have a server to connect to. Calva won't further analyze this, but will just warn you at Jack-in.</p>
+<p>If you don't know if an alias starts an nREPL server or not, by all means, try it, if you have reasons for using that alias. You will notice if Jack-in works or not. If it doesn't work, you will need to run without that alias, or fix what happens when that alias is used so that an nREPL server is started. See https://nrepl.org/nrepl/usage/server.html about ways to do this.</p>
 <h3 id="command-not-found-errors-when-jacking-in">Command Not Found Errors When Jacking In</h3>
 <p>If you get <code>command not found</code> error when Calva tries to start your project, and you know you have the command installed, it's probably because VS Code starts from an environment where the command is not on the <code>$PATH</code>. It can look like so:</p>
 <div class="highlight"><pre><span></span><code>lein<span class="w"> </span>update-in<span class="w"> </span>:dependencies<span class="w"> </span>conj<span class="w"> </span><span class="s1">&#39;[nrepl,&quot;0.8.3&quot;]&#39;</span><span class="w"> </span>--<span class="w"> </span>update-in<span class="w"> </span>:plugins<span class="w"> </span>conj<span class="w"> </span><span class="s1">&#39;[cider/cider-nrepl,&quot;0.25.8&quot;]&#39;</span><span class="w"> </span>--<span class="w"> </span>update-in<span class="w"> </span><span class="s1">&#39;[:repl-options,:nrepl-middleware]&#39;</span><span class="w"> </span>conj<span class="w"> </span><span class="s1">&#39;[&quot;cider.nrepl/cider-middleware&quot;]&#39;</span><span class="w"> </span>--<span class="w"> </span>repl<span class="w"> </span>:headless

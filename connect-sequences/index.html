@@ -915,6 +915,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#custom-command-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Command Line
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Custom Command Line">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-command-line-substitutionsplaceholdersenvironment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Command Line Substitutions/Placeholders/Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-custom-jack-in-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Custom Jack-in Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#example-sequences" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2146,6 +2185,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#custom-command-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Command Line
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Custom Command Line">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-command-line-substitutionsplaceholdersenvironment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Command Line Substitutions/Placeholders/Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-custom-jack-in-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Custom Jack-in Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#example-sequences" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2253,6 +2331,7 @@
 <li><code>projectRootPath</code>: An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with <code>autoSelectForJackIn</code>/<code>autoSelectForConnect</code> to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder.</li>
 <li><code>nReplPortFile</code>: An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be <code>[".shadow-cljs", "nrepl.port"]</code>.</li>
 <li><code>afterCLJReplJackInCode</code>: Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.</li>
+<li><code>customJackInCommandLine</code>: A string with a command line that should be used to launch the REPL. See <a href="#custom-command-line">Custom Command Line</a>, below.</li>
 <li><code>cljsType</code>: This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", "none", or a dictionary configuring a custom type. If set to "none", Calva will skip connecting a ClojureScript repl. A custom type has the following fields:<ul>
 <li><code>dependsOn</code>: (required) Calva will use this to determine which dependencies it will add when starting the project (Jacking in). This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", or ”User provided”. If it is "User provided", then you need to provide the dependencies in the project or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed.</li>
 <li><code>isStarted</code>: Boolean. For CLJS REPLs that Calva does not need to start, set this to true. (If you base your custom cljs repl on a shadow-cljs workflow, for instance.)</li>
@@ -2285,6 +2364,74 @@
 <p class="admonition-title">Path segments</p>
 <p><code>projectRootPath</code> and <code>nReplPortFile</code> both take an array of path segments. This is to make the paths work cross-platform. If you can't be bothered splitting up the path in segments, put the whole path in the first segment, though please note that if you use Windows path separators, these will not work for users with Linux or macOS.</p>
 </div>
+<h2 id="custom-command-line">Custom Command Line</h2>
+<p>Custom command lines are there to bridge the gap to those situations where standard Jack-in command lines don't reach. Like:</p>
+<ol>
+<li>You want to provide command line options to a supported tool, which Jack-in does not provide</li>
+<li>Your project has some script through which it is started</li>
+<li>The REPL is provided by some tool that Calva does not know of</li>
+<li>Any other reason...</li>
+</ol>
+<p>A custom command line is executed from same directory as the REPL project root (See <code>projectRootPath</code>, above), and can be as simple as <code>my-repl-jack-in-command</code>. You  can use a relative or absolute path to your command line.</p>
+<h3 id="custom-command-line-substitutionsplaceholdersenvironment-variables">Custom Command Line Substitutions/Placeholders/Environment variables</h3>
+<p>You can use placeholders in your command line, and Calva will substitute them before executing the command. All these placeholders will also be provided to your script via environment variables with the same names:</p>
+<p>nREPL dependency versions:</p>
+<ul>
+<li><code>JACK-IN-NREPL-VERSION</code></li>
+<li><code>JACK-IN-CIDER-NREPL-VERSION</code></li>
+<li><code>JACK-IN-CIDER-PIGGIEBACK-VERSION</code></li>
+</ul>
+<p>Paths:</p>
+<ul>
+<li><code>JACK-IN-PROJECT-ROOT-PATH</code>: (See <code>projectRootPath</code>, above)</li>
+<li><code>JACK-IN-NREPL-PORT-FILE</code>: The path of the nREPL port file (see <code>nReplPortFile</code> above)</li>
+</ul>
+<p>Depending on the project type Calva will also look for these placeholders:</p>
+<ul>
+<li><code>JACK-IN-CLJ-MIDDLEWARE</code>: The nREPL middleware to be used for the Clojure REPL</li>
+<li><code>JACK-IN-CLJS-MIDDLEWARE</code>: The nREPL middleware to be used for the ClojureScript REPL</li>
+<li><code>JACK-IN-LEIN-PROFILES</code>: For Leiningen projects, the profiles selected by the user</li>
+<li><code>JACK-IN-LEIN-LAUNCH-ALIAS</code>: For Leiningen projects, the launch alias selected by the user</li>
+<li><code>JACK-IN-CLI-ALIASES</code>: For deps.edn projects, the aliases selected by the user</li>
+<li><code>JACK-IN-CLJS-LAUNCH-BUILDS</code>: For ClojureScript REPLs that configures builds, the builds selected by the user</li>
+<li><code>JACK-IN-NREPL-PORT</code>: For some project types (currently <code>nbb</code> and <code>Babashka</code>) Calva provided the TCP port they should use.</li>
+</ul>
+<h3 id="example-custom-jack-in-script">Example Custom Jack-in Script</h3>
+<p>This Babashka script doesn't actually start a REPL, it's provided more for giving you an idea about what it could look like, and as a starting point for your real scripts:</p>
+<div class="highlight"><pre><span></span><code><span class="o">#</span><span class="nv">!/usr/bin/env</span><span class="w"> </span><span class="nv">bb</span>
+
+<span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">&#39;</span><span class="p">[</span><span class="nv">clojure.string</span><span class="w"> </span><span class="ss">:as</span><span class="w"> </span><span class="nv">str</span><span class="p">])</span>
+
+<span class="p">(</span><span class="kd">defn </span><span class="nv">parse-args</span><span class="w"> </span><span class="p">[</span><span class="nv">args</span><span class="p">]</span>
+<span class="w">  </span><span class="p">(</span><span class="k">loop </span><span class="p">[</span><span class="nv">args</span><span class="w"> </span><span class="nv">args</span>
+<span class="w">         </span><span class="nv">parsed</span><span class="w"> </span><span class="p">{}]</span>
+<span class="w">    </span><span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">empty?</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span>
+<span class="w">      </span><span class="nv">parsed</span>
+<span class="w">      </span><span class="p">(</span><span class="k">let </span><span class="p">[[</span><span class="nv">flag</span><span class="w"> </span><span class="nv">value</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="nv">rest-args</span><span class="p">]</span><span class="w"> </span><span class="nv">args</span><span class="p">]</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">case</span><span class="w"> </span><span class="nv">flag</span>
+<span class="w">          </span><span class="s">&quot;--aliases&quot;</span><span class="w"> </span><span class="p">(</span><span class="nf">recur</span><span class="w"> </span><span class="nv">rest-args</span><span class="w"> </span><span class="p">(</span><span class="nb">assoc </span><span class="nv">parsed</span><span class="w"> </span><span class="ss">:aliases</span><span class="w"> </span><span class="nv">value</span><span class="p">))</span>
+<span class="w">          </span><span class="s">&quot;--cider-nrepl-version&quot;</span><span class="w"> </span><span class="p">(</span><span class="nf">recur</span><span class="w"> </span><span class="nv">rest-args</span><span class="w"> </span><span class="p">(</span><span class="nb">assoc </span><span class="nv">parsed</span><span class="w"> </span><span class="ss">:cider-nrepl-version</span><span class="w"> </span><span class="nv">value</span><span class="p">))</span>
+<span class="w">          </span><span class="p">(</span><span class="k">do </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Unknown parameter:&quot;</span><span class="w"> </span><span class="nv">flag</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">System/exit</span><span class="w"> </span><span class="mi">1</span><span class="p">)))))))</span>
+
+<span class="p">(</span><span class="kd">defn </span><span class="nv">process-args</span><span class="w"> </span><span class="p">[</span><span class="nv">args</span><span class="p">]</span>
+<span class="w">  </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">aliases</span><span class="w"> </span><span class="p">(</span><span class="nf">str/split</span><span class="w"> </span><span class="p">(</span><span class="ss">:aliases</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span><span class="w"> </span><span class="o">#</span><span class="s">&quot;,&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="nv">cider-nrepl-version</span><span class="w"> </span><span class="p">(</span><span class="ss">:cider-nrepl-version</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span>
+<span class="w">        </span><span class="nv">project-root-path</span><span class="w"> </span><span class="p">(</span><span class="nf">System/getenv</span><span class="w"> </span><span class="s">&quot;JACK-IN-PROJECT-ROOT-PATH&quot;</span><span class="p">)]</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Aliases:&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">doseq </span><span class="p">[</span><span class="nv">alias</span><span class="w"> </span><span class="nv">aliases</span><span class="p">]</span>
+<span class="w">      </span><span class="p">(</span><span class="nb">println </span><span class="nv">alias</span><span class="p">))</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;CIDER nREPL version:&quot;</span><span class="w"> </span><span class="nv">cider-nrepl-version</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;JACK-IN-PROJECT-ROOT-PATH:&quot;</span><span class="w"> </span><span class="nv">project-root-path</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">parsed-args</span><span class="w"> </span><span class="p">(</span><span class="nf">parse-args</span><span class="w"> </span><span class="nv">*command-line-args*</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nb">when </span><span class="p">(</span><span class="nb">= </span><span class="nv">*file*</span><span class="w"> </span><span class="p">(</span><span class="nf">System/getProperty</span><span class="w"> </span><span class="s">&quot;babashka.file&quot;</span><span class="p">))</span>
+<span class="w">  </span><span class="p">(</span><span class="nf">process-args</span><span class="w"> </span><span class="nv">parsed-args</span><span class="p">))</span>
+</code></pre></div>
+<p>The script reads <code>JACK-IN-CLJS-LAUNCH-BUILDS</code> and <code>JACK-IN-CIDER-NREPL-VERSION</code> from the command line, and <code>JACK-IN-PROJECT-ROOT-PATH</code> from the environment. It could be configured for use in a custom connect sequence like this:</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;customJackInCommandLine&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;../../custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION&quot;</span><span class="p">,</span>
+</code></pre></div>
+<p>Note how in this case the REPL is started two directories ”down” from the workspace root where the script resides.</p>
 <h2 id="example-sequences">Example Sequences</h2>
 <p>Whether you just want to speed up your workflow or encode some workflow/mechanics into it, it's often the case that you can create a custom sequence that helps.</p>
 <h3 id="minimal-menus-with-full-stack-shadow-cljs-repls">Minimal menus with full stack shadow-cljs REPLs</h3>
