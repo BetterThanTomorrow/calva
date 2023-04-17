@@ -55,6 +55,17 @@
       }
     },
     {
+      "name": "Connect Sequence deps-main-opts",
+      "projectType": "deps.edn",
+      "projectRootPath": ["projects/deps-main-opts"],
+      "afterCLJReplJackInCode": "(require 'repl)",
+      //"autoSelectForJackIn": true,
+      "cljsType": "none",
+      "menuSelections": {
+        "cljAliases": ["dev", "has-main-opts-starting-nrepl"]
+      }
+    },
+    {
       "name": "custom command line shadow",
       "projectType": "shadow-cljs",
       "afterCLJReplJackInCode": "(println \"Hello custom command line\")",
