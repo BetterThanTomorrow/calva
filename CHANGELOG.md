@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [With `autoSelectForJackIn` is true, Calva drops its `:main-opts` guard](https://github.com/BetterThanTomorrow/calva/issues/2161)
+
 ## [2.0.352] - 2023-04-16
 
 - [Add custom Jack-in command lines to connect sequences](https://github.com/BetterThanTomorrow/calva/issues/2152)
