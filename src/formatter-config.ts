@@ -55,7 +55,9 @@ export async function getConfig(
       lspFormatConfig = await lsp.api.getCljFmtConfig(client);
     }
     if (client.isRunning && !lspFormatConfig) {
-      console.error('Fetching formatting settings from clojure-lsp failed. Check that you are running a version of clojure-lsp that provides "cljfmt-raw" in serverInfo.');
+      console.error(
+        'Fetching formatting settings from clojure-lsp failed. Check that you are running a version of clojure-lsp that provides "cljfmt-raw" in serverInfo.'
+      );
     }
   }
   const cljfmtContent: string | undefined =
