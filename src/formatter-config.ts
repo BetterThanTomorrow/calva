@@ -53,11 +53,11 @@ export async function getConfig(
     const client = clientProvider.getClientForDocumentUri(document.uri);
     if (client && client.isRunning) {
       lspFormatConfig = await lsp.api.getCljFmtConfig(client);
-    }
-    if (client.isRunning && !lspFormatConfig) {
-      console.error(
-        'Fetching formatting settings from clojure-lsp failed. Check that you are running a version of clojure-lsp that provides "cljfmt-raw" in serverInfo.'
-      );
+      if (!lspFormatConfig) {
+        console.error(
+          'Fetching formatting settings from clojure-lsp failed. Check that you are running a version of clojure-lsp that provides "cljfmt-raw" in serverInfo.'
+        );
+      }
     }
   }
   const cljfmtContent: string | undefined =
