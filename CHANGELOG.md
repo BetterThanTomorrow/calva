@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [cljfmt isn't found unless project is started](https://github.com/BetterThanTomorrow/calva/issues/2078)
+- Fix: [”Resolve macro as” menu buttons are unreadable](https://github.com/BetterThanTomorrow/calva/issues/2156)
 
 ## [2.0.353] - 2023-04-17
 

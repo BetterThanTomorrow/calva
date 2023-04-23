@@ -1,3 +1,4 @@
+import * as messages from './messages';
 import { provideSignatureHelp } from '../../providers/signature';
 import { isResultsDoc } from '../../results-output/results-doc';
 import * as vscode_lsp from 'vscode-languageclient/node';
@@ -216,6 +217,8 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
   client.registerFeature(testTree);
 
   // client.registerFeature(new ExecuteCommandDisablement());
+
+  client.onRequest('window/showMessageRequest', messages.handleShowMessageRequest);
 
   void client.start().catch((err) => {
     console.error('Client failed to start', err);
