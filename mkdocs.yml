@@ -7,6 +7,7 @@ theme:
   logo: img/calva-symbol-white.svg
   features:
     - search.share
+    - content.tabs.link
   #  - toc.integrate
 extra_css:
   - stylesheets/extra.css
@@ -21,8 +22,13 @@ repo_url: https://github.com/BetterThanTomorrow/calva
 edit_uri: edit/published/docs/site
 strict: true
 plugins:
- - search:
+  - search:
      separator: '[\s\-\._]'
+  - social:
+      cards: true
+      cards_color:
+        fill: "#db9550"
+        text: "#fafafa"
 markdown_extensions:
   - meta
   - attr_list

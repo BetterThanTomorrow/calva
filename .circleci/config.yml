@@ -400,20 +400,14 @@ jobs:
           name: Update system package lists
           command: sudo apt-get update
       - run:
-          name: Install mkdocs-materials insiders dependencies
+          name: Install mkdocs-materials dependencies
           command: |
             sudo apt-get install libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
-      - run:
-          name: Install mkdocs and mkdocs-material
-          command: |
-            pip install -r requirements.txt
-            # Overwrite with insiders version of mkdocs-material
-            pip install git+https://${GITHUB_MKDOCS_MATERIAL_TOKEN}@github.com/squidfunk/mkdocs-material-insiders.git
       - run:
           name: Deploy docs
           command: |
             git checkout published
-            mkdocs gh-deploy --config-file mkdocs.insiders.yml --message "[skip ci]" --strict --clean
+            mkdocs gh-deploy --config-file mkdocs.yml --message "[skip ci]" --strict --clean
   bump-dev-version:
     docker:
       - image: cimg/node:15.8

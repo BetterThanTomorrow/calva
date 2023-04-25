@@ -79,6 +79,7 @@ output.calva-repl
 
 # MkDocs
 /site/
+.cache/
 
 # Calva dev
 clojure.tmLanguage.json
