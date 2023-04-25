@@ -1,4 +1,4 @@
-[data-md-color-scheme="default"] {
+:root {
     --md-primary-fg-color: rgb(219, 149, 80);
     --md-accent-fg-color: rgb(144, 180, 254);
 }
