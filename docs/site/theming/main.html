@@ -2,9 +2,7 @@
 
 {% block scripts %}
   {{ super() }}
-  {{config.extra.mkdocs_env}}
   {% if config.extra.mkdocs_env == 'production' %}
-    FOO
     <script defer data-domain="calva.io" src="https://plausible.io/js/script.js"></script>
   {% endif %}
 {% endblock %}
