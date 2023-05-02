@@ -391,6 +391,8 @@ jobs:
   deploy-docs:
     docker:
       - image: cimg/python:3.8-node
+    environment:
+      MKDOCS_ENV: production
     steps:
       - add_ssh_keys:
           fingerprints:

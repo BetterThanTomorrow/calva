@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block scripts %}
+  {{ super() }}
+  {% if 'MKDOCS_ENV' in env and env.MKDOCS_ENV == 'production' %}
+    <!-- Add your tag here -->
+    <script defer data-domain="calva.io" src="https://plausible.io/js/script.js"></script>
+  {% endif %}
+{% endblock %}
