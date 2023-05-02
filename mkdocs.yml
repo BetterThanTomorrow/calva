@@ -17,6 +17,7 @@ extra:
   analytics:
     provider: google
     property: UA-69796730-5
+  mkdocs_env: !ENV MKDOCS_ENV
 repo_name: Calva
 repo_url: https://github.com/BetterThanTomorrow/calva
 edit_uri: edit/published/docs/site
