@@ -87,7 +87,7 @@ export default class Analytics {
             'calva-version': this.extensionVersion,
             'vscode-version': vscode.version,
             'os-platform': os.platform(),
-            'os-release': os.release(),
+            'os-release': `${os.platform()}/${os.release()}`,
             'os-type': os.type,
           },
         },
