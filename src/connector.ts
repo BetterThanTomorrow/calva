@@ -66,8 +66,8 @@ async function readRuntimeConfigs() {
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
   state.analytics().logEvent('REPL', 'Connecting').send();
   void state.analytics().logPlausiblePageview('/connecting', {
-    projectType: connectSequence.projectType,
-    cljsType: connectSequence.cljsType,
+    projectType: connectSequence?.projectType,
+    cljsType: connectSequence?.cljsType,
   });
 
   if (nClient) {
@@ -112,8 +112,8 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     util.setConnectedState(true);
     state.analytics().logEvent('REPL', 'ConnectedCLJ').send();
     void state.analytics().logPlausiblePageview('/connected-clj', {
-      projectType: connectSequence.projectType,
-      cljsType: connectSequence.cljsType,
+      projectType: connectSequence?.projectType,
+      cljsType: connectSequence?.cljsType,
     });
 
     setStateValue('clj', cljSession);
@@ -173,8 +173,8 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         void state
           .analytics()
           .logPlausiblePageview(cljsSession ? '/connected-cljs' : 'connecting-cljs-failed', {
-            projectType: connectSequence.projectType,
-            cljsType: connectSequence.cljsType,
+            projectType: connectSequence?.projectType,
+            cljsType: connectSequence?.cljsType,
           });
       }
       if (cljsSession) {
@@ -182,8 +182,8 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       }
     } catch (e) {
       void state.analytics().logPlausiblePageview('connecting-cljs-failed', {
-        projectType: connectSequence.projectType,
-        cljsType: connectSequence.cljsType,
+        projectType: connectSequence?.projectType,
+        cljsType: connectSequence?.cljsType,
       });
       outputWindow.appendLine('; Error while connecting cljs REPL: ' + e);
     }
@@ -205,8 +205,8 @@ function cleanUpAfterError(connectSequence: ReplConnectSequence, e: any) {
   outputWindow.appendLine('; Failed connecting.');
   state.analytics().logEvent('REPL', 'FailedConnectingCLJ').send();
   void state.analytics().logPlausiblePageview('/connecting-clj-failed', {
-    projectType: connectSequence.projectType,
-    cljsType: connectSequence.cljsType,
+    projectType: connectSequence?.projectType,
+    cljsType: connectSequence?.cljsType,
   });
   console.error('Failed connecting:', e);
   status.update();
@@ -642,13 +642,13 @@ export async function connect(
   state.analytics().logEvent('REPL', 'ConnectInitiated', cljsTypeName).send();
   void state.analytics().logPlausiblePageview('/connect-initiated', {
     isAutoConnect,
-    projectType: connectSequence.projectType,
-    cljsType: connectSequence.cljsType,
-    autoSelectForConnect: connectSequence.autoSelectForConnect,
-    autoSelectForJackIn: connectSequence.autoSelectForJackIn,
-    hasAfterCLJReplJackInCode: !!connectSequence.afterCLJReplJackInCode,
-    hasCustomJackInCommandLine: !!connectSequence.customJackInCommandLine,
-    hasJackInEnv: !!connectSequence.jackInEnv,
+    projectType: connectSequence?.projectType,
+    cljsType: connectSequence?.cljsType,
+    autoSelectForConnect: connectSequence?.autoSelectForConnect,
+    autoSelectForJackIn: connectSequence?.autoSelectForJackIn,
+    hasAfterCLJReplJackInCode: !!connectSequence?.afterCLJReplJackInCode,
+    hasCustomJackInCommandLine: !!connectSequence?.customJackInCommandLine,
+    hasJackInEnv: !!connectSequence?.jackInEnv,
   });
 
   const portFile = projectTypes.nreplPortFileUri(connectSequence);
@@ -720,13 +720,13 @@ async function standaloneConnect(
       .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
       .send();
     void state.analytics().logPlausiblePageview('/standalone-connect', {
-      projectType: connectSequence.projectType,
-      cljsType: connectSequence.cljsType,
-      autoSelectForConnect: connectSequence.autoSelectForConnect,
-      autoSelectForJackIn: connectSequence.autoSelectForJackIn,
-      hasAfterCLJReplJackInCode: !!connectSequence.afterCLJReplJackInCode,
-      hasCustomJackInCommandLine: !!connectSequence.customJackInCommandLine,
-      hasJackInEnv: !!connectSequence.jackInEnv,
+      projectType: connectSequence?.projectType,
+      cljsType: connectSequence?.cljsType,
+      autoSelectForConnect: connectSequence?.autoSelectForConnect,
+      autoSelectForJackIn: connectSequence?.autoSelectForJackIn,
+      hasAfterCLJReplJackInCode: !!connectSequence?.afterCLJReplJackInCode,
+      hasCustomJackInCommandLine: !!connectSequence?.customJackInCommandLine,
+      hasJackInEnv: !!connectSequence?.jackInEnv,
     });
     return connect(connectSequence, getConfig().autoSelectNReplPortFromPortFile, hostname, port);
   } else {

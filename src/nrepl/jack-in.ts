@@ -145,6 +145,8 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
     console.error('An error occurred while initializing project directory.', e);
     return;
   }
+  void state.analytics().logPlausiblePageview('/jack-in-copy-command-line-initiated', {});
+
   let projectConnectSequence: ReplConnectSequence;
   try {
     projectConnectSequence = await getProjectConnectSequence(false);
@@ -157,6 +159,15 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
       if (options) {
         void vscode.env.clipboard.writeText(createCommandLine(options));
         void vscode.window.showInformationMessage('Jack-in command line copied to the clipboard.');
+        void state.analytics().logPlausiblePageview('/jack-in-copy-command-line-success', {
+          projectType: projectConnectSequence.projectType,
+          cljsType: projectConnectSequence.cljsType,
+          autoSelectForConnect: projectConnectSequence.autoSelectForConnect,
+          autoSelectForJackIn: projectConnectSequence.autoSelectForJackIn,
+          hasAfterCLJReplJackInCode: !!projectConnectSequence.afterCLJReplJackInCode,
+          hasCustomJackInCommandLine: !!projectConnectSequence.customJackInCommandLine,
+          hasJackInEnv: !!projectConnectSequence.jackInEnv,
+        });
       }
     } catch (e) {
       void vscode.window.showErrorMessage(`Error creating Jack-in command line: ${e}`, 'OK');
@@ -298,15 +309,20 @@ export async function jackIn(
     return;
   }
   state.analytics().logEvent('REPL', 'JackInInitiated').send();
-  void state.analytics().logPlausiblePageview('/jack-in-initiated', {
-    projectType: connectSequence.projectType,
-    cljsType: connectSequence.cljsType,
-    autoSelectForConnect: connectSequence.autoSelectForConnect,
-    autoSelectForJackIn: connectSequence.autoSelectForJackIn,
-    hasAfterCLJReplJackInCode: !!connectSequence.afterCLJReplJackInCode,
-    hasCustomJackInCommandLine: !!connectSequence.customJackInCommandLine,
-    hasJackInEnv: !!connectSequence.jackInEnv,
-  });
+  void state.analytics().logPlausiblePageview(
+    '/jack-in-initiated',
+    connectSequence
+      ? {
+          projectType: connectSequence.projectType,
+          cljsType: connectSequence.cljsType,
+          autoSelectForConnect: connectSequence.autoSelectForConnect,
+          autoSelectForJackIn: connectSequence.autoSelectForJackIn,
+          hasAfterCLJReplJackInCode: !!connectSequence.afterCLJReplJackInCode,
+          hasCustomJackInCommandLine: !!connectSequence.customJackInCommandLine,
+          hasJackInEnv: !!connectSequence.jackInEnv,
+        }
+      : {}
+  );
   await outputWindow.initResultsDoc();
   outputWindow.appendLine('; Jacking in...');
   await outputWindow.openResultsDoc();
@@ -327,6 +343,15 @@ export async function jackIn(
     }
   }
   if (projectConnectSequence) {
+    void state.analytics().logPlausiblePageview('/jack-in-initiated-connect-sequence-selected', {
+      projectType: projectConnectSequence.projectType,
+      cljsType: projectConnectSequence.cljsType,
+      autoSelectForConnect: projectConnectSequence.autoSelectForConnect,
+      autoSelectForJackIn: projectConnectSequence.autoSelectForJackIn,
+      hasAfterCLJReplJackInCode: !!projectConnectSequence.afterCLJReplJackInCode,
+      hasCustomJackInCommandLine: !!projectConnectSequence.customJackInCommandLine,
+      hasJackInEnv: !!projectConnectSequence.jackInEnv,
+    });
     const projectType = projectTypes.getProjectTypeForName(projectConnectSequence.projectType);
     if (projectType.startFunction) {
       void projectType.startFunction();

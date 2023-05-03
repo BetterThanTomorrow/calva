@@ -241,7 +241,7 @@ async function evaluateSelection(document = {}, options) {
     const filePath = doc.fileName;
     const session = replSession.getSession(util.getFileType(doc));
     void state.analytics().logPlausiblePageview('/repl-evaluate-current-form', {
-      replType: session.replType,
+      replType: session?.replType,
       fileExtension: doc ? path.extname(doc.fileName) : 'unknown',
     });
 
@@ -429,7 +429,7 @@ async function loadFile(
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
     state.analytics().logEvent('Evaluation', 'LoadFile').send();
     void state.analytics().logPlausiblePageview('/repl-load-file', {
-      replType: session.replType,
+      replType: session?.replType,
       fileExtension: doc ? path.extname(doc.fileName) : 'unknown',
     });
     const docUri = outputWindow.isResultsDoc(doc)
