@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.354] - 2023-05-03
+
+- Fix: [cljfmt isn't found unless project is started](https://github.com/BetterThanTomorrow/calva/issues/2078)
+- Fix: [”Resolve macro as” menu buttons are unreadable](https://github.com/BetterThanTomorrow/calva/issues/2156)
+- Calva development: Add [Plausible](plausible.io) analytics, intended to replace Google Analytics
+
 ## [2.0.353] - 2023-04-17
 
 - Fix: [With `autoSelectForJackIn` is true, Calva drops its `:main-opts` guard](https://github.com/BetterThanTomorrow/calva/issues/2161)

@@ -51,15 +51,14 @@ export async function getConfig(
   if (configPath === LSP_CONFIG_KEY && document) {
     const clientProvider = lsp.getClientProvider();
     const client = clientProvider.getClientForDocumentUri(document.uri);
-    if (client) {
+    if (client && client.isRunning) {
       lspFormatConfig = await lsp.api.getCljFmtConfig(client);
+      if (!lspFormatConfig) {
+        console.error(
+          'Fetching formatting settings from clojure-lsp failed. Check that you are running a version of clojure-lsp that provides "cljfmt-raw" in serverInfo.'
+        );
+      }
     }
-  }
-  if (configPath === LSP_CONFIG_KEY && !lspFormatConfig) {
-    void vscode.window.showErrorMessage(
-      'Fetching formatting settings from clojure-lsp failed. Check that you are running a version of clojure-lsp that provides "cljfmt-raw" in serverInfo.',
-      'Roger that'
-    );
   }
   const cljfmtContent: string | undefined =
     configPath === LSP_CONFIG_KEY
