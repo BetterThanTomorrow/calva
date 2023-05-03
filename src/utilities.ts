@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { https } from 'follow-redirects';
+import axios from 'axios';
 import * as _ from 'lodash';
 import * as state from './state';
 import * as path from 'path';

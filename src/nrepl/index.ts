@@ -331,6 +331,7 @@ export class NReplSession {
   }
 
   stacktrace() {
+    void state.analytics().logPlausiblePageview('/repl-stacktrace');
     // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#stacktrace
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
@@ -350,6 +351,7 @@ export class NReplSession {
   }
 
   async switchNS(ns: any) {
+    void state.analytics().logPlausiblePageview('/repl-switch-ns');
     await this.eval(`(in-ns '${ns})`, this.client.ns).value;
   }
 
@@ -357,6 +359,7 @@ export class NReplSession {
     const CLJS_FORM =
       "(require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]])";
     const CLJ_FORM = '(clojure.core/apply clojure.core/require clojure.main/repl-requires)';
+    void state.analytics().logPlausiblePageview('/repl-require-repl-utilities');
     await this.eval(this.replType === 'clj' ? CLJ_FORM : CLJS_FORM, this.client.ns).value;
   }
 
@@ -370,6 +373,7 @@ export class NReplSession {
           debug.DEBUG_ANALYTICS.EVENT_ACTIONS.EVALUATE_IN_DEBUG_CONTEXT
         )
         .send();
+      void state.analytics().logPlausiblePageview('/debugger-evaluate-in-context');
       return {
         id: debugResponse.id,
         session: this.sessionId,

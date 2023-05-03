@@ -232,7 +232,7 @@ async function evaluateSelection(document = {}, options) {
     const selection = selectionFn(editor);
     const codeSelection: vscode.Selection = selection[0];
     let code = selection[1];
-    [codeSelection, code];
+    [codeSelection, code]; //TODO: What's this doing here?
 
     const doc = util.getDocument(document);
     const ns = namespace.getNamespace(doc);
@@ -240,6 +240,10 @@ async function evaluateSelection(document = {}, options) {
     const column = codeSelection.start.character;
     const filePath = doc.fileName;
     const session = replSession.getSession(util.getFileType(doc));
+    void state.analytics().logPlausiblePageview('/repl-evaluate-current-form', {
+      replType: session?.replType,
+      fileExtension: doc ? path.extname(doc.fileName) : 'unknown',
+    });
 
     if (code.length > 0) {
       if (options.debug) {
@@ -424,6 +428,10 @@ async function loadFile(
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
     state.analytics().logEvent('Evaluation', 'LoadFile').send();
+    void state.analytics().logPlausiblePageview('/repl-load-file', {
+      replType: session?.replType,
+      fileExtension: doc ? path.extname(doc.fileName) : 'unknown',
+    });
     const docUri = outputWindow.isResultsDoc(doc)
       ? await namespace.getUriForNamespace(session, ns)
       : doc.uri;
@@ -572,6 +580,7 @@ function instrumentTopLevelForm() {
     .analytics()
     .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM)
     .send();
+  void state.analytics().logPlausiblePageview('/debugger-instrument-form');
 }
 
 export async function evaluateInOutputWindow(

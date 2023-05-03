@@ -2996,8 +2996,10 @@
     "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch"
   },
   "dependencies": {
+    "@types/axios": "^0.14.0",
     "acorn": "^6.4.1",
     "ansi-to-html": "^0.6.13",
+    "axios": "^1.4.0",
     "escape-html": "^1.0.3",
     "extract-zip": "^2.0.1",
     "find": "0.2.9",
