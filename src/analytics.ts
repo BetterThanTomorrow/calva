@@ -4,6 +4,7 @@ import * as UA from 'universal-analytics';
 import * as uuid from 'uuidv4';
 import * as os from 'os';
 import { isUndefined } from 'lodash';
+import { CljsTypeConfig, CljsTypes } from './nrepl/connectSequence';
 
 // var debug = require('debug');
 // debug.log = console.info.bind(console);
@@ -61,15 +62,22 @@ export default class Analytics {
   logPath(path: string): Analytics {
     if (userAllowsTelemetry()) {
       this.visitor.pageview(path);
-      void this.logPlausiblePageview(path);
     }
     return this;
   }
 
-  async logPlausiblePageview(path: string) {
-    const userAgent = `Code/${vscode.version} (${os.platform()}; ${os.release()}; ${
-      os.type
-    }) Calva/${this.extensionVersion} ${this.userID()}`;
+  async logPlausiblePageview(path: string, props: any = {}) {
+    if (!userAllowsTelemetry()) {
+      return;
+    }
+    const { cljsType: rawCljsType, ...otherProps } = props;
+    const updatedProps = {
+      ...(rawCljsType ? { cljsType: cljsType(rawCljsType) } : {}),
+      ...otherProps,
+    };
+    const userAgent = `Mozilla/5.0 (${os.platform()}; ${os.release()}; ${os.type}) Code/${
+      vscode.version
+    } Calva/${this.extensionVersion} HashMe/${hashUuid(this.userID())}`;
     axios
       .post(
         'https://plausible.io/api/event',
@@ -78,6 +86,7 @@ export default class Analytics {
           name: 'pageview',
           url: `ext://calva/${path.replace(/^\//, '')}`,
           props: {
+            ...updatedProps,
             'calva-version': this.extensionVersion,
             'vscode-version': vscode.version,
             'os-platform': os.platform(),
@@ -123,9 +132,25 @@ export default class Analytics {
 async function getExternalIPAddress() {
   try {
     const response = await axios.get('https://api.ipify.org');
-    const ipAddress = response.data;
-    return ipAddress;
+    return response.data;
   } catch (error) {
     return '127.0.0.1';
   }
+}
+
+// Hashes a UUID to a string of numbers, separated by dots.
+// Used to generate a serial-number-like ID for use in the user agent string.
+// Lossy, but good enough for our purposes.
+function hashUuid(uuid: string): string {
+  const simpleHash = (s: string): number => {
+    const modulo = s.length * 100;
+    return s.split('').reduce((hash, char) => {
+      return (hash * 31 + char.charCodeAt(0)) % modulo;
+    }, 0);
+  };
+  return uuid.split('-').map(simpleHash).join('.');
+}
+
+function cljsType(type: CljsTypes | CljsTypeConfig) {
+  return typeof type === 'string' ? type : type.dependsOn;
 }
