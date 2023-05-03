@@ -95,6 +95,7 @@ async function activate(context: vscode.ExtensionContext) {
 
   setStateValue('analytics', new Analytics(context));
   state.analytics().logPath('/start').logEvent('LifeCycle', 'Started').send();
+  void state.analytics().logPlausiblePageview('/start');
 
   model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
 
@@ -470,6 +471,7 @@ async function activate(context: vscode.ExtensionContext) {
   }
 
   state.analytics().logPath('/activated').logEvent('LifeCycle', 'Activated').send();
+  void state.analytics().logPlausiblePageview('/activated');
 
   if (!cwExtension) {
     try {

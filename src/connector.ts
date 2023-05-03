@@ -65,6 +65,10 @@ async function readRuntimeConfigs() {
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
   state.analytics().logEvent('REPL', 'Connecting').send();
+  void state.analytics().logPlausiblePageview('/connecting', {
+    projectType: connectSequence.projectType,
+    cljsType: connectSequence.cljsType,
+  });
 
   if (nClient) {
     nClient['silent'] = true;
@@ -89,7 +93,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         }
         // TODO: Figure out why the program bails out after here.
         // For now, we just clean up the connection state (even if we fail to return)
-        return cleanUpAfterError(e);
+        return cleanUpAfterError(connectSequence, e);
       },
     });
     nClient.addOnCloseHandler((c) => {
@@ -107,6 +111,11 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     util.setConnectingState(false);
     util.setConnectedState(true);
     state.analytics().logEvent('REPL', 'ConnectedCLJ').send();
+    void state.analytics().logPlausiblePageview('/connected-clj', {
+      projectType: connectSequence.projectType,
+      cljsType: connectSequence.cljsType,
+    });
+
     setStateValue('clj', cljSession);
     setStateValue('cljc', cljSession);
     status.update();
@@ -161,16 +170,26 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
             isBuiltinType ? (connectSequence.cljsType as string) : 'Custom'
           )
           .send();
+        void state
+          .analytics()
+          .logPlausiblePageview(cljsSession ? '/connected-cljs' : 'connecting-cljs-failed', {
+            projectType: connectSequence.projectType,
+            cljsType: connectSequence.cljsType,
+          });
       }
       if (cljsSession) {
         setUpCljsRepl(cljsSession, cljsBuild);
       }
     } catch (e) {
+      void state.analytics().logPlausiblePageview('connecting-cljs-failed', {
+        projectType: connectSequence.projectType,
+        cljsType: connectSequence.cljsType,
+      });
       outputWindow.appendLine('; Error while connecting cljs REPL: ' + e);
     }
     status.update();
   } catch (e) {
-    return cleanUpAfterError(e);
+    return cleanUpAfterError(connectSequence, e);
   }
 
   void liveShareSupport.didConnectRepl(port);
@@ -180,11 +199,15 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
   return true;
 }
 
-function cleanUpAfterError(e: any) {
+function cleanUpAfterError(connectSequence: ReplConnectSequence, e: any) {
   util.setConnectingState(false);
   util.setConnectedState(false);
   outputWindow.appendLine('; Failed connecting.');
   state.analytics().logEvent('REPL', 'FailedConnectingCLJ').send();
+  void state.analytics().logPlausiblePageview('/connecting-clj-failed', {
+    projectType: connectSequence.projectType,
+    cljsType: connectSequence.cljsType,
+  });
   console.error('Failed connecting:', e);
   status.update();
   return false;
@@ -617,6 +640,16 @@ export async function connect(
 
   state.analytics().logEvent('REPL', 'ConnectInitiated', isAutoConnect ? 'auto' : 'manual');
   state.analytics().logEvent('REPL', 'ConnectInitiated', cljsTypeName).send();
+  void state.analytics().logPlausiblePageview('/connect-initiated', {
+    isAutoConnect,
+    projectType: connectSequence.projectType,
+    cljsType: connectSequence.cljsType,
+    autoSelectForConnect: connectSequence.autoSelectForConnect,
+    autoSelectForJackIn: connectSequence.autoSelectForJackIn,
+    hasAfterCLJReplJackInCode: !!connectSequence.afterCLJReplJackInCode,
+    hasCustomJackInCommandLine: !!connectSequence.customJackInCommandLine,
+    hasJackInEnv: !!connectSequence.jackInEnv,
+  });
 
   const portFile = projectTypes.nreplPortFileUri(connectSequence);
 
@@ -686,6 +719,15 @@ async function standaloneConnect(
       .analytics()
       .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
       .send();
+    void state.analytics().logPlausiblePageview('/standalone-connect', {
+      projectType: connectSequence.projectType,
+      cljsType: connectSequence.cljsType,
+      autoSelectForConnect: connectSequence.autoSelectForConnect,
+      autoSelectForJackIn: connectSequence.autoSelectForJackIn,
+      hasAfterCLJReplJackInCode: !!connectSequence.afterCLJReplJackInCode,
+      hasCustomJackInCommandLine: !!connectSequence.customJackInCommandLine,
+      hasJackInEnv: !!connectSequence.jackInEnv,
+    });
     return connect(connectSequence, getConfig().autoSelectNReplPortFromPortFile, hostname, port);
   } else {
     outputWindow.appendLine('; Aborting connect, error determining connect sequence.');
@@ -814,7 +856,9 @@ export default {
     const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName'),
       cljTypeName: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
     state.analytics().logEvent('REPL', 'switchCljsBuild', cljsTypeName).send();
-
+    void state.analytics().logPlausiblePageview('/switch-cljs-build', {
+      cljsType: cljsTypeName,
+    });
     const [session, build] = await makeCljsSessionClone(
       cljSession,
       translatedReplType,
@@ -822,6 +866,10 @@ export default {
     );
     if (session) {
       setUpCljsRepl(session, build);
+    } else {
+      void state.analytics().logPlausiblePageview('/switch-cljs-build-failed', {
+        cljsType: cljsTypeName,
+      });
     }
     status.update();
   },

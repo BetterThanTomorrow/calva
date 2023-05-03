@@ -298,6 +298,15 @@ export async function jackIn(
     return;
   }
   state.analytics().logEvent('REPL', 'JackInInitiated').send();
+  void state.analytics().logPlausiblePageview('/jack-in-initiated', {
+    projectType: connectSequence.projectType,
+    cljsType: connectSequence.cljsType,
+    autoSelectForConnect: connectSequence.autoSelectForConnect,
+    autoSelectForJackIn: connectSequence.autoSelectForJackIn,
+    hasAfterCLJReplJackInCode: !!connectSequence.afterCLJReplJackInCode,
+    hasCustomJackInCommandLine: !!connectSequence.customJackInCommandLine,
+    hasJackInEnv: !!connectSequence.jackInEnv,
+  });
   await outputWindow.initResultsDoc();
   outputWindow.appendLine('; Jacking in...');
   await outputWindow.openResultsDoc();
