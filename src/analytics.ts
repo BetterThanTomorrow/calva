@@ -6,9 +6,6 @@ import * as os from 'os';
 import { isUndefined } from 'lodash';
 import { CljsTypeConfig, CljsTypes } from './nrepl/connectSequence';
 
-// var debug = require('debug');
-// debug.log = console.info.bind(console);
-
 function userAllowsTelemetry(): boolean {
   const config = vscode.workspace.getConfiguration('telemetry');
   return config.get<boolean>('enableTelemetry', false);
@@ -102,9 +99,6 @@ export default class Analytics {
           },
         }
       )
-      .then(function (response) {
-        console.log(response);
-      })
       .catch(function (error) {
         console.log(error);
       });
