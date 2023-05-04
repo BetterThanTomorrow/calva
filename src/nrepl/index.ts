@@ -354,9 +354,12 @@ export class NReplSession {
   }
 
   async requireREPLUtilities() {
-    const CLJS_FORM =
-      "(require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]])";
-    const CLJ_FORM = '(clojure.core/apply clojure.core/require clojure.main/repl-requires)';
+    const CLJS_FORM = `(try 
+                         (require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]])
+                         (catch :default e
+                           (js/console.warn "Failed to require cljs.repl utilities:" (.-message e))))`;
+    const CLJ_FORM = `(when-let [requires (resolve 'clojure.main/repl-requires)]
+                        (clojure.core/apply clojure.core/require @requires))`;
     await this.eval(this.replType === 'clj' ? CLJ_FORM : CLJS_FORM, this.client.ns).value;
   }
 
