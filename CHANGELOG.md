@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.355] - 2023-05-04
+
 - Fix: [REPL connect fails if requiring clojure.main/repl-requires fails](https://github.com/BetterThanTomorrow/calva/issues/2178)
 - Calva development: Only log app start with plausible.io
 
