@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Calva development: Only log app start with plausible.io
+
 ## [2.0.354] - 2023-05-03
 
 - Fix: [cljfmt isn't found unless project is started](https://github.com/BetterThanTomorrow/calva/issues/2078)
