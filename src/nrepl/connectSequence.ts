@@ -449,9 +449,6 @@ async function askForConnectSequence(
 
   if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
     state.analytics().logEvent('REPL', logLabel, 'NoProjectTypePicked').send();
-    void state.analytics().logPlausiblePageview('/connecting-no-sequence-picked', {
-      connectType,
-    });
     return;
   }
   const sequence = sequences.find((seq) => seq.name === projectConnectSequenceName);

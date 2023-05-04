@@ -107,7 +107,6 @@ class CalvaDebugSession extends LoggingDebugSession {
       .analytics()
       .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.ATTACH)
       .send();
-    void state.analytics().logPlausiblePageview('/debugger-attach');
   }
 
   protected continueRequest(
@@ -131,7 +130,6 @@ class CalvaDebugSession extends LoggingDebugSession {
       .analytics()
       .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.CONTINUE)
       .send();
-    void state.analytics().logPlausiblePageview('/debugger-continue');
   }
 
   protected restartRequest(
@@ -164,7 +162,6 @@ class CalvaDebugSession extends LoggingDebugSession {
       .analytics()
       .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.STEP_OVER)
       .send();
-    void state.analytics().logPlausiblePageview('/debugger-step-over');
   }
 
   protected stepInRequest(
@@ -188,7 +185,6 @@ class CalvaDebugSession extends LoggingDebugSession {
       .analytics()
       .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.STEP_IN)
       .send();
-    void state.analytics().logPlausiblePageview('/debugger-step-in');
   }
 
   protected stepOutRequest(
@@ -212,7 +208,6 @@ class CalvaDebugSession extends LoggingDebugSession {
       .analytics()
       .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.STEP_OUT)
       .send();
-    void state.analytics().logPlausiblePageview('/debugger-step-out');
   }
 
   protected threadsRequest(
@@ -456,7 +451,6 @@ debug.onDidStartDebugSession((session) => {
   void session.customRequest(REQUESTS.SEND_STOPPED_EVENT, {
     reason: 'breakpoint',
   });
-  void state.analytics().logPlausiblePageview('/debugger-session-started');
 });
 
 function convertOneBasedToZeroBased(n: number): number {
