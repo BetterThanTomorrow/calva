@@ -69,6 +69,7 @@ async function evaluateCodeUpdatingUI(
   options,
   selection?: vscode.Selection
 ): Promise<string | null> {
+  void state.analytics().storeFact('evaluated-form');
   const pprintOptions = options.pprintOptions || getConfig().prettyPrintingOptions;
   // passed options overwrite config options
   const evaluationSendCodeToOutputWindow =
@@ -240,10 +241,6 @@ async function evaluateSelection(document = {}, options) {
     const column = codeSelection.start.character;
     const filePath = doc.fileName;
     const session = replSession.getSession(util.getFileType(doc));
-    void state.analytics().logPlausiblePageview('/repl-evaluate-current-form', {
-      replType: session?.replType,
-      fileExtension: doc ? path.extname(doc.fileName) : 'unknown',
-    });
 
     if (code.length > 0) {
       if (options.debug) {
@@ -428,10 +425,6 @@ async function loadFile(
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
     state.analytics().logEvent('Evaluation', 'LoadFile').send();
-    void state.analytics().logPlausiblePageview('/repl-load-file', {
-      replType: session?.replType,
-      fileExtension: doc ? path.extname(doc.fileName) : 'unknown',
-    });
     const docUri = outputWindow.isResultsDoc(doc)
       ? await namespace.getUriForNamespace(session, ns)
       : doc.uri;
@@ -580,7 +573,6 @@ function instrumentTopLevelForm() {
     .analytics()
     .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM)
     .send();
-  void state.analytics().logPlausiblePageview('/debugger-instrument-form');
 }
 
 export async function evaluateInOutputWindow(

@@ -471,7 +471,6 @@ async function activate(context: vscode.ExtensionContext) {
   }
 
   state.analytics().logPath('/activated').logEvent('LifeCycle', 'Activated').send();
-  void state.analytics().logPlausiblePageview('/activated');
 
   if (!cwExtension) {
     try {

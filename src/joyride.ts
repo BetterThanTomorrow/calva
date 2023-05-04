@@ -55,6 +55,7 @@ export async function prepareForJackingOrConnect() {
 }
 
 export async function joyrideJackIn(projectDir: string) {
+  void state.analytics().storeFact('connect-initiated', 'joyride-jack-in');
   const joyrideExtension = getJoyrideExtension();
   if (joyrideExtension && isJoyrideExtensionCompliant(joyrideExtension)) {
     joyrideExtension.exports

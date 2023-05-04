@@ -83,7 +83,6 @@ export async function downloadDrams(
   configPath: string,
   filePaths: string[]
 ) {
-  void state.analytics().logPlausiblePageview('/drams-download');
   await Promise.all(
     filePaths.map(async (filePath) => {
       await downloadDram(storageUri, configPath, filePath)
@@ -149,11 +148,6 @@ export async function startStandaloneRepl(
   dramTemplate: DramTemplate,
   areBundled: boolean
 ) {
-  void state.analytics().logPlausiblePageview('/repl-start-standalone-repl', {
-    template:
-      typeof dramTemplate.config == 'string' ? dramTemplate.config : dramTemplate.config.name,
-  });
-
   const config =
     typeof dramTemplate.config === 'string'
       ? await fetchConfig(dramTemplate.config)
@@ -275,15 +269,6 @@ export function startOrConnectRepl() {
   const sortedCommands = utilities.sortByPresetOrder(Object.keys(commands), PREFERRED_ORDER);
   void vscode.window.showQuickPick(sortedCommands).then((v) => {
     if (commands[v]) {
-      void state.analytics().logPlausiblePageview(`/repl-menu/${commands[v]}`, {
-        connectState: utilities.getConnectedState()
-          ? 'connected'
-          : utilities.getConnectingState()
-          ? 'connecting'
-          : utilities.getLaunchingState()
-          ? 'launching'
-          : 'disconnected',
-      });
       void vscode.commands.executeCommand(commands[v]);
     }
   });

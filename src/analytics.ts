@@ -11,6 +11,13 @@ function userAllowsTelemetry(): boolean {
   return config.get<boolean>('enableTelemetry', false);
 }
 
+const FACT_KEY = 'tracked-facts';
+type TRACKED_FACT =
+  | 'connected-clj-repl'
+  | 'connected-cljs-repl'
+  | 'connect-initiated'
+  | 'evaluated-form';
+
 export default class Analytics {
   private visitor: UA.Visitor;
   private extension: vscode.Extension<any>;
@@ -63,15 +70,23 @@ export default class Analytics {
     return this;
   }
 
-  async logPlausiblePageview(path: string, props: any = {}) {
+  // Facts stored for logging on next startup
+  async storeFact(fact: TRACKED_FACT, info?: string) {
+    if (userAllowsTelemetry()) {
+      const facts = this.store.get(FACT_KEY, {});
+      facts[fact] = info ? info : true;
+      await this.store.update(FACT_KEY, facts);
+    }
+  }
+
+  private clearFacts() {
+    void this.store.update(FACT_KEY, {});
+  }
+
+  async logPlausiblePageview(path: string) {
     if (!userAllowsTelemetry()) {
       return;
     }
-    const { cljsType: rawCljsType, ...otherProps } = props;
-    const updatedProps = {
-      ...(rawCljsType ? { cljsType: cljsType(rawCljsType) } : {}),
-      ...otherProps,
-    };
     const userAgent = `Mozilla/5.0 (${os.platform()}; ${os.release()}; ${
       os.type
     }) Code/1.67 Calva/2.0 (${hashUuid(this.userID())}; Clojure)`;
@@ -83,7 +98,7 @@ export default class Analytics {
           name: 'pageview',
           url: `ext://calva/${path.replace(/^\//, '')}`,
           props: {
-            ...updatedProps,
+            ...this.store.get(FACT_KEY, {}),
             'calva-version': this.extensionVersion,
             'vscode-version': vscode.version,
             'os-platform': os.platform(),
@@ -102,6 +117,7 @@ export default class Analytics {
       .catch(function (error) {
         console.log(error);
       });
+    this.clearFacts();
   }
 
   logEvent(category: string, action: string, label?: string, value?: string): Analytics {
@@ -143,8 +159,4 @@ function hashUuid(uuid: string): string {
     }, 0);
   };
   return uuid.split('-').map(simpleHash).join('.');
-}
-
-function cljsType(type: CljsTypes | CljsTypeConfig) {
-  return typeof type === 'string' ? type : type.dependsOn;
 }
