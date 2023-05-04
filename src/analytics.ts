@@ -72,9 +72,9 @@ export default class Analytics {
       ...(rawCljsType ? { cljsType: cljsType(rawCljsType) } : {}),
       ...otherProps,
     };
-    const userAgent = `Mozilla/5.0 (${os.platform()}; ${os.release()}; ${os.type}) Code/${
-      vscode.version
-    } Calva/${this.extensionVersion} HashMe/${hashUuid(this.userID())}`;
+    const userAgent = `Mozilla/5.0 (${os.platform()}; ${os.release()}; ${
+      os.type
+    }) Code/1.67 Calva/2.0 (${hashUuid(this.userID())}; Clojure)`;
     axios
       .post(
         'https://plausible.io/api/event',
