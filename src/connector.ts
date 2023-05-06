@@ -18,7 +18,7 @@ import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
 import * as outputWindow from './results-output/results-doc';
 import { formatAsLineComments } from './results-output/util';
-import { evaluateInOutputWindow } from './evaluate';
+import * as evaluate from './evaluate';
 import * as liveShareSupport from './live-share';
 import * as calvaDebug from './debugger/calva-debug';
 import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
@@ -117,20 +117,29 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     replSession.updateReplSessionType();
 
     outputWindow.setSession(cljSession, nClient.ns);
-    if (getConfig().autoReferReplUtilities !== 'never') {
-      await cljSession.requireREPLUtilities();
+
+    if (getConfig().autoEvaluateCode.onConnect.clj) {
+      outputWindow.appendLine(
+        `; Evaluating code from settings: 'calva.autoEvaluateCode.onConnect.clj'`
+      );
+      await evaluate.evaluateInOutputWindow(
+        getConfig().autoEvaluateCode.onConnect.clj,
+        'clj',
+        outputWindow.getNs(),
+        {}
+      );
     }
+    outputWindow.appendPrompt();
 
     if (connectSequence.afterCLJReplJackInCode) {
       outputWindow.appendLine(`; Evaluating 'afterCLJReplJackInCode'`);
-      await evaluateInOutputWindow(
+      await evaluate.evaluateInOutputWindow(
         connectSequence.afterCLJReplJackInCode,
         'clj',
         outputWindow.getNs(),
         {}
       );
     }
-
     outputWindow.appendPrompt();
 
     clojureDocs.init(cljSession);
@@ -165,7 +174,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         void state.analytics().storeFact('connected-cljs-repl');
       }
       if (cljsSession) {
-        setUpCljsRepl(cljsSession, cljsBuild);
+        await setUpCljsRepl(cljsSession, cljsBuild);
       }
     } catch (e) {
       outputWindow.appendLine('; Error while connecting cljs REPL: ' + e);
@@ -192,7 +201,7 @@ function cleanUpAfterError(e: any) {
   return false;
 }
 
-function setUpCljsRepl(session, build) {
+async function setUpCljsRepl(session, build) {
   setStateValue('cljs', session);
   status.update();
   outputWindow.appendLine(
@@ -201,8 +210,17 @@ function setUpCljsRepl(session, build) {
     )}`
   );
   outputWindow.setSession(session, 'cljs.user');
-  if (getConfig().autoReferReplUtilities !== 'never') {
-    session.requireREPLUtilities();
+  if (getConfig().autoEvaluateCode.onConnect.cljs) {
+    outputWindow.appendLine(
+      `; Evaluating code from settings: 'calva.autoEvaluateCode.onConnect.cljs'`
+    );
+    await evaluate.evaluateInOutputWindow(
+      getConfig().autoEvaluateCode.onConnect.cljs,
+      'cljs',
+      outputWindow.getNs(),
+      {}
+    );
+    outputWindow.appendPrompt();
   }
   replSession.updateReplSessionType();
 }
@@ -232,7 +250,7 @@ function getFigwheelBuilds() {
   // do nothing
 }
 
-type checkConnectedFn = (value: string, out: any[], err: any[]) => boolean;
+type checkConnectedFn = (value: string, out: any[], err: any[]) => Promise<boolean>;
 type processOutputFn = (output: string) => void;
 type connectFn = (
   session: NReplSession,
@@ -271,7 +289,7 @@ async function evalConnectCode(
   const valueResult = await result.value.catch((reason) => {
     console.error('Error evaluating connect form: ', reason);
   });
-  if (checkSuccess(valueResult, out, err)) {
+  if (await checkSuccess(valueResult, out, err)) {
     state.analytics().logEvent('REPL', 'ConnectedCLJS', name).send();
     setStateValue('cljs', (cljsSession = newCljsSession));
     return true;
@@ -283,9 +301,9 @@ async function evalConnectCode(
 export interface ReplType {
   name: string;
   start?: connectFn;
-  started?: (valueResult: string, out: string[], err: string[]) => boolean;
+  started?: (valueResult: string, out: string[], err: string[]) => Promise<boolean>;
   connect?: connectFn;
-  connected: (valueResult: string, out: string[], err: string[]) => boolean;
+  connected: (valueResult: string, out: string[], err: string[]) => Promise<boolean>;
 }
 
 let translatedReplType: ReplType;
@@ -437,18 +455,48 @@ function createCLJSReplType(
         [allPrinter]
       );
     },
-    connected: (result, out, err) => {
-      if (cljsType.isConnectedRegExp) {
-        return (
-          [...out, result].find((x) => {
-            return x.search(cljsType.isConnectedRegExp) >= 0;
-          }) != undefined
-        );
-      } else {
-        return true;
-      }
+    connected: (result, out, err): Promise<boolean> => {
+      return handleConnected(result, out, err);
     },
   };
+
+  async function waitForShadowCljsRuntimes() {
+    const cljSession = replSession.getSession('clj');
+    const getRuntimesCode = '(count (shadow.cljs.devtools.api/repl-runtimes :app))';
+    const checkForRuntimes = async () => {
+      const runtimes = await cljSession.eval(getRuntimesCode, 'shadow.user').value;
+      return runtimes && parseInt(runtimes) > 0;
+    };
+    const hasRuntimes = await checkForRuntimes();
+    if (hasRuntimes) {
+      return true;
+    }
+    const waitForRuntimes = async () => {
+      while (!(await checkForRuntimes())) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      return true;
+    };
+    outputWindow.appendLine(
+      '; Please start your ClojureScript app so that Calva can connect to its REPL'
+    );
+    return await waitForRuntimes();
+  }
+
+  async function handleConnected(result, out, err): Promise<boolean> {
+    if (cljsType.isConnectedRegExp) {
+      const isConnectCodeEvaluatedSuccessfully =
+        [...out, result].find((x) => {
+          return x.search(cljsType.isConnectedRegExp) >= 0;
+        }) != undefined;
+      if (!isConnectCodeEvaluatedSuccessfully || !isShadowCljsReplType(cljsType)) {
+        return isConnectCodeEvaluatedSuccessfully;
+      }
+      return await waitForShadowCljsRuntimes();
+    } else {
+      return true;
+    }
+  }
 
   if (cljsType.startCode && shouldRunStartCode) {
     replType.start = async (session, name, checkFn) => {
@@ -518,23 +566,33 @@ function createCLJSReplType(
     };
   }
 
-  replType.started = (result, out, err) => {
-    if (cljsType.isReadyToStartRegExp && !hasStarted) {
-      const started =
-        [...out, ...err].find((x) => {
-          return x.search(cljsType.isReadyToStartRegExp) >= 0;
-        }) != undefined;
-      if (started) {
+  replType.started = (result, out, err): Promise<boolean> => {
+    return new Promise((resolve, reject) => {
+      if (cljsType.isReadyToStartRegExp && !hasStarted) {
+        const started =
+          [...out, ...err].find((x) => {
+            return x.search(cljsType.isReadyToStartRegExp) >= 0;
+          }) != undefined;
+        if (started) {
+          hasStarted = true;
+        }
+        resolve(started);
+      } else {
         hasStarted = true;
+        resolve(true);
       }
-      return started;
-    } else {
-      hasStarted = true;
-      return true;
-    }
+    });
   };
 
   return replType;
+}
+
+function isShadowCljsReplType(cljsType: CljsTypeConfig) {
+  return (
+    (typeof cljsType === 'string' && cljsType === 'shadow-cljs') ||
+    cljsType.name === 'shadow-cljs' ||
+    cljsType.dependsOn === 'shadow-cljs'
+  );
 }
 
 async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: string) {
@@ -821,7 +879,7 @@ export default {
       cljTypeName
     );
     if (session) {
-      setUpCljsRepl(session, build);
+      await setUpCljsRepl(session, build);
     }
     status.update();
   },
