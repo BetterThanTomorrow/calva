@@ -106,9 +106,6 @@ async function evaluateCodeUpdatingUI(
 
     if (outputWindow.getNs() !== ns) {
       await session.switchNS(ns);
-      if (getConfig().autoReferReplUtilities === 'always') {
-        await session.requireREPLUtilities();
-      }
     }
 
     const context: NReplEvaluation = session.eval(code, ns, {
@@ -434,8 +431,17 @@ async function loadFile(
     outputWindow.appendLine(`; Evaluating file: ${fileName}`);
 
     await session.switchNS(ns);
-    if (getConfig().autoReferReplUtilities === 'always') {
-      await session.requireREPLUtilities();
+    if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
+      if (getConfig().autoEvaluateCode.onConnect.cljs) {
+        outputWindow.appendLine(`; Evaluating 'autoEvaluateCode.onFileLoaded.${fileType}'`);
+        await evaluateInOutputWindow(
+          getConfig().autoEvaluateCode.onConnect.cljs,
+          fileType,
+          outputWindow.getNs(),
+          {}
+        );
+        outputWindow.appendPrompt();
+      }
     }
 
     const errorMessages = [];
@@ -588,9 +594,6 @@ export async function evaluateInOutputWindow(
     replSession.updateReplSessionType();
     if (outputWindow.getNs() !== ns) {
       await session.switchNS(ns);
-      if (getConfig().autoReferReplUtilities === 'always') {
-        await session.requireREPLUtilities();
-      }
       outputWindow.setSession(session, ns);
       if (options.evaluationSendCodeToOutputWindow !== false) {
         outputWindow.appendPrompt();
