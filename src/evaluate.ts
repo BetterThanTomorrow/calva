@@ -15,6 +15,7 @@ import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
+import * as customSnippets from './custom-snippets';
 
 function interruptAllEvaluations() {
   if (util.getConnectedState()) {
@@ -432,16 +433,13 @@ async function loadFile(
 
     await session.switchNS(ns);
     if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
-      if (getConfig().autoEvaluateCode.onConnect.cljs) {
-        outputWindow.appendLine(`; Evaluating 'autoEvaluateCode.onFileLoaded.${fileType}'`);
-        await evaluateInOutputWindow(
-          getConfig().autoEvaluateCode.onConnect.cljs,
-          fileType,
-          outputWindow.getNs(),
-          {}
-        );
-        outputWindow.appendPrompt();
-      }
+      outputWindow.appendLine(`; Evaluating 'autoEvaluateCode.onFileLoaded.${fileType}'`);
+      const context = customSnippets.makeContext(vscode.window.activeTextEditor, ns, ns, fileType);
+      await customSnippets.evaluateSnippet(
+        getConfig().autoEvaluateCode.onFileLoaded[fileType],
+        context,
+        {}
+      );
     }
 
     const errorMessages = [];

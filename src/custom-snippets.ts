@@ -138,7 +138,7 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
   return pick !== undefined ? snippetsDict[pick] : { snippet: codeOrKey };
 }
 
-function makeContext(editor: vscode.TextEditor, ns: string, editorNS: string, repl: string) {
+export function makeContext(editor: vscode.TextEditor, ns: string, editorNS: string, repl: string) {
   return {
     currentLine: editor.selection.active.line,
     currentColumn: editor.selection.active.character,
