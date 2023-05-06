@@ -225,8 +225,7 @@ function getConfig() {
     autoSelectNReplPortFromPortFile: configOptions.get<boolean>('autoSelectNReplPortFromPortFile'),
     autoConnectRepl: configOptions.get<boolean>('autoConnectRepl'),
     html2HiccupOptions: configOptions.get<converters.HiccupOptions>('html2HiccupOptions'),
-    autoReferReplUtilities:
-      configOptions.get<nrepl.AutoReferReplUtilities>('autoReferReplUtilities'),
+    autoEvaluateCode: configOptions.get<nrepl.AutoEvaluateCodeConfig>('autoEvaluateCode'),
   };
 }
 
