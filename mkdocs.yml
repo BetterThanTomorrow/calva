@@ -68,9 +68,12 @@ nav:
     - namespace-form-auto-creation.md
     - notebooks.md
     - hiccup.md
+  - Customizing Calva:
+    - customizing.md
+    - customizing-jack-in-and-connect.md
+    - when-clauses.md
   - clojure-lsp.md
   - nrepl_and_cider-nrepl.md
-  - customizing.md
   - Using Calva with ...:
     - wsl.md
     - remote-development.md

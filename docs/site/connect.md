@@ -40,54 +40,7 @@ There are ways to tell Calva the answers to these prompts beforehand, so that Ja
 
 ### Customizing Jack-in
 
-The main mechanism for customizing your Jack-in, including automating menu selections, and custom CLJS REPL types is [Custom Connect Sequences](connect-sequences.md).
-
-There are also these settings:
-
-* `calva.jackInEnv`: An object with environment variables that will be added to the environment of the Jack-in process.
-* `calva.myCljAliases`: An array of `deps.edn` aliases not found in the project file. Use this to tell Calva Jack-in to launch your REPL using your user defined aliases.
-* `calva.myLeinProfiles`: An array of Leiningen profiles not found in `project.clj`. Use this to tell Calva Jack-in to launch your REPL using your user defined profiles.
-* `calva.openBrowserWhenFigwheelStarted`: _For Legacy Figwheel only._ A boolean controlling if Calva should automatically launch your ClojureScript app, once it is compiled by Figwheel. Defaults to `true`.
-* `calva.depsEdnJackInExecutable`: A string which should either be `clojure` or `deps.clj`, or `clojure or deps.clj` (default). It determines which executable Calva Jack-in should use for starting a `deps.edn` project. With this setting at its default, `clojure or deps.clj`, Calva will test if the `clojure` executable works, and use it if it does, otherwise `deps.clj` will be used, which is bundled with Calva.
-
-!!! Note
-    When processing the `calva.jackInEnv` setting you can refer to existing ENV variables with `${env:VARIABLE}`.
-
-#### Options for the Jack-in Command 
-
-The `calva.jackIn` command takes an optional options argument defined like so:
-
-```typescript
-  options?: {
-    connectSequence?: string | ReplConnectSequence;
-    disableAutoSelect?: boolean;
-  }
-```
-
-Where `ReplConnectSequence` is a [Connect Sequences](connect-sequences.md). If you provide a string it needs to match against a built-in or custom connect sequence. With `disableAutoSelect` you can force the jack-in menus to be provided even if a custom connect sequence is set to be autoSelected.
-
-You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
-
-Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with `autoSelectForConnect`.
-
-```json
-    {
-        "command": "calva.jackIn",
-        "args": {"disableAutoSelect": true},
-        "key": "ctrl+alt+c shift+j",
-    },
-```
-
-A Joyride command for starting a `deps.edn` REPL for a project in the root of the workspace.
-
-```clojure
-(vscode/commands.executeCommand
- "calva.jackIn"
- (clj->js {:connectSequence {:projectType "deps.edn"
-                             :projectRootPath ["."]}}))
-```
-
-It will prompt for any aliases it finds in the `deps.edn` file.    
+The main mechanism for customizing your Jack-in, including automating menu selections, and custom CLJS REPL types is [Custom Connect Sequences](connect-sequences.md). See also [Customizing Jack-in and Connect](customizing-jack-in-and-connect.md)
 
 ## Connecting Without Jack-in
 
@@ -102,46 +55,7 @@ All this said, I still recommend you challenge the conclusion that you can't use
 !!! Note
     There is a Calva command for copying the Jack-in command line to the clipboard. It will copy the command line including commands to change to the current REPL project root, avoiding hard-to-detect errors when starting the REPL in the wrong directory.
 
-### Customizing Connect
-
-If there is an nRepl port file, Calva will use it and not prompt for `host:port` when connecting. You can make Calva prompt for this by setting the boolean config `calva.autoSelectNReplPortFromPortFile` to `false`.
-
-With the setting `calva.autoConnectRepl` you can make Calva automatically connect the REPL if there is an nRepl port file present when the project is opened.
-
-With this and the below mentioned auto-select options you can make connect a prompt-less experience. See: [Connect Sequences](connect-sequences.md).
-
-#### Options for the Connect Command 
-
-The `calva.connect` command takes an optional options argument defined like so:
-
-```typescript
-  options?: {
-    host?: string;
-    port?: string;
-    connectSequence?: string | ReplConnectSequence;
-    disableAutoSelect?: boolean;
-  }
-```
-
-Where `ReplConnectSequence` is a [Connect Sequences](connect-sequences.md). If you provide a string it needs to match against a built-in or custom connect sequence. With `disableAutoSelect` you can force the connect menus to be provided even if a custom connect sequence is set to be autoSelected.
-
-You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
-
-Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with `autoSelectForConnect`.
-
-```json
-    {
-        "command": "calva.connect",
-        "args": {"disableAutoSelect": true},
-        "key": "ctrl+alt+c shift+c",
-    },
-```
-
-A Joyride command for connecting to a REPL on port 55555, without being asked for project type:
-
-```clojure
-(vscode/commands.executeCommand "calva.connect" (clj->js {:port "55555" :connectSequence "Generic"}))
-```
+See also [Customizing Jack-in and Connect](customizing-jack-in-and-connect.md)
 
 ### Starting the REPL from application code?
 
@@ -156,13 +70,6 @@ You can make both Jack-in and Connect stop prompting you for project type and pr
 If the workspace is a monorepo, Polylith repo or just a repository with more than one Clojure project, Calva will start the connect sequence with prompting for which project to start/connect to.
 
 ![The project roots menu](images/calva-monorepo-project-roots-menu.png)
-
-When searching for project roots in your workspace, Calva will glob for all files matching `project.clj`, `deps.edn`, or `shadow-cljs.edn`. This is done using VS Code's workspace search engine, and is very efficient. However, in a large monorepo, it is still a substantial task. In order to not waste resources Calva will exclude any directories in the setting `calva.projectRootsSearchExclude`. 
-
-![calva.projectRootsSearchExclude setting](images/calva-project-roots-search-exclude.png)
-
-!!! Note "Exclude entry globs"
-    Each entry is a partial *glob* and will be part of a resulting *glob* of the form `**/{glob1,glob2,...,globN}`. This means that all directories in the workspace matching an entry will be excluded, regardless of where in the workspace they reside.
 
 ## shadow-cljs in full stack projects
 
