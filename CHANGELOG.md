@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add autoEvalOnConnect and autoEvalOnFileLoaded settings](https://github.com/BetterThanTomorrow/calva/issues/2180)
+- [Make the shadow-cljs connect process wait for a running CLJS REPL server](https://github.com/BetterThanTomorrow/calva/issues/1027)
+
 ## [2.0.355] - 2023-05-04
 
 - Fix: [REPL connect fails if requiring clojure.main/repl-requires fails](https://github.com/BetterThanTomorrow/calva/issues/2178)

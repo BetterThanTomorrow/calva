@@ -14,8 +14,6 @@ import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
 import { log, Direction } from './logging';
 
-export type AutoReferReplUtilities = 'on-connect' | 'always' | 'never';
-
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
 }

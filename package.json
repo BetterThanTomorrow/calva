@@ -838,20 +838,49 @@
               }
             }
           },
-          "calva.autoReferReplUtilities": {
-            "type": "string",
-            "markdownDescription": "Should Calva automatically refer in the `repl-requires`/REPL utilities (like `source`, `doc`, etcetera), and when should it do that? (There is also a command to do this on demand.)",
-            "enum": [
-              "on-connect",
-              "always",
-              "never"
-            ],
-            "default": "on-connect",
-            "markdownEnumDescriptions": [
-              "Auto-refer the REPL utilities only in the initial namespace immediately after connecting the REPL.",
-              "Auto-refer the REPL utilities in all namespaces.",
-              "Never auto-refer the REPL utilities."
-            ]
+          "calva.autoEvaluateCode": {
+            "type": "object",
+            "markdownDescription": "Code to automatically evaluate when a REPL has been connected, or a file/namespace has been loaded/evaluated. See https://calva.io/customizing-jack-in-and-connect/ for details.",
+            "properties": {
+              "onConnect": {
+                "type": "object",
+                "markdownDescription": "When a REPL has been connected.",
+                "properties": {
+                  "clj": {
+                    "type": "string",
+                    "markdownDescription": "Code to evaluate when the **Clojure** REPL has been connected. The default is code that refer in the `repl-requires`/REPL utilities (like `source`, `doc`, etcetera). (Note that there is also a command to do this on demand.). The code will be evaluated *before* the `afterCLJReplJackInCode` in any [connect sequence](https://calva.io/connect-sequences/) used. Set to `null` to disable this feature."
+                  },
+                  "cljs": {
+                    "type": "string",
+                    "markdownDescription": "Code to evaluate when the **ClojureScript** REPL has been connected. The default is code that refer in the `repl-requires`/REPL utilities (like `source`, `doc`, etcetera). (Note that there is also a command to do this on demand.). Set to `null` to disable this feature."
+                  }
+                },
+                "onFileLoaded": {
+                  "type": "object",
+                  "markdownDescription": "When a file/namespace has been loaded/evaluated.",
+                  "properties": {
+                    "clj": {
+                      "type": "string",
+                      "markdownDescription": "Code to evaluate when the current file/namespace has been loaded/evaluated (via the command for this), in the **Clojure** REPL. The same substitution variables as with [custom commands](https://calva.io/custom-commands/) can be used here."
+                    },
+                    "cljs": {
+                      "type": "string",
+                      "markdownDescription": "Code to evaluate when the current file/namespace has been loaded/evaluated (via the command for this), in the **ClojureScript** REPL. The same substitution variables as with [custom commands](https://calva.io/custom-commands/) can be used here."
+                    }
+                  }
+                }
+              }
+            },
+            "default": {
+              "onConnect": {
+                "clj": "(when-let [requires (resolve 'clojure.main/repl-requires)] (clojure.core/apply clojure.core/require @requires))",
+                "cljs": "(try (require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]]) (catch :default e (js/console.warn \"Failed to require cljs.repl utilities:\" (.-message e))))"
+              },
+              "onFileLoaded": {
+                "clj": null,
+                "cljs": null
+              }
+            }
           }
         }
       },

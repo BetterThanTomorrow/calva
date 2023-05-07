@@ -15,6 +15,7 @@ import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
+import * as customSnippets from './custom-snippets';
 
 function interruptAllEvaluations() {
   if (util.getConnectedState()) {
@@ -106,9 +107,6 @@ async function evaluateCodeUpdatingUI(
 
     if (outputWindow.getNs() !== ns) {
       await session.switchNS(ns);
-      if (getConfig().autoReferReplUtilities === 'always') {
-        await session.requireREPLUtilities();
-      }
     }
 
     const context: NReplEvaluation = session.eval(code, ns, {
@@ -434,8 +432,14 @@ async function loadFile(
     outputWindow.appendLine(`; Evaluating file: ${fileName}`);
 
     await session.switchNS(ns);
-    if (getConfig().autoReferReplUtilities === 'always') {
-      await session.requireREPLUtilities();
+    if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
+      outputWindow.appendLine(`; Evaluating 'autoEvaluateCode.onFileLoaded.${fileType}'`);
+      const context = customSnippets.makeContext(vscode.window.activeTextEditor, ns, ns, fileType);
+      await customSnippets.evaluateSnippet(
+        getConfig().autoEvaluateCode.onFileLoaded[fileType],
+        context,
+        {}
+      );
     }
 
     const errorMessages = [];
@@ -588,9 +592,6 @@ export async function evaluateInOutputWindow(
     replSession.updateReplSessionType();
     if (outputWindow.getNs() !== ns) {
       await session.switchNS(ns);
-      if (getConfig().autoReferReplUtilities === 'always') {
-        await session.requireREPLUtilities();
-      }
       outputWindow.setSession(session, ns);
       if (options.evaluationSendCodeToOutputWindow !== false) {
         outputWindow.appendPrompt();
