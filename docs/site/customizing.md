@@ -72,7 +72,7 @@ To have the hints automatically pop up when you are typing, set `editor.paramete
 
 See [Formatting](formatting.md) for information on how to configure this.
 
-## Jack-in and Connect Sequences
+## Jack-in and Connect
 
 Jack-in and Connect are very customizable through [Custom Connect Sequences](connect-sequences.md).
 
