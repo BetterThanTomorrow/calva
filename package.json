@@ -840,7 +840,7 @@
           },
           "calva.autoEvaluateCode": {
             "type": "object",
-            "markdownDescription": "Code to automatically evaluate when a REPL has been connected, or a file/namespace has been loaded/evaluated.",
+            "markdownDescription": "Code to automatically evaluate when a REPL has been connected, or a file/namespace has been loaded/evaluated. See https://calva.io/customizing-jack-in-and-connect/ for details.",
             "properties": {
               "onConnect": {
                 "type": "object",
@@ -861,11 +861,11 @@
                   "properties": {
                     "clj": {
                       "type": "string",
-                      "markdownDescription": "Code to evaluate when the current file/namespace has been loaded/evaluated (via the command for this), in the **Clojure** REPL. The same substitution variables as with [custom commands](https://calva.io/custom-commands/) can be used here. Set to `null` to disable this feature."
+                      "markdownDescription": "Code to evaluate when the current file/namespace has been loaded/evaluated (via the command for this), in the **Clojure** REPL. The same substitution variables as with [custom commands](https://calva.io/custom-commands/) can be used here."
                     },
                     "cljs": {
                       "type": "string",
-                      "markdownDescription": "Code to evaluate when the current file/namespace has been loaded/evaluated (via the command for this), in the **ClojureScript** REPL. The same substitution variables as with [custom commands](https://calva.io/custom-commands/) can be used here. Set to `null` to disable this feature."
+                      "markdownDescription": "Code to evaluate when the current file/namespace has been loaded/evaluated (via the command for this), in the **ClojureScript** REPL. The same substitution variables as with [custom commands](https://calva.io/custom-commands/) can be used here."
                     }
                   }
                 }

@@ -81,7 +81,7 @@ describe('config', () => {
       ];
       const expectedResult: nreplUtil.AutoEvaluateCodeConfig = {
         ...defaults,
-        onFileLoaded: { clj: 'custom1', cljs: 'custom2' },
+        onFileLoaded: { clj: null, cljs: 'custom2' },
       };
       expect(nreplUtil.mergeAutoEvaluateConfigs(configs, defaults)).toStrictEqual(expectedResult);
     });
@@ -94,7 +94,7 @@ describe('config', () => {
 
       const expectedResult: nreplUtil.AutoEvaluateCodeConfig = {
         ...defaults,
-        onFileLoaded: { clj: 'custom1', cljs: null },
+        onFileLoaded: { clj: null, cljs: null },
       };
 
       expect(nreplUtil.mergeAutoEvaluateConfigs(configs, defaults)).toStrictEqual(expectedResult);
