@@ -174,6 +174,8 @@ function getConfig() {
     []
   ).concat((state.getProjectConfig()?.customREPLHoverSnippets as customREPLCommandSnippet[]) ?? []);
 
+  const autoEvaluateCode = configOptions.inspect<nrepl.AutoEvaluateCodeConfig>('autoEvaluateCode');
+
   return {
     formatOnSave: configOptions.get('formatOnSave'),
     evalOnSave: configOptions.get('evalOnSave'),
@@ -225,7 +227,14 @@ function getConfig() {
     autoSelectNReplPortFromPortFile: configOptions.get<boolean>('autoSelectNReplPortFromPortFile'),
     autoConnectRepl: configOptions.get<boolean>('autoConnectRepl'),
     html2HiccupOptions: configOptions.get<converters.HiccupOptions>('html2HiccupOptions'),
-    autoEvaluateCode: configOptions.get<nrepl.AutoEvaluateCodeConfig>('autoEvaluateCode'),
+    autoEvaluateCode: nrepl.mergeAutoEvaluateConfigs(
+      [
+        autoEvaluateCode.globalValue,
+        autoEvaluateCode.workspaceValue,
+        autoEvaluateCode.workspaceFolderValue,
+      ],
+      autoEvaluateCode.defaultValue
+    ),
   };
 }
 
