@@ -6,24 +6,24 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Powered by clj-kondo, Calva comes with state-of-the-art Clojure and ClojureScript linting">
+        <meta name="description" content="Calva comes with batteries included and preconfigured, and if you don't like the defaults, you can customize">
       
       
       
-        <link rel="canonical" href="https://calva.io/linting/">
+        <link rel="canonical" href="https://calva.io/when-clauses/">
       
       
-        <link rel="prev" href="../custom-commands/">
+        <link rel="prev" href="../customizing-jack-in-and-connect/">
       
       
-        <link rel="next" href="../namespace-form-auto-creation/">
+        <link rel="next" href="../clojure-lsp/">
       
       <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.8">
     
     
       
-        <title>Superb Clojure Linting - Calva User Guide</title>
+        <title>Calva When Clause Contexts - Calva User Guide</title>
       
     
     
@@ -71,11 +71,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Superb Clojure Linting - Calva User Guide" >
+        <meta  property="og:title"  content="Calva When Clause Contexts - Calva User Guide" >
       
-        <meta  property="og:description"  content="Powered by clj-kondo, Calva comes with state-of-the-art Clojure and ClojureScript linting" >
+        <meta  property="og:description"  content="Calva comes with batteries included and preconfigured, and if you don't like the defaults, you can customize" >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/linting.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/when-clauses.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -83,15 +83,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/linting/" >
+        <meta  property="og:url"  content="https://calva.io/when-clauses/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Superb Clojure Linting - Calva User Guide" >
+        <meta  name="twitter:title"  content="Calva When Clause Contexts - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Powered by clj-kondo, Calva comes with state-of-the-art Clojure and ClojureScript linting" >
+        <meta  name="twitter:description"  content="Calva comes with batteries included and preconfigured, and if you don't like the defaults, you can customize" >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/linting.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/when-clauses.png" >
       
     
     
@@ -110,7 +110,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#linting" class="md-skip">
+        <a href="#calva-when-clause-contexts" class="md-skip">
           Skip to content
         </a>
       
@@ -144,7 +144,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Superb Clojure Linting
+              Calva When Clause Contexts
             
           </span>
         </div>
@@ -390,16 +390,14 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
       
       
       
@@ -408,7 +406,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_4">
           <span class="md-nav__icon md-icon"></span>
           Features
@@ -615,52 +613,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Superb Clojure Linting
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../linting/" class="md-nav__link">
         Superb Clojure Linting
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#resolve-macro-as" class="md-nav__link">
-    Resolve Macro As
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -720,14 +677,16 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
       
       
       
@@ -736,7 +695,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_5">
           <span class="md-nav__icon md-icon"></span>
           Customizing Calva
@@ -775,11 +734,21 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../when-clauses/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Calva When Clause Contexts
       </a>
+      
     </li>
   
 
@@ -1364,21 +1333,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#resolve-macro-as" class="md-nav__link">
-    Resolve Macro As
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1395,20 +1349,22 @@
   
 
 
-<h1 id="linting">Linting</h1>
-<p>Calva does no linting, yet with Calva you get excellent linting. That is because Calva uses <a href="https://github.com/clojure-lsp/clojure-lsp">clojure-lsp</a>, which provides linting powered by clj-kondo.</p>
-<p>clj-kondo comes with great default rules, and the configuration <a href="https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md">can be customized</a>. One of your options for the configuration file is to  placed a <code>config.edn</code> file in <code>.clj-kondo/</code> at the root of your project. This folder may or may not already exist. It is safe to create it manually if it doesn't.</p>
-<p>The configuration will be merged with the default set of rules, you can only specify the rules you want to override. The full list of available options can be found on <a href="https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md">clj-kondo's github</a></p>
-<p>clojure-lsp is customizable, see <a href="https://clojure-lsp.io/settings/">Clojure LSP Settings</a> for your options. It is safe to manually create the <code>.lsp</code> folder if it doesn't exist.</p>
-<p>You might want to read about <a href="https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#configuration">how to configure clj-kondo</a>. These two sections might be of extra interest:</p>
+<h1 id="calva-when-clause-contexts">Calva When Clause Contexts</h1>
+<p><a href="https://code.visualstudio.com/api/references/when-clause-contexts">When clause contexts</a> is a powerful customization mechanism in VS Code. The most common use for end users is with keyboard shortcut bindings. Extensions can provide their own. The following contexts are available with Calva:</p>
 <ul>
-<li><a href="https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#unrecognized-macros">Unrecognized macros</a></li>
-<li><a href="https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#lint-a-custom-macro-like-a-built-in-macro">Lint a custom macro like a built-in macro</a></li>
+<li><code>calva:keybindingsEnabled</code>: a master switch that you find in the settings</li>
+<li><code>paredit:keyMap</code>: <code>strict</code>, <code>original</code>, or <code>none</code> from the corresponding Calva setting (see <a href="../paredit/">Paredit</a>)</li>
+<li><code>calva:connected</code>: <code>true</code> when Calva is connected to a REPL (there is also <code>calva:connecting</code> || <code>calva:launching</code>)</li>
+<li><code>calva:outputWindowActive</code>: <code>true</code> when the <a href="../output/">Output/REPL window</a> has input focus</li>
+<li><code>calva:replHistoryCommandsActive</code>: <code>true</code> when the cursor is in the Output/REPL window at the top level after the last prompt</li>
+<li><code>calva:outputWindowSubmitOnEnter</code>: <code>true</code> when the cursor is adjacent after the last top level form in the Output/REPL window</li>
+<li><code>calva:cursorInString</code>: <code>true</code> when the cursor/caret is in a string or a regexp</li>
+<li><code>calva:cursorInComment</code>: <code>true</code> when the cursor is in, or adjacent to a line comment</li>
+<li><code>calva:cursorBeforeComment</code>: <code>true</code> when the cursor is adjacent before a line comment</li>
+<li><code>calva:cursorAfterComment</code>: <code>true</code> when the cursor is adjacent after a line comment</li>
+<li><code>calva:cursorAtStartOfLine</code>: <code>true</code> when the cursor is at the start of a line including any leading whitespace</li>
+<li><code>calva:cursorAtEndOfLine</code>: <code>true</code> when the cursor is at the end of a line including any trailing whitespace</li>
 </ul>
-<p>If you see a linting squiggle under the first character of the file with an error you don't quite understand, it is probably something wrong with your clj-kondo configuration.</p>
-<p>Files are linted as they're being edited. If you want to lint the whole project, use the clj-kondo cli command. See <a href="https://github.com/borkdude/clj-kondo">https://github.com/borkdude/clj-kondo</a> for more info on that. Windows users might like to know that they too can get a clj-kondo cli command now, via <a href="https://twitter.com/borkdude/status/1187622954236071936"><code>npm install -g clj-kondo</code></a>. It'll be a bit slower to start than the native build, but for sure it's better than not having a clj-kondo command! See <a href="https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#npm-linux-macos-windows">https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#npm-linux-macos-windows</a> for more on this.</p>
-<h2 id="resolve-macro-as">Resolve Macro As</h2>
-<p>When your cursor is on a macro form in the editor, you may notice a code action (click the light bulb that appears) called Resolve Macro As. Running this code action will ask you what macro you'd like to resolve the current macro as, and then what clj-kondo config file you want the macro to be saved to. This code action is also available as a command.</p>
 
 
   

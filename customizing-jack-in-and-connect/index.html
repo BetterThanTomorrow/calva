@@ -6,24 +6,24 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Powered by clj-kondo, Calva comes with state-of-the-art Clojure and ClojureScript linting">
+        <meta name="description" content="Calva's connecting of the REPL is highly customizable">
       
       
       
-        <link rel="canonical" href="https://calva.io/linting/">
+        <link rel="canonical" href="https://calva.io/customizing-jack-in-and-connect/">
       
       
-        <link rel="prev" href="../custom-commands/">
+        <link rel="prev" href="../customizing/">
       
       
-        <link rel="next" href="../namespace-form-auto-creation/">
+        <link rel="next" href="../when-clauses/">
       
       <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.8">
     
     
       
-        <title>Superb Clojure Linting - Calva User Guide</title>
+        <title>Customize Jack-in and Connect - Calva User Guide</title>
       
     
     
@@ -71,11 +71,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Superb Clojure Linting - Calva User Guide" >
+        <meta  property="og:title"  content="Customize Jack-in and Connect - Calva User Guide" >
       
-        <meta  property="og:description"  content="Powered by clj-kondo, Calva comes with state-of-the-art Clojure and ClojureScript linting" >
+        <meta  property="og:description"  content="Calva's connecting of the REPL is highly customizable" >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/linting.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/customizing-jack-in-and-connect.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -83,15 +83,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/linting/" >
+        <meta  property="og:url"  content="https://calva.io/customizing-jack-in-and-connect/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Superb Clojure Linting - Calva User Guide" >
+        <meta  name="twitter:title"  content="Customize Jack-in and Connect - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Powered by clj-kondo, Calva comes with state-of-the-art Clojure and ClojureScript linting" >
+        <meta  name="twitter:description"  content="Calva's connecting of the REPL is highly customizable" >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/linting.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/customizing-jack-in-and-connect.png" >
       
     
     
@@ -110,7 +110,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#linting" class="md-skip">
+        <a href="#customize-jack-in-and-connect" class="md-skip">
           Skip to content
         </a>
       
@@ -144,7 +144,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Superb Clojure Linting
+              Customize Jack-in and Connect
             
           </span>
         </div>
@@ -390,16 +390,14 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
       
       
       
@@ -408,7 +406,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_4">
           <span class="md-nav__icon md-icon"></span>
           Features
@@ -615,52 +613,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Superb Clojure Linting
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../linting/" class="md-nav__link">
         Superb Clojure Linting
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#resolve-macro-as" class="md-nav__link">
-    Resolve Macro As
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -720,14 +677,16 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
       
       
       
@@ -736,7 +695,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_5">
           <span class="md-nav__icon md-icon"></span>
           Customizing Calva
@@ -761,11 +720,127 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../customizing-jack-in-and-connect/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Customize Jack-in and Connect
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Customize Jack-in and Connect
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#auto-evaluate-code-on-connect" class="md-nav__link">
+    Auto-evaluate Code on Connect
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-evaluate-code-at-filenamespace-loadevaluation" class="md-nav__link">
+    Auto-evaluate Code at file/namespace load/evaluation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#customizing-connect" class="md-nav__link">
+    Customizing Connect
+  </a>
+  
+    <nav class="md-nav" aria-label="Customizing Connect">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#options-for-the-connect-command" class="md-nav__link">
+    Options for the Connect Command
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#customizing-jack-in" class="md-nav__link">
+    Customizing Jack-in
+  </a>
+  
+    <nav class="md-nav" aria-label="Customizing Jack-in">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#options-for-the-jack-in-command" class="md-nav__link">
+    Options for the Jack-in Command
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#starting-the-repl-from-application-code" class="md-nav__link">
+    Starting the REPL from application code?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-select-project-type-and-project-root" class="md-nav__link">
+    Auto-select Project Type and Project Root
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-roots-search-globing" class="md-nav__link">
+    Project roots search globing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#viewing-the-communication-between-nrepl-and-calva" class="md-nav__link">
+    Viewing the Communication Between nREPL and Calva
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1371,8 +1446,83 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#resolve-macro-as" class="md-nav__link">
-    Resolve Macro As
+  <a href="#auto-evaluate-code-on-connect" class="md-nav__link">
+    Auto-evaluate Code on Connect
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-evaluate-code-at-filenamespace-loadevaluation" class="md-nav__link">
+    Auto-evaluate Code at file/namespace load/evaluation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#customizing-connect" class="md-nav__link">
+    Customizing Connect
+  </a>
+  
+    <nav class="md-nav" aria-label="Customizing Connect">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#options-for-the-connect-command" class="md-nav__link">
+    Options for the Connect Command
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#customizing-jack-in" class="md-nav__link">
+    Customizing Jack-in
+  </a>
+  
+    <nav class="md-nav" aria-label="Customizing Jack-in">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#options-for-the-jack-in-command" class="md-nav__link">
+    Options for the Jack-in Command
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#starting-the-repl-from-application-code" class="md-nav__link">
+    Starting the REPL from application code?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-select-project-type-and-project-root" class="md-nav__link">
+    Auto-select Project Type and Project Root
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-roots-search-globing" class="md-nav__link">
+    Project roots search globing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#viewing-the-communication-between-nrepl-and-calva" class="md-nav__link">
+    Viewing the Communication Between nREPL and Calva
   </a>
   
 </li>
@@ -1395,20 +1545,119 @@
   
 
 
-<h1 id="linting">Linting</h1>
-<p>Calva does no linting, yet with Calva you get excellent linting. That is because Calva uses <a href="https://github.com/clojure-lsp/clojure-lsp">clojure-lsp</a>, which provides linting powered by clj-kondo.</p>
-<p>clj-kondo comes with great default rules, and the configuration <a href="https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md">can be customized</a>. One of your options for the configuration file is to  placed a <code>config.edn</code> file in <code>.clj-kondo/</code> at the root of your project. This folder may or may not already exist. It is safe to create it manually if it doesn't.</p>
-<p>The configuration will be merged with the default set of rules, you can only specify the rules you want to override. The full list of available options can be found on <a href="https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md">clj-kondo's github</a></p>
-<p>clojure-lsp is customizable, see <a href="https://clojure-lsp.io/settings/">Clojure LSP Settings</a> for your options. It is safe to manually create the <code>.lsp</code> folder if it doesn't exist.</p>
-<p>You might want to read about <a href="https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#configuration">how to configure clj-kondo</a>. These two sections might be of extra interest:</p>
+<h1 id="customize-jack-in-and-connect">Customize Jack-in and Connect</h1>
+<p>Since Jack-in and connect both are about connecting the REPL, and only differ in how the REPL is started, many settings and configuration points are shared between the two concepts. A major customization point is <a href="../connect-sequences/">Custom Connect Sequences</a>, which are relevant for both Jack-in and Standalone Connect scenarios.</p>
+<p>This page lists some more Jack-in and Connect configuration options.</p>
+<h2 id="auto-evaluate-code-on-connect">Auto-evaluate Code on Connect</h2>
+<p>You can have Calva evaluate code whenever a REPL has been connected via the <code>calva.autoEvaluateCode.onConnect</code> setting. It has two entries <code>clj</code> and <code>cljs</code>:</p>
 <ul>
-<li><a href="https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#unrecognized-macros">Unrecognized macros</a></li>
-<li><a href="https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#lint-a-custom-macro-like-a-built-in-macro">Lint a custom macro like a built-in macro</a></li>
+<li><code>clj</code>: "Code to evaluate when the <strong>Clojure</strong> REPL has been connected.<ul>
+<li>The default is code that refer in the <code>repl-requires</code>/REPL utilities (like <code>source</code>, <code>doc</code>, etcetera). (Note that there is also a command to do this on demand.).</li>
+<li>Overriding the default replaces it. If you want to add code to be evaluated on connect this way, and keep the behaviour of auto-refering REPL utilities, you need to provide code for the latter (copy/pasting the default code will do). See also note below about concatenation of configurations.</li>
+<li>The code will be evaluated <em>before</em> the <code>afterCLJReplJackInCode</code> in any <a href="https://calva.io/connect-sequences/">connect sequence</a> used.</li>
 </ul>
-<p>If you see a linting squiggle under the first character of the file with an error you don't quite understand, it is probably something wrong with your clj-kondo configuration.</p>
-<p>Files are linted as they're being edited. If you want to lint the whole project, use the clj-kondo cli command. See <a href="https://github.com/borkdude/clj-kondo">https://github.com/borkdude/clj-kondo</a> for more info on that. Windows users might like to know that they too can get a clj-kondo cli command now, via <a href="https://twitter.com/borkdude/status/1187622954236071936"><code>npm install -g clj-kondo</code></a>. It'll be a bit slower to start than the native build, but for sure it's better than not having a clj-kondo command! See <a href="https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#npm-linux-macos-windows">https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#npm-linux-macos-windows</a> for more on this.</p>
-<h2 id="resolve-macro-as">Resolve Macro As</h2>
-<p>When your cursor is on a macro form in the editor, you may notice a code action (click the light bulb that appears) called Resolve Macro As. Running this code action will ask you what macro you'd like to resolve the current macro as, and then what clj-kondo config file you want the macro to be saved to. This code action is also available as a command.</p>
+</li>
+<li><code>cljs</code>: Code to evaluate when the <strong>ClojureScript</strong> REPL has been connected.<ul>
+<li>The default is code that refer in the <code>repl-requires</code>/REPL utilities (like <code>source</code>, <code>doc</code>, etcetera). (Note that there is also a command to do this on demand.).</li>
+<li>Same deal with overriding the default as with <code>clj</code>.</li>
+</ul>
+</li>
+</ul>
+<p>Set either of these to <code>null</code> to disable the feature for that REPL type. (The Settings linter will complain, but it works.)</p>
+<div class="admonition note">
+<p class="admonition-title">For Clojure this is in addition to <code>afterCLJReplJackInCode</code></p>
+<p>There are two mechanisms for evaluating code when a Clojure REPL is connected. The <code>afterCLJReplJackInCode</code> setting of custom connect sequences, and this <code>calva.autoEvaluateCode.onConnect.clj</code> setting. There is no <em>fundamental</em> difference between them. This one has a default function of auto-refering in the Clojure REPL utilities. And it will be run <em>before</em> the connect sequence after-Jack-in code.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">All configured code is concatenated</p>
+<p>If you configure this both in User/global settings and in a Workspace, the workspace configured code will be concatenated on the user level code. Meaning both code snippets will be evaluated, first the User level code, then the Workspace level code. Also <code>null</code> disables the feature:</p>
+<ul>
+<li>If you use <code>null</code> in the User level code, you will disable the onConnect code evaluation for all workspaces that do not configure code for this.</li>
+<li>If you configure code on the User level it will be evaluated in all workspaces, except those that disable the feature by configuring <code>null</code>. </li>
+</ul>
+</div>
+<h2 id="auto-evaluate-code-at-filenamespace-loadevaluation">Auto-evaluate Code at file/namespace load/evaluation</h2>
+<p>You can also make Calva auto-evaluate code when a file has been loaded in the REPL (via the Calva command for loading files). You add code for this via the <code>calva.autoEvaluateCode.onFileLoaded</code> setting. Like with <code>onConnect</code> you provide code for <code>clj</code> and <code>cljs</code> separately.</p>
+<ul>
+<li>Note that <a href="https://calva.io/custom-commands/">custom commands</a> substitutions are in play here as well.</li>
+<li>Calva's does not provide defaults for this setting.</li>
+<li>Merging works the same as with <code>onConnect</code>.</li>
+</ul>
+<h2 id="customizing-connect">Customizing Connect</h2>
+<p>If there is an nRepl port file, Calva will use it and not prompt for <code>host:port</code> when connecting. You can make Calva prompt for this by setting the boolean config <code>calva.autoSelectNReplPortFromPortFile</code> to <code>false</code>.</p>
+<p>With the setting <code>calva.autoConnectRepl</code> you can make Calva automatically connect the REPL if there is an nRepl port file present when the project is opened.</p>
+<p>With this and the below mentioned auto-select options you can make connect a prompt-less experience. See: <a href="../connect-sequences/">Connect Sequences</a>.</p>
+<h4 id="options-for-the-connect-command">Options for the Connect Command</h4>
+<p>The <code>calva.connect</code> command takes an optional options argument defined like so:</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nx">options</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">host?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">port?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">connectSequence?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nx">ReplConnectSequence</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">disableAutoSelect?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+</code></pre></div>
+<p>Where <code>ReplConnectSequence</code> is a <a href="../connect-sequences/">Connect Sequences</a>. If you provide a string it needs to match against a built-in or custom connect sequence. With <code>disableAutoSelect</code> you can force the connect menus to be provided even if a custom connect sequence is set to be autoSelected.</p>
+<p>You can provide these options from keyboard shortcuts or from <a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> scripts.</p>
+<p>Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with <code>autoSelectForConnect</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.connect&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;disableAutoSelect&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c shift+c&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">},</span>
+</code></pre></div>
+<p>A Joyride command for connecting to a REPL on port 55555, without being asked for project type:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.connect&quot;</span><span class="w"> </span><span class="p">(</span><span class="nf">clj-&gt;js</span><span class="w"> </span><span class="p">{</span><span class="ss">:port</span><span class="w"> </span><span class="s">&quot;55555&quot;</span><span class="w"> </span><span class="ss">:connectSequence</span><span class="w"> </span><span class="s">&quot;Generic&quot;</span><span class="p">}))</span>
+</code></pre></div>
+<h2 id="customizing-jack-in">Customizing Jack-in</h2>
+<p>The main mechanism for customizing your Jack-in, including automating menu selections, and custom CLJS REPL types is <a href="../connect-sequences/">Custom Connect Sequences</a>.</p>
+<p>There are also these settings:</p>
+<ul>
+<li><code>calva.jackInEnv</code>: An object with environment variables that will be added to the environment of the Jack-in process.</li>
+<li><code>calva.myCljAliases</code>: An array of <code>deps.edn</code> aliases not found in the project file. Use this to tell Calva Jack-in to launch your REPL using your user defined aliases.</li>
+<li><code>calva.myLeinProfiles</code>: An array of Leiningen profiles not found in <code>project.clj</code>. Use this to tell Calva Jack-in to launch your REPL using your user defined profiles.</li>
+<li><code>calva.openBrowserWhenFigwheelStarted</code>: <em>For Legacy Figwheel only.</em> A boolean controlling if Calva should automatically launch your ClojureScript app, once it is compiled by Figwheel. Defaults to <code>true</code>.</li>
+<li><code>calva.depsEdnJackInExecutable</code>: A string which should either be <code>clojure</code> or <code>deps.clj</code>, or <code>clojure or deps.clj</code> (default). It determines which executable Calva Jack-in should use for starting a <code>deps.edn</code> project. With this setting at its default, <code>clojure or deps.clj</code>, Calva will test if the <code>clojure</code> executable works, and use it if it does, otherwise <code>deps.clj</code> will be used, which is bundled with Calva.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When processing the <code>calva.jackInEnv</code> setting you can refer to existing ENV variables with <code>${env:VARIABLE}</code>.</p>
+</div>
+<h3 id="options-for-the-jack-in-command">Options for the Jack-in Command</h3>
+<p>The <code>calva.jackIn</code> command takes an optional options argument defined like so:</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nx">options</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">connectSequence?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nx">ReplConnectSequence</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">disableAutoSelect?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+</code></pre></div>
+<p>Where <code>ReplConnectSequence</code> is a <a href="../connect-sequences/">Connect Sequences</a>. If you provide a string it needs to match against a built-in or custom connect sequence. With <code>disableAutoSelect</code> you can force the jack-in menus to be provided even if a custom connect sequence is set to be autoSelected.</p>
+<p>You can provide these options from keyboard shortcuts or from <a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> scripts.</p>
+<p>Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with <code>autoSelectForConnect</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.jackIn&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;disableAutoSelect&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c shift+j&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">},</span>
+</code></pre></div>
+<p>A Joyride command for starting a <code>deps.edn</code> REPL for a project in the root of the workspace.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span>
+<span class="w"> </span><span class="s">&quot;calva.jackIn&quot;</span>
+<span class="w"> </span><span class="p">(</span><span class="nf">clj-&gt;js</span><span class="w"> </span><span class="p">{</span><span class="ss">:connectSequence</span><span class="w"> </span><span class="p">{</span><span class="ss">:projectType</span><span class="w"> </span><span class="s">&quot;deps.edn&quot;</span>
+<span class="w">                             </span><span class="ss">:projectRootPath</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;.&quot;</span><span class="p">]}}))</span>
+</code></pre></div>
+<p>It will prompt for any aliases it finds in the <code>deps.edn</code> file.    </p>
+<h2 id="starting-the-repl-from-application-code">Starting the REPL from application code?</h2>
+<p>If your project is setup so that the REPL server is started by the application code, you will need to get the cider-nrepl middleware in place. See the cider-nrepl docs about <a href="https://docs.cider.mx/cider-nrepl/usage.html#via-embedding-nrepl-in-your-application">embedding nREPL in your application</a>.</p>
+<h2 id="auto-select-project-type-and-project-root">Auto-select Project Type and Project Root</h2>
+<p>You can make both Jack-in and Connect stop prompting you for project type and project root path in projects where you always want to use the same. See <a href="../connect-sequences/">Connect Sequences</a>.</p>
+<h2 id="project-roots-search-globing">Project roots search globing</h2>
+<p>When searching for project roots in your workspace, Calva will glob for all files matching <code>project.clj</code>, <code>deps.edn</code>, or <code>shadow-cljs.edn</code>. This is done using VS Code's workspace search engine, and is very efficient. However, in a large monorepo, it is still a substantial task. In order to not waste resources Calva will exclude any directories in the setting <code>calva.projectRootsSearchExclude</code>. </p>
+<p><img alt="calva.projectRootsSearchExclude setting" src="../images/calva-project-roots-search-exclude.png" /></p>
+<div class="admonition note">
+<p class="admonition-title">Exclude entry globs</p>
+<p>Each entry is a partial <em>glob</em> and will be part of a resulting <em>glob</em> of the form <code>**/{glob1,glob2,...,globN}</code>. This means that all directories in the workspace matching an entry will be excluded, regardless of where in the workspace they reside.</p>
+</div>
+<h2 id="viewing-the-communication-between-nrepl-and-calva">Viewing the Communication Between nREPL and Calva</h2>
+<p>It may be helpful to view the messages sent between nREPL and Calva when troubleshooting an issue related to the REPL. See how to do that <a href="../nrepl_and_cider-nrepl/#viewing-the-communication-between-calva-and-nrepl">here</a>.</p>
 
 
   

@@ -368,19 +368,6 @@
     Customizing Jack-in
   </a>
   
-    <nav class="md-nav" aria-label="Customizing Jack-in">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#options-for-the-jack-in-command" class="md-nav__link">
-    Options for the Jack-in Command
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -395,26 +382,6 @@
   
     <nav class="md-nav" aria-label="Connecting Without Jack-in">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#customizing-connect" class="md-nav__link">
-    Customizing Connect
-  </a>
-  
-    <nav class="md-nav" aria-label="Customizing Connect">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#options-for-the-connect-command" class="md-nav__link">
-    Options for the Connect Command
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#starting-the-repl-from-application-code" class="md-nav__link">
@@ -876,6 +843,83 @@
   
   
   
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          Customizing Calva
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Customizing Calva
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../customizing/" class="md-nav__link">
+        Customizing Calva
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../customizing-jack-in-and-connect/" class="md-nav__link">
+        Customize Jack-in and Connect
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../when-clauses/" class="md-nav__link">
+        Calva When Clause Contexts
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
     <li class="md-nav__item">
       <a href="../clojure-lsp/" class="md-nav__link">
         clojure-lsp
@@ -894,21 +938,6 @@
     <li class="md-nav__item">
       <a href="../nrepl_and_cider-nrepl/" class="md-nav__link">
         nREPL and cider-nrepl
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../customizing/" class="md-nav__link">
-        Customizing Calva
       </a>
     </li>
   
@@ -1483,19 +1512,6 @@
     Customizing Jack-in
   </a>
   
-    <nav class="md-nav" aria-label="Customizing Jack-in">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#options-for-the-jack-in-command" class="md-nav__link">
-    Options for the Jack-in Command
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
       </ul>
@@ -1510,26 +1526,6 @@
   
     <nav class="md-nav" aria-label="Connecting Without Jack-in">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#customizing-connect" class="md-nav__link">
-    Customizing Connect
-  </a>
-  
-    <nav class="md-nav" aria-label="Customizing Connect">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#options-for-the-connect-command" class="md-nav__link">
-    Options for the Connect Command
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#starting-the-repl-from-application-code" class="md-nav__link">
@@ -1666,42 +1662,7 @@
 <p>You will need some basic knowledge about the project and the project type terminologies to answer the prompts.</p>
 <p>There are ways to tell Calva the answers to these prompts beforehand, so that Jack-in can be a zero-prompting command. Read on.</p>
 <h3 id="customizing-jack-in">Customizing Jack-in</h3>
-<p>The main mechanism for customizing your Jack-in, including automating menu selections, and custom CLJS REPL types is <a href="../connect-sequences/">Custom Connect Sequences</a>.</p>
-<p>There are also these settings:</p>
-<ul>
-<li><code>calva.jackInEnv</code>: An object with environment variables that will be added to the environment of the Jack-in process.</li>
-<li><code>calva.myCljAliases</code>: An array of <code>deps.edn</code> aliases not found in the project file. Use this to tell Calva Jack-in to launch your REPL using your user defined aliases.</li>
-<li><code>calva.myLeinProfiles</code>: An array of Leiningen profiles not found in <code>project.clj</code>. Use this to tell Calva Jack-in to launch your REPL using your user defined profiles.</li>
-<li><code>calva.openBrowserWhenFigwheelStarted</code>: <em>For Legacy Figwheel only.</em> A boolean controlling if Calva should automatically launch your ClojureScript app, once it is compiled by Figwheel. Defaults to <code>true</code>.</li>
-<li><code>calva.depsEdnJackInExecutable</code>: A string which should either be <code>clojure</code> or <code>deps.clj</code>, or <code>clojure or deps.clj</code> (default). It determines which executable Calva Jack-in should use for starting a <code>deps.edn</code> project. With this setting at its default, <code>clojure or deps.clj</code>, Calva will test if the <code>clojure</code> executable works, and use it if it does, otherwise <code>deps.clj</code> will be used, which is bundled with Calva.</li>
-</ul>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>When processing the <code>calva.jackInEnv</code> setting you can refer to existing ENV variables with <code>${env:VARIABLE}</code>.</p>
-</div>
-<h4 id="options-for-the-jack-in-command">Options for the Jack-in Command</h4>
-<p>The <code>calva.jackIn</code> command takes an optional options argument defined like so:</p>
-<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nx">options</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nx">connectSequence?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nx">ReplConnectSequence</span><span class="p">;</span>
-<span class="w">    </span><span class="nx">disableAutoSelect?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
-<span class="w">  </span><span class="p">}</span>
-</code></pre></div>
-<p>Where <code>ReplConnectSequence</code> is a <a href="../connect-sequences/">Connect Sequences</a>. If you provide a string it needs to match against a built-in or custom connect sequence. With <code>disableAutoSelect</code> you can force the jack-in menus to be provided even if a custom connect sequence is set to be autoSelected.</p>
-<p>You can provide these options from keyboard shortcuts or from <a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> scripts.</p>
-<p>Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with <code>autoSelectForConnect</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.jackIn&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;disableAutoSelect&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c shift+j&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="p">},</span>
-</code></pre></div>
-<p>A Joyride command for starting a <code>deps.edn</code> REPL for a project in the root of the workspace.</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span>
-<span class="w"> </span><span class="s">&quot;calva.jackIn&quot;</span>
-<span class="w"> </span><span class="p">(</span><span class="nf">clj-&gt;js</span><span class="w"> </span><span class="p">{</span><span class="ss">:connectSequence</span><span class="w"> </span><span class="p">{</span><span class="ss">:projectType</span><span class="w"> </span><span class="s">&quot;deps.edn&quot;</span>
-<span class="w">                             </span><span class="ss">:projectRootPath</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;.&quot;</span><span class="p">]}}))</span>
-</code></pre></div>
-<p>It will prompt for any aliases it finds in the <code>deps.edn</code> file.    </p>
+<p>The main mechanism for customizing your Jack-in, including automating menu selections, and custom CLJS REPL types is <a href="../connect-sequences/">Custom Connect Sequences</a>. See also <a href="../customizing-jack-in-and-connect/">Customizing Jack-in and Connect</a></p>
 <h2 id="connecting-without-jack-in">Connecting Without Jack-in</h2>
 <p>If, for whatever reasons, you can't use Jack-in with your project (possibly because the REPL is started as part of some other job) all is not lost. Old fashioned <strong>Connect to a running REPL</strong> is still there for you. For all features to work in Calva while connecting to a running REPL, your environment needs to have REPL related dependencies set up.</p>
 <p>However, just as before it can be tricky to get the dependencies right. Consider using <strong>Jack in</strong> to inform yourself on how to start your REPL to Calva's satisfaction. When you use Jack in, Calva starts a VS Code task for it and the command line used is displayed in the terminal pane used to handle the task. Reading that command line tells you what dependencies are needed for your project.</p>
@@ -1711,31 +1672,7 @@
 <p class="admonition-title">Note</p>
 <p>There is a Calva command for copying the Jack-in command line to the clipboard. It will copy the command line including commands to change to the current REPL project root, avoiding hard-to-detect errors when starting the REPL in the wrong directory.</p>
 </div>
-<h3 id="customizing-connect">Customizing Connect</h3>
-<p>If there is an nRepl port file, Calva will use it and not prompt for <code>host:port</code> when connecting. You can make Calva prompt for this by setting the boolean config <code>calva.autoSelectNReplPortFromPortFile</code> to <code>false</code>.</p>
-<p>With the setting <code>calva.autoConnectRepl</code> you can make Calva automatically connect the REPL if there is an nRepl port file present when the project is opened.</p>
-<p>With this and the below mentioned auto-select options you can make connect a prompt-less experience. See: <a href="../connect-sequences/">Connect Sequences</a>.</p>
-<h4 id="options-for-the-connect-command">Options for the Connect Command</h4>
-<p>The <code>calva.connect</code> command takes an optional options argument defined like so:</p>
-<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nx">options</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nx">host?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
-<span class="w">    </span><span class="nx">port?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
-<span class="w">    </span><span class="nx">connectSequence?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nx">ReplConnectSequence</span><span class="p">;</span>
-<span class="w">    </span><span class="nx">disableAutoSelect?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
-<span class="w">  </span><span class="p">}</span>
-</code></pre></div>
-<p>Where <code>ReplConnectSequence</code> is a <a href="../connect-sequences/">Connect Sequences</a>. If you provide a string it needs to match against a built-in or custom connect sequence. With <code>disableAutoSelect</code> you can force the connect menus to be provided even if a custom connect sequence is set to be autoSelected.</p>
-<p>You can provide these options from keyboard shortcuts or from <a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> scripts.</p>
-<p>Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with <code>autoSelectForConnect</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.connect&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;disableAutoSelect&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c shift+c&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="p">},</span>
-</code></pre></div>
-<p>A Joyride command for connecting to a REPL on port 55555, without being asked for project type:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.connect&quot;</span><span class="w"> </span><span class="p">(</span><span class="nf">clj-&gt;js</span><span class="w"> </span><span class="p">{</span><span class="ss">:port</span><span class="w"> </span><span class="s">&quot;55555&quot;</span><span class="w"> </span><span class="ss">:connectSequence</span><span class="w"> </span><span class="s">&quot;Generic&quot;</span><span class="p">}))</span>
-</code></pre></div>
+<p>See also <a href="../customizing-jack-in-and-connect/">Customizing Jack-in and Connect</a></p>
 <h3 id="starting-the-repl-from-application-code">Starting the REPL from application code?</h3>
 <p>If your project is setup so that the REPL server is started by the application code, you will need to get the cider-nrepl middleware in place. See the cider-nrepl docs about <a href="https://docs.cider.mx/cider-nrepl/usage.html#via-embedding-nrepl-in-your-application">embedding nREPL in your application</a>.</p>
 <h2 id="auto-select-project-type-and-project-root">Auto-select Project Type and Project Root</h2>
@@ -1743,12 +1680,6 @@
 <h2 id="monorepos-multiple-clojure-projects-in-one-workspace">Monorepos / multiple Clojure projects in one workspace</h2>
 <p>If the workspace is a monorepo, Polylith repo or just a repository with more than one Clojure project, Calva will start the connect sequence with prompting for which project to start/connect to.</p>
 <p><img alt="The project roots menu" src="../images/calva-monorepo-project-roots-menu.png" /></p>
-<p>When searching for project roots in your workspace, Calva will glob for all files matching <code>project.clj</code>, <code>deps.edn</code>, or <code>shadow-cljs.edn</code>. This is done using VS Code's workspace search engine, and is very efficient. However, in a large monorepo, it is still a substantial task. In order to not waste resources Calva will exclude any directories in the setting <code>calva.projectRootsSearchExclude</code>. </p>
-<p><img alt="calva.projectRootsSearchExclude setting" src="../images/calva-project-roots-search-exclude.png" /></p>
-<div class="admonition note">
-<p class="admonition-title">Exclude entry globs</p>
-<p>Each entry is a partial <em>glob</em> and will be part of a resulting <em>glob</em> of the form <code>**/{glob1,glob2,...,globN}</code>. This means that all directories in the workspace matching an entry will be excluded, regardless of where in the workspace they reside.</p>
-</div>
 <h2 id="shadow-cljs-in-full-stack-projects">shadow-cljs in full stack projects</h2>
 <p>shadow-cljs is a bit special in regards to Calva REPL connection. Mainly because you can start shadow-cljs and it's nREPL server in two ways:</p>
 <ol>
