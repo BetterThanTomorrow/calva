@@ -14,54 +14,6 @@ import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
 import { log, Direction } from './logging';
 
-export interface AutoEvaluateCodeConfig {
-  onConnect: {
-    clj: string | null;
-    cljs: string | null;
-  };
-  onFileLoaded: {
-    clj: string | null;
-    cljs: string | null;
-  };
-}
-
-export function mergeAutoEvaluateConfigs(
-  configs: AutoEvaluateCodeConfig[],
-  defaultConfig: AutoEvaluateCodeConfig
-): AutoEvaluateCodeConfig {
-  return configs.reduce<AutoEvaluateCodeConfig>(
-    (merged, config) => {
-      if (config) {
-        for (const key of ['onConnect', 'onFileLoaded'] as const) {
-          for (const lang of ['clj', 'cljs'] as const) {
-            const defaultValue = defaultConfig[key][lang];
-            const currentValue = config[key][lang];
-            const mergedValue = merged[key][lang];
-
-            if (defaultValue === null) {
-              if (currentValue !== null) {
-                merged[key][lang] =
-                  mergedValue === null ? currentValue : `${mergedValue}\n${currentValue}`;
-              }
-            } else {
-              if (currentValue === null) {
-                merged[key][lang] = null;
-              } else if (currentValue !== defaultValue) {
-                merged[key][lang] =
-                  mergedValue === null || mergedValue === defaultValue
-                    ? currentValue
-                    : `${mergedValue}\n${currentValue}`;
-              }
-            }
-          }
-        }
-      }
-      return merged;
-    },
-    { ...defaultConfig }
-  );
-}
-
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
 }
