@@ -11,6 +11,8 @@ export interface AutoEvaluateCodeConfig {
 
 /**
  * Merges an array of AutoEvaluateCodeConfig objects, respecting their default values and overriding rules.
+ * Generally we want to evaluate all code that is configured, so we generally concatenate all non-null strings.
+ * However, we also want the allow disabling the evaluation all together by setting the value to `null`.
  *
  * The function takes the following rules into account when merging configurations:
  *
