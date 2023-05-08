@@ -342,6 +342,7 @@ function createCLJSReplType(
   let haveShownStartSuffix = false;
   let useDefaultBuild = true;
   let startedBuilds: string[];
+  let connectToBuild: string;
   const shouldRunStartCode =
     !cljsType.isStarted && !(connectSequence.projectType === 'shadow-cljs');
 
@@ -444,6 +445,7 @@ function createCLJSReplType(
         return;
       }
 
+      connectToBuild = build;
       setStateValue('cljsBuild', build);
 
       return evalConnectCode(
@@ -462,7 +464,8 @@ function createCLJSReplType(
 
   async function waitForShadowCljsRuntimes() {
     const cljSession = replSession.getSession('clj');
-    const getRuntimesCode = '(count (shadow.cljs.devtools.api/repl-runtimes :app))';
+    console.log(connectToBuild);
+    const getRuntimesCode = `(count (shadow.cljs.devtools.api/repl-runtimes ${connectToBuild}))`;
     const checkForRuntimes = async () => {
       const runtimes = await cljSession.eval(getRuntimesCode, 'shadow.user').value;
       return runtimes && parseInt(runtimes) > 0;
@@ -471,14 +474,24 @@ function createCLJSReplType(
     if (hasRuntimes) {
       return true;
     }
+    let tries = 600; // Wait for 1 minute at most
     const waitForRuntimes = async () => {
       while (!(await checkForRuntimes())) {
+        tries--;
+        if (tries <= 0) {
+          outputWindow.appendLine(
+            '; Timed out waiting for Shadow CLJS runtimes, pretending we are connected.'
+          );
+          return true;
+        } else if (tries % 50 == 0) {
+          outputWindow.appendLine('; Waiting for Shadow CLJS runtimes, start your CLJS app...');
+        }
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
       return true;
     };
     outputWindow.appendLine(
-      '; Please start your ClojureScript app so that Calva can connect to its REPL'
+      '; Please start your ClojureScript app so that Calva can connect to its REPL...'
     );
     return await waitForRuntimes();
   }
