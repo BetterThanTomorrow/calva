@@ -432,15 +432,6 @@ async function loadFile(
     outputWindow.appendLine(`; Evaluating file: ${fileName}`);
 
     await session.switchNS(ns);
-    if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
-      outputWindow.appendLine(`; Evaluating 'autoEvaluateCode.onFileLoaded.${fileType}'`);
-      const context = customSnippets.makeContext(vscode.window.activeTextEditor, ns, ns, fileType);
-      await customSnippets.evaluateSnippet(
-        getConfig().autoEvaluateCode.onFileLoaded[fileType],
-        context,
-        {}
-      );
-    }
 
     const errorMessages = [];
     const res = session.loadFile(fileContents, {
@@ -486,9 +477,24 @@ async function loadFile(
             }
           });
       }
+    } finally {
+      outputWindow.setSession(session, res.ns || ns);
+      replSession.updateReplSessionType();
+      if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
+        outputWindow.appendLine(`; Evaluating 'autoEvaluateCode.onFileLoaded.${fileType}'`);
+        const context = customSnippets.makeContext(
+          vscode.window.activeTextEditor,
+          ns,
+          ns,
+          fileType
+        );
+        await customSnippets.evaluateSnippet(
+          getConfig().autoEvaluateCode.onFileLoaded[fileType],
+          context,
+          {}
+        );
+      }
     }
-    outputWindow.setSession(session, res.ns || ns);
-    replSession.updateReplSessionType();
   }
 }
 
