@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Error connecting to the shadow.cljs REPL, introduced in v2.0.356](https://github.com/BetterThanTomorrow/calva/issues/2185)
+- [Escape backslashes in $file in customREPLCommands on windows](https://github.com/BetterThanTomorrow/calva/issues/2184)
 
 ## [2.0.357] - 2023-05-08
 
