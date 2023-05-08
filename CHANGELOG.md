@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Error connecting to the shadow.cljs REPL, introduced in v2.0.356](https://github.com/BetterThanTomorrow/calva/issues/2185)
+
 ## [2.0.357] - 2023-05-08
 
 - Fix: [Extension manifest misconfiguration, `autoEvaluateCode` nests `onFileEvaluated` inside `onConnect`](https://github.com/BetterThanTomorrow/calva/issues/2182)
