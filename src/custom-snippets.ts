@@ -165,12 +165,12 @@ function interpolateCode(code: string, context): string {
     .replace(/\$column/g, context.currentColumn)
     .replace(/\$hover-column/g, context.hoverColumn)
     .replace(/\$file-text/g, context.currentFileText[1])
-    .replace(/\$file/g, context.currentFilename)
+    .replace(/\$file/g, context.currentFilename.replace(/\\/g, '\\\\'))
     .replace(
       /\$hover-file-text/g,
       context.hovercurrentFileText ? context.hovercurrentFileText[1] : ''
     )
-    .replace(/\$hover-file/g, context.hoverFilename)
+    .replace(/\$hover-file/g, context.hoverFilename?.replace(/\\/g, '\\\\') ?? '')
     .replace(/\$ns/g, context.ns)
     .replace(/\$editor-ns/g, context.editorNS)
     .replace(/\$repl/g, context.repl)
