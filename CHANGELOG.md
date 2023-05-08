@@ -4,9 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Extension manifest misconfiguration, `autoEvaluateCode` nests `onFileEvaluated` inside `onConnect`](https://github.com/BetterThanTomorrow/calva/issues/2182)
+
 ## [2.0.356] - 2023-05-07
 
-- [Add autoEvalOnConnect and autoEvalOnFileLoaded settings](https://github.com/BetterThanTomorrow/calva/issues/2180)
 - [Make the shadow-cljs connect process wait for a running CLJS REPL server](https://github.com/BetterThanTomorrow/calva/issues/1027)
 
 ## [2.0.355] - 2023-05-04
