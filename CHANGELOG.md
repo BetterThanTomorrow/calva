@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.357] - 2023-05-08
+
 - Fix: [Extension manifest misconfiguration, `autoEvaluateCode` nests `onFileEvaluated` inside `onConnect`](https://github.com/BetterThanTomorrow/calva/issues/2182)
 
 ## [2.0.356] - 2023-05-07
