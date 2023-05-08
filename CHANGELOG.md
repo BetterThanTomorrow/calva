@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Escape backslashes in $file in customREPLCommands on windows](https://github.com/BetterThanTomorrow/calva/issues/2184)
+
 ## [2.0.357] - 2023-05-08
 
 - Fix: [Extension manifest misconfiguration, `autoEvaluateCode` nests `onFileEvaluated` inside `onConnect`](https://github.com/BetterThanTomorrow/calva/issues/2182)
