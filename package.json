@@ -561,7 +561,8 @@
                     "deps.edn",
                     "shadow-cljs",
                     "lein-shadow",
-                    "generic"
+                    "generic",
+                    "custom"
                   ]
                 },
                 "autoSelectForJackIn": {

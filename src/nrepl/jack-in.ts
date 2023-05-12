@@ -204,7 +204,7 @@ async function getJackInTerminalOptions(
 
   const projectType = projectTypes.getProjectTypeForName(projectTypeName);
 
-  const commandLineInfo = await projectType.commandLine(projectConnectSequence, selectedCljsType);
+  const commandLineInfo = await projectType.commandLine?.(projectConnectSequence, selectedCljsType);
 
   let args: string[] = commandLineInfo.args;
   let cmd: string[];
