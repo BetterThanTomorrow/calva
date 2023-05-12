@@ -19,7 +19,7 @@ NB: _Connect sequence configuration affects Calva's Jack-in menu in the followin
 A connect sequence configures the following:
 
 * `name`: (required) This will show up in the Jack-in quick-pick menu when you start Jack-in (see above).
-* `projectType`: (required) This is either "Leiningen”, ”deps.edn”, ”shadow-cljs”, ”lein-shadow”, "Gradle", or ”generic".
+* `projectType`: (required) This is either "Leiningen”, "deps.edn", "shadow-cljs", "lein-shadow", "Gradle", ”generic”, or  "custom".
 * `autoSelectForJackIn`: A boolean. If true, this sequence will be automatically selected at **Jack-in**, suppressing the Project Type. Use together with `projectRootPath` to also suppress the Project Root menu. Add usage of `menuSelections` to go for a prompt-less REPL Jack-in. If you have more than one sequence with `autoSelectForJackIn` set to true, the first one will be used.
 * `autoSelectForConnect`: A boolean. If true, this sequence will be automatically selected at **Connect**, suppressing the Project Type menu. Use together with `projectRootPath` to also suppress the Project Root menu. If you have more than one sequence with `autoSelectForConnect` set to true, the first one will be used.
 * `projectRootPath`: An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with `autoSelectForJackIn`/`autoSelectForConnect` to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder.
@@ -63,6 +63,8 @@ Custom command lines are there to bridge the gap to those situations where stand
 4. Any other reason...
 
 A custom command line is executed from same directory as the REPL project root (See `projectRootPath`, above), and can be as simple as `my-repl-jack-in-command`. You  can use a relative or absolute path to your command line.
+
+If your custom command line starts a REPL of a project type that is not ”known”/built-in to Calva, use `custom` as the `projectType` for the connect sequence.
 
 ### Custom Command Line Substitutions/Placeholders/Environment variables
 
