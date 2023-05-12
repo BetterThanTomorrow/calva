@@ -302,9 +302,6 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
   },
 };
 
-const autoSelectProjectTypeSetting: `calva.${keyof Config}` =
-  'calva.autoSelectReplConnectProjectType';
-
 const connectSequencesDocLink = `  - See https://calva.io/connect-sequences/`;
 
 const defaultProjectSettingMsg = (project: string) =>
@@ -374,26 +371,12 @@ function getUserSpecifiedSequence(
   connectType: ConnectType,
   disableAutoSelect: boolean
 ): ReplConnectSequence | undefined {
-  if (getConfig().autoSelectReplConnectProjectType) {
-    outputWindow.appendLine(
-      formatAsLineComments(
-        [
-          `Note: The config "${autoSelectProjectTypeSetting}" is deprecated.`,
-          connectSequencesDocLink,
-          '\n',
-        ].join('\n')
-      )
-    );
-  }
-
   const autoSelectedSequence = disableAutoSelect
     ? undefined
     : sequences.find((s) =>
         connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn
       );
-  const userSpecifiedProjectType = autoSelectedSequence
-    ? autoSelectedSequence.name
-    : getConfig().autoSelectReplConnectProjectType;
+  const userSpecifiedProjectType = autoSelectedSequence?.name;
 
   if (userSpecifiedProjectType) {
     const defaultSequence = sequences.find(
