@@ -4,7 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Support custom connect sequences that are not based on built in types](https://github.com/BetterThanTomorrow/calva/issues/2192)
 - Fix: [autoSelectForJackIn makes the jack-in fail on Windows](https://github.com/BetterThanTomorrow/calva/issues/2190)
+- Remove configuration and handling of `calva.autoSelectReplConnectProjectType` (replaced by connect sequence settings)
 
 ## [2.0.358] - 2023-05-08
 
