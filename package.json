@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.358",
+  "version": "2.0.359",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -379,12 +379,6 @@
             "default": {},
             "description": "Specifies any environment variables your project needs. (Probably mostly for your Workspace Settings.)"
           },
-          "calva.autoSelectReplConnectProjectType": {
-            "deprecationMessage": "Deprecated in favour of `autoSelectForJackIn`/`autoSelectForConnect` in `calva.replConnectSequences`",
-            "type": "string",
-            "default": null,
-            "markdownDescription": "Use `autoSelectForJackIn`/`autoSelectForConnect` in `calva.replConnectSequences` instead of this setting."
-          },
           "calva.autoSelectNReplPortFromPortFile": {
             "type": "boolean",
             "default": true,
@@ -561,7 +555,8 @@
                     "deps.edn",
                     "shadow-cljs",
                     "lein-shadow",
-                    "generic"
+                    "generic",
+                    "custom"
                   ]
                 },
                 "autoSelectForJackIn": {

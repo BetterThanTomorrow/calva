@@ -4,9 +4,14 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.359] - 2023-05-13
+
+- [Support custom connect sequences that are not based on built in types](https://github.com/BetterThanTomorrow/calva/issues/2192)
+- Fix: [autoSelectForJackIn makes the jack-in fail on Windows](https://github.com/BetterThanTomorrow/calva/issues/2190)
+- Remove configuration and handling of `calva.autoSelectReplConnectProjectType` (replaced by connect sequence settings)
+
 ## [2.0.358] - 2023-05-08
 
-- Fix: [Error connecting to the shadow.cljs REPL, introduced in v2.0.356](https://github.com/BetterThanTomorrow/calva/issues/2185)
 - [Escape backslashes in $file in customREPLCommands on windows](https://github.com/BetterThanTomorrow/calva/issues/2184)
 
 ## [2.0.357] - 2023-05-08

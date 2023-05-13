@@ -17,6 +17,7 @@ enum ProjectTypes {
   'nbb' = 'nbb',
   'joyride' = 'joyride',
   'generic' = 'generic',
+  'custom' = 'custom',
   'cljs-only' = 'cljs-only',
 }
 
@@ -180,6 +181,15 @@ const genericDefaults: ReplConnectSequence[] = [
   },
 ];
 
+const customDefaults: ReplConnectSequence[] = [
+  {
+    name: 'Custom',
+    projectType: ProjectTypes['custom'],
+    cljsType: CljsTypes.none,
+    nReplPortFile: ['.nrepl-port'],
+  },
+];
+
 const cljsOnlyDefaults: ReplConnectSequence[] = [
   {
     name: 'ClojureScript nREPL Server',
@@ -222,6 +232,7 @@ const defaultSequences = {
   'lein-shadow': leinShadowDefaults,
   gradle: gradleDefaults,
   generic: genericDefaults,
+  custom: customDefaults,
   babashka: babashkaDefaults,
   nbb: nbbDefaults,
   joyride: joyrideDefaults,
@@ -290,9 +301,6 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     isConnectedRegExp: ':fake-it',
   },
 };
-
-const autoSelectProjectTypeSetting: `calva.${keyof Config}` =
-  'calva.autoSelectReplConnectProjectType';
 
 const connectSequencesDocLink = `  - See https://calva.io/connect-sequences/`;
 
@@ -363,26 +371,12 @@ function getUserSpecifiedSequence(
   connectType: ConnectType,
   disableAutoSelect: boolean
 ): ReplConnectSequence | undefined {
-  if (getConfig().autoSelectReplConnectProjectType) {
-    outputWindow.appendLine(
-      formatAsLineComments(
-        [
-          `Note: The config "${autoSelectProjectTypeSetting}" is deprecated.`,
-          connectSequencesDocLink,
-          '\n',
-        ].join('\n')
-      )
-    );
-  }
-
   const autoSelectedSequence = disableAutoSelect
     ? undefined
     : sequences.find((s) =>
         connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn
       );
-  const userSpecifiedProjectType = autoSelectedSequence
-    ? autoSelectedSequence.name
-    : getConfig().autoSelectReplConnectProjectType;
+  const userSpecifiedProjectType = autoSelectedSequence?.name;
 
   if (userSpecifiedProjectType) {
     const defaultSequence = sequences.find(
@@ -437,9 +431,9 @@ async function askForConnectSequence(
     defaultSequence?.name ??
     (await utilities.quickPickSingle({
       title: `${menuTitleType}: Project Type/Connect Sequence`,
-      values: sequences.map((s) => {
-        return s.name;
-      }),
+      values: sequences
+        .filter((s) => !(s.projectType === 'custom' && !s.customJackInCommandLine))
+        .map((s) => s.name),
       placeHolder: 'Please select a project type',
       saveAs: saveAsPath,
       autoSelect: true,

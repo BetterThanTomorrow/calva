@@ -224,7 +224,6 @@ function getConfig() {
     definitionProviderPriority: configOptions.get<string[]>('definitionProviderPriority'),
     depsEdnJackInExecutable: configOptions.get<string>('depsEdnJackInExecutable'),
     depsCljPath: configOptions.get<string>('depsCljPath'),
-    autoSelectReplConnectProjectType: configOptions.get<string>('autoSelectReplConnectProjectType'),
     autoSelectNReplPortFromPortFile: configOptions.get<boolean>('autoSelectNReplPortFromPortFile'),
     autoConnectRepl: configOptions.get<boolean>('autoConnectRepl'),
     html2HiccupOptions: configOptions.get<converters.HiccupOptions>('html2HiccupOptions'),
