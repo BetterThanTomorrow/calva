@@ -1556,7 +1556,7 @@
 <p>A connect sequence configures the following:</p>
 <ul>
 <li><code>name</code>: (required) This will show up in the Jack-in quick-pick menu when you start Jack-in (see above).</li>
-<li><code>projectType</code>: (required) This is either "Leiningen”, ”deps.edn”, ”shadow-cljs”, ”lein-shadow”, "Gradle", or ”generic".</li>
+<li><code>projectType</code>: (required) This is either "Leiningen”, "deps.edn", "shadow-cljs", "lein-shadow", "Gradle", ”generic”, or  "custom".</li>
 <li><code>autoSelectForJackIn</code>: A boolean. If true, this sequence will be automatically selected at <strong>Jack-in</strong>, suppressing the Project Type. Use together with <code>projectRootPath</code> to also suppress the Project Root menu. Add usage of <code>menuSelections</code> to go for a prompt-less REPL Jack-in. If you have more than one sequence with <code>autoSelectForJackIn</code> set to true, the first one will be used.</li>
 <li><code>autoSelectForConnect</code>: A boolean. If true, this sequence will be automatically selected at <strong>Connect</strong>, suppressing the Project Type menu. Use together with <code>projectRootPath</code> to also suppress the Project Root menu. If you have more than one sequence with <code>autoSelectForConnect</code> set to true, the first one will be used.</li>
 <li><code>projectRootPath</code>: An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with <code>autoSelectForJackIn</code>/<code>autoSelectForConnect</code> to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder.</li>
@@ -1604,6 +1604,7 @@
 <li>Any other reason...</li>
 </ol>
 <p>A custom command line is executed from same directory as the REPL project root (See <code>projectRootPath</code>, above), and can be as simple as <code>my-repl-jack-in-command</code>. You  can use a relative or absolute path to your command line.</p>
+<p>If your custom command line starts a REPL of a project type that is not ”known”/built-in to Calva, use <code>custom</code> as the <code>projectType</code> for the connect sequence.</p>
 <h3 id="custom-command-line-substitutionsplaceholdersenvironment-variables">Custom Command Line Substitutions/Placeholders/Environment variables</h3>
 <p>You can use placeholders in your command line, and Calva will substitute them before executing the command. All these placeholders will also be provided to your script via environment variables with the same names:</p>
 <p>nREPL dependency versions:</p>
