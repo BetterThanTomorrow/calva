@@ -104,6 +104,7 @@
           ".cljs",
           ".cljc",
           ".cljd",
+          ".cljr",
           ".cljx",
           ".clojure",
           ".edn",

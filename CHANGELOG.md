@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [.cljr files not treated as Clojure by default](https://github.com/BetterThanTomorrow/calva/issues/2194)
+
 ## [2.0.359] - 2023-05-13
 
 - [Support custom connect sequences that are not based on built in types](https://github.com/BetterThanTomorrow/calva/issues/2192)

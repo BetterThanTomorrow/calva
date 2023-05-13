@@ -33,6 +33,7 @@
     "cljfmt",
     "cljfx",
     "cljify",
+    "cljr",
     "cljslib",
     "CLJSREPL",
     "Clojuredocs",
