@@ -204,7 +204,11 @@ async function getJackInTerminalOptions(
 
   const projectType = projectTypes.getProjectTypeForName(projectTypeName);
 
-  const commandLineInfo = await projectType.commandLine?.(projectConnectSequence, selectedCljsType);
+  if (!projectType?.commandLine) {
+    throw new Error(`Project type ${projectTypeName} does not support Jack-in.`);
+  }
+
+  const commandLineInfo = await projectType.commandLine(projectConnectSequence, selectedCljsType);
 
   let args: string[] = commandLineInfo.args;
   let cmd: string[];
