@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.361] - 2023-05-16
+
 - Fix regression: [2.0.359 broke custom REPL connect sequences](https://github.com/BetterThanTomorrow/calva/issues/2197)
 
 ## [2.0.360] - 2023-05-16
