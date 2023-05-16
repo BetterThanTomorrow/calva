@@ -1,0 +1,12 @@
+{
+  "calva.replConnectSequences": [
+    {
+      "name": "Absolute root path",
+      "projectType": "deps.edn",
+      "cljsType": "none",
+      "autoSelectForJackIn": true,
+      //"projectRootPath": ["..", "auto-jack-in-absolute"]
+      "projectRootPath": ["/Users", "pez/Projects/calva/test-data/projects/auto-jack-in-absolute"]
+    }
+  ]
+}
