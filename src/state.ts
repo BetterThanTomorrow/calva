@@ -214,12 +214,23 @@ export async function initProjectDir(
           !!s.projectRootPath
       );
 
-  const projectRootPath: vscode.Uri = defaultSequence
-    ? vscode.Uri.joinPath(
+  let projectRootPath: vscode.Uri;
+  if (defaultSequence?.projectRootPath?.length > 0) {
+    if (path.isAbsolute(defaultSequence.projectRootPath[0])) {
+      projectRootPath = vscode.Uri.file(path.join(...defaultSequence.projectRootPath));
+    } else {
+      projectRootPath = vscode.Uri.joinPath(
         vscode.workspace.workspaceFolders[0].uri,
-        ...(defaultSequence?.projectRootPath ? defaultSequence.projectRootPath : [])
-      )
-    : await projectRoot.pickProjectRoot(candidatePaths, closestRootPath, connectType);
+        ...defaultSequence.projectRootPath
+      );
+    }
+  } else {
+    projectRootPath = await projectRoot.pickProjectRoot(
+      candidatePaths,
+      closestRootPath,
+      connectType
+    );
+  }
   if (projectRootPath) {
     setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
     setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
