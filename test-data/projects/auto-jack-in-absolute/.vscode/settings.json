@@ -5,7 +5,8 @@
       "projectType": "deps.edn",
       "cljsType": "none",
       "autoSelectForJackIn": true,
-      "projectRootPath": ["/Users/pez/Projects/calva/test-data/projects/auto-jack-in-absolute"]
+      //"projectRootPath": ["..", "auto-jack-in-absolute"]
+      "projectRootPath": ["/Users", "pez/Projects/calva/test-data/projects/auto-jack-in-absolute"]
     }
   ]
 }
