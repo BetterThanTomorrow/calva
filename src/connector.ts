@@ -203,6 +203,7 @@ function cleanUpAfterError(e: any) {
 
 async function setUpCljsRepl(session, build) {
   setStateValue('cljs', session);
+  setStateValue('cljc', session);
   status.update();
   outputWindow.appendLine(
     `; Connected session: cljs${build ? ', repl: ' + build : ''}\n${formatAsLineComments(
