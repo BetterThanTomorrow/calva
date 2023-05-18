@@ -111,7 +111,8 @@
           ".joke",
           ".boot",
           ".bb",
-          ".calva-repl"
+          ".calva-repl",
+          ".fiddle"
         ],
         "configuration": "./language-configuration.json"
       }
