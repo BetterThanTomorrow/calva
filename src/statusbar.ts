@@ -89,7 +89,7 @@ function update(context = state.extensionContext) {
     if (replType !== null) {
       const cljSession = getSession('clj');
       const cljsSession = getSession('cljs');
-      typeStatus.text = ['cljc', config.REPL_FILE_EXT].includes(fileType)
+      typeStatus.text = ['cljc', config.REPL_FILE_EXT, config.FIDDLE_FILE_EXT].includes(fileType)
         ? `cljc/${replType}`
         : replType;
       if (cljSession.replType !== cljsSession?.replType) {

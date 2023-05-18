@@ -13,6 +13,7 @@ import * as converters from './converters';
 import * as nreplUtil from './nrepl/util';
 
 const REPL_FILE_EXT = 'calva-repl';
+const FIDDLE_FILE_EXT = 'fiddle';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
 const KEYBINDINGS_ENABLED_CONTEXT_KEY = 'calva:keybindingsEnabled';
 
@@ -256,6 +257,7 @@ export {
   openCalvaConfigEdn,
   addEdnConfig,
   REPL_FILE_EXT,
+  FIDDLE_FILE_EXT,
   KEYBINDINGS_ENABLED_CONFIG_KEY,
   KEYBINDINGS_ENABLED_CONTEXT_KEY,
   documentSelector,
