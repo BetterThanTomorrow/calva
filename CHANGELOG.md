@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Regression in connecting to ClojureScript REPLs without builds with 2.0.362](https://github.com/BetterThanTomorrow/calva/issues/2202)
+
 ## [2.0.362] - 2023-05-21
 
 - Bump bundled deps.clj to v1.11.1.1273-4
