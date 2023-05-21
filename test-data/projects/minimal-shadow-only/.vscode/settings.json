@@ -1,0 +1,27 @@
+{
+  "calva.autoOpenJackInTerminal": true,
+  "calva.autoConnectRepl": true,
+  "calva.replConnectSequences": [
+    {
+      "projectType": "shadow-cljs",
+      "name": "Start ShadowCLJS REPL",
+      //"autoSelectForJackIn": true,
+      "projectRootPath": ["."],
+      "cljsType": "shadow-cljs",
+      "menuSelections": {
+        "cljsLaunchBuilds": ["app"],
+        "cljsDefaultBuild": "app"
+      }
+    },
+    {
+      "projectType": "deps.edn",
+      "name": "Connect ShadowCLJS REPL",
+      "autoSelectForConnect": true,
+      "projectRootPath": ["."],
+      "cljsType": "shadow-cljs",
+      "menuSelections": {
+        "cljsDefaultBuild": "frontend"
+      }
+    }
+  ]
+}
