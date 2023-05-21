@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.363] - 2023-05-21
+
 - Fix: [Regression in connecting to ClojureScript REPLs without builds with 2.0.362](https://github.com/BetterThanTomorrow/calva/issues/2202)
 
 ## [2.0.362] - 2023-05-21
