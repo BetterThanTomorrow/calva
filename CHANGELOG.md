@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.362] - 2023-05-21
+
 - Bump bundled deps.clj to v1.11.1.1273-4
 - Fix regression: [Cannot start a shadow-cljs REPL with non-keyword build id:s since version 2.0.355](https://github.com/BetterThanTomorrow/calva/issues/2200)
 
