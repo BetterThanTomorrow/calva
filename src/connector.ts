@@ -413,8 +413,8 @@ function createCLJSReplType(
         'cljsReplTypeHasBuilds',
         cljsType.buildsRequired
       );
-      let initCode = cljsType.connectCode,
-        build: string = null;
+      let initCode = cljsType.connectCode;
+      let build: string = null;
       if (menuSelections && menuSelections.cljsDefaultBuild && useDefaultBuild) {
         build = menuSelections.cljsDefaultBuild;
         useDefaultBuild = false;
@@ -445,6 +445,7 @@ function createCLJSReplType(
         return;
       }
 
+      build = build.startsWith(':') ? build : `:${build}`;
       connectToBuild = build;
       setStateValue('cljsBuild', build);
 
@@ -464,7 +465,6 @@ function createCLJSReplType(
 
   async function waitForShadowCljsRuntimes() {
     const cljSession = replSession.getSession('clj');
-    console.log(connectToBuild);
     const getRuntimesCode = `(count (shadow.cljs.devtools.api/repl-runtimes ${connectToBuild}))`;
     const checkForRuntimes = async () => {
       const runtimes = await cljSession.eval(getRuntimesCode, 'shadow.user').value;
