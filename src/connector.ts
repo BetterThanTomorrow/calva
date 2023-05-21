@@ -445,7 +445,9 @@ function createCLJSReplType(
         return;
       }
 
-      build = build.startsWith(':') ? build : `:${build}`;
+      if (typeof build == 'string' && build != '') {
+        build = build.startsWith(':') ? build : `:${build}`;
+      }
       connectToBuild = build;
       setStateValue('cljsBuild', build);
 
