@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.364] - 2023-05-26
+
+- [Enable Custom REPL Commands in non-Clojure files](https://github.com/BetterThanTomorrow/calva/issues/2208)
+
 ## [2.0.363] - 2023-05-21
 
 - Fix: [Regression in connecting to ClojureScript REPLs without builds with 2.0.362](https://github.com/BetterThanTomorrow/calva/issues/2202)

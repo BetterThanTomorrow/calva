@@ -489,6 +489,7 @@ async function loadFile(
           fileType
         );
         await customSnippets.evaluateSnippet(
+          util.getActiveTextEditor(),
           getConfig().autoEvaluateCode.onFileLoaded[fileType],
           context,
           {}

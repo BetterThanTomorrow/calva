@@ -163,10 +163,13 @@ export function toEndOfList(doc: vscode.TextDocument): SelectionAndText {
   return fromFn(doc, paredit.rangeToForwardList);
 }
 
-export function currentContext(document: vscode.TextDocument, pos: vscode.Position, prefix = '') {
+export function currentClojureContext(
+  document: vscode.TextDocument,
+  pos: vscode.Position,
+  prefix = ''
+) {
   const result = {};
   result[prefix + 'currentForm'] = currentFormText(document, pos);
-  result[prefix + 'currentFileText'] = currentFileText(document);
   result[prefix + 'currentPair'] = currentPairText(document, pos);
   result[prefix + 'enclosingForm'] = currentEnclosingFormText(document, pos);
   result[prefix + 'topLevelForm'] = currentTopLevelFormText(document, pos);
