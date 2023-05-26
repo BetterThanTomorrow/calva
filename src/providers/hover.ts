@@ -52,14 +52,14 @@ export async function provideHover(
         currentColumn: editor.selection.active.character,
         currentFilename: editor.document.fileName,
         selection: editor.document.getText(editor.selection),
-        ...getText.currentContext(editor.document, editor.selection.active),
-        ...getText.currentContext(document, position, 'hover'),
+        ...getText.currentClojureContext(editor.document, editor.selection.active),
+        ...getText.currentClojureContext(document, position, 'hover'),
       };
 
       await Promise.all(
         customREPLHoverSnippets.map(async (snippet) => {
           try {
-            const text = await evaluateSnippet(snippet.snippet, context, {
+            const text = await evaluateSnippet(editor, snippet.snippet, context, {
               evaluationSendCodeToOutputWindow: false,
               showErrorMessage: false,
               showResult: false,
