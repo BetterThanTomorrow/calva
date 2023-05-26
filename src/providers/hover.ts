@@ -52,6 +52,7 @@ export async function provideHover(
         currentColumn: editor.selection.active.character,
         currentFilename: editor.document.fileName,
         selection: editor.document.getText(editor.selection),
+        currentFileText: getText.currentFileText(editor.document),
         ...getText.currentClojureContext(editor.document, editor.selection.active),
         ...getText.currentClojureContext(document, position, 'hover'),
       };
