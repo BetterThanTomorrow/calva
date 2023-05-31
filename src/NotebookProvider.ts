@@ -163,12 +163,16 @@ export class NotebookKernel {
   }
 }
 
+// TODO: Why is this called also when executing a single cell?
 async function executeAll(
   cells: vscode.NotebookCell[],
   _notebook: vscode.NotebookDocument,
   controller: vscode.NotebookController
 ) {
   for (const cell of cells) {
+    if (cell.metadata?.richComment && cells.length > 1) {
+      return;
+    }
     await doExecution(cell, controller);
   }
 }

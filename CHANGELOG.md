@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Stop Run All in Clojure Notebooks from evaluating `comment` forms](https://github.com/BetterThanTomorrow/calva/issues/2210)
+
 ## [2.0.364] - 2023-05-26
 
 - [Enable Custom REPL Commands in non-Clojure files](https://github.com/BetterThanTomorrow/calva/issues/2208)
