@@ -171,7 +171,7 @@ async function executeAll(
 ) {
   for (const cell of cells) {
     if (cell.metadata?.richComment && cells.length > 1) {
-      return;
+      continue;
     }
     await doExecution(cell, controller);
   }
