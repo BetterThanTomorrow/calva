@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.365] - 2023-05-31
+
 - [Stop Run All in Clojure Notebooks from evaluating `comment` forms](https://github.com/BetterThanTomorrow/calva/issues/2210)
 
 ## [2.0.364] - 2023-05-26
