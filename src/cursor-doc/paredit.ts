@@ -3,6 +3,8 @@ import { validPair } from './clojure-lexer';
 import { ModelEdit, EditableDocument, ModelEditSelection } from './model';
 import { LispTokenCursor } from './token-cursor';
 import { backspaceOnWhitespace } from './backspace-on-whitespace';
+import _ = require('lodash');
+import { currentForm } from '../api/ranges';
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -961,9 +963,9 @@ export function growSelection(
   start: number = doc.selection.anchor,
   end: number = doc.selection.active
 ) {
-  const startC = doc.getTokenCursor(start),
-    endC = doc.getTokenCursor(end),
-    emptySelection = startC.equals(endC);
+  const startC = doc.getTokenCursor(start);
+  const endC = doc.getTokenCursor(end);
+  const emptySelection = startC.equals(endC);
 
   if (emptySelection) {
     const currentFormRange = startC.rangeForCurrentForm(start);
@@ -976,31 +978,38 @@ export function growSelection(
       startC.backwardUpList();
       endC.forwardList();
       growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
-    } else {
-      if (startC.backwardList()) {
-        // we are in an sexpr.
-        endC.forwardList();
-        endC.previous();
-      } else {
-        if (startC.backwardDownList()) {
-          startC.backwardList();
-          if (emptySelection) {
-            endC.set(startC);
-            endC.forwardList();
-            endC.next();
-          }
-          startC.previous();
-        } else if (startC.downList()) {
-          if (emptySelection) {
-            endC.set(startC);
-            endC.forwardList();
-            endC.next();
-          }
-          startC.previous();
-        }
-      }
-      growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
+      return;
     }
+    if (isInPairsList(startC, bindingForms)) {
+      const pairRange = currentSexpsRange(doc, startC, start, true);
+      if (!_.isEqual(pairRange, [start, end])) {
+        growSelectionStack(doc, pairRange);
+        return;
+      }
+    }
+    if (startC.backwardList()) {
+      // we are in an sexpr.
+      endC.forwardList();
+      endC.previous();
+    } else {
+      if (startC.backwardDownList()) {
+        startC.backwardList();
+        if (emptySelection) {
+          endC.set(startC);
+          endC.forwardList();
+          endC.next();
+        }
+        startC.previous();
+      } else if (startC.downList()) {
+        if (emptySelection) {
+          endC.set(startC);
+          endC.forwardList();
+          endC.next();
+        }
+        startC.previous();
+      }
+    }
+    growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
   }
 }
 

@@ -735,6 +735,30 @@ describe('paredit', () => {
         new ModelEditSelection(a[0], a[1])
       );
     });
+    it('grows selection to binding pairs', () => {
+      const a = docFromTextNotation('(a (let [b c |e| f]))');
+      const aSelection = new ModelEditSelection(a.selection.anchor, a.selection.active);
+      const b = docFromTextNotation('(a (let [b c |e f|]))');
+      const bSelection = new ModelEditSelection(b.selection.anchor, b.selection.active);
+      paredit.growSelection(a);
+      expect(a.selectionStack).toEqual([aSelection, bSelection]);
+    });
+    it('grows selection to all of binding box when binding pairs are selected', () => {
+      const a = docFromTextNotation('(a (let [b c |e f|]))');
+      const aSelection = new ModelEditSelection(a.selection.anchor, a.selection.active);
+      const b = docFromTextNotation('(a (let [|b c e f|]))');
+      const bSelection = new ModelEditSelection(b.selection.anchor, b.selection.active);
+      paredit.growSelection(a);
+      expect(a.selectionStack).toEqual([aSelection, bSelection]);
+    });
+    it('grows selection to the binding box when all binding pairs are selected', () => {
+      const a = docFromTextNotation('(a (let [|b c e f|]))');
+      const aSelection = new ModelEditSelection(a.selection.anchor, a.selection.active);
+      const b = docFromTextNotation('(a (let |[b c e f]|))');
+      const bSelection = new ModelEditSelection(b.selection.anchor, b.selection.active);
+      paredit.growSelection(a);
+      expect(a.selectionStack).toEqual([aSelection, bSelection]);
+    });
   });
 
   describe('dragSexpr', () => {

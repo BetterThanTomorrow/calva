@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.367] - 2023-06-01
+
+- [Grow selection considers ”form pairs” in bindings](https://github.com/BetterThanTomorrow/calva/issues/2033)
+
 ## [2.0.366] - 2023-06-01
 
 - [Add a `$selection-closing-brackets` custom REPL snippets variable](https://github.com/BetterThanTomorrow/calva/issues/2212)
