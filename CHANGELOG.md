@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.366] - 2023-06-01
+
 - [Add a `$selection-closing-brackets` custom REPL snippets variable](https://github.com/BetterThanTomorrow/calva/issues/2212)
 
 ## [2.0.365] - 2023-05-31
