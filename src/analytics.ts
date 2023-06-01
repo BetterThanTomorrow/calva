@@ -85,8 +85,7 @@ export default class Analytics {
       .post(
         `https://www.google-analytics.com/mp/collect?measurement_id=${this.GA4_MEASUREMENT_ID}&api_secret=${this.GA4_TOKEN}`,
         {
-          client_id: 'calva',
-          user_id: this.userID(),
+          client_id: this.userID(),
           events: [
             {
               name: 'page_view',
