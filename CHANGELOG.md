@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add a `$selection-closing-brackets` custom REPL snippets variable](https://github.com/BetterThanTomorrow/calva/issues/2212)
+
 ## [2.0.365] - 2023-05-31
 
 - [Stop Run All in Clojure Notebooks from evaluating `comment` forms](https://github.com/BetterThanTomorrow/calva/issues/2210)
