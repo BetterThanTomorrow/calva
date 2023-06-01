@@ -15,6 +15,8 @@
       "env": {
         "IS_DEBUG": "true",
         "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
+        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
         "DEBUG": "no-debug-universal-analytics"
       },
       "outFiles": ["${workspaceFolder}/out/**/*.js"]
@@ -30,6 +32,8 @@
       "env": {
         "IS_DEBUG": "true",
         "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
+        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
         "DEBUG": "no-debug-universal-analytics"
       },
       "outFiles": ["${workspaceFolder}/out/**/*.js"]
@@ -45,6 +49,8 @@
         "NODE_OPTIONS": "--throw-deprecation",
         "IS_DEBUG": "true",
         "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
+        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
         "DEBUG": "no-debug-universal-analytics"
       },
       "outFiles": ["${workspaceFolder}/out/**/*.js"]
@@ -60,6 +66,8 @@
       "env": {
         "IS_DEBUG": "true",
         "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
+        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
         "DEBUG": "no-debug-universal-analytics"
       },
       "outFiles": ["${workspaceFolder}/out/**/*.js"]
@@ -75,6 +83,8 @@
       "env": {
         "IS_DEBUG": "true",
         "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
+        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
         "DEBUG": "no-debug-universal-analytics"
       },
       "outFiles": ["${workspaceFolder}/out/**/*.js"]
@@ -94,6 +104,8 @@
         "IS_DEBUG": "true",
         "NEW_DRAMS": "true",
         "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
+        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
         "DEBUG": "no-debug-universal-analytics"
       },
       "outFiles": ["${workspaceFolder}/out/**/*.js"]
@@ -109,6 +121,8 @@
       "env": {
         "IS_DEBUG": "true",
         "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
+        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
         "DEBUG": "no-debug-universal-analytics"
       },
       "outFiles": ["${workspaceFolder}/out/**/*.js"]
@@ -127,6 +141,8 @@
       "env": {
         "IS_DEBUG": "true",
         "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
+        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
         "DEBUG": "no-debug-universal-analytics"
       },
       "outFiles": ["${workspaceFolder}/out/**/*.js"]
@@ -149,6 +165,8 @@
       "env": {
         "IS_DEBUG": "true",
         "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
+        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
         "DEBUG": "no-debug-universal-analytics"
       },
       "outFiles": ["${workspaceFolder}/out/**/*.js"]
@@ -162,6 +180,8 @@
       "env": {
         "IS_DEBUG": "true",
         "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
+        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
         "DEBUG": "no-debug-universal-analytics"
       },
       "args": [

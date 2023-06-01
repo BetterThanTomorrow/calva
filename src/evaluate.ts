@@ -70,7 +70,6 @@ async function evaluateCodeUpdatingUI(
   options,
   selection?: vscode.Selection
 ): Promise<string | null> {
-  void state.analytics().storeFact('evaluated-form');
   const pprintOptions = options.pprintOptions || getConfig().prettyPrintingOptions;
   // passed options overwrite config options
   const evaluationSendCodeToOutputWindow =
@@ -222,6 +221,9 @@ async function evaluateCodeUpdatingUI(
 }
 
 async function evaluateSelection(document = {}, options) {
+  void state.analytics().storeFact('evaluated-form');
+  void state.analytics().logGA4Pageview('/evaluated-form');
+
   const selectionFn: (editor: vscode.TextEditor) => [vscode.Selection, string] =
     options.selectionFn;
 
@@ -416,6 +418,8 @@ async function loadFile(
   document: vscode.TextDocument | Record<string, never> | undefined,
   pprintOptions: PrettyPrintingOptions
 ) {
+  void state.analytics().logGA4Pageview('/load-file');
+
   const doc = util.tryToGetDocument(document);
   const fileType = util.getFileType(doc);
   const ns = namespace.getNamespace(doc);

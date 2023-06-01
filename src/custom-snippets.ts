@@ -157,6 +157,10 @@ export function makeContext(editor: vscode.TextEditor, ns: string, editorNS: str
     editorNS,
     repl,
     selection: editor.document.getText(editor.selection),
+    selectionWithBracketTrail: getText.selectionAddingBrackets(
+      editor.document,
+      editor.selection.active
+    ),
     currentFileText: getText.currentFileText(editor.document),
     ...(editor.document.languageId === 'clojure'
       ? getText.currentClojureContext(editor.document, editor.selection.active)
@@ -184,6 +188,7 @@ function interpolateCode(editor: vscode.TextEditor, code: string, context): stri
     .replace(/\$ns/g, context.ns)
     .replace(/\$editor-ns/g, context.editorNS)
     .replace(/\$repl/g, context.repl)
+    .replace(/\$selection-closing-brackets/g, context.selectionWithBracketTrail?.[1])
     .replace(/\$selection/g, context.selection)
     .replace(/\$hover-text/g, context.hoverText);
   if (editor.document.languageId !== 'clojure') {

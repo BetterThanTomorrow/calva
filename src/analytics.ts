@@ -29,6 +29,9 @@ export default class Analytics {
   ).replace(/^FUBAR/, 'UA');
   private plausibleDomain = process.env.CALVA_DEV_GA ? 'calva-dev' : 'calva';
   private ipAddress: Promise<string>;
+  private GA4_TOKEN = process.env.CALVA_DEV_GA4_TOKEN ?? 'GgrUWszmTo2FG538YCUGpw';
+  private GA4_MEASUREMENT_ID = process.env.CALVA_DEV_GA4_ID ?? 'G-HYZ3MX6DL1';
+  private ua: string;
 
   constructor(context: vscode.ExtensionContext) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -68,6 +71,39 @@ export default class Analytics {
       this.visitor.pageview(path);
     }
     return this;
+  }
+
+  async logGA4Pageview(path: string) {
+    if (!userAllowsTelemetry()) {
+      return;
+    }
+    const userAgent = `Mozilla/5.0 (${os.platform()}; ${os.release()}; ${os.type}) Code/${
+      vscode.version
+    } Calva/${this.extensionVersion}`;
+
+    return axios
+      .post(
+        `https://www.google-analytics.com/mp/collect?measurement_id=${this.GA4_MEASUREMENT_ID}&api_secret=${this.GA4_TOKEN}`,
+        {
+          client_id: 'calva',
+          user_id: this.userID(),
+          events: [
+            {
+              name: 'page_view',
+              params: { page_location: path, page_title: path.replace(/^\//, '') },
+            },
+          ],
+        },
+        {
+          headers: {
+            'User-Agent': userAgent,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+      .catch(function (error) {
+        console.log(error);
+      });
   }
 
   // Facts stored for logging on next startup
