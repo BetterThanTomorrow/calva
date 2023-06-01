@@ -108,6 +108,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     util.setConnectedState(true);
     state.analytics().logEvent('REPL', 'ConnectedCLJ').send();
     void state.analytics().storeFact('connected-clj-repl');
+    void state.analytics().logGA4Pageview('/connected-clj-repl');
     setStateValue('clj', cljSession);
     setStateValue('cljc', cljSession);
     status.update();
@@ -172,6 +173,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
           )
           .send();
         void state.analytics().storeFact('connected-cljs-repl');
+        void state.analytics().logGA4Pageview('/connected-cljs-repl');
       }
       if (cljsSession) {
         await setUpCljsRepl(cljsSession, cljsBuild);
@@ -760,6 +762,9 @@ async function standaloneConnect(
       .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
       .send();
     void state.analytics().storeFact('connect-initiated', 'standalone-connect');
+    void state.analytics().logGA4Pageview('/connect-initiated');
+    void state.analytics().logGA4Pageview('/connect-initiated/standalone-connect');
+
     return connect(connectSequence, getConfig().autoSelectNReplPortFromPortFile, hostname, port);
   } else {
     outputWindow.appendLine('; Aborting connect, error determining connect sequence.');

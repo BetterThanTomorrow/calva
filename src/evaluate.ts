@@ -71,6 +71,8 @@ async function evaluateCodeUpdatingUI(
   selection?: vscode.Selection
 ): Promise<string | null> {
   void state.analytics().storeFact('evaluated-form');
+  void state.analytics().logGA4Pageview('/evaluated-form');
+
   const pprintOptions = options.pprintOptions || getConfig().prettyPrintingOptions;
   // passed options overwrite config options
   const evaluationSendCodeToOutputWindow =
