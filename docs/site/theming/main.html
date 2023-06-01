@@ -4,14 +4,5 @@
   {{ super() }}
   {% if config.extra.mkdocs_env == 'production' %}
     <script defer data-domain="calva.io" src="https://plausible.io/js/script.js"></script>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCNH3NCW97"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-VCNH3NCW97');
-    </script>
   {% endif %}
 {% endblock %}

@@ -81,7 +81,7 @@ export default class Analytics {
       vscode.version
     } Calva/${this.extensionVersion}`;
 
-    axios
+    return axios
       .post(
         `https://www.google-analytics.com/mp/collect?measurement_id=${this.GA4_MEASUREMENT_ID}&api_secret=${this.GA4_TOKEN}`,
         {
