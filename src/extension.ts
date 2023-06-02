@@ -154,7 +154,7 @@ async function activate(context: vscode.ExtensionContext) {
   void depsClj.downloadDepsClj(context.extensionPath);
 
   if (cljKondoExtension) {
-    vscode.window.showWarningMessage(
+    void vscode.window.showWarningMessage(
       'The clj-kondo extension is detected. You will see duplicate linting reports in some cases. You probably want to uninstall or disable the clj-kondo extension.',
       'Got it!'
     );
