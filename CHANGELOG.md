@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.368] - 2023-06-02
+
+- [Add back warning when clj-kondo extension is detected](https://github.com/BetterThanTomorrow/calva/issues/1882)
+
 ## [2.0.367] - 2023-06-01
 
 - [Grow selection considers ”form pairs” in bindings](https://github.com/BetterThanTomorrow/calva/issues/2033)

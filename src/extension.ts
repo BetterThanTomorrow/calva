@@ -114,6 +114,7 @@ async function activate(context: vscode.ExtensionContext) {
   const pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
   const cwExtension = vscode.extensions.getExtension('tonsky.clojure-warrior');
   const vimExtension = vscode.extensions.getExtension('vscodevim.vim');
+  const cljKondoExtension = vscode.extensions.getExtension('borkdude.clj-kondo');
   const clojureExtension = vscode.extensions.getExtension('avli.clojure');
   const customCljsRepl = config.getConfig().customCljsRepl;
   const replConnectSequences = config.getConfig().replConnectSequences;
@@ -151,6 +152,13 @@ async function activate(context: vscode.ExtensionContext) {
   state.setExtensionContext(context);
   state.initDepsEdnJackInExecutable();
   void depsClj.downloadDepsClj(context.extensionPath);
+
+  if (cljKondoExtension) {
+    void vscode.window.showWarningMessage(
+      'The clj-kondo extension is detected. You will see duplicate linting reports in some cases. You probably want to uninstall or disable the clj-kondo extension.',
+      'Got it!'
+    );
+  }
 
   if (!fmtExtension) {
     try {
