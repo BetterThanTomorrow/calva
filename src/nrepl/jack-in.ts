@@ -260,7 +260,7 @@ async function getJackInTerminalOptions(
       ...getGlobalJackInEnv(),
       ...processEnvObject(projectConnectSequence.jackInEnv),
       ...Object.entries(substitutions).reduce((acc, [key, value]) => {
-        return { ...acc, [`JACK-IN-${key}`]: value };
+        return { ...acc, [`JACK_IN_${key.replace(/-/g, '_')}`]: value };
       }, {}),
     },
     isWin: projectTypes.isWin,

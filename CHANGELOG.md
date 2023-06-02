@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.369] - 2023-06-02
+
+- Breaking configuration change: [Change from dashes to underscores for `customJackInCommandLine` env variables](https://github.com/BetterThanTomorrow/calva/issues/2215)
+
 ## [2.0.368] - 2023-06-02
 
 - [Add back warning when clj-kondo extension is detected](https://github.com/BetterThanTomorrow/calva/issues/1882)
