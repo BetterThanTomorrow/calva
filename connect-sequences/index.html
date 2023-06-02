@@ -1606,7 +1606,7 @@
 <p>A custom command line is executed from same directory as the REPL project root (See <code>projectRootPath</code>, above), and can be as simple as <code>my-repl-jack-in-command</code>. You  can use a relative or absolute path to your command line.</p>
 <p>If your custom command line starts a REPL of a project type that is not ”known”/built-in to Calva, use <code>custom</code> as the <code>projectType</code> for the connect sequence.</p>
 <h3 id="custom-command-line-substitutionsplaceholdersenvironment-variables">Custom Command Line Substitutions/Placeholders/Environment variables</h3>
-<p>You can use placeholders in your command line, and Calva will substitute them before executing the command. All these placeholders will also be provided to your script via environment variables with the same names:</p>
+<p>You can use placeholders in your command line, and Calva will substitute them before executing the command. All these placeholders will also be provided to your script via environment variables with the same names (except dashes will be underscores in the env variable names):</p>
 <p>nREPL dependency versions:</p>
 <ul>
 <li><code>JACK-IN-NREPL-VERSION</code></li>
@@ -1648,19 +1648,19 @@
 <span class="p">(</span><span class="kd">defn </span><span class="nv">process-args</span><span class="w"> </span><span class="p">[</span><span class="nv">args</span><span class="p">]</span>
 <span class="w">  </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">aliases</span><span class="w"> </span><span class="p">(</span><span class="nf">str/split</span><span class="w"> </span><span class="p">(</span><span class="ss">:aliases</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span><span class="w"> </span><span class="o">#</span><span class="s">&quot;,&quot;</span><span class="p">)</span>
 <span class="w">        </span><span class="nv">cider-nrepl-version</span><span class="w"> </span><span class="p">(</span><span class="ss">:cider-nrepl-version</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span>
-<span class="w">        </span><span class="nv">project-root-path</span><span class="w"> </span><span class="p">(</span><span class="nf">System/getenv</span><span class="w"> </span><span class="s">&quot;JACK-IN-PROJECT-ROOT-PATH&quot;</span><span class="p">)]</span>
+<span class="w">        </span><span class="nv">project-root-path</span><span class="w"> </span><span class="p">(</span><span class="nf">System/getenv</span><span class="w"> </span><span class="s">&quot;JACK_IN_PROJECT_ROOT_PATH&quot;</span><span class="p">)]</span>
 <span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Aliases:&quot;</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="nb">doseq </span><span class="p">[</span><span class="nv">alias</span><span class="w"> </span><span class="nv">aliases</span><span class="p">]</span>
 <span class="w">      </span><span class="p">(</span><span class="nb">println </span><span class="nv">alias</span><span class="p">))</span>
 <span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;CIDER nREPL version:&quot;</span><span class="w"> </span><span class="nv">cider-nrepl-version</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;JACK-IN-PROJECT-ROOT-PATH:&quot;</span><span class="w"> </span><span class="nv">project-root-path</span><span class="p">)))</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;JACK_IN_PROJECT_ROOT_PATH:&quot;</span><span class="w"> </span><span class="nv">project-root-path</span><span class="p">)))</span>
 
 <span class="p">(</span><span class="k">def </span><span class="nv">parsed-args</span><span class="w"> </span><span class="p">(</span><span class="nf">parse-args</span><span class="w"> </span><span class="nv">*command-line-args*</span><span class="p">))</span>
 
 <span class="p">(</span><span class="nb">when </span><span class="p">(</span><span class="nb">= </span><span class="nv">*file*</span><span class="w"> </span><span class="p">(</span><span class="nf">System/getProperty</span><span class="w"> </span><span class="s">&quot;babashka.file&quot;</span><span class="p">))</span>
 <span class="w">  </span><span class="p">(</span><span class="nf">process-args</span><span class="w"> </span><span class="nv">parsed-args</span><span class="p">))</span>
 </code></pre></div>
-<p>The script reads <code>JACK-IN-CLJS-LAUNCH-BUILDS</code> and <code>JACK-IN-CIDER-NREPL-VERSION</code> from the command line, and <code>JACK-IN-PROJECT-ROOT-PATH</code> from the environment. It could be configured for use in a custom connect sequence like this:</p>
+<p>The script reads <code>JACK-IN-CLJS-LAUNCH-BUILDS</code> and <code>JACK-IN-CIDER-NREPL-VERSION</code> from the command line, and <code>JACK_IN_PROJECT_ROOT_PATH</code> from the environment. It could be configured for use in a custom connect sequence like this:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;customJackInCommandLine&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;../../custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION&quot;</span><span class="p">,</span>
 </code></pre></div>
 <p>Note how in this case the REPL is started two directories ”down” from the workspace root where the script resides.</p>
