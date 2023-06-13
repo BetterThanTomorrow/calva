@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump bundled deps.clj to v1.11.1.1347
+
 ## [2.0.369] - 2023-06-02
 
 - Breaking configuration change: [Change from dashes to underscores for `customJackInCommandLine` env variables](https://github.com/BetterThanTomorrow/calva/issues/2215)
