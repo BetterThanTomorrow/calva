@@ -29,7 +29,6 @@ Calva sets some VS Code settings for all Clojure files. Some of these are needed
         "editor.formatOnType": true,
         "editor.autoIndent": "full",
         "editor.formatOnPaste": true,
-        "files.trimTrailingWhitespace": false,
         "editor.matchBrackets": "never",
         "editor.renderIndentGuides": false,
         "editor.parameterHints.enabled": false
@@ -47,7 +46,7 @@ Calva's pretty printing mode can be configured a bit. See [Pretty Printing](ppri
 
 This is highly customizable. See [Syntax highlighting](syntax-highlighting.md)
 
-## Color customizations 
+## Color customizations
 
 Calva defines a set of themable colors which can be provided by the user using [workbench.colorCustomizations](https://code.visualstudio.com/docs/getstarted/themes#_customize-a-color-theme).
 
@@ -88,7 +87,7 @@ The versions used are configurable via the VS Code settings `calva.jackInDepende
 
 ## Key bindings
 
-Most of Calva's commands have default keybindings. They are only defaults, though, and you can change keybindings as you wish. To facilitate precision in binding keys Calva keeps some [when clause contexts](https://code.visualstudio.com/api/references/when-clause-contexts) updated. 
+Most of Calva's commands have default keybindings. They are only defaults, though, and you can change keybindings as you wish. To facilitate precision in binding keys Calva keeps some [when clause contexts](https://code.visualstudio.com/api/references/when-clause-contexts) updated.
 
 ### When Clause Contexts
 
@@ -107,7 +106,7 @@ The following contexts are available with Calva:
 * `calva:cursorAtStartOfLine`: `true` when the cursor is at the start of a line including any leading whitespace
 * `calva:cursorAtEndOfLine`: `true` when the cursor is at the end of a line including any trailing whitespace
 
-### Some Custom Bindings 
+### Some Custom Bindings
 
 Here is a collection of custom keybindings from here and there.
 
