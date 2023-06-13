@@ -137,7 +137,6 @@
         "editor.formatOnType": true,
         "editor.autoIndent": "full",
         "editor.formatOnPaste": true,
-        "files.trimTrailingWhitespace": false,
         "editor.matchBrackets": "never",
         "editor.guides.indentation": false,
         "editor.parameterHints.enabled": false,
