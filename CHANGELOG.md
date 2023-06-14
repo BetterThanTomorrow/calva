@@ -6,6 +6,7 @@ Changes to Calva.
 
 - Fix: [Trailing whitespace not being stripped](https://github.com/BetterThanTomorrow/calva/issues/1258)
 - Bump bundled deps.clj to v1.11.1.1347
+- Fix: [Jack-in error when selecting multiple shadow-cljs builds](https://github.com/BetterThanTomorrow/calva/issues/2220)
 
 ## [2.0.369] - 2023-06-02
 
