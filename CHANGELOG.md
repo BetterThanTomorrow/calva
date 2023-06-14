@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Trailing whitespace not being stripped](https://github.com/BetterThanTomorrow/calva/issues/1258)
 - Bump bundled deps.clj to v1.11.1.1347
 
 ## [2.0.369] - 2023-06-02
