@@ -268,7 +268,7 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     isStarted: false,
     // isReadyToStartRegExp: /To quit, type: :cljs\/quit/,
     startCode:
-      "(do (require 'shadow.cljs.devtools.server) (shadow.cljs.devtools.server/start!) (require 'shadow.cljs.devtools.api) (shadow.cljs.devtools.api/watch %BUILDS%))",
+      "(do (require 'shadow.cljs.devtools.server) (shadow.cljs.devtools.server/start!) (require 'shadow.cljs.devtools.api) (doseq [build [%BUILDS%]] (shadow.cljs.devtools.api/watch build)))",
     connectCode: {
       build: `(do (require 'shadow.cljs.devtools.api) (shadow.cljs.devtools.api/nrepl-select %BUILD%))`,
       repl: `(do (require 'shadow.cljs.devtools.api) (shadow.cljs.devtools.api/%REPL%))`,

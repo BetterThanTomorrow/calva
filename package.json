@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.369",
+  "version": "2.0.370",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -137,7 +137,6 @@
         "editor.formatOnType": true,
         "editor.autoIndent": "full",
         "editor.formatOnPaste": true,
-        "files.trimTrailingWhitespace": false,
         "editor.matchBrackets": "never",
         "editor.guides.indentation": false,
         "editor.parameterHints.enabled": false,
