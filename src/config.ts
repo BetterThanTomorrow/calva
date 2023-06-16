@@ -177,6 +177,8 @@ function getConfig() {
   const autoEvaluateCode =
     configOptions.inspect<nreplUtil.AutoEvaluateCodeConfig>('autoEvaluateCode');
 
+  const replConnectSequences = configOptions.inspect<ReplConnectSequence[]>('replConnectSequences');
+
   return {
     formatOnSave: configOptions.get('formatOnSave'),
     evalOnSave: configOptions.get('evalOnSave'),
@@ -190,7 +192,11 @@ function getConfig() {
     clojureLspPath: configOptions.get<string>('clojureLspPath'),
     openBrowserWhenFigwheelStarted: configOptions.get<boolean>('openBrowserWhenFigwheelStarted'),
     customCljsRepl: configOptions.get('customCljsRepl', null),
-    replConnectSequences: configOptions.get<ReplConnectSequence[]>('replConnectSequences'),
+    replConnectSequences: [
+      ...replConnectSequences.globalValue,
+      ...replConnectSequences.workspaceValue,
+      ...(replConnectSequences.workspaceFolderValue ?? []),
+    ],
     myLeinProfiles: configOptions.get<string[]>('myLeinProfiles', []).map(_trimAliasName),
     myCljAliases: configOptions.get<string[]>('myCljAliases', []).map(_trimAliasName),
     asyncOutputDestination: configOptions.get<string>('sendAsyncOutputTo'),

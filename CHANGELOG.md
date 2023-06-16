@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Improve Jack-in Ux around deps.edn aliases with :main-opts](https://github.com/BetterThanTomorrow/calva/issues/2223)
+- [Merge user and workspace Custom Connect Sequences](https://github.com/BetterThanTomorrow/calva/issues/2225)
 
 ## [2.0.370] - 2023-06-15
 
