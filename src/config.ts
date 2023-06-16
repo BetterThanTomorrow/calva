@@ -193,8 +193,8 @@ function getConfig() {
     openBrowserWhenFigwheelStarted: configOptions.get<boolean>('openBrowserWhenFigwheelStarted'),
     customCljsRepl: configOptions.get('customCljsRepl', null),
     replConnectSequences: [
-      ...replConnectSequences.globalValue,
-      ...replConnectSequences.workspaceValue,
+      ...(replConnectSequences.globalValue ?? []),
+      ...(replConnectSequences.workspaceValue ?? []),
       ...(replConnectSequences.workspaceFolderValue ?? []),
     ],
     myLeinProfiles: configOptions.get<string[]>('myLeinProfiles', []).map(_trimAliasName),
