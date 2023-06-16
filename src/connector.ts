@@ -423,7 +423,9 @@ function createCLJSReplType(
       } else {
         if (typeof initCode === 'object' || initCode.includes('%BUILD%')) {
           build = await util.quickPickSingle({
-            values: startedBuilds ? startedBuilds : await figwheelOrShadowBuilds(cljsTypeName),
+            values: startedBuilds
+              ? startedBuilds.map((a) => ({ label: a }))
+              : (await figwheelOrShadowBuilds(cljsTypeName)).map((a) => ({ label: a })),
             placeHolder: 'Select which build to connect to',
             saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
               ' ',
@@ -531,7 +533,7 @@ function createCLJSReplType(
               allBuilds.length <= 1
                 ? allBuilds
                 : await util.quickPickMulti({
-                    values: allBuilds,
+                    values: allBuilds.map((a) => ({ label: a })),
                     placeHolder: 'Please select which builds to start',
                     saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
                       ' ',
