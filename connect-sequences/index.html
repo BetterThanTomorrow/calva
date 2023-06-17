@@ -645,9 +645,29 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#example-custom-jack-in-script" class="md-nav__link">
-    Example Custom Jack-in Script
+  <a href="#example-custom-jack-in-command-lines" class="md-nav__link">
+    Example Custom Jack-in Command lines
   </a>
+  
+    <nav class="md-nav" aria-label="Example Custom Jack-in Command lines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-a-babashka-repl-via-wsl" class="md-nav__link">
+    Start a Babashka REPL via WSL
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#an-exampleskeleton-script" class="md-nav__link">
+    An example/skeleton script
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1468,9 +1488,29 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#example-custom-jack-in-script" class="md-nav__link">
-    Example Custom Jack-in Script
+  <a href="#example-custom-jack-in-command-lines" class="md-nav__link">
+    Example Custom Jack-in Command lines
   </a>
+  
+    <nav class="md-nav" aria-label="Example Custom Jack-in Command lines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-a-babashka-repl-via-wsl" class="md-nav__link">
+    Start a Babashka REPL via WSL
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#an-exampleskeleton-script" class="md-nav__link">
+    An example/skeleton script
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1628,8 +1668,20 @@
 <li><code>JACK-IN-CLJS-LAUNCH-BUILDS</code>: For ClojureScript REPLs that configures builds, the builds selected by the user</li>
 <li><code>JACK-IN-NREPL-PORT</code>: For some project types (currently <code>nbb</code> and <code>Babashka</code>) Calva provided the TCP port they should use.</li>
 </ul>
-<h3 id="example-custom-jack-in-script">Example Custom Jack-in Script</h3>
-<p>This Babashka script doesn't actually start a REPL, it's provided more for giving you an idea about what it could look like, and as a starting point for your real scripts:</p>
+<h3 id="example-custom-jack-in-command-lines">Example Custom Jack-in Command lines</h3>
+<h4 id="start-a-babashka-repl-via-wsl">Start a Babashka REPL via WSL</h4>
+<p>Calva has a built-in jack-in sequence for starting a Babashka REPL and connect to it. It works as long as the <code>bb</code> process is on the same host as VS Code/Calva is running. So if you want it to run in WSL, but VS Code is running on your computer you need to start <code>bb</code> slightly differently. These settings in your VS Code settings file will give you a jack-in option that works for this:</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Bashbabka (WSL)&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;custom&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;customJackInCommandLine&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bash -c &#39;bb --nrepl-server JACK-IN-NREPL-PORT&#39;&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">  </span><span class="p">],</span>
+</code></pre></div>
+<p>If you place it in your user settings you will have access to it from any workspace.</p>
+<h4 id="an-exampleskeleton-script">An example/skeleton script</h4>
+<p>This script doesn't actually start a REPL, it's provided more for giving you an idea about what it could look like, and as a starting point for your real scripts:</p>
 <div class="highlight"><pre><span></span><code><span class="o">#</span><span class="nv">!/usr/bin/env</span><span class="w"> </span><span class="nv">bb</span>
 
 <span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">&#39;</span><span class="p">[</span><span class="nv">clojure.string</span><span class="w"> </span><span class="ss">:as</span><span class="w"> </span><span class="nv">str</span><span class="p">])</span>
@@ -1660,6 +1712,7 @@
 <span class="p">(</span><span class="nb">when </span><span class="p">(</span><span class="nb">= </span><span class="nv">*file*</span><span class="w"> </span><span class="p">(</span><span class="nf">System/getProperty</span><span class="w"> </span><span class="s">&quot;babashka.file&quot;</span><span class="p">))</span>
 <span class="w">  </span><span class="p">(</span><span class="nf">process-args</span><span class="w"> </span><span class="nv">parsed-args</span><span class="p">))</span>
 </code></pre></div>
+<p>It's written in Babashka to encourage you to write your shell scripts in a civilized language. 😀 See the article <a href="https://blog.agical.se/en/posts/changing-my-mind--converting-a-script-from-bash-to-babashka/">Changing my mind: Converting a script from bash to Babashka</a> for a small success-story about this mindset. See also <a href="https://github.com/pesterhazy/bash2bb">bash2bb</a>.</p>
 <p>The script reads <code>JACK-IN-CLJS-LAUNCH-BUILDS</code> and <code>JACK-IN-CIDER-NREPL-VERSION</code> from the command line, and <code>JACK_IN_PROJECT_ROOT_PATH</code> from the environment. It could be configured for use in a custom connect sequence like this:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;customJackInCommandLine&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;../../custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION&quot;</span><span class="p">,</span>
 </code></pre></div>
