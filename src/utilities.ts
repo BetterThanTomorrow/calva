@@ -51,7 +51,7 @@ export function isNonEmptyString(value: any): value is string {
 
 async function quickPickSingle(opts: {
   title?: string;
-  values: string[];
+  values: vscode.QuickPickItem[];
   saveAs: string;
   default?: string;
   placeHolder: string;
@@ -66,7 +66,7 @@ async function quickPickSingle(opts: {
   const hasOnlyOneOption = opts.autoSelect && opts.values.length == 1;
 
   const result = hasOnlyOneOption
-    ? opts.values[0]
+    ? opts.values[0]?.label
     : await quickPick(opts.values, selected ? [selected] : [], [], {
         title: opts.title,
         placeHolder: opts.placeHolder,
@@ -77,7 +77,11 @@ async function quickPickSingle(opts: {
   return result;
 }
 
-async function quickPickMulti(opts: { values: string[]; saveAs: string; placeHolder: string }) {
+async function quickPickMulti(opts: {
+  values: vscode.QuickPickItem[];
+  saveAs: string;
+  placeHolder: string;
+}) {
   const saveAs = `qps-${opts.saveAs}`;
   const selected = state.extensionContext.workspaceState.get<string[]>(saveAs) || [];
   const result = await quickPick(opts.values, [], selected, {
@@ -94,34 +98,34 @@ async function quickPickMulti(opts: { values: string[]; saveAs: string; placeHol
 let quickPickActive: Promise<void>;
 
 function quickPick(
-  itemsToPick: string[],
+  itemsToPick: vscode.QuickPickItem[],
   active: string[],
   selected: string[],
-  options: vscode.QuickPickOptions & { canPickMany: true }
+  quickPickOptions: vscode.QuickPickOptions & { canPickMany: true }
 ): Promise<string[]>;
 function quickPick(
-  itemsToPick: string[],
+  itemsToPick: vscode.QuickPickItem[],
   active: string[],
   selected: string[],
-  options: vscode.QuickPickOptions
+  quickPickOptions: vscode.QuickPickOptions
 ): Promise<string>;
 
 async function quickPick(
-  itemsToPick: string[],
+  itemsToPick: vscode.QuickPickItem[],
   active: string[],
   selected: string[],
-  options: vscode.QuickPickOptions
+  quickPickOptions: vscode.QuickPickOptions
 ): Promise<string[] | string | undefined> {
-  const items = itemsToPick.map((x) => ({ label: x }));
+  const items = itemsToPick; //.map((x) => ({ label: x }));
 
   const qp = vscode.window.createQuickPick();
   quickPickActive = new Promise<void>((resolve) => qp.onDidChangeActive((e) => resolve()));
-  qp.canSelectMany = !!options.canPickMany;
-  qp.title = options.title;
-  qp.placeholder = options.placeHolder;
-  qp.ignoreFocusOut = !!options.ignoreFocusOut;
-  qp.matchOnDescription = !!options.matchOnDescription;
-  qp.matchOnDetail = !!options.matchOnDetail;
+  qp.canSelectMany = !!quickPickOptions.canPickMany;
+  qp.title = quickPickOptions.title;
+  qp.placeholder = quickPickOptions.placeHolder;
+  qp.ignoreFocusOut = !!quickPickOptions.ignoreFocusOut;
+  qp.matchOnDescription = !!quickPickOptions.matchOnDescription;
+  qp.matchOnDetail = !!quickPickOptions.matchOnDetail;
   qp.items = items;
   qp.activeItems = items.filter((x) => active.indexOf(x.label) != -1);
   qp.selectedItems = items.filter((x) => selected.indexOf(x.label) != -1);
@@ -129,9 +133,9 @@ async function quickPick(
     qp.show();
     qp.onDidAccept(() => {
       if (qp.canSelectMany) {
-        resolve(qp.selectedItems.map((x) => x.label));
+        resolve(qp.selectedItems.map((x) => x?.label));
       } else if (qp.selectedItems.length) {
-        resolve(qp.selectedItems[0].label);
+        resolve(qp.selectedItems[0]?.label);
       } else {
         resolve(undefined);
       }

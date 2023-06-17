@@ -433,7 +433,8 @@ async function askForConnectSequence(
       title: `${menuTitleType}: Project Type/Connect Sequence`,
       values: sequences
         .filter((s) => !(s.projectType === 'custom' && !s.customJackInCommandLine))
-        .map((s) => s.name),
+        .map((s) => s.name)
+        .map((a) => ({ label: a })),
       placeHolder: 'Please select a project type',
       saveAs: saveAsPath,
       autoSelect: true,

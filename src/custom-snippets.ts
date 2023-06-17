@@ -121,7 +121,7 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
     if (snippetsMenuItems.length > 0) {
       try {
         pick = await util.quickPickSingle({
-          values: snippetsMenuItems,
+          values: snippetsMenuItems.map((a) => ({ label: a })),
           placeHolder: 'Choose a command to run at the REPL',
           saveAs: 'runCustomREPLCommand',
         });

@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.371] - 2023-06-17
+
+- [Improve Jack-in Ux around deps.edn aliases with :main-opts](https://github.com/BetterThanTomorrow/calva/issues/2223)
+- [Merge user and workspace Custom Connect Sequences](https://github.com/BetterThanTomorrow/calva/issues/2225)
+
 ## [2.0.370] - 2023-06-15
 
 - Fix: [Trailing whitespace not being stripped](https://github.com/BetterThanTomorrow/calva/issues/1258)

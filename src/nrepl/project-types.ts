@@ -128,7 +128,7 @@ async function selectShadowBuilds(
     selectedBuilds = menuSelections
       ? menuSelections.cljsLaunchBuilds
       : await utilities.quickPickMulti({
-          values: foundBuilds.filter((x) => x[0] == ':'),
+          values: foundBuilds.filter((x) => x[0] == ':').map((a) => ({ label: a })),
           placeHolder: 'Select builds to start',
           saveAs: `${state.getProjectRootUri().toString()}/shadow-cljs-jack-in`,
         }),
@@ -183,7 +183,7 @@ async function leinProfilesAndAlias(
           if (aliases.length) {
             aliases.unshift('No alias');
             alias = await utilities.quickPickSingle({
-              values: aliases,
+              values: aliases.map((a) => ({ label: a })),
               saveAs: `${state.getProjectRootUri().toString()}/lein-cli-alias`,
               placeHolder: 'Choose alias to launch with',
             });
@@ -211,7 +211,7 @@ async function leinProfilesAndAlias(
         profiles = projectProfiles.map(keywordize);
         if (profiles.length) {
           profiles = await utilities.quickPickMulti({
-            values: profiles,
+            values: profiles.map((a) => ({ label: a })),
             saveAs: `${state.getProjectRootUri().toString()}/lein-cli-profiles`,
             placeHolder: 'Pick any profiles to launch with',
           });
@@ -602,37 +602,24 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
   if (launchAliases) {
     aliases = launchAliases.map(keywordize);
   } else {
-    if (aliasesWithMain.length > 0) {
-      const alertKey = 'calva.jackInMainOptsWarningEnabled';
-      if (state.extensionContext.workspaceState.get(alertKey, true)) {
-        void vscode.window
-          .showInformationMessage(
-            `The alias ${aliasesWithMain.join(
-              ', and '
-            )}, specify :main-opts. Only select the alias if it starts an nREPL server, otherwise Jack-in will not work.`,
-            'OK',
-            'Open docs',
-            "Don't show again"
-          )
-          .then((answer) => {
-            if (answer === 'Open docs') {
-              void vscode.commands.executeCommand(
-                'vscode.open',
-                vscode.Uri.parse('https://calva.io/connect/#jack-in-and-main-opts')
-              );
-            } else if (answer === "Don't show again") {
-              void state.extensionContext.workspaceState.update(alertKey, false);
-            }
-          });
-      }
-    }
     const myAliases = getConfig().myCljAliases;
     if (myAliases && myAliases.length) {
       projectAliases = [...projectAliases, ...myAliases];
     }
     if (projectAliases.length) {
       aliases = await utilities.quickPickMulti({
-        values: projectAliases.map(keywordize).sort(),
+        values: projectAliases
+          .map(keywordize)
+          .sort()
+          .map((a) =>
+            aliasesWithMain.includes(a)
+              ? {
+                  label: a,
+                  description: '$(warning) Has :main-opts',
+                  detail: 'Only select this alias if it starts an nREPL server.',
+                }
+              : { label: a }
+          ),
         saveAs: `${state.getProjectRootUri().toString()}/clj-cli-aliases`,
         placeHolder: 'Pick any aliases to launch with',
       });
