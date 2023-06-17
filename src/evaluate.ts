@@ -221,7 +221,6 @@ async function evaluateCodeUpdatingUI(
 }
 
 async function evaluateSelection(document = {}, options) {
-  void state.analytics().storeFact('evaluated-form');
   void state.analytics().logGA4Pageview('/evaluated-form');
 
   const selectionFn: (editor: vscode.TextEditor) => [vscode.Selection, string] =

@@ -290,7 +290,6 @@ export async function jackIn(
   disableAutoSelect: boolean,
   cb?: () => unknown
 ) {
-  void state.analytics().storeFact('connect-initiated', 'jack-in');
   void state.analytics().logGA4Pageview('/connect-initiated');
   void state.analytics().logGA4Pageview('/connect-initiated/jack-in');
 
