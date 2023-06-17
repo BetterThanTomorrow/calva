@@ -91,9 +91,27 @@ Depending on the project type Calva will also look for these placeholders:
 * `JACK-IN-CLJS-LAUNCH-BUILDS`: For ClojureScript REPLs that configures builds, the builds selected by the user
 * `JACK-IN-NREPL-PORT`: For some project types (currently `nbb` and `Babashka`) Calva provided the TCP port they should use.
 
-### Example Custom Jack-in Script
+### Example Custom Jack-in Command lines
 
-This Babashka script doesn't actually start a REPL, it's provided more for giving you an idea about what it could look like, and as a starting point for your real scripts:
+#### Start a Babashka REPL via WSL
+
+Calva has a built-in jack-in sequence for starting a Babashka REPL and connect to it. It works as long as the `bb` process is on the same host as VS Code/Calva is running. So if you want it to run in WSL, but VS Code is running on your computer you need to start `bb` slightly differently. These settings in your VS Code settings file will give you a jack-in option that works for this:
+
+```json
+  "calva.replConnectSequences": [
+    {
+        "name": "Bashbabka (WSL)",
+        "projectType": "custom",
+        "customJackInCommandLine": "bash -c 'bb --nrepl-server JACK-IN-NREPL-PORT'",
+    },
+  ],
+```
+
+If you place it in your user settings you will have access to it from any workspace.
+
+#### An example/skeleton script
+
+This script doesn't actually start a REPL, it's provided more for giving you an idea about what it could look like, and as a starting point for your real scripts:
 
 ```clojure
 #!/usr/bin/env bb
@@ -127,6 +145,8 @@ This Babashka script doesn't actually start a REPL, it's provided more for givin
   (process-args parsed-args))
 
 ```
+
+It's written in Babashka to encourage you to write your shell scripts in a civilized language. 😀 See the article [Changing my mind: Converting a script from bash to Babashka](https://blog.agical.se/en/posts/changing-my-mind--converting-a-script-from-bash-to-babashka/) for a small success-story about this mindset. See also [bash2bb](https://github.com/pesterhazy/bash2bb).
 
 The script reads `JACK-IN-CLJS-LAUNCH-BUILDS` and `JACK-IN-CIDER-NREPL-VERSION` from the command line, and `JACK_IN_PROJECT_ROOT_PATH` from the environment. It could be configured for use in a custom connect sequence like this:
 
