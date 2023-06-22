@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [When pasting something with trailing space, it gets removed](https://github.com/BetterThanTomorrow/calva/issues/2229)
+
 ## [2.0.371] - 2023-06-17
 
 - [Improve Jack-in Ux around deps.edn aliases with :main-opts](https://github.com/BetterThanTomorrow/calva/issues/2223)
