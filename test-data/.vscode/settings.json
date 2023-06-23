@@ -15,9 +15,17 @@
     {
       "name": "Current file text",
       "snippet": "'($file-text)"
+    },
+    {
+      "name": "Selection, closing brackets",
+      "snippet": "$selection-closing-brackets"
     }
   ],
   "calva.customREPLHoverSnippets": [
+    {
+      "name": "Selection, closing brackets",
+      "snippet": "$selection-closing-brackets"
+    },
     {
       "name": "edn hover hover-text",
       "snippet": "(str \"**JSON hover hover-text** \" \"$hover-text\")"
