@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [When pasting something with trailing space, it gets removed](https://github.com/BetterThanTomorrow/calva/issues/2229)
+- Fix: [Trailing space is removed unconditionally from pasted text](https://github.com/BetterThanTomorrow/calva/issues/2229)
 
 ## [2.0.371] - 2023-06-17
 
