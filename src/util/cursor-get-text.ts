@@ -82,7 +82,7 @@ export function startOfFileToCursor(doc: EditableDocument): RangeAndText {
 }
 
 export function selectionAddingBrackets(doc: EditableDocument): RangeAndText {
-  const [left, right] = [doc.selection.anchor, doc.selection.active].sort();
+  const [left, right] = [doc.selection.anchor, doc.selection.active].sort((a, b) => a - b);
   const cursor = doc.getTokenCursor(left);
   cursor.forwardSexp(true, true, true);
   const rangeEnd = cursor.offsetStart;
