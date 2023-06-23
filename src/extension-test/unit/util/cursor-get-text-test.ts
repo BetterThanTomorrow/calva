@@ -109,4 +109,16 @@ describe('get text', () => {
       ]);
     });
   });
+
+  describe('selectionAddingBrackets', () => {
+    it('Folds the missing brackets of the selection with brackets from the text behind the selection', () => {
+      const doc = docFromTextNotation('(a b) |(c {:d [1 2 3|] :e :f} d) [4 5 6]');
+      const range: [number, number] = [doc.selection.anchor, doc.selection.active];
+      const trail = ']})';
+      expect(getText.selectionAddingBrackets(doc)).toEqual([
+        range,
+        `${doc.model.getText(...range)}${trail}`,
+      ]);
+    });
+  });
 });
