@@ -13,6 +13,7 @@ import { isUndefined, cloneDeep } from 'lodash';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
 import { formatIndex } from './format-index';
 import * as state from '../../state';
+import * as getText from '../../util/get-text';
 
 const FormatDepthDefaults = {
   deftype: 2,
@@ -55,9 +56,12 @@ export async function indentPosition(position: vscode.Position, document: vscode
 
 export async function formatRangeEdits(
   document: vscode.TextDocument,
-  range: vscode.Range
+  originalRange: vscode.Range
 ): Promise<vscode.TextEdit[] | undefined> {
-  const text: string = document.getText(range);
+  const originalText = document.getText(originalRange);
+  const [range, text]: [vscode.Range, string] = originalText.match(/[\])}]/)
+    ? [originalRange, originalText]
+    : getText.currentEnclosingFormText(document, originalRange.end);
   const mirroredDoc: MirroredDocument = getDocument(document);
   const startIndex = document.offsetAt(range.start);
   const endIndex = document.offsetAt(range.end);

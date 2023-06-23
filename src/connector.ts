@@ -107,7 +107,6 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     util.setConnectingState(false);
     util.setConnectedState(true);
     state.analytics().logEvent('REPL', 'ConnectedCLJ').send();
-    void state.analytics().storeFact('connected-clj-repl');
     void state.analytics().logGA4Pageview('/connected-clj-repl');
     setStateValue('clj', cljSession);
     setStateValue('cljc', cljSession);
@@ -172,7 +171,6 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
             isBuiltinType ? (connectSequence.cljsType as string) : 'Custom'
           )
           .send();
-        void state.analytics().storeFact('connected-cljs-repl');
         void state.analytics().logGA4Pageview('/connected-cljs-repl');
       }
       if (cljsSession) {
@@ -763,7 +761,6 @@ async function standaloneConnect(
       .analytics()
       .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
       .send();
-    void state.analytics().storeFact('connect-initiated', 'standalone-connect');
     void state.analytics().logGA4Pageview('/connect-initiated');
     void state.analytics().logGA4Pageview('/connect-initiated/standalone-connect');
 

@@ -95,7 +95,6 @@ async function activate(context: vscode.ExtensionContext) {
 
   setStateValue('analytics', new Analytics(context));
   state.analytics().logPath('/start').logEvent('LifeCycle', 'Started').send();
-  void state.analytics().logPlausiblePageview('/start');
   void state.analytics().logGA4Pageview('/start');
 
   model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
