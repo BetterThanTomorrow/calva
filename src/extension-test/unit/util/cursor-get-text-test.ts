@@ -121,4 +121,36 @@ describe('get text', () => {
       ]);
     });
   });
+
+  describe('addMissingBrackets', () => {
+    it('Adds missing brackets', () => {
+      const text = '(a b) (c {:d [1 2 3 "four"';
+      const trail = ']})';
+      expect(getText.addMissingBrackets(text)).toEqual(`${text}${trail}`);
+    });
+    it('Leaves non-broken structure alone', () => {
+      const text = '(a b) (c {:d [1 2 3 "four"] :e :f} g) h';
+      expect(getText.addMissingBrackets(text)).toEqual(text);
+    });
+    it('Does not attempt to fix missing brackets', () => {
+      const text = '(a b) (c {:d [1 2 3 "four"]}) extra ]})';
+      const trail = '';
+      expect(getText.addMissingBrackets(text)).toEqual(`${text}${trail}`);
+    });
+    it('Ignores brackets in strings', () => {
+      const text = '(a b) "{{" (c {:d [1 2 3 "four([{" [';
+      const trail = ']]})';
+      expect(getText.addMissingBrackets(text)).toEqual(`${text}${trail}`);
+    });
+    it('Ignores brackets in line comments', () => {
+      const text = '(a b) (c {:d \n; ( [ ( {\n[1 2 3 "four"';
+      const trail = ']})';
+      expect(getText.addMissingBrackets(text)).toEqual(`${text}${trail}`);
+    });
+    it('Closes strings', () => {
+      const text = '(a b) (c {:d [1 2 3 "four';
+      const trail = '"]})';
+      expect(getText.addMissingBrackets(text)).toEqual(`${text}${trail}`);
+    });
+  });
 });

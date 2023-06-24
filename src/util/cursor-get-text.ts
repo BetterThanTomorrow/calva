@@ -2,7 +2,7 @@
  * Can be unit tested since vscode and stuff is not imported
  */
 
-import { EditableDocument } from '../cursor-doc/model';
+import { EditableDocument, StringDocument } from '../cursor-doc/model';
 
 export type RangeAndText = [[number, number], string] | [undefined, ''];
 
@@ -87,4 +87,30 @@ export function selectionAddingBrackets(doc: EditableDocument): RangeAndText {
   cursor.forwardSexp(true, true, true);
   const rangeEnd = cursor.offsetStart;
   return rangeToCursor(doc, [left, rangeEnd], left, right);
+}
+
+export function addMissingBrackets(text: string): string {
+  const doc = new StringDocument(text);
+  const cursor = doc.getTokenCursor(0);
+  const stack: string[] = [];
+  do {
+    const token = cursor.getToken();
+    if (token.type === 'open') {
+      stack.push(token.raw[token.raw.length - 1]);
+    } else if (token.type === 'close') {
+      stack.pop();
+    }
+    cursor.next();
+  } while (!cursor.atEnd());
+  if (stack.length === 0) {
+    return text;
+  } else {
+    stack.reverse();
+    const trail = stack
+      .map((bracket) => {
+        return { '{': '}', '[': ']', '(': ')', '"': '"' }[bracket];
+      })
+      .join('');
+    return `${text}${trail}`;
+  }
 }
