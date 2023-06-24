@@ -1,6 +1,11 @@
 import * as model from './model';
 
-export function addMissingBrackets(text: string): { append: string; prepend: string } {
+export type MissingTexts = {
+  append: string;
+  prepend: string;
+};
+
+export function getMissingBrackets(text: string): MissingTexts {
   const doc = new model.StringDocument(text);
   const cursor = doc.getTokenCursor(0);
   const stack: string[] = [];
