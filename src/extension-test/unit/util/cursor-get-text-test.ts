@@ -132,10 +132,10 @@ describe('get text', () => {
       const text = '(a b) (c {:d [1 2 3 "four"] :e :f} g) h';
       expect(getText.addMissingBrackets(text)).toEqual(text);
     });
-    it('Does not attempt to fix missing brackets', () => {
-      const text = '(a b) (c {:d [1 2 3 "four"]}) extra ]})';
-      const trail = '';
-      expect(getText.addMissingBrackets(text)).toEqual(`${text}${trail}`);
+    it('Adds missing opening brackets', () => {
+      const text = '(a b) (c {:d [1 2 3 "four"]}) extra ] closing } brackets)';
+      const head = '({[';
+      expect(getText.addMissingBrackets(text)).toEqual(`${head}${text}`);
     });
     it('Ignores brackets in strings', () => {
       const text = '(a b) "{{" (c {:d [1 2 3 "four([{" [';
