@@ -1,6 +1,6 @@
 import * as model from './model';
 
-export function addMissingBrackets(text: string): string {
+export function addMissingBrackets(text: string): { append: string; prepend: string } {
   const doc = new model.StringDocument(text);
   const cursor = doc.getTokenCursor(0);
   const stack: string[] = [];
@@ -19,14 +19,12 @@ export function addMissingBrackets(text: string): string {
     cursor.next();
   } while (!cursor.atEnd());
   if (stack.length === 0) {
-    return `${missingOpens.join('')}${text}`;
+    return { append: '', prepend: missingOpens.join('') };
   } else {
     stack.reverse();
-    const missingCloses = stack
-      .map((bracket) => {
-        return { '{': '}', '[': ']', '(': ')', '"': '"' }[bracket];
-      })
-      .join('');
-    return `${missingOpens.join('')}${text}${missingCloses}`;
+    const missingCloses = stack.map((bracket) => {
+      return { '{': '}', '[': ']', '(': ')', '"': '"' }[bracket];
+    });
+    return { prepend: missingOpens.join(''), append: missingCloses.join('') };
   }
 }
