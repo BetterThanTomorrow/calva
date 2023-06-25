@@ -63,10 +63,16 @@ export async function formatRangeEdits(
     const missingTexts = cursorDocUtils.getMissingBrackets(originalText);
     const healedText = `${missingTexts.prepend}${originalText}${missingTexts.append}`;
     const formattedHealedText = await formatCode(healedText, document.eol);
-    const formattedText = formattedHealedText.substring(
-      missingTexts.prepend.length,
-      missingTexts.prepend.length + formattedHealedText.length - missingTexts.append.length
-    );
+    const formattedText = formattedHealedText
+      .substring(
+        missingTexts.prepend.length,
+        missingTexts.prepend.length + formattedHealedText.length - missingTexts.append.length
+      )
+      .split(_convertEolNumToStringNotation(document.eol))
+      .map((line: string, i: number) =>
+        i === 0 ? line : `${' '.repeat(originalRange.start.character)}${line}`
+      )
+      .join(_convertEolNumToStringNotation(document.eol));
     const endIndex = startIndex + formattedText.length;
     const allText =
       document.getText(new vscode.Range(document.positionAt(0), originalRange.start)) +
