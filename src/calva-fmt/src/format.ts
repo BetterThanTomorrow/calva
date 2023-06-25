@@ -58,20 +58,15 @@ export async function formatRangeEdits(
   const cursor = mirrorDoc.getTokenCursor(startIndex);
   if (!cursor.withinString() && !cursor.withinComment()) {
     const originalText = document.getText(originalRange);
-    console.log(`originalText:\n${originalText}`);
     const leadingWs = originalText.match(/^\s*/)[0];
     const trailingWs = originalText.match(/\s*$/)[0];
     const missingTexts = cursorDocUtils.getMissingBrackets(originalText);
-    console.log(`missingTexts:\n${missingTexts}`);
     const healedText = `${missingTexts.prepend}${originalText}${missingTexts.append}`;
-    console.log(`healedText:\n${healedText}`);
     const formattedHealedText = await formatCode(healedText, document.eol);
-    console.log(`formattedHealedText:\n${formattedHealedText}`);
     const formattedText = formattedHealedText.substring(
       missingTexts.prepend.length,
       missingTexts.prepend.length + formattedHealedText.length - missingTexts.append.length
     );
-    console.log('formattedText:\n', formattedText);
     const endIndex = startIndex + formattedText.length;
     const allText =
       document.getText(new vscode.Range(document.positionAt(0), originalRange.start)) +
