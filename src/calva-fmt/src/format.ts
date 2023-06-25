@@ -57,8 +57,8 @@ export async function formatRangeEdits(
   const startIndex = document.offsetAt(originalRange.start);
   const cursor = mirrorDoc.getTokenCursor(startIndex);
   if (!cursor.withinString() && !cursor.withinComment()) {
+    const eol = _convertEolNumToStringNotation(document.eol);
     const originalText = document.getText(originalRange);
-    const leadingWs = originalText.match(/^\s*/)[0];
     const trailingWs = originalText.match(/\s*$/)[0];
     const missingTexts = cursorDocUtils.getMissingBrackets(originalText);
     const healedText = `${missingTexts.prepend}${originalText}${missingTexts.append}`;
@@ -68,30 +68,13 @@ export async function formatRangeEdits(
         missingTexts.prepend.length,
         missingTexts.prepend.length + formattedHealedText.length - missingTexts.append.length
       )
-      .split(_convertEolNumToStringNotation(document.eol))
+      .split(eol)
       .map((line: string, i: number) =>
         i === 0 ? line : `${' '.repeat(originalRange.start.character)}${line}`
       )
-      .join(_convertEolNumToStringNotation(document.eol));
-    const endIndex = startIndex + formattedText.length;
-    const allText =
-      document.getText(new vscode.Range(document.positionAt(0), originalRange.start)) +
-      formattedText +
-      document.getText(
-        new vscode.Range(originalRange.end, document.positionAt(document.getText().length))
-      );
-    const rangeTuple: number[] = [startIndex, endIndex];
-    const newText: string | undefined = await _formatRange(
-      formattedText,
-      allText,
-      rangeTuple,
-      _convertEolNumToStringNotation(document.eol)
-    );
-    if (newText) {
-      return [vscode.TextEdit.replace(originalRange, `${leadingWs}${newText}${trailingWs}`)];
-    } else {
-      return [vscode.TextEdit.replace(originalRange, `${leadingWs}${formattedText}${trailingWs}`)];
-    }
+      .join(eol);
+    const newText = `${formattedText}${formattedText.endsWith(trailingWs) ? '' : trailingWs}`;
+    return [vscode.TextEdit.replace(originalRange, newText)];
   }
 }
 
