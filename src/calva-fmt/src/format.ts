@@ -1,19 +1,14 @@
 import * as vscode from 'vscode';
 import * as config from '../../formatter-config';
 import * as outputWindow from '../../results-output/results-doc';
-import {
-  getIndent,
-  getDocumentOffset,
-  MirroredDocument,
-  getDocument,
-} from '../../doc-mirror/index';
+import { getIndent, getDocumentOffset, getDocument } from '../../doc-mirror/index';
 import { formatTextAtRange, formatText, jsify } from '../../../out/cljs-lib/cljs-lib';
 import * as util from '../../utilities';
+import * as cursorDocUtils from '../../cursor-doc/utilities';
 import { isUndefined, cloneDeep } from 'lodash';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
 import { formatIndex } from './format-index';
 import * as state from '../../state';
-import * as getText from '../../util/get-text';
 
 const FormatDepthDefaults = {
   deftype: 2,
@@ -58,25 +53,28 @@ export async function formatRangeEdits(
   document: vscode.TextDocument,
   originalRange: vscode.Range
 ): Promise<vscode.TextEdit[] | undefined> {
-  const originalText = document.getText(originalRange);
-  const [range, text]: [vscode.Range, string] = originalText.match(/[\])}]/)
-    ? [originalRange, originalText]
-    : getText.currentEnclosingFormText(document, originalRange.end);
-  const mirroredDoc: MirroredDocument = getDocument(document);
-  const startIndex = document.offsetAt(range.start);
-  const endIndex = document.offsetAt(range.end);
-  const cursor = mirroredDoc.getTokenCursor(startIndex);
-  if (!cursor.withinString()) {
-    const rangeTuple: number[] = [startIndex, endIndex];
-    const newText: string | undefined = await _formatRange(
-      text,
-      document.getText(),
-      rangeTuple,
-      _convertEolNumToStringNotation(document.eol)
-    );
-    if (newText) {
-      return [vscode.TextEdit.replace(range, newText)];
-    }
+  const mirrorDoc = getDocument(document);
+  const startIndex = document.offsetAt(originalRange.start);
+  const cursor = mirrorDoc.getTokenCursor(startIndex);
+  if (!cursor.withinString() && !cursor.withinComment()) {
+    const eol = _convertEolNumToStringNotation(document.eol);
+    const originalText = document.getText(originalRange);
+    const trailingWs = originalText.match(/\s*$/)[0];
+    const missingTexts = cursorDocUtils.getMissingBrackets(originalText);
+    const healedText = `${missingTexts.prepend}${originalText}${missingTexts.append}`;
+    const formattedHealedText = await formatCode(healedText, document.eol);
+    const formattedText = formattedHealedText
+      .substring(
+        missingTexts.prepend.length,
+        missingTexts.prepend.length + formattedHealedText.length - missingTexts.append.length
+      )
+      .split(eol)
+      .map((line: string, i: number) =>
+        i === 0 ? line : `${' '.repeat(originalRange.start.character)}${line}`
+      )
+      .join(eol);
+    const newText = `${formattedText}${formattedText.endsWith(trailingWs) ? '' : trailingWs}`;
+    return [vscode.TextEdit.replace(originalRange, newText)];
   }
 }
 

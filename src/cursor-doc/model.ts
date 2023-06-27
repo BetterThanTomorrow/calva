@@ -559,6 +559,7 @@ export class StringDocument implements EditableDocument {
 
   insertString(text: string) {
     this.model.insertString(0, text);
+    initScanner(scanner.maxLength);
   }
 
   getSelectionText: () => string;

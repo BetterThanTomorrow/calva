@@ -1080,9 +1080,7 @@ describe('paredit', () => {
         await paredit.rewrapSexpr(a, '{', '}');
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
-      // TODO: Something is broken in Peredit or the test utilities
-      //       this test make a lot of other tests fail
-      xit('Rewraps #{} -> ""', async () => {
+      it('Rewraps #{} -> ""', async () => {
         const a = docFromTextNotation('a #{b c|} d');
         const b = docFromTextNotation('a "b c|" d');
         await paredit.rewrapSexpr(a, '"', '"');
@@ -1182,9 +1180,7 @@ describe('paredit', () => {
       });
 
       describe('Slurping backwards', () => {
-        // TODO: Figure out why this test makes the following test fail
-        //       It's something with in-string navigation...
-        it.skip('slurps form before string', async () => {
+        it('slurps form before string', async () => {
           const a = docFromTextNotation('(str) "fo|o"');
           const b = docFromTextNotation('"(str) fo|o"');
           await paredit.backwardSlurpSexp(a);
@@ -1668,7 +1664,7 @@ describe('paredit', () => {
 
       // NB: enabling this breaks bunch of other tests.
       //     Not sure why, but it can be run successfully by itself.
-      it.skip('splice string', async () => {
+      xit('splice string', async () => {
         const a = docFromTextNotation('"h|ello"');
         await paredit.spliceSexp(a);
         expect(text(a)).toEqual('hello');
