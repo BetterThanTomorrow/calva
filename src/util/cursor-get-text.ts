@@ -2,7 +2,7 @@
  * Can be unit tested since vscode and stuff is not imported
  */
 
-import { EditableDocument } from '../cursor-doc/model';
+import { EditableDocument, StringDocument } from '../cursor-doc/model';
 
 export type RangeAndText = [[number, number], string] | [undefined, ''];
 

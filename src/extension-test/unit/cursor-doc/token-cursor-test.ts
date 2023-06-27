@@ -140,13 +140,13 @@ describe('Token Cursor', () => {
       cursor.forwardSexp(true, true, true);
       expect(cursor.offsetStart).toBe(b.selection.anchor);
     });
-    it.skip('Does not move past unbalanced top level form', () => {
+    xit('Does not move past unbalanced top level form', () => {
       //TODO: Figure out why this doesn't work
-      //TODO: Figure out why this breaks some tests run after this one
       const d = docFromTextNotation('|(foo "bar"');
       const cursor: LispTokenCursor = d.getTokenCursor(d.selection.anchor);
+      const offsetStart = cursor.offsetStart;
       cursor.forwardSexp();
-      expect(cursor.offsetStart).toBe(d.selection.anchor);
+      expect(cursor.offsetStart).toBe(offsetStart);
     });
   });
 
