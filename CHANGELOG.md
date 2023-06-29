@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Pasting text with leading whitespace increases the leading whitespace](https://github.com/BetterThanTomorrow/calva/issues/2236)
+
 ## [2.0.373] - 2023-06-27
 
 - [Re-indent non-complete code, when pasting or formatting selection](https://github.com/BetterThanTomorrow/calva/issues/1709)

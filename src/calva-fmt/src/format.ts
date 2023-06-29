@@ -59,21 +59,27 @@ export async function formatRangeEdits(
   if (!cursor.withinString() && !cursor.withinComment()) {
     const eol = _convertEolNumToStringNotation(document.eol);
     const originalText = document.getText(originalRange);
+    const leadingWs = originalText.match(/^\s*/)[0];
     const trailingWs = originalText.match(/\s*$/)[0];
     const missingTexts = cursorDocUtils.getMissingBrackets(originalText);
-    const healedText = `${missingTexts.prepend}${originalText}${missingTexts.append}`;
+    const healedText = `${missingTexts.prepend}${originalText.trim()}${missingTexts.append}`;
     const formattedHealedText = await formatCode(healedText, document.eol);
+    const leadingEolPos = leadingWs.lastIndexOf(eol);
+    const startIndent =
+      leadingEolPos === -1
+        ? originalRange.start.character
+        : leadingWs.length - leadingEolPos - eol.length;
     const formattedText = formattedHealedText
       .substring(
         missingTexts.prepend.length,
         missingTexts.prepend.length + formattedHealedText.length - missingTexts.append.length
       )
       .split(eol)
-      .map((line: string, i: number) =>
-        i === 0 ? line : `${' '.repeat(originalRange.start.character)}${line}`
-      )
+      .map((line: string, i: number) => (i === 0 ? line : `${' '.repeat(startIndent)}${line}`))
       .join(eol);
-    const newText = `${formattedText}${formattedText.endsWith(trailingWs) ? '' : trailingWs}`;
+    const newText = `${formattedText.startsWith(leadingWs) ? '' : leadingWs}${formattedText}${
+      formattedText.endsWith(trailingWs) ? '' : trailingWs
+    }`;
     return [vscode.TextEdit.replace(originalRange, newText)];
   }
 }
