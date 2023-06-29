@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.374] - 2023-06-29
+
 - Fix: [Pasting text with leading whitespace increases the leading whitespace](https://github.com/BetterThanTomorrow/calva/issues/2236)
 
 ## [2.0.373] - 2023-06-27
