@@ -5,36 +5,36 @@ import * as fiddleFiles from '../../../util/fiddle-files';
 describe('fiddle files', () => {
   describe('fiddle file for source', () => {
     it('without source->fiddle map, gets fiddle file for cljc file', function () {
-      expect(fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c-d.cljc', '/u/p', null)).toBe(
-        '/u/p/src/a/b/c-d.fiddle'
+      expect(fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c_d.cljc', '/u/p', null)).toBe(
+        '/u/p/src/a/b/c_d.fiddle'
       );
     });
     it('with source->fiddle map, gets fiddle file for cljc file', function () {
       expect(
-        fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c-d.cljc', '/u/p', [
-          { source: ['src'], fiddle: ['dev'] },
+        fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c_d.cljc', '/u/p', [
+          { source: ['src'], fiddle: ['dev', 'fiddles'] },
         ])
-      ).toBe('/u/p/dev/a/b/c-d.cljc');
+      ).toBe('/u/p/dev/fiddles/a/b/c_d.cljc');
     });
     it('with source->fiddle map with several matching source mappings, gets fiddle file for first', function () {
       expect(
-        fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c-d.cljc', '/u/p', [
+        fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c_d.cljc', '/u/p', [
           { source: ['no-match'], fiddle: ['no-fiddle'] },
           { source: ['src'], fiddle: ['first'] },
           { source: ['src'], fiddle: ['second'] },
         ])
-      ).toBe('/u/p/first/a/b/c-d.cljc');
+      ).toBe('/u/p/first/a/b/c_d.cljc');
     });
     it('throws when no source mapping', function () {
       expect(() =>
-        fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c-d.cljc', '/u/p', [
+        fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c_d.cljc', '/u/p', [
           { source: ['no-match'], fiddle: ['no-fiddle'] },
         ])
       ).toThrow();
     });
     it('throws when project root does not match', function () {
       expect(() =>
-        fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c-d.cljc', '/u/p-no', [
+        fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c_d.cljc', '/u/p-no', [
           { source: ['no-match'], fiddle: ['no-fiddle'] },
           { source: ['src'], fiddle: ['first'] },
           { source: ['src'], fiddle: ['second'] },
@@ -47,38 +47,38 @@ describe('fiddle files', () => {
     describe('source base', () => {
       it('without fiddle->source map, gets source base for fiddle file', function () {
         expect(
-          fiddleFiles.getSourceBaseForFiddleFile('/u/p/src/a/b/c-d.fiddle', '/u/p', null)
-        ).toBe('/u/p/src/a/b/c-d');
+          fiddleFiles.getSourceBaseForFiddleFile('/u/p/src/a/b/c_d.fiddle', '/u/p', null)
+        ).toBe('/u/p/src/a/b/c_d');
       });
       it('with fiddle->source map, gets source base for fiddle file', function () {
         expect(
-          fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/a/b/c-d.clj', '/u/p', [
-            { source: ['src'], fiddle: ['dev'] },
+          fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/fiddles/a/b/c_d.clj', '/u/p', [
+            { source: ['src'], fiddle: ['dev', 'fiddles'] },
           ])
-        ).toBe('/u/p/src/a/b/c-d');
+        ).toBe('/u/p/src/a/b/c_d');
       });
       it('with fiddle->source map with several matching source mappings, gets fiddle file for first', function () {
         expect(
-          fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/a/b/c-d.cljc', '/u/p', [
+          fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/fiddles/a/b/c_d.cljc', '/u/p', [
             { source: ['no-source'], fiddle: ['no-match'] },
-            { source: ['first'], fiddle: ['dev'] },
-            { source: ['second'], fiddle: ['dev'] },
+            { source: ['first'], fiddle: ['dev', 'fiddles'] },
+            { source: ['second'], fiddle: ['dev', 'fiddles'] },
           ])
-        ).toBe('/u/p/first/a/b/c-d');
+        ).toBe('/u/p/first/a/b/c_d');
       });
       it('throws when no fiddle mapping', function () {
         expect(() =>
-          fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/a/b/c-d.fiddle', '/u/p', [
+          fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/fiddles/a/b/c_d.fiddle', '/u/p', [
             { source: ['no-source'], fiddle: ['no-match'] },
           ])
         ).toThrow();
       });
       it('throws when project root does not match', function () {
         expect(() =>
-          fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/a/b/c-d.cljc', '/u/p-no', [
+          fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/fiddles/a/b/c_d.cljc', '/u/p-no', [
             { source: ['no-source'], fiddle: ['no-match'] },
-            { source: ['first'], fiddle: ['dev'] },
-            { source: ['second'], fiddle: ['dev'] },
+            { source: ['first'], fiddle: ['dev', 'fiddles'] },
+            { source: ['second'], fiddle: ['dev', 'fiddles'] },
           ])
         ).toThrow();
       });
@@ -88,41 +88,41 @@ describe('fiddle files', () => {
       const mockWorkspace: fiddleFiles.Workspace = {
         findFiles: (pattern: string) => {
           return Promise.resolve([
-            { fsPath: '/u/p/src/a/b/c-d.clj' },
-            { fsPath: '/u/p/src/a/b/c-d.cljc' },
+            { fsPath: '/u/p/src/a/b/c_d.clj' },
+            { fsPath: '/u/p/src/a/b/c_d.cljc' },
           ]);
         },
       };
       it('without fiddle->source map, gets cljc source file for fiddle file', async function () {
         expect(
           await fiddleFiles.getSourceForFiddleFile(
-            '/u/p/src/a/b/c-d.fiddle',
+            '/u/p/src/a/b/c_d.fiddle',
             '/u/p',
             null,
             mockWorkspace,
             ['cljc', 'clj']
           )
-        ).toBe('/u/p/src/a/b/c-d.cljc');
+        ).toBe('/u/p/src/a/b/c_d.cljc');
       });
       it('with fiddle->source map, gets source clj for clj fiddle file', async function () {
         expect(
           await fiddleFiles.getSourceForFiddleFile(
-            '/u/p/dev/a/b/c-d.clj',
+            '/u/p/dev/fiddles/a/b/c_d.clj',
             '/u/p',
-            [{ source: ['src'], fiddle: ['dev'] }],
+            [{ source: ['src'], fiddle: ['dev', 'fiddles'] }],
             mockWorkspace
           )
-        ).toBe('/u/p/src/a/b/c-d.clj');
+        ).toBe('/u/p/src/a/b/c_d.clj');
       });
       it('with fiddle->source map, gets source bb for bb fiddle file', async function () {
         expect(
           await fiddleFiles.getSourceForFiddleFile(
-            '/u/p/dev/a/b/c-d.bb',
+            '/u/p/dev/fiddles/a/b/c_d.bb',
             '/u/p',
-            [{ source: ['src'], fiddle: ['dev'] }],
+            [{ source: ['src'], fiddle: ['dev', 'fiddles'] }],
             mockWorkspace
           )
-        ).toBe('/u/p/src/a/b/c-d.bb');
+        ).toBe('/u/p/src/a/b/c_d.bb');
       });
     });
   });
