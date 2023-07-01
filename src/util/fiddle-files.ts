@@ -31,8 +31,9 @@ export function getFiddleForFilePath(
       filePath.length - path.extname(filePath).length
     )}.${FIDDLE_FILE_EXTENSION}`;
   }
-  const sourceMappings = sourceToFiddleFilePaths.filter(({ source, fiddle }) => {
-    const sourcePath = path.join(projectRootPath, ...source);
+  
+  const sourceMappings = sourceToFiddleFilePaths.filter((mapping) => {
+    const sourcePath = path.join(projectRootPath, ...mapping.source);
     return filePath.startsWith(sourcePath);
   });
   if (sourceMappings.length === 0) {
