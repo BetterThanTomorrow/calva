@@ -37,8 +37,8 @@ function openFile(file: string | vscode.Uri) {
     .then((doc) => vscode.window.showTextDocument(doc, { preserveFocus: false }));
 }
 
-function showConfirmationDialog(text: string, button: string) {
-  return vscode.window.showWarningMessage(text, { modal: true }, button);
+function showConfirmationDialog(prompt: string, file: string, button: string) {
+  return vscode.window.showInformationMessage(prompt, { modal: true, detail: file }, button);
 }
 
 async function createNewFile(filePath: string) {
@@ -51,7 +51,11 @@ async function createNewFile(filePath: string) {
 }
 
 async function askToCreateANewFile(filePath: string) {
-  const answer = await showConfirmationDialog(`Create ${filePath}?`, 'Create');
+  const answer = await showConfirmationDialog(
+    `The file does not exist. Do you want to create it?`,
+    vscode.workspace.asRelativePath(filePath),
+    'Create'
+  );
   if (answer === 'Create') {
     void createNewFile(filePath).then(() => {
       void openFile(filePath);
