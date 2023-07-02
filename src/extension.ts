@@ -229,7 +229,7 @@ async function activate(context: vscode.ExtensionContext) {
     jackIn: jackIn.jackInCommand,
     jackOut: jackIn.jackOutCommand,
     loadFile: async () => {
-      await eval.loadFile({}, config.getConfig().prettyPrintingOptions);
+      await eval.loadDocument({}, config.getConfig().prettyPrintingOptions);
       return new Promise((resolve) => {
         outputWindow.appendPrompt(resolve);
       });
@@ -373,7 +373,7 @@ async function activate(context: vscode.ExtensionContext) {
 
         if (evalOnSave) {
           if (!outputWindow.isResultsDoc(document)) {
-            await eval.loadFile(document, config.getConfig().prettyPrintingOptions);
+            await eval.loadDocument(document, config.getConfig().prettyPrintingOptions);
             outputWindow.appendPrompt();
             state.analytics().logEvent('Calva', 'OnSaveLoad').send();
           }

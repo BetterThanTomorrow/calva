@@ -187,7 +187,7 @@ export async function startStandaloneRepl(
       viewColumn: vscode.ViewColumn.One,
       preserveFocus: false,
     });
-    await eval.loadFile({}, getConfig().prettyPrintingOptions);
+    await eval.loadDocument({}, getConfig().prettyPrintingOptions);
     outputWindow.appendPrompt();
   });
 }
