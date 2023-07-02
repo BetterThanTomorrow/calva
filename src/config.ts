@@ -243,8 +243,7 @@ function getConfig() {
       ],
       autoEvaluateCode.defaultValue
     ),
-    sourceToFiddleFilePaths:
-      configOptions.get<fiddleFilesUtil.SourceToFiddleFilePaths>('sourceToFiddleFilePaths'),
+    fiddleFilePaths: configOptions.get<fiddleFilesUtil.FiddleFilePaths>('fiddleFilePaths'),
   };
 }
 

@@ -1,6 +1,6 @@
 import * as path from 'path';
 
-export type SourceToFiddleFilePaths = Array<{
+export type FiddleFilePaths = Array<{
   source: string[];
   fiddle: string[];
 }> | null;
@@ -48,7 +48,7 @@ function getMappingRelativePath(projectRootPath: string, filePath: string, mappi
 export function getFiddleForSourceFile(
   filePath: string,
   projectRootPath: string,
-  sourceToFiddleFilePaths: SourceToFiddleFilePaths
+  sourceToFiddleFilePaths: FiddleFilePaths
 ): string {
   if (sourceToFiddleFilePaths === null) {
     return `${filePath.substring(
@@ -68,7 +68,7 @@ export function getFiddleForSourceFile(
 export function getSourceBaseForFiddleFile(
   filePath: string,
   projectRootPath: string,
-  sourceToFiddleFilePaths: SourceToFiddleFilePaths
+  sourceToFiddleFilePaths: FiddleFilePaths
 ): string {
   if (sourceToFiddleFilePaths === null) {
     if (path.extname(filePath) !== `.${FIDDLE_FILE_EXTENSION}`) {
@@ -105,7 +105,7 @@ export interface Workspace {
 export async function getSourceForFiddleFile(
   filePath: string,
   projectRootPath: string,
-  sourceToFiddleFilePaths: SourceToFiddleFilePaths,
+  sourceToFiddleFilePaths: FiddleFilePaths,
   workspace: Workspace,
   extensions: string[] = clojureFileExtensions
 ): Promise<string> {
@@ -125,7 +125,7 @@ export async function getSourceForFiddleFile(
 export function isFiddleFile(
   filePath: string,
   projectRootPath: string,
-  sourceToFiddleFilePaths: SourceToFiddleFilePaths
+  sourceToFiddleFilePaths: FiddleFilePaths
 ): boolean {
   return sourceToFiddleFilePaths === null
     ? path.extname(filePath) === `.${FIDDLE_FILE_EXTENSION}`
