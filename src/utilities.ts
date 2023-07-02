@@ -239,7 +239,7 @@ function getConnectedState() {
 function setConnectedState(value: boolean) {
   void vscode.commands.executeCommand('setContext', 'calva:connected', value);
   cljsLib.setStateValue('connected', value);
-  if (vscode.window.activeTextEditor && value) {
+  if (value) {
     fiddleFiles.updateFiddleFileOpenedContext(vscode.window.activeTextEditor);
   }
 }
