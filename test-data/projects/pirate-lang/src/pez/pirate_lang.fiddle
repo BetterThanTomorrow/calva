@@ -1,0 +1,9 @@
+(ns pez.pirate-lang)
+
+(comment
+  (to-pirate-talk "Have you heard about Pirate talk?" english-o)
+  ;; => "HoHavove yoyou hohearordod aboboutot PoPiroratote totalolkok?"
+
+  (from-pirate-talk "HoHavove yoyou hohearordod aboboutot PoPiroratote totalolkok?" english-o)
+  ;; => "Have you heard about Pirate talk?"
+  )

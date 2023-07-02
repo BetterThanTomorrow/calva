@@ -42,10 +42,13 @@ import * as clojureDocs from './clojuredocs';
 import { capitalize } from './utilities';
 import * as overrides from './overrides';
 import * as lsp from './lsp';
+import * as fiddleFiles from './fiddle-files';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
+  console.log('onDidChangeEditorOrSelection');
   replHistory.setReplHistoryCommandsActiveContext(editor);
   whenContexts.setCursorContextIfChanged(editor);
+  fiddleFiles.updateFiddleFileOpenedContext(editor);
 }
 
 function setKeybindingsEnabledContext() {
