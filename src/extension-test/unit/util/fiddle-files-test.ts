@@ -1,5 +1,4 @@
 import * as expect from 'expect';
-import * as fs from 'fs';
 import * as fiddleFiles from '../../../util/fiddle-files';
 
 describe('fiddle files', () => {
