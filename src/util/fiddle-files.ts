@@ -19,6 +19,28 @@ const clojureFileExtensions = [
   'joke',
 ];
 
+function getMapping(
+  sourceToFiddleFilePaths: { source: string[]; fiddle: string[] }[],
+  projectRootPath: string,
+  filePath: string,
+  from: 'source' | 'fiddle'
+) {
+  const mappings = sourceToFiddleFilePaths.filter((mapping) => {
+    const mappingRootPath = path.join(projectRootPath, ...mapping[from]);
+    return filePath.startsWith(mappingRootPath);
+  });
+  if (mappings.length === 0) {
+    throw new Error(`No fiddle<->source mapping found for file ${filePath}`);
+  }
+  return mappings[0];
+}
+
+function getMappingRelativePath(projectRootPath: string, filePath: string, mappingPath: string[]) {
+  const mappingRootPath = path.join(projectRootPath, ...mappingPath);
+  const relativeFilePath = path.relative(mappingRootPath, filePath);
+  return relativeFilePath;
+}
+
 export function getFiddleForSourceFile(
   filePath: string,
   projectRootPath: string,
@@ -31,17 +53,9 @@ export function getFiddleForSourceFile(
     )}.${FIDDLE_FILE_EXTENSION}`;
   }
 
-  const sourceMappings = sourceToFiddleFilePaths.filter((mapping) => {
-    const sourcePath = path.join(projectRootPath, ...mapping.source);
-    return filePath.startsWith(sourcePath);
-  });
-  if (sourceMappings.length === 0) {
-    throw new Error(`No source->fiddle mapping found for file ${filePath}`);
-  }
-  const sourceMapping = sourceMappings[0];
-  const sourcePath = path.join(projectRootPath, ...sourceMapping.source);
-  const relativeFilePath = path.relative(sourcePath, filePath);
-  return path.join(projectRootPath, ...sourceMapping.fiddle, relativeFilePath);
+  const mapping = getMapping(sourceToFiddleFilePaths, projectRootPath, filePath, 'source');
+  const relativeFilePath = getMappingRelativePath(projectRootPath, filePath, mapping.source);
+  return path.join(projectRootPath, ...mapping.fiddle, relativeFilePath);
 }
 
 export function getSourceBaseForFiddleFile(
@@ -60,21 +74,14 @@ export function getSourceBaseForFiddleFile(
     return filePath.substring(0, filePath.length - path.extname(filePath).length);
   }
 
-  const fiddleMappings = sourceToFiddleFilePaths.filter((mapping) => {
-    const fiddlePath = path.join(projectRootPath, ...mapping.fiddle);
-    return filePath.startsWith(fiddlePath);
-  });
-  if (fiddleMappings.length === 0) {
-    throw new Error(`No fiddle->source mapping found for file ${filePath}`);
-  }
-  const fiddleMapping = fiddleMappings[0];
-  const fiddlePath = path.join(projectRootPath, ...fiddleMapping.fiddle);
-  const relativeFilePath = path.relative(fiddlePath, filePath);
+  const mapping = getMapping(sourceToFiddleFilePaths, projectRootPath, filePath, 'fiddle');
+  const rootPath = path.join(projectRootPath, ...mapping.fiddle);
+  const relativeFilePath = path.relative(rootPath, filePath);
   const relativeBasePath = relativeFilePath.substring(
     0,
     relativeFilePath.length - path.extname(relativeFilePath).length
   );
-  return path.join(projectRootPath, ...fiddleMapping.source, relativeBasePath);
+  return path.join(projectRootPath, ...mapping.source, relativeBasePath);
 }
 
 interface Uri {
