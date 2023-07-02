@@ -19,6 +19,13 @@ const clojureFileExtensions = [
   'joke',
 ];
 
+export class FiddleMappingException extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = 'FiddleMappingException';
+  }
+}
+
 function getMapping(
   sourceToFiddleFilePaths: { source: string[]; fiddle: string[] }[],
   projectRootPath: string,
@@ -29,10 +36,7 @@ function getMapping(
     const mappingRootPath = path.join(projectRootPath, ...mapping[from]);
     return filePath.startsWith(mappingRootPath);
   });
-  if (mappings.length === 0) {
-    throw new Error(`No fiddle<->source mapping found for file ${filePath}`);
-  }
-  return mappings[0];
+  return mappings.length > 0 ? mappings[0] : undefined;
 }
 
 function getMappingRelativePath(projectRootPath: string, filePath: string, mappingPath: string[]) {
@@ -54,6 +58,9 @@ export function getFiddleForSourceFile(
   }
 
   const mapping = getMapping(sourceToFiddleFilePaths, projectRootPath, filePath, 'source');
+  if (mapping === undefined) {
+    throw new FiddleMappingException(`No fiddle<->source mapping found for file ${filePath}`);
+  }
   const relativeFilePath = getMappingRelativePath(projectRootPath, filePath, mapping.source);
   return path.join(projectRootPath, ...mapping.fiddle, relativeFilePath);
 }
@@ -75,6 +82,9 @@ export function getSourceBaseForFiddleFile(
   }
 
   const mapping = getMapping(sourceToFiddleFilePaths, projectRootPath, filePath, 'fiddle');
+  if (mapping === undefined) {
+    throw new FiddleMappingException(`No fiddle<->source mapping found for file ${filePath}`);
+  }
   const rootPath = path.join(projectRootPath, ...mapping.fiddle);
   const relativeFilePath = path.relative(rootPath, filePath);
   const relativeBasePath = relativeFilePath.substring(
@@ -110,4 +120,21 @@ export async function getSourceForFiddleFile(
     })[0].fsPath;
   }
   return `${sourceBase}${path.extname(filePath)}`;
+}
+
+export function isFiddleFile(
+  filePath: string,
+  projectRootPath: string,
+  sourceToFiddleFilePaths: SourceToFiddleFilePaths
+): boolean {
+  if (sourceToFiddleFilePaths === null) {
+    return path.extname(filePath) === `.${FIDDLE_FILE_EXTENSION}`;
+  }
+  try {
+    const mapping = getMapping(sourceToFiddleFilePaths, projectRootPath, filePath, 'fiddle');
+    const rootPath = path.join(projectRootPath, ...mapping.fiddle);
+    return filePath.startsWith(rootPath);
+  } catch (e) {
+    return false;
+  }
 }

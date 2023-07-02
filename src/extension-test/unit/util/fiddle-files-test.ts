@@ -3,6 +3,45 @@ import * as fs from 'fs';
 import * as fiddleFiles from '../../../util/fiddle-files';
 
 describe('fiddle files', () => {
+  describe('context', () => {
+    it('without source->fiddle map, a .fiddle files is fiddle file', function () {
+      expect(fiddleFiles.isFiddleFile('/u/p/src/a/b/c_d.fiddle', '/u/p', null)).toBeTruthy();
+    });
+    it('without source->fiddle map, all .fiddle files are fiddle files, also outside the project root', function () {
+      expect(fiddleFiles.isFiddleFile('/u/p/src/a/b/c_d.fiddle', '/z/p', null)).toBeTruthy();
+    });
+    it('with fiddle->source map, a .cljc file in the fiddle path is fiddle file', function () {
+      expect(
+        fiddleFiles.isFiddleFile('/u/p/dev/fiddles/a/b/c_d.cljc', '/u/p', [
+          { source: ['src'], fiddle: ['dev', 'fiddles'] },
+        ])
+      ).toBeTruthy();
+    });
+    it('with fiddle->source map, a .fiddle file in the fiddle path is a fiddle file', function () {
+      expect(
+        fiddleFiles.isFiddleFile('/u/p/dev/fiddles/a/b/c_d.fiddle', '/u/p', [
+          { source: ['src'], fiddle: ['dev', 'fiddles'] },
+        ])
+      ).toBeTruthy();
+    });
+    it('with fiddle->source map, a .cljc file not in the fiddle path is not a fiddle file', function () {
+      expect(
+        fiddleFiles.isFiddleFile('/u/p/src/a/b/c_d.cljc', '/u/p', [
+          { source: ['src'], fiddle: ['dev', 'fiddles'] },
+        ])
+      ).toBeFalsy();
+    });
+    it('with multiple fiddle->source mappings, a file in any of the fiddle paths is a fiddle file', function () {
+      expect(
+        fiddleFiles.isFiddleFile('/u/p/dev/fiddles/a/b/c_d.cljc', '/u/p', [
+          { source: ['no-match'], fiddle: ['no-fiddle'] },
+          { source: ['src'], fiddle: ['dev', 'fiddles'] },
+          { source: ['src'], fiddle: ['second'] },
+        ])
+      ).toBeTruthy();
+    });
+  });
+
   describe('fiddle file for source', () => {
     it('without source->fiddle map, gets fiddle file for cljc file', function () {
       expect(fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c_d.cljc', '/u/p', null)).toBe(
@@ -30,7 +69,7 @@ describe('fiddle files', () => {
         fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c_d.cljc', '/u/p', [
           { source: ['no-match'], fiddle: ['no-fiddle'] },
         ])
-      ).toThrow();
+      ).toThrow(fiddleFiles.FiddleMappingException);
     });
     it('throws when project root does not match', function () {
       expect(() =>
@@ -39,7 +78,7 @@ describe('fiddle files', () => {
           { source: ['src'], fiddle: ['first'] },
           { source: ['src'], fiddle: ['second'] },
         ])
-      ).toThrow();
+      ).toThrow(fiddleFiles.FiddleMappingException);
     });
   });
 
@@ -71,7 +110,7 @@ describe('fiddle files', () => {
           fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/fiddles/a/b/c_d.fiddle', '/u/p', [
             { source: ['no-source'], fiddle: ['no-match'] },
           ])
-        ).toThrow();
+        ).toThrow(fiddleFiles.FiddleMappingException);
       });
       it('throws when project root does not match', function () {
         expect(() =>
@@ -80,7 +119,7 @@ describe('fiddle files', () => {
             { source: ['first'], fiddle: ['dev', 'fiddles'] },
             { source: ['second'], fiddle: ['dev', 'fiddles'] },
           ])
-        ).toThrow();
+        ).toThrow(fiddleFiles.FiddleMappingException);
       });
     });
 
