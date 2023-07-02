@@ -70,7 +70,7 @@ export function getSourceBaseForFiddleFile(
   projectRootPath: string,
   sourceToFiddleFilePaths: FiddleFilePaths
 ): string {
-  if (sourceToFiddleFilePaths === null) {
+  if (sourceToFiddleFilePaths === null || path.extname(filePath) === `.${FIDDLE_FILE_EXTENSION}`) {
     if (path.extname(filePath) !== `.${FIDDLE_FILE_EXTENSION}`) {
       throw new Error(
         `Expected fiddle file extension to be ${FIDDLE_FILE_EXTENSION}, but was ${path.extname(

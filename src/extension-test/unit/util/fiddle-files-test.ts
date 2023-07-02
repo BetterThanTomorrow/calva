@@ -109,6 +109,13 @@ describe('fiddle files', () => {
           ])
         ).toBe('/u/p/src/a/b/c_d');
       });
+      it('with fiddle->source map and a .fiddle file, gets source base as sibling', function () {
+        expect(
+          fiddleFiles.getSourceBaseForFiddleFile('/u/p/src/a/b/c_d.fiddle', '/u/p', [
+            { source: ['src'], fiddle: ['dev', 'fiddles'] },
+          ])
+        ).toBe('/u/p/src/a/b/c_d');
+      });
       it('with fiddle->source map with several matching source mappings, gets fiddle file for first', function () {
         expect(
           fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/fiddles/a/b/c_d.cljc', '/u/p', [
@@ -118,12 +125,12 @@ describe('fiddle files', () => {
           ])
         ).toBe('/u/p/first/a/b/c_d');
       });
-      it('throws when no fiddle mapping', function () {
-        expect(() =>
+      it('returns sibling base for .fiddle file', function () {
+        expect(
           fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/fiddles/a/b/c_d.fiddle', '/u/p', [
             { source: ['no-source'], fiddle: ['no-match'] },
           ])
-        ).toThrow(fiddleFiles.FiddleMappingException);
+        ).toBe('/u/p/dev/fiddles/a/b/c_d');
       });
       it('throws when project root does not match', function () {
         expect(() =>
