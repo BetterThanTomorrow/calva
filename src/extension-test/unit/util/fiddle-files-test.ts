@@ -24,6 +24,13 @@ describe('fiddle files', () => {
         ])
       ).toBeTruthy();
     });
+    it('with fiddle->source map, any file fiddle path is a fiddle file', function () {
+      expect(
+        fiddleFiles.isFiddleFile('/u/p/dev/fiddles/a/b/c/d.anything', '/u/p', [
+          { source: ['src'], fiddle: ['dev', 'fiddles'] },
+        ])
+      ).toBeTruthy();
+    });
     it('with fiddle->source map, a .cljc file not in the fiddle path is not a fiddle file', function () {
       expect(
         fiddleFiles.isFiddleFile('/u/p/src/a/b/c_d.cljc', '/u/p', [
