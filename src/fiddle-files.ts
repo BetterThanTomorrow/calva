@@ -17,3 +17,15 @@ export function updateFiddleFileOpenedContext(editor: vscode.TextEditor) {
     )
   );
 }
+
+export function activate(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveTextEditor(updateFiddleFileOpenedContext),
+    vscode.window.onDidChangeWindowState((e) => updateFiddleFileOpenedContext),
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('calva.fiddleFilePaths')) {
+        updateFiddleFileOpenedContext(vscode.window.activeTextEditor);
+      }
+    })
+  );
+}

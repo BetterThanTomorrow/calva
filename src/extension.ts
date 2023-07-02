@@ -45,10 +45,8 @@ import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
-  console.log('onDidChangeEditorOrSelection');
   replHistory.setReplHistoryCommandsActiveContext(editor);
   whenContexts.setCursorContextIfChanged(editor);
-  fiddleFiles.updateFiddleFileOpenedContext(editor);
 }
 
 function setKeybindingsEnabledContext() {
@@ -499,6 +497,8 @@ async function activate(context: vscode.ExtensionContext) {
   if (await connector.shouldAutoConnect()) {
     void vscode.commands.executeCommand('calva.connect');
   }
+
+  fiddleFiles.activate(context);
 
   console.info('Calva activate END');
 

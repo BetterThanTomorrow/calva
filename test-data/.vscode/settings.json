@@ -43,12 +43,12 @@
       "snippet": "'(\"Current file text: $hover-file-text\")"
     }
   ],
-  // "calva.sourceToFiddleFilePaths": [
-  //   {
-  //     "source": ["src"],
-  //     "fiddle": ["dev", "fiddles"]
-  //   }
-  // ],
+  "calva.fiddleFilePaths": [
+    {
+      "source": ["src"],
+      "fiddle": ["dev", "fiddles"]
+    }
+  ],
   "workbench.colorCustomizations": {
     "sash.hoverBorder": "#DB9550",
     "titleBar.activeBackground": "#90B4FE",

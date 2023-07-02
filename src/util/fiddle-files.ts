@@ -127,7 +127,9 @@ export function isFiddleFile(
   projectRootPath: string,
   sourceToFiddleFilePaths: FiddleFilePaths
 ): boolean {
-  return sourceToFiddleFilePaths === null
-    ? path.extname(filePath) === `.${FIDDLE_FILE_EXTENSION}`
-    : getMapping(sourceToFiddleFilePaths, projectRootPath, filePath, 'fiddle') !== undefined;
+  return (
+    path.extname(filePath) === `.${FIDDLE_FILE_EXTENSION}` ||
+    (sourceToFiddleFilePaths !== null &&
+      getMapping(sourceToFiddleFilePaths, projectRootPath, filePath, 'fiddle') !== undefined)
+  );
 }
