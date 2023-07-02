@@ -27,12 +27,12 @@ export class FiddleMappingException extends Error {
 }
 
 function getMapping(
-  sourceToFiddleFilePaths: { source: string[]; fiddle: string[] }[],
+  fiddleFilePaths: { source: string[]; fiddle: string[] }[],
   projectRootPath: string,
   filePath: string,
   from: 'source' | 'fiddle'
 ) {
-  const mappings = sourceToFiddleFilePaths.filter((mapping) => {
+  const mappings = fiddleFilePaths.filter((mapping) => {
     const mappingRootPath = path.join(projectRootPath, ...mapping[from]);
     return filePath.startsWith(mappingRootPath);
   });
@@ -48,16 +48,16 @@ function getMappingRelativePath(projectRootPath: string, filePath: string, mappi
 export function getFiddleForSourceFile(
   filePath: string,
   projectRootPath: string,
-  sourceToFiddleFilePaths: FiddleFilePaths
+  fiddleFilePaths: FiddleFilePaths
 ): string {
-  if (sourceToFiddleFilePaths === null) {
+  if (fiddleFilePaths === null) {
     return `${filePath.substring(
       0,
       filePath.length - path.extname(filePath).length
     )}.${FIDDLE_FILE_EXTENSION}`;
   }
 
-  const mapping = getMapping(sourceToFiddleFilePaths, projectRootPath, filePath, 'source');
+  const mapping = getMapping(fiddleFilePaths, projectRootPath, filePath, 'source');
   if (mapping === undefined) {
     throw new FiddleMappingException(`No fiddle<->source mapping found for file ${filePath}`);
   }
@@ -68,9 +68,9 @@ export function getFiddleForSourceFile(
 export function getSourceBaseForFiddleFile(
   filePath: string,
   projectRootPath: string,
-  sourceToFiddleFilePaths: FiddleFilePaths
+  fiddleFilePaths: FiddleFilePaths
 ): string {
-  if (sourceToFiddleFilePaths === null || path.extname(filePath) === `.${FIDDLE_FILE_EXTENSION}`) {
+  if (fiddleFilePaths === null || path.extname(filePath) === `.${FIDDLE_FILE_EXTENSION}`) {
     if (path.extname(filePath) !== `.${FIDDLE_FILE_EXTENSION}`) {
       throw new Error(
         `Expected fiddle file extension to be ${FIDDLE_FILE_EXTENSION}, but was ${path.extname(
@@ -81,7 +81,7 @@ export function getSourceBaseForFiddleFile(
     return filePath.substring(0, filePath.length - path.extname(filePath).length);
   }
 
-  const mapping = getMapping(sourceToFiddleFilePaths, projectRootPath, filePath, 'fiddle');
+  const mapping = getMapping(fiddleFilePaths, projectRootPath, filePath, 'fiddle');
   if (mapping === undefined) {
     throw new FiddleMappingException(`No fiddle<->source mapping found for file ${filePath}`);
   }
@@ -105,13 +105,13 @@ export interface Workspace {
 export async function getSourceForFiddleFile(
   filePath: string,
   projectRootPath: string,
-  sourceToFiddleFilePaths: FiddleFilePaths,
+  fiddleFilePaths: FiddleFilePaths,
   workspace: Workspace,
   extensions: string[] = clojureFileExtensions
 ): Promise<string> {
-  const sourceBase = getSourceBaseForFiddleFile(filePath, projectRootPath, sourceToFiddleFilePaths);
+  const sourceBase = getSourceBaseForFiddleFile(filePath, projectRootPath, fiddleFilePaths);
   console.log('sourceBase', sourceBase);
-  if (sourceToFiddleFilePaths === null) {
+  if (fiddleFilePaths === null) {
     const uris = await workspace.findFiles(`${sourceBase}.{${extensions.join(',')}}`);
     return uris.sort((a: Uri, b: Uri) => {
       const extA = a.fsPath.split('.').pop() || '';
@@ -125,11 +125,11 @@ export async function getSourceForFiddleFile(
 export function isFiddleFile(
   filePath: string,
   projectRootPath: string,
-  sourceToFiddleFilePaths: FiddleFilePaths
+  fiddleFilePaths: FiddleFilePaths
 ): boolean {
   return (
     path.extname(filePath) === `.${FIDDLE_FILE_EXTENSION}` ||
-    (sourceToFiddleFilePaths !== null &&
-      getMapping(sourceToFiddleFilePaths, projectRootPath, filePath, 'fiddle') !== undefined)
+    (fiddleFilePaths !== null &&
+      getMapping(fiddleFilePaths, projectRootPath, filePath, 'fiddle') !== undefined)
   );
 }
