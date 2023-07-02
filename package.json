@@ -1819,13 +1819,13 @@
       },
       {
         "category": "Calva",
-        "command": "calva.openFiddleFileForSourceFile",
+        "command": "calva.openFiddleForSourceFile",
         "title": "Open Fiddle File for Current File",
         "enablement": "!calva:activeEditorIsFiddle"
       },
       {
         "category": "Calva",
-        "command": "calva.openSourceFileForFiddleFile",
+        "command": "calva.openSourceFileForFiddle",
         "title": "Open Source File for Current Fiddle File",
         "enablement": "calva:activeEditorIsFiddle"
       },

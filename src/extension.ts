@@ -265,6 +265,7 @@ async function activate(context: vscode.ExtensionContext) {
     runTestUnderCursor: () => testRunner.runTestUnderCursorCommand(testController),
     selectCurrentForm: select.selectCurrentForm,
     sendCurrentFormToOutputWindow: outputWindow.appendCurrentForm,
+    openFiddleForSourceFile: fiddleFiles.openFiddleForSourceFile,
     sendCurrentTopLevelFormToOutputWindow: outputWindow.appendCurrentTopLevelForm,
     setOutputWindowNamespace: outputWindow.setNamespaceFromCurrentFile,
     showFileForOutputWindowNS: () => void outputWindow.revealDocForCurrentNS(false),

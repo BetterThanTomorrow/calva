@@ -29,3 +29,58 @@ export function activate(context: vscode.ExtensionContext) {
   );
   updateFiddleFileOpenedContext(vscode.window.activeTextEditor);
 }
+
+function openFile(file: string | vscode.Uri) {
+  const fileUri: vscode.Uri = file instanceof vscode.Uri ? file : vscode.Uri.file(file);
+  return vscode.workspace
+    .openTextDocument(fileUri)
+    .then((doc) => vscode.window.showTextDocument(doc, { preserveFocus: false }));
+}
+
+function showConfirmationDialog(text: string, button: string) {
+  return vscode.window.showWarningMessage(text, { modal: true }, button);
+}
+
+async function createNewFile(filePath: string) {
+  const fileUri = vscode.Uri.file(filePath);
+  const dir = vscode.Uri.file(filePath.substring(0, filePath.lastIndexOf('/')));
+  await vscode.workspace.fs.createDirectory(dir);
+  const ws = new vscode.WorkspaceEdit();
+  ws.createFile(fileUri);
+  await vscode.workspace.applyEdit(ws);
+}
+
+async function askToCreateANewFile(filePath: string) {
+  const answer = await showConfirmationDialog(`Create ${filePath}?`, 'Create');
+  if (answer === 'Create') {
+    void createNewFile(filePath).then(() => {
+      void openFile(filePath);
+    });
+  }
+}
+
+export function openFiddleForSourceFile() {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor || !editor.document || editor.document.languageId !== 'clojure') {
+    return;
+  }
+  const sourceFilePath = editor.document.fileName;
+  const projectRootPath = state.getProjectRootUri().fsPath;
+  const fiddleFilePaths = config.getConfig().fiddleFilePaths;
+  const fiddleFilePath = fiddleFilesUtil.getFiddleForSourceFile(
+    sourceFilePath,
+    projectRootPath,
+    fiddleFilePaths
+  );
+
+  const fiddleFileUri = vscode.Uri.file(fiddleFilePath);
+  const relativeFiddleFilePath = vscode.workspace.asRelativePath(fiddleFileUri);
+  void vscode.workspace.findFiles(relativeFiddleFilePath).then((files) => {
+    if (!files.length) {
+      void askToCreateANewFile(fiddleFilePath);
+    } else {
+      const file = files[0];
+      void openFile(file);
+    }
+  });
+}
