@@ -145,16 +145,16 @@ interface Uri {
  * This is used to mock the VS Code workspace type.
  */
 export interface Workspace {
-  findFiles: (pattern: string) => Promise<Uri[]>;
+  findFiles: (pattern: string) => Thenable<Uri[]>;
+  asRelativePath: (pathOrUri: string | Uri, includeWorkspaceFolder?: boolean) => string;
 }
 
 /**
- * Returns the source file for a given fiddle file, searching the workspace if necessary.
+ * Returns the source file for a given fiddle file.
  * If no mappings are provided, it searches the workspace for a file that has the same base
  * as the fiddle file and one of the provided extensions.
  * The search is done in the order of the extensions array, and the first matching file is returned.
  * If mappings are provided, it uses them to find the corresponding source file.
- * If the extension of the fiddle file is not the fiddle file extension, it throws an error.
  */
 export async function getSourceForFiddleFile(
   filePath: string,
@@ -164,9 +164,10 @@ export async function getSourceForFiddleFile(
   extensions: string[] = clojureFileExtensions
 ): Promise<string> {
   const sourceBase = getSourceBaseForFiddleFile(filePath, projectRootPath, fiddleFilePaths);
-  console.log('sourceBase', sourceBase);
-  if (fiddleFilePaths === null) {
-    const uris = await workspace.findFiles(`${sourceBase}.{${extensions.join(',')}}`);
+  if (path.extname(filePath) === `.${FIDDLE_FILE_EXTENSION}` || fiddleFilePaths === null) {
+    const uris = await workspace.findFiles(
+      `${workspace.asRelativePath(sourceBase)}.{${extensions.join(',')}}`
+    );
     return uris.sort((a: Uri, b: Uri) => {
       const extA = a.fsPath.split('.').pop() || '';
       const extB = b.fsPath.split('.').pop() || '';

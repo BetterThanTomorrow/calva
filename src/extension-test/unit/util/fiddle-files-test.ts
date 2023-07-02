@@ -145,11 +145,14 @@ describe('fiddle files', () => {
 
     describe('source file', () => {
       const mockWorkspace: fiddleFiles.Workspace = {
-        findFiles: (pattern: string) => {
+        findFiles: (_pattern: string) => {
           return Promise.resolve([
             { fsPath: '/u/p/src/a/b/c_d.clj' },
             { fsPath: '/u/p/src/a/b/c_d.cljc' },
           ]);
+        },
+        asRelativePath(pathOrUri, includeWorkspaceFolder) {
+          return ''; // not used
         },
       };
       it('without fiddle->source map, gets cljc source file for fiddle file', async function () {
@@ -172,6 +175,17 @@ describe('fiddle files', () => {
             mockWorkspace
           )
         ).toBe('/u/p/src/a/b/c_d.clj');
+      });
+      it('with fiddle->source map, gets sibling source clj for .fiddle file', async function () {
+        expect(
+          await fiddleFiles.getSourceForFiddleFile(
+            '/u/p/src/a/b/c_d.fiddle',
+            '/u/p',
+            [{ source: ['src'], fiddle: ['dev', 'fiddles'] }],
+            mockWorkspace,
+            ['cljc', 'clj']
+          )
+        ).toBe('/u/p/src/a/b/c_d.cljc');
       });
       it('with fiddle->source map, gets source bb for bb fiddle file', async function () {
         expect(

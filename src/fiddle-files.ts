@@ -83,8 +83,36 @@ export function openFiddleForSourceFile() {
     if (!files.length) {
       void askToCreateANewFile(fiddleFilePath);
     } else {
-      const file = files[0];
-      void openFile(file);
+      void openFile(files[0]);
+    }
+  });
+}
+
+export async function openSourceFileForFiddle() {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor || !editor.document || editor.document.languageId !== 'clojure') {
+    return;
+  }
+  const filePath = editor.document.fileName;
+  const projectRootPath = state.getProjectRootUri().fsPath;
+  const fiddleFilePaths = config.getConfig().fiddleFilePaths;
+  const sourceFilePath = await fiddleFilesUtil.getSourceForFiddleFile(
+    filePath,
+    projectRootPath,
+    fiddleFilePaths,
+    vscode.workspace
+  );
+
+  const sourceFileUri = vscode.Uri.file(sourceFilePath);
+  const relativeSourceFilePath = vscode.workspace.asRelativePath(sourceFileUri);
+  void vscode.workspace.findFiles(relativeSourceFilePath).then((files) => {
+    if (files.length) {
+      void openFile(files[0]);
+    } else {
+      vscode.window.showInformationMessage(
+        'The source file for this fiddle does not exist. You need to create it manually.',
+        'OK'
+      );
     }
   });
 }

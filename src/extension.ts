@@ -266,6 +266,7 @@ async function activate(context: vscode.ExtensionContext) {
     selectCurrentForm: select.selectCurrentForm,
     sendCurrentFormToOutputWindow: outputWindow.appendCurrentForm,
     openFiddleForSourceFile: fiddleFiles.openFiddleForSourceFile,
+    openSourceFileForFiddle: fiddleFiles.openSourceFileForFiddle,
     sendCurrentTopLevelFormToOutputWindow: outputWindow.appendCurrentTopLevelForm,
     setOutputWindowNamespace: outputWindow.setNamespaceFromCurrentFile,
     showFileForOutputWindowNS: () => void outputWindow.revealDocForCurrentNS(false),
