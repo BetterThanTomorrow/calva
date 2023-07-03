@@ -6,6 +6,7 @@ import * as nsUtil from './util/ns-form';
 import eval from './evaluate';
 import * as path from 'path';
 import * as namespace from './namespace';
+import * as outputWindow from './results-output/results-doc';
 
 // TODO: This viewColumn memory could probably be a shared thing for all of Calva.
 //       At least the REPL window has similar functionality an could benefit from this more general approach.
@@ -126,12 +127,15 @@ export async function evaluateFiddleForSourceFile() {
   }
   const doc = await vscode.workspace.openTextDocument(fiddleFileUri);
   const ns = nsUtil.nsFromText(doc.getText()) || namespace.getDocumentNamespace();
-  return eval.loadFile(
+  await eval.loadFile(
     fiddleFilePath,
     ns,
     config.getConfig().prettyPrintingOptions,
     path.extname(fiddleFilePath)
   );
+  return new Promise((resolve) => {
+    outputWindow.appendPrompt(resolve);
+  });
 }
 
 export async function openSourceFileForFiddle() {
