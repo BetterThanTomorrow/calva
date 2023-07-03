@@ -2532,7 +2532,7 @@
       },
       {
         "command": "calva.evaluateFiddleForSourceFile",
-        "key": "ctrl+alt+c ctrl+alt+enter",
+        "key": "ctrl+alt+c ctrl+alt+f",
         "when": "calva:keybindingsEnabled && calva:connected && !calva:activeEditorIsFiddle"
       },
       {
