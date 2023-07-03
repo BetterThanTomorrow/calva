@@ -46,7 +46,7 @@
   "calva.fiddleFilePaths": [
     {
       "source": ["src"],
-      "fiddle": ["dev", "fiddles"]
+      "fiddle": ["env", "dev", "fiddles"]
     }
   ],
   "workbench.colorCustomizations": {
