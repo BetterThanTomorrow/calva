@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
-import { customREPLCommandSnippet } from './evaluate';
+import { CustomREPLCommandSnippet } from './custom-snippets';
 import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
 import { readConfigEdn } from '../out/cljs-lib/cljs-lib';
@@ -113,9 +113,9 @@ async function updateCalvaConfigFromEdn(uri?: vscode.Uri) {
 }
 
 function mergeSnippets(
-  oldSnippets: customREPLCommandSnippet[],
-  newSnippets: customREPLCommandSnippet[]
-): customREPLCommandSnippet[] {
+  oldSnippets: CustomREPLCommandSnippet[],
+  newSnippets: CustomREPLCommandSnippet[]
+): CustomREPLCommandSnippet[] {
   return newSnippets.concat(
     _.reject(
       oldSnippets,
@@ -166,15 +166,15 @@ function getConfig() {
   const pareditOptions = vscode.workspace.getConfiguration('calva.paredit');
 
   const commands = (
-    configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')
+    configOptions.inspect<CustomREPLCommandSnippet[]>('customREPLCommandSnippets')
       ?.workspaceValue ?? []
   ).concat(
-    (state.getProjectConfig()?.customREPLCommandSnippets as customREPLCommandSnippet[]) ?? []
+    (state.getProjectConfig()?.customREPLCommandSnippets as CustomREPLCommandSnippet[]) ?? []
   );
   const hoverSnippets = (
-    configOptions.inspect<customREPLCommandSnippet[]>('customREPLHoverSnippets')?.workspaceValue ??
+    configOptions.inspect<CustomREPLCommandSnippet[]>('customREPLHoverSnippets')?.workspaceValue ??
     []
-  ).concat((state.getProjectConfig()?.customREPLHoverSnippets as customREPLCommandSnippet[]) ?? []);
+  ).concat((state.getProjectConfig()?.customREPLHoverSnippets as CustomREPLCommandSnippet[]) ?? []);
 
   const autoEvaluateCode =
     configOptions.inspect<nreplUtil.AutoEvaluateCodeConfig>('autoEvaluateCode');
@@ -202,16 +202,16 @@ function getConfig() {
     myLeinProfiles: configOptions.get<string[]>('myLeinProfiles', []).map(_trimAliasName),
     myCljAliases: configOptions.get<string[]>('myCljAliases', []).map(_trimAliasName),
     asyncOutputDestination: configOptions.get<string>('sendAsyncOutputTo'),
-    customREPLCommandSnippets: configOptions.get<customREPLCommandSnippet[]>(
+    customREPLCommandSnippets: configOptions.get<CustomREPLCommandSnippet[]>(
       'customREPLCommandSnippets',
       []
     ),
     customREPLCommandSnippetsGlobal:
-      configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')?.globalValue ??
+      configOptions.inspect<CustomREPLCommandSnippet[]>('customREPLCommandSnippets')?.globalValue ??
       [],
     customREPLCommandSnippetsWorkspace: commands,
     customREPLCommandSnippetsWorkspaceFolder:
-      configOptions.inspect<customREPLCommandSnippet[]>('customREPLCommandSnippets')
+      configOptions.inspect<CustomREPLCommandSnippet[]>('customREPLCommandSnippets')
         ?.workspaceFolderValue ?? [],
     customREPLHoverSnippets: hoverSnippets,
     prettyPrintingOptions: configOptions.get<PrettyPrintingOptions>('prettyPrintingOptions'),

@@ -595,12 +595,7 @@ function instrumentTopLevelForm() {
     .send();
 }
 
-export async function evaluateInOutputWindow(
-  code: string,
-  sessionType: string,
-  ns: string,
-  options
-) {
+async function evaluateInOutputWindow(code: string, sessionType: string, ns: string, options) {
   const outputDocument = await outputWindow.openResultsDoc();
   const evalPos = outputDocument.positionAt(outputDocument.getText().length);
   try {
@@ -626,14 +621,6 @@ export async function evaluateInOutputWindow(
     outputWindow.appendLine('; Evaluation failed.');
   }
 }
-
-export type customREPLCommandSnippet = {
-  name: string;
-  key?: string;
-  snippet: string;
-  repl?: string;
-  ns?: string;
-};
 
 export default {
   interruptAllEvaluations,
