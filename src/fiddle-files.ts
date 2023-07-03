@@ -128,14 +128,24 @@ export async function evaluateFiddleForSourceFile() {
   if (!fiddleFileUri) {
     return;
   }
-  const doc = await vscode.workspace.openTextDocument(fiddleFileUri);
-  const code = doc.getText();
-  const ns = nsUtil.nsFromText(doc.getText()) || namespace.getDocumentNamespace();
-  outputWindow.appendLine(`; Evaluating fiddle: ${vscode.workspace.asRelativePath(fiddleFileUri)}`);
-  await eval.evaluateInOutputWindow(code, path.extname(fiddleFilePath).replace(/^\./, ''), ns, {});
-  return new Promise((resolve) => {
-    outputWindow.appendPrompt(resolve);
-  });
+  try {
+    const doc = await vscode.workspace.openTextDocument(fiddleFileUri);
+    const relativeFiddleFilePath = vscode.workspace.asRelativePath(fiddleFileUri);
+    const code = doc.getText();
+    const ns = nsUtil.nsFromText(doc.getText()) || namespace.getDocumentNamespace();
+    outputWindow.appendLine(`; Evaluating fiddle: ${relativeFiddleFilePath}`);
+    await eval.evaluateInOutputWindow(
+      code,
+      path.extname(fiddleFilePath).replace(/^\./, ''),
+      ns,
+      {}
+    );
+    return new Promise((resolve) => {
+      outputWindow.appendPrompt(resolve);
+    });
+  } catch (e) {
+    openFiddleForSourceFile();
+  }
 }
 
 export async function openSourceFileForFiddle() {
