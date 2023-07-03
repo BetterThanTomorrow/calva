@@ -220,9 +220,9 @@ export function startOrConnectRepl() {
   const OPEN_WINDOW_COMMAND = 'calva.showOutputWindow';
   const OPEN_FIDDLE_OPTION = 'Open Fiddle for Current File';
   const OPEN_FIDDLE_COMMAND = 'calva.openFiddleForSourceFile';
-  const EVALUATE_FIDDLE_OPTION = 'Open Fiddle for Current File';
+  const EVALUATE_FIDDLE_OPTION = 'Evaluate Fiddle for Current File';
   const EVALUATE_FIDDLE_COMMAND = 'calva.evaluateFiddleForSourceFile';
-  const OPEN_SOURCE_FOR_FIDDLE_OPTION = 'Open Fiddle for Current File';
+  const OPEN_SOURCE_FOR_FIDDLE_OPTION = 'Open Source File for Current Fiddle';
   const OPEN_SOURCE_FOR_FIDDLE_COMMAND = 'calva.openSourceFileForFiddle';
   const PREFERRED_ORDER = [
     JACK_IN_OPTION,
@@ -233,14 +233,14 @@ export function startOrConnectRepl() {
     START_HELLO_REPL_OPTION,
     START_HELLO_CLJS_BROWSER_OPTION,
     START_HELLO_CLJS_NODE_OPTION,
-    OPEN_FIDDLE_OPTION,
-    EVALUATE_FIDDLE_OPTION,
-    OPEN_SOURCE_FOR_FIDDLE_OPTION,
     INTERRUPT_OPTION,
     OPEN_WINDOW_OPTION,
     RE_JACK_IN_OPTION,
     DISCONNECT_OPTION,
     JACK_OUT_OPTION,
+    OPEN_FIDDLE_OPTION,
+    EVALUATE_FIDDLE_OPTION,
+    OPEN_SOURCE_FOR_FIDDLE_OPTION,
   ];
   const commands = {};
   if (fiddleFiles.activeEditorIsFiddle) {
