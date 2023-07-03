@@ -126,13 +126,10 @@ export async function evaluateFiddleForSourceFile() {
     return;
   }
   const doc = await vscode.workspace.openTextDocument(fiddleFileUri);
+  const code = doc.getText();
   const ns = nsUtil.nsFromText(doc.getText()) || namespace.getDocumentNamespace();
-  await eval.loadFile(
-    fiddleFilePath,
-    ns,
-    config.getConfig().prettyPrintingOptions,
-    path.extname(fiddleFilePath)
-  );
+  outputWindow.appendLine(`; Evaluating fiddle: ${vscode.workspace.asRelativePath(fiddleFileUri)}`);
+  await eval.evaluateInOutputWindow(code, path.extname(fiddleFilePath).replace(/^\./, ''), ns, {});
   return new Promise((resolve) => {
     outputWindow.appendPrompt(resolve);
   });
