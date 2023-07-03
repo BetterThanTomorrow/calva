@@ -37,14 +37,13 @@ export function activate(context: vscode.ExtensionContext) {
   updateFiddleFileOpenedContext(vscode.window.activeTextEditor);
 }
 
-function openFile(filePath: string) {
+async function openFile(filePath: string) {
   const fileUri: vscode.Uri = vscode.Uri.file(filePath);
-  return vscode.workspace.openTextDocument(fileUri).then((doc) =>
-    vscode.window.showTextDocument(doc, {
-      preserveFocus: false,
-      viewColumn: filePathToViewColumn.get(filePath) || null,
-    })
-  );
+  const doc = await vscode.workspace.openTextDocument(fileUri);
+  return await vscode.window.showTextDocument(doc, {
+    preserveFocus: false,
+    viewColumn: filePathToViewColumn.get(filePath) || null,
+  });
 }
 
 function showConfirmationDialog(prompt: string, file: string, button: string) {
