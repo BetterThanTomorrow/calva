@@ -2917,6 +2917,21 @@
           "enablement": "editorLangId == clojure && calva:connected",
           "command": "calva.setOutputWindowNamespace",
           "group": "calva/b-eval"
+        },
+        {
+          "enablement": "editorLangId == clojure && !calva:activeEditorIsFiddle",
+          "command": "calva.openFiddleForSourceFile",
+          "group": "calva/a-fiddle"
+        },
+        {
+          "enablement": "calva:connected && editorLangId == clojure && !calva:activeEditorIsFiddle",
+          "command": "calva.evaluateFiddleForSourceFile",
+          "group": "calva/a-fiddle"
+        },
+        {
+          "enablement": "editorLangId == clojure && calva:activeEditorIsFiddle",
+          "command": "calva.openSourceFileForFiddle",
+          "group": "calva/a-fiddle"
         }
       ],
       "editor/context": [
@@ -2935,7 +2950,7 @@
         {
           "when": "editorLangId == clojure",
           "command": "calva.selectCurrentForm",
-          "group": "calva/a-eval"
+          "group": "calva/a-structural-editing"
         },
         {
           "when": "editorLangId == clojure",
