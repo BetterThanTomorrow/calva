@@ -2526,6 +2526,21 @@
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
       },
       {
+        "command": "calva.openFiddleForSourceFile",
+        "key": "ctrl+alt+c f",
+        "when": "calva:keybindingsEnabled && !calva:activeEditorIsFiddle"
+      },
+      {
+        "command": "calva.evaluateFiddleForSourceFile",
+        "key": "ctrl+alt+c ctrl+alt+enter",
+        "when": "calva:keybindingsEnabled && calva:connected && !calva:activeEditorIsFiddle"
+      },
+      {
+        "command": "calva.openSourceFileForFiddle",
+        "key": "ctrl+alt+c f",
+        "when": "calva:keybindingsEnabled && calva:activeEditorIsFiddle"
+      },
+      {
         "command": "calva.showOutputWindow",
         "key": "ctrl+alt+o o",
         "when": "calva:keybindingsEnabled && calva:connected && !calva:outputWindowActive"
