@@ -2,6 +2,10 @@ import * as vscode from 'vscode';
 import * as fiddleFilesUtil from './util/fiddle-files';
 import * as state from './state';
 import * as config from './config';
+import * as nsUtil from './util/ns-form';
+import eval from './evaluate';
+import * as path from 'path';
+import * as namespace from './namespace';
 
 const filePathToViewColumn: Map<string, vscode.ViewColumn> = new Map();
 
@@ -72,10 +76,10 @@ async function askToCreateANewFile(filePath: string) {
   }
 }
 
-function fiddleForSourceFile() {
+function getFiddleForSourceFile() {
   const editor = vscode.window.activeTextEditor;
   if (!editor || !editor.document || editor.document.languageId !== 'clojure') {
-    return;
+    return { fiddleFileUri: null, fiddleFilePath: null };
   }
   const sourceFilePath = editor.document.fileName;
   const projectRootPath = state.getProjectRootUri().fsPath;
@@ -91,7 +95,7 @@ function fiddleForSourceFile() {
 }
 
 export function openFiddleForSourceFile() {
-  const { fiddleFileUri, fiddleFilePath } = fiddleForSourceFile();
+  const { fiddleFileUri, fiddleFilePath } = getFiddleForSourceFile();
   if (!fiddleFileUri) {
     return;
   }
@@ -103,6 +107,21 @@ export function openFiddleForSourceFile() {
       void openFile(files[0].fsPath);
     }
   });
+}
+
+export async function evaluateFiddleForSourceFile() {
+  const { fiddleFileUri, fiddleFilePath } = getFiddleForSourceFile();
+  if (!fiddleFileUri) {
+    return;
+  }
+  const doc = await vscode.workspace.openTextDocument(fiddleFileUri);
+  const ns = nsUtil.nsFromText(doc.getText()) || namespace.getDocumentNamespace();
+  return eval.loadFile(
+    fiddleFilePath,
+    ns,
+    config.getConfig().prettyPrintingOptions,
+    path.extname(fiddleFilePath)
+  );
 }
 
 export async function openSourceFileForFiddle() {
