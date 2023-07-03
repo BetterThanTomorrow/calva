@@ -109,7 +109,7 @@ export async function openSourceFileForFiddle() {
     if (files.length) {
       void openFile(files[0]);
     } else {
-      vscode.window.showInformationMessage(
+      void vscode.window.showInformationMessage(
         'The source file for this fiddle does not exist. You need to create it manually.',
         'OK'
       );
