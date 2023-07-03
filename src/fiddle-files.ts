@@ -72,7 +72,7 @@ async function askToCreateANewFile(filePath: string) {
   }
 }
 
-export function openFiddleForSourceFile() {
+function fiddleForSourceFile() {
   const editor = vscode.window.activeTextEditor;
   if (!editor || !editor.document || editor.document.languageId !== 'clojure') {
     return;
@@ -87,6 +87,14 @@ export function openFiddleForSourceFile() {
   );
 
   const fiddleFileUri = vscode.Uri.file(fiddleFilePath);
+  return { fiddleFileUri, fiddleFilePath };
+}
+
+export function openFiddleForSourceFile() {
+  const { fiddleFileUri, fiddleFilePath } = fiddleForSourceFile();
+  if (!fiddleFileUri) {
+    return;
+  }
   const relativeFiddleFilePath = vscode.workspace.asRelativePath(fiddleFileUri);
   void vscode.workspace.findFiles(relativeFiddleFilePath).then((files) => {
     if (!files.length) {
