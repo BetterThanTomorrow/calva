@@ -12,18 +12,21 @@ import * as outputWindow from './results-output/results-doc';
 //       At least the REPL window has similar functionality an could benefit from this more general approach.
 const filePathToViewColumn: Map<string, vscode.ViewColumn> = new Map();
 
+export let activeEditorIsFiddle = false;
+
 export function updateFiddleFileOpenedContext(editor: vscode.TextEditor) {
   if (!editor || !editor.document || editor.document.languageId !== 'clojure') {
     return;
   }
+  activeEditorIsFiddle = fiddleFilesUtil.isFiddleFile(
+    editor.document.fileName,
+    state.getProjectRootUri().fsPath,
+    config.getConfig().fiddleFilePaths
+  );
   void vscode.commands.executeCommand(
     'setContext',
     'calva:activeEditorIsFiddle',
-    fiddleFilesUtil.isFiddleFile(
-      editor.document.fileName,
-      state.getProjectRootUri().fsPath,
-      config.getConfig().fiddleFilePaths
-    )
+    activeEditorIsFiddle
   );
 }
 
