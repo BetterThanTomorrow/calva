@@ -7,6 +7,8 @@ import eval from './evaluate';
 import * as path from 'path';
 import * as namespace from './namespace';
 
+// TODO: This viewColumn memory could probably be a shared thing for all of Calva.
+//       At least the REPL window has similar functionality an could benefit from this more general approach.
 const filePathToViewColumn: Map<string, vscode.ViewColumn> = new Map();
 
 export function updateFiddleFileOpenedContext(editor: vscode.TextEditor) {
@@ -39,8 +41,16 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
   updateFiddleFileOpenedContext(vscode.window.activeTextEditor);
+
+  // Best effort to initialize view column for source and fiddle files
+  // Only visible editors are considered, the API does not provide a way to get the view column for a non-visible editor
+  for (const editor of vscode.window.visibleTextEditors) {
+    filePathToViewColumn.set(editor.document.fileName, editor.viewColumn);
+  }
 }
 
+// TODO: Much of this file opening/creation code started as copies of functions from file-switcher.ts.
+//       We can probably refactor to share code.
 async function openFile(filePath: string) {
   const fileUri: vscode.Uri = vscode.Uri.file(filePath);
   const doc = await vscode.workspace.openTextDocument(fileUri);
