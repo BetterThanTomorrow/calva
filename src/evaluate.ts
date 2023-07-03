@@ -638,6 +638,7 @@ export type customREPLCommandSnippet = {
 export default {
   interruptAllEvaluations,
   loadDocument,
+  loadFile,
   evaluateCurrentForm,
   evaluateEnclosingForm,
   evaluateTopLevelForm,

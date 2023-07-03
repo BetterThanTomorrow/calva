@@ -1825,6 +1825,12 @@
       },
       {
         "category": "Calva",
+        "command": "calva.evaluateFiddleForSourceFile",
+        "title": "Evaluate Fiddle File for Current File",
+        "enablement": "!calva:activeEditorIsFiddle"
+      },
+      {
+        "category": "Calva",
         "command": "calva.openSourceFileForFiddle",
         "title": "Open Source File for Current Fiddle File",
         "enablement": "calva:activeEditorIsFiddle"
