@@ -44,6 +44,13 @@ describe('fiddle files', () => {
         ])
       ).toBeFalsy();
     });
+    it('with fiddle->source map ending with a file extension, the exact match is a fiddle file', function () {
+      expect(
+        fiddleFiles.isFiddleFile('/u/p/dev/fiddles/a.ext', '/u/p', [
+          { source: ['src'], fiddle: ['dev', 'fiddles', 'a.ext'] },
+        ])
+      ).toBeTruthy();
+    });
     it('with multiple fiddle->source mappings, a file in any of the fiddle paths is a fiddle file', function () {
       expect(
         fiddleFiles.isFiddleFile('/u/p/dev/fiddles/a/b/c_d.cljc', '/u/p', [
@@ -52,6 +59,18 @@ describe('fiddle files', () => {
           { source: ['src'], fiddle: ['second'] },
         ])
       ).toBeTruthy();
+    });
+    it('with fiddle->source map ending with a file extension,  a non-matching file is not a fiddle file', function () {
+      expect(
+        fiddleFiles.isFiddleFile('/u/p/dev/fiddles/b.ext', '/u/p', [
+          { source: ['src'], fiddle: ['dev', 'fiddles', 'a.ext'] },
+        ])
+      ).toBeFalsy();
+      expect(
+        fiddleFiles.isFiddleFile('/u/p/src/a/b/c.clj', '/u/p', [
+          { source: ['src'], fiddle: ['dev', 'fiddles', 'a.ext'] },
+        ])
+      ).toBeFalsy();
     });
   });
 
@@ -74,6 +93,31 @@ describe('fiddle files', () => {
           { source: ['no-match'], fiddle: ['no-fiddle'] },
           { source: ['src'], fiddle: ['first'] },
           { source: ['src'], fiddle: ['second'] },
+        ])
+      ).toBe('/u/p/first/a/b/c_d.cljc');
+    });
+    it('with source->fiddle map with fiddle path ending in a file extension, finds that file for any source file', function () {
+      expect(
+        fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c_d.cljc', '/u/p', [
+          { source: ['src'], fiddle: ['dev', 'fiddles', 'a.ext'] },
+        ])
+      ).toBe('/u/p/dev/fiddles/a.ext');
+    });
+    it('with source->fiddle map with several matching source mappings, gets fiddle file for first, also if it is an exact match', function () {
+      expect(
+        fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c_d.cljc', '/u/p', [
+          { source: ['no-match'], fiddle: ['no-fiddle'] },
+          { source: ['src'], fiddle: ['first.ext'] },
+          { source: ['src'], fiddle: ['second'] },
+        ])
+      ).toBe('/u/p/first.ext');
+    });
+    it('with source->fiddle map with several matching source mappings, gets fiddle file for first, also if it is a directory match', function () {
+      expect(
+        fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c_d.cljc', '/u/p', [
+          { source: ['no-match'], fiddle: ['no-fiddle'] },
+          { source: ['src'], fiddle: ['first'] },
+          { source: ['src'], fiddle: ['second.ext'] },
         ])
       ).toBe('/u/p/first/a/b/c_d.cljc');
     });

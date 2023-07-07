@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as path from 'path';
 
 /**
@@ -75,6 +76,9 @@ function getMappingRelativePath(projectRootPath: string, filePath: string, mappi
  * Returns the fiddle file for a given source file.
  * If no mappings are provided, it simply changes the extension of the source file to `.fiddle`.
  * If mappings are provided, it uses them to find the corresponding fiddle file.
+ *   When the fiddle or a mapping end with a file extension, and the source matches,
+ *   the exact fiddle file mapped will be returned. Otherwise the fiddle mapping will be treated
+ *   as a directory mapping the relative location of the source file.
  * If no mapping can be determined for the given source file, it throws a `FiddleMappingException`.
  */
 export function getFiddleForSourceFile(
@@ -90,8 +94,12 @@ export function getFiddleForSourceFile(
   }
 
   const mapping = getMapping(fiddleFilePaths, projectRootPath, filePath, 'source');
-  if (mapping === undefined) {
+  if (mapping === undefined || mapping.fiddle === undefined) {
     throw new FiddleMappingException(`No fiddle<->source mapping found for file ${filePath}`);
+  }
+  const lastFiddlePathSegment = _.last(mapping.fiddle) || '';
+  if (lastFiddlePathSegment.match(/\./)) {
+    return path.join(projectRootPath, ...mapping.fiddle);
   }
   const relativeFilePath = getMappingRelativePath(projectRootPath, filePath, mapping.source);
   return path.join(projectRootPath, ...mapping.fiddle, relativeFilePath);
