@@ -74,14 +74,14 @@ export function _internal_getMapping(
         ? -1
         : 1;
     })
+    .sort((a: FiddleFilePath, b: FiddleFilePath) => {
+      return b[from].length - a[from].length;
+    })
     .filter((mapping) => {
       const mappingRootPath = path.join(projectRootPath, ...mapping[from]);
       return filePath.startsWith(
         isExactFiddle(mapping) ? mappingRootPath : `${mappingRootPath}${path.sep}`
       );
-    })
-    .sort((a: FiddleFilePath, b: FiddleFilePath) => {
-      return b[from].length - a[from].length;
     });
   return mappings.length > 0 ? mappings[0] : undefined;
 }
