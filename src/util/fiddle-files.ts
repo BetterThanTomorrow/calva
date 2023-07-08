@@ -1,15 +1,17 @@
 import * as _ from 'lodash';
 import * as path from 'path';
 
+type FiddleFilePath = {
+  source: string[];
+  fiddle: string[];
+};
+
 /**
  * Represents a list of mappings between source files and their corresponding fiddle files.
  * It is used to determine the corresponding fiddle file for a source file and vice versa.
  * The directories are represented as an array of path segments.
  */
-export type FiddleFilePaths = Array<{
-  source: string[];
-  fiddle: string[];
-}> | null;
+export type FiddleFilePaths = Array<FiddleFilePath> | null;
 
 export const FIDDLE_FILE_EXTENSION = 'fiddle';
 
@@ -43,6 +45,11 @@ export class FiddleMappingException extends Error {
   }
 }
 
+function isExactFiddle(mapping: FiddleFilePath) {
+  const lastFiddlePathSegment = _.last(mapping.fiddle) || '';
+  return lastFiddlePathSegment.match(/\./);
+}
+
 /**
  * Helper function used to find the mapping that applies to a given file.
  * Gets the mapping for a given file path, based on the specified direction ('source' or 'fiddle').
@@ -52,7 +59,7 @@ export class FiddleMappingException extends Error {
  *       It is exported only for testing purposes.
  */
 export function _getMapping(
-  fiddleFilePaths: { source: string[]; fiddle: string[] }[],
+  fiddleFilePaths: FiddleFilePath[],
   projectRootPath: string,
   filePath: string,
   from: 'source' | 'fiddle'
@@ -60,7 +67,7 @@ export function _getMapping(
   const mappings = fiddleFilePaths.filter((mapping) => {
     const mappingRootPath = path.join(projectRootPath, ...mapping[from]);
     return filePath.startsWith(
-      _.last(mapping.fiddle).match(/\./) ? mappingRootPath : `${mappingRootPath}${path.sep}`
+      isExactFiddle(mapping) ? mappingRootPath : `${mappingRootPath}${path.sep}`
     );
   });
   return mappings.length > 0 ? mappings[0] : undefined;
@@ -101,8 +108,7 @@ export function getFiddleForSourceFile(
   if (mapping === undefined || mapping.fiddle === undefined) {
     throw new FiddleMappingException(`No fiddle<->source mapping found for file ${filePath}`);
   }
-  const lastFiddlePathSegment = _.last(mapping.fiddle) || '';
-  if (lastFiddlePathSegment.match(/\./)) {
+  if (isExactFiddle(mapping)) {
     return path.join(projectRootPath, ...mapping.fiddle);
   }
   const relativeFilePath = getMappingRelativePath(projectRootPath, filePath, mapping.source);
