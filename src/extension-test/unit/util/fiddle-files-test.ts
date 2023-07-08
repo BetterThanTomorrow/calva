@@ -79,6 +79,19 @@ describe('fiddle files', () => {
         ).source
       ).toEqual(['first-src']);
     });
+    it('prioritizes exact fiddle match, mapping fiddle->source', function () {
+      expect(
+        fiddleFiles._getMapping(
+          [
+            { source: ['not-prio'], fiddle: ['dev'] },
+            { source: ['first-src'], fiddle: ['dev', 'a.ext'] },
+          ],
+          '/u/p',
+          '/u/p/dev/a.ext',
+          'fiddle'
+        ).source
+      ).toEqual(['first-src']);
+    });
   });
 
   describe('context', () => {
