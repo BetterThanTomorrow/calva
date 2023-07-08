@@ -165,7 +165,7 @@
         "properties": {
           "calva.fiddleFilePaths": {
             "type": "array",
-            "markdownDescription": "An array of `source` and `fiddle` files files root paths, relative to the project root. This is used by the command **Calva: Open Fiddle File**. E.g.:\n\n```json\n\"calva.fiddleFilePaths\": [\n  {\n    \"source\": [\"src\"],\n    \"fiddle\": [\"env\", \"dev\", \"fiddles\"]\n  }\n]\n```\n\nThe default is `null`, which will make Calva associate files with a `.fiddle` file extension as the fiddle file for a Clojure file. E.g. a file `src/foo/bar/baz_main.cljc`, will have an associated fiddle file named `src/foo/bar/baz_main.fiddle`. See [calva.io/fiddle](https://calva.io/fiddle/) for more info.",
+            "markdownDescription": "An array of `source` and `fiddle` root paths, relative to the project root. This is used by the command **Calva: Open Fiddle File**. E.g.:\n\n```json\n\"calva.fiddleFilePaths\": [\n  {\n    \"source\": [\"src\"],\n    \"fiddle\": [\"env\", \"dev\", \"fiddles\"]\n  }\n]\n```\n\nThe default is `null`, which will make Calva associate files with a `.fiddle` file extension as the fiddle file for a Clojure file. E.g. a file `src/foo/bar/baz_main.cljc`, will have an associated fiddle file named `src/foo/bar/baz_main.fiddle`. See [calva.io/fiddle](https://calva.io/fiddle/) for more info.",
             "items": {
               "type": "object",
               "properties": {
