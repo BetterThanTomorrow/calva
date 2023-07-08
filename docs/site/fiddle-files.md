@@ -7,7 +7,7 @@ search:
 
 # Fiddle Files support
 
-In the podcast **Functional Design in Clojure** [Episode 014: Fiddle with the REPL](https://clojuredesign.club/episode/014-fiddle-with-the-repl/) they discuss a workflow where you keep some of your exploratory code in separate files, which they call **Fiddle Files**. It's like [Rich Comments](rich-comments.md), and the files often contain those. The files are typically not on the classpath, and are only loaded in the REPL by you when you are developing on your project. Some developers keep personal fiddle files, in some project they are meant to be shared, and in other projects its a combination.
+In the podcast **Functional Design in Clojure**, [Episode 014: Fiddle with the REPL](https://clojuredesign.club/episode/014-fiddle-with-the-repl/), they discuss a workflow where you keep some of your exploratory code in separate files, which they call **Fiddle Files**. It's like [Rich Comments](rich-comments.md), and the files often contain such rich comments. The files are typically not on the classpath, and are only loaded in the REPL by you when you are developing on your project. Some developers keep personal fiddle files, in some project they are meant to be shared, and in other projects its a combination.
 
 Calva has some extra support for the fiddle file workflow, beyond what VS Code offers in terms of navigating between files. The support comes in the form of three commands supported by some little configuration.
 
