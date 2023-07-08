@@ -58,18 +58,28 @@ function isExactFiddle(mapping: FiddleFilePath) {
  * @note This function is not meant to be used from outside this module, hence the prepending `_`.
  *       It is exported only for testing purposes.
  */
-export function _getMapping(
+export function _internal_getMapping(
   fiddleFilePaths: FiddleFilePath[],
   projectRootPath: string,
   filePath: string,
   from: 'source' | 'fiddle'
 ) {
-  const mappings = fiddleFilePaths.filter((mapping) => {
-    const mappingRootPath = path.join(projectRootPath, ...mapping[from]);
-    return filePath.startsWith(
-      isExactFiddle(mapping) ? mappingRootPath : `${mappingRootPath}${path.sep}`
-    );
-  });
+  const mappings = fiddleFilePaths
+    .sort((a: FiddleFilePath, b: FiddleFilePath) => {
+      return from === 'source' ||
+        (isExactFiddle(a) && isExactFiddle(b)) ||
+        (!isExactFiddle(a) && !isExactFiddle(b))
+        ? 0
+        : isExactFiddle(a)
+        ? -1
+        : 1;
+    })
+    .filter((mapping) => {
+      const mappingRootPath = path.join(projectRootPath, ...mapping[from]);
+      return filePath.startsWith(
+        isExactFiddle(mapping) ? mappingRootPath : `${mappingRootPath}${path.sep}`
+      );
+    });
   return mappings.length > 0 ? mappings[0] : undefined;
 }
 
@@ -104,7 +114,7 @@ export function getFiddleForSourceFile(
     )}.${FIDDLE_FILE_EXTENSION}`;
   }
 
-  const mapping = _getMapping(fiddleFilePaths, projectRootPath, filePath, 'source');
+  const mapping = _internal_getMapping(fiddleFilePaths, projectRootPath, filePath, 'source');
   if (mapping === undefined || mapping.fiddle === undefined) {
     throw new FiddleMappingException(`No fiddle<->source mapping found for file ${filePath}`);
   }
@@ -137,7 +147,7 @@ export function getSourceBaseForFiddleFile(
     return filePath.substring(0, filePath.length - path.extname(filePath).length);
   }
 
-  const mapping = _getMapping(fiddleFilePaths, projectRootPath, filePath, 'fiddle');
+  const mapping = _internal_getMapping(fiddleFilePaths, projectRootPath, filePath, 'fiddle');
   if (mapping === undefined) {
     throw new FiddleMappingException(`No fiddle<->source mapping found for file ${filePath}`);
   }
@@ -227,6 +237,6 @@ export function isFiddleFile(
   return (
     path.extname(filePath) === `.${FIDDLE_FILE_EXTENSION}` ||
     (fiddleFilePaths !== null &&
-      _getMapping(fiddleFilePaths, projectRootPath, filePath, 'fiddle') !== undefined)
+      _internal_getMapping(fiddleFilePaths, projectRootPath, filePath, 'fiddle') !== undefined)
   );
 }

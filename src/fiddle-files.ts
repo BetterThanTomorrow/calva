@@ -163,6 +163,14 @@ export async function openSourceFileForFiddle() {
     vscode.workspace
   );
 
+  if (!sourceFilePath) {
+    void vscode.window.showInformationMessage(
+      "This fiddle file can't be mapped to a source file. Consider using the Go Previous command to toggle between files.",
+      'OK'
+    );
+    return;
+  }
+
   const sourceFileUri = vscode.Uri.file(sourceFilePath);
   const relativeSourceFilePath = vscode.workspace.asRelativePath(sourceFileUri);
   void vscode.workspace.findFiles(relativeSourceFilePath).then((files) => {

@@ -5,7 +5,7 @@ describe('fiddle files', () => {
   describe('mapping', () => {
     it('finds mapping source->fiddle', function () {
       expect(
-        fiddleFiles._getMapping(
+        fiddleFiles._internal_getMapping(
           [{ source: ['src'], fiddle: ['dev'] }],
           '/u/p',
           '/u/p/src/a/b/c_d.clj',
@@ -15,7 +15,7 @@ describe('fiddle files', () => {
     });
     it('finds first matching mapping source->fiddle', function () {
       expect(
-        fiddleFiles._getMapping(
+        fiddleFiles._internal_getMapping(
           [
             { source: ['no-src'], fiddle: ['no-dev'] },
             { source: ['src'], fiddle: ['first-dev'] },
@@ -29,7 +29,7 @@ describe('fiddle files', () => {
     });
     it('finds first matching mapping source->fiddle, matching on full path segments', function () {
       expect(
-        fiddleFiles._getMapping(
+        fiddleFiles._internal_getMapping(
           [
             { source: ['no-src'], fiddle: ['no-dev'] },
             { source: ['src'], fiddle: ['not-first-dev'] },
@@ -43,7 +43,7 @@ describe('fiddle files', () => {
     });
     it('finds mapping fiddle->source', function () {
       expect(
-        fiddleFiles._getMapping(
+        fiddleFiles._internal_getMapping(
           [{ source: ['src'], fiddle: ['dev'] }],
           '/u/p',
           '/u/p/dev/a/b/c_d.fiddle',
@@ -53,7 +53,7 @@ describe('fiddle files', () => {
     });
     it('finds first mapping fiddle->source', function () {
       expect(
-        fiddleFiles._getMapping(
+        fiddleFiles._internal_getMapping(
           [
             { source: ['no-src'], fiddle: ['no-dev'] },
             { source: ['first-src'], fiddle: ['dev'] },
@@ -67,7 +67,7 @@ describe('fiddle files', () => {
     });
     it('finds first mapping fiddle->source, matching full path segments', function () {
       expect(
-        fiddleFiles._getMapping(
+        fiddleFiles._internal_getMapping(
           [
             { source: ['no-src'], fiddle: ['no-dev'] },
             { source: ['not-first-src'], fiddle: ['dev'] },
@@ -81,7 +81,7 @@ describe('fiddle files', () => {
     });
     it('prioritizes exact fiddle match, mapping fiddle->source', function () {
       expect(
-        fiddleFiles._getMapping(
+        fiddleFiles._internal_getMapping(
           [
             { source: ['not-prio'], fiddle: ['dev'] },
             { source: ['first-src'], fiddle: ['dev', 'a.ext'] },
