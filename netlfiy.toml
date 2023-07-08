@@ -1,0 +1,8 @@
+[build]
+publish = "docs/site"
+command = """
+restore_home_cache ".cache" "pip cache" &&
+restore_cwd_cache '.venv' 'python virtualenv' &&
+pip install -r requirements.txt &&
+mkdocs build -d docs/site
+"""
