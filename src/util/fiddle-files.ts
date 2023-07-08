@@ -48,8 +48,10 @@ export class FiddleMappingException extends Error {
  * Gets the mapping for a given file path, based on the specified direction ('source' or 'fiddle').
  * It will return the first mapping where the file path starts with the mapped path.
  * If no such mapping is found, it returns `undefined`.
+ * @note This function is not meant to be used from outside this module, hence the prepending `_`.
+ *       It is exported only for testing purposes.
  */
-function getMapping(
+export function _getMapping(
   fiddleFilePaths: { source: string[]; fiddle: string[] }[],
   projectRootPath: string,
   filePath: string,
@@ -57,7 +59,9 @@ function getMapping(
 ) {
   const mappings = fiddleFilePaths.filter((mapping) => {
     const mappingRootPath = path.join(projectRootPath, ...mapping[from]);
-    return filePath.startsWith(mappingRootPath);
+    return filePath.startsWith(
+      _.last(mapping.fiddle).match(/\./) ? mappingRootPath : `${mappingRootPath}${path.sep}`
+    );
   });
   return mappings.length > 0 ? mappings[0] : undefined;
 }
@@ -93,7 +97,7 @@ export function getFiddleForSourceFile(
     )}.${FIDDLE_FILE_EXTENSION}`;
   }
 
-  const mapping = getMapping(fiddleFilePaths, projectRootPath, filePath, 'source');
+  const mapping = _getMapping(fiddleFilePaths, projectRootPath, filePath, 'source');
   if (mapping === undefined || mapping.fiddle === undefined) {
     throw new FiddleMappingException(`No fiddle<->source mapping found for file ${filePath}`);
   }
@@ -127,7 +131,7 @@ export function getSourceBaseForFiddleFile(
     return filePath.substring(0, filePath.length - path.extname(filePath).length);
   }
 
-  const mapping = getMapping(fiddleFilePaths, projectRootPath, filePath, 'fiddle');
+  const mapping = _getMapping(fiddleFilePaths, projectRootPath, filePath, 'fiddle');
   if (mapping === undefined) {
     throw new FiddleMappingException(`No fiddle<->source mapping found for file ${filePath}`);
   }
@@ -217,6 +221,6 @@ export function isFiddleFile(
   return (
     path.extname(filePath) === `.${FIDDLE_FILE_EXTENSION}` ||
     (fiddleFilePaths !== null &&
-      getMapping(fiddleFilePaths, projectRootPath, filePath, 'fiddle') !== undefined)
+      _getMapping(fiddleFilePaths, projectRootPath, filePath, 'fiddle') !== undefined)
   );
 }

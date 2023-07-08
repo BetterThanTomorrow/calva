@@ -2,6 +2,85 @@ import * as expect from 'expect';
 import * as fiddleFiles from '../../../util/fiddle-files';
 
 describe('fiddle files', () => {
+  describe('mapping', () => {
+    it('finds mapping source->fiddle', function () {
+      expect(
+        fiddleFiles._getMapping(
+          [{ source: ['src'], fiddle: ['dev'] }],
+          '/u/p',
+          '/u/p/src/a/b/c_d.clj',
+          'source'
+        ).fiddle
+      ).toEqual(['dev']);
+    });
+    it('finds first matching mapping source->fiddle', function () {
+      expect(
+        fiddleFiles._getMapping(
+          [
+            { source: ['no-src'], fiddle: ['no-dev'] },
+            { source: ['src'], fiddle: ['first-dev'] },
+            { source: ['src'], fiddle: ['second-dev'] },
+          ],
+          '/u/p',
+          '/u/p/src/a/b/c_d.clj',
+          'source'
+        ).fiddle
+      ).toEqual(['first-dev']);
+    });
+    it('finds first matching mapping source->fiddle, matching on full path segments', function () {
+      expect(
+        fiddleFiles._getMapping(
+          [
+            { source: ['no-src'], fiddle: ['no-dev'] },
+            { source: ['src'], fiddle: ['not-first-dev'] },
+            { source: ['src2'], fiddle: ['first-dev'] },
+          ],
+          '/u/p',
+          '/u/p/src2/a/b/c_d.clj',
+          'source'
+        ).fiddle
+      ).toEqual(['first-dev']);
+    });
+    it('finds mapping fiddle->source', function () {
+      expect(
+        fiddleFiles._getMapping(
+          [{ source: ['src'], fiddle: ['dev'] }],
+          '/u/p',
+          '/u/p/dev/a/b/c_d.fiddle',
+          'fiddle'
+        ).source
+      ).toEqual(['src']);
+    });
+    it('finds first mapping fiddle->source', function () {
+      expect(
+        fiddleFiles._getMapping(
+          [
+            { source: ['no-src'], fiddle: ['no-dev'] },
+            { source: ['first-src'], fiddle: ['dev'] },
+            { source: ['second-src'], fiddle: ['dev'] },
+          ],
+          '/u/p',
+          '/u/p/dev/a/b/c_d.fiddle',
+          'fiddle'
+        ).source
+      ).toEqual(['first-src']);
+    });
+    it('finds first mapping fiddle->source, matching full path segments', function () {
+      expect(
+        fiddleFiles._getMapping(
+          [
+            { source: ['no-src'], fiddle: ['no-dev'] },
+            { source: ['not-first-src'], fiddle: ['dev'] },
+            { source: ['first-src'], fiddle: ['dev2'] },
+          ],
+          '/u/p',
+          '/u/p/dev2/a/b/c_d.fiddle',
+          'fiddle'
+        ).source
+      ).toEqual(['first-src']);
+    });
+  });
+
   describe('context', () => {
     it('without source->fiddle map, a .fiddle files is fiddle file', function () {
       expect(fiddleFiles.isFiddleFile('/u/p/src/a/b/c_d.fiddle', '/u/p', null)).toBeTruthy();
@@ -102,6 +181,11 @@ describe('fiddle files', () => {
           { source: ['src'], fiddle: ['dev', 'fiddles', 'a.ext'] },
         ])
       ).toBe('/u/p/dev/fiddles/a.ext');
+      expect(
+        fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b.cljc', '/u/p', [
+          { source: ['src'], fiddle: ['dev', 'fiddles', 'a.ext'] },
+        ])
+      ).toBe('/u/p/dev/fiddles/a.ext');
     });
     it('with source->fiddle map with several matching source mappings, gets fiddle file for first, also if it is an exact match', function () {
       expect(
@@ -109,6 +193,14 @@ describe('fiddle files', () => {
           { source: ['no-match'], fiddle: ['no-fiddle'] },
           { source: ['src'], fiddle: ['first.ext'] },
           { source: ['src'], fiddle: ['second'] },
+        ])
+      ).toBe('/u/p/first.ext');
+      expect(
+        fiddleFiles.getFiddleForSourceFile('/u/p/src2/a/b/c_d.cljc', '/u/p', [
+          { source: ['no-match'], fiddle: ['no-fiddle'] },
+          { source: ['src'], fiddle: ['no-fiddle'] },
+          { source: ['src2'], fiddle: ['first.ext'] },
+          { source: ['src2'], fiddle: ['second.ext'] },
         ])
       ).toBe('/u/p/first.ext');
     });
