@@ -131,6 +131,10 @@ export function getSourceBaseForFiddleFile(
   if (mapping === undefined) {
     throw new FiddleMappingException(`No fiddle<->source mapping found for file ${filePath}`);
   }
+  const lastFiddlePathSegment = _.last(mapping.fiddle) || '';
+  if (lastFiddlePathSegment.match(/\./)) {
+    return undefined;
+  }
   const rootPath = path.join(projectRootPath, ...mapping.fiddle);
   const relativeFilePath = path.relative(rootPath, filePath);
   const relativeBasePath = relativeFilePath.substring(
@@ -172,6 +176,10 @@ export async function getSourceForFiddleFile(
   extensions: string[] = clojureFileExtensions
 ): Promise<string> {
   const sourceBase = getSourceBaseForFiddleFile(filePath, projectRootPath, fiddleFilePaths);
+  console.log(`Searching for source file with base ${sourceBase}`);
+  if (sourceBase === undefined) {
+    return undefined;
+  }
   if (path.extname(filePath) === `.${FIDDLE_FILE_EXTENSION}` || fiddleFilePaths === null) {
     const uris = await workspace.findFiles(
       `${workspace.asRelativePath(sourceBase)}.{${extensions.join(',')}}`

@@ -176,6 +176,13 @@ describe('fiddle files', () => {
           ])
         ).toBe('/u/p/dev/fiddles/a/b/c_d');
       });
+      it('returns undefined for exact fiddle file match', function () {
+        expect(
+          fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/fiddles/a.ext', '/u/p', [
+            { source: ['src'], fiddle: ['dev', 'fiddles', 'a.ext'] },
+          ])
+        ).toBeUndefined();
+      });
       it('throws when project root does not match', function () {
         expect(() =>
           fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/fiddles/a/b/c_d.cljc', '/u/p-no', [
@@ -240,6 +247,16 @@ describe('fiddle files', () => {
             mockWorkspace
           )
         ).toBe('/u/p/src/a/b/c_d.bb');
+      });
+      it('returns undefined for exact matching fiddle file', async function () {
+        expect(
+          await fiddleFiles.getSourceForFiddleFile(
+            '/u/p/dev/fiddles/a.ext',
+            '/u/p',
+            [{ source: ['src'], fiddle: ['dev', 'fiddles', 'a.ext'] }],
+            mockWorkspace
+          )
+        ).toBeUndefined();
       });
     });
   });
