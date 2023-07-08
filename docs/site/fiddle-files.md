@@ -1,0 +1,142 @@
+---
+title: Fiddle Files Support
+description: Power up you Interactive Programming with Fiddle Files. Rich Comments in files of their own with some extra Calva treatment to go with them.
+search:
+  boost: 5
+---
+
+# Fiddle Files support
+
+In the podcast **Functional Design in Clojure** [Episode 014: Fiddle with the REPL](https://clojuredesign.club/episode/014-fiddle-with-the-repl/) they discuss a workflow where you keep some of your exploratory code in separate files, which they call **Fiddle Files**. It's like [Rich Comments](rich-comments.md), and the files often contain those. The files are typically not on the classpath, and are only loaded in the REPL by you when you are developing on your project. Some developers keep personal fiddle files, in some project they are meant to be shared, and in other projects its a combination.
+
+Calva has some extra support for the fiddle file workflow, beyond what VS Code offers in terms of navigating between files. The support comes in the form of three commands supported by some little configuration.
+
+## The three Fiddle File commands
+
+The commands let you quickly navigate between your implementation code (called **Source** here) and your **Fiddle** fle, and to evaluate the **Fiddle** file without leaving the **Source** file.
+
+| Command | Action | Shortcut | Active |
+|---------|--------|----------|--------|
+| **Calva: Open Fiddle File for Current File** | Opens the **Fiddle** file corresponding to the current Clojure **Source** file. | <div style="white-space: nowrap; overflow-x: auto;"><kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>c</kbd><br><kbd>f</kbd></div> | When the currently active file is _not_ a **Fiddle** file. |
+| **Calva: Open Source File for Current Fiddle File** | Opens the **Source** file corresponding to the current **Fiddle** file. | <div style="white-space: nowrap; overflow-x: auto;"><kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>c</kbd><br><kbd>f</kbd></div> | When the currently active file _is_ a **Fiddle** file + there is an existing, and corresponding, source file. |
+| **Calva: Evaluate Fiddle File for Current File** | Evaluates the **Fiddle** file corresponding to the current Clojure **Source** file. | <div style="white-space: nowrap; overflow-x: auto;"><kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>c</kbd><br><kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>f</kbd></div> | When the currently active file is _not_ a **Fiddle** file. |
+
+The commands for opening and evaluating corresponding **Fiddle** files will offer to Create the **Fiddle** file if it does not already exist. But the **Calva: Open Source File for Current Fiddle File** will _not_ offer to create the target file.
+
+What does **corresponding** mean here? Without any configuration Calva will look for “sibling” files, where files with Clojure file extensions (E.g. `.clj`, `.cljs`, `.bb`) will be treated as **Source** files, and files with the `.fiddle` extension will be treated as **Fiddle** files. Sibling file here means residing side by side in the file system. If this default behaviour is not your cup of tea, there is some flexibility added by configuration.
+
+## The Fiddle File configuration
+
+To know how to map between **Fiddle** <-> **Source** files, Calva has three different modes of operation:
+
+1. The sibling files, as described above. This is the default. Example:
+    * **`src`**`/a/b/c.cljc` corresponding to:
+    * **`src`**`/a/b/c.fiddle`
+1. Parallel directory structures. Mapping a **Source** directory tree to a **Fiddle** directory tree. Example:
+    * **`src`**`/a/b/c.cljc` corresponding to:
+    * **`env/dev/fiddles`**`/a/b/c.cljc`
+1. A dedicated **Fiddle** file for a **Source** directory tree. E.g. both:
+    * **`src`**`/a/b/c.clj` and:
+    * **`src`**`/d/e/f.cljs` corresponding to:
+    * **`env/dev/fiddles`**`/x.cljc`
+
+The setting is named `calva.fiddleFilePaths` and is an array of `source` and `fiddle` root paths, _relative to the project root_.
+
+!!! Note "The Project Root"
+    It is important to note that the **project root** depends on wether you are connected to a REPL or not, and to which project you are connected, in case the workspace contains several projects.
+
+    **Without** a REPL connection (disregarding that fiddle files are not very interesting then) the project root is the same as the first Workspace root. And if you have a regular VS Code window open, it is the root of the folder you have opened in that window.
+
+    **With** a REPL connection, the project root will be the root of the project, i.e. where the project file (`deps.edn`, `project.clj`, `shadow-cljs.edn`) is.
+
+### Example configurations
+
+#### Single parallel directory structure
+
+```json
+"calva.fiddleFilePaths": [
+  {
+    "source": ["src"],
+    "fiddle": ["env", "dev", "fiddles"]
+  }
+]
+```
+
+This will make any file in the `src` directory tree correspond to a matching file with the same relative path. E.g.:
+
+* `src/a/b/c.clj` -> `env/dev/fiddles/a/b/c.clj`, for both the **open** and **evaluate** commands
+* `env/dev/fiddles/a/b/c.clj` -> `src/a/b/c.clj`
+
+#### Single dedicated Fiddle file
+
+If you generally work with one **Fiddle** file at a time, you can configure a mapping to a **Dedicated Fiddle** file. E.g.:
+
+
+```json
+"calva.fiddleFilePaths": [
+  {
+    "source": ["src"],
+    "fiddle": ["env", "dev", "fiddle.clj"]
+  },
+]
+```
+
+This will make any file in the `src` directory tree correspond to the same **Fiddle** file. E.g.:
+
+* `src/a/b/c.clj` -> `env/dev/fiddle.clj`, for both the **open** and **evaluate** commands
+* `src/d/e/f.clj` -> `env/dev/fiddle.clj`, ditto
+* `env/dev/fiddle.clj` -> Won't correspond to a **Source** file in this case
+
+!!! Note "Jumping from a dedicated fiddle to a source file"
+    Calva's command for opening the corresponding source file won't work in this case because it is one->many situation. If you want to open the last file you worked with before using doing **Open Fiddle File for Current File**, consider using the VS Code command: **Go Previous**.
+
+#### Multiple mappings
+
+The configuration is an array so that you can configure different mappings for different **Source** directories. Given several mappings with overlapping **Source**, the longest mapping will win. Given several mappings with the _same_ **Source**, the first one will win, _unless_ one of them is a _Dedicated_ **Fiddle**, in which case that one will win.
+
+```json
+"calva.fiddleFilePaths": [
+  {
+    "source": ["src"],
+    "fiddle": ["env", "dev", "fiddles"]
+  },
+  {
+    "source": ["src"],
+    "fiddle": ["env", "dev", "fiddle.clj"]
+  },
+  {
+    "source": ["src", "b"],
+    "fiddle": ["env", "dev", "b-fiddles"]
+  },
+]
+```
+
+With this configuration we would get a behaviour like so:
+
+* `src/a/b/c.clj` -> `env/dev/fiddle.clj`, because both `["src"]` mappings match, but the second one is a dedicated fiddle file.
+* `src/b/c/d.clj` -> `env/dev/b-fiddles/c/d.clj`, because the `["src", "b"]` mapping is longer than the also matching `["src"]` mappings.
+
+## Tips
+
+It can be tempting to put your **Fiddle** files directory on the classpath for the `dev` alias/profile, but it is most often a mistake (will depend on your particular use of fiddle files, but generally). Instead load/evaluate fiddle files when you need them (e.g. by using the command for it mentioned above). The REPL does not need something to be on the classpath in order to evaluate it.
+
+When you want your fiddle code to be evaluated in the same workspace as its corresponding **Source** file, you can use the same namespace declaration for both files. The linter might complain, but the REPL will be happily comply.
+
+If you primarily evaluate the fiddle file using the provided command for it, from the **Source** files, you can omit the namespace declaration, and Calva will evaluate it in the namespace of the **Source** file.
+
+!!! Note "The linter and fiddle files"
+    For some fiddle files you will get a lot of linter warnings, because clj-kondo doesn't know about fiddle files, and they are often not on the classpath, making. You might find yourself wanting to silence some linters for some fiddle files. E.g. like this:
+
+    ``` clojure
+    (ns main.core
+      {:clj-kondo/config
+       '{:linters {:unresolved-symbol {:level :off}}}})
+    ```
+
+     See [clj-kondo Configuration](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md) for more on what options you have for this.
+
+## See also
+
+* [Rich Comments](rich-comments.md)
+* **Functional Design in Clojure** [Episode 014: Fiddle with the REPL](https://clojuredesign.club/episode/014-fiddle-with-the-repl/)
+* The Polylith [Development](https://polylith.gitbook.io/poly/architecture/development) page mentions good practice for where to put your fiddle files (not called fiddle files there, but it is the same concept).
