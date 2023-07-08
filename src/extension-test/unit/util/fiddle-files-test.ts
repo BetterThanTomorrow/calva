@@ -41,6 +41,19 @@ describe('fiddle files', () => {
         ).fiddle
       ).toEqual(['first-dev']);
     });
+    it('source->fiddle: prioritizes the longest source mapping, when overlapping', function () {
+      expect(
+        fiddleFiles._internal_getMapping(
+          [
+            { source: ['src'], fiddle: ['not-prio'] },
+            { source: ['src', 'a'], fiddle: ['prio'] },
+          ],
+          '/u/p',
+          '/u/p/src/a/b.cljs',
+          'source'
+        ).fiddle
+      ).toEqual(['prio']);
+    });
     it('finds mapping fiddle->source', function () {
       expect(
         fiddleFiles._internal_getMapping(
@@ -78,6 +91,19 @@ describe('fiddle files', () => {
           'fiddle'
         ).source
       ).toEqual(['first-src']);
+    });
+    it('fiddle->source: prioritizes the longest fiddle mapping, when overlapping', function () {
+      expect(
+        fiddleFiles._internal_getMapping(
+          [
+            { source: ['src'], fiddle: ['dev', 'fiddles'] },
+            { source: ['prio'], fiddle: ['dev', 'fiddles', 'a'] },
+          ],
+          '/u/p',
+          '/u/p/dev/fiddles/a/b.cljs',
+          'fiddle'
+        ).source
+      ).toEqual(['prio']);
     });
     it('prioritizes exact fiddle match, mapping fiddle->source', function () {
       expect(

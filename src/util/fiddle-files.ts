@@ -79,6 +79,9 @@ export function _internal_getMapping(
       return filePath.startsWith(
         isExactFiddle(mapping) ? mappingRootPath : `${mappingRootPath}${path.sep}`
       );
+    })
+    .sort((a: FiddleFilePath, b: FiddleFilePath) => {
+      return b[from].length - a[from].length;
     });
   return mappings.length > 0 ? mappings[0] : undefined;
 }
