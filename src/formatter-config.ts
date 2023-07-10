@@ -35,6 +35,18 @@ function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmt: s
   };
 }
 
+function getConfigPath(workspaceConfig: vscode.WorkspaceConfiguration): string | undefined {
+  const pathFromSettings = workspaceConfig.get<string>('configPath');
+  if (pathFromSettings) {
+    return pathFromSettings;
+  }
+  // if not set, check default cljfmt paths (https://github.com/weavejester/cljfmt#configuration)
+  const configFileNames = ['.cljfmt.edn', '.cljfmt.clj', 'cljfmt.edn', 'cljfmt.clj'];
+  return configFileNames.find((configPath) => {
+    return filesCache.content(configPath);
+  });
+}
+
 export type FormatterConfig = Partial<Awaited<ReturnType<typeof getConfig>>>;
 
 export async function getConfig(
@@ -46,7 +58,7 @@ export async function getConfig(
   'cljfmt-options': object;
 }> {
   const workspaceConfig = vscode.workspace.getConfiguration('calva.fmt');
-  const configPath: string | undefined = workspaceConfig.get('configPath');
+  const configPath: string | undefined = getConfigPath(workspaceConfig);
 
   if (configPath === LSP_CONFIG_KEY && document) {
     const clientProvider = lsp.getClientProvider();

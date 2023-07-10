@@ -920,7 +920,7 @@
         "properties": {
           "calva.fmt.configPath": {
             "type": "string",
-            "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Absolute or relative to the project root directory. To provide the config via [clojure-lsp](https://clojure-lsp.io), set this to `CLOJURE-LSP` (case sensitive)."
+            "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Absolute or relative to the project root directory. To provide the config via [clojure-lsp](https://clojure-lsp.io), set this to `CLOJURE-LSP` (case sensitive). If left blank and a config file with a [default name]( is used, the file will be automatically loaded."
           },
           "calva.fmt.newIndentEngine": {
             "type": "boolean",
