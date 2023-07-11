@@ -164,6 +164,19 @@ describe('fiddle files', () => {
             'source'
           ).fiddle
         ).toEqual(['dev', 'a.cljc']);
+        expect(
+          fiddleFiles._internal_getMapping(
+            [
+              { source: ['not-prio'], fiddle: ['dev'] },
+              { source: ['src'], fiddle: ['dev', 'a.clj'] },
+              { source: ['src'], fiddle: ['dev', 'a.cljc'] },
+              { source: ['src'], fiddle: ['dev', 'a.cljs'] },
+            ],
+            '/u/p',
+            '/u/p/src/a/b/c.bb',
+            'source'
+          ).fiddle
+        ).toEqual(['dev', 'a.clj']);
       });
     });
 

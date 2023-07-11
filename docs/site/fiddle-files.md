@@ -36,8 +36,8 @@ To know how to map between **Fiddle** <-> **Source** files, Calva has three diff
     * **`src`**`/a/b/c.cljc` corresponding to:
     * **`env/dev/fiddles`**`/a/b/c.cljc`
 1. A dedicated **Fiddle** file for a **Source** directory tree. E.g. both:
-    * **`src`**`/a/b/c.clj` and:
-    * **`src`**`/d/e/f.cljs` corresponding to:
+    * **`src`**`/a/b/c.cljc` and:
+    * **`src`**`/d/e/f.cljc` corresponding to:
     * **`env/dev/fiddles`**`/x.cljc`
 
 The setting is named `calva.fiddleFilePaths` and is an array of `source` and `fiddle` root paths, _relative to the project root_.
@@ -105,6 +105,14 @@ The configuration is an array so that you can configure different mappings for d
     "fiddle": ["env", "dev", "fiddle.clj"]
   },
   {
+    "source": ["src"],
+    "fiddle": ["env", "dev", "fiddle.cljs"]
+  },
+  {
+    "source": ["src"],
+    "fiddle": ["env", "dev", "fiddle.bb"]
+  },
+  {
     "source": ["src", "b"],
     "fiddle": ["env", "dev", "b-fiddles"]
   },
@@ -113,7 +121,9 @@ The configuration is an array so that you can configure different mappings for d
 
 With this configuration we would get a behaviour like so:
 
-* `src/a/b/c.clj` -> `env/dev/fiddle.clj`, because both `["src"]` mappings match, but the second one is a dedicated fiddle file.
+* `src/a/b/c.clj` -> `env/dev/fiddle.clj`, because all four first `["src"]` mappings match, but the second one is a dedicated fiddle file, and matches the `.clj` extension.
+* `src/a/b/c/d.bb` -> `env/dev/fiddle.bb`, because all four first `["src"]` mappings match, but the second one is a dedicated fiddle file, and matches the `.bb` extension.
+* `src/a/b/c/d.cljc` -> `env/dev/fiddle.clj`, because all four first `["src"]` mappings match, but the second one is a dedicated fiddle file, without a matching  file extension, (so the first dedicated fiddle file is picked).
 * `src/b/c/d.clj` -> `env/dev/b-fiddles/c/d.clj`, because the `["src", "b"]` mapping is longer than the also matching `["src"]` mappings.
 
 ## Tips
