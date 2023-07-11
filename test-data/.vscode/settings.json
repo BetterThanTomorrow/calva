@@ -50,7 +50,15 @@
     },
     {
       "source": ["src2"],
-      "fiddle": ["env", "dev", "fiddles", "pez.cljc"]
+      "fiddle": ["env", "dev", "fiddles", "pez_cljs.cljs"]
+    },
+    {
+      "source": ["src2"],
+      "fiddle": ["env", "dev", "fiddles", "pez_clj.clj"]
+    },
+    {
+      "source": ["src2"],
+      "fiddle": ["env", "dev", "fiddles", "pez_cljc.cljc"]
     }
   ],
   "workbench.colorCustomizations": {

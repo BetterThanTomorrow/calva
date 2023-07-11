@@ -45,7 +45,7 @@ export class FiddleMappingException extends Error {
   }
 }
 
-function isExactFiddle(mapping: FiddleFilePath) {
+function isDedicatedFiddle(mapping: FiddleFilePath) {
   const lastFiddlePathSegment = _.last(mapping.fiddle) || '';
   return lastFiddlePathSegment.match(/\./);
 }
@@ -55,8 +55,7 @@ function isExactFiddle(mapping: FiddleFilePath) {
  * Gets the mapping for a given file path, based on the specified direction ('source' or 'fiddle').
  * It will return the first mapping where the file path starts with the mapped path.
  * If no such mapping is found, it returns `undefined`.
- * @note This function is not meant to be used from outside this module, hence the prepending `_`.
- *       It is exported only for testing purposes.
+ * @note Exported only for testing purposes.
  */
 export function _internal_getMapping(
   fiddleFilePaths: FiddleFilePath[],
@@ -65,24 +64,37 @@ export function _internal_getMapping(
   from: 'source' | 'fiddle'
 ) {
   const mappings = fiddleFilePaths
+    // Prioritize mappings with dedicated fiddle files with the same extension as the filePath
     .sort((a: FiddleFilePath, b: FiddleFilePath) => {
-      return from === 'source' ||
-        (isExactFiddle(a) && isExactFiddle(b)) ||
-        (!isExactFiddle(a) && !isExactFiddle(b))
+      if (isDedicatedFiddle(a) && isDedicatedFiddle(b)) {
+        return path.extname(_.last(a.fiddle)) === path.extname(filePath)
+          ? -1
+          : path.extname(_.last(b.fiddle)) === path.extname(filePath)
+          ? 1
+          : 0;
+      }
+    })
+    // Then prioritize mappings with dedicated fiddle files
+    .sort((a: FiddleFilePath, b: FiddleFilePath) => {
+      return (isDedicatedFiddle(a) && isDedicatedFiddle(b)) ||
+        (!isDedicatedFiddle(a) && !isDedicatedFiddle(b))
         ? 0
-        : isExactFiddle(a)
+        : isDedicatedFiddle(a)
         ? -1
         : 1;
     })
+    // Then prioritize mappings with the longest `from` path
     .sort((a: FiddleFilePath, b: FiddleFilePath) => {
       return b[from].length - a[from].length;
     })
+    // Filter for mappings that match the file path
     .filter((mapping) => {
       const mappingRootPath = path.join(projectRootPath, ...mapping[from]);
       return filePath.startsWith(
-        isExactFiddle(mapping) ? mappingRootPath : `${mappingRootPath}${path.sep}`
+        isDedicatedFiddle(mapping) ? mappingRootPath : `${mappingRootPath}${path.sep}`
       );
     });
+  // Pick the first mapping
   return mappings.length > 0 ? mappings[0] : undefined;
 }
 
@@ -101,7 +113,7 @@ function getMappingRelativePath(projectRootPath: string, filePath: string, mappi
  * If no mappings are provided, it simply changes the extension of the source file to `.fiddle`.
  * If mappings are provided, it uses them to find the corresponding fiddle file.
  *   When the fiddle or a mapping end with a file extension, and the source matches,
- *   the exact fiddle file mapped will be returned. Otherwise the fiddle mapping will be treated
+ *   the dedicated fiddle file mapped will be returned. Otherwise the fiddle mapping will be treated
  *   as a directory mapping the relative location of the source file.
  * If no mapping can be determined for the given source file, it throws a `FiddleMappingException`.
  */
@@ -121,7 +133,7 @@ export function getFiddleForSourceFile(
   if (mapping === undefined || mapping.fiddle === undefined) {
     throw new FiddleMappingException(`No fiddle<->source mapping found for file ${filePath}`);
   }
-  if (isExactFiddle(mapping)) {
+  if (isDedicatedFiddle(mapping)) {
     return path.join(projectRootPath, ...mapping.fiddle);
   }
   const relativeFilePath = getMappingRelativePath(projectRootPath, filePath, mapping.source);

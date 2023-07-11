@@ -55,7 +55,7 @@ describe('fiddle files', () => {
           ).fiddle
         ).toEqual(['prio']);
       });
-      it('prioritizes the longest source mapping, when overlapping, even if the shorter is an exact match', function () {
+      it('prioritizes the longest source mapping, when overlapping, even if the shorter is an dedicated fiddle', function () {
         expect(
           fiddleFiles._internal_getMapping(
             [
@@ -80,6 +80,90 @@ describe('fiddle files', () => {
             'source'
           ).fiddle
         ).toEqual(['a.fiddle']);
+      });
+      it('prioritizes dedicated fiddle when equal length from mappings', function () {
+        expect(
+          fiddleFiles._internal_getMapping(
+            [
+              { source: ['src'], fiddle: ['dev'] },
+              { source: ['src'], fiddle: ['dev', 'a.ext'] },
+              { source: ['src'], fiddle: ['dev', 'b'] },
+            ],
+            '/u/p',
+            '/u/p/src/a/b/c.clj',
+            'source'
+          ).fiddle
+        ).toEqual(['dev', 'a.ext']);
+      });
+      it('prioritizes first dedicated fiddle when equal length from mappings', function () {
+        expect(
+          fiddleFiles._internal_getMapping(
+            [
+              { source: ['no-match'], fiddle: ['no-fiddle'] },
+              { source: ['src'], fiddle: ['no-fiddle'] },
+              { source: ['src2'], fiddle: ['first.ext'] },
+              { source: ['src2'], fiddle: ['second.ext'] },
+            ],
+            '/u/p',
+            '/u/p/src2/a/b/c.clj',
+            'source'
+          ).fiddle
+        ).toEqual(['first.ext']);
+      });
+      it('prioritizes first dedicated fiddle when equal length from mappings', function () {
+        expect(
+          fiddleFiles._internal_getMapping(
+            [
+              { source: ['no-match'], fiddle: ['no-fiddle'] },
+              { source: ['src'], fiddle: ['first'] },
+              { source: ['src'], fiddle: ['second.ext'] },
+            ],
+            '/u/p',
+            '/u/p/src/a/b/c.clj',
+            'source'
+          ).fiddle
+        ).toEqual(['second.ext']);
+      });
+      it('prioritizes dedicated fiddle match with the same file extension', function () {
+        expect(
+          fiddleFiles._internal_getMapping(
+            [
+              { source: ['not-prio'], fiddle: ['dev'] },
+              { source: ['src'], fiddle: ['dev', 'a.clj'] },
+              { source: ['src'], fiddle: ['dev', 'a.cljc'] },
+              { source: ['src'], fiddle: ['dev', 'a.cljs'] },
+            ],
+            '/u/p',
+            '/u/p/src/a/b/c.cljs',
+            'source'
+          ).fiddle
+        ).toEqual(['dev', 'a.cljs']);
+        expect(
+          fiddleFiles._internal_getMapping(
+            [
+              { source: ['not-prio'], fiddle: ['dev'] },
+              { source: ['src'], fiddle: ['dev', 'a.clj'] },
+              { source: ['src'], fiddle: ['dev', 'a.cljc'] },
+              { source: ['src'], fiddle: ['dev', 'a.cljs'] },
+            ],
+            '/u/p',
+            '/u/p/src/a/b/c.clj',
+            'source'
+          ).fiddle
+        ).toEqual(['dev', 'a.clj']);
+        expect(
+          fiddleFiles._internal_getMapping(
+            [
+              { source: ['not-prio'], fiddle: ['dev'] },
+              { source: ['src'], fiddle: ['dev', 'a.clj'] },
+              { source: ['src'], fiddle: ['dev', 'a.cljc'] },
+              { source: ['src'], fiddle: ['dev', 'a.cljs'] },
+            ],
+            '/u/p',
+            '/u/p/src/a/b/c.cljc',
+            'source'
+          ).fiddle
+        ).toEqual(['dev', 'a.cljc']);
       });
     });
 
@@ -135,7 +219,7 @@ describe('fiddle files', () => {
           ).source
         ).toEqual(['prio']);
       });
-      it('prioritizes exact fiddle match, mapping', function () {
+      it('prioritizes dedicated fiddle match', function () {
         expect(
           fiddleFiles._internal_getMapping(
             [
@@ -148,12 +232,53 @@ describe('fiddle files', () => {
           ).source
         ).toEqual(['first-src']);
       });
-      it('prioritizes longest from mapping, even when the shorter is an exact match', function () {
+      it('prioritizes dedicated fiddle match with the same file extension', function () {
         expect(
           fiddleFiles._internal_getMapping(
             [
               { source: ['not-prio'], fiddle: ['dev'] },
-              { source: ['exact'], fiddle: ['dev', 'a', 'a.ext'] },
+              { source: ['clj'], fiddle: ['dev', 'a.clj'] },
+              { source: ['cljc'], fiddle: ['dev', 'a.cljc'] },
+              { source: ['cljs'], fiddle: ['dev', 'a.cljs'] },
+            ],
+            '/u/p',
+            '/u/p/dev/a.cljs',
+            'fiddle'
+          ).source
+        ).toEqual(['cljs']);
+        expect(
+          fiddleFiles._internal_getMapping(
+            [
+              { source: ['not-prio'], fiddle: ['dev'] },
+              { source: ['clj'], fiddle: ['dev', 'a.clj'] },
+              { source: ['cljc'], fiddle: ['dev', 'a.cljc'] },
+              { source: ['cljs'], fiddle: ['dev', 'a.cljs'] },
+            ],
+            '/u/p',
+            '/u/p/dev/a.clj',
+            'fiddle'
+          ).source
+        ).toEqual(['clj']);
+        expect(
+          fiddleFiles._internal_getMapping(
+            [
+              { source: ['not-prio'], fiddle: ['dev'] },
+              { source: ['clj'], fiddle: ['dev', 'a.clj'] },
+              { source: ['cljc'], fiddle: ['dev', 'a.cljc'] },
+              { source: ['cljs'], fiddle: ['dev', 'a.cljs'] },
+            ],
+            '/u/p',
+            '/u/p/dev/a.cljc',
+            'fiddle'
+          ).source
+        ).toEqual(['cljc']);
+      });
+      it('prioritizes longest from mapping, even when the shorter is an dedicated fiddle', function () {
+        expect(
+          fiddleFiles._internal_getMapping(
+            [
+              { source: ['not-prio'], fiddle: ['dev'] },
+              { source: ['dedicated'], fiddle: ['dev', 'a', 'a.ext'] },
               { source: ['prio'], fiddle: ['dev', 'a', 'b'] },
             ],
             '/u/p',
@@ -207,7 +332,7 @@ describe('fiddle files', () => {
         ])
       ).toBeFalsy();
     });
-    it('with fiddle->source map ending with a file extension, the exact match is a fiddle file', function () {
+    it('with fiddle->source map ending with a file extension, the exact match is a dedicated fiddle file', function () {
       expect(
         fiddleFiles.isFiddleFile('/u/p/dev/fiddles/a.ext', '/u/p', [
           { source: ['src'], fiddle: ['dev', 'fiddles', 'a.ext'] },
@@ -271,7 +396,7 @@ describe('fiddle files', () => {
         ])
       ).toBe('/u/p/dev/fiddles/a.ext');
     });
-    it('with source->fiddle map with several matching source mappings, gets fiddle file for first, also if it is an exact match', function () {
+    it('with source->fiddle map with several matching source mappings, gets fiddle file for first, also if it is an dedicated fiddle', function () {
       expect(
         fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c_d.cljc', '/u/p', [
           { source: ['no-match'], fiddle: ['no-fiddle'] },
@@ -288,14 +413,14 @@ describe('fiddle files', () => {
         ])
       ).toBe('/u/p/first.ext');
     });
-    it('with source->fiddle map with several matching source mappings, gets fiddle file for first, also if it is a directory match', function () {
+    it('with source->fiddle map with several matching source mappings, gets dedicated', function () {
       expect(
         fiddleFiles.getFiddleForSourceFile('/u/p/src/a/b/c_d.cljc', '/u/p', [
           { source: ['no-match'], fiddle: ['no-fiddle'] },
           { source: ['src'], fiddle: ['first'] },
           { source: ['src'], fiddle: ['second.ext'] },
         ])
-      ).toBe('/u/p/first/a/b/c_d.cljc');
+      ).toBe('/u/p/second.ext');
     });
     it('throws when no source mapping', function () {
       expect(() =>
@@ -352,7 +477,7 @@ describe('fiddle files', () => {
           ])
         ).toBe('/u/p/dev/fiddles/a/b/c_d');
       });
-      it('returns undefined for exact fiddle file match', function () {
+      it('returns undefined for dedicated fiddle file match', function () {
         expect(
           fiddleFiles.getSourceBaseForFiddleFile('/u/p/dev/fiddles/a.ext', '/u/p', [
             { source: ['src'], fiddle: ['dev', 'fiddles', 'a.ext'] },
@@ -424,7 +549,7 @@ describe('fiddle files', () => {
           )
         ).toBe('/u/p/src/a/b/c_d.bb');
       });
-      it('returns undefined for exact matching fiddle file', async function () {
+      it('returns undefined for dedicated matching fiddle file', async function () {
         expect(
           await fiddleFiles.getSourceForFiddleFile(
             '/u/p/dev/fiddles/a.ext',
