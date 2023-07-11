@@ -1625,7 +1625,7 @@
 <p>Unlike the other Format commands, which applies to the current <em>enclosing</em> form, this one applies to the <a href="../evaluation/#current-form">Current Form, same as with evaluations</a>. That is because this is not really part of the Calva formatter, but rather is a convenience command for tidying up code or data.</p>
 </div>
 <h2 id="configuration">Configuration</h2>
-<p>You configure Calva's formatting using <a href="https://github.com/weavejester/cljfmt#configuration">cljfmt's configuration EDN</a>. This means that you can adjust the above mentioned defaults, including the indenting.</p>
+<p>You configure Calva's formatting using <a href="https://github.com/weavejester/cljfmt#configuration">cljfmt's configuration EDN</a>. This means that you can adjust the above mentioned defaults, including the indenting. If you have a config file defined in your repo in one of cljfmt's default locations. If calva.fmt.configPath not set, look in default config locations, it will be automatically used.</p>
 <p>This configuration can either be provided via a file or via clojure-lsp (see <a href="https://clojure-lsp.io/settings/">Clojure LSP Settings</a>).</p>
 <h3 id="providing-configuration-via-a-config-file">Providing configuration via a config file</h3>
 <p>If providing settings via a file, start changing the Calva formatting defaults by pasting the following map into a file and save it. It could be somewhere in the project workspace (supporting hot reload), or some other place (no hot reload), depending on your requirements:</p>
