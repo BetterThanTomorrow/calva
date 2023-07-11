@@ -64,6 +64,13 @@ export function _internal_getMapping(
   from: 'source' | 'fiddle'
 ) {
   const mappings = fiddleFilePaths
+    // Filter for mappings that match the file path
+    .filter((mapping) => {
+      const mappingRootPath = path.join(projectRootPath, ...mapping[from]);
+      return filePath.startsWith(
+        isDedicatedFiddle(mapping) ? mappingRootPath : `${mappingRootPath}${path.sep}`
+      );
+    })
     // Prioritize mappings with dedicated fiddle files with the same extension as the filePath
     .sort((a: FiddleFilePath, b: FiddleFilePath) => {
       if (isDedicatedFiddle(a) && isDedicatedFiddle(b)) {
@@ -72,6 +79,8 @@ export function _internal_getMapping(
           : path.extname(_.last(b.fiddle)) === path.extname(filePath)
           ? 1
           : 0;
+      } else {
+        return 0;
       }
     })
     // Then prioritize mappings with dedicated fiddle files
@@ -86,13 +95,6 @@ export function _internal_getMapping(
     // Then prioritize mappings with the longest `from` path
     .sort((a: FiddleFilePath, b: FiddleFilePath) => {
       return b[from].length - a[from].length;
-    })
-    // Filter for mappings that match the file path
-    .filter((mapping) => {
-      const mappingRootPath = path.join(projectRootPath, ...mapping[from]);
-      return filePath.startsWith(
-        isDedicatedFiddle(mapping) ? mappingRootPath : `${mappingRootPath}${path.sep}`
-      );
     });
   // Pick the first mapping
   return mappings.length > 0 ? mappings[0] : undefined;
