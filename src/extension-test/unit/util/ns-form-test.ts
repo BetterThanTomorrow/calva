@@ -1,4 +1,5 @@
 import * as expect from 'expect';
+import * as nsFormUtil from '../../../util/ns-form';
 import { resolveNsName, pathToNs, isPrefix } from '../../../util/ns-form';
 
 describe('test ns-form util', () => {
@@ -32,6 +33,35 @@ describe('test ns-form util', () => {
     });
     it('with source paths (not found)', function () {
       expect('file-test').toBe(resolveNsName(['/app/src'], '/app/test/app/file_test.clj'));
+    });
+  });
+
+  describe('nsFromText', function () {
+    it('finds ns in simple form', function () {
+      expect(nsFormUtil.nsFromText('(ns a-b.c-d)')).toBe('a-b.c-d');
+    });
+    it('finds ns also when not first form', function () {
+      expect(nsFormUtil.nsFromText('(foo bar)\n\n(ns a-b.c-d)')).toBe('a-b.c-d');
+    });
+    it('finds ns in form with line comment', function () {
+      expect(nsFormUtil.nsFromText('(ns a-b.c-d ; comment\n)')).toBe('a-b.c-d');
+    });
+    it('finds ns in form with line comment and metadata', function () {
+      expect(nsFormUtil.nsFromText('(ns ^{:author "me"} a-b.c-d ; comment\n)')).toBe('a-b.c-d');
+    });
+    it('finds ns in form after line comments', function () {
+      expect(nsFormUtil.nsFromText('; comment\n(ns a-b.c-d)')).toBe('a-b.c-d');
+    });
+
+    // TODO: Figure if we want to support these
+    it('finds ns in rich comments', function () {
+      expect(nsFormUtil.nsFromText('(comment\n(ns a-b.c-d))')).toBe('a-b.c-d');
+    });
+    it('finds ns in ignored form', function () {
+      expect(nsFormUtil.nsFromText('#_ (ns a-b.c-d)')).toBe('a-b.c-d');
+    });
+    it('finds ns in ignored rich comments', function () {
+      expect(nsFormUtil.nsFromText('#_ (comment\n(ns a-b.c-d))')).toBe('a-b.c-d');
     });
   });
 });

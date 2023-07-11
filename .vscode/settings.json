@@ -155,6 +155,7 @@
     "prepending",
     "Prettiful",
     "prewatch",
+    "prio",
     "Pseudoterminal",
     "randr",
     "REBL",
@@ -223,7 +224,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[jsonc]": {
     "editor.defaultFormatter": "vscode.json-language-features"

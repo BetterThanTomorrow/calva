@@ -4,12 +4,19 @@ import * as util from './utilities';
 import * as getText from './util/get-text';
 import * as namespace from './namespace';
 import * as outputWindow from './results-output/results-doc';
-import { customREPLCommandSnippet } from './evaluate';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
-import * as evaluate from './evaluate';
+import evaluate from './evaluate';
 import * as state from './state';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
+
+export type CustomREPLCommandSnippet = {
+  name: string;
+  key?: string;
+  snippet: string;
+  repl?: string;
+  ns?: string;
+};
 
 type SnippetDefinition = {
   snippet: string;
@@ -89,7 +96,7 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
   const snippetsDict = {};
   const snippetsKeyDict = {};
   const snippetsMenuItems: string[] = [];
-  snippets.forEach((c: customREPLCommandSnippet) => {
+  snippets.forEach((c: CustomREPLCommandSnippet) => {
     const undefs = ['name', 'snippet'].filter((k) => {
       return !c[k];
     });

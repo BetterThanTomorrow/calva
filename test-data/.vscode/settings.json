@@ -43,6 +43,24 @@
       "snippet": "'(\"Current file text: $hover-file-text\")"
     }
   ],
+  "calva.fiddleFilePaths": [
+    {
+      "source": ["src"],
+      "fiddle": ["env", "dev", "fiddles"]
+    },
+    {
+      "source": ["src2"],
+      "fiddle": ["env", "dev", "fiddles", "pez_cljs.cljs"]
+    },
+    {
+      "source": ["src2"],
+      "fiddle": ["env", "dev", "fiddles", "pez_clj.clj"]
+    },
+    {
+      "source": ["src2"],
+      "fiddle": ["env", "dev", "fiddles", "pez_cljc.cljc"]
+    }
+  ],
   "workbench.colorCustomizations": {
     "sash.hoverBorder": "#DB9550",
     "titleBar.activeBackground": "#90B4FE",

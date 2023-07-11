@@ -10,8 +10,7 @@ import { getConfig } from '../config';
 import * as replSession from './repl-session';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import { ReplConnectSequence } from './connectSequence';
-import * as clojureLsp from '../lsp';
-import * as calvaConfig from '../config';
+import * as fiddleFiles from '../fiddle-files';
 
 const TEMPLATES_SUB_DIR = 'bundled';
 const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
@@ -187,7 +186,7 @@ export async function startStandaloneRepl(
       viewColumn: vscode.ViewColumn.One,
       preserveFocus: false,
     });
-    await eval.loadFile({}, getConfig().prettyPrintingOptions);
+    await eval.loadDocument({}, getConfig().prettyPrintingOptions);
     outputWindow.appendPrompt();
   });
 }
@@ -219,6 +218,12 @@ export function startOrConnectRepl() {
   const DISCONNECT_COMMAND = 'calva.disconnect';
   const OPEN_WINDOW_OPTION = 'Open the Output Window';
   const OPEN_WINDOW_COMMAND = 'calva.showOutputWindow';
+  const OPEN_FIDDLE_OPTION = 'Open Fiddle for Current File';
+  const OPEN_FIDDLE_COMMAND = 'calva.openFiddleForSourceFile';
+  const EVALUATE_FIDDLE_OPTION = 'Evaluate Fiddle for Current File';
+  const EVALUATE_FIDDLE_COMMAND = 'calva.evaluateFiddleForSourceFile';
+  const OPEN_SOURCE_FOR_FIDDLE_OPTION = 'Open Source File for Current Fiddle';
+  const OPEN_SOURCE_FOR_FIDDLE_COMMAND = 'calva.openSourceFileForFiddle';
   const PREFERRED_ORDER = [
     JACK_IN_OPTION,
     CONNECT_PROJECT_OPTION,
@@ -233,8 +238,16 @@ export function startOrConnectRepl() {
     RE_JACK_IN_OPTION,
     DISCONNECT_OPTION,
     JACK_OUT_OPTION,
+    OPEN_FIDDLE_OPTION,
+    EVALUATE_FIDDLE_OPTION,
+    OPEN_SOURCE_FOR_FIDDLE_OPTION,
   ];
   const commands = {};
+  if (fiddleFiles.activeEditorIsFiddle) {
+    commands[OPEN_SOURCE_FOR_FIDDLE_OPTION] = OPEN_SOURCE_FOR_FIDDLE_COMMAND;
+  } else {
+    commands[OPEN_FIDDLE_OPTION] = OPEN_FIDDLE_COMMAND;
+  }
   if (
     !utilities.getConnectedState() &&
     !utilities.getConnectingState() &&
@@ -263,6 +276,9 @@ export function startOrConnectRepl() {
     if (utilities.getJackedInState()) {
       commands[RE_JACK_IN_OPTION] = RE_JACK_IN_COMMAND;
       commands[JACK_OUT_OPTION] = JACK_OUT_COMMAND;
+    }
+    if (!fiddleFiles.activeEditorIsFiddle) {
+      commands[EVALUATE_FIDDLE_OPTION] = EVALUATE_FIDDLE_COMMAND;
     }
   }
 

@@ -42,6 +42,7 @@ import * as clojureDocs from './clojuredocs';
 import { capitalize } from './utilities';
 import * as overrides from './overrides';
 import * as lsp from './lsp';
+import * as fiddleFiles from './fiddle-files';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -228,7 +229,7 @@ async function activate(context: vscode.ExtensionContext) {
     jackIn: jackIn.jackInCommand,
     jackOut: jackIn.jackOutCommand,
     loadFile: async () => {
-      await eval.loadFile({}, config.getConfig().prettyPrintingOptions);
+      await eval.loadDocument({}, config.getConfig().prettyPrintingOptions);
       return new Promise((resolve) => {
         outputWindow.appendPrompt(resolve);
       });
@@ -264,6 +265,9 @@ async function activate(context: vscode.ExtensionContext) {
     runTestUnderCursor: () => testRunner.runTestUnderCursorCommand(testController),
     selectCurrentForm: select.selectCurrentForm,
     sendCurrentFormToOutputWindow: outputWindow.appendCurrentForm,
+    openFiddleForSourceFile: fiddleFiles.openFiddleForSourceFile,
+    evaluateFiddleForSourceFile: fiddleFiles.evaluateFiddleForSourceFile,
+    openSourceFileForFiddle: fiddleFiles.openSourceFileForFiddle,
     sendCurrentTopLevelFormToOutputWindow: outputWindow.appendCurrentTopLevelForm,
     setOutputWindowNamespace: outputWindow.setNamespaceFromCurrentFile,
     showFileForOutputWindowNS: () => void outputWindow.revealDocForCurrentNS(false),
@@ -370,7 +374,7 @@ async function activate(context: vscode.ExtensionContext) {
 
         if (evalOnSave) {
           if (!outputWindow.isResultsDoc(document)) {
-            await eval.loadFile(document, config.getConfig().prettyPrintingOptions);
+            await eval.loadDocument(document, config.getConfig().prettyPrintingOptions);
             outputWindow.appendPrompt();
             state.analytics().logEvent('Calva', 'OnSaveLoad').send();
           }
@@ -496,6 +500,8 @@ async function activate(context: vscode.ExtensionContext) {
   if (await connector.shouldAutoConnect()) {
     void vscode.commands.executeCommand('calva.connect');
   }
+
+  fiddleFiles.activate(context);
 
   console.info('Calva activate END');
 

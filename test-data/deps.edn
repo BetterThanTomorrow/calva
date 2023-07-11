@@ -1,2 +1,3 @@
-{:deps {org.clojure/clojure {:mvn/version "1.11.0-rc1"}}
+{:deps {org.clojure/clojure {:mvn/version "1.11.0-rc1"}
+        pez/pirate-lang {:local/root "projects/pirate-lang"}}
  :paths ["integration-test" ".joyride/scripts"]}

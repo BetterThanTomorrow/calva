@@ -10,6 +10,7 @@ import * as outputWindow from './results-output/results-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
 import { isUndefined } from 'lodash';
+import * as fiddleFiles from './fiddle-files';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
@@ -238,6 +239,9 @@ function getConnectedState() {
 function setConnectedState(value: boolean) {
   void vscode.commands.executeCommand('setContext', 'calva:connected', value);
   cljsLib.setStateValue('connected', value);
+  if (value) {
+    fiddleFiles.updateFiddleFileOpenedContext(vscode.window.activeTextEditor);
+  }
 }
 
 function getJackedInState() {
