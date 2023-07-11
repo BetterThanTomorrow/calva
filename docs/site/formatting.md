@@ -72,7 +72,7 @@ Unlike with the ”real” Calva Formatter, which never breaks up lines, this on
 
 ## Configuration
 
-You configure Calva's formatting using [cljfmt's configuration EDN](https://github.com/weavejester/cljfmt#configuration). This means that you can adjust the above mentioned defaults, including the indenting.
+You configure Calva's formatting using [cljfmt's configuration EDN](https://github.com/weavejester/cljfmt#configuration). This means that you can adjust the above mentioned defaults, including the indenting. If you have a config file defined in your repo in one of cljfmt's default locations. If calva.fmt.configPath not set, look in default config locations, it will be automatically used.
 
 This configuration can either be provided via a file or via clojure-lsp (see [Clojure LSP Settings](https://clojure-lsp.io/settings/)).
 
