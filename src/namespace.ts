@@ -7,7 +7,7 @@ import * as replSession from './nrepl/repl-session';
 import { NReplSession } from './nrepl';
 import * as nsUtil from './util/ns-form';
 
-export function getNamespace(doc?: vscode.TextDocument) {
+export function getNamespace(doc: vscode.TextDocument, position: vscode.Position = null) {
   if (outputWindow.isResultsDoc(doc)) {
     const outputWindowNs = outputWindow.getNs();
     utilities.assertIsDefined(outputWindowNs, 'Expected output window to have a namespace!');
@@ -16,7 +16,12 @@ export function getNamespace(doc?: vscode.TextDocument) {
   if (doc && doc.languageId == 'clojure') {
     try {
       const cursorDoc = docMirror.getDocument(doc);
-      return nsUtil.nsFromCursorDoc(cursorDoc) ?? 'user';
+      return (
+        nsUtil.nsFromCursorDoc(
+          cursorDoc,
+          position ? doc.offsetAt(position) : doc.getText().length
+        ) ?? 'user'
+      );
     } catch (e) {
       console.log(
         'Error getting ns form of this file using docMirror, trying with cljs.reader: ' + e

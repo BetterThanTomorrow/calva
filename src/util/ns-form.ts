@@ -28,38 +28,41 @@ export function resolveNsName(sourcePaths: string[], filePath: string): string {
   return pathToNs(path.basename(filePath));
 }
 
-export function nsFromCursorDoc(cursorDoc: model.EditableDocument): string | null {
-  const cursor: tokenCursor.LispTokenCursor = cursorDoc.getTokenCursor(0);
-  cursor.forwardWhitespace(true);
-  let token: lexer.Token | undefined = undefined,
-    foundNsToken: boolean = false,
-    foundNsId: boolean = false;
-  do {
-    cursor.downList();
-    if (token && token.offset == cursor.getToken().offset) {
-      cursor.next();
-    }
-    token = cursor.getToken();
-    foundNsToken = token.type == 'id' && token.raw == 'ns';
-  } while (!foundNsToken && !cursor.atEnd());
-  if (foundNsToken) {
-    do {
-      cursor.next();
-      token = cursor.getToken();
-      foundNsId = token.type == 'id';
-    } while (!foundNsId && !cursor.atEnd());
-    if (foundNsId) {
-      return token.raw;
-    } else {
-      console.log('Error getting the ns name from the ns form.');
+export function nsFromCursorDoc(
+  cursorDoc: model.EditableDocument,
+  p: number = cursorDoc.selection.active
+): string | null {
+  const cursor: tokenCursor.LispTokenCursor = cursorDoc.getTokenCursor(p);
+  cursor.backwardWhitespace(true);
+  if (cursor.atTopLevel(true)) {
+    while (cursor.backwardSexp()) {
+      const nsCheckCursor = cursor.clone();
+      nsCheckCursor.downList();
+      nsCheckCursor.forwardWhitespace(true);
+      const token = nsCheckCursor.getToken();
+      if (token.type === 'id' && token.raw == 'ns') {
+        nsCheckCursor.forwardSexp(true, true, true);
+        nsCheckCursor.forwardWhitespace(true);
+        const ns = nsCheckCursor.getToken().raw;
+        if (ns) {
+          return ns;
+        }
+      }
     }
   } else {
-    console.log('No ns form found.');
+    cursor.backwardList();
+    cursor.backwardUpList();
+    cursor.backwardWhitespace(true);
+    if (cursor.atStart()) {
+      return null;
+    } else {
+      return nsFromCursorDoc(cursorDoc, cursor.offsetStart);
+    }
   }
   return null;
 }
 
-export function nsFromText(text: string): string | null {
+export function nsFromText(text: string, p = text.length): string | null {
   const stringDoc: model.StringDocument = new model.StringDocument(text);
-  return nsFromCursorDoc(stringDoc);
+  return nsFromCursorDoc(stringDoc, p);
 }
