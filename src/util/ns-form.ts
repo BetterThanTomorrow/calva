@@ -28,25 +28,48 @@ export function resolveNsName(sourcePaths: string[], filePath: string): string {
   return pathToNs(path.basename(filePath));
 }
 
+function nsSymbolOfCurrentForm(
+  cursor: tokenCursor.LispTokenCursor,
+  downList: 'downList' | 'backwardDownList'
+): string | null {
+  const nsCheckCursor = cursor.clone();
+  nsCheckCursor[downList]();
+  nsCheckCursor.backwardList();
+  nsCheckCursor.forwardWhitespace(true);
+  const token = nsCheckCursor.getToken();
+  if (token.type === 'id' && token.raw == 'ns') {
+    nsCheckCursor.forwardSexp(true, true, true);
+    nsCheckCursor.forwardWhitespace(true);
+    const nsToken = nsCheckCursor.getToken();
+    if (nsToken.type === 'id') {
+      return nsToken.raw;
+    }
+  }
+}
+
 export function nsFromCursorDoc(
   cursorDoc: model.EditableDocument,
   p: number = cursorDoc.selection.active
 ): string | null {
   const cursor: tokenCursor.LispTokenCursor = cursorDoc.getTokenCursor(p);
+  // Special case, find first ns form
+  if (p === 0) {
+    cursor.forwardWhitespace(true);
+    while (cursor.forwardSexp(true, true, true)) {
+      const ns = nsSymbolOfCurrentForm(cursor, 'backwardDownList');
+      if (ns) {
+        return ns;
+      }
+    }
+    return null;
+  }
+  // General case, find ns form closest before p
   cursor.backwardWhitespace(true);
   if (cursor.atTopLevel(true)) {
     while (cursor.backwardSexp()) {
-      const nsCheckCursor = cursor.clone();
-      nsCheckCursor.downList();
-      nsCheckCursor.forwardWhitespace(true);
-      const token = nsCheckCursor.getToken();
-      if (token.type === 'id' && token.raw == 'ns') {
-        nsCheckCursor.forwardSexp(true, true, true);
-        nsCheckCursor.forwardWhitespace(true);
-        const nsToken = nsCheckCursor.getToken();
-        if (nsToken.type === 'id') {
-          return nsToken.raw;
-        }
+      const ns = nsSymbolOfCurrentForm(cursor, 'downList');
+      if (ns) {
+        return ns;
       }
     }
   } else {

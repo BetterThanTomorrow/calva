@@ -132,6 +132,17 @@ describe('ns-form util', () => {
         )
       ).toBe('b');
     });
+    it('finds first ns form if at start of document', function () {
+      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('|(ns a) (a b c) (ns b)'))).toBe('a');
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('|(no-ns a) (a b c) (ns b) x (ns c) y'))
+      ).toBe('b');
+    });
+    it('returns `null` if at start of document without ns form', function () {
+      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('|(no-ns a) (a b c) (no-ns b)'))).toBe(
+        null
+      );
+    });
   });
 
   describe('nsFromText', function () {
