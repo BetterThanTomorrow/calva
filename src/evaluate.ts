@@ -235,7 +235,7 @@ async function evaluateSelection(document = {}, options) {
     [codeSelection, code]; //TODO: What's this doing here?
 
     const doc = util.getDocument(document);
-    const ns = namespace.getNamespace(doc);
+    const ns = namespace.getNamespace(doc, codeSelection.end);
     const line = codeSelection.start.line;
     const column = codeSelection.start.character;
     const filePath = doc.fileName;
@@ -421,7 +421,7 @@ async function loadDocument(
 
   const doc = util.tryToGetDocument(document);
   const fileType = util.getFileType(doc);
-  const ns = namespace.getNamespace(doc);
+  const ns = namespace.getNamespace(doc, doc.positionAt(0));
   const session = replSession.getSession(util.getFileType(doc));
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
