@@ -13,10 +13,10 @@
         <link rel="canonical" href="https://calva.io/formatting/">
       
       
-        <link rel="prev" href="../output/">
+        <link rel="prev" href="../evaluation/">
       
       
-        <link rel="next" href="../paredit/">
+        <link rel="next" href="../syntax-highlighting/">
       
       <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.8">
@@ -447,48 +447,6 @@
               
   
   
-  
-    <li class="md-nav__item">
-      <a href="../rich-comments/" class="md-nav__link">
-        Rich Comments Support
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../clojuredocs/" class="md-nav__link">
-        ClojureDocs Integration
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../output/" class="md-nav__link">
-        The Output/REPL Window
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
     
   
   
@@ -634,8 +592,148 @@
   
   
     <li class="md-nav__item">
+      <a href="../syntax-highlighting/" class="md-nav__link">
+        Clojure Syntax Highlighting
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../paredit/" class="md-nav__link">
         Paredit, a Visual Guide
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linting/" class="md-nav__link">
+        Superb Clojure Linting
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rich-comments/" class="md-nav__link">
+        Rich Comments Support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fiddle-files/" class="md-nav__link">
+        Fiddle Files Support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../refactoring/" class="md-nav__link">
+        Refactoring
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom-commands/" class="md-nav__link">
+        Custom REPL Commands
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../connect-sequences/" class="md-nav__link">
+        Custom REPL Connect Sequences
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/" class="md-nav__link">
+        Clojure Notebooks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clojuredocs/" class="md-nav__link">
+        ClojureDocs Integration
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../output/" class="md-nav__link">
+        The Output/REPL Window
       </a>
     </li>
   
@@ -676,20 +774,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../refactoring/" class="md-nav__link">
-        Refactoring
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../test-runner/" class="md-nav__link">
         Test Runner
       </a>
@@ -704,78 +788,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../syntax-highlighting/" class="md-nav__link">
-        Clojure Syntax Highlighting
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../connect-sequences/" class="md-nav__link">
-        Custom REPL Connect Sequences
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../custom-commands/" class="md-nav__link">
-        Custom REPL Commands
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../linting/" class="md-nav__link">
-        Superb Clojure Linting
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../namespace-form-auto-creation/" class="md-nav__link">
         Namespace Form Auto-creation
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../notebooks/" class="md-nav__link">
-        Clojure Notebooks
       </a>
     </li>
   
@@ -1625,27 +1639,23 @@
 <p>Unlike the other Format commands, which applies to the current <em>enclosing</em> form, this one applies to the <a href="../evaluation/#current-form">Current Form, same as with evaluations</a>. That is because this is not really part of the Calva formatter, but rather is a convenience command for tidying up code or data.</p>
 </div>
 <h2 id="configuration">Configuration</h2>
-<p>You configure Calva's formatting using <a href="https://github.com/weavejester/cljfmt#configuration">cljfmt's configuration EDN</a>. This means that you can adjust the above mentioned defaults, including the indenting. If you have a config file defined in your repo in one of cljfmt's default locations. If calva.fmt.configPath not set, look in default config locations, it will be automatically used.</p>
+<p>You can adjust the above mentioned defaults, and the default indents, by configuring the formatting using <a href="https://github.com/weavejester/cljfmt#configuration">cljfmt's configuration EDN</a>.</p>
 <p>This configuration can either be provided via a file or via clojure-lsp (see <a href="https://clojure-lsp.io/settings/">Clojure LSP Settings</a>).</p>
 <h3 id="providing-configuration-via-a-config-file">Providing configuration via a config file</h3>
-<p>If providing settings via a file, start changing the Calva formatting defaults by pasting the following map into a file and save it. It could be somewhere in the project workspace (supporting hot reload), or some other place (no hot reload), depending on your requirements:</p>
+<p>Calva will look for the configuration in one  of the <a href="https://github.com/weavejester/cljfmt#configuration">default cljfmt paths</a> ('.cljfmt.edn', '.cljfmt.clj', 'cljfmt.edn', or 'cljfmt.clj' in the workspace root). If your file is somewhere else use the <code>calva.fmt.configPath</code> to tell Calva where to find it. The path should either be absolute, or relative to the workspace root directory. If your config file is somewhere in the workspace root, Calva will hot reload it when you update it.</p>
+<p>Wherever the config file is, a suggested path for providing your configuration is to start changing the Calva formatting defaults by pasting the following map into a file and save it.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span><span class="w"> </span><span class="nv">true</span>
 <span class="w"> </span><span class="ss">:remove-trailing-whitespace?</span><span class="w"> </span><span class="nv">true</span>
 <span class="w"> </span><span class="ss">:remove-consecutive-blank-lines?</span><span class="w"> </span><span class="nv">false</span>
 <span class="w"> </span><span class="ss">:insert-missing-whitespace?</span><span class="w"> </span><span class="nv">true</span>
 <span class="w"> </span><span class="ss">:remove-multiple-non-indenting-spaces?</span><span class="w"> </span><span class="nv">false</span><span class="p">}</span>
 </code></pre></div>
-<p>Then set <code>calva.fmt.configPath</code> to the path to this file. The path should either be absolute, or relative to the project root directory. So, if you named the file <code>.cljfmt.edn</code> and saved it in the root of the project, then this setting should be <code>.cljfmt.edn</code>.</p>
-<p>Since you are editing the file in Calva (you are, right?), you can quickly test how different settings affect the formatting. Try:</p>
+<p>If the file is in the workspace, you can quickly test how different settings affect the formatting. Try:</p>
 <ol>
 <li>Adding <code>:align-associative? true</code> to the config</li>
 <li>then save</li>
 <li>then hit <code>tab</code>, and see what happens.</li>
 </ol>
-<div class="admonition note">
-<p class="admonition-title">Hot reloding requirements</p>
-<p>The hot reloading of the config file only works for config files inside the project directory structure. You will not have it if your configuration is outside the workspace or if you are providing the settings via clojure-lsp (see below).</p>
-</div>
 <details class="note">
 <summary><code>:align-associative?</code> is experimental</summary>
 <p>This particular setting is experimental and known to cause trouble together with namespaced keywords. Consider using <code>ctrl+alt+l</code> instead of <code>tab</code> as your formatting command, instead of enabling this setting. See below for more info about this. See <a href="#about-aligning-associative-forms">more below</a> about this.</p>
