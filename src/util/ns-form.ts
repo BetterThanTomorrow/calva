@@ -36,13 +36,13 @@ function nsSymbolOfCurrentForm(
   nsCheckCursor[downList]();
   nsCheckCursor.backwardList();
   nsCheckCursor.forwardWhitespace(true);
-  const token = nsCheckCursor.getToken();
-  if (token.type === 'id' && token.raw == 'ns') {
+  const formToken = nsCheckCursor.getToken();
+  if (formToken.type === 'id' && ['ns', 'in-ns'].includes(formToken.raw)) {
     nsCheckCursor.forwardSexp(true, true, true);
     nsCheckCursor.forwardWhitespace(true);
     const nsToken = nsCheckCursor.getToken();
     if (nsToken.type === 'id') {
-      return nsToken.raw;
+      return formToken.raw === 'ns' ? nsToken.raw : nsToken.raw.substring(1);
     }
   }
 }

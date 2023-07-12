@@ -41,8 +41,13 @@ describe('ns-form util', () => {
     it('defaults to `null`', function () {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(no-ns a-b.c-d)\nfoo|'))).toBe(null);
     });
-    it('finds ns in simple form', function () {
+    it('finds ns', function () {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-d) (a b c)|'))).toBe(
+        'a-b.c-d'
+      );
+    });
+    it('finds in-ns', function () {
+      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation("(in-ns 'a-b.c-d) (a b c)|"))).toBe(
         'a-b.c-d'
       );
     });
@@ -90,6 +95,34 @@ describe('ns-form util', () => {
       expect(
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation('(fn [] {:rcf (comment\n(ns a-b.c-d))}) (ns a|)')
+        )
+      ).toBe(null);
+    });
+
+    it('Closest ns or in-ns at top level wins', function () {
+      expect(
+        nsFormUtil.nsFromCursorDoc(
+          docFromTextNotation("(ns a) (in-ns 'b) (fn [] {:rcf (comment\n(ns a-b.c-d))}|)")
+        )
+      ).toBe('b');
+      expect(
+        nsFormUtil.nsFromCursorDoc(
+          docFromTextNotation("(in-ns 'a) (ns b) (fn [] {:rcf (comment\n(ns a-b.c-d))|})")
+        )
+      ).toBe('b');
+      expect(
+        nsFormUtil.nsFromCursorDoc(
+          docFromTextNotation("(ns a) (ns b) (fn [] {:rcf (comment\n(ns c) x (in-ns 'a-b.c-d)|)})")
+        )
+      ).toBe('a-b.c-d');
+      expect(
+        nsFormUtil.nsFromCursorDoc(
+          docFromTextNotation("(fn [] {:rcf (comment\n(ns a-b.c-d))}) (in-ns 'a)|")
+        )
+      ).toBe('a');
+      expect(
+        nsFormUtil.nsFromCursorDoc(
+          docFromTextNotation("(fn [] {:rcf (comment\n(ns a-b.c-d))}) (in-ns 'a|)")
         )
       ).toBe(null);
     });
