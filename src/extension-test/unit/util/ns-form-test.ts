@@ -138,5 +138,8 @@ describe('ns-form util', () => {
     it('defaults to `null`', function () {
       expect(nsFormUtil.nsFromText('(no-ns a-b.c-d)\nfoo')).toBe(null);
     });
+    it('defaults to start from end', function () {
+      expect(nsFormUtil.nsFromText('(ns a)\nfoo (ns b) bar')).toBe('b');
+    });
   });
 });
