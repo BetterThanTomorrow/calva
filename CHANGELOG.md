@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Support `in-ns` forms to provide the ns for evaluations, and use the closest `ns/in-ns` before the cursor](https://github.com/BetterThanTomorrow/calva/issues/2245)
+
 ## [2.0.376] - 2023-07-12
 
 - [Add “Fiddle” files Support](https://github.com/BetterThanTomorrow/calva/issues/2199)
