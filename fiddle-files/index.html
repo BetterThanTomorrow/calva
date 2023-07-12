@@ -1566,7 +1566,7 @@
 </tr>
 </tbody>
 </table>
-<p>The commands for opening and evaluating corresponding <strong>Fiddle</strong> files will offer to Create the <strong>Fiddle</strong> file if it does not already exist. But the <strong>Calva: Open Source File for Current Fiddle File</strong> will <em>not</em> offer to create the target file.</p>
+<p>The commands for opening and evaluating corresponding <strong>Fiddle</strong> files will offer to Create the <strong>Fiddle</strong> file if it does not already exist. But the <strong>Calva: Open Source File for Current Fiddle File</strong> command will <em>not</em> offer to create the target file.</p>
 <p>What does <strong>corresponding</strong> mean here? Without any configuration Calva will look for “sibling” files, where files with Clojure file extensions (E.g. <code>.clj</code>, <code>.cljs</code>, <code>.bb</code>) will be treated as <strong>Source</strong> files, and files with the <code>.fiddle</code> extension will be treated as <strong>Fiddle</strong> files. Sibling file here means residing side by side in the file system. If this default behaviour is not your cup of tea, there is some flexibility added by configuration.</p>
 <h2 id="the-fiddle-file-configuration">The Fiddle File configuration</h2>
 <p>To know how to map between <strong>Fiddle</strong> &lt;-&gt; <strong>Source</strong> files, Calva has three different modes of operation:</p>
@@ -1662,7 +1662,7 @@
 </ul>
 <h2 id="tips">Tips</h2>
 <p>It can be tempting to put your <strong>Fiddle</strong> files directory on the classpath for the <code>dev</code> alias/profile, but it is most often a mistake (will depend on your particular use of fiddle files, but generally). Instead load/evaluate fiddle files when you need them (e.g. by using the command for it mentioned above). The REPL does not need something to be on the classpath in order to evaluate it.</p>
-<p>When you want your fiddle code to be evaluated in the same workspace as its corresponding <strong>Source</strong> file, you can use the same namespace declaration for both files. The linter might complain, but the REPL will be happily comply.</p>
+<p>When you want your fiddle code to be evaluated in the same workspace as its corresponding <strong>Source</strong> file, you can use the same namespace declaration for both files. The linter might complain, but the REPL will happily comply.</p>
 <p>If you primarily evaluate the fiddle file using the provided command for it, from the <strong>Source</strong> files, you can omit the namespace declaration, and Calva will evaluate it in the namespace of the <strong>Source</strong> file.</p>
 <div class="admonition note">
 <p class="admonition-title">The linter and fiddle files</p>
