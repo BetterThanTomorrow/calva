@@ -46,6 +46,12 @@ describe('ns-form util', () => {
         'a-b.c-d'
       );
     });
+    it('returns `null` if ns form does not contain a namespace symbol', function () {
+      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns) (a b c)|'))).toBe(null);
+    });
+    it('returns `null` if ns form does contains non-symbol', function () {
+      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns [a]) (a b c)|'))).toBe(null);
+    });
     it('returns null if current enclosing form is ns form', function () {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-|d) (a b c)'))).toBe(null);
     });
@@ -60,7 +66,7 @@ describe('ns-form util', () => {
       );
     });
 
-    it('Last ns at top level wins', function () {
+    it('Closest ns at top level wins', function () {
       expect(
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation('(ns a) (fn [] {:rcf (comment\n(ns a-b.c-d))}|)')
@@ -71,6 +77,11 @@ describe('ns-form util', () => {
           docFromTextNotation('(ns a) (ns b) (fn [] {:rcf (comment\n(ns a-b.c-d))|})')
         )
       ).toBe('b');
+      expect(
+        nsFormUtil.nsFromCursorDoc(
+          docFromTextNotation('(ns a) (ns b) (fn [] {:rcf (comment\n(ns a-b.c-d)|)})')
+        )
+      ).toBe('a-b.c-d');
       expect(
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation('(fn [] {:rcf (comment\n(ns a-b.c-d))}) (ns a)|')

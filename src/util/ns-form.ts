@@ -43,9 +43,9 @@ export function nsFromCursorDoc(
       if (token.type === 'id' && token.raw == 'ns') {
         nsCheckCursor.forwardSexp(true, true, true);
         nsCheckCursor.forwardWhitespace(true);
-        const ns = nsCheckCursor.getToken().raw;
-        if (ns) {
-          return ns;
+        const nsToken = nsCheckCursor.getToken();
+        if (nsToken.type === 'id') {
+          return nsToken.raw;
         }
       }
     }
