@@ -128,7 +128,7 @@ With this configuration we would get a behaviour like so:
 
 ## Tips
 
-It can be tempting to put your **Fiddle** files directory on the classpath for the `dev` alias/profile, but it is most often a mistake (will depend on your particular use of fiddle files, but generally). Instead load/evaluate fiddle files when you need them (e.g. by using the command for it mentioned above). The REPL does not need something to be on the classpath in order to evaluate it.
+Organize your **Fiddle** files such that they do not get automatically loaded as part of your application. This can lead to strange errors and hard-to-detect bugs. Most often it should only be you, manually, loading the fiddle file, not **clj/clojure**, or **Leiningen** or any such system which loads your application.
 
 When you want your fiddle code to be evaluated in the same workspace as its corresponding **Source** file, you can use the same namespace declaration for both files. The linter might complain, but the REPL will happily comply.
 
