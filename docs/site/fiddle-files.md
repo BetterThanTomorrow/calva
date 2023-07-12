@@ -21,7 +21,7 @@ The commands let you quickly navigate between your implementation code (called *
 | **Calva: Open Source File for Current Fiddle File** | Opens the **Source** file corresponding to the current **Fiddle** file. | <div style="white-space: nowrap; overflow-x: auto;"><kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>c</kbd><br><kbd>f</kbd></div> | When the currently active file _is_ a **Fiddle** file + there is an existing, and corresponding, source file. |
 | **Calva: Evaluate Fiddle File for Current File** | Evaluates the **Fiddle** file corresponding to the current Clojure **Source** file. | <div style="white-space: nowrap; overflow-x: auto;"><kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>c</kbd><br><kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>f</kbd></div> | When the currently active file is _not_ a **Fiddle** file. |
 
-The commands for opening and evaluating corresponding **Fiddle** files will offer to Create the **Fiddle** file if it does not already exist. But the **Calva: Open Source File for Current Fiddle File** will _not_ offer to create the target file.
+The commands for opening and evaluating corresponding **Fiddle** files will offer to Create the **Fiddle** file if it does not already exist. But the **Calva: Open Source File for Current Fiddle File** command will _not_ offer to create the target file.
 
 What does **corresponding** mean here? Without any configuration Calva will look for “sibling” files, where files with Clojure file extensions (E.g. `.clj`, `.cljs`, `.bb`) will be treated as **Source** files, and files with the `.fiddle` extension will be treated as **Fiddle** files. Sibling file here means residing side by side in the file system. If this default behaviour is not your cup of tea, there is some flexibility added by configuration.
 
@@ -130,7 +130,7 @@ With this configuration we would get a behaviour like so:
 
 It can be tempting to put your **Fiddle** files directory on the classpath for the `dev` alias/profile, but it is most often a mistake (will depend on your particular use of fiddle files, but generally). Instead load/evaluate fiddle files when you need them (e.g. by using the command for it mentioned above). The REPL does not need something to be on the classpath in order to evaluate it.
 
-When you want your fiddle code to be evaluated in the same workspace as its corresponding **Source** file, you can use the same namespace declaration for both files. The linter might complain, but the REPL will be happily comply.
+When you want your fiddle code to be evaluated in the same workspace as its corresponding **Source** file, you can use the same namespace declaration for both files. The linter might complain, but the REPL will happily comply.
 
 If you primarily evaluate the fiddle file using the provided command for it, from the **Source** files, you can omit the namespace declaration, and Calva will evaluate it in the namespace of the **Source** file.
 
