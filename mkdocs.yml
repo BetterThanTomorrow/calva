@@ -52,21 +52,22 @@ nav:
   - Features:
     - commands-top10.md
     - evaluation.md
+    - formatting.md
+    - syntax-highlighting.md
+    - paredit.md
+    - linting.md
     - rich-comments.md
+    - fiddle-files.md
+    - refactoring.md
+    - custom-commands.md
+    - connect-sequences.md
+    - notebooks.md
     - clojuredocs.md
     - output.md
-    - formatting.md
-    - paredit.md
     - debugger.md
     - pprint.md
-    - refactoring.md
     - test-runner.md
-    - syntax-highlighting.md
-    - connect-sequences.md
-    - custom-commands.md
-    - linting.md
     - namespace-form-auto-creation.md
-    - notebooks.md
     - hiccup.md
   - Customizing Calva:
     - customizing.md

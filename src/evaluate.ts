@@ -413,7 +413,7 @@ function evaluateStartOfFileToCursor(document = {}, options = {}) {
   );
 }
 
-async function loadFile(
+async function loadDocument(
   document: vscode.TextDocument | Record<string, never> | undefined,
   pprintOptions: PrettyPrintingOptions
 ) {
@@ -429,75 +429,81 @@ async function loadFile(
     const docUri = outputWindow.isResultsDoc(doc)
       ? await namespace.getUriForNamespace(session, ns)
       : doc.uri;
-    const fileName = path.basename(docUri.path);
-    const fileContents = await util.getFileContents(docUri.path);
+    const filePath = docUri.path;
+    await loadFile(filePath, ns, pprintOptions, fileType);
+  }
+}
 
-    outputWindow.appendLine(`; Evaluating file: ${fileName}`);
+async function loadFile(
+  filePath: string,
+  ns: string,
+  pprintOptions: PrettyPrintingOptions,
+  fileType: string
+) {
+  const fileName = path.basename(filePath);
+  const fileContents = await util.getFileContents(filePath);
+  const session = replSession.getSession(path.extname(fileName).replace(/^\./, ''));
 
-    await session.switchNS(ns);
+  outputWindow.appendLine(`; Evaluating file: ${fileName}`);
 
-    const errorMessages = [];
-    const res = session.loadFile(fileContents, {
-      fileName,
-      filePath: docUri.path,
-      stdout: (m) => outputWindow.append(m),
-      stderr: (m) => {
-        outputWindow.appendLine(formatAsLineComments(m));
-        errorMessages.push(m);
-      },
-      pprintOptions: pprintOptions,
-    });
-    try {
-      const value = await res.value;
-      if (value) {
-        outputWindow.appendLine(value);
-      } else {
-        outputWindow.appendLine('; No results from file evaluation.');
-      }
-    } catch (e) {
-      outputWindow.appendLine(
-        `; Evaluation of file ${fileName} failed: ${e}`,
-        (_location, nextLocation) => {
-          if (res.stacktrace) {
-            outputWindow.saveStacktrace(res.stacktrace.stacktrace);
-            outputWindow.markLastStacktraceRange(nextLocation);
-          }
+  await session.switchNS(ns);
+
+  const errorMessages = [];
+  const res = session.loadFile(fileContents, {
+    fileName,
+    filePath,
+    stdout: (m) => outputWindow.append(m),
+    stderr: (m) => {
+      outputWindow.appendLine(formatAsLineComments(m));
+      errorMessages.push(m);
+    },
+    pprintOptions: pprintOptions,
+  });
+  try {
+    const value = await res.value;
+    if (value) {
+      outputWindow.appendLine(value);
+    } else {
+      outputWindow.appendLine('; No results from file evaluation.');
+    }
+  } catch (e) {
+    outputWindow.appendLine(
+      `; Evaluation of file ${fileName} failed: ${e}`,
+      (_location, nextLocation) => {
+        if (res.stacktrace) {
+          outputWindow.saveStacktrace(res.stacktrace.stacktrace);
+          outputWindow.markLastStacktraceRange(nextLocation);
         }
-      );
-      if (
-        !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
-          outputWindow.isResultsDoc(editor.document)
+      }
+    );
+    if (
+      !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
+        outputWindow.isResultsDoc(editor.document)
+      )
+    ) {
+      void vscode.window
+        .showErrorMessage(
+          `Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`,
+          'Show output'
         )
-      ) {
-        void vscode.window
-          .showErrorMessage(
-            `Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`,
-            'Show output'
-          )
-          .then((choice) => {
-            if (choice === 'Show output') {
-              void vscode.commands.executeCommand('calva.showOutputWindow');
-            }
-          });
-      }
-    } finally {
-      outputWindow.setSession(session, res.ns || ns);
-      replSession.updateReplSessionType();
-      if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
-        outputWindow.appendLine(`; Evaluating 'autoEvaluateCode.onFileLoaded.${fileType}'`);
-        const context = customSnippets.makeContext(
-          vscode.window.activeTextEditor,
-          ns,
-          ns,
-          fileType
-        );
-        await customSnippets.evaluateSnippet(
-          util.getActiveTextEditor(),
-          getConfig().autoEvaluateCode.onFileLoaded[fileType],
-          context,
-          {}
-        );
-      }
+        .then((choice) => {
+          if (choice === 'Show output') {
+            void vscode.commands.executeCommand('calva.showOutputWindow');
+          }
+        });
+    }
+  } finally {
+    outputWindow.setSession(session, res.ns || ns);
+    replSession.updateReplSessionType();
+    if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
+      outputWindow.appendLine(`; Evaluating 'autoEvaluateCode.onFileLoaded.${fileType}'`);
+      const context = customSnippets.makeContext(vscode.window.activeTextEditor, ns, ns, fileType);
+      await customSnippets.evaluateSnippet(
+        util.getActiveTextEditor(),
+        getConfig().autoEvaluateCode.onFileLoaded[fileType],
+        context,
+        {}
+      );
     }
   }
 }
@@ -589,12 +595,7 @@ function instrumentTopLevelForm() {
     .send();
 }
 
-export async function evaluateInOutputWindow(
-  code: string,
-  sessionType: string,
-  ns: string,
-  options
-) {
+async function evaluateInOutputWindow(code: string, sessionType: string, ns: string, options) {
   const outputDocument = await outputWindow.openResultsDoc();
   const evalPos = outputDocument.positionAt(outputDocument.getText().length);
   try {
@@ -621,16 +622,9 @@ export async function evaluateInOutputWindow(
   }
 }
 
-export type customREPLCommandSnippet = {
-  name: string;
-  key?: string;
-  snippet: string;
-  repl?: string;
-  ns?: string;
-};
-
 export default {
   interruptAllEvaluations,
+  loadDocument,
   loadFile,
   evaluateCurrentForm,
   evaluateEnclosingForm,

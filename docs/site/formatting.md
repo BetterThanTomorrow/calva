@@ -72,13 +72,15 @@ Unlike with the ”real” Calva Formatter, which never breaks up lines, this on
 
 ## Configuration
 
-You configure Calva's formatting using [cljfmt's configuration EDN](https://github.com/weavejester/cljfmt#configuration). This means that you can adjust the above mentioned defaults, including the indenting. If you have a config file defined in your repo in one of cljfmt's default locations. If calva.fmt.configPath not set, look in default config locations, it will be automatically used.
+You can adjust the above mentioned defaults, and the default indents, by configuring the formatting using [cljfmt's configuration EDN](https://github.com/weavejester/cljfmt#configuration).
 
 This configuration can either be provided via a file or via clojure-lsp (see [Clojure LSP Settings](https://clojure-lsp.io/settings/)).
 
 ### Providing configuration via a config file
 
-If providing settings via a file, start changing the Calva formatting defaults by pasting the following map into a file and save it. It could be somewhere in the project workspace (supporting hot reload), or some other place (no hot reload), depending on your requirements:
+Calva will look for the configuration in one  of the [default cljfmt paths](https://github.com/weavejester/cljfmt#configuration) ('.cljfmt.edn', '.cljfmt.clj', 'cljfmt.edn', or 'cljfmt.clj' in the workspace root). If your file is somewhere else use the `calva.fmt.configPath` to tell Calva where to find it. The path should either be absolute, or relative to the workspace root directory. If your config file is somewhere in the workspace root, Calva will hot reload it when you update it.
+
+Wherever the config file is, a suggested path for providing your configuration is to start changing the Calva formatting defaults by pasting the following map into a file and save it.
 
 ```clojure
 {:remove-surrounding-whitespace? true
@@ -88,16 +90,11 @@ If providing settings via a file, start changing the Calva formatting defaults b
  :remove-multiple-non-indenting-spaces? false}
 ```
 
-Then set `calva.fmt.configPath` to the path to this file. The path should either be absolute, or relative to the project root directory. So, if you named the file `.cljfmt.edn` and saved it in the root of the project, then this setting should be `.cljfmt.edn`.
-
-Since you are editing the file in Calva (you are, right?), you can quickly test how different settings affect the formatting. Try:
+If the file is in the workspace, you can quickly test how different settings affect the formatting. Try:
 
 1. Adding `:align-associative? true` to the config
 2. then save
 3. then hit `tab`, and see what happens.
-
-!!! Note "Hot reloding requirements"
-    The hot reloading of the config file only works for config files inside the project directory structure. You will not have it if your configuration is outside the workspace or if you are providing the settings via clojure-lsp (see below).
 
 ??? Note "`:align-associative?` is experimental"
     This particular setting is experimental and known to cause trouble together with namespaced keywords. Consider using `ctrl+alt+l` instead of `tab` as your formatting command, instead of enabling this setting. See below for more info about this. See [more below](#about-aligning-associative-forms) about this.
@@ -110,7 +107,7 @@ Since you are editing the file in Calva (you are, right?), you can quickly test 
 If you work in a team where some members use clojure-lsp for formatting, you can make Calva format using the same configuration by telling setting `calva.fmt.configPath` to `CLOJURE-LSP` (case sensitive).
 
 Note that doing this you will not have hot reload of the formatting configuration, and of course you will be depending on that clojure-lsp is running and functioning.
-    
+
 ### Indentation rules
 
 The `cljfmt` indents are highly configurable. They, and the rest of the configuration options, are masterly detailed [here](https://github.com/weavejester/cljfmt#configuration).

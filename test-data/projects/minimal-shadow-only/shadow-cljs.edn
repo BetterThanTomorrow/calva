@@ -1,8 +1,8 @@
-{;:deps true
+{:deps true
  :source-paths ["src"]
  :dependencies [[binaryage/devtools "1.0.6"]
                 #_[ org.clojure/clojurescript {:mvn/version "1.11.60"}]
-                #_[ thheller/shadow-cljs "2.19.9"]
+                [ thheller/shadow-cljs "2.19.9"]
                 [ binaryage/devtools "1.0.6"]
                 [ reagent/reagent "1.1.1"]]
  :dev-http {8700 "public"}

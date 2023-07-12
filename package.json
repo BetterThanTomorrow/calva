@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.375",
+  "version": "2.0.376",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -111,7 +111,8 @@
           ".joke",
           ".boot",
           ".bb",
-          ".calva-repl"
+          ".calva-repl",
+          ".fiddle"
         ],
         "configuration": "./language-configuration.json"
       }
@@ -162,6 +163,34 @@
         "type": "object",
         "title": "Calva",
         "properties": {
+          "calva.fiddleFilePaths": {
+            "type": "array",
+            "markdownDescription": "An array of `source` and `fiddle` root paths, relative to the project root. This is used by the commands **Calva: Open Fiddle File for Current File**, and **Calva: Evaluate Fiddle File for Current File**. Example:\n\n```json\n\"calva.fiddleFilePaths\": [\n  {\n    \"source\": [\"src\"],\n    \"fiddle\": [\"env\", \"dev\", \"fiddles\"]\n  }\n]\n```\n\nThe default is `null`, which will make Calva associate files with a `.fiddle` file extension as the fiddle file for a Clojure file. E.g. a file `src/foo/bar/baz_main.cljc`, will have an associated fiddle file named `src/foo/bar/baz_main.fiddle`. See [calva.io/fiddle](https://calva.io/fiddle-files/) for more info.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "markDownDescription": "The source files root path. An array of strings, used as path segments. E.g. `[\"src\"]`",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "fiddle": {
+                  "markDownDescription": "The fiddle files root path. An array of strings, used as path segments. E.g. `[\"env\", \"dev\", \"fiddles\"]`",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "source",
+                "fiddle"
+              ]
+            },
+            "default": null
+          },
           "calva.useLiveShare": {
             "type": "boolean",
             "markdownDescription": "Enable support for LiveShare. Currently defaults to false, because of [ive-share/issues/4551](https://github.com/MicrosoftDocs/live-share/issues/4551). This issue makes Calva fail to connect to a REPL for some users.",
@@ -1790,6 +1819,24 @@
       },
       {
         "category": "Calva",
+        "command": "calva.openFiddleForSourceFile",
+        "title": "Open Fiddle File for Current File",
+        "enablement": "!calva:activeEditorIsFiddle"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.evaluateFiddleForSourceFile",
+        "title": "Evaluate Fiddle File for Current File",
+        "enablement": "!calva:activeEditorIsFiddle"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.openSourceFileForFiddle",
+        "title": "Open Source File for Current Fiddle File",
+        "enablement": "calva:activeEditorIsFiddle"
+      },
+      {
+        "category": "Calva",
         "command": "calva.showOutputWindow",
         "title": "Show Output/REPL Window",
         "enablement": "calva:connected"
@@ -2479,6 +2526,21 @@
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
       },
       {
+        "command": "calva.openFiddleForSourceFile",
+        "key": "ctrl+alt+c f",
+        "when": "calva:keybindingsEnabled && !calva:activeEditorIsFiddle"
+      },
+      {
+        "command": "calva.evaluateFiddleForSourceFile",
+        "key": "ctrl+alt+c ctrl+alt+f",
+        "when": "calva:keybindingsEnabled && calva:connected && !calva:activeEditorIsFiddle"
+      },
+      {
+        "command": "calva.openSourceFileForFiddle",
+        "key": "ctrl+alt+c f",
+        "when": "calva:keybindingsEnabled && calva:activeEditorIsFiddle"
+      },
+      {
         "command": "calva.showOutputWindow",
         "key": "ctrl+alt+o o",
         "when": "calva:keybindingsEnabled && calva:connected && !calva:outputWindowActive"
@@ -2855,6 +2917,21 @@
           "enablement": "editorLangId == clojure && calva:connected",
           "command": "calva.setOutputWindowNamespace",
           "group": "calva/b-eval"
+        },
+        {
+          "enablement": "editorLangId == clojure && !calva:activeEditorIsFiddle",
+          "command": "calva.openFiddleForSourceFile",
+          "group": "calva/a-fiddle"
+        },
+        {
+          "enablement": "calva:connected && editorLangId == clojure && !calva:activeEditorIsFiddle",
+          "command": "calva.evaluateFiddleForSourceFile",
+          "group": "calva/a-fiddle"
+        },
+        {
+          "enablement": "editorLangId == clojure && calva:activeEditorIsFiddle",
+          "command": "calva.openSourceFileForFiddle",
+          "group": "calva/a-fiddle"
         }
       ],
       "editor/context": [
@@ -2873,7 +2950,7 @@
         {
           "when": "editorLangId == clojure",
           "command": "calva.selectCurrentForm",
-          "group": "calva/a-eval"
+          "group": "calva/a-structural-editing"
         },
         {
           "when": "editorLangId == clojure",

@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.376] - 2023-07-12
+
+- [Add “Fiddle” files Support](https://github.com/BetterThanTomorrow/calva/issues/2199)
+
 ## [2.0.375] - 2023-07-11
 
 - [If calva.fmt.configPath not set, look in default config locations](https://github.com/BetterThanTomorrow/calva/issues/2243)
