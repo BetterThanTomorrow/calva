@@ -230,7 +230,10 @@ export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
 
 export async function setNamespaceFromCurrentFile() {
   const session = replSession.getSession();
-  const ns = namespace.getNamespace(util.tryToGetDocument({}));
+  const ns = namespace.getNamespace(
+    util.tryToGetDocument({}),
+    vscode.window.activeTextEditor?.selection?.active
+  );
   if (getNs() !== ns && util.isDefined(ns)) {
     await session.switchNS(ns);
   }
@@ -241,7 +244,10 @@ export async function setNamespaceFromCurrentFile() {
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
   const session = replSession.getSession();
-  const ns = namespace.getNamespace(util.tryToGetDocument({}));
+  const ns = namespace.getNamespace(
+    util.tryToGetDocument({}),
+    vscode.window.activeTextEditor?.selection?.active
+  );
   const editor = util.getActiveTextEditor();
   const doc = editor.document;
   const selection = editor.selection;
