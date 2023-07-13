@@ -176,6 +176,13 @@ describe('ns-form util', () => {
         null
       );
     });
+
+    // https://github.com/BetterThanTomorrow/calva/issues/2249
+    it('returns outer ns if rich comment lacks ns', function () {
+      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a) (a b c) (comment b|)'))).toBe(
+        'a'
+      );
+    });
   });
 
   describe('nsFromText', function () {
