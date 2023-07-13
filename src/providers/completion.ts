@@ -191,7 +191,7 @@ async function replCompletions(
     contextEnd = toplevel.substring(wordEndLocalOffset),
     replContext = `${contextStart}__prefix__${contextEnd}`,
     toplevelIsValidForm = toplevelStartCursor.withinValidList() && replContext != '__prefix__',
-    ns = namespace.getNamespace(document),
+    ns = namespace.getNamespace(document, position),
     client = replSession.getSession(util.getFileType(document)),
     res = await client.complete(ns, text, toplevelIsValidForm ? replContext : undefined),
     results = res.completions || [];

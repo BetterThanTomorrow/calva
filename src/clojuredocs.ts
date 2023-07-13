@@ -177,7 +177,7 @@ async function clojureDocsLookup(
   const doc = d ? d : util.getDocument({});
   const position = p ? p : util.getActiveTextEditor().selection.active;
   const symbol = util.getWordAtPosition(doc, position);
-  const ns = namespace.getNamespace(doc);
+  const ns = namespace.getNamespace(doc, p);
   const session = replSession.getSession(util.getFileType(doc));
 
   const docsFromCider = await clojureDocsCiderNReplLookup(session, symbol, ns);

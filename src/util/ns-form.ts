@@ -28,38 +28,64 @@ export function resolveNsName(sourcePaths: string[], filePath: string): string {
   return pathToNs(path.basename(filePath));
 }
 
-export function nsFromCursorDoc(cursorDoc: model.EditableDocument): string | null {
-  const cursor: tokenCursor.LispTokenCursor = cursorDoc.getTokenCursor(0);
-  cursor.forwardWhitespace(true);
-  let token: lexer.Token | undefined = undefined,
-    foundNsToken: boolean = false,
-    foundNsId: boolean = false;
-  do {
-    cursor.downList();
-    if (token && token.offset == cursor.getToken().offset) {
-      cursor.next();
+function nsSymbolOfCurrentForm(
+  cursor: tokenCursor.LispTokenCursor,
+  downList: 'downList' | 'backwardDownList'
+): string | null {
+  const nsCheckCursor = cursor.clone();
+  nsCheckCursor[downList]();
+  nsCheckCursor.backwardList();
+  nsCheckCursor.forwardWhitespace(true);
+  const formToken = nsCheckCursor.getToken();
+  if (formToken.type === 'id' && ['ns', 'in-ns'].includes(formToken.raw)) {
+    nsCheckCursor.forwardSexp(true, true, true);
+    nsCheckCursor.forwardWhitespace(true);
+    const nsToken = nsCheckCursor.getToken();
+    if (nsToken.type === 'id') {
+      return formToken.raw === 'ns' ? nsToken.raw : nsToken.raw.substring(1);
     }
-    token = cursor.getToken();
-    foundNsToken = token.type == 'id' && token.raw == 'ns';
-  } while (!foundNsToken && !cursor.atEnd());
-  if (foundNsToken) {
-    do {
-      cursor.next();
-      token = cursor.getToken();
-      foundNsId = token.type == 'id';
-    } while (!foundNsId && !cursor.atEnd());
-    if (foundNsId) {
-      return token.raw;
-    } else {
-      console.log('Error getting the ns name from the ns form.');
+  }
+}
+
+export function nsFromCursorDoc(
+  cursorDoc: model.EditableDocument,
+  p: number = cursorDoc.selection.active
+): string | null {
+  const cursor: tokenCursor.LispTokenCursor = cursorDoc.getTokenCursor(p);
+  // Special case, find first ns form
+  if (p === 0) {
+    cursor.forwardWhitespace(true);
+    while (cursor.forwardSexp(true, true, true)) {
+      const ns = nsSymbolOfCurrentForm(cursor, 'backwardDownList');
+      if (ns) {
+        return ns;
+      }
+    }
+    return null;
+  }
+  // General case, find ns form closest before p
+  cursor.backwardWhitespace(true);
+  if (cursor.atTopLevel(true)) {
+    while (cursor.backwardSexp()) {
+      const ns = nsSymbolOfCurrentForm(cursor, 'downList');
+      if (ns) {
+        return ns;
+      }
     }
   } else {
-    console.log('No ns form found.');
+    cursor.backwardList();
+    cursor.backwardUpList();
+    cursor.backwardWhitespace(true);
+    if (cursor.atStart()) {
+      return null;
+    } else {
+      return nsFromCursorDoc(cursorDoc, cursor.offsetStart);
+    }
   }
   return null;
 }
 
-export function nsFromText(text: string): string | null {
+export function nsFromText(text: string, p = text.length): string | null {
   const stringDoc: model.StringDocument = new model.StringDocument(text);
-  return nsFromCursorDoc(stringDoc);
+  return nsFromCursorDoc(stringDoc, p);
 }

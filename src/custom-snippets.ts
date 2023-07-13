@@ -39,7 +39,7 @@ async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetD
   const editor = util.getActiveTextEditor();
   const editorNS =
     editor && editor.document && editor.document.languageId === 'clojure'
-      ? namespace.getNamespace(editor.document)
+      ? namespace.getNamespace(editor.document, editor.selection.active)
       : undefined;
   const editorRepl =
     editor && editor.document && editor.document.languageId === 'clojure'
