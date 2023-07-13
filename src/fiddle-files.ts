@@ -7,10 +7,12 @@ import eval from './evaluate';
 import * as path from 'path';
 import * as namespace from './namespace';
 import * as outputWindow from './results-output/results-doc';
+import * as docMirror from './doc-mirror/index';
 
 // TODO: This viewColumn memory could probably be a shared thing for all of Calva.
 //       At least the REPL window has similar functionality an could benefit from this more general approach.
 const filePathToViewColumn: Map<string, vscode.ViewColumn> = new Map();
+const filePathToSelection: Map<string, vscode.Selection> = new Map();
 
 export let activeEditorIsFiddle = false;
 
@@ -36,6 +38,12 @@ export function activate(context: vscode.ExtensionContext) {
       updateFiddleFileOpenedContext(editor);
       if (editor && editor.document && editor.document.languageId === 'clojure') {
         filePathToViewColumn.set(editor.document.fileName, editor.viewColumn);
+      }
+    }),
+    vscode.window.onDidChangeTextEditorSelection((e) => {
+      const editor = e.textEditor;
+      if (editor && e.selections.length > 0) {
+        filePathToSelection.set(editor.document.fileName, e.selections[0]);
       }
     }),
     vscode.workspace.onDidChangeConfiguration((e) => {
@@ -132,7 +140,9 @@ export async function evaluateFiddleForSourceFile() {
     const doc = await vscode.workspace.openTextDocument(fiddleFileUri);
     const relativeFiddleFilePath = vscode.workspace.asRelativePath(fiddleFileUri);
     const code = doc.getText();
-    const ns = nsUtil.nsFromText(doc.getText()) || namespace.getDocumentNamespace();
+    const fiddleSelection = filePathToSelection.get(fiddleFilePath);
+    const p = fiddleSelection ? doc.offsetAt(fiddleSelection.active) : 0;
+    const ns = nsUtil.nsFromText(code, p) || namespace.getDocumentNamespace();
     outputWindow.appendLine(`; Evaluating fiddle: ${relativeFiddleFilePath}`);
     await eval.evaluateInOutputWindow(
       code,
