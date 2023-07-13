@@ -72,17 +72,15 @@ export function nsFromCursorDoc(
         return ns;
       }
     }
-  } else {
-    cursor.backwardList();
-    cursor.backwardUpList();
-    cursor.backwardWhitespace(true);
-    if (cursor.atStart()) {
-      return null;
-    } else {
-      return nsFromCursorDoc(cursorDoc, cursor.offsetStart);
-    }
   }
-  return null;
+  cursor.backwardList();
+  cursor.backwardUpList();
+  cursor.backwardWhitespace(true);
+  if (cursor.atStart()) {
+    return null;
+  } else {
+    return nsFromCursorDoc(cursorDoc, cursor.offsetStart);
+  }
 }
 
 export function nsFromText(text: string, p = text.length): string | null {
