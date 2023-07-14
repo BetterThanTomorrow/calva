@@ -547,7 +547,7 @@ function createCLJSReplType(
               '%BUILDS%',
               builds
                 .map((x) => {
-                  return x.startsWith(':') ? x : `"${x}"`;
+                  return x.startsWith(':') ? x : `:${x}`;
                 })
                 .join(' ')
             );
