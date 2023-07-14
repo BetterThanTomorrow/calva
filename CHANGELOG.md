@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [shadow-cljs jack-in with cljAliases fails on Windows](https://github.com/BetterThanTomorrow/calva/issues/2239)
+
 ## [2.0.378] - 2023-07-13
 
 - Fix: [Rich comments broken by 2.0.377](https://github.com/BetterThanTomorrow/calva/issues/2249)

@@ -81,6 +81,26 @@
       }
     },
     {
+      "name": "Shadow-cljs + deps.edn",
+      "projectType": "shadow-cljs",
+      "cljsType": "shadow-cljs",
+      "menuSelections": {
+        "cljAliases": ["dev", "dev-too"],
+        "cljsLaunchBuilds": ["app", "app-too"],
+        "cljsDefaultBuild": "app"
+      }
+    },
+    {
+      "name": "Deps.edn + shadow-cljs",
+      "projectType": "deps.edn",
+      "cljsType": "shadow-cljs",
+      "menuSelections": {
+        "cljAliases": ["dev", "dev-too"],
+        "cljsLaunchBuilds": ["app", "app-too"],
+        "cljsDefaultBuild": "app"
+      }
+    },
+    {
       "name": "Connect Sequence deps-main-opts",
       "projectType": "deps.edn",
       "projectRootPath": ["projects/deps-main-opts"],

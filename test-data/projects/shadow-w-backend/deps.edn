@@ -4,4 +4,6 @@
         thheller/shadow-cljs {:mvn/version "2.19.9"}
         binaryage/devtools {:mvn/version "1.0.6"}
         reagent/reagent {:mvn/version "1.1.1"}}
+ :aliases {:dev {}
+           :dev-too {}}
 }
