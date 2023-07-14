@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix [Add link to default cljfmt config files](https://github.com/BetterThanTomorrow/calva/issues/2252)
+
 ## [2.0.380] - 2023-07-16
 
 - Fix: [Calva structural editing fails if cljfmt parsing fails](https://github.com/BetterThanTomorrow/calva/issues/2248)
