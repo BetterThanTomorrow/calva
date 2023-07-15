@@ -73,33 +73,35 @@ If the workspace is a monorepo, Polylith repo or just a repository with more tha
 
 ## shadow-cljs in full stack projects
 
-shadow-cljs is a bit special in regards to Calva REPL connection. Mainly because you can start shadow-cljs and it's nREPL server in two ways:
+**shadow-cljs** is a bit special in regards to Calva REPL connection. Mainly because you can start **shadow-cljs** and it's nREPL server in two ways:
 
-1. Using the shadow-cljs npm executable
-2. Via the Clojure REPL in your Leiningen or deps.edn project
+1. Using the **shadow-cljs** npm executable
+2. Via the Clojure REPL in your Leiningen or **deps.edn** project
 
 These options show up as **project types** when connecting or jacking in:
 
 1. Project type: **shadow-cljs**
 2. Project type: **deps.edn + shadow-cljs** or **Leiningen + shadow-cljs**
 
-**NB**: Unless you have good reasons, use the **shadow-cljs** project type and configure shadow-cljs to use deps.edn or Leiningen for source paths, and for dependency resolution.
+The technical difference here is wether you let **shadow-cljs** start **clojure**/**Leiningen** (the first option) or if you let Calva do it (the second option). If you let Calva do it, Calva will then start the **shadow-cljs** watcher from the Clojure process. From a usage perspective the two approaches will result in different channeling of **shadow-cljs** output, e.g. test runner results. With the first option (the **shadow-cljs** project type), **shadow-cljs** output will be channeled to the **Jack-in** terminal. With the **deps.edn**/**Leiningen** option, that output will be channeled to the Output/REPL window.
 
-Although the other project types work, the wiring is different. When the npm shadow-cljs executable is used, it outputs both shadow-cljs and Clojure related messages in the Jack-in terminal. Whereas when started from Clojure most shadow-cljs output ends up in the Output/REPL window. This gets extra important if you have shadow-cljs tests running automatically.
+See [shadow-cljs + Clojure with Calva: The basics](https://blog.agical.se/en/posts/shadow-cljs-clojure-cljurescript-calva-nrepl-basics/) for some more discussion on how the REPL connection works.
 
-### Leiningen + shadow-cljs middleware issue
+!!! Note "shadow-cljs and `clojure` aliases"
+    The **shadow-cljs** project type will not prompt you for any aliases found in the `deps.edn` file. Usually you should provide such aliases in `shadow-cljs.edn` like `:deps {:aliases [...]}`. If, for whatever reason you can't provide the aliases that way, you can configure a [Custom REPL Connect Sequence](connect-sequences.md) and provide the aliases as `menuSelections` -> `cljAliases`.
 
-Please note that for Leiningen, [the command line dependency injection of the shadow-cljs nrepl middleware doesn't work](https://codeberg.org/leiningen/leiningen/issues/10). You need to add it to your `project.clj`:
+!!! Note "Leiningen + shadow-cljs middleware issue"
+    Please note that for Leiningen, [the command line dependency injection of the shadow-cljs nrepl middleware doesn't work](https://codeberg.org/leiningen/leiningen/issues/10). You need to add it to your `project.clj`:
 
-```clojure
-  :repl-options {:nrepl-middleware [shadow.cljs.devtools.server.nrepl/middleware]}
-```
+    ```clojure
+    :repl-options {:nrepl-middleware [shadow.cljs.devtools.server.nrepl/middleware]}
+    ```
 
 ## Troubleshooting
 
 ### Jack-in and `:main-opts`
 
-When Calva starts the project REPL and connects to it (a.k.a. Jack-in), this is done by starting an nREPL server. For deps.edn projects this by default means that Calva will add `-m ...` with options that starts the server. 
+When Calva starts the project REPL and connects to it (a.k.a. Jack-in), this is done by starting an nREPL server. For deps.edn projects this by default means that Calva will add `-m ...` with options that starts the server.
 
 _However_: If you choose an alias at Jack-in that specifies `:main-opts`, it will make the Clojure CLI to add main opts and Calva will then not override these by adding `-m ...` to the command line. This means that an alias that specify `:main-opts` must result in an nREPL server being started, or else Calva won't have a server to connect to. Calva won't further analyze this, but will just warn you at Jack-in.
 

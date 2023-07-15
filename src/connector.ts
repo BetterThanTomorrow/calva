@@ -505,7 +505,7 @@ function createCLJSReplType(
     if (cljsType.isConnectedRegExp) {
       const isConnectCodeEvaluatedSuccessfully =
         [...out, result].find((x) => {
-          return x.search(cljsType.isConnectedRegExp) >= 0;
+          return x?.search(cljsType.isConnectedRegExp) >= 0;
         }) != undefined;
       if (!isConnectCodeEvaluatedSuccessfully || !isShadowCljsReplType(cljsType)) {
         return isConnectCodeEvaluatedSuccessfully;
@@ -547,7 +547,7 @@ function createCLJSReplType(
               '%BUILDS%',
               builds
                 .map((x) => {
-                  return x.startsWith(':') ? x : `"${x}"`;
+                  return x.startsWith(':') ? x : `:${x}`;
                 })
                 .join(' ')
             );

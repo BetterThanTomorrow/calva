@@ -1,4 +1,4 @@
-{:lein true
+{:deps true
 ;; :source-paths ["src"]
 ;; :dependencies [[binaryage/devtools "1.0.6"]
 ;;                [reagent "1.1.1"]]
@@ -7,4 +7,8 @@
  {:app {:target :browser
         :output-dir "public/js/compiled"
         :asset-path "/js/compiled"
-        :modules {:main {:init-fn main.core/init}}}}}
+        :modules {:main {:init-fn main.core/init}}}
+  :app-too {:target :browser
+            :output-dir "public/js/compiled-too"
+            :asset-path "/js/compiled-too"
+            :modules {:main {:init-fn main.core/init}}}}}
