@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.379] - 2023-07-15
+
 - Fix: [shadow-cljs jack-in with cljAliases fails on Windows](https://github.com/BetterThanTomorrow/calva/issues/2239)
 - Fix: [deps.edn + shadow-cljs jack-in fails, when connect sequence builds are not keywords](https://github.com/BetterThanTomorrow/calva/issues/2242)
 
