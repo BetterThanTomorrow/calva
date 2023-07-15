@@ -134,10 +134,10 @@ async function selectShadowBuilds(
         }),
     aliases: string[] =
       menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
-  const aliasesOption = aliases.length > 0 ? `-A ${aliases.join('')}` : '';
+  const aliasesOption = aliases.length > 0 ? ['-A', aliases.join('')] : [];
   const args: string[] = [];
   if (aliasesOption && aliasesOption.length) {
-    args.push(aliasesOption);
+    args.push(...aliasesOption);
   }
   if (selectedBuilds.length == 0) {
     throw new Error('No builds selected');
