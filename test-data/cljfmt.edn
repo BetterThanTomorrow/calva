@@ -1,1 +1,2 @@
-{:indents {inner-0-form [[:inner 0]]}}
+{:indents {inner-0-form [[:inner 0]]
+           #re "foo" [[:inner 0]]}}

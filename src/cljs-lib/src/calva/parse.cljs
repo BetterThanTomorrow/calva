@@ -1,6 +1,7 @@
 (ns calva.parse
   (:require [cljs.reader]
             [cljs.tools.reader :as tr]
+            [clojure.edn :as edn]
             [cljs.tools.reader.reader-types :as rt]
             [clojure.string :as str]
             [calva.js-utils :refer [jsify]]))
@@ -39,7 +40,12 @@
 (defn parse-clj-edn
   "Reads edn (with regexp tags)"
   ; https://ask.clojure.org/index.php/8675/cljs-reader-read-string-fails-input-clojure-string-accepts
-  [s] (tr/read-string s))
+  [s]
+  (def s s)
+  #_(if (re-find #"#re" s)
+    (edn/read-string {:readers {'re re-pattern}} s)
+    (tr/read-string s))
+  (tr/read-string s))
 
 ;[[ar gu ment] {:as extras, :keys [d e :s t r u c t u r e d]}]
 (comment

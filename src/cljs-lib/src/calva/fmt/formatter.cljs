@@ -44,7 +44,9 @@
       (parse-clj-edn $)
       (merge-cljfmt $))
     (catch js/Error e
-      {:error (.-message e)})))
+      (merge default-fmt
+             {:error (.-message e)
+              :indents cljfmt/default-indents}))))
 
 (defn- reformat-string [range-text {:keys [align-associative?
                                            remove-multiple-non-indenting-spaces?] :as config}]
