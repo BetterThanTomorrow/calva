@@ -16,22 +16,25 @@ let lspFormatConfig: string | undefined;
 
 function cljfmtOptionsFromString(cljfmt: string) {
   const options = cljsLib.cljfmtOptionsFromString(cljfmt);
-  return {
-    ...options,
-    // because we can't correctly pass ordered map from cljs
-    // but we need it to determine the order of applying indent rules
-    indents: Object.fromEntries(options['indents']),
-  };
+  return options.error
+    ? options
+    : {
+        ...options,
+        // because we can't correctly pass ordered map from cljs
+        // but we need it to determine the order of applying indent rules
+        indents: Object.fromEntries(options['indents']),
+      };
 }
 
 function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmt: string) {
+  const cljfmtOptions = cljfmtOptionsFromString(cljfmt);
   return {
     'format-as-you-type': !!formatOnTypeEnabled(),
     'keep-comment-forms-trail-paren-on-own-line?': !!workspaceConfig.get<boolean>(
       'keepCommentTrailParenOnOwnLine'
     ),
     'cljfmt-options-string': cljfmt,
-    'cljfmt-options': cljfmtOptionsFromString(cljfmt),
+    'cljfmt-options': cljfmtOptions,
   };
 }
 
@@ -82,14 +85,12 @@ export async function getConfig(
     workspaceConfig,
     cljfmtContent ? cljfmtContent : defaultCljfmtContent
   );
-  if (!config['cljfmt-options']['error']) {
-    return config;
-  } else {
+  if (config['cljfmt-options']['error']) {
     void vscode.window.showErrorMessage(
       `Error parsing ${configPath}: ${config['cljfmt-options']['error']}\n\nUsing default formatting configuration.`
     );
-    return configuration(workspaceConfig, defaultCljfmtContent);
   }
+  return config;
 }
 
 export function formatOnTypeEnabled() {
