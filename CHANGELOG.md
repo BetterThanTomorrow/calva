@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.380] - 2023-07-16
+
 - Fix: [Calva structural editing fails if cljfmt parsing fails](https://github.com/BetterThanTomorrow/calva/issues/2248)
 
 ## [2.0.379] - 2023-07-15
