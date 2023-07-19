@@ -52,8 +52,12 @@ Even better: Copying that command line gives you the command to start the REPL w
 
 All this said, I still recommend you challenge the conclusion that you can't use Jack-in.
 
-!!! Note
+!!! Note "Copy the Jack-in command line"
     There is a Calva command for copying the Jack-in command line to the clipboard. It will copy the command line including commands to change to the current REPL project root, avoiding hard-to-detect errors when starting the REPL in the wrong directory.
+
+!!! Note "The Generic Project Type"
+    A reason to use the connect to a running REPL way, can be that Calva does not have a built in [connect sequence/project type](connect-sequences.md) for the particular REPL you want to connect to. Maybe it is something like [Lingy](https://github.com/ingydotnet/lingy) which doesn't yet have a built in Calva connect sequence. As long as there is an nREPL server to connect to, you can Connect with Calva, using the **Generic** connect sequence/project type. (You can also create a [connect sequence with a custom command line](connect-sequences.md#custom-command-line), and use Jack-in anyway.)
+
 
 See also [Customizing Jack-in and Connect](customizing-jack-in-and-connect.md)
 
