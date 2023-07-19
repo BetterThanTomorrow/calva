@@ -28,6 +28,7 @@ const clojureFileExtensions = [
   'cljd',
   'cljr',
   'bb',
+  'ly',
   'cljx',
   'clojure',
   'joke',

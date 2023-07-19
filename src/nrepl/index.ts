@@ -147,16 +147,20 @@ export class NReplClient {
               client.ns = data['ns'];
             }
             if (hasStatus(data, 'done')) {
-              client.encoder.write({ op: 'clone', id: cloneId });
+              const msg = { op: 'clone', id: cloneId };
+              log(msg, Direction.ClientToServer);
+              client.encoder.write(msg);
             }
           } else if (data['id'] === cloneId) {
             client.session = new NReplSession(data['new-session'], client);
-            client.encoder.write({
+            const msg = {
               op: 'describe',
               id: describeId,
               verbose: true,
               session: data['new-session'],
-            });
+            };
+            log(msg, Direction.ClientToServer);
+            client.encoder.write(msg);
           } else if (data['session']) {
             const session = client.sessions[data['session']];
             if (session) {
@@ -167,7 +171,9 @@ export class NReplClient {
             resolve(client);
           }
         });
-        client.encoder.write({ op: 'eval', code: '*ns*', id: nsId });
+        const msg = { op: 'eval', code: '*ns*', id: nsId };
+        log(msg, Direction.ClientToServer);
+        client.encoder.write(msg);
       });
       const client = new NReplClient(socket, opts.onError);
     });
@@ -352,7 +358,7 @@ export class NReplSession {
   }
 
   async requireREPLUtilities() {
-    const CLJS_FORM = `(try 
+    const CLJS_FORM = `(try
                          (require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]])
                          (catch :default e
                            (js/console.warn "Failed to require cljs.repl utilities:" (.-message e))))`;
