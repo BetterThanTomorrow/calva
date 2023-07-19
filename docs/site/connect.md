@@ -71,7 +71,28 @@ If the workspace is a monorepo, Polylith repo or just a repository with more tha
 
 ![The project roots menu](images/calva-monorepo-project-roots-menu.png)
 
-## shadow-cljs in full stack projects
+## shadow-cljs
+
+Calva supports most any JVM hosted ClojureScript environment (and some others, SCI based too), but shadow-cljs gets some special treatment to try it extra convenient to use. With many shadow-cljs projects, Calva's _connect project type_ **shadow-cljs**, is the right choice. Projects that use Leiningen or deps.edn can be used both with the **Leiningen/deps.edn** _and_ **shadow-cljs** type, depending on configuration see [below](#shadow-cljs-in-full-stack-projects) for more on this. Here's how you start a shadow-cljs ClojureScript REPL and connect Calva with the [shadow-cljs - browser quickstart](https://github.com/shadow-cljs/quickstart-browser) example project:
+
+**Prep**:
+
+0. Clone the project to your machine and open its root folder in VS Code.
+1. Open a terminal and run `npm install`
+
+**Connect Calva**:
+
+1. Run the command **Calva: Start a Project REPL and Connect (a.k.a. Jack-in)**
+1. Select project type **shadow-cljs**
+1. Select to start the build **:app**
+1. Select to connect to the build **:app**
+1. Wait for the build to complete
+1. Open http://localhost:8020/ in the browser
+1. Open browser.cljs file and load it in the REPL: **Calva: Load/Evaluate Current File and Dependencies**
+
+Now you can try evaluate forms with `Ctrl+Enter`, or top-level forms with `Alt+Enter`.
+
+### shadow-cljs in full stack projects
 
 **shadow-cljs** is a bit special in regards to Calva REPL connection. Mainly because you can start **shadow-cljs** and it's nREPL server in two ways:
 
