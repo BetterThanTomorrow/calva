@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.381] - 2023-07-19
+
 - Fix: [There are som nREPL messages missing from the diagnostics log](https://github.com/BetterThanTomorrow/calva/issues/2261)
 - [Make it easier to find information about how to use shadow-cljs](https://github.com/BetterThanTomorrow/calva/issues/2262)
 - [Make Lingy files (`.ly`) Clojure associated by default](https://github.com/BetterThanTomorrow/calva/issues/2259)
