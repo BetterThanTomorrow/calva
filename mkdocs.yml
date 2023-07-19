@@ -76,6 +76,7 @@ nav:
   - clojure-lsp.md
   - nrepl_and_cider-nrepl.md
   - Using Calva with ...:
+    - shadow-cljs.md
     - wsl.md
     - remote-development.md
     - live-share.md
