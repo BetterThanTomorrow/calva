@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make Lingy files (`.ly`) Clojure associated by default](https://github.com/BetterThanTomorrow/calva/issues/2259)
 - Fix [Add link to default cljfmt config files](https://github.com/BetterThanTomorrow/calva/issues/2252)
 
 ## [2.0.380] - 2023-07-16
