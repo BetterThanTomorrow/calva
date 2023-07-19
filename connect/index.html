@@ -410,8 +410,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#shadow-cljs-in-full-stack-projects" class="md-nav__link">
-    shadow-cljs in full stack projects
+  <a href="#shadow-cljs" class="md-nav__link">
+    shadow-cljs
   </a>
   
 </li>
@@ -972,6 +972,20 @@
           Using Calva with ...
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shadow-cljs/" class="md-nav__link">
+        shadow-cljs
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -1555,8 +1569,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#shadow-cljs-in-full-stack-projects" class="md-nav__link">
-    shadow-cljs in full stack projects
+  <a href="#shadow-cljs" class="md-nav__link">
+    shadow-cljs
   </a>
   
 </li>
@@ -1657,8 +1671,12 @@
 <p>Even better: Copying that command line gives you the command to start the REPL with the correct dependencies.</p>
 <p>All this said, I still recommend you challenge the conclusion that you can't use Jack-in.</p>
 <div class="admonition note">
-<p class="admonition-title">Note</p>
+<p class="admonition-title">Copy the Jack-in command line</p>
 <p>There is a Calva command for copying the Jack-in command line to the clipboard. It will copy the command line including commands to change to the current REPL project root, avoiding hard-to-detect errors when starting the REPL in the wrong directory.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">The Generic Project Type</p>
+<p>A reason to use the connect to a running REPL way, can be that Calva does not have a built in <a href="../connect-sequences/">connect sequence/project type</a> for the particular REPL you want to connect to. Maybe it is something like <a href="https://github.com/ingydotnet/lingy">Lingy</a> which doesn't yet have a built in Calva connect sequence. As long as there is an nREPL server to connect to, you can Connect with Calva, using the <strong>Generic</strong> connect sequence/project type. (You can also create a <a href="../connect-sequences/#custom-command-line">connect sequence with a custom command line</a>, and use Jack-in anyway.)</p>
 </div>
 <p>See also <a href="../customizing-jack-in-and-connect/">Customizing Jack-in and Connect</a></p>
 <h3 id="starting-the-repl-from-application-code">Starting the REPL from application code?</h3>
@@ -1668,29 +1686,8 @@
 <h2 id="monorepos-multiple-clojure-projects-in-one-workspace">Monorepos / multiple Clojure projects in one workspace</h2>
 <p>If the workspace is a monorepo, Polylith repo or just a repository with more than one Clojure project, Calva will start the connect sequence with prompting for which project to start/connect to.</p>
 <p><img alt="The project roots menu" src="../images/calva-monorepo-project-roots-menu.png" /></p>
-<h2 id="shadow-cljs-in-full-stack-projects">shadow-cljs in full stack projects</h2>
-<p><strong>shadow-cljs</strong> is a bit special in regards to Calva REPL connection. Mainly because you can start <strong>shadow-cljs</strong> and it's nREPL server in two ways:</p>
-<ol>
-<li>Using the <strong>shadow-cljs</strong> npm executable</li>
-<li>Via the Clojure REPL in your Leiningen or <strong>deps.edn</strong> project</li>
-</ol>
-<p>These options show up as <strong>project types</strong> when connecting or jacking in:</p>
-<ol>
-<li>Project type: <strong>shadow-cljs</strong></li>
-<li>Project type: <strong>deps.edn + shadow-cljs</strong> or <strong>Leiningen + shadow-cljs</strong></li>
-</ol>
-<p>The technical difference here is wether you let <strong>shadow-cljs</strong> start <strong>clojure</strong>/<strong>Leiningen</strong> (the first option) or if you let Calva do it (the second option). If you let Calva do it, Calva will then start the <strong>shadow-cljs</strong> watcher from the Clojure process. From a usage perspective the two approaches will result in different channeling of <strong>shadow-cljs</strong> output, e.g. test runner results. With the first option (the <strong>shadow-cljs</strong> project type), <strong>shadow-cljs</strong> output will be channeled to the <strong>Jack-in</strong> terminal. With the <strong>deps.edn</strong>/<strong>Leiningen</strong> option, that output will be channeled to the Output/REPL window.</p>
-<p>See <a href="https://blog.agical.se/en/posts/shadow-cljs-clojure-cljurescript-calva-nrepl-basics/">shadow-cljs + Clojure with Calva: The basics</a> for some more discussion on how the REPL connection works.</p>
-<div class="admonition note">
-<p class="admonition-title">shadow-cljs and <code>clojure</code> aliases</p>
-<p>The <strong>shadow-cljs</strong> project type will not prompt you for any aliases found in the <code>deps.edn</code> file. Usually you should provide such aliases in <code>shadow-cljs.edn</code> like <code>:deps {:aliases [...]}</code>. If, for whatever reason you can't provide the aliases that way, you can configure a <a href="../connect-sequences/">Custom REPL Connect Sequence</a> and provide the aliases as <code>menuSelections</code> -&gt; <code>cljAliases</code>.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Leiningen + shadow-cljs middleware issue</p>
-<p>Please note that for Leiningen, <a href="https://codeberg.org/leiningen/leiningen/issues/10">the command line dependency injection of the shadow-cljs nrepl middleware doesn't work</a>. You need to add it to your <code>project.clj</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="ss">:repl-options</span><span class="w"> </span><span class="p">{</span><span class="ss">:nrepl-middleware</span><span class="w"> </span><span class="p">[</span><span class="nv">shadow.cljs.devtools.server.nrepl/middleware</span><span class="p">]}</span>
-</code></pre></div>
-</div>
+<h2 id="shadow-cljs">shadow-cljs</h2>
+<p>Please see the <a href="../shadow-cljs/">shadow-cljs</a> page.</p>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <h3 id="jack-in-and-main-opts">Jack-in and <code>:main-opts</code></h3>
 <p>When Calva starts the project REPL and connects to it (a.k.a. Jack-in), this is done by starting an nREPL server. For deps.edn projects this by default means that Calva will add <code>-m ...</code> with options that starts the server.</p>
