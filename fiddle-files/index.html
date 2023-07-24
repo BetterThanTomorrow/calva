@@ -554,44 +554,44 @@
       
         <li class="md-nav__item">
   <a href="#the-three-fiddle-file-commands" class="md-nav__link">
-    The three Fiddle File commands
+    The Three Fiddle File Commands
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#the-fiddle-file-configuration" class="md-nav__link">
-    The Fiddle File configuration
+    The Fiddle File Configuration
   </a>
   
-    <nav class="md-nav" aria-label="The Fiddle File configuration">
+    <nav class="md-nav" aria-label="The Fiddle File Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#example-configurations" class="md-nav__link">
-    Example configurations
+    Example Configurations
   </a>
   
-    <nav class="md-nav" aria-label="Example configurations">
+    <nav class="md-nav" aria-label="Example Configurations">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#single-parallel-directory-structure" class="md-nav__link">
-    Single parallel directory structure
+    Single Parallel Directory Structure
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#single-dedicated-fiddle-file" class="md-nav__link">
-    Single dedicated Fiddle file
+    Single Dedicated Fiddle File
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#multiple-mappings" class="md-nav__link">
-    Multiple mappings
+    Multiple Mappings
   </a>
   
 </li>
@@ -615,7 +615,7 @@
       
         <li class="md-nav__item">
   <a href="#see-also" class="md-nav__link">
-    See also
+    See Also
   </a>
   
 </li>
@@ -1461,44 +1461,44 @@
       
         <li class="md-nav__item">
   <a href="#the-three-fiddle-file-commands" class="md-nav__link">
-    The three Fiddle File commands
+    The Three Fiddle File Commands
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#the-fiddle-file-configuration" class="md-nav__link">
-    The Fiddle File configuration
+    The Fiddle File Configuration
   </a>
   
-    <nav class="md-nav" aria-label="The Fiddle File configuration">
+    <nav class="md-nav" aria-label="The Fiddle File Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#example-configurations" class="md-nav__link">
-    Example configurations
+    Example Configurations
   </a>
   
-    <nav class="md-nav" aria-label="Example configurations">
+    <nav class="md-nav" aria-label="Example Configurations">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#single-parallel-directory-structure" class="md-nav__link">
-    Single parallel directory structure
+    Single Parallel Directory Structure
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#single-dedicated-fiddle-file" class="md-nav__link">
-    Single dedicated Fiddle file
+    Single Dedicated Fiddle File
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#multiple-mappings" class="md-nav__link">
-    Multiple mappings
+    Multiple Mappings
   </a>
   
 </li>
@@ -1522,7 +1522,7 @@
       
         <li class="md-nav__item">
   <a href="#see-also" class="md-nav__link">
-    See also
+    See Also
   </a>
   
 </li>
@@ -1545,11 +1545,11 @@
   
 
 
-<h1 id="fiddle-files-support">Fiddle Files support</h1>
-<p>In the podcast <strong>Functional Design in Clojure</strong>, <a href="https://clojuredesign.club/episode/014-fiddle-with-the-repl/">Episode 014: Fiddle with the REPL</a>, they discuss a workflow where you keep some of your exploratory code in separate files, which they call <strong>Fiddle Files</strong>. It's like <a href="../rich-comments/">Rich Comments</a>, and the files often consist of such comments. The <strong>Fiddle</strong> files are typically not on the classpath, and are only loaded in the REPL by you when you are developing on your project. Some developers keep personal fiddle files, in some project they are meant to be shared, and in other projects its a combination.</p>
-<p>Calva has some extra support for the fiddle file workflow, beyond what VS Code offers in terms of navigating between files. The support comes in the form of three commands supported by some little configuration.</p>
-<h2 id="the-three-fiddle-file-commands">The three Fiddle File commands</h2>
-<p>The commands let you quickly navigate between your implementation code (called <strong>Source</strong> here) and your <strong>Fiddle</strong> fle, and to evaluate the <strong>Fiddle</strong> file without leaving the <strong>Source</strong> file.</p>
+<h1 id="fiddle-files-support">Fiddle Files Support</h1>
+<p>In the podcast <strong>Functional Design in Clojure</strong>, <a href="https://clojuredesign.club/episode/014-fiddle-with-the-repl/">Episode 014: Fiddle with the REPL</a>, they discuss a workflow in which you keep some of your exploratory code in separate files, which they call <strong>Fiddle Files</strong>. It's like <a href="../rich-comments/">Rich Comments</a>, and the files often consist of such comments. The <strong>Fiddle</strong> files are typically not on the classpath, and are only loaded in the REPL by you when you are developing your project. Some developers keep personal fiddle files. In some projects they are meant to be shared, and in other projects it's a combination.</p>
+<p>Calva has some extra support for the fiddle file workflow, beyond what VS Code offers in terms of navigating between files. The support comes in the form of three commands supported by a little configuration.</p>
+<h2 id="the-three-fiddle-file-commands">The Three Fiddle File Commands</h2>
+<p>The commands let you quickly navigate between your implementation code (called <strong>Source</strong> here) and your <strong>Fiddle</strong> file, and to evaluate the <strong>Fiddle</strong> file without leaving the <strong>Source</strong> file.</p>
 <table>
 <thead>
 <tr>
@@ -1581,8 +1581,8 @@
 </tbody>
 </table>
 <p>The commands for opening and evaluating corresponding <strong>Fiddle</strong> files will offer to Create the <strong>Fiddle</strong> file if it does not already exist. But the <strong>Calva: Open Source File for Current Fiddle File</strong> command will <em>not</em> offer to create the target file.</p>
-<p>What does <strong>corresponding</strong> mean here? Without any configuration Calva will look for “sibling” files, where files with Clojure file extensions (E.g. <code>.clj</code>, <code>.cljs</code>, <code>.bb</code>) will be treated as <strong>Source</strong> files, and files with the <code>.fiddle</code> extension will be treated as <strong>Fiddle</strong> files. Sibling file here means residing side by side in the file system. If this default behaviour is not your cup of tea, there is some flexibility added by configuration.</p>
-<h2 id="the-fiddle-file-configuration">The Fiddle File configuration</h2>
+<p>What does <strong>corresponding</strong> mean here? Without any configuration Calva will look for “sibling” files, where files with Clojure file extensions (E.g. <code>.clj</code>, <code>.cljs</code>, <code>.bb</code>) will be treated as <strong>Source</strong> files, and files with the <code>.fiddle</code> extension will be treated as <strong>Fiddle</strong> files. "Sibling file" here means residing side by side in the file system. If this default behaviour is not your cup of tea, there is some flexibility added by configuration.</p>
+<h2 id="the-fiddle-file-configuration">The Fiddle File Configuration</h2>
 <p>To know how to map between <strong>Fiddle</strong> &lt;-&gt; <strong>Source</strong> files, Calva has three different modes of operation:</p>
 <ol>
 <li>The sibling files, as described above. This is the default. Example:<ul>
@@ -1605,12 +1605,12 @@
 <p>The setting is named <code>calva.fiddleFilePaths</code> and is an array of <code>source</code> and <code>fiddle</code> root paths, <em>relative to the project root</em>.</p>
 <div class="admonition note">
 <p class="admonition-title">The Project Root</p>
-<p>It is important to note that the <strong>project root</strong> depends on wether you are connected to a REPL or not, and to which project you are connected, in case the workspace contains several projects.</p>
-<p><strong>Without</strong> a REPL connection (disregarding that fiddle files are not very interesting then) the project root is the same as the first Workspace root. And if you have a regular VS Code window open, it is the root of the folder you have opened in that window.</p>
+<p>It is important to note that the <strong>project root</strong> depends on whether you are connected to a REPL or not, and to which project you are connected, in case the workspace contains several projects.</p>
+<p><strong>Without</strong> a REPL connection (disregarding that fiddle files are not very interesting then) the project root is the same as the first workspace root. And if you have a regular VS Code window open, it is the root of the folder you have opened in that window.</p>
 <p><strong>With</strong> a REPL connection, the project root will be the root of the project, i.e. where the project file (<code>deps.edn</code>, <code>project.clj</code>, <code>shadow-cljs.edn</code>) is.</p>
 </div>
-<h3 id="example-configurations">Example configurations</h3>
-<h4 id="single-parallel-directory-structure">Single parallel directory structure</h4>
+<h3 id="example-configurations">Example Configurations</h3>
+<h4 id="single-parallel-directory-structure">Single Parallel Directory Structure</h4>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.fiddleFilePaths&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">  </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src&quot;</span><span class="p">],</span>
@@ -1623,7 +1623,7 @@
 <li><code>src/a/b/c.clj</code> -&gt; <code>env/dev/fiddles/a/b/c.clj</code>, for both the <strong>open</strong> and <strong>evaluate</strong> commands</li>
 <li><code>env/dev/fiddles/a/b/c.clj</code> -&gt; <code>src/a/b/c.clj</code></li>
 </ul>
-<h4 id="single-dedicated-fiddle-file">Single dedicated Fiddle file</h4>
+<h4 id="single-dedicated-fiddle-file">Single Dedicated Fiddle File</h4>
 <p>If you generally work with one <strong>Fiddle</strong> file at a time, you can configure a mapping to a <strong>Dedicated Fiddle</strong> file. E.g.:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.fiddleFilePaths&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">  </span><span class="p">{</span>
@@ -1640,10 +1640,10 @@
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Jumping from a dedicated fiddle to a source file</p>
-<p>Calva's command for opening the corresponding source file won't work in this case because it is one-&gt;many situation. If you want to open the last file you worked with before using doing <strong>Open Fiddle File for Current File</strong>, consider using the VS Code command: <strong>Go Previous</strong>.</p>
+<p>Calva's command for opening the corresponding source file won't work in this case because it is a one-&gt;many situation. If you want to open the last file you worked with before using <strong>Open Fiddle File for Current File</strong>, consider using the VS Code command: <strong>Go Previous</strong>.</p>
 </div>
-<h4 id="multiple-mappings">Multiple mappings</h4>
-<p>The configuration is an array so that you can configure different mappings for different <strong>Source</strong> directories. Given several mappings with overlapping <strong>Source</strong>, the longest mapping will win. Given several mappings with the <em>same</em> <strong>Source</strong>, the first one will win, <em>unless</em> one of them is a <em>Dedicated</em> <strong>Fiddle</strong>, in which case that one will win.</p>
+<h4 id="multiple-mappings">Multiple Mappings</h4>
+<p>The configuration is an array so that you can configure different mappings for different <strong>Source</strong> directories. Given several mappings with overlapping <strong>Source</strong>, the longest mapping will win. Given several mappings with the <em>same</em> <strong>Source</strong>, the first one will win, <em>unless</em> one of them is a <em>dedicated</em> <strong>Fiddle</strong>, in which case that one will win.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.fiddleFilePaths&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">  </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src&quot;</span><span class="p">],</span>
@@ -1675,23 +1675,23 @@
 <li><code>src/b/c/d.clj</code> -&gt; <code>env/dev/b-fiddles/c/d.clj</code>, because the <code>["src", "b"]</code> mapping is longer than the also matching <code>["src"]</code> mappings.</li>
 </ul>
 <h2 id="tips">Tips</h2>
-<p>Organize your <strong>Fiddle</strong> files such that they do not get automatically loaded as part of your application. This can lead to strange errors and hard-to-detect bugs. Most often it should only be you, manually, loading the fiddle file, not <strong>clj/clojure</strong>, or <strong>Leiningen</strong> or any such system which loads your application.</p>
+<p>Organize your <strong>Fiddle</strong> files such that they do not get automatically loaded as part of your application. This can lead to strange errors and hard-to-detect bugs. Most often it should only be you manually loading the fiddle file, not <strong>clj/clojure</strong> or <strong>Leiningen</strong> or any such system which loads your application.</p>
 <p>When you want your fiddle code to be evaluated in the same workspace as its corresponding <strong>Source</strong> file, you can use the same namespace declaration for both files. The linter might complain, but the REPL will happily comply.</p>
 <p>If you primarily evaluate the fiddle file using the provided command for it, from the <strong>Source</strong> files, you can omit the namespace declaration, and Calva will evaluate it in the namespace of the <strong>Source</strong> file.</p>
 <div class="admonition note">
 <p class="admonition-title">The linter and fiddle files</p>
-<p>For some fiddle files you will get a lot of linter warnings, because clj-kondo doesn't know about fiddle files, and they are often not on the classpath, making. You might find yourself wanting to silence some linters for some fiddle files. E.g. like this:</p>
+<p>For some fiddle files you will get a lot of linter warnings, because clj-kondo doesn't know about fiddle files, and they are often not on the classpath. You might find yourself wanting to silence some linters for some fiddle files. E.g. like this:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">ns </span><span class="nv">main.core</span>
 <span class="w">  </span><span class="p">{</span><span class="ss">:clj-kondo/config</span>
 <span class="w">   </span><span class="o">&#39;</span><span class="p">{</span><span class="ss">:linters</span><span class="w"> </span><span class="p">{</span><span class="ss">:unresolved-symbol</span><span class="w"> </span><span class="p">{</span><span class="ss">:level</span><span class="w"> </span><span class="ss">:off</span><span class="p">}}}})</span>
 </code></pre></div>
 <p>See <a href="https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md">clj-kondo Configuration</a> for more on what options you have for this.</p>
 </div>
-<h2 id="see-also">See also</h2>
+<h2 id="see-also">See Also</h2>
 <ul>
 <li><a href="../rich-comments/">Rich Comments</a></li>
 <li><strong>Functional Design in Clojure</strong> <a href="https://clojuredesign.club/episode/014-fiddle-with-the-repl/">Episode 014: Fiddle with the REPL</a></li>
-<li>The Polylith <a href="https://polylith.gitbook.io/poly/architecture/development">Development</a> page mentions good practice for where to put your fiddle files (not called fiddle files there, but it is the same concept).</li>
+<li>The <a href="https://polylith.gitbook.io/poly/architecture/development">Polylith Development</a> page mentions good practice for where to put your fiddle files (not called fiddle files there, but it is the same concept).</li>
 </ul>
 
 
