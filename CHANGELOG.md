@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.382] - 2023-07-30
+
 - Fix: [Calva can't seem to parse a ns form with metadata after 2.0.376](https://github.com/BetterThanTomorrow/calva/issues/2266)
 
 ## [2.0.381] - 2023-07-19
