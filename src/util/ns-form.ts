@@ -38,11 +38,12 @@ function nsSymbolOfCurrentForm(
   nsCheckCursor.forwardWhitespace(true);
   const formToken = nsCheckCursor.getToken();
   if (formToken.type === 'id' && ['ns', 'in-ns'].includes(formToken.raw)) {
-    nsCheckCursor.forwardSexp(true, true, true);
-    nsCheckCursor.forwardWhitespace(true);
-    const nsToken = nsCheckCursor.getToken();
-    if (nsToken.type === 'id') {
-      return formToken.raw === 'ns' ? nsToken.raw : nsToken.raw.substring(1);
+    while (nsCheckCursor.forwardSexp(true, false, true)) {
+      nsCheckCursor.forwardWhitespace(true);
+      const nsToken = nsCheckCursor.getToken();
+      if (nsToken.type === 'id') {
+        return formToken.raw === 'ns' ? nsToken.raw : nsToken.raw.substring(1);
+      }
     }
   }
 }

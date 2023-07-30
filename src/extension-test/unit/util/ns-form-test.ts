@@ -183,6 +183,12 @@ describe('ns-form util', () => {
         'a'
       );
     });
+    // https://github.com/BetterThanTomorrow/calva/issues/2266
+    it('finds ns when symbol has metadata', function () {
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns ^:no-doc a-b.c-d) (a b c)|'))
+      ).toBe('a-b.c-d');
+    });
   });
 
   describe('nsFromText', function () {
