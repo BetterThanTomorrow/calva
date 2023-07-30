@@ -45,9 +45,6 @@ describe('ns-form util', () => {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-d) (a b c)|'))).toBe(
         'a-b.c-d'
       );
-      expect(
-        nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns ^:no-doc a-b.c-d) (a b c)|'))
-      ).toBe('a-b.c-d');
     });
     it('finds in-ns', function () {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation("(in-ns 'a-b.c-d) (a b c)|"))).toBe(
@@ -185,6 +182,12 @@ describe('ns-form util', () => {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a) (a b c) (comment b|)'))).toBe(
         'a'
       );
+    });
+    // https://github.com/BetterThanTomorrow/calva/issues/2266
+    it('finds ns when symbol has metadata', function () {
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns ^:no-doc a-b.c-d) (a b c)|'))
+      ).toBe('a-b.c-d');
     });
   });
 
