@@ -45,6 +45,9 @@ describe('ns-form util', () => {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-d) (a b c)|'))).toBe(
         'a-b.c-d'
       );
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns ^:no-doc a-b.c-d) (a b c)|'))
+      ).toBe('a-b.c-d');
     });
     it('finds in-ns', function () {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation("(in-ns 'a-b.c-d) (a b c)|"))).toBe(
