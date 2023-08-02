@@ -65,8 +65,6 @@ The browser REPL app looks like so:
 
 ![ClojureScript Quick Start Browser REPL](images/howto/clojurescript-quick-start.png "clojurescript-quick-start")
 
-
-
 ## You have a Project?
 
 If you are new to Calva, please consider the above option first. Then when it will be time to get [Calva connected to the REPL of your project](connect.md).
