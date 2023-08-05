@@ -1,14 +1,14 @@
-import * as state from '../../out/cljs-lib/cljs-lib';
+import { get_state_value, set_state_value } from '../../out/cljs-lib/calva.state';
 import { ClientProvider } from './provider';
 
 const STATE_KEY = 'LSP_CLIENT_PROVIDER';
 
 export const registerGlobally = (provider: ClientProvider) => {
-  state.setStateValue(STATE_KEY, provider);
+  set_state_value(STATE_KEY, provider);
 };
 
 export const getClientProvider = (): ClientProvider => {
-  const provider = state.getStateValue(STATE_KEY);
+  const provider = get_state_value(STATE_KEY);
   if (!provider) {
     throw new Error('Failed to get LSP ClientProvider from global state');
   }
