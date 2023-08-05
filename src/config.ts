@@ -5,7 +5,7 @@ import * as path from 'path';
 import { CustomREPLCommandSnippet } from './custom-snippets';
 import { ReplConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions } from './printer';
-import { readConfigEdn } from '../out/cljs-lib/cljs-lib';
+import { read_config_edn } from '../out/cljs-lib/calva.read_config';
 import * as fiddleFilesUtil from './util/fiddle-files';
 import * as state from './state';
 import _ = require('lodash');
@@ -132,7 +132,7 @@ function mergeSnippets(
  */
 function addEdnConfig(data: string) {
   try {
-    const parsed = readConfigEdn(data);
+    const parsed = read_config_edn(data);
     const old = state.getProjectConfig();
 
     state.setProjectConfig({

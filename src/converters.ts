@@ -63,7 +63,7 @@ async function convertToUntitled(convertFn: ConvertFn, code: string, options?: a
 }
 
 export async function js2cljs() {
-  return convertToUntitled(calvaLib.js2cljs, getText());
+  return convertToUntitled(calvaLib.convert, getText());
 }
 
 export async function dart2clj() {

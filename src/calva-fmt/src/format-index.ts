@@ -1,4 +1,8 @@
-import { formatTextAtIdx, formatTextAtIdxOnType, jsify } from '../../../out/cljs-lib/cljs-lib';
+import {
+  format_text_at_idx,
+  format_text_at_idx_on_type,
+} from '../../../out/cljs-lib/calva.fmt.formatter';
+import { jsify } from '../../../out/cljs-lib/calva.js_utils';
 
 export function formatIndex(
   allText: string,
@@ -15,7 +19,7 @@ export function formatIndex(
     range,
     config,
   };
-  const result = jsify((onType ? formatTextAtIdxOnType : formatTextAtIdx)(d));
+  const result = jsify((onType ? format_text_at_idx_on_type : format_text_at_idx)(d));
   if (!result['error']) {
     return result;
   } else {
