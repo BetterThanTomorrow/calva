@@ -31,7 +31,7 @@ import * as replHistory from './results-output/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
-import { setStateValue } from '../out/cljs-lib/cljs-lib';
+import { set_state_value } from '../out/cljs-lib/calva.state';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
@@ -61,11 +61,14 @@ function setKeybindingsEnabledContext() {
 }
 
 function initializeState() {
-  setStateValue('connected', false);
-  setStateValue('connecting', false);
-  setStateValue('outputChannel', vscode.window.createOutputChannel('Calva says'));
-  setStateValue('connectionLogChannel', vscode.window.createOutputChannel('Calva Connection Log'));
-  setStateValue(
+  set_state_value('connected', false);
+  set_state_value('connecting', false);
+  set_state_value('outputChannel', vscode.window.createOutputChannel('Calva says'));
+  set_state_value(
+    'connectionLogChannel',
+    vscode.window.createOutputChannel('Calva Connection Log')
+  );
+  set_state_value(
     'diagnosticCollection',
     vscode.languages.createDiagnosticCollection('calva: Evaluation errors')
   );
@@ -94,7 +97,7 @@ async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(testController);
   testRunner.initialize(testController);
 
-  setStateValue('analytics', new Analytics(context));
+  set_state_value('analytics', new Analytics(context));
   state.analytics().logPath('/start').logEvent('LifeCycle', 'Started').send();
   void state.analytics().logGA4Pageview('/start');
 

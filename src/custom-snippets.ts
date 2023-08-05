@@ -8,7 +8,7 @@ import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import evaluate from './evaluate';
 import * as state from './state';
-import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import { get_state_value } from '../out/cljs-lib/calva.state';
 
 export type CustomREPLCommandSnippet = {
   name: string;
@@ -32,7 +32,7 @@ export function evaluateCustomCodeSnippetCommand(codeOrKeyOrSnippet?: string | S
 }
 
 async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetDefinition) {
-  if (!getStateValue('connected')) {
+  if (!get_state_value('connected')) {
     void vscode.window.showErrorMessage('Not connected to a REPL');
     return;
   }

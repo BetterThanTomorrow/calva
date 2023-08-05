@@ -34,8 +34,7 @@ import { moveTokenCursorToBreakpoint } from './util';
 import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
-import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
-import * as util from '../utilities';
+import { set_state_value, get_state_value } from '../../out/cljs-lib/calva.state';
 import * as replSession from '../nrepl/repl-session';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
@@ -117,7 +116,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
-      const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
+      const { id, key } = get_state_value(DEBUG_RESPONSE_KEY);
       void cljSession.sendDebugInput(':continue', id, key).then((response) => {
         this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
       });
@@ -149,7 +148,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
-      const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
+      const { id, key } = get_state_value(DEBUG_RESPONSE_KEY);
       void cljSession.sendDebugInput(':next', id, key).then((_) => {
         this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
       });
@@ -172,7 +171,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
-      const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
+      const { id, key } = get_state_value(DEBUG_RESPONSE_KEY);
       void cljSession.sendDebugInput(':in', id, key).then((_) => {
         this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
       });
@@ -195,7 +194,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
-      const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
+      const { id, key } = get_state_value(DEBUG_RESPONSE_KEY);
       void cljSession.sendDebugInput(':out', id, key).then((_) => {
         this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
       });
@@ -244,7 +243,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.StackTraceArguments,
     request?: DebugProtocol.Request
   ): Promise<void> {
-    const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
+    const debugResponse = get_state_value(DEBUG_RESPONSE_KEY);
     const uri = debugResponse.file.startsWith('jar:')
       ? vscode.Uri.parse(debugResponse.file)
       : vscode.Uri.file(debugResponse.file);
@@ -310,7 +309,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.VariablesArguments,
     request?: DebugProtocol.Request
   ): void {
-    const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
+    const debugResponse = get_state_value(DEBUG_RESPONSE_KEY);
 
     response.body = {
       variables: debugResponse.locals.map(this._createVariableFromLocal),
@@ -327,7 +326,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
 
     if (cljSession) {
-      const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
+      const { id, key } = get_state_value(DEBUG_RESPONSE_KEY);
       void cljSession.sendDebugInput(':quit', id, key);
     }
 
@@ -432,7 +431,7 @@ function handleNeedDebugInput(response: any): void {
     typeof response.column === 'number' &&
     typeof response.line === 'number'
   ) {
-    setStateValue(DEBUG_RESPONSE_KEY, response);
+    set_state_value(DEBUG_RESPONSE_KEY, response);
 
     if (!debug.activeDebugSession) {
       void debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
