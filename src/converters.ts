@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
-import * as calvaLib from '../out/cljs-lib/cljs-lib';
+import { convert_html_to_hiccup_bridge } from '../out/cljs-lib/calva.html2hiccup';
+import { convert_js_to_cljs_bridge } from '../out/cljs-lib/calva.js2cljs.converter';
+import { convert_dart_to_clj_bridge } from '../out/cljs-lib/calva.dartclojure';
 import * as config from './config';
 
 function getText() {
@@ -63,11 +65,11 @@ async function convertToUntitled(convertFn: ConvertFn, code: string, options?: a
 }
 
 export async function js2cljs() {
-  return convertToUntitled(calvaLib.convert, getText());
+  return convertToUntitled(convert_js_to_cljs_bridge, getText());
 }
 
 export async function dart2clj() {
-  return convertToUntitled(calvaLib.dart2clj, getText());
+  return convertToUntitled(convert_dart_to_clj_bridge, getText());
 }
 
 export type HiccupOptions = {
@@ -92,15 +94,15 @@ export async function html2hiccup(args?: {
       : config.getConfig().html2HiccupOptions;
   const html = args?.html ? args.html : getText();
   if (!args || args?.toUntitled) {
-    return convertToUntitled(calvaLib.html2hiccup, html, hiccupOptions);
+    return convertToUntitled(convert_html_to_hiccup_bridge, html, hiccupOptions);
   }
-  return calvaLib.html2hiccup(html, hiccupOptions);
+  return convert_html_to_hiccup_bridge(html, hiccupOptions);
 }
 
 export async function pasteHtmlAsHiccup(options?: HiccupOptions) {
   const hiccupOptions = hasHiccupOptions(options) ? options : config.getConfig().html2HiccupOptions;
   const html = await vscode.env.clipboard.readText();
-  const results: ConverterResult | ConverterInvalidResult = calvaLib.html2hiccup(
+  const results: ConverterResult | ConverterInvalidResult = convert_html_to_hiccup_bridge(
     html,
     hiccupOptions
   );
@@ -118,7 +120,7 @@ export async function pasteHtmlAsHiccup(options?: HiccupOptions) {
 export async function copyHtmlAsHiccup(options?: HiccupOptions) {
   const hiccupOptions = hasHiccupOptions(options) ? options : config.getConfig().html2HiccupOptions;
   const html = getText();
-  const results: ConverterResult | ConverterInvalidResult = calvaLib.html2hiccup(
+  const results: ConverterResult | ConverterInvalidResult = convert_html_to_hiccup_bridge(
     html,
     hiccupOptions
   );

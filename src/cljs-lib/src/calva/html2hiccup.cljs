@@ -58,7 +58,7 @@
           remaining-attrs (dissoc normalized-attrs :class :id)]
       (into (cond-> [(keyword tag-w-id+classes)]
               (seq remaining-attrs) (conj remaining-attrs))
-            (map #(element->hiccup % options) 
+            (map #(element->hiccup % options)
                  (->> content
                       (map #(if (string? %) (string/trim %) %))
                       (remove string/blank?)))))
@@ -76,7 +76,7 @@
    * Removes whitespace nodes
    * Normalizes attrs `viewBox` and `baseProfile` to camelCase (for SVG)
 
-   `options` is a map: 
+   `options` is a map:
    * `:mapify-style?`: tuck the style attributes into a map (Reagent style)
    * `:kebab-attrs?`: kebab-case any camelCase or snake_case attribute names"
   ([html]
@@ -88,9 +88,9 @@
   (zprint/zprint-str f {:style :hiccup
                         :map {:comma? false}}))
 
-(defn html->hiccup-convert [html options]
+(defn convert-html-to-hiccup [html options]
   (try
-    {:result 
+    {:result
      (->> (html->hiccup html (cljify options))
           (map pretty-print)
           (string/join "\n"))}
@@ -99,8 +99,8 @@
                :exception {:name (.-name e)
                            :message (.-message e)}}})))
 
-(defn ^:export html->hiccup-convert-bridge [html options] 
-  (jsify (html->hiccup-convert html options)))
+(defn ^:export convert-html-to-hiccup-bridge [html options]
+  (jsify (convert-html-to-hiccup html options)))
 
 (comment
   (def options nil)

@@ -17,7 +17,7 @@
                  :exception {:name (.-name e)
                              :message (.-message e)}}}))))
 
-(defn convert-bridge [js-string]
+(defn convert-js-to-cljs-bridge [js-string]
   (jsify (convert js-string)))
 
 (comment
@@ -41,7 +41,7 @@ MongoClient.connect(url, function(err, db) {
         baseUrl: 'https://charts.mongodb.com/charts-mongodb-gtywi'
       });
 
-      const chart = sdk.createChart({ chartId: '7f535ee7-2074-4350-9f94-237277b94391' }); 
+      const chart = sdk.createChart({ chartId: '7f535ee7-2074-4350-9f94-237277b94391' });
       chart.render(document.getElementById('chart'));
 " {:zprint-opts {:style [:community]
                  :parse {:interpose "\n\n"}

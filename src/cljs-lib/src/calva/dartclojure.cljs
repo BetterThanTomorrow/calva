@@ -11,7 +11,7 @@
                :exception {:name (.-name e)
                            :message (.-message e)}}})))
 
-(defn convert-bridge [dart-string]
+(defn convert-dart-to-clj-bridge [dart-string]
   (jsify (convert dart-string)))
 
 (comment

@@ -2,7 +2,10 @@ import * as vscode from 'vscode';
 import * as config from '../../formatter-config';
 import * as outputWindow from '../../results-output/results-doc';
 import { getIndent, getDocumentOffset, getDocument } from '../../doc-mirror/index';
-import { format_text_at_range, format_text } from '../../../out/cljs-lib/calva.fmt.formatter';
+import {
+  format_text_at_range_bridge,
+  format_text_bridge,
+} from '../../../out/cljs-lib/calva.fmt.formatter';
 import { jsify } from '../../../out/cljs-lib/calva.js_utils';
 import * as util from '../../utilities';
 import * as cursorDocUtils from '../../cursor-doc/utilities';
@@ -256,7 +259,7 @@ export async function formatCode(code: string, eol: number) {
     eol: _convertEolNumToStringNotation(eol),
     config: await config.getConfig(),
   };
-  const result = jsify(format_text(d));
+  const result = jsify(format_text_bridge(d));
   if (!result['error']) {
     return result['range-text'];
   } else {
@@ -278,7 +281,7 @@ async function _formatRange(
     eol: eol,
     config: await config.getConfig(),
   };
-  const result = jsify(format_text_at_range(d));
+  const result = jsify(format_text_at_range_bridge(d));
   if (!result['error']) {
     return result['range-text'];
   }

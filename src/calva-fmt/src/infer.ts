@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { infer_parens, infer_indents } from '../../../out/cljs-lib/calva.fmt.inferer';
+import { infer_parens_bridge, infer_indents_bridge } from '../../../out/cljs-lib/calva.fmt.inferer';
 import { isUndefined, cloneDeep } from 'lodash';
 
 interface CFEdit {
@@ -26,7 +26,7 @@ export function inferParensCommand(editor: vscode.TextEditor) {
   const position: vscode.Position = editor.selection.active,
     document = editor.document,
     currentText = document.getText(),
-    r: ResultOptions = infer_parens({
+    r: ResultOptions = infer_parens_bridge({
       text: currentText,
       line: position.line,
       character: position.character,
@@ -73,7 +73,7 @@ export function indentCommand(editor: vscode.TextEditor, spacing: string, forwar
       if (doEdit) {
         const position: vscode.Position = editor.selection.active,
           currentText = document.getText(),
-          r: ResultOptions = infer_indents({
+          r: ResultOptions = infer_indents_bridge({
             text: currentText,
             line: position.line,
             character: position.character,
