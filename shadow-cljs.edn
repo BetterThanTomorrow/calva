@@ -1,31 +1,21 @@
 {:deps true
-
- :builds       {:calva-lib
-                {:target    :node-library
-                 :exports   {:formatText calva.fmt.formatter/format-text-bridge
-                             :formatTextAtRange calva.fmt.formatter/format-text-at-range-bridge
-                             :formatTextAtIdx calva.fmt.formatter/format-text-at-idx-bridge
-                             :formatTextAtIdxOnType calva.fmt.formatter/format-text-at-idx-on-type-bridge
-                             :cljfmtOptionsFromString calva.fmt.formatter/merge-cljfmt-from-string-js-bridge
-                             :inferIndents calva.fmt.inferer/infer-indents-bridge
-                             :inferParens calva.fmt.inferer/infer-parens-bridge
-                             :jsify calva.js-utils/jsify
-                             :cljify calva.js-utils/cljify
-                             :prettyPrint calva.pprint.printer/pretty-print-js-bridge
-                             :parseEdn calva.parse/parse-edn-js-bridge
-                             :parseForms calva.parse/parse-forms-js-bridge
-                             :setStateValue calva.state/set-state-value!
-                             :getStateValue calva.state/get-state-value
-                             :getState calva.state/get-state
-                             :removeStateValue calva.state/remove-state-value!
-                             :js2cljs calva.js2cljs.converter/convert-bridge
-                             :dart2clj calva.dartclojure/convert-bridge
-                             :readConfigEdn calva.read-config/config-edn->js-bridge
-                             :html2hiccup calva.html2hiccup/html->hiccup-convert-bridge}
-                 :output-to "out/cljs-lib/cljs-lib.js"}
-                :test
-                {:target    :node-test
-                 :output-to "out/cljs-lib/test/cljs-lib-tests.js"
-                 :ns-regexp "-test$"
-                 :autorun   true}}}
+ :builds {:calva-lib
+          {:target :npm-module
+           :runtime :node
+           :entries [calva.fmt.formatter
+                     calva.fmt.inferer
+                     calva.js-utils
+                     calva.pprint.printer
+                     calva.parse
+                     calva.state
+                     calva.js2cljs.converter
+                     calva.dartclojure
+                     calva.read-config
+                     calva.html2hiccup]
+           :output-dir "out/cljs-lib"}
+          :test
+          {:target    :node-test
+           :output-to "out/cljs-lib/test/cljs-lib-tests.js"
+           :ns-regexp "-test$"
+           :autorun   true}}}
 

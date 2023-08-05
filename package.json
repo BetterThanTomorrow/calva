@@ -3161,7 +3161,7 @@
     "ovsx": "^0.3.0",
     "prettier": "2.5.1",
     "rimraf": "^2.7.1",
-    "shadow-cljs": "^2.19.2",
+    "shadow-cljs": "^2.25.2",
     "source-map-support": "^0.5.16",
     "style-loader": "^0.23.1",
     "tar": "^4.4.18",
