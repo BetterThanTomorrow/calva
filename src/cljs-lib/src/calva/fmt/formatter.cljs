@@ -16,13 +16,6 @@
     indents
     (merge cljfmt/default-indents indents)))
 
-(defn- sort-indents
-  "Sorts rules in order to prevent default rule application
-   before specific one"
-  [indents]
-  #_{:clj-kondo/ignore [:private-call]}
-  (sort-by cljfmt/indent-order indents))
-
 (def ^:private default-fmt
   {:remove-surrounding-whitespace? true
    :remove-trailing-whitespace? true
@@ -34,7 +27,6 @@
   [fmt]
   (as-> fmt $
     (update $ :indents merge-default-indents)
-    (update $ :indents sort-indents)
     (merge default-fmt $)))
 
 (defn- read-cljfmt
@@ -258,6 +250,7 @@
 (defn format-text-at-idx
   "Formats the enclosing range of text surrounding idx"
   [{:keys [range] :as m}]
+  (def m m)
   (-> m
       (update-in [:config :cljfmt-options] merge-cljfmt)
       (add-trail-symbol-if-comment)
