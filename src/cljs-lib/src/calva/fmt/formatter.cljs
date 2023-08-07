@@ -330,13 +330,6 @@
       read-cljfmt
       jsify))
 
-(defn merge-cljfmt-js-bridge
-  [^js fmt]
-  (-> fmt
-      js-cljfmt-options->clj
-      merge-cljfmt
-      jsify))
-
 (comment
   (:range-text (format-text-at-idx-on-type {:all-text "  '([]\n[])" :idx 7})))
 
