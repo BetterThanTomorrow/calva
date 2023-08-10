@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Use latest `cljfmt` (`0.11.2`)](https://github.com/BetterThanTomorrow/calva/issues/2274)
+- [Use latest `cljfmt` (`0.11.2`)](https://github.com/BetterThanTomorrow/calva/issues/2274)
 
 ## [2.0.382] - 2023-07-30
 
