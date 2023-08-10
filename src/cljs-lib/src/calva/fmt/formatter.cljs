@@ -33,8 +33,7 @@
   [s]
   (try
     (as-> s $
-      (parse-clj-edn $)
-      (merge-cljfmt $))
+      (parse-clj-edn $))
     (catch js/Error e
       (merge default-fmt
              {:error (.-message e)
@@ -329,6 +328,10 @@
   (-> s
       read-cljfmt
       jsify))
+
+(defn get-default-indents-js-bridge
+  []
+  (jsify cljfmt/default-indents))
 
 (comment
   (:range-text (format-text-at-idx-on-type {:all-text "  '([]\n[])" :idx 7})))

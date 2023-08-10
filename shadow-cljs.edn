@@ -7,6 +7,7 @@
                              :formatTextAtIdx calva.fmt.formatter/format-text-at-idx-bridge
                              :formatTextAtIdxOnType calva.fmt.formatter/format-text-at-idx-on-type-bridge
                              :cljfmtOptionsFromString calva.fmt.formatter/merge-cljfmt-from-string-js-bridge
+                             :defaultIndents calva.fmt.formatter/get-default-indents-js-bridge
                              :inferIndents calva.fmt.inferer/infer-indents-bridge
                              :inferParens calva.fmt.inferer/infer-parens-bridge
                              :jsify calva.js-utils/jsify
@@ -28,4 +29,3 @@
                  :output-to "out/cljs-lib/test/cljs-lib-tests.js"
                  :ns-regexp "-test$"
                  :autorun   true}}}
-

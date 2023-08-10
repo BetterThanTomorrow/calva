@@ -313,34 +313,20 @@ bar))" :range [22 25]})))
 
 
 (deftest read-cljfmt
-  (is (= (count cljfmt/default-indents)
-         (count (:indents (sut/read-cljfmt "{}"))))
-      "by default uses cljfmt indent rules")
-  (is (= (+ 2 (count cljfmt/default-indents))
-         (count (:indents (sut/read-cljfmt "{:indents {foo [[:inner 0]] bar [[:block 1]]}}"))))
-      "merges indents on top of cljfmt indent rules")
   (is (= {'a [[:inner 0]]}
          (:indents (sut/read-cljfmt "{:indents ^:replace {a [[:inner 0]]}}")))
       "with :replace metadata hint overrides default indents")
-  (is (= false
-         (:align-associative? (sut/read-cljfmt "{}")))
-      ":align-associative? is false by default.")
   (is (= true
          (:align-associative? (sut/read-cljfmt "{:align-associative? true}")))
       "including keys in cljfmt such as :align-associative? will override defaults.")
-  (is (= true
-         (:remove-surrounding-whitespace? (sut/read-cljfmt "{}")))
-      ":remove-surrounding-whitespace? is true by default.")
   (is (= false
          (:remove-surrounding-whitespace? (sut/read-cljfmt "{:remove-surrounding-whitespace? false}")))
       "including keys in cljfmt such as :remove-surrounding-whitespace? will override defaults.")
   (is (nil? (:foo (sut/read-cljfmt "{:bar false}")))
       "most keys don't have any defaults.")
-  ;; Removed for now, because sorting the indents no longer works.
-  #_(is (empty? (let [indents (map (comp str first) (:indents (sut/read-cljfmt "{}")))
-                    indents-after-default (drop-while #(not= (str #"^def(?!ault)(?!late)(?!er)") %) indents)]
-                (filter (partial re-find #"^def") indents-after-default)))
-      "places default rule '^def(?!ault)(?!late)(?!er)' after all specific def rules"))
+  (is (zero?
+       (count (:indents (sut/read-cljfmt "{}"))))
+      "does not use default cljfmt indent rules"))
 
 (deftest cljfmt-options
   (is (= (count cljfmt/default-indents)
