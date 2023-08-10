@@ -1,6 +1,11 @@
 {:indents {inner-0-form [[:inner 0]]
+           #re "^le[^t]" [[:block 0]]
            #re "^foo" [[:inner 0]]}
- :test [(foo []
+ :test [(let []
+          x)
+        (lex []
+             x)
+        (foo []
           x)
         (foobar []
           x)

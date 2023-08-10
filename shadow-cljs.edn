@@ -6,7 +6,7 @@
                              :formatTextAtRange calva.fmt.formatter/format-text-at-range-bridge
                              :formatTextAtIdx calva.fmt.formatter/format-text-at-idx-bridge
                              :formatTextAtIdxOnType calva.fmt.formatter/format-text-at-idx-on-type-bridge
-                             :cljfmtOptionsFromString calva.fmt.formatter/merge-cljfmt-from-string-js-bridge
+                             :cljfmtOptionsFromString calva.fmt.formatter/cljfmt-from-string-js-bridge
                              :defaultIndents calva.fmt.formatter/get-default-indents-js-bridge
                              :inferIndents calva.fmt.inferer/infer-indents-bridge
                              :inferParens calva.fmt.inferer/infer-parens-bridge
