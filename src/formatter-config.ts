@@ -20,9 +20,7 @@ function cljfmtOptionsFromString(cljfmt: string) {
     ? options
     : {
         ...options,
-        // because we can't correctly pass ordered map from cljs
-        // but we need it to determine the order of applying indent rules
-        indents: Object.fromEntries(options['indents']),
+        indents: options['indents'],
       };
 }
 
