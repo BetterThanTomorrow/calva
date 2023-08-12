@@ -208,6 +208,26 @@ describe('indent', () => {
         ).toEqual(2);
       });
     });
+    describe('cljfmt defaults', () => {
+      const doc = docFromTextNotation('(let []\n|x)');
+      const p = textAndSelection(doc)[1][0];
+      const emptyConfig = mkConfig({});
+      it('with empty config, uses the built-in rule for the `let` body', () => {
+        expect(indent.getIndent(doc.model, p, emptyConfig)).toEqual(2);
+      });
+      const someConfig = mkConfig({
+        '/foo+/': [['inner', 0]],
+      });
+      it('with some config, still uses the built-in the built-in rule for the `let` body', () => {
+        expect(indent.getIndent(doc.model, p, someConfig)).toEqual(2);
+      });
+      const blockConfig = mkConfig({
+        '/\\S+/': [['block', 0]],
+      });
+      it('overrides the built-in rule for the `let` body', () => {
+        expect(indent.getIndent(doc.model, p, blockConfig)).toEqual(5);
+      });
+    });
   });
 
   describe('collectIndents', () => {
