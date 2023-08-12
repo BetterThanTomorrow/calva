@@ -35,7 +35,7 @@ baz)")
          (:range-text (sut/format-text-at-idx {:eol "\n" :all-text deftype-all-text :range [0 76] :idx 68}))))
   ;; TODO: Figure out why the extra space is not removed
   #_(is (= "a c"
-         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text "a  c" :range [0 4] :idx 2})))))
+           (:range-text (sut/format-text-at-idx {:eol "\n" :all-text "a  c" :range [0 4] :idx 2})))))
 
 (def misaligned-text "(def foo
 (let[a   b
@@ -148,14 +148,12 @@ baz))"
   (is (= 2
          (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "a  c" :range [0 4] :idx 2})))))
 
-
 (def head-and-tail-text "(def a 1)
 
 
 (defn foo [x] (let [bar 1]
 
 bar))")
-
 
 (deftest add-head-and-tail
   (is (= {:head "" :tail head-and-tail-text
@@ -176,14 +174,12 @@ bar))")
           :idx (inc (count head-and-tail-text))}
          (sut/add-head-and-tail {:all-text head-and-tail-text :idx (inc (count head-and-tail-text))}))))
 
-
 (deftest normalize-indents
   (is (= "(foo)\n  (defn bar\n    [x]\n    baz)"
          (:range-text (sut/normalize-indents {:eol "\n"
                                               :all-text "  (foo)\n(defn bar\n[x]\nbaz)"
                                               :range [2 26]
                                               :range-text "(foo)\n(defn bar\n  [x]\n  baz)"})))))
-
 
 (def first-top-level-text "
 ;; foo
@@ -194,14 +190,13 @@ bar))")
 (def mid-top-level-text ";; foo
 (defn foo [x]
   (* x x))
- 
+
 (bar)")
 
 (def last-top-level-text ";; foo
 (defn foo [x]
   (* x x))
  ")
-
 
 (deftest format-text-at-idx-on-type
   (is (= "(bar \n\n )"
@@ -218,7 +213,6 @@ bar))")
          (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "  '([]\n[])" :range [2 10] :idx 7}))))
   (is (= "[:foo\n \n (foo) (bar)]"
          (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :range [0 18] :idx 6})))))
-
 
 (deftest new-index-on-type
   (is (= 6
@@ -242,7 +236,6 @@ bar))")
   (is (= 7
          (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :range [0 18] :idx 6})))))
 
-
 (deftest new-index-on-type-crlf
   (is (= 6
          (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n)" :range [0 9] :idx 6}))))
@@ -259,7 +252,6 @@ bar))")
   (is (= 15
          (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(foo\r\n (bar)\r\n)" :range [0 15] :idx 14})))))
 
-
 (deftest index-for-tail-in-range
   (is (= 7
          (:new-index (sut/index-for-tail-in-range
@@ -273,7 +265,6 @@ bar))")
                                 \" ### \"
                                 \"  #  \")"
                        :range-tail "\"  #  \")"})))))
-
 
 (deftest remove-indent-token-if-empty-current-line
   (is (= {:range-text "foo\n\nbar"
@@ -293,11 +284,9 @@ bar))")
                                                          :new-index 4
                                                          :current-line "0"}))))
 
-
 (deftest current-line-empty?
   (is (= true (sut/current-line-empty? {:current-line "       "})))
   (is (= false (sut/current-line-empty? {:current-line "  foo  "}))))
-
 
 (deftest indent-before-range
   (is (= 10
@@ -311,52 +300,32 @@ bar))" :range [22 25]})))
          (sut/indent-before-range {:all-text "  '([]
 [])" :range [4 9]}))))
 
-
 (deftest read-cljfmt
-  (is (= (count cljfmt/default-indents)
-         (count (:indents (sut/read-cljfmt "{}"))))
-      "by default uses cljfmt indent rules")
-  (is (= (+ 2 (count cljfmt/default-indents))
-         (count (:indents (sut/read-cljfmt "{:indents {foo [[:inner 0]] bar [[:block 1]]}}"))))
-      "merges indents on top of cljfmt indent rules")
-  (is (= '([a [[:inner 0]]])
+  (is (= {'a [[:inner 0]]}
          (:indents (sut/read-cljfmt "{:indents ^:replace {a [[:inner 0]]}}")))
       "with :replace metadata hint overrides default indents")
-  (is (= false
-         (:align-associative? (sut/read-cljfmt "{}")))
-      ":align-associative? is false by default.")
   (is (= true
          (:align-associative? (sut/read-cljfmt "{:align-associative? true}")))
       "including keys in cljfmt such as :align-associative? will override defaults.")
-  (is (= true
-         (:remove-surrounding-whitespace? (sut/read-cljfmt "{}")))
-      ":remove-surrounding-whitespace? is true by default.")
   (is (= false
          (:remove-surrounding-whitespace? (sut/read-cljfmt "{:remove-surrounding-whitespace? false}")))
       "including keys in cljfmt such as :remove-surrounding-whitespace? will override defaults.")
   (is (nil? (:foo (sut/read-cljfmt "{:bar false}")))
       "most keys don't have any defaults.")
-  (is (empty? (let [indents (map (comp str first) (:indents (sut/read-cljfmt "{}")))
-                    indents-after-default (drop-while #(not= (str #"^def(?!ault)(?!late)(?!er)") %) indents)]
-                (filter (partial re-find #"^def") indents-after-default)))
-      "places default rule '^def(?!ault)(?!late)(?!er)' after all specific def rules"))
+  (is (zero?
+       (count (:indents (sut/read-cljfmt "{}"))))
+      "does not use default cljfmt indent rules"))
 
 (deftest cljfmt-options
-  (is (= (count cljfmt/default-indents)
-         (count (:indents (sut/merge-cljfmt {}))))
-      "by default uses cljfmt indent rules")
-  (is (= (+ 2 (count cljfmt/default-indents))
-         (count (:indents (sut/merge-cljfmt '{:indents {foo [[:inner 0]] bar [[:block 1]]}}))))
-      "merges indents on top of cljfmt indent rules")
-  (is (= '([a [[:inner 0]]])
-         (:indents (sut/merge-cljfmt '{:indents ^:replace {a [[:inner 0]]}})))
+  (is (= {'a [[:inner 0]]}
+         (:indents (sut/merge-default-config '{:indents ^:replace {a [[:inner 0]]}})))
       "with :replace metadata hint overrides default indents")
   (is (= true
-         (:align-associative? (sut/merge-cljfmt {:align-associative? true
-                                                 :cljfmt-string "{:align-associative? false}"})))
+         (:align-associative? (sut/merge-default-config {:align-associative? true
+                                                         :cljfmt-string "{:align-associative? false}"})))
       "cljfmt :align-associative? has lower priority than config's option")
   (is (= false
-         (:align-associative? (sut/merge-cljfmt {:cljfmt-string "{}"})))
+         (:align-associative? (sut/merge-default-config {:cljfmt-string "{}"})))
       ":align-associative? is false by default")
-  (is (nil? (:foo (sut/merge-cljfmt {:cljfmt-string "{:bar false}"})))
+  (is (nil? (:foo (sut/merge-default-config {:cljfmt-string "{:bar false}"})))
       "most keys don't have any defaults."))

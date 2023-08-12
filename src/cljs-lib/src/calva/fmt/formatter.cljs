@@ -8,21 +8,6 @@
             [clojure.string]
             [clojure.core :as c]))
 
-(defn- merge-default-indents
-  "Merges onto default-indents.
-   The :replace metadata hint allows to replace defaults."
-  [indents]
-  (if (:replace (meta indents))
-    indents
-    (merge cljfmt/default-indents indents)))
-
-(defn- sort-indents
-  "Sorts rules in order to prevent default rule application
-   before specific one"
-  [indents]
-  #_{:clj-kondo/ignore [:private-call]}
-  (sort-by cljfmt/indent-order indents))
-
 (def ^:private default-fmt
   {:remove-surrounding-whitespace? true
    :remove-trailing-whitespace? true
@@ -30,19 +15,16 @@
    :insert-missing-whitespace? true
    :align-associative? false})
 
-(defn merge-cljfmt
+(defn merge-default-config
   [fmt]
   (as-> fmt $
-    (update $ :indents merge-default-indents)
-    (update $ :indents sort-indents)
     (merge default-fmt $)))
 
 (defn- read-cljfmt
   [s]
   (try
     (as-> s $
-      (parse-clj-edn $)
-      (merge-cljfmt $))
+      (parse-clj-edn $))
     (catch js/Error e
       (merge default-fmt
              {:error (.-message e)
@@ -77,14 +59,14 @@
   (def s "[:foo\n\n(foo\n(bar))]")
   #_(def s "(defn\n0\n#_)")
   (format-text #_s
-               {:range-text s
-                :eol "\n"
-                :config {:cljfmt-options
-                         {:remove-surrounding-whitespace? false
-                          :indents {"foo" [["inner" 0]]}
-                          :remove-trailing-whitespace? false
-                          :remove-consecutive-blank-lines? false
-                          :align-associative? true}}}))
+   {:range-text s
+    :eol "\n"
+    :config {:cljfmt-options
+             {:remove-surrounding-whitespace? false
+              :indents {"foo" [["inner" 0]]}
+              :remove-trailing-whitespace? false
+              :remove-consecutive-blank-lines? false
+              :align-associative? true}}}))
 
 (defn extract-range-text
   [{:keys [all-text range]}]
@@ -94,7 +76,6 @@
   "Figure out if `:current-line` is empty"
   [{:keys [current-line]}]
   (some? (re-find #"^[\s,]*$" current-line)))
-
 
 (defn indent-before-range
   "Figures out how much extra indentation to add based on the length of the line before the range"
@@ -108,14 +89,12 @@
           (last)
           (count)))))
 
-
 (defn add-head-and-tail
   "Splits `:all-text` at `:idx` in `:head` and `:tail`"
   [{:keys [all-text idx] :as m}]
   (-> m
       (assoc :head (subs all-text 0 idx)
              :tail (subs all-text idx))))
-
 
 (defn add-current-line
   "Finds the text of the current line in `text` from cursor position `index`"
@@ -125,14 +104,12 @@
              (str (second (re-find #"\n?(.*)$" head))
                   (second (re-find #"^(.*)\n?" tail))))))
 
-
 (defn- normalize-indents
   "Normalizes indents based on where the text starts on the first line"
   [{:keys [range-text eol] :as m}]
   (let [indent-before (apply str (repeat (indent-before-range m) " "))
         lines (clojure.string/split range-text #"\r?\n(?!\s*;)" -1)]
     (assoc m :range-text (clojure.string/join (str eol indent-before) lines))))
-
 
 (defn index-for-tail-in-range
   "Find index for the `tail` in `text` disregarding whitespace"
@@ -179,7 +156,6 @@
                          :idx 6
                          :range [0 18]}))
 
-
 (defn add-indent-token-if-empty-current-line
   "If `:current-line` is empty add an indent token at `:idx`"
   [{:keys [head tail range] :as m}]
@@ -191,7 +167,6 @@
                       :range new-range)]
         (assoc m1 :range-text (extract-range-text m1)))
       m)))
-
 
 (defn remove-indent-token-if-empty-current-line
   "If an indent token was added, lets remove it. Not forgetting to shrink `:range`"
@@ -259,7 +234,6 @@
   "Formats the enclosing range of text surrounding idx"
   [{:keys [range] :as m}]
   (-> m
-      (update-in [:config :cljfmt-options] merge-cljfmt)
       (add-trail-symbol-if-comment)
       (add-head-and-tail)
       (add-current-line)
@@ -309,14 +283,12 @@
   [^js m]
   (-> m
       (parse-cljfmt-options-string)
-      (update-in [:config :cljfmt-options] merge-cljfmt)
       (format-text)))
 
 (defn format-text-at-range-bridge
   [^js m]
   (-> m
       (parse-cljfmt-options-string)
-      (update-in [:config :cljfmt-options] merge-cljfmt)
       (format-text-at-range)))
 
 (defn format-text-at-idx-bridge
@@ -331,18 +303,15 @@
       (parse-cljfmt-options-string)
       (format-text-at-idx-on-type)))
 
-(defn merge-cljfmt-from-string-js-bridge
+(defn cljfmt-from-string-js-bridge
   [^js s]
   (-> s
       read-cljfmt
       jsify))
 
-(defn merge-cljfmt-js-bridge
-  [^js fmt]
-  (-> fmt
-      js-cljfmt-options->clj
-      merge-cljfmt
-      jsify))
+(defn get-default-indents-js-bridge
+  []
+  (jsify cljfmt/default-indents))
 
 (comment
   (:range-text (format-text-at-idx-on-type {:all-text "  '([]\n[])" :idx 7})))
