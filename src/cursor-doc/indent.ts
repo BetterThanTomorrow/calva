@@ -2,6 +2,7 @@ import { EditableModel } from './model';
 import * as _ from 'lodash';
 import * as regexUtil from '../util/regex';
 import { FormatterConfig } from '../formatter-config';
+import * as cljsLib from '../../out/cljs-lib/cljs-lib.js';
 
 const whitespace = new Set(['ws', 'comment', 'eol']);
 
@@ -62,7 +63,7 @@ export function collectIndents(
   let lastLine = cursor.line;
   let lastIndent = 0;
   const indents: IndentInformation[] = [];
-  const rules = config['cljfmt-options']['indents'];
+  const rules = { ...config['cljfmt-options']['indents'], ...cljsLib.defaultIndents() };
   do {
     if (!cursor.backwardSexp()) {
       // this needs some work..

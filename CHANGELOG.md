@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.383] - 2023-08-12
+
+- [Use latest `cljfmt` (`0.11.2`)](https://github.com/BetterThanTomorrow/calva/issues/2274)
+
 ## [2.0.382] - 2023-07-30
 
 - Fix: [Calva can't seem to parse a ns form with metadata after 2.0.376](https://github.com/BetterThanTomorrow/calva/issues/2266)
