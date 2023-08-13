@@ -7,7 +7,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
 import * as outputWindow from './results-output/results-doc';
-import * as cljsLib from '../out/cljs-lib/cljs-lib';
+import { get_state_value, set_state_value } from '../out/cljs-lib/calva.state';
 import * as url from 'url';
 import { isUndefined } from 'lodash';
 import * as fiddleFiles from './fiddle-files';
@@ -224,46 +224,46 @@ function getFileType(document: vscode.TextDocument | Record<string, never> | und
 }
 
 function getLaunchingState() {
-  return cljsLib.getStateValue('launching');
+  return get_state_value('launching');
 }
 
 function setLaunchingState(value: any) {
   void vscode.commands.executeCommand('setContext', 'calva:launching', Boolean(value));
-  cljsLib.setStateValue('launching', value);
+  set_state_value('launching', value);
 }
 
 function getConnectedState() {
-  return cljsLib.getStateValue('connected');
+  return get_state_value('connected');
 }
 
 function setConnectedState(value: boolean) {
   void vscode.commands.executeCommand('setContext', 'calva:connected', value);
-  cljsLib.setStateValue('connected', value);
+  set_state_value('connected', value);
   if (value) {
     fiddleFiles.updateFiddleFileOpenedContext(vscode.window.activeTextEditor);
   }
 }
 
 function getJackedInState() {
-  return cljsLib.getStateValue('jackedIn');
+  return get_state_value('jackedIn');
 }
 
 function setJackedInState(value: boolean) {
   void vscode.commands.executeCommand('setContext', 'calva:jackedIn', value);
-  cljsLib.setStateValue('jackedIn', value);
+  set_state_value('jackedIn', value);
 }
 
 function getConnectingState() {
-  return cljsLib.getStateValue('connecting');
+  return get_state_value('connecting');
 }
 
 function setConnectingState(value: boolean) {
   if (value) {
     void vscode.commands.executeCommand('setContext', 'calva:connecting', true);
-    cljsLib.setStateValue('connecting', true);
+    set_state_value('connecting', true);
   } else {
     void vscode.commands.executeCommand('setContext', 'calva:connecting', false);
-    cljsLib.setStateValue('connecting', false);
+    set_state_value('connecting', false);
   }
 }
 
@@ -308,7 +308,7 @@ function markError(error) {
     error.column = 0;
   }
 
-  const diagnostic = cljsLib.getStateValue('diagnosticCollection'),
+  const diagnostic = get_state_value('diagnosticCollection'),
     editor = getActiveTextEditor();
 
   //editor.selection = new vscode.Selection(position, position);
@@ -347,7 +347,7 @@ function markWarning(warning) {
     warning.column = 0;
   }
 
-  const diagnostic = cljsLib.getStateValue('diagnosticCollection'),
+  const diagnostic = get_state_value('diagnosticCollection'),
     editor = getActiveTextEditor();
 
   //editor.selection = new vscode.Selection(position, position);
@@ -627,7 +627,6 @@ export {
   writeTextToFile,
   downloadFromUrl,
   fetchFromUrl,
-  cljsLib,
   randomSlug,
   isWindows,
   tryToGetActiveTextEditor,

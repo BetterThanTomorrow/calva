@@ -1,5 +1,6 @@
 import { NReplSession } from '.';
-import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
+import { tryToGetDocument, getFileType } from '../utilities';
+import { get_state_value, set_state_value } from '../../out/cljs-lib/calva.state';
 import * as outputWindow from '../results-output/results-doc';
 import { isUndefined } from 'lodash';
 
@@ -9,13 +10,13 @@ function getSession(fileType?: string): NReplSession {
   if (isUndefined(fileType)) {
     fileType = getFileType(doc);
   }
-  if (fileType.match(/^clj[sc]?/) && cljsLib.getStateValue(fileType)) {
-    return cljsLib.getStateValue(fileType);
+  if (fileType.match(/^clj[sc]?/) && get_state_value(fileType)) {
+    return get_state_value(fileType);
   } else {
     if (outputWindow.isResultsDoc(doc)) {
       return outputWindow.getSession();
     } else {
-      return cljsLib.getStateValue('cljc');
+      return get_state_value('cljc');
     }
   }
 }
@@ -43,13 +44,13 @@ function getReplSessionType(connected: boolean): string | undefined {
 }
 
 function updateReplSessionType() {
-  const connected = cljsLib.getStateValue('connected');
+  const connected = get_state_value('connected');
   const replSessionType = getReplSessionType(connected);
-  cljsLib.setStateValue('current-session-type', replSessionType);
+  set_state_value('current-session-type', replSessionType);
 }
 
 function getReplSessionTypeFromState() {
-  return cljsLib.getStateValue('current-session-type');
+  return get_state_value('current-session-type');
 }
 
 export { getSession, getReplSessionType, updateReplSessionType, getReplSessionTypeFromState };

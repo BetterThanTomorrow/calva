@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import * as docMirror from './doc-mirror/index';
 import * as outputWindow from './results-output/results-doc';
 import * as utilities from './utilities';
+import { parse_forms_js_bridge } from '../out/cljs-lib/calva.parse';
 import * as replSession from './nrepl/repl-session';
 import { NReplSession } from './nrepl';
 import * as nsUtil from './util/ns-form';
@@ -27,7 +28,7 @@ export function getNamespace(doc: vscode.TextDocument, position: vscode.Position
         'Error getting ns form of this file using docMirror, trying with cljs.reader: ' + e
       );
       try {
-        const forms = utilities.cljsLib.parseForms(doc.getText());
+        const forms = parse_forms_js_bridge(doc.getText());
         if (forms !== undefined) {
           const nsFormArray = forms.filter((x) => x[0] == 'ns');
           if (nsFormArray != undefined && nsFormArray.length > 0) {

@@ -8,7 +8,7 @@ import * as jackIn from './jack-in';
 import * as outputWindow from '../results-output/results-doc';
 import { getConfig } from '../config';
 import * as replSession from './repl-session';
-import * as cljsLib from '../../out/cljs-lib/cljs-lib';
+import { parse_edn_js_bridge } from '../../out/cljs-lib/calva.parse';
 import { ReplConnectSequence } from './connectSequence';
 import * as fiddleFiles from '../fiddle-files';
 
@@ -63,7 +63,7 @@ const dramsBaseUrl = () => {
 
 async function fetchConfig(configName: string): Promise<DramConfig> {
   const configEdn = await utilities.fetchFromUrl(`${dramsBaseUrl()}/${configName}/dram.edn`);
-  const config: DramConfig = cljsLib.parseEdn(configEdn);
+  const config: DramConfig = parse_edn_js_bridge(configEdn);
   return config;
 }
 

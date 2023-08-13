@@ -1,6 +1,6 @@
 import { getConfig } from './config';
 import { assertIsDefined } from './utilities';
-import * as calvaLib from '../out/cljs-lib/cljs-lib';
+import { pretty_print_js_bridge } from '../out/cljs-lib/calva.pprint.printer';
 
 export type PrintFnOptions = {
   name: string;
@@ -129,5 +129,5 @@ export function getServerSidePrinterDependencies() {
 }
 
 export function prettyPrint(value: any, options: any = prettyPrintingOptions()) {
-  return calvaLib.prettyPrint(value, options);
+  return pretty_print_js_bridge(value, options);
 }

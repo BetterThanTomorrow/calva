@@ -4,7 +4,7 @@ import Analytics from './analytics';
 import * as util from './utilities';
 import * as path from 'path';
 import * as child from 'child_process';
-import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
+import { get_state_value, set_state_value } from '../out/cljs-lib/calva.state';
 import * as projectRoot from './project-root';
 import { getCustomConnectSequences, ReplConnectSequence } from './nrepl/connectSequence';
 import { ConnectType } from './nrepl/connect-types';
@@ -37,14 +37,14 @@ export function initDepsEdnJackInExecutable() {
       console.warn(
         `deps.edn launcher check: '${launcherCheckCommand}' command failed, using 'deps.clj'`
       );
-      setStateValue('depsEdnJackInDefaultExecutable', 'deps.clj');
+      set_state_value('depsEdnJackInDefaultExecutable', 'deps.clj');
       return;
     }
     if (stdout.match('version')) {
       console.info(
         `deps.edn launcher check: '${launcherCheckCommand}' command works, using 'clojure'`
       );
-      setStateValue('depsEdnJackInDefaultExecutable', 'clojure');
+      set_state_value('depsEdnJackInDefaultExecutable', 'clojure');
       const version = stdout.match(/version\s+([\d.]+)/)[1];
       console.info(`clojure version: ${version}`);
       ancientCLICheck(version);
@@ -52,7 +52,7 @@ export function initDepsEdnJackInExecutable() {
       console.warn(
         `deps.edn launcher check: '${launcherCheckCommand}' command not returning expected output, using 'deps.clj'`
       );
-      setStateValue('depsEdnJackInDefaultExecutable', 'deps.clj');
+      set_state_value('depsEdnJackInDefaultExecutable', 'deps.clj');
     }
   });
 }
@@ -61,14 +61,14 @@ function ancientCLICheck(version: string) {
   const ancientVersion = '1.10.697';
   if (semver.lt(semver.coerce(version), ancientVersion)) {
     console.warn(`The installed 'clojure' version is ancient, even lower than ${ancientVersion}.`);
-    setStateValue('isClojureCLIVersionAncient', true);
+    set_state_value('isClojureCLIVersionAncient', true);
   }
 }
 
 // Super-quick fix for: https://github.com/BetterThanTomorrow/calva/issues/144
 // TODO: Revisit the whole state management business.
 function _outputChannel(name: string): vscode.OutputChannel {
-  const channel = getStateValue(name);
+  const channel = get_state_value(name);
   if (channel.toJS !== undefined) {
     return channel.toJS();
   } else {
@@ -85,7 +85,7 @@ function connectionLogChannel(): vscode.OutputChannel {
 }
 
 function analytics(): Analytics {
-  const analytics = getStateValue('analytics');
+  const analytics = get_state_value('analytics');
   if (analytics.toJS !== undefined) {
     return analytics.toJS();
   } else {
@@ -99,23 +99,23 @@ const PROJECT_CONFIG_MAP = 'config';
 
 export function getProjectRootLocal(useCache = true): string | undefined {
   if (useCache) {
-    return getStateValue(PROJECT_DIR_KEY);
+    return get_state_value(PROJECT_DIR_KEY);
   }
 }
 
 export function getProjectConfig(useCache = true) {
   if (useCache) {
-    return getStateValue(PROJECT_CONFIG_MAP);
+    return get_state_value(PROJECT_CONFIG_MAP);
   }
 }
 
 export function setProjectConfig(config) {
-  return setStateValue(PROJECT_CONFIG_MAP, config);
+  return set_state_value(PROJECT_CONFIG_MAP, config);
 }
 
 export function getProjectRootUri(useCache = true): vscode.Uri | undefined {
   if (useCache) {
-    const res = getStateValue(PROJECT_DIR_URI_KEY);
+    const res = get_state_value(PROJECT_DIR_URI_KEY);
     if (res) {
       return res;
     }
@@ -169,8 +169,8 @@ export async function setOrCreateNonProjectRoot(
     root = vscode.Uri.file(path.join(util.calvaTmpDir(), subDir));
     await setNonProjectRootDir(context, root);
   }
-  await setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
-  await setStateValue(PROJECT_DIR_URI_KEY, root);
+  await set_state_value(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
+  await set_state_value(PROJECT_DIR_URI_KEY, root);
   return root;
 }
 
@@ -232,8 +232,8 @@ export async function initProjectDir(
     );
   }
   if (projectRootPath) {
-    setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
-    setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
+    set_state_value(PROJECT_DIR_KEY, projectRootPath.fsPath);
+    set_state_value(PROJECT_DIR_URI_KEY, projectRootPath);
     return projectRootPath;
   }
   return setOrCreateNonProjectRoot(extensionContext, true);

@@ -1,6 +1,6 @@
 import * as printer from '../printer';
 import * as replSession from '../nrepl/repl-session';
-import { cljsLib } from '../utilities';
+import { get_state_value } from '../../out/cljs-lib/calva.state';
 
 type Result = {
   result: string;
@@ -47,5 +47,5 @@ export const evaluateCode = async (
 };
 
 export const currentSessionKey = () => {
-  return replSession.getReplSessionType(cljsLib.getStateValue('connected'));
+  return replSession.getReplSessionType(get_state_value('connected'));
 };
