@@ -10,7 +10,8 @@ import debugDecorations from '../debugger/decorations';
 import * as outputWindow from '../results-output/results-doc';
 import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
-import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
+import { get_state_value } from '../../out/cljs-lib/calva.state';
+import { pretty_print_js_bridge } from '../../out/cljs-lib/calva.pprint.printer';
 import { getConfig } from '../config';
 import { log, Direction } from './logging';
 
@@ -368,7 +369,7 @@ export class NReplSession {
   }
 
   private _createEvalOperationMessage(code: string, ns: string, opts: any) {
-    const debugResponse = getStateValue(debug.DEBUG_RESPONSE_KEY);
+    const debugResponse = get_state_value(debug.DEBUG_RESPONSE_KEY);
     if (debugResponse && vscode.debug.activeDebugSession && this.replType === 'clj') {
       state
         .analytics()
@@ -1178,7 +1179,7 @@ export class NReplEvaluation {
         } else {
           let printValue = this.msgValue;
           if (pprintOptions.enabled && pprintOptions.printEngine === 'calva') {
-            const pretty = prettyPrint(this.msgValue, pprintOptions);
+            const pretty = pretty_print_js_bridge(this.msgValue, pprintOptions);
             if (!pretty.error) {
               printValue = pretty.value;
             } else {

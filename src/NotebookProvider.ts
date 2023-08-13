@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { TextDecoder, TextEncoder } from 'util';
-import { prettyPrint } from '../out/cljs-lib/cljs-lib';
+import { pretty_print_js_bridge } from '../out/cljs-lib/calva.pprint.printer';
 import * as tokenCursor from './cursor-doc/token-cursor';
 import * as repl from './api/repl';
 import _ = require('lodash');
@@ -204,7 +204,7 @@ async function doExecution(
         }
       )
     ).result;
-    const pretty = prettyPrint(response).value;
+    const pretty = pretty_print_js_bridge(response).value;
     const output = [
       vscode.NotebookCellOutputItem.text(response),
       vscode.NotebookCellOutputItem.text('```clojure\n' + pretty + '\n```', 'text/markdown'),

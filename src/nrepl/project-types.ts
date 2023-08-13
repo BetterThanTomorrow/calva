@@ -7,7 +7,8 @@ import * as pprint from '../printer';
 import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
-import { getStateValue, parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
+import { get_state_value } from '../../out/cljs-lib/calva.state';
+import { parse_forms_js_bridge, parse_edn_js_bridge } from '../../out/cljs-lib/calva.parse';
 import * as joyride from '../joyride';
 
 export const isWin = /^win/.test(process.platform);
@@ -88,7 +89,7 @@ export function shadowConfigFile(): vscode.Uri {
 
 export async function shadowBuilds(): Promise<string[]> {
   const data = await vscode.workspace.fs.readFile(shadowConfigFile());
-  const parsed = parseEdn(new TextDecoder('utf-8').decode(data));
+  const parsed = parse_edn_js_bridge(new TextDecoder('utf-8').decode(data));
   return [
     ...(parsed.builds
       ? Object.keys(parsed.builds).map((key: string) => {
@@ -151,7 +152,7 @@ async function leinDefProject(): Promise<any> {
   );
   const data = new TextDecoder('utf-8').decode(bytes);
   try {
-    const parsed = parseForms(data);
+    const parsed = parse_forms_js_bridge(data);
     return parsed.find((x) => x[0] == 'defproject');
   } catch (e) {
     void vscode.window.showErrorMessage('Could not parse project.clj');
@@ -360,7 +361,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     cmd: () => {
       const configuredCmd =
         getConfig().depsEdnJackInExecutable === 'clojure or deps.clj'
-          ? getStateValue('depsEdnJackInDefaultExecutable') ?? 'deps.clj'
+          ? get_state_value('depsEdnJackInDefaultExecutable') ?? 'deps.clj'
           : getConfig().depsEdnJackInExecutable;
       return configuredCmd === 'deps.clj'
         ? ['java', '-jar', `'${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}'`]
@@ -578,7 +579,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
     );
     const data = new TextDecoder('utf-8').decode(bytes);
     try {
-      parsed = parseEdn(data);
+      parsed = parse_edn_js_bridge(data);
     } catch (e) {
       void vscode.window.showErrorMessage('Could not parse deps.edn');
       throw e;
@@ -634,7 +635,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
   };
   const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
 
-  const aliasesFlag = getStateValue('isClojureCLIVersionAncient') ? ['-A', ''] : ['-M', '-M'];
+  const aliasesFlag = get_state_value('isClojureCLIVersionAncient') ? ['-A', ''] : ['-M', '-M'];
   const aliasesOption =
     aliases.length > 0 ? `${aliasesFlag[0]}${aliases.join('')}` : aliasesFlag[1];
   const q = isWin ? '"' : "'";
