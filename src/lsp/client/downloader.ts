@@ -70,17 +70,19 @@ async function backupExistingFile(clojureLspPath: string): Promise<string> {
   const backupDir = path.join(path.dirname(clojureLspPath), 'backup');
   const backupPath = path.join(backupDir, path.basename(clojureLspPath));
 
-  try {
-    await fs.promises.mkdir(backupDir, {
-      recursive: true,
-    });
-    console.log('Backing up existing clojure-lsp to', backupPath);
-    await fs.promises.rename(clojureLspPath, backupPath);
-  } catch (e) {
-    console.log('Error while backing up existing clojure-lsp file.', e.message);
+  if (fs.existsSync(clojureLspPath)) {
+    try {
+      await fs.promises.mkdir(backupDir, {
+        recursive: true,
+      });
+      console.log('Backing up existing clojure-lsp to', backupPath);
+      await fs.promises.rename(clojureLspPath, backupPath);
+    } catch (e) {
+      console.log('Error while backing up existing clojure-lsp file.', e.message);
+    }
   }
 
-  return backupPath;
+  return fs.existsSync(backupPath) ? backupPath : null;
 }
 
 function downloadArtifact(url: string, filePath: string): Promise<void> {
@@ -133,9 +135,7 @@ async function downloadClojureLsp(extensionPath: string, version: string): Promi
       : `https://github.com/clojure-lsp/clojure-lsp-dev-builds/releases/latest/download/${artifactName}`;
   const downloadPath = path.join(extensionPath, artifactName);
   const clojureLspPath = getClojureLspPath(extensionPath);
-  const backupPath = fs.existsSync(clojureLspPath)
-    ? backupExistingFile(clojureLspPath)
-    : clojureLspPath;
+  const backupPath = await backupExistingFile(clojureLspPath);
   try {
     await downloadArtifact(url, downloadPath);
     if (path.extname(downloadPath) === '.zip') {
@@ -146,8 +146,16 @@ async function downloadClojureLsp(extensionPath: string, version: string): Promi
     }
     writeVersionFile(extensionPath, version);
   } catch (e) {
-    console.log('Error downloading clojure-lsp.', e);
-    return backupPath;
+    console.log(`Error downloading clojure-lsp, version: ${version}, from ${url}`, e);
+    if (backupPath) {
+      console.log('Using backup clojure-lsp');
+      void vscode.window.showWarningMessage(
+        `Error downloading clojure-lsp, version: ${version}, from ${url}. Using backup clojure-lsp`
+      );
+      return backupPath;
+    } else {
+      throw new Error(`Error downloading clojure-lsp, version: ${version}, from ${url}`);
+    }
   }
   return clojureLspPath;
 }
@@ -182,7 +190,7 @@ export const ensureServerDownloaded = async (
     downloadVersion === 'nightly' ||
     !exists
   ) {
-    await downloadClojureLsp(context.extensionPath, downloadVersion);
+    return await downloadClojureLsp(context.extensionPath, downloadVersion);
   }
   return clojureLspPath;
 };
