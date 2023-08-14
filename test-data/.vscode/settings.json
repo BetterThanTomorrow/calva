@@ -17,6 +17,10 @@
       "snippet": "'($file-text)"
     },
     {
+      "name": "Current file text as string",
+      "snippet": "(println $file-text-str)"
+    },
+    {
       "name": "Selection, closing brackets",
       "snippet": "$selection-closing-brackets"
     }

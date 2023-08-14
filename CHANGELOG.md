@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+[Add `-str` substitution variables to custom REPL commands](https://github.com/BetterThanTomorrow/calva/issues/2282)
+
 ## [2.0.384] - 2023-08-14
 
 - [Improve clojure-lsp download error handling](https://github.com/BetterThanTomorrow/calva/issues/2278)

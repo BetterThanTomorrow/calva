@@ -42,6 +42,17 @@ There are also substitutions available, which will take elements from the curren
 * `$head`: The text between the start of the current list to the cursor
 * `$tail`: The text between the cursor and the end of the current list
 
+The following are quoted string variable of the above variables:
+
+* `$file-text-str`
+* `$selection-str`
+* `$current-form-str`
+* `$current-pair-str`
+* `$enclosing-form-str`
+* `$top-level-form-str`
+* `$head-str`
+* `$tail-str`
+
 ## User and Workspace Settings
 
 Settings from your User (global) level and the workspace are merged.
