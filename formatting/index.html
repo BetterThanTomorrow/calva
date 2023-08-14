@@ -1683,12 +1683,20 @@
 <p>Note that doing this you will not have hot reload of the formatting configuration, and of course you will be depending on that clojure-lsp is running and functioning.</p>
 <h3 id="indentation-rules">Indentation rules</h3>
 <p>The <code>cljfmt</code> indents are highly configurable. They, and the rest of the configuration options, are masterly detailed <a href="https://github.com/weavejester/cljfmt#configuration">here</a>.</p>
+<div class="admonition note">
+<p class="admonition-title"><code>:extra-indents</code> vs <code>:indents</code></p>
+<p>Since Calva <code>v2.0.383</code> we are using <strong>cljfmt</strong> <code>0.11.x</code> which has a breaking configuration change. From the cljfmt README:</p>
+<blockquote>
+<p>The <code>:indents</code> key has been split into <code>:indents</code> and :extra-indents. The <code>:indents</code> key <strong>replaces</strong> all default indents, while the <code>:extra-indents</code> key will append to the default indents.</p>
+</blockquote>
+<p>And the docs also says to use <code>:legacy/merge-indents true</code> to get the legacy behaviour, <a href="https://github.com/weavejester/cljfmt/issues/318">but this doesn't work with Calva</a>. So, <em>if you want to add your rules to the defaults, use <code>:extra-indents</code></em>.</p>
+</div>
 <p>Calva is an extra good tool for experimenting with these settings. <code>cljfmt</code> doesn't care about keys in the map that it doesn't know about so you can sneak in test code there to quickly see how it will get formatted by certain rules. Try this, for instance:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span><span class="w"> </span><span class="nv">true</span>
 <span class="w"> </span><span class="ss">:remove-trailing-whitespace?</span><span class="w"> </span><span class="nv">true</span>
 <span class="w"> </span><span class="ss">:remove-consecutive-blank-lines?</span><span class="w"> </span><span class="nv">false</span>
 <span class="w"> </span><span class="ss">:insert-missing-whitespace?</span><span class="w"> </span><span class="nv">false</span>
-<span class="w"> </span><span class="ss">:indents</span><span class="w"> </span><span class="o">^</span><span class="ss">:replace</span><span class="w"> </span><span class="p">{</span><span class="o">#</span><span class="s">&quot;^\w&quot;</span><span class="w"> </span><span class="p">[[</span><span class="ss">:inner</span><span class="w"> </span><span class="mi">0</span><span class="p">]]}</span>
+<span class="w"> </span><span class="ss">:indents</span><span class="w"> </span><span class="p">{</span><span class="o">#</span><span class="nv">re</span><span class="w"> </span><span class="s">&quot;^\w&quot;</span><span class="w"> </span><span class="p">[[</span><span class="ss">:inner</span><span class="w"> </span><span class="mi">0</span><span class="p">]]}</span>
 <span class="w"> </span><span class="ss">:test-code</span>
 <span class="w"> </span><span class="p">(</span><span class="nb">concat </span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 <span class="w">         </span><span class="p">(</span><span class="nb">map </span><span class="o">#</span><span class="p">(</span><span class="nb">inc </span><span class="p">(</span><span class="nb">* </span><span class="nv">%</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span>
