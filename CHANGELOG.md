@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.384] - 2023-08-14
+
 - [Improve clojure-lsp download error handling](https://github.com/BetterThanTomorrow/calva/issues/2278)
 
 ## [2.0.383] - 2023-08-12
