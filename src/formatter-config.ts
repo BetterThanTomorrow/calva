@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as filesCache from './files-cache';
-import { merge_cljfmt_from_string_js_bridge } from '../out/cljs-lib/calva.fmt.formatter';
+import { cljfmt_from_string_js_bridge } from '../out/cljs-lib/calva.fmt.formatter';
 import * as lsp from './lsp';
 
 const defaultCljfmtContent =
@@ -15,7 +15,7 @@ const LSP_CONFIG_KEY = 'CLOJURE-LSP';
 let lspFormatConfig: string | undefined;
 
 function cljfmtOptionsFromString(cljfmt: string) {
-  const options = merge_cljfmt_from_string_js_bridge(cljfmt);
+  const options = cljfmt_from_string_js_bridge(cljfmt);
   return options.error
     ? options
     : {

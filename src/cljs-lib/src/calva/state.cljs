@@ -2,10 +2,10 @@
 
 (defonce ^:private state (atom {}))
 
-(defn set-state-value! [key value]
+(defn set-state-value [key value]
   (swap! state assoc key value))
 
-(defn remove-state-value! [key]
+(defn remove-state-value [key]
   (swap! state dissoc key))
 
 (defn get-state-value [key]
@@ -15,6 +15,6 @@
   @state)
 
 (comment
-  (set-state-value! "hello" "world")
+  (set-state-value "hello" "world")
   (get-state)
-  (remove-state-value! "hello"))
+  (remove-state-value "hello"))
