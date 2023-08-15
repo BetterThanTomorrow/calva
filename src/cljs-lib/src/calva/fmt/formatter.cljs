@@ -20,11 +20,18 @@
   (as-> fmt $
     (merge default-fmt $)))
 
+(defn- convert-legacy-keys [config]
+       (cond-> config
+               (:legacy/merge-indents? config)
+               (-> (assoc :extra-indents (:indents config))
+                   (dissoc :indents))))
+
 (defn- read-cljfmt
   [s]
   (try
-    (as-> s $
-      (parse-clj-edn $))
+    (-> s
+        parse-clj-edn
+        convert-legacy-keys)
     (catch js/Error e
       (merge default-fmt
              {:error (.-message e)
@@ -41,6 +48,7 @@
                                                  (assoc :align-associative? true)
                                                  (dissoc :remove-multiple-non-indenting-spaces?)))
       (cljfmt/reformat-string range-text (-> cljfmt-options
+                                             convert-legacy-keys
                                              (assoc :remove-multiple-non-indenting-spaces?
                                                     trim-space-between?))))))
 

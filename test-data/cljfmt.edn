@@ -1,15 +1,10 @@
-{:indents {inner-0-form [[:inner 0]]
-           #re "^le[^t]" [[:block 0]]
-           #re "^foo" [[:inner 0]]}
- :test [(let []
-          x)
-        (lex []
-             x)
-        (foo []
-          x)
-        (foobar []
-          x)
-        (bar []
-             x)
-        (barfoo []
-                x)]}
+{:extra-indents {inner-0-form [[:inner 0]]
+                 #re "^foo" [[:inner 0]]}
+;;  :legacy/merge-indents? true
+;;  :indents {}
+ :test [(let [] x)
+        (lex [] x)
+        (foo [] x)
+        (foobar [] x)
+        (bar [] x)
+        (barfoo [] x)]}
