@@ -1654,7 +1654,7 @@
 </div>
 <h2 id="configuration">Configuration</h2>
 <p>You can adjust the above mentioned defaults, and the default indents, by configuring the formatting using <a href="https://github.com/weavejester/cljfmt#configuration">cljfmt's configuration EDN</a>.</p>
-<p>This configuration can either be provided via a file or via clojure-lsp (see <a href="https://clojure-lsp.io/settings/">Clojure LSP Settings</a>).</p>
+<p>This configuration can either be provided via a file or via clojure-lsp. See <a href="#providing-configuration-via-clojure-lsp">Providing configuration via clojure-lsp</a> below.</p>
 <h3 id="providing-configuration-via-a-config-file">Providing configuration via a config file</h3>
 <p>Calva will look for the configuration in one  of the <a href="https://github.com/weavejester/cljfmt#configuration">default cljfmt paths</a> ('.cljfmt.edn', '.cljfmt.clj', 'cljfmt.edn', or 'cljfmt.clj' in the workspace root). If your file is somewhere else use the <code>calva.fmt.configPath</code> to tell Calva where to find it. The path should either be absolute, or relative to the workspace root directory. If your config file is somewhere in the workspace root, Calva will hot reload it when you update it.</p>
 <p>Wherever the config file is, a suggested path for providing your configuration is to start changing the Calva formatting defaults by pasting the following map into a file and save it.</p>
@@ -1679,7 +1679,7 @@
 <p>The <strong>cljfmt</strong> docs mention the <code>:cljfmt</code> config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.</p>
 </details>
 <h3 id="providing-configuration-via-clojure-lsp">Providing configuration via clojure-lsp</h3>
-<p>If you work in a team where some members use clojure-lsp for formatting, you can make Calva format using the same configuration by telling setting <code>calva.fmt.configPath</code> to <code>CLOJURE-LSP</code> (case sensitive).</p>
+<p>If you work in a team where some members use clojure-lsp for formatting, you can make Calva format using the same configuration by telling setting <code>calva.fmt.configPath</code> to <code>CLOJURE-LSP</code> (case sensitive). See <a href="https://clojure-lsp.io/settings/">Clojure LSP Settings</a>) for how to provide the configuration. (It might not be provided from where you think it is, specifically check clojure-lsp's global config in you user home directory.) Use the command <strong>Calva Diagnostics: Clojure-lsp Server Info</strong> to see what cljfmt configuration is being used (under the <code>cljfmt-raw</code> key).</p>
 <p>Note that doing this you will not have hot reload of the formatting configuration, and of course you will be depending on that clojure-lsp is running and functioning.</p>
 <h3 id="indentation-rules">Indentation rules</h3>
 <p>The <code>cljfmt</code> indents are highly configurable. They, and the rest of the configuration options, are masterly detailed <a href="https://github.com/weavejester/cljfmt#configuration">here</a>.</p>
@@ -1689,7 +1689,7 @@
 <blockquote>
 <p>The <code>:indents</code> key has been split into <code>:indents</code> and :extra-indents. The <code>:indents</code> key <strong>replaces</strong> all default indents, while the <code>:extra-indents</code> key will append to the default indents.</p>
 </blockquote>
-<p>And the docs also says to use <code>:legacy/merge-indents true</code> to get the legacy behaviour, <a href="https://github.com/weavejester/cljfmt/issues/318">but this doesn't work with Calva</a>. So, <em>if you want to add your rules to the defaults, use <code>:extra-indents</code></em>.</p>
+<p>If something prevents you from using a config with <code>:extra-indents</code>, there's an escape hatch to keep using the <code>:indents</code> key as before, by adding <code>:legacy/merge-indents true</code> to the config map.</p>
 </div>
 <p>Calva is an extra good tool for experimenting with these settings. <code>cljfmt</code> doesn't care about keys in the map that it doesn't know about so you can sneak in test code there to quickly see how it will get formatted by certain rules. Try this, for instance:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span><span class="w"> </span><span class="nv">true</span>
