@@ -1689,7 +1689,7 @@
 <blockquote>
 <p>The <code>:indents</code> key has been split into <code>:indents</code> and :extra-indents. The <code>:indents</code> key <strong>replaces</strong> all default indents, while the <code>:extra-indents</code> key will append to the default indents.</p>
 </blockquote>
-<p>If something prevents you from using a config with <code>:extra-indents</code>, there's an escape hatch to keep using the <code>:indents</code> key as before, by adding <code>:legacy/merge-indents true</code> to the config map.</p>
+<p>If something prevents you from using a config with <code>:extra-indents</code>, there's an escape hatch to keep using the <code>:indents</code> key as before, by adding <code>:legacy/merge-indents? true</code> to the config map.</p>
 </div>
 <p>Calva is an extra good tool for experimenting with these settings. <code>cljfmt</code> doesn't care about keys in the map that it doesn't know about so you can sneak in test code there to quickly see how it will get formatted by certain rules. Try this, for instance:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span><span class="w"> </span><span class="nv">true</span>
