@@ -231,7 +231,7 @@ describe('indent', () => {
       const someConfig = mkConfig({
         '/foo+/': [['inner', 0]],
       });
-      it('with some config, still uses the built-in the built-in rule for the `let` body', () => {
+      it('with some config, still uses the built-in rule for the `let` body', () => {
         expect(indent.getIndent(doc.model, p, someConfig)).toEqual(2);
       });
       const blockConfig = mkConfig({
@@ -251,6 +251,7 @@ describe('indent', () => {
       });
     });
     describe('replacing cljfmt defaults', () => {
+      // TODO: We probably need more test cases here
       const doc = docFromTextNotation('(let []\n|x)');
       const defndoc = docFromTextNotation('(defn []\n|x)');
       const p = textAndSelection(doc)[1][0];
