@@ -231,7 +231,7 @@ describe('indent', () => {
       const someConfig = mkConfig({
         '/foo+/': [['inner', 0]],
       });
-      it('with some config, still uses the built-in the built-in rule for the `let` body', () => {
+      it('with some config, still uses the built-in rule for the `let` body', () => {
         expect(indent.getIndent(doc.model, p, someConfig)).toEqual(2);
       });
       const blockConfig = mkConfig({
@@ -248,6 +248,25 @@ describe('indent', () => {
       });
       it('does not overrides the built-in rule for the `defn` body', () => {
         expect(indent.getIndent(defndoc.model, p, letBlockConfig)).toEqual(2);
+      });
+    });
+    describe('replacing cljfmt defaults', () => {
+      // TODO: We probably need more test cases here
+      const doc = docFromTextNotation('(let []\n|x)');
+      const defndoc = docFromTextNotation('(defn []\n|x)');
+      const p = textAndSelection(doc)[1][0];
+      const emptyConfig = mkConfig({}, {});
+      it('with empty replace config, does not use the built-in rule for the `let` body', () => {
+        expect(indent.getIndent(doc.model, p, emptyConfig)).toEqual(5);
+      });
+      const someConfig = mkConfig(
+        {
+          '/foo+/': [['inner', 0]],
+        },
+        {}
+      );
+      it('with some config, still uses the built-in the built-in rule for the `let` body', () => {
+        expect(indent.getIndent(doc.model, p, someConfig)).toEqual(5);
       });
     });
   });
@@ -380,10 +399,11 @@ describe('indent', () => {
   });
 });
 
-function mkConfig(rules: indent.IndentRules) {
+function mkConfig(extraRules: indent.IndentRules, replaceRules?: indent.IndentRules) {
   return {
     'cljfmt-options': {
-      indents: rules,
+      'extra-indents': extraRules,
+      ...(replaceRules ? { indents: replaceRules } : {}),
     },
   };
 }

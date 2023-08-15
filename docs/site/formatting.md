@@ -74,7 +74,7 @@ Unlike with the ”real” Calva Formatter, which never breaks up lines, this on
 
 You can adjust the above mentioned defaults, and the default indents, by configuring the formatting using [cljfmt's configuration EDN](https://github.com/weavejester/cljfmt#configuration).
 
-This configuration can either be provided via a file or via clojure-lsp (see [Clojure LSP Settings](https://clojure-lsp.io/settings/)).
+This configuration can either be provided via a file or via clojure-lsp. See [Providing configuration via clojure-lsp](#providing-configuration-via-clojure-lsp) below.
 
 ### Providing configuration via a config file
 
@@ -104,7 +104,7 @@ If the file is in the workspace, you can quickly test how different settings aff
 
 ### Providing configuration via clojure-lsp
 
-If you work in a team where some members use clojure-lsp for formatting, you can make Calva format using the same configuration by telling setting `calva.fmt.configPath` to `CLOJURE-LSP` (case sensitive).
+If you work in a team where some members use clojure-lsp for formatting, you can make Calva format using the same configuration by telling setting `calva.fmt.configPath` to `CLOJURE-LSP` (case sensitive). See [Clojure LSP Settings](https://clojure-lsp.io/settings/)) for how to provide the configuration. (It might not be provided from where you think it is, specifically check clojure-lsp's global config in you user home directory.) Use the command **Calva Diagnostics: Clojure-lsp Server Info** to see what cljfmt configuration is being used (under the `cljfmt-raw` key).
 
 Note that doing this you will not have hot reload of the formatting configuration, and of course you will be depending on that clojure-lsp is running and functioning.
 
@@ -117,7 +117,7 @@ The `cljfmt` indents are highly configurable. They, and the rest of the configur
 
     > The `:indents` key has been split into `:indents` and :extra-indents. The `:indents` key **replaces** all default indents, while the `:extra-indents` key will append to the default indents.
 
-    And the docs also says to use `:legacy/merge-indents true` to get the legacy behaviour, [but this doesn't work with Calva](https://github.com/weavejester/cljfmt/issues/318). So, _if you want to add your rules to the defaults, use `:extra-indents`_.
+    If something prevents you from using a config with `:extra-indents`, there's an escape hatch to keep using the `:indents` key as before, by adding `:legacy/merge-indents true` to the config map.
 
 Calva is an extra good tool for experimenting with these settings. `cljfmt` doesn't care about keys in the map that it doesn't know about so you can sneak in test code there to quickly see how it will get formatted by certain rules. Try this, for instance:
 
