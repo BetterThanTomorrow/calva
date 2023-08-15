@@ -402,9 +402,7 @@ describe('indent', () => {
 function mkConfig(extraRules: indent.IndentRules, replaceRules?: indent.IndentRules) {
   return {
     'cljfmt-options': {
-      ...{
-        'extra-indents': extraRules,
-      },
+      'extra-indents': extraRules,
       ...(replaceRules ? { indents: replaceRules } : {}),
     },
   };
