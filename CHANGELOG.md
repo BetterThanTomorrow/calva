@@ -4,7 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- fix: [Can't override default cljfmt config since 2.0.383](https://github.com/BetterThanTomorrow/calva/issues/2284)
+- Fix: [Can't override default cljfmt config since 2.0.383](https://github.com/BetterThanTomorrow/calva/issues/2284)
+- Bump bundled deps.clj to v1.11.1.1403
 
 ## [2.0.384] - 2023-08-14
 
