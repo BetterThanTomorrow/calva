@@ -63,7 +63,12 @@ export function collectIndents(
   let lastLine = cursor.line;
   let lastIndent = 0;
   const indents: IndentInformation[] = [];
-  const rules = { ...config['cljfmt-options']['indents'], ...cljsLib.defaultIndents() };
+  const defaultIndents = cljsLib.defaultIndents();
+  const extraIndents = config['cljfmt-options']['indents'];
+  const defaultRules = Object.keys(defaultIndents).map((k) => [k, defaultIndents[k]]);
+  const extraRules = Object.keys(extraIndents).map((k) => [k, extraIndents[k]]);
+  const rules = [...extraRules, ...defaultRules];
+
   do {
     if (!cursor.backwardSexp()) {
       // this needs some work..
@@ -95,12 +100,13 @@ export function collectIndents(
       const pattern =
         isList &&
         _.find(
-          _.keys(rules),
-          (p) =>
-            regexUtil.testCljOrJsRegex(`#"^(.*/)?${p}$"`, token) ||
-            (regexUtil.isCljOrJsRegex(p) && regexUtil.testCljOrJsRegex(p, token))
+          rules,
+          (rule) =>
+            regexUtil.testCljOrJsRegex(`#"^(.*/)?${[rule[0]]}$"`, token) ||
+            (regexUtil.isCljOrJsRegex(rule[0]) && regexUtil.testCljOrJsRegex(rule[0], token))
         );
-      const indentRule = pattern ? rules[pattern] : [];
+
+      const indentRule = pattern ? pattern[1] : [];
       indents.unshift({
         first: token,
         rules: indentRule,
