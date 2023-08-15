@@ -112,6 +112,13 @@ Note that doing this you will not have hot reload of the formatting configuratio
 
 The `cljfmt` indents are highly configurable. They, and the rest of the configuration options, are masterly detailed [here](https://github.com/weavejester/cljfmt#configuration).
 
+!!! Note "`:extra-indents` vs `:indents`"
+    Since Calva `v2.0.383` we are using **cljfmt** `0.11.x` which has a breaking configuration change. From the cljfmt README:
+
+    > The `:indents` key has been split into `:indents` and :extra-indents. The `:indents` key **replaces** all default indents, while the `:extra-indents` key will append to the default indents.
+
+    And the docs also says to use `:legacy/merge-indents true` to get the legacy behaviour, [but this doesn't work with Calva](https://github.com/weavejester/cljfmt/issues/318). So, _if you want to add your rules to the defaults, use `:extra-indents`_.
+
 Calva is an extra good tool for experimenting with these settings. `cljfmt` doesn't care about keys in the map that it doesn't know about so you can sneak in test code there to quickly see how it will get formatted by certain rules. Try this, for instance:
 
 ```clojure
@@ -119,7 +126,7 @@ Calva is an extra good tool for experimenting with these settings. `cljfmt` does
  :remove-trailing-whitespace? true
  :remove-consecutive-blank-lines? false
  :insert-missing-whitespace? false
- :indents ^:replace {#"^\w" [[:inner 0]]}
+ :indents {#re "^\w" [[:inner 0]]}
  :test-code
  (concat [2]
          (map #(inc (* % 2))
