@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- fix: [Can't override default cljfmt config since 2.0.383](https://github.com/BetterThanTomorrow/calva/issues/2284)
+
 ## [2.0.384] - 2023-08-14
 
 - [Improve clojure-lsp download error handling](https://github.com/BetterThanTomorrow/calva/issues/2278)

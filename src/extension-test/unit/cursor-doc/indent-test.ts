@@ -81,6 +81,18 @@ describe('indent', () => {
           )
         ).toEqual(2);
       });
+      it('custom config does not override indents for default `defn`', () => {
+        const doc = docFromTextNotation('(defn foo [] |x)');
+        expect(
+          indent.getIndent(
+            doc.model,
+            textAndSelection(doc)[1][0],
+            mkConfig({
+              foo: [['block', 0]],
+            })
+          )
+        ).toEqual(2);
+      });
     });
 
     describe('vectors', () => {
@@ -210,6 +222,7 @@ describe('indent', () => {
     });
     describe('cljfmt defaults', () => {
       const doc = docFromTextNotation('(let []\n|x)');
+      const defndoc = docFromTextNotation('(defn []\n|x)');
       const p = textAndSelection(doc)[1][0];
       const emptyConfig = mkConfig({});
       it('with empty config, uses the built-in rule for the `let` body', () => {
@@ -224,8 +237,17 @@ describe('indent', () => {
       const blockConfig = mkConfig({
         '/\\S+/': [['block', 0]],
       });
-      it('overrides the built-in rule for the `let` body', () => {
+      it('catch-all overrides the built-in rule for the `let` body', () => {
         expect(indent.getIndent(doc.model, p, blockConfig)).toEqual(5);
+      });
+      const letBlockConfig = mkConfig({
+        let: [['block', 0]],
+      });
+      it('overrides the built-in rule for the `let` body', () => {
+        expect(indent.getIndent(doc.model, p, letBlockConfig)).toEqual(5);
+      });
+      it('does not overrides the built-in rule for the `defn` body', () => {
+        expect(indent.getIndent(defndoc.model, p, letBlockConfig)).toEqual(2);
       });
     });
   });
