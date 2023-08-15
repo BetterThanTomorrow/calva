@@ -63,11 +63,14 @@ export function collectIndents(
   let lastLine = cursor.line;
   let lastIndent = 0;
   const indents: IndentInformation[] = [];
+  const replaceIndents = config['cljfmt-options']['indents'];
   const defaultIndents = cljsLib.defaultIndents();
-  const extraIndents = config['cljfmt-options']['indents'];
-  const defaultRules = Object.keys(defaultIndents).map((k) => [k, defaultIndents[k]]);
-  const extraRules = Object.keys(extraIndents).map((k) => [k, extraIndents[k]]);
-  const rules = [...extraRules, ...defaultRules];
+  const extraIndents = config['cljfmt-options']['extra-indents'];
+  const replaceRules = replaceIndents
+    ? Object.keys(replaceIndents).map((k) => [k, replaceIndents[k]])
+    : Object.keys(defaultIndents).map((k) => [k, defaultIndents[k]]);
+  const extraRules = extraIndents ? Object.keys(extraIndents).map((k) => [k, extraIndents[k]]) : [];
+  const rules = [...extraRules, ...replaceRules];
 
   do {
     if (!cursor.backwardSexp()) {
