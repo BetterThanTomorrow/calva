@@ -1,4 +1,4 @@
-# Spritz
+# A workaround for Calva + LiveShare
 
 A bubbly association from Clojure files to Notebooks, effervescently crafted to support [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) + [LiveShare](https://code.visualstudio.com/learn/collaboration/live-share) users.
 

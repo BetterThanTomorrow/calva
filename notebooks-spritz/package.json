@@ -2,8 +2,8 @@
   "name": "calva-spritz",
   "displayName": "Calva Spritz",
   "publisher": "betterthantomorrow",
-  "description": "A bubbly association from Clojure files to Notebooks, effervescently crafted to support Calva + LiveShare users.",
-  "version": "1.0.4",
+  "description": "A LiveShare + Calva enabling workaround, effervescently crafted as A bubbly association from Clojure files to Notebook.",
+  "version": "1.0.5",
   "icon": "spritz-icon.png",
   "repository": {
     "type": "git",
@@ -35,7 +35,7 @@
         "priority": "option",
         "selector": [
           {
-            "filenamePattern": "*.{clj,cljc,cljs,cljd,cljx,bb,calva-repl}"
+            "filenamePattern": "*.{clj,cljc,cljs,cljd,cljx,bb,lingy,calva-repl}"
           }
         ]
       }
