@@ -6,7 +6,7 @@ Changes to Calva.
 
 ## [2.0.386] - 2023-08-17
 
-- Fix: [Failing to download clojure-lsp server](https://github.com/BetterThanTomorrow/calva/issues/2287)
+- Fix: [Failing to download clojure-lsp server on Windows](https://github.com/BetterThanTomorrow/calva/issues/2287)
 
 ## [2.0.385] - 2023-08-15
 
