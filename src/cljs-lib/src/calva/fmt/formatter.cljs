@@ -296,37 +296,37 @@
         (cljify)
         (assoc-in [:config :cljfmt-options] (parse-clj-edn edn)))))
 
-(defn format-text-bridge
+(defn ^:export format-text-bridge
   [^js m]
   (-> m
       (parse-cljfmt-options-string)
       (format-text)))
 
-(defn format-text-at-range-bridge
+(defn ^:export format-text-at-range-bridge
   [^js m]
   (-> m
       (parse-cljfmt-options-string)
       (format-text-at-range)))
 
-(defn format-text-at-idx-bridge
+(defn ^:export format-text-at-idx-bridge
   [^js m]
   (-> m
       (parse-cljfmt-options-string)
       (format-text-at-idx)))
 
-(defn format-text-at-idx-on-type-bridge
+(defn ^:export format-text-at-idx-on-type-bridge
   [^js m]
   (-> m
       (parse-cljfmt-options-string)
       (format-text-at-idx-on-type)))
 
-(defn cljfmt-from-string-js-bridge
+(defn ^:export cljfmt-from-string-js-bridge
   [^js s]
   (-> s
       read-cljfmt
       jsify))
 
-(defn get-default-indents-js-bridge
+(defn ^:export get-default-indents-js-bridge
   []
   (jsify cljfmt/default-indents))
 
