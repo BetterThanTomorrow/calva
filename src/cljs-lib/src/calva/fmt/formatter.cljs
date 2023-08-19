@@ -21,10 +21,18 @@
     (merge default-fmt $)))
 
 (defn- convert-legacy-keys [config]
-       (cond-> config
-               (:legacy/merge-indents? config)
-               (-> (assoc :extra-indents (:indents config))
-                   (dissoc :indents))))
+  (cond-> config
+    (:legacy/merge-indents? config)
+    (-> (assoc :extra-indents (:indents config))
+        (dissoc :indents))))
+
+(defn- convert-to-old-config [config]
+  (let [new-config (convert-legacy-keys config)]
+    (if (:extra-indents new-config)
+      (-> new-config
+          (assoc :indents (:extra-indents new-config))
+          (assoc :indents (merge cljfmt/default-indents (:extra-indents new-config))))
+      new-config)))
 
 (defn- read-cljfmt
   [s]
@@ -45,6 +53,7 @@
     (if (or align-associative?
             (:align-associative? cljfmt-options))
       (pez-cljfmt/reformat-string range-text (-> cljfmt-options
+                                                 convert-to-old-config
                                                  (assoc :align-associative? true)
                                                  (dissoc :remove-multiple-non-indenting-spaces?)))
       (cljfmt/reformat-string range-text (-> cljfmt-options

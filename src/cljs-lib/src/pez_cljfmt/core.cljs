@@ -468,7 +468,7 @@
       (cond-> (:remove-trailing-whitespace? opts true)
         remove-trailing-whitespace))))
 
-    
+
 (defn reformat-string
   ([form-string]
    (reformat-string form-string {}))
@@ -479,4 +479,3 @@
          (reformat-form (cond-> options
                           alias-map (assoc :alias-map alias-map)))
          (n/string)))))
-
