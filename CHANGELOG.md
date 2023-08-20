@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Evaluate a non-list top level form from inside a form evaluates the wrong form when in a rich comment](https://github.com/BetterThanTomorrow/calva/issues/2290)
+- Fix: [Difference between regular formatting and formatting with alignment](https://github.com/BetterThanTomorrow/calva/issues/2289)
 
 ## [2.0.386] - 2023-08-17
 

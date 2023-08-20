@@ -5,7 +5,7 @@
 
  :insert-missing-whitespace? true
  :align-associative? false
- :indents {foo [[:inner 0]]}
+ :extra-indents {foo [[:inner 0]]}
  :test (foo 1
             2
             {:a a
