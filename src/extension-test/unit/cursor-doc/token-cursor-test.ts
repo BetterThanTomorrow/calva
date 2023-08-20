@@ -1000,6 +1000,44 @@ describe('Token Cursor', () => {
         expect(cursor.atTopLevel()).toEqual(false);
       });
     });
+
+    describe('backwardFunction', () => {
+      it('Finds current function start', () => {
+        const a = docFromTextNotation('(a b |c)');
+        const b = docFromTextNotation('(|a b c)');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selection.anchor);
+        expect(cursor.backwardFunction()).toBe(true);
+        expect(cursor.offsetStart).toBe(b.selection.anchor);
+      });
+      it('Finds current function start when nested', () => {
+        const a = docFromTextNotation('(a b (c d|))');
+        const b = docFromTextNotation('(a b (|c d))');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selection.anchor);
+        expect(cursor.backwardFunction()).toBe(true);
+        expect(cursor.offsetStart).toBe(b.selection.anchor);
+      });
+      it('Finds current function start when nested and inside non-function', () => {
+        const a = docFromTextNotation('(a b (c d [e f|]))');
+        const b = docFromTextNotation('(a b (|c d [e f]))');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selection.anchor);
+        expect(cursor.backwardFunction()).toBe(true);
+        expect(cursor.offsetStart).toBe(b.selection.anchor);
+      });
+      it('Finds current function start when nested in rich comment', () => {
+        const a = docFromTextNotation('(comment a b (c d|))');
+        const b = docFromTextNotation('(comment a b (|c d))');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selection.anchor);
+        expect(cursor.backwardFunction()).toBe(true);
+        expect(cursor.offsetStart).toBe(b.selection.anchor);
+      });
+      it('Finds parent function start', () => {
+        const a = docFromTextNotation('(a b (c d|))');
+        const b = docFromTextNotation('(|a b (c d))');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selection.anchor);
+        expect(cursor.backwardFunction(1)).toBe(true);
+        expect(cursor.offsetStart).toBe(b.selection.anchor);
+      });
+    });
   });
 
   describe('Location State', () => {

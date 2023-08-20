@@ -765,13 +765,23 @@ export class LispTokenCursor extends TokenCursor {
     return [currentFormCursor.offsetStart, afterCurrentFormOffset];
   }
 
-  rangeForDefun(offset: number, commentCreatesTopLevel = true): [number, number] {
-    const cursor = this.doc.getTokenCursor(offset);
-    let lastCandidateRange: [number, number] = cursor.rangeForCurrentForm(offset);
+  rangeForDefun(p: number, commentCreatesTopLevel = true): [number, number] {
+    const cursor = this.doc.getTokenCursor(p);
+    const getFunctionPositionText = (cursor: LispTokenCursor) => {
+      // NB: This is probably a general need, so might with ino the token cursor.
+      //     However, it seems more semantically close to cursor.getFunctionName()
+      //     than it is so I hesitate to place it there. This is the only current
+      //     consumer of this version of the semantics anyway.
+      const functionCursor = cursor.clone();
+      functionCursor.backwardList();
+      functionCursor.forwardWhitespace();
+      return functionCursor.getToken().raw;
+    };
+    let lastCandidateRange: [number, number] = cursor.rangeForCurrentForm(p);
     while (cursor.forwardList() && cursor.upList()) {
       const commentCursor = cursor.clone();
       commentCursor.backwardDownList();
-      if (commentCreatesTopLevel && commentCursor.getFunctionName() === 'comment') {
+      if (commentCreatesTopLevel && getFunctionPositionText(commentCursor) === 'comment') {
         if (commentCursor.getToken().raw !== ')') {
           commentCursor.upList();
           return commentCursor.rangeForCurrentForm(commentCursor.offsetStart);
@@ -888,6 +898,8 @@ export class LispTokenCursor extends TokenCursor {
   /**
    * Tries to move this cursor backwards to the open paren of the function, `level` functions up.
    * If there aren't that many functions behind the cursor, the cursor is not moved at all.
+   * NB: The `levels` semantics is about nested functions. So it will find `|b` in `(a (b [c|]))`
+   *     if `levels` is 0.
    * @param levels how many functions up to go before placing the cursor at the start of it.
    * @returns `true` if the cursor was moved, otherwise `false`
    */
@@ -910,6 +922,7 @@ export class LispTokenCursor extends TokenCursor {
 
   /**
    * Get the name of the current function, optionally digging `levels` functions up.
+   * NB: See `backwardFunction()` for semantics of `levels`.
    * @param levels how many levels of functions to dig up.
    * @returns the function name, or undefined if there is no function there.
    */
