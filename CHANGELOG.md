@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Difference between regular formatting and formatting with alignment](https://github.com/BetterThanTomorrow/calva/issues/2289)
+
 ## [2.0.386] - 2023-08-17
 
 - Fix: [Failing to download clojure-lsp server on Windows](https://github.com/BetterThanTomorrow/calva/issues/2287)
