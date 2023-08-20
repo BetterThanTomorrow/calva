@@ -22,7 +22,8 @@
                              :js2cljs calva.js2cljs.converter/convert-bridge
                              :dart2clj calva.dartclojure/convert-bridge
                              :readConfigEdn calva.read-config/config-edn->js-bridge
-                             :html2hiccup calva.html2hiccup/html->hiccup-convert-bridge}
+                             :html2hiccup calva.html2hiccup/html->hiccup-convert-bridge
+                             :activateReplOutput calva.repl.output/activate}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test

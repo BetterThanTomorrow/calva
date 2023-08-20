@@ -31,7 +31,7 @@ import * as replHistory from './results-output/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
-import { setStateValue } from '../out/cljs-lib/cljs-lib';
+import { setStateValue, activateReplOutput } from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
@@ -73,6 +73,8 @@ function initializeState() {
 
 async function activate(context: vscode.ExtensionContext) {
   console.info('Calva activate START');
+
+  activateReplOutput(vscode);
 
   const testController = vscode.tests.createTestController('calvaTestController', 'Calva');
   const clientProvider = lsp.createClientProvider({
