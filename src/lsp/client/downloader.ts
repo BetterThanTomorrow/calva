@@ -36,7 +36,7 @@ export function getClojureLspPath(
 ): string {
   let name = getArtifactDownloadName(platform, arch);
   if (path.extname(name).toLowerCase() !== '.jar') {
-    name = arch === 'win32' ? 'clojure-lsp.exe' : 'clojure-lsp';
+    name = platform === 'win32' ? 'clojure-lsp.exe' : 'clojure-lsp';
   }
   return path.join(extensionPath, name);
 }

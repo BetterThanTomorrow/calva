@@ -14,18 +14,8 @@ const defaultCljfmtContent =
 const LSP_CONFIG_KEY = 'CLOJURE-LSP';
 let lspFormatConfig: string | undefined;
 
-function cljfmtOptionsFromString(cljfmt: string) {
-  const options = cljfmt_from_string_js_bridge(cljfmt);
-  return options.error
-    ? options
-    : {
-        ...options,
-        indents: options['indents'],
-      };
-}
-
 function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmt: string) {
-  const cljfmtOptions = cljfmtOptionsFromString(cljfmt);
+  const cljfmtOptions = cljfmt_from_string_js_bridge(cljfmt);
   return {
     'format-as-you-type': !!formatOnTypeEnabled(),
     'keep-comment-forms-trail-paren-on-own-line?': !!workspaceConfig.get<boolean>(
