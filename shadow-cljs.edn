@@ -11,7 +11,8 @@
                      calva.js2cljs.converter
                      calva.dartclojure
                      calva.read-config
-                     calva.html2hiccup]
+                     calva.html2hiccup
+                     calva.output]
            :output-dir "out/cljs-lib"}
           :test
           {:target    :node-test

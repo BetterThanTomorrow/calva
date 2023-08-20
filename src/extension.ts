@@ -43,6 +43,7 @@ import { capitalize } from './utilities';
 import * as overrides from './overrides';
 import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
+import { activate_output } from '../out/cljs-lib/calva.output';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -76,6 +77,8 @@ function initializeState() {
 
 async function activate(context: vscode.ExtensionContext) {
   console.info('Calva activate START');
+
+  activate_output(vscode);
 
   const testController = vscode.tests.createTestController('calvaTestController', 'Calva');
   const clientProvider = lsp.createClientProvider({
