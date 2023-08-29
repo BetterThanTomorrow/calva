@@ -136,6 +136,10 @@ In full stack projects, you will probably use the window as a REPL for both `clj
 
 ![Toggle CLJC](images/howto/cljc-toggle-button.png)
 
+## REPL process output (stdout and stderr)
+
+When evaluating code, `stdout`, and `stderr` stemming from `(println ...)` et al is captured by Calva and sent to the Output window. By default this includes output from threads spawned by the evaluated code as well as a lot of other output from the repl process. You can opt out of the “this includes” behaviour with the `calva.redirectServerOutputToRepl` setting.
+
 ## Known Quirks
 
 Due to limitations in the VS Code API it is hard for Calva to know if the output file is opened, and also if it is opened more than once. Make it a habit to leave this window opened. And if it is opened in several tabs, expect evaluation printouts to be a bit unpredictable.
