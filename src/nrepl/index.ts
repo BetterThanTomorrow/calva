@@ -316,6 +316,19 @@ export class NReplSession {
     });
   }
 
+  outSubscribe(verbose?: boolean) {
+    return new Promise<any>((resolve, reject) => {
+      const id = this.client.nextId;
+      this.messageHandlers[id] = resultHandler(resolve, reject);
+      this.client.write({
+        op: 'out-subscribe',
+        id: id,
+        session: this.sessionId,
+        verbose,
+      });
+    });
+  }
+
   listSessions() {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;

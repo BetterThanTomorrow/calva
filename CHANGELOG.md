@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [stdout from sub threads is not printed in the terminal](https://github.com/BetterThanTomorrow/calva/issues/2300)
+
 ## [2.0.387] - 2023-08-20
 
 - Fix: [Evaluating a non-list top level form from inside a form evaluates the wrong form when in a rich comment](https://github.com/BetterThanTomorrow/calva/issues/2290)
