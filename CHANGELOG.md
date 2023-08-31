@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.388] - 2023-08-31
+
 - Fix: [stdout from sub threads is not printed in the terminal](https://github.com/BetterThanTomorrow/calva/issues/2300)
 - Fix: [The command `calva.showOutputWindow` is not awaitable](https://github.com/BetterThanTomorrow/calva/issues/2305)
 
