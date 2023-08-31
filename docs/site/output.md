@@ -138,7 +138,15 @@ In full stack projects, you will probably use the window as a REPL for both `clj
 
 ## REPL process output (stdout and stderr)
 
-When evaluating code, `stdout`, and `stderr` stemming from `(println ...)` et al is captured by Calva and sent to the Output window. By default this includes output from threads spawned by the evaluated code as well as a lot of other output from the repl process. You can opt out of this behavior by setting the `calva.redirectServerOutputToRepl` setting to `false`.
+When Calva is connected to the REPL, the Output window will by default print not only results of evaluations, but also:
+
+1. Things printed to `stdout` and `stderr` in the **main thread** of the evaluations
+2. Things printed to `stdout` and `stderr` from **child threads** of the evaluations
+3. Anything printed to `stdout` and `stderr` by the REPL process
+
+You can control the default via the `calva.redirectServerOutputToRepl` setting. It defaults to `true`. Setting it to `false` before connecting the REPL will result in that **2.** and **3.** will not get printed in the Output window. It will then instead be printed wherever the REPL process is printing its messages, usually the terminal from where it was started (the **Jack-in terminal** if Calva started the REPL).
+
+The main reason for keeping the default is that all output from an evaluation is kept together, instead of some of it in the Output window and some of it in the REPL process terminal. It comes with the side effect that all REPL process output will also be printed in the Output window. There is currently no way to separate these. If you are working mostly in ClojureScript, you might want to disable `calva.redirectServerOutputToRepl`, since there are no child threads there anyway.
 
 ## Known Quirks
 
