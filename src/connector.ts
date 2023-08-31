@@ -744,6 +744,9 @@ export async function connect(
       console.error(`Basic cider-nrepl dependencies not met (no 'info' op)`);
     }
   }
+  if (getConfig().redirectServerOutputToRepl && nClient.session.supports('out-subscribe')) {
+    void nClient.session.outSubscribe();
+  }
   return true;
 }
 
