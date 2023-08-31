@@ -909,7 +909,7 @@
           },
           "calva.redirectServerOutputToRepl": {
             "type": "boolean",
-            "markdownDescription": "Redirect the output from the REPL server process to the REPL/Output window. With this disabled output from child threads of evaluations will not be shown in the REPL/Output window, but instead in the terminal where the repl is started. (The Jack-in terminal if Calva started the repl).",
+            "markdownDescription": "Redirect the output from the REPL server process to the REPL/Output window. With this disabled output from child threads of evaluations will not be shown in the REPL/Output window, but instead in the terminal where the REPL is started (the jack-in terminal if Calva started the REPL).",
             "default": true
           }
         }
