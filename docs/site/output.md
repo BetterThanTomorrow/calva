@@ -138,7 +138,7 @@ In full stack projects, you will probably use the window as a REPL for both `clj
 
 ## REPL process output (stdout and stderr)
 
-When evaluating code, `stdout`, and `stderr` stemming from `(println ...)` et al is captured by Calva and sent to the Output window. By default this includes output from threads spawned by the evaluated code as well as a lot of other output from the repl process. You can opt out of the “this includes” behaviour with the `calva.redirectServerOutputToRepl` setting.
+When evaluating code, `stdout`, and `stderr` stemming from `(println ...)` et al is captured by Calva and sent to the Output window. By default this includes output from threads spawned by the evaluated code as well as a lot of other output from the repl process. You can opt out of this behavior by setting the `calva.redirectServerOutputToRepl` setting to `false`.
 
 ## Known Quirks
 
