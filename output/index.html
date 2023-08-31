@@ -740,6 +740,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#repl-process-output-stdout-and-stderr" class="md-nav__link">
+    REPL process output (stdout and stderr)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#known-quirks" class="md-nav__link">
     Known Quirks
   </a>
@@ -1605,6 +1612,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#repl-process-output-stdout-and-stderr" class="md-nav__link">
+    REPL process output (stdout and stderr)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#known-quirks" class="md-nav__link">
     Known Quirks
   </a>
@@ -1707,6 +1721,15 @@
 <h2 id="choose-clj-or-cljs-repl-connection">Choose CLJ or CLJS REPL Connection</h2>
 <p>In full stack projects, you will probably use the window as a REPL for both <code>clj</code> and <code>cljs</code>. You can toggle which REPL the window is connected to using the command <strong>Calva: Toggle REPL Connection for CLJC files</strong>. There is a button for this in the status bar:</p>
 <p><img alt="Toggle CLJC" src="../images/howto/cljc-toggle-button.png" /></p>
+<h2 id="repl-process-output-stdout-and-stderr">REPL process output (stdout and stderr)</h2>
+<p>When Calva is connected to the REPL, the Output window will by default print not only results of evaluations, but also:</p>
+<ol>
+<li>Things printed to <code>stdout</code> and <code>stderr</code> in the <strong>main thread</strong> of the evaluations</li>
+<li>Things printed to <code>stdout</code> and <code>stderr</code> from <strong>child threads</strong> of the evaluations</li>
+<li>Anything printed to <code>stdout</code> and <code>stderr</code> by the REPL process</li>
+</ol>
+<p>You can control the default via the <code>calva.redirectServerOutputToRepl</code> setting. It defaults to <code>true</code>. Setting it to <code>false</code> before connecting the REPL will result in that <strong>2.</strong> and <strong>3.</strong> will not get printed in the Output window. It will then instead be printed wherever the REPL process is printing its messages, usually the terminal from where it was started (the <strong>Jack-in terminal</strong> if Calva started the REPL).</p>
+<p>The main reason for keeping the default is that all output from an evaluation is kept together, instead of some of it in the Output window and some of it in the REPL process terminal. It comes with the side effect that all REPL process output will also be printed in the Output window. There is currently no way to separate these. If you are working mostly in ClojureScript, you might want to disable <code>calva.redirectServerOutputToRepl</code>, since there are no child threads there anyway.</p>
 <h2 id="known-quirks">Known Quirks</h2>
 <p>Due to limitations in the VS Code API it is hard for Calva to know if the output file is opened, and also if it is opened more than once. Make it a habit to leave this window opened. And if it is opened in several tabs, expect evaluation printouts to be a bit unpredictable.</p>
 <p>If you save the output/REPL file (which most often does not make much sense, but anyway) you will sometimes be presented with a message about VS Code being confused about the file contents being out of sync. Just choose to <em>Overwrite</em> the currently saved version and you should be fine.</p>
