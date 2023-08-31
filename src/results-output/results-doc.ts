@@ -214,8 +214,8 @@ export async function openResultsDoc(): Promise<vscode.TextDocument> {
 }
 
 export function revealResultsDoc(preserveFocus: boolean = true) {
-  void openResultsDoc().then((doc) => {
-    void vscode.window.showTextDocument(doc, getViewColumn(), preserveFocus);
+  return openResultsDoc().then((doc) => {
+    return vscode.window.showTextDocument(doc, getViewColumn(), preserveFocus);
   });
 }
 
