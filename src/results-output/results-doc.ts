@@ -221,7 +221,7 @@ export function revealResultsDoc(preserveFocus: boolean = true) {
 
 export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
   const uri = await getUriForCurrentNamespace();
-  void vscode.workspace.openTextDocument(uri).then((doc) =>
+  return vscode.workspace.openTextDocument(uri).then((doc) =>
     vscode.window.showTextDocument(doc, {
       preserveFocus,
     })
