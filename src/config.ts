@@ -243,6 +243,7 @@ function getConfig() {
       ],
       autoEvaluateCode.defaultValue
     ),
+    redirectServerOutputToRepl: configOptions.get<boolean>('redirectServerOutputToRepl'),
     fiddleFilePaths: configOptions.get<fiddleFilesUtil.FiddleFilePaths>('fiddleFilePaths'),
   };
 }
