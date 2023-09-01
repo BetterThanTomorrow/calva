@@ -144,10 +144,10 @@ I'm glad you are reading this section! There are many ways and you are welcome t
 
 A considerable amount of time, creativity, energy, worries, sweat, and tears (well, no tears, but anyway 😄), is being spent on Calva. Please consider sponsoring us to show us that extra level of appreciation. Here are the ways you can do it:
 
-* [Peter Strömberg](https://github.com/sponsors/PEZ)
-* [Brandon Ringe](https://github.com/sponsors/bpringe)
-* [Cora Sutton](https://github.com/sponsors/corasaurus-hex)
-* [Lukas Domagala](https://github.com/sponsors/Cyrik)
+* Sponsor [Peter Strömberg](https://github.com/sponsors/PEZ)
+* Sponsor [Brandon Ringe](https://github.com/sponsors/bpringe)
+* Sponsor [Cora Sutton](https://github.com/sponsors/corasaurus-hex)
+* Sponsor [Lukas Domagala](https://github.com/sponsors/Cyrik)
 
 Please see [this statement from Cognitect](https://cognitect.com/blog/2020/12/15/sponsoring-open-source-developers) about the importance of supporting open source developers.
 
