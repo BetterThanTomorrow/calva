@@ -7,7 +7,7 @@
 (def project-root-uri-key "connect.projectDirNew")
 
 (defn get-first-workspace-folder-uri []
-  (-> (.. @vscode -workspace -workspaceFolders)
+  (-> (.. ^js @vscode -workspace -workspaceFolders)
       first ;; Handle nil here?
       (.. -uri)))
 
@@ -25,12 +25,21 @@
   (reset! vscode vsc)
   (.. ^js @vscode -window (showInformationMessage "hello output world")))
 
-(defn create-repl-output-file [])
+(defn create-repl-output-file []
+  (.. fs (writeFileSync
+          (.. ^js @vscode -Uri (joinPath (get-project-root-uri) ".calva" "repl-output.md") -fsPath)
+          "")))
 
 (comment
+  (create-repl-output-file)
+  (.. fs (writeFileSync
+          "/Users/brandon/development/crescent-api/.calva/output-window/repl-output.md"
+          ""))
+  (.. ^js @vscode -Uri (joinPath (get-project-root-uri) ".calva" "repl-output.md") -fsPath)
+  "/Users/brandon/development/crescent-api/.calva/output-window/repl-output.md"
   (get-project-root-uri)
-  @state/state
-  (or true false false)
+
+  (get-project-root-uri)
   (run!
    #(.. fs (appendFileSync
             "/Users/brandon/development/crescent-api/.calva/output-window/repl-output.md"
