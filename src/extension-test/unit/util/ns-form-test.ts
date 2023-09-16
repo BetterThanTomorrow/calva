@@ -189,6 +189,12 @@ describe('ns-form util', () => {
         nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns ^:no-doc a-b.c-d) (a b c)|'))
       ).toBe('a-b.c-d');
     });
+    // https://github.com/BetterThanTomorrow/calva/issues/2309
+    it('finds ns from inside ns form', function () {
+      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns |a-b.c-d) (a b c)'))).toBe(
+        'a-b.c-d'
+      );
+    });
   });
 
   describe('nsFromText', function () {
