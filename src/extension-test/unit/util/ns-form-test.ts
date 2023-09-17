@@ -57,9 +57,6 @@ describe('ns-form util', () => {
     it('returns `null` if ns form does contains non-symbol', function () {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns [a]) (a b c)|'))).toBe(null);
     });
-    it('returns null if current enclosing form is ns form', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-|d) (a b c)'))).toBe(null);
-    });
     it('finds ns in form with line comment', function () {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-d ; comment\n)|'))).toBe(
         'a-b.c-d'
@@ -96,7 +93,7 @@ describe('ns-form util', () => {
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation('(fn [] {:rcf (comment\n(ns a-b.c-d))}) (ns a|)')
         )
-      ).toBe(null);
+      ).toBe('a');
     });
 
     it('Closest ns or in-ns at top level wins', function () {
@@ -124,7 +121,7 @@ describe('ns-form util', () => {
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation("(fn [] {:rcf (comment\n(ns a-b.c-d))}) (in-ns 'a|)")
         )
-      ).toBe(null);
+      ).toBe('a');
     });
 
     // TODO: Figure what to do with ignored forms
@@ -170,6 +167,7 @@ describe('ns-form util', () => {
       expect(
         nsFormUtil.nsFromCursorDoc(docFromTextNotation('|(no-ns a) (a b c) (ns b) x (ns c) y'))
       ).toBe('b');
+      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation(' |(ns a) (a b c) (ns b)'))).toBe('a');
     });
     it('returns `null` if at start of document without ns form', function () {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('|(no-ns a) (a b c) (no-ns b)'))).toBe(
@@ -188,6 +186,12 @@ describe('ns-form util', () => {
       expect(
         nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns ^:no-doc a-b.c-d) (a b c)|'))
       ).toBe('a-b.c-d');
+    });
+    // https://github.com/BetterThanTomorrow/calva/issues/2309
+    it('finds ns from inside ns form', function () {
+      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns |a-b.c-d) (a b c)'))).toBe(
+        'a-b.c-d'
+      );
     });
   });
 

@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Command to run tests for namespace uses user and user-test namespaces when cursor is in ns form](https://github.com/BetterThanTomorrow/calva/issues/2309)
+
 ## [2.0.388] - 2023-08-31
 
 - Fix: [stdout from sub threads is not printed in the terminal](https://github.com/BetterThanTomorrow/calva/issues/2300)
