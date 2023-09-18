@@ -93,6 +93,10 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       },
     });
     nClient.addOnCloseHandler((c) => {
+      // TODO: We probably should not do the connect state changes here,
+      //       or, only here...
+      util.setConnectedState(false);
+      util.setConnectingState(false);
       if (!c['silent']) {
         // we didn't deliberately close this session, mention this fact.
         outputWindow.appendLine('; nREPL Connection was closed');
