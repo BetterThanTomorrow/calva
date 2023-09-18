@@ -68,7 +68,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
 
   if (nClient) {
     nClient['silent'] = true;
-    nClient.close();
+    await nClient.close();
   }
 
   let cljSession: NReplSession;
@@ -863,7 +863,7 @@ export default {
       } else {
         // the connection may be ended before
         // the REPL client was connected.
-        nClient.close();
+        void nClient.close();
       }
       liveShareSupport.didDisconnectRepl();
       nClient = undefined;
