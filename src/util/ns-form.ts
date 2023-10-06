@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as tokenCursor from '../cursor-doc/token-cursor';
-import * as lexer from '../cursor-doc/clojure-lexer';
+import * as getText from '../util/cursor-get-text';
 import * as model from '../cursor-doc/model';
 
 export function isPrefix(parentPath: string, filePath: string): boolean {
@@ -53,8 +53,19 @@ export function nsFromCursorDoc(
   p: number = cursorDoc.selection.active
 ): string | null {
   const cursor: tokenCursor.LispTokenCursor = cursorDoc.getTokenCursor(p);
-  // Special case, find first ns form
-  if (p === 0) {
+  // Special case 1, cursor is inside the ns form
+  const topLevelRange = cursor.rangeForDefun(p);
+  if (topLevelRange) {
+    const topLevelRangeCursor = cursorDoc.getTokenCursor(topLevelRange[0]);
+    const ns = nsSymbolOfCurrentForm(topLevelRangeCursor, 'downList');
+    if (ns) {
+      return ns;
+    }
+  }
+  // Special case 2, find ns form from start of document
+  const startOfDocumentCursor = cursor.clone();
+  startOfDocumentCursor.backwardWhitespace(true);
+  if (startOfDocumentCursor.atStart()) {
     cursor.forwardWhitespace(true);
     while (cursor.forwardSexp(true, true, true)) {
       const ns = nsSymbolOfCurrentForm(cursor, 'backwardDownList');
