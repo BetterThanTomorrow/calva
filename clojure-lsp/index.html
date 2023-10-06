@@ -928,6 +928,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#server-initialization-failed" class="md-nav__link">
+    Server initialization failed
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1651,6 +1658,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#server-initialization-failed" class="md-nav__link">
+    Server initialization failed
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1776,6 +1790,9 @@
 <p>You can run the <code>Clojure-lsp Server Info</code> command to get information about the running clojure-lsp server, such as the version the server being used, the version of clj-kondo it's using, and more. This info is printed to the "Calva says" output channel.</p>
 <h3 id="opening-the-server-log-file">Opening the Server Log File</h3>
 <p>You can open the clojure-lsp log file by running the command <code>Calva Diagnostics: Open Clojure-lsp Log File</code>. The log file will only be opened with this command if the clojure-lsp server is running and has finished initializing. If you need to open the file when the server is failing to run or initialize, see the <a href="https://clojure-lsp.io/troubleshooting/#server-log">clojure-lsp docs</a> for information on the file location.</p>
+<h3 id="server-initialization-failed">Server initialization failed</h3>
+<p>If clojure-lsp fails to start with “Server initialization failed” messages, it could be because the path to your project contains non-ASCII characters, or that the system PATH variable has been corrupted. (Or something else, of course.)</p>
+<p>See this issue for some findings about it: <a href="https://github.com/BetterThanTomorrow/calva/issues/2251">Issue #2251: Server initialization failed error</a></p>
 <h2 id="related">Related</h2>
 <p>See also:</p>
 <ul>
