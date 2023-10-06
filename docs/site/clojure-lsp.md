@@ -151,7 +151,7 @@ You can open the clojure-lsp log file by running the command `Calva Diagnostics:
 
 If clojure-lsp fails to start with “Server initialization failed” messages, it could be because the path to your project contains non-ASCII characters, or that the system PATH variable has been corrupted. (Or something else, of course.)
 
-See this issue for some findings about it: https://github.com/BetterThanTomorrow/calva/issues/2251  
+See this issue for some findings about it: [Issue #2251: Server initialization failed error](https://github.com/BetterThanTomorrow/calva/issues/2251)
 
 ## Related
 
