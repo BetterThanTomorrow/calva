@@ -147,6 +147,12 @@ You can run the `Clojure-lsp Server Info` command to get information about the r
 
 You can open the clojure-lsp log file by running the command `Calva Diagnostics: Open Clojure-lsp Log File`. The log file will only be opened with this command if the clojure-lsp server is running and has finished initializing. If you need to open the file when the server is failing to run or initialize, see the [clojure-lsp docs](https://clojure-lsp.io/troubleshooting/#server-log) for information on the file location.
 
+### Server initialization failed
+
+If clojure-lsp fails to start with “Server initialization failed” messages, it could be because the path to your project contains non-ASCII characters, or that the system PATH variable has been corrupted. (Or something else, of course.)
+
+See this issue for some findings about it: [Issue #2251: Server initialization failed error](https://github.com/BetterThanTomorrow/calva/issues/2251)
+
 ## Related
 
 See also:
