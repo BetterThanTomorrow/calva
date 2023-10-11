@@ -111,14 +111,20 @@ export class NReplClient {
     log(data, Direction.ClientToServer);
   }
 
-  close() {
-    for (const id in this.sessions) {
-      this.sessions[id].close();
-    }
-    // TODO: Figure out a way to know when the socket can be destroyed without an error.
-    setTimeout(() => {
-      this.disconnect();
-    }, 1000);
+  async close() {
+    return new Promise<NReplClient>((resolve, _reject) => {
+      for (const id in this.sessions) {
+        this.sessions[id].close();
+      }
+      // TODO: We probably need to make the whole disconnect process awaitable
+      //       So that we do not destroy the socket before we have sent the `close` message
+      //       This setTimeout caused https://github.com/BetterThanTomorrow/calva/issues/2301
+      //       For now wrapped in a promise...
+      setTimeout(() => {
+        this.disconnect();
+        resolve(this);
+      }, 1000);
+    });
   }
 
   disconnect() {

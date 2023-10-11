@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.390] - 2023-10-11
+
+- Fix: [Reconnecting a repl while connected fails](https://github.com/BetterThanTomorrow/calva/issues/2301)
+
 ## [2.0.389] - 2023-10-06
 
 - Fix: [Command to run tests for namespace uses user and user-test namespaces when cursor is in ns form](https://github.com/BetterThanTomorrow/calva/issues/2309)

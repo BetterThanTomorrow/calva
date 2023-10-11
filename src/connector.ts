@@ -68,7 +68,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
 
   if (nClient) {
     nClient['silent'] = true;
-    nClient.close();
+    await nClient.close();
   }
 
   let cljSession: NReplSession;
@@ -93,6 +93,8 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       },
     });
     nClient.addOnCloseHandler((c) => {
+      // TODO: We probably should not do the connect state changes here,
+      //       or, only here...
       util.setConnectedState(false);
       util.setConnectingState(false);
       if (!c['silent']) {
@@ -865,7 +867,7 @@ export default {
       } else {
         // the connection may be ended before
         // the REPL client was connected.
-        nClient.close();
+        void nClient.close();
       }
       liveShareSupport.didDisconnectRepl();
       nClient = undefined;
