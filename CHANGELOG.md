@@ -2,7 +2,9 @@
 
 Changes to Calva.
 
-## [Unreleased]
+## [2.0.391] - 2023-10-11
+
+- Fix: [Allowing dram download to fail vocally for user. Fixing a JS join path error](https://github.com/BetterThanTomorrow/calva/issues/2325)
 
 ## [2.0.390] - 2023-10-11
 
