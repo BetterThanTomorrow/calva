@@ -498,7 +498,7 @@ function createCLJSReplType(
       return true;
     };
     outputWindow.appendLine(
-      '; Please start your ClojureScript app so that Calva can connect to its REPL...'
+      '; Please start your ClojureScript app (load it in the browser, or whatever is appropriate) so that Calva can connect to its REPL...'
     );
     return await waitForRuntimes();
   }
