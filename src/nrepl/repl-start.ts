@@ -69,7 +69,8 @@ async function fetchConfig(configName: string): Promise<DramConfig> {
 
 async function downloadDram(storageUri: vscode.Uri, configPath: string, filePath: string) {
   const downloadUrl = `${dramsBaseUrl()}/${configPath}/${filePath}`;
-  const dirUri = vscode.Uri.joinPath(storageUri, path.join(...path.dirname(filePath).split(/\//)));
+  const directoryPath = path.dirname(filePath).split(/\//);
+  const dirUri = vscode.Uri.joinPath(storageUri, ...directoryPath);
   await vscode.workspace.fs.createDirectory(dirUri);
   const storeFileUri = vscode.Uri.joinPath(storageUri, path.join(...filePath.split(/\//)));
   return await utilities.downloadFromUrl(downloadUrl, storeFileUri.fsPath).catch((err) => {
@@ -84,13 +85,12 @@ export async function downloadDrams(
 ) {
   await Promise.all(
     filePaths.map(async (filePath) => {
-      await downloadDram(storageUri, configPath, filePath)
-        .then(() => {
-          console.log(`Downloaded ${filePath}`);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
+      await downloadDram(storageUri, configPath, filePath).then(() => {
+        console.log(`Downloaded ${filePath}`);
+      });
+      // .catch((err) => {
+      //   console.error(err);
+      // });
     })
   );
 }
