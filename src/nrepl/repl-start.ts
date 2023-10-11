@@ -88,9 +88,6 @@ export async function downloadDrams(
       await downloadDram(storageUri, configPath, filePath).then(() => {
         console.log(`Downloaded ${filePath}`);
       });
-      // .catch((err) => {
-      //   console.error(err);
-      // });
     })
   );
 }
