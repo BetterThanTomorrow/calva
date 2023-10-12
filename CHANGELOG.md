@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.391] - 2023-10-12
+
+- Fix: [[Windows] The ClojureScript Quick Start REPL Experiences are broken](https://github.com/BetterThanTomorrow/calva/issues/2325)
+
 ## [2.0.390] - 2023-10-11
 
 - Fix: [Reconnecting a repl while connected fails](https://github.com/BetterThanTomorrow/calva/issues/2301)
