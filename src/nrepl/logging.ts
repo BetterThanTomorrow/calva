@@ -26,11 +26,19 @@ function formatNreplMessage(message: any): string {
   return nodeUtil.inspect(message, false, 2, false);
 }
 
+const lastSeenTimes = {};
 export function log(message: any, direction: Direction): void {
   if (NREPL_LOGGING_ENABLED) {
     const channel = getMessageChannel();
     if (channel) {
-      const formattedMessage = `${direction}\n${formatNreplMessage(message)}\n`;
+      const lastSeenKey = `${message.session}:${message.id}`;
+      const currentTime = Date.now();
+      const lastSeenTime = lastSeenTimes[lastSeenKey];
+      const timeSinceLastSeen = lastSeenTime ? `${currentTime - lastSeenTime}ms` : '';
+      lastSeenTimes[lastSeenKey] = currentTime;
+      const formattedMessage = `${Date.now()} ${direction} ${timeSinceLastSeen}\n${formatNreplMessage(
+        message
+      )}\n`;
       channel.appendLine(formattedMessage);
     }
   }
