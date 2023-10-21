@@ -91,6 +91,9 @@ export function nsFromCursorDoc(
   if (cursor.atStart()) {
     return null;
   } else {
+    if (!cursor.docIsBalanced()) {
+      return nsFromCursorDoc(cursorDoc, 0);
+    }
     return nsFromCursorDoc(cursorDoc, cursor.offsetStart);
   }
 }

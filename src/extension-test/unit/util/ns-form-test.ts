@@ -2,6 +2,7 @@ import * as expect from 'expect';
 import { docFromTextNotation } from '../common/text-notation';
 import * as nsFormUtil from '../../../util/ns-form';
 import { resolveNsName, pathToNs, isPrefix } from '../../../util/ns-form';
+import { fail } from 'assert';
 
 describe('ns-form util', () => {
   describe('isPrefix', function () {
@@ -192,6 +193,19 @@ describe('ns-form util', () => {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns |a-b.c-d) (a b c)'))).toBe(
         'a-b.c-d'
       );
+    });
+    it('finds ns from unbalanced form', function () {
+      try {
+        expect(
+          nsFormUtil.nsFromCursorDoc(
+            docFromTextNotation(
+              '(ns xxx)•(def xxx|•{()"#"\\$" #"(?!\\w)"))))))))))))))))))))))))))))))))))))))))'
+            )
+          )
+        ).toBe('xxx');
+      } catch (error) {
+        fail(`Expected no error to be thrown, but got ${error}`);
+      }
     });
   });
 
