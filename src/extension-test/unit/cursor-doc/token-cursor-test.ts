@@ -781,6 +781,16 @@ describe('Token Cursor', () => {
       const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
       expect(cursor.rangeForDefun(a.selection.active)).toEqual(textAndSelection(b)[1]);
     });
+    it('Finds something when there is unbalance', () => {
+      const a = docFromTextNotation(
+        '(ns xxx)•(def xxx|•{()"#"\\$" #"(?!\\w)"))))))))))))))))))))))))))))))))))))))))'
+      );
+      const b = docFromTextNotation(
+        '(ns xxx)•(def xxx•|{()"#"\\$" #"(?!\\w)"))))))))))))))))))))))))))))))))))))))))|'
+      );
+      const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+      expect(cursor.rangeForDefun(a.selection.active)).toEqual(textAndSelection(b)[1]);
+    });
     describe('Rich Comment Form top level context', () => {
       it('Finds range for a top level form inside a comment', () => {
         const a = docFromTextNotation('aaa (comment [bbb cc|c]  ddd)');
