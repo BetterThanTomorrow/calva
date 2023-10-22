@@ -2,6 +2,7 @@ import * as expect from 'expect';
 import { docFromTextNotation } from '../common/text-notation';
 import * as nsFormUtil from '../../../util/ns-form';
 import { resolveNsName, pathToNs, isPrefix } from '../../../util/ns-form';
+import { fail } from 'assert';
 
 describe('ns-form util', () => {
   describe('isPrefix', function () {
@@ -192,6 +193,29 @@ describe('ns-form util', () => {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns |a-b.c-d) (a b c)'))).toBe(
         'a-b.c-d'
       );
+    });
+    // https://github.com/BetterThanTomorrow/calva/issues/2299
+    it('finds ns from unbalanced form, lacking opening brackets', function () {
+      try {
+        expect(
+          nsFormUtil.nsFromCursorDoc(
+            docFromTextNotation(
+              '(ns xxx)•(def xxx|•{()"#"\\$" #"(?!\\w)"))))))))))))))))))))))))))))))))))))))))'
+            )
+          )
+        ).toBe('xxx');
+      } catch (error) {
+        fail(`Expected no error to be thrown, but got ${error}`);
+      }
+    });
+    it('finds ns from unbalanced form lacking closing brackets', function () {
+      try {
+        expect(
+          nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns xxx]))]]]]]])))•(def xxx|•{})'))
+        ).toBe('xxx');
+      } catch (error) {
+        fail(`Expected no error to be thrown, but got ${error}`);
+      }
     });
   });
 

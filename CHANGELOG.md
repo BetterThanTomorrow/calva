@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.392] - 2023-10-22
+
+- Bump bundled deps.clj to v1.11.1.1413
+- Add timestamps to nREPL message log diagnostics
+- Fix: [Backspace (structural editing) occasionally hangs](https://github.com/BetterThanTomorrow/calva/issues/2299)
+
 ## [2.0.391] - 2023-10-12
 
 - Fix: [[Windows] The ClojureScript Quick Start REPL Experiences are broken](https://github.com/BetterThanTomorrow/calva/issues/2325)
