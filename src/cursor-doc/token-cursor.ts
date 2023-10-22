@@ -965,6 +965,16 @@ export class LispTokenCursor extends TokenCursor {
     }
     return true;
   }
+
+  docIsBalanced(): boolean {
+    const cursor = this.clone();
+    cursor.set(new TokenCursor(this.doc, 0, 0));
+    while (cursor.forwardSexp(true, true, true)) {
+      // move forward until the cursor cannot move forward anymore
+    }
+    cursor.forwardWhitespace(true);
+    return cursor.atEnd();
+  }
 }
 
 /**
