@@ -1011,6 +1011,31 @@ describe('Token Cursor', () => {
       });
     });
 
+    describe('docIsBalanced', () => {
+      it('Reports balance for balanced structure', () => {
+        const doc = docFromTextNotation('(a)•|(b)');
+        const cursor: LispTokenCursor = doc.getTokenCursor(doc.selection.active);
+        expect(cursor.docIsBalanced()).toBe(true);
+      });
+      it('Detects unbalance when lacking opening brackets', () => {
+        const doc = docFromTextNotation('(a)•|(b))');
+        const cursor: LispTokenCursor = doc.getTokenCursor(doc.selection.active);
+        expect(cursor.docIsBalanced()).toBe(false);
+      });
+      // TODO: Fix this
+      xit('Detects unbalance when lacking closing brackets', () => {
+        const doc = docFromTextNotation('(a)•|(b');
+        const cursor: LispTokenCursor = doc.getTokenCursor(doc.selection.active);
+        expect(cursor.docIsBalanced()).toBe(false);
+      });
+      // TODO: Fix this too
+      xit('Detects unbalance when lacking man closing brackets', () => {
+        const doc = docFromTextNotation('(a)•|([{((((b)');
+        const cursor: LispTokenCursor = doc.getTokenCursor(doc.selection.active);
+        expect(cursor.docIsBalanced()).toBe(false);
+      });
+    });
+
     describe('backwardFunction', () => {
       it('Finds current function start', () => {
         const a = docFromTextNotation('(a b |c)');

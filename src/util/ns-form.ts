@@ -50,8 +50,14 @@ function nsSymbolOfCurrentForm(
 
 export function nsFromCursorDoc(
   cursorDoc: model.EditableDocument,
-  p: number = cursorDoc.selection.active
+  p: number = cursorDoc.selection.active,
+  _maxRecursionDepth: number = 100, // used internally for recursion
+  _depth: number = 0 // used internally for recursion
 ): string | null {
+  if (_depth > _maxRecursionDepth) {
+    console.error(`nsFromCursorDoc: recursion depth, ${_maxRecursionDepth} , exceeded`);
+    return null;
+  }
   const cursor: tokenCursor.LispTokenCursor = cursorDoc.getTokenCursor(p);
   // Special case 1, cursor is inside the ns form
   const topLevelRange = cursor.rangeForDefun(p);
@@ -90,15 +96,14 @@ export function nsFromCursorDoc(
   cursor.backwardWhitespace(true);
   if (cursor.atStart()) {
     return null;
-  } else {
-    // Special case 3, the structure of the document is unbalanced
-    // We try to find the ns from the start of the document
-    if (!cursor.docIsBalanced()) {
-      return nsFromCursorDoc(cursorDoc, 0);
-    }
-    // General case, continue look for ns form closest before p
-    return nsFromCursorDoc(cursorDoc, cursor.offsetStart);
   }
+  // Special case 3, the structure of the document is unbalanced
+  // We try to find the ns from the start of the document
+  if (!cursor.docIsBalanced()) {
+    return nsFromCursorDoc(cursorDoc, 0, _maxRecursionDepth, _depth + 1);
+  }
+  // General case, continue look for ns form closest before p
+  return nsFromCursorDoc(cursorDoc, cursor.offsetStart, _maxRecursionDepth, _depth + 1);
 }
 
 export function nsFromText(text: string, p = text.length): string | null {

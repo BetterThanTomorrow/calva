@@ -194,7 +194,8 @@ describe('ns-form util', () => {
         'a-b.c-d'
       );
     });
-    it('finds ns from unbalanced form', function () {
+    // https://github.com/BetterThanTomorrow/calva/issues/2299
+    it('finds ns from unbalanced form, lacking opening brackets', function () {
       try {
         expect(
           nsFormUtil.nsFromCursorDoc(
@@ -202,6 +203,15 @@ describe('ns-form util', () => {
               '(ns xxx)•(def xxx|•{()"#"\\$" #"(?!\\w)"))))))))))))))))))))))))))))))))))))))))'
             )
           )
+        ).toBe('xxx');
+      } catch (error) {
+        fail(`Expected no error to be thrown, but got ${error}`);
+      }
+    });
+    it('finds ns from unbalanced form lacking closing brackets', function () {
+      try {
+        expect(
+          nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns xxx]))]]]]]])))•(def xxx|•{})'))
         ).toBe('xxx');
       } catch (error) {
         fail(`Expected no error to be thrown, but got ${error}`);
