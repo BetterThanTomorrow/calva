@@ -91,9 +91,12 @@ export function nsFromCursorDoc(
   if (cursor.atStart()) {
     return null;
   } else {
+    // Special case 3, the structure of the document is unbalanced
+    // We try to find the ns from the start of the document
     if (!cursor.docIsBalanced()) {
       return nsFromCursorDoc(cursorDoc, 0);
     }
+    // General case, continue look for ns form closest before p
     return nsFromCursorDoc(cursorDoc, cursor.offsetStart);
   }
 }
