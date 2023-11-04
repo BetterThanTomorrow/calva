@@ -7,18 +7,16 @@ type CompletionObject = {
 };
 
 export function mergeCompletions(a: CompletionObject[], b: CompletionObject[]): CompletionObject[] {
-  const mergeMap = new Map<string, CompletionObject>();
-
-  const addToMergeMap = (obj: CompletionObject) => {
+  const merge = (map: Map<string, CompletionObject>, obj: CompletionObject) => {
     const key = `${obj.label},${obj.kind}`;
-    const existingObj = mergeMap.get(key);
+    const existingObj = map.get(key);
     if (!existingObj || obj.score >= existingObj.score) {
-      mergeMap.set(key, obj);
+      map.set(key, obj);
     }
+    return map;
   };
 
-  a.forEach(addToMergeMap);
-  b.forEach(addToMergeMap);
+  const mergedMap = [...a, ...b].reduce(merge, new Map<string, CompletionObject>());
 
-  return Array.from(mergeMap.values());
+  return Array.from(mergedMap.values());
 }
