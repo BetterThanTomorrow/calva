@@ -21,6 +21,7 @@ import { CompletionRequest, CompletionResolveRequest } from 'vscode-languageserv
 import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 import * as lsp from '../lsp';
+import { mergeCompletions } from './completion-util';
 
 const mappings = {
   nil: CompletionItemKind.Value,
@@ -39,6 +40,12 @@ const converter = createConverter(undefined, undefined, true);
 const completionProviderOptions = { priority: ['lsp', 'repl'], merge: true };
 
 const completionFunctions = { lsp: lspCompletions, repl: replCompletions };
+
+async function provideCompletions(provider: string) {
+  return await completionFunctions[provider]().catch((err) => {
+    console.log(`Failed to get results from completions provider '${provider}'`, err);
+  });
+}
 
 async function provideCompletionItems(
   clientProvider: lsp.ClientProvider,
@@ -62,18 +69,11 @@ async function provideCompletionItems(
     ).catch((err) => {
       console.log(`Failed to get results from completions provider '${provider}'`, err);
     });
-
+    console.log('completions', provider, completions);
+    console.log('results before merge', provider, results);
     if (completions) {
-      results = [
-        ...completions
-          .concat(results)
-          .reduce(
-            (m: Map<string | CompletionItemLabel, CompletionItem>, o: CompletionItem) =>
-              m.set(o.label, Object.assign(m.get(o.label) || {}, o)),
-            new Map()
-          )
-          .values(),
-      ];
+      results = mergeCompletions(results, completions);
+      console.log('results after merge', provider, results);
     }
   }
 
