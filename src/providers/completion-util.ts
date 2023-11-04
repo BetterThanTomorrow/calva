@@ -11,7 +11,10 @@ export function mergeCompletions(a: CompletionObject[], b: CompletionObject[]): 
 
   const addToMergeMap = (obj: CompletionObject) => {
     const key = `${obj.label},${obj.kind}`;
-    mergeMap.set(key, obj);
+    const existingObj = mergeMap.get(key);
+    if (!existingObj || obj.score >= existingObj.score) {
+      mergeMap.set(key, obj);
+    }
   };
 
   a.forEach(addToMergeMap);

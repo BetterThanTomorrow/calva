@@ -16,17 +16,35 @@ describe('Merging arrays', () => {
     ];
     expect(completionUtil.mergeCompletions(completions, [])).toStrictEqual(completions);
   });
-  it('it merges two populated arrays or completions', function () {
+  it('it merges two populated arrays or completions, the second array wins with equal scores', function () {
     const completions1 = [
-      { label: 'a', kind: 1, detail: 'foo' },
+      { label: 'a', kind: 1, detail: 'foo', score: 0 },
       { label: 'b', kind: 2 },
     ];
     const completions2 = [
-      { label: 'a', kind: 1, detail: 'bar' },
+      { label: 'a', kind: 1, detail: 'bar', score: 0 },
       { label: 'c', kind: 3 },
     ];
     const mergedCompletions = [
-      { label: 'a', kind: 1, detail: 'bar' },
+      { label: 'a', kind: 1, detail: 'bar', score: 0 },
+      { label: 'b', kind: 2 },
+      { label: 'c', kind: 3 },
+    ];
+    expect(completionUtil.mergeCompletions(completions1, completions2)).toStrictEqual(
+      mergedCompletions
+    );
+  });
+  it('it merges two populated arrays or completions, the higher score wins', function () {
+    const completions1 = [
+      { label: 'a', kind: 1, detail: 'foo', score: 1 },
+      { label: 'b', kind: 2 },
+    ];
+    const completions2 = [
+      { label: 'a', kind: 1, detail: 'bar', score: 0 },
+      { label: 'c', kind: 3 },
+    ];
+    const mergedCompletions = [
+      { label: 'a', kind: 1, detail: 'foo', score: 1 },
       { label: 'b', kind: 2 },
       { label: 'c', kind: 3 },
     ];
