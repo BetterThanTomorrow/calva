@@ -8,7 +8,6 @@ import {
   CompletionList,
   CompletionItemProvider,
   CompletionItem,
-  CompletionItemLabel,
   Uri,
 } from 'vscode';
 import * as util from '../utilities';
@@ -32,6 +31,7 @@ const mappings = {
   function: CompletionItemKind.Function,
   'special-form': CompletionItemKind.Keyword,
   var: CompletionItemKind.Variable,
+  local: CompletionItemKind.Variable,
   method: CompletionItemKind.Method,
 };
 
@@ -204,9 +204,12 @@ async function replCompletions(
     }
   });
   return results.map((item) => {
+    console.log('nrepl item', item);
     const result = new CompletionItem(
       item.candidate,
-      mappings[item.type] || CompletionItemKind.Text
+      // +1 because the LSP CompletionItemKind enum starts at 1
+      // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItemKind
+      (mappings[item.type] || CompletionItemKind.Text) + 1
     );
     const data = item[0] === '.' ? item.slice(1) : item;
     data['provider'] = 'repl';
