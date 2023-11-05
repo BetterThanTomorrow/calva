@@ -46,6 +46,11 @@ export const getActiveClientForUri = (clients: defs.LspClientStore, uri: vscode.
   }
 };
 
+// Temporary hack to pick the last active client when no active client matches the current file Uri
+// Such as when serving jar files
+// TODO: Figure out the proper way to handle this
+let lastActiveClient: defs.LspClient | undefined;
+
 /**
  * Similar to `getActiveClientForUri` except this only returns the client if it is in a running state. This API
  * should be used by systems wanting to interact with the LSP client.
@@ -53,7 +58,10 @@ export const getActiveClientForUri = (clients: defs.LspClientStore, uri: vscode.
 export const getClientForDocumentUri = (clients: defs.LspClientStore, uri: vscode.Uri) => {
   const client = getActiveClientForUri(clients, uri);
   if (client && client.status === defs.LspStatus.Running) {
+    lastActiveClient = client;
     return client.client;
+  } else {
+    return lastActiveClient?.client;
   }
 };
 

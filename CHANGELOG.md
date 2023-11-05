@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Definition lookup in dependency files is broken](https://github.com/BetterThanTomorrow/calva/issues/2339)
+
 ## [2.0.392] - 2023-10-22
 
 - Bump bundled deps.clj to v1.11.1.1413
