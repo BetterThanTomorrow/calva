@@ -8,7 +8,6 @@ import {
   CompletionList,
   CompletionItemProvider,
   CompletionItem,
-  CompletionItemLabel,
   Uri,
 } from 'vscode';
 import * as util from '../utilities';
@@ -21,6 +20,7 @@ import { CompletionRequest, CompletionResolveRequest } from 'vscode-languageserv
 import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 import * as lsp from '../lsp';
+import { mergeCompletions } from './completion-util';
 
 const mappings = {
   nil: CompletionItemKind.Value,
@@ -31,6 +31,7 @@ const mappings = {
   function: CompletionItemKind.Function,
   'special-form': CompletionItemKind.Keyword,
   var: CompletionItemKind.Variable,
+  local: CompletionItemKind.Variable,
   method: CompletionItemKind.Method,
 };
 
@@ -39,6 +40,12 @@ const converter = createConverter(undefined, undefined, true);
 const completionProviderOptions = { priority: ['lsp', 'repl'], merge: true };
 
 const completionFunctions = { lsp: lspCompletions, repl: replCompletions };
+
+async function provideCompletions(provider: string) {
+  return await completionFunctions[provider]().catch((err) => {
+    console.log(`Failed to get results from completions provider '${provider}'`, err);
+  });
+}
 
 async function provideCompletionItems(
   clientProvider: lsp.ClientProvider,
@@ -62,18 +69,11 @@ async function provideCompletionItems(
     ).catch((err) => {
       console.log(`Failed to get results from completions provider '${provider}'`, err);
     });
-
+    console.log('completions', provider, completions);
+    console.log('results before merge', provider, results);
     if (completions) {
-      results = [
-        ...completions
-          .concat(results)
-          .reduce(
-            (m: Map<string | CompletionItemLabel, CompletionItem>, o: CompletionItem) =>
-              m.set(o.label, Object.assign(m.get(o.label) || {}, o)),
-            new Map()
-          )
-          .values(),
-      ];
+      results = mergeCompletions(results, completions);
+      console.log('results after merge', provider, results);
     }
   }
 
@@ -204,9 +204,12 @@ async function replCompletions(
     }
   });
   return results.map((item) => {
+    console.log('nrepl item', item);
     const result = new CompletionItem(
       item.candidate,
-      mappings[item.type] || CompletionItemKind.Text
+      // +1 because the LSP CompletionItemKind enum starts at 1
+      // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItemKind
+      (mappings[item.type] || CompletionItemKind.Text) + 1
     );
     const data = item[0] === '.' ? item.slice(1) : item;
     data['provider'] = 'repl';

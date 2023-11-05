@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Namespace alias shadows local variables](https://github.com/BetterThanTomorrow/calva/issues/2336)
 - Fix: [Definition lookup in dependency files is broken](https://github.com/BetterThanTomorrow/calva/issues/2339)
 
 ## [2.0.392] - 2023-10-22
