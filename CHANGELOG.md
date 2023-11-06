@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.394] - 2023-11-06
+
 - Fix: [Calva shows two hover definitions for user-defined vars when a repl is connected](https://github.com/BetterThanTomorrow/calva/issues/2091)
 
 ## [2.0.393] - 2023-11-05
