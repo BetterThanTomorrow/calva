@@ -1,5 +1,6 @@
 import * as messages from './messages';
 import { provideSignatureHelp } from '../../providers/signature';
+import { provideHover } from '../../providers/hover';
 import { isResultsDoc } from '../../results-output/results-doc';
 import * as vscode_lsp from 'vscode-languageclient/node';
 import * as defs from '../definitions';
@@ -7,6 +8,7 @@ import * as config from '../../config';
 import * as utils from '../utils';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { getClientProvider } from '../state';
 
 /**
  * This can potentially be used to replace or alter the automatic command instrumentation performed by the
@@ -171,6 +173,14 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
         },
         provideLinkedEditingRange: (_document, _position, _token, _next): null => {
           return null;
+        },
+        async provideHover(document, position, token, next) {
+          const hovers = await provideHover(getClientProvider(), document, position);
+          if (hovers) {
+            return null;
+          } else {
+            return next(document, position, token);
+          }
         },
         handleDiagnostics(uri, diagnostics, next) {
           if (uri.path.endsWith(config.REPL_FILE_EXT)) {
