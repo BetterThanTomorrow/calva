@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Calva shows two hover definitions for user-defined vars when a repl is connected](https://github.com/BetterThanTomorrow/calva/issues/2091)
+
 ## [2.0.393] - 2023-11-05
 
 - Fix: [Namespace alias shadows local variables](https://github.com/BetterThanTomorrow/calva/issues/2336)
