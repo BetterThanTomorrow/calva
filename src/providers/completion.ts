@@ -102,7 +102,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
       const client = replSession.getSession(util.getFileType(activeTextEditor.document));
       if (client) {
         await namespace.createNamespaceFromDocumentIfNotExists(activeTextEditor.document);
-        const ns = namespace.getDocumentNamespace();
+        const [ns, _] = namespace.getDocumentNamespace();
         const result = await client.info(
           ns,
           typeof item.label === 'string' ? item.label : item['data'].label
@@ -188,7 +188,7 @@ async function replCompletions(
     contextEnd = toplevel.substring(wordEndLocalOffset),
     replContext = `${contextStart}__prefix__${contextEnd}`,
     toplevelIsValidForm = toplevelStartCursor.withinValidList() && replContext != '__prefix__',
-    ns = namespace.getNamespace(document, position),
+    [ns, _] = namespace.getNamespace(document, position),
     client = replSession.getSession(util.getFileType(document)),
     res = await client.complete(ns, text, toplevelIsValidForm ? replContext : undefined),
     results = res.completions || [];

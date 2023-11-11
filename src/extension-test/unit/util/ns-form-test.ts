@@ -43,14 +43,14 @@ describe('ns-form util', () => {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(no-ns a-b.c-d)\nfoo|'))).toBe(null);
     });
     it('finds ns', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-d) (a b c)|'))).toBe(
-        'a-b.c-d'
-      );
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-d) (a b c)|'))
+      ).toStrictEqual(['a-b.c-d', '(ns a-b.c-d)']);
     });
     it('finds in-ns', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation("(in-ns 'a-b.c-d) (a b c)|"))).toBe(
-        'a-b.c-d'
-      );
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation("(in-ns 'a-b.c-d) (a b c)|"))
+      ).toStrictEqual(['a-b.c-d', "(in-ns 'a-b.c-d)"]);
     });
     it('returns `null` if ns form does not contain a namespace symbol', function () {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns) (a b c)|'))).toBe(null);
@@ -59,14 +59,14 @@ describe('ns-form util', () => {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns [a]) (a b c)|'))).toBe(null);
     });
     it('finds ns in form with line comment', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-d ; comment\n)|'))).toBe(
-        'a-b.c-d'
-      );
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-d ; comment\n)|'))
+      ).toStrictEqual(['a-b.c-d', '(ns a-b.c-d ; comment\n)']);
     });
     it('finds ns in form after line comments', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('; comment\n(ns a-b.c-d)|'))).toBe(
-        'a-b.c-d'
-      );
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('; comment\n(ns a-b.c-d)|'))
+      ).toStrictEqual(['a-b.c-d', '(ns a-b.c-d)']);
     });
 
     it('Closest ns at top level wins', function () {
@@ -74,27 +74,27 @@ describe('ns-form util', () => {
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation('(ns a) (fn [] {:rcf (comment\n(ns a-b.c-d))}|)')
         )
-      ).toBe('a');
+      ).toStrictEqual(['a', '(ns a)']);
       expect(
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation('(ns a) (ns b) (fn [] {:rcf (comment\n(ns a-b.c-d))|})')
         )
-      ).toBe('b');
+      ).toStrictEqual(['b', '(ns b)']);
       expect(
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation('(ns a) (ns b) (fn [] {:rcf (comment\n(ns a-b.c-d)|)})')
         )
-      ).toBe('a-b.c-d');
+      ).toStrictEqual(['a-b.c-d', '(ns a-b.c-d)']);
       expect(
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation('(fn [] {:rcf (comment\n(ns a-b.c-d))}) (ns a)|')
         )
-      ).toBe('a');
+      ).toStrictEqual(['a', '(ns a)']);
       expect(
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation('(fn [] {:rcf (comment\n(ns a-b.c-d))}) (ns a|)')
         )
-      ).toBe('a');
+      ).toStrictEqual(['a', '(ns a)']);
     });
 
     it('Closest ns or in-ns at top level wins', function () {
@@ -102,73 +102,80 @@ describe('ns-form util', () => {
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation("(ns a) (in-ns 'b) (fn [] {:rcf (comment\n(ns a-b.c-d))}|)")
         )
-      ).toBe('b');
+      ).toStrictEqual(['b', "(in-ns 'b)"]);
       expect(
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation("(in-ns 'a) (ns b) (fn [] {:rcf (comment\n(ns a-b.c-d))|})")
         )
-      ).toBe('b');
+      ).toStrictEqual(['b', '(ns b)']);
       expect(
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation("(ns a) (ns b) (fn [] {:rcf (comment\n(ns c) x (in-ns 'a-b.c-d)|)})")
         )
-      ).toBe('a-b.c-d');
+      ).toStrictEqual(['a-b.c-d', "(in-ns 'a-b.c-d)"]);
       expect(
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation("(fn [] {:rcf (comment\n(ns a-b.c-d))}) (in-ns 'a)|")
         )
-      ).toBe('a');
+      ).toStrictEqual(['a', "(in-ns 'a)"]);
       expect(
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation("(fn [] {:rcf (comment\n(ns a-b.c-d))}) (in-ns 'a|)")
         )
-      ).toBe('a');
+      ).toStrictEqual(['a', "(in-ns 'a)"]);
     });
 
     // TODO: Figure what to do with ignored forms
     //       For now, this is what they do (nothing)
     it('Finds ns in top level ignored form', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('#_ (ns a-b.c-d)|'))).toBe('a-b.c-d');
+      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('#_ (ns a-b.c-d)|'))).toStrictEqual([
+        'a-b.c-d',
+        '(ns a-b.c-d)',
+      ]);
     });
     it('Finds ns in ignored rich comments', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('#_ (comment\n(ns a-b.c-d)|)'))).toBe(
-        'a-b.c-d'
-      );
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('#_ (comment\n(ns a-b.c-d)|)'))
+      ).toStrictEqual(['a-b.c-d', '(ns a-b.c-d)']);
     });
 
     it('finds ns past top level id tokens', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-d) (a b c) d e (f)|'))).toBe(
-        'a-b.c-d'
-      );
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-d) (a b c) d e (f)|'))
+      ).toStrictEqual(['a-b.c-d', '(ns a-b.c-d)']);
     });
     it('finds ns past top level id tokens from nested form', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-d) (a b c) d e (f|)'))).toBe(
-        'a-b.c-d'
-      );
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a-b.c-d) (a b c) d e (f|)'))
+      ).toStrictEqual(['a-b.c-d', '(ns a-b.c-d)']);
     });
     it('finds ns also when not first form', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(foo bar)\n\n(ns a-b.c-d)|'))).toBe(
-        'a-b.c-d'
-      );
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('(foo bar)\n\n(ns a-b.c-d)|'))
+      ).toStrictEqual(['a-b.c-d', '(ns a-b.c-d)']);
     });
     it('finds ns in rich comments', function () {
       expect(
         nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a) (comment\n(ns b) (d e)|)'))
-      ).toBe('b');
+      ).toStrictEqual(['b', '(ns b)']);
     });
     it('finds ns in nested rich comments', function () {
       expect(
         nsFormUtil.nsFromCursorDoc(
           docFromTextNotation('(ns a) (fn [] {:rcf (comment\n(ns b) (c| d))})')
         )
-      ).toBe('b');
+      ).toStrictEqual(['b', '(ns b)']);
     });
     it('finds first ns form if at start of document', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('|(ns a) (a b c) (ns b)'))).toBe('a');
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('|(ns a) (a b c) (ns b)'))
+      ).toStrictEqual(['a', '(ns a)']);
       expect(
         nsFormUtil.nsFromCursorDoc(docFromTextNotation('|(no-ns a) (a b c) (ns b) x (ns c) y'))
-      ).toBe('b');
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation(' |(ns a) (a b c) (ns b)'))).toBe('a');
+      ).toStrictEqual(['b', '(ns b)']);
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation(' |(ns a) (a b c) (ns b)'))
+      ).toStrictEqual(['a', '(ns a)']);
     });
     it('returns `null` if at start of document without ns form', function () {
       expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('|(no-ns a) (a b c) (no-ns b)'))).toBe(
@@ -178,21 +185,21 @@ describe('ns-form util', () => {
 
     // https://github.com/BetterThanTomorrow/calva/issues/2249
     it('returns outer ns if rich comment lacks ns', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a) (a b c) (comment b|)'))).toBe(
-        'a'
-      );
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns a) (a b c) (comment b|)'))
+      ).toStrictEqual(['a', '(ns a)']);
     });
     // https://github.com/BetterThanTomorrow/calva/issues/2266
     it('finds ns when symbol has metadata', function () {
       expect(
         nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns ^:no-doc a-b.c-d) (a b c)|'))
-      ).toBe('a-b.c-d');
+      ).toStrictEqual(['a-b.c-d', '(ns ^:no-doc a-b.c-d)']);
     });
     // https://github.com/BetterThanTomorrow/calva/issues/2309
     it('finds ns from inside ns form', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns |a-b.c-d) (a b c)'))).toBe(
-        'a-b.c-d'
-      );
+      expect(
+        nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns |a-b.c-d) (a b c)'))
+      ).toStrictEqual(['a-b.c-d', '(ns a-b.c-d)']);
     });
     // https://github.com/BetterThanTomorrow/calva/issues/2299
     it('finds ns from unbalanced form, lacking opening brackets', function () {
@@ -203,7 +210,7 @@ describe('ns-form util', () => {
               '(ns xxx)•(def xxx|•{()"#"\\$" #"(?!\\w)"))))))))))))))))))))))))))))))))))))))))'
             )
           )
-        ).toBe('xxx');
+        ).toStrictEqual(['xxx', '(ns xxx)']);
       } catch (error) {
         fail(`Expected no error to be thrown, but got ${error}`);
       }
@@ -212,7 +219,7 @@ describe('ns-form util', () => {
       try {
         expect(
           nsFormUtil.nsFromCursorDoc(docFromTextNotation('(ns xxx]))]]]]]])))•(def xxx|•{})'))
-        ).toBe('xxx');
+        ).toStrictEqual(['xxx', '(ns xxx]']);
       } catch (error) {
         fail(`Expected no error to be thrown, but got ${error}`);
       }
@@ -224,7 +231,7 @@ describe('ns-form util', () => {
       expect(nsFormUtil.nsFromText('(no-ns a-b.c-d)\nfoo')).toBe(null);
     });
     it('defaults to start from end', function () {
-      expect(nsFormUtil.nsFromText('(ns a)\nfoo (ns b) bar')).toBe('b');
+      expect(nsFormUtil.nsFromText('(ns a)\nfoo (ns b) bar')).toStrictEqual(['b', '(ns b)']);
     });
   });
 });

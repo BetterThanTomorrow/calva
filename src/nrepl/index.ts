@@ -372,6 +372,15 @@ export class NReplSession {
     });
   }
 
+  async evaluateInCurrentNs(nsForm: string) {
+    try {
+      console.log('Evaluating in current ns: ', nsForm, this.client.ns);
+      await this.eval(nsForm, this.client.ns).value;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   async requireREPLUtilities() {
     const CLJS_FORM = `(try
                          (require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]])

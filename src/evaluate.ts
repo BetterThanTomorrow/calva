@@ -104,6 +104,10 @@ async function evaluateCodeUpdatingUI(
 
     const err: string[] = [];
 
+    if (outputWindow.getNs() !== ns) {
+      await session.evaluateInCurrentNs(options.nsForm);
+    }
+
     const context: NReplEvaluation = session.eval(code, ns, {
       file: filePath,
       line: line + 1,
@@ -231,7 +235,7 @@ async function evaluateSelection(document = {}, options) {
     [codeSelection, code]; //TODO: What's this doing here?
 
     const doc = util.getDocument(document);
-    const ns = namespace.getNamespace(doc, codeSelection.end);
+    const [ns, nsForm] = namespace.getNamespace(doc, codeSelection.end);
     const line = codeSelection.start.line;
     const column = codeSelection.start.character;
     const filePath = doc.fileName;
@@ -257,7 +261,7 @@ async function evaluateSelection(document = {}, options) {
       }
       await evaluateCodeUpdatingUI(
         code,
-        { ...options, ns, line, column, filePath, session },
+        { ...options, ns, nsForm, line, column, filePath, session },
         codeSelection
       );
       outputWindow.appendPrompt();
@@ -417,7 +421,7 @@ async function loadDocument(
 
   const doc = util.tryToGetDocument(document);
   const fileType = util.getFileType(doc);
-  const ns = namespace.getNamespace(doc, doc.positionAt(0));
+  const [ns, _] = namespace.getNamespace(doc, doc.positionAt(0));
   const session = replSession.getSession(util.getFileType(doc));
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
@@ -606,6 +610,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
       filePath: outputDocument.fileName,
       session,
       ns,
+      nsForm: options.nsForm ?? `(in-ns '${ns})`,
       line: evalPos.line,
       column: evalPos.character,
     });

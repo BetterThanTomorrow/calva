@@ -30,7 +30,7 @@ export async function provideSignatureHelp(
   _token: CancellationToken
 ): Promise<SignatureHelp | undefined> {
   if (util.getConnectedState()) {
-    const ns = namespace.getNamespace(document, position),
+    const [ns, _] = namespace.getNamespace(document, position),
       idx = document.offsetAt(position),
       symbol = getSymbol(document, idx);
     if (symbol) {
