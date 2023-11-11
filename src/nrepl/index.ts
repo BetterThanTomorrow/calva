@@ -373,7 +373,12 @@ export class NReplSession {
   }
 
   async switchNS(ns: any) {
-    await this.eval(`(in-ns '${ns})`, this.client.ns).value;
+    try {
+      await this.eval(`(in-ns '${ns})`, this.client.ns).value;
+    } catch (e) {
+      //await this.eval(`(symbol "${ns}")`, this.client.ns).value;
+      console.error(e);
+    }
   }
 
   async requireREPLUtilities() {
