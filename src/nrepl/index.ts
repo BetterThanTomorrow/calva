@@ -372,15 +372,6 @@ export class NReplSession {
     });
   }
 
-  async switchNS(ns: any) {
-    try {
-      await this.eval(`(in-ns '${ns})`, this.client.ns).value;
-    } catch (e) {
-      //await this.eval(`(symbol "${ns}")`, this.client.ns).value;
-      console.error(e);
-    }
-  }
-
   async requireREPLUtilities() {
     const CLJS_FORM = `(try
                          (require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]])
@@ -403,6 +394,7 @@ export class NReplSession {
         .send();
       return {
         id: debugResponse.id,
+        ns,
         session: this.sessionId,
         op: 'debug-input',
         input: `{:response :eval, :code ${code}}`,
@@ -413,6 +405,7 @@ export class NReplSession {
       return {
         id: this.client.nextId,
         op: 'eval',
+        ns,
         session: this.sessionId,
         code,
         ...opts,
