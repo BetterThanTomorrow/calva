@@ -105,7 +105,7 @@ async function evaluateCodeUpdatingUI(
     const err: string[] = [];
 
     if (outputWindow.getNs() !== ns) {
-      await session.evaluateInCurrentNs(options.nsForm);
+      await session.evaluateInNs(options.nsForm, outputWindow.getNs());
     }
 
     const context: NReplEvaluation = session.eval(code, ns, {

@@ -372,10 +372,9 @@ export class NReplSession {
     });
   }
 
-  async evaluateInCurrentNs(nsForm: string) {
+  async evaluateInNs(nsForm: string, ns: string) {
     try {
-      console.log('Evaluating in current ns: ', nsForm, this.client.ns);
-      await this.eval(nsForm, this.client.ns).value;
+      await this.eval(nsForm, ns).value;
     } catch (e) {
       console.error(e);
     }

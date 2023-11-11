@@ -11,7 +11,7 @@ export function getNamespace(doc: vscode.TextDocument, position: vscode.Position
   if (outputWindow.isResultsDoc(doc)) {
     const outputWindowNs = outputWindow.getNs();
     utilities.assertIsDefined(outputWindowNs, 'Expected output window to have a namespace!');
-    return outputWindowNs;
+    return [outputWindowNs, `(in-ns '${outputWindowNs})`];
   }
   if (doc && doc.languageId == 'clojure') {
     try {
