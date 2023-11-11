@@ -69,11 +69,8 @@ async function provideCompletionItems(
     ).catch((err) => {
       console.log(`Failed to get results from completions provider '${provider}'`, err);
     });
-    console.log('completions', provider, completions);
-    console.log('results before merge', provider, results);
     if (completions) {
       results = mergeCompletions(results, completions);
-      console.log('results after merge', provider, results);
     }
   }
 
@@ -204,7 +201,6 @@ async function replCompletions(
     }
   });
   return results.map((item) => {
-    console.log('nrepl item', item);
     const result = new CompletionItem(
       item.candidate,
       // +1 because the LSP CompletionItemKind enum starts at 1
