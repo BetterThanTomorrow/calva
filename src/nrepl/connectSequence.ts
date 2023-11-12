@@ -297,8 +297,8 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     name: 'ClojureScript nREPL',
     buildsRequired: false,
     isStarted: true,
-    connectCode: '42',
-    isConnectedRegExp: '42',
+    connectCode: ':always-succeeding-connect-code',
+    isConnectedRegExp: 'always-succeeding-connect-code',
   },
 };
 
