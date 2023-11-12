@@ -372,8 +372,12 @@ export class NReplSession {
     });
   }
 
-  async switchNS(ns: any) {
-    await this.eval(`(in-ns '${ns})`, this.client.ns).value;
+  async evaluateInNs(nsForm: string, ns: string) {
+    try {
+      await this.eval(nsForm, ns).value;
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   async requireREPLUtilities() {
@@ -398,6 +402,7 @@ export class NReplSession {
         .send();
       return {
         id: debugResponse.id,
+        ns,
         session: this.sessionId,
         op: 'debug-input',
         input: `{:response :eval, :code ${code}}`,
@@ -408,6 +413,7 @@ export class NReplSession {
       return {
         id: this.client.nextId,
         op: 'eval',
+        ns,
         session: this.sessionId,
         code,
         ...opts,

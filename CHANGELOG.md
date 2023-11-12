@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.395] - 2023-11-12
+
+- [Make Calva's nrepl client squint-cljs compatible](https://github.com/BetterThanTomorrow/calva/issues/2343)
+
 ## [2.0.394] - 2023-11-06
 
 - Fix: [Calva shows two hover definitions for user-defined vars when a repl is connected](https://github.com/BetterThanTomorrow/calva/issues/2091)

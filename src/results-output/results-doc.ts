@@ -228,15 +228,12 @@ export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
   );
 }
 
-export async function setNamespaceFromCurrentFile() {
+export function setNamespaceFromCurrentFile() {
   const session = replSession.getSession();
-  const ns = namespace.getNamespace(
+  const [ns, _] = namespace.getNamespace(
     util.tryToGetDocument({}),
     vscode.window.activeTextEditor?.selection?.active
   );
-  if (getNs() !== ns && util.isDefined(ns)) {
-    await session.switchNS(ns);
-  }
   setSession(session, ns);
   replSession.updateReplSessionType();
   appendPrompt();
@@ -244,7 +241,7 @@ export async function setNamespaceFromCurrentFile() {
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
   const session = replSession.getSession();
-  const ns = namespace.getNamespace(
+  const [ns, _] = namespace.getNamespace(
     util.tryToGetDocument({}),
     vscode.window.activeTextEditor?.selection?.active
   );
@@ -259,9 +256,6 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
     code = await formatCode(doc.getText(selection), doc.eol);
   }
   if (code != '') {
-    if (getNs() !== ns) {
-      await session.switchNS(ns);
-    }
     setSession(session, ns);
     appendLine(code, (_) => revealResultsDoc(false));
   }

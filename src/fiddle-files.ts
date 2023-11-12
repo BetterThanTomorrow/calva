@@ -142,14 +142,11 @@ export async function evaluateFiddleForSourceFile() {
     const code = doc.getText();
     const fiddleSelection = filePathToSelection.get(fiddleFilePath);
     const p = fiddleSelection ? doc.offsetAt(fiddleSelection.active) : 0;
-    const ns = nsUtil.nsFromText(code, p) || namespace.getDocumentNamespace();
+    const [ns, nsForm] = nsUtil.nsFromText(code, p) || namespace.getDocumentNamespace();
     outputWindow.appendLine(`; Evaluating fiddle: ${relativeFiddleFilePath}`);
-    await eval.evaluateInOutputWindow(
-      code,
-      path.extname(fiddleFilePath).replace(/^\./, ''),
-      ns,
-      {}
-    );
+    await eval.evaluateInOutputWindow(code, path.extname(fiddleFilePath).replace(/^\./, ''), ns, {
+      nsForm,
+    });
     return new Promise((resolve) => {
       outputWindow.appendPrompt(resolve);
     });
