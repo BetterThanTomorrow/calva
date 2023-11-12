@@ -105,7 +105,7 @@ async function evaluateCodeUpdatingUI(
     const err: string[] = [];
 
     if (outputWindow.getNs() !== ns) {
-      await session.switchNS(ns);
+      await session.evaluateInNs(options.nsForm, outputWindow.getNs());
     }
 
     const context: NReplEvaluation = session.eval(code, ns, {
@@ -235,7 +235,7 @@ async function evaluateSelection(document = {}, options) {
     [codeSelection, code]; //TODO: What's this doing here?
 
     const doc = util.getDocument(document);
-    const ns = namespace.getNamespace(doc, codeSelection.end);
+    const [ns, nsForm] = namespace.getNamespace(doc, codeSelection.end);
     const line = codeSelection.start.line;
     const column = codeSelection.start.character;
     const filePath = doc.fileName;
@@ -261,7 +261,7 @@ async function evaluateSelection(document = {}, options) {
       }
       await evaluateCodeUpdatingUI(
         code,
-        { ...options, ns, line, column, filePath, session },
+        { ...options, ns, nsForm, line, column, filePath, session },
         codeSelection
       );
       outputWindow.appendPrompt();
@@ -421,7 +421,7 @@ async function loadDocument(
 
   const doc = util.tryToGetDocument(document);
   const fileType = util.getFileType(doc);
-  const ns = namespace.getNamespace(doc, doc.positionAt(0));
+  const [ns, _] = namespace.getNamespace(doc, doc.positionAt(0));
   const session = replSession.getSession(util.getFileType(doc));
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
@@ -445,8 +445,6 @@ async function loadFile(
   const session = replSession.getSession(path.extname(fileName).replace(/^\./, ''));
 
   outputWindow.appendLine(`; Evaluating file: ${fileName}`);
-
-  await session.switchNS(ns);
 
   const errorMessages = [];
   const res = session.loadFile(fileContents, {
@@ -533,7 +531,6 @@ async function requireREPLUtilitiesCommand() {
     if (session) {
       try {
         await namespace.createNamespaceFromDocumentIfNotExists(util.tryToGetDocument({}));
-        await session.switchNS(ns);
         await session.requireREPLUtilities();
         chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
       } catch (e) {
@@ -602,7 +599,6 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
     const session = replSession.getSession(sessionType);
     replSession.updateReplSessionType();
     if (outputWindow.getNs() !== ns) {
-      await session.switchNS(ns);
       outputWindow.setSession(session, ns);
       if (options.evaluationSendCodeToOutputWindow !== false) {
         outputWindow.appendPrompt();
@@ -614,6 +610,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
       filePath: outputDocument.fileName,
       session,
       ns,
+      nsForm: options.nsForm ?? `(in-ns '${ns})`,
       line: evalPos.line,
       column: evalPos.character,
     });

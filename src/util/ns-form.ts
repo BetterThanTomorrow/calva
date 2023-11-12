@@ -53,7 +53,7 @@ export function nsFromCursorDoc(
   p: number = cursorDoc.selection.active,
   _maxRecursionDepth: number = 100, // used internally for recursion
   _depth: number = 0 // used internally for recursion
-): string | null {
+): [string, string] | null {
   if (_depth > _maxRecursionDepth) {
     console.error(`nsFromCursorDoc: recursion depth, ${_maxRecursionDepth} , exceeded`);
     return null;
@@ -65,7 +65,7 @@ export function nsFromCursorDoc(
     const topLevelRangeCursor = cursorDoc.getTokenCursor(topLevelRange[0]);
     const ns = nsSymbolOfCurrentForm(topLevelRangeCursor, 'downList');
     if (ns) {
-      return ns;
+      return [ns, cursorDoc.model.getText(...topLevelRange)];
     }
   }
   // Special case 2, find ns form from start of document
@@ -76,7 +76,7 @@ export function nsFromCursorDoc(
     while (cursor.forwardSexp(true, true, true)) {
       const ns = nsSymbolOfCurrentForm(cursor, 'backwardDownList');
       if (ns) {
-        return ns;
+        return [ns, cursorDoc.model.getText(...cursor.rangeForCurrentForm(cursor.offsetEnd))];
       }
     }
     return null;
@@ -87,7 +87,7 @@ export function nsFromCursorDoc(
     while (cursor.backwardSexp()) {
       const ns = nsSymbolOfCurrentForm(cursor, 'downList');
       if (ns) {
-        return ns;
+        return [ns, cursorDoc.model.getText(...cursor.rangeForCurrentForm(cursor.offsetStart))];
       }
     }
   }
@@ -106,7 +106,7 @@ export function nsFromCursorDoc(
   return nsFromCursorDoc(cursorDoc, cursor.offsetStart, _maxRecursionDepth, _depth + 1);
 }
 
-export function nsFromText(text: string, p = text.length): string | null {
+export function nsFromText(text: string, p = text.length): [string, string] | null {
   const stringDoc: model.StringDocument = new model.StringDocument(text);
   return nsFromCursorDoc(stringDoc, p);
 }

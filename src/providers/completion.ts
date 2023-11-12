@@ -69,11 +69,8 @@ async function provideCompletionItems(
     ).catch((err) => {
       console.log(`Failed to get results from completions provider '${provider}'`, err);
     });
-    console.log('completions', provider, completions);
-    console.log('results before merge', provider, results);
     if (completions) {
       results = mergeCompletions(results, completions);
-      console.log('results after merge', provider, results);
     }
   }
 
@@ -105,7 +102,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
       const client = replSession.getSession(util.getFileType(activeTextEditor.document));
       if (client) {
         await namespace.createNamespaceFromDocumentIfNotExists(activeTextEditor.document);
-        const ns = namespace.getDocumentNamespace();
+        const [ns, _] = namespace.getDocumentNamespace();
         const result = await client.info(
           ns,
           typeof item.label === 'string' ? item.label : item['data'].label
@@ -191,7 +188,7 @@ async function replCompletions(
     contextEnd = toplevel.substring(wordEndLocalOffset),
     replContext = `${contextStart}__prefix__${contextEnd}`,
     toplevelIsValidForm = toplevelStartCursor.withinValidList() && replContext != '__prefix__',
-    ns = namespace.getNamespace(document, position),
+    [ns, _] = namespace.getNamespace(document, position),
     client = replSession.getSession(util.getFileType(document)),
     res = await client.complete(ns, text, toplevelIsValidForm ? replContext : undefined),
     results = res.completions || [];
@@ -204,7 +201,6 @@ async function replCompletions(
     }
   });
   return results.map((item) => {
-    console.log('nrepl item', item);
     const result = new CompletionItem(
       item.candidate,
       // +1 because the LSP CompletionItemKind enum starts at 1
