@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Docstring tooltip not shown while connected to REPL](https://github.com/BetterThanTomorrow/calva/issues/2345)
+
 ## [2.0.395] - 2023-11-12
 
 - [Make Calva's nrepl client squint-cljs compatible](https://github.com/BetterThanTomorrow/calva/issues/2343)
