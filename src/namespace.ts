@@ -7,7 +7,12 @@ import * as replSession from './nrepl/repl-session';
 import { NReplSession } from './nrepl';
 import * as nsUtil from './util/ns-form';
 
-export function getNamespace(doc: vscode.TextDocument, position: vscode.Position = null) {
+export type NsAndNsForm = [string, string];
+
+export function getNamespace(
+  doc: vscode.TextDocument,
+  position: vscode.Position = null
+): NsAndNsForm {
   if (outputWindow.isResultsDoc(doc)) {
     const outputWindowNs = outputWindow.getNs();
     utilities.assertIsDefined(outputWindowNs, 'Expected output window to have a namespace!');
