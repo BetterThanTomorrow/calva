@@ -524,7 +524,7 @@ async function evaluateUser(code: string) {
 async function requireREPLUtilitiesCommand() {
   if (util.getConnectedState()) {
     const chan = state.outputChannel(),
-      ns = namespace.getDocumentNamespace(util.tryToGetDocument({})),
+      [ns, _nsForm] = namespace.getDocumentNamespace(util.tryToGetDocument({})),
       fileType = util.getFileType(util.tryToGetDocument({})),
       session = replSession.getSession(fileType);
 
