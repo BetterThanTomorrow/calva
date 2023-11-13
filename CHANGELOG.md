@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.396] - 2023-11-13
+
 - Fix: [Docstring tooltip not shown while connected to REPL](https://github.com/BetterThanTomorrow/calva/issues/2345)
 
 ## [2.0.395] - 2023-11-12
