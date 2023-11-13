@@ -49,14 +49,14 @@ export async function createNamespaceFromDocumentIfNotExists(doc) {
   if (utilities.getConnectedState()) {
     const document = utilities.tryToGetDocument(doc);
     if (document) {
-      const ns = getNamespace(document);
+      const [ns, nsForm] = getNamespace(document);
       const client = replSession.getSession(utilities.getFileType(document));
       if (client) {
         const nsList = await client.listNamespaces([]);
         if (nsList && nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
           return;
         }
-        await client.eval('(ns ' + ns + ')', client.client.ns).value;
+        await client.evaluateInNs(nsForm, outputWindow.getNs());
       }
     }
   }
