@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.397] - 2023-11-17
+
 - Fix: [Standalone connect of shadow-cljs repl fails in some projects](https://github.com/BetterThanTomorrow/calva/issues/2349)
 
 ## [2.0.396] - 2023-11-13
