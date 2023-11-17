@@ -212,7 +212,7 @@ async function setUpCljsRepl(session, build) {
       outputWindow.CLJS_CONNECT_GREETINGS
     )}`
   );
-  outputWindow.setSession(session, 'cljs.user');
+  outputWindow.setSession(session, 'user');
   if (getConfig().autoEvaluateCode.onConnect.cljs) {
     outputWindow.appendLine(
       `; Evaluating code from settings: 'calva.autoEvaluateCode.onConnect.cljs'`
@@ -474,7 +474,7 @@ function createCLJSReplType(
     const cljSession = replSession.getSession('clj');
     const getRuntimesCode = `(count (shadow.cljs.devtools.api/repl-runtimes ${connectToBuild}))`;
     const checkForRuntimes = async () => {
-      const runtimes = await cljSession.eval(getRuntimesCode, 'shadow.user').value;
+      const runtimes = await cljSession.eval(getRuntimesCode, 'user').value;
       return runtimes && parseInt(runtimes) > 0;
     };
     const hasRuntimes = await checkForRuntimes();
