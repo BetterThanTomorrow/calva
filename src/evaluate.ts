@@ -430,7 +430,7 @@ async function loadDocument(
       ? await namespace.getUriForNamespace(session, ns)
       : doc.uri;
     const filePath = docUri.path;
-    await loadFile(filePath, ns, pprintOptions, fileType);
+    return await loadFile(filePath, ns, pprintOptions, fileType);
   }
 }
 
@@ -491,7 +491,7 @@ async function loadFile(
         });
     }
   } finally {
-    outputWindow.setSession(session, res.ns || ns);
+    outputWindow.setSession(session, ns);
     replSession.updateReplSessionType();
     if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
       outputWindow.appendLine(`; Evaluating 'autoEvaluateCode.onFileLoaded.${fileType}'`);
