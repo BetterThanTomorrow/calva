@@ -7,11 +7,16 @@ import * as replSession from './nrepl/repl-session';
 import { NReplSession } from './nrepl';
 import * as nsUtil from './util/ns-form';
 
-export function getNamespace(doc: vscode.TextDocument, position: vscode.Position = null) {
+export type NsAndNsForm = [string, string];
+
+export function getNamespace(
+  doc: vscode.TextDocument,
+  position: vscode.Position = null
+): NsAndNsForm {
   if (outputWindow.isResultsDoc(doc)) {
     const outputWindowNs = outputWindow.getNs();
     utilities.assertIsDefined(outputWindowNs, 'Expected output window to have a namespace!');
-    return outputWindowNs;
+    return [outputWindowNs, `(in-ns '${outputWindowNs})`];
   }
   if (doc && doc.languageId == 'clojure') {
     try {
@@ -20,7 +25,7 @@ export function getNamespace(doc: vscode.TextDocument, position: vscode.Position
         nsUtil.nsFromCursorDoc(
           cursorDoc,
           position ? doc.offsetAt(position) : doc.getText().length
-        ) ?? 'user'
+        ) ?? ['user', "(in-ns 'user)"]
       );
     } catch (e) {
       console.log(
@@ -33,7 +38,7 @@ export function getNamespace(doc: vscode.TextDocument, position: vscode.Position
           if (nsFormArray != undefined && nsFormArray.length > 0) {
             const nsForm = nsFormArray[0].filter((x) => typeof x == 'string');
             if (nsForm != undefined) {
-              return nsForm[1];
+              return [nsForm[1], `(in-ns '${nsForm[1]})`];
             }
           }
         }
@@ -42,21 +47,21 @@ export function getNamespace(doc: vscode.TextDocument, position: vscode.Position
       }
     }
   }
-  return 'user';
+  return ['user', "(in-ns 'user)"];
 }
 
 export async function createNamespaceFromDocumentIfNotExists(doc) {
   if (utilities.getConnectedState()) {
     const document = utilities.tryToGetDocument(doc);
     if (document) {
-      const ns = getNamespace(document);
+      const [ns, nsForm] = getNamespace(document);
       const client = replSession.getSession(utilities.getFileType(document));
       if (client) {
         const nsList = await client.listNamespaces([]);
         if (nsList && nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
           return;
         }
-        await client.eval('(ns ' + ns + ')', client.client.ns).value;
+        await client.evaluateInNs(nsForm, outputWindow.getNs());
       }
     }
   }

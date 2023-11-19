@@ -781,6 +781,16 @@ describe('Token Cursor', () => {
       const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
       expect(cursor.rangeForDefun(a.selection.active)).toEqual(textAndSelection(b)[1]);
     });
+    it('Finds something when there is unbalance', () => {
+      const a = docFromTextNotation(
+        '(ns xxx)•(def xxx|•{()"#"\\$" #"(?!\\w)"))))))))))))))))))))))))))))))))))))))))'
+      );
+      const b = docFromTextNotation(
+        '(ns xxx)•(def xxx•|{()"#"\\$" #"(?!\\w)"))))))))))))))))))))))))))))))))))))))))|'
+      );
+      const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+      expect(cursor.rangeForDefun(a.selection.active)).toEqual(textAndSelection(b)[1]);
+    });
     describe('Rich Comment Form top level context', () => {
       it('Finds range for a top level form inside a comment', () => {
         const a = docFromTextNotation('aaa (comment [bbb cc|c]  ddd)');
@@ -998,6 +1008,31 @@ describe('Token Cursor', () => {
         const a = docFromTextNotation('(foo |[])');
         const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
         expect(cursor.atTopLevel()).toEqual(false);
+      });
+    });
+
+    describe('docIsBalanced', () => {
+      it('Reports balance for balanced structure', () => {
+        const doc = docFromTextNotation('(a)•|(b)');
+        const cursor: LispTokenCursor = doc.getTokenCursor(doc.selection.active);
+        expect(cursor.docIsBalanced()).toBe(true);
+      });
+      it('Detects unbalance when lacking opening brackets', () => {
+        const doc = docFromTextNotation('(a)•|(b))');
+        const cursor: LispTokenCursor = doc.getTokenCursor(doc.selection.active);
+        expect(cursor.docIsBalanced()).toBe(false);
+      });
+      // TODO: Fix this
+      xit('Detects unbalance when lacking closing brackets', () => {
+        const doc = docFromTextNotation('(a)•|(b');
+        const cursor: LispTokenCursor = doc.getTokenCursor(doc.selection.active);
+        expect(cursor.docIsBalanced()).toBe(false);
+      });
+      // TODO: Fix this too
+      xit('Detects unbalance when lacking man closing brackets', () => {
+        const doc = docFromTextNotation('(a)•|([{((((b)');
+        const cursor: LispTokenCursor = doc.getTokenCursor(doc.selection.active);
+        expect(cursor.docIsBalanced()).toBe(false);
       });
     });
 

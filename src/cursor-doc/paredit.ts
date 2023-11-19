@@ -778,15 +778,6 @@ export function open(
   }
 }
 
-function docIsBalanced(doc: EditableDocument, start: number = doc.selection.active): boolean {
-  const cursor = doc.getTokenCursor(0);
-  while (cursor.forwardSexp(true, true, true)) {
-    // move forward until the cursor cannot move forward anymore
-  }
-  cursor.forwardWhitespace(true);
-  return cursor.atEnd();
-}
-
 export async function close(
   doc: EditableDocument,
   close: string,
@@ -798,7 +789,7 @@ export async function close(
   if (cursor.getToken().raw === close) {
     doc.selection = new ModelEditSelection(cursor.offsetEnd);
   } else {
-    if (!inString && docIsBalanced(doc)) {
+    if (!inString && cursor.docIsBalanced()) {
       // Do nothing when there is balance
     } else {
       return doc.model.edit([new ModelEdit('insertString', [start, close])], {
@@ -876,7 +867,7 @@ export async function backspace(
     } else if (!isTopLevel && !cursor.withinString() && onlyWhitespaceLeftOfCursor(doc, cursor)) {
       return backspaceOnWhitespaceEdit(doc, cursor, config);
     } else {
-      if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
+      if (['open', 'close'].includes(prevToken.type) && cursor.docIsBalanced()) {
         doc.selection = new ModelEditSelection(p - prevToken.raw.length);
         return new Promise<boolean>((resolve) => resolve(true));
       } else {
@@ -910,7 +901,7 @@ export async function deleteForward(
         }
       );
     } else {
-      if (['open', 'close'].includes(nextToken.type) && docIsBalanced(doc)) {
+      if (['open', 'close'].includes(nextToken.type) && cursor.docIsBalanced()) {
         doc.selection = new ModelEditSelection(p + 1);
         return new Promise<boolean>((resolve) => resolve(true));
       } else {

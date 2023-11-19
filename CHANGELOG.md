@@ -4,6 +4,50 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.398] - 2023-11-19
+
+- Fix: [Connecting to an external REPL does not work when local nrepl port exists](https://github.com/BetterThanTomorrow/calva/issues/2303)
+- [Avoid formatting when breaking up line comments](https://github.com/BetterThanTomorrow/calva/issues/2296)
+
+## [2.0.397] - 2023-11-17
+
+- Fix: [Standalone connect of shadow-cljs repl fails in some projects](https://github.com/BetterThanTomorrow/calva/issues/2349)
+
+## [2.0.396] - 2023-11-13
+
+- Fix: [Docstring tooltip not shown while connected to REPL](https://github.com/BetterThanTomorrow/calva/issues/2345)
+
+## [2.0.395] - 2023-11-12
+
+- [Make Calva's nrepl client squint-cljs compatible](https://github.com/BetterThanTomorrow/calva/issues/2343)
+
+## [2.0.394] - 2023-11-06
+
+- Fix: [Calva shows two hover definitions for user-defined vars when a repl is connected](https://github.com/BetterThanTomorrow/calva/issues/2091)
+
+## [2.0.393] - 2023-11-05
+
+- Fix: [Namespace alias shadows local variables](https://github.com/BetterThanTomorrow/calva/issues/2336)
+- Fix: [Definition lookup in dependency files is broken](https://github.com/BetterThanTomorrow/calva/issues/2339)
+
+## [2.0.392] - 2023-10-22
+
+- Bump bundled deps.clj to v1.11.1.1413
+- Add timestamps to nREPL message log diagnostics
+- Fix: [Backspace (structural editing) occasionally hangs](https://github.com/BetterThanTomorrow/calva/issues/2299)
+
+## [2.0.391] - 2023-10-12
+
+- Fix: [[Windows] The ClojureScript Quick Start REPL Experiences are broken](https://github.com/BetterThanTomorrow/calva/issues/2325)
+
+## [2.0.390] - 2023-10-11
+
+- Fix: [Reconnecting a repl while connected fails](https://github.com/BetterThanTomorrow/calva/issues/2301)
+
+## [2.0.389] - 2023-10-06
+
+- Fix: [Command to run tests for namespace uses user and user-test namespaces when cursor is in ns form](https://github.com/BetterThanTomorrow/calva/issues/2309)
+
 ## [2.0.388] - 2023-08-31
 
 - Fix: [stdout from sub threads is not printed in the terminal](https://github.com/BetterThanTomorrow/calva/issues/2300)

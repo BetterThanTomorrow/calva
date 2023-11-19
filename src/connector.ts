@@ -68,7 +68,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
 
   if (nClient) {
     nClient['silent'] = true;
-    nClient.close();
+    await nClient.close();
   }
 
   let cljSession: NReplSession;
@@ -93,6 +93,8 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       },
     });
     nClient.addOnCloseHandler((c) => {
+      // TODO: We probably should not do the connect state changes here,
+      //       or, only here...
       util.setConnectedState(false);
       util.setConnectingState(false);
       if (!c['silent']) {
@@ -210,7 +212,7 @@ async function setUpCljsRepl(session, build) {
       outputWindow.CLJS_CONNECT_GREETINGS
     )}`
   );
-  outputWindow.setSession(session, 'cljs.user');
+  outputWindow.setSession(session, 'user');
   if (getConfig().autoEvaluateCode.onConnect.cljs) {
     outputWindow.appendLine(
       `; Evaluating code from settings: 'calva.autoEvaluateCode.onConnect.cljs'`
@@ -472,7 +474,7 @@ function createCLJSReplType(
     const cljSession = replSession.getSession('clj');
     const getRuntimesCode = `(count (shadow.cljs.devtools.api/repl-runtimes ${connectToBuild}))`;
     const checkForRuntimes = async () => {
-      const runtimes = await cljSession.eval(getRuntimesCode, 'shadow.user').value;
+      const runtimes = await cljSession.eval(getRuntimesCode, 'user').value;
       return runtimes && parseInt(runtimes) > 0;
     };
     const hasRuntimes = await checkForRuntimes();
@@ -496,7 +498,7 @@ function createCLJSReplType(
       return true;
     };
     outputWindow.appendLine(
-      '; Please start your ClojureScript app so that Calva can connect to its REPL...'
+      '; Please start your ClojureScript app (load it in the browser, or whatever is appropriate) so that Calva can connect to its REPL...'
     );
     return await waitForRuntimes();
   }
@@ -799,7 +801,23 @@ export default {
       ConnectType.Connect,
       undefined
     );
-    return standaloneConnect(connectSequence);
+    await outputWindow.initResultsDoc();
+    await outputWindow.openResultsDoc();
+
+    if (connectSequence) {
+      const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
+      outputWindow.appendLine(`; Connecting ...`);
+      state
+        .analytics()
+        .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
+        .send();
+      void state.analytics().logGA4Pageview('/connect-initiated');
+      void state.analytics().logGA4Pageview('/connect-initiated/external-repl-connect');
+
+      return connect(connectSequence, false);
+    } else {
+      outputWindow.appendLine('; Aborting connect, error determining connect sequence.');
+    }
   },
   connectCommand: async (options?: {
     host?: string;
@@ -865,7 +883,7 @@ export default {
       } else {
         // the connection may be ended before
         // the REPL client was connected.
-        nClient.close();
+        void nClient.close();
       }
       liveShareSupport.didDisconnectRepl();
       nClient = undefined;
