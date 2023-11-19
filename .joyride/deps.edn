@@ -1,0 +1,13 @@
+;; clojure-lsp needs this config to analyze Joyride code
+;; To tell clojure-lsp about this file:
+;; 1. Add a source-alias to `.lsp/config.edn`. Minimal config file content:
+;;    {:source-aliases #{:joyride}}
+;; 2. Add a `:joyride` alias to the project root deps.edn file.
+;;    Minimal file content:
+;;    {:aliases {:joyride {:extra-deps {joyride/workspace {:local/root ".joyride"}}}}}
+
+{:deps {org.clojure/clojurescript {:mvn/version "1.11.54"}
+        funcool/promesa {:mvn/version "9.0.471"}
+        rewrite-clj/rewrite-clj {:mvn/version "1.1.46"}
+        joyride/user {:local/root "/Users/pez/.config/joyride"}}
+ :paths ["src" "scripts"]}
