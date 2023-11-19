@@ -6,10 +6,22 @@ import * as paredit from '../../../cursor-doc/paredit';
 import { getConfig } from '../../../config';
 import * as util from '../../../utilities';
 import * as formatterConfig from '../../../formatter-config';
+import * as whenContexts from '../../../when-contexts';
 
 // TODO: Make this provider return a proper edit instead of performing it.
 // Errors like that of https://github.com/BetterThanTomorrow/calva/issues/2071
 // probably happens because of this.
+
+function isNewLineInComment(ch: string): boolean {
+  return (
+    ch === '\n' &&
+    whenContexts.lastContexts.includes('calva:cursorInComment') &&
+    !(
+      whenContexts.lastContexts.includes('calva:cursorBeforeComment') ||
+      whenContexts.lastContexts.includes('calva:cursorAfterComment')
+    )
+  );
+}
 
 export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProvider {
   async provideOnTypeFormattingEdits(
@@ -18,6 +30,9 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
     ch: string,
     _options
   ): Promise<vscode.TextEdit[] | undefined> {
+    if (isNewLineInComment(ch)) {
+      return undefined;
+    }
     let keyMap = vscode.workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
     keyMap = String(keyMap).trim().toLowerCase();
     if ([')', ']', '}'].includes(ch)) {

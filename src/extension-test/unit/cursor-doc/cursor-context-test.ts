@@ -84,9 +84,21 @@ describe('Cursor Contexts', () => {
       );
       expect(contexts.includes('calva:cursorBeforeComment')).toBe(false);
     });
-    it('is true adjacent before comment', () => {
+    it('is true adjacent before comment starting a line', () => {
       const contexts = context.determineContexts(
         docFromTextNotation('|;; foo•   ;; bar•  ;; baz  •gaz')
+      );
+      expect(contexts.includes('calva:cursorBeforeComment')).toBe(true);
+    });
+    it('is true adjacent before comment with space before', () => {
+      const contexts = context.determineContexts(
+        docFromTextNotation(' |;; foo•   ;; bar•  ;; baz  •gaz')
+      );
+      expect(contexts.includes('calva:cursorBeforeComment')).toBe(true);
+    });
+    it('is false before comment with space between', () => {
+      const contexts = context.determineContexts(
+        docFromTextNotation('| ;; foo•   ;; bar•  ;; baz  •gaz')
       );
       expect(contexts.includes('calva:cursorBeforeComment')).toBe(true);
     });
