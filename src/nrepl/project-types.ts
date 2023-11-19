@@ -793,7 +793,8 @@ export function getProjectTypeForName(name: string) {
 export async function detectProjectTypes(): Promise<string[]> {
   const rootUri = state.getProjectRootUri();
   const cljProjTypes = ['custom', 'generic', 'cljs-only', 'babashka', 'nbb', 'joyride'];
-  for (const clj in projectTypes) {
+
+  const promises = Object.keys(projectTypes).map(async (clj) => {
     for (const projectFileName of projectTypes[clj].useWhenExists) {
       try {
         const uri = vscode.Uri.joinPath(rootUri, projectFileName);
@@ -804,7 +805,9 @@ export async function detectProjectTypes(): Promise<string[]> {
         // continue regardless of error
       }
     }
-  }
+  });
+
+  await Promise.all(promises);
   return cljProjTypes;
 }
 

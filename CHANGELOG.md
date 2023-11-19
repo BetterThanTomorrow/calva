@@ -8,6 +8,7 @@ Changes to Calva.
 
 - Fix: [Connecting to an external REPL does not work when local nrepl port exists](https://github.com/BetterThanTomorrow/calva/issues/2303)
 - [Avoid formatting when breaking up line comments](https://github.com/BetterThanTomorrow/calva/issues/2296)
+- Fix: [The Jack-in/Connect Project Type menu is not always fully populated on first use](https://github.com/BetterThanTomorrow/calva/issues/2334)
 
 ## [2.0.397] - 2023-11-17
 
