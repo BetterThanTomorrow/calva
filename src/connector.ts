@@ -801,7 +801,23 @@ export default {
       ConnectType.Connect,
       undefined
     );
-    return standaloneConnect(connectSequence);
+    await outputWindow.initResultsDoc();
+    await outputWindow.openResultsDoc();
+
+    if (connectSequence) {
+      const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
+      outputWindow.appendLine(`; Connecting ...`);
+      state
+        .analytics()
+        .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
+        .send();
+      void state.analytics().logGA4Pageview('/connect-initiated');
+      void state.analytics().logGA4Pageview('/connect-initiated/external-repl-connect');
+
+      return connect(connectSequence, false);
+    } else {
+      outputWindow.appendLine('; Aborting connect, error determining connect sequence.');
+    }
   },
   connectCommand: async (options?: {
     host?: string;
