@@ -793,8 +793,7 @@ export function getProjectTypeForName(name: string) {
 export async function detectProjectTypes(): Promise<string[]> {
   const rootUri = state.getProjectRootUri();
   const cljProjTypes = ['custom', 'generic', 'cljs-only', 'babashka', 'nbb', 'joyride'];
-
-  const promises = Object.keys(projectTypes).map(async (clj) => {
+  for (const clj in projectTypes) {
     for (const projectFileName of projectTypes[clj].useWhenExists) {
       try {
         const uri = vscode.Uri.joinPath(rootUri, projectFileName);
@@ -802,12 +801,10 @@ export async function detectProjectTypes(): Promise<string[]> {
         cljProjTypes.push(clj);
         break;
       } catch {
-        // continue regardless of error
+        // this just means the file doesn't exist
       }
     }
-  });
-
-  await Promise.all(promises);
+  }
   return cljProjTypes;
 }
 
