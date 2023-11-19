@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.398] - 2023-11-19
+
 - Fix: [Connecting to an external REPL does not work when local nrepl port exists](https://github.com/BetterThanTomorrow/calva/issues/2303)
 - [Avoid formatting when breaking up line comments](https://github.com/BetterThanTomorrow/calva/issues/2296)
 
