@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [The Jack-in/Connect Project Type menu is not always fully populated on first use](https://github.com/BetterThanTomorrow/calva/issues/2334)
+
 ## [2.0.398] - 2023-11-19
 
 - Fix: [Connecting to an external REPL does not work when local nrepl port exists](https://github.com/BetterThanTomorrow/calva/issues/2303)
