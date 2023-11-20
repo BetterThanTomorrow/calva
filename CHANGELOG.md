@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.399] - 2023-11-20
+
 - Fix: [The Jack-in/Connect Project Type menu is not always fully populated on first use](https://github.com/BetterThanTomorrow/calva/issues/2334)
 
 ## [2.0.398] - 2023-11-19
