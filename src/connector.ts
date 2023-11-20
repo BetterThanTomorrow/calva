@@ -827,7 +827,6 @@ export default {
   }) => {
     const host = options && options.host ? options.host : undefined;
     const port = options && options.port ? options.port : undefined;
-    const cljTypes = await projectTypes.detectProjectTypes();
     let connectSequence: ReplConnectSequence;
     if (options && typeof options.connectSequence === 'string') {
       connectSequence = getConnectSequences(projectTypes.getAllProjectTypes()).find(
@@ -841,6 +840,7 @@ export default {
       .catch((e) => {
         void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
       });
+    const cljTypes = await projectTypes.detectProjectTypes();
     if (!connectSequence) {
       try {
         connectSequence = await askForConnectSequence(
