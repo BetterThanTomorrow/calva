@@ -801,7 +801,7 @@ export async function detectProjectTypes(): Promise<string[]> {
         cljProjTypes.push(clj);
         break;
       } catch {
-        // continue regardless of error
+        // this just means the file doesn't exist
       }
     }
   }
