@@ -13,7 +13,8 @@
   (or @repl-output-webview-panel
       (let [webview-panel (.. @util/vscode -window (createWebviewPanel "calva:repl-output"
                                                                        "REPL Output"
-                                                                       2))]
+                                                                       (.. @util/vscode -ViewColumn -Two)
+                                                                       #js {:enableScripts true}))]
         (.. webview-panel (onDidDispose dispose-repl-output-webview-panel))
         (reset! repl-output-webview-panel webview-panel))))
 
@@ -24,6 +25,11 @@
   (.. fs (readFileSync (get-webview-html-path)
                        "utf-8")))
 
+(defn post-message-to-webview [message]
+  (.. @repl-output-webview-panel
+      -webview
+      (postMessage (clj->js message))))
+
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
 ;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
 ;; https://code.visualstudio.com/api/extension-guides/webview#theming-webview-content
@@ -33,6 +39,18 @@
 
   (set! (.. @repl-output-webview-panel -webview -html) (get-webview-content))
 
+  (.. @repl-output-webview-panel
+      -webview
+      (postMessage #js {:command "print-result"
+                        :result "Hello world!!!"}))
+
+  (post-message-to-webview {:command "print-result"
+                            :result "Hello world!!!"})
+
+  (post-message-to-webview {:command "clear-results"})
+
   @repl-output-webview-panel
+
+  ;; TODO: Don't worry about scrolling yet. We know we can do that. Explore other important unknowns first.
 
   :rcf)
