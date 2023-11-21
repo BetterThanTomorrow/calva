@@ -31,7 +31,7 @@ import * as replHistory from './results-output/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
-import { setStateValue, storeVsCodeApiReference } from '../out/cljs-lib/cljs-lib';
+import { setStateValue, initializeCljs } from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
@@ -77,7 +77,7 @@ async function activate(context: vscode.ExtensionContext) {
   // Store a reference to the vscode API in the cljs so it can all the API using that reference,
   // because requiring the vscode API poses issues with being able to test the cljs lib.
   // We cannot run unit tests on code that imports the vscode API, because it's only available at runtime.
-  storeVsCodeApiReference(vscode);
+  initializeCljs(vscode, context);
 
   const testController = vscode.tests.createTestController('calvaTestController', 'Calva');
   const clientProvider = lsp.createClientProvider({

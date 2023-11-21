@@ -1,29 +1,38 @@
 (ns calva.repl.webview-output
-  (:require [calva.util :as util]))
+  (:require [calva.util :as util]
+            ["fs" :as fs]
+            ["path" :as path]))
+
+(def repl-output-webview-panel (atom nil))
+
+(defn dispose-repl-output-webview-panel []
+  (println "Disposing repl-output-webview-panel")
+  (reset! repl-output-webview-panel nil))
 
 (defn create-repl-output-webview-panel []
-  (.. @util/vscode -window (createWebviewPanel "calva:repl-output"
-                                               "REPL Output"
-                                               2
-                                               (clj->js {#_#_:enableScripts true}))))
+  (or @repl-output-webview-panel
+      (let [webview-panel (.. @util/vscode -window (createWebviewPanel "calva:repl-output"
+                                                                       "REPL Output"
+                                                                       2))]
+        (.. webview-panel (onDidDispose dispose-repl-output-webview-panel))
+        (reset! repl-output-webview-panel webview-panel))))
+
+(defn get-webview-html-path []
+  (.. path (join (.. @util/context -extensionPath) "assets" "repl-output-webview.html")))
 
 (defn get-webview-content []
-  "<!DOCTYPE html>
-<html lang=\"en\">
-<head>
-    <meta charset=\"UTF-8\">
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
-    <title>Cat Coding</title>
-</head>
-<body>
-    <img src=\"https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif\" width=\"300\" />
-</body>
-</html>")
+  (.. fs (readFileSync (get-webview-html-path)
+                       "utf-8")))
+
+;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
+;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
+;; https://code.visualstudio.com/api/extension-guides/webview#theming-webview-content
 
 (comment
-  (def repl-output-panel (create-repl-output-webview-panel))
+  (create-repl-output-webview-panel)
 
-  (set! (.. repl-output-panel -webview -html) (get-webview-content))
+  (set! (.. @repl-output-webview-panel -webview -html) (get-webview-content))
 
-  (get-webview-content)
+  @repl-output-webview-panel
+
   :rcf)

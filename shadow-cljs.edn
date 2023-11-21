@@ -23,7 +23,7 @@
                              :dart2clj calva.dartclojure/convert-bridge
                              :readConfigEdn calva.read-config/config-edn->js-bridge
                              :html2hiccup calva.html2hiccup/html->hiccup-convert-bridge
-                             :storeVsCodeApiReference calva.util/store-vscode-api-reference}
+                             :initializeCljs calva.util/initialize-cljs}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test
