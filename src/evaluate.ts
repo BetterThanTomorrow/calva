@@ -213,7 +213,7 @@ async function evaluateCodeUpdatingUI(
               }
             })
             .catch((e) => {
-              console.error(e.message);
+              console.error(`Failed fetching stacktrace: ${e.message}`);
             });
         });
       }
