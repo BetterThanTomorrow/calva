@@ -1181,19 +1181,7 @@ export class NReplEvaluation {
       if (hasStatus(msg, 'done') || hasStatus(msg, 'need-debug-input')) {
         this.remove();
         if (this.exception && this.msgValue !== debug.DEBUG_QUIT_VALUE) {
-          if (this.session.supports('stacktrace')) {
-            this.session
-              .stacktrace()
-              .then((stacktrace) => {
-                this._stacktrace = stacktrace;
-                this.doReject(this.exception);
-              })
-              .catch((e) => {
-                this.doReject(this.exception);
-              });
-          } else {
-            this.doReject(this.exception);
-          }
+          this.doReject(this.exception);
         } else if (this.pprintOut) {
           this.doResolve(this.pprintOut);
         } else if (this.stacktrace) {

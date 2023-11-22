@@ -204,9 +204,16 @@ async function evaluateCodeUpdatingUI(
               }
             }
           }
-          if (context.stacktrace && context.stacktrace.stacktrace) {
-            outputWindow.markLastStacktraceRange(afterResultLocation);
-          }
+          session
+            .stacktrace()
+            .then((stacktrace) => {
+              if (stacktrace && stacktrace.stacktrace) {
+                outputWindow.markLastStacktraceRange(afterResultLocation);
+              }
+            })
+            .catch((e) => {
+              console.error(e.message);
+            });
         });
         if (context.stacktrace && context.stacktrace.stacktrace) {
           outputWindow.saveStacktrace(context.stacktrace.stacktrace);
