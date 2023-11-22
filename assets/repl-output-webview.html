@@ -18,8 +18,14 @@
     <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
 
     <pre><code class="language-clojure">
-      (defn hello-world [] (println "hello world"))
+(defn hello-world [] (println "highlightjs code block"))
     </code></pre>
+
+    <pre>
+      <code class="language-clojure">
+(defn hello-world [] (println "highlightjs code block"))
+      </code>
+    </pre>
 
     <!-- TODO: Disable inline scripts - see security section in webview docs -->
     <div id="results"></div>
@@ -42,5 +48,6 @@
         }
       });
     </script>
+    <script src="../src/cljs-lib/src/calva/repl/js/main.js"></script>
   </body>
 </html>
