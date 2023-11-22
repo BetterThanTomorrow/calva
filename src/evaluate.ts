@@ -209,15 +209,13 @@ async function evaluateCodeUpdatingUI(
             .then((stacktrace) => {
               if (stacktrace && stacktrace.stacktrace) {
                 outputWindow.markLastStacktraceRange(afterResultLocation);
+                outputWindow.saveStacktrace(stacktrace.stacktrace);
               }
             })
             .catch((e) => {
               console.error(e.message);
             });
         });
-        if (context.stacktrace && context.stacktrace.stacktrace) {
-          outputWindow.saveStacktrace(context.stacktrace.stacktrace);
-        }
       }
     }
     outputWindow.setSession(session, context.ns || ns);
