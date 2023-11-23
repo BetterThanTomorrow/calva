@@ -204,13 +204,18 @@ async function evaluateCodeUpdatingUI(
               }
             }
           }
-          if (context.stacktrace && context.stacktrace.stacktrace) {
-            outputWindow.markLastStacktraceRange(afterResultLocation);
-          }
+          session
+            .stacktrace()
+            .then((stacktrace) => {
+              if (stacktrace && stacktrace.stacktrace) {
+                outputWindow.markLastStacktraceRange(afterResultLocation);
+                outputWindow.saveStacktrace(stacktrace.stacktrace);
+              }
+            })
+            .catch((e) => {
+              console.error(`Failed fetching stacktrace: ${e.message}`);
+            });
         });
-        if (context.stacktrace && context.stacktrace.stacktrace) {
-          outputWindow.saveStacktrace(context.stacktrace.stacktrace);
-        }
       }
     }
     outputWindow.setSession(session, context.ns || ns);
