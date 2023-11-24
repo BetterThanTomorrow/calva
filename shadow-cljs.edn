@@ -30,11 +30,11 @@
                  :output-to "out/cljs-lib/test/cljs-lib-tests.js"
                  :ns-regexp "-test$"
                  :autorun   true}
-                :repl-output-webview
+                :repl-output-ui
                 {:target :browser
                  ;; TODO: Do the asset-path and output-dir values make sense?
                  :asset-path "js"
-                 :output-dir "repl-output-window/js"
-                 :modules {:main {:init-fn calva.repl.webview-output/main}}
+                 :output-dir "repl-output-ui/js"
+                 :modules {:main {:init-fn calva.repl.webview.ui/main}}
                  :devtools {:loader-mode :eval
                             :devtools-url "http://localhost:9630"}}}}

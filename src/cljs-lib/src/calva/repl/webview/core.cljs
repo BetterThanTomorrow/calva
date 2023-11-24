@@ -1,7 +1,6 @@
-(ns calva.repl.webview-output
-  (:require [calva.util :as util]
-            ["fs" :as fs]
-            ["path" :as path]))
+(ns calva.repl.webview.core
+  (:require
+   [calva.util :as util]))
 
 (def repl-output-webview-panel (atom nil))
 
@@ -17,9 +16,6 @@
                                                                        #js {:enableScripts true}))]
         (.. webview-panel (onDidDispose dispose-repl-output-webview-panel))
         (reset! repl-output-webview-panel webview-panel))))
-
-(defn get-webview-html-path []
-  (.. path (join (.. @util/context -extensionPath) "assets" "repl-output-webview.html")))
 
 (defn get-webview-html
   [js-src]
@@ -78,16 +74,10 @@
   </body>
 </html>"))
 
-(defn get-webview-content []
-  (.. fs (readFileSync (get-webview-html-path)
-                       "utf-8")))
-
 (defn post-message-to-webview [message]
   (.. @repl-output-webview-panel
       -webview
       (postMessage (clj->js message))))
-
-(defn main [])
 
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
 ;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
