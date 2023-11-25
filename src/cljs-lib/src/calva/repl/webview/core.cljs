@@ -8,7 +8,7 @@
   (println "Disposing repl-output-webview-panel")
   (reset! repl-output-webview-panel nil))
 
-(defn create-repl-output-webview-panel []
+(defn create-or-get-repl-output-webview-panel []
   (or @repl-output-webview-panel
       (let [webview-panel (.. @util/vscode -window (createWebviewPanel "calva:repl-output"
                                                                        "REPL Output"
@@ -37,35 +37,23 @@
     </script>
   </head>
   <body>
-    <img src=\"https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif\" width=\"300\" />
-
-    <pre><code class=\"language-clojure\">
-(defn hello-world [] (println \"highlightjs code block\"))
-    </code></pre>
-
-    <pre>
-      <code class=\"language-clojure\">
-(defn hello-world [] (println \"highlightjs code block\"))
-      </code>
-    </pre>
-
     <!-- TODO: Disable inline scripts - see security section in webview docs -->
-    <div id=\"results\"></div>
+    <div id=\"output\"></div>
 
     <script>
       window.addEventListener('message', (event) => {
         const message = event.data; // The JSON data our extension sent
-        const resultsDiv = document.getElementById('results');
+        const outputDiv = document.getElementById('output');
 
         switch (message.command) {
           case 'print-result':
             const resultParagraph = document.createElement('p');
             const text = document.createTextNode(message.result);
             resultParagraph.appendChild(text);
-            resultsDiv.appendChild(resultParagraph);
+            outputDiv.appendChild(resultParagraph);
             break;
-          case 'clear-results':
-            resultsDiv.innerHTML = '';
+          case 'clear-output':
+            outputDiv.innerHTML = '';
             break;
         }
       });
@@ -79,23 +67,25 @@
       -webview
       (postMessage (clj->js message))))
 
+(defn show-repl-output-webview-panel []
+  (let [repl-output-webview-panel (create-or-get-repl-output-webview-panel)
+        js-path (.. @util/vscode
+                    -Uri
+                    (joinPath (.. @util/context -extensionUri) "repl-output-ui" "js" "main.js"))
+        js-src (.. repl-output-webview-panel -webview (asWebviewUri js-path))]
+    (set! (.. repl-output-webview-panel -webview -html) (get-webview-html js-src))))
+
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
 ;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
 ;; https://code.visualstudio.com/api/extension-guides/webview#theming-webview-content
 
 (comment
-  (create-repl-output-webview-panel)
-
-  @(def js-path (.. @util/vscode -Uri (joinPath (.. @util/context -extensionUri) "assets" "js" "repl-output-webview.js")))
-
-  @(def js-src (.. @repl-output-webview-panel -webview (asWebviewUri js-path)))
-
-  (set! (.. @repl-output-webview-panel -webview -html) (get-webview-html js-src))
+  (show-repl-output-webview-panel)
 
   (post-message-to-webview {:command "print-result"
                             :result "Hello world!!!"})
 
-  (post-message-to-webview {:command "clear-results"})
+  (post-message-to-webview {:command "clear-output"})
 
   @repl-output-webview-panel
 

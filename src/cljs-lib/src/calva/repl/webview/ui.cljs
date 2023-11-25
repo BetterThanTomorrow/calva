@@ -5,4 +5,4 @@
   [:div "hello world"])
 
 (defn render-ui []
-  (rdom/render [repl-output] (js/getElementById "results")))
+  (rdom/render [repl-output] (js/document.getElementById "output")))

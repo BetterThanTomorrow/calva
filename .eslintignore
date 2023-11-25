@@ -7,3 +7,4 @@
 /.clj-kondo
 /site
 /test-data
+/repl-output-ui
