@@ -40,24 +40,6 @@
     <!-- TODO: Disable inline scripts - see security section in webview docs -->
     <div id=\"output\"></div>
 
-    <script>
-      window.addEventListener('message', (event) => {
-        const message = event.data; // The JSON data our extension sent
-        const outputDiv = document.getElementById('output');
-
-        switch (message.command) {
-          case 'print-result':
-            const resultParagraph = document.createElement('p');
-            const text = document.createTextNode(message.result);
-            resultParagraph.appendChild(text);
-            outputDiv.appendChild(resultParagraph);
-            break;
-          case 'clear-output':
-            outputDiv.innerHTML = '';
-            break;
-        }
-      });
-    </script>
     <script src=\"" js-src "\"></script>
   </body>
 </html>"))
@@ -82,7 +64,7 @@
 (comment
   (show-repl-output-webview-panel)
 
-  (post-message-to-webview {:command "print-result"
+  (post-message-to-webview {:command "show-result"
                             :result "Hello world!!!"})
 
   (post-message-to-webview {:command "clear-output"})
