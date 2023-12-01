@@ -16,7 +16,7 @@ export const evaluateCode = async (
     stdout: (m: string) => void;
     stderr: (m: string) => void;
   },
-  opts = {}
+  opts = { ns: 'user' }
 ): Promise<Result> => {
   const session = replSession.getSession(sessionKey || undefined);
   if (!session) {
