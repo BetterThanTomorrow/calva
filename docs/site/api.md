@@ -306,7 +306,7 @@ With `editor.replace()` you can replace a range in a Clojure editor with new tex
 
 ## `document`
 
-The `document` modules provides access to the Clojure/Calva aspects of VS Code `TextDocument`s.
+The `document` module provides access to the Clojure/Calva aspects of VS Code `TextDocument`s.
 
 ### `document.getNamespace(document?: vscode.TextDocument): string`
 
@@ -319,12 +319,12 @@ Example usage. To evaluate some code in the namespace of the current document:
 === "Joyride"
 
     ```clojure
-    (calva/repl.evaluateCode "clj" "(+ 1 2 39)" (calva/editor.getDocumentNamespace))
+    (calva/repl.evaluateCode "clj" "(+ 1 2 39)" (calva/document.getNamespace))
     ```
 === "JavaScript"
 
     ```js
-    calva.repl.evaluateCode("clj",  "(+ 1 2 39)", calva.editor.getDocumentNamespace());
+    calva.repl.evaluateCode("clj",  "(+ 1 2 39)", calva.document.getNamespace());
     ```
 
 ### `document.getNamespaceAndNsForm(document?: vscode.TextDocument): [ns: string, nsForm: string]`
@@ -338,12 +338,12 @@ Example usage. To evaluate the `ns` form of the current document:
 === "Joyride"
 
     ```clojure
-    (calva/repl.evaluateCode "clj" (second (calva/editor.getDocumentNamespaceAndNsForm)))
+    (calva/repl.evaluateCode "clj" (second (calva/document.getNamespaceAndNsForm)))
     ```
 === "JavaScript"
 
     ```js
-    calva.repl.evaluateCode("clj", calva.editor.getDocumentNamespaceAndNsForm()[1]);
+    calva.repl.evaluateCode("clj", calva.document.getNamespaceAndNsForm()[1]);
     ```
 
 ## `pprint`
