@@ -1,4 +1,4 @@
-import * as replV0 from './repl';
+import * as replV0 from './repl-v0';
 import * as replV1 from './repl-v1';
 import * as ranges from './ranges';
 import * as calvaVsCode from './vscode';

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { TextDecoder, TextEncoder } from 'util';
 import { prettyPrint } from '../out/cljs-lib/cljs-lib';
 import * as tokenCursor from './cursor-doc/token-cursor';
-import * as repl from './api/repl';
+import * as repl from './api/repl-v0';
 import _ = require('lodash');
 import { isInteger } from 'lodash';
 
