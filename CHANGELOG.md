@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Some nREPL `eval` messages are sent with `untitled` as `ns`](https://github.com/BetterThanTomorrow/calva/issues/2358)
+
 ## [2.0.400] - 2023-11-23
 
 - Fix: [Error responses wait for stacktrace before printing to repl output](https://github.com/BetterThanTomorrow/calva/issues/2355)
