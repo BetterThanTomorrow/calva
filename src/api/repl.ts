@@ -16,7 +16,7 @@ export const evaluateCode = async (
     stdout: (m: string) => void;
     stderr: (m: string) => void;
   },
-  opts = { ns: 'user' }
+  opts = {}
 ): Promise<Result> => {
   const session = replSession.getSession(sessionKey || undefined);
   if (!session) {
@@ -32,7 +32,7 @@ export const evaluateCode = async (
     : (_m: string) => {
         // Do nothing
       };
-  const evaluation = session.eval(code, undefined, {
+  const evaluation = session.eval(code, null, {
     stdout: stdout,
     stderr: stderr,
     pprintOptions: printer.disabledPrettyPrinter,
