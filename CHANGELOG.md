@@ -5,6 +5,9 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Some nREPL `eval` messages are sent with `untitled` as `ns`](https://github.com/BetterThanTomorrow/calva/issues/2358)
+- Fix: [The `repl.evaluateCode` API does not provide a way to supply the `ns` param](https://github.com/BetterThanTomorrow/calva/issues/2359)
+- [Introduce Calva API `.v1`](https://github.com/BetterThanTomorrow/calva/issues/2359)
+- [Provide access to the current namespace form info via Calva API](https://github.com/BetterThanTomorrow/calva/issues/2360)
 
 ## [2.0.400] - 2023-11-23
 

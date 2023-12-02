@@ -11,7 +11,7 @@ Calva exposes an API for use from other VS Code extensions (such as [Joyride](./
 
 ## Accessing
 
-To access the API the Calva extension needs to be [activated](https://code.visualstudio.com/api/references/vscode-api#Extension%3CT%3E). The API is exposed under the `v0` key on the extension's `exports`, and split up into submodules, like `repl`, and `ranges`.
+To access the API the Calva extension needs to be [activated](https://code.visualstudio.com/api/references/vscode-api#Extension%3CT%3E). The API is exposed under the `v1` key on the extension's `exports`, and split up into submodules, like `repl`, and `ranges`.
 
 When using Joyride you can use its unique `require` API, for which one of the benefits is better lookup IDE support. When using the API from regular ClojureScript, you'll pick it up from the Calva extension instance. (Which you can do from Joyride as well, but why would you?). Here is how you access the API, with an example of usage as a bonus:
 
@@ -19,9 +19,9 @@ When using Joyride you can use its unique `require` API, for which one of the be
 === "Joyride"
 
     ```clojure
-    (ns ... (:require ["ext://betterthantomorrow.calva$v0" :as calva]))
+    (ns ... (:require ["ext://betterthantomorrow.calva$v1" :as calva]))
     ;; OR
-    (require '["ext://betterthantomorrow.calva$v0" :as calva])
+    (require '["ext://betterthantomorrow.calva$v1" :as calva])
 
     (calva/repl.currentSessionKey) => "cljs" ; or "clj", depending
     ```
@@ -33,7 +33,7 @@ When using Joyride you can use its unique `require` API, for which one of the be
     
     (def calva (-> calvaExt
                  .-exports
-                 .-v0
+                 .-v1
                  (js->clj :keywordize-keys true)))
     
     ((get-in calva [:repl :currentSessionKey])) => "cljs" ; or "clj", depending
@@ -44,7 +44,7 @@ When using Joyride you can use its unique `require` API, for which one of the be
     ```javascript
     const calvaExt = vscode.extensions.getExtension("betterthantomorrow.calva");
 
-    const calva = calvaExt.exports.v0;
+    const calva = calvaExt.exports.v1;
 
     const sessionKey = calva.repl.currentSessionKey()
     ```
@@ -83,10 +83,12 @@ This function lets you evaluate Clojure code through Calva's nREPL connection. C
 export async function evaluateCode(
   sessionKey: 'clj' | 'cljs' | 'cljc' | undefined,
   code: string,
+  ns = 'user',
   output?: {
     stdout: (m: string) => void;
     stderr: (m: string) => void;
-  }
+  },
+  opts = {}
 ): Promise<Result>;
 ```
 
@@ -151,6 +153,7 @@ An example:
                     (calva/repl.evaluateCode
                      "clj"
                      code
+                     "user"
                      #js {:stdout #(.append oc %)
                           :stderr #(.append oc (str "Error: " %))})))
 
@@ -168,6 +171,7 @@ An example:
                     ((get-in [:repl :evaluateCode] calvaApi)
                      "clj"
                      code
+                     "user"
                      #js {:stdout #(.append oc %)
                           :stderr #(.append oc (str "Error: " %))})))
 
@@ -181,7 +185,7 @@ An example:
 
     ```javascript
     const evaluate = (code) =>
-      calvaApi.repl.evaluateCode("clj", code, {
+      calvaApi.repl.evaluateCode("clj", code, "user", {
         stdout: (s) => {
           console.log(s);
         },
@@ -268,6 +272,7 @@ _Corresponding [REPL Snippet](custom-commands.md) variable: `$top-level-defined-
     ```javascript
     const [range, text] = ranges.currentTopLevelForm();
     ```
+
 ## `editor`
 
 The `editor` module has facilites (well, a facility, so far) for editing Clojure documents.
@@ -297,6 +302,48 @@ With `editor.replace()` you can replace a range in a Clojure editor with new tex
     calva.editor.replace(topLevelRange, "Some new text")
       .then((_) => console.log("Text replaced!"))
       .catch((e) => console.log("Error replacing text:", e));
+    ```
+
+## `document`
+
+The `document` modules provides access to the Clojure/Calva aspects of VS Code `TextDocument`s.
+
+### `document.getNamespace(document?: vscode.TextDocument): string`
+
+`document.getNamespace()` returns the namespace of a document.
+
+* `document`, a `vscode.TextDocument` (defaults to the current active document)
+
+Example usage. To evaluate some code in the namespace of the current document:
+
+=== "Joyride"
+
+    ```clojure
+    (calva/repl.evaluateCode "clj" "(+ 1 2 39)" (calva/editor.getDocumentNamespace))
+    ```
+=== "JavaScript"
+
+    ```js
+    calva.repl.evaluateCode("clj",  "(+ 1 2 39)", calva.editor.getDocumentNamespace());
+    ```
+
+### `document.getNamespaceAndNsForm(document?: vscode.TextDocument): [ns: string, nsForm: string]`
+
+`document.getNamespaceAndNsForm()` returns the namespace and the `ns` form of a document as a tuple.
+
+* `document`, a `vscode.TextDocument` (defaults to the current active document)
+
+Example usage. To evaluate the `ns` form of the current document:
+
+=== "Joyride"
+
+    ```clojure
+    (calva/repl.evaluateCode "clj" (second (calva/editor.getDocumentNamespaceAndNsForm)))
+    ```
+=== "JavaScript"
+
+    ```js
+    calva.repl.evaluateCode("clj", calva.editor.getDocumentNamespaceAndNsForm()[1]);
     ```
 
 ## `pprint`

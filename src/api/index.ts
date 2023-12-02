@@ -1,20 +1,27 @@
-import * as repl from './repl';
+import * as replV0 from './repl';
+import * as replV1 from './repl-v1';
 import * as ranges from './ranges';
 import * as calvaVsCode from './vscode';
 import * as editor from './editor';
+import * as document from './document';
 import * as pprint from './pprint';
 
 export function getApi() {
   return {
-    // If we can avoid it we don't want to ever break our callers.
-    // This first version of the API is a draft though, so signaling
-    // potential removal of this version of the API with the `0`.
     v0: {
-      evaluateCode: repl.evaluateCode, // backward compatible
-      repl,
+      evaluateCode: replV0.evaluateCode, // old mistake
+      repl: replV0,
       ranges,
       vscode: calvaVsCode,
       editor,
+      pprint,
+    },
+    v1: {
+      repl: replV1,
+      ranges,
+      vscode: calvaVsCode,
+      editor,
+      document,
       pprint,
     },
   };
