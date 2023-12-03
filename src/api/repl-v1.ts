@@ -12,11 +12,12 @@ type Result = {
 export const evaluateCode = async (
   sessionKey: 'clj' | 'cljs' | 'cljc' | undefined,
   code: string,
+  ns = 'user',
   output?: {
     stdout: (m: string) => void;
     stderr: (m: string) => void;
   },
-  opts = {}
+  nReplEvalOptions = {}
 ): Promise<Result> => {
   const session = replSession.getSession(sessionKey || undefined);
   if (!session) {
@@ -32,11 +33,11 @@ export const evaluateCode = async (
     : (_m: string) => {
         // Do nothing
       };
-  const evaluation = session.eval(code, undefined, {
+  const evaluation = session.eval(code, ns, {
     stdout: stdout,
     stderr: stderr,
     pprintOptions: printer.disabledPrettyPrinter,
-    ...opts,
+    ...nReplEvalOptions,
   });
   return {
     result: await evaluation.value,
