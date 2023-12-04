@@ -31,7 +31,11 @@ import * as replHistory from './results-output/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
-import { setStateValue, initializeCljs } from '../out/cljs-lib/cljs-lib';
+import {
+  setStateValue,
+  initializeCljs,
+  showReplOutputWebviewPanel,
+} from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
@@ -78,6 +82,7 @@ async function activate(context: vscode.ExtensionContext) {
   // because requiring the vscode API poses issues with being able to test the cljs lib.
   // We cannot run unit tests on code that imports the vscode API, because it's only available at runtime.
   initializeCljs(vscode, context);
+  showReplOutputWebviewPanel();
 
   const testController = vscode.tests.createTestController('calvaTestController', 'Calva');
   const clientProvider = lsp.createClientProvider({

@@ -58,7 +58,13 @@
                     -Uri
                     (joinPath (.. ^js @util/context -extensionUri) "repl-output-ui" "js" "main.js"))
         js-src (.. repl-output-webview-panel -webview (asWebviewUri js-path))]
-    (set! (.. ^js repl-output-webview-panel -webview -html) (get-webview-html js-src))))
+    (set! (.. ^js repl-output-webview-panel -webview -html) (get-webview-html js-src))
+    (let [interval-id (js/setInterval post-message-to-webview
+                                      1000
+                                      {:command-name "show-result"
+                                       :result "Hello world!!!"})]
+      (js/setTimeout #(js/clearInterval interval-id)
+                     11000))))
 
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
 ;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
