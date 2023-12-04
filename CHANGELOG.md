@@ -4,6 +4,17 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.401] - 2023-12-03
+
+- Fix: [Some nREPL `eval` messages are sent with `untitled` as `ns`](https://github.com/BetterThanTomorrow/calva/issues/2358)
+- Fix: [The `repl.evaluateCode` API does not provide a way to supply the `ns` param](https://github.com/BetterThanTomorrow/calva/issues/2359)
+- [Introduce Calva API `.v1`](https://github.com/BetterThanTomorrow/calva/issues/2359)
+- [Provide access to the current namespace form info via Calva API](https://github.com/BetterThanTomorrow/calva/issues/2360)
+
+## [2.0.400] - 2023-11-23
+
+- Fix: [Error responses wait for stacktrace before printing to repl output](https://github.com/BetterThanTomorrow/calva/issues/2355)
+
 ## [2.0.399] - 2023-11-20
 
 - Fix: [The Jack-in/Connect Project Type menu is not always fully populated on first use](https://github.com/BetterThanTomorrow/calva/issues/2334)

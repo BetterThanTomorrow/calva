@@ -392,6 +392,7 @@ export class NReplSession {
 
   private _createEvalOperationMessage(code: string, ns: string, opts: any) {
     const debugResponse = getStateValue(debug.DEBUG_RESPONSE_KEY);
+    const theNS = ns || opts['ns'] || 'user';
     if (debugResponse && vscode.debug.activeDebugSession && this.replType === 'clj') {
       state
         .analytics()
@@ -402,7 +403,7 @@ export class NReplSession {
         .send();
       return {
         id: debugResponse.id,
-        ns,
+        ns: theNS,
         session: this.sessionId,
         op: 'debug-input',
         input: `{:response :eval, :code ${code}}`,
@@ -413,7 +414,7 @@ export class NReplSession {
       return {
         id: this.client.nextId,
         op: 'eval',
-        ns,
+        ns: theNS,
         session: this.sessionId,
         code,
         ...opts,
@@ -421,6 +422,16 @@ export class NReplSession {
     }
   }
 
+  /**
+   * Evaluates the given code in the specified `ns`.
+   * If `ns` is not specified, will use the `ns` from `opts`.
+   * If `opts.ns` is not specified, will use `user`.
+   *
+   * @param code - The code to evaluate.
+   * @param ns - The namespace in which to evaluate the code.
+   * @param opts - Optional evaluation options. See https://nrepl.org/nrepl/ops.html#eval
+   * @returns An `NReplEvaluation` object Promise representing the evaluation.
+   */
   eval(
     code: string,
     ns: string,
@@ -1181,19 +1192,7 @@ export class NReplEvaluation {
       if (hasStatus(msg, 'done') || hasStatus(msg, 'need-debug-input')) {
         this.remove();
         if (this.exception && this.msgValue !== debug.DEBUG_QUIT_VALUE) {
-          if (this.session.supports('stacktrace')) {
-            this.session
-              .stacktrace()
-              .then((stacktrace) => {
-                this._stacktrace = stacktrace;
-                this.doReject(this.exception);
-              })
-              .catch((e) => {
-                this.doReject(this.exception);
-              });
-          } else {
-            this.doReject(this.exception);
-          }
+          this.doReject(this.exception);
         } else if (this.pprintOut) {
           this.doResolve(this.pprintOut);
         } else if (this.stacktrace) {
