@@ -4,6 +4,10 @@
 (defonce vscode (atom nil))
 (defonce context (atom nil))
 
+(comment
+  (+ 1 2)
+  :rcf)
+
 (def project-root-uri-key " connect.projectDirNew ")
 
 (defn get-first-workspace-folder-uri []
@@ -29,6 +33,6 @@
    We cannot run unit tests on code that imports the vscode API, because it's only available at runtime.
    All cljs code is bundled into a single file and required by the TypeScript code, which means we cannot
    write unit tests for any TypeScript code that imports the cljs code, if any of the cljs code requires the VS Code API."
-  [vsc ctx]
+  [^js vsc ^js ctx]
   (reset! vscode vsc)
   (reset! context ctx))

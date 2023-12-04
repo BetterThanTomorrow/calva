@@ -32,8 +32,13 @@
   (.. js/window
       (addEventListener "message"
                         (fn [^js message]
-                          (let [command (.. message -command)
-                                data (.. message -data)]
+                          (js/console.log "message" message)
+                          ;; TODO: Convert message data to CLJ before accessing its properties
+                          (let [id (.. message -data -id)
+                                command (aget message "data" "command-name")
+                                data (.. message -data -result)]
+                            (js/console.log "id" id)
+                            (js/console.log "command" command)
                             (case command
                               "show-result" (add-eval-result data)
                               "show-stdout" (add-stdout data))))))

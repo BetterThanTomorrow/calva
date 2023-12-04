@@ -2,19 +2,20 @@
   (:require
    [calva.util :as util]))
 
-(def repl-output-webview-panel (atom nil))
+(defonce repl-output-webview-panel (atom nil))
 
 (defn dispose-repl-output-webview-panel []
   (println "Disposing repl-output-webview-panel")
   (reset! repl-output-webview-panel nil))
 
+;; TODO: See if there's a way to not have to use ^js in so many places without shadow-cljs warnings
 (defn create-or-get-repl-output-webview-panel []
   (or @repl-output-webview-panel
-      (let [webview-panel (.. @util/vscode -window (createWebviewPanel "calva:repl-output"
-                                                                       "REPL Output"
-                                                                       (.. @util/vscode -ViewColumn -Two)
-                                                                       #js {:enableScripts true}))]
-        (.. webview-panel (onDidDispose dispose-repl-output-webview-panel))
+      (let [webview-panel (.. ^js @util/vscode -window (createWebviewPanel "calva:repl-output"
+                                                                           "REPL Output"
+                                                                           (.. ^js @util/vscode -ViewColumn -Two)
+                                                                           #js {:enableScripts true}))]
+        (.. ^js webview-panel (onDidDispose dispose-repl-output-webview-panel))
         (reset! repl-output-webview-panel webview-panel))))
 
 (defn get-webview-html
@@ -45,17 +46,19 @@
 </html>"))
 
 (defn post-message-to-webview [message]
-  (.. @repl-output-webview-panel
+  (.. ^js @repl-output-webview-panel
       -webview
-      (postMessage (clj->js message))))
+      (postMessage (clj->js (merge
+                             {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
+                             message)))))
 
 (defn show-repl-output-webview-panel []
-  (let [repl-output-webview-panel (create-or-get-repl-output-webview-panel)
-        js-path (.. @util/vscode
+  (let [^js repl-output-webview-panel (create-or-get-repl-output-webview-panel)
+        js-path (.. ^js @util/vscode
                     -Uri
-                    (joinPath (.. @util/context -extensionUri) "repl-output-ui" "js" "main.js"))
+                    (joinPath (.. ^js @util/context -extensionUri) "repl-output-ui" "js" "main.js"))
         js-src (.. repl-output-webview-panel -webview (asWebviewUri js-path))]
-    (set! (.. repl-output-webview-panel -webview -html) (get-webview-html js-src))))
+    (set! (.. ^js repl-output-webview-panel -webview -html) (get-webview-html js-src))))
 
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
 ;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
@@ -64,7 +67,17 @@
 (comment
   (show-repl-output-webview-panel)
 
-  (post-message-to-webview {:command "show-result"
+  ;; TODO: Implement this interface for communicating with the webview
+  ;; Message
+  {;; This message contains a command
+   :command {;; Command name
+             :name "show-result"
+             ;; Command args
+             :args {:result "Hello world"}}
+   ;; Message id
+   :id "1234"}
+
+  (post-message-to-webview {:command-name "show-result"
                             :result "Hello world!!!"})
 
   (post-message-to-webview {:command "clear-output"})
