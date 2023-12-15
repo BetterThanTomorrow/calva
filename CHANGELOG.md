@@ -4,7 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix audit warnings, bump some deps, clean out some deps
+- Fix audit warnings, bump some deps, clean out some depsn
+- [Update to cljfmt v0.12.0 ](https://github.com/BetterThanTomorrow/calva/issues/2365)
 
 ## [2.0.401] - 2023-12-03
 
