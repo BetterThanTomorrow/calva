@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix audit warnings, bump some deps, clean out some deps
+
 ## [2.0.401] - 2023-12-03
 
 - Fix: [Some nREPL `eval` messages are sent with `untitled` as `ns`](https://github.com/BetterThanTomorrow/calva/issues/2358)
