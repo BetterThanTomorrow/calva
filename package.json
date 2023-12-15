@@ -2247,7 +2247,7 @@
         "mac": "shift+alt+right",
         "win": "shift+ctrl+right",
         "linux": "shift+ctrl+right",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment && !calva:cursorAfterComment && !calva:cursorBeforeComment"
       },
       {
         "command": "paredit.selectRight",
@@ -2261,7 +2261,7 @@
         "mac": "shift+alt+left",
         "win": "shift+ctrl+left",
         "linux": "shift+ctrl+left",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment && !calva:cursorAfterComment && !calva:cursorBeforeComment"
       },
       {
         "command": "paredit.selectForwardDownSexp",

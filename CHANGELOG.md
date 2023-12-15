@@ -6,6 +6,7 @@ Changes to Calva.
 
 - Fix audit warnings, bump some deps, clean out some depsn
 - [Update to cljfmt v0.12.0 ](https://github.com/BetterThanTomorrow/calva/issues/2365)
+- Fix: [Selecting words forward and backwards when in line comments selects to next sexpression](https://github.com/BetterThanTomorrow/calva/issues/2368)
 
 ## [2.0.401] - 2023-12-03
 
