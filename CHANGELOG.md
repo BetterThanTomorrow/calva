@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump deps.clj version: v1.11.1.1429
+
 ## [2.0.402] - 2023-12-15
 
 - Fix audit warnings, bump some deps, clean out some depsn
