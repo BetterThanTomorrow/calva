@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as util from './utilities';
+import * as string from './util/string';
 import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as cider from './nrepl/cider';
@@ -66,7 +67,7 @@ function upsertTest(
 // Cider 0.26 and 0.27 have an issue where context can be an empty array.
 // https://github.com/clojure-emacs/cider-nrepl/issues/728#issuecomment-996002988
 export function assertionName(result: cider.TestResult): string {
-  if (util.isNonEmptyString(result.context)) {
+  if (string.isNonEmptyString(result.context)) {
     return result.context;
   }
   return 'assertion';

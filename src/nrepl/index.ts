@@ -13,6 +13,7 @@ import type { ReplSessionType } from '../config';
 import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
 import { log, Direction } from './logging';
+import * as string from '../util/string';
 
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
@@ -659,7 +660,7 @@ export class NReplSession {
       'ns-query': {
         exactly: [ns],
       },
-      search: util.escapeStringRegexp(test),
+      search: string.escapeStringRegexp(test),
       'test?': true,
     });
   }

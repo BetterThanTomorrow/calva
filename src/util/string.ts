@@ -36,6 +36,14 @@ function getTextAfterLastOccurrenceOfSubstring(
   return text.substring(indexOfEndOfPrompt);
 }
 
+export function escapeStringRegexp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function isNonEmptyString(value: any): value is string {
+  return typeof value == 'string' && value.length > 0;
+}
+
 export {
   keywordize,
   unKeywordize,
