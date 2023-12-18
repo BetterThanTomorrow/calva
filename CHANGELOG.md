@@ -5,11 +5,12 @@ Changes to Calva.
 ## [Unreleased]
 
 - Bump deps.clj version: v1.11.1.1429
+- Fix: [Indenter treating symbols as regex](https://github.com/BetterThanTomorrow/calva/issues/2263)
 
 ## [2.0.402] - 2023-12-15
 
-- Fix audit warnings, bump some deps, clean out some depsn
-- [Update to cljfmt v0.12.0 ](https://github.com/BetterThanTomorrow/calva/issues/2365)
+- Fix audit warnings, bump some deps, clean out some deps
+- [Update to cljfmt v0.12.0](https://github.com/BetterThanTomorrow/calva/issues/2365)
 - Fix: [Selecting words forward and backwards when in line comments selects to next sexpression](https://github.com/BetterThanTomorrow/calva/issues/2368)
 
 ## [2.0.401] - 2023-12-03

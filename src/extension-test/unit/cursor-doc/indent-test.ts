@@ -237,13 +237,13 @@ describe('indent', () => {
       const blockConfig = mkConfig({
         '/\\S+/': [['block', 0]],
       });
-      it('catch-all overrides the built-in rule for the `let` body', () => {
-        expect(indent.getIndent(doc.model, p, blockConfig)).toEqual(5);
+      it('catch-all does not override the built-in rule for the `let` body', () => {
+        expect(indent.getIndent(doc.model, p, blockConfig)).toEqual(2);
       });
       const letBlockConfig = mkConfig({
         let: [['block', 0]],
       });
-      it('overrides the built-in rule for the `let` body', () => {
+      it('symbol let overrides the built-in rule for the `let` body', () => {
         expect(indent.getIndent(doc.model, p, letBlockConfig)).toEqual(5);
       });
       it('does not overrides the built-in rule for the `defn` body', () => {
