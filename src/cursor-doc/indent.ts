@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import * as regexUtil from '../util/regex';
 import { FormatterConfig } from '../formatter-config';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib.js';
+import { escapeStringRegexp } from '../util/string';
 
 const whitespace = new Set(['ws', 'comment', 'eol']);
 
@@ -66,11 +67,23 @@ export function collectIndents(
   const replaceIndents = config['cljfmt-options']['indents'];
   const defaultIndents = cljsLib.defaultIndents();
   const extraIndents = config['cljfmt-options']['extra-indents'];
-  const replaceRules = replaceIndents
+  const baseRules = replaceIndents
     ? Object.keys(replaceIndents).map((k) => [k, replaceIndents[k]])
     : Object.keys(defaultIndents).map((k) => [k, defaultIndents[k]]);
   const extraRules = extraIndents ? Object.keys(extraIndents).map((k) => [k, extraIndents[k]]) : [];
-  const rules = [...extraRules, ...replaceRules];
+
+  const combinedRules = [...extraRules, ...baseRules].sort((a, b) => {
+    const aIsRegex = regexUtil.isCljOrJsRegex(a[0]);
+    const bIsRegex = regexUtil.isCljOrJsRegex(b[0]);
+
+    if (aIsRegex && !bIsRegex) {
+      return 1;
+    } else if (!aIsRegex && bIsRegex) {
+      return -1;
+    } else {
+      return 0;
+    }
+  });
 
   do {
     if (!cursor.backwardSexp()) {
@@ -103,9 +116,9 @@ export function collectIndents(
       const pattern =
         isList &&
         _.find(
-          rules,
+          combinedRules,
           (rule) =>
-            regexUtil.testCljOrJsRegex(`#"^(.*/)?${[rule[0]]}$"`, token) ||
+            regexUtil.testCljOrJsRegex(`#"^(.*/)?${[escapeStringRegexp(rule[0])]}$"`, token) ||
             (regexUtil.isCljOrJsRegex(rule[0]) && regexUtil.testCljOrJsRegex(rule[0], token))
         );
 
