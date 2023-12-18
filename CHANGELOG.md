@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.403] - 2023-12-18
+
 - Bump deps.clj version: v1.11.1.1429
 - Fix: [Indenter treating symbols as regex](https://github.com/BetterThanTomorrow/calva/issues/2263)
 
