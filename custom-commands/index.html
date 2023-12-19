@@ -1479,7 +1479,7 @@
   
 
 
-<h1 id="custom-repl-commands">Custom REPL Commands</h1>
+<h1 id="custom-repl-commands">Custom REPL Commands<a class="headerlink" href="#custom-repl-commands" title="Permanent link">#</a></h1>
 <p>Calva supports configuration of custom command snippets that you can evaluate in the REPL at will. This is useful if your workflow has you repeatedly evaluating a particular piece of code. There are two ways to use these:</p>
 <ol>
 <li>You can use the setting <code>calva.customREPLCommandSnippets</code> to configure it. Then either bind keyboard shortcuts to them or use the command <strong>Run Custom REPL Command</strong> to access it. The command will give you a menu with the snippets you have configured.</li>
@@ -1516,7 +1516,7 @@
 <li><code>$head</code>: The text between the start of the current list to the cursor</li>
 <li><code>$tail</code>: The text between the cursor and the end of the current list</li>
 </ul>
-<h2 id="user-and-workspace-settings">User and Workspace Settings</h2>
+<h2 id="user-and-workspace-settings">User and Workspace Settings<a class="headerlink" href="#user-and-workspace-settings" title="Permanent link">#</a></h2>
 <p>Settings from your User (global) level and the workspace are merged.</p>
 <p>With these <strong>User</strong> settings:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -1557,7 +1557,7 @@
 <p>Issuing <strong>Run Custom REPL Command</strong> will then render this VS Code menu:</p>
 <p><img alt="" src="../images/custom-command-menu.png" /></p>
 <p>The default keyboard shortcut for the command is <code>ctrl+alt+space space</code>. (Beware: on MacOS it may conflict with the default shortuct for Input Sources - Select next source in Input menu.)</p>
-<h2 id="binding-keyboard-shortcuts">Binding Keyboard Shortcuts</h2>
+<h2 id="binding-keyboard-shortcuts">Binding Keyboard Shortcuts<a class="headerlink" href="#binding-keyboard-shortcuts" title="Permanent link">#</a></h2>
 <p>There are four ways to bind shortcuts to custom commands:</p>
 <ol>
 <li>Use a predefined <code>key</code> shortcut. These are predefined as <code>ctrl+alt+space &lt;something&gt;</code>, where <code>&lt;something&gt;</code> is one of:<ul>
@@ -1582,7 +1582,7 @@
 <span class="w">    </span><span class="p">},</span>
 </code></pre></div>
 <p>This would evaluate the current form in the <code>user</code> namespace. Please note that this Custom REPL Command will not show up in the custom commands menu mentioned above.</p>
-<h2 id="custom-repl-hover-snippets">Custom REPL Hover Snippets</h2>
+<h2 id="custom-repl-hover-snippets">Custom REPL Hover Snippets<a class="headerlink" href="#custom-repl-hover-snippets" title="Permanent link">#</a></h2>
 <p>Calva supports custom snippets that will display their result inside the tooltip. They will only work when connected to a repl, since they eval code in it.
 This is mostly useful for tooling authors that want to integrate with calva.
 Be careful with these, since they will be executed anytime Calva displays a tooltip. So they should be fast and probably not have any side effects.</p>
@@ -1598,7 +1598,7 @@ Be careful with these, since they will be executed anytime Calva displays a tool
 </code></pre></div>
 <p>With this setting anything the mouse is over will also be shown inside its tooltip.
 There are now also <code>hover-</code> versions of most substitutions. Those currently only work inside the hover snippets.</p>
-<h2 id="configedn">config.edn</h2>
+<h2 id="configedn">config.edn<a class="headerlink" href="#configedn" title="Permanent link">#</a></h2>
 <p><code>:customREPLCommandSnippets</code> and <code>:customREPLHoverSnippets</code> can be also be configured in your user config at <code>.config/calva/config.edn</code> realative to your system home directory, or <code>.calva/config.edn</code> relative to the workspace root. Three things to note about this:</p>
 <ol>
 <li>None of these two configs get synced through VS Code Settings Sync.</li>
@@ -1607,7 +1607,7 @@ There are now also <code>hover-</code> versions of most substitutions. Those cur
 </ol>
 <p>As for <strong>2.</strong>: There is a command <strong>Calva: Refresh REPL snippets from User config.edn</strong>.</p>
 <p>There is also a command to open the User config.edn, for convenience: <strong>Calva: Open REPL snippets User config.edn</strong>. This command creates the file if it doesn't previously exist.</p>
-<h2 id="snippets-inside-deps">Snippets Inside Deps</h2>
+<h2 id="snippets-inside-deps">Snippets Inside Deps<a class="headerlink" href="#snippets-inside-deps" title="Permanent link">#</a></h2>
 <p>A new experimental feature lets library authors ship snippets inside their jar files. These accept the same options as above but should be placed in "resources/calva.exports/config.edn" inside the jar.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:customREPLCommandSnippets</span>
 <span class="w"> </span><span class="p">[{</span><span class="ss">:name</span><span class="w"> </span><span class="s">&quot;edn test&quot;</span>

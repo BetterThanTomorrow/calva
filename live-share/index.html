@@ -1465,7 +1465,7 @@
   
 
 
-<h1 id="using-calva-with-live-share">Using Calva with Live Share</h1>
+<h1 id="using-calva-with-live-share">Using Calva with Live Share<a class="headerlink" href="#using-calva-with-live-share" title="Permanent link">#</a></h1>
 <p><a href="https://docs.microsoft.com/en-us/visualstudio/liveshare/">Live Share</a> is a Microsoft provided VS Code extension. 
 It allows you to share the workspace that you have open in your
 computer with somebody else. Everybody is then working on the same source code
@@ -1479,7 +1479,7 @@ keyboard shortcuts, etc.</p>
 <p class="admonition-title">Disable Calva Spritz to get rid of Notebooks interference</p>
 <p>The headline below <strong>Calva Supports Live Share</strong> is true. However, due to <a href="https://github.com/MicrosoftDocs/live-share/issues/4765">a bug in LiveShare</a>, guest participants always get their Clojure files opened in the Calva <a href="../notebooks/">Clojure Notebooks</a> editor. To workaround this issue Calva uses a ”side-car” extension named <strong>Calva Spritz</strong> for the Notebooks associations of Clojure files. You can disable that extension when participating in LiveShare sessions.</p>
 </div>
-<h2 id="calva-supports-live-share">Calva Supports Live Share</h2>
+<h2 id="calva-supports-live-share">Calva Supports Live Share<a class="headerlink" href="#calva-supports-live-share" title="Permanent link">#</a></h2>
 <p>When using Calva, you can use Live Share as well. Editing works exactly the same
 as for any other programming language. What makes Calva a bit special, is the
 REPL. When using Live Share, Calva allows the host to share the REPL with guests
@@ -1505,7 +1505,7 @@ automatic.</p>
 </ol>
 <p>Voila! Both the guest and the host can now use the REPL that is running on the
 host. Things like documentation lookup now also work on the guest's machine.</p>
-<h2 id="control-visibility-of-calva-folder">Control Visibility of <code>.calva</code> Folder</h2>
+<h2 id="control-visibility-of-calva-folder">Control Visibility of <code>.calva</code> Folder<a class="headerlink" href="#control-visibility-of-calva-folder" title="Permanent link">#</a></h2>
 <p>Calva depends on the <code>output.calva-repl</code> file to be available. If you have the
 <code>.calva</code> folder listed in your <code>.gitignore</code>, this also causes the folder to be
 hidden from guests in Live Share by default. In order to make the folder
@@ -1522,7 +1522,7 @@ form, the contents can be this:</p>
 that you may have in your <code>.gitignore</code>. If you want to have more fine-grained
 control, please refer to the section <a href="https://docs.microsoft.com/en-us/visualstudio/liveshare/reference/security#controlling-file-access-and-visibility">Controlling file access and
 visibility</a> of the Live Share documentation.</p>
-<h2 id="some-things-to-keep-in-mind">Some Things To Keep In Mind</h2>
+<h2 id="some-things-to-keep-in-mind">Some Things To Keep In Mind<a class="headerlink" href="#some-things-to-keep-in-mind" title="Permanent link">#</a></h2>
 <ul>
 <li>As a guest, you're connected to a REPL running on the host's machine. With
   power comes responsibility; <strong>be nice, and be careful</strong>!</li>
@@ -1545,7 +1545,7 @@ visibility</a> of the Live Share documentation.</p>
   guests to have access to your REPL, don't click "Allow" when VSCode asks you
   to share the REPL port.</li>
 </ul>
-<h2 id="calva-spritz">Calva Spritz</h2>
+<h2 id="calva-spritz">Calva Spritz<a class="headerlink" href="#calva-spritz" title="Permanent link">#</a></h2>
 <p>Together with Calva there is an extension called <a href="https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-spritz">Calva Spritz</a> installed. All it does is to provide the association of Clojure file types to Clojure Notebooks. We do it this way because of the LiveShare issues mentioned above. So that you can disable the Notebook association when participating as a guest in LiveShare sessions. The issue is tracked here:</p>
 <ul>
 <li>Calva issue: <a href="https://github.com/BetterThanTomorrow/calva/issues/1850">LiveShare participants incorrectly opening every Clojure file as if via "Open with Notebook"</a></li>

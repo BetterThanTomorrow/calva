@@ -1531,13 +1531,13 @@
   
 
 
-<h1 id="test-runner">Test Runner</h1>
+<h1 id="test-runner">Test Runner<a class="headerlink" href="#test-runner" title="Permanent link">#</a></h1>
 <p>Calva provides commands that make running your Clojure tests easier.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Since the test commands utilize cider-nrepl, they only work with Clojure, not ClojureScript. See <a href="https://github.com/clojure-emacs/cider-nrepl/issues/555">this issue</a> for more details.</p>
 </div>
-<h2 id="test-commands">Test Commands</h2>
+<h2 id="test-commands">Test Commands<a class="headerlink" href="#test-commands" title="Permanent link">#</a></h2>
 <table>
 <thead>
 <tr>
@@ -1574,22 +1574,22 @@
 </tr>
 </tbody>
 </table>
-<h2 id="test-on-save">Test on Save</h2>
+<h2 id="test-on-save">Test on Save<a class="headerlink" href="#test-on-save" title="Permanent link">#</a></h2>
 <p>You can enable the Calva setting "Test on Save" to have tests for the current namespace run on file save.</p>
-<h2 id="vs-code-test-ui">VS Code Test UI</h2>
+<h2 id="vs-code-test-ui">VS Code Test UI<a class="headerlink" href="#vs-code-test-ui" title="Permanent link">#</a></h2>
 <p>Calva has experimental support for showing test results in VS Code's Test UI. You can enable this support by setting <code>calva.useTestExplorer</code> to <code>true</code>. When you enable this setting, the Testing icon will appear in the Testing tab of VS Code's Activity Bar.</p>
 <p>With this feature enabled you will be able to browse and run tests directly from the Testing tab.</p>
 <p>Please join the <a href="https://clojurians.slack.com/messages/calva">#calva channel</a> on the Clojurians Slack if you have any feedback on this new feature.</p>
-<h2 id="troubleshooting">Troubleshooting</h2>
-<h3 id="tests-are-not-found">Tests Are Not Found</h3>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
+<h3 id="tests-are-not-found">Tests Are Not Found<a class="headerlink" href="#tests-are-not-found" title="Permanent link">#</a></h3>
 <p>Calva will not load namespaces in the REPL that you haven't loaded. This is so that you can be in control of what is loaded in the REPL. However, it also means that commands like <strong>Run All tests</strong> actually mean <strong>Run All Tests <em>That are Loaded in the REPL</em></strong>, since the test-runner only runs tests that it knows about, i.e. are loaded in the REPL. Some developers choose to make sure all test namespaces are loaded as part of starting their REPL. Others register a <a href="../custom-commands/">custom REPL command</a> for loading test namepaces. (Yet others use test-runners such as <a href="https://github.com/cognitect-labs/test-runner">Cognitect's test-runner</a>, <a href="https://github.com/lambdaisland/kaocha">Kaocha</a>, <a href="https://polylith.gitbook.io/poly/workflow/testing">poly test</a>, or some other that runner allows for tests being run automatically, separate from the REPL used for development.)</p>
 <p>If you have tests in a test directory separate from your source directory, and those tests are not being found by the test runner, make sure the test directory is included in your paths. This will not be the case by default with a tools.deps (deps.edn) project. If your project is a tools.deps project, you can create an alias in your deps.edn file with <code>:extra-paths</code> that includes <code>"test"</code> (or the name of your test directory).</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:aliases</span><span class="w"> </span><span class="p">{</span><span class="ss">:dev</span><span class="w"> </span><span class="p">{</span><span class="ss">:extra-paths</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;test&quot;</span><span class="p">]}}}</span>
 </code></pre></div>
-<h4 id="changes-arent-taking-effect-when-running-tests">Changes Aren't Taking Effect When Running Tests</h4>
+<h4 id="changes-arent-taking-effect-when-running-tests">Changes Aren't Taking Effect When Running Tests<a class="headerlink" href="#changes-arent-taking-effect-when-running-tests" title="Permanent link">#</a></h4>
 <p>In order for changes in code to take effect, you need to load the file or evaluate the changed code before running a test command. Prior to version 2.0.301, Calva would load the file for you when running some test commands, but that behavior was removed in favor of leaving control to the user, and to avoid a <a href="https://github.com/BetterThanTomorrow/calva/issues/1821">potential issue</a>.</p>
 <p>Having added the above to your deps.edn, when you jack-in, choose the <code>:dev</code> alias and the <code>test</code> directory will be added to your paths, which will allow tests located in the directory to be found by the test runner.</p>
-<h3 id="toggle-between-implementation-and-test-command-not-working-as-intended">Toggle between implementation and test command not working as intended</h3>
+<h3 id="toggle-between-implementation-and-test-command-not-working-as-intended">Toggle between implementation and test command not working as intended<a class="headerlink" href="#toggle-between-implementation-and-test-command-not-working-as-intended" title="Permanent link">#</a></h3>
 <p>This feature mostly works with projects that has leiningen style folder structure and makes some assumption about your folder structure and test file names.</p>
 <ul>
 <li>It assumes that the test files ends with <code>_test</code> prefix.</li>

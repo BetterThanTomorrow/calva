@@ -1603,7 +1603,7 @@
   
 
 
-<h1 id="customizing-calva">Customizing Calva</h1>
+<h1 id="customizing-calva">Customizing Calva<a class="headerlink" href="#customizing-calva" title="Permanent link">#</a></h1>
 <p>Don't like the defaults? On this page we can collect some of the customizations that people have done, and maybe write a thing or two about it some day.</p>
 <p>Tip for VS Code newcomers: The search box in <strong>Settings</strong> is your friend. Also, some Calva settings are more complex than the Settings UI can handle. VS Code will then show you a link to <code>settings.json</code>. And VS Code's built-in <code>json</code> extension is awesome. To add settings for Calva's Pretty Printing, for example, search for ”prettyprint” in VS Code Settings and follow the link to <code>settings.json</code>. Start typing ”calvapretty” until auto-complete suggests <code>calva.prettyPrintingOptions</code>. Press ENTER and VS Code will fill in these defaults:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.prettyPrintingOptions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1612,7 +1612,7 @@
 <span class="w">        </span><span class="nt">&quot;width&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">40</span>
 <span class="w">    </span><span class="p">},</span>
 </code></pre></div>
-<h2 id="clojure-defaults">Clojure Defaults</h2>
+<h2 id="clojure-defaults">Clojure Defaults<a class="headerlink" href="#clojure-defaults" title="Permanent link">#</a></h2>
 <p>Calva sets some VS Code settings for all Clojure files. Some of these are needed for Calva to function correctly, which should not be tampered with unless you really know what you are doing, and some of them are convenient defaults. If you add a setting to your <code>settings.json</code> and accept the snippet help you get when you type <code>"[clojure]"</code>, you will get the Calva defaults pasted:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;[clojure]&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">&quot;editor.wordSeparators&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;\t ()\&quot;&#39;:,;~@#$%^&amp;{}[]`&quot;</span><span class="p">,</span>
@@ -1630,11 +1630,11 @@
 <p class="admonition-title">Note</p>
 <p>The above <code>editor.wordSeparators</code> setting establish Clojure word boundaries. E.g <code>-</code> is considered to be part of words. This affects what happens when double-clicking symbols and other things. If you want to include <code>-</code> or something else as a word boundary, just add it to the setting.</p>
 </div>
-<h2 id="pretty-printing">Pretty Printing</h2>
+<h2 id="pretty-printing">Pretty Printing<a class="headerlink" href="#pretty-printing" title="Permanent link">#</a></h2>
 <p>Calva's pretty printing mode can be configured a bit. See <a href="../pprint/">Pretty Printing</a>.</p>
-<h2 id="calva-highlight">Calva Highlight</h2>
+<h2 id="calva-highlight">Calva Highlight<a class="headerlink" href="#calva-highlight" title="Permanent link">#</a></h2>
 <p>This is highly customizable. See <a href="../syntax-highlighting/">Syntax highlighting</a></p>
-<h2 id="color-customizations">Color customizations</h2>
+<h2 id="color-customizations">Color customizations<a class="headerlink" href="#color-customizations" title="Permanent link">#</a></h2>
 <p>Calva defines a set of themable colors which can be provided by the user using <a href="https://code.visualstudio.com/docs/getstarted/themes#_customize-a-color-theme">workbench.colorCustomizations</a>.</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;workbench.colorCustomizations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">&quot;calva.inlineErrorForegroundColor&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#ff0000&quot;</span><span class="p">,</span>
@@ -1642,15 +1642,15 @@
 <span class="w">    </span><span class="p">}</span>
 </code></pre></div>
 <p><img width="1188" alt="image" src="https://user-images.githubusercontent.com/616193/185307813-c3e9ec7f-9c72-49a5-b1e6-8e350803c4ea.png"></p>
-<h2 id="automatic-parameter-hints-poppup">Automatic Parameter Hints Poppup</h2>
+<h2 id="automatic-parameter-hints-poppup">Automatic Parameter Hints Poppup<a class="headerlink" href="#automatic-parameter-hints-poppup" title="Permanent link">#</a></h2>
 <p>Calva has helpful parameter hints to aid when typing function calls. They look like so:</p>
 <p><img width="353" alt="image" src="https://user-images.githubusercontent.com/30010/75957543-8cf4c180-5eba-11ea-8d77-1e543a73ef28.png"></p>
 <p>To have the hints automatically pop up when you are typing, set <code>editor.parameterHints.enabled</code> to <code>true</code> in the above <code>[clojure]</code> scoped setting. (To call them up on demand the default VS Code keybindings are <code>cmd+shift+space</code> on Mac and <code>ctrl+shift+space</code> on Linux/Windows.)</p>
-<h2 id="code-formatting">Code Formatting</h2>
+<h2 id="code-formatting">Code Formatting<a class="headerlink" href="#code-formatting" title="Permanent link">#</a></h2>
 <p>See <a href="../formatting/">Formatting</a> for information on how to configure this.</p>
-<h2 id="jack-in-and-connect">Jack-in and Connect</h2>
+<h2 id="jack-in-and-connect">Jack-in and Connect<a class="headerlink" href="#jack-in-and-connect" title="Permanent link">#</a></h2>
 <p>Jack-in and Connect are very customizable through <a href="../connect-sequences/">Custom Connect Sequences</a>.</p>
-<h2 id="jack-in-dependency-versions">Jack-in Dependency Versions</h2>
+<h2 id="jack-in-dependency-versions">Jack-in Dependency Versions<a class="headerlink" href="#jack-in-dependency-versions" title="Permanent link">#</a></h2>
 <p><a href="../jack-in-guide/">Calva Jack-in</a> injects the following dependencies in order for the REPL session to support IDE features</p>
 <ul>
 <li><a href="https://github.com/nrepl/nrepl">nrepl</a>: nREPL is the wonderful piece of software that gives Calva a structured and extensible connection to the REPL in your Clojure and ClojureScript projects.</li>
@@ -1658,9 +1658,9 @@
 <li><a href="https://github.com/nrepl/piggieback">cider/piggieback</a>: Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with <a href="http://shadow-cljs.org">shadow-cljs</a> projects though, which provides its own middleware for this.)</li>
 </ul>
 <p>The versions used are configurable via the VS Code settings <code>calva.jackInDependencyVersions</code>.</p>
-<h2 id="key-bindings">Key bindings</h2>
+<h2 id="key-bindings">Key bindings<a class="headerlink" href="#key-bindings" title="Permanent link">#</a></h2>
 <p>Most of Calva's commands have default keybindings. They are only defaults, though, and you can change keybindings as you wish. To facilitate precision in binding keys Calva keeps some <a href="https://code.visualstudio.com/api/references/when-clause-contexts">when clause contexts</a> updated.</p>
-<h3 id="when-clause-contexts">When Clause Contexts</h3>
+<h3 id="when-clause-contexts">When Clause Contexts<a class="headerlink" href="#when-clause-contexts" title="Permanent link">#</a></h3>
 <p>The following contexts are available with Calva:</p>
 <ul>
 <li><code>calva:keybindingsEnabled</code>: a master switch that you find in the settings</li>
@@ -1676,7 +1676,7 @@
 <li><code>calva:cursorAtStartOfLine</code>: <code>true</code> when the cursor is at the start of a line including any leading whitespace</li>
 <li><code>calva:cursorAtEndOfLine</code>: <code>true</code> when the cursor is at the end of a line including any trailing whitespace</li>
 </ul>
-<h3 id="some-custom-bindings">Some Custom Bindings</h3>
+<h3 id="some-custom-bindings">Some Custom Bindings<a class="headerlink" href="#some-custom-bindings" title="Permanent link">#</a></h3>
 <p>Here is a collection of custom keybindings from here and there.</p>
 <ul>
 <li>Replace all Calva <code>ctrl+alt+...</code> key bindings with <code>ctrl+shift+...</code>, for keyboards lacking <code>alt</code> key: <a href="https://gist.github.com/PEZ/3fc22e015e0d33fb9b73074fd6abf292">this gist</a></li>
@@ -1686,7 +1686,7 @@
 <li>Use modifiers and WASD keys for movement and manipulation: <a href="https://gist.github.com/isaksky/94128cda6297e560dbe75650611993c1">isaksky's keybindings</a></li>
 </ul>
 <p>Are you a vim extension user? See: <a href="../vim/">Using with VIM extension</a>.</p>
-<h3 id="move-by-word">Move by word</h3>
+<h3 id="move-by-word">Move by word<a class="headerlink" href="#move-by-word" title="Permanent link">#</a></h3>
 <p>By default Calva changes the move-by-word key bindings to move by sexpr/form when the cursor is in structural Clojure code. <em>Within line comments the editor default word movement is active.</em></p>
 <p>If you want the VS Code default word movement shortcuts, use these settings:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
@@ -1717,7 +1717,7 @@
 <span class="w">    </span><span class="p">}</span>
 </code></pre></div>
 <p>Use it as an inspiration for customizing things to your own liking. 😄</p>
-<h3 id="wrap-using-like-cursive">Wrap using <code>(</code>, <code>[</code>, <code>{</code> (like Cursive)</h3>
+<h3 id="wrap-using-like-cursive">Wrap using <code>(</code>, <code>[</code>, <code>{</code> (like Cursive)<a class="headerlink" href="#wrap-using-like-cursive" title="Permanent link">#</a></h3>
 <p>Something I use in IntelliJ/Cursive is the ability to select an expression and hit one of <code>(</code>, <code>[</code>, <code>{</code> to wrap it. And after wrapping the expression I don't want the selection anymore, so if I were wrapping <code>(foo)</code> then I would want to get <code>( | (foo))</code> where <code>|</code> would be my cursor.</p>
 <p>Here's how you can make this work with Calva Paredit: Update all of the <code>Paredit: Wrap Around ...</code> commands so that their respective shortcuts are the wrappers themselves and update the <code>when</code> clause to include <code>editorHasSelection</code> (otherwise when you open a paren the next expression would get slurped in).</p>
 <p>The change would look like this in your <code>keybindings.json</code>:</p>

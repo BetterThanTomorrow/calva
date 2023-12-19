@@ -1585,21 +1585,21 @@
   
 
 
-<h1 id="converting-html-to-hiccup">Converting HTML to Hiccup</h1>
+<h1 id="converting-html-to-hiccup">Converting HTML to Hiccup<a class="headerlink" href="#converting-html-to-hiccup" title="Permanent link">#</a></h1>
 <p>Calva can help you convert HTML to <a href="https://github.com/weavejester/hiccup">Hiccup</a>.</p>
 <video controls>
   <source src="/images/calva-convert-html-to-hiccup.mp4">
 </video>
 
-<h2 id="features">Features</h2>
-<h3 id="three-commands">Three commands</h3>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">#</a></h2>
+<h3 id="three-commands">Three commands<a class="headerlink" href="#three-commands" title="Permanent link">#</a></h3>
 <ul>
 <li><strong>Convert HTML to Hiccup</strong>, will convert the selected text, or the entire file, to Hiccup and open up an Untitled Clojure file with the result.</li>
 <li><strong>Copy HTML as Hiccup</strong>, will convert the selected text, or the entire file, to Hiccup and copy it to the clipboard.</li>
 <li><strong>Paste HTML as Hiccup</strong>, will convert the contents of the clipboard to Hiccup and paste it. (The clipboard will then be restored to the original content.)</li>
 </ul>
 <p>The resulting data structure is formatted with <a href="https://github.com/kkinnear/zprint">zprint</a> using it's <code>:style :hiccup</code> configuration.</p>
-<h3 id="conversion-capabilities">Conversion capabilities</h3>
+<h3 id="conversion-capabilities">Conversion capabilities<a class="headerlink" href="#conversion-capabilities" title="Permanent link">#</a></h3>
 <p>In addition to, <a href="#it-is-somewhat-configurable">optionally</a>, being able to convert style attributes to maps and kebab-case attributes, the conversion: </p>
 <ul>
 <li>Opts for producing compact Hiccup:<ul>
@@ -1634,16 +1634,16 @@
 </ul>
 </li>
 </ul>
-<h4 id="it-is-somewhat-configurable">It is somewhat configurable</h4>
+<h4 id="it-is-somewhat-configurable">It is somewhat configurable<a class="headerlink" href="#it-is-somewhat-configurable" title="Permanent link">#</a></h4>
 <p>The Hiccup converstion can be tweaked with two options using the setting <code>calva.html2HiccupOptions</code>, which is a map/object:</p>
 <ul>
 <li><code>mapify-style</code>: boolean, default <code>false</code>. When <code>true</code> any <code>style</code> attribute will be converted to a map (<a href="https://reagent-project.github.io/">Reagent</a> supports this)</li>
 <li><code>kebab-attrs?</code>: boolean, default <code>false</code>. When <code>true</code> attribute names will be converted from <em>camelCase</em>, or <em>snake_case/SNAKE_CASE</em> to <em>kebab-case</em>. (Reagent wants most attribute names like this.)</li>
 </ul>
-<h3 id="copy-as-menus-copy-html-as-hiccup">Copy as menus: Copy HTML as Hiccup</h3>
+<h3 id="copy-as-menus-copy-html-as-hiccup">Copy as menus: Copy HTML as Hiccup<a class="headerlink" href="#copy-as-menus-copy-html-as-hiccup" title="Permanent link">#</a></h3>
 <p>The Copy HTML as Hiccup command is available from VS Code's <strong>Edit</strong> menu, as well as the editor context menu, in both cases under the <strong>Copy as</strong> sub menu.</p>
 <p><img alt="" src="../images/calva-copy-html-as-hiccup.png" /></p>
-<h2 id="the-commands-take-arguments">The commands take arguments</h2>
+<h2 id="the-commands-take-arguments">The commands take arguments<a class="headerlink" href="#the-commands-take-arguments" title="Permanent link">#</a></h2>
 <p>This options map can also be provided as an argument to the commands, so you can bind keyboard shortcuts to a particular configuration for the conversion. </p>
 <p>The command <code>calva.convertHtml2Hiccup</code> takes a map as an argument:</p>
 <ul>
@@ -1651,7 +1651,7 @@
 <li><code>options</code>: Same as those <code>calva.html2HiccupOptions</code> mentioned above.</li>
 </ul>
 <p>The <code>calva.pasteHtmlAsHiccup</code> and <code>calva.copyHtmlAsHiccup</code> commands takes only a <code>calva.html2HiccupOptions</code> map.</p>
-<h2 id="example-keyboard-shortcuts">Example keyboard shortcuts</h2>
+<h2 id="example-keyboard-shortcuts">Example keyboard shortcuts<a class="headerlink" href="#example-keyboard-shortcuts" title="Permanent link">#</a></h2>
 <p>The commands have no default keyboard shortcuts, you use the Command Palette to execute them, or you bind your own shortcuts. Here are some examples:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="c1">// calva.convertHtml2Hiccup</span>
 <span class="w">    </span><span class="p">{</span>
@@ -1701,9 +1701,9 @@
 <span class="w">    </span><span class="p">},</span>
 </code></pre></div>
 <p>The default/args-less bindings are placed last <a href="https://github.com/microsoft/vscode/issues/176890">because reasons</a>.</p>
-<h2 id="using-from-joyride-or-some-other-vs-code-extension">Using from Joyride (or some other VS Code extension)</h2>
+<h2 id="using-from-joyride-or-some-other-vs-code-extension">Using from Joyride (or some other VS Code extension)<a class="headerlink" href="#using-from-joyride-or-some-other-vs-code-extension" title="Permanent link">#</a></h2>
 <p>As with any VS Code command using these from Joyride is a matter of calling <code>executeCommand</code>.</p>
-<h4 id="calvapastehtmlashiccup-and-calvapastehtmlashiccup"><code>calva.pasteHtmlAsHiccup</code> and <code>calva.pasteHtmlAsHiccup</code></h4>
+<h4 id="calvapastehtmlashiccup-and-calvapastehtmlashiccup"><code>calva.pasteHtmlAsHiccup</code> and <code>calva.pasteHtmlAsHiccup</code><a class="headerlink" href="#calvapastehtmlashiccup-and-calvapastehtmlashiccup" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.pasteHtmlAsHiccup&quot;</span>
 <span class="w">                                    </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:mapify-style?</span><span class="w"> </span><span class="nv">true</span><span class="p">})</span>
 <span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="nv">...</span><span class="p">))</span>
@@ -1712,7 +1712,7 @@
 <span class="w">                                    </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:mapify-style?</span><span class="w"> </span><span class="nv">true</span><span class="p">})</span>
 <span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="nv">...</span><span class="p">))</span>
 </code></pre></div>
-<h4 id="calvaconverthtml2hiccup"><code>calva.convertHtml2Hiccup</code></h4>
+<h4 id="calvaconverthtml2hiccup"><code>calva.convertHtml2Hiccup</code><a class="headerlink" href="#calvaconverthtml2hiccup" title="Permanent link">#</a></h4>
 <p>Without options the command behaves just like selecting the command from the command palette. If there is a selection it will be converted, otherwise the whole file. The result will be opened in a new Untitled document.</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.convertHtml2Hiccup&quot;</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="nv">...</span><span class="p">))</span>

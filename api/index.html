@@ -1813,9 +1813,9 @@
   
 
 
-<h1 id="the-calva-extension-api">The Calva Extension API</h1>
+<h1 id="the-calva-extension-api">The Calva Extension API<a class="headerlink" href="#the-calva-extension-api" title="Permanent link">#</a></h1>
 <p>Calva exposes an API for use from other VS Code extensions (such as <a href="../joyride/">Joyride</a>). The API is in an experimental state, while we are figuring out what is a good shape for this API. It is also rather small, and will grow to expose more of Calva's functionality.</p>
-<h2 id="accessing">Accessing</h2>
+<h2 id="accessing">Accessing<a class="headerlink" href="#accessing" title="Permanent link">#</a></h2>
 <p>To access the API the Calva extension needs to be <a href="https://code.visualstudio.com/api/references/vscode-api#Extension%3CT%3E">activated</a>. The API is exposed under the <code>v1</code> key on the extension's <code>exports</code>, and split up into submodules, like <code>repl</code>, and <code>ranges</code>.</p>
 <p>When using Joyride you can use its unique <code>require</code> API, for which one of the benefits is better lookup IDE support. When using the API from regular ClojureScript, you'll pick it up from the Calva extension instance. (Which you can do from Joyride as well, but why would you?). Here is how you access the API, with an example of usage as a bonus:</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Joyride</label><label for="__tabbed_1_2">ClojureScript</label><label for="__tabbed_1_3">JavaScript</label></div>
@@ -1849,9 +1849,9 @@
 </div>
 </div>
 </div>
-<h2 id="repl"><code>repl</code></h2>
+<h2 id="repl"><code>repl</code><a class="headerlink" href="#repl" title="Permanent link">#</a></h2>
 <p>The <code>repl</code> module provides access to Calva's REPL connection.</p>
-<h3 id="replcurrentsessionkey"><code>repl.currentSessionKey()</code></h3>
+<h3 id="replcurrentsessionkey"><code>repl.currentSessionKey()</code><a class="headerlink" href="#replcurrentsessionkey" title="Permanent link">#</a></h3>
 <p>Use <code>repl.currentSessionKey()</code> find out which REPL/session Calva's REPL is currently connected to (depends on the active file). Returns either <code>"clj"</code>, or <code>"cljs"</code>, or <code>nil</code> if no REPL is connected.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Joyride</label><label for="__tabbed_2_2">ClojureScript</label><label for="__tabbed_2_3">JavaScript</label></div>
 <div class="tabbed-content">
@@ -1869,7 +1869,7 @@
 </div>
 </div>
 </div>
-<h3 id="replevaluatecode"><code>repl.evaluateCode()</code></h3>
+<h3 id="replevaluatecode"><code>repl.evaluateCode()</code><a class="headerlink" href="#replevaluatecode" title="Permanent link">#</a></h3>
 <p>This function lets you evaluate Clojure code through Calva's nREPL connection. Calling it returns a promise that resolves to a <code>Result</code> object. It's signature looks like so (TypeScript):</p>
 <div class="highlight"><pre><span></span><code><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">evaluateCode</span><span class="p">(</span>
 <span class="w">  </span><span class="nx">sessionKey</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;clj&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;cljs&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;cljc&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">undefined</span><span class="p">,</span>
@@ -1920,7 +1920,7 @@
 </div>
 </div>
 </div>
-<h4 id="handling-output">Handling Output</h4>
+<h4 id="handling-output">Handling Output<a class="headerlink" href="#handling-output" title="Permanent link">#</a></h4>
 <p>The <code>output</code> member on the <code>Result</code> object will have any output produced during evaluation. (The <code>errorOutput</code> member should contain error output produced, but currently some Calva bug makes this not work.) By default the stdout and stderr output is not printed anywhere.</p>
 <p>If you want to do something with either regular output or error output during, or after, evaluation, you'll need to provide the <code>output</code> argument to <code>evaluateCode()</code>. (The <code>stderr</code> callback function works, so this is the only way to get at any error output, until the above mentioned Calva bug is fixed.)</p>
 <p>An example:</p>
@@ -1979,7 +1979,7 @@
 </div>
 </div>
 </div>
-<h2 id="ranges"><code>ranges</code></h2>
+<h2 id="ranges"><code>ranges</code><a class="headerlink" href="#ranges" title="Permanent link">#</a></h2>
 <p>The <code>ranges</code> module contains functions for retreiving <a href="https://code.visualstudio.com/api/references/vscode-api#Range">vscode.Range</a>s and text for pieces of interest in a Clojure document.</p>
 <p>All functions in this module have the following TypeScript signature:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nx">editor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">vscode</span><span class="p">.</span><span class="nb">window</span><span class="p">.</span><span class="nx">activeTextEditor</span><span class="p">,</span><span class="w"> </span><span class="nx">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">editor</span><span class="o">?</span><span class="p">.</span><span class="nx">selection</span><span class="o">?</span><span class="p">.</span><span class="nx">active</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">[</span><span class="nx">vscode</span><span class="p">.</span><span class="nx">Range</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="p">];</span>
@@ -1990,23 +1990,23 @@
 <p>The <code>ranges</code> function have corresponding <a href="../custom-commands/">REPL Snippets/Commands</a> substitution variables. It is the same implementation functions used in both cases.</p>
 </div>
 <p>The functions available are:</p>
-<h3 id="rangescurrentform"><code>ranges.currentForm()</code></h3>
+<h3 id="rangescurrentform"><code>ranges.currentForm()</code><a class="headerlink" href="#rangescurrentform" title="Permanent link">#</a></h3>
 <p>Retrieves information about the current form, as determined from the editor and position.</p>
 <p><em>Corresponding <a href="../custom-commands/">REPL Snippet</a> variable: <code>$current-form</code>.</em></p>
 <p>See also about Calva's <a href="https://www.youtube.com/watch?v=8ygw7LLLU1w">Current Form</a> on YouTube.</p>
-<h3 id="rangescurrentenclosingform"><code>ranges.currentEnclosingForm()</code></h3>
+<h3 id="rangescurrentenclosingform"><code>ranges.currentEnclosingForm()</code><a class="headerlink" href="#rangescurrentenclosingform" title="Permanent link">#</a></h3>
 <p>The list/vector/etcetera form comtaining the current form.</p>
 <p><em>Corresponding <a href="../custom-commands/">REPL Snippet</a> variable: <code>$enclosing-form</code>.</em></p>
-<h3 id="rangescurrenttoplevelform"><code>ranges.currentTopLevelForm()</code></h3>
+<h3 id="rangescurrenttoplevelform"><code>ranges.currentTopLevelForm()</code><a class="headerlink" href="#rangescurrenttoplevelform" title="Permanent link">#</a></h3>
 <p>The current top level form. Outside <code>(comment ...)</code> (Rich comments) forms this is most often (<code>(def ...), (defgn ...)</code>, etcetera. Inside Rich comments it will be the current immediate child to the <code>(comment ...)</code> form.</p>
 <p><em>Corresponding <a href="../custom-commands/">REPL Snippet</a> variable: <code>$top-level-form</code>.</em></p>
-<h3 id="rangescurrentfunction"><code>ranges.currentFunction()</code></h3>
+<h3 id="rangescurrentfunction"><code>ranges.currentFunction()</code><a class="headerlink" href="#rangescurrentfunction" title="Permanent link">#</a></h3>
 <p>The current function, i.e. the form in ”call position” of the closest enclosing list.</p>
 <p><em>Corresponding <a href="../custom-commands/">REPL Snippet</a> variable: <code>$current-fn</code>.</em></p>
-<h3 id="rangescurrenttopleveldef"><code>ranges.currentTopLevelDef()</code></h3>
+<h3 id="rangescurrenttopleveldef"><code>ranges.currentTopLevelDef()</code><a class="headerlink" href="#rangescurrenttopleveldef" title="Permanent link">#</a></h3>
 <p>The symbol being defined by the current top level form. NB: Will stupidly assume it is the second form. I.e. it does not check that it is an actual definition, and will often return nonsense if used in Rich comments.</p>
 <p><em>Corresponding <a href="../custom-commands/">REPL Snippet</a> variable: <code>$top-level-defined-symbol</code>.</em></p>
-<h3 id="example-rangescurrenttoplevelform">Example: <code>ranges.currentTopLevelForm()</code></h3>
+<h3 id="example-rangescurrenttoplevelform">Example: <code>ranges.currentTopLevelForm()</code><a class="headerlink" href="#example-rangescurrenttoplevelform" title="Permanent link">#</a></h3>
 <div class="tabbed-set tabbed-alternate" data-tabs="5:3"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><input id="__tabbed_5_3" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Joyride</label><label for="__tabbed_5_2">ClojureScript</label><label for="__tabbed_5_3">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -2025,9 +2025,9 @@
 </div>
 </div>
 </div>
-<h2 id="editor"><code>editor</code></h2>
+<h2 id="editor"><code>editor</code><a class="headerlink" href="#editor" title="Permanent link">#</a></h2>
 <p>The <code>editor</code> module has facilites (well, a facility, so far) for editing Clojure documents.</p>
-<h3 id="editorreplace"><code>editor.replace()</code></h3>
+<h3 id="editorreplace"><code>editor.replace()</code><a class="headerlink" href="#editorreplace" title="Permanent link">#</a></h3>
 <p>With <code>editor.replace()</code> you can replace a range in a Clojure editor with new text. The arguments are:</p>
 <ul>
 <li><code>editor</code>, a <code>vscode.TextEditor</code></li>
@@ -2053,9 +2053,9 @@
 </div>
 </div>
 </div>
-<h2 id="document"><code>document</code></h2>
+<h2 id="document"><code>document</code><a class="headerlink" href="#document" title="Permanent link">#</a></h2>
 <p>The <code>document</code> module provides access to the Clojure/Calva aspects of VS Code <code>TextDocument</code>s.</p>
-<h3 id="documentgetnamespacedocument-vscodetextdocument-string"><code>document.getNamespace(document?: vscode.TextDocument): string</code></h3>
+<h3 id="documentgetnamespacedocument-vscodetextdocument-string"><code>document.getNamespace(document?: vscode.TextDocument): string</code><a class="headerlink" href="#documentgetnamespacedocument-vscodetextdocument-string" title="Permanent link">#</a></h3>
 <p><code>document.getNamespace()</code> returns the namespace of a document.</p>
 <ul>
 <li><code>document</code>, a <code>vscode.TextDocument</code> (defaults to the current active document)</li>
@@ -2073,7 +2073,7 @@
 </div>
 </div>
 </div>
-<h3 id="documentgetnamespaceandnsformdocument-vscodetextdocument-ns-string-nsform-string"><code>document.getNamespaceAndNsForm(document?: vscode.TextDocument): [ns: string, nsForm: string]</code></h3>
+<h3 id="documentgetnamespaceandnsformdocument-vscodetextdocument-ns-string-nsform-string"><code>document.getNamespaceAndNsForm(document?: vscode.TextDocument): [ns: string, nsForm: string]</code><a class="headerlink" href="#documentgetnamespaceandnsformdocument-vscodetextdocument-ns-string-nsform-string" title="Permanent link">#</a></h3>
 <p><code>document.getNamespaceAndNsForm()</code> returns the namespace and the <code>ns</code> form of a document as a tuple.</p>
 <ul>
 <li><code>document</code>, a <code>vscode.TextDocument</code> (defaults to the current active document)</li>
@@ -2091,9 +2091,9 @@
 </div>
 </div>
 </div>
-<h2 id="pprint"><code>pprint</code></h2>
+<h2 id="pprint"><code>pprint</code><a class="headerlink" href="#pprint" title="Permanent link">#</a></h2>
 <p>The <code>pprint</code> module lets you pretty print Clojure code/data using Calva's <a href="../pprint/">pretty printing</a> engine (which in turn uses <a href="https://github.com/kkinnear/zprint">zprint</a>).</p>
-<h3 id="pprintprettyprint"><code>pprint.prettyPrint()</code></h3>
+<h3 id="pprintprettyprint"><code>pprint.prettyPrint()</code><a class="headerlink" href="#pprintprettyprint" title="Permanent link">#</a></h3>
 <p>Use <code>pprint.prettyPrint()</code> to pretty print some Clojure data using your Calva pretty printing options. It accepts these arguments:</p>
 <ul>
 <li><code>text</code>, a <code>string</code> with the text to pretty print</li>
@@ -2112,11 +2112,11 @@
 </div>
 </div>
 </div>
-<h3 id="pprintprettyprintingoptions"><code>pprint.prettyPrintingOptions()</code></h3>
+<h3 id="pprintprettyprintingoptions"><code>pprint.prettyPrintingOptions()</code><a class="headerlink" href="#pprintprettyprintingoptions" title="Permanent link">#</a></h3>
 <p>Use to get the current pretty printint options:</p>
-<h2 id="vscode"><code>vscode</code></h2>
+<h2 id="vscode"><code>vscode</code><a class="headerlink" href="#vscode" title="Permanent link">#</a></h2>
 <p>In the its <code>vscode</code> submodule, Calva exposes access to things from its own <code>vscode</code> module instance. It gets important in some situations.</p>
-<h3 id="vscoderegisterdocumentsymbolprovider"><code>vscode.registerDocumentSymbolProvider()</code></h3>
+<h3 id="vscoderegisterdocumentsymbolprovider"><code>vscode.registerDocumentSymbolProvider()</code><a class="headerlink" href="#vscoderegisterdocumentsymbolprovider" title="Permanent link">#</a></h3>
 <p>This is the <code>[vscode.languages](https://code.visualstudio.com/api/references/vscode-api#languages).registerDocumentSymbolProvider()</code> function from the Calva extension. Use it if you want to provide symbols for Clojure files together with the ones that Calva provides. (If you use the <code>vscode.languages.registerDocumentSymbolProvider()</code> function from your extension (or Joyride) you will provide a separate group.)</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="10:3"><input checked="checked" id="__tabbed_10_1" name="__tabbed_10" type="radio" /><input id="__tabbed_10_2" name="__tabbed_10" type="radio" /><input id="__tabbed_10_3" name="__tabbed_10" type="radio" /><div class="tabbed-labels"><label for="__tabbed_10_1">Joyride</label><label for="__tabbed_10_2">ClojureScript</label><label for="__tabbed_10_3">JavaScript</label></div>
 <div class="tabbed-content">
@@ -2142,7 +2142,7 @@
 <p class="admonition-title">Deprecation candidate</p>
 <p>VS Code is still creating a separate group, just with the same name as Calva's, so this API is not good for anything, and we will probably remove it.</p>
 </div>
-<h2 id="feedback-welcome">Feedback Welcome</h2>
+<h2 id="feedback-welcome">Feedback Welcome<a class="headerlink" href="#feedback-welcome" title="Permanent link">#</a></h2>
 <p>Please let us know how you fare using this API. Either in the #calva or #joyride channels on Slack or via the issues/discussions sections on the repositories. (Whichever seems to apply best.)</p>
 
 

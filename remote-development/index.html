@@ -1505,20 +1505,20 @@
   
 
 
-<h1 id="using-calva-with-remote-development">Using Calva with Remote Development</h1>
+<h1 id="using-calva-with-remote-development">Using Calva with Remote Development<a class="headerlink" href="#using-calva-with-remote-development" title="Permanent link">#</a></h1>
 <p><a href="https://code.visualstudio.com/docs/remote/remote-overview">VS Code Remote Development</a> is a new feature in version 1.35 of VS Code that allows a developer to use a container, remote machine, or the Windows Subsystem for Linux (WSL) as a full-featured development environment.</p>
 <p>I would recommend reading the <a href="https://code.visualstudio.com/blogs/2019/05/02/remote-development">introductory blog post</a> and watching the videos. I find the feature extremely exciting and wish more IDEs would implement something like it.</p>
 <p>From a Clojure perspective it allows you to have VS Code installed on your Java-less, Clojure-less hardware and still use it to develop Clojure through it.</p>
-<h2 id="a-use-case">A use-case</h2>
+<h2 id="a-use-case">A use-case<a class="headerlink" href="#a-use-case" title="Permanent link">#</a></h2>
 <ul>
 <li>For some reason your physical computer has to be running Windows (organizational rules etc.)</li>
 <li>Your deployment environment is Linux</li>
 <li>You want to edit files in an editor running on your physical computer</li>
 <li>Most Clojure tooling is made with *nix first in mind and there are incompatibilities with Windows</li>
 </ul>
-<h2 id="how-to">How to</h2>
+<h2 id="how-to">How to<a class="headerlink" href="#how-to" title="Permanent link">#</a></h2>
 <p>Run <em>Remote-Containers: Add Development Container Configuration Files...</em> and pick a suitable Java base image. Then:</p>
-<h3 id="modify-dockerfile-to-install-clojure-cli-and-optionally-lein">Modify Dockerfile to install Clojure CLI (and optionally lein)</h3>
+<h3 id="modify-dockerfile-to-install-clojure-cli-and-optionally-lein">Modify Dockerfile to install Clojure CLI (and optionally lein)<a class="headerlink" href="#modify-dockerfile-to-install-clojure-cli-and-optionally-lein" title="Permanent link">#</a></h3>
 <p>Add:</p>
 <div class="highlight"><pre><span></span><code><span class="c"># ...</span>
 
@@ -1549,14 +1549,14 @@ chmod<span class="w"> </span>uog+x<span class="w"> </span>/bin/lein
 
 <span class="c"># ...</span>
 </code></pre></div>
-<h3 id="modify-devcontainerjson">Modify devcontainer.json</h3>
+<h3 id="modify-devcontainerjson">Modify devcontainer.json<a class="headerlink" href="#modify-devcontainerjson" title="Permanent link">#</a></h3>
 <p>Add Calva and, optionally, forward some ports to the host::</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;extensions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;betterthantomorrow.calva&quot;</span><span class="p">],</span>
 <span class="nt">&quot;forwardPorts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">8088</span><span class="p">,</span><span class="w"> </span><span class="mi">52162</span><span class="p">],</span><span class="w"> </span><span class="c1">// example: your webapp, your nREPL</span>
 </code></pre></div>
-<h3 id="build-and-start">Build and start</h3>
+<h3 id="build-and-start">Build and start<a class="headerlink" href="#build-and-start" title="Permanent link">#</a></h3>
 <p>Run <em>Remote-Containers: Rebuild and Reopen in container</em></p>
-<h2 id="wsl">WSL</h2>
+<h2 id="wsl">WSL<a class="headerlink" href="#wsl" title="Permanent link">#</a></h2>
 <p>See <a href="../wsl/">Using Calva with WSL</a></p>
 
 

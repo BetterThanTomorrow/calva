@@ -1559,11 +1559,11 @@
   
 
 
-<h1 id="rich-comments-support">Rich Comments Support</h1>
+<h1 id="rich-comments-support">Rich Comments Support<a class="headerlink" href="#rich-comments-support" title="Permanent link">#</a></h1>
 <p>Why bother with <strong>Rich comments</strong>? Read on. Consider watching <a href="https://www.youtube.com/watch?v=d0K1oaFGvuQ">this Youtube video</a> for a demo of the workflow using the (in?)famous FizzBuzz problem as an example.</p>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/d0K1oaFGvuQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-<h2 id="things-in-comment-are-not-evaluated">Things in <code>comment</code> are not evaluated</h2>
+<h2 id="things-in-comment-are-not-evaluated">Things in <code>comment</code> are not evaluated<a class="headerlink" href="#things-in-comment-are-not-evaluated" title="Permanent link">#</a></h2>
 <p>The Clojure <code>comment</code> macro is defined like so:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defmacro </span><span class="nv">comment</span>
 <span class="w">  </span><span class="s">&quot;Ignores body, yields nil&quot;</span>
@@ -1588,7 +1588,7 @@
 <p class="admonition-title">Note</p>
 <p>Using <code>(comment ...)</code> forms for developing code is very common among Clojure coders. Rich Hickey is known for using it, which is why they are called <strong>Rich comments</strong> to begin with (even if it also is a very rich experience).</p>
 </div>
-<h2 id="calva-encourages-rich-comments">Calva encourages Rich comments</h2>
+<h2 id="calva-encourages-rich-comments">Calva encourages Rich comments<a class="headerlink" href="#calva-encourages-rich-comments" title="Permanent link">#</a></h2>
 <p>Calva has several features to facilitate the Rich comments workflow, e.g.</p>
 <ol>
 <li>A command that helps you create a new Rich comment form quickly: <strong>Calva: Add Rich Comment</strong>, <kbd>ctrl+alt+r c</kbd></li>
@@ -1598,10 +1598,10 @@
 <li>Special formatting</li>
 </ol>
 <p>Note that the command and snippet for creating Rich comments add the keyword <code>:rcf</code> right before the closing paren. This makes the closing paren stay and not fold when you format the code. The special formatting (see below) will treat this and also any ignored (with <code>#_</code>) form at the end of the form specially.</p>
-<h3 id="comment-is-top-level"><code>comment</code> is top-level</h3>
+<h3 id="comment-is-top-level"><code>comment</code> is top-level<a class="headerlink" href="#comment-is-top-level" title="Permanent link">#</a></h3>
 <p>To make it easy to evaluate forms in <code>(comment ...)</code> forms, they create a new top-level context. Instead of you having to place the cursor with precision before evaluating the <strong>current form</strong>, you can have the cursor anywhere within a <code>comment</code> enclosed form and <a href="../evaluation/#current-top-level-form"><strong>Evaluate Top-Level Form</strong></a>.</p>
 <p>This carries over to all commands in Calva which deal with the top level form. Including <a href="../custom-commands/">custom command snippets</a>.</p>
-<h3 id="special-formatting">Special formatting</h3>
+<h3 id="special-formatting">Special formatting<a class="headerlink" href="#special-formatting" title="Permanent link">#</a></h3>
 <p>To invite a <strong>Rich comments</strong> workflow, the Calva command <strong>Format Current Form</strong> will not fold the closing bracket of the <code>(comment ...)</code> form. Instead it will place this bracket on a line of its own (or keep it there).</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
 <span class="w">  </span><span class="p">)</span>
@@ -1619,7 +1619,7 @@
 </code></pre></div>
 <p>!!! Note "Only for the current comment form”
     The special formatting only applies in the current <code>comment</code> form. When outside it, formatting tucks the closing paren in again. That's why fold when done, <a href="#fold-when-done">below</a> works like it does. This also applies to VS Code commands like <strong>Format Document</strong>, or when you have <strong>Format On Save</strong> enabled. There are several reasons for this, and one is that there is no <code>cljfmt</code> config for it and leaving the closing comment un-tucked might give you troubles with CI pipelines that enforce some cljfmt config be followed. (Another reason is that it would be pretty hard to do on the whole document.)</p>
-<h4 id="special-formatting-disabled-for-trailing-rcf">Special formatting disabled for trailing <code>:rcf</code></h4>
+<h4 id="special-formatting-disabled-for-trailing-rcf">Special formatting disabled for trailing <code>:rcf</code><a class="headerlink" href="#special-formatting-disabled-for-trailing-rcf" title="Permanent link">#</a></h4>
 <p>If the Rich comment ends with <code>:rcf</code> (or an ignored form), the special formatting doesn't happen. So if you have:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
 <span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
@@ -1634,7 +1634,7 @@
 <span class="w">  </span><span class="nv">|</span>
 <span class="w">  </span><span class="ss">:rcf</span><span class="p">)</span>
 </code></pre></div>
-<h4 id="thinking-space-is-kept">Thinking space is kept</h4>
+<h4 id="thinking-space-is-kept">Thinking space is kept<a class="headerlink" href="#thinking-space-is-kept" title="Permanent link">#</a></h4>
 <p>The formatter will not remove newlines between the cursor and the closing bracket. So if you have entered a few lines to get ”thinking” room:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
 <span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
@@ -1653,7 +1653,7 @@
 
 <span class="w">  </span><span class="p">)</span>
 </code></pre></div>
-<h4 id="fold-when-done">Fold when done</h4>
+<h4 id="fold-when-done">Fold when done<a class="headerlink" href="#fold-when-done" title="Permanent link">#</a></h4>
 <p>To fold the trailing paren automatically, place the cursor immediately outside (before or after) the form:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
 <span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
@@ -1664,9 +1664,9 @@
 <span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
 <span class="w">    </span><span class="ss">:foo</span><span class="p">))</span><span class="nv">|</span>
 </code></pre></div>
-<h4 id="enabled-by-default">Enabled by default</h4>
+<h4 id="enabled-by-default">Enabled by default<a class="headerlink" href="#enabled-by-default" title="Permanent link">#</a></h4>
 <p>You can disable this behavior with the setting: <code>calva.fmt.keepCommentTrailParenOnOwnLine</code>.</p>
-<h4 id="only-for-the-current-form">Only for the Current Form</h4>
+<h4 id="only-for-the-current-form">Only for the Current Form<a class="headerlink" href="#only-for-the-current-form" title="Permanent link">#</a></h4>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This treatment only applies to formatting of <a href="../evaluation/#current-form">the current form</a>. With <a href="#fold-when-done">fold when done</a> as an exception.</p>

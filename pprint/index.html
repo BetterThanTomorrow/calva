@@ -1557,16 +1557,16 @@
   
 
 
-<h1 id="pretty-printing">Pretty Printing</h1>
+<h1 id="pretty-printing">Pretty Printing<a class="headerlink" href="#pretty-printing" title="Permanent link">#</a></h1>
 <p>In Calva, pretty printing is a mode. Prettiness is on by default and all your evaluation results will get that treatment.</p>
 <div class="admonition note">
 <p class="admonition-title">You can also pretty print code on demand</p>
 <p>There is a command <strong>Replace Current Form (or Selection) with Pretty Printed Form</strong>. See <a href="../formatting/#3-replace-current-form-or-selection-with-pretty-printed-form">Clojure Formmatting</a> for more on this.</p>
 </div>
-<h2 id="toggle-it">Toggle it</h2>
+<h2 id="toggle-it">Toggle it<a class="headerlink" href="#toggle-it" title="Permanent link">#</a></h2>
 <p>There is a <code>pprint</code> indicator to the right in the status bar which shows the status of the mode. Click the indicator to toggle prettification on and off. There is also a <strong>Calva: Toggle Pretty Printing for All Evaluations</strong> command.</p>
 <p>Tip: If you have evaluated something time consuming, or that is not idempotent, with pretty printing mistakenly off: <em>toggle it on and evaluate <code>*1</code>.</em></p>
-<h2 id="configuration">Configuration</h2>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
 <p>For most people the defaults will probably work, but Calva pretty printing comes a few knobs you can turn, and they are all available through the <code>calva.prettyPrintingOptions</code> settings. Things you can set are:</p>
 <table>
 <thead>
@@ -1614,7 +1614,7 @@
 <div class="highlight"><pre><span></span><code><span class="w">  </span><span class="p">(</span><span class="nf">pretty-print</span><span class="w"> </span><span class="p">[[[[[[[[</span><span class="ss">:deeper</span><span class="p">]]]]]]]]</span><span class="w"> </span><span class="p">{</span><span class="ss">:max-depth</span><span class="w"> </span><span class="mi">4</span><span class="p">})</span>
 <span class="w">  </span><span class="c1">;; =&gt; {:value &quot;[[[[##]]]]&quot;}</span>
 </code></pre></div>
-<h3 id="your-selection-of-prettifiers">Your Selection of Prettifiers</h3>
+<h3 id="your-selection-of-prettifiers">Your Selection of Prettifiers<a class="headerlink" href="#your-selection-of-prettifiers" title="Permanent link">#</a></h3>
 <p>Pretty printing can happen on the <em>server</em> (i.e. in the JVM, via nREPL), or on the <em>client</em> (i.e. in node, via VS Code/Calva). Client side always uses <code>zprint</code>. Server side you can choose from these printers:</p>
 <table>
 <thead>
@@ -1653,18 +1653,18 @@
 </tbody>
 </table>
 <p>These particular server side functions were chosen because they have pre-configured print-functions in <a href="https://docs.cider.mx/cider-nrepl/"><code>cider-nrepl</code></a>.</p>
-<h4 id="or-configure-printfn">Or configure <code>printFn</code></h4>
+<h4 id="or-configure-printfn">Or configure <code>printFn</code><a class="headerlink" href="#or-configure-printfn" title="Permanent link">#</a></h4>
 <p>If the selection of built-in <code>printEngine</code> support doesn't cut it, you can configure a custom function. This function will need to conform to the requirements of nREPL print functions. The VS Code settings editor will help you configure this one. (This is also a bit experimental, please consider giving feedback about how it works for you if you try it.)</p>
-<h3 id="why-does-server-or-client-side-matter">Why does Server or Client Side Matter?</h3>
+<h3 id="why-does-server-or-client-side-matter">Why does Server or Client Side Matter?<a class="headerlink" href="#why-does-server-or-client-side-matter" title="Permanent link">#</a></h3>
 <p>This matters because on the server all pretty printers, except <code>pprint</code> does more than just pretty print the result that would be printed with plain printing. Pretty printing results on the server causes some results to get expanded. This can have huge implications depending on the results and which printer is used. E.g. for <a href="https://www.datomic.com">Datomic</a> transaction results, you will get the whole database printed. Twice. Depending on the database, you could be so unlucky that nothing gets printed, and instead you will soon have a very hot computer.</p>
 <blockquote>
 <p>Note: With the help of zprint creator, <a href="https://github.com/kkinnear">Kim Kinnear</a>, we have <a href="https://github.com/kkinnear/zprint/issues/111">found ways</a> to compensate for this problem. Ways that are not yet implemented, but please stay tuned.</p>
 </blockquote>
 <p>Then why not always do it client side? It turns out that on the client side there are also things going on. Calva gets the results back as a string and therefore it needs to first be parsed back to <a href="https://github.com/edn-format/edn">EDN</a>, before it can be pretty printed by <code>zprint</code>. And – here's the catch – all results are not valid EDN and therefore can't be pretty printed by <code>zprint</code>. Datomic transaction results are one example.</p>
-<h3 id="need-more-configurability">Need More Configurability?</h3>
+<h3 id="need-more-configurability">Need More Configurability?<a class="headerlink" href="#need-more-configurability" title="Permanent link">#</a></h3>
 <p>The current options are limited, because our time developing Calva is limited. But <code>cider-nrepl</code> really allows for fully configurable pretty printing, so it is within reach. Please feel invited to give us feedback on what you would want to configure for the printing of results. File issues and/or chat us up in #calva in the Clojurians slack.</p>
-<h3 id="troubleshooting">Troubleshooting</h3>
-<h4 id="pprint-is-not-working">pprint is not working</h4>
+<h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h3>
+<h4 id="pprint-is-not-working">pprint is not working<a class="headerlink" href="#pprint-is-not-working" title="Permanent link">#</a></h4>
 <p>If pprint is not working, try a different pprint engine or use Calva's jack-in to make sure the necessary dependencies are loaded in your REPL. If you are starting your REPL without jack-in and want to continue doing so, you can use the command <code>Copy Jack-in Command Line to Clipboard</code> then paste the command somewhere to see what dependencies it injects. You can then add these dependencies to your REPL in whatever way suits your needs.</p>
 <p>Enjoy Prettiful Printing! ❤️</p>
 

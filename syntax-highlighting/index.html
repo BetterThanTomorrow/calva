@@ -1437,9 +1437,9 @@
   
 
 
-<h1 id="calva-highlight">Calva Highlight</h1>
+<h1 id="calva-highlight">Calva Highlight<a class="headerlink" href="#calva-highlight" title="Permanent link">#</a></h1>
 <p>Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras include rainbow parens, sane bracket matching, and comment form dimming/highlighting.</p>
-<h2 id="syntax-highlighting">Syntax Highlighting</h2>
+<h2 id="syntax-highlighting">Syntax Highlighting<a class="headerlink" href="#syntax-highlighting" title="Permanent link">#</a></h2>
 <p>When using Calva, you are also using its <a href="https://macromates.com/manual/en/language_grammars">TMLanguage grammar</a> (the core mechanism VS Code uses for syntax highlighting).</p>
 <p>Our grammar tokenizes Clojure keywords as <code>constant.keyword.clojure</code>. Since it is pretty uncommon with keyword constants in the programming languages out there, your theme might not have a highlight defined for this scope. Try find a grammar that highlights keywords! If you are very fond of some theme lacking this, you can help it with a setting:</p>
 <pre><code>"editor.tokenColorCustomizations": {
@@ -1458,7 +1458,7 @@
 },
 </code></pre>
 <p>Instead of <code>Default Dark+</code> you should use your theme's name/key. And choose a color you like, of course.</p>
-<h2 id="extra-highlighting">Extra Highlighting</h2>
+<h2 id="extra-highlighting">Extra Highlighting<a class="headerlink" href="#extra-highlighting" title="Permanent link">#</a></h2>
 <p>You are in charge of how brackets and comments are highlighted via the <code>calva.highlight.&lt;setting&gt;</code> settings:</p>
 <table>
 <thead>

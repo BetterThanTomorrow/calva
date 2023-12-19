@@ -1765,15 +1765,15 @@
   
 
 
-<h1 id="debugger">Debugger</h1>
+<h1 id="debugger">Debugger<a class="headerlink" href="#debugger" title="Permanent link">#</a></h1>
 <p>Calva comes with a powerful expression-based debugger, inspired by <a href="https://cider.mx/">Cider</a>'s debugger, and using the same underlying library, <a href="https://github.com/clojure-emacs/cider-nrepl">cider-nrepl</a>. We hope you love it!</p>
 <p><img alt="Debugger demonstration: stepping through an instrumented function" src="../images/debugger/stepping.gif" title="Debugger demonstration: stepping through an instrumented function" /></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The debugger currently does not support ClojureScript. Calva's debugger utilizes cider-nrepl for debugging. See <a href="https://github.com/clojure-emacs/cider/issues/1416">this Cider issue</a> for more information.</p>
 </div>
-<h2 id="features">Features</h2>
-<h3 id="current">Current</h3>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">#</a></h2>
+<h3 id="current">Current<a class="headerlink" href="#current" title="Permanent link">#</a></h3>
 <ul>
 <li>Instrument functions for debugging with <code>ctrl+alt+c i</code></li>
 <li>Instrument a function manually with <code>#dbg</code> (as opposed to the above command)</li>
@@ -1786,56 +1786,56 @@
 <li>See variable values in the debugger side pane</li>
 <li>See variable values on hover in the editor</li>
 </ul>
-<h3 id="future-goals">Future goals</h3>
+<h3 id="future-goals">Future goals<a class="headerlink" href="#future-goals" title="Permanent link">#</a></h3>
 <ul>
 <li>See structured variables in the debugger side pane (currently maps and collections are just shown as strings)</li>
 <li>Inject values into the debug context</li>
 <li>Trace: continue, printing expressions and their values</li>
 </ul>
-<h2 id="dependencies">Dependencies</h2>
+<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">#</a></h2>
 <p>The debugger itself relies pretty heavily on <a href="https://github.com/clojure-emacs/cider-nrepl">cider-nrepl</a>, as do other parts of Calva. This library is loaded as a dependency when you use Calva Jack-in. If you are not using Calva Jack-in, you can add these dependencies in your project definition or user profile. See the <a href="../jack-in-guide/">Calva Jack-in guide</a> for more information.</p>
-<h2 id="using-the-debugger">Using the Debugger</h2>
+<h2 id="using-the-debugger">Using the Debugger<a class="headerlink" href="#using-the-debugger" title="Permanent link">#</a></h2>
 <p>If you're new to Clojure or expression-based debuggers, this debugger may function differently than what you're used to. Instead of placing breakpoints in the side margin and then hitting F5 to start debugging, you instead use Clojure reader tags, <code>#break</code> and <code>#dbg</code>, to denote breakpoints anywhere in a Clojure form. When you evaluate a call to a function that has been evaluated with that reader tag, the debugger will start when execution reaches the first breakpoint. There's also a convenience command to instrument functions. Read below about both options.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The debugger is not configured via a <code>launch.json</code> file, and is not started in the same way as you may be used to when working with other languages in VS Code. The debugger is used by way of the REPL. If you are new to Clojure, please visit the <a href="../getting-started/">Getting Started</a> section of the documentation and get familiar with evaluating code using the REPL before using the debugger.</p>
 </div>
-<h3 id="instrumenting-a-function">Instrumenting a Function</h3>
+<h3 id="instrumenting-a-function">Instrumenting a Function<a class="headerlink" href="#instrumenting-a-function" title="Permanent link">#</a></h3>
 <p>You can instrument a top level function for debugging with <code>ctrl+alt+c i</code>. This places invisible breakpoints throughout the function where pausing makes sense. When you evaluate a call to this function, the debugger will start and execution will pause at the first breakpoint. Annotations show the value of the form at the cursor.</p>
 <p>A border is placed around the definition of the instrumented function and its references to show that it's instrumented. You can remove instrumentation by evaluating the function again normally, such as with <code>alt+enter</code>.</p>
 <p><img alt="Instrumenting a function" src="../images/debugger/instrumenting-a-function.gif" title="Instrumenting a function" /></p>
-<h3 id="setting-breakpoints-with-break">Setting Breakpoints with <code>#break</code></h3>
+<h3 id="setting-breakpoints-with-break">Setting Breakpoints with <code>#break</code><a class="headerlink" href="#setting-breakpoints-with-break" title="Permanent link">#</a></h3>
 <p>You can insert a breakpoint manually into any code by placing a <code>#break</code> in front of the form where you want execution to pause, and then evaluating the top level form with <code>alt+enter</code>. When you evaluate a call to this code the VS Code debugger will start, the cursor will move to right after the form that's preceded by <code>#break</code>, and the line will be highlighted to show execution is paused there.</p>
 <p><img alt="Setting a breakpoint with #break" src="../images/debugger/break.gif" title="Setting a breakpoint with #break" /></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Code will be executed up to and <em>including</em> the form after the breakpoint.</p>
 </div>
-<h3 id="conditional-breakpoints">Conditional Breakpoints</h3>
+<h3 id="conditional-breakpoints">Conditional Breakpoints<a class="headerlink" href="#conditional-breakpoints" title="Permanent link">#</a></h3>
 <p>You can set conditional breakpoints by adding metadata before the form that the <code>#break</code> applies to.</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">print-nums</span><span class="w"> </span><span class="p">[</span><span class="nv">n</span><span class="p">]</span>
 <span class="w">  </span><span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">i</span><span class="w"> </span><span class="nv">n</span><span class="p">]</span>
 <span class="w">    </span><span class="o">#</span><span class="nv">break</span><span class="w"> </span><span class="o">^</span><span class="p">{</span><span class="ss">:break/when</span><span class="w"> </span><span class="p">(</span><span class="nb">= </span><span class="nv">i</span><span class="w"> </span><span class="mi">7</span><span class="p">)}</span><span class="w"> </span><span class="c1">;; This breakpoint will only be hit when i equals 7</span>
 <span class="w">    </span><span class="p">(</span><span class="nb">prn </span><span class="nv">i</span><span class="p">)))</span>
 </code></pre></div>
-<h3 id="instrumenting-a-form-with-dbg">Instrumenting a Form with <code>#dbg</code></h3>
+<h3 id="instrumenting-a-form-with-dbg">Instrumenting a Form with <code>#dbg</code><a class="headerlink" href="#instrumenting-a-form-with-dbg" title="Permanent link">#</a></h3>
 <p>Adding <code>#dbg</code> before a form then evaluating the form with <code>alt+enter</code> will instrument the form. This has the same effect as using <a href="#instrumenting-a-function">the instrument command</a>.</p>
 <p><img alt="Instrumenting a form" src="../images/debugger/dbg-form.gif" title="Instrumenting a non-function form" /></p>
 <p><img alt="Instrumenting a function" src="../images/debugger/dbg-function.gif" title="Instrumenting a function" /></p>
-<h3 id="evaluating-code-in-the-paused-context">Evaluating Code in the Paused Context</h3>
+<h3 id="evaluating-code-in-the-paused-context">Evaluating Code in the Paused Context<a class="headerlink" href="#evaluating-code-in-the-paused-context" title="Permanent link">#</a></h3>
 <p>When execution is paused at a breakpoint, you can evaluate code in that context. This can be done in the editor or in the REPL window, as usual.</p>
 <p><img alt="Evaluating code in the paused context from the editor" src="../images/debugger/eval-editor.gif" title="Evaluating code in the paused context from the editor" /></p>
-<h3 id="viewing-variable-values">Viewing Variable Values</h3>
+<h3 id="viewing-variable-values">Viewing Variable Values<a class="headerlink" href="#viewing-variable-values" title="Permanent link">#</a></h3>
 <p>While debugging, you can view the values of variables in VS Code's debugger side pane. You can also view values by hovering over the variables in the editor. Currently, values for collections and maps are shown as strings, but we plan to make them structured in the future. For now, if you want to see the value of a large structured variable, you can evaluate the variable from the editor or from the REPL window.</p>
 <p><img alt="Viewing variable values in the side pane" src="../images/debugger/viewing-variable-values.png" title="Viewing variable values in the side pane" /></p>
-<h3 id="viewing-the-call-stack">Viewing the Call Stack</h3>
+<h3 id="viewing-the-call-stack">Viewing the Call Stack<a class="headerlink" href="#viewing-the-call-stack" title="Permanent link">#</a></h3>
 <p>While debugging, you can view the call stack in VS Code's call stack side pane. Clicking the stack frames will show the related line of code in an editor.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>You may only see one stack frame in the call stack side pane, as the change for adding additional frames was rolled back due to an issue. You can follow the change for this at <a href="https://github.com/BetterThanTomorrow/calva/issues/1150">#1150</a>.</p>
 </div>
 <p><img alt="Debugger call stack" src="../images/debugger/debugger-call-stack.gif" title="Viewing the call stack" /></p>
-<h3 id="stepping-commands">Stepping Commands</h3>
+<h3 id="stepping-commands">Stepping Commands<a class="headerlink" href="#stepping-commands" title="Permanent link">#</a></h3>
 <p>You can use VS Code's debugger UI to advance execution while debugging.</p>
 <p><img alt="VS Code's debugger navigation buttons" src="../images/debugger/navigation-buttons.png" title="VS Code's debugger navigation buttons" /></p>
 <div class="admonition note">
@@ -1850,8 +1850,8 @@
 <li><strong>Restart</strong> - Does nothing. To restart debugging, you can hit disconnect or continue execution through the final result, then re-evaluate the expression that started the debugger.</li>
 <li><strong>Disconnect</strong> - Disconnects the debugger</li>
 </ul>
-<h2 id="caveats">Caveats</h2>
-<h3 id="breakpoints-in-looprecur">Breakpoints in loop/recur</h3>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">#</a></h2>
+<h3 id="breakpoints-in-looprecur">Breakpoints in loop/recur<a class="headerlink" href="#breakpoints-in-looprecur" title="Permanent link">#</a></h3>
 <p>One construct where the debugger is limited is <code>loop</code>/<code>recur</code>. As recur always has to appear in a tail-position inside a <code>loop</code> or a <code>fn</code> and the debugger uses macros to interleave breakpoints in the forms, it <strong>might</strong> happen that a <code>recur</code> no longer appears in a tail position. In that case we have to avoid setting up the breakpoint. An example of such a case is:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">loop </span><span class="p">[</span><span class="nv">i</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span>
 <span class="w">  </span><span class="o">#</span><span class="nv">break</span>
@@ -1860,32 +1860,32 @@
 <span class="w">    </span><span class="p">(</span><span class="nf">recur</span><span class="w"> </span><span class="p">(</span><span class="nb">inc </span><span class="nv">i</span><span class="p">))))</span>
 </code></pre></div>
 <p>Here the breakpoint is exactly in front of a form that contains as its last expression a <code>recur</code> which is wrapped in a loop. This breakpoint has no effect. This does not mean you cannot use the debugger with <code>loop</code>, it just means you have to set your debug statements more carefully.</p>
-<h3 id="loading-the-file-and-eval-on-save">Loading the File and "Eval On Save"</h3>
+<h3 id="loading-the-file-and-eval-on-save">Loading the File and "Eval On Save"<a class="headerlink" href="#loading-the-file-and-eval-on-save" title="Permanent link">#</a></h3>
 <p>When you load a file, any breakpoints that were previously set in functions will be unset. If you have the "Eval On Save" setting enabled, your file is also loaded with each save, therefore saving the file will remove breakpoints previously set.</p>
-<h2 id="troubleshooting">Troubleshooting</h2>
-<h3 id="debugger-hangs-when-stepping-over-infinite-seqs">Debugger hangs when stepping over infinite seqs</h3>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
+<h3 id="debugger-hangs-when-stepping-over-infinite-seqs">Debugger hangs when stepping over infinite seqs<a class="headerlink" href="#debugger-hangs-when-stepping-over-infinite-seqs" title="Permanent link">#</a></h3>
 <p>This is because the debugger tries to evaluate the form when it's stepped over, and if <code>clojure.core/*print-length*</code> is set to <code>nil</code> as it is by default, evaluation will never complete. If you want to debug a form with an infinite seq, make sure to set <code>*print-length*</code> beforehand. For example:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">set!</span><span class="w"> </span><span class="nv">*print-length*</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
 <span class="c1">;; Or, to be more precise</span>
 <span class="p">(</span><span class="nf">set!</span><span class="w"> </span><span class="nv">clojure.core/*print-length*</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
 </code></pre></div>
 <p>Calva does not set this for you during debug mode, instead leaving it up to you to decide the value.</p>
-<h3 id="my-breakpoint-isnt-being-hit">My breakpoint isn't being hit</h3>
+<h3 id="my-breakpoint-isnt-being-hit">My breakpoint isn't being hit<a class="headerlink" href="#my-breakpoint-isnt-being-hit" title="Permanent link">#</a></h3>
 <p>It's likely that your breakpoint is in a place that cider-nrepl does not see as an appropriate place to break execution. For example, if you put a breakpoint before a literal number, it will not be hit, because there's no need to show the value of a literal.</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">simple</span><span class="w"> </span><span class="p">[</span><span class="nv">x</span><span class="p">]</span>
 <span class="w">  </span><span class="p">(</span><span class="nb">+ </span><span class="mi">1</span><span class="w"> </span><span class="o">#</span><span class="nv">break</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="c1">;; This breakpoint will not be hit</span>
 </code></pre></div>
 <p>Another possible issue is that you're loading the file again after setting breakpoints, which unsets them. See <a href="#loading-the-file-and-eval-on-save">Loading the File and "Eval On Save"</a> under Caveats.</p>
-<h3 id="my-breakpoint-in-a-test-isnt-being-hit">My breakpoint in a test isn't being hit</h3>
+<h3 id="my-breakpoint-in-a-test-isnt-being-hit">My breakpoint in a test isn't being hit<a class="headerlink" href="#my-breakpoint-in-a-test-isnt-being-hit" title="Permanent link">#</a></h3>
 <p>If you're using the test commands like "Run current test" to run your tests, breakpoints will not be hit. This is because Calva loads the file before running the tests to make sure the latest version of test code is being run, and when the file is loaded, breakpoints are unset.</p>
 <p>If you want a breakpoint to work within the test, evaluate the test form with a breakpoint tag in it, then call the test directly.</p>
 <p><img alt="Hitting a breakpoint in a test" src="../images/debugger/breakpoint-in-test.png" title="Hitting a breakpoint in a test" /></p>
-<h3 id="no-reader-function-for-tag-error">"No reader function for tag" error</h3>
+<h3 id="no-reader-function-for-tag-error">"No reader function for tag" error<a class="headerlink" href="#no-reader-function-for-tag-error" title="Permanent link">#</a></h3>
 <p>If you get an error like this, it's likely that you connected to a REPL instead of jacking in, and you don't have the proper dependencies loaded in your REPL. You can run the command "Copy Jack-in Command Line to Clipboard" to see what command would be run if you jacked in.</p>
 <p>Most importantly, make sure you have <code>cider/cider-nrepl</code> as a dependency, and <code>cider.nrepl/cider-middleware</code> as middleware loaded in your REPL. For example, this is a jack-in command line for a deps.edn project:</p>
 <div class="highlight"><pre><span></span><code>clojure<span class="w"> </span>-Sdeps<span class="w"> </span><span class="s1">&#39;{:deps {nrepl/nrepl {:mvn/version,&quot;0.8.3&quot;},cider/cider-nrepl {:mvn/version,&quot;0.25.8&quot;}}}&#39;</span><span class="w"> </span>-m<span class="w"> </span>nrepl.cmdline<span class="w"> </span>--middleware<span class="w"> </span><span class="s2">&quot;[cider.nrepl/cider-middleware]&quot;</span>
 </code></pre></div>
-<h2 id="passing-options-to-the-repl-jvm">Passing options to the REPL JVM</h2>
+<h2 id="passing-options-to-the-repl-jvm">Passing options to the REPL JVM<a class="headerlink" href="#passing-options-to-the-repl-jvm" title="Permanent link">#</a></h2>
 <p>There are times when Clojure debugging tools are not enough or not right for the job.
 This is usually true when use an (open source) Java library and you want to set some breakpoints in Java code.
 For those cases and others, you need to start the JVM in debug mode.</p>

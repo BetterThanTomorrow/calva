@@ -1587,18 +1587,18 @@
   
 
 
-<h1 id="calva-parinfer-mode-is-reverted">Calva Parinfer Mode is Reverted</h1>
+<h1 id="calva-parinfer-mode-is-reverted">Calva Parinfer Mode is Reverted<a class="headerlink" href="#calva-parinfer-mode-is-reverted" title="Permanent link">#</a></h1>
 <div class="admonition failure">
 <p class="admonition-title">Reverted in Calva v2.0.228</p>
 <p>The changes in v2.0.227 seemed to cause problems for some users. Unclear yet if and why. But to not risk causing problems for more users these changes where reverted and Calva v2.0.228 does not contain them. <strong>Please consider using v2.0.227 and help find what the problems are about!</strong> Please note: Even in v2.0.227 this feature is currently disabled by default.</p>
 </div>
 <p><a href="https://shaunlebron.github.io/parinfer/">Parinfer</a> is a system for editing the structure of LISP text without explicit commands. The structure can be regarded as already being expressed through indentation. With Parinfer you can use your intuition about the structure <em>inferred</em> from the indentation to perform surprisingly many structural edits.</p>
-<h2 id="quirks">Quirks</h2>
+<h2 id="quirks">Quirks<a class="headerlink" href="#quirks" title="Permanent link">#</a></h2>
 <p>There are some known quirks, of varying severity, with this feature. Some of them will need to be fixed before we move this feature out of <strong>Experimental</strong> status.</p>
 <p>For the most times you can always <em>Undo</em> to get back to where the document was fine. You just need to pay some attention and be aware when undo is needed.</p>
-<h3 id="no-multi-cursor-support">No multi-cursor support</h3>
+<h3 id="no-multi-cursor-support">No multi-cursor support<a class="headerlink" href="#no-multi-cursor-support" title="Permanent link">#</a></h3>
 <p>The bracket inference will remove all cursors but the first one. So for instance if you edit with multiple cursors and it causes brackets to move, you'll end up with just one cursor and the subsequent edits will not be what you intended. This is particularly important to note when you have cursors that are not in the viewport. In such cases it might be better to turn Parinfer off while you do the edits, fix formatting and such manually and then switch Parinfer on again.</p>
-<h3 id="wrong-inferences">Wrong inferences</h3>
+<h3 id="wrong-inferences">Wrong inferences<a class="headerlink" href="#wrong-inferences" title="Permanent link">#</a></h3>
 <p>For yet unknown reasons an edit such as the following does the wrong thing (the cursor indicated by the vertical bar):</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">foo|</span><span class="w"> </span><span class="p">(</span><span class="nf">bar</span><span class="p">)</span>
 <span class="w">      </span><span class="p">(</span><span class="nf">baz</span><span class="p">))</span>
@@ -1611,16 +1611,16 @@
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">fo|</span><span class="w"> </span><span class="p">(</span><span class="nf">bar</span><span class="p">)</span>
 <span class="w">     </span><span class="p">(</span><span class="nf">baz</span><span class="p">))</span>
 </code></pre></div>
-<h3 id="lag-causing-errors-when-fast-typing">Lag causing errors when fast typing</h3>
+<h3 id="lag-causing-errors-when-fast-typing">Lag causing errors when fast typing<a class="headerlink" href="#lag-causing-errors-when-fast-typing" title="Permanent link">#</a></h3>
 <p>The way that Calva Parinfer works is that for any edit of the document it first reformats the code around the cursor, then infer brackets. Currently these two steps are not atomic to VS Code, so if you type fast bracket inference might happen on the yet unformatted code, and thus not be correct. You might also see the cursor end up at the wrong position at times.</p>
-<h2 id="infer-parens">Infer Parens</h2>
+<h2 id="infer-parens">Infer Parens<a class="headerlink" href="#infer-parens" title="Permanent link">#</a></h2>
 <div class="admonition mote">
 <p class="admonition-title">This is no longer available in Calva</p>
 <p>See above about how to try this build anyway, warts and all.</p>
 </div>
 <p>When you enable Calva's Parinfer it is all about infering brackets from indentation. There are no further Parinfer modes. Calva's auto-formatter will take care of keeping the code correctly indented.</p>
 <p>Enable it with from this setting: <code>calva.fmt.experimental.inferParensAsYouType</code> or from the status bar item.</p>
-<h3 id="parinfer-status-bar-items">Parinfer Status bar items</h3>
+<h3 id="parinfer-status-bar-items">Parinfer Status bar items<a class="headerlink" href="#parinfer-status-bar-items" title="Permanent link">#</a></h3>
 <p>To the right on the status bar, right before the <a href="../paredit/">Paredit</a> status bar item, you will have two items, Parinfer toggle ON/OFF and a health indicator.</p>
 <ol>
 <li>Parinfer <strong>ON</strong>/<strong>OFF</strong> indicator/button. <kbd>•()</kbd> (The dot/circle indicates <strong>ON</strong>/<strong>OFF</strong>)</li>
@@ -1634,7 +1634,7 @@
 </ol>
 <p>Parinfer will be disabled in both the unhealthy states.</p>
 <p>When Parinfer is OFF, only the first two states above are used.</p>
-<h2 id="some-vs-code-settings-automatically-changed">Some VS Code Settings automatically changed</h2>
+<h2 id="some-vs-code-settings-automatically-changed">Some VS Code Settings automatically changed<a class="headerlink" href="#some-vs-code-settings-automatically-changed" title="Permanent link">#</a></h2>
 <p>In order for some automatic VS Code behaviour not to interfere with Parinfer the following settings are automatically configured when you toggle Parinfer ON:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;[clojure]&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">&quot;editor.autoClosingBrackets&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;never&quot;</span><span class="p">,</span>
@@ -1650,14 +1650,14 @@
 <span class="w">    </span><span class="p">},</span>
 </code></pre></div>
 <p>It is recommended that you let Calva handle these settings to avoid weird behaviour.</p>
-<h2 id="no-tab-indenting">No Tab indenting</h2>
+<h2 id="no-tab-indenting">No Tab indenting<a class="headerlink" href="#no-tab-indenting" title="Permanent link">#</a></h2>
 <p>As the <code>tab</code> key is used for formatting the current form in Calva, it is ”taken”. The closest equivalents you have are <code>space</code> and <code>backspace</code>. At least for now. We'll see if we can find out a good way for supporting <code>tab</code> and <code>shift+tab</code> for indent and dedent.</p>
 <p><code>tab</code> for formatting is of course just a default key binding and you can assign it to something else to get it to do indenting. However, it will not be a very smart indent anyway, there is no Clojure awareness about it. You are hereby adviced to instead use some more spaces.</p>
-<h2 id="paredit-is-still-there">Paredit is still there</h2>
+<h2 id="paredit-is-still-there">Paredit is still there<a class="headerlink" href="#paredit-is-still-there" title="Permanent link">#</a></h2>
 <p>In Calva, Parinfer and <a href="../paredit/">Paredit</a> are designed to coexist and both be there to let you edit the structure easily and efficiently. Since Paredit commands are always formatted, they leave the code in a state where Parinfer has what it needs to infer bracket placement as you either edit the indentation, or remove/add brackets.</p>
-<h2 id="disable-the-parinfer-extension">Disable the Parinfer Extension</h2>
+<h2 id="disable-the-parinfer-extension">Disable the Parinfer Extension<a class="headerlink" href="#disable-the-parinfer-extension" title="Permanent link">#</a></h2>
 <p>If you want to have Parinfer you are probably best served by Calva's built-in version. It is designed, and will continue to be improved to function well together with Calva's other structural editing and formatting features. <em>It will also probably conflict with the Parinfer Extension.</em></p>
-<h2 id="see-also">See also</h2>
+<h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>
 <ul>
 <li><a href="../paredit/">Paredit</a></li>
 <li><a href="../formatting/">Formatting</a></li>

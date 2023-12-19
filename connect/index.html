@@ -1641,10 +1641,10 @@
   
 
 
-<h1 id="connect-calva-to-your-project">Connect Calva to Your Project</h1>
+<h1 id="connect-calva-to-your-project">Connect Calva to Your Project<a class="headerlink" href="#connect-calva-to-your-project" title="Permanent link">#</a></h1>
 <p>When connected to your project's REPL Calva lets you evaluate code, supporting Interactive Programming. The REPL connection is also used to provide IDE functionality through the dynamic knowledge about the project that the REPL enables. The REPL communication depends on that your project has an <a href="https://github.com/nrepl/nrepl">nREPL</a> server running, and that the <a href="https://github.com/clojure-emacs/cider-nrepl">cider-nrepl</a> middleware is enabled.</p>
 <p>For the easiest way to provide your project with these dependencies, the recommended way to connect is to use the so called <strong>Jack-in</strong> command.</p>
-<h2 id="jack-in-let-calva-start-the-repl-for-you">Jack-in: Let Calva Start the REPL For You</h2>
+<h2 id="jack-in-let-calva-start-the-repl-for-you">Jack-in: Let Calva Start the REPL For You<a class="headerlink" href="#jack-in-let-calva-start-the-repl-for-you" title="Permanent link">#</a></h2>
 <p>This way Calva can make sure it is started with the dependencies needed for a working Clojure and/or ClojureScript session. This is often referred to as <strong>Jack in</strong> (because that is what it is called in CIDER).</p>
 <p>Jack-in supports both CLJ and for CLJS, and has built-in configurations for <strong>Leiningen</strong>, <strong>deps.edn</strong>, <strong>shadow-cljs</strong>, <strong>Gradle</strong> projects, as well as for the CLJS repl types: <strong>Figwheel Main</strong>, <strong>lein-figwheel</strong> (legacy Figwheel), <strong>shadow-cljs</strong>, and ClojureScript built-ins for both browser and node.js. Using jack-in provides your development environment with all the dependencies you need for Calva to work.</p>
 <p>It works like so:</p>
@@ -1659,13 +1659,13 @@
 <p>You must have a project file, such as <code>project.clj</code> for Leiningen, or <code>deps.edn</code> for deps.edn, or <code>shadow-cljs.edn</code> for shadow-cljs, or <code>settings.gradle</code>/<code>settings.gradle.kts</code> for Gradle in the directory opened in VS Code in order for jack-in to work. If, after adding the project file, you experience an error during jack-in that says something could not be located, make sure you have the correct dependencies in your project file. For example, when using the <strong>Figwheel Main</strong> project type, you should have <code>com.bhauman/figwheel-main</code> in your project dependencies.</p>
 <p>See also below, regarding <a href="#monorepos-multiple-clojure-projects-in-one-workspace">multiple projects in a workspace</a></p>
 </div>
-<h3 id="aliases-profiles-builds">Aliases, Profiles, Builds</h3>
+<h3 id="aliases-profiles-builds">Aliases, Profiles, Builds<a class="headerlink" href="#aliases-profiles-builds" title="Permanent link">#</a></h3>
 <p>When Jack-in starts it will depend on the project type, and whether ClojureScript is involved or not, and if it is, what kind of ClojureScript project, what will happen next. Calva will analyze the project files and will then give you prompts with selections based on what is found there.</p>
 <p>You will need some basic knowledge about the project and the project type terminologies to answer the prompts.</p>
 <p>There are ways to tell Calva the answers to these prompts beforehand, so that Jack-in can be a zero-prompting command. Read on.</p>
-<h3 id="customizing-jack-in">Customizing Jack-in</h3>
+<h3 id="customizing-jack-in">Customizing Jack-in<a class="headerlink" href="#customizing-jack-in" title="Permanent link">#</a></h3>
 <p>The main mechanism for customizing your Jack-in, including automating menu selections, and custom CLJS REPL types is <a href="../connect-sequences/">Custom Connect Sequences</a>. See also <a href="../customizing-jack-in-and-connect/">Customizing Jack-in and Connect</a></p>
-<h2 id="connecting-without-jack-in">Connecting Without Jack-in</h2>
+<h2 id="connecting-without-jack-in">Connecting Without Jack-in<a class="headerlink" href="#connecting-without-jack-in" title="Permanent link">#</a></h2>
 <p>If, for whatever reasons, you can't use Jack-in with your project (possibly because the REPL is started as part of some other job) all is not lost. Old fashioned <strong>Connect to a running REPL</strong> is still there for you. For all features to work in Calva while connecting to a running REPL, your environment needs to have REPL related dependencies set up.</p>
 <p>However, just as before it can be tricky to get the dependencies right. Consider using <strong>Jack in</strong> to inform yourself on how to start your REPL to Calva's satisfaction. When you use Jack in, Calva starts a VS Code task for it and the command line used is displayed in the terminal pane used to handle the task. Reading that command line tells you what dependencies are needed for your project.</p>
 <p>Even better: Copying that command line gives you the command to start the REPL with the correct dependencies.</p>
@@ -1679,21 +1679,21 @@
 <p>A reason to use the connect to a running REPL way, can be that Calva does not have a built in <a href="../connect-sequences/">connect sequence/project type</a> for the particular REPL you want to connect to. Maybe it is something like <a href="https://github.com/ingydotnet/lingy">Lingy</a> which doesn't yet have a built in Calva connect sequence. As long as there is an nREPL server to connect to, you can Connect with Calva, using the <strong>Generic</strong> connect sequence/project type. (You can also create a <a href="../connect-sequences/#custom-command-line">connect sequence with a custom command line</a>, and use Jack-in anyway.)</p>
 </div>
 <p>See also <a href="../customizing-jack-in-and-connect/">Customizing Jack-in and Connect</a></p>
-<h3 id="starting-the-repl-from-application-code">Starting the REPL from application code?</h3>
+<h3 id="starting-the-repl-from-application-code">Starting the REPL from application code?<a class="headerlink" href="#starting-the-repl-from-application-code" title="Permanent link">#</a></h3>
 <p>If your project is setup so that the REPL server is started by the application code, you will need to get the cider-nrepl middleware in place. See the cider-nrepl docs about <a href="https://docs.cider.mx/cider-nrepl/usage.html#via-embedding-nrepl-in-your-application">embedding nREPL in your application</a>.</p>
-<h2 id="auto-select-project-type-and-project-root">Auto-select Project Type and Project Root</h2>
+<h2 id="auto-select-project-type-and-project-root">Auto-select Project Type and Project Root<a class="headerlink" href="#auto-select-project-type-and-project-root" title="Permanent link">#</a></h2>
 <p>You can make both Jack-in and Connect stop prompting you for project type and project root path in projects where you always want to use the same. See <a href="../connect-sequences/">Connect Sequences</a>.</p>
-<h2 id="monorepos-multiple-clojure-projects-in-one-workspace">Monorepos / multiple Clojure projects in one workspace</h2>
+<h2 id="monorepos-multiple-clojure-projects-in-one-workspace">Monorepos / multiple Clojure projects in one workspace<a class="headerlink" href="#monorepos-multiple-clojure-projects-in-one-workspace" title="Permanent link">#</a></h2>
 <p>If the workspace is a monorepo, Polylith repo or just a repository with more than one Clojure project, Calva will start the connect sequence with prompting for which project to start/connect to.</p>
 <p><img alt="The project roots menu" src="../images/calva-monorepo-project-roots-menu.png" /></p>
-<h2 id="shadow-cljs">shadow-cljs</h2>
+<h2 id="shadow-cljs">shadow-cljs<a class="headerlink" href="#shadow-cljs" title="Permanent link">#</a></h2>
 <p>Please see the <a href="../shadow-cljs/">shadow-cljs</a> page.</p>
-<h2 id="troubleshooting">Troubleshooting</h2>
-<h3 id="jack-in-and-main-opts">Jack-in and <code>:main-opts</code></h3>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
+<h3 id="jack-in-and-main-opts">Jack-in and <code>:main-opts</code><a class="headerlink" href="#jack-in-and-main-opts" title="Permanent link">#</a></h3>
 <p>When Calva starts the project REPL and connects to it (a.k.a. Jack-in), this is done by starting an nREPL server. For deps.edn projects this by default means that Calva will add <code>-m ...</code> with options that starts the server.</p>
 <p><em>However</em>: If you choose an alias at Jack-in that specifies <code>:main-opts</code>, it will make the Clojure CLI to add main opts and Calva will then not override these by adding <code>-m ...</code> to the command line. This means that an alias that specify <code>:main-opts</code> must result in an nREPL server being started, or else Calva won't have a server to connect to. Calva won't further analyze this, but will just warn you at Jack-in.</p>
 <p>If you don't know if an alias starts an nREPL server or not, by all means, try it, if you have reasons for using that alias. You will notice if Jack-in works or not. If it doesn't work, you will need to run without that alias, or fix what happens when that alias is used so that an nREPL server is started. See https://nrepl.org/nrepl/usage/server.html about ways to do this.</p>
-<h3 id="command-not-found-errors-when-jacking-in">Command Not Found Errors When Jacking In</h3>
+<h3 id="command-not-found-errors-when-jacking-in">Command Not Found Errors When Jacking In<a class="headerlink" href="#command-not-found-errors-when-jacking-in" title="Permanent link">#</a></h3>
 <p>If you get <code>command not found</code> error when Calva tries to start your project, and you know you have the command installed, it's probably because VS Code starts from an environment where the command is not on the <code>$PATH</code>. It can look like so:</p>
 <div class="highlight"><pre><span></span><code>lein<span class="w"> </span>update-in<span class="w"> </span>:dependencies<span class="w"> </span>conj<span class="w"> </span><span class="s1">&#39;[nrepl,&quot;0.8.3&quot;]&#39;</span><span class="w"> </span>--<span class="w"> </span>update-in<span class="w"> </span>:plugins<span class="w"> </span>conj<span class="w"> </span><span class="s1">&#39;[cider/cider-nrepl,&quot;0.25.8&quot;]&#39;</span><span class="w"> </span>--<span class="w"> </span>update-in<span class="w"> </span><span class="s1">&#39;[:repl-options,:nrepl-middleware]&#39;</span><span class="w"> </span>conj<span class="w"> </span><span class="s1">&#39;[&quot;cider.nrepl/cider-middleware&quot;]&#39;</span><span class="w"> </span>--<span class="w"> </span>repl<span class="w"> </span>:headless
 /bin/sh:<span class="w"> </span>lein:<span class="w"> </span><span class="nb">command</span><span class="w"> </span>not<span class="w"> </span>found
@@ -1704,11 +1704,11 @@ Jack-in<span class="w"> </span>process<span class="w"> </span>exited.<span class
 </code></pre></div>
 <p>You might need to first run the <strong>Shell Command: Install <code>code</code> command in PATH</strong>.</p>
 <p>This will also make sure your REPL has access to the environment you probably expect it to have access to. See below.</p>
-<h3 id="go-to-definition-not-working-for-java-definitions">Go to Definition Not Working for Java Definitions</h3>
+<h3 id="go-to-definition-not-working-for-java-definitions">Go to Definition Not Working for Java Definitions<a class="headerlink" href="#go-to-definition-not-working-for-java-definitions" title="Permanent link">#</a></h3>
 <p>On some systems, the Java source may not be installed along with the JDK. The source must be present on your system in order to navigate to Java definitions. See <a href="https://github.com/clojure-emacs/orchard/issues/103#issuecomment-764936527">this comment</a> for more details.</p>
-<h3 id="environment-variables-are-not-readable-from-repl">Environment Variables Are Not Readable From REPL</h3>
+<h3 id="environment-variables-are-not-readable-from-repl">Environment Variables Are Not Readable From REPL<a class="headerlink" href="#environment-variables-are-not-readable-from-repl" title="Permanent link">#</a></h3>
 <p>If you've added environment variables in your OS, such as in your <code>~/.bashrc</code> file (Linux), in order for them to be read in a REPL created by Calva's jackin command, VS Code must be started from a shell where the environment variables are defined. For example, if you can open a bash terminal and run <code>echo $SOME_VAR</code> and see the value there, then open VS Code from that terminal with <code>code &lt;project path&gt;</code>.</p>
-<h3 id="viewing-the-communication-between-nrepl-and-calva">Viewing the Communication Between nREPL and Calva</h3>
+<h3 id="viewing-the-communication-between-nrepl-and-calva">Viewing the Communication Between nREPL and Calva<a class="headerlink" href="#viewing-the-communication-between-nrepl-and-calva" title="Permanent link">#</a></h3>
 <p>It may be helpful to view the messages sent between nREPL and Calva when troubleshooting an issue related to the REPL. See how to do that <a href="../nrepl_and_cider-nrepl/#viewing-the-communication-between-calva-and-nrepl">here</a>.</p>
 
 

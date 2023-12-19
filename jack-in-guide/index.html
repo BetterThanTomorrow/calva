@@ -1643,14 +1643,14 @@
   
 
 
-<h1 id="learn-about-calva-jack-in">Learn about Calva Jack-in</h1>
+<h1 id="learn-about-calva-jack-in">Learn about Calva Jack-in<a class="headerlink" href="#learn-about-calva-jack-in" title="Permanent link">#</a></h1>
 <p><em>The Calva Jack-In Academy, by <a href="https://github.com/PEZ">@pez</a></em></p>
 <p>Like with <a href="https://metaredux.com/posts/2019/11/02/hard-cider-understanding-the-jack-in-process.html">CIDER Jack-in</a>, Calva's let-me-help-you-start-your-project-and-connect feature might seem a bit mysterious. It really is helpful, but also really isn't mysterious. Here are a few things about it that is good to know about.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If you came here to find out how to configure the versions of the dependencies that Calva Jack-in injects, see <a href="../customizing/#jack-in-dependency-versions">Customizing Calva - Jack-in Dependency Versions</a>.</p>
 </div>
-<h2 id="what-it-solves">What it Solves</h2>
+<h2 id="what-it-solves">What it Solves<a class="headerlink" href="#what-it-solves" title="Permanent link">#</a></h2>
 <p>At first it might seem that something like <code>lein repl</code> in a terminal and then connecting Calva is enough. It sometimes might be, but only if you are in luck. To provide many of its IDE features, Calva relies on nREPL middleware, mainly <a href="https://github.com/clojure-emacs/cider-nrepl">cider-nrepl</a> and, for ClojureScript, <a href="https://github.com/nrepl/piggieback">piggieback</a>. When starting your Clojure(Script) app and its REPL, it needs to be started with these dependencies satisfied. There are mainly three ways this can be achieved.</p>
 <ol>
 <li>In the project definition (files like <code>project.clj</code>, <code>deps.edn</code>, <code>shadow-cljs.edn</code>, and combination of these).</li>
@@ -1659,14 +1659,14 @@
 </ol>
 <p>Because <strong>1</strong> and <strong>2</strong> are hard to keep in sync with the various editor environments people in your project might be using, Calva Jack-In is about <strong>3</strong>.</p>
 <p>Ideally, you will be able to rid your project files completely of editor dependencies when people working on the project can rely on the Jack-In features of their Clojure editor.</p>
-<h2 id="a-controlled-shell-command">A Controlled Shell Command</h2>
+<h2 id="a-controlled-shell-command">A Controlled Shell Command<a class="headerlink" href="#a-controlled-shell-command" title="Permanent link">#</a></h2>
 <p>At its core Calva Jack-In is just a glorified, REPL-starting, command-line. No, it is more than that, but anyway. The command line can look like so for a Leiningen project using legacy Figwheel for its ClojureScript assistance:</p>
 <div class="highlight"><pre><span></span><code>lein<span class="w"> </span>update-in<span class="w"> </span>:dependencies<span class="w"> </span>conj<span class="w"> </span><span class="s1">&#39;[nrepl&quot;0.6.0&quot;]&#39;</span><span class="w"> </span>--<span class="w"> </span>update-in<span class="w"> </span>:dependencies<span class="w"> </span>conj<span class="w"> </span><span class="s1">&#39;[cider/piggieback&quot;0.4.1&quot;]&#39;</span><span class="w"> </span>--<span class="w"> </span>update-in<span class="w"> </span>:dependencies<span class="w"> </span>conj<span class="w"> </span><span class="s1">&#39;[figwheel-sidecar&quot;0.5.18&quot;]&#39;</span><span class="w"> </span>--<span class="w"> </span>update-in<span class="w"> </span>:plugins<span class="w"> </span>conj<span class="w"> </span><span class="s1">&#39;[cider/cider-nrepl&quot;0.22.4&quot;]&#39;</span><span class="w"> </span>--<span class="w"> </span>update-in<span class="w"> </span><span class="s1">&#39;[:repl-options :nrepl-middleware]&#39;</span><span class="w"> </span>conj<span class="w"> </span><span class="s1">&#39;[&quot;cider.nrepl/cider-middleware&quot;]&#39;</span><span class="w"> </span>--<span class="w"> </span>update-in<span class="w"> </span><span class="s1">&#39;[:repl-options :nrepl-middleware]&#39;</span><span class="w"> </span>conj<span class="w"> </span><span class="s1">&#39;[&quot;cider.piggieback/wrap-cljs-repl&quot;]&#39;</span><span class="w"> </span>--<span class="w"> </span>with-profile<span class="w"> </span>+dev<span class="w"> </span>repl<span class="w"> </span>:headless
 </code></pre></div>
 <p>Even if a bit long, it might look simple enough. But actually it has taken quite some effort to make Calva craft it. Shell quoting can be really tricky. Look at how <code>'[nrepl"0.6.0"]'</code> doesn't have a space between <code>nrepl</code> and the version. That was the only way I could find that was cross platform enough to make all supported shells parse the command line. (The trick relies on that the string is read by the super reliable Clojure Reader, which does not need that space to tokenize it.)</p>
 <p>It is awesome that Clojure is used on so many platforms, but for a tool smith this also means more work. (I think Windows and its shell hell ate up about 95% of the many hours spent on getting the quoting good enough.)</p>
 <p>The command-line crafted is then used to start a shell command that Calva controls, but we are getting ahead of ourselves...</p>
-<h2 id="project-types-builds-aliases-profiles-etcetera">Project Types, Builds, Aliases, Profiles, etcetera</h2>
+<h2 id="project-types-builds-aliases-profiles-etcetera">Project Types, Builds, Aliases, Profiles, etcetera<a class="headerlink" href="#project-types-builds-aliases-profiles-etcetera" title="Permanent link">#</a></h2>
 <p>In order to cook the right command for your project, Calva looks for project files, reads them, and figures out what possible project types and ClojureScript tools could be involved. Then Calva presents you with a menu with the options it has found. You need to know enough about your project to answer this question. It looks like this in a shadow-cljs project that uses a <code>deps.edn</code> file for setting up its classpath.</p>
 <p><img alt="Calva Jack-In Project Types Prompt" src="https://user-images.githubusercontent.com/30010/68088862-66b70a80-fe63-11e9-81e0-099f12460a63.png" /></p>
 <p>(I know enough about this particular project to know that I should choose the <code>shadow-cljs</code> project type.)</p>
@@ -1677,13 +1677,13 @@
 <div class="highlight"><pre><span></span><code>npx<span class="w"> </span>shadow-cljs<span class="w"> </span>-d<span class="w"> </span>cider/piggieback:0.4.1<span class="w"> </span>-d<span class="w"> </span>cider/cider-nrepl:0.22.4<span class="w"> </span>watch<span class="w"> </span>:app
 </code></pre></div>
 <p>(Much shorter than the one with lein-figwheel, right? It is because shadow-cljs is aware of CIDER dependencies, so it doesn't need as many dependencies specified as some other project types do.)</p>
-<h2 id="connecting">Connecting</h2>
+<h2 id="connecting">Connecting<a class="headerlink" href="#connecting" title="Permanent link">#</a></h2>
 <p>When the command is issued Calva needs to wait until the REPL Server is started, before connecting to it and possibly continuing with starting a ClojureScript REPL and connecting to that as well. It also needs to know which port to connect to.</p>
 <p>Because reasons, Calva can't yet read the <code>stdout</code> of the shell command it has issued, so to know when the REPL server is started, and on which port, Calva monitors the filesystem for the <code>.nrepl-port</code> file. (This file is not always named like that. shadow-cljs, for instance, creates the file <code>.shadow-cljs/nrepl.port</code>.)</p>
 <p>When the port file is created, Calva picks up the port number from it and connects to the nREPL server. At this point you have a Clojure REPL backing your Calva session, providing all sorts of nice IDE help for you.</p>
-<h2 id="starting-your-clojure-app">Starting Your Clojure App</h2>
+<h2 id="starting-your-clojure-app">Starting Your Clojure App<a class="headerlink" href="#starting-your-clojure-app" title="Permanent link">#</a></h2>
 <p>Once you have the Clojure REPL connected you can start your Clojure app/server. See <a href="../connect-sequences/">Custom Connect Sequences</a> for how to let Calva do this for you automatically. See the same article for ways to automate more of the Jack-In process. It can be brought down to a single <strong>Jack-In</strong> command/action, even for a full stack Clojure and ClojureScript application.</p>
-<h2 id="clojurescript">ClojureScript</h2>
+<h2 id="clojurescript">ClojureScript<a class="headerlink" href="#clojurescript" title="Permanent link">#</a></h2>
 <p>For ClojureScript, things are not done yet, though, far from it. It turns out that cooking the command line was the easy part.</p>
 <p>In order for Calva to provide REPL power for ClojureScript projects, several things need to happen:</p>
 <ol>
@@ -1692,26 +1692,26 @@
 <li>Your ClojureScript app needs to be started.</li>
 <li>The Clojure nREPL session needs to be promoted to a ClojureScript nREPL session. (This is what piggieback helps with.)</li>
 </ol>
-<h3 id="compiling-the-app-and-watchers">Compiling the App and Watchers</h3>
+<h3 id="compiling-the-app-and-watchers">Compiling the App and Watchers<a class="headerlink" href="#compiling-the-app-and-watchers" title="Permanent link">#</a></h3>
 <p>Depending on ClojureScript project type, Calva uses different methods to start the compilation and the watcher:</p>
 <ul>
 <li><strong>Figwheel:</strong> The compilation and the watchers are started in the Clojure REPL session. (This is both for Figwheel Main and for lein-figwheel.)</li>
 <li><strong>shadow-cljs:</strong> The compilation and the watchers are started with the Jack-In command line.</li>
 </ul>
 <p>This results in a bit of difference in the user interaction. Mainly that for shadow-cljs, the user needs to check the Jack-In Terminal tab to follow what's going on.</p>
-<h3 id="starting-the-app">Starting the App</h3>
+<h3 id="starting-the-app">Starting the App<a class="headerlink" href="#starting-the-app" title="Permanent link">#</a></h3>
 <p>Number <strong>3</strong> above, <em>the app needs to be started</em>, might seem obvious, but it actually trips many people up. Because of this, Calva goes to quite some lengths to provide assistance. Many projects are configured not to spawn a browser session automatically, requesting the app once it has been compiled, so we can't rely on that.</p>
 <p>What Calva does instead is to monitor the output of the commands it uses for starting the compilation, looking for information that the app is ready to be requested/started. It then tells the user this, providing a URL, in case it is a browser app. (There are also settings that tell Calva to open the URL automatically for you, regardless what the project settings are.)</p>
-<h3 id="connecting_1">Connecting</h3>
+<h3 id="connecting_1">Connecting<a class="headerlink" href="#connecting_1" title="Permanent link">#</a></h3>
 <p>Meanwhile, Calva is monitoring the output and when it sees that the app is started, it continues to hook up the REPL connection to the editor.</p>
 <p>This whole connection sequence is quite configurable, using <a href="../connect-sequences/">Custom Connect Sequences</a>. In fact, Calva's built in ClojureScript sequences (Figwheel Main, lein-figwheel, shadow-cljs, and ClojureScript built-ins for both Browser and Node) are all built using those same settings mechanisms.</p>
-<h4 id="shadow-cljs-is-less-managed-by-calva">shadow-cljs is Less Managed by Calva</h4>
+<h4 id="shadow-cljs-is-less-managed-by-calva">shadow-cljs is Less Managed by Calva<a class="headerlink" href="#shadow-cljs-is-less-managed-by-calva" title="Permanent link">#</a></h4>
 <p><strong>NB:</strong> The managed way in which Calva creates and connects the ClojureScript REPL breaks apart a bit for shadow-cljs, which works a bit differently and also outputs most of the information Calva is looking for on the <code>stdout</code> of the REPL start command (where Calva can't see it, remember?). We'll figure out a better way to support shadow-cljs, but for now, the user needs to do more of this figuring out than is needed with Figwheel projects.</p>
-<h3 id="hack-away">Hack Away</h3>
+<h3 id="hack-away">Hack Away<a class="headerlink" href="#hack-away" title="Permanent link">#</a></h3>
 <p>So, there are things going on when you start Jack-In, and even more things for ClojureScript projects, but Calva tries to keep it together, so as a user it is a matter of paying attention and responding to a few prompts/menus with pre-populated options (prompts which can be configured away, even).</p>
-<h3 id="switch-clojurescript-builds">Switch ClojureScript Builds</h3>
+<h3 id="switch-clojurescript-builds">Switch ClojureScript Builds<a class="headerlink" href="#switch-clojurescript-builds" title="Permanent link">#</a></h3>
 <p>Once the REPL is connected you might want to change which ClojureScript build you have Calva connected to. For this Calva has the <strong>Select CLJS Build Connection</strong> command. Please note that you can only switch between builds that you have started.</p>
-<h3 id="play-with-starting-the-cljs-repl-yourself">Play With Starting the <code>cljs-repl</code> Yourself</h3>
+<h3 id="play-with-starting-the-cljs-repl-yourself">Play With Starting the <code>cljs-repl</code> Yourself<a class="headerlink" href="#play-with-starting-the-cljs-repl-yourself" title="Permanent link">#</a></h3>
 <p>To get a good grip on what is going on when creating and connecting the ClojureScript REPL, I can recommend making a custom connect sequence which leaves the REPL unpromoted (e.g. give it <code>nil</code> as <code>connectCode</code>), and then evaluate the <code>cljs-repl</code> start commands yourself. So for instance, promoting it to a ClojureScript Node.js REPL looks something like so:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">user=&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="ss">&#39;cljs.repl.node</span><span class="p">)</span>
 <span class="nv">user=&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">cider.piggieback/cljs-repl</span><span class="w"> </span><span class="p">(</span><span class="nf">cljs.repl.node/repl-env</span><span class="p">))</span>
@@ -1721,12 +1721,12 @@
 <span class="nv">cljs.user=&gt;</span><span class="w"> </span><span class="nv">|</span>
 </code></pre></div>
 <p>It is the piggieback middleware there telling you that you can unpromote the REPL by ”evaluating” <code>:cljs/quit</code>.</p>
-<h3 id="about-full-stack-applications">About Full Stack Applications</h3>
+<h3 id="about-full-stack-applications">About Full Stack Applications<a class="headerlink" href="#about-full-stack-applications" title="Permanent link">#</a></h3>
 <p>Because Calva uses the Clojure REPL connection to spawn the ClojureScript REPL, and because Calva only handles one Clojure REPL per VS Code window, some projects need special handling by the user.</p>
 <p>If your full stack project is using shadow-cljs for the frontend, like <a href="https://github.com/fulcrologic/fulcro-template">this Fulcro template project</a> does, maybe you first try to Jack-In to your backend Clojure REPL, and then to your shadow-cljs frontend. This works if you do it in separate VS Code windows, but if you do it in the same window, the second Jack-In will kill the backend session! See also <a href="../connect/#shadow-cljs-in-full-stack-projects">connect shadow-cljs in fullstack projects</a>.</p>
 <p>See <a href="../workspace-layouts/">Workspace Layouts</a> for tips about how to open the same project folder in two separate VS Code windows.</p>
 <p>Please also consider to play around with starting the REPL and ClojureScript wiring entirely from the terminal, see <a href="https://github.com/PEZ/shadow-w-backend">this example project</a> for some instructions on that. You can also use that project together with the <code>nil</code> for <code>connectCode</code> sequence mentioned above.</p>
-<h2 id="please-grab-your-calva-jack-in-certificate">Please Grab your Calva Jack-In Certificate</h2>
+<h2 id="please-grab-your-calva-jack-in-certificate">Please Grab your Calva Jack-In Certificate<a class="headerlink" href="#please-grab-your-calva-jack-in-certificate" title="Permanent link">#</a></h2>
 <p>There, you now know all there is to know about Calva Jack-In.</p>
 <p>Just kidding, there are a few more details to it, some of which might find their way into this article at a later time.</p>
 <p>To really get to know it all, you will need to spend some time with the Calva Jack-In code. Head over to the <a href="https://github.com/BetterThanTomorrow/calva/wiki">Calva Development Wiki</a> to learn how to hack on Calva.</p>

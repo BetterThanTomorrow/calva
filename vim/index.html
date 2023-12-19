@@ -1517,15 +1517,15 @@
   
 
 
-<h1 id="calva-and-the-vim-extension">Calva and the VIM Extension</h1>
+<h1 id="calva-and-the-vim-extension">Calva and the VIM Extension<a class="headerlink" href="#calva-and-the-vim-extension" title="Permanent link">#</a></h1>
 <p>First thing first. The <a href="https://github.com/VSCodeVim/Vim">VIM Extension</a> and Calva has a history of friction between them. Less so these days, but you might still encounter some rough edges. Please don't hesitate to reach out to the Calva team, as we might be able to fix things if only we are aware of them.</p>
-<h2 id="key-bindings">Key bindings</h2>
+<h2 id="key-bindings">Key bindings<a class="headerlink" href="#key-bindings" title="Permanent link">#</a></h2>
 <p>In general Calva's default key bindings are not very VI-ish.</p>
-<h3 id="expand-selection-on-mac">Expand selection on Mac</h3>
+<h3 id="expand-selection-on-mac">Expand selection on Mac<a class="headerlink" href="#expand-selection-on-mac" title="Permanent link">#</a></h3>
 <p>On Mac, Calva binds <strong>expand selection</strong> to <code>ctrl+w</code>. This conflicts with the VIM Extension's default mapping of window splitting shortcuts. You'll need to remap it either with Calva or with the VIM Extension.</p>
-<h3 id="the-esc-key">The <code>esc</code> key</h3>
+<h3 id="the-esc-key">The <code>esc</code> key<a class="headerlink" href="#the-esc-key" title="Permanent link">#</a></h3>
 <p>While showing inline evaluation results, Calva binds the <code>esc</code> key to dismiss the display of inline results. If you want to be able to use the <code>esc</code> key to enter command mode while inline results are showing, you'll need to rebind Calva's command for dismissing the inline results.</p>
-<h4 id="remap-calvas-clearinlineresults">Remap Calva's <code>clearInlineResults</code></h4>
+<h4 id="remap-calvas-clearinlineresults">Remap Calva's <code>clearInlineResults</code><a class="headerlink" href="#remap-calvas-clearinlineresults" title="Permanent link">#</a></h4>
 <ul>
 <li>Open the Keyboard Shortcuts JSON file from the Command Palette</li>
 <li>Disable <code>clearInlineResults</code> and remap the command e.g.</li>
@@ -1544,7 +1544,7 @@
 <span class="p">]</span>
 </code></pre></div>
 <p>If you run into issues, refer to the commands in the default Keyboard Shortcuts JSON file.</p>
-<h4 id="remap-vims-insert-mode">Remap Vim's Insert Mode</h4>
+<h4 id="remap-vims-insert-mode">Remap Vim's Insert Mode<a class="headerlink" href="#remap-vims-insert-mode" title="Permanent link">#</a></h4>
 <p>Remap vim's insert mode keybinding to go into command mode by adding the following to your user settings:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;vim.insertModeKeyBindings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span>
@@ -1554,7 +1554,7 @@
 <span class="p">]</span>
 </code></pre></div>
 <p>(Change <code>before</code> to whatever keybinding you are comfortable with!)</p>
-<h3 id="vim-fireplace-ish-keybindings">Vim Fireplace-ish keybindings</h3>
+<h3 id="vim-fireplace-ish-keybindings">Vim Fireplace-ish keybindings<a class="headerlink" href="#vim-fireplace-ish-keybindings" title="Permanent link">#</a></h3>
 <p>You can add these keybindings to your <code>init.vim</code> if you are using the VSCode Neovim extension. It is inspired by and tries to emulate the keybindings found in <a href="https://github.com/tpope/vim-fireplace">vim-fireplace</a> which is the most popular vim plugin for Clojure.</p>
 <div class="highlight"><pre><span></span><code>nmap cqp :call VSCodeNotify(&#39;calva.jackIn&#39;)&lt;CR&gt;
 nmap cqq :call VSCodeNotify(&#39;calva.disconnect&#39;)&lt;CR&gt;

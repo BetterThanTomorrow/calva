@@ -1465,12 +1465,12 @@
   
 
 
-<h1 id="how-to-use-calva-with-luminus">How to Use Calva with Luminus</h1>
+<h1 id="how-to-use-calva-with-luminus">How to Use Calva with Luminus<a class="headerlink" href="#how-to-use-calva-with-luminus" title="Permanent link">#</a></h1>
 <p><a href="https://luminusweb.com">Luminus</a> is a powerful and versatile Leiningen template for creating web development projects. It comes with built in configuration which makes it easy to use Calva as your Clojure(Script) editor.</p>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/0zaGtbc-5oc" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <hr />
-<h2 id="server-shadow-cljs">Server + shadow-cljs</h2>
+<h2 id="server-shadow-cljs">Server + shadow-cljs<a class="headerlink" href="#server-shadow-cljs" title="Permanent link">#</a></h2>
 <p>Basically this is the same wokflow as with <strong>Server only</strong>. Behind the scenes there is more happening, though. Such as the ClojureScript app being built and the CLJS REPL connected once the web app is running.</p>
 <ol>
 <li>If you haven't created the project yet, create a new shadow-cljs Luminus project. E.g.:
@@ -1491,7 +1491,7 @@
 <p class="admonition-title">Note</p>
 <p>Currently Calva has troubles following the app-start with shadow-cljs, so Calva will report <code>Jack-in done.</code> in the output window before shadow-cljs is actually done building the app. If you open the app page at that stage, you will see a message to “Please run <code>lein shadow watch app</code>”. Rest assured that <em>this is already underway.</em> Follow the Jack-in process in the <em>Terminal</em> tab in VS Code for the message that the app is built, <em>then</em> reload the app page in the web browser.</p>
 </div>
-<h2 id="server-only">Server Only</h2>
+<h2 id="server-only">Server Only<a class="headerlink" href="#server-only" title="Permanent link">#</a></h2>
 <p>The workflow here is really just: Jack-in and start hacking. However, the first time it will involve these steps:</p>
 <ol>
 <li>If you haven't created the project yet, create a new server only Luminus project. For a all-defaults setup it is like so:
@@ -1506,7 +1506,7 @@
 </li>
 <li>Open <a href="http://127.0.0.1:3000">127.0.0.1:3000</a> in your web browser and start hacking.</li>
 </ol>
-<h2 id="server-figwheel">Server + Figwheel</h2>
+<h2 id="server-figwheel">Server + Figwheel<a class="headerlink" href="#server-figwheel" title="Permanent link">#</a></h2>
 <p><em>This is Legacy Figwheel (lein-figwheel), so the recommendation is to use the shadow-cljs setup instead.</em> As with the server only, the workflow here is really just: Jack-in and start hacking. The first time it involves these steps:</p>
 <ol>
 <li>If you haven't created the project yet, create a new server only Luminus project. E.g.:
@@ -1519,7 +1519,7 @@
 <li>Start hacking.</li>
 </ol>
 <p>If you prefer to open the web app yourself, open <code>.vscode/settings.json</code> and change <code>"shouldOpenUrl"</code> to <code>false</code> in the pre-configured Calva connect sequence. Calva will then print the URL <a href="http://127.0.0.1:3000">127.0.0.1:3000</a> in the output, so that you can click it open.</p>
-<h2 id="etcetera">Etcetera</h2>
+<h2 id="etcetera">Etcetera<a class="headerlink" href="#etcetera" title="Permanent link">#</a></h2>
 <p>You will have three Calva <em>Custom Command Snippets</em> configured. Invoke them by issuing the <strong>Run Custom REPL Command</strong>, <code>ctrl+alt+c .</code> (that's a dot). These commands control the Luminus server:</p>
 <ol>
 <li><code>Start &lt;project&gt; Server</code></li>

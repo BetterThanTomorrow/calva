@@ -1603,12 +1603,12 @@
   
 
 
-<h1 id="code-evaluation">Code Evaluation</h1>
+<h1 id="code-evaluation">Code Evaluation<a class="headerlink" href="#code-evaluation" title="Permanent link">#</a></h1>
 <p>Calva tries to make it easy to evaluate code, supporting interactive development. The fastest path to learning about it is to use the <strong>Fire up the Getting Started REPL</strong> command, which you can learn more about in the <a href="../getting-started/">Getting Started</a> section.</p>
 <p>NB: <em>The below assumes you have read about <a href="../finding-commands/">Finding Calva Commands and Shortcuts</a>.</em></p>
-<h2 id="interruptingstopping-running-evaluations">Interrupting/stopping running evaluations</h2>
+<h2 id="interruptingstopping-running-evaluations">Interrupting/stopping running evaluations<a class="headerlink" href="#interruptingstopping-running-evaluations" title="Permanent link">#</a></h2>
 <p>Sometimes you evaluate things that take a very long time to complete, or might not even ever complete (infinite loops, lazy sequences, things like that). Calva has a command for interrupting running evaluations. You find it in the VS Code command palette, as well as in the REPL status bar item menu, when the REPL is connected.</p>
-<h2 id="evaluation-in-a-file-editor">Evaluation in a File Editor</h2>
+<h2 id="evaluation-in-a-file-editor">Evaluation in a File Editor<a class="headerlink" href="#evaluation-in-a-file-editor" title="Permanent link">#</a></h2>
 <p>Calva has many commands for evaluating forms, including the <strong>current form</strong> and the <strong>current top-level form</strong>.</p>
 <p>Some of the commands also let you choose what should happen with the results:</p>
 <ol>
@@ -1622,11 +1622,11 @@
 <li><strong>To comments.</strong> This will add the results as line comments below the current line.</li>
 <li><strong>Replace the evaluated code.</strong> This will do what it says, the evaluated code will be replaced with its results.</li>
 </ol>
-<h2 id="wait-current-form-top-level-form">Wait, Current Form? Top-level Form?</h2>
+<h2 id="wait-current-form-top-level-form">Wait, Current Form? Top-level Form?<a class="headerlink" href="#wait-current-form-top-level-form" title="Permanent link">#</a></h2>
 <p>These are important concepts in Calva in order for you to create your most effective workflow. This video explains it a bit:</p>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/8ygw7LLLU1w" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-<h3 id="current-form">Current Form</h3>
+<h3 id="current-form">Current Form<a class="headerlink" href="#current-form" title="Permanent link">#</a></h3>
 <p>Default shortcut for evaluating the current form: <code>ctrl+enter</code>.</p>
 <p>The <strong>current form</strong> either means the current selection, or otherwise is based on the cursor position. Play some with the command <strong>Calva: Select current form</strong>, <code>ctrl+alt+c s</code>, to figure out what Calva thinks is the current form for some different situations. Try it inside a symbol, adjacent to a symbol (both sides) and adjacent to an opening or closing bracket (again, both sides). Generally the current form is determined like so:</p>
 <ol>
@@ -1645,19 +1645,19 @@
 <span class="nv">|</span><span class="w"> </span><span class="nv">bar</span><span class="w"> </span><span class="p">(</span><span class="nf">baz</span><span class="p">))</span><span class="w"> </span><span class="c1">; bar</span>
 </code></pre></div></li>
 </ol>
-<h3 id="current-top-level-form">Current Top-level Form</h3>
+<h3 id="current-top-level-form">Current Top-level Form<a class="headerlink" href="#current-top-level-form" title="Permanent link">#</a></h3>
 <p>Default shortcut for evaluating the current top level form: <code>alt+enter</code>.</p>
 <p>The <strong>current top-level form</strong> means top-level in a structural sense. It is <em>not</em> the topmost form in the file. Typically in a Clojure file you will find <code>def</code> and <code>defn</code> (and <code>defwhatever</code>) forms at the top level, which also is one major intended use for evaluating top level form: <em>to define and redefine variables</em>. However, Calva does not check the contents of the form in order to determine it as a top-level forms: <em>all forms not enclosed in any other form are top level forms</em>.</p>
 <p>An ”exception” is introduced by the <code>comment</code> form. It will create a new top level context, so that any forms immediately inside a <code>(comment ...)</code> form will be considered top-level by Calva. This is to support a workflow with what is often referred to the <a href="../rich-comments/">Rich Comments</a>.</p>
 <p>At the top level the selection of which form is the current top level form follows the same rules as those for <a href="#current-form">the current form</a>.</p>
-<h3 id="evaluate-enclosing-form">Evaluate Enclosing Form</h3>
+<h3 id="evaluate-enclosing-form">Evaluate Enclosing Form<a class="headerlink" href="#evaluate-enclosing-form" title="Permanent link">#</a></h3>
 <p>The default keyboard shortcut for evaluating the current enclosing form (the list the cursor is in) is <code>ctrl+shift+enter</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">foo</span><span class="w"> </span><span class="ss">:bar</span><span class="p">]</span>
 <span class="w">  </span><span class="p">(</span><span class="nb">when </span><span class="nv">false</span><span class="w"> </span><span class="p">(</span><span class="nf">str|</span><span class="w"> </span><span class="nv">foo</span><span class="p">)))</span><span class="w"> </span><span class="c1">; =&gt; &quot;:bar&quot;</span>
 </code></pre></div>
-<h3 id="evaluate-to-cursor">Evaluate to Cursor</h3>
+<h3 id="evaluate-to-cursor">Evaluate to Cursor<a class="headerlink" href="#evaluate-to-cursor" title="Permanent link">#</a></h3>
 <p>There are several commands for evaluating a piece of code, closing brackets. It's good, especially in threads, but can also come in handy in other situations, for instance when you want to evaluate something that depends on bindings, such as in a <code>let</code> form.</p>
-<h3 id="evaluate-from-start-of-list-to-cursor-closing-brackets">Evaluate From Start of List to Cursor, Closing Brackets</h3>
+<h3 id="evaluate-from-start-of-list-to-cursor-closing-brackets">Evaluate From Start of List to Cursor, Closing Brackets<a class="headerlink" href="#evaluate-from-start-of-list-to-cursor-closing-brackets" title="Permanent link">#</a></h3>
 <p>This command evaluates the text from the start of the current enclosing list to where the cursor is, and it adds the missing closing bracket for you. Convenient for checking intermediate results in thread or <code>doto</code>, or similar pipelines. The cursor is right behind <code>:d</code> in this form:</p>
 <div class="highlight"><pre><span></span><code><span class="w">  </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="mi">13</span><span class="w"> </span><span class="mi">21</span><span class="p">]</span>
 <span class="w">       </span><span class="p">(</span><span class="nf">partition</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
@@ -1667,7 +1667,7 @@
 <span class="w">       </span><span class="p">(</span><span class="nf">Math/abs</span><span class="p">))</span>
 </code></pre></div>
 <p>The default shortcut for this command is <kbd>ctrl+alt+enter</kbd>.</p>
-<h3 id="evaluate-selection-closing-brackets">Evaluate Selection, Closing Brackets</h3>
+<h3 id="evaluate-selection-closing-brackets">Evaluate Selection, Closing Brackets<a class="headerlink" href="#evaluate-selection-closing-brackets" title="Permanent link">#</a></h3>
 <p>This is the most versatile of the ”evaluation, closing brackets” commands. It will do what it says. 😄 It's extra handy in combination with the command <strong>Paredit: Select Backward Up Sexp/Form</strong> (<kbd>shift+ctrl+up</kbd>). Consider this contrieved form (buggy code, because it was supposed to result in <code>42</code>, not <code>-42</code>):</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">fortytwo-from-thirty</span>
 <span class="w">  </span><span class="p">[]</span>
@@ -1689,7 +1689,7 @@
 <p>At <code>;1</code>, you can do <strong>backward up sexp</strong> (<kbd>shift+ctrl+up</kbd>) twice to select up to the <code>(let ..)</code>, then issue <strong>Evaluate Selection, Closing Brackets</strong>. It has the same default keybinding as the command for <a href="#evaluate-from-start-of-list-to-cursor-closing-brackets">evaluating the current list up to the cursor</a>: <kbd>ctrl+alt+enter</kbd>.</p>
 <p>At <code>;2</code> you need select backwards up three times.</p>
 <p><code>;3</code> is included because it is close to the bug. (Which was introduced when the thread-last, <code>-&gt;&gt;</code> was added to make this example.) Please practice the <strong>Evaluate Selection, Closing Brackets</strong> command to fix the bug.</p>
-<h3 id="evaluate-from-start-of-top-level-form-to-cursor-closing-brackets">Evaluate From Start of Top Level Form to Cursor, Closing Brackets</h3>
+<h3 id="evaluate-from-start-of-top-level-form-to-cursor-closing-brackets">Evaluate From Start of Top Level Form to Cursor, Closing Brackets<a class="headerlink" href="#evaluate-from-start-of-top-level-form-to-cursor-closing-brackets" title="Permanent link">#</a></h3>
 <p>This command has a default shortcut keybinding of <code>shift+alt+enter</code>. It will create a form from the start of the current top level form, up to the cursor, close all brackets, and this will then be evaluated. Good for examining code blocks up to a certain point. Often comes in handy in Rich comments (<code>(comment ...)</code>).</p>
 <p>Take this example and paste it in a file loaded into the REPL, then place the cursor in front of each line comment and try the command.</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
@@ -1719,12 +1719,12 @@
 <span class="w">          </span><span class="nv">average</span><span class="w">       </span><span class="c1">; 5</span>
 <span class="w">          </span><span class="p">))))</span>
 </code></pre></div>
-<h3 id="evaluate-from-start-of-file-to-cursor-closing-brackets">Evaluate From Start of File to Cursor, Closing Brackets</h3>
+<h3 id="evaluate-from-start-of-file-to-cursor-closing-brackets">Evaluate From Start of File to Cursor, Closing Brackets<a class="headerlink" href="#evaluate-from-start-of-file-to-cursor-closing-brackets" title="Permanent link">#</a></h3>
 <p>Yup, that command also exists. 😄</p>
-<h2 id="copying-the-inline-results">Copying the inline results</h2>
+<h2 id="copying-the-inline-results">Copying the inline results<a class="headerlink" href="#copying-the-inline-results" title="Permanent link">#</a></h2>
 <p>There is a command called <strong>Copy last evaluation results</strong>, <code>ctrl+alt+c ctrl+c</code>.</p>
 <p>This works regardless if you have evaluated in a file editor or in a REPL window.</p>
-<h2 id="evaluating-in-a-repl-window">Evaluating in a REPL window</h2>
+<h2 id="evaluating-in-a-repl-window">Evaluating in a REPL window<a class="headerlink" href="#evaluating-in-a-repl-window" title="Permanent link">#</a></h2>
 <p>Since the REPL Window is mostly just a regular file, things work pretty similar at the REPL prompt. You use <code>alt+enter</code> to evaluate. Selecting the current form (default key binding <code>ctrl+w</code> on Mac and <code>shift+alt+right</code> on Windows and Linux) after evaluating will select the result.</p>
 
 

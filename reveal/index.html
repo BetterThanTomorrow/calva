@@ -1505,16 +1505,16 @@
   
 
 
-<h1 id="how-to-use-calva-and-reveal-together">How to use Calva and Reveal together</h1>
+<h1 id="how-to-use-calva-and-reveal-together">How to use Calva and Reveal together<a class="headerlink" href="#how-to-use-calva-and-reveal-together" title="Permanent link">#</a></h1>
 <p><a href="https://vlaaad.github.io/reveal">Reveal</a> is a "Read Eval Visualize Loop for Clojure". This page describes how to use Reveal in your development setup based on Calva.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>See <a href="https://vlaaad.github.io/reveal">https://vlaaad.github.io/reveal</a> for the latest version and use that wherever this page says <code>&lt;version&gt;</code>.</p>
 </div>
-<h2 id="when-using-toolsdeps">When using tools.deps</h2>
+<h2 id="when-using-toolsdeps">When using tools.deps<a class="headerlink" href="#when-using-toolsdeps" title="Permanent link">#</a></h2>
 <p>You can go for the nrepl middleware or just add the dependency. </p>
 <p>Please see the Calva test-data project <a href="https://github.com/BetterThanTomorrow/calva/blob/published/test-data/projects/minimal-reveal/">minimal-reveal</a> for an example.</p>
-<h3 id="middleware">Middleware</h3>
+<h3 id="middleware">Middleware<a class="headerlink" href="#middleware" title="Permanent link">#</a></h3>
 <p>This will make Reveal to start together with your project.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1528,7 +1528,7 @@
 <span class="w">                  </span><span class="s">&quot;--middleware&quot;</span><span class="w"> </span><span class="s">&quot;[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]&quot;</span><span class="p">]}}</span>
 </code></pre></div>
 <p>And then jack-in choosing the deps.edn option and then pick the <code>:reveal-nrepl-middleware</code> alias.</p>
-<h3 id="dependencies-only">Dependencies only</h3>
+<h3 id="dependencies-only">Dependencies only<a class="headerlink" href="#dependencies-only" title="Permanent link">#</a></h3>
 <p>If you don't want to use the nrepl-middleware you can configure just the dependency and then start Reveal yourself.</p>
 <p>The alias:</p>
 <div class="highlight"><pre><span></span><code><span class="ss">:reveal-dep-only</span>
@@ -1546,7 +1546,7 @@
 <span class="w">    </span><span class="p">]</span>
 </code></pre></div>
 <p>See <a href="../custom-commands/">Custom REPL Command</a> for how to configure more commands, and bind shortcuts to them, to make Reveal integration nice for you.</p>
-<h2 id="when-using-leiningen">When using Leiningen</h2>
+<h2 id="when-using-leiningen">When using Leiningen<a class="headerlink" href="#when-using-leiningen" title="Permanent link">#</a></h2>
 <p>In your <code>project.clj</code>, add a profile named "reveal":</p>
 <div class="highlight"><pre><span></span><code><span class="ss">:profiles</span><span class="w"> </span><span class="p">{</span><span class="ss">:reveal</span><span class="w"> </span><span class="p">{</span><span class="ss">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="nv">vlaaad/reveal</span><span class="w"> </span><span class="s">&quot;&lt;version&gt;&quot;</span><span class="p">]]</span>
 <span class="w">                    </span><span class="ss">:repl-options</span><span class="w"> </span><span class="p">{</span><span class="ss">:nrepl-middleware</span><span class="w"> </span><span class="p">[</span><span class="nv">vlaaad.reveal.nrepl/middleware</span><span class="p">]}}}</span>
@@ -1554,7 +1554,7 @@
 <p>Now when you jack-in using Calva, you enable this profile and Reveal will be
 started automatically. Please note that Reveal requires Java 8 or higher, and
 uses JavaFX. Depending on your setup, you may need to make sure it is available.</p>
-<h2 id="tips-about-font-size">Tips about font size</h2>
+<h2 id="tips-about-font-size">Tips about font size<a class="headerlink" href="#tips-about-font-size" title="Permanent link">#</a></h2>
 <p>If you find the font to small you can add a <code>:jvm-opts</code> key to make it a little bigger:</p>
 <div class="highlight"><pre><span></span><code><span class="ss">:aliases</span>
 <span class="p">{</span><span class="ss">:reveal</span>
@@ -1563,7 +1563,7 @@ uses JavaFX. Depending on your setup, you may need to make sure it is available.
 <span class="w">     </span><span class="ss">:main-opts</span><span class="w">  </span><span class="p">[</span><span class="s">&quot;-m&quot;</span><span class="w"> </span><span class="s">&quot;nrepl.cmdline&quot;</span>
 <span class="w">                  </span><span class="s">&quot;--middleware&quot;</span><span class="w"> </span><span class="s">&quot;[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]&quot;</span><span class="p">]}}</span>
 </code></pre></div>
-<h2 id="using-java-11">Using Java &gt; 11?</h2>
+<h2 id="using-java-11">Using Java &gt; 11?<a class="headerlink" href="#using-java-11" title="Permanent link">#</a></h2>
 <p>Reveal needs some reflective access to internal classes that has since Java 11 been restricted. You can relax this and get things working via JVM options. Tuck this into your reveal alias:</p>
 <div class="highlight"><pre><span></span><code>:jvm-opts [&quot;--add-opens&quot; &quot;javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED&quot;]
 </code></pre></div>

@@ -1423,7 +1423,7 @@
   
 
 
-<h1 id="linting">Linting</h1>
+<h1 id="linting">Linting<a class="headerlink" href="#linting" title="Permanent link">#</a></h1>
 <p>Calva does no linting, yet with Calva you get excellent linting. That is because Calva uses <a href="https://github.com/clojure-lsp/clojure-lsp">clojure-lsp</a>, which provides linting powered by clj-kondo.</p>
 <p>clj-kondo comes with great default rules, and the configuration <a href="https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md">can be customized</a>. One of your options for the configuration file is to  placed a <code>config.edn</code> file in <code>.clj-kondo/</code> at the root of your project. This folder may or may not already exist. It is safe to create it manually if it doesn't.</p>
 <p>The configuration will be merged with the default set of rules, you can only specify the rules you want to override. The full list of available options can be found on <a href="https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md">clj-kondo's github</a></p>
@@ -1435,7 +1435,7 @@
 </ul>
 <p>If you see a linting squiggle under the first character of the file with an error you don't quite understand, it is probably something wrong with your clj-kondo configuration.</p>
 <p>Files are linted as they're being edited. If you want to lint the whole project, use the clj-kondo cli command. See <a href="https://github.com/borkdude/clj-kondo">https://github.com/borkdude/clj-kondo</a> for more info on that. Windows users might like to know that they too can get a clj-kondo cli command now, via <a href="https://twitter.com/borkdude/status/1187622954236071936"><code>npm install -g clj-kondo</code></a>. It'll be a bit slower to start than the native build, but for sure it's better than not having a clj-kondo command! See <a href="https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#npm-linux-macos-windows">https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#npm-linux-macos-windows</a> for more on this.</p>
-<h2 id="resolve-macro-as">Resolve Macro As</h2>
+<h2 id="resolve-macro-as">Resolve Macro As<a class="headerlink" href="#resolve-macro-as" title="Permanent link">#</a></h2>
 <p>When your cursor is on a macro form in the editor, you may notice a code action (click the light bulb that appears) called Resolve Macro As. Running this code action will ask you what macro you'd like to resolve the current macro as, and then what clj-kondo config file you want the macro to be saved to. This code action is also available as a command.</p>
 
 

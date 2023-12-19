@@ -1613,14 +1613,14 @@
   
 
 
-<h1 id="repl-jack-in-and-connect-sequences">REPL Jack-in and Connect Sequences</h1>
+<h1 id="repl-jack-in-and-connect-sequences">REPL Jack-in and Connect Sequences<a class="headerlink" href="#repl-jack-in-and-connect-sequences" title="Permanent link">#</a></h1>
 <p>Many projects grow out of the template phase and call for custom developer workflows involving application start commands, customized REPLs, and what have you. Even some templates add this kind of complexity. To make Jack-in usable for a broader set of projects, Calva has a setting keyed <code>calva.replConnectSequences</code> which lets you configure one ore more connect sequences.</p>
 <p>NB: <em>Connect sequence configuration affects Calva's Jack-in menu in the following ways:</em></p>
 <ol>
 <li>With <em>no sequence</em> configured, Calva will prompt for the built-in sequences it has that seems to match your project.</li>
 <li>When any number of connection sequences are configured, Calva will prompt for your custom sequences, as well as the built-in sequences. Whether built-in or custom, only sequences relevant to your project will be included in the prompt.</li>
 </ol>
-<h2 id="settings-for-adding-custom-sequences">Settings for adding Custom Sequences</h2>
+<h2 id="settings-for-adding-custom-sequences">Settings for adding Custom Sequences<a class="headerlink" href="#settings-for-adding-custom-sequences" title="Permanent link">#</a></h2>
 <p>A connect sequence configures the following:</p>
 <ul>
 <li><code>name</code>: (required) This will show up in the Jack-in quick-pick menu when you start Jack-in (see above).</li>
@@ -1663,7 +1663,7 @@
 <p class="admonition-title">Path segments</p>
 <p><code>projectRootPath</code> and <code>nReplPortFile</code> both take an array of path segments. This is to make the paths work cross-platform. If you can't be bothered splitting up the path in segments, put the whole path in the first segment, though please note that if you use Windows path separators, these will not work for users with Linux or macOS.</p>
 </div>
-<h2 id="custom-command-line">Custom Command Line</h2>
+<h2 id="custom-command-line">Custom Command Line<a class="headerlink" href="#custom-command-line" title="Permanent link">#</a></h2>
 <p>Custom command lines are there to bridge the gap to those situations where standard Jack-in command lines don't reach. Like:</p>
 <ol>
 <li>You want to provide command line options to a supported tool, which Jack-in does not provide</li>
@@ -1673,7 +1673,7 @@
 </ol>
 <p>A custom command line is executed from same directory as the REPL project root (See <code>projectRootPath</code>, above), and can be as simple as <code>my-repl-jack-in-command</code>. You  can use a relative or absolute path to your command line.</p>
 <p>If your custom command line starts a REPL of a project type that is not ”known”/built-in to Calva, use <code>custom</code> as the <code>projectType</code> for the connect sequence.</p>
-<h3 id="custom-command-line-substitutionsplaceholdersenvironment-variables">Custom Command Line Substitutions/Placeholders/Environment variables</h3>
+<h3 id="custom-command-line-substitutionsplaceholdersenvironment-variables">Custom Command Line Substitutions/Placeholders/Environment variables<a class="headerlink" href="#custom-command-line-substitutionsplaceholdersenvironment-variables" title="Permanent link">#</a></h3>
 <p>You can use placeholders in your command line, and Calva will substitute them before executing the command. All these placeholders will also be provided to your script via environment variables with the same names (except dashes will be underscores in the env variable names):</p>
 <p>nREPL dependency versions:</p>
 <ul>
@@ -1696,8 +1696,8 @@
 <li><code>JACK-IN-CLJS-LAUNCH-BUILDS</code>: For ClojureScript REPLs that configures builds, the builds selected by the user</li>
 <li><code>JACK-IN-NREPL-PORT</code>: For some project types (currently <code>nbb</code> and <code>Babashka</code>) Calva provided the TCP port they should use.</li>
 </ul>
-<h3 id="example-custom-jack-in-command-lines">Example Custom Jack-in Command lines</h3>
-<h4 id="start-a-babashka-repl-via-wsl">Start a Babashka REPL via WSL</h4>
+<h3 id="example-custom-jack-in-command-lines">Example Custom Jack-in Command lines<a class="headerlink" href="#example-custom-jack-in-command-lines" title="Permanent link">#</a></h3>
+<h4 id="start-a-babashka-repl-via-wsl">Start a Babashka REPL via WSL<a class="headerlink" href="#start-a-babashka-repl-via-wsl" title="Permanent link">#</a></h4>
 <p>Calva has a built-in jack-in sequence for starting a Babashka REPL and connect to it. It works as long as the <code>bb</code> process is on the same host as VS Code/Calva is running. So if you want it to run in WSL, but VS Code is running on your computer you need to start <code>bb</code> slightly differently. These settings in your VS Code settings file will give you a jack-in option that works for this:</p>
 <div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span>
@@ -1708,7 +1708,7 @@
 <span class="w">  </span><span class="p">],</span>
 </code></pre></div>
 <p>If you place it in your user settings you will have access to it from any workspace.</p>
-<h4 id="an-exampleskeleton-script">An example/skeleton script</h4>
+<h4 id="an-exampleskeleton-script">An example/skeleton script<a class="headerlink" href="#an-exampleskeleton-script" title="Permanent link">#</a></h4>
 <p>This script doesn't actually start a REPL, it's provided more for giving you an idea about what it could look like, and as a starting point for your real scripts:</p>
 <div class="highlight"><pre><span></span><code><span class="o">#</span><span class="nv">!/usr/bin/env</span><span class="w"> </span><span class="nv">bb</span>
 
@@ -1745,9 +1745,9 @@
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;customJackInCommandLine&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;../../custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION&quot;</span><span class="p">,</span>
 </code></pre></div>
 <p>Note how in this case the REPL is started two directories ”down” from the workspace root where the script resides.</p>
-<h2 id="example-sequences">Example Sequences</h2>
+<h2 id="example-sequences">Example Sequences<a class="headerlink" href="#example-sequences" title="Permanent link">#</a></h2>
 <p>Whether you just want to speed up your workflow or encode some workflow/mechanics into it, it's often the case that you can create a custom sequence that helps.</p>
-<h3 id="minimal-menus-with-full-stack-shadow-cljs-repls">Minimal menus with full stack shadow-cljs REPLs</h3>
+<h3 id="minimal-menus-with-full-stack-shadow-cljs-repls">Minimal menus with full stack shadow-cljs REPLs<a class="headerlink" href="#minimal-menus-with-full-stack-shadow-cljs-repls" title="Permanent link">#</a></h3>
 <p>Minimize the amount of selecting from the Jack-in/Connect menu when working with a full-stack shadow-cljs + deps/lein project:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;backend + frontend&quot;</span><span class="p">,</span>
@@ -1763,7 +1763,7 @@
 <span class="w">    </span><span class="p">}</span>
 </code></pre></div>
 <p>See <a href="https://blog.agical.se/en/posts/shadow-cljs-clojure-cljurescript-calva-nrepl-basics/">shadow-cljs + Clojure with Calva: The basics</a> for how Calva and nREPL work with ClojureScript.</p>
-<h3 id="polylith">Polylith</h3>
+<h3 id="polylith">Polylith<a class="headerlink" href="#polylith" title="Permanent link">#</a></h3>
 <p>This is the connect sequences used in the <a href="https://github.com/furkan3ayraktar/clojure-polylith-realworld-example-app">Polylith Real World App</a>. The <code>(start)</code> sequence lets you jack-in to the project, and starts the Real World App without any prompts. The <code>(connect)</code> sequence can be used if you prefer to start the REPL manually, and want to connect without prompts.</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span>
@@ -1788,7 +1788,7 @@
 <span class="w">    </span><span class="nt">&quot;calva.autoConnectRepl&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 </code></pre></div>
 <p>The <code>calva.autoConnectRepl</code>, when set to <code>true</code>, makes Calva, at project open, look for the nRepl port file and automatically connect the repl if the file exists. Therefore, you can leave the app running when you close the project in VS Code, and Calva will reconnect when you open the project again. (Alternatively, maybe you just need to reload the VS Code window and not lose the REPL state.)</p>
-<h3 id="minimal-menus-with-full-stack-depsedn-and-figwheel-main-repls">Minimal menus with full stack deps.edn and Figwheel Main REPLs</h3>
+<h3 id="minimal-menus-with-full-stack-depsedn-and-figwheel-main-repls">Minimal menus with full stack deps.edn and Figwheel Main REPLs<a class="headerlink" href="#minimal-menus-with-full-stack-depsedn-and-figwheel-main-repls" title="Permanent link">#</a></h3>
 <p>Setting for a full-stack application. It starts the backend server when the CLJ REPL has started. Then proceeds to create a custom CLJS REPL (calling in to the application code for this). And then connects to it.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -1807,7 +1807,7 @@
 <span class="w">    </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
-<h3 id="juxt-edge">JUXT Edge</h3>
+<h3 id="juxt-edge">JUXT Edge<a class="headerlink" href="#juxt-edge" title="Permanent link">#</a></h3>
 <p>Here is an example from the <a href="https://juxt.pro/blog/posts/edge.html">JUXT Edge</a> project template. It adds two sequences, one for when only the Clojure REPL should be launched and one for when the customized Edge cljs repl should also be connected. The <strong>Edge backend + frontend</strong> sequence specifies that the web app should be opened by Calva, making cljs repl connection more stable, and also adds <code>menuSelections</code> to skip the <strong>launch aliases</strong> prompt.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -1840,7 +1840,7 @@
 <span class="w">    </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
-<h3 id="plain-depsedn">Plain deps.edn</h3>
+<h3 id="plain-depsedn">Plain deps.edn<a class="headerlink" href="#plain-depsedn" title="Permanent link">#</a></h3>
 <p>A deps.edn sequence that does not promote the ClojureScript repl at all (leaving it a Clojure REPL), and leaves that up to you to do interactively. (Could be useful while you are developing a custom cljs repl.) The example is for when adapting a Figwheel Main repl.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>

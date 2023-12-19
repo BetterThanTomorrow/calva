@@ -1599,7 +1599,7 @@
   
 
 
-<h1 id="formatting">Formatting</h1>
+<h1 id="formatting">Formatting<a class="headerlink" href="#formatting" title="Permanent link">#</a></h1>
 <p>We have tried to make Calva's formatter so that it <em>just works</em>. It is enabled by default for Clojure files, and with the default configuration it mostly follows Bozhidar Batsov's <a href="https://github.com/bbatsov/clojure-style-guide">Clojure Style Guide</a>. Calva uses <a href="https://github.com/weavejester/cljfmt">cljfmt</a> for the formatting.</p>
 <div class="admonition tips">
 <p class="admonition-title">Tab formats the current surrounding form</p>
@@ -1629,11 +1629,11 @@
 <li>inserts whitespace between forms</li>
 </ul>
 <p>Not a fan of some default setting? The formatter is quite <a href="#configuration">configurable</a>.</p>
-<h2 id="format-current-form-command-variants">Format current form command variants</h2>
+<h2 id="format-current-form-command-variants">Format current form command variants<a class="headerlink" href="#format-current-form-command-variants" title="Permanent link">#</a></h2>
 <p>There are <em>three</em> special commands for formatting the current form:</p>
-<h3 id="1-format-and-align-current-form">1. Format and Align Current Form</h3>
+<h3 id="1-format-and-align-current-form">1. Format and Align Current Form<a class="headerlink" href="#1-format-and-align-current-form" title="Permanent link">#</a></h3>
 <p>Aligns associative structures and bindings in two columns. See more <a href="#about-aligning-associative-forms">below</a>.</p>
-<h3 id="2-format-current-form-and-trim-space-between-forms">2. Format Current Form and trim space between forms</h3>
+<h3 id="2-format-current-form-and-trim-space-between-forms">2. Format Current Form and trim space between forms<a class="headerlink" href="#2-format-current-form-and-trim-space-between-forms" title="Permanent link">#</a></h3>
 <p>This formats the text, and trims consecutive, non-indent, whitespace on a line to just one space. Something like:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span><span class="w">    </span><span class="ss">:b</span><span class="p">]</span>
 <span class="p">(</span><span class="nb">str </span><span class="s">&quot;foo&quot;</span><span class="w">     </span><span class="s">&quot;bar&quot;</span><span class="w"> </span><span class="s">&quot;baz&quot;</span>
@@ -1645,17 +1645,17 @@
 <span class="w">       </span><span class="s">&quot;a&quot;</span><span class="w"> </span><span class="nv">a</span><span class="p">))</span>
 </code></pre></div>
 <p>Basically, it behaves like if <code>:remove-multiple-non-indenting-spaces? true</code> was added to the <code>cljfmt</code> config. Which, in fact, is what happens. Calva merges that onto your cljfmt config when this command is used.</p>
-<h3 id="3-replace-current-form-or-selection-with-pretty-printed-form">3. Replace Current Form (or Selection) with Pretty Printed Form</h3>
+<h3 id="3-replace-current-form-or-selection-with-pretty-printed-form">3. Replace Current Form (or Selection) with Pretty Printed Form<a class="headerlink" href="#3-replace-current-form-or-selection-with-pretty-printed-form" title="Permanent link">#</a></h3>
 <p>This command will run the code of the <a href="../evaluation/#current-form">Current Form</a> through Calva's <a href="../pprint/">pretty printer</a> (the engine named <code>calva</code>, which is using <a href="https://github.com/kkinnear/zprint">zprint</a>) and replace the current form inline in the editor with the pretty printed results.</p>
 <p>Unlike with the ”real” Calva Formatter, which never breaks up lines, this one will follow your <a href="../pprint/">pretty printing</a> options and break up lines if you have set <code>maxWidth</code> to something that calls for breaking up lines.</p>
 <div class="admonition note">
 <p class="admonition-title">Applies to the other Current Form</p>
 <p>Unlike the other Format commands, which applies to the current <em>enclosing</em> form, this one applies to the <a href="../evaluation/#current-form">Current Form, same as with evaluations</a>. That is because this is not really part of the Calva formatter, but rather is a convenience command for tidying up code or data.</p>
 </div>
-<h2 id="configuration">Configuration</h2>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
 <p>You can adjust the above mentioned defaults, and the default indents, by configuring the formatting using <a href="https://github.com/weavejester/cljfmt#configuration">cljfmt's configuration EDN</a>.</p>
 <p>This configuration can either be provided via a file or via clojure-lsp. See <a href="#providing-configuration-via-clojure-lsp">Providing configuration via clojure-lsp</a> below.</p>
-<h3 id="providing-configuration-via-a-config-file">Providing configuration via a config file</h3>
+<h3 id="providing-configuration-via-a-config-file">Providing configuration via a config file<a class="headerlink" href="#providing-configuration-via-a-config-file" title="Permanent link">#</a></h3>
 <p>Calva will look for the configuration in one  of the <a href="https://github.com/weavejester/cljfmt#configuration">default cljfmt paths</a> ('.cljfmt.edn', '.cljfmt.clj', 'cljfmt.edn', or 'cljfmt.clj' in the workspace root). If your file is somewhere else use the <code>calva.fmt.configPath</code> to tell Calva where to find it. The path should either be absolute, or relative to the workspace root directory. If your config file is somewhere in the workspace root, Calva will hot reload it when you update it.</p>
 <p>Wherever the config file is, a suggested path for providing your configuration is to start changing the Calva formatting defaults by pasting the following map into a file and save it.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span><span class="w"> </span><span class="nv">true</span>
@@ -1678,10 +1678,10 @@
 <summary>No Leiningen config support</summary>
 <p>The <strong>cljfmt</strong> docs mention the <code>:cljfmt</code> config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.</p>
 </details>
-<h3 id="providing-configuration-via-clojure-lsp">Providing configuration via clojure-lsp</h3>
+<h3 id="providing-configuration-via-clojure-lsp">Providing configuration via clojure-lsp<a class="headerlink" href="#providing-configuration-via-clojure-lsp" title="Permanent link">#</a></h3>
 <p>If you work in a team where some members use clojure-lsp for formatting, you can make Calva format using the same configuration by telling setting <code>calva.fmt.configPath</code> to <code>CLOJURE-LSP</code> (case sensitive). See <a href="https://clojure-lsp.io/settings/">Clojure LSP Settings</a>) for how to provide the configuration. (It might not be provided from where you think it is, specifically check clojure-lsp's global config in you user home directory.) Use the command <strong>Calva Diagnostics: Clojure-lsp Server Info</strong> to see what cljfmt configuration is being used (under the <code>cljfmt-raw</code> key).</p>
 <p>Note that doing this you will not have hot reload of the formatting configuration, and of course you will be depending on that clojure-lsp is running and functioning.</p>
-<h3 id="indentation-rules">Indentation rules</h3>
+<h3 id="indentation-rules">Indentation rules<a class="headerlink" href="#indentation-rules" title="Permanent link">#</a></h3>
 <p>The <code>cljfmt</code> indents are highly configurable. They, and the rest of the configuration options, are masterly detailed <a href="https://github.com/weavejester/cljfmt#configuration">here</a>.</p>
 <div class="admonition note">
 <p class="admonition-title"><code>:extra-indents</code> vs <code>:indents</code></p>
@@ -1711,10 +1711,10 @@
 <span class="w">        </span><span class="p">(</span><span class="nb">range </span><span class="mi">1</span><span class="w"> </span><span class="nv">hn</span><span class="p">))))</span>
 </code></pre></div>
 <p>That's somewhat similar to Nikita Prokopov's <a href="https://tonsky.me/blog/clojurefmt/">Better Clojure Formatting</a> suggestion. (Please be aware that this setting might not be sufficient to get complete <strong>Tonsky Formatting</strong>, please share any settings you use to get full compliance.)</p>
-<h2 id="rich-comments">Rich Comments</h2>
+<h2 id="rich-comments">Rich Comments<a class="headerlink" href="#rich-comments" title="Permanent link">#</a></h2>
 <p>To encourage use of <code>(comment ...)</code> forms for development, the default settings give these forms get a special treatment when formatting. Use the <code>calva.fmt.keepCommentTrailParenOnOwnLine</code> setting to control this behaviour. See <a href="../rich-comments/">Rich Comments</a> first.</p>
-<h2 id="etecetera">Etecetera</h2>
-<h3 id="about-aligning-associative-forms">About aligning associative forms</h3>
+<h2 id="etecetera">Etecetera<a class="headerlink" href="#etecetera" title="Permanent link">#</a></h2>
+<h3 id="about-aligning-associative-forms">About aligning associative forms<a class="headerlink" href="#about-aligning-associative-forms" title="Permanent link">#</a></h3>
 <p>Calva loooks in the config map for the key <code>:align-associative?</code> and if it is <code>true</code> it will use an old version of <strong>cljfmt</strong> which is <a href="https://github.com/weavejester/cljfmt/pull/77">patched</a> with functionality for doing this alignment. Note, though:</p>
 <ul>
 <li>The implementation is a bit buggy and can do a bit crazy formatting on certain forms.</li>

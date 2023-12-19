@@ -1573,10 +1573,10 @@
   
 
 
-<h1 id="customize-jack-in-and-connect">Customize Jack-in and Connect</h1>
+<h1 id="customize-jack-in-and-connect">Customize Jack-in and Connect<a class="headerlink" href="#customize-jack-in-and-connect" title="Permanent link">#</a></h1>
 <p>Since Jack-in and connect both are about connecting the REPL, and only differ in how the REPL is started, many settings and configuration points are shared between the two concepts. A major customization point is <a href="../connect-sequences/">Custom Connect Sequences</a>, which are relevant for both Jack-in and Standalone Connect scenarios.</p>
 <p>This page lists some more Jack-in and Connect configuration options.</p>
-<h2 id="auto-evaluate-code-on-connect">Auto-evaluate Code on Connect</h2>
+<h2 id="auto-evaluate-code-on-connect">Auto-evaluate Code on Connect<a class="headerlink" href="#auto-evaluate-code-on-connect" title="Permanent link">#</a></h2>
 <p>You can have Calva evaluate code whenever a REPL has been connected via the <code>calva.autoEvaluateCode.onConnect</code> setting. It has two entries <code>clj</code> and <code>cljs</code>:</p>
 <ul>
 <li><code>clj</code>: "Code to evaluate when the <strong>Clojure</strong> REPL has been connected.<ul>
@@ -1604,18 +1604,18 @@
 <li>If you configure code on the User level it will be evaluated in all workspaces, except those that disable the feature by configuring <code>null</code>. </li>
 </ul>
 </div>
-<h2 id="auto-evaluate-code-at-filenamespace-loadevaluation">Auto-evaluate Code at file/namespace load/evaluation</h2>
+<h2 id="auto-evaluate-code-at-filenamespace-loadevaluation">Auto-evaluate Code at file/namespace load/evaluation<a class="headerlink" href="#auto-evaluate-code-at-filenamespace-loadevaluation" title="Permanent link">#</a></h2>
 <p>You can also make Calva auto-evaluate code when a file has been loaded in the REPL (via the Calva command for loading files). You add code for this via the <code>calva.autoEvaluateCode.onFileLoaded</code> setting. Like with <code>onConnect</code> you provide code for <code>clj</code> and <code>cljs</code> separately.</p>
 <ul>
 <li>Note that <a href="https://calva.io/custom-commands/">custom commands</a> substitutions are in play here as well.</li>
 <li>Calva's does not provide defaults for this setting.</li>
 <li>Merging works the same as with <code>onConnect</code>.</li>
 </ul>
-<h2 id="customizing-connect">Customizing Connect</h2>
+<h2 id="customizing-connect">Customizing Connect<a class="headerlink" href="#customizing-connect" title="Permanent link">#</a></h2>
 <p>If there is an nRepl port file, Calva will use it and not prompt for <code>host:port</code> when connecting. You can make Calva prompt for this by setting the boolean config <code>calva.autoSelectNReplPortFromPortFile</code> to <code>false</code>.</p>
 <p>With the setting <code>calva.autoConnectRepl</code> you can make Calva automatically connect the REPL if there is an nRepl port file present when the project is opened.</p>
 <p>With this and the below mentioned auto-select options you can make connect a prompt-less experience. See: <a href="../connect-sequences/">Connect Sequences</a>.</p>
-<h4 id="options-for-the-connect-command">Options for the Connect Command</h4>
+<h4 id="options-for-the-connect-command">Options for the Connect Command<a class="headerlink" href="#options-for-the-connect-command" title="Permanent link">#</a></h4>
 <p>The <code>calva.connect</code> command takes an optional options argument defined like so:</p>
 <div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nx">options</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">host?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
@@ -1636,7 +1636,7 @@
 <p>A Joyride command for connecting to a REPL on port 55555, without being asked for project type:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.connect&quot;</span><span class="w"> </span><span class="p">(</span><span class="nf">clj-&gt;js</span><span class="w"> </span><span class="p">{</span><span class="ss">:port</span><span class="w"> </span><span class="s">&quot;55555&quot;</span><span class="w"> </span><span class="ss">:connectSequence</span><span class="w"> </span><span class="s">&quot;Generic&quot;</span><span class="p">}))</span>
 </code></pre></div>
-<h2 id="customizing-jack-in">Customizing Jack-in</h2>
+<h2 id="customizing-jack-in">Customizing Jack-in<a class="headerlink" href="#customizing-jack-in" title="Permanent link">#</a></h2>
 <p>The main mechanism for customizing your Jack-in, including automating menu selections, and custom CLJS REPL types is <a href="../connect-sequences/">Custom Connect Sequences</a>.</p>
 <p>There are also these settings:</p>
 <ul>
@@ -1650,7 +1650,7 @@
 <p class="admonition-title">Note</p>
 <p>When processing the <code>calva.jackInEnv</code> setting you can refer to existing ENV variables with <code>${env:VARIABLE}</code>.</p>
 </div>
-<h3 id="options-for-the-jack-in-command">Options for the Jack-in Command</h3>
+<h3 id="options-for-the-jack-in-command">Options for the Jack-in Command<a class="headerlink" href="#options-for-the-jack-in-command" title="Permanent link">#</a></h3>
 <p>The <code>calva.jackIn</code> command takes an optional options argument defined like so:</p>
 <div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nx">options</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">connectSequence?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nx">ReplConnectSequence</span><span class="p">;</span>
@@ -1673,18 +1673,18 @@
 <span class="w">                             </span><span class="ss">:projectRootPath</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;.&quot;</span><span class="p">]}}))</span>
 </code></pre></div>
 <p>It will prompt for any aliases it finds in the <code>deps.edn</code> file.    </p>
-<h2 id="starting-the-repl-from-application-code">Starting the REPL from application code?</h2>
+<h2 id="starting-the-repl-from-application-code">Starting the REPL from application code?<a class="headerlink" href="#starting-the-repl-from-application-code" title="Permanent link">#</a></h2>
 <p>If your project is setup so that the REPL server is started by the application code, you will need to get the cider-nrepl middleware in place. See the cider-nrepl docs about <a href="https://docs.cider.mx/cider-nrepl/usage.html#via-embedding-nrepl-in-your-application">embedding nREPL in your application</a>.</p>
-<h2 id="auto-select-project-type-and-project-root">Auto-select Project Type and Project Root</h2>
+<h2 id="auto-select-project-type-and-project-root">Auto-select Project Type and Project Root<a class="headerlink" href="#auto-select-project-type-and-project-root" title="Permanent link">#</a></h2>
 <p>You can make both Jack-in and Connect stop prompting you for project type and project root path in projects where you always want to use the same. See <a href="../connect-sequences/">Connect Sequences</a>.</p>
-<h2 id="project-roots-search-globing">Project roots search globing</h2>
+<h2 id="project-roots-search-globing">Project roots search globing<a class="headerlink" href="#project-roots-search-globing" title="Permanent link">#</a></h2>
 <p>When searching for project roots in your workspace, Calva will glob for all files matching <code>project.clj</code>, <code>deps.edn</code>, or <code>shadow-cljs.edn</code>. This is done using VS Code's workspace search engine, and is very efficient. However, in a large monorepo, it is still a substantial task. In order to not waste resources Calva will exclude any directories in the setting <code>calva.projectRootsSearchExclude</code>. </p>
 <p><img alt="calva.projectRootsSearchExclude setting" src="../images/calva-project-roots-search-exclude.png" /></p>
 <div class="admonition note">
 <p class="admonition-title">Exclude entry globs</p>
 <p>Each entry is a partial <em>glob</em> and will be part of a resulting <em>glob</em> of the form <code>**/{glob1,glob2,...,globN}</code>. This means that all directories in the workspace matching an entry will be excluded, regardless of where in the workspace they reside.</p>
 </div>
-<h2 id="viewing-the-communication-between-nrepl-and-calva">Viewing the Communication Between nREPL and Calva</h2>
+<h2 id="viewing-the-communication-between-nrepl-and-calva">Viewing the Communication Between nREPL and Calva<a class="headerlink" href="#viewing-the-communication-between-nrepl-and-calva" title="Permanent link">#</a></h2>
 <p>It may be helpful to view the messages sent between nREPL and Calva when troubleshooting an issue related to the REPL. See how to do that <a href="../nrepl_and_cider-nrepl/#viewing-the-communication-between-calva-and-nrepl">here</a>.</p>
 
 

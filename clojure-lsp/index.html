@@ -1695,13 +1695,13 @@
   
 
 
-<h1 id="clojure-lsp">Clojure-lsp</h1>
+<h1 id="clojure-lsp">Clojure-lsp<a class="headerlink" href="#clojure-lsp" title="Permanent link">#</a></h1>
 <p>Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from <a href="https://github.com/clojure-lsp/clojure-lsp">clojure-lsp</a>. This enables you to check something up in a project, with a lot of navigational and contextual support, without starting a REPL for it. (And once you do start a REPL you'll get even more capabilities, enabled by the dynamic analysis.)</p>
 <div class="admonition note">
 <p class="admonition-title">Which clojure-lsp does Calva use?</p>
 <p>Calva defaults to using the <code>latest</code> clojure-lsp released. To use a different version of clojure-lsp, see the <a href="#configuration">configuration</a> section. <strong>Calva does not use the clojure-lsp installed on your system, unless you <a href="#using-a-custom-clojure-lsp-native-binary">set the path for clojure-lsp</a> to the installed binary in your settings</strong>. You can see what version is being used by running the <code>Clojure-lsp Server Info</code> command, which will also show the version of clj-kondo that's being used as well as other info.</p>
 </div>
-<h2 id="the-lsp-server-lifecycle">The LSP server lifecycle</h2>
+<h2 id="the-lsp-server-lifecycle">The LSP server lifecycle<a class="headerlink" href="#the-lsp-server-lifecycle" title="Permanent link">#</a></h2>
 <p>By default you won't need to install/setup anything as Calva handles that for you by automatically downloading the latest clojure-lsp binary. It can take a while for clojure-lsp to start, especially the first time opening a new project, as clojure-lsp (via <code>clj-kondo</code>) indexes the project files.</p>
 <p>Calva is able to automatically start the clojure-lsp server for you and can be configured to start the server under various different conditions. These behaviours can be configured through the <code>calva.enableClojureLspOnStart</code> setting, which takes the following options:</p>
 <ul>
@@ -1710,18 +1710,18 @@
 <li>"when-file-opened-use-furthest-project"</li>
 <li>"never"</li>
 </ul>
-<h4 id="always-use-first-workspace-root-default">"always-use-first-workspace-root" [default]</h4>
+<h4 id="always-use-first-workspace-root-default">"always-use-first-workspace-root" [default]<a class="headerlink" href="#always-use-first-workspace-root-default" title="Permanent link">#</a></h4>
 <p>When set to <code>"always-use-first-workspace-root"</code> Calva will attempt to start the clojure-lsp in the root of the first workspace folder if it is a valid clojure project. If it is not a valid clojure project it will fall back to starting the <a href="#fallback-server">fallback server</a>.</p>
 <p>This is the default auto-start behaviour.</p>
-<h4 id="when-workspace-opened-use-workspace-root">"when-workspace-opened-use-workspace-root"</h4>
+<h4 id="when-workspace-opened-use-workspace-root">"when-workspace-opened-use-workspace-root"<a class="headerlink" href="#when-workspace-opened-use-workspace-root" title="Permanent link">#</a></h4>
 <p>When set to <code>"when-workspace-opened-use-workspace-root"</code> Calva will start the clojure-lsp in the root of all opened vscode workspaces. All Clojure files in a workspace will be serviced by the clojure-lsp server running in that workspace. This behavior requires that you are opening workspaces with a valid Clojure project in the root (the directory must contain a <code>deps.edn</code>, <code>project.clj</code> or <code>shadow-cljs.edn</code> file).</p>
-<h4 id="when-file-opened-use-furthest-project">"when-file-opened-use-furthest-project"</h4>
+<h4 id="when-file-opened-use-furthest-project">"when-file-opened-use-furthest-project"<a class="headerlink" href="#when-file-opened-use-furthest-project" title="Permanent link">#</a></h4>
 <p>When set to <code>"when-file-opened-use-furthest-project"</code> Calva will attempt to start the clojure-lsp server whenever a Clojure file is opened. The LSP server will be started in the outermost valid Clojure project or will fall back to starting in the workspace root if no valid Clojure project can be found. A directory is considered a Clojure project if it contains typical Clojure project files such as a <code>deps.edn</code>, <code>project.clj</code>, or <code>shadow-cljs.edn</code> file. When working in a mono-repo style project or in a multi-workspace VS Code configuration you may have multiple LSP servers running, one for each independent Clojure project opened.</p>
 <div class="admonition note">
 <p class="admonition-title">Opening files that do not belong to a workspace folder</p>
 <p>When opening files that do not belong to any of the workspace folders currently open then Calva will fallback to starting the <a href="#fallback-server">fallback clojure-lsp server</a></p>
 </div>
-<h4 id="never">"never"</h4>
+<h4 id="never">"never"<a class="headerlink" href="#never" title="Permanent link">#</a></h4>
 <p>When set to <code>"never"</code> Calva will never attempt to automatically start the clojure-lsp server. In this case you are responsible for manually starting the server. More advanced users might want to do this in order to have more control over which projects have a clojure-lsp server running for them. To manually start the clojure-lsp server you can run the <code>calva.clojureLsp.start</code> or the <code>calva.clojureLsp.manage</code> command and pick the project root. You can also click the <code>clojure-lsp</code> status bar icon to open the Management Menu.</p>
 <p>Additionally Calva has commands for:</p>
 <ul>
@@ -1733,23 +1733,23 @@
 <li>Downloading the configured clojure-lsp version</li>
 </ul>
 <p>Note that the download command will download the configured clojure-lsp version regardless if it is already installed or not. This can be useful when some earlier download has failed resulting in that clojure-lsp can't be started. <em>NB: It will not download anything if <code>calva.clojureLspPath</code> is set to something non-blank.</em></p>
-<h3 id="fallback-server">Fallback Server</h3>
+<h3 id="fallback-server">Fallback Server<a class="headerlink" href="#fallback-server" title="Permanent link">#</a></h3>
 <p>As a fallback behaviour Calva may start a clojure-lsp server in a temporary directory and use this to service lsp requests for clojure files that do not belong to a valid clojure project. This will show up in the management menu looking something like:</p>
 <p><img alt="&quot;Fallback Server&quot;" src="../images/clojure-lsp/fallback-server.png" title="Clojure fallback lsp server" /></p>
 <p>Any files that are handled by this server will have limited classpath analysis and lsp features. It is therefore recommended to setup your project as a clojure project (by creating a <code>deps.edn</code> file in the root, for example).</p>
-<h3 id="status-bar">Status bar</h3>
+<h3 id="status-bar">Status bar<a class="headerlink" href="#status-bar" title="Permanent link">#</a></h3>
 <p>In the status bar Calva will show an indicator with the clojure-lsp status. This status will track the currently open project, showing the status (<code>stopped</code>, <code>starting</code> or <code>active</code>) for the relevant clojure-lsp server.</p>
 <p>You can click on the status-bar item to open the clojure-lsp management menu which will look as follows:</p>
 <p><img alt="&quot;Clojure server management menu&quot;" src="../images/clojure-lsp/management-menu.png" title="Clojure management menu" /></p>
 <p>The menu shows which clojure-lsp servers are active and which are stopped. Selecting a project will allow you to start/stop/restart the server for that project.</p>
-<h2 id="ignoring-lsp-cache-files">Ignoring LSP cache files</h2>
+<h2 id="ignoring-lsp-cache-files">Ignoring LSP cache files<a class="headerlink" href="#ignoring-lsp-cache-files" title="Permanent link">#</a></h2>
 <p>Clojure-lsp stores its project analysis information in your project. Git users can add these lines to their project root directory <code>.gitignore</code>:</p>
 <div class="highlight"><pre><span></span><code>.lsp/.cache/
 .lsp/sqlite.*.db
 </code></pre></div>
-<h2 id="configuration">Configuration</h2>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
 <p>For information about how to configure clojure-lsp, see the <a href="https://clojure-lsp.github.io/clojure-lsp/settings/">settings</a> page of the clojure-lsp docs.</p>
-<h3 id="changing-the-version-of-clojure-lsp-used-by-calva">Changing the Version of Clojure-lsp Used by Calva</h3>
+<h3 id="changing-the-version-of-clojure-lsp-used-by-calva">Changing the Version of Clojure-lsp Used by Calva<a class="headerlink" href="#changing-the-version-of-clojure-lsp-used-by-calva" title="Permanent link">#</a></h3>
 <p>By default, Calva will use the latest released <strong>clojure-lsp</strong>. You can change the version of clojure-lsp used by Calva by setting the <code>calva.clojureLspVersion</code> property to a version of clojure-lsp found in its GitHub <a href="https://github.com/clojure-lsp/clojure-lsp/releases">releases</a>. This can be helpful if you're debugging an issue with clojure-lsp or you want to try out a feature of a new release that Calva does not yet use. However, you must remember to reset this setting in order for Calva to automatically use newer versions of clojure-lsp that are released with new versions of Calva.</p>
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.clojureLspVersion&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2021.04.07-16.34.10&quot;</span>
@@ -1762,7 +1762,7 @@
 <li><code>nightly</code>: Will always download and use the latest nightly build, <em>whether there is a new version available or not</em>.</li>
 </ul>
 </div>
-<h3 id="using-a-custom-clojure-lsp">Using a Custom Clojure-lsp</h3>
+<h3 id="using-a-custom-clojure-lsp">Using a Custom Clojure-lsp<a class="headerlink" href="#using-a-custom-clojure-lsp" title="Permanent link">#</a></h3>
 <p>You can set a path to a custom clojure-lsp to be used by Calva by configuring the <code>calva.clojureLspPath</code> setting. This should be an absolute path to a native binary or JAR file.</p>
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.clojureLspPath&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/usr/local/bin/clojure-lsp&quot;</span>
@@ -1771,7 +1771,7 @@
 <p class="admonition-title">Will override any <code>calva.clojureLspVersion</code> setting</p>
 <p>When <code>calva.clojureLspPath</code> is set, the binary at the path will be used uncoditionally, and the <code>calva.clojureLspVersion</code> setting will be ignored.</p>
 </div>
-<h2 id="extra-commands">Extra commands</h2>
+<h2 id="extra-commands">Extra commands<a class="headerlink" href="#extra-commands" title="Permanent link">#</a></h2>
 <p>clojure-lsp provides many useful [commands], and Calva has configuration for most of them. The clojure-lsp team works fast and sometimes Calva might miss some command. And Calva's configuration only really work for clojure-lsp commands that take no argument, or where it makes sense to prompt for the argument. Therefore Calva provides a generic command id, <code>clojure-lsp.command</code> which can be used with keyboard shortcuts and that allow for providing arguments that way. (The command can be used from <a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> too, of course.)</p>
 <p>When using the command, provide the args as an tuple of <code>[command-name, arguments]</code>, where <code>arguments</code> is an array of any arguments after <code>file-uri, row, col</code> which are common for all clojure-lsp extra commands and are provided automatically by Calva, based on active text editor and where the cursor is. It can look like so when binding a shortcut for <code>extract-function</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
@@ -1781,19 +1781,19 @@
 <span class="w">    </span><span class="p">},</span>
 </code></pre></div>
 <p>Note that even though <code>extract-function</code> takes only one argument, you should still provide it via an array.</p>
-<h2 id="troubleshooting">Troubleshooting</h2>
-<h3 id="viewing-the-logs-between-the-client-and-server">Viewing the Logs Between the Client and Server</h3>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
+<h3 id="viewing-the-logs-between-the-client-and-server">Viewing the Logs Between the Client and Server<a class="headerlink" href="#viewing-the-logs-between-the-client-and-server" title="Permanent link">#</a></h3>
 <p>If something doesn't seem to be working correctly, and you suspect the issue is related to clojure-lsp, a good place to start investigating is the request and response logs between the LSP client and server. In your settings, set <code>clojure.trace.server</code> to <code>verbose</code>, then in the VS Code output tab, select the <code>Clojure Language Client</code> output channel.</p>
 <p><img alt="&quot;Clojure trace server setting&quot;" src="../images/clojure-lsp/trace-server-setting.png" title="Clojure trace server setting" /></p>
 <p>It may be helpful to clear the output channel, then perform the action with which you're experiencing a problem, then read through the log for clues or paste the logs into a related issue in the Calva repo.</p>
-<h3 id="server-info-command">Server Info Command</h3>
+<h3 id="server-info-command">Server Info Command<a class="headerlink" href="#server-info-command" title="Permanent link">#</a></h3>
 <p>You can run the <code>Clojure-lsp Server Info</code> command to get information about the running clojure-lsp server, such as the version the server being used, the version of clj-kondo it's using, and more. This info is printed to the "Calva says" output channel.</p>
-<h3 id="opening-the-server-log-file">Opening the Server Log File</h3>
+<h3 id="opening-the-server-log-file">Opening the Server Log File<a class="headerlink" href="#opening-the-server-log-file" title="Permanent link">#</a></h3>
 <p>You can open the clojure-lsp log file by running the command <code>Calva Diagnostics: Open Clojure-lsp Log File</code>. The log file will only be opened with this command if the clojure-lsp server is running and has finished initializing. If you need to open the file when the server is failing to run or initialize, see the <a href="https://clojure-lsp.io/troubleshooting/#server-log">clojure-lsp docs</a> for information on the file location.</p>
-<h3 id="server-initialization-failed">Server initialization failed</h3>
+<h3 id="server-initialization-failed">Server initialization failed<a class="headerlink" href="#server-initialization-failed" title="Permanent link">#</a></h3>
 <p>If clojure-lsp fails to start with “Server initialization failed” messages, it could be because the path to your project contains non-ASCII characters, or that the system PATH variable has been corrupted. (Or something else, of course.)</p>
 <p>See this issue for some findings about it: <a href="https://github.com/BetterThanTomorrow/calva/issues/2251">Issue #2251: Server initialization failed error</a></p>
-<h2 id="related">Related</h2>
+<h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">#</a></h2>
 <p>See also:</p>
 <ul>
 <li><a href="../connect/">Connecting the REPL</a></li>

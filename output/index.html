@@ -1643,21 +1643,21 @@
   
 
 
-<h1 id="the-outputrepl-windowfile">The Output/REPL Window/File</h1>
+<h1 id="the-outputrepl-windowfile">The Output/REPL Window/File<a class="headerlink" href="#the-outputrepl-windowfile" title="Permanent link">#</a></h1>
 <p>When Calva evaluates Clojure/ClojureScript code, the results are displayed inline as well as printed to the results output window/file. This file is created and opened when Calva is connected to a REPL.</p>
 <p>In ClojureScript projects the window will be associated with the <code>cljs</code> REPL once this one is connected. It will then look something like so:</p>
 <p><img alt="Output Window Connected" src="../images/howto/output/output-window-connected.png" /></p>
 <p>The first prompt is from when the <code>clj</code> REPL is connected, the second when Calva has a <code>cljs</code> REPL connection. The first part of the prompt tells you which REPL type the window is currently connected to. This gets important when the file/window is used as an interactive REPL.</p>
-<h2 id="find-the-outputrepl-window">Find the Output/REPL Window</h2>
+<h2 id="find-the-outputrepl-window">Find the Output/REPL Window<a class="headerlink" href="#find-the-outputrepl-window" title="Permanent link">#</a></h2>
 <p>If you quickly want to open and switch to the output window there is the command <strong>Calva: Show Output Window</strong>, <code>ctrl+alt+o o</code>.</p>
 <p>To sync the Output/REPL window namespace with the current file before switching, use the <strong>Switch Namespace of the Output/REPL Window to Current Namespace</strong> command, <code>ctrl+alt+c alt+n</code>.</p>
-<h2 id="find-the-file-for-the-current-repl-window-namespace">Find the File for the Current REPL Window Namespace</h2>
+<h2 id="find-the-file-for-the-current-repl-window-namespace">Find the File for the Current REPL Window Namespace<a class="headerlink" href="#find-the-file-for-the-current-repl-window-namespace" title="Permanent link">#</a></h2>
 <p>When you are working from the Output/REPL window, and want to open the file that defines its current namespace, use the <strong>Show File for the Current Output/REPL Window Namespace</strong> command, <code>ctrl+alt+o o</code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This also works for Clojure core and library namespaces.</p>
 </div>
-<h2 id="evaluating-code">Evaluating Code</h2>
+<h2 id="evaluating-code">Evaluating Code<a class="headerlink" href="#evaluating-code" title="Permanent link">#</a></h2>
 <p>The window will be automatically associated with the REPL and the namespace of any project Clojure/ClojureScript file you evaluate code in. So for instance if you evaluate this code in a <code>clj</code> file with the namespace <code>fresh-reagent.handler</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">mount-target</span>
 <span class="w">  </span><span class="p">[</span><span class="ss">:div#app</span>
@@ -1673,19 +1673,19 @@
 <p>then evaluate it using <code>alt+enter</code>, you'll get:</p>
 <p><img alt="eval-results-2" src="../images/howto/output/eval-results-2.png" /></p>
 <p>This, since the namespace ”followed” the first evaluation over to the output window.</p>
-<h2 id="repl-history">REPL History</h2>
+<h2 id="repl-history">REPL History<a class="headerlink" href="#repl-history" title="Permanent link">#</a></h2>
 <p>Recently evaluated forms in the REPL file are persisted and can easily be shown again for modifying and re-evaluating.</p>
-<h3 id="navigate-repl-history">Navigate REPL History</h3>
+<h3 id="navigate-repl-history">Navigate REPL History<a class="headerlink" href="#navigate-repl-history" title="Permanent link">#</a></h3>
 <p>You can navigate up and down the last forms evaluated in the REPL file by using <code>alt+up</code> and <code>alt+down</code>, provided your cursor is at the end of the last form after the prompt. If the cursor is not at the end of the last form, then <code>alt+up</code> and <code>alt+down</code> will do what they are mapped to, which is by default "Move Line Up" and "Move Line Down," respectively.</p>
 <p>If you have typed some text after the prompt before you start traversing up the history, this text will be preserved and will display when you traverse back down the history. If you modify some text in the history while traversing, the modification will be saved at that location in history.</p>
-<h3 id="clear-repl-history">Clear REPL History</h3>
+<h3 id="clear-repl-history">Clear REPL History<a class="headerlink" href="#clear-repl-history" title="Permanent link">#</a></h3>
 <p>You can clear the repl history by running the command "Clear REPL History" from the command palette.</p>
-<h2 id="stack-traces">Stack Traces</h2>
+<h2 id="stack-traces">Stack Traces<a class="headerlink" href="#stack-traces" title="Permanent link">#</a></h2>
 <p>When an evaluation produces an error, the output window will automatically print the the error message. If there is a stack trace associated with the error, this can now be printed on demand using the <strong>Calva: Print Last Stacktrace to the Output Window</strong> command. The output window will also have a Codelense button below the error message that will print the stack trace..</p>
 <p><img alt="Print Stacktrace Codelense button" src="../images/howto/output/print-stacktrace-codelense.png" title="Print Stacktrace Codelense button" /></p>
 <p>For printed stacktraces, when source locations are available (Clojure files) you will be able to navigate to them by pressing <code>ctrl+click</code> (<code>cmd+click</code> on Mac) on the file name. You can also hover over symbols in the stack trace to see the symbol's documentation, and <code>ctrl+click</code> (<code>cmd+click</code> on Mac) the symbol to Peek Definition.</p>
 <p><img alt="Stack trace clicking and peeking definition" src="../images/howto/output/stack-traces.gif" title="Stack trace clicking and peeking definition" /></p>
-<h2 id="load-current-namespace">Load Current Namespace</h2>
+<h2 id="load-current-namespace">Load Current Namespace<a class="headerlink" href="#load-current-namespace" title="Permanent link">#</a></h2>
 <p>When navigating namespaces it is easy to <a href="https://clojure.org/guides/repl/navigating_namespaces#_how_things_can_go_wrong">forget to first require them</a> and that can be a bit tricky to fix. To help with this Calva's command <strong>Load/Evaluate Current File and its Requires/Dependencies</strong> also works in the output window, but then acts like <strong>Load Current Namespace</strong>.</p>
 <p>Consider you have two files, <code>pez/xxx.clj</code> and <code>pez/yyy.clj</code>, where <code>pez.yyy</code> requires <code>pez.xxx</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">ns </span><span class="nv">pez.xxx</span><span class="p">)</span>
@@ -1707,21 +1707,21 @@
 <p class="admonition-title">Note</p>
 <p>This currently suffers from a limitation in Calva where it won't reload dependencies, so you will sometimes have to do this ”manually” anyway (by opening the files and loading them). See <a href="https://github.com/BetterThanTomorrow/calva/issues/907">Calva issue #907</a></p>
 </div>
-<h3 id="peek-current-namespace">Peek Current Namespace</h3>
+<h3 id="peek-current-namespace">Peek Current Namespace<a class="headerlink" href="#peek-current-namespace" title="Permanent link">#</a></h3>
 <p>A somewhat hidden feature: You can see documentation for, peek and navigate to a namespace by hovering on the namespace symbol in one of the repl window prompts (just like you would if it was not in the prompt 😄).</p>
-<h2 id="paredit-enabled">Paredit Enabled</h2>
+<h2 id="paredit-enabled">Paredit Enabled<a class="headerlink" href="#paredit-enabled" title="Permanent link">#</a></h2>
 <p>The output window is mostly a regular Calva Clojure/ClojureScript file, which make everything that works in a regular file work in this file, including <a href="../paredit/">Paredit</a>. This makes it easy to navigate the input and output. For instance, to select the last evaluation results you can press <code>ctrl+w</code> (<code>shift+alt+right</code> on Windows and Linux):</p>
 <p><img alt="Paredit select current form" src="../images/howto/output/select-last-result.png" /></p>
-<h2 id="debugger-enabled">Debugger Enabled</h2>
+<h2 id="debugger-enabled">Debugger Enabled<a class="headerlink" href="#debugger-enabled" title="Permanent link">#</a></h2>
 <p>The output window is mostly a regular... (you get it), which means you also have the <a href="../debugger/">Calva debugger</a> at your command at the REPL prompt (only for <code>clj</code> sessions, so far). So instead of evaluating a function definition using <code>alt+enter</code> you can evaluate it and instrument it for debugging using <code>ctrl+alt+c i</code>. Then call the function.</p>
 <p><img alt="repl-file debugger" src="../images/howto/output/repl-file-debugger.png" /></p>
-<h2 id="it-is-ephemeral">It is Ephemeral</h2>
+<h2 id="it-is-ephemeral">It is Ephemeral<a class="headerlink" href="#it-is-ephemeral" title="Permanent link">#</a></h2>
 <p>The contents of the output/REPL window is written to a file named <code>output.repl</code> in the <code>.calva/output-window</code> directory of your project. The file is recreated at every new session. And you should copy anything you want to keep from this file to wherever you want to keep it.</p>
 <p>You probably want to add <code>.calva/output-window/</code> to your <code>.&lt;something&gt;ignore</code> files. (There are some more files in that directory that you shouldn't keep under source control.)</p>
-<h2 id="choose-clj-or-cljs-repl-connection">Choose CLJ or CLJS REPL Connection</h2>
+<h2 id="choose-clj-or-cljs-repl-connection">Choose CLJ or CLJS REPL Connection<a class="headerlink" href="#choose-clj-or-cljs-repl-connection" title="Permanent link">#</a></h2>
 <p>In full stack projects, you will probably use the window as a REPL for both <code>clj</code> and <code>cljs</code>. You can toggle which REPL the window is connected to using the command <strong>Calva: Toggle REPL Connection for CLJC files</strong>. There is a button for this in the status bar:</p>
 <p><img alt="Toggle CLJC" src="../images/howto/cljc-toggle-button.png" /></p>
-<h2 id="repl-process-output-stdout-and-stderr">REPL process output (stdout and stderr)</h2>
+<h2 id="repl-process-output-stdout-and-stderr">REPL process output (stdout and stderr)<a class="headerlink" href="#repl-process-output-stdout-and-stderr" title="Permanent link">#</a></h2>
 <p>When Calva is connected to the REPL, the Output window will by default print not only results of evaluations, but also:</p>
 <ol>
 <li>Things printed to <code>stdout</code> and <code>stderr</code> in the <strong>main thread</strong> of the evaluations</li>
@@ -1730,7 +1730,7 @@
 </ol>
 <p>You can control the default via the <code>calva.redirectServerOutputToRepl</code> setting. It defaults to <code>true</code>. Setting it to <code>false</code> before connecting the REPL will result in that <strong>2.</strong> and <strong>3.</strong> will not get printed in the Output window. It will then instead be printed wherever the REPL process is printing its messages, usually the terminal from where it was started (the <strong>Jack-in terminal</strong> if Calva started the REPL).</p>
 <p>The main reason for keeping the default is that all output from an evaluation is kept together, instead of some of it in the Output window and some of it in the REPL process terminal. It comes with the side effect that all REPL process output will also be printed in the Output window. There is currently no way to separate these. If you are working mostly in ClojureScript, you might want to disable <code>calva.redirectServerOutputToRepl</code>, since there are no child threads there anyway.</p>
-<h2 id="known-quirks">Known Quirks</h2>
+<h2 id="known-quirks">Known Quirks<a class="headerlink" href="#known-quirks" title="Permanent link">#</a></h2>
 <p>Due to limitations in the VS Code API it is hard for Calva to know if the output file is opened, and also if it is opened more than once. Make it a habit to leave this window opened. And if it is opened in several tabs, expect evaluation printouts to be a bit unpredictable.</p>
 <p>If you save the output/REPL file (which most often does not make much sense, but anyway) you will sometimes be presented with a message about VS Code being confused about the file contents being out of sync. Just choose to <em>Overwrite</em> the currently saved version and you should be fine.</p>
 
