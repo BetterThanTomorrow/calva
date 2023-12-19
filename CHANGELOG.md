@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Require REPL Utilities only works for `user`` namespace](https://github.com/BetterThanTomorrow/calva/issues/433)
+
 ## [2.0.403] - 2023-12-18
 
 - Bump deps.clj version: v1.11.1.1429
