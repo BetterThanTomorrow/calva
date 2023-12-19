@@ -536,7 +536,7 @@ async function requireREPLUtilitiesCommand() {
     if (session) {
       try {
         await namespace.createNamespaceFromDocumentIfNotExists(util.tryToGetDocument({}));
-        await session.requireREPLUtilities();
+        await session.requireREPLUtilities(ns);
         chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
       } catch (e) {
         chan.appendLine(`REPL utilities could not be acquired for namespace ${ns}: ${e}`);
