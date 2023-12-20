@@ -204,7 +204,7 @@ function cleanUpAfterError(e: any) {
   return false;
 }
 
-async function setUpCljsRepl(session, build) {
+async function setUpCljsRepl(session: NReplSession, build) {
   setStateValue('cljs', session);
   setStateValue('cljc', session);
   status.update();
@@ -213,7 +213,10 @@ async function setUpCljsRepl(session, build) {
       outputWindow.CLJS_CONNECT_GREETINGS
     )}`
   );
-  outputWindow.setSession(session, 'user');
+  const description = await session.describe(true);
+  const ns = description.aux?.['current-ns'] || 'user';
+  await session.eval(`(in-ns '${ns})`, 'user').value;
+  outputWindow.setSession(session, ns);
   if (getConfig().autoEvaluateCode.onConnect.cljs) {
     outputWindow.appendLine(
       `; Evaluating code from settings: 'calva.autoEvaluateCode.onConnect.cljs'`
@@ -221,7 +224,7 @@ async function setUpCljsRepl(session, build) {
     await evaluate.evaluateInOutputWindow(
       getConfig().autoEvaluateCode.onConnect.cljs,
       'cljs',
-      outputWindow.getNs(),
+      ns,
       {}
     );
     outputWindow.appendPrompt();

@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.404] - 2023-12-20
+
+- Fix: [Require REPL Utilities only works for `user`` namespace](https://github.com/BetterThanTomorrow/calva/issues/433)
+- Fix: [NullPointerException evaluating calva.autoEvaluateCode.onConnect.cljs when using Krell](https://github.com/BetterThanTomorrow/calva/issues/2372)
+
 ## [2.0.403] - 2023-12-18
 
 - Bump deps.clj version: v1.11.1.1429
