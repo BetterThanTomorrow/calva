@@ -899,7 +899,7 @@
             "default": {
               "onConnect": {
                 "clj": "(when-let [requires (resolve 'clojure.main/repl-requires)] (clojure.core/apply clojure.core/require @requires))",
-                "cljs": "(try (require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]]) (catch :default e (js/console.warn \"Failed to require cljs.repl utilities:\" (.-message e))))"
+                "cljs": "(require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]])"
               },
               "onFileLoaded": {
                 "clj": null,
