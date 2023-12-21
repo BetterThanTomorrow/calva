@@ -448,9 +448,10 @@ export class NReplSession {
     opts['pprint'] = pprintOptions.enabled;
     delete opts.pprintOptions;
     const extraOpts = getServerSidePrinter(pprintOptions);
+    const { stdout, stderr, stdin, ...cleanedOpts } = opts;
     const opMsg = this._createEvalOperationMessage(code, ns, {
       ...extraOpts,
-      ...opts,
+      ...cleanedOpts,
     });
 
     const evaluation = new NReplEvaluation(
