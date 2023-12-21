@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [RangeError when opening .glft files ](https://github.com/BetterThanTomorrow/calva/issues/2319)
+
 ## [2.0.404] - 2023-12-20
 
 - Fix: [Require REPL Utilities only works for `user`` namespace](https://github.com/BetterThanTomorrow/calva/issues/433)
