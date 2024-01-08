@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Calva development: Fix: [Developer format job forces LF line endings](https://github.com/BetterThanTomorrow/calva/issues/2376)
+
 ## [2.0.405] - 2023-12-21
 
 - Fix: [RangeError when opening .glft files ](https://github.com/BetterThanTomorrow/calva/issues/2319)
