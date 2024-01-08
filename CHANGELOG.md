@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Calva development: Fix: [Fiddle-file-unit-tests fails on windows](https://github.com/BetterThanTomorrow/calva/issues/2378)
 - Calva development: Fix: [Developer format job forces LF line endings](https://github.com/BetterThanTomorrow/calva/issues/2376)
 
 ## [2.0.405] - 2023-12-21
