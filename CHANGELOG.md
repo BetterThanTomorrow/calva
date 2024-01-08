@@ -4,13 +4,18 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.406] - 2024-01-08
+
+- Calva development: Fix: [Fiddle-file-unit-tests fails on windows](https://github.com/BetterThanTomorrow/calva/issues/2378)
+- Calva development: Fix: [Developer format job forces LF line endings](https://github.com/BetterThanTomorrow/calva/issues/2376)
+
 ## [2.0.405] - 2023-12-21
 
 - Fix: [RangeError when opening .glft files ](https://github.com/BetterThanTomorrow/calva/issues/2319)
 
 ## [2.0.404] - 2023-12-20
 
-- Fix: [Require REPL Utilities only works for `user`` namespace](https://github.com/BetterThanTomorrow/calva/issues/433)
+- Fix: [Require REPL Utilities only works for `user` namespace](https://github.com/BetterThanTomorrow/calva/issues/433)
 - Fix: [NullPointerException evaluating calva.autoEvaluateCode.onConnect.cljs when using Krell](https://github.com/BetterThanTomorrow/calva/issues/2372)
 
 ## [2.0.403] - 2023-12-18
