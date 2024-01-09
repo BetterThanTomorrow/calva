@@ -1280,7 +1280,6 @@
       {
         "command": "calva.evaluateEnclosingForm",
         "title": "Evaluate Current Enclosing Form",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {

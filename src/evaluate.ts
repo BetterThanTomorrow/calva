@@ -385,13 +385,17 @@ function evaluateCurrentForm(document = {}, options = {}) {
 }
 
 function evaluateEnclosingForm(document = {}, options = {}) {
-  evaluateSelection(
-    document,
-    Object.assign({}, options, {
-      pprintOptions: getConfig().prettyPrintingOptions,
-      selectionFn: _currentEnclosingFormText,
-    })
-  ).catch(printWarningForError);
+  if (util.getConnectedState()) {
+    evaluateSelection(
+      document,
+      Object.assign({}, options, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: _currentEnclosingFormText,
+      })
+    ).catch(printWarningForError);
+  } else {
+    offerToConnect();
+  }
 }
 
 function evaluateUsingTextAndSelectionGetter(
