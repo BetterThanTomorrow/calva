@@ -330,13 +330,28 @@ function evaluateTopLevelFormAsComment(document = {}, options = {}) {
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
-  evaluateSelection(
-    document,
-    Object.assign({}, options, {
-      pprintOptions: getConfig().prettyPrintingOptions,
-      selectionFn: _currentTopLevelFormText,
-    })
-  ).catch(printWarningForError);
+  if (util.getConnectedState()) {
+    evaluateSelection(
+      document,
+      Object.assign({}, options, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: _currentTopLevelFormText,
+      })
+    ).catch(printWarningForError);
+  } else {
+    void vscode.window
+      .showInformationMessage('The editor is not connected to a REPL server', 'Connect')
+      .then(
+        (choice) => {
+          if (choice === 'Connect') {
+            void vscode.commands.executeCommand('calva.startOrConnectRepl');
+          }
+        },
+        (reason) => {
+          console.log('Rejected because: ', reason);
+        }
+      );
+  }
 }
 
 function evaluateOutputWindowForm(document = {}, options = {}) {
