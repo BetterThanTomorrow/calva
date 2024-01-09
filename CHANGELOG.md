@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.407] - 2024-01-09
+
 - [Offer to connect when evaluating forms while disconnected](https://github.com/BetterThanTomorrow/calva/issues/1490)
 - Bump `follow-redirects` to 1.15.4 (audit report)
 - Bump deps.clj version: v1.11.1.1435
