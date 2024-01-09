@@ -228,12 +228,7 @@ async function activate(context: vscode.ExtensionContext) {
     interruptAllEvaluations: eval.interruptAllEvaluations,
     jackIn: jackIn.jackInCommand,
     jackOut: jackIn.jackOutCommand,
-    loadFile: async () => {
-      await eval.loadDocument({}, config.getConfig().prettyPrintingOptions);
-      return new Promise((resolve) => {
-        outputWindow.appendPrompt(resolve);
-      });
-    },
+    loadFile: eval.loadFileCommand,
     openCalvaDocs: () => {
       void context.globalState.update(VIEWED_CALVA_DOCS, true);
       open(CALVA_DOCS_URL)
@@ -322,6 +317,9 @@ async function activate(context: vscode.ExtensionContext) {
   }
 
   Object.entries(commands).forEach(registerCalvaCommand);
+
+  outputWindow.registerSubmitOnEnterHandler(context);
+  outputWindow.registerOutputWindowActiveWatcher(context);
 
   // PROVIDERS
   context.subscriptions.push(

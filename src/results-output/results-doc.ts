@@ -122,6 +122,58 @@ export function setContextForOutputWindowActive(isActive: boolean): void {
   void vscode.commands.executeCommand('setContext', 'calva:outputWindowActive', isActive);
 }
 
+export function registerSubmitOnEnterHandler(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.window.onDidChangeTextEditorSelection((event) => {
+      let submitOnEnter = false;
+      if (event.textEditor) {
+        const document = event.textEditor.document;
+        if (isResultsDoc(document)) {
+          const idx = document.offsetAt(event.selections[0].active);
+          const mirrorDoc = docMirror.getDocument(document);
+          const selectionCursor = mirrorDoc.getTokenCursor(idx);
+          selectionCursor.forwardWhitespace();
+          if (selectionCursor.atEnd()) {
+            const promptCursor = mirrorDoc.getTokenCursor(idx);
+            do {
+              promptCursor.previous();
+            } while (promptCursor.getPrevToken().type !== 'prompt' && !promptCursor.atStart());
+            const submitRange = selectionCursor.rangeForCurrentForm(idx);
+            submitOnEnter = submitRange && submitRange[1] > promptCursor.offsetStart;
+          }
+        }
+      }
+      void vscode.commands.executeCommand(
+        'setContext',
+        'calva:outputWindowSubmitOnEnter',
+        submitOnEnter
+      );
+    })
+  );
+}
+
+export function registerOutputWindowActiveWatcher(context: vscode.ExtensionContext) {
+  // For some reason onDidChangeTextEditorViewColumn won't fire
+  state.extensionContext.subscriptions.push(
+    vscode.window.onDidChangeActiveTextEditor((event) => {
+      if (event) {
+        const isOutputWindow = isResultsDoc(event.document);
+        setContextForOutputWindowActive(isOutputWindow);
+        if (isOutputWindow) {
+          void setViewColumn(event.viewColumn);
+        }
+      }
+    })
+  );
+  // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
+  // until the next time it's focused
+  const activeTextEditor = util.tryToGetActiveTextEditor();
+  if (activeTextEditor && isResultsDoc(activeTextEditor.document)) {
+    setContextForOutputWindowActive(true);
+    replHistory.setReplHistoryCommandsActiveContext(activeTextEditor);
+  }
+}
+
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
   const docUri = DOC_URI();
   await vscode.workspace.fs.createDirectory(outputFileDir());
@@ -152,57 +204,11 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
 
   registerResultDocSubscriptions();
 
-  // For some reason onDidChangeTextEditorViewColumn won't fire
-  state.extensionContext.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor((event) => {
-      if (event) {
-        const isOutputWindow = isResultsDoc(event.document);
-        setContextForOutputWindowActive(isOutputWindow);
-        if (isOutputWindow) {
-          void setViewColumn(event.viewColumn);
-        }
-      }
-    })
-  );
-  state.extensionContext.subscriptions.push(
-    vscode.window.onDidChangeTextEditorSelection((event) => {
-      let submitOnEnter = false;
-      if (event.textEditor) {
-        const document = event.textEditor.document;
-        if (isResultsDoc(document)) {
-          const idx = document.offsetAt(event.selections[0].active);
-          const mirrorDoc = docMirror.getDocument(document);
-          const selectionCursor = mirrorDoc.getTokenCursor(idx);
-          selectionCursor.forwardWhitespace();
-          if (selectionCursor.atEnd()) {
-            const promptCursor = mirrorDoc.getTokenCursor(idx);
-            do {
-              promptCursor.previous();
-            } while (promptCursor.getPrevToken().type !== 'prompt' && !promptCursor.atStart());
-            const submitRange = selectionCursor.rangeForCurrentForm(idx);
-            submitOnEnter = submitRange && submitRange[1] > promptCursor.offsetStart;
-          }
-        }
-      }
-      void vscode.commands.executeCommand(
-        'setContext',
-        'calva:outputWindowSubmitOnEnter',
-        submitOnEnter
-      );
-    })
-  );
   vscode.languages.registerCodeLensProvider(
     config.documentSelector,
     new PrintStackTraceCodelensProvider()
   );
 
-  // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
-  // until the next time it's focused
-  const activeTextEditor = util.tryToGetActiveTextEditor();
-  if (activeTextEditor && isResultsDoc(activeTextEditor.document)) {
-    setContextForOutputWindowActive(true);
-    replHistory.setReplHistoryCommandsActiveContext(activeTextEditor);
-  }
   replHistory.resetState();
   isInitialized = true;
   return resultsDoc;
