@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.407] - 2024-01-09
+
+- [Offer to connect when evaluating forms while disconnected](https://github.com/BetterThanTomorrow/calva/issues/1490)
+- Bump `follow-redirects` to 1.15.4 (audit report)
+- Bump deps.clj version: v1.11.1.1435
+
 ## [2.0.406] - 2024-01-08
 
 - Calva development: Fix: [Fiddle-file-unit-tests fails on windows](https://github.com/BetterThanTomorrow/calva/issues/2378)
