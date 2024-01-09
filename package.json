@@ -1317,7 +1317,6 @@
       {
         "command": "calva.evaluateCurrentTopLevelForm",
         "title": "Evaluate Top Level Form (defun)",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
