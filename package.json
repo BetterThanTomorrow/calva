@@ -1180,13 +1180,12 @@
         "command": "calva.debug.instrument",
         "title": "Instrument Top Level Form for Debugging",
         "category": "Calva Debug",
-        "enablement": "editorLangId == clojure && calva:connected"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "calva.togglePrettyPrint",
         "title": "Toggle Pretty Printing for All Evaluations",
-        "category": "Calva",
-        "enablement": "calva:connected"
+        "category": "Calva"
       },
       {
         "command": "calva.toggleEvaluationSendCodeToOutputWindow",
@@ -1285,25 +1284,23 @@
       {
         "command": "calva.evaluateToCursor",
         "title": "Evaluate From Start of List to Cursor, Closing Brackets",
-        "enablement": "calva:connected && !editorHasSelection",
+        "enablement": "!editorHasSelection",
         "category": "Calva"
       },
       {
         "command": "calva.evaluateSelectionToSelectionEnd",
         "title": "Evaluate Selection, Closing Brackets",
-        "enablement": "calva:connected && editorHasSelection",
+        "enablement": "editorHasSelection",
         "category": "Calva"
       },
       {
         "command": "calva.evaluateTopLevelFormToCursor",
         "title": "Evaluate From Start of Top Level Form to Cursor, Closing Brackets",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.evaluateStartOfFileToCursor",
         "title": "Evaluate From Start of File to Cursor, Closing Brackets",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
@@ -1326,19 +1323,16 @@
       {
         "command": "calva.evaluateSelectionReplace",
         "title": "Evaluate Current Form and Replace it with the Result",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.evaluateSelectionAsComment",
         "title": "Evaluate Current Form to Comment",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.evaluateTopLevelFormAsComment",
         "title": "Evaluate Top Level Form (defun) to Comment",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
@@ -1356,7 +1350,6 @@
       {
         "command": "calva.loadFile",
         "title": "Load/Evaluate Current File and its Requires/Dependencies",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
@@ -2015,7 +2008,7 @@
       {
         "command": "calva.debug.instrument",
         "key": "ctrl+alt+c i",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected"
+        "when": "calva:keybindingsEnabled && editorLangId == clojure"
       },
       {
         "command": "calva.jackIn",
@@ -2139,7 +2132,7 @@
       {
         "command": "calva.loadFile",
         "key": "ctrl+alt+c enter",
-        "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
+        "when": "editorLangId == clojure && calva:keybindingsEnabled"
       },
       {
         "command": "calva.togglePrettyPrint",
@@ -2888,7 +2881,7 @@
         },
         {
           "command": "calva.debug.instrument",
-          "when": "editorLangId == clojure && calva:connected"
+          "when": "editorLangId == clojure"
         },
         {
           "command": "calva.showPreviousReplHistoryEntry",
