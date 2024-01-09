@@ -329,6 +329,21 @@ function evaluateTopLevelFormAsComment(document = {}, options = {}) {
   ).catch(printWarningForError);
 }
 
+function offerToConnect() {
+  vscode.window
+    .showInformationMessage('The editor is not connected to a REPL server', 'Connect')
+    .then(
+      (choice) => {
+        if (choice === 'Connect') {
+          void vscode.commands.executeCommand('calva.startOrConnectRepl');
+        }
+      },
+      (reason) => {
+        console.log('Rejected because: ', reason);
+      }
+    );
+}
+
 function evaluateTopLevelForm(document = {}, options = {}) {
   if (util.getConnectedState()) {
     evaluateSelection(
@@ -339,18 +354,7 @@ function evaluateTopLevelForm(document = {}, options = {}) {
       })
     ).catch(printWarningForError);
   } else {
-    void vscode.window
-      .showInformationMessage('The editor is not connected to a REPL server', 'Connect')
-      .then(
-        (choice) => {
-          if (choice === 'Connect') {
-            void vscode.commands.executeCommand('calva.startOrConnectRepl');
-          }
-        },
-        (reason) => {
-          console.log('Rejected because: ', reason);
-        }
-      );
+    offerToConnect();
   }
 }
 
@@ -367,13 +371,17 @@ function evaluateOutputWindowForm(document = {}, options = {}) {
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
-  evaluateSelection(
-    document,
-    Object.assign({}, options, {
-      pprintOptions: getConfig().prettyPrintingOptions,
-      selectionFn: _currentSelectionElseCurrentForm,
-    })
-  ).catch(printWarningForError);
+  if (util.getConnectedState()) {
+    evaluateSelection(
+      document,
+      Object.assign({}, options, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: _currentSelectionElseCurrentForm,
+      })
+    ).catch(printWarningForError);
+  } else {
+    offerToConnect();
+  }
 }
 
 function evaluateEnclosingForm(document = {}, options = {}) {

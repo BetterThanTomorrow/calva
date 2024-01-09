@@ -1275,7 +1275,6 @@
       {
         "command": "calva.evaluateSelection",
         "title": "Evaluate Current Form  (or selection, if any)",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
