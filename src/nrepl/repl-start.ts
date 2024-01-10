@@ -104,7 +104,11 @@ async function openStoredDoc(
       overwrite: false,
     });
   } catch (e) {
-    console.log(e);
+    if (e instanceof vscode.FileSystemError && e.code === 'FileExists') {
+      console.info(`File ${dramFile.path} already exists in temp dir, skipping copy.`);
+    } else {
+      console.log('Unexpected error:', e);
+    }
   }
   if (dramFile['open?']) {
     const doc = await vscode.workspace.openTextDocument(destUri);
