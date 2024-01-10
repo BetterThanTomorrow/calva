@@ -188,7 +188,7 @@ export async function startStandaloneRepl(
   });
 }
 
-export function startOrConnectRepl() {
+function composeMenu() {
   const JACK_IN_OPTION = 'Start your project with a REPL and connect (a.k.a. Jack-in)';
   const JACK_IN_COMMAND = 'calva.jackIn';
   const RE_JACK_IN_OPTION = 'Restart the Project REPL (a.k.a. Re-jack-in)';
@@ -278,6 +278,11 @@ export function startOrConnectRepl() {
       commands[EVALUATE_FIDDLE_OPTION] = EVALUATE_FIDDLE_COMMAND;
     }
   }
+  return { commands, PREFERRED_ORDER };
+}
+
+export function startOrConnectRepl() {
+  const { commands, PREFERRED_ORDER } = composeMenu();
 
   const sortedCommands = utilities.sortByPresetOrder(Object.keys(commands), PREFERRED_ORDER);
   void vscode.window.showQuickPick(sortedCommands).then((v) => {
