@@ -53,7 +53,7 @@ async function quickPickSingle(opts: {
   if (opts.values.length == 0) {
     return;
   }
-  const saveAs = `${opts.saveAs}`;
+  const saveAs = `qps-${opts.saveAs}`;
   const selected = opts.default ?? state.extensionContext.workspaceState.get<string>(saveAs);
 
   const hasOnlyOneOption = opts.autoSelect && opts.values.length == 1;
@@ -75,7 +75,7 @@ async function quickPickMulti(opts: {
   saveAs: string;
   placeHolder: string;
 }) {
-  const saveAs = `${opts.saveAs}`;
+  const saveAs = `qps-${opts.saveAs}`;
   const selected = state.extensionContext.workspaceState.get<string[]>(saveAs) || [];
   const result = await quickPick(opts.values, [], selected, {
     placeHolder: opts.placeHolder,

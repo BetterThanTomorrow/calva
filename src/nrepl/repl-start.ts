@@ -213,7 +213,7 @@ export async function startStandaloneRepl(
   const dramTemplateName =
     typeof dramTemplate.config === 'string' ? dramTemplate.config : dramTemplate.config.name;
   await state.extensionContext.workspaceState.update(
-    `${prefix}/${suffix}`,
+    `qps-${prefix}/${suffix}`,
     DRAM_TEMPLATE_TO_MENU_OPTION[dramTemplateName]
   );
 
@@ -245,7 +245,7 @@ export async function startStandaloneRepl(
   // We now have the proper project root for the REPL Menu “command palette”
   const newMenuSlug = menuSlugForProjectRoot();
   await state.extensionContext.workspaceState.update(
-    `${newMenuSlug.prefix}/${lastMenuSlug.suffix}`,
+    `qps-${newMenuSlug.prefix}/${lastMenuSlug.suffix}`,
     DRAM_TEMPLATE_TO_MENU_OPTION[dramTemplateName]
   );
 
