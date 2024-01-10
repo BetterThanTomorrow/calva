@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.408] - 2024-01-10
+
+- [Make REPL-button menu remember last item selected](https://github.com/BetterThanTomorrow/calva/issues/2382)
+- More Calva commands (especially related to connect and jack-in) are now awaitable
+
 ## [2.0.407] - 2024-01-09
 
 - [Offer to connect when evaluating forms while disconnected](https://github.com/BetterThanTomorrow/calva/issues/1490)
