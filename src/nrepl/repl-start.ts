@@ -287,38 +287,39 @@ function composeDisconnectedMenu() {
   return { commands, PREFERRED_ORDER };
 }
 
-export type MenuSlug = { prefix: string; suffix: string };
+type MenuSlug = { prefix: string; suffix: string };
 
-let lastMenuSlug: MenuSlug;
-
-export function copyLastSavedMenuOption(newSlug: MenuSlug) {
-  if (lastMenuSlug) {
-    const newSaveAsSlug = `${newSlug.prefix}/${newSlug.suffix}`;
-    const oldSaveAsSlug = `${lastMenuSlug.prefix}/${lastMenuSlug.suffix}`;
-    const savedValue = state.extensionContext.workspaceState.get(oldSaveAsSlug);
-    void state.extensionContext.workspaceState.update(newSaveAsSlug, savedValue);
-  }
+function copyLastSavedMenuOption(lastSlug: MenuSlug, newSlug: MenuSlug) {
+  const newSaveAsSlug = `${newSlug.prefix}/${newSlug.suffix}`;
+  const oldSaveAsSlug = `${lastSlug.prefix}/${lastSlug.suffix}`;
+  const savedValue = state.extensionContext.workspaceState.get(oldSaveAsSlug);
+  console.log(
+    `BOOM! Copying saved menu option from ${oldSaveAsSlug} to ${newSaveAsSlug}, value ${savedValue}`
+  );
+  void state.extensionContext.workspaceState.update(newSaveAsSlug, savedValue);
 }
 
-export function createMenuSlugForProjectRoot(): MenuSlug {
+function shouldShowConnectedMenu() {
+  return (
+    utilities.getConnectedState() || utilities.getConnectingState() || utilities.getLaunchingState()
+  );
+}
+
+function createMenuSlugForProjectRoot(): MenuSlug {
   const prefix = state.getProjectRootUri() ? state.getProjectRootUri().toString() : 'no-folder';
-  const suffix = utilities.getConnectedState()
+  const suffix = shouldShowConnectedMenu()
     ? 'connect-repl-menu-connected'
     : 'connect-repl-menu-not-connected';
   return { prefix, suffix };
 }
 
 export async function startOrConnectRepl() {
-  const showConnectedMenu =
-    utilities.getConnectedState() ||
-    utilities.getConnectingState() ||
-    utilities.getLaunchingState();
-  const { commands, PREFERRED_ORDER } = showConnectedMenu
+  const { commands, PREFERRED_ORDER } = shouldShowConnectedMenu()
     ? composeConnectedMenu()
     : composeDisconnectedMenu();
 
   const { prefix, suffix } = createMenuSlugForProjectRoot();
-  lastMenuSlug = { prefix, suffix };
+  const lastMenuSlug = { prefix, suffix };
 
   const sortedCommands = utilities.sortByPresetOrder(Object.keys(commands), PREFERRED_ORDER);
   const command_key = await utilities.quickPickSingle({
@@ -328,17 +329,23 @@ export async function startOrConnectRepl() {
   });
   if (command_key) {
     console.log(
-      `Executing command: ${commands[command_key]}, current slug prefix: ${
+      `BOOM! Executing command: ${commands[command_key]}, current slug prefix: ${
         createMenuSlugForProjectRoot().prefix
       }`
     );
     await vscode.commands.executeCommand(commands[command_key]);
     console.log(
-      `Executed command: ${commands[command_key]}, current slug prefix: ${
+      `BOOM! Executed command: ${commands[command_key]}, current slug prefix: ${
         createMenuSlugForProjectRoot().prefix
       }`
     );
-    copyLastSavedMenuOption(createMenuSlugForProjectRoot());
+    if (lastMenuSlug) {
+      const newMenuSlug = createMenuSlugForProjectRoot();
+      copyLastSavedMenuOption(lastMenuSlug, {
+        prefix: newMenuSlug.prefix,
+        suffix: lastMenuSlug.suffix,
+      });
+    }
   }
 
   // const sortedCommands = utilities.sortByPresetOrder(Object.keys(commands), PREFERRED_ORDER);
