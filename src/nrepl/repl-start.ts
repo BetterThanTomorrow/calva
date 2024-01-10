@@ -334,11 +334,4 @@ export async function startOrConnectRepl() {
       });
     }
   }
-
-  // const sortedCommands = utilities.sortByPresetOrder(Object.keys(commands), PREFERRED_ORDER);
-  // void vscode.window.showQuickPick(sortedCommands).then((v) => {
-  //   if (commands[v]) {
-  //     void vscode.commands.executeCommand(commands[v]);
-  //   }
-  // });
 }
