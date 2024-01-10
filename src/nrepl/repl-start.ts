@@ -287,7 +287,28 @@ function composeDisconnectedMenu() {
   return { commands, PREFERRED_ORDER };
 }
 
-export function startOrConnectRepl() {
+export type MenuSlug = { prefix: string; suffix: string };
+
+let lastMenuSlug: MenuSlug;
+
+export function copyLastSavedMenuOption(newSlug: MenuSlug) {
+  if (lastMenuSlug) {
+    const newSaveAsSlug = `${newSlug.prefix}/${newSlug.suffix}`;
+    const oldSaveAsSlug = `${lastMenuSlug.prefix}/${lastMenuSlug.suffix}`;
+    const savedValue = state.extensionContext.workspaceState.get(oldSaveAsSlug);
+    void state.extensionContext.workspaceState.update(newSaveAsSlug, savedValue);
+  }
+}
+
+export function createMenuSlugForProjectRoot(): MenuSlug {
+  const prefix = state.getProjectRootUri() ? state.getProjectRootUri().toString() : 'no-folder';
+  const suffix = utilities.getConnectedState()
+    ? 'connect-repl-menu-connected'
+    : 'connect-repl-menu-not-connected';
+  return { prefix, suffix };
+}
+
+export async function startOrConnectRepl() {
   const showConnectedMenu =
     utilities.getConnectedState() ||
     utilities.getConnectingState() ||
@@ -296,10 +317,34 @@ export function startOrConnectRepl() {
     ? composeConnectedMenu()
     : composeDisconnectedMenu();
 
+  const { prefix, suffix } = createMenuSlugForProjectRoot();
+  lastMenuSlug = { prefix, suffix };
+
   const sortedCommands = utilities.sortByPresetOrder(Object.keys(commands), PREFERRED_ORDER);
-  void vscode.window.showQuickPick(sortedCommands).then((v) => {
-    if (commands[v]) {
-      void vscode.commands.executeCommand(commands[v]);
-    }
+  const command_key = await utilities.quickPickSingle({
+    values: sortedCommands.map((a) => ({ label: a })),
+    saveAs: `${prefix}/${suffix}`,
+    placeHolder: 'Start or Connect a REPL',
   });
+  if (command_key) {
+    console.log(
+      `Executing command: ${commands[command_key]}, current slug prefix: ${
+        createMenuSlugForProjectRoot().prefix
+      }`
+    );
+    await vscode.commands.executeCommand(commands[command_key]);
+    console.log(
+      `Executed command: ${commands[command_key]}, current slug prefix: ${
+        createMenuSlugForProjectRoot().prefix
+      }`
+    );
+    copyLastSavedMenuOption(createMenuSlugForProjectRoot());
+  }
+
+  // const sortedCommands = utilities.sortByPresetOrder(Object.keys(commands), PREFERRED_ORDER);
+  // void vscode.window.showQuickPick(sortedCommands).then((v) => {
+  //   if (commands[v]) {
+  //     void vscode.commands.executeCommand(commands[v]);
+  //   }
+  // });
 }
