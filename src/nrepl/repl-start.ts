@@ -293,9 +293,6 @@ function copyLastSavedMenuOption(lastSlug: MenuSlug, newSlug: MenuSlug) {
   const newSaveAsSlug = `${newSlug.prefix}/${newSlug.suffix}`;
   const oldSaveAsSlug = `${lastSlug.prefix}/${lastSlug.suffix}`;
   const savedValue = state.extensionContext.workspaceState.get(oldSaveAsSlug);
-  console.log(
-    `BOOM! Copying saved menu option from ${oldSaveAsSlug} to ${newSaveAsSlug}, value ${savedValue}`
-  );
   void state.extensionContext.workspaceState.update(newSaveAsSlug, savedValue);
 }
 
@@ -328,17 +325,7 @@ export async function startOrConnectRepl() {
     placeHolder: 'Start or Connect a REPL',
   });
   if (command_key) {
-    console.log(
-      `BOOM! Executing command: ${commands[command_key]}, current slug prefix: ${
-        createMenuSlugForProjectRoot().prefix
-      }`
-    );
     await vscode.commands.executeCommand(commands[command_key]);
-    console.log(
-      `BOOM! Executed command: ${commands[command_key]}, current slug prefix: ${
-        createMenuSlugForProjectRoot().prefix
-      }`
-    );
     if (lastMenuSlug) {
       const newMenuSlug = createMenuSlugForProjectRoot();
       copyLastSavedMenuOption(lastMenuSlug, {
