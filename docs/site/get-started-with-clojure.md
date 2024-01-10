@@ -137,14 +137,13 @@ Clojurians draw tremendous value from [ClojureDocs](https://clojuredocs.org). At
 
 ## Other learning resources
 
+* [CalvaTV](https://www.youtube.com/c/CalvaTV) - Calva's YouTube channel often focuses on beginning with Clojure and ClojureScript. Subscribe, please!
 * [Clojure Beginner Resources](https://gist.github.com/yogthos/be323be0361c589570a6da4ccc85f58f) - a much more comprehensive list than this one
 * [clojure.org Getting Started](https://clojure.org/guides/getting_started) - the source of truth, includes installing and stuff
 * [The Exercism Clojure track](https://exercism.org/tracks/clojure) - Learn solving carefully crafted Clojure exercises, get mentor feedback if you like.
 * [Clojure for the Brave and True](https://www.braveclojure.com) - helping you from beginner to pretty advanced stuff, very popular among Clojurians
-* [What do beginners struggle with?](https://clojureverse.org/t/what-do-beginners-struggle-with/5383) - a ClojureVerse thread, where you can tell us about what you have found hard in picking up Clojure. It's what spawned the creation of this guide.
 * [on the code again](https://www.youtube.com/user/VideosDanA) - often features Clojure concepts, with snappy, well communicated, and entertaining videos
-* [CalvaTV](https://www.youtube.com/c/CalvaTV) - Calva's YouTube channel often focuses on beginning with Clojure and ClojureScript. Subscribe, please!
-
+* [Clojure Koans with VS Code/Calva instructions](https://github.com/DanBunea/clojure-koans)
 
 ## Help us help beginners
 
@@ -161,6 +160,7 @@ Give us feedback. Spread the word. Please consider:
     * [Clojure Exercism Track Template](https://github.com/PEZ/clojure-exercism-template)
     * [Calva](https://github.com/BetterThanTomorrow/calva)
     * [Dram](https://github.com/BetterThanTomorrow/dram) - Where this guide (the Getting Started REPL) is authored
+* [What do beginners struggle with?](https://clojureverse.org/t/what-do-beginners-struggle-with/5383) - a ClojureVerse thread, where you can tell us about what you have found hard in picking up Clojure. It's what spawned the creation of this guide.
 
 Please also consider other ways to [contribute](contribute.md).
 
