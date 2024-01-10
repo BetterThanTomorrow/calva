@@ -280,8 +280,9 @@ async function activate(context: vscode.ExtensionContext) {
       void replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_BROWSER_TEMPLATE, false),
     startStandaloneCljsNodeRepl: () =>
       void replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_NODE_TEMPLATE, false),
-    startStandaloneHelloRepl: () =>
-      void replStart.startStandaloneRepl(context, replStart.HELLO_TEMPLATE, false),
+    startStandaloneHelloRepl: () => {
+      return replStart.startStandaloneRepl(context, replStart.HELLO_TEMPLATE, false);
+    },
     startStandaloneRepl: () =>
       void replStart.startStandaloneRepl(context, replStart.USER_TEMPLATE, true),
     switchCljsBuild: connector.switchCljsBuild,
