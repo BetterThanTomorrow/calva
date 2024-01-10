@@ -120,7 +120,11 @@ export function getProjectRootUri(useCache = true): vscode.Uri | undefined {
       return res;
     }
   }
-  return vscode.workspace.workspaceFolders[0]?.uri;
+  if (vscode.workspace.workspaceFolders) {
+    return vscode.workspace.workspaceFolders[0].uri;
+  } else {
+    return undefined;
+  }
 }
 
 const NON_PROJECT_DIR_KEY = 'calva.connect.nonProjectDir';
