@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Formatter problem with multi-line strings](https://github.com/BetterThanTomorrow/calva/pull/2385)
+
 ## [2.0.408] - 2024-01-10
 
 - [Make REPL-button menu remember last item selected](https://github.com/BetterThanTomorrow/calva/issues/2382)
