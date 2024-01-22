@@ -23,7 +23,7 @@ export class TextLine {
   endState: ScannerState;
   constructor(text: string, public startState: ScannerState) {
     this.text = text;
-    this.tokens = scanner.processLine(text);
+    this.tokens = scanner.processLine(text, startState);
     this.endState = { ...scanner.state };
   }
 
