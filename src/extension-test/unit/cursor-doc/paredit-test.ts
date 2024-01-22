@@ -1662,9 +1662,7 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
-      // NB: enabling this breaks bunch of other tests.
-      //     Not sure why, but it can be run successfully by itself.
-      xit('splice string', async () => {
+      it('splice string', async () => {
         const a = docFromTextNotation('"h|ello"');
         await paredit.spliceSexp(a);
         expect(text(a)).toEqual('hello');
