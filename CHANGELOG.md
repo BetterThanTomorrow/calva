@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.409] - 2024-01-22
+
 - Fix: [Formatter problem with multi-line strings](https://github.com/BetterThanTomorrow/calva/pull/2270)
 
 ## [2.0.408] - 2024-01-10
