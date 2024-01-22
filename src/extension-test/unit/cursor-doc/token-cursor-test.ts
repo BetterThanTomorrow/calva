@@ -542,7 +542,6 @@ describe('Token Cursor', () => {
     expect(cursor.offsetStart).toBe(b.selection.anchor);
   });
 
-  // TODO: Figure out why adding these tests make other test break!
   describe('Navigation in and around strings', () => {
     it('backwardList moves to start of string', () => {
       const a = docFromTextNotation('(str [] "", "foo" "f |  b  b"   "   f b b   " "\\"" \\")');
