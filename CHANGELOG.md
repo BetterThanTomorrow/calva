@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [No symbols visible in Clojure source file inside JAR](https://github.com/BetterThanTomorrow/calva/pull/2391)
+
 ## [2.0.410] - 2024-02-08
 
 - [HTML->Hiccup: Keep id and classes as attributes if they do not form valid hiccup keywords](https://github.com/BetterThanTomorrow/calva/issues/2390)

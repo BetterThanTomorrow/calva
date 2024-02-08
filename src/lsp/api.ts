@@ -40,6 +40,9 @@ export const getActiveClientForUri = (clients: defs.LspClientStore, uri: vscode.
     }
     current = path.join(current, '..');
   }
+  if (lastActiveClient && clientIsAlive(lastActiveClient)) {
+    return lastActiveClient;
+  }
   const fallback_client = clients.get(FALLBACK_CLIENT_ID);
   if (fallback_client && clientIsAlive(fallback_client)) {
     return fallback_client;
