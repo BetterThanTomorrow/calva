@@ -31,7 +31,10 @@ In addition to, [optionally](#it-is-somewhat-configurable), being able to conver
     * The `id` attribute and classes are made part of the tag, CSS selector style
         * `<foo id="bar"></foo>` => `[:foo#bar]`
         * `<foo class="c1 c2"></foo>` => `[:foo.c1.c2]`
-        *  `<foo id="bar" class="c1 c2"></foo>` => `[:foo#bar.c1.c2]`
+        * `<foo id="bar" class="c1 c2"></foo>` => `[:foo#bar.c1.c2]`
+    * Though, if the id or any class is not valid as part of a keyword, they remain in the props/attributes map)
+        * `<foo id='foo-[id]'></foo>` =>  `[:foo {:id "foo-[id]"}]`
+        * `<foo class='clz1 clz[2]'></foo>` => `[:foo.clz1 {:class ["clz[2]"]}]`
     * Whitespace is trimmed
         * `<foo> \nbar\n </foo>` => `[:foo "bar"]`
         * `<foo> \n </foo>` => `[:foo]`

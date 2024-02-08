@@ -47,18 +47,42 @@
     (-> (normalize-attr-keys attrs options) (update :style mapify-style))
     (normalize-attr-keys attrs options)))
 
+
+(defn- valid-as-hiccup-kw? [s]
+  (and s
+       (not (re-matches #"^\d.*|.*[./:#@~`\[\]\(\){}].*" s))))
+
+(defn- tag+id [tag id]
+  (str tag (when (valid-as-hiccup-kw? id)
+             (str "#" id))))
+
+(defn- separate-classes [classes]
+  (let [kw-classes (filter valid-as-hiccup-kw? classes)
+        remaining-classes (remove valid-as-hiccup-kw? classes)]
+    [kw-classes remaining-classes]))
+
+(defn- build-tag-with-classes [tag-w-id kw-classes]
+  (str tag-w-id
+       (when (seq kw-classes)
+         (str "." (some->> kw-classes (string/join "."))))))
+
 (defn- element->hiccup [{:keys [tag attrs content] :as element} options]
   (if tag
     (let [normalized-attrs (normalize-attrs attrs options)
           {:keys [id class]} normalized-attrs
-          tag-w-id (str (string/lower-case tag) (some->> id (str "#")))
-          classes (some-> class (string/split #"\s+"))
-          tag-w-id+classes (str tag-w-id (when (seq classes)
-                                           (str "." (some->> classes (string/join ".")))))
-          remaining-attrs (dissoc normalized-attrs :class :id)]
+          lowercased-tag (string/lower-case tag)
+          tag+id (tag+id lowercased-tag id)
+          classes (when class
+                    (string/split class #"\s+"))
+          [kw-classes remaining-classes] (separate-classes classes)
+          tag-w-id+classes (build-tag-with-classes tag+id kw-classes)
+          remaining-attrs (cond-> normalized-attrs
+                            :always (dissoc :class)
+                            (seq remaining-classes) (assoc :class (vec remaining-classes))
+                            (valid-as-hiccup-kw? id) (dissoc :id))]
       (into (cond-> [(keyword tag-w-id+classes)]
               (seq remaining-attrs) (conj remaining-attrs))
-            (map #(element->hiccup % options) 
+            (map #(element->hiccup % options)
                  (->> content
                       (map #(if (string? %) (string/trim %) %))
                       (remove string/blank?)))))
@@ -76,7 +100,7 @@
    * Removes whitespace nodes
    * Normalizes attrs `viewBox` and `baseProfile` to camelCase (for SVG)
 
-   `options` is a map: 
+   `options` is a map:
    * `:mapify-style?`: tuck the style attributes into a map (Reagent style)
    * `:kebab-attrs?`: kebab-case any camelCase or snake_case attribute names"
   ([html]
@@ -90,7 +114,7 @@
 
 (defn html->hiccup-convert [html options]
   (try
-    {:result 
+    {:result
      (->> (html->hiccup html (cljify options))
           (map pretty-print)
           (string/join "\n"))}
@@ -99,7 +123,7 @@
                :exception {:name (.-name e)
                            :message (.-message e)}}})))
 
-(defn ^:export html->hiccup-convert-bridge [html options] 
+(defn ^:export html->hiccup-convert-bridge [html options]
   (jsify (html->hiccup-convert html options)))
 
 (comment
