@@ -1609,6 +1609,11 @@
 <li><code>&lt;foo id="bar" class="c1 c2"&gt;&lt;/foo&gt;</code> =&gt; <code>[:foo#bar.c1.c2]</code></li>
 </ul>
 </li>
+<li>Though, if the id or any class is not valid as part of a keyword, they remain in the props/attributes map)<ul>
+<li><code>&lt;foo id='foo-[id]'&gt;&lt;/foo&gt;</code> =&gt;  <code>[:foo {:id "foo-[id]"}]</code></li>
+<li><code>&lt;foo class='clz1 clz[2]'&gt;&lt;/foo&gt;</code> =&gt; <code>[:foo.clz1 {:class ["clz[2]"]}]</code></li>
+</ul>
+</li>
 <li>Whitespace is trimmed<ul>
 <li><code>&lt;foo&gt; \nbar\n &lt;/foo&gt;</code> =&gt; <code>[:foo "bar"]</code></li>
 <li><code>&lt;foo&gt; \n &lt;/foo&gt;</code> =&gt; <code>[:foo]</code></li>
