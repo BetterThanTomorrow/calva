@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [No symbols visible in Clojure source file inside JAR](https://github.com/BetterThanTomorrow/calva/pull/2391)
+- [Make window stay open if code is executed from it](https://github.com/BetterThanTomorrow/calva/pull/2389)
 
 ## [2.0.410] - 2024-02-08
 
