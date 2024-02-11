@@ -57,8 +57,7 @@
              (str "#" id))))
 
 (defn- bisect-all-by [pred coll]
-  (let [matching (filter pred coll)
-        not-matching (remove pred coll)]
+  (let [{matching true, not-matching false} (group-by pred coll)]
     [matching not-matching]))
 
 (defn- build-tag-with-classes [tag-w-id kw-classes]
@@ -74,7 +73,9 @@
           tag+id (tag+id lowercased-tag id)
           classes (when class
                     (string/split class #"\s+"))
-          [kw-classes remaining-classes] (bisect-all-by valid-as-hiccup-kw? classes)
+          [kw-classes remaining-classes] (if (:no-class-shortcuts? options)
+                                           [() classes]
+                                           (bisect-all-by valid-as-hiccup-kw? classes)) 
           tag-w-id+classes (build-tag-with-classes tag+id kw-classes)
           remaining-attrs (cond-> normalized-attrs
                             :always (dissoc :class)
@@ -102,7 +103,8 @@
 
    `options` is a map:
    * `:mapify-style?`: tuck the style attributes into a map (Reagent style)
-   * `:kebab-attrs?`: kebab-case any camelCase or snake_case attribute names"
+   * `:kebab-attrs?`: kebab-case any camelCase or snake_case attribute names
+   * `:no-class-shortcuts?`: don't use CSS-like class name shortcuts"
   ([html]
    (html->hiccup html nil))
   ([html options]

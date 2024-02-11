@@ -36,7 +36,7 @@
            (sut/html->hiccup "<foo class='clz1 clz[2]'></foo>"))))
   (testing "When only invalid kw-classes they all remain in class attr"
     (is (= [[:foo {:class ["a/b" "clz[2]"]}]]
-           (sut/html->hiccup "<foo class='a/b clz[2]'></foo>"))))
+           (sut/html->hiccup "<foo class='a/b clz[2]'></foo>")))) 
   (testing "Attributes other than `class` and `id` get tucked in 'props' position"
     (is (= [[:foo#foo-id.clz1.clz2 {:bar "2"} "baz"]]
            (sut/html->hiccup "<foo id='foo-id' class='clz1 clz2' bar=2>baz</foo>"))))
@@ -117,3 +117,8 @@
   (testing "style attribute non-bare-word, non bare-numeric is stringified"
     (is (= [[:foo {:style {:padding "var(--some-padding, 0 0)"}}]]
            (sut/html->hiccup "<foo style='padding: var(--some-padding, 0 0);'></foo>" {:mapify-style? true})))))
+  
+  (deftest html->hiccup-w-no-class-shortuts?
+    (testing "When the :no-class-shortcuts? option is true they all remain in class attr"
+      (is (= [[:foo {:class ["clz1" "clz2"]}]]
+             (sut/html->hiccup "<foo class='clz1 clz2'></foo>" {:no-class-shortcuts? true})))))
