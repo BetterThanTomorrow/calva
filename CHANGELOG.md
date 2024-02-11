@@ -3,7 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Enhancement: [Support cider `complete` with completions returning `completion-doc`](https://github.com/BetterThanTomorrow/calva/issues/2395)
+
+- [Support cider `complete` with completions returning `completion-doc`](https://github.com/BetterThanTomorrow/calva/issues/2395)
 
 ## [2.0.411] - 2024-02-09
 
