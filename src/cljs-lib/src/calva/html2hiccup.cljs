@@ -56,10 +56,10 @@
   (str tag (when (valid-as-hiccup-kw? id)
              (str "#" id))))
 
-(defn- separate-classes [classes]
-  (let [kw-classes (filter valid-as-hiccup-kw? classes)
-        remaining-classes (remove valid-as-hiccup-kw? classes)]
-    [kw-classes remaining-classes]))
+(defn- bisect-all-by [pred coll]
+  (let [matching (filter pred coll)
+        not-matching (remove pred coll)]
+    [matching not-matching]))
 
 (defn- build-tag-with-classes [tag-w-id kw-classes]
   (str tag-w-id
@@ -74,7 +74,7 @@
           tag+id (tag+id lowercased-tag id)
           classes (when class
                     (string/split class #"\s+"))
-          [kw-classes remaining-classes] (separate-classes classes)
+          [kw-classes remaining-classes] (bisect-all-by valid-as-hiccup-kw? classes)
           tag-w-id+classes (build-tag-with-classes tag+id kw-classes)
           remaining-attrs (cond-> normalized-attrs
                             :always (dissoc :class)
