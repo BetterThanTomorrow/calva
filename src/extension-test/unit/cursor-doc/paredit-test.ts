@@ -1455,9 +1455,15 @@ describe('paredit', () => {
       });
 
       // https://github.com/BetterThanTomorrow/calva/issues/2327
-      it('Deletes hash character to the left of a list, inside a list', async () => {
+      it('Does not delete hash character to the left of a list, inside a list', async () => {
         const a = docFromTextNotation('(#|())');
-        const b = docFromTextNotation('(|())');
+        const b = docFromTextNotation('(|#())');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Deletes hash character to the left of a vector, inside a list', async () => {
+        const a = docFromTextNotation('(#|[])');
+        const b = docFromTextNotation('(|[])');
         await paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
