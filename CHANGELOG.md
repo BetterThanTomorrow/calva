@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [HTML->Hiccup: Add option to always keep classes as attributes if so desired](https://github.com/BetterThanTomorrow/calva/issues/2398) 
+
 ## [2.0.412] - 2024-02-11
 
 - [Support cider `complete` with completions returning `completion-doc`](https://github.com/BetterThanTomorrow/calva/issues/2395)
@@ -12,7 +14,6 @@ Changes to Calva.
 
 - Fix: [No symbols visible in Clojure source file inside JAR](https://github.com/BetterThanTomorrow/calva/pull/2391)
 - [Make window stay open if code is executed from it](https://github.com/BetterThanTomorrow/calva/pull/2389)
-- [HTML->Hiccup: Add option to always keep classes as attributes if so desired](https://github.com/BetterThanTomorrow/calva/issues/2390) 
 
 ## [2.0.410] - 2024-02-08
 
