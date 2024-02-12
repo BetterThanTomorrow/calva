@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Structure editor glitch - backspace is inhibited from removing `#`](https://github.com/BetterThanTomorrow/calva/issues/2327)
+
 ## [2.0.412] - 2024-02-11
 
 - [Support cider `complete` with completions returning `completion-doc`](https://github.com/BetterThanTomorrow/calva/issues/2395)
