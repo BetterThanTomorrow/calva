@@ -844,31 +844,33 @@ export async function backspace(
     const cursor = doc.getTokenCursor(start);
     const isTopLevel = doc.getTokenCursor(end).atTopLevel();
     const nextToken = cursor.getToken();
-    const p = start;
     const prevToken =
-      p > cursor.offsetStart && !['open', 'close'].includes(nextToken.type)
-        ? nextToken
-        : cursor.getPrevToken();
+      start > cursor.offsetStart && !['open', 'close'].includes(nextToken.type)
+        ? nextToken // we are “in” a token
+        : cursor.getPrevToken(); // we are “between” tokens
     if (prevToken.type == 'prompt') {
       return new Promise<boolean>((resolve) => resolve(true));
     } else if (nextToken.type == 'prompt') {
       return new Promise<boolean>((resolve) => resolve(true));
-    } else if (doc.model.getText(p - 2, p, true) == '\\"') {
-      return doc.model.edit([new ModelEdit('deleteRange', [p - 2, 2])], {
-        selection: new ModelEditSelection(p - 2),
+    } else if (doc.model.getText(start - 2, start, true) == '\\"') {
+      // delete quoted double quote
+      return doc.model.edit([new ModelEdit('deleteRange', [start - 2, 2])], {
+        selection: new ModelEditSelection(start - 2),
       });
     } else if (prevToken.type === 'open' && nextToken.type === 'close') {
+      // delete empty list
       return doc.model.edit(
-        [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
+        [new ModelEdit('deleteRange', [start - prevToken.raw.length, prevToken.raw.length + 1])],
         {
-          selection: new ModelEditSelection(p - prevToken.raw.length),
+          selection: new ModelEditSelection(start - prevToken.raw.length),
         }
       );
     } else if (!isTopLevel && !cursor.withinString() && onlyWhitespaceLeftOfCursor(doc, cursor)) {
+      // we are at the beginning of a line, and not inside a string
       return backspaceOnWhitespaceEdit(doc, cursor, config);
     } else {
       if (['open', 'close'].includes(prevToken.type) && cursor.docIsBalanced()) {
-        doc.selection = new ModelEditSelection(p - prevToken.raw.length);
+        doc.selection = new ModelEditSelection(start - prevToken.raw.length);
         return new Promise<boolean>((resolve) => resolve(true));
       } else {
         return doc.backspace();
