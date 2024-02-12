@@ -1453,6 +1453,14 @@ describe('paredit', () => {
         await paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
+
+      // https://github.com/BetterThanTomorrow/calva/issues/2327
+      it('Deletes hash character to the left of a list, inside a list', async () => {
+        const a = docFromTextNotation('(#|())');
+        const b = docFromTextNotation('(|())');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
     });
 
     describe('Kill character forwards (delete)', () => {
