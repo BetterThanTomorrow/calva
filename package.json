@@ -860,6 +860,11 @@
                 "type": "boolean",
                 "markdownDescription": "Should the attribute names be converted to a kebab-case?",
                 "default": false
+              },
+              "no-class-shortcuts?": {
+                "type": "boolean",
+                "markdownDescription": "Should all class names remain in the class attrbute?",
+                "default": false
               }
             }
           },

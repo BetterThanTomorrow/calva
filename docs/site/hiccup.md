@@ -54,6 +54,7 @@ The Hiccup converstion can be tweaked with two options using the setting `calva.
 
 * `mapify-style`: boolean, default `false`. When `true` any `style` attribute will be converted to a map ([Reagent](https://reagent-project.github.io/) supports this)
 * `kebab-attrs?`: boolean, default `false`. When `true` attribute names will be converted from *camelCase*, or *snake_case/SNAKE_CASE* to *kebab-case*. (Reagent wants most attribute names like this.)
+* `no-class-shortcuts?`: boolean, default `false`. When `true` all class names will remain in the class   attribute (as opposed to being converted to Hiccup's CSS-style `[:tag.clz1.clz2]` shortcuts). This may be preferable in the event that elements tend to have a lot of class names, such as when using Tailwind CSS.
 
 ### Copy as menus: Copy HTML as Hiccup 
 
