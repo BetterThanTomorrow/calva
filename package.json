@@ -861,10 +861,10 @@
                 "markdownDescription": "Should the attribute names be converted to a kebab-case?",
                 "default": false
               },
-              "no-class-shortcuts?": {
+              "add-classes-to-tag-keyword?": {
                 "type": "boolean",
-                "markdownDescription": "Should all class names remain in the class attrbute?",
-                "default": false
+                "markdownDescription": "Should all class names be added as CSS-like shortcuts to tag keyword?",
+                "default": true
               }
             }
           },

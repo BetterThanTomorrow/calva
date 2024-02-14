@@ -47,7 +47,6 @@
     (-> (normalize-attr-keys attrs options) (update :style mapify-style))
     (normalize-attr-keys attrs options)))
 
-
 (defn- valid-as-hiccup-kw? [s]
   (and s
        (not (re-matches #"^\d.*|.*[./:#@~`\[\]\(\){}].*" s))))
@@ -73,7 +72,7 @@
           tag+id (tag+id lowercased-tag id)
           classes (when class
                     (string/split class #"\s+"))
-          [kw-classes remaining-classes] (if (:no-class-shortcuts? options)
+          [kw-classes remaining-classes] (if-not (:add-classes-to-tag-keyword? options)
                                            [() classes]
                                            (bisect-all-by valid-as-hiccup-kw? classes)) 
           tag-w-id+classes (build-tag-with-classes tag+id kw-classes)
@@ -104,7 +103,7 @@
    `options` is a map:
    * `:mapify-style?`: tuck the style attributes into a map (Reagent style)
    * `:kebab-attrs?`: kebab-case any camelCase or snake_case attribute names
-   * `:no-class-shortcuts?`: don't use CSS-like class name shortcuts"
+   * `:add-classes-to-tag-keyword?`: use CSS-like class name shortcuts"
   ([html]
    (html->hiccup html nil))
   ([html options]

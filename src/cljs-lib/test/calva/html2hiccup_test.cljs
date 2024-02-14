@@ -118,7 +118,7 @@
     (is (= [[:foo {:style {:padding "var(--some-padding, 0 0)"}}]]
            (sut/html->hiccup "<foo style='padding: var(--some-padding, 0 0);'></foo>" {:mapify-style? true})))))
   
-  (deftest html->hiccup-w-no-class-shortuts?
-    (testing "When the :no-class-shortcuts? option is true they all remain in class attr"
+  (deftest html->hiccup-wo-add-classes-to-tag-keyword?
+    (testing "When the :add-classes-to-tag-keyword? option is false they all remain in class attr"
       (is (= [[:foo {:class ["clz1" "clz2"]}]]
-             (sut/html->hiccup "<foo class='clz1 clz2'></foo>" {:no-class-shortcuts? true})))))
+             (sut/html->hiccup "<foo class='clz1 clz2'></foo>" {:add-classes-to-tag-keyword? false})))))
