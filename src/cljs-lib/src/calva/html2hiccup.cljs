@@ -5,6 +5,8 @@
             [calva.js-utils :refer [jsify cljify]]
             [zprint.core :as zprint]))
 
+(def default-opts {:add-classes-to-tag-keyword? true})
+
 (defn- html->ast [html]
   (->> (.parser posthtml-parser html #js {:recognizeNoValueAttribute true})
        cljify
@@ -105,7 +107,7 @@
    * `:kebab-attrs?`: kebab-case any camelCase or snake_case attribute names
    * `:add-classes-to-tag-keyword?`: use CSS-like class name shortcuts"
   ([html]
-   (html->hiccup html nil))
+   (html->hiccup html default-opts))
   ([html options]
    (-> html html->ast (ast->hiccup options))))
 
@@ -128,6 +130,7 @@
   (jsify (html->hiccup-convert html options)))
 
 (comment
+  (def foo 3)
   (def options nil)
   (def html "<div>
   <span style=\"color: blue; border: solid 1\">Hello World!</span>
