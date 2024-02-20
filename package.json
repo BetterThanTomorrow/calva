@@ -3038,6 +3038,16 @@
         }
       ]
     },
+    "views": {
+      "explorer": [
+        {
+          "id": "projectTree",
+          "name": "Project tree",
+          "icon": "assets/images/clj.svg",
+          "contextualTitle": "Project tree"
+        }
+      ]
+    },
     "colors": [
       {
         "id": "calva.inlineForegroundColor",
