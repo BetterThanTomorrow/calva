@@ -5,6 +5,23 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Launch w/ test folder",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}", "${workspaceFolder}/test-data"],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "env": {
+        "IS_DEBUG": "true",
+        "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
+        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
+        "DEBUG": "no-debug-universal-analytics"
+      },
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
+    },
+    {
       "name": "Launch Extension",
       "type": "extensionHost",
       "request": "launch",
@@ -47,23 +64,6 @@
       "sourceMaps": true,
       "env": {
         "NODE_OPTIONS": "--throw-deprecation",
-        "IS_DEBUG": "true",
-        "CALVA_DEV_GA": "FUBAR-69796730-4",
-        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
-        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
-        "DEBUG": "no-debug-universal-analytics"
-      },
-      "outFiles": ["${workspaceFolder}/out/**/*.js"]
-    },
-    {
-      "name": "Launch w/ test folder",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceRoot}", "${workspaceFolder}/test-data"],
-      "stopOnEntry": false,
-      "sourceMaps": true,
-      "env": {
         "IS_DEBUG": "true",
         "CALVA_DEV_GA": "FUBAR-69796730-4",
         "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",

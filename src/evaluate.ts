@@ -240,7 +240,9 @@ async function evaluateSelection(document = {}, options) {
     [codeSelection, code]; //TODO: What's this doing here?
 
     const doc = util.getDocument(document);
-    void vscode.window.showTextDocument(doc, { preview: false });
+    if (vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
+      void vscode.window.showTextDocument(doc, { preview: false });
+    }
     const [ns, nsForm] = namespace.getNamespace(doc, codeSelection.end);
     const line = codeSelection.start.line;
     const column = codeSelection.start.character;
@@ -476,12 +478,15 @@ function evaluateStartOfFileToCursor(document = {}, options = {}) {
 
 async function loadDocument(
   document: vscode.TextDocument | Record<string, never> | undefined,
-  pprintOptions: PrettyPrintingOptions
+  pprintOptions: PrettyPrintingOptions,
+  shouldResetPreview: boolean = false
 ) {
   void state.analytics().logGA4Pageview('/load-file');
 
   const doc = util.tryToGetDocument(document);
-  void vscode.window.showTextDocument(doc, { preview: false });
+  if (shouldResetPreview && vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
+    void vscode.window.showTextDocument(doc, { preview: false });
+  }
   const fileType = util.getFileType(doc);
   const [ns, _] = namespace.getNamespace(doc, doc.positionAt(0));
   const session = replSession.getSession(util.getFileType(doc));
@@ -498,7 +503,7 @@ async function loadDocument(
 
 async function loadFileCommand() {
   if (util.getConnectedState()) {
-    await loadDocument({}, getConfig().prettyPrintingOptions);
+    await loadDocument({}, getConfig().prettyPrintingOptions, true);
     return new Promise((resolve) => {
       outputWindow.appendPrompt(resolve);
     });

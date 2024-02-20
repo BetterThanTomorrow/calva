@@ -103,3 +103,8 @@ string. "
 (map inc (map inc|
               ))
 
+; https://github.com/BetterThanTomorrow/calva/issues/2327
+; Should delete `#`
+[#|[]]
+; Should not delete `#`
+(#|())
