@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.413] - 2024-02-20
+
 - Fix: [Structure editor glitch - backspace is inhibited from removing `#`](https://github.com/BetterThanTomorrow/calva/issues/2327)
 - Fix: ["Eval on save" causes files to be opened incorrectly](https://github.com/BetterThanTomorrow/calva/issues/2402)
 
