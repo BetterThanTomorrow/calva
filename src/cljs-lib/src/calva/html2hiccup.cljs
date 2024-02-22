@@ -5,6 +5,8 @@
             [calva.js-utils :refer [jsify cljify]]
             [zprint.core :as zprint]))
 
+(def default-opts {:add-classes-to-tag-keyword? true})
+
 (defn- html->ast [html]
   (->> (.parser posthtml-parser html #js {:recognizeNoValueAttribute true})
        cljify
@@ -47,7 +49,6 @@
     (-> (normalize-attr-keys attrs options) (update :style mapify-style))
     (normalize-attr-keys attrs options)))
 
-
 (defn- valid-as-hiccup-kw? [s]
   (and s
        (not (re-matches #"^\d.*|.*[./:#@~`\[\]\(\){}].*" s))))
@@ -57,8 +58,7 @@
              (str "#" id))))
 
 (defn- bisect-all-by [pred coll]
-  (let [matching (filter pred coll)
-        not-matching (remove pred coll)]
+  (let [{matching true, not-matching false} (group-by pred coll)]
     [matching not-matching]))
 
 (defn- build-tag-with-classes [tag-w-id kw-classes]
@@ -74,7 +74,9 @@
           tag+id (tag+id lowercased-tag id)
           classes (when class
                     (string/split class #"\s+"))
-          [kw-classes remaining-classes] (bisect-all-by valid-as-hiccup-kw? classes)
+          [kw-classes remaining-classes] (if-not (:add-classes-to-tag-keyword? options)
+                                           [() classes]
+                                           (bisect-all-by valid-as-hiccup-kw? classes)) 
           tag-w-id+classes (build-tag-with-classes tag+id kw-classes)
           remaining-attrs (cond-> normalized-attrs
                             :always (dissoc :class)
@@ -102,11 +104,12 @@
 
    `options` is a map:
    * `:mapify-style?`: tuck the style attributes into a map (Reagent style)
-   * `:kebab-attrs?`: kebab-case any camelCase or snake_case attribute names"
+   * `:kebab-attrs?`: kebab-case any camelCase or snake_case attribute names
+   * `:add-classes-to-tag-keyword?`: use CSS-like class name shortcuts"
   ([html]
-   (html->hiccup html nil))
+   (html->hiccup html default-opts))
   ([html options]
-   (-> html html->ast (ast->hiccup options))))
+   (-> html html->ast (ast->hiccup (merge default-opts options)))))
 
 (defn- pretty-print [f]
   (zprint/zprint-str f {:style :hiccup
@@ -127,6 +130,7 @@
   (jsify (html->hiccup-convert html options)))
 
 (comment
+  (def foo 3)
   (def options nil)
   (def html "<div>
   <span style=\"color: blue; border: solid 1\">Hello World!</span>
