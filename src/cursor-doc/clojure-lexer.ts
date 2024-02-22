@@ -71,9 +71,13 @@ toplevel.terminal(
 // (#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*
 
 // open parens
-toplevel.terminal('open', /((?<=(^|[()[\]{}\s,]))['`~#@?^]\s*)*['`~#@?^]*[([{"]/, (l, m) => ({
-  type: 'open',
-}));
+toplevel.terminal(
+  'open',
+  /((?<=(^|[()[\]{}\s,]))['`~@?^]\s*)*(['`~#@?^]*[({"]|['`~@?^]*[[])/,
+  (l, m) => ({
+    type: 'open',
+  })
+);
 
 // close parens
 toplevel.terminal('close', /\)|\]|\}/, (l, m) => ({ type: 'close' }));

@@ -382,7 +382,7 @@ async function activate(context: vscode.ExtensionContext) {
 
         if (evalOnSave) {
           if (!outputWindow.isResultsDoc(document)) {
-            await eval.loadDocument(document, config.getConfig().prettyPrintingOptions);
+            await eval.loadDocument(document, config.getConfig().prettyPrintingOptions, false);
             outputWindow.appendPrompt();
             state.analytics().logEvent('Calva', 'OnSaveLoad').send();
           }
