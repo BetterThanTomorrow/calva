@@ -14,7 +14,6 @@ import { ProjectTreeExplorer } from './project-tree';
 import * as status_bar from './status-bar';
 import * as utils from './utils';
 
-
 /**
  * Can be called to shutdown the fallback lsp server if there are no longer any relevant workspaces or files
  * open
