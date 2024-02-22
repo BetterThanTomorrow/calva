@@ -109,7 +109,7 @@
   ([html]
    (html->hiccup html default-opts))
   ([html options]
-   (-> html html->ast (ast->hiccup options))))
+   (-> html html->ast (ast->hiccup (merge default-opts options)))))
 
 (defn- pretty-print [f]
   (zprint/zprint-str f {:style :hiccup
