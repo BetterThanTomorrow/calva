@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Structure editor glitch - backspace is inhibited from removing `#`](https://github.com/BetterThanTomorrow/calva/issues/2327)
+- [Support clojure-lsp Project Tree feature](https://github.com/BetterThanTomorrow/calva/issues/2406)
 
 ## [2.0.412] - 2024-02-11
 
