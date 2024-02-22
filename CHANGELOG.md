@@ -4,8 +4,13 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Structure editor glitch - backspace is inhibited from removing `#`](https://github.com/BetterThanTomorrow/calva/issues/2327)
+- [HTML->Hiccup: Add option to always keep classes as attributes if so desired](https://github.com/BetterThanTomorrow/calva/issues/2398) 
 - [Support clojure-lsp Project Tree feature](https://github.com/BetterThanTomorrow/calva/issues/2406)
+
+## [2.0.413] - 2024-02-20
+
+- Fix: [Structure editor glitch - backspace is inhibited from removing `#`](https://github.com/BetterThanTomorrow/calva/issues/2327)
+- Fix: ["Eval on save" causes files to be opened incorrectly](https://github.com/BetterThanTomorrow/calva/issues/2402)
 
 ## [2.0.412] - 2024-02-11
 

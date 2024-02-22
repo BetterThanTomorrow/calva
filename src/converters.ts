@@ -73,11 +73,15 @@ export async function dart2clj() {
 export type HiccupOptions = {
   'kebab-attrs?': boolean;
   'mapify-style?': boolean;
+  'add-classes-to-tag-keyword?': boolean;
 };
 
 function hasHiccupOptions(options: any): boolean {
   return (
-    options && (options['kebab-attrs?'] !== undefined || options['mapify-style?'] !== undefined)
+    options &&
+    (options['kebab-attrs?'] !== undefined ||
+      options['mapify-style?'] !== undefined ||
+      options['add-classes-to-tag-keyword?'] !== undefined)
   );
 }
 
