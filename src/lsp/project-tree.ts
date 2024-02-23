@@ -77,7 +77,7 @@ class ProjectTreeDataProvider
   }
 
   getTreeItem(element: ProjectTreeNode): vscode.TreeItem {
-    let isFinal = 'final' in element && element.final;
+    const isFinal = 'final' in element && element.final;
 
     return {
       label: element.name,
@@ -123,8 +123,8 @@ export class ProjectTreeExplorer {
     vscode.commands.registerCommand('projectTree.openNode', this._navigateToNode);
   }
 
-  private async _navigateToNode(element: ProjectTreeNode) {
-    vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(element.uri)).then(() => {
+  private _navigateToNode(element: ProjectTreeNode) {
+    void vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(element.uri)).then(() => {
       if ('range' in element && element.range) {
         if (vscode.window.activeTextEditor) {
           const newPos = new vscode.Position(
@@ -132,7 +132,7 @@ export class ProjectTreeExplorer {
             element.range.start.character
           );
           vscode.window.activeTextEditor.selections = [new vscode.Selection(newPos, newPos)];
-          vscode.commands.executeCommand('revealLine', {
+          void vscode.commands.executeCommand('revealLine', {
             lineNumber: element.range.start.line,
             at: 'center',
           });
