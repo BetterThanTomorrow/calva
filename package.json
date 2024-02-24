@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.413",
+  "version": "2.0.414",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -860,7 +860,17 @@
                 "type": "boolean",
                 "markdownDescription": "Should the attribute names be converted to a kebab-case?",
                 "default": false
+              },
+              "add-classes-to-tag-keyword?": {
+                "type": "boolean",
+                "markdownDescription": "Should all class names be added as CSS-like shortcuts to tag keyword?",
+                "default": true
               }
+            },
+            "default": {
+              "mapify-style?": false,
+              "kebab-attrs?": false,
+              "add-classes-to-tag-keyword?": true
             }
           },
           "calva.autoEvaluateCode": {
@@ -3038,6 +3048,16 @@
         }
       ]
     },
+    "views": {
+      "explorer": [
+        {
+          "id": "projectTree",
+          "name": "Project tree",
+          "icon": "assets/images/clj.svg",
+          "contextualTitle": "Project tree"
+        }
+      ]
+    },
     "colors": [
       {
         "id": "calva.inlineForegroundColor",
@@ -3076,6 +3096,7 @@
     "prerelease": "npm run precompile && npm run release-cljs",
     "compile-test": "tsc -p ./",
     "postrelease": "",
+    "package-vsix": "vsce package",
     "vscode:prepublish": "npm run release",
     "bump-version": "npm set git-tag-version false && npm version patch",
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
