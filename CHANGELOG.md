@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [HTML->Hiccup: Add option to always keep classes as attributes if so desired](https://github.com/BetterThanTomorrow/calva/issues/2398) 
+- [Support clojure-lsp Project Tree feature](https://github.com/BetterThanTomorrow/calva/issues/2406)
 
 ## [2.0.413] - 2024-02-20
 

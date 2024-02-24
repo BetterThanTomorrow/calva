@@ -3048,6 +3048,16 @@
         }
       ]
     },
+    "views": {
+      "explorer": [
+        {
+          "id": "projectTree",
+          "name": "Project tree",
+          "icon": "assets/images/clj.svg",
+          "contextualTitle": "Project tree"
+        }
+      ]
+    },
     "colors": [
       {
         "id": "calva.inlineForegroundColor",
@@ -3086,6 +3096,7 @@
     "prerelease": "npm run precompile && npm run release-cljs",
     "compile-test": "tsc -p ./",
     "postrelease": "",
+    "package-vsix": "vsce package",
     "vscode:prepublish": "npm run release",
     "bump-version": "npm set git-tag-version false && npm version patch",
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",

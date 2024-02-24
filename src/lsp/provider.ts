@@ -1,18 +1,18 @@
-import * as vscode_lsp from 'vscode-languageclient/node';
-import * as project_utils from '../project-root';
 import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import * as os from 'node:os';
-
-import * as status_bar from './status-bar';
-import * as commands from './commands';
-import * as lsp_client from './client';
-import * as defs from './definitions';
-import * as config from './config';
+import * as vscode_lsp from 'vscode-languageclient/node';
+import * as project_utils from '../project-root';
 import * as state from '../state';
-import * as utils from './utils';
 import * as api from './api';
+import * as lsp_client from './client';
+import * as commands from './commands';
+import * as config from './config';
+import * as defs from './definitions';
+import { ProjectTreeExplorer } from './project-tree';
+import * as status_bar from './status-bar';
+import * as utils from './utils';
 
 /**
  * Can be called to shutdown the fallback lsp server if there are no longer any relevant workspaces or files
@@ -143,6 +143,8 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
           calvaSaysChannel.appendLine(`clojure-lsp version used: ${serverInfo['server-version']}`);
           calvaSaysChannel.appendLine(`clj-kondo version used: ${serverInfo['clj-kondo-version']}`);
         }
+
+        new ProjectTreeExplorer(client.client);
       }
     });
 
