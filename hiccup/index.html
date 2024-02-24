@@ -1644,6 +1644,7 @@
 <ul>
 <li><code>mapify-style</code>: boolean, default <code>false</code>. When <code>true</code> any <code>style</code> attribute will be converted to a map (<a href="https://reagent-project.github.io/">Reagent</a> supports this)</li>
 <li><code>kebab-attrs?</code>: boolean, default <code>false</code>. When <code>true</code> attribute names will be converted from <em>camelCase</em>, or <em>snake_case/SNAKE_CASE</em> to <em>kebab-case</em>. (Reagent wants most attribute names like this.)</li>
+<li><code>add-classes-to-tag-keyword?</code>: boolean, default <code>true</code>. When <code>true</code> all class names will be added CSS-style to the tag keyword (<code>[:tag.clz1.clz2]</code>), as opposed to being kept in the class attribute. Keeping the class names in the attribute may be preferable with elements having a lot of class names, such as when using Tailwind CSS.</li>
 </ul>
 <h3 id="copy-as-menus-copy-html-as-hiccup">Copy as menus: Copy HTML as Hiccup<a class="headerlink" href="#copy-as-menus-copy-html-as-hiccup" title="Permanent link">#</a></h3>
 <p>The Copy HTML as Hiccup command is available from VS Code's <strong>Edit</strong> menu, as well as the editor context menu, in both cases under the <strong>Copy as</strong> sub menu.</p>
