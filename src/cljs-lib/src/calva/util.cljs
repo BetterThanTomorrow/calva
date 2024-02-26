@@ -4,10 +4,6 @@
 (defonce vscode (atom nil))
 (defonce context (atom nil))
 
-(comment
-  (+ 1 2)
-  :rcf)
-
 (def project-root-uri-key " connect.projectDirNew ")
 
 (defn get-first-workspace-folder-uri []
