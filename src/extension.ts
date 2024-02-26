@@ -78,7 +78,7 @@ function initializeState() {
 async function activate(context: vscode.ExtensionContext) {
   console.info('Calva activate START');
 
-  // Store a reference to the vscode API in the cljs so it can all the API using that reference,
+  // Store a reference to the vscode API in the cljs so it can call the API using that reference,
   // because requiring the vscode API poses issues with being able to test the cljs lib.
   // We cannot run unit tests on code that imports the vscode API, because it's only available at runtime.
   initializeCljs(vscode, context);
