@@ -31,7 +31,10 @@ In addition to, [optionally](#it-is-somewhat-configurable), being able to conver
     * The `id` attribute and classes are made part of the tag, CSS selector style
         * `<foo id="bar"></foo>` => `[:foo#bar]`
         * `<foo class="c1 c2"></foo>` => `[:foo.c1.c2]`
-        *  `<foo id="bar" class="c1 c2"></foo>` => `[:foo#bar.c1.c2]`
+        * `<foo id="bar" class="c1 c2"></foo>` => `[:foo#bar.c1.c2]`
+    * Though, if the id or any class is not valid as part of a keyword, they remain in the props/attributes map)
+        * `<foo id='foo-[id]'></foo>` =>  `[:foo {:id "foo-[id]"}]`
+        * `<foo class='clz1 clz[2]'></foo>` => `[:foo.clz1 {:class ["clz[2]"]}]`
     * Whitespace is trimmed
         * `<foo> \nbar\n </foo>` => `[:foo "bar"]`
         * `<foo> \n </foo>` => `[:foo]`
@@ -51,6 +54,7 @@ The Hiccup converstion can be tweaked with two options using the setting `calva.
 
 * `mapify-style`: boolean, default `false`. When `true` any `style` attribute will be converted to a map ([Reagent](https://reagent-project.github.io/) supports this)
 * `kebab-attrs?`: boolean, default `false`. When `true` attribute names will be converted from *camelCase*, or *snake_case/SNAKE_CASE* to *kebab-case*. (Reagent wants most attribute names like this.)
+* `add-classes-to-tag-keyword?`: boolean, default `true`. When `true` all class names will be added CSS-style to the tag keyword (`[:tag.clz1.clz2]`), as opposed to being kept in the class attribute. Keeping the class names in the attribute may be preferable with elements having a lot of class names, such as when using Tailwind CSS.
 
 ### Copy as menus: Copy HTML as Hiccup 
 

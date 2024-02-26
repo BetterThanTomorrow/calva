@@ -4,6 +4,69 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.414] - 2024-02-24
+
+- [HTML->Hiccup: Add option to always keep classes as attributes if so desired](https://github.com/BetterThanTomorrow/calva/issues/2398) 
+- [Support clojure-lsp Project Tree feature](https://github.com/BetterThanTomorrow/calva/issues/2406)
+
+## [2.0.413] - 2024-02-20
+
+- Fix: [Structure editor glitch - backspace is inhibited from removing `#`](https://github.com/BetterThanTomorrow/calva/issues/2327)
+- Fix: ["Eval on save" causes files to be opened incorrectly](https://github.com/BetterThanTomorrow/calva/issues/2402)
+
+## [2.0.412] - 2024-02-11
+
+- [Support cider `complete` with completions returning `completion-doc`](https://github.com/BetterThanTomorrow/calva/issues/2395)
+
+## [2.0.411] - 2024-02-09
+
+- Fix: [No symbols visible in Clojure source file inside JAR](https://github.com/BetterThanTomorrow/calva/pull/2391)
+- [Make window stay open if code is executed from it](https://github.com/BetterThanTomorrow/calva/pull/2389)
+
+## [2.0.410] - 2024-02-08
+
+- [HTML->Hiccup: Keep id and classes as attributes if they do not form valid hiccup keywords](https://github.com/BetterThanTomorrow/calva/issues/2390)
+
+## [2.0.409] - 2024-01-22
+
+- Fix: [Formatter problem with multi-line strings](https://github.com/BetterThanTomorrow/calva/pull/2270)
+
+## [2.0.408] - 2024-01-10
+
+- [Make REPL-button menu remember last item selected](https://github.com/BetterThanTomorrow/calva/issues/2382)
+- More Calva commands (especially related to connect and jack-in) are now awaitable
+
+## [2.0.407] - 2024-01-09
+
+- [Offer to connect when evaluating forms while disconnected](https://github.com/BetterThanTomorrow/calva/issues/1490)
+- Bump `follow-redirects` to 1.15.4 (audit report)
+- Bump deps.clj version: v1.11.1.1435
+
+## [2.0.406] - 2024-01-08
+
+- Calva development: Fix: [Fiddle-file-unit-tests fails on windows](https://github.com/BetterThanTomorrow/calva/issues/2378)
+- Calva development: Fix: [Developer format job forces LF line endings](https://github.com/BetterThanTomorrow/calva/issues/2376)
+
+## [2.0.405] - 2023-12-21
+
+- Fix: [RangeError when opening .glft files ](https://github.com/BetterThanTomorrow/calva/issues/2319)
+
+## [2.0.404] - 2023-12-20
+
+- Fix: [Require REPL Utilities only works for `user` namespace](https://github.com/BetterThanTomorrow/calva/issues/433)
+- Fix: [NullPointerException evaluating calva.autoEvaluateCode.onConnect.cljs when using Krell](https://github.com/BetterThanTomorrow/calva/issues/2372)
+
+## [2.0.403] - 2023-12-18
+
+- Bump deps.clj version: v1.11.1.1429
+- Fix: [Indenter treating symbols as regex](https://github.com/BetterThanTomorrow/calva/issues/2263)
+
+## [2.0.402] - 2023-12-15
+
+- Fix audit warnings, bump some deps, clean out some deps
+- [Update to cljfmt v0.12.0](https://github.com/BetterThanTomorrow/calva/issues/2365)
+- Fix: [Selecting words forward and backwards when in line comments selects to next sexpression](https://github.com/BetterThanTomorrow/calva/issues/2368)
+
 ## [2.0.401] - 2023-12-03
 
 - Fix: [Some nREPL `eval` messages are sent with `untitled` as `ns`](https://github.com/BetterThanTomorrow/calva/issues/2358)

@@ -9,6 +9,7 @@ import {
   CompletionItemProvider,
   CompletionItem,
   Uri,
+  MarkdownString,
 } from 'vscode';
 import * as util from '../utilities';
 import * as select from '../select';
@@ -108,7 +109,10 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
           typeof item.label === 'string' ? item.label : item['data'].label
         );
         const [doc, details] = infoparser.getCompletion(result);
-        item.documentation = doc;
+        const docFromCider = item['data']?.['completion-doc'];
+
+        item.documentation =
+          doc || docFromCider ? new MarkdownString(docFromCider, true) : undefined;
         item.detail = details;
       }
 

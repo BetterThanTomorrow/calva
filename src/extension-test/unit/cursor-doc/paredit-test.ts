@@ -1453,6 +1453,20 @@ describe('paredit', () => {
         await paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
+
+      // https://github.com/BetterThanTomorrow/calva/issues/2327
+      it('Does not delete hash character to the left of a list, inside a list', async () => {
+        const a = docFromTextNotation('(#|())');
+        const b = docFromTextNotation('(|#())');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Deletes hash character to the left of a vector, inside a list', async () => {
+        const a = docFromTextNotation('(#|[])');
+        const b = docFromTextNotation('(|[])');
+        await paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
     });
 
     describe('Kill character forwards (delete)', () => {
@@ -1662,9 +1676,7 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
-      // NB: enabling this breaks bunch of other tests.
-      //     Not sure why, but it can be run successfully by itself.
-      xit('splice string', async () => {
+      it('splice string', async () => {
         const a = docFromTextNotation('"h|ello"');
         await paredit.spliceSexp(a);
         expect(text(a)).toEqual('hello');

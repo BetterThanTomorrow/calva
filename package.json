@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.402",
+  "version": "2.0.415",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -860,7 +860,17 @@
                 "type": "boolean",
                 "markdownDescription": "Should the attribute names be converted to a kebab-case?",
                 "default": false
+              },
+              "add-classes-to-tag-keyword?": {
+                "type": "boolean",
+                "markdownDescription": "Should all class names be added as CSS-like shortcuts to tag keyword?",
+                "default": true
               }
+            },
+            "default": {
+              "mapify-style?": false,
+              "kebab-attrs?": false,
+              "add-classes-to-tag-keyword?": true
             }
           },
           "calva.autoEvaluateCode": {
@@ -899,7 +909,7 @@
             "default": {
               "onConnect": {
                 "clj": "(when-let [requires (resolve 'clojure.main/repl-requires)] (clojure.core/apply clojure.core/require @requires))",
-                "cljs": "(try (require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]]) (catch :default e (js/console.warn \"Failed to require cljs.repl utilities:\" (.-message e))))"
+                "cljs": "(require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]])"
               },
               "onFileLoaded": {
                 "clj": null,
@@ -1180,13 +1190,12 @@
         "command": "calva.debug.instrument",
         "title": "Instrument Top Level Form for Debugging",
         "category": "Calva Debug",
-        "enablement": "editorLangId == clojure && calva:connected"
+        "enablement": "editorLangId == clojure"
       },
       {
         "command": "calva.togglePrettyPrint",
         "title": "Toggle Pretty Printing for All Evaluations",
-        "category": "Calva",
-        "enablement": "calva:connected"
+        "category": "Calva"
       },
       {
         "command": "calva.toggleEvaluationSendCodeToOutputWindow",
@@ -1275,37 +1284,33 @@
       {
         "command": "calva.evaluateSelection",
         "title": "Evaluate Current Form  (or selection, if any)",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.evaluateEnclosingForm",
         "title": "Evaluate Current Enclosing Form",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.evaluateToCursor",
         "title": "Evaluate From Start of List to Cursor, Closing Brackets",
-        "enablement": "calva:connected && !editorHasSelection",
+        "enablement": "!editorHasSelection",
         "category": "Calva"
       },
       {
         "command": "calva.evaluateSelectionToSelectionEnd",
         "title": "Evaluate Selection, Closing Brackets",
-        "enablement": "calva:connected && editorHasSelection",
+        "enablement": "editorHasSelection",
         "category": "Calva"
       },
       {
         "command": "calva.evaluateTopLevelFormToCursor",
         "title": "Evaluate From Start of Top Level Form to Cursor, Closing Brackets",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.evaluateStartOfFileToCursor",
         "title": "Evaluate From Start of File to Cursor, Closing Brackets",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
@@ -1317,7 +1322,6 @@
       {
         "command": "calva.evaluateCurrentTopLevelForm",
         "title": "Evaluate Top Level Form (defun)",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
@@ -1329,19 +1333,16 @@
       {
         "command": "calva.evaluateSelectionReplace",
         "title": "Evaluate Current Form and Replace it with the Result",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.evaluateSelectionAsComment",
         "title": "Evaluate Current Form to Comment",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.evaluateTopLevelFormAsComment",
         "title": "Evaluate Top Level Form (defun) to Comment",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
@@ -1359,7 +1360,6 @@
       {
         "command": "calva.loadFile",
         "title": "Load/Evaluate Current File and its Requires/Dependencies",
-        "enablement": "calva:connected",
         "category": "Calva"
       },
       {
@@ -2018,7 +2018,7 @@
       {
         "command": "calva.debug.instrument",
         "key": "ctrl+alt+c i",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected"
+        "when": "calva:keybindingsEnabled && editorLangId == clojure"
       },
       {
         "command": "calva.jackIn",
@@ -2142,7 +2142,7 @@
       {
         "command": "calva.loadFile",
         "key": "ctrl+alt+c enter",
-        "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
+        "when": "editorLangId == clojure && calva:keybindingsEnabled"
       },
       {
         "command": "calva.togglePrettyPrint",
@@ -2247,7 +2247,7 @@
         "mac": "shift+alt+right",
         "win": "shift+ctrl+right",
         "linux": "shift+ctrl+right",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment && !calva:cursorAfterComment && !calva:cursorBeforeComment"
       },
       {
         "command": "paredit.selectRight",
@@ -2261,7 +2261,7 @@
         "mac": "shift+alt+left",
         "win": "shift+ctrl+left",
         "linux": "shift+ctrl+left",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment && !calva:cursorAfterComment && !calva:cursorBeforeComment"
       },
       {
         "command": "paredit.selectForwardDownSexp",
@@ -2891,7 +2891,7 @@
         },
         {
           "command": "calva.debug.instrument",
-          "when": "editorLangId == clojure && calva:connected"
+          "when": "editorLangId == clojure"
         },
         {
           "command": "calva.showPreviousReplHistoryEntry",
@@ -3048,6 +3048,16 @@
         }
       ]
     },
+    "views": {
+      "explorer": [
+        {
+          "id": "projectTree",
+          "name": "Project tree",
+          "icon": "assets/images/clj.svg",
+          "contextualTitle": "Project tree"
+        }
+      ]
+    },
     "colors": [
       {
         "id": "calva.inlineForegroundColor",
@@ -3086,6 +3096,7 @@
     "prerelease": "npm run precompile && npm run release-cljs",
     "compile-test": "tsc -p ./",
     "postrelease": "",
+    "package-vsix": "vsce package",
     "vscode:prepublish": "npm run release",
     "bump-version": "npm set git-tag-version false && npm version patch",
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
@@ -3103,14 +3114,11 @@
     "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch"
   },
   "dependencies": {
-    "@types/axios": "^0.14.0",
-    "acorn": "^6.4.1",
-    "ansi-to-html": "^0.6.13",
+    "@vscode/debugadapter": "^1.64.0",
     "axios": "^1.4.0",
-    "escape-html": "^1.0.3",
     "extract-zip": "^2.0.1",
     "find": "0.2.9",
-    "follow-redirects": "^1.14.8",
+    "follow-redirects": "^1.15.4",
     "get-port": "^5.1.1",
     "immutable": "3.8.1",
     "immutable-cursor": "2.0.1",
@@ -3126,14 +3134,11 @@
     "tree-kill": "^1.2.2",
     "universal-analytics": "^0.5.3",
     "uuidv4": "6.2.12",
-    "vscode-debugadapter": "1.38.0",
-    "vscode-extension-telemetry": "0.0.15",
     "vscode-languageclient": "^8.0.2",
     "vsls": "^1.0.4753"
   },
   "devDependencies": {
     "@types/chai": "^4.2.6",
-    "@types/escape-html": "^1.0.2",
     "@types/follow-redirects": "^1.13.0",
     "@types/glob": "^7.1.1",
     "@types/lodash": "^4.14.167",
@@ -3145,9 +3150,9 @@
     "@types/vscode": "^1.67.0",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
-    "@vscode/test-electron": "^2.2.2",
+    "@vscode/test-electron": "^2.3.8",
+    "@vscode/vsce": "^2.15.0",
     "chai": "^4.2.0",
-    "concurrently": "^6.3.0",
     "cson-parser": "^4.0.3",
     "eslint": "^8.8.0",
     "eslint-config-prettier": "^8.3.0",
@@ -3157,26 +3162,19 @@
     "glob": "^7.1.6",
     "jest": "^27.2.5",
     "json": "^10.0.0",
-    "minimist": "^1.2.6",
     "mocha": "^9.2.2",
     "mocha-junit-reporter": "^2.0.2",
     "mocha-multi-reporters": "^1.5.1",
     "node-gyp": "^8.4.1",
-    "nodemon": "^2.0.3",
     "onchange": "^7.1.0",
-    "ovsx": "^0.3.0",
+    "ovsx": "^0.8.3",
     "prettier": "2.5.1",
     "rimraf": "^2.7.1",
     "shadow-cljs": "^2.25.2",
     "source-map-support": "^0.5.16",
-    "style-loader": "^0.23.1",
-    "tar": "^4.4.18",
     "ts-loader": "^8.0.18",
     "ts-node": "^10.3.0",
     "typescript": "^4.6.3",
-    "url-loader": "^4.1.1",
-    "vsce": "^2.9.1",
-    "vscode-test": "^1.3.0",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.0"
   }

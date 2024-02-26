@@ -210,7 +210,9 @@ async function activate(context: vscode.ExtensionContext) {
     clearInlineResults: annotations.clearAllEvaluationDecorations,
     clearReplHistory: replHistory.clearHistory,
     connect: connector.connectCommand,
-    connectNonProjectREPL: () => void connector.connectNonProjectREPLCommand(context),
+    connectNonProjectREPL: () => {
+      return connector.connectNonProjectREPLCommand(context);
+    },
     continueComment: edit.continueCommentCommand,
     convertDart2Clj: converters.dart2clj,
     convertJs2Cljs: converters.js2cljs,
@@ -238,15 +240,10 @@ async function activate(context: vscode.ExtensionContext) {
     interruptAllEvaluations: eval.interruptAllEvaluations,
     jackIn: jackIn.jackInCommand,
     jackOut: jackIn.jackOutCommand,
-    loadFile: async () => {
-      await eval.loadDocument({}, config.getConfig().prettyPrintingOptions);
-      return new Promise((resolve) => {
-        outputWindow.appendPrompt(resolve);
-      });
-    },
-    openCalvaDocs: () => {
-      void context.globalState.update(VIEWED_CALVA_DOCS, true);
-      open(CALVA_DOCS_URL)
+    loadFile: eval.loadFileCommand,
+    openCalvaDocs: async () => {
+      await context.globalState.update(VIEWED_CALVA_DOCS, true);
+      return open(CALVA_DOCS_URL)
         .then(() => {
           state.analytics().logEvent('Calva', 'Docs opened');
         })
@@ -280,37 +277,45 @@ async function activate(context: vscode.ExtensionContext) {
     openSourceFileForFiddle: fiddleFiles.openSourceFileForFiddle,
     sendCurrentTopLevelFormToOutputWindow: outputWindow.appendCurrentTopLevelForm,
     setOutputWindowNamespace: outputWindow.setNamespaceFromCurrentFile,
-    showFileForOutputWindowNS: () => void outputWindow.revealDocForCurrentNS(false),
+    showFileForOutputWindowNS: () => {
+      return outputWindow.revealDocForCurrentNS(false);
+    },
     showNextReplHistoryEntry: replHistory.showNextReplHistoryEntry,
     showOutputWindow: () => outputWindow.revealResultsDoc(false),
     showPreviousReplHistoryEntry: replHistory.showPreviousReplHistoryEntry,
     startJoyrideReplAndConnect: async () => {
       const projectDir: string = await joyride.prepareForJackingOrConnect();
       if (projectDir !== undefined) {
-        void joyride.joyrideJackIn(projectDir);
+        return joyride.joyrideJackIn(projectDir);
       }
     },
     startOrConnectRepl: replStart.startOrConnectRepl,
-    startStandaloneCljsBrowserRepl: () =>
-      void replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_BROWSER_TEMPLATE, false),
-    startStandaloneCljsNodeRepl: () =>
-      void replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_NODE_TEMPLATE, false),
-    startStandaloneHelloRepl: () =>
-      void replStart.startStandaloneRepl(context, replStart.HELLO_TEMPLATE, false),
-    startStandaloneRepl: () =>
-      void replStart.startStandaloneRepl(context, replStart.USER_TEMPLATE, true),
+    startStandaloneCljsBrowserRepl: () => {
+      return replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_BROWSER_TEMPLATE, false);
+    },
+    startStandaloneCljsNodeRepl: () => {
+      return replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_NODE_TEMPLATE, false);
+    },
+    startStandaloneHelloRepl: () => {
+      return replStart.startStandaloneRepl(context, replStart.HELLO_TEMPLATE, false);
+    },
+    startStandaloneRepl: () => {
+      return replStart.startStandaloneRepl(context, replStart.USER_TEMPLATE, true);
+    },
     switchCljsBuild: connector.switchCljsBuild,
     tapCurrentTopLevelForm: () =>
       snippets.evaluateCustomCodeSnippetCommand('(tap> $top-level-form)'),
     tapSelection: () => snippets.evaluateCustomCodeSnippetCommand('(tap> $current-form)'),
-    toggleBetweenImplAndTest: () => void fileSwitcher.toggleBetweenImplAndTest(),
+    toggleBetweenImplAndTest: () => {
+      return fileSwitcher.toggleBetweenImplAndTest();
+    },
     toggleCLJCSession: connector.toggleCLJCSession,
     toggleEvaluationSendCodeToOutputWindow: eval.toggleEvaluationSendCodeToOutputWindow,
     toggleKeybindingsEnabled: () => {
       const keybindingsEnabled = vscode.workspace
         .getConfiguration()
         .get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
-      void vscode.workspace
+      return vscode.workspace
         .getConfiguration()
         .update(
           config.KEYBINDINGS_ENABLED_CONFIG_KEY,
@@ -332,6 +337,9 @@ async function activate(context: vscode.ExtensionContext) {
   }
 
   Object.entries(commands).forEach(registerCalvaCommand);
+
+  outputWindow.registerSubmitOnEnterHandler(context);
+  outputWindow.registerOutputWindowActiveWatcher(context);
 
   // PROVIDERS
   context.subscriptions.push(
@@ -384,7 +392,7 @@ async function activate(context: vscode.ExtensionContext) {
 
         if (evalOnSave) {
           if (!outputWindow.isResultsDoc(document)) {
-            await eval.loadDocument(document, config.getConfig().prettyPrintingOptions);
+            await eval.loadDocument(document, config.getConfig().prettyPrintingOptions, false);
             outputWindow.appendPrompt();
             state.analytics().logEvent('Calva', 'OnSaveLoad').send();
           }

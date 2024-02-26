@@ -240,6 +240,9 @@ async function evaluateSelection(document = {}, options) {
     [codeSelection, code]; //TODO: What's this doing here?
 
     const doc = util.getDocument(document);
+    if (vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
+      void vscode.window.showTextDocument(doc, { preview: false });
+    }
     const [ns, nsForm] = namespace.getNamespace(doc, codeSelection.end);
     const line = codeSelection.start.line;
     const column = codeSelection.start.character;
@@ -297,78 +300,121 @@ function _currentEnclosingFormText(editor: vscode.TextEditor): getText.Selection
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
-  evaluateSelection(
-    document,
-    Object.assign({}, options, {
-      replace: true,
-      pprintOptions: getConfig().prettyPrintingOptions,
-      selectionFn: _currentSelectionElseCurrentForm,
-    })
-  ).catch(printWarningForError);
+  if (util.getConnectedState()) {
+    evaluateSelection(
+      document,
+      Object.assign({}, options, {
+        replace: true,
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: _currentSelectionElseCurrentForm,
+      })
+    ).catch(printWarningForError);
+  } else {
+    offerToConnect();
+  }
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
-  evaluateSelection(
-    document,
-    Object.assign({}, options, {
-      comment: true,
-      pprintOptions: getConfig().prettyPrintingOptions,
-      selectionFn: _currentSelectionElseCurrentForm,
-    })
-  ).catch(printWarningForError);
+  if (util.getConnectedState()) {
+    evaluateSelection(
+      document,
+      Object.assign({}, options, {
+        comment: true,
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: _currentSelectionElseCurrentForm,
+      })
+    ).catch(printWarningForError);
+  } else {
+    offerToConnect();
+  }
 }
 
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
-  evaluateSelection(
-    document,
-    Object.assign({}, options, {
-      comment: true,
-      pprintOptions: getConfig().prettyPrintingOptions,
-      selectionFn: _currentTopLevelFormText,
-    })
-  ).catch(printWarningForError);
+  if (util.getConnectedState()) {
+    evaluateSelection(
+      document,
+      Object.assign({}, options, {
+        comment: true,
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: _currentTopLevelFormText,
+      })
+    ).catch(printWarningForError);
+  } else {
+    offerToConnect();
+  }
+}
+
+function offerToConnect() {
+  vscode.window
+    .showInformationMessage('The editor is not connected to a REPL server', 'Connect')
+    .then(
+      (choice) => {
+        if (choice === 'Connect') {
+          void vscode.commands.executeCommand('calva.startOrConnectRepl');
+        }
+      },
+      (reason) => {
+        console.log('Rejected because: ', reason);
+      }
+    );
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
-  evaluateSelection(
-    document,
-    Object.assign({}, options, {
-      pprintOptions: getConfig().prettyPrintingOptions,
-      selectionFn: _currentTopLevelFormText,
-    })
-  ).catch(printWarningForError);
+  if (util.getConnectedState()) {
+    evaluateSelection(
+      document,
+      Object.assign({}, options, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: _currentTopLevelFormText,
+      })
+    ).catch(printWarningForError);
+  } else {
+    offerToConnect();
+  }
 }
 
 function evaluateOutputWindowForm(document = {}, options = {}) {
-  evaluateSelection(
-    document,
-    Object.assign({}, options, {
-      pprintOptions: getConfig().prettyPrintingOptions,
-      selectionFn: _currentTopLevelFormText,
-      evaluationSendCodeToOutputWindow: false,
-      addToHistory: true,
-    })
-  ).catch(printWarningForError);
+  if (util.getConnectedState()) {
+    evaluateSelection(
+      document,
+      Object.assign({}, options, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: _currentTopLevelFormText,
+        evaluationSendCodeToOutputWindow: false,
+        addToHistory: true,
+      })
+    ).catch(printWarningForError);
+  } else {
+    offerToConnect();
+  }
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
-  evaluateSelection(
-    document,
-    Object.assign({}, options, {
-      pprintOptions: getConfig().prettyPrintingOptions,
-      selectionFn: _currentSelectionElseCurrentForm,
-    })
-  ).catch(printWarningForError);
+  if (util.getConnectedState()) {
+    evaluateSelection(
+      document,
+      Object.assign({}, options, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: _currentSelectionElseCurrentForm,
+      })
+    ).catch(printWarningForError);
+  } else {
+    offerToConnect();
+  }
 }
 
 function evaluateEnclosingForm(document = {}, options = {}) {
-  evaluateSelection(
-    document,
-    Object.assign({}, options, {
-      pprintOptions: getConfig().prettyPrintingOptions,
-      selectionFn: _currentEnclosingFormText,
-    })
-  ).catch(printWarningForError);
+  if (util.getConnectedState()) {
+    evaluateSelection(
+      document,
+      Object.assign({}, options, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: _currentEnclosingFormText,
+      })
+    ).catch(printWarningForError);
+  } else {
+    offerToConnect();
+  }
 }
 
 function evaluateUsingTextAndSelectionGetter(
@@ -390,41 +436,57 @@ function evaluateUsingTextAndSelectionGetter(
 }
 
 function evaluateToCursor(document = {}, options = {}) {
-  evaluateUsingTextAndSelectionGetter(
-    vscode.window.activeTextEditor.selection.isEmpty
-      ? getText.currentEnclosingFormToCursor
-      : getText.selectionAddingBrackets,
-    (code) => `${code}`,
-    document,
-    options
-  );
+  if (util.getConnectedState()) {
+    evaluateUsingTextAndSelectionGetter(
+      vscode.window.activeTextEditor.selection.isEmpty
+        ? getText.currentEnclosingFormToCursor
+        : getText.selectionAddingBrackets,
+      (code) => `${code}`,
+      document,
+      options
+    );
+  } else {
+    offerToConnect();
+  }
 }
 
 function evaluateTopLevelFormToCursor(document = {}, options = {}) {
-  evaluateUsingTextAndSelectionGetter(
-    getText.currentTopLevelFormToCursor,
-    (code) => `${code}`,
-    document,
-    options
-  );
+  if (util.getConnectedState()) {
+    evaluateUsingTextAndSelectionGetter(
+      getText.currentTopLevelFormToCursor,
+      (code) => `${code}`,
+      document,
+      options
+    );
+  } else {
+    offerToConnect();
+  }
 }
 
 function evaluateStartOfFileToCursor(document = {}, options = {}) {
-  evaluateUsingTextAndSelectionGetter(
-    getText.startOFileToCursor,
-    (code) => `${code}`,
-    document,
-    options
-  );
+  if (util.getConnectedState()) {
+    evaluateUsingTextAndSelectionGetter(
+      getText.startOFileToCursor,
+      (code) => `${code}`,
+      document,
+      options
+    );
+  } else {
+    offerToConnect();
+  }
 }
 
 async function loadDocument(
   document: vscode.TextDocument | Record<string, never> | undefined,
-  pprintOptions: PrettyPrintingOptions
+  pprintOptions: PrettyPrintingOptions,
+  shouldResetPreview: boolean = false
 ) {
   void state.analytics().logGA4Pageview('/load-file');
 
   const doc = util.tryToGetDocument(document);
+  if (shouldResetPreview && vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
+    void vscode.window.showTextDocument(doc, { preview: false });
+  }
   const fileType = util.getFileType(doc);
   const [ns, _] = namespace.getNamespace(doc, doc.positionAt(0));
   const session = replSession.getSession(util.getFileType(doc));
@@ -436,6 +498,17 @@ async function loadDocument(
       : doc.uri;
     const filePath = docUri.path;
     return await loadFile(filePath, ns, pprintOptions, fileType);
+  }
+}
+
+async function loadFileCommand() {
+  if (util.getConnectedState()) {
+    await loadDocument({}, getConfig().prettyPrintingOptions, true);
+    return new Promise((resolve) => {
+      outputWindow.appendPrompt(resolve);
+    });
+  } else {
+    offerToConnect();
   }
 }
 
@@ -536,7 +609,7 @@ async function requireREPLUtilitiesCommand() {
     if (session) {
       try {
         await namespace.createNamespaceFromDocumentIfNotExists(util.tryToGetDocument({}));
-        await session.requireREPLUtilities();
+        await session.requireREPLUtilities(ns);
         chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
       } catch (e) {
         chan.appendLine(`REPL utilities could not be acquired for namespace ${ns}: ${e}`);
@@ -583,18 +656,22 @@ async function toggleEvaluationSendCodeToOutputWindow() {
 }
 
 function instrumentTopLevelForm() {
-  evaluateSelection(
-    {},
-    {
-      pprintOptions: getConfig().prettyPrintingOptions,
-      debug: true,
-      selectionFn: _currentTopLevelFormText,
-    }
-  ).catch(printWarningForError);
-  state
-    .analytics()
-    .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM)
-    .send();
+  if (util.getConnectedState()) {
+    evaluateSelection(
+      {},
+      {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        debug: true,
+        selectionFn: _currentTopLevelFormText,
+      }
+    ).catch(printWarningForError);
+    state
+      .analytics()
+      .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM)
+      .send();
+  } else {
+    offerToConnect();
+  }
 }
 
 async function evaluateInOutputWindow(code: string, sessionType: string, ns: string, options) {
@@ -627,6 +704,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
 export default {
   interruptAllEvaluations,
   loadDocument,
+  loadFileCommand,
   loadFile,
   evaluateCurrentForm,
   evaluateEnclosingForm,

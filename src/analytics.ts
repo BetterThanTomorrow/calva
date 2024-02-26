@@ -70,33 +70,37 @@ export default class Analytics {
       vscode.version
     } Calva/${this.extensionVersion}`;
 
-    return axios
-      .post(
-        `https://www.google-analytics.com/mp/collect?measurement_id=${this.GA4_MEASUREMENT_ID}&api_secret=${this.GA4_TOKEN}`,
-        {
-          client_id: this.userID(),
-          user_id: this.userID(),
-          events: [
-            {
-              name: 'page_view',
-              params: {
-                page_location: path,
-                page_title: path.replace(/^\//, ''),
-                engagement_time_msec: 1,
+    try {
+      return axios
+        .post(
+          `https://www.google-analytics.com/mp/collect?measurement_id=${this.GA4_MEASUREMENT_ID}&api_secret=${this.GA4_TOKEN}`,
+          {
+            client_id: this.userID(),
+            user_id: this.userID(),
+            events: [
+              {
+                name: 'page_view',
+                params: {
+                  page_location: path,
+                  page_title: path.replace(/^\//, ''),
+                  engagement_time_msec: 1,
+                },
               },
-            },
-          ],
-        },
-        {
-          headers: {
-            'User-Agent': userAgent,
-            'Content-Type': 'application/json',
+            ],
           },
-        }
-      )
-      .catch(function (error) {
-        console.log(error);
-      });
+          {
+            headers: {
+              'User-Agent': userAgent,
+              'Content-Type': 'application/json',
+            },
+          }
+        )
+        .catch(function (error) {
+          console.log(error);
+        });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   logEvent(category: string, action: string, label?: string, value?: string): Analytics {

@@ -13,6 +13,7 @@ import type { ReplSessionType } from '../config';
 import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
 import { log, Direction } from './logging';
+import * as string from '../util/string';
 
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
@@ -380,14 +381,11 @@ export class NReplSession {
     }
   }
 
-  async requireREPLUtilities() {
-    const CLJS_FORM = `(try
-                         (require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]])
-                         (catch :default e
-                           (js/console.warn "Failed to require cljs.repl utilities:" (.-message e))))`;
+  async requireREPLUtilities(ns: string) {
+    const CLJS_FORM = `(require '[cljs.repl :refer [apropos dir doc find-doc print-doc pst source]])`;
     const CLJ_FORM = `(when-let [requires (resolve 'clojure.main/repl-requires)]
                         (clojure.core/apply clojure.core/require @requires))`;
-    await this.eval(this.replType === 'clj' ? CLJ_FORM : CLJS_FORM, this.client.ns).value;
+    await this.eval(this.replType === 'clj' ? CLJ_FORM : CLJS_FORM, ns).value;
   }
 
   private _createEvalOperationMessage(code: string, ns: string, opts: any) {
@@ -450,9 +448,10 @@ export class NReplSession {
     opts['pprint'] = pprintOptions.enabled;
     delete opts.pprintOptions;
     const extraOpts = getServerSidePrinter(pprintOptions);
+    const { stdout, stderr, stdin, ...cleanedOpts } = opts;
     const opMsg = this._createEvalOperationMessage(code, ns, {
       ...extraOpts,
-      ...opts,
+      ...cleanedOpts,
     });
 
     const evaluation = new NReplEvaluation(
@@ -659,7 +658,7 @@ export class NReplSession {
       'ns-query': {
         exactly: [ns],
       },
-      search: util.escapeStringRegexp(test),
+      search: string.escapeStringRegexp(test),
       'test?': true,
     });
   }
