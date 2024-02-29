@@ -188,7 +188,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
     const firstPos = resultsEditor.document.positionAt(0);
     const lastPos = resultsDoc.positionAt(Infinity);
-    resultsEditor.selection = new vscode.Selection(lastPos, lastPos);
+    resultsEditor.selections = [new vscode.Selection(lastPos, lastPos)];
     resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
   }
   if (isInitialized) {
@@ -238,7 +238,7 @@ export function setNamespaceFromCurrentFile() {
   const session = replSession.getSession();
   const [ns, _] = namespace.getNamespace(
     util.tryToGetDocument({}),
-    vscode.window.activeTextEditor?.selection?.active
+    vscode.window.activeTextEditor?.selections[0]?.active
   );
   setSession(session, ns);
   replSession.updateReplSessionType();
@@ -249,11 +249,11 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
   const session = replSession.getSession();
   const [ns, _] = namespace.getNamespace(
     util.tryToGetDocument({}),
-    vscode.window.activeTextEditor?.selection?.active
+    vscode.window.activeTextEditor?.selections[0]?.active
   );
   const editor = util.getActiveTextEditor();
   const doc = editor.document;
-  const selection = editor.selection;
+  const selection = editor.selections[0];
   let code = '';
   if (selection.isEmpty) {
     const formSelection = select.getFormSelection(doc, selection.active, topLevel);

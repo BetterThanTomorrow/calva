@@ -11,7 +11,7 @@ export function continueCommentCommand() {
   const document = util.tryToGetDocument({});
   if (document && document.languageId === 'clojure') {
     const editor = util.getActiveTextEditor();
-    const position = editor.selection.active;
+    const position = editor.selections[0].active;
     const cursor = docMirror.getDocument(document).getTokenCursor();
     if (cursor.getToken().type !== 'comment') {
       if (cursor.getPrevToken().type === 'comment') {
@@ -35,7 +35,7 @@ export function continueCommentCommand() {
       .then((fulfilled) => {
         if (fulfilled) {
           const newPosition = position.with(position.line + 1, newText.length);
-          editor.selection = new vscode.Selection(newPosition, newPosition);
+          editor.selections = [new vscode.Selection(newPosition, newPosition)];
         }
       });
   }
@@ -69,7 +69,7 @@ export function replace(
 export function prettyPrintReplaceCurrentForm(options = { enabled: true }) {
   const editor = util.getActiveTextEditor();
   const document = editor.document;
-  const selection = editor.selection;
+  const selection = editor.selections[0];
   const range = selection.isEmpty
     ? select.getFormSelection(document, selection.active, false)
     : selection;

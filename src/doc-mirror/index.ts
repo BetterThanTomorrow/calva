@@ -135,13 +135,13 @@ export class MirroredDocument implements EditableDocument {
 
   public insertString(text: string) {
     const editor = utilities.getActiveTextEditor(),
-      selection = editor.selection,
+      selection = editor.selections[0],
       wsEdit = new vscode.WorkspaceEdit(),
       // TODO: prob prefer selection.active or .start
       edit = vscode.TextEdit.insert(this.document.positionAt(this.selection.anchor), text);
     wsEdit.set(this.document.uri, [edit]);
     void vscode.workspace.applyEdit(wsEdit).then((_v) => {
-      editor.selection = selection;
+      editor.selections = [selection];
     });
   }
 
@@ -150,21 +150,21 @@ export class MirroredDocument implements EditableDocument {
       document = editor.document,
       anchor = document.positionAt(selection.anchor),
       active = document.positionAt(selection.active);
-    editor.selection = new vscode.Selection(anchor, active);
+    editor.selections = [new vscode.Selection(anchor, active)];
     editor.revealRange(new vscode.Range(active, active));
   }
 
   get selection(): ModelEditSelection {
     const editor = utilities.getActiveTextEditor(),
       document = editor.document,
-      anchor = document.offsetAt(editor.selection.anchor),
-      active = document.offsetAt(editor.selection.active);
+      anchor = document.offsetAt(editor.selections[0].anchor),
+      active = document.offsetAt(editor.selections[0].active);
     return new ModelEditSelection(anchor, active);
   }
 
   public getSelectionText() {
     const editor = utilities.getActiveTextEditor(),
-      selection = editor.selection;
+      selection = editor.selections[0];
     return this.document.getText(selection);
   }
 

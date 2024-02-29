@@ -78,8 +78,8 @@ const getLSPCommandParams = () => {
     return;
   }
 
-  const line = editor.selection.start.line;
-  const column = editor.selection.start.character;
+  const line = editor.selections[0].start.line;
+  const column = editor.selections[0].start.character;
   const doc_uri = `${document.uri.scheme}://${document.uri.path}`;
   return [doc_uri, line, column];
 };
@@ -126,12 +126,9 @@ function sendCommand(clients: defs.LspClientStore, command: string, args?: any[]
 
 const codeLensReferencesHandler: LSPCommandHandler = async (params) => {
   const [_, line, character] = params.args;
-  calva_utils.getActiveTextEditor().selection = new vscode.Selection(
-    line - 1,
-    character - 1,
-    line - 1,
-    character - 1
-  );
+  calva_utils.getActiveTextEditor().selections = [
+    new vscode.Selection(line - 1, character - 1, line - 1, character - 1),
+  ];
   await vscode.commands.executeCommand('editor.action.referenceSearch.trigger');
 };
 
@@ -139,7 +136,7 @@ const resolveMacroAsCommandHandler: LSPCommandHandler = (params) => {
   const activeTextEditor = calva_utils.tryToGetActiveTextEditor();
   if (activeTextEditor?.document?.languageId === 'clojure') {
     const documentUri = decodeURIComponent(activeTextEditor.document.uri.toString());
-    const { line, character } = activeTextEditor.selection.active;
+    const { line, character } = activeTextEditor.selections[0].active;
     sendCommandRequest(params.clients, RESOLVE_MACRO_AS_COMMAND, [
       documentUri,
       line + 1,

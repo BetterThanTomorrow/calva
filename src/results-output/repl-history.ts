@@ -17,7 +17,7 @@ let lastTextAtPrompt: string | undefined = undefined;
 function setReplHistoryCommandsActiveContext(editor: vscode.TextEditor): void {
   if (editor && util.getConnectedState() && isResultsDoc(editor.document)) {
     const document = editor.document;
-    const selection = editor.selection;
+    const selection = editor.selections[0];
     const positionAtEndOfContent = document.positionAt(
       getIndexAfterLastNonWhitespace(document.getText())
     );
