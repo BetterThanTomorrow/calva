@@ -17,7 +17,7 @@ describe('paredit', () => {
 
   beforeEach(() => {
     doc = new model.StringDocument(docText);
-    doc.selection = startSelection.clone();
+    doc.selections = [startSelection.clone()];
   });
 
   describe('movement', () => {
@@ -216,7 +216,7 @@ describe('paredit', () => {
         const a = docFromTextNotation('(a|\n   e) g)');
         const b = docFromTextNotation('(a|\n|   e)');
         const expected = textAndSelection(b)[1];
-        const actual = paredit.forwardHybridSexpRange(a, a.selection.active, false);
+        const actual = paredit.forwardHybridSexpRange(a, a.selections[0].active, false);
         expect(actual).toEqual(expected);
       });
 
@@ -636,21 +636,21 @@ describe('paredit', () => {
         doc = new model.StringDocument(docText);
       });
       it('dragSexprBackward: #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö => #x•#y•1•#f•(#b •[:f :b :z])•#å#ä#ö', async () => {
-        doc.selection = new ModelEditSelection(26, 26);
+        doc.selections = [new ModelEditSelection(26, 26)];
         await paredit.dragSexprBackward(doc);
         expect(doc.model.getText(0, Infinity)).toBe('#x\n#y\n1\n#f\n(#b \n[:f :b :z])\n#å#ä#ö');
       });
       it('dragSexprForward: #f•|(#b •[:f :b :z])•#x•#y•1#å#ä#ö => #x•#y•1•#f•|(#b •[:f :b :z])•#å#ä#ö', async () => {
-        doc.selection = new ModelEditSelection(3, 3);
+        doc.selections = [new ModelEditSelection(3, 3)];
         await paredit.dragSexprForward(doc);
         expect(doc.model.getText(0, Infinity)).toBe('#x\n#y\n1\n#f\n(#b \n[:f :b :z])\n#å#ä#ö');
-        expect(doc.selection).toEqual(new ModelEditSelection(11));
+        expect(doc.selections).toEqual([new ModelEditSelection(11)]);
       });
       it('dragSexprForward: #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö => #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö', async () => {
-        doc.selection = new ModelEditSelection(26, 26);
+        doc.selections = [new ModelEditSelection(26, 26)];
         await paredit.dragSexprForward(doc);
         expect(doc.model.getText(0, Infinity)).toBe('#f\n(#b \n[:f :b :z])\n#x\n#y\n1\n#å#ä#ö');
-        expect(doc.selection).toEqual(new ModelEditSelection(26));
+        expect(doc.selections).toEqual([new ModelEditSelection(26)]);
       });
     });
   });
@@ -662,14 +662,14 @@ describe('paredit', () => {
         const a = docFromTextNotation('(def foo [:foo :bar |<|:baz|<|])');
         const selDoc = docFromTextNotation('(def foo [:foo |:bar| :baz])');
         const b = docFromTextNotation('(def foo [:foo |<|:bar :baz|<|])');
-        paredit.selectRangeBackward(a, [selDoc.selection.anchor, selDoc.selection.active]);
+        paredit.selectRangeBackward(a, [selDoc.selections[0].anchor, selDoc.selections[0].active]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Contracts forward selection and extends backwards', () => {
         const a = docFromTextNotation('(def foo [:foo :bar |>|:baz|>|])');
         const selDoc = docFromTextNotation('(def foo [:foo |:bar| :baz])');
         const b = docFromTextNotation('(def foo [:foo |<|:bar |<|:baz])');
-        paredit.selectRangeBackward(a, [selDoc.selection.anchor, selDoc.selection.active]);
+        paredit.selectRangeBackward(a, [selDoc.selections[0].anchor, selDoc.selections[0].active]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
@@ -679,27 +679,27 @@ describe('paredit', () => {
         const barSelection = new ModelEditSelection(15, 19),
           bazRange = [20, 24] as [number, number],
           barBazSelection = new ModelEditSelection(15, 24);
-        doc.selection = barSelection;
+        doc.selections = [barSelection];
         paredit.selectRangeForward(doc, bazRange);
-        expect(doc.selection).toEqual(barBazSelection);
+        expect(doc.selections).toEqual([barBazSelection]);
       });
       it('(def foo [<:foo :bar< >|:baz>|]) => (def foo [>:foo :bar :baz>])', () => {
         const [fooLeft, barRight] = [10, 19],
           barFooSelection = new ModelEditSelection(barRight, fooLeft),
           bazRange = [20, 24] as [number, number],
           fooBazSelection = new ModelEditSelection(19, 24);
-        doc.selection = barFooSelection;
+        doc.selections = [barFooSelection];
         paredit.selectRangeForward(doc, bazRange);
-        expect(doc.selection).toEqual(fooBazSelection);
+        expect(doc.selections).toEqual([fooBazSelection]);
       });
       it('(def foo [<:foo :bar< <|:baz<|]) => (def foo [>:foo :bar :baz>])', () => {
         const [fooLeft, barRight] = [10, 19],
           barFooSelection = new ModelEditSelection(barRight, fooLeft),
           bazRange = [24, 20] as [number, number],
           fooBazSelection = new ModelEditSelection(19, 24);
-        doc.selection = barFooSelection;
+        doc.selections = [barFooSelection];
         paredit.selectRangeForward(doc, bazRange);
-        expect(doc.selection).toEqual(fooBazSelection);
+        expect(doc.selections).toEqual([fooBazSelection]);
       });
     });
   });
@@ -719,7 +719,7 @@ describe('paredit', () => {
       expect(doc.selectionStack[doc.selectionStack.length - 1]).toEqual(selectionBefore);
     });
     it('should not add selections identical to the topmost', () => {
-      const selectionBefore = doc.selection.clone();
+      const selectionBefore = doc.selections[0].clone();
       paredit.growSelectionStack(doc, range);
       paredit.growSelectionStack(doc, range);
       paredit.shrinkSelection(doc);
@@ -737,25 +737,25 @@ describe('paredit', () => {
     });
     it('grows selection to binding pairs', () => {
       const a = docFromTextNotation('(a (let [b c |e| f]))');
-      const aSelection = new ModelEditSelection(a.selection.anchor, a.selection.active);
+      const aSelection = new ModelEditSelection(a.selections[0].anchor, a.selections[0].active);
       const b = docFromTextNotation('(a (let [b c |e f|]))');
-      const bSelection = new ModelEditSelection(b.selection.anchor, b.selection.active);
+      const bSelection = new ModelEditSelection(b.selections[0].anchor, b.selections[0].active);
       paredit.growSelection(a);
       expect(a.selectionStack).toEqual([aSelection, bSelection]);
     });
     it('grows selection to all of binding box when binding pairs are selected', () => {
       const a = docFromTextNotation('(a (let [b c |e f|]))');
-      const aSelection = new ModelEditSelection(a.selection.anchor, a.selection.active);
+      const aSelection = new ModelEditSelection(a.selections[0].anchor, a.selections[0].active);
       const b = docFromTextNotation('(a (let [|b c e f|]))');
-      const bSelection = new ModelEditSelection(b.selection.anchor, b.selection.active);
+      const bSelection = new ModelEditSelection(b.selections[0].anchor, b.selections[0].active);
       paredit.growSelection(a);
       expect(a.selectionStack).toEqual([aSelection, bSelection]);
     });
     it('grows selection to the binding box when all binding pairs are selected', () => {
       const a = docFromTextNotation('(a (let [|b c e f|]))');
-      const aSelection = new ModelEditSelection(a.selection.anchor, a.selection.active);
+      const aSelection = new ModelEditSelection(a.selections[0].anchor, a.selections[0].active);
       const b = docFromTextNotation('(a (let |[b c e f]|))');
-      const bSelection = new ModelEditSelection(b.selection.anchor, b.selection.active);
+      const bSelection = new ModelEditSelection(b.selections[0].anchor, b.selections[0].active);
       paredit.growSelection(a);
       expect(a.selectionStack).toEqual([aSelection, bSelection]);
     });
