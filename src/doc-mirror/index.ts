@@ -10,6 +10,7 @@ import {
   ModelEditOptions,
   LineInputModel,
   ModelEditSelection,
+  ModelEditFunction,
 } from '../cursor-doc/model';
 import { isUndefined } from 'lodash';
 
@@ -24,7 +25,7 @@ export class DocumentModel implements EditableModel {
     this.lineInputModel = new LineInputModel(this.lineEndingLength);
   }
 
-  edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
+  edit(modelEdits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): Thenable<boolean> {
     const editor = utilities.getActiveTextEditor(),
       undoStopBefore = !!options.undoStopBefore;
     return editor

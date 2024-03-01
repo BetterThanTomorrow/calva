@@ -36,9 +36,16 @@ export class TextLine {
 }
 
 export type ModelEditFunction = 'insertString' | 'changeRange' | 'deleteRange';
+export type ModelEditArgs<T extends ModelEditFunction> = T extends 'insertString'
+  ? Parameters<LineInputModel['insertString']>
+  : T extends 'changeRange'
+  ? Parameters<LineInputModel['changeRange']>
+  : T extends 'deleteRange'
+  ? Parameters<LineInputModel['deleteRange']>
+  : never;
 
-export class ModelEdit {
-  constructor(public editFn: ModelEditFunction, public args: any[]) {}
+export class ModelEdit<T extends ModelEditFunction> {
+  constructor(public editFn: T, public args: Readonly<ModelEditArgs<T>>) {}
 }
 
 /**
@@ -104,7 +111,7 @@ export interface EditableModel {
    * For some EditableModel's these are performed as one atomic set of edits.
    * @param edits
    */
-  edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
+  edit: (edits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions) => Thenable<boolean>;
 
   getText: (start: number, end: number, mustBeWithin?: boolean) => string;
   getLineText: (line: number) => string;
@@ -365,7 +372,7 @@ export class LineInputModel implements EditableModel {
    * Doesn't need to be atomic in the LineInputModel.
    * @param edits
    */
-  edit(edits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
+  edit(edits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): Thenable<boolean> {
     return new Promise((resolve, reject) => {
       for (const edit of edits) {
         switch (edit.editFn) {

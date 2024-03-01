@@ -652,8 +652,8 @@ export async function forwardSlurpSexp(
       const replacedText = doc.model.getText(wsStartOffset, wsEndOffset);
       const changeArgs =
         replacedText.indexOf('\n') >= 0
-          ? [currentCloseOffset, currentCloseOffset + close.length, '']
-          : [wsStartOffset, wsEndOffset, ' '];
+          ? ([currentCloseOffset, currentCloseOffset + close.length, ''] as const)
+          : ([wsStartOffset, wsEndOffset, ' '] as const);
       return doc.model.edit(
         [
           new ModelEdit('insertString', [newCloseOffset, close]),
@@ -1336,7 +1336,7 @@ export async function dragSexprBackwardUp(doc: EditableDocument, p = doc.selecti
     const newPosOffset = p - currentRange[0];
     const newCursorPos = listStart + newPosOffset;
     const listIndent = cursor.getToken().offset;
-    let dragText: string, deleteEdit: ModelEdit;
+    let dragText: string, deleteEdit: ModelEdit<'deleteRange'>;
     if (wsInfo.hasLeftWs) {
       dragText =
         doc.model.getText(...currentRange) +
