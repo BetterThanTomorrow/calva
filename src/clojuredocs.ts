@@ -63,7 +63,11 @@ export function printTextToRichCommentCommand(args: { [x: string]: string }) {
 async function printTextToRichComment(text: string, position?: number) {
   const doc = util.getDocument({});
   const mirrorDoc = docMirror.getDocument(doc);
-  return paredit.addRichComment(mirrorDoc, position ? position : mirrorDoc.selection.active, text);
+  return paredit.addRichComment(
+    mirrorDoc,
+    position ? position : mirrorDoc.selections[0].active,
+    text
+  );
 }
 
 export async function getExamplesHover(
