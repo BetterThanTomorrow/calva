@@ -100,7 +100,7 @@ export type ModelEditOptions = {
   undoStopBefore?: boolean;
   formatDepth?: number;
   skipFormat?: boolean;
-  selection?: ModelEditSelection;
+  selections?: ModelEditSelection[];
 };
 
 export interface EditableModel {
@@ -395,8 +395,8 @@ export class LineInputModel implements EditableModel {
             break;
         }
       }
-      if (this.document && options.selection) {
-        this.document.selection = options.selection;
+      if (this.document && options.selections) {
+        this.document.selection = options.selections[0];
       }
       resolve(true);
     });
@@ -575,14 +575,14 @@ export class StringDocument implements EditableDocument {
   delete() {
     const p = this.selection.anchor;
     return this.model.edit([new ModelEdit('deleteRange', [p, 1])], {
-      selection: new ModelEditSelection(p),
+      selections: [new ModelEditSelection(p)],
     });
   }
 
   backspace() {
     const p = this.selection.anchor;
     return this.model.edit([new ModelEdit('deleteRange', [p - 1, 1])], {
-      selection: new ModelEditSelection(p - 1),
+      selections: [new ModelEditSelection(p - 1)],
     });
   }
 }

@@ -51,8 +51,8 @@ export class DocumentModel implements EditableModel {
       )
       .then((isFulfilled) => {
         if (isFulfilled) {
-          if (options.selection) {
-            this.document.selection = options.selection;
+          if (options.selections) {
+            this.document.selection = options.selections[0];
           }
           if (!options.skipFormat) {
             return formatter.formatPosition(editor, true, {

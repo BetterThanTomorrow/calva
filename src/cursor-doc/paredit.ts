@@ -24,7 +24,7 @@ export async function killRange(
 ) {
   const [left, right] = [Math.min(...range), Math.max(...range)];
   return doc.model.edit([new ModelEdit('deleteRange', [left, right - left, [start, end]])], {
-    selection: new ModelEditSelection(left),
+    selections: [new ModelEditSelection(left)],
   });
 }
 
@@ -472,7 +472,7 @@ export async function wrapSexpr(
           ]),
         ],
         {
-          selection: new ModelEditSelection(start + open.length),
+          selections: [new ModelEditSelection(start + open.length)],
           skipFormat: options.skipFormat,
         }
       );
@@ -486,7 +486,7 @@ export async function wrapSexpr(
         new ModelEdit('insertString', [range[0], open]),
       ],
       {
-        selection: new ModelEditSelection(start + open.length),
+        selections: [new ModelEditSelection(start + open.length)],
         skipFormat: options.skipFormat,
       }
     );
@@ -515,7 +515,7 @@ export async function rewrapSexpr(
           new ModelEdit('changeRange', [oldCloseStart, oldCloseEnd, close]),
           new ModelEdit('changeRange', [oldOpenStart, oldOpenEnd, open]),
         ],
-        { selection: new ModelEditSelection(end + d) }
+        { selections: [new ModelEditSelection(end + d)] }
       );
     }
   }
@@ -534,7 +534,7 @@ export async function splitSexp(doc: EditableDocument, start: number = doc.selec
       return doc.model.edit(
         [new ModelEdit('changeRange', [splitPos, splitPos, `${close}${open}`])],
         {
-          selection: new ModelEditSelection(splitPos + 1),
+          selections: [new ModelEditSelection(splitPos + 1)],
         }
       );
     }
@@ -569,7 +569,7 @@ export async function joinSexp(
             [prevEnd, prevEnd],
           ]),
         ],
-        { selection: new ModelEditSelection(prevEnd), formatDepth: 2 }
+        { selections: [new ModelEditSelection(prevEnd)], formatDepth: 2 }
       );
     }
   }
@@ -596,7 +596,7 @@ export async function spliceSexp(
           new ModelEdit('changeRange', [end, end + close.raw.length, '']),
           new ModelEdit('changeRange', [beginning - open.raw.length, beginning, '']),
         ],
-        { undoStopBefore, selection: new ModelEditSelection(start - 1) }
+        { undoStopBefore, selections: [new ModelEditSelection(start - 1)] }
       );
     }
   }
@@ -606,7 +606,7 @@ export async function killBackwardList(doc: EditableDocument, [start, end]: [num
   return doc.model.edit(
     [new ModelEdit('changeRange', [start, end, '', [end, end], [start, start]])],
     {
-      selection: new ModelEditSelection(start),
+      selections: [new ModelEditSelection(start)],
     }
   );
 }
@@ -626,7 +626,7 @@ export async function killForwardList(doc: EditableDocument, [start, end]: [numb
         [start, start],
       ]),
     ],
-    { selection: new ModelEditSelection(start) }
+    { selections: [new ModelEditSelection(start)] }
   );
 }
 
@@ -726,7 +726,7 @@ export async function forwardBarfSexp(doc: EditableDocument, start: number = doc
       ],
       start >= cursor.offsetStart
         ? {
-            selection: new ModelEditSelection(cursor.offsetStart),
+            selections: [new ModelEditSelection(cursor.offsetStart)],
             formatDepth: 2,
           }
         : { formatDepth: 2 }
@@ -755,7 +755,7 @@ export async function backwardBarfSexp(
       ],
       start <= cursor.offsetStart
         ? {
-            selection: new ModelEditSelection(cursor.offsetStart),
+            selections: [new ModelEditSelection(cursor.offsetStart)],
             formatDepth: 2,
           }
         : { formatDepth: 2 }
@@ -793,7 +793,7 @@ export async function close(
       // Do nothing when there is balance
     } else {
       return doc.model.edit([new ModelEdit('insertString', [start, close])], {
-        selection: new ModelEditSelection(start + close.length),
+        selections: [new ModelEditSelection(start + close.length)],
       });
     }
   }
@@ -826,7 +826,7 @@ function backspaceOnWhitespaceEdit(
       ]),
     ],
     {
-      selection: new ModelEditSelection(changeArgs.end + changeArgs.indent),
+      selections: [new ModelEditSelection(changeArgs.end + changeArgs.indent)],
       skipFormat: true,
     }
   );
@@ -855,14 +855,14 @@ export async function backspace(
     } else if (doc.model.getText(start - 2, start, true) == '\\"') {
       // delete quoted double quote
       return doc.model.edit([new ModelEdit('deleteRange', [start - 2, 2])], {
-        selection: new ModelEditSelection(start - 2),
+        selections: [new ModelEditSelection(start - 2)],
       });
     } else if (prevToken.type === 'open' && nextToken.type === 'close') {
       // delete empty list
       return doc.model.edit(
         [new ModelEdit('deleteRange', [start - prevToken.raw.length, prevToken.raw.length + 1])],
         {
-          selection: new ModelEditSelection(start - prevToken.raw.length),
+          selections: [new ModelEditSelection(start - prevToken.raw.length)],
         }
       );
     } else if (!isTopLevel && !cursor.withinString() && onlyWhitespaceLeftOfCursor(doc, cursor)) {
@@ -893,13 +893,13 @@ export async function deleteForward(
     const p = start;
     if (doc.model.getText(p, p + 2, true) == '\\"') {
       return doc.model.edit([new ModelEdit('deleteRange', [p, 2])], {
-        selection: new ModelEditSelection(p),
+        selections: [new ModelEditSelection(p)],
       });
     } else if (prevToken.type === 'open' && nextToken.type === 'close') {
       return doc.model.edit(
         [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
         {
-          selection: new ModelEditSelection(p - prevToken.raw.length),
+          selections: [new ModelEditSelection(p - prevToken.raw.length)],
         }
       );
     } else {
@@ -927,7 +927,7 @@ export async function stringQuote(
       if (cursor.getToken().type == 'close') {
         if (doc.model.getText(0, start).endsWith('\\')) {
           return doc.model.edit([new ModelEdit('changeRange', [start, start, '"'])], {
-            selection: new ModelEditSelection(start + 1),
+            selections: [new ModelEditSelection(start + 1)],
           });
         } else {
           return close(doc, '"', start);
@@ -935,17 +935,17 @@ export async function stringQuote(
       } else {
         if (doc.model.getText(0, start).endsWith('\\')) {
           return doc.model.edit([new ModelEdit('changeRange', [start, start, '"'])], {
-            selection: new ModelEditSelection(start + 1),
+            selections: [new ModelEditSelection(start + 1)],
           });
         } else {
           return doc.model.edit([new ModelEdit('changeRange', [start, start, '\\"'])], {
-            selection: new ModelEditSelection(start + 2),
+            selections: [new ModelEditSelection(start + 2)],
           });
         }
       }
     } else {
       return doc.model.edit([new ModelEdit('changeRange', [start, start, '""'])], {
-        selection: new ModelEditSelection(start + 1),
+        selections: [new ModelEditSelection(start + 1)],
       });
     }
   }
@@ -1059,9 +1059,11 @@ export async function raiseSexp(
         return doc.model.edit(
           [new ModelEdit('changeRange', [startCursor.offsetStart, endCursor.offsetEnd, raised])],
           {
-            selection: new ModelEditSelection(
-              isCaretTrailing ? startCursor.offsetStart + raised.length : startCursor.offsetStart
-            ),
+            selections: [
+              new ModelEditSelection(
+                isCaretTrailing ? startCursor.offsetStart + raised.length : startCursor.offsetStart
+              ),
+            ],
           }
         );
       }
@@ -1152,7 +1154,7 @@ export async function transpose(
               [newCursorPos, newCursorPos],
             ]),
           ],
-          { selection: new ModelEditSelection(newCursorPos) }
+          { selections: [new ModelEditSelection(newCursorPos)] }
         );
       }
     }
@@ -1245,7 +1247,7 @@ export async function dragSexprBackward(
         new ModelEdit('changeRange', [currentRange[0], currentRange[1], leftText]),
         new ModelEdit('changeRange', [backRange[0], backRange[1], currentText]),
       ],
-      { selection: new ModelEditSelection(backRange[0] + newPosOffset) }
+      { selections: [new ModelEditSelection(backRange[0] + newPosOffset)] }
     );
   }
 }
@@ -1273,9 +1275,11 @@ export async function dragSexprForward(
         new ModelEdit('changeRange', [currentRange[0], currentRange[1], rightText]),
       ],
       {
-        selection: new ModelEditSelection(
-          currentRange[1] + (forwardRange[1] - currentRange[1]) - newPosOffset
-        ),
+        selections: [
+          new ModelEditSelection(
+            currentRange[1] + (forwardRange[1] - currentRange[1]) - newPosOffset
+          ),
+        ],
       }
     );
   }
@@ -1360,7 +1364,7 @@ export async function dragSexprBackwardUp(doc: EditableDocument, p = doc.selecti
         new ModelEdit('insertString', [listStart, dragText, [p, p], [newCursorPos, newCursorPos]]),
       ],
       {
-        selection: new ModelEditSelection(newCursorPos),
+        selections: [new ModelEditSelection(newCursorPos)],
         skipFormat: false,
         undoStopBefore: true,
       }
@@ -1394,7 +1398,7 @@ export async function dragSexprForwardDown(doc: EditableDocument, p = doc.select
           new ModelEdit('deleteRange', [currentRange[0], deleteLength]),
         ],
         {
-          selection: new ModelEditSelection(newCursorPos),
+          selections: [new ModelEditSelection(newCursorPos)],
           skipFormat: false,
           undoStopBefore: true,
         }
@@ -1426,7 +1430,7 @@ export async function dragSexprForwardUp(doc: EditableDocument, p = doc.selectio
         new ModelEdit('deleteRange', [deleteStart, deleteLength]),
       ],
       {
-        selection: new ModelEditSelection(newCursorPos),
+        selections: [new ModelEditSelection(newCursorPos)],
         skipFormat: false,
         undoStopBefore: true,
       }
@@ -1463,7 +1467,7 @@ export async function dragSexprBackwardDown(doc: EditableDocument, p = doc.selec
           ]),
         ],
         {
-          selection: new ModelEditSelection(newCursorPos),
+          selections: [new ModelEditSelection(newCursorPos)],
           skipFormat: false,
           undoStopBefore: true,
         }
@@ -1524,7 +1528,7 @@ export async function addRichComment(
           ]),
         ],
         {
-          selection: new ModelEditSelection(newCursorPos),
+          selections: [new ModelEditSelection(newCursorPos)],
           skipFormat: true,
           undoStopBefore: false,
         }
@@ -1551,7 +1555,7 @@ export async function addRichComment(
       ]),
     ],
     {
-      selection: new ModelEditSelection(newCursorPos),
+      selections: [new ModelEditSelection(newCursorPos)],
       skipFormat: false,
       undoStopBefore: true,
     }
