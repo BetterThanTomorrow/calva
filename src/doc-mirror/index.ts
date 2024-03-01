@@ -52,7 +52,7 @@ export class DocumentModel implements EditableModel {
       .then((isFulfilled) => {
         if (isFulfilled) {
           if (options.selections) {
-            this.document.selection = options.selections[0];
+            this.document.selections = options.selections;
           }
           if (!options.skipFormat) {
             return formatter.formatPosition(editor, true, {
@@ -128,7 +128,7 @@ export class MirroredDocument implements EditableDocument {
   selectionStack: ModelEditSelection[] = [];
 
   public getTokenCursor(
-    offset: number = this.selection.active,
+    offset: number = this.selections[0].active,
     previous: boolean = false
   ): LispTokenCursor {
     return this.model.getTokenCursor(offset, previous);
@@ -139,28 +139,28 @@ export class MirroredDocument implements EditableDocument {
       selection = editor.selections[0],
       wsEdit = new vscode.WorkspaceEdit(),
       // TODO: prob prefer selection.active or .start
-      edit = vscode.TextEdit.insert(this.document.positionAt(this.selection.anchor), text);
+      edit = vscode.TextEdit.insert(this.document.positionAt(this.selections[0].anchor), text);
     wsEdit.set(this.document.uri, [edit]);
     void vscode.workspace.applyEdit(wsEdit).then((_v) => {
       editor.selections = [selection];
     });
   }
 
-  set selection(selection: ModelEditSelection) {
+  set selections(selections: ModelEditSelection[]) {
     const editor = utilities.getActiveTextEditor(),
       document = editor.document,
-      anchor = document.positionAt(selection.anchor),
-      active = document.positionAt(selection.active);
+      anchor = document.positionAt(selections[0].anchor),
+      active = document.positionAt(selections[0].active);
     editor.selections = [new vscode.Selection(anchor, active)];
     editor.revealRange(new vscode.Range(active, active));
   }
 
-  get selection(): ModelEditSelection {
+  get selections(): ModelEditSelection[] {
     const editor = utilities.getActiveTextEditor(),
       document = editor.document,
       anchor = document.offsetAt(editor.selections[0].anchor),
       active = document.offsetAt(editor.selections[0].active);
-    return new ModelEditSelection(anchor, active);
+    return [new ModelEditSelection(anchor, active)];
   }
 
   public getSelectionText() {

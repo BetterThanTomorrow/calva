@@ -120,7 +120,7 @@ export interface EditableModel {
 }
 
 export interface EditableDocument {
-  selection: ModelEditSelection;
+  selections: ModelEditSelection[];
   model: EditableModel;
   selectionStack: ModelEditSelection[];
   getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor;
@@ -396,7 +396,7 @@ export class LineInputModel implements EditableModel {
         }
       }
       if (this.document && options.selections) {
-        this.document.selection = options.selections[0];
+        this.document.selections = options.selections;
       }
       resolve(true);
     });
@@ -551,7 +551,7 @@ export class StringDocument implements EditableDocument {
     }
   }
 
-  selection: ModelEditSelection;
+  selections: ModelEditSelection[];
 
   model: LineInputModel;
 
@@ -573,14 +573,14 @@ export class StringDocument implements EditableDocument {
   getSelectionText: () => string;
 
   delete() {
-    const p = this.selection.anchor;
+    const p = this.selections[0].anchor;
     return this.model.edit([new ModelEdit('deleteRange', [p, 1])], {
       selections: [new ModelEditSelection(p)],
     });
   }
 
   backspace() {
-    const p = this.selection.anchor;
+    const p = this.selections[0].anchor;
     return this.model.edit([new ModelEdit('deleteRange', [p - 1, 1])], {
       selections: [new ModelEditSelection(p - 1)],
     });
