@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Refactor some internal document and selection APIs in preparation for multiple selections, addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
 
 ## [2.0.414] - 2024-02-24
 
