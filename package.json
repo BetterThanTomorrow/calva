@@ -112,6 +112,7 @@
           ".boot",
           ".bb",
           ".ly",
+          ".lpy",
           ".calva-repl",
           ".fiddle"
         ],
