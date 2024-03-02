@@ -8,6 +8,17 @@ describe('text-notation test utils', () => {
       const doc = textNotation.docFromTextNotation(inputText);
       expect(textNotation.textNotationFromDoc(doc)).toEqual(inputText);
     });
+    it('returns the normalized version of the input text to textNotationFromDoc', () => {
+      const inputText = '<0e<0 f >1g>1';
+      const normalized = '<e< f |1g|1';
+      const doc = textNotation.docFromTextNotation(inputText);
+      expect(textNotation.textNotationFromDoc(doc)).toEqual(normalized);
+
+      const inputText1 = '|3a|3 <1b<1 >2c>2 d•>0e>0 f |4g<5<5';
+      const normalized1 = '|3a|3 <1b<1 |2c|2 d•|e| f |4g|5';
+      const doc1 = textNotation.docFromTextNotation(inputText1);
+      expect(textNotation.textNotationFromDoc(doc1)).toEqual(normalized1);
+    });
     it('has cursor at end when no trailing newline', () => {
       const inputText = '()|';
       const doc = textNotation.docFromTextNotation(inputText);
