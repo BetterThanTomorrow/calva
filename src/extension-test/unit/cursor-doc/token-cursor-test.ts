@@ -121,7 +121,7 @@ describe('Token Cursor', () => {
     });
     it('Does not skip ignored forms if skipIgnoredForms is false', () => {
       const a = docFromTextNotation('(a| #_1 #_2 3)');
-      const b = docFromTextNotation('(a #_|1 #_2 3)');
+      const b = docFromTextNotation('(a #_|a #_2 3)');
       const cursor = a.getTokenCursor(a.selections[0].anchor);
       cursor.forwardSexp(true, true);
       expect(cursor.offsetStart).toBe(b.selections[0].anchor);
@@ -247,7 +247,7 @@ describe('Token Cursor', () => {
     });
     it('Puts cursor to the right of the following open bracket', () => {
       const a = docFromTextNotation('(a| [1 2]))');
-      const b = docFromTextNotation('(a [|1 2]))');
+      const b = docFromTextNotation('(a [|a 2]))');
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
       cursor.downList();
       expect(cursor.offsetStart).toBe(b.selections[0].anchor);
@@ -362,21 +362,21 @@ describe('Token Cursor', () => {
 
   describe('backwardList', () => {
     it('Finds start of list', () => {
-      const a = docFromTextNotation('(((c•(#b •[:f])•#z•|1)))');
+      const a = docFromTextNotation('(((c•(#b •[:f])•#z•|a)))');
       const b = docFromTextNotation('(((|c•(#b •[:f])•#z•1)))');
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
       cursor.backwardList();
       expect(cursor.offsetStart).toBe(b.selections[0].anchor);
     });
     it('Finds start of list through readers', () => {
-      const a = docFromTextNotation('(((c•#a• #f•(#b •[:f])•#z•|1)))');
+      const a = docFromTextNotation('(((c•#a• #f•(#b •[:f])•#z•|a)))');
       const b = docFromTextNotation('(((|c•#a• #f•(#b •[:f])•#z•1)))');
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
       cursor.backwardList();
       expect(cursor.offsetStart).toBe(b.selections[0].anchor);
     });
     it('Finds start of list through metadata', () => {
-      const a = docFromTextNotation('(((c•^{:a c} (#b •[:f])•#z•|1)))');
+      const a = docFromTextNotation('(((c•^{:a c} (#b •[:f])•#z•|a)))');
       const b = docFromTextNotation('(((|c•^{:a c} (#b •[:f])•#z•1)))');
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
       cursor.backwardList();
@@ -445,7 +445,7 @@ describe('Token Cursor', () => {
       expect(result).toBe(true);
     });
     it('Finds end of map', () => {
-      const a = docFromTextNotation('({:a [(c•(#|b •[:f])•#z•|1)]})');
+      const a = docFromTextNotation('({:a [(c•(#|b •[:f])•#z•|a)]})');
       const b = docFromTextNotation('({:a [(c•(#b •[:f])•#z•1)]|})');
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
       const result = cursor.forwardListOfType('}');
@@ -472,7 +472,7 @@ describe('Token Cursor', () => {
 
   describe('backwardListOfType', () => {
     it('Finds start of list', () => {
-      const a = docFromTextNotation('([#{c•(#b •[:f])•#z•|1}])');
+      const a = docFromTextNotation('([#{c•(#b •[:f])•#z•|a}])');
       const b = docFromTextNotation('(|[#{c•(#b •[:f])•#z•1}])');
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
       const result = cursor.backwardListOfType('(');
@@ -480,7 +480,7 @@ describe('Token Cursor', () => {
       expect(cursor.offsetStart).toBe(b.selections[0].anchor);
     });
     it('Finds start of vector', () => {
-      const a = docFromTextNotation('([(c•(#b •[:f])•#z•|1)])');
+      const a = docFromTextNotation('([(c•(#b •[:f])•#z•|a)])');
       const b = docFromTextNotation('([|(c•(#b •[:f])•#z•1)])');
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
       const result = cursor.backwardListOfType('[');
@@ -488,7 +488,7 @@ describe('Token Cursor', () => {
       expect(result).toBe(true);
     });
     it('Finds start of map', () => {
-      const a = docFromTextNotation('({:a [(c•(#b •[:f])•#z•|1)]})');
+      const a = docFromTextNotation('({:a [(c•(#b •[:f])•#z•|a)]})');
       const b = docFromTextNotation('({|:a [(c•(#b •[:f])•#z•1)]})');
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
       const result = cursor.backwardListOfType('{');

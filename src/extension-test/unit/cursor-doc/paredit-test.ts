@@ -78,18 +78,18 @@ describe('paredit', () => {
         expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
       });
       it('Finds next symbol, including leading space', () => {
-        const a = docFromTextNotation('(|>|def|>| foo [vec])');
-        const b = docFromTextNotation('(def|>| foo|>| [vec])');
+        const a = docFromTextNotation('(>0def>0 foo [vec])');
+        const b = docFromTextNotation('(def>0 foo>0 [vec])');
         expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
       });
       it('Finds following vector including leading space', () => {
-        const a = docFromTextNotation('(|>|def foo|>| [vec])');
-        const b = docFromTextNotation('(def foo|>| [vec]|>|)');
+        const a = docFromTextNotation('(>0def foo>0 [vec])');
+        const b = docFromTextNotation('(def foo>0 [vec]>0)');
         expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
       });
       it('Reverses direction of selection and finds next sexp', () => {
-        const a = docFromTextNotation('(|<|def foo|<| [vec])');
-        const b = docFromTextNotation('(def foo|>| [vec]|>|)');
+        const a = docFromTextNotation('(<0def foo<0 [vec])');
+        const b = docFromTextNotation('(def foo>0 [vec]>0)');
         expect(paredit.forwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
       });
     });
@@ -117,8 +117,8 @@ describe('paredit', () => {
       });
       it('Finds previous form, including space, and reverses direction', () => {
         // TODO: Should we really be reversing the direction here?
-        const a = docFromTextNotation('(def |<|foo [vec]|<|)');
-        const b = docFromTextNotation('(|>|def |>|foo [vec])');
+        const a = docFromTextNotation('(def <0foo [vec]<0)');
+        const b = docFromTextNotation('(>0def >0foo [vec])');
         expect(paredit.backwardSexpRange(a)).toEqual(textAndSelection(b)[1]);
       });
     });
@@ -411,18 +411,18 @@ describe('paredit', () => {
         expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
       });
       it('Finds next symbol, including leading space', () => {
-        const a = docFromTextNotation('(|>|def|>| foo [vec])');
-        const b = docFromTextNotation('(def|>| foo|>| [vec])');
+        const a = docFromTextNotation('(>0def>0 foo [vec])');
+        const b = docFromTextNotation('(def>0 foo>0 [vec])');
         expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
       });
       it('Finds following vector including leading space', () => {
-        const a = docFromTextNotation('(|>|def foo|>| [vec])');
-        const b = docFromTextNotation('(def foo|>| [vec]|>|)');
+        const a = docFromTextNotation('(>0def foo>0 [vec])');
+        const b = docFromTextNotation('(def foo>0 [vec]>0)');
         expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
       });
       it('Reverses direction of selection and finds next sexp', () => {
-        const a = docFromTextNotation('(|<|def foo|<| [vec])');
-        const b = docFromTextNotation('(def foo|>| [vec]|>|)');
+        const a = docFromTextNotation('(<0def foo<0 [vec])');
+        const b = docFromTextNotation('(def foo>0 [vec]>0)');
         expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
       });
     });
@@ -450,8 +450,8 @@ describe('paredit', () => {
       });
       it('Finds previous form, including space, and reverses direction', () => {
         // TODO: Should we really be reversing the direction here?
-        const a = docFromTextNotation('(def |<|foo [vec]|<|)');
-        const b = docFromTextNotation('(|>|def |>|foo [vec])');
+        const a = docFromTextNotation('(def <0foo [vec]<0)');
+        const b = docFromTextNotation('(>0def >0foo [vec])');
         expect(paredit.backwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
       });
       it('Goes up when at front bounds', () => {
@@ -463,20 +463,20 @@ describe('paredit', () => {
 
     describe('moveToRangeRight', () => {
       it('Places cursor at the right end of the selection', () => {
-        const a = docFromTextNotation('(def |>|foo|>| [vec])');
+        const a = docFromTextNotation('(def >0foo>0 [vec])');
         const b = docFromTextNotation('(def foo| [vec])');
         paredit.moveToRangeRight(a, textAndSelection(a)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Places cursor at the right end of the selection 2', () => {
-        const a = docFromTextNotation('(|>|def foo|>| [vec])');
+        const a = docFromTextNotation('(>0def foo>0 [vec])');
         const b = docFromTextNotation('(def foo| [vec])');
         paredit.moveToRangeRight(a, textAndSelection(a)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Move to right of given range, regardless of previous selection', () => {
-        const a = docFromTextNotation('(|<|def|<| foo [vec])');
-        const b = docFromTextNotation('(def foo |>|[vec]|>|)');
+        const a = docFromTextNotation('(<0def<0 foo [vec])');
+        const b = docFromTextNotation('(def foo >0[vec]>0)');
         const c = docFromTextNotation('(def foo [vec]|)');
         paredit.moveToRangeRight(a, textAndSelection(b)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(c));
@@ -485,20 +485,20 @@ describe('paredit', () => {
 
     describe('moveToRangeLeft', () => {
       it('Places cursor at the left end of the selection', () => {
-        const a = docFromTextNotation('(def |>|foo|>| [vec])');
+        const a = docFromTextNotation('(def >0foo>0 [vec])');
         const b = docFromTextNotation('(def |foo [vec])');
         paredit.moveToRangeLeft(a, textAndSelection(a)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Places cursor at the left end of the selection 2', () => {
-        const a = docFromTextNotation('(|>|def foo|>| [vec])');
+        const a = docFromTextNotation('(>0def foo>0 [vec])');
         const b = docFromTextNotation('(|def foo [vec])');
         paredit.moveToRangeLeft(a, textAndSelection(a)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Move to left of given range, regardless of previous selection', () => {
-        const a = docFromTextNotation('(|<|def|<| foo [vec])');
-        const b = docFromTextNotation('(def foo |>|[vec]|>|)');
+        const a = docFromTextNotation('(<0def<0 foo [vec])');
+        const b = docFromTextNotation('(def foo >0[vec]>0)');
         const c = docFromTextNotation('(def foo |[vec])');
         paredit.moveToRangeLeft(a, textAndSelection(b)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(c));
@@ -615,8 +615,8 @@ describe('paredit', () => {
         doc = new model.StringDocument(docText);
       });
       it('dragSexprBackward', async () => {
-        const a = docFromTextNotation('(c•#f•(#b •[:f :b :z])•#x•#y•|1)');
-        const b = docFromTextNotation('(c•#x•#y•|1•#f•(#b •[:f :b :z]))');
+        const a = docFromTextNotation('(c•#f•(#b •[:f :b :z])•#x•#y•|:a)');
+        const b = docFromTextNotation('(c•#x•#y•|:a•#f•(#b •[:f :b :z]))');
         await paredit.dragSexprBackward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
@@ -635,7 +635,7 @@ describe('paredit', () => {
       beforeEach(() => {
         doc = new model.StringDocument(docText);
       });
-      it('dragSexprBackward: #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö => #x•#y•1•#f•(#b •[:f :b :z])•#å#ä#ö', async () => {
+      it('dragSexprBackward: #f•(#b •[:f :b :z])•#x•#y•|:a•#å#ä#ö => #x•#y•1•#f•(#b •[:f :b :z])•#å#ä#ö', async () => {
         doc.selections = [new ModelEditSelection(26, 26)];
         await paredit.dragSexprBackward(doc);
         expect(doc.model.getText(0, Infinity)).toBe('#x\n#y\n1\n#f\n(#b \n[:f :b :z])\n#å#ä#ö');
@@ -646,7 +646,7 @@ describe('paredit', () => {
         expect(doc.model.getText(0, Infinity)).toBe('#x\n#y\n1\n#f\n(#b \n[:f :b :z])\n#å#ä#ö');
         expect(doc.selections).toEqual([new ModelEditSelection(11)]);
       });
-      it('dragSexprForward: #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö => #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö', async () => {
+      it('dragSexprForward: #f•(#b •[:f :b :z])•#x•#y•|:a•#å#ä#ö => #f•(#b •[:f :b :z])•#x•#y•|:a•#å#ä#ö', async () => {
         doc.selections = [new ModelEditSelection(26, 26)];
         await paredit.dragSexprForward(doc);
         expect(doc.model.getText(0, Infinity)).toBe('#f\n(#b \n[:f :b :z])\n#x\n#y\n1\n#å#ä#ö');
@@ -659,16 +659,16 @@ describe('paredit', () => {
     describe('selectRangeBackward', () => {
       // TODO: Fix #498
       it('Extends backward selections backwards', () => {
-        const a = docFromTextNotation('(def foo [:foo :bar |<|:baz|<|])');
+        const a = docFromTextNotation('(def foo [:foo :bar <0:baz<0])');
         const selDoc = docFromTextNotation('(def foo [:foo |:bar| :baz])');
-        const b = docFromTextNotation('(def foo [:foo |<|:bar :baz|<|])');
+        const b = docFromTextNotation('(def foo [:foo <0:bar :baz<0])');
         paredit.selectRangeBackward(a, [selDoc.selections[0].anchor, selDoc.selections[0].active]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Contracts forward selection and extends backwards', () => {
-        const a = docFromTextNotation('(def foo [:foo :bar |>|:baz|>|])');
+        const a = docFromTextNotation('(def foo [:foo :bar >0:baz>0])');
         const selDoc = docFromTextNotation('(def foo [:foo |:bar| :baz])');
-        const b = docFromTextNotation('(def foo [:foo |<|:bar |<|:baz])');
+        const b = docFromTextNotation('(def foo [:foo <0:bar <0:baz])');
         paredit.selectRangeBackward(a, [selDoc.selections[0].anchor, selDoc.selections[0].active]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
@@ -736,7 +736,7 @@ describe('paredit', () => {
       );
     });
     it('grows selection to binding pairs', () => {
-      const a = docFromTextNotation('(a (let [b c |e| f]))');
+      const a = docFromTextNotation('(a (let [b c >0e>0 f]))');
       const aSelection = new ModelEditSelection(a.selections[0].anchor, a.selections[0].active);
       const b = docFromTextNotation('(a (let [b c |e f|]))');
       const bSelection = new ModelEditSelection(b.selections[0].anchor, b.selections[0].active);
@@ -877,8 +877,8 @@ describe('paredit', () => {
       });
 
       it('drags single sexpr backward in bound vectors', async () => {
-        const a = docFromTextNotation(`(b [x [1 2 |3]])`);
-        const b = docFromTextNotation(`(b [x [1 |3 2]])`);
+        const a = docFromTextNotation(`(b [x [1 2 |:a]])`);
+        const b = docFromTextNotation(`(b [x [1 |:a 2]])`);
         await paredit.dragSexprBackward(a, ['b']);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
@@ -891,8 +891,8 @@ describe('paredit', () => {
       });
 
       it('drags single sexpr backward in bound lists', async () => {
-        const a = docFromTextNotation(`(b [x (1 2 |3)])`);
-        const b = docFromTextNotation(`(b [x (1 |3 2)])`);
+        const a = docFromTextNotation(`(b [x (1 2 |:a)])`);
+        const b = docFromTextNotation(`(b [x (1 |:a 2)])`);
         await paredit.dragSexprBackward(a, ['b']);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
@@ -950,8 +950,8 @@ describe('paredit', () => {
         expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
       });
       it('Drags up from end of indented list', async () => {
-        const b = docFromTextNotation(`((fn foo•  [x]•  [:foo•   :bar•   :baz])• |1)`);
-        const a = docFromTextNotation(`|1•((fn foo•  [x]•  [:foo•   :bar•   :baz]))`);
+        const b = docFromTextNotation(`((fn foo•  [x]•  [:foo•   :bar•   :baz])• |:a)`);
+        const a = docFromTextNotation(`|:a•((fn foo•  [x]•  [:foo•   :bar•   :baz]))`);
         await paredit.dragSexprBackwardUp(b);
         expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
       });
@@ -1553,31 +1553,31 @@ describe('paredit', () => {
 
     describe('killRange', () => {
       it('Deletes top-level range with backward direction', async () => {
-        const a = docFromTextNotation('a |<|b|<| c');
+        const a = docFromTextNotation('a <0b<0 c');
         const b = docFromTextNotation('a | c');
         await paredit.killRange(a, textAndSelection(a)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Deletes top-level range with backward direction, including space', async () => {
-        const a = docFromTextNotation('a |<|b |<|c');
+        const a = docFromTextNotation('a <0b <0c');
         const b = docFromTextNotation('a |c');
         await paredit.killRange(a, textAndSelection(a)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Deletes top-level range with forward direction', async () => {
-        const a = docFromTextNotation('a |>|b |>|c');
+        const a = docFromTextNotation('a >0b >0c');
         const b = docFromTextNotation('a |c');
         await paredit.killRange(a, textAndSelection(a)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Deletes nested range with backward direction', async () => {
-        const a = docFromTextNotation('{a |<|b |<|c}');
+        const a = docFromTextNotation('{a <0b <0c}');
         const b = docFromTextNotation('{a |c}');
         await paredit.killRange(a, textAndSelection(a)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Deletes nested range with forward direction', async () => {
-        const a = docFromTextNotation('{a |>|b |>|c}');
+        const a = docFromTextNotation('{a >0b >0c}');
         const b = docFromTextNotation('{a |c}');
         await paredit.killRange(a, textAndSelection(a)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
