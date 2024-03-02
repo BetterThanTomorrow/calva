@@ -4,8 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Internal textNotation testing system supports multiple selections, addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
-- Add new Calva development utility commands to create textNotations from open buffers, and vice versa
+- [Internal textNotation testing system supports multiple selections](https://github.com/BetterThanTomorrow/calva/issues/2417)
+- [Add new Calva development utility commands to create textNotations from open buffers, and vice versa #](https://github.com/BetterThanTomorrow/calva/issues/2418)
 - Refactor some internal document and selection APIs in preparation for multiple selections, addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
 - [Add default Clojure associations for file extensions `.lpy`](https://github.com/BetterThanTomorrow/calva/issues/2415)
 
