@@ -69,7 +69,7 @@ export function _currentFunction(doc: vscode.TextDocument, topLevel = false): Se
     const tokenCursor = cursorDoc.getTokenCursor();
     if (topLevel) {
       tokenCursor.set(
-        cursorDoc.getTokenCursor(tokenCursor.rangeForDefun(cursorDoc.selection.active)[1] - 1)
+        cursorDoc.getTokenCursor(tokenCursor.rangeForDefun(cursorDoc.selections[0].active)[1] - 1)
       );
     }
     const [start, end] = tokenCursor.getFunctionSexpRange();

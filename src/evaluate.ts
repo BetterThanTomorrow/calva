@@ -61,7 +61,7 @@ async function addAsComment(
     wsEdit = new vscode.WorkspaceEdit();
   wsEdit.set(editor.document.uri, [edit]);
   await vscode.workspace.applyEdit(wsEdit);
-  editor.selection = selection;
+  editor.selections = [selection];
 }
 
 // TODO: Clean up this mess
@@ -141,14 +141,14 @@ async function evaluateCodeUpdatingUI(
               void vscode.workspace.applyEdit(wsEdit);
             } else {
               if (editor && options.comment) {
-                await addAsComment(c, value, selection, editor, editor.selection);
+                await addAsComment(c, value, selection, editor, editor.selections[0]);
               }
               if (editor && !outputWindow.isResultsDoc(editor.document)) {
                 annotations.decorateSelection(
                   value,
                   selection,
                   editor,
-                  editor.selection.active,
+                  editor.selections[0].active,
                   resultLocation,
                   annotations.AnnotationStatus.SUCCESS
                 );
@@ -180,14 +180,14 @@ async function evaluateCodeUpdatingUI(
         outputWindow.appendLine(outputWindowError, async (resultLocation, afterResultLocation) => {
           if (selection) {
             const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
-            const currentCursorPos = editor.selection.active;
+            const currentCursorPos = editor.selections[0].active;
             if (editor && options.comment) {
               await addAsComment(
                 selection.start.character,
                 editorError,
                 selection,
                 editor,
-                editor.selection
+                editor.selections[0]
               );
             }
             if (editor && !outputWindow.isResultsDoc(editor.document)) {
@@ -284,19 +284,19 @@ function printWarningForError(e: any) {
 }
 
 function _currentSelectionElseCurrentForm(editor: vscode.TextEditor): getText.SelectionAndText {
-  if (editor.selection.isEmpty) {
-    return getText.currentFormText(editor?.document, editor.selection.active);
+  if (editor.selections[0].isEmpty) {
+    return getText.currentFormText(editor?.document, editor.selections[0].active);
   } else {
-    return [editor.selection, editor.document.getText(editor.selection)];
+    return [editor.selections[0], editor.document.getText(editor.selections[0])];
   }
 }
 
 function _currentTopLevelFormText(editor: vscode.TextEditor): getText.SelectionAndText {
-  return getText.currentTopLevelFormText(editor?.document, editor?.selection.active);
+  return getText.currentTopLevelFormText(editor?.document, editor?.selections[0].active);
 }
 
 function _currentEnclosingFormText(editor: vscode.TextEditor): getText.SelectionAndText {
-  return getText.currentEnclosingFormText(editor?.document, editor?.selection.active);
+  return getText.currentEnclosingFormText(editor?.document, editor?.selections[0].active);
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
@@ -428,7 +428,7 @@ function evaluateUsingTextAndSelectionGetter(
     Object.assign({}, options, {
       pprintOptions: getConfig().prettyPrintingOptions,
       selectionFn: (editor: vscode.TextEditor) => {
-        const [selection, code] = getter(editor?.document, editor?.selection.active);
+        const [selection, code] = getter(editor?.document, editor?.selections[0].active);
         return [selection, formatter(code)];
       },
     })
@@ -438,7 +438,7 @@ function evaluateUsingTextAndSelectionGetter(
 function evaluateToCursor(document = {}, options = {}) {
   if (util.getConnectedState()) {
     evaluateUsingTextAndSelectionGetter(
-      vscode.window.activeTextEditor.selection.isEmpty
+      vscode.window.activeTextEditor.selections[0].isEmpty
         ? getText.currentEnclosingFormToCursor
         : getText.selectionAddingBrackets,
       (code) => `${code}`,

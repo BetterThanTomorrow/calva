@@ -39,7 +39,7 @@ async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetD
   const editor = util.getActiveTextEditor();
   const [editorNS, _] =
     editor && editor.document && editor.document.languageId === 'clojure'
-      ? namespace.getNamespace(editor.document, editor.selection.active)
+      ? namespace.getNamespace(editor.document, editor.selections[0].active)
       : undefined;
   const editorRepl =
     editor && editor.document && editor.document.languageId === 'clojure'
@@ -157,20 +157,20 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
 
 export function makeContext(editor: vscode.TextEditor, ns: string, editorNS: string, repl: string) {
   return {
-    currentLine: editor.selection.active.line,
-    currentColumn: editor.selection.active.character,
+    currentLine: editor.selections[0].active.line,
+    currentColumn: editor.selections[0].active.character,
     currentFilename: editor.document.fileName,
     ns,
     editorNS,
     repl,
-    selection: editor.document.getText(editor.selection),
+    selection: editor.document.getText(editor.selections[0]),
     selectionWithBracketTrail: getText.selectionAddingBrackets(
       editor.document,
-      editor.selection.active
+      editor.selections[0].active
     ),
     currentFileText: getText.currentFileText(editor.document),
     ...(editor.document.languageId === 'clojure'
-      ? getText.currentClojureContext(editor.document, editor.selection.active)
+      ? getText.currentClojureContext(editor.document, editor.selections[0].active)
       : {}),
   };
 }

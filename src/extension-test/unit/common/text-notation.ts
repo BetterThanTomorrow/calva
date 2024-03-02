@@ -45,7 +45,7 @@ function textNotationToTextAndSelection(s: string): [string, { anchor: number; a
 export function docFromTextNotation(s: string): model.StringDocument {
   const [text, selection] = textNotationToTextAndSelection(s);
   const doc = new model.StringDocument(text);
-  doc.selection = new model.ModelEditSelection(selection.anchor, selection.active);
+  doc.selections = [new model.ModelEditSelection(selection.anchor, selection.active)];
   return doc;
 }
 
@@ -63,5 +63,5 @@ export function text(doc: model.StringDocument): string {
  * selection from a document
  */
 export function textAndSelection(doc: model.StringDocument): [string, [number, number]] {
-  return [text(doc), [doc.selection.anchor, doc.selection.active]];
+  return [text(doc), [doc.selections[0].anchor, doc.selections[0].active]];
 }
