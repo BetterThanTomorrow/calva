@@ -15,6 +15,8 @@ import * as docMirror from '../doc-mirror/index';
 import { EditableDocument } from '../cursor-doc/model';
 import { assertIsDefined } from '../utilities';
 import * as config from '../formatter-config';
+import * as textNotation from '../extension-test/unit/common/text-notation';
+import * as calvaState from '../state';
 
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
@@ -451,7 +453,37 @@ export function activate(context: ExtensionContext) {
     }),
     ...pareditCommands.map((command) =>
       commands.registerCommand(command.command, wrapPareditCommand(command))
-    )
+    ),
+    commands.registerCommand('calva.diagnostics.printTextNotationFromDocument', () => {
+      const doc = vscode.window.activeTextEditor?.document;
+      if (doc && doc.languageId === 'clojure') {
+        const mirrorDoc = docMirror.getDocument(vscode.window.activeTextEditor?.document);
+        const notation = textNotation.textNotationFromDoc(mirrorDoc);
+        const chan = calvaState.outputChannel();
+        const relPath = vscode.workspace.asRelativePath(doc.uri);
+        chan.appendLine(`Text notation for: ${relPath}:\n${notation}`);
+      }
+    }),
+    commands.registerCommand('calva.diagnostics.createDocumentFromTextNotation', async () => {
+      const tn = await vscode.window.showInputBox({
+        placeHolder: 'Text-notation',
+        prompt: 'Type the text-notation for the document you want to create',
+      });
+      const cursorDoc = textNotation.docFromTextNotation(tn);
+      await vscode.workspace
+        .openTextDocument({ language: 'clojure', content: textNotation.getText(cursorDoc) })
+        .then(async (doc) => {
+          const editor = await vscode.window.showTextDocument(doc, {
+            preview: false,
+            preserveFocus: false,
+          });
+          editor.selections = cursorDoc.selections.map((selection) => {
+            const anchor = doc.positionAt(selection.anchor),
+              active = doc.positionAt(selection.active);
+            return new vscode.Selection(anchor, active);
+          });
+        });
+    })
   );
 }
 
