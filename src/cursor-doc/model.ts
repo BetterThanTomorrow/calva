@@ -1,7 +1,8 @@
 import { Scanner, Token, ScannerState } from './clojure-lexer';
 import { LispTokenCursor } from './token-cursor';
 import { deepEqual as equal } from '../util/object';
-import { isUndefined } from 'lodash';
+import { isNumber, isUndefined } from 'lodash';
+import { TextDocument, Selection } from 'vscode';
 
 let scanner: Scanner;
 
@@ -65,14 +66,46 @@ export class ModelEdit<T extends ModelEditFunction> {
 export class ModelEditSelection {
   private _anchor: number;
   private _active: number;
+  private _start: number;
+  private _end: number;
+  private _isReversed: boolean;
 
-  constructor(anchor: number, active?: number) {
-    this._anchor = anchor;
-    if (active !== undefined) {
-      this._active = active;
+  constructor(anchor: number, active?: number, start?: number, end?: number, isReversed?: boolean);
+  constructor(selection: Selection, doc: TextDocument);
+  constructor(
+    anchorOrSelection: number | Selection,
+    activeOrDoc?: number | TextDocument,
+    start?: number,
+    end?: number,
+    isReversed?: boolean
+  ) {
+    if (isNumber(anchorOrSelection)) {
+      const anchor = anchorOrSelection;
+      this._anchor = anchor;
+      if (activeOrDoc !== undefined && isNumber(activeOrDoc)) {
+        this._active = activeOrDoc;
+      } else {
+        this._active = anchor;
+      }
+      const _isReversed = isReversed ?? this._anchor > this._active;
+      this._isReversed = _isReversed;
+      this._start = start ?? Math.min(anchor, this._active);
+      this._end = end ?? Math.max(anchor, this._active);
     } else {
-      this._active = anchor;
+      const { active, anchor, start, end, isReversed } = anchorOrSelection;
+      const doc = activeOrDoc as TextDocument;
+      this._active = doc.offsetAt(active);
+      this._anchor = doc.offsetAt(anchor);
+      this._start = doc.offsetAt(start);
+      this._end = doc.offsetAt(end);
+      this._isReversed = isReversed;
     }
+  }
+
+  private _updateDirection() {
+    this._start = Math.min(this._anchor, this._active);
+    this._end = Math.max(this._anchor, this._active);
+    this._isReversed = this._active < this._anchor;
   }
 
   get anchor() {
@@ -81,6 +114,7 @@ export class ModelEditSelection {
 
   set anchor(v: number) {
     this._anchor = v;
+    this._updateDirection();
   }
 
   get active() {
@@ -89,10 +123,82 @@ export class ModelEditSelection {
 
   set active(v: number) {
     this._active = v;
+    this._updateDirection();
+  }
+
+  get start() {
+    this._updateDirection();
+    return this._start;
+  }
+
+  get end() {
+    this._updateDirection();
+    return this._end;
+  }
+
+  get isCursor() {
+    return this.anchor === this.active;
+  }
+
+  get isSelection() {
+    return this.anchor !== this.active;
+  }
+
+  get isReversed() {
+    this._updateDirection();
+    return this._isReversed;
+  }
+
+  set isReversed(isReversed: boolean) {
+    this._isReversed = isReversed;
+    if (this._isReversed) {
+      this._start = this._active;
+      this._end = this._anchor;
+    } else {
+      this._start = this._anchor;
+      this._end = this._active;
+    }
+  }
+
+  get distance() {
+    return this._end - this._start;
   }
 
   clone() {
     return new ModelEditSelection(this._anchor, this._active);
+  }
+
+  /**
+   * Returns a simple 2-item tuple representing the
+   * [leftmost/earliest/start position, rightmost, farthest, end position].
+   */
+  get asRange() {
+    return [this.start, this.end] as [start: number, end: number];
+  }
+
+  /**
+   * Same as `ModelEditSelection.asRange` but with the leftmost item being the anchor position, and the rightmost item
+   * being the active position. This way, you can tell if it's reversed by checking if the leftmost item is greater
+   * than the rightmost item.
+   */
+  get asDirectedRange() {
+    return [this.anchor, this.active] as [anchor: number, active: number];
+  }
+
+  /**
+   * Mutates itself!
+   * Very basic, offsets both active/anchor by a positive or negative number lol, with no attempt at clamping.
+   *
+   * Returns self for convenience
+   * @param offset number
+   */
+  reposition(offset: number) {
+    this.active += offset;
+    this.anchor += offset;
+
+    this._updateDirection();
+
+    return this;
   }
 }
 
@@ -105,6 +211,7 @@ export type ModelEditOptions = {
 
 export interface EditableModel {
   readonly lineEndingLength: number;
+  readonly lineEnding: string;
 
   /**
    * Performs a model edit batch.
@@ -134,6 +241,10 @@ export interface EditableDocument {
 export class LineInputModel implements EditableModel {
   /** How many characters in the line endings of the text of this model? */
   constructor(readonly lineEndingLength: number = 1, private document?: EditableDocument) {}
+
+  get lineEnding() {
+    return this.lineEndingLength === 1 ? '\n' : '\r\n';
+  }
 
   /** The input lines. */
   lines: TextLine[] = [new TextLine('', this.getStateForLine(0))];
