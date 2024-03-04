@@ -155,17 +155,17 @@ export function getText(doc: model.EditableDocument, replaceNewLine = false): st
 
 /**
  * Utility function to create a comparable structure with the text and
- * selection from a document
- */
-export function textAndSelection(doc: model.EditableDocument): [string, [number, number]] {
-  return [getText(doc), [doc.selections[0].anchor, doc.selections[0].active]];
-}
-
-/**
- * Utility function to create a comparable structure with the text and
  * selection from a document. Supports multiple cursors
  */
 export function textAndSelections(doc: model.EditableDocument): [string, [number, number][]] {
   // return [text(doc), [doc.selection.anchor, doc.selection.active]];
-  return [getText(doc), doc.selections.map((s) => [s.anchor, s.active])];
+  return [getText(doc), doc.selections.map((s) => s.asDirectedRange)];
+}
+
+/**
+ * Convenience single (primary) cursor version of `textAndSelections`
+ */
+export function textAndSelection(doc: model.EditableDocument): [string, [number, number]] {
+  const [text, [selection]] = textAndSelections(doc);
+  return [text, selection];
 }
