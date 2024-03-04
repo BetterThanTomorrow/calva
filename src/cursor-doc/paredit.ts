@@ -28,12 +28,12 @@ export async function killRange(
   });
 }
 
-export function moveToRangeLeft(doc: EditableDocument, range: [number, number]) {
-  doc.selections = [new ModelEditSelection(Math.min(range[0], range[1]))];
+export function moveToRangeLeft(doc: EditableDocument, ranges: ModelEditRange[]) {
+  doc.selections = ranges.map((range) => new ModelEditSelection(Math.min(range[0], range[1])));
 }
 
-export function moveToRangeRight(doc: EditableDocument, range: [number, number]) {
-  doc.selections = [new ModelEditSelection(Math.max(range[0], range[1]))];
+export function moveToRangeRight(doc: EditableDocument, ranges: ModelEditRange[]) {
+  doc.selections = ranges.map((range) => new ModelEditSelection(Math.max(range[0], range[1])));
 }
 
 export function selectRange(doc: EditableDocument, range: [number, number]) {
