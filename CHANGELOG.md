@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Implement experimental support for multicursor paredit movement commands. Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2420](https://github.com/BetterThanTomorrow/calva/issues/2420).
+
 ## [2.0.416] - 2024-03-08
 
 - Internal textNotation testing system supports multiple selections, addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
