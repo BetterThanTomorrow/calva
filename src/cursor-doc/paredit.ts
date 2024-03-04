@@ -1,6 +1,6 @@
 import { FormatterConfig } from '../formatter-config';
 import { validPair } from './clojure-lexer';
-import { ModelEdit, EditableDocument, ModelEditSelection } from './model';
+import { ModelEdit, EditableDocument, ModelEditSelection, ModelEditRange } from './model';
 import { LispTokenCursor } from './token-cursor';
 import { backspaceOnWhitespace } from './backspace-on-whitespace';
 import _ = require('lodash');
@@ -157,7 +157,7 @@ function _forwardSexpRange(
   offset = Math.max(doc.selections[0].anchor, doc.selections[0].active),
   goUpSexp: GoUpSexpOption,
   goPastWhitespace = false
-): [number, number] {
+): ModelEditRange {
   const cursor = doc.getTokenCursor(offset);
 
   if (goUpSexp == GoUpSexpOption.Never || goUpSexp == GoUpSexpOption.WhenAtLimit) {
@@ -189,10 +189,10 @@ function _forwardSexpRange(
  */
 function _backwardSexpRange(
   doc: EditableDocument,
-  offset: number = Math.min(doc.selections[0].anchor, doc.selections[0].active),
+  offset: number = doc.selections[0].start,
   goUpSexp: GoUpSexpOption,
   goPastWhitespace = false
-): [number, number] {
+): ModelEditRange {
   const cursor = doc.getTokenCursor(offset);
 
   if (goUpSexp == GoUpSexpOption.Never || goUpSexp == GoUpSexpOption.WhenAtLimit) {
@@ -228,17 +228,17 @@ function _backwardSexpRange(
 
 export function forwardSexpRange(
   doc: EditableDocument,
-  offset = Math.max(doc.selections[0].anchor, doc.selections[0].active),
+  offset = doc.selections[0].end,
   goPastWhitespace = false
-): [number, number] {
+): ModelEditRange {
   return _forwardSexpRange(doc, offset, GoUpSexpOption.Never, goPastWhitespace);
 }
 
 export function backwardSexpRange(
   doc: EditableDocument,
-  offset: number = Math.min(doc.selections[0].anchor, doc.selections[0].active),
+  offset = doc.selections[0].start,
   goPastWhitespace = false
-): [number, number] {
+): ModelEditRange {
   return _backwardSexpRange(doc, offset, GoUpSexpOption.Never, goPastWhitespace);
 }
 
@@ -276,7 +276,7 @@ export function backwardListRange(
  */
 export function forwardHybridSexpRange(
   doc: EditableDocument,
-  offset = Math.max(doc.selections[0].anchor, doc.selections[0].active),
+  offset = doc.selections[0].end,
   squashWhitespace = true
 ): [number, number] {
   let cursor = doc.getTokenCursor(offset);
@@ -352,41 +352,41 @@ export function forwardHybridSexpRange(
 
 export function rangeToForwardUpList(
   doc: EditableDocument,
-  offset: number = Math.max(doc.selections[0].anchor, doc.selections[0].active),
+  offset = doc.selections[0].end,
   goPastWhitespace = false
-): [number, number] {
+): ModelEditRange {
   return _forwardSexpRange(doc, offset, GoUpSexpOption.Required, goPastWhitespace);
 }
 
 export function rangeToBackwardUpList(
   doc: EditableDocument,
-  offset: number = Math.min(doc.selections[0].anchor, doc.selections[0].active),
+  offset = doc.selections[0].start,
   goPastWhitespace = false
-): [number, number] {
+): ModelEditRange {
   return _backwardSexpRange(doc, offset, GoUpSexpOption.Required, goPastWhitespace);
 }
 
 export function forwardSexpOrUpRange(
   doc: EditableDocument,
-  offset = Math.max(doc.selections[0].anchor, doc.selections[0].active),
+  offset = doc.selections[0].end,
   goPastWhitespace = false
-): [number, number] {
+): ModelEditRange {
   return _forwardSexpRange(doc, offset, GoUpSexpOption.WhenAtLimit, goPastWhitespace);
 }
 
 export function backwardSexpOrUpRange(
   doc: EditableDocument,
-  offset: number = Math.min(doc.selections[0].anchor, doc.selections[0].active),
+  offset = doc.selections[0].start,
   goPastWhitespace = false
-): [number, number] {
+): ModelEditRange {
   return _backwardSexpRange(doc, offset, GoUpSexpOption.WhenAtLimit, goPastWhitespace);
 }
 
 export function rangeToForwardDownList(
   doc: EditableDocument,
-  offset: number = Math.max(doc.selections[0].anchor, doc.selections[0].active),
+  offset = doc.selections[0].end,
   goPastWhitespace = false
-): [number, number] {
+): ModelEditRange {
   const cursor = doc.getTokenCursor(offset);
   if (cursor.downListSkippingMeta()) {
     if (goPastWhitespace) {
@@ -400,9 +400,9 @@ export function rangeToForwardDownList(
 
 export function rangeToBackwardDownList(
   doc: EditableDocument,
-  offset: number = Math.min(doc.selections[0].anchor, doc.selections[0].active),
+  offset = doc.selections[0].start,
   goPastWhitespace = false
-): [number, number] {
+): ModelEditRange {
   const cursor = doc.getTokenCursor(offset);
   do {
     cursor.backwardWhitespace();
@@ -422,8 +422,8 @@ export function rangeToBackwardDownList(
 
 export function rangeToForwardList(
   doc: EditableDocument,
-  offset: number = Math.max(doc.selections[0].anchor, doc.selections[0].active)
-): [number, number] {
+  offset = doc.selections[0].end
+): ModelEditRange {
   const cursor = doc.getTokenCursor(offset);
   if (cursor.forwardList()) {
     return [offset, cursor.offsetStart];
@@ -434,8 +434,8 @@ export function rangeToForwardList(
 
 export function rangeToBackwardList(
   doc: EditableDocument,
-  offset: number = Math.min(doc.selections[0].anchor, doc.selections[0].active)
-): [number, number] {
+  offset = doc.selections[0].start
+): ModelEditRange {
   const cursor = doc.getTokenCursor(offset);
   if (cursor.backwardList()) {
     return [cursor.offsetStart, offset];

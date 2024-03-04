@@ -3,6 +3,7 @@ import { LispTokenCursor } from './token-cursor';
 import { deepEqual as equal } from '../util/object';
 import { isNumber, isUndefined } from 'lodash';
 import { TextDocument, Selection } from 'vscode';
+import _ = require('lodash');
 
 let scanner: Scanner;
 
@@ -48,6 +49,15 @@ export type ModelEditArgs<T extends ModelEditFunction> = T extends 'insertString
 export class ModelEdit<T extends ModelEditFunction> {
   constructor(public editFn: T, public args: Readonly<ModelEditArgs<T>>) {}
 }
+
+/**
+ * An undirected range representing a cursor/selection in a document.
+ * Is a tuple of [start, end] where each is an offset.
+ * It is a selection if `start` != `end`, otherwise, it's a cursor.
+ * 'Undirected' here means the first element, `start`, will always be the leftmost position,
+ * even if the selection is in reverse.
+ */
+export type ModelEditRange = [start: number, end: number];
 
 /**
  * Naming notes for Model Selections:
@@ -169,11 +179,11 @@ export class ModelEditSelection {
   }
 
   /**
-   * Returns a simple 2-item tuple representing the
-   * [leftmost/earliest/start position, rightmost, farthest, end position].
+   * Returns a simple 2-item tuple representing the selection/cursor's range.
+   * Loses directionality, if needed, use `asDirectedRange`.
    */
-  get asRange() {
-    return [this.start, this.end] as [start: number, end: number];
+  get asRange(): ModelEditRange {
+    return [this.start, this.end];
   }
 
   /**
@@ -660,9 +670,19 @@ export class StringDocument implements EditableDocument {
     if (contents) {
       this.insertString(contents);
     }
+    this.selections = [];
+  }
+  // Selections in real vscode Documents are "deduped" - there cannot be two
+  // cursors in the same location.
+  private _selections: ModelEditSelection[] = [];
+
+  set selections(sels: ModelEditSelection[]) {
+    this._selections = _.uniqWith(sels, (a, b) => _.isEqual(a.asRange, b.asRange));
   }
 
-  selections: ModelEditSelection[];
+  get selections() {
+    return this._selections;
+  }
 
   model: LineInputModel;
 
