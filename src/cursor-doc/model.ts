@@ -210,6 +210,22 @@ export class ModelEditSelection {
 
     return this;
   }
+
+  static isSameRange(a: ModelEditSelection, b: ModelEditSelection) {
+    return _.isEqual(a?.asRange, b?.asRange);
+  }
+
+  static isSameSelection(a: ModelEditSelection, b: ModelEditSelection) {
+    return _.isEqual(a?.asDirectedRange, b?.asDirectedRange);
+  }
+
+  static containsRange(container: ModelEditSelection, containee: ModelEditSelection) {
+    if (containee && container) {
+      const containsStart = containee.start >= container.start && containee.start <= container.end;
+      const containsEnd = containee.end >= container.start && containee.end <= container.end;
+      return containsStart && containsEnd;
+    }
+  }
 }
 
 export type ModelEditOptions = {
