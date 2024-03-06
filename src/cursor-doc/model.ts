@@ -692,8 +692,29 @@ export class StringDocument implements EditableDocument {
   // cursors in the same location.
   private _selections: ModelEditSelection[] = [];
 
-  set selections(sels: ModelEditSelection[]) {
-    this._selections = _.uniqWith(sels, (a, b) => _.isEqual(a.asRange, b.asRange));
+  /**
+   * Mimic vscode's selection deduping.
+   * - Remove nils
+   * - Remove duplicate ranges
+   * - Remove selections contained in another, ie, prefer larger selections
+   */
+  set selections(newSelections: ModelEditSelection[]) {
+    let uniqueSelections = _(newSelections)
+      // drop nils
+      .compact()
+      // simple deduping of duplicate ranges
+      .uniqWith(ModelEditSelection.isSameRange)
+      // "dedupe" any selections contained in another
+      .reject(
+        (s, _i, sels) =>
+          _(sels)
+            .without(s) // selection always contains self, so drop self
+            .compact() // drop nils from `without`
+            .some((b) => ModelEditSelection.containsRange(b, s)) // always prefer the larger selection
+      )
+      .value();
+
+    this._selections = uniqueSelections;
   }
 
   get selections() {
