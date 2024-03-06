@@ -117,61 +117,101 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.rangeForDefun',
     handler: (doc: EditableDocument) => {
-      paredit.selectRange(doc, paredit.rangeForDefun(doc));
+      const isMulti = multiCursorEnabled();
+      handlers.rangeForDefun(doc, isMulti);
     },
   },
   {
     command: 'paredit.sexpRangeExpansion',
-    handler: paredit.growSelection,
-  }, // TODO: Inside string should first select contents
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.sexpRangeExpansion(doc, isMulti);
+    },
+  },
   {
     command: 'paredit.sexpRangeContraction',
-    handler: paredit.shrinkSelection,
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.sexpRangeContraction(doc, isMulti);
+    },
   },
 
   {
     command: 'paredit.selectForwardSexp',
-    handler: paredit.selectForwardSexp,
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.selectForwardSexp(doc, isMulti);
+    },
   },
   {
     command: 'paredit.selectRight',
-    handler: paredit.selectRight,
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.selectRight(doc, isMulti);
+    },
   },
   {
     command: 'paredit.selectBackwardSexp',
-    handler: paredit.selectBackwardSexp,
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.selectBackwardSexp(doc, isMulti);
+    },
   },
   {
     command: 'paredit.selectForwardDownSexp',
-    handler: paredit.selectForwardDownSexp,
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.selectForwardDownSexp(doc, isMulti);
+    },
   },
   {
     command: 'paredit.selectBackwardDownSexp',
-    handler: paredit.selectBackwardDownSexp,
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.selectBackwardDownSexp(doc, isMulti);
+    },
   },
   {
     command: 'paredit.selectForwardUpSexp',
-    handler: paredit.selectForwardUpSexp,
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.selectForwardUpSexp(doc, isMulti);
+    },
   },
   {
     command: 'paredit.selectForwardSexpOrUp',
-    handler: paredit.selectForwardSexpOrUp,
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.selectForwardSexpOrUp(doc, isMulti);
+    },
   },
   {
     command: 'paredit.selectBackwardSexpOrUp',
-    handler: paredit.selectBackwardSexpOrUp,
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.selectBackwardSexpOrUp(doc, isMulti);
+    },
   },
   {
     command: 'paredit.selectBackwardUpSexp',
-    handler: paredit.selectBackwardUpSexp,
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.selectBackwardUpSexp(doc, isMulti);
+    },
   },
   {
     command: 'paredit.selectCloseList',
-    handler: paredit.selectCloseList,
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.selectCloseList(doc, isMulti);
+    },
   },
   {
     command: 'paredit.selectOpenList',
-    handler: paredit.selectOpenList,
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.selectOpenList(doc, isMulti);
+    },
   },
 
   // EDITING

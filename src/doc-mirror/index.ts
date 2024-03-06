@@ -129,7 +129,7 @@ export class MirroredDocument implements EditableDocument {
 
   model = new DocumentModel(this);
 
-  selectionStack: ModelEditSelection[] = [];
+  selectionsStack: ModelEditSelection[][] = [];
 
   public getTokenCursor(
     offset: number = this.selections[0].active,

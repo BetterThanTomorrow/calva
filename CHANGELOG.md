@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add selection to experimentally supported multicursor paredit commands](https://github.com/BetterThanTomorrow/calva/issues/2421). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+
 ## [2.0.417] - 2024-03-08
 
 - [Implement experimental support for multicursor paredit movement commands](https://github.com/BetterThanTomorrow/calva/issues/2420). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
