@@ -255,7 +255,12 @@ export interface EditableModel {
 export interface EditableDocument {
   selections: ModelEditSelection[];
   model: EditableModel;
-  selectionStack: ModelEditSelection[];
+  /**
+   * Selection history stack for grow/shrink selection operations.
+   * Is a 2d array to represent multiple cursors/selections at each grow/shrink step,
+   * with the first Selection of each inner array being the primar and possibly only cursor.
+   */
+  selectionsStack: ModelEditSelection[][];
   getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor;
   insertString: (text: string) => void;
   getSelectionText: () => string;
@@ -723,7 +728,7 @@ export class StringDocument implements EditableDocument {
 
   model: LineInputModel;
 
-  selectionStack: ModelEditSelection[] = [];
+  selectionsStack: ModelEditSelection[][] = [];
 
   getTokenCursor(offset?: number, previous?: boolean): LispTokenCursor {
     if (isUndefined(offset)) {
