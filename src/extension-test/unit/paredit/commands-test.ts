@@ -215,11 +215,9 @@ describe('paredit commands', () => {
         expect(a).toEqual(b);
       });
       it('Multi-cursor: ', () => {
-        const a = docFromTextNotation('|2(c•(#b •[:f |1:b :z|])•#z•1|3)');
+        const a = docFromTextNotation('|1(c•(#b •[:f |:b :z|])•#z•1|2)');
         const b = docFromTextNotation('|1(c•(#b •[:f :b :z]|)•#z•1)|2');
         handlers.forwardUpSexp(a, true);
-        // docFromTextNotation creates a mock doc that won't dedupe selections
-        // expect(_.uniqWith(a.selections, _.isEqual)).toEqual(b.selections);
         expect(a.selections).toEqual(b.selections);
       });
     });
@@ -235,7 +233,6 @@ describe('paredit commands', () => {
         const a = docFromTextNotation('(c•(|#b •[|1:f|2 :b :z])•#z•1)|3');
         const b = docFromTextNotation('(c•|(|1#b •[:f :b :z])•#z•1)|2');
         handlers.backwardUpSexp(a, true);
-        // expect(_.uniqWith(a.selections, _.isEqual)).toEqual(b.selections);
         expect(a.selections).toEqual(b.selections);
       });
     });
@@ -320,8 +317,360 @@ describe('paredit commands', () => {
         const a = docFromTextNotation('(c•|(|1#b •[:f :b :z])|2•#z•1)');
         const b = docFromTextNotation('(|c•(|1#b •[:f :b :z])•#z•1)');
         handlers.openList(a, true);
-        // expect(_.uniqWith(a.selections, _.isEqual)).toEqual(b.selections);
         expect(a.selections).toEqual(b.selections);
+      });
+    });
+  });
+
+  describe('selection', () => {
+    describe('rangeForDefun', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(:a)|'
+        );
+        handlers.rangeForDefun(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '|1(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))|1•|(:a)|'
+        );
+        handlers.rangeForDefun(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+    describe('sexpRangeExpansion', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(|:a|)'
+        );
+        handlers.sexpRangeExpansion(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(|1defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(|:a|)'
+        );
+        handlers.sexpRangeExpansion(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+    describe('sexpRangeContraction', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(|:a|)'
+        );
+        handlers.sexpRangeExpansion(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+        const c = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(:a)|'
+        );
+        handlers.sexpRangeExpansion(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections, c.selections]);
+        handlers.sexpRangeContraction(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(|1defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(|:a|)'
+        );
+        handlers.sexpRangeExpansion(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+        const c = docFromTextNotation(
+          '(|1defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b})|1)•|(:a)|'
+        );
+        handlers.sexpRangeExpansion(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections, c.selections]);
+        handlers.sexpRangeContraction(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+    describe('selectForwardSexp', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b]•(let [^js |2aa|2 #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a|)'
+        );
+        handlers.selectForwardSexp(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b]•(let [^js |2aa|2 #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn|1 |1[a b]•(let [^js |2aa #p (+ a)|2•b b]•{:a aa•:b b}))•(:|a|)'
+        );
+        handlers.selectForwardSexp(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+    describe('selectRight', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b]•(let [^js |2aa|2 #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a|)'
+        );
+        handlers.selectRight(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b]•(let [^js |2aa|2 #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn|1 [a b]|1•(let [^js |2aa #p (+ a)|2•b b]•{:a aa•:b b}))•(:|a|)'
+        );
+        handlers.selectRight(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+    describe('selectBackwardSexp', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(|1defn|1 [a b]•(let [^js aa #p|2 (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(<:<a)'
+        );
+        handlers.selectBackwardSexp(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(|1defn|1 [a b]•(let [^js aa #p|2 (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(|1defn [a b]•(let [<2^js aa #p<2 (+ a)•b b]•{:a aa•:b b}))•(<:<a)'
+        );
+        handlers.selectBackwardSexp(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+    describe('selectForwardDownSexp', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b|2]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(|:a)'
+        );
+        handlers.selectForwardDownSexp(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b|2]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn|1 [|1a b|2]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(|:a)'
+        );
+        handlers.selectForwardDownSexp(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+    describe('selectBackwardDownSexp', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b|2]|2•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b})<)•<(:a)'
+        );
+        handlers.selectBackwardDownSexp(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b|2]|2•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(<1defn<1 [a b|2]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b})<)•<(:a)'
+        );
+        handlers.selectBackwardDownSexp(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+    describe('selectForwardUpSexp', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b|2]|2•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(:a)'
+        );
+        handlers.selectForwardUpSexp(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b|2]|2•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))|1•|(:a)'
+        );
+        handlers.selectForwardUpSexp(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+    describe('selectForwardSexpOrUp', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b|2]|2•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(:a)|'
+        );
+        handlers.selectForwardSexpOrUp(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b|2]|2•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•|(:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn|1 |1[a b|2]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b})|2)•|(:a)|'
+        );
+        handlers.selectForwardSexpOrUp(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+    describe('selectBackwardSexpOrUp', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b|2]|2•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(|:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•<(<:a)'
+        );
+        handlers.selectBackwardSexpOrUp(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(<1defn<1 [a b|2]|2•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(|:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '<1(defn<1 <2[a b<2]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•<(<:a)'
+        );
+        handlers.selectBackwardSexpOrUp(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+    describe('selectBackwardUpSexp', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn |1[a b|2]|2•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(|:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•<(<:a)'
+        );
+        handlers.selectBackwardUpSexp(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn |1[a b|2]|2•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(|:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '<1(defn [a b<1]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•<(<:a)'
+        );
+        handlers.selectBackwardUpSexp(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+    describe('selectCloseList', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a|)'
+        );
+        handlers.selectCloseList(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b})|1)•(:|a|)'
+        );
+        handlers.selectCloseList(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+    describe('selectOpenList', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(<:<a)'
+        );
+        handlers.selectOpenList(a, false);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(<:<a)'
+        );
+        handlers.selectOpenList(a, true);
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
       });
     });
   });
