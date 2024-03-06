@@ -7,7 +7,8 @@ import {
   getText,
   textAndSelections,
 } from '../common/text-notation';
-import { ModelEditSelection } from '../../../cursor-doc/model';
+import { ModelEditRange, ModelEditSelection } from '../../../cursor-doc/model';
+import { last } from 'lodash';
 
 model.initScanner(20000);
 
@@ -667,14 +668,14 @@ describe('paredit', () => {
         const a = docFromTextNotation('(def foo [:foo :bar <0:baz<0])');
         const selDoc = docFromTextNotation('(def foo [:foo |:bar| :baz])');
         const b = docFromTextNotation('(def foo [:foo <0:bar :baz<0])');
-        paredit.selectRangeBackward(a, [selDoc.selections[0].anchor, selDoc.selections[0].active]);
+        paredit.selectRangeBackward(a, [selDoc.selections[0].asDirectedRange]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Contracts forward selection and extends backwards', () => {
         const a = docFromTextNotation('(def foo [:foo :bar >0:baz>0])');
         const selDoc = docFromTextNotation('(def foo [:foo |:bar| :baz])');
         const b = docFromTextNotation('(def foo [:foo <0:bar <0:baz])');
-        paredit.selectRangeBackward(a, [selDoc.selections[0].anchor, selDoc.selections[0].active]);
+        paredit.selectRangeBackward(a, [selDoc.selections[0].asDirectedRange]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
@@ -685,7 +686,7 @@ describe('paredit', () => {
           bazRange = [20, 24] as [number, number],
           barBazSelection = new ModelEditSelection(15, 24);
         doc.selections = [barSelection];
-        paredit.selectRangeForward(doc, bazRange);
+        paredit.selectRangeForward(doc, [bazRange]);
         expect(doc.selections).toEqual([barBazSelection]);
       });
       it('(def foo [<:foo :bar< >|:baz>|]) => (def foo [>:foo :bar :baz>])', () => {
@@ -694,7 +695,7 @@ describe('paredit', () => {
           bazRange = [20, 24] as [number, number],
           fooBazSelection = new ModelEditSelection(19, 24);
         doc.selections = [barFooSelection];
-        paredit.selectRangeForward(doc, bazRange);
+        paredit.selectRangeForward(doc, [bazRange]);
         expect(doc.selections).toEqual([fooBazSelection]);
       });
       it('(def foo [<:foo :bar< <|:baz<|]) => (def foo [>:foo :bar :baz>])', () => {
@@ -703,50 +704,48 @@ describe('paredit', () => {
           bazRange = [24, 20] as [number, number],
           fooBazSelection = new ModelEditSelection(19, 24);
         doc.selections = [barFooSelection];
-        paredit.selectRangeForward(doc, bazRange);
+        paredit.selectRangeForward(doc, [bazRange]);
         expect(doc.selections).toEqual([fooBazSelection]);
       });
     });
   });
 
   describe('selection stack', () => {
-    const range = [15, 20] as [number, number];
+    const range: ModelEditRange = [15, 20];
     it('should make grow selection the topmost element on the stack', () => {
-      paredit.growSelectionStack(doc, range);
-      expect(doc.selectionStack[doc.selectionStack.length - 1]).toEqual(
-        new ModelEditSelection(range[0], range[1])
-      );
+      paredit.growSelectionStack(doc, [range]);
+      expect(last(doc.selectionsStack)).toEqual([new ModelEditSelection(range[0], range[1])]);
     });
     it('get us back to where we started if we just grow, then shrink', () => {
       const selectionBefore = startSelection.clone();
-      paredit.growSelectionStack(doc, range);
-      paredit.shrinkSelection(doc);
-      expect(doc.selectionStack[doc.selectionStack.length - 1]).toEqual(selectionBefore);
+      paredit.growSelectionStack(doc, [range]);
+      paredit.shrinkSelection(doc, [doc.selections[0]]);
+      expect(last(doc.selectionsStack)).toEqual([selectionBefore]);
     });
     it('should not add selections identical to the topmost', () => {
       const selectionBefore = doc.selections[0].clone();
-      paredit.growSelectionStack(doc, range);
-      paredit.growSelectionStack(doc, range);
-      paredit.shrinkSelection(doc);
-      expect(doc.selectionStack[doc.selectionStack.length - 1]).toEqual(selectionBefore);
+      paredit.growSelectionStack(doc, [range]);
+      paredit.growSelectionStack(doc, [range]);
+      paredit.shrinkSelection(doc, [doc.selections[0]]);
+      expect(last(doc.selectionsStack)).toEqual([selectionBefore]);
     });
     it('should have A topmost after adding A, then B, then shrinking', () => {
       const a = range,
         b: [number, number] = [10, 24];
-      paredit.growSelectionStack(doc, a);
-      paredit.growSelectionStack(doc, b);
-      paredit.shrinkSelection(doc);
-      expect(doc.selectionStack[doc.selectionStack.length - 1]).toEqual(
-        new ModelEditSelection(a[0], a[1])
-      );
+      paredit.growSelectionStack(doc, [a]);
+      paredit.growSelectionStack(doc, [b]);
+      paredit.shrinkSelection(doc, [doc.selections[0]]);
+      expect(last(doc.selectionsStack)).toEqual([new ModelEditSelection(a[0], a[1])]);
     });
     it('grows selection to binding pairs', () => {
-      const a = docFromTextNotation('(a (let [b c >0e>0 f]))');
-      const aSelection = new ModelEditSelection(a.selections[0].anchor, a.selections[0].active);
+      const a = docFromTextNotation('(a (let [b c |e| f]))');
+      // const aSelection = new ModelEditSelection(a.selections[0].anchor, a.selections[0].active);
+      const aSelection = a.selections[0];
       const b = docFromTextNotation('(a (let [b c |e f|]))');
-      const bSelection = new ModelEditSelection(b.selections[0].anchor, b.selections[0].active);
+      // const bSelection = new ModelEditSelection(b.selections[0].anchor, b.selections[0].active);
+      const bSelection = b.selections[0];
       paredit.growSelection(a);
-      expect(a.selectionStack).toEqual([aSelection, bSelection]);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
     it('grows selection to all of binding box when binding pairs are selected', () => {
       const a = docFromTextNotation('(a (let [b c |e f|]))');
@@ -754,7 +753,7 @@ describe('paredit', () => {
       const b = docFromTextNotation('(a (let [|b c e f|]))');
       const bSelection = new ModelEditSelection(b.selections[0].anchor, b.selections[0].active);
       paredit.growSelection(a);
-      expect(a.selectionStack).toEqual([aSelection, bSelection]);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
     it('grows selection to the binding box when all binding pairs are selected', () => {
       const a = docFromTextNotation('(a (let [|b c e f|]))');
@@ -762,7 +761,7 @@ describe('paredit', () => {
       const b = docFromTextNotation('(a (let |[b c e f]|))');
       const bSelection = new ModelEditSelection(b.selections[0].anchor, b.selections[0].active);
       paredit.growSelection(a);
-      expect(a.selectionStack).toEqual([aSelection, bSelection]);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
   });
 
