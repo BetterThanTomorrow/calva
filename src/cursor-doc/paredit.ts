@@ -1,6 +1,12 @@
 import { FormatterConfig } from '../formatter-config';
 import { validPair } from './clojure-lexer';
-import { ModelEdit, EditableDocument, ModelEditSelection, ModelEditRange } from './model';
+import {
+  ModelEdit,
+  EditableDocument,
+  ModelEditSelection,
+  ModelEditRange,
+  ModelEditDirectedRange,
+} from './model';
 import { LispTokenCursor } from './token-cursor';
 import { backspaceOnWhitespace } from './backspace-on-whitespace';
 import _ = require('lodash');
@@ -296,6 +302,7 @@ export function backwardListRange(
  *  - Return the end of the nearest form to the right of the cursor location if one exists
  *  - Returns the newline's offset if no form exists
  *
+ * If squashWhitespace is true, then successive whitespace characters after the cursor are squashed.
  * This function's output range is needed to implement features similar to paredit's
  * killRight or smartparens' sp-kill-hybrid-sexp.
  *
@@ -308,10 +315,12 @@ export function forwardHybridSexpRange(
   doc: EditableDocument,
   offset = doc.selections[0].end,
   squashWhitespace = true
-): [number, number] {
+): ModelEditDirectedRange {
   let cursor = doc.getTokenCursor(offset);
+  // If at list open, return the range of the list
   if (cursor.getToken().type === 'open') {
     return forwardSexpRange(doc);
+    // else if at list close (but still in it), don't move
   } else if (cursor.getToken().type === 'close') {
     return [offset, offset];
   }
@@ -319,15 +328,20 @@ export function forwardHybridSexpRange(
   const currentLineText = doc.model.getLineText(cursor.line);
   const lineStart = doc.model.getOffsetForLine(cursor.line);
   const currentLineNewlineOffset = lineStart + currentLineText.length;
-  const remainderLineText = doc.model.getText(offset, currentLineNewlineOffset + 1);
+  // contents of line from cursor to end of line, including newline chars
+  const remainderLineText = doc.model.getText(
+    offset,
+    currentLineNewlineOffset + doc.model.lineEndingLength
+  );
 
-  cursor.forwardList(); // move to the end of the current form
+  cursor.forwardList(); // move to the end of the current form if possible
   const currentFormEndToken = cursor.getToken();
-  // when we've advanced the cursor but start is behind us then go to the end
-  // happens when in a clojure comment i.e:  ;; ----
+  // If we've advanced the cursor but the current token's start is behind us,
+  // then jump to the end.
+  // Happens when offset is in a clojure comment or whitespace, i.e: ';; -|---' or ' | '
   const cursorOffsetEnd = cursor.offsetStart <= offset ? cursor.offsetEnd : cursor.offsetStart;
   const text = doc.model.getText(offset, cursorOffsetEnd);
-  let hasNewline = text.indexOf('\n') !== -1;
+  let hasNewline = text.indexOf(doc.model.lineEnding) !== -1;
   let end = cursorOffsetEnd;
 
   // Want the min of closing token or newline
@@ -339,9 +353,11 @@ export function forwardHybridSexpRange(
     end = currentLineNewlineOffset;
   }
 
-  if (remainderLineText === '' || remainderLineText === '\n') {
+  // need to squash whitespace?
+  if (remainderLineText === '' || remainderLineText === doc.model.lineEnding) {
     const squashCursor = doc.getTokenCursor(currentLineNewlineOffset);
     if (squashWhitespace && squashCursor.next().getToken().raw.endsWith(' ')) {
+      // jump ahead to penultimate whitepspace character
       end =
         currentLineNewlineOffset +
         doc.model.lineEndingLength +
@@ -351,7 +367,7 @@ export function forwardHybridSexpRange(
       end = currentLineNewlineOffset + doc.model.lineEndingLength;
     }
   } else if (hasNewline) {
-    // Try to find the first open token to the right of the document's cursor location if any
+    // Try to find the first open token to the right of offset, if any
     let nearestOpenTokenOffset = -1;
 
     // Start at the newline.
