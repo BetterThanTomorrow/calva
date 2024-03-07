@@ -2435,6 +2435,13 @@
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
       },
       {
+        "command": "paredit.killLeft",
+        "mac": "ctrl+h",
+        "win": "ctrl+h ctrl+h",
+        "linux": "ctrl+h ctrl+h",
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
+      },
+      {
         "command": "paredit.killSexpForward",
         "key": "ctrl+shift+delete",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
