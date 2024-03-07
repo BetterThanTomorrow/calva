@@ -704,7 +704,7 @@ export class StringDocument implements EditableDocument {
    * - Remove selections contained in another, ie, prefer larger selections
    */
   set selections(newSelections: ModelEditSelection[]) {
-    let uniqueSelections = _(newSelections)
+    const uniqueSelections = _(newSelections)
       // drop nils
       .compact()
       // simple deduping of duplicate ranges
