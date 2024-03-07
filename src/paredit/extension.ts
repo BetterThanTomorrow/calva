@@ -291,6 +291,16 @@ const pareditCommands: PareditCommand[] = [
     },
   },
   {
+    command: 'paredit.killLeft',
+    handler: async (doc: EditableDocument) => {
+      const range = paredit.backwardHybridSexpRange(doc);
+      if (shouldKillAlsoCutToClipboard()) {
+        await copyRangeToClipboard(doc, range);
+      }
+      return paredit.killRange(doc, range);
+    },
+  },
+  {
     command: 'paredit.killSexpForward',
     handler: async (doc: EditableDocument) => {
       const range = paredit.forwardSexpRange(doc);

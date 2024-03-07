@@ -396,6 +396,102 @@ export function forwardHybridSexpRange(
   return [offset, end];
 }
 
+/**
+ * Aims to find the start of the current form (list|vector|map|set|string etc).
+ * Similar to `forwardHybridSexpRange` but moves backwards.
+ * When there is a newline before the start of the current form either:
+ *  - Return the start of the nearest form to the left of the cursor location if one exists
+ *  - Returns the newline's offset if no form exists
+ *
+ * If squashWhitespace is true, then successive whitespace characters after the cursor are squashed.
+ *
+ * @param doc
+ * @param offset
+ * @param squashWhitespace
+ * @returns [number, number]
+ */
+export function backwardHybridSexpRange(
+  doc: EditableDocument,
+  offset = doc.selections[0].start,
+  squashWhitespace = true
+): ModelEditDirectedRange {
+  let cursor = doc.getTokenCursor(offset - 1);
+  if (cursor.getToken().type === 'close') {
+    return backwardSexpRange(doc);
+  } else if (cursor.getToken().type === 'open') {
+    return [offset, offset];
+  } else if (cursor.getToken().raw === '\n') {
+    cursor = doc.getTokenCursor(offset);
+  }
+
+  const currentLineLineStartOffset = doc.model.getOffsetForLine(cursor.line);
+  const remainderLineText = doc.model.getText(
+    currentLineLineStartOffset - doc.model.lineEndingLength,
+    offset
+  );
+
+  cursor.backwardList(); // move to the start of the current form
+  // -1 to include opening token
+  const currentFormStartToken = doc.getTokenCursor(cursor.offsetStart - 1).getToken();
+
+  const cursorOffsetStart = cursor.offsetStart;
+  const text = doc.model.getText(cursorOffsetStart, offset);
+  let hasNewline = text.indexOf('\n') !== -1;
+  let start = cursorOffsetStart;
+
+  // Want the max of opening token or newline (/line start)
+  // After moving backward, the cursor may not yet be at the start of the current line,
+  // and it is not a open token. So we include the newline
+  // because what forms are here extend backwards beyond the start of the current line
+  if (currentLineLineStartOffset <= cursor.offsetStart && currentFormStartToken.type != 'open') {
+    hasNewline = true;
+    start = currentLineLineStartOffset;
+  }
+  // need to squash whitespace?
+  if (remainderLineText === '' || remainderLineText === doc.model.lineEnding) {
+    const squashCursor = doc.getTokenCursor(
+      currentLineLineStartOffset - doc.model.lineEndingLength
+    );
+    const prevCursor = squashCursor.previous();
+    if (squashWhitespace && prevCursor?.getToken().raw.endsWith(' ')) {
+      start =
+        currentLineLineStartOffset -
+        doc.model.lineEndingLength -
+        squashCursor.getToken().raw.length +
+        1;
+    } else {
+      start = currentLineLineStartOffset - doc.model.lineEndingLength;
+    }
+  } else if (hasNewline) {
+    // Try to find the first close token to the left of the document's cursor location if any
+    let nearestCloseTokenOffset = -1;
+
+    // Start at the line start.
+    // Work forwards to find the largest close token offset
+    // less than the document's cursor location if any
+    cursor = doc.getTokenCursor(currentLineLineStartOffset);
+    while (cursor.offsetEnd < offset) {
+      while (cursor.forwardSexp()) {
+        // move forward until the cursor cannot move forward anymore
+      }
+      if (cursor.offsetEnd < offset) {
+        nearestCloseTokenOffset = cursor.offsetStart;
+        cursor = doc.getTokenCursor(cursor.offsetEnd);
+      }
+    }
+
+    if (nearestCloseTokenOffset > 0) {
+      cursor = doc.getTokenCursor(nearestCloseTokenOffset);
+      cursor.backwardList();
+      start = cursor.offsetStart - 1; // include the closing token
+    } else {
+      // no open tokens found so the end is the newline
+      start = currentLineLineStartOffset;
+    }
+  }
+  return [start, offset];
+}
+
 export function rangeToForwardUpList(
   doc: EditableDocument,
   offset = doc.selections[0].end,
