@@ -27,7 +27,7 @@ describe('paredit', () => {
   });
 
   describe('movement', () => {
-    describe('rangeToSexprForward', () => {
+    describe('rangeToSexprForward/forwardSexpRange', () => {
       it('Finds the list in front', () => {
         const a = docFromTextNotation('|(def foo [vec])');
         const b = docFromTextNotation('|(def foo [vec])|');
@@ -100,7 +100,7 @@ describe('paredit', () => {
       });
     });
 
-    describe('rangeToSexprBackward', () => {
+    describe('rangeToSexprBackward/backwardSexpRange', () => {
       it('Finds the list preceding', () => {
         const a = docFromTextNotation('(def foo [vec])|');
         const b = docFromTextNotation('|(def foo [vec])|');
@@ -129,7 +129,7 @@ describe('paredit', () => {
       });
     });
 
-    describe('forwardHybridSexpRange', () => {
+    describe('forwardHybridSexpRange (for killRight)', () => {
       it('Finds end of string', () => {
         const a = docFromTextNotation('"This |needs to find the end of the string."');
         const b = docFromTextNotation('"This |needs to find the end of the string.|"');
