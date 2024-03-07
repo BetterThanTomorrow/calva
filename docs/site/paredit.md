@@ -109,6 +109,7 @@ Default keybinding                | Action | Description
  `ctrl+shift+c`                      | **Convolute** | ¯\\\_(ツ)_/¯ <br> ![](images/paredit/convolute.gif)
  `ctrl+shift+delete`                   | **Kill Sexp Forward** | Deletes the next form in the same enclosing form as the cursor.<br> ![](images/paredit/kill-forward-sexp.gif)
  `ctrl+k`                            | **Kill Right**          | Delete forward to the end of the current form or the first newline.<br> ![](images/paredit/kill-right.gif)
+ `ctrl+h`                            | **Kill Left**          | Delete backward to the start of the current form or the start of the line.<br> ![](images/paredit/kill-left.gif)
  `ctrl+alt+backspace`                | **Kill Sexp Backward** | Deletes the previous form in the same enclosing form as the cursor.<br> ![](images/paredit/kill-backward-sexp.gif)
  `ctrl+delete`                       | **Kill List Forward** | Deletes everything from the cursor to the closing of the current enclosing form.<br> ![](images/paredit/kill-close-list.gif)
  `ctrl+backspace`                    | **Kill List Backward** | Deletes everything from the cursor to the opening of the current enclosing form.<br> ![](images/paredit/kill-open-list.gif)
