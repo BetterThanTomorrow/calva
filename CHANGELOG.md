@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Add new paredit command, `paredit.killLeft`.
+- Add new paredit command, `paredit.killLeft`. Fixes [#2426](https://github.com/BetterThanTomorrow/calva/issues/2426)
 - Fix: Certain `paredit.killRight` edges cases on Windows.
 - Add selection to experimentally supported multicursor paredit commands. Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2421](https://github.com/BetterThanTomorrow/calva/issues/2421).
 - Implement experimental support for multicursor paredit movement commands. Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2420](https://github.com/BetterThanTomorrow/calva/issues/2420).
