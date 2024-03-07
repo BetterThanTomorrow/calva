@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Add new paredit command, `paredit.killLeft`.
+- Add new paredit command, `paredit.killLeft`. Fixes [#2426](https://github.com/BetterThanTomorrow/calva/issues/2426)
 - Fix: Certain `paredit.killRight` edges cases on Windows.
 
 ## [2.0.418] - 2024-03-08
