@@ -58,6 +58,17 @@ export class ModelEdit<T extends ModelEditFunction> {
  * even if the selection is in reverse.
  */
 export type ModelEditRange = [start: number, end: number];
+/**
+ * A range with direction representing a cursor/selection in a document.
+ * Is a tuple of [anchor, active] where each is an offset.
+ * It is a selection if `anchor` != `active`, otherwise, it's a cursor.
+ * 'Direction' here means if `anchor` is greater than `active`, the selection is
+ * from right to left, and vice versa.
+ *
+ * This type is only nominal and for documentation purposes, it's technically the
+ * same as `ModelEditRange`
+ */
+export type ModelEditDirectedRange = [anchor: number, active: number];
 
 /**
  * Naming notes for Model Selections:
@@ -447,7 +458,7 @@ export class LineInputModel implements EditableModel {
     if (st[0] != en[0]) {
       lines.push(this.lines[en[0]].text.substring(0, en[1]));
     }
-    return lines.join('\n');
+    return lines.join(this.lineEnding);
   }
 
   /**
