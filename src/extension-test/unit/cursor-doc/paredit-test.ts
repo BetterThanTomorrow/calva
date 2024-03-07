@@ -210,9 +210,25 @@ describe('paredit', () => {
         expect(actual).toEqual(expected);
       });
 
+      it('Maintains balanced delimiters 3 (Windows)', () => {
+        const a = docFromTextNotation('(aa| (  c (e\r\nf)) g)');
+        const b = docFromTextNotation('(aa| (  c (e\r\nf))|g)');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
       it('Advances past newline when invoked on newline', () => {
         const a = docFromTextNotation('(a|\n e) g)');
         const b = docFromTextNotation('(a|\n| e)');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Advances past newline when invoked on newline (Windows)', () => {
+        const a = docFromTextNotation('(a|\r\n e) g)');
+        const b = docFromTextNotation('(a|\r\n| e) g)');
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
@@ -226,9 +242,25 @@ describe('paredit', () => {
         expect(actual).toEqual(expected);
       });
 
+      it('Advances past newline, preserving leading whitepace when invoked on newline with squash off (Windows)', () => {
+        const a = docFromTextNotation('(a|\r\n   e) g)');
+        const b = docFromTextNotation('(a|\r\n|   e) g)');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a, a.selections[0].active, false);
+        expect(actual).toEqual(expected);
+      });
+
       it('Advances past newline, squashing leading whitepace when invoked on newline', () => {
         const a = docFromTextNotation('(a|\n   e) g)');
         const b = docFromTextNotation('(a|\n  | e) g)');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Advances past newline, squashing leading whitepace when invoked on newline (Windows)', () => {
+        const a = docFromTextNotation('(a|\r\n   e) g)');
+        const b = docFromTextNotation('(a|\r\n  | e) g)');
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
@@ -274,6 +306,14 @@ describe('paredit', () => {
         expect(actual).toEqual(expected);
       });
 
+      it('Finds end of expr in multiline maps (Windows)', () => {
+        const a = docFromTextNotation('{:a 1 |:b (+\r\n 0\r\n 2\r\n) :c 3}');
+        const b = docFromTextNotation('{:a 1 |:b (+\r\n 0\r\n 2\r\n)| :c 3}');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
       it('Finds end of line in bindings', () => {
         const a = docFromTextNotation('(let [|a (+ 1 2)\n b (+ 2 3)] (+ a b))');
         const b = docFromTextNotation('(let [|a (+ 1 2)|\n b (+ 2 3)] (+ a b))');
@@ -290,6 +330,14 @@ describe('paredit', () => {
         expect(actual).toEqual(expected);
       });
 
+      it('Finds end of expr in multiline bindings (Windows)', () => {
+        const a = docFromTextNotation('(let [|a (+\r\n 1 \r\n 2)\r\n b (+ 2 3)] (+ a b))');
+        const b = docFromTextNotation('(let [|a (+\r\n 1 \r\n 2)|\r\n b (+ 2 3)] (+ a b))');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
       it('Finds range in line of tokens', () => {
         const a = docFromTextNotation(' | 2 "hello" :hello/world\nbye');
         const b = docFromTextNotation(' | 2 "hello" :hello/world|\nbye');
@@ -301,6 +349,30 @@ describe('paredit', () => {
       it('Finds range in token with form over multiple lines', () => {
         const a = docFromTextNotation(' | 2 [\n 1 \n]');
         const b = docFromTextNotation(' | 2 [\n 1 \n]|');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds range in token with form over multiple lines 2', () => {
+        const a = docFromTextNotation('|a [\n 1 \n]');
+        const b = docFromTextNotation('|a [\n 1 \n]|');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds range in token with form over multiple lines 2 (Windows)', () => {
+        const a = docFromTextNotation('|a [\r\n 1 \r\n]');
+        const b = docFromTextNotation('|a [\r\n 1 \r\n]|');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds range in token with form over multiple lines (Windows)', () => {
+        const a = docFromTextNotation(' | 2 [\r\n 1 \r\n]');
+        const b = docFromTextNotation(' | 2 [\r\n 1 \r\n]|');
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
@@ -330,9 +402,25 @@ describe('paredit', () => {
         expect(actual).toEqual(expected);
       });
 
+      it('Deals with empty lines (Windows)', () => {
+        const a = docFromTextNotation('|\r\n');
+        const b = docFromTextNotation('|\r\n|');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
       it('Deals with comments with empty line', () => {
         const a = docFromTextNotation(';; |\n');
         const b = docFromTextNotation(';; |\n|');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Deals with comments with empty line (Windows)', () => {
+        const a = docFromTextNotation(';; |\r\n');
+        const b = docFromTextNotation(';; |\r\n|');
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
