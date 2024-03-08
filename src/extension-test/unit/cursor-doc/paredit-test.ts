@@ -1,7 +1,12 @@
 import * as expect from 'expect';
 import * as paredit from '../../../cursor-doc/paredit';
 import * as model from '../../../cursor-doc/model';
-import { docFromTextNotation, textAndSelection, getText } from '../common/text-notation';
+import {
+  docFromTextNotation,
+  textAndSelection,
+  getText,
+  textAndSelections,
+} from '../common/text-notation';
 import { ModelEditSelection } from '../../../cursor-doc/model';
 
 model.initScanner(20000);
@@ -405,7 +410,7 @@ describe('paredit', () => {
         const b = docFromTextNotation('(def foo [:foo :bar |:baz|])');
         expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
       });
-      it('Leaves an sexp if at the end', () => {
+      it('Leaves a sexp if at the end', () => {
         const a = docFromTextNotation('(def foo [:foo :bar :baz|])');
         const b = docFromTextNotation('(def foo [:foo :bar :baz|]|)');
         expect(paredit.forwardSexpOrUpRange(a)).toEqual(textAndSelection(b)[1]);
@@ -465,20 +470,20 @@ describe('paredit', () => {
       it('Places cursor at the right end of the selection', () => {
         const a = docFromTextNotation('(def >0foo>0 [vec])');
         const b = docFromTextNotation('(def foo| [vec])');
-        paredit.moveToRangeRight(a, textAndSelection(a)[1]);
+        paredit.moveToRangeRight(a, textAndSelections(a)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Places cursor at the right end of the selection 2', () => {
         const a = docFromTextNotation('(>0def foo>0 [vec])');
         const b = docFromTextNotation('(def foo| [vec])');
-        paredit.moveToRangeRight(a, textAndSelection(a)[1]);
+        paredit.moveToRangeRight(a, textAndSelections(a)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Move to right of given range, regardless of previous selection', () => {
         const a = docFromTextNotation('(<0def<0 foo [vec])');
         const b = docFromTextNotation('(def foo >0[vec]>0)');
         const c = docFromTextNotation('(def foo [vec]|)');
-        paredit.moveToRangeRight(a, textAndSelection(b)[1]);
+        paredit.moveToRangeRight(a, textAndSelections(b)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(c));
       });
     });
@@ -487,20 +492,20 @@ describe('paredit', () => {
       it('Places cursor at the left end of the selection', () => {
         const a = docFromTextNotation('(def >0foo>0 [vec])');
         const b = docFromTextNotation('(def |foo [vec])');
-        paredit.moveToRangeLeft(a, textAndSelection(a)[1]);
+        paredit.moveToRangeLeft(a, textAndSelections(a)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Places cursor at the left end of the selection 2', () => {
         const a = docFromTextNotation('(>0def foo>0 [vec])');
         const b = docFromTextNotation('(|def foo [vec])');
-        paredit.moveToRangeLeft(a, textAndSelection(a)[1]);
+        paredit.moveToRangeLeft(a, textAndSelections(a)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
       it('Move to left of given range, regardless of previous selection', () => {
         const a = docFromTextNotation('(<0def<0 foo [vec])');
         const b = docFromTextNotation('(def foo >0[vec]>0)');
         const c = docFromTextNotation('(def foo |[vec])');
-        paredit.moveToRangeLeft(a, textAndSelection(b)[1]);
+        paredit.moveToRangeLeft(a, textAndSelections(b)[1]);
         expect(textAndSelection(a)).toEqual(textAndSelection(c));
       });
     });

@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.416",
+  "version": "2.0.417",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -955,6 +955,12 @@
           "calva.paredit.killAlsoCutsToClipboard": {
             "type": "boolean",
             "markdownDescription": "When enabled, replaces the clipboard content with the deleted code.",
+            "default": false,
+            "scope": "window"
+          },
+          "calva.paredit.multicursor": {
+            "type": "boolean",
+            "markdownDescription": "Experimental: Support for multiple cursors in paredit commands.\nCurrently supported commands:\n- Cursor movement",
             "default": false,
             "scope": "window"
           }
