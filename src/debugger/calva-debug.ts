@@ -103,10 +103,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
 
     this.sendResponse(response);
-    state
-      .analytics()
-      .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.ATTACH)
-      .send();
   }
 
   protected continueRequest(
@@ -126,10 +122,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     this.sendResponse(response);
-    state
-      .analytics()
-      .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.CONTINUE)
-      .send();
   }
 
   protected restartRequest(
@@ -158,10 +150,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     this.sendResponse(response);
-    state
-      .analytics()
-      .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.STEP_OVER)
-      .send();
   }
 
   protected stepInRequest(
@@ -181,10 +169,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     this.sendResponse(response);
-    state
-      .analytics()
-      .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.STEP_IN)
-      .send();
   }
 
   protected stepOutRequest(
@@ -204,10 +188,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     this.sendResponse(response);
-    state
-      .analytics()
-      .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.STEP_OUT)
-      .send();
   }
 
   protected threadsRequest(

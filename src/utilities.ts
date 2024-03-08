@@ -385,7 +385,7 @@ function filterVisibleRanges(
 
 function scrollToBottom(editor: vscode.TextEditor) {
   const lastPos = editor.document.positionAt(Infinity);
-  editor.selection = new vscode.Selection(lastPos, lastPos);
+  editor.selections = [new vscode.Selection(lastPos, lastPos)];
   editor.revealRange(new vscode.Range(lastPos, lastPos));
 }
 

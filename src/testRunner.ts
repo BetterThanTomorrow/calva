@@ -322,7 +322,7 @@ async function runNamespaceTests(controller: vscode.TestController, document: vs
   const session = getSession(util.getFileType(document));
   const [currentDocNs, _] = namespace.getNamespace(
     doc,
-    vscode.window.activeTextEditor?.selection?.active
+    vscode.window.activeTextEditor?.selections[0]?.active
   );
   await loadTestNS(currentDocNs, session);
   const namespacesToRunTestsFor = [
@@ -335,14 +335,17 @@ async function runNamespaceTests(controller: vscode.TestController, document: vs
 function getTestUnderCursor() {
   const editor = util.tryToGetActiveTextEditor();
   if (editor) {
-    return getText.currentTopLevelDefined(editor?.document, editor?.selection.active)[1];
+    return getText.currentTopLevelDefined(editor?.document, editor?.selections[0].active)[1];
   }
 }
 
 async function runTestUnderCursor(controller: vscode.TestController) {
   const doc = util.tryToGetDocument({});
   const session = getSession(util.getFileType(doc));
-  const [ns, _] = namespace.getNamespace(doc, vscode.window.activeTextEditor?.selection?.active);
+  const [ns, _] = namespace.getNamespace(
+    doc,
+    vscode.window.activeTextEditor?.selections[0]?.active
+  );
   const test = getTestUnderCursor();
 
   if (test) {

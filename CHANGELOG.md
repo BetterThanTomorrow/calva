@@ -6,6 +6,25 @@ Changes to Calva.
 
 - [Automatically do Rename Symbol after refactors that add new names](https://github.com/BetterThanTomorrow/calva/issues/2388)
 
+## [2.0.418] - 2024-03-08
+
+- [Add selection to experimentally supported multicursor paredit commands](https://github.com/BetterThanTomorrow/calva/issues/2421). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+
+## [2.0.417] - 2024-03-08
+
+- [Implement experimental support for multicursor paredit movement commands](https://github.com/BetterThanTomorrow/calva/issues/2420). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+
+## [2.0.416] - 2024-03-08
+
+- Internal textNotation testing system supports multiple selections, addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+- Add new Calva development utility commands to create textNotations from open buffers, and vice versa
+
+## [2.0.415] - 2024-03-08
+
+- Refactor some internal document and selection APIs in preparation for multiple selections, addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+- [Add default Clojure associations for file extensions `.lpy`](https://github.com/BetterThanTomorrow/calva/issues/2415)
+- [Document telemetry collection](https://github.com/BetterThanTomorrow/calva/issues/2428)
+
 ## [2.0.414] - 2024-02-24
 
 - [HTML->Hiccup: Add option to always keep classes as attributes if so desired](https://github.com/BetterThanTomorrow/calva/issues/2398) 

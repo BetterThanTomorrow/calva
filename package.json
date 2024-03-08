@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.415",
+  "version": "2.0.419",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -112,6 +112,7 @@
           ".boot",
           ".bb",
           ".ly",
+          ".lpy",
           ".calva-repl",
           ".fiddle"
         ],
@@ -956,6 +957,12 @@
             "markdownDescription": "When enabled, replaces the clipboard content with the deleted code.",
             "default": false,
             "scope": "window"
+          },
+          "calva.paredit.multicursor": {
+            "type": "boolean",
+            "markdownDescription": "Experimental: Support for multiple cursors in paredit commands.\nCurrently supported commands:\n- Cursor movement\n- Cursor selection",
+            "default": false,
+            "scope": "window"
           }
         }
       },
@@ -1167,6 +1174,16 @@
       {
         "command": "calva.diagnostics.toggleNreplLoggingEnabled",
         "title": "Toggle nREPL Logging Enabled",
+        "category": "Calva Diagnostics"
+      },
+      {
+        "command": "calva.diagnostics.printTextNotationFromDocument",
+        "title": "Print TextNotation from the current document to Calva says",
+        "category": "Calva Diagnostics"
+      },
+      {
+        "command": "calva.diagnostics.createDocumentFromTextNotation",
+        "title": "Create a new Clojure Document from TextNotation",
         "category": "Calva Diagnostics"
       },
       {
@@ -3131,7 +3148,6 @@
     "posthtml-parser": "^0.11.0",
     "semver": "^7.3.7",
     "tree-kill": "^1.2.2",
-    "universal-analytics": "^0.5.3",
     "uuidv4": "6.2.12",
     "vscode-languageclient": "^8.0.2",
     "vsls": "^1.0.4753"
@@ -3144,7 +3160,6 @@
     "@types/mocha": "^9.1.0",
     "@types/node": "^18.6.3",
     "@types/semver": "^7.3.9",
-    "@types/universal-analytics": "^0.4.5",
     "@types/uuid": "^8.3.4",
     "@types/vscode": "^1.67.0",
     "@typescript-eslint/eslint-plugin": "^5.17.0",

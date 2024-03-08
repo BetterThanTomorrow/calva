@@ -250,7 +250,7 @@ export async function startStandaloneRepl(
   );
 
   const firstPos = mainEditor.document.positionAt(0);
-  mainEditor.selection = new vscode.Selection(firstPos, firstPos);
+  mainEditor.selections = [new vscode.Selection(firstPos, firstPos)];
   mainEditor.revealRange(new vscode.Range(firstPos, firstPos));
   await vscode.window.showTextDocument(mainDoc, {
     preview: false,
