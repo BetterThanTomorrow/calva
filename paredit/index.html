@@ -592,6 +592,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#experimental-feature-multicursor-support" class="md-nav__link">
+    Experimental Feature: Multicursor support
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1555,6 +1562,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#experimental-feature-multicursor-support" class="md-nav__link">
+    Experimental Feature: Multicursor support
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1946,6 +1960,12 @@
 <p><em>The Nuclear Option</em>: You can choose to disable all default key bindings by configuring <code>calva.paredit.defaultKeyMap</code> to <code>none</code>. (Then you probably also want to register your own shortcuts for the commands you often use.)</p>
 <p>In some instances built-in command defaults are the same as Paredit's defaults, and Paredit's functionality in a particular case is less than what the default is. This is true of <em>Expand Selection</em> and <em>Shrink Selection</em> for Windows/Linux when multiple lines are selected. In this particular case adding <code>!editorHasMultipleSelections</code> to the <code>when</code> clause of the binding makes for a better workflow. The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right <code>when</code> clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.</p>
 <p>Happy Editing! ❤️</p>
+<h2 id="experimental-feature-multicursor-support">Experimental Feature: Multicursor support<a class="headerlink" href="#experimental-feature-multicursor-support" title="Permanent link">#</a></h2>
+<p>There is an ongoing effort to support simultaneous multicursor editing with Paredit. This is an experimental feature and is not enabled by default. To enable it, set <code>calva.paredit.multicursor</code> to <code>true</code>. This feature is still in development and may not work as expected in all cases. Currently, this supports the following categories:</p>
+<ul>
+<li>Movement</li>
+<li>Selection</li>
+</ul>
 
 
   
