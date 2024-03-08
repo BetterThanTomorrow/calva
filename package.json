@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.417",
+  "version": "2.0.418",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -960,7 +960,7 @@
           },
           "calva.paredit.multicursor": {
             "type": "boolean",
-            "markdownDescription": "Experimental: Support for multiple cursors in paredit commands.\nCurrently supported commands:\n- Cursor movement",
+            "markdownDescription": "Experimental: Support for multiple cursors in paredit commands.\nCurrently supported commands:\n- Cursor movement\n- Cursor selection",
             "default": false,
             "scope": "window"
           }

@@ -4,7 +4,7 @@ import { ModelEdit, EditableDocument, ModelEditSelection, ModelEditRange } from 
 import { LispTokenCursor } from './token-cursor';
 import { backspaceOnWhitespace } from './backspace-on-whitespace';
 import _ = require('lodash');
-import { currentForm } from '../api/ranges';
+import { isEqual, last, property } from 'lodash';
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -36,93 +36,123 @@ export function moveToRangeRight(doc: EditableDocument, ranges: ModelEditRange[]
   doc.selections = ranges.map((range) => new ModelEditSelection(Math.max(range[0], range[1])));
 }
 
-export function selectRange(doc: EditableDocument, range: [number, number]) {
-  growSelectionStack(doc, range);
+export function selectRange(doc: EditableDocument, ranges: ModelEditRange[]) {
+  growSelectionStack(doc, ranges);
 }
 
-export function selectRangeForward(doc: EditableDocument, range: [number, number]) {
-  const selectionLeft = doc.selections[0].anchor;
-  const rangeRight = Math.max(range[0], range[1]);
-  growSelectionStack(doc, [selectionLeft, rangeRight]);
+export function selectRangeForward(
+  doc: EditableDocument,
+  ranges: ModelEditRange[],
+  selections = doc.selections
+) {
+  growSelectionStack(
+    doc,
+    ranges.map((range, index) => {
+      return [selections[index].anchor, Math.max(range[0], range[1])];
+    })
+  );
 }
 
-export function selectRangeBackward(doc: EditableDocument, range: [number, number]) {
-  const selectionRight = doc.selections[0].anchor;
-  const rangeLeft = Math.min(range[0], range[1]);
-  growSelectionStack(doc, [selectionRight, rangeLeft]);
+export function selectRangeBackward(
+  doc: EditableDocument,
+  ranges: ModelEditRange[],
+  selections = doc.selections
+) {
+  growSelectionStack(
+    doc,
+    ranges.map((range, index) => [selections[index].anchor, Math.min(range[0], range[1])])
+  );
 }
 
-export function selectForwardSexp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selections[0].active >= doc.selections[0].anchor
-      ? forwardSexpRange
-      : (doc: EditableDocument) => forwardSexpRange(doc, doc.selections[0].active, true);
-  selectRangeForward(doc, rangeFn(doc));
+export function selectForwardSexp(doc: EditableDocument, selections = doc.selections) {
+  const ranges = selections.map((selection) =>
+    selection.active >= selection.anchor
+      ? forwardSexpRange(doc, selection.end)
+      : forwardSexpRange(doc, selection.active, true)
+  );
+  selectRangeForward(doc, ranges, selections);
 }
 
-export function selectRight(doc: EditableDocument) {
-  const rangeFn =
-    doc.selections[0].active >= doc.selections[0].anchor
-      ? forwardHybridSexpRange
-      : (doc: EditableDocument) => forwardHybridSexpRange(doc);
-  selectRangeForward(doc, rangeFn(doc));
+export function selectRight(doc: EditableDocument, selections = doc.selections) {
+  const ranges = selections.map((selection) =>
+    selection.active >= selection.anchor
+      ? forwardHybridSexpRange(doc, selection.end)
+      : forwardHybridSexpRange(doc, selection.active, true)
+  );
+  selectRangeForward(doc, ranges);
 }
 
-export function selectForwardSexpOrUp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selections[0].active >= doc.selections[0].anchor
-      ? forwardSexpOrUpRange
-      : (doc: EditableDocument) => forwardSexpOrUpRange(doc, doc.selections[0].active, true);
-
-  selectRangeForward(doc, rangeFn(doc));
+export function selectForwardSexpOrUp(doc: EditableDocument, selections = doc.selections) {
+  const ranges = selections.map((selection) =>
+    selection.active >= selection.anchor
+      ? forwardSexpOrUpRange(doc, selection.end)
+      : forwardSexpOrUpRange(doc, selection.active, true)
+  );
+  selectRangeForward(doc, ranges);
 }
 
-export function selectBackwardSexp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selections[0].active <= doc.selections[0].anchor
-      ? backwardSexpRange
-      : (doc: EditableDocument) => backwardSexpRange(doc, doc.selections[0].active, false);
-  selectRangeBackward(doc, rangeFn(doc));
+export function selectBackwardSexp(doc: EditableDocument, selections = doc.selections) {
+  const ranges = selections.map((selection) =>
+    selection.active <= selection.anchor
+      ? backwardSexpRange(doc, selection.start)
+      : backwardSexpRange(doc, selection.active, false)
+  );
+  selectRangeBackward(doc, ranges);
 }
 
-export function selectForwardDownSexp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selections[0].active >= doc.selections[0].anchor
-      ? (doc: EditableDocument) => rangeToForwardDownList(doc, doc.selections[0].active, true)
-      : (doc: EditableDocument) => rangeToForwardDownList(doc, doc.selections[0].active, true);
-  selectRangeForward(doc, rangeFn(doc));
+export function selectForwardDownSexp(doc: EditableDocument, selections = doc.selections) {
+  const ranges = selections.map((selection) =>
+    selection.active >= selection.anchor
+      ? rangeToForwardDownList(doc, selection.active, true)
+      : rangeToForwardDownList(doc, selection.active, true)
+  );
+  selectRangeForward(doc, ranges);
 }
 
-export function selectBackwardDownSexp(doc: EditableDocument) {
-  selectRangeBackward(doc, rangeToBackwardDownList(doc));
+export function selectBackwardDownSexp(doc: EditableDocument, selections = doc.selections) {
+  selectRangeBackward(
+    doc,
+    selections.map((selection) => rangeToBackwardDownList(doc, selection.start))
+  );
 }
 
-export function selectForwardUpSexp(doc: EditableDocument) {
-  selectRangeForward(doc, rangeToForwardUpList(doc, doc.selections[0].active));
+export function selectForwardUpSexp(doc: EditableDocument, selections = doc.selections) {
+  selectRangeForward(
+    doc,
+    selections.map((selection) => rangeToForwardUpList(doc, selection.active))
+  );
 }
 
-export function selectBackwardUpSexp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selections[0].active <= doc.selections[0].anchor
-      ? (doc: EditableDocument) => rangeToBackwardUpList(doc, doc.selections[0].active, false)
-      : (doc: EditableDocument) => rangeToBackwardUpList(doc, doc.selections[0].active, false);
-  selectRangeBackward(doc, rangeFn(doc));
+export function selectBackwardUpSexp(doc: EditableDocument, selections = doc.selections) {
+  const ranges = selections.map((selection) =>
+    selection.active <= selection.anchor
+      ? rangeToBackwardUpList(doc, selection.active, false)
+      : rangeToBackwardUpList(doc, selection.active, false)
+  );
+  selectRangeBackward(doc, ranges);
 }
 
-export function selectBackwardSexpOrUp(doc: EditableDocument) {
-  const rangeFn =
-    doc.selections[0].active <= doc.selections[0].anchor
-      ? (doc: EditableDocument) => backwardSexpOrUpRange(doc, doc.selections[0].active, false)
-      : (doc: EditableDocument) => backwardSexpOrUpRange(doc, doc.selections[0].active, false);
-  selectRangeBackward(doc, rangeFn(doc));
+export function selectBackwardSexpOrUp(doc: EditableDocument, selections = doc.selections) {
+  const ranges = selections.map((selection) =>
+    selection.active <= selection.anchor
+      ? backwardSexpOrUpRange(doc, selection.active, false)
+      : backwardSexpOrUpRange(doc, selection.active, false)
+  );
+  selectRangeBackward(doc, ranges);
 }
 
-export function selectCloseList(doc: EditableDocument) {
-  selectRangeForward(doc, rangeToForwardList(doc, doc.selections[0].active));
+export function selectCloseList(doc: EditableDocument, selections = doc.selections) {
+  selectRangeForward(
+    doc,
+    selections.map((selection) => rangeToForwardList(doc, selection.active))
+  );
 }
 
-export function selectOpenList(doc: EditableDocument) {
-  selectRangeBackward(doc, rangeToBackwardList(doc));
+export function selectOpenList(doc: EditableDocument, selections = doc.selections) {
+  selectRangeBackward(
+    doc,
+    selections.map((selection) => rangeToBackwardList(doc, selection.start))
+  );
 }
 
 /**
@@ -954,92 +984,135 @@ export async function stringQuote(
   }
 }
 
-export function growSelection(
-  doc: EditableDocument,
-  start: number = doc.selections[0].anchor,
-  end: number = doc.selections[0].active
-) {
-  const startC = doc.getTokenCursor(start);
-  const endC = doc.getTokenCursor(end);
-  const emptySelection = startC.equals(endC);
+/**
+ * Given the set of selections in the given document,
+ * expand each selection to the next structural boundary,
+ * ie, the containing sexp.
+ *
+ * (Or in other words, the S-expression powered equivalent to vs-code's
+ * built-in Expand Selection/Shrink Selection commands)
+ * // TODO: Inside string should first select contents
+ */
+export function growSelection(doc: EditableDocument, selections = doc.selections) {
+  const newRanges = selections.map<[number, number]>(({ anchor: start, active: end }) => {
+    const startC = doc.getTokenCursor(start),
+      endC = doc.getTokenCursor(end),
+      emptySelection = startC.equals(endC);
 
-  if (emptySelection) {
-    const currentFormRange = startC.rangeForCurrentForm(start);
-    if (currentFormRange) {
-      growSelectionStack(doc, currentFormRange);
-    }
-  } else {
-    if (startC.getPrevToken().type == 'open' && endC.getToken().type == 'close') {
-      startC.backwardList();
-      startC.backwardUpList();
-      endC.forwardList();
-      growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
-      return;
-    }
-    if (isInPairsList(startC, bindingForms)) {
-      const pairRange = currentSexpsRange(doc, startC, start, true);
-      if (!_.isEqual(pairRange, [start, end])) {
-        growSelectionStack(doc, pairRange);
-        return;
+    // check if selection is empty - means just a cursor
+    if (emptySelection) {
+      const currentFormRange = startC.rangeForCurrentForm(start);
+      // check if there's a form containing the current cursor
+      if (currentFormRange) {
+        return currentFormRange;
       }
-    }
-    if (startC.backwardList()) {
-      // we are in an sexpr.
-      endC.forwardList();
-      endC.previous();
+      // if there's not, do nothing, we will not be expanding this cursor
+      return [start, end];
     } else {
-      if (startC.backwardDownList()) {
+      // check if there's a list containing the current form
+      if (startC.getPrevToken().type == 'open' && endC.getToken().type == 'close') {
         startC.backwardList();
-        if (emptySelection) {
-          endC.set(startC);
-          endC.forwardList();
-          endC.next();
+        startC.backwardUpList();
+        endC.forwardList();
+        return [startC.offsetStart, endC.offsetEnd];
+        // check if we need to handle binding pairs
+      } else if (isInPairsList(startC, bindingForms)) {
+        const pairRange = currentSexpsRange(doc, startC, start, true);
+        // if pair not already selected, expand to pair
+        if (!_.isEqual(pairRange, [start, end])) {
+          return pairRange;
         }
-        startC.previous();
-      } else if (startC.downList()) {
-        if (emptySelection) {
-          endC.set(startC);
-          endC.forwardList();
-          endC.next();
-        }
-        startC.previous();
+        // else, if pair already selected, next section should handle whole list
       }
+
+      // expand to whole list contents, if appropriate
+      if (startC.backwardList()) {
+        // we are in an sexpr.
+        endC.forwardList();
+        endC.previous();
+      } else {
+        if (startC.backwardDownList()) {
+          startC.backwardList();
+          if (emptySelection) {
+            endC.set(startC);
+            endC.forwardList();
+            endC.next();
+          }
+          startC.previous();
+        } else if (startC.downList()) {
+          if (emptySelection) {
+            endC.set(startC);
+            endC.forwardList();
+            endC.next();
+          }
+          startC.previous();
+        }
+      }
+      return [startC.offsetStart, endC.offsetEnd];
     }
-    growSelectionStack(doc, [startC.offsetStart, endC.offsetEnd]);
-  }
+  });
+  growSelectionStack(doc, newRanges);
 }
 
-export function growSelectionStack(doc: EditableDocument, range: [number, number]) {
-  const [start, end] = range;
-  if (doc.selectionStack.length > 0) {
-    const prev = doc.selectionStack[doc.selectionStack.length - 1];
-    if (!(doc.selections[0].anchor == prev.anchor && doc.selections[0].active == prev.active)) {
+export function growSelectionStack(doc: EditableDocument, ranges: Array<[number, number]>) {
+  // Check if there's a history already
+  if (doc.selectionsStack.length > 0) {
+    const prev = last(doc.selectionsStack);
+    // Check if user has diverged from history
+    // (eg, they grew/shrank and then made an arbitrary selection)
+    if (
+      !(
+        isEqual(doc.selections.map(property('anchor')), prev.map(property('anchor'))) &&
+        isEqual(doc.selections.map(property('active')), prev.map(property('active')))
+      )
+    ) {
+      // Therefore, let's reset the selection set history
       setSelectionStack(doc);
-    } else if (prev.anchor === range[0] && prev.active === range[1]) {
+
+      // Wlse, check if the intended new selection set is already the latest step
+      // in the history - meaning the user grew, shrank then grew again.
+    } else if (
+      isEqual(prev.map(property('anchor')), ranges.map(property(0))) &&
+      isEqual(prev.map(property('active')), ranges.map(property(1)))
+    ) {
       return;
     }
   } else {
-    doc.selectionStack = [doc.selections[0]];
+    // start a "fresh" selection set expansion history
+    setSelectionStack(doc, [doc.selections]);
   }
-  doc.selections = [new ModelEditSelection(start, end)];
-  doc.selectionStack.push(doc.selections[0]);
+  doc.selections = ranges.map((range) => new ModelEditSelection(...range));
+  doc.selectionsStack.push(doc.selections);
 }
 
-export function shrinkSelection(doc: EditableDocument) {
-  if (doc.selectionStack.length) {
-    const latest = doc.selectionStack.pop();
-    if (
-      doc.selectionStack.length &&
-      latest.anchor == doc.selections[0].anchor &&
-      latest.active == doc.selections[0].active
-    ) {
-      doc.selections = [doc.selectionStack[doc.selectionStack.length - 1]];
+// TODO(multi-cursor): Simplify algo once multicursor is fully complete
+// It currently loses data, so to speak, if the number of cursors changes between calls to growSelection as we limit the number of selections to the length of the `selections` argument.
+// Once multicursor is no longer experimental, simply set doc.selections to the 2nd-last selectionsStack step
+// The commented code lines can simply be uncommented once multicursor is ready.
+export function shrinkSelection(doc: EditableDocument, selections = doc.selections) {
+  // if there's a history currently,
+  if (doc.selectionsStack.length) {
+    const latestSelections = doc.selectionsStack.pop();
+
+    // const matchingSels = latestSelections.filter((selection, index) =>
+    const matchingSels = selections.filter((selection, index) =>
+      // ModelEditSelection.isSameRange(selection, selections[index])
+      ModelEditSelection.isSameRange(selection, latestSelections[index])
+    );
+    // and we're currently at the latest step in the history,
+    if (matchingSels.length === selections.length) {
+      // use the 2nd-last step in the history as the new selection set
+      // doc.selections = last(doc.selectionsStack);
+      doc.selections = last(doc.selectionsStack).slice(0, selections.length);
     }
   }
 }
 
-export function setSelectionStack(doc: EditableDocument, selections = doc.selections) {
-  doc.selectionStack = [selections[0]];
+export function setSelectionStack(
+  doc: EditableDocument,
+  selections: ModelEditSelection[][] = [doc.selections]
+) {
+  doc.selectionsStack = selections;
 }
 
 export async function raiseSexp(

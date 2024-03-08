@@ -210,6 +210,22 @@ export class ModelEditSelection {
 
     return this;
   }
+
+  static isSameRange(a: ModelEditSelection, b: ModelEditSelection) {
+    return _.isEqual(a?.asRange, b?.asRange);
+  }
+
+  static isSameSelection(a: ModelEditSelection, b: ModelEditSelection) {
+    return _.isEqual(a?.asDirectedRange, b?.asDirectedRange);
+  }
+
+  static containsRange(container: ModelEditSelection, containee: ModelEditSelection) {
+    if (containee && container) {
+      const containsStart = containee.start >= container.start && containee.start <= container.end;
+      const containsEnd = containee.end >= container.start && containee.end <= container.end;
+      return containsStart && containsEnd;
+    }
+  }
 }
 
 export type ModelEditOptions = {
@@ -239,7 +255,12 @@ export interface EditableModel {
 export interface EditableDocument {
   selections: ModelEditSelection[];
   model: EditableModel;
-  selectionStack: ModelEditSelection[];
+  /**
+   * Selection history stack for grow/shrink selection operations.
+   * Is a 2d array to represent multiple cursors/selections at each grow/shrink step,
+   * with the first Selection of each inner array being the primar and possibly only cursor.
+   */
+  selectionsStack: ModelEditSelection[][];
   getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor;
   insertString: (text: string) => void;
   getSelectionText: () => string;
@@ -676,8 +697,29 @@ export class StringDocument implements EditableDocument {
   // cursors in the same location.
   private _selections: ModelEditSelection[] = [];
 
-  set selections(sels: ModelEditSelection[]) {
-    this._selections = _.uniqWith(sels, (a, b) => _.isEqual(a.asRange, b.asRange));
+  /**
+   * Mimic vscode's selection deduping.
+   * - Remove nils
+   * - Remove duplicate ranges
+   * - Remove selections contained in another, ie, prefer larger selections
+   */
+  set selections(newSelections: ModelEditSelection[]) {
+    const uniqueSelections = _(newSelections)
+      // drop nils
+      .compact()
+      // simple deduping of duplicate ranges
+      .uniqWith(ModelEditSelection.isSameRange)
+      // "dedupe" any selections contained in another
+      .reject(
+        (s, _i, sels) =>
+          _(sels)
+            .without(s) // selection always contains self, so drop self
+            .compact() // drop nils from `without`
+            .some((b) => ModelEditSelection.containsRange(b, s)) // always prefer the larger selection
+      )
+      .value();
+
+    this._selections = uniqueSelections;
   }
 
   get selections() {
@@ -686,7 +728,7 @@ export class StringDocument implements EditableDocument {
 
   model: LineInputModel;
 
-  selectionStack: ModelEditSelection[] = [];
+  selectionsStack: ModelEditSelection[][] = [];
 
   getTokenCursor(offset?: number, previous?: boolean): LispTokenCursor {
     if (isUndefined(offset)) {
