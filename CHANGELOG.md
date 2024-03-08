@@ -4,14 +4,27 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Add new paredit command, `paredit.killLeft`. Fixes [#2426](https://github.com/BetterThanTomorrow/calva/issues/2426)
+- [Add Paredit Kill Left equivalent to Kill Right](https://github.com/BetterThanTomorrow/calva/issues/2426)
 - Fix: Certain `paredit.killRight` edges cases on Windows.
-- Add selection to experimentally supported multicursor paredit commands. Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2421](https://github.com/BetterThanTomorrow/calva/issues/2421).
-- Implement experimental support for multicursor paredit movement commands. Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2420](https://github.com/BetterThanTomorrow/calva/issues/2420).
-- [Internal textNotation testing system supports multiple selections](https://github.com/BetterThanTomorrow/calva/issues/2417)
-- [Add new Calva development utility commands to create textNotations from open buffers, and vice versa #](https://github.com/BetterThanTomorrow/calva/issues/2418)
+
+## [2.0.418] - 2024-03-08
+
+- [Add selection to experimentally supported multicursor paredit commands](https://github.com/BetterThanTomorrow/calva/issues/2421). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+
+## [2.0.417] - 2024-03-08
+
+- [Implement experimental support for multicursor paredit movement commands](https://github.com/BetterThanTomorrow/calva/issues/2420). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+
+## [2.0.416] - 2024-03-08
+
+- Internal textNotation testing system supports multiple selections, addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+- Add new Calva development utility commands to create textNotations from open buffers, and vice versa
+
+## [2.0.415] - 2024-03-08
+
 - Refactor some internal document and selection APIs in preparation for multiple selections, addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
 - [Add default Clojure associations for file extensions `.lpy`](https://github.com/BetterThanTomorrow/calva/issues/2415)
+- [Document telemetry collection](https://github.com/BetterThanTomorrow/calva/issues/2428)
 
 ## [2.0.414] - 2024-02-24
 
