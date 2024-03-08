@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.416] - 2024-03-08
+
 - Internal textNotation testing system supports multiple selections, addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
 - Add new Calva development utility commands to create textNotations from open buffers, and vice versa
 
