@@ -49,12 +49,12 @@ function selectForm(
 ) {
   const editor = util.getActiveTextEditor(),
     doc = util.getDocument(document),
-    selection = editor.selection;
+    selection = editor.selections[0];
 
   if (selection.isEmpty) {
     const codeSelection = selectionFn(doc, selection.active, toplevel);
     if (codeSelection) {
-      editor.selection = codeSelection;
+      editor.selections = [codeSelection];
     }
   }
 }

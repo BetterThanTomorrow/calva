@@ -4,7 +4,7 @@ import * as getText from '../util/get-text';
 const wrapSelectionAndTextFunction = (
   f: (document: vscode.TextDocument, position: vscode.Position) => [vscode.Range, string]
 ) => {
-  return (editor = vscode.window.activeTextEditor, position = editor?.selection?.active) => {
+  return (editor = vscode.window.activeTextEditor, position = editor?.selections?.[0]?.active) => {
     if (editor && position && editor.document && editor.document.languageId === 'clojure') {
       return f(editor.document, position);
     } else {

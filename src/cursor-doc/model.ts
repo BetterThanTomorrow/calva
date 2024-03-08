@@ -36,9 +36,16 @@ export class TextLine {
 }
 
 export type ModelEditFunction = 'insertString' | 'changeRange' | 'deleteRange';
+export type ModelEditArgs<T extends ModelEditFunction> = T extends 'insertString'
+  ? Parameters<LineInputModel['insertString']>
+  : T extends 'changeRange'
+  ? Parameters<LineInputModel['changeRange']>
+  : T extends 'deleteRange'
+  ? Parameters<LineInputModel['deleteRange']>
+  : never;
 
-export class ModelEdit {
-  constructor(public editFn: ModelEditFunction, public args: any[]) {}
+export class ModelEdit<T extends ModelEditFunction> {
+  constructor(public editFn: T, public args: Readonly<ModelEditArgs<T>>) {}
 }
 
 /**
@@ -93,7 +100,7 @@ export type ModelEditOptions = {
   undoStopBefore?: boolean;
   formatDepth?: number;
   skipFormat?: boolean;
-  selection?: ModelEditSelection;
+  selections?: ModelEditSelection[];
 };
 
 export interface EditableModel {
@@ -104,7 +111,7 @@ export interface EditableModel {
    * For some EditableModel's these are performed as one atomic set of edits.
    * @param edits
    */
-  edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
+  edit: (edits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions) => Thenable<boolean>;
 
   getText: (start: number, end: number, mustBeWithin?: boolean) => string;
   getLineText: (line: number) => string;
@@ -113,7 +120,7 @@ export interface EditableModel {
 }
 
 export interface EditableDocument {
-  selection: ModelEditSelection;
+  selections: ModelEditSelection[];
   model: EditableModel;
   selectionStack: ModelEditSelection[];
   getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor;
@@ -365,7 +372,7 @@ export class LineInputModel implements EditableModel {
    * Doesn't need to be atomic in the LineInputModel.
    * @param edits
    */
-  edit(edits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
+  edit(edits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): Thenable<boolean> {
     return new Promise((resolve, reject) => {
       for (const edit of edits) {
         switch (edit.editFn) {
@@ -388,8 +395,8 @@ export class LineInputModel implements EditableModel {
             break;
         }
       }
-      if (this.document && options.selection) {
-        this.document.selection = options.selection;
+      if (this.document && options.selections) {
+        this.document.selections = options.selections;
       }
       resolve(true);
     });
@@ -544,7 +551,7 @@ export class StringDocument implements EditableDocument {
     }
   }
 
-  selection: ModelEditSelection;
+  selections: ModelEditSelection[];
 
   model: LineInputModel;
 
@@ -566,16 +573,16 @@ export class StringDocument implements EditableDocument {
   getSelectionText: () => string;
 
   delete() {
-    const p = this.selection.anchor;
+    const p = this.selections[0].anchor;
     return this.model.edit([new ModelEdit('deleteRange', [p, 1])], {
-      selection: new ModelEditSelection(p),
+      selections: [new ModelEditSelection(p)],
     });
   }
 
   backspace() {
-    const p = this.selection.anchor;
+    const p = this.selections[0].anchor;
     return this.model.edit([new ModelEdit('deleteRange', [p - 1, 1])], {
-      selection: new ModelEditSelection(p - 1),
+      selections: [new ModelEditSelection(p - 1)],
     });
   }
 }

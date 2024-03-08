@@ -4,7 +4,7 @@ import * as config from './config';
 
 function getText() {
   const editor = vscode.window.activeTextEditor;
-  const selection = editor.selection;
+  const selection = editor.selections[0];
   const doc = editor.document;
   return doc.getText(
     selection.active.isEqual(selection.anchor)

@@ -32,7 +32,7 @@ export async function indentPosition(position: vscode.Position, document: vscode
         undoStopBefore: false,
       })
       .then((onFulfilled) => {
-        editor.selection = new vscode.Selection(newPosition, newPosition);
+        editor.selections = [new vscode.Selection(newPosition, newPosition)];
         return onFulfilled;
       });
   } else if (delta < 0) {
@@ -43,7 +43,7 @@ export async function indentPosition(position: vscode.Position, document: vscode
         undoStopBefore: false,
       })
       .then((onFulfilled) => {
-        editor.selection = new vscode.Selection(newPosition, newPosition);
+        editor.selections = [new vscode.Selection(newPosition, newPosition)];
         return onFulfilled;
       });
   }
@@ -103,7 +103,7 @@ export async function formatPositionInfo(
   extraConfig = {}
 ) {
   const doc: vscode.TextDocument = editor.document;
-  const index = doc.offsetAt(editor.selection.active);
+  const index = doc.offsetAt(editor.selections[0].active);
   const cursor = getDocument(doc).getTokenCursor(index);
 
   const formatRange = _calculateFormatRange(extraConfig, cursor, index);
@@ -208,20 +208,24 @@ export async function formatPosition(
         { undoStopAfter: false, undoStopBefore: false }
       )
       .then((onFulfilled: boolean) => {
-        editor.selection = new vscode.Selection(
-          doc.positionAt(formattedInfo.newIndex),
-          doc.positionAt(formattedInfo.newIndex)
-        );
+        editor.selections = [
+          new vscode.Selection(
+            doc.positionAt(formattedInfo.newIndex),
+            doc.positionAt(formattedInfo.newIndex)
+          ),
+        ];
         return onFulfilled;
       });
   }
   if (formattedInfo) {
     return new Promise((resolve, _reject) => {
       if (formattedInfo.newIndex != formattedInfo.previousIndex) {
-        editor.selection = new vscode.Selection(
-          doc.positionAt(formattedInfo.newIndex),
-          doc.positionAt(formattedInfo.newIndex)
-        );
+        editor.selections = [
+          new vscode.Selection(
+            doc.positionAt(formattedInfo.newIndex),
+            doc.positionAt(formattedInfo.newIndex)
+          ),
+        ];
       }
       resolve(true);
     });

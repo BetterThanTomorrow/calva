@@ -392,13 +392,6 @@ export class NReplSession {
     const debugResponse = getStateValue(debug.DEBUG_RESPONSE_KEY);
     const theNS = ns || opts['ns'] || 'user';
     if (debugResponse && vscode.debug.activeDebugSession && this.replType === 'clj') {
-      state
-        .analytics()
-        .logEvent(
-          debug.DEBUG_ANALYTICS.CATEGORY,
-          debug.DEBUG_ANALYTICS.EVENT_ACTIONS.EVALUATE_IN_DEBUG_CONTEXT
-        )
-        .send();
       return {
         id: debugResponse.id,
         ns: theNS,
