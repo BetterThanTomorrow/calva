@@ -243,6 +243,11 @@ We are Clojure and Visual Studio Code fans who care about the ergonomics of usin
 
 Calva is an open source project with surprisingly many code contributors. We take great care to keep it easy and fun to contribute. See the [Calva Development Wiki](https://github.com/BetterThanTomorrow/calva/wiki) for more on this.
 
+## Telemetry
+
+If the setting `telemetry.telemetryLevel` is set to `"all"`, Calva will collect some telemetry. It is basically some key events, like that Calva is started, a repl connected, something is evaluated. Currently it is 10 events.
+For an up-to-date, and full, list of events, see: https://github.com/BetterThanTomorrow/calva/blob/published/src/analytics.ts and the calls to that module.
+
 ## Happy Coding
 
 We hope you will find good use for Calva. Please let us know what you think. PRs welcome, file an issue or chat us up in the [#calva](https://clojurians.slack.com/messages/calva/) channel in the Clojurians Slack.
