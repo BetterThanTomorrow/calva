@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Automatically do Rename Symbol after refactors that add new names](https://github.com/BetterThanTomorrow/calva/issues/2388)
+
 ## [2.0.418] - 2024-03-08
 
 - [Add selection to experimentally supported multicursor paredit commands](https://github.com/BetterThanTomorrow/calva/issues/2421). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
