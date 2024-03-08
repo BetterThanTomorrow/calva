@@ -305,7 +305,6 @@ export async function jackIn(
     );
     return;
   }
-  state.analytics().logEvent('REPL', 'JackInInitiated').send();
   await outputWindow.initResultsDoc();
   outputWindow.appendLine('; Jacking in...');
   await outputWindow.openResultsDoc();

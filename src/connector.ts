@@ -65,8 +65,6 @@ async function readRuntimeConfigs() {
 }
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
-  state.analytics().logEvent('REPL', 'Connecting').send();
-
   if (nClient) {
     nClient['silent'] = true;
     await nClient.close();
@@ -109,7 +107,6 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     cljSession.replType = 'clj';
     util.setConnectingState(false);
     util.setConnectedState(true);
-    state.analytics().logEvent('REPL', 'ConnectedCLJ').send();
     void state.analytics().logGA4Pageview('/connected-clj-repl');
     setStateValue('clj', cljSession);
     setStateValue('cljc', cljSession);
@@ -166,14 +163,6 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
           translatedReplType,
           connectSequence.name
         );
-        state
-          .analytics()
-          .logEvent(
-            'REPL',
-            'ConnectCljsRepl',
-            isBuiltinType ? (connectSequence.cljsType as string) : 'Custom'
-          )
-          .send();
         void state.analytics().logGA4Pageview('/connected-cljs-repl');
       }
       if (cljsSession) {
@@ -198,7 +187,6 @@ function cleanUpAfterError(e: any) {
   util.setConnectingState(false);
   util.setConnectedState(false);
   outputWindow.appendLine('; Failed connecting.');
-  state.analytics().logEvent('REPL', 'FailedConnectingCLJ').send();
   console.error('Failed connecting:', e);
   status.update();
   return false;
@@ -297,7 +285,6 @@ async function evalConnectCode(
     console.error('Error evaluating connect form: ', reason);
   });
   if (await checkSuccess(valueResult, out, err)) {
-    state.analytics().logEvent('REPL', 'ConnectedCLJS', name).send();
     setStateValue('cljs', (cljsSession = newCljsSession));
     return true;
   } else {
@@ -630,24 +617,20 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
     );
     if (repl.start != undefined) {
       if (await repl.start(newCljsSession, repl.name, repl.started)) {
-        state.analytics().logEvent('REPL', 'StartedCLJS', repl.name).send();
         outputWindow.appendLine('; Cljs builds started');
         newCljsSession = await session.clone();
         newCljsSession.replType = 'cljs';
       } else {
-        state.analytics().logEvent('REPL', 'FailedStartingCLJS', repl.name).send();
         outputWindow.appendLine('; Failed starting cljs repl');
         setStateValue('cljsBuild', null);
         return [null, null];
       }
     }
     if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
-      state.analytics().logEvent('REPL', 'ConnectedCLJS', repl.name).send();
       setStateValue('cljs', (cljsSession = newCljsSession));
       return [cljsSession, getStateValue('cljsBuild')];
     } else {
       const build = getStateValue('cljsBuild');
-      state.analytics().logEvent('REPL', 'FailedConnectingCLJS', repl.name).send();
       const failed =
         'Failed starting cljs repl' +
         (build != null
@@ -699,8 +682,6 @@ export async function connect(
 ) {
   const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
 
-  state.analytics().logEvent('REPL', 'ConnectInitiated', isAutoConnect ? 'auto' : 'manual');
-  state.analytics().logEvent('REPL', 'ConnectInitiated', cljsTypeName).send();
   const portFile = projectTypes.nreplPortFileUri(connectSequence);
   void state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
   void state.extensionContext.workspaceState.update('selectedConnectSequence', connectSequence);
@@ -767,10 +748,6 @@ async function standaloneConnect(
   if (connectSequence) {
     const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
     outputWindow.appendLine(`; Connecting ...`);
-    state
-      .analytics()
-      .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
-      .send();
     void state.analytics().logGA4Pageview('/connect-initiated');
     void state.analytics().logGA4Pageview('/connect-initiated/standalone-connect');
 
@@ -811,10 +788,6 @@ export default {
     if (connectSequence) {
       const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
       outputWindow.appendLine(`; Connecting ...`);
-      state
-        .analytics()
-        .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
-        .send();
       void state.analytics().logGA4Pageview('/connect-initiated');
       void state.analytics().logGA4Pageview('/connect-initiated/external-repl-connect');
 
@@ -917,7 +890,6 @@ export default {
     const cljSession = replSession.getSession('clj');
     const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName'),
       cljTypeName: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
-    state.analytics().logEvent('REPL', 'switchCljsBuild', cljsTypeName).send();
     const [session, build] = await makeCljsSessionClone(
       cljSession,
       translatedReplType,

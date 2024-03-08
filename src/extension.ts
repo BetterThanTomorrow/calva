@@ -95,7 +95,6 @@ async function activate(context: vscode.ExtensionContext) {
   testRunner.initialize(testController);
 
   setStateValue('analytics', new Analytics(context));
-  state.analytics().logPath('/start').logEvent('LifeCycle', 'Started').send();
   void state.analytics().logGA4Pageview('/start');
 
   model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
@@ -233,13 +232,9 @@ async function activate(context: vscode.ExtensionContext) {
     loadFile: eval.loadFileCommand,
     openCalvaDocs: async () => {
       await context.globalState.update(VIEWED_CALVA_DOCS, true);
-      return open(CALVA_DOCS_URL)
-        .then(() => {
-          state.analytics().logEvent('Calva', 'Docs opened');
-        })
-        .catch((e) => {
-          console.error(`Problems visiting calva docs: ${e}`);
-        });
+      return open(CALVA_DOCS_URL).catch((e) => {
+        console.error(`Problems visiting calva docs: ${e}`);
+      });
     },
     openUserConfigEdn: config.openCalvaConfigEdn,
     prettyPrintReplaceCurrentForm: edit.prettyPrintReplaceCurrentForm,
@@ -384,13 +379,11 @@ async function activate(context: vscode.ExtensionContext) {
           if (!outputWindow.isResultsDoc(document)) {
             await eval.loadDocument(document, config.getConfig().prettyPrintingOptions, false);
             outputWindow.appendPrompt();
-            state.analytics().logEvent('Calva', 'OnSaveLoad').send();
           }
         }
 
         if (testOnSave && util.getConnectedState()) {
           void testRunner.runNamespaceTests(testController, document);
-          state.analytics().logEvent('Calva', 'OnSaveTest').send();
         }
       },
       changeTextDocument: annotations.onDidChangeTextDocument,
@@ -490,8 +483,6 @@ async function activate(context: vscode.ExtensionContext) {
     }
   }
 
-  state.analytics().logPath('/activated').logEvent('LifeCycle', 'Activated').send();
-
   if (!cwExtension) {
     try {
       highlight.activate(context);
@@ -517,7 +508,6 @@ async function activate(context: vscode.ExtensionContext) {
 }
 
 async function deactivate(): Promise<void> | undefined {
-  state.analytics().logEvent('LifeCycle', 'Deactivated').send();
   jackIn.calvaJackout();
   paredit.deactivate();
   await lsp.getClientProvider().shutdown();

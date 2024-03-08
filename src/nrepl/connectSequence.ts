@@ -443,7 +443,6 @@ async function askForConnectSequence(
   !defaultSequence && void informAboutDefaultProjectForJackIn(projectConnectSequenceName);
 
   if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
-    state.analytics().logEvent('REPL', logLabel, 'NoProjectTypePicked').send();
     return;
   }
   const sequence = sequences.find((seq) => seq.name === projectConnectSequenceName);

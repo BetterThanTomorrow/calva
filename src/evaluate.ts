@@ -233,7 +233,6 @@ async function evaluateSelection(document = {}, options) {
 
   if (getStateValue('connected')) {
     const editor = util.getActiveTextEditor();
-    state.analytics().logEvent('Evaluation', 'selectionFn').send();
     const selection = selectionFn(editor);
     const codeSelection: vscode.Selection = selection[0];
     let code = selection[1];
@@ -492,7 +491,6 @@ async function loadDocument(
   const session = replSession.getSession(util.getFileType(doc));
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
-    state.analytics().logEvent('Evaluation', 'LoadFile').send();
     const docUri = outputWindow.isResultsDoc(doc)
       ? await namespace.getUriForNamespace(session, ns)
       : doc.uri;
@@ -665,10 +663,6 @@ function instrumentTopLevelForm() {
         selectionFn: _currentTopLevelFormText,
       }
     ).catch(printWarningForError);
-    state
-      .analytics()
-      .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM)
-      .send();
   } else {
     offerToConnect();
   }
