@@ -25,6 +25,10 @@ export class DocumentModel implements EditableModel {
     this.lineInputModel = new LineInputModel(this.lineEndingLength);
   }
 
+  get lineEnding() {
+    return this.lineEndingLength == 2 ? '\r\n' : '\n';
+  }
+
   edit(modelEdits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): Thenable<boolean> {
     const editor = utilities.getActiveTextEditor(),
       undoStopBefore = !!options.undoStopBefore;
@@ -146,21 +150,28 @@ export class MirroredDocument implements EditableDocument {
     });
   }
 
-  set selections(selections: ModelEditSelection[]) {
-    const editor = utilities.getActiveTextEditor(),
-      document = editor.document,
-      anchor = document.positionAt(selections[0].anchor),
-      active = document.positionAt(selections[0].active);
-    editor.selections = [new vscode.Selection(anchor, active)];
-    editor.revealRange(new vscode.Range(active, active));
-  }
-
   get selections(): ModelEditSelection[] {
     const editor = utilities.getActiveTextEditor(),
-      document = editor.document,
-      anchor = document.offsetAt(editor.selections[0].anchor),
-      active = document.offsetAt(editor.selections[0].active);
-    return [new ModelEditSelection(anchor, active)];
+      document = editor.document;
+    return editor.selections.map((sel) => {
+      const anchor = document.offsetAt(sel.anchor),
+        active = document.offsetAt(sel.active);
+      return new ModelEditSelection(anchor, active);
+    });
+  }
+
+  set selections(selections: ModelEditSelection[]) {
+    const editor = utilities.getActiveTextEditor(),
+      document = editor.document;
+    editor.selections = selections.map((selection) => {
+      const anchor = document.positionAt(selection.anchor),
+        active = document.positionAt(selection.active);
+      return new vscode.Selection(anchor, active);
+    });
+
+    const primarySelection = selections[0];
+    const active = document.positionAt(primarySelection.active);
+    editor.revealRange(new vscode.Range(active, active));
   }
 
   public getSelectionText() {
