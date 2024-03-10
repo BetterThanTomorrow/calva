@@ -74,7 +74,7 @@
       "name": "pirate-lang",
       "projectType": "deps.edn",
       "projectRootPath": ["projects/pirate-lang"],
-      "afterCLJReplJackInCode": "(require 'repl)",
+      "afterCLJReplJackInCode": ["(require 'repl)", "(println 1)", "(println 2)"],
       "cljsType": "none",
       "menuSelections": {
         "cljAliases": ["dev", "test"]
