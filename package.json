@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.419",
+  "version": "2.0.420",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -620,8 +620,18 @@
                   }
                 },
                 "afterCLJReplJackInCode": {
-                  "type": "string",
-                  "description": "Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ],
+                  "markdownDescription": "Code to evaluate in the CLJ REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.",
                   "required": false
                 },
                 "menuSelections": {

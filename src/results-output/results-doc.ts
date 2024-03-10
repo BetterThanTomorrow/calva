@@ -174,6 +174,10 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
   }
 }
 
+export async function clearResultsDoc() {
+  await util.writeTextToFile(DOC_URI(), '');
+}
+
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
   const docUri = DOC_URI();
   await vscode.workspace.fs.createDirectory(outputFileDir());

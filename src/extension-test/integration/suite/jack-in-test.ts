@@ -43,6 +43,7 @@ suite('Jack-in suite', () => {
 
   beforeEach(async () => {
     await vscode.workspace.fs.copy(settingsBackupUri, settingsUri, { overwrite: true });
+    await outputWindow.clearResultsDoc();
   });
 
   test('start repl and connect (jack-in)', async function () {
@@ -50,8 +51,48 @@ suite('Jack-in suite', () => {
 
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
 
-    await loadAndAssert(suite, testFilePath);
+    await loadAndAssert(suite, testFilePath, ['bar', 'nil', 'clj꞉test꞉> ']);
 
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    testUtil.log(suite, 'test.clj closed');
+  });
+
+  test('Jack-in afterCLJReplJackInCode can be a string', async () => {
+    testUtil.log(suite, 'Jack-in afterCLJReplJackInCode can be a string');
+    const settings = {
+      'calva.replConnectSequences': [
+        {
+          projectType: 'deps.edn',
+          name: 'string-afterCLJReplJackInCode',
+          autoSelectForJackIn: true,
+          projectRootPath: ['.'],
+          afterCLJReplJackInCode: '(println :hello :world!)',
+        },
+      ],
+    };
+    await writeSettings(settings);
+    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
+    await loadAndAssert(suite, testFilePath, [':hello :world!', 'bar', 'nil', 'clj꞉test꞉> ']);
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    testUtil.log(suite, 'test.clj closed');
+  });
+
+  test('Jack-in afterCLJReplJackInCode can be an array', async () => {
+    testUtil.log(suite, 'Jack-in afterCLJReplJackInCode can be an array');
+    const settings = {
+      'calva.replConnectSequences': [
+        {
+          projectType: 'deps.edn',
+          name: 'string-afterCLJReplJackInCode',
+          autoSelectForJackIn: true,
+          projectRootPath: ['.'],
+          afterCLJReplJackInCode: ['(println :hello)', '(println :world!)'],
+        },
+      ],
+    };
+    await writeSettings(settings);
+    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
+    await loadAndAssert(suite, testFilePath, [':hello', ':world!', 'bar', 'nil', 'clj꞉test꞉> ']);
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
   });
@@ -71,7 +112,7 @@ suite('Jack-in suite', () => {
     };
     await writeSettings(settings);
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', undefined, true);
-    await loadAndAssert(suite, testFilePath);
+    await loadAndAssert(suite, testFilePath, ['bar', 'nil', 'clj꞉test꞉> ']);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
@@ -92,7 +133,7 @@ suite('Jack-in suite', () => {
   });
 });
 
-async function loadAndAssert(suite: string, testFilePath: string) {
+async function loadAndAssert(suite: string, testFilePath: string, needleOutputLines: string[]) {
   const resultsDoc = await waitForResult(suite);
 
   // focus the clojure file
@@ -104,10 +145,12 @@ async function loadAndAssert(suite: string, testFilePath: string) {
   testUtil.log(suite, 'opened document again');
 
   await commands.executeCommand('calva.loadFile');
-  const reversedLines = resultsDoc.model.lineInputModel.lines.reverse();
-  assert.deepEqual(
-    ['bar', 'nil', 'clj꞉test꞉> '].reverse(),
-    reversedLines.slice(1, 4).map((v) => v.text)
+  const haystackOutputLines = resultsDoc.model.lineInputModel.lines.map((v) => v.text);
+  assert.ok(
+    needleOutputLines.every((needle) => haystackOutputLines.includes(needle)),
+    `Expected output to contain all of ${needleOutputLines.join(
+      '\n'
+    )}, but got ${haystackOutputLines.join('\n')}`
   );
 }
 
