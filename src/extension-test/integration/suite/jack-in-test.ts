@@ -50,7 +50,7 @@ suite('Jack-in suite', () => {
 
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
 
-    await loadAndAssert(suite, testFilePath);
+    await loadAndAssert(suite, testFilePath, ['bar', 'nil', 'clj꞉test꞉> ']);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
@@ -71,7 +71,7 @@ suite('Jack-in suite', () => {
     };
     await writeSettings(settings);
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', undefined, true);
-    await loadAndAssert(suite, testFilePath);
+    await loadAndAssert(suite, testFilePath, ['bar', 'nil', 'clj꞉test꞉> ']);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
@@ -92,7 +92,7 @@ suite('Jack-in suite', () => {
   });
 });
 
-async function loadAndAssert(suite: string, testFilePath: string) {
+async function loadAndAssert(suite: string, testFilePath: string, outputLines: string[]) {
   const resultsDoc = await waitForResult(suite);
 
   // focus the clojure file
@@ -106,8 +106,8 @@ async function loadAndAssert(suite: string, testFilePath: string) {
   await commands.executeCommand('calva.loadFile');
   const reversedLines = resultsDoc.model.lineInputModel.lines.reverse();
   assert.deepEqual(
-    ['bar', 'nil', 'clj꞉test꞉> '].reverse(),
-    reversedLines.slice(1, 4).map((v) => v.text)
+    outputLines.reverse(),
+    reversedLines.slice(1, outputLines.length + 1).map((v) => v.text)
   );
 }
 
