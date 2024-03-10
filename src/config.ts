@@ -179,7 +179,22 @@ function getConfig() {
   const autoEvaluateCode =
     configOptions.inspect<nreplUtil.AutoEvaluateCodeConfig>('autoEvaluateCode');
 
-  const replConnectSequences = configOptions.inspect<ReplConnectSequence[]>('replConnectSequences');
+  const replConnectSequencesConfig =
+    configOptions.inspect<ReplConnectSequence[]>('replConnectSequences');
+  const replConnectSequences = [
+    ...(replConnectSequencesConfig.globalValue ?? []),
+    ...(replConnectSequencesConfig.workspaceValue ?? []),
+    ...(replConnectSequencesConfig.workspaceFolderValue ?? []),
+  ].map((sequence) => {
+    if (Array.isArray(sequence.afterCLJReplJackInCode)) {
+      return {
+        ...sequence,
+        afterCLJReplJackInCode: sequence.afterCLJReplJackInCode.join('\n'),
+      };
+    } else {
+      return sequence;
+    }
+  });
 
   return {
     formatOnSave: configOptions.get('formatOnSave'),
@@ -194,11 +209,7 @@ function getConfig() {
     clojureLspPath: configOptions.get<string>('clojureLspPath'),
     openBrowserWhenFigwheelStarted: configOptions.get<boolean>('openBrowserWhenFigwheelStarted'),
     customCljsRepl: configOptions.get('customCljsRepl', null),
-    replConnectSequences: [
-      ...(replConnectSequences.globalValue ?? []),
-      ...(replConnectSequences.workspaceValue ?? []),
-      ...(replConnectSequences.workspaceFolderValue ?? []),
-    ],
+    replConnectSequences,
     myLeinProfiles: configOptions.get<string[]>('myLeinProfiles', []).map(_trimAliasName),
     myCljAliases: configOptions.get<string[]>('myCljAliases', []).map(_trimAliasName),
     asyncOutputDestination: configOptions.get<string>('sendAsyncOutputTo'),
