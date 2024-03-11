@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.421] - 2024-03-11
+
 - Fix: [Slowness printing compiler errors and warnings to Output Window](https://github.com/BetterThanTomorrow/calva/issues/2291)
 
 ## [2.0.420] - 2024-03-10
