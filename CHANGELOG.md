@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Slowness printing compiler errors and warnings to Output Window](https://github.com/BetterThanTomorrow/calva/issues/2291)
+
 ## [2.0.420] - 2024-03-10
 
 - [Allow to use an array of strings for `afterCLJReplJackInCode` in a connect sequence](https://github.com/BetterThanTomorrow/calva/issues/2423)
