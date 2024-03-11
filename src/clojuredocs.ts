@@ -7,6 +7,7 @@ import * as namespace from './namespace';
 import * as replSession from './nrepl/repl-session';
 import * as docMirror from './doc-mirror/index';
 import * as paredit from './cursor-doc/paredit';
+import * as output from './results-output/output';
 
 export type DocsEntry = {
   name: string;
@@ -43,7 +44,7 @@ export function printTextToOutputWindowCommand(args: { [x: string]: string }) {
 }
 
 function printTextToOutputWindow(text: string) {
-  outputWindow.appendLine(text);
+  output.appendClojure(text);
   outputWindow.appendPrompt();
 }
 

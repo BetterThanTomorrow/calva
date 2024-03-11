@@ -29,6 +29,7 @@ import * as jszip from 'jszip';
 import { addEdnConfig, getConfig } from './config';
 import { getJarContents } from './utilities';
 import { ConnectType } from './nrepl/connect-types';
+import * as output from './results-output/output';
 
 async function readJarContent(uri: string) {
   try {
