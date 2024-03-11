@@ -12,6 +12,7 @@ import _ = require('lodash');
 import { isDefined } from './utilities';
 import * as converters from './converters';
 import * as nreplUtil from './nrepl/util';
+import * as output from './results-output/output';
 
 const REPL_FILE_EXT = 'calva-repl';
 const FIDDLE_FILE_EXT = 'fiddle';
@@ -256,6 +257,8 @@ function getConfig() {
     ),
     redirectServerOutputToRepl: configOptions.get<boolean>('redirectServerOutputToRepl'),
     fiddleFilePaths: configOptions.get<fiddleFilesUtil.FiddleFilePaths>('fiddleFilePaths'),
+    outputDestinations:
+      configOptions.get<output.OutputDestinationConfiguration>('outputDestinations'),
   };
 }
 
