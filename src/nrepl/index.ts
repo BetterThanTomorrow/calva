@@ -292,9 +292,7 @@ export class NReplSession {
         outputWindow.append(msgData.out);
       } else if (msgData.err) {
         const err = formatAsLineComments(msgData.err);
-        outputWindow.appendLine(err, (_) => {
-          outputWindow.appendPrompt();
-        });
+        outputWindow.appendLine(err);
       }
     }
   }
