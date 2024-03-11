@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Bump deps.clj to `v1.11.2.1446`
+- [Try to find namespace for notebook eval.](https://github.com/BetterThanTomorrow/calva/issues/2408)
 
 ## [2.0.421] - 2024-03-11
 
