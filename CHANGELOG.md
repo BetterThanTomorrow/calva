@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump deps.clj to `v1.11.2.1446`
+
 ## [2.0.421] - 2024-03-11
 
 - Fix: [Slowness printing compiler errors and warnings to Output Window](https://github.com/BetterThanTomorrow/calva/issues/2291)
