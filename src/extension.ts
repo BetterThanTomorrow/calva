@@ -238,13 +238,13 @@ async function activate(context: vscode.ExtensionContext) {
     },
     openUserConfigEdn: config.openCalvaConfigEdn,
     prettyPrintReplaceCurrentForm: edit.prettyPrintReplaceCurrentForm,
-    printClojureDocsToOutputWindow: clojureDocs.printClojureDocsToOutputWindow,
+    printClojureDocsToOutputWindow: clojureDocs.printClojureDocsToOutput,
     printClojureDocsToRichComment: clojureDocs.printClojureDocsToRichComment,
     printLastStacktrace: () => {
       outputWindow.printLastStacktrace();
       outputWindow.appendPrompt();
     },
-    printTextToOutputWindowCommand: clojureDocs.printTextToOutputWindowCommand,
+    printTextToOutputCommand: clojureDocs.printTextToOutputCommand,
     printTextToRichCommentCommand: clojureDocs.printTextToRichCommentCommand,
     refresh: refresh.refresh,
     refreshAll: refresh.refreshAll,

@@ -348,7 +348,7 @@ function createCLJSReplType(
   const printThisPrinter: processOutputFn = (x) => {
       if (cljsType.printThisLineRegExp) {
         if (x.search(cljsType.printThisLineRegExp) >= 0) {
-          outputWindow.append('; ' + x.replace(/\s*$/, ''));
+          output.appendLineEvalOut(x.trimEnd());
         }
       }
     },

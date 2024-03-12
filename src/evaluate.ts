@@ -16,6 +16,7 @@ import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
 import * as customSnippets from './custom-snippets';
+import * as output from './results-output/output';
 
 function interruptAllEvaluations() {
   if (util.getConnectedState()) {
@@ -113,7 +114,7 @@ async function evaluateCodeUpdatingUI(
       line: line + 1,
       column: column + 1,
       stdout: (m) => {
-        outputWindow.append(m);
+        output.appendEvalOut(m);
       },
       stderr: (m) => err.push(m),
       pprintOptions: pprintOptions,
@@ -526,9 +527,9 @@ async function loadFile(
   const res = session.loadFile(fileContents, {
     fileName,
     filePath,
-    stdout: (m) => outputWindow.append(m),
+    stdout: (m) => output.appendEvalOut(m),
     stderr: (m) => {
-      outputWindow.appendLine(formatAsLineComments(m));
+      output.appendLineEvalErr(m);
       errorMessages.push(m);
     },
     pprintOptions: pprintOptions,

@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import * as util from './utilities';
 import * as nrepl from './nrepl';
 import * as lsp from './lsp';
-import * as outputWindow from './results-output/results-doc';
 import * as namespace from './namespace';
 import * as replSession from './nrepl/repl-session';
 import * as docMirror from './doc-mirror/index';
@@ -31,21 +30,20 @@ export function init(cljSession: nrepl.NReplSession) {
   });
 }
 
-export async function printClojureDocsToOutputWindow(clientProvider: lsp.ClientProvider) {
+export async function printClojureDocsToOutput(clientProvider: lsp.ClientProvider) {
   const docs = await clojureDocsLookup(clientProvider);
   if (!docs) {
     return;
   }
-  printTextToOutputWindow(docsEntry2ClojureCode(docs));
+  printTextToOutput(docsEntry2ClojureCode(docs));
 }
 
-export function printTextToOutputWindowCommand(args: { [x: string]: string }) {
-  printTextToOutputWindow(args['text']);
+export function printTextToOutputCommand(args: { [x: string]: string }) {
+  printTextToOutput(args['text']);
 }
 
-function printTextToOutputWindow(text: string) {
-  output.appendClojure(text);
-  outputWindow.appendPrompt();
+function printTextToOutput(text: string) {
+  output.appendClojureOther(text);
 }
 
 export async function printClojureDocsToRichComment(clientProvider: lsp.ClientProvider) {
@@ -135,16 +133,16 @@ function getHoverForExample(
   const printToRCFCommandUri = `command:calva.printTextToRichCommentCommand?${encodeURIComponent(
     JSON.stringify([{ text: exampleAndSeeAlsos, position: position }])
   )}`;
-  const printToOutputWindowCommandUri = `command:calva.printTextToOutputWindowCommand?${encodeURIComponent(
+  const printToOutputCommandUri = `command:calva.printTextToOutputCommand?${encodeURIComponent(
     JSON.stringify([{ text: exampleAndSeeAlsos, position: position }])
   )}`;
   const rcfCommandMd = `[To Rich Comment](${printToRCFCommandUri} "Print the example to a \`(comment ...)\` block")`;
-  const outputWindowCommandMd = `[To Output Window](${printToOutputWindowCommandUri} "Print the example to the Output/REPL Window")`;
+  const outputCommandMd = `[To Output](${printToOutputCommandUri} "Print the example to the Output")`;
   const hover = new vscode.MarkdownString();
   hover.isTrusted = true;
   hover.appendMarkdown(`### ${header}\n\n`);
   if (isWritableDocument) {
-    hover.appendMarkdown(`${rcfCommandMd} | ${outputWindowCommandMd}\n`);
+    hover.appendMarkdown(`${rcfCommandMd} | ${outputCommandMd}\n`);
   }
   hover.appendCodeblock(example, 'clojure');
   return hover;
