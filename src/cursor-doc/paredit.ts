@@ -6,6 +6,7 @@ import {
   ModelEditSelection,
   ModelEditRange,
   ModelEditDirectedRange,
+  ModelEditOptions,
 } from './model';
 import { LispTokenCursor } from './token-cursor';
 import { backspaceOnWhitespace } from './backspace-on-whitespace';
@@ -26,10 +27,12 @@ export async function killRange(
   doc: EditableDocument,
   range: [number, number],
   start = doc.selections[0].anchor,
-  end = doc.selections[0].active
+  end = doc.selections[0].active,
+  editOptions: Omit<ModelEditOptions, 'selections'> = { skipFormat: false }
 ) {
   const [left, right] = [Math.min(...range), Math.max(...range)];
   return doc.model.edit([new ModelEdit('deleteRange', [left, right - left, [start, end]])], {
+    ...editOptions,
     selections: [new ModelEditSelection(left)],
   });
 }
@@ -405,21 +408,26 @@ export function forwardHybridSexpRange(
  *
  * If squashWhitespace is true, then successive whitespace characters after the cursor are squashed.
  *
+ * Diverges from most other paredit fns here in that it returns both a range and ModelEditOptions,
+ * so as to express whether it's only killing preceding non-newline-whitespace.
+ * This is in order for `killRange` caller to know whether to conditionally
+ * disable post-edit auto formatting/indenting.
+ *
  * @param doc
  * @param offset
  * @param squashWhitespace
- * @returns [number, number]
+ * @returns {range: [number, number], editOptions: ModelEditOptions}
  */
 export function backwardHybridSexpRange(
   doc: EditableDocument,
   offset = doc.selections[0].start,
   squashWhitespace = true
-): ModelEditDirectedRange {
+): { range: ModelEditDirectedRange; editOptions: ModelEditOptions } {
   let cursor = doc.getTokenCursor(offset - 1);
   if (cursor.getToken().type === 'close') {
-    return backwardSexpRange(doc);
+    return { range: backwardSexpRange(doc), editOptions: { skipFormat: false } };
   } else if (cursor.getToken().type === 'open') {
-    return [offset, offset];
+    return { range: [offset, offset], editOptions: { skipFormat: false } };
   } else if (cursor.getToken().raw === '\n') {
     cursor = doc.getTokenCursor(offset);
   }
@@ -429,6 +437,8 @@ export function backwardHybridSexpRange(
     currentLineLineStartOffset - doc.model.lineEndingLength,
     offset
   );
+
+  const isKillingWhitespace = remainderLineText.trim().length === 0;
 
   cursor.backwardList(); // move to the start of the current form
   // -1 to include opening token
@@ -489,7 +499,7 @@ export function backwardHybridSexpRange(
       start = currentLineLineStartOffset;
     }
   }
-  return [start, offset];
+  return { range: [start, offset], editOptions: { skipFormat: isKillingWhitespace } };
 }
 
 export function rangeToForwardUpList(
