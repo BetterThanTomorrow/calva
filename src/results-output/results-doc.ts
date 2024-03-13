@@ -200,7 +200,9 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     return resultsDoc;
   }
 
-  const greetings = `${formatAsLineComments(START_GREETINGS)}\n\n`;
+  const greetings = `${formatAsLineComments(START_GREETINGS)}\n\n${formatAsLineComments(
+    CLJ_CONNECT_GREETINGS
+  )}\n\n`;
   const edit = new vscode.WorkspaceEdit();
   const fullRange = new vscode.Range(resultsDoc.positionAt(0), resultsDoc.positionAt(Infinity));
   edit.replace(docUri, fullRange, greetings);

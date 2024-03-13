@@ -112,9 +112,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     setStateValue('clj', cljSession);
     setStateValue('cljc', cljSession);
     status.update();
-    outputWindow.appendLine(
-      `Connected session: clj\n${formatAsLineComments(outputWindow.CLJ_CONNECT_GREETINGS)}`
-    );
+    output.appendLineOtherOut(`Connected session: clj`);
     replSession.updateReplSessionType();
 
     outputWindow.setSession(cljSession, nClient.ns);
@@ -197,11 +195,8 @@ async function setUpCljsRepl(session: NReplSession, build) {
   setStateValue('cljs', session);
   setStateValue('cljc', session);
   status.update();
-  output.appendLineOtherOut(
-    `Connected session: cljs${build ? ', repl: ' + build : ''}\n${
-      outputWindow.CLJS_CONNECT_GREETINGS
-    }`
-  );
+  output.appendLineOtherOut(`Connected session: cljs${build ? ', repl: ' + build : ''}`);
+  outputWindow.appendLine(formatAsLineComments(outputWindow.CLJS_CONNECT_GREETINGS));
   const description = await session.describe(true);
   const ns = description.aux?.['current-ns'] || 'user';
   await session.eval(`(in-ns '${ns})`, 'user').value;
