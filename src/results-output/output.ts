@@ -23,9 +23,9 @@ export type OutputDestinationConfiguration = {
 };
 
 export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
-  evalResults: 'output-window',
-  evalOutput: 'output-window',
-  otherOutput: 'output-window',
+  evalResults: 'output-channel',
+  evalOutput: 'output-channel',
+  otherOutput: 'output-channel',
 };
 
 export function getDestinationConfiguration(): OutputDestinationConfiguration {

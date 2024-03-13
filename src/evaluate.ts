@@ -25,7 +25,7 @@ function interruptAllEvaluations() {
       msgs.push(msg);
     });
     if (msgs.length) {
-      outputWindow.appendLine(msgs.join('\n'));
+      output.appendLineOtherOut(msgs.join('\n'));
     }
     try {
       NReplSession.getInstances().forEach((session, _index) => {
@@ -123,6 +123,9 @@ async function evaluateCodeUpdatingUI(
     try {
       if (evaluationSendCodeToOutputWindow) {
         outputWindow.appendLine(code);
+        if (output.getDestinationConfiguration().evalOutput !== 'output-window') {
+          output.appendClojureEval(code);
+        }
       }
 
       let value = await context.value;
@@ -131,7 +134,7 @@ async function evaluateCodeUpdatingUI(
       result = value;
 
       if (showResult) {
-        outputWindow.appendLine(value, async (resultLocation) => {
+        output.appendClojureEval(value, async () => {
           if (selection) {
             const c = selection.start.character;
             if (editor && options.replace) {
@@ -150,7 +153,6 @@ async function evaluateCodeUpdatingUI(
                   selection,
                   editor,
                   editor.selections[0].active,
-                  resultLocation,
                   annotations.AnnotationStatus.SUCCESS
                 );
                 if (!options.comment) {
@@ -162,14 +164,17 @@ async function evaluateCodeUpdatingUI(
         });
         // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
         if (err.length > 0) {
-          const errMsg = formatAsLineComments(err.join('\n'));
+          const errMsg = err.join('\n');
           if (context.stacktrace) {
             outputWindow.saveStacktrace(context.stacktrace);
-            outputWindow.appendLine(errMsg, (_, afterResultLocation) => {
+            outputWindow.appendLine(formatAsLineComments(errMsg), (_, afterResultLocation) => {
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
+            if (output.getDestinationConfiguration().evalOutput !== 'output-window') {
+              output.appendClojureOther(errMsg);
+            }
           } else {
-            outputWindow.appendLine(errMsg);
+            output.appendLineEvalErr(errMsg);
           }
         }
       }
@@ -197,7 +202,6 @@ async function evaluateCodeUpdatingUI(
                 selection,
                 editor,
                 currentCursorPos,
-                resultLocation,
                 annotations.AnnotationStatus.ERROR
               );
               if (!options.comment) {
@@ -217,6 +221,9 @@ async function evaluateCodeUpdatingUI(
               console.error(`Failed fetching stacktrace: ${e.message}`);
             });
         });
+        if (output.getDestinationConfiguration().evalOutput !== 'output-window') {
+          output.appendLineEvalErr(err.length ? err.join('\n') : e);
+        }
       }
     }
     outputWindow.setSession(session, context.ns || ns);
@@ -257,7 +264,6 @@ async function evaluateSelection(document = {}, options) {
         '',
         codeSelection,
         editor,
-        undefined,
         undefined,
         annotations.AnnotationStatus.PENDING
       );
@@ -521,7 +527,7 @@ async function loadFile(
   const fileContents = await util.getFileContents(filePath);
   const session = replSession.getSession(path.extname(fileName).replace(/^\./, ''));
 
-  outputWindow.appendLine(`; Evaluating file: ${fileName}`);
+  output.appendLineOtherOut(`Evaluating file: ${fileName}`);
 
   const errorMessages = [];
   const res = session.loadFile(fileContents, {
@@ -537,9 +543,9 @@ async function loadFile(
   try {
     const value = await res.value;
     if (value) {
-      outputWindow.appendLine(value);
+      output.appendClojureEval(value);
     } else {
-      outputWindow.appendLine('; No results from file evaluation.');
+      output.appendLineEvalOut('No results from file evaluation.');
     }
   } catch (e) {
     outputWindow.appendLine(
@@ -551,6 +557,9 @@ async function loadFile(
         }
       }
     );
+    if (output.getDestinationConfiguration().evalOutput !== 'output-window') {
+      output.appendLineEvalErr(`Evaluation of file ${fileName} failed: ${e}`);
+    }
     if (
       !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
         outputWindow.isResultsDoc(editor.document)
@@ -571,7 +580,7 @@ async function loadFile(
     outputWindow.setSession(session, ns);
     replSession.updateReplSessionType();
     if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
-      outputWindow.appendLine(`; Evaluating 'autoEvaluateCode.onFileLoaded.${fileType}'`);
+      output.appendLineOtherOut(`Evaluating \`autoEvaluateCode.onFileLoaded.${fileType}\``);
       const context = customSnippets.makeContext(vscode.window.activeTextEditor, ns, ns, fileType);
       await customSnippets.evaluateSnippet(
         util.getActiveTextEditor(),
@@ -692,7 +701,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
       column: evalPos.character,
     });
   } catch (e) {
-    outputWindow.appendLine('; Evaluation failed.');
+    output.appendLineEvalErr('Evaluation failed.');
   }
 }
 
