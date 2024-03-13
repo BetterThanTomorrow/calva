@@ -1,6 +1,7 @@
 import * as outputWindow from './results-doc';
 import * as config from '../config';
 import * as vscode from 'vscode';
+import * as util from '../utilities';
 
 export interface AfterAppendCallback {
   (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
@@ -92,14 +93,14 @@ function append(destination: OutputDestination, message: string, after?: AfterAp
   didLastOutputTerminateLine[destination] = message.endsWith('\n');
   if (destination === 'output-window') {
     outputWindow.append(
-      `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(message)}`,
+      `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(util.stripAnsi(message))}`,
       after
     );
     return;
   }
   if (destination === 'output-channel') {
     initOutputChannel();
-    outputChannel.append(message);
+    outputChannel.append(util.stripAnsi(message));
     return;
   }
 }
@@ -155,7 +156,7 @@ function appendLine(destination: OutputDestination, message: string, after?: Aft
   didLastOutputTerminateLine[destination] = true;
   if (destination === 'output-window') {
     outputWindow.appendLine(
-      `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(message)}`,
+      `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(util.stripAnsi(message))}`,
       after
     );
     return;
