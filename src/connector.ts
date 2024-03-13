@@ -198,9 +198,9 @@ async function setUpCljsRepl(session: NReplSession, build) {
   setStateValue('cljc', session);
   status.update();
   output.appendLineOtherOut(
-    `Connected session: cljs${build ? ', repl: ' + build : ''}\n${formatAsLineComments(
+    `Connected session: cljs${build ? ', repl: ' + build : ''}\n${
       outputWindow.CLJS_CONNECT_GREETINGS
-    )}`
+    }`
   );
   const description = await session.describe(true);
   const ns = description.aux?.['current-ns'] || 'user';
