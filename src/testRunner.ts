@@ -216,7 +216,7 @@ async function reportTests(
             outputWindow.appendLine(messages, (_, afterResultLocation) => {
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
-            if (output.getDestinationConfiguration().otherOutput !== 'output-window') {
+            if (output.getDestinationConfiguration().otherOutput !== 'repl-window') {
               output.appendLineOtherOut(messages);
             }
           } else if (messages) {

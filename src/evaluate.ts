@@ -123,7 +123,7 @@ async function evaluateCodeUpdatingUI(
     try {
       if (evaluationSendCodeToOutputWindow) {
         outputWindow.appendLine(code);
-        if (output.getDestinationConfiguration().evalOutput !== 'output-window') {
+        if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
           output.appendClojureEval(code);
         }
       }
@@ -170,7 +170,7 @@ async function evaluateCodeUpdatingUI(
             outputWindow.appendLine(formatAsLineComments(errMsg), (_, afterResultLocation) => {
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
-            if (output.getDestinationConfiguration().evalOutput !== 'output-window') {
+            if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
               output.appendClojureOther(errMsg);
             }
           } else {
@@ -221,7 +221,7 @@ async function evaluateCodeUpdatingUI(
               console.error(`Failed fetching stacktrace: ${e.message}`);
             });
         });
-        if (output.getDestinationConfiguration().evalOutput !== 'output-window') {
+        if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
           output.appendLineEvalErr(err.length ? err.join('\n') : e);
         }
       }
@@ -557,7 +557,7 @@ async function loadFile(
         }
       }
     );
-    if (output.getDestinationConfiguration().evalOutput !== 'output-window') {
+    if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
       output.appendLineEvalErr(`Evaluation of file ${fileName} failed: ${e}`);
     }
     if (

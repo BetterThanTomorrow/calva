@@ -14,7 +14,7 @@ function initOutputChannel() {
   }
 }
 
-export type OutputDestination = 'output-window' | 'output-channel';
+export type OutputDestination = 'repl-window' | 'output-channel';
 
 export type OutputDestinationConfiguration = {
   evalResults: OutputDestination;
@@ -50,7 +50,7 @@ function appendClojure(
 ) {
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = true;
-  if (destination === 'output-window') {
+  if (destination === 'repl-window') {
     outputWindow.appendLine(`${didLastTerminateLine ? '' : '\n'}${message}`, after);
     return;
   }
@@ -91,7 +91,7 @@ export function appendClojureOther(message: string, after?: AfterAppendCallback)
 function append(destination: OutputDestination, message: string, after?: AfterAppendCallback) {
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = message.endsWith('\n');
-  if (destination === 'output-window') {
+  if (destination === 'repl-window') {
     outputWindow.append(
       `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(util.stripAnsi(message))}`,
       after
@@ -155,7 +155,7 @@ export function appendOtherErr(message: string, after?: AfterAppendCallback) {
 function appendLine(destination: OutputDestination, message: string, after?: AfterAppendCallback) {
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = true;
-  if (destination === 'output-window') {
+  if (destination === 'repl-window') {
     outputWindow.appendLine(
       `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(util.stripAnsi(message))}`,
       after
