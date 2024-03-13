@@ -51,12 +51,15 @@ function appendClojure(
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = true;
   if (destination === 'output-window') {
-    outputWindow.append(`${didLastTerminateLine ? '' : '\n'}${message}\n`, after);
+    outputWindow.appendLine(`${didLastTerminateLine ? '' : '\n'}${message}`, after);
     return;
   }
   if (destination === 'output-channel') {
     initOutputChannel();
-    outputChannel.append((didLastTerminateLine ? '' : '\n') + '```clojure\n' + message + '\n```\n');
+    outputChannel.appendLine(
+      (didLastTerminateLine ? '' : '\n') + '```clojure\n' + message + '\n```'
+    );
+    // TODO: Deal with `after`
     return;
   }
 }
@@ -98,6 +101,7 @@ function append(destination: OutputDestination, message: string, after?: AfterAp
   if (destination === 'output-channel') {
     initOutputChannel();
     outputChannel.append(util.stripAnsi(message));
+    // TODO: Deal with `after`
     return;
   }
 }
