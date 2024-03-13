@@ -28,7 +28,7 @@ export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
   otherOutput: 'output-window',
 };
 
-function getDestinationConfiguration(): OutputDestinationConfiguration {
+export function getDestinationConfiguration(): OutputDestinationConfiguration {
   return config.getConfig().outputDestinations || defaultDestinationConfiguration;
 }
 

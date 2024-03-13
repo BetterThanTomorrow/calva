@@ -143,7 +143,7 @@ export async function evaluateFiddleForSourceFile() {
     const fiddleSelection = filePathToSelection.get(fiddleFilePath);
     const p = fiddleSelection ? doc.offsetAt(fiddleSelection.active) : 0;
     const [ns, nsForm] = nsUtil.nsFromText(code, p) || namespace.getDocumentNamespace();
-    outputWindow.appendLine(`; Evaluating fiddle: ${relativeFiddleFilePath}`);
+    output.appendLineOtherOut(`Evaluating fiddle: ${relativeFiddleFilePath}`);
     await eval.evaluateInOutputWindow(code, path.extname(fiddleFilePath).replace(/^\./, ''), ns, {
       nsForm,
     });
