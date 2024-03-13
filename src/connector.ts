@@ -112,7 +112,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     setStateValue('clj', cljSession);
     setStateValue('cljc', cljSession);
     status.update();
-    output.appendLineOtherOut(
+    outputWindow.appendLine(
       `Connected session: clj\n${formatAsLineComments(outputWindow.CLJ_CONNECT_GREETINGS)}`
     );
     replSession.updateReplSessionType();
