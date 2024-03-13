@@ -8,6 +8,7 @@ import * as lsp from './lsp/definitions';
 import * as namespace from './namespace';
 import { getSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
+import * as output from './results-output/output';
 
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -249,7 +250,7 @@ async function runAllTests(controller: vscode.TestController, document = {}) {
     outputWindow.appendLine('; ' + e);
   }
   updateReplSessionType();
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 function runAllTestsCommand(controller: vscode.TestController) {
@@ -311,7 +312,7 @@ async function runNamespaceTestsImpl(
 
   outputWindow.setSession(session, nss[0]);
   updateReplSessionType();
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 async function runNamespaceTests(controller: vscode.TestController, document: vscode.TextDocument) {
@@ -358,7 +359,7 @@ async function runTestUnderCursor(controller: vscode.TestController) {
   } else {
     outputWindow.appendLine('; No test found at cursor');
   }
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 function runTestUnderCursorCommand(controller: vscode.TestController) {
@@ -394,7 +395,7 @@ async function rerunTests(controller: vscode.TestController, document = {}) {
     outputWindow.appendLine('; ' + e);
   }
 
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 function rerunTestsCommand(controller: vscode.TestController) {

@@ -14,6 +14,7 @@ import * as docMirror from '../doc-mirror/index';
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 import * as replSession from '../nrepl/repl-session';
 import { formatAsLineComments, splitEditQueueForTextBatching } from './util';
+import * as output from './output';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
@@ -246,7 +247,7 @@ export function setNamespaceFromCurrentFile() {
   );
   setSession(session, ns);
   replSession.updateReplSessionType();
-  appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
@@ -386,7 +387,7 @@ export function appendLine(text = '', onAppended?: OnAppendedCallback): void {
 
 export function discardPendingPrints(): void {
   resultsBuffer = [];
-  appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 export type OutputStacktraceEntry = { uri: vscode.Uri; line: number };

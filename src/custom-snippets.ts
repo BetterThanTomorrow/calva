@@ -9,6 +9,7 @@ import * as replSession from './nrepl/repl-session';
 import evaluate from './evaluate';
 import * as state from './state';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import * as output from './results-output/output';
 
 export type CustomREPLCommandSnippet = {
   name: string;
@@ -76,7 +77,7 @@ async function evaluateCodeInContext(
   options: any
 ) {
   const result = await evaluateSnippet(editor, code, context, options);
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
   return result;
 }
 

@@ -216,3 +216,13 @@ export function appendLineOtherErr(message: string, after?: AfterAppendCallback)
   const destination = getDestinationConfiguration().otherOutput;
   appendLine(destination, message, after);
 }
+
+/**
+ * Appends a prompt to the output window.
+ * Needs to be called via here, because we keep track of wether the last output ended with a newline or not.
+ * @param onAppended Optional callback to run after the append
+ */
+export function replWindowAppendPrompt(onAppended?: outputWindow.OnAppendedCallback) {
+  didLastOutputTerminateLine['output-window'] = true;
+  outputWindow.appendPrompt(onAppended);
+}

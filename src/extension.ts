@@ -43,6 +43,7 @@ import { capitalize } from './utilities';
 import * as overrides from './overrides';
 import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
+import * as output from './results-output/output';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -242,7 +243,7 @@ async function activate(context: vscode.ExtensionContext) {
     printClojureDocsToRichComment: clojureDocs.printClojureDocsToRichComment,
     printLastStacktrace: () => {
       outputWindow.printLastStacktrace();
-      outputWindow.appendPrompt();
+      output.replWindowAppendPrompt();
     },
     printTextToOutputCommand: clojureDocs.printTextToOutputCommand,
     printTextToRichCommentCommand: clojureDocs.printTextToRichCommentCommand,
@@ -378,7 +379,7 @@ async function activate(context: vscode.ExtensionContext) {
         if (evalOnSave) {
           if (!outputWindow.isResultsDoc(document)) {
             await eval.loadDocument(document, config.getConfig().prettyPrintingOptions, false);
-            outputWindow.appendPrompt();
+            output.replWindowAppendPrompt();
           }
         }
 

@@ -130,7 +130,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         {}
       );
     }
-    outputWindow.appendPrompt();
+    output.replWindowAppendPrompt();
 
     if (connectSequence.afterCLJReplJackInCode) {
       output.appendLineOtherOut(`Evaluating 'afterCLJReplJackInCode'`);
@@ -141,7 +141,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         {}
       );
     }
-    outputWindow.appendPrompt();
+    output.replWindowAppendPrompt();
 
     clojureDocs.init(cljSession);
 
@@ -216,7 +216,7 @@ async function setUpCljsRepl(session: NReplSession, build) {
       ns,
       {}
     );
-    outputWindow.appendPrompt();
+    output.replWindowAppendPrompt();
   }
   replSession.updateReplSessionType();
 }
@@ -879,7 +879,7 @@ export default {
       if (outputWindow.isResultsDoc(util.getActiveTextEditor().document)) {
         outputWindow.setSession(newSession, undefined);
         replSession.updateReplSessionType();
-        outputWindow.appendPrompt();
+        output.replWindowAppendPrompt();
       }
       status.update();
     }

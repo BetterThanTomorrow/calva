@@ -19,6 +19,7 @@ import * as liveShareSupport from '../live-share';
 import { getConfig } from '../config';
 import * as joyride from '../joyride';
 import { ConnectType } from './connect-types';
+import * as output from '../results-output/output';
 
 let jackInPTY: JackInTerminal = undefined;
 let jackInTerminal: vscode.Terminal = undefined;
@@ -74,7 +75,7 @@ function executeJackInTask(
           utilities.setJackedInState(true);
           statusbar.update();
           outputWindow.appendLine('; Jack-in done.');
-          outputWindow.appendPrompt();
+          output.replWindowAppendPrompt();
           if (cb) {
             cb();
           }
