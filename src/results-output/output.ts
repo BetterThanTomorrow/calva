@@ -23,9 +23,9 @@ export type OutputDestinationConfiguration = {
 };
 
 export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
-  evalResults: 'output-channel',
-  evalOutput: 'output-channel',
-  otherOutput: 'output-channel',
+  evalResults: 'output-window',
+  evalOutput: 'output-window',
+  otherOutput: 'output-window',
 };
 
 function getDestinationConfiguration(): OutputDestinationConfiguration {
@@ -33,10 +33,7 @@ function getDestinationConfiguration(): OutputDestinationConfiguration {
 }
 
 function asClojureLineComments(message: string) {
-  return message
-    .split('\n')
-    .map((line) => `; ${line}`)
-    .join('\n');
+  return message.replace(/\n(?!$)/g, '\n; ');
 }
 
 // Used to decide if new output result output should be prepended with a newline or not.
