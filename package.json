@@ -165,6 +165,46 @@
         "type": "object",
         "title": "Calva",
         "properties": {
+          "calva.outputDestinations": {
+            "type": "object",
+            "markdownDescription": [
+              "Calva categorizes output into three types:\n- **evaluation results**: Clojure data returned from an evaluation.\n- **evaluation output**: stdout/stderr from an evaluation\n- **other output**: Other messages, logs, etc\n\nYou can select where each category of output should go to: the REPL Window or to the _Calva Says_ Output Channel."
+            ],
+            "properties": {
+              "evalResults": {
+                "type": "string",
+                "enum": [
+                  "repl-window",
+                  "output-channel"
+                ],
+                "default": "repl-window",
+                "markdownDescription": "Destination for evaluation results. (Clojure data returned from an evaluation)."
+              },
+              "evalOutput": {
+                "type": "string",
+                "enum": [
+                  "repl-window",
+                  "output-channel"
+                ],
+                "default": "repl-window",
+                "markdownDescription": "Destination for evaluation output (stdout/stderr from an evaluation)."
+              },
+              "otherOutput": {
+                "type": "string",
+                "enum": [
+                  "repl-window",
+                  "output-channel"
+                ],
+                "default": "repl-window",
+                "markdownDescription": "Destination for other output (Calva messages, out-of-band stdout/stderr, etcetera)."
+              }
+            },
+            "default": {
+              "evalResults": "repl-window",
+              "evalOutput": "repl-window",
+              "otherOutput": "repl-window"
+            }
+          },
           "calva.fiddleFilePaths": {
             "type": "array",
             "markdownDescription": "An array of `source` and `fiddle` root paths, relative to the project root. This is used by the commands **Calva: Open Fiddle File for Current File**, and **Calva: Evaluate Fiddle File for Current File**. Example:\n\n```json\n\"calva.fiddleFilePaths\": [\n  {\n    \"source\": [\"src\"],\n    \"fiddle\": [\"env\", \"dev\", \"fiddles\"]\n  }\n]\n```\n\nThe default is `null`, which will make Calva associate files with a `.fiddle` file extension as the fiddle file for a Clojure file. E.g. a file `src/foo/bar/baz_main.cljc`, will have an associated fiddle file named `src/foo/bar/baz_main.fiddle`. See [calva.io/fiddle](https://calva.io/fiddle-files/) for more info.",

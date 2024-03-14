@@ -132,5 +132,10 @@
       "customJackInCommandLine": "echo PROJECT-ROOT-PATH: 'JACK-IN-PROJECT-ROOT-PATH', NREPL-PORT-FILE: 'JACK-IN-NREPL-PORT-FILE', NREPL-PORT: 'JACK-IN-NREPL-PORT', LEIN-PROFILES: 'JACK-IN-LEIN-PROFILES', LEIN-LAUNCH-ALIAS 'JACK-IN-LEIN-LAUNCH-ALIAS', CLJ-MIDDLEWARE: 'JACK-IN-CLJ-MIDDLEWARE', CLJS-MIDDLEWARE: 'JACK-IN-CLJS-MIDDLEWARE' ; ../../custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION",
       "cljsType": "shadow-cljs"
     }
-  ]
+  ],
+  "calva.outputDestinations": {
+    "evalResults": "output-channel",
+    "evalOutput": "output-channel",
+    "otherOutput": "output-channel"
+  }
 }
