@@ -64,7 +64,9 @@ function setKeybindingsEnabledContext() {
 function initializeState() {
   setStateValue('connected', false);
   setStateValue('connecting', false);
-  setStateValue('outputChannel', vscode.window.createOutputChannel('Calva says'));
+  const outputChannel = vscode.window.createOutputChannel('Calva says', 'markdown');
+  setStateValue('outputChannel', outputChannel);
+  output.initOutputChannel(outputChannel);
   setStateValue('connectionLogChannel', vscode.window.createOutputChannel('Calva Connection Log'));
   setStateValue(
     'diagnosticCollection',

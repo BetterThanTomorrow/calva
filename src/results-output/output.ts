@@ -8,10 +8,8 @@ export interface AfterAppendCallback {
 }
 
 let outputChannel: vscode.OutputChannel;
-function initOutputChannel() {
-  if (!outputChannel) {
-    outputChannel = vscode.window.createOutputChannel('Calva Results', 'markdown');
-  }
+export function initOutputChannel(channel: vscode.OutputChannel) {
+  outputChannel = channel;
 }
 
 export type OutputDestination = 'repl-window' | 'output-channel';
@@ -55,7 +53,6 @@ function appendClojure(
     return;
   }
   if (destination === 'output-channel') {
-    initOutputChannel();
     outputChannel.appendLine(
       (didLastTerminateLine ? '' : '\n') + '```clojure\n' + message + '\n```'
     );
@@ -99,7 +96,6 @@ function append(destination: OutputDestination, message: string, after?: AfterAp
     return;
   }
   if (destination === 'output-channel') {
-    initOutputChannel();
     outputChannel.append(util.stripAnsi(message));
     // TODO: Deal with `after`
     return;
@@ -163,7 +159,6 @@ function appendLine(destination: OutputDestination, message: string, after?: Aft
     return;
   }
   if (destination === 'output-channel') {
-    initOutputChannel();
     outputChannel.appendLine(message);
     return;
   }
