@@ -51,7 +51,7 @@ suite('Jack-in suite', () => {
 
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
 
-    await loadAndAssert(suite, testFilePath, ['bar', 'nil', 'clj꞉test꞉> ']);
+    await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
@@ -72,7 +72,7 @@ suite('Jack-in suite', () => {
     };
     await writeSettings(settings);
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
-    await loadAndAssert(suite, testFilePath, [':hello :world!', 'bar', 'nil', 'clj꞉test꞉> ']);
+    await loadAndAssert(suite, testFilePath, ['; :hello :world!', '; bar', 'nil', 'clj꞉test꞉> ']);
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
   });
@@ -92,7 +92,7 @@ suite('Jack-in suite', () => {
     };
     await writeSettings(settings);
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
-    await loadAndAssert(suite, testFilePath, [':hello', ':world!', 'bar', 'nil', 'clj꞉test꞉> ']);
+    await loadAndAssert(suite, testFilePath, ['; :hello', '; :world!', '; bar', 'nil', 'clj꞉test꞉> ']);
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
   });
@@ -112,7 +112,7 @@ suite('Jack-in suite', () => {
     };
     await writeSettings(settings);
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', undefined, true);
-    await loadAndAssert(suite, testFilePath, ['bar', 'nil', 'clj꞉test꞉> ']);
+    await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
