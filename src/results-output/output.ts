@@ -34,10 +34,10 @@ function asClojureLineComments(message: string) {
   return message.replace(/\n(?!$)/g, '\n; ');
 }
 
-// Used to decide if new output result output should be prepended with a newline or not.
-// Also: For non-result output, the repl window output should be be printed as line comments.
-const didLastOutputTerminateLine = {
-  'output-window': true,
+// Used to decide if new result output should be prepended with a newline or not.
+// Also: For non-result output, whether the repl window output should be be printed as line comments.
+const didLastOutputTerminateLine: Record<OutputDestination, boolean> = {
+  'repl-window': true,
   'output-channel': true,
 };
 
