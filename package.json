@@ -537,7 +537,7 @@
                 },
                 "evaluationSendCodeToOutputWindow": {
                   "type": "boolean",
-                  "markDownDescription": "Should the code snippet evaluated be echoed to the Output/REPL Window?"
+                  "markDownDescription": "Should the code snippet evaluated be echoed to the REPL Window?"
                 }
               },
               "required": [
@@ -785,7 +785,7 @@
                         },
                         "printThisLineRegExp": {
                           "type": "string",
-                          "description": "A regular expression which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the Output/REPL window."
+                          "description": "A regular expression which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the wherever Calva prints output."
                         }
                       }
                     }
@@ -1911,30 +1911,30 @@
       {
         "category": "Calva",
         "command": "calva.showOutputWindow",
-        "title": "Show Output/REPL Window",
+        "title": "Show/Open REPL Window",
         "enablement": "calva:connected"
       },
       {
         "category": "Calva",
         "command": "calva.showFileForOutputWindowNS",
-        "title": "Show File for the Current Output/REPL Window Namespace",
+        "title": "Show File for the Current REPL Window Namespace",
         "enablement": "calva:connected"
       },
       {
         "command": "calva.setOutputWindowNamespace",
-        "title": "Switch Namespace in Output/REPL Window to Current Namespace",
+        "title": "Switch Namespace in REPL Window to Current Namespace",
         "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.sendCurrentFormToOutputWindow",
-        "title": "Send Current Form to Output/REPL Window",
+        "title": "Send Current Form to REPL Window",
         "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.sendCurrentTopLevelFormToOutputWindow",
-        "title": "Send Current Top Level Form to Output/REPL Window",
+        "title": "Send Current Top Level Form to REPL Window",
         "enablement": "calva:connected",
         "category": "Calva"
       },
@@ -2615,12 +2615,12 @@
       },
       {
         "command": "calva.showOutputWindow",
-        "key": "ctrl+alt+o o",
+        "key": "ctrl+alt+o r",
         "when": "calva:keybindingsEnabled && calva:connected && !calva:outputWindowActive"
       },
       {
         "command": "calva.showFileForOutputWindowNS",
-        "key": "ctrl+alt+o o",
+        "key": "ctrl+alt+o r",
         "when": "calva:keybindingsEnabled && calva:connected && calva:outputWindowActive"
       },
       {
