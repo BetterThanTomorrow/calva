@@ -148,15 +148,15 @@ async function loadAndAssert(suite: string, testFilePath: string, needleOutputLi
       preserveFocus: false,
     })
   );
-  testUtil.log(suite, 'opened document again');
+  testUtil.log(suite, 'opened test.clj document again');
 
   await commands.executeCommand('calva.loadFile');
   const haystackOutputLines = resultsDoc.model.lineInputModel.lines.map((v) => v.text);
   assert.ok(
     needleOutputLines.every((needle) => haystackOutputLines.includes(needle)),
-    `Expected output to contain all of ${needleOutputLines.join(
+    `Expected output to contain all these lines: [\n${needleOutputLines.join(
       '\n'
-    )}, but got ${haystackOutputLines.join('\n')}`
+    )}\n]\n, but got: [\n${haystackOutputLines.join('\n')}\n]\n`
   );
 }
 
@@ -205,7 +205,7 @@ async function startJackInProcedure(
       // Project root quick pick
       await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
     }
-    await testUtil.sleep(50);
+    await testUtil.sleep(100);
   }
 
   return testFilePath;
