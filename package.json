@@ -168,7 +168,7 @@
           "calva.outputDestinations": {
             "type": "object",
             "markdownDescription": [
-              "Calva categorizes output into three types:\n- **evaluation results**: Clojure data returned from an evaluation.\n- **evaluation output**: stdout/stderr from an evaluation\n- **other output**: Other messages, logs, etc\n\nYou can select where each category of output should go to: the REPL Window or to the _Calva Says_ Output Channel."
+              "Where different types of Calva output should be printed.\nCalva categorizes output into three types:\n- **evaluation results**: Clojure data returned from an evaluation.\n- **evaluation output**: stdout/stderr from an evaluation\n- **other output**: Other messages, logs, etc\n\nYou can select where each category of output should go to: the REPL Window or to the _Calva Says_ Output Channel."
             ],
             "properties": {
               "evalResults": {

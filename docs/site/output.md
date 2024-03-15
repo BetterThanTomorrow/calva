@@ -1,6 +1,6 @@
 ---
 title: Evaluation results and outher output
-description: Calva displays the first line of the evaluation results inline, and also prints results, other REPL output, and other output to the configured Output Destination.
+description: Calva displays the first line of the evaluation results inline, and also prints results, other REPL output and more to the configured Output Destination.
 ---
 
 # Output Destinations
