@@ -785,7 +785,7 @@
                         },
                         "printThisLineRegExp": {
                           "type": "string",
-                          "description": "A regular expression which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the wherever Calva prints output."
+                          "description": "A regular expression which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to wherever Calva prints output."
                         }
                       }
                     }
