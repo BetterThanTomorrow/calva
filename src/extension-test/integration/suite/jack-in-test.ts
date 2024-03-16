@@ -142,7 +142,19 @@ suite('Jack-in suite', () => {
   });
 });
 
-async function loadAndAssert(suite: string, testFilePath: string, needleOutputLines: string[]) {
+function appearInOrder(needle: string[], haystack: string[]) {
+  let lastIndex = -1;
+  return needle.every((str) => {
+    const currentIndex = haystack.slice(lastIndex + 1).indexOf(str);
+    if (currentIndex !== -1) {
+      lastIndex += currentIndex + 1;
+      return true;
+    }
+    return false;
+  });
+}
+
+async function loadAndAssert(suite: string, testFilePath: string, needle: string[]) {
   const resultsDoc = await waitForResult(suite);
 
   // focus the clojure file
@@ -154,19 +166,20 @@ async function loadAndAssert(suite: string, testFilePath: string, needleOutputLi
   testUtil.log(suite, 'opened test.clj document again');
 
   await commands.executeCommand('calva.loadFile');
-  const haystackOutputLines = resultsDoc.model.lineInputModel.lines.map((v) => v.text);
+  const haystack = resultsDoc.document.getText().split(/\r?\n/);
   assert.ok(
-    needleOutputLines.every((needle) => haystackOutputLines.includes(needle)),
-    `Expected output to contain all these lines: [\n${needleOutputLines.join(
-      '\n'
-    )}\n]\n, but got: [\n${haystackOutputLines.join('\n')}\n]\n`
+    appearInOrder(needle, haystack),
+    `Expected output to contain: ${JSON.stringify(needle)}\n, but got: ${JSON.stringify(
+      haystack
+    )}\n`
   );
 }
 
-async function writeSettings(settings: any): Promise<void> {
+function writeSettings(settings: any): Thenable<void> {
   const settingsData = JSON.stringify(settings, null, 2);
-  await vscode.workspace.fs.writeFile(settingsUri, Buffer.from(settingsData));
+  const p = vscode.workspace.fs.writeFile(settingsUri, Buffer.from(settingsData));
   console.log(`Settings written to ${settingsUri.fsPath}`);
+  return p;
 }
 
 async function waitForResult(suite: string) {
