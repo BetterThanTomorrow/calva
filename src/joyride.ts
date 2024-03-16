@@ -1,4 +1,3 @@
-import status from './status';
 import * as semver from 'semver';
 import * as connector from './connector';
 import * as state from './state';
@@ -8,6 +7,7 @@ import * as open from 'open';
 import * as outputWindow from './results-output/results-doc';
 import * as utilities from './utilities';
 import { ConnectType } from './nrepl/connect-types';
+import * as output from './results-output/output';
 
 const JOYRIDE_NREPL_START_API_VERSION = '0.0.5';
 
@@ -64,8 +64,8 @@ export async function joyrideJackIn(projectDir: string) {
       .then(async (port) => {
         utilities.setLaunchingState(null);
         await connector.connect(connectSequences.joyrideDefaults[0], true, 'localhost', `${port}`);
-        outputWindow.appendLine('; Jack-in done.');
-        outputWindow.appendPrompt();
+        output.appendLineOtherOut('Jack-in done.');
+        output.replWindowAppendPrompt();
       })
       .catch((e: Error) => {
         console.error('Joyride REPL start failed: ', e);

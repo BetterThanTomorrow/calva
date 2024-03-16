@@ -65,6 +65,7 @@ nav:
     - connect-sequences.md
     - notebooks.md
     - clojuredocs.md
+    - repl-window.md
     - output.md
     - debugger.md
     - pprint.md

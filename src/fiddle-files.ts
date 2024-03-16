@@ -7,7 +7,7 @@ import eval from './evaluate';
 import * as path from 'path';
 import * as namespace from './namespace';
 import * as outputWindow from './results-output/results-doc';
-import * as docMirror from './doc-mirror/index';
+import * as output from './results-output/output';
 
 // TODO: This viewColumn memory could probably be a shared thing for all of Calva.
 //       At least the REPL window has similar functionality an could benefit from this more general approach.
@@ -143,12 +143,12 @@ export async function evaluateFiddleForSourceFile() {
     const fiddleSelection = filePathToSelection.get(fiddleFilePath);
     const p = fiddleSelection ? doc.offsetAt(fiddleSelection.active) : 0;
     const [ns, nsForm] = nsUtil.nsFromText(code, p) || namespace.getDocumentNamespace();
-    outputWindow.appendLine(`; Evaluating fiddle: ${relativeFiddleFilePath}`);
+    output.appendLineOtherOut(`Evaluating fiddle: ${relativeFiddleFilePath}`);
     await eval.evaluateInOutputWindow(code, path.extname(fiddleFilePath).replace(/^\./, ''), ns, {
       nsForm,
     });
     return new Promise((resolve) => {
-      outputWindow.appendPrompt(resolve);
+      output.replWindowAppendPrompt(resolve);
     });
   } catch (e) {
     openFiddleForSourceFile();

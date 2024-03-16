@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as child from 'child_process';
 import * as kill from 'tree-kill';
-import * as outputWindow from '../results-output/results-doc';
+import * as output from '../results-output/output';
 
 export interface JackInTerminalOptions extends vscode.TerminalOptions {
   name: string;
@@ -35,7 +35,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
   ) {}
 
   open(initialDimensions: vscode.TerminalDimensions | undefined): void {
-    outputWindow.appendLine(`; Starting Jack-in Terminal: ${createCommandLine(this.options)}`);
+    output.appendLineOtherOut(`Starting Jack-in Terminal: ${createCommandLine(this.options)}`);
     this.writeEmitter.fire(
       'This is a pseudo terminal, only used for hosting the Jack-in REPL process. It takes no input.\r\nPressing ctrl+c with this terminal focused, killing this terminal, or closing/reloading the VS Code window will all stop/kill the Jack-in REPL process.\r\n\r\n'
     );

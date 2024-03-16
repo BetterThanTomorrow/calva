@@ -49,9 +49,12 @@ suite('Jack-in suite', () => {
   test('start repl and connect (jack-in)', async function () {
     testUtil.log(suite, 'start repl and connect (jack-in)');
 
+    const settings = {};
+    await writeSettings(settings);
+
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
 
-    await loadAndAssert(suite, testFilePath, ['bar', 'nil', 'clj꞉test꞉> ']);
+    await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
@@ -72,7 +75,7 @@ suite('Jack-in suite', () => {
     };
     await writeSettings(settings);
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
-    await loadAndAssert(suite, testFilePath, [':hello :world!', 'bar', 'nil', 'clj꞉test꞉> ']);
+    await loadAndAssert(suite, testFilePath, ['; :hello :world!', '; bar', 'nil', 'clj꞉test꞉> ']);
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
   });
@@ -92,7 +95,13 @@ suite('Jack-in suite', () => {
     };
     await writeSettings(settings);
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
-    await loadAndAssert(suite, testFilePath, [':hello', ':world!', 'bar', 'nil', 'clj꞉test꞉> ']);
+    await loadAndAssert(suite, testFilePath, [
+      '; :hello',
+      '; :world!',
+      '; bar',
+      'nil',
+      'clj꞉test꞉> ',
+    ]);
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
   });
@@ -112,7 +121,7 @@ suite('Jack-in suite', () => {
     };
     await writeSettings(settings);
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', undefined, true);
-    await loadAndAssert(suite, testFilePath, ['bar', 'nil', 'clj꞉test꞉> ']);
+    await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
@@ -133,7 +142,19 @@ suite('Jack-in suite', () => {
   });
 });
 
-async function loadAndAssert(suite: string, testFilePath: string, needleOutputLines: string[]) {
+function appearInOrder(needle: string[], haystack: string[]) {
+  let lastIndex = -1;
+  return needle.every((str) => {
+    const currentIndex = haystack.slice(lastIndex + 1).indexOf(str);
+    if (currentIndex !== -1) {
+      lastIndex += currentIndex + 1;
+      return true;
+    }
+    return false;
+  });
+}
+
+async function loadAndAssert(suite: string, testFilePath: string, needle: string[]) {
   const resultsDoc = await waitForResult(suite);
 
   // focus the clojure file
@@ -142,22 +163,23 @@ async function loadAndAssert(suite: string, testFilePath: string, needleOutputLi
       preserveFocus: false,
     })
   );
-  testUtil.log(suite, 'opened document again');
+  testUtil.log(suite, 'opened test.clj document again');
 
   await commands.executeCommand('calva.loadFile');
-  const haystackOutputLines = resultsDoc.model.lineInputModel.lines.map((v) => v.text);
+  const haystack = resultsDoc.document.getText().split(/\r?\n/);
   assert.ok(
-    needleOutputLines.every((needle) => haystackOutputLines.includes(needle)),
-    `Expected output to contain all of ${needleOutputLines.join(
-      '\n'
-    )}, but got ${haystackOutputLines.join('\n')}`
+    appearInOrder(needle, haystack),
+    `Expected output to contain: ${JSON.stringify(needle)}\n, but got: ${JSON.stringify(
+      haystack
+    )}\n`
   );
 }
 
-async function writeSettings(settings: any): Promise<void> {
+function writeSettings(settings: any): Thenable<void> {
   const settingsData = JSON.stringify(settings, null, 2);
-  await vscode.workspace.fs.writeFile(settingsUri, Buffer.from(settingsData));
+  const p = vscode.workspace.fs.writeFile(settingsUri, Buffer.from(settingsData));
   console.log(`Settings written to ${settingsUri.fsPath}`);
+  return p;
 }
 
 async function waitForResult(suite: string) {
@@ -199,7 +221,7 @@ async function startJackInProcedure(
       // Project root quick pick
       await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
     }
-    await testUtil.sleep(50);
+    await testUtil.sleep(100);
   }
 
   return testFilePath;
