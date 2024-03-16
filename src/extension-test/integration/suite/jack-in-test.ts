@@ -49,6 +49,9 @@ suite('Jack-in suite', () => {
   test('start repl and connect (jack-in)', async function () {
     testUtil.log(suite, 'start repl and connect (jack-in)');
 
+    const settings = {};
+    await writeSettings(settings);
+
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
 
     await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
