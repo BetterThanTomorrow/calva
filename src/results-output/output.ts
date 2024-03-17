@@ -12,6 +12,18 @@ export function initOutputChannel(channel: vscode.OutputChannel) {
   outputChannel = channel;
 }
 
+export function showOutputChannel() {
+  outputChannel.show(true);
+}
+
+export function showResultOutputDestination() {
+  if (getDestinationConfiguration().evalResults === 'output-channel') {
+    return showOutputChannel();
+  } else {
+    return outputWindow.revealResultsDoc(true);
+  }
+}
+
 export type OutputDestination = 'repl-window' | 'output-channel';
 
 export type OutputDestinationConfiguration = {
@@ -56,7 +68,7 @@ function appendClojure(
     outputChannel.appendLine(
       (didLastTerminateLine ? '' : '\n') + '```clojure\n' + message + '\n```'
     );
-    // TODO: Deal with `after`
+    after(undefined, undefined);
     return;
   }
 }

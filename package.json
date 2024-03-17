@@ -1910,6 +1910,16 @@
       },
       {
         "category": "Calva",
+        "command": "calva.showOutputChannel",
+        "title": "Show/Open the Calva says Output Channel"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.showResultOutputDestination",
+        "title": "Show/Open the result output destination"
+      },
+      {
+        "category": "Calva",
         "command": "calva.showOutputWindow",
         "title": "Show/Open REPL Window",
         "enablement": "calva:connected"
@@ -2612,6 +2622,16 @@
         "command": "calva.openSourceFileForFiddle",
         "key": "ctrl+alt+c f",
         "when": "calva:keybindingsEnabled && calva:activeEditorIsFiddle"
+      },
+      {
+        "command": "calva.showResultOutputDestination",
+        "key": "ctrl+alt+o ctrl+o",
+        "when": "calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.showOutputChannel",
+        "key": "ctrl+alt+o o",
+        "when": "calva:keybindingsEnabled"
       },
       {
         "command": "calva.showOutputWindow",

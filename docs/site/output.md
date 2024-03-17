@@ -25,3 +25,10 @@ When Calva is connected to the REPL, the Output window will by default print not
 3. Anything printed to `stdout` and `stderr` by the REPL process
 
 You can control the default via the `calva.redirectServerOutputToRepl` setting. It defaults to `true`. Setting it to `false` before connecting the REPL will result in that **2.** and **3.** will not get printed in the Output window. It will then instead be printed wherever the REPL process is printing its messages, usually the terminal from where it was started (the **Jack-in terminal** if Calva started the REPL).
+
+## Commands for showing output destinations
+
+These are the commands and their default keyboard shortcuts for revealing output destinations
+
+* **Calva: Show/Open the result output destination** - `ctrl+alt+o ctrl+o`
+* **Calva: Show/Open the Calva says Output Channel** - `ctrl+alt+o o`
