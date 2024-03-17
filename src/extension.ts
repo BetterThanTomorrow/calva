@@ -317,6 +317,8 @@ async function activate(context: vscode.ExtensionContext) {
         resolve(true);
       });
     },
+    showOutputChannel: output.showOutputChannel,
+    showResultOutputDestination: output.showResultOutputDestination,
   };
 
   function registerCalvaCommand([command, callback]) {

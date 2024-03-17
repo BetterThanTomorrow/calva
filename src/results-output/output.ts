@@ -12,6 +12,10 @@ export function initOutputChannel(channel: vscode.OutputChannel) {
   outputChannel = channel;
 }
 
+export function showOutputChannel() {
+  outputChannel.show(true);
+}
+
 export type OutputDestination = 'repl-window' | 'output-channel';
 
 export type OutputDestinationConfiguration = {
