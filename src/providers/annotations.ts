@@ -27,24 +27,6 @@ const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
   rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen,
 });
 
-let resultsLocations: [vscode.Range, vscode.Position, vscode.Location][] = [];
-
-function getResultsLocation(pos: vscode.Position): vscode.Location | undefined {
-  for (const [range, _evaluatePosition, location] of resultsLocations) {
-    if (range.contains(pos)) {
-      return location;
-    }
-  }
-}
-
-function getEvaluationPosition(pos: vscode.Position): vscode.Position | undefined {
-  for (const [range, evaluatePosition, _location] of resultsLocations) {
-    if (range.contains(pos)) {
-      return evaluatePosition;
-    }
-  }
-}
-
 function evaluated(contentText, hoverText, hasError) {
   return {
     renderOptions: {
@@ -102,7 +84,6 @@ function clearEvaluationDecorations(editor?: vscode.TextEditor) {
       setSelectionDecorations(editor, [], status);
     }
   }
-  resultsLocations = [];
 }
 
 function clearAllEvaluationDecorations() {
@@ -137,7 +118,6 @@ function decorateSelection(
   codeSelection: vscode.Selection,
   editor: vscode.TextEditor,
   evaluatePosition: vscode.Position,
-  resultsLocation,
   status: AnnotationStatus
 ) {
   const uri = editor.document.uri;
@@ -167,9 +147,6 @@ function decorateSelection(
   setSelectionDecorations(editor, [], status);
   decorationRanges.push(decoration);
   setSelectionDecorations(editor, decorationRanges, status);
-  if (status == AnnotationStatus.SUCCESS || status == AnnotationStatus.ERROR) {
-    resultsLocations.push([codeSelection, evaluatePosition, resultsLocation]);
-  }
 }
 
 function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
@@ -196,6 +173,4 @@ export default {
   decorateResults,
   decorateSelection,
   onDidChangeTextDocument,
-  getResultsLocation,
-  getEvaluationPosition,
 };

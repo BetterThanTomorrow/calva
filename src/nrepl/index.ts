@@ -14,6 +14,7 @@ import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
 import { log, Direction } from './logging';
 import * as string from '../util/string';
+import * as output from '../results-output/output';
 
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
@@ -289,10 +290,9 @@ export class NReplSession {
 
     if ((msgData.out || msgData.err) && this.replType) {
       if (msgData.out) {
-        outputWindow.append(msgData.out);
+        output.appendEvalOut(msgData.out);
       } else if (msgData.err) {
-        const err = formatAsLineComments(msgData.err);
-        outputWindow.appendLine(err);
+        output.appendLineEvalErr(msgData.err);
       }
     }
   }

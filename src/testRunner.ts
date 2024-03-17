@@ -8,6 +8,7 @@ import * as lsp from './lsp/definitions';
 import * as namespace from './namespace';
 import { getSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
+import * as output from './results-output/output';
 
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -215,8 +216,11 @@ async function reportTests(
             outputWindow.appendLine(messages, (_, afterResultLocation) => {
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
+            if (output.getDestinationConfiguration().otherOutput !== 'repl-window') {
+              output.appendLineOtherOut(messages);
+            }
           } else if (messages) {
-            outputWindow.appendLine(messages);
+            output.appendLineOtherOut(messages);
           }
 
           if (a.type === 'fail') {
@@ -228,7 +232,7 @@ async function reportTests(
   }
 
   const summary = cider.totalSummary(results.map((r) => r.summary));
-  outputWindow.appendLine('; ' + cider.summaryMessage(summary));
+  output.appendLineOtherOut(cider.summaryMessage(summary));
 
   if (!useTestExplorer()) {
     for (const fileName in diagnostics) {
@@ -242,14 +246,14 @@ async function reportTests(
 // FIXME: use cljs session where necessary
 async function runAllTests(controller: vscode.TestController, document = {}) {
   const session = getSession(util.getFileType(document));
-  outputWindow.appendLine('; Running all project tests…');
+  output.appendLineOtherOut('Running all project tests…');
   try {
     await reportTests(controller, session, [await session.testAll()]);
   } catch (e) {
-    outputWindow.appendLine('; ' + e);
+    output.appendLineOtherErr(e);
   }
   updateReplSessionType();
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 function runAllTestsCommand(controller: vscode.TestController) {
@@ -294,9 +298,9 @@ async function runNamespaceTestsImpl(
 
   const session = getSession(util.getFileType(document));
 
-  outputWindow.appendLine(
-    `; Running tests for the following namespaces:\n${
-      nss.map((item) => `;   ${item}`).join('\n') + '\n'
+  output.appendLineOtherOut(
+    `Running tests for the following namespaces:\n${
+      nss.map((item) => `  ${item}`).join('\n') + '\n'
     }`
   );
 
@@ -306,12 +310,12 @@ async function runNamespaceTestsImpl(
   try {
     await reportTests(controller, session, await Promise.all(resultPromises));
   } catch (e) {
-    outputWindow.appendLine('; ' + e);
+    output.appendLineOtherErr(e);
   }
 
   outputWindow.setSession(session, nss[0]);
   updateReplSessionType();
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 async function runNamespaceTests(controller: vscode.TestController, document: vscode.TextDocument) {
@@ -349,16 +353,16 @@ async function runTestUnderCursor(controller: vscode.TestController) {
   const test = getTestUnderCursor();
 
   if (test) {
-    outputWindow.appendLine(`; Running test: ${test}…`);
+    output.appendLineOtherOut(`Running test: ${test}…`);
     try {
       await reportTests(controller, session, [await session.test(ns, test)]);
     } catch (e) {
-      outputWindow.appendLine('; ' + e);
+      output.appendLineOtherErr(e);
     }
   } else {
-    outputWindow.appendLine('; No test found at cursor');
+    output.appendLineOtherOut('No test found at cursor');
   }
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 function runTestUnderCursorCommand(controller: vscode.TestController) {
@@ -387,14 +391,13 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
 
 async function rerunTests(controller: vscode.TestController, document = {}) {
   const session = getSession(util.getFileType(document));
-  outputWindow.appendLine('; Running previously failed tests…');
+  output.appendLineOtherOut('Running previously failed tests…');
   try {
     await reportTests(controller, session, [await session.retest()]);
   } catch (e) {
-    outputWindow.appendLine('; ' + e);
+    output.appendLineOtherErr(e);
   }
-
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 function rerunTestsCommand(controller: vscode.TestController) {
