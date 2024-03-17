@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.423] - 2024-03-17
+
 - [Add Output Destinations configuration](https://github.com/BetterThanTomorrow/calva/issues/1104)
 
 ## [2.0.422] - 2024-03-11
