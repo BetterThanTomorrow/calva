@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Add command for revealing the **Calva says** output channel](https://github.com/BetterThanTomorrow/calva/issues/2436)
+- Fix: [Results not shown inline when output-channel configured is configured as for results output](https://github.com/BetterThanTomorrow/calva/issues/2437)
 
 ## [2.0.423] - 2024-03-17
 

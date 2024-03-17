@@ -60,7 +60,7 @@ function appendClojure(
     outputChannel.appendLine(
       (didLastTerminateLine ? '' : '\n') + '```clojure\n' + message + '\n```'
     );
-    // TODO: Deal with `after`
+    after(undefined, undefined);
     return;
   }
 }
