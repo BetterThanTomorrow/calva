@@ -133,8 +133,8 @@ function decorateSelection(
         JSON.stringify([{ text: resultString }])
       )}`,
       copyCommandMd = `[Copy](${copyCommandUri} "Copy results to the clipboard")`;
-    const openWindowCommandUri = `command:calva.showOutputWindow`,
-      openWindowCommandMd = `[Open Output Window](${openWindowCommandUri} "Open the output window")`;
+    const openWindowCommandUri = `command:calva.showResultOutputDestination`,
+      openWindowCommandMd = `[Show Output](${openWindowCommandUri} "Reveal the output destination")`;
     const hoverMessage = new vscode.MarkdownString(
       `${copyCommandMd} | ${openWindowCommandMd}\n` + '```clojure\n' + resultString + '\n```'
     );

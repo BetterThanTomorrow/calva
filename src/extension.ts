@@ -270,6 +270,8 @@ async function activate(context: vscode.ExtensionContext) {
     },
     showNextReplHistoryEntry: replHistory.showNextReplHistoryEntry,
     showOutputWindow: () => outputWindow.revealResultsDoc(false),
+    showOutputChannel: output.showOutputChannel,
+    showResultOutputDestination: output.showResultOutputDestination,
     showPreviousReplHistoryEntry: replHistory.showPreviousReplHistoryEntry,
     startJoyrideReplAndConnect: async () => {
       const projectDir: string = await joyride.prepareForJackingOrConnect();
@@ -317,8 +319,6 @@ async function activate(context: vscode.ExtensionContext) {
         resolve(true);
       });
     },
-    showOutputChannel: output.showOutputChannel,
-    showResultOutputDestination: output.showResultOutputDestination,
   };
 
   function registerCalvaCommand([command, callback]) {

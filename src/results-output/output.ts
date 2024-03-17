@@ -16,6 +16,14 @@ export function showOutputChannel() {
   outputChannel.show(true);
 }
 
+export function showResultOutputDestination() {
+  if (getDestinationConfiguration().evalResults === 'output-channel') {
+    return showOutputChannel();
+  } else {
+    return outputWindow.revealResultsDoc(true);
+  }
+}
+
 export type OutputDestination = 'repl-window' | 'output-channel';
 
 export type OutputDestinationConfiguration = {
