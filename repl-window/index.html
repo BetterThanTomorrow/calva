@@ -6,22 +6,24 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Head over to the our shop and buy yourself and your friends some t-shirts with the beautiful Calva logo">
+        <meta name="description" content="The REPL window can be used as a live coding environment, and can also double as an output window, displaying the results of evaluations from any buffer and other output.">
       
       
       
-        <link rel="canonical" href="https://calva.io/merch/">
+        <link rel="canonical" href="https://calva.io/repl-window/">
       
       
-        <link rel="prev" href="../sponsors/">
+        <link rel="prev" href="../clojuredocs/">
       
+      
+        <link rel="next" href="../output/">
       
       <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.8">
     
     
       
-        <title>Calva T-shirts and Stickers! - Calva User Guide</title>
+        <title>The REPL Window - Calva User Guide</title>
       
     
     
@@ -69,11 +71,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Calva T-shirts and Stickers! - Calva User Guide" >
+        <meta  property="og:title"  content="The REPL Window - Calva User Guide" >
       
-        <meta  property="og:description"  content="Head over to the our shop and buy yourself and your friends some t-shirts with the beautiful Calva logo" >
+        <meta  property="og:description"  content="The REPL window can be used as a live coding environment, and can also double as an output window, displaying the results of evaluations from any buffer and other output." >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/merch.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/repl-window.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -81,15 +83,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/merch/" >
+        <meta  property="og:url"  content="https://calva.io/repl-window/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Calva T-shirts and Stickers! - Calva User Guide" >
+        <meta  name="twitter:title"  content="The REPL Window - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Head over to the our shop and buy yourself and your friends some t-shirts with the beautiful Calva logo" >
+        <meta  name="twitter:description"  content="The REPL window can be used as a live coding environment, and can also double as an output window, displaying the results of evaluations from any buffer and other output." >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/merch.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/repl-window.png" >
       
     
     
@@ -108,7 +110,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#calva-merch" class="md-skip">
+        <a href="#the-repl-windowfile" class="md-skip">
           Skip to content
         </a>
       
@@ -142,7 +144,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Calva T-shirts and Stickers!
+              The REPL Window
             
           </span>
         </div>
@@ -388,14 +390,16 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
       
       
       
@@ -404,7 +408,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_4">
           <span class="md-nav__icon md-icon"></span>
           Features
@@ -597,11 +601,162 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../repl-window/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          The REPL Window
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         The REPL Window
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-repl-window-for-output" class="md-nav__link">
+    Using the REPL Window for output
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#finding-the-repl-window" class="md-nav__link">
+    Finding the REPL Window
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#find-the-file-for-the-current-repl-window-namespace" class="md-nav__link">
+    Find the File for the Current REPL Window Namespace
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluating-code" class="md-nav__link">
+    Evaluating Code
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repl-history" class="md-nav__link">
+    REPL History
+  </a>
+  
+    <nav class="md-nav" aria-label="REPL History">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#navigate-repl-history" class="md-nav__link">
+    Navigate REPL History
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clear-repl-history" class="md-nav__link">
+    Clear REPL History
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stack-traces" class="md-nav__link">
+    Stack Traces
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#load-current-namespace" class="md-nav__link">
+    Load Current Namespace
+  </a>
+  
+    <nav class="md-nav" aria-label="Load Current Namespace">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#peek-current-namespace" class="md-nav__link">
+    Peek Current Namespace
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paredit-enabled" class="md-nav__link">
+    Paredit Enabled
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugger-enabled" class="md-nav__link">
+    Debugger Enabled
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#it-is-ephemeral" class="md-nav__link">
+    It is Ephemeral
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choose-clj-or-cljs-repl-connection" class="md-nav__link">
+    Choose CLJ or CLJS REPL Connection
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-quirks-and-caveats" class="md-nav__link">
+    Known Quirks and Caveats
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1332,126 +1487,11 @@
 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Calva T-shirts and Stickers!
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../merch/" class="md-nav__link">
         Calva T-shirts and Stickers!
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#zazzle" class="md-nav__link">
-    Zazzle
-  </a>
-  
-    <nav class="md-nav" aria-label="Zazzle">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#calva-symbol-sticker" class="md-nav__link">
-    Calva Symbol Sticker
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#joyride-symbol-sticker" class="md-nav__link">
-    Joyride Symbol Sticker
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#amazon-merch" class="md-nav__link">
-    Amazon Merch
-  </a>
-  
-    <nav class="md-nav" aria-label="Amazon Merch">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#the-designs" class="md-nav__link">
-    The designs
-  </a>
-  
-    <nav class="md-nav" aria-label="The designs">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#symbol-logo" class="md-nav__link">
-    Symbol + Logo
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symbol-logo-we-do-it-with-rich-comments" class="md-nav__link">
-    Symbol + Logo + We do it with Rich Comments
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symbol-only" class="md-nav__link">
-    Symbol Only
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symbol-we-do-it-with-rich-comments" class="md-nav__link">
-    Symbol + We do it with Rich Comments
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1483,23 +1523,51 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#zazzle" class="md-nav__link">
-    Zazzle
+  <a href="#using-the-repl-window-for-output" class="md-nav__link">
+    Using the REPL Window for output
   </a>
   
-    <nav class="md-nav" aria-label="Zazzle">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#finding-the-repl-window" class="md-nav__link">
+    Finding the REPL Window
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#find-the-file-for-the-current-repl-window-namespace" class="md-nav__link">
+    Find the File for the Current REPL Window Namespace
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluating-code" class="md-nav__link">
+    Evaluating Code
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repl-history" class="md-nav__link">
+    REPL History
+  </a>
+  
+    <nav class="md-nav" aria-label="REPL History">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#calva-symbol-sticker" class="md-nav__link">
-    Calva Symbol Sticker
+  <a href="#navigate-repl-history" class="md-nav__link">
+    Navigate REPL History
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#joyride-symbol-sticker" class="md-nav__link">
-    Joyride Symbol Sticker
+  <a href="#clear-repl-history" class="md-nav__link">
+    Clear REPL History
   </a>
   
 </li>
@@ -1510,45 +1578,23 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#amazon-merch" class="md-nav__link">
-    Amazon Merch
+  <a href="#stack-traces" class="md-nav__link">
+    Stack Traces
   </a>
   
-    <nav class="md-nav" aria-label="Amazon Merch">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#load-current-namespace" class="md-nav__link">
+    Load Current Namespace
+  </a>
+  
+    <nav class="md-nav" aria-label="Load Current Namespace">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#the-designs" class="md-nav__link">
-    The designs
-  </a>
-  
-    <nav class="md-nav" aria-label="The designs">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#symbol-logo" class="md-nav__link">
-    Symbol + Logo
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symbol-logo-we-do-it-with-rich-comments" class="md-nav__link">
-    Symbol + Logo + We do it with Rich Comments
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symbol-only" class="md-nav__link">
-    Symbol Only
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#symbol-we-do-it-with-rich-comments" class="md-nav__link">
-    Symbol + We do it with Rich Comments
+  <a href="#peek-current-namespace" class="md-nav__link">
+    Peek Current Namespace
   </a>
   
 </li>
@@ -1557,9 +1603,39 @@
     </nav>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#paredit-enabled" class="md-nav__link">
+    Paredit Enabled
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugger-enabled" class="md-nav__link">
+    Debugger Enabled
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#it-is-ephemeral" class="md-nav__link">
+    It is Ephemeral
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choose-clj-or-cljs-repl-connection" class="md-nav__link">
+    Choose CLJ or CLJS REPL Connection
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-quirks-and-caveats" class="md-nav__link">
+    Known Quirks and Caveats
+  </a>
   
 </li>
       
@@ -1581,88 +1657,93 @@
   
 
 
-<h1 id="calva-merch">Calva Merch<a class="headerlink" href="#calva-merch" title="Permanent link">#</a></h1>
-<p>In this video, there is a question about where you can buy the Calva T-shirt:</p>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/NIk5hVzA_fY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
-<p>You couldn't, then. But now you can! On Amazon.</p>
-<div class="admonition note">
-<p class="admonition-title">Zero profit</p>
-<p>To keep the admin of this shop to a minimum the merch is sold at production prize (or as close to production prize as the respective store allows). There is no royalty going to anyone in the Calva team when you buy one of these t-shirts. You will represent, which is certainly a way to support the project. You are of course encouraged to support us via sponsoring as well:</p>
-<ul>
-<li><a href="https://github.com/sponsors/PEZ">Sponsor Peter Strömberg</a></li>
-<li><a href="https://github.com/sponsors/bpringe">Sponsor Brandon Ringe</a></li>
-</ul>
-</div>
-<p>Calva Merch is available on Zazzle and on Amazon</p>
-<h2 id="zazzle">Zazzle<a class="headerlink" href="#zazzle" title="Permanent link">#</a></h2>
-<h3 id="calva-symbol-sticker">Calva Symbol Sticker<a class="headerlink" href="#calva-symbol-sticker" title="Permanent link">#</a></h3>
-<div style="text-align:center;line-height:150%"> <a href="https://www.zazzle.com/calva_symbol_sticker-256317900409469244" rel="nofollow" > <img src="https://rlv.zcache.com/calva_symbol_sticker-rbafc86bf7a504ac5a0171442a102babc_u092j_325.jpg?rlvnet=1&bg=0xffffff" alt="Calva Symbol Sticker" style="border:0;" /> </a> <br /> <a href="https://www.zazzle.com/calva_symbol_sticker-256317900409469244" rel="nofollow" >Calva Symbol Sticker</a> <br />by <a href="https://www.zazzle.com/store/betterthantomorrow" rel="nofollow">BetterThanTomorrow</a> </div>
-
-<h3 id="joyride-symbol-sticker">Joyride Symbol Sticker<a class="headerlink" href="#joyride-symbol-sticker" title="Permanent link">#</a></h3>
-<div style="text-align:center;line-height:150%"> <a href="https://www.zazzle.com/joyride_symbol_sticker-256104980024132578" rel="nofollow" > <img src="https://rlv.zcache.com/joyride_symbol_sticker-re810cdc6d7fe405090296540bc3bd9da_u053h_325.jpg?rlvnet=1&bg=0xffffff" alt="Joyride Symbol Sticker" style="border:0;" /> </a> <br /> <a href="https://www.zazzle.com/joyride_symbol_sticker-256104980024132578" rel="nofollow" >Joyride Symbol Sticker</a> <br />by <a href="https://www.zazzle.com/store/betterthantomorrow" rel="nofollow">BetterThanTomorrow</a> </div>
-
-<h2 id="amazon-merch">Amazon Merch<a class="headerlink" href="#amazon-merch" title="Permanent link">#</a></h2>
-<h3 id="the-designs">The designs<a class="headerlink" href="#the-designs" title="Permanent link">#</a></h3>
-<p>There are four design, all featuring the Calva symbol (the Calva glass), which are all available for a <strong>Standard T-shirt, in men's, women's and kid's cut, and in some different colors. In the <code>.com</code> store there are also </strong>Premium T-shirts**.</p>
-<h4 id="symbol-logo">Symbol + Logo<a class="headerlink" href="#symbol-logo" title="Permanent link">#</a></h4>
-<p><img alt="Calva T-shirt Symbol + Logo" src="/images/merch/t-shirt-calva-symbol-and-logo.png" /></p>
-<p>Available at:</p>
-<ul>
-<li><a href="https://www.amazon.com/dp/B09BCVH9SC">https://www.amazon.com/dp/B09BCVH9SC</a> (Premium T-shirt)</li>
-<li><a href="https://www.amazon.com/dp/B097TB5QFW">https://www.amazon.com/dp/B097TB5QFW</a></li>
-<li><a href="https://www.amazon.de/dp/B098GWQC6M">https://www.amazon.de/dp/B098GWQC6M</a></li>
-<li><a href="https://www.amazon.co.uk/dp/B098KM9XMF">https://www.amazon.co.uk/dp/B098KM9XMF</a></li>
-<li><a href="https://www.amazon.fr/dp/B0994TYXTN">https://www.amazon.fr/dp/B0994TYXTN</a></li>
-<li><a href="https://www.amazon.it/dp/B099KLJJV1">https://www.amazon.it/dp/B099KLJJV1</a></li>
-<li><a href="https://www.amazon.es/dp/B099NXR71Y">https://www.amazon.es/dp/B099NXR71Y</a></li>
-<li><a href="https://www.amazon.co.jp/dp/B097YZVMC4">https://www.amazon.co.jp/dp/B097YZVMC4</a></li>
-</ul>
-<h4 id="symbol-logo-we-do-it-with-rich-comments">Symbol + Logo + We do it with Rich Comments<a class="headerlink" href="#symbol-logo-we-do-it-with-rich-comments" title="Permanent link">#</a></h4>
-<p>The Calva symbol and Logo front, Rich Comments back.</p>
-<p><img alt="Calva T-shirt We do it with Rich Comments Back" src="/images/merch/calva-t-shirt-symbol+logo+rich-comments.png" /></p>
-<p>Available at:</p>
-<ul>
-<li><a href="https://www.amazon.com/dp/B09C4PBH5N">https://www.amazon.com/dp/B09C4PBH5N</a> (Premium T-shirt)</li>
-<li><a href="https://www.amazon.com/dp/B09BFMRCHL">https://www.amazon.com/dp/B09BFMRCHL</a></li>
-<li><a href="https://www.amazon.de/dp/B09C3VYZH8">https://www.amazon.de/dp/B09C3VYZH8</a></li>
-<li><a href="https://www.amazon.co.uk/dp/B09BLD2BVJ">https://www.amazon.co.uk/dp/B09BLD2BVJ</a></li>
-<li><a href="https://www.amazon.fr/dp/B09C3X1H7K">https://www.amazon.fr/dp/B09C3X1H7K</a></li>
-<li><a href="https://www.amazon.it/dp/B09C3WV2JQ">https://www.amazon.it/dp/B09C3WV2JQ</a></li>
-<li><a href="https://www.amazon.es/dp/B09C4P1GD1">https://www.amazon.es/dp/B09C4P1GD1</a></li>
-<li><a href="https://www.amazon.co.jp/dp/B09C4P45MR">https://www.amazon.co.jp/dp/B09C4P45MR</a></li>
-</ul>
-<h4 id="symbol-only">Symbol Only<a class="headerlink" href="#symbol-only" title="Permanent link">#</a></h4>
-<p><img alt="Calva T-shirt Symbol" src="/images/merch/t-shirt-calva-symbol.png" /></p>
-<p>Available at:</p>
-<ul>
-<li><a href="https://www.amazon.com/dp/B09B83481D">https://www.amazon.com/dp/B09B83481D</a> (Premium T-shirt)</li>
-<li><a href="https://www.amazon.com/dp/B097TB5QFW">https://www.amazon.com/dp/B097TB5QFW</a></li>
-<li><a href="https://www.amazon.de/dp/B098434W9M">https://www.amazon.de/dp/B098434W9M</a></li>
-<li><a href="https://www.amazon.co.uk/dp/B098KNGPBB">https://www.amazon.co.uk/dp/B098KNGPBB</a></li>
-<li><a href="https://www.amazon.fr/dp/B099RZGNN7">https://www.amazon.fr/dp/B099RZGNN7</a></li>
-<li><a href="https://www.amazon.it/dp/B099WYH94Z">https://www.amazon.it/dp/B099WYH94Z</a></li>
-<li><a href="https://www.amazon.es/dp/B09B2TFCSR">https://www.amazon.es/dp/B09B2TFCSR</a></li>
-<li><a href="https://www.amazon.co.jp/dp/B09B4XN3HY">https://www.amazon.co.jp/dp/B09B4XN3HY</a></li>
-</ul>
-<h4 id="symbol-we-do-it-with-rich-comments">Symbol + We do it with Rich Comments<a class="headerlink" href="#symbol-we-do-it-with-rich-comments" title="Permanent link">#</a></h4>
-<p>The Calva symbol front, Rich Comments Back.</p>
-<p><img alt="Calva T-shirt We do it with Rich Comments Back" src="/images/merch/calva-t-shirt-symbol+rich-comments.png" /></p>
-<p>Available at:</p>
-<ul>
-<li><a href="https://www.amazon.com/dp/B098M34FKJ">https://www.amazon.com/dp/B098M34FKJ</a> (Premium T-shirt)</li>
-<li><a href="https://www.amazon.com/dp/B0993VCG7P">https://www.amazon.com/dp/B0993VCG7P</a></li>
-<li><a href="https://www.amazon.de/dp/B098MF14PV">https://www.amazon.de/dp/B098MF14PV</a></li>
-<li><a href="https://www.amazon.co.uk/dp/B098P1MV44">https://www.amazon.co.uk/dp/B098P1MV44</a></li>
-<li><a href="https://www.amazon.fr/dp/B098TPQFCJ">https://www.amazon.fr/dp/B098TPQFCJ</a></li>
-<li><a href="https://www.amazon.it/dp/B098YP33ZL">https://www.amazon.it/dp/B098YP33ZL</a></li>
-<li><a href="https://www.amazon.es/dp/B098RDPK55">https://www.amazon.es/dp/B098RDPK55</a></li>
-<li><a href="https://www.amazon.co.jp/dp/B0992MQYG6">https://www.amazon.co.jp/dp/B0992MQYG6</a></li>
-</ul>
+<h1 id="the-repl-windowfile">The REPL Window/File<a class="headerlink" href="#the-repl-windowfile" title="Permanent link">#</a></h1>
+<p>The Calva REPL Window is actually a regular file with some extra treatment from Calva, like displaying a prompt, offering evaluation history recall and generally “following” the current namespace. This file is created and opened when Calva is connected to a REPL. You can use it for experimental code (though there are also <a href="../rich-comments/">Rich Comments</a> and <a href="../fiddle-files/">Fiddle Files</a> for this). </p>
+<p>In ClojureScript projects, the window will be associated with the <code>cljs</code> REPL once it is connected. It will then look something like this:</p>
+<p><img alt="REPL Window Connected" src="../images/howto/output/output-window-connected.png" /></p>
+<p>The first prompt is from when the <code>clj</code> REPL is connected, and the second from <code>cljs</code>. The first <em>part</em> of the prompt tells you which REPL type the window is currently connected to.</p>
+<h2 id="using-the-repl-window-for-output">Using the REPL Window for output<a class="headerlink" href="#using-the-repl-window-for-output" title="Permanent link">#</a></h2>
+<p>By default the REPL Window doubles as the place where Calva sends output like stdout/stderr and other messages. See <a href="../output/">Calva Output</a> for more about this and how to change this behaviour.</p>
+<h2 id="finding-the-repl-window">Finding the REPL Window<a class="headerlink" href="#finding-the-repl-window" title="Permanent link">#</a></h2>
+<p>If you quickly want to open and/or switch to the REPL Window there is the command <strong>Calva: Show/Open REPL Window</strong>, <code>ctrl+alt+o r</code>.</p>
+<p>To sync the REPL window namespace with the current file before switching, use the <strong>Switch Namespace of the REPL Window to Current Namespace</strong> command, <code>ctrl+alt+c alt+n</code>.</p>
+<h2 id="find-the-file-for-the-current-repl-window-namespace">Find the File for the Current REPL Window Namespace<a class="headerlink" href="#find-the-file-for-the-current-repl-window-namespace" title="Permanent link">#</a></h2>
+<p>When you are editing things in the REPL window, and want to open the file that defines its current namespace, use the <strong>Show File for the Current REPL Window Namespace</strong> command, <code>ctrl+alt+o r</code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>What's available on this or that Amazon site will vary a bit and it is a bit slow to add a particular design to a particular market. Eventually I hope to have both designs up on these markets: <code>.com</code>, <code>.co.uk</code>, <code>.de</code>, <code>.fr</code>, <code>.it</code>, <code>.es</code>, and <code>.co.jp</code></p>
+<p>This also works for Clojure core and library namespaces.</p>
 </div>
+<h2 id="evaluating-code">Evaluating Code<a class="headerlink" href="#evaluating-code" title="Permanent link">#</a></h2>
+<p>The window will be automatically associated with the REPL and the namespace of any project Clojure/ClojureScript file you evaluate code in. So for instance if you evaluate this code in a <code>clj</code> file with the namespace <code>fresh-reagent.handler</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">mount-target</span>
+<span class="w">  </span><span class="p">[</span><span class="ss">:div#app</span>
+<span class="w">   </span><span class="p">[</span><span class="ss">:h2</span><span class="w"> </span><span class="s">&quot;Welcome to fresh-reagent&quot;</span><span class="p">]</span>
+<span class="w">   </span><span class="p">[</span><span class="ss">:p</span><span class="w"> </span><span class="s">&quot;please wait while Figwheel is waking up ...&quot;</span><span class="p">]</span>
+<span class="w">   </span><span class="p">[</span><span class="ss">:p</span><span class="w"> </span><span class="s">&quot;(Check the js console for hints if nothing exciting happens.)&quot;</span><span class="p">]])</span>
+</code></pre></div>
+<p>If the REPL Window is the configured destination for evaluation results, the defined var will be printed there. Otherwise, it will be printed to the destination you've configured. In either case, the REPL window will print a new prompt reflecting the current REPL connection and namespace:</p>
+<p><img alt="eval-results-1" src="../images/howto/output/eval-results-1.png" /></p>
+<p>If you then switch to the output window (<code>ctrl+alt+o r</code>), and enter this at the prompt:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">mount-target</span>
+</code></pre></div>
+<p>then evaluate it using <code>alt+enter</code>, you'll get this:</p>
+<p><img alt="eval-results-2" src="../images/howto/output/eval-results-2.png" /></p>
+<p>... because the namespace ”followed” the first evaluation in the REPL window.</p>
+<h2 id="repl-history">REPL History<a class="headerlink" href="#repl-history" title="Permanent link">#</a></h2>
+<p>Recently evaluated forms in the REPL file are persisted and can easily be shown again for modifying and re-evaluating.</p>
+<h3 id="navigate-repl-history">Navigate REPL History<a class="headerlink" href="#navigate-repl-history" title="Permanent link">#</a></h3>
+<p>You can navigate up and down the history of evaluated forms in the REPL file by pressing <code>alt+up</code> and <code>alt+down</code>, provided your cursor is at the end of the last form after the prompt. If the cursor is not at the end of the last form, then <code>alt+up</code> and <code>alt+down</code> will do whatever they are mapped to, which is by default "Move Line Up" and "Move Line Down," respectively.</p>
+<p>If you have typed some text after the prompt before you start traversing up the history, this text will be preserved and will display when you traverse back down the history. If you modify some text in the history while traversing, the modification will be saved at that location in history.</p>
+<h3 id="clear-repl-history">Clear REPL History<a class="headerlink" href="#clear-repl-history" title="Permanent link">#</a></h3>
+<p>You can clear the repl history by running the command "Clear REPL History" from the command palette.</p>
+<h2 id="stack-traces">Stack Traces<a class="headerlink" href="#stack-traces" title="Permanent link">#</a></h2>
+<p>When an evaluation produces an error, it will automatically be printed in the REPL Window. If there is a stack trace associated with the error, it can now be printed on demand using the <strong>Calva: Print Last Stacktrace to the Output Window</strong> command. You can also print the stack trace for any error message printed to the REPL Window via the Codelens button below it.</p>
+<p><img alt="Print Stacktrace Codelense button" src="../images/howto/output/print-stacktrace-codelense.png" title="Print Stacktrace Codelense button" /></p>
+<p>For printed stacktraces, when source locations are available (Clojure files), you will be able to navigate to them by pressing <code>ctrl+click</code> (<code>cmd+click</code> on Mac) on the file name. You can also hover over symbols in the stack trace to see the symbol's documentation, and <code>ctrl+click</code> (<code>cmd+click</code> on Mac) the symbol to Peek Definition.</p>
+<p><img alt="Stack trace clicking and peeking definition" src="../images/howto/output/stack-traces.gif" title="Stack trace clicking and peeking definition" /></p>
+<div class="admonition note">
+<p class="admonition-title">Output destinations</p>
+<p>If you have configured some other destination for stderr output, the error message will be printed there as well. But it will <em>also</em> be printed to the REPL Window, because the augmented stack traces need this (because reasons). </p>
+</div>
+<h2 id="load-current-namespace">Load Current Namespace<a class="headerlink" href="#load-current-namespace" title="Permanent link">#</a></h2>
+<p>When navigating namespaces it is easy to <a href="https://clojure.org/guides/repl/navigating_namespaces#_how_things_can_go_wrong">forget to first require them</a> and that can be tricky to debug. To help with this, Calva's command <strong>Load/Evaluate Current File and its Requires/Dependencies</strong> also works in the REPL Window, but there, it acts like <strong>Load Current Namespace</strong>.</p>
+<p>Suppose you have two files, <code>pez/xxx.clj</code> and <code>pez/yyy.clj</code>, where <code>pez.yyy</code> requires <code>pez.xxx</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">ns </span><span class="nv">pez.xxx</span><span class="p">)</span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">a</span><span class="w"> </span><span class="ss">:xxx-a</span><span class="p">)</span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">b</span><span class="w"> </span><span class="ss">:xxx-b</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">ns </span><span class="nv">pez.yyy</span>
+<span class="w">  </span><span class="p">(</span><span class="ss">:require</span><span class="w"> </span><span class="p">[</span><span class="nv">pez.xxx</span><span class="p">]))</span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">a</span><span class="w"> </span><span class="ss">:yyy-a</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nb">println </span><span class="s">&quot;Hello&quot;</span><span class="w"> </span><span class="nv">pez.xxx/a</span><span class="p">)</span>
+</code></pre></div>
+<p>Then, with a freshly jacked-in REPL, you evaluate <code>(ns pez.yyy)</code> and want to work with the vars defined there, Clojure will complain. But if you <strong>Load/Evaluate Current File and its Requires/Dependencies</strong>, it will start working. Something like so:</p>
+<p><img alt="Load Current Namespace in the Calva Output Window" src="../images/howto/output/load-current-namespace.png" /></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This currently suffers from a limitation in Calva where it won't reload dependencies, so you will sometimes have to do this ”manually” anyways (by opening the files and loading them yourself). See <a href="https://github.com/BetterThanTomorrow/calva/issues/907">Calva issue #907</a></p>
+</div>
+<h3 id="peek-current-namespace">Peek Current Namespace<a class="headerlink" href="#peek-current-namespace" title="Permanent link">#</a></h3>
+<p>A somewhat hidden feature: You can peek, see documentation for, and navigate to a namespace by hovering on the namespace symbol in one of the REPL Window prompts (just like you would if it was not in the prompt 😄).</p>
+<h2 id="paredit-enabled">Paredit Enabled<a class="headerlink" href="#paredit-enabled" title="Permanent link">#</a></h2>
+<p>The REPL Window is mostly a regular Calva Clojure/ClojureScript file, which makes everything that works in a regular file work in this file, including <a href="../paredit/">Paredit</a>. This makes it easy to navigate the input and output there. For instance, to select the last evaluation results, you can press <code>ctrl+w</code> (<code>shift+alt+right</code> on Windows and Linux):</p>
+<p><img alt="Paredit select current form" src="../images/howto/output/select-last-result.png" /></p>
+<h2 id="debugger-enabled">Debugger Enabled<a class="headerlink" href="#debugger-enabled" title="Permanent link">#</a></h2>
+<p>The output window is mostly a regular... (you get it), which means you also have the <a href="../debugger/">Calva debugger</a> at your command at the REPL prompt (only for <code>clj</code> sessions, for now). So instead of evaluating a function definition using <code>alt+enter</code>, you can evaluate it and instrument it for debugging using <code>ctrl+alt+c i</code>, and then call the function.</p>
+<p><img alt="repl-file debugger" src="../images/howto/output/repl-file-debugger.png" /></p>
+<h2 id="it-is-ephemeral">It is Ephemeral<a class="headerlink" href="#it-is-ephemeral" title="Permanent link">#</a></h2>
+<p>The contents of the output/REPL window is written to a file named <code>output.repl</code> in the <code>.calva/output-window</code> directory of your project. The file is recreated every new session, so you should copy or save anything you want to preserve between sessions.</p>
+<p>You probably want to add <code>.calva/output-window/</code> to your <code>.&lt;something&gt;ignore</code> files. (There are some more files in that directory that you shouldn't keep under source control.)</p>
+<h2 id="choose-clj-or-cljs-repl-connection">Choose CLJ or CLJS REPL Connection<a class="headerlink" href="#choose-clj-or-cljs-repl-connection" title="Permanent link">#</a></h2>
+<p>In full-stack projects, you will probably use the window as a REPL for both <code>clj</code> and <code>cljs</code>. You can toggle which REPL the window is connected to by using the command <strong>Calva: Toggle REPL Connection for CLJC files</strong>. There is also a button for this in the status bar:</p>
+<p><img alt="Toggle CLJC" src="../images/howto/cljc-toggle-button.png" /></p>
+<h2 id="known-quirks-and-caveats">Known Quirks and Caveats<a class="headerlink" href="#known-quirks-and-caveats" title="Permanent link">#</a></h2>
+<p>Due to limitations in the VS Code API it is hard for Calva to know if the REPL file is open, and if it was opened more than once. Therefore, we suggest you make it a habit to leave this window open, or even pinned. And if it is open in several tabs, expect evaluation printouts to be a bit unpredictable.</p>
+<p>If you save the REPL file (which most often does not make much sense, but anyway) you will sometimes be presented with a message about VS Code being confused about the file contents being out of sync. Just choose to <em>Overwrite</em> the currently saved version and you should be fine.</p>
 
 
   
