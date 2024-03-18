@@ -402,9 +402,11 @@ export function forwardHybridSexpRange(
 /**
  * Aims to find the start of the current form (list|vector|map|set|string etc).
  * Similar to `forwardHybridSexpRange` but moves backwards.
- * When there is a newline before the start of the current form either:
+ * When there is whitespace (ws) before the start of the current form's non-ws text:
  *  - Return the start of the nearest form to the left of the cursor location if one exists
- *  - Returns the newline's offset if no form exists
+ *  - Return the start of the non-whitespace contents's offset if no form exists
+ * When invoked at the first non-ws contents of the line (eg at an indent):
+ *  - Return the line start, which is previous line's newline char + 1
  *
  * If squashWhitespace is true, then successive whitespace characters after the cursor are squashed.
  *
@@ -432,14 +434,30 @@ export function backwardHybridSexpRange(
     cursor = doc.getTokenCursor(offset);
   }
 
-  const currentLineLineStartOffset = doc.model.getOffsetForLine(cursor.line);
-  const remainderLineText = doc.model.getText(
-    currentLineLineStartOffset - doc.model.lineEndingLength,
+  let currentLineStartOffset = doc.model.getOffsetForLine(cursor.line);
+  let remainderLineText = doc.model.getText(
+    currentLineStartOffset - doc.model.lineEndingLength,
     offset
   );
 
-  const isKillingWhitespace = remainderLineText.trim().length === 0;
+  // there is post-edit formatting we want to suppress if we're only cutting line start whitespace,
+  // otherwise, the formatter will auto indent back to whatever the user tried to kill
+  const isOnlyKillingWhitespace =
+    remainderLineText.substring(doc.model.lineEndingLength).trim().length === 0;
 
+  // if we're NOT only killing whitespace, ensure we only cut to the beginning of non-whitespace.
+  // if user wants to cut non-ws *and* ws at beginning of line, let em killLeft twice.
+  // we do this by making reminderLineText & currentLineStartOffset start at the non-ws
+  if (!isOnlyKillingWhitespace) {
+    currentLineStartOffset +=
+      remainderLineText.indexOf(remainderLineText.trimStart()) - doc.model.lineEndingLength;
+    remainderLineText = doc.model.getText(
+      currentLineStartOffset - doc.model.lineEndingLength,
+      offset
+    );
+  }
+
+  // the main "meat" of killLeft, killing left until ws or list opening
   cursor.backwardList(); // move to the start of the current form
   // -1 to include opening token
   const currentFormStartToken = doc.getTokenCursor(cursor.offsetStart - 1).getToken();
@@ -453,24 +471,22 @@ export function backwardHybridSexpRange(
   // After moving backward, the cursor may not yet be at the start of the current line,
   // and it is not a open token. So we include the newline
   // because what forms are here extend backwards beyond the start of the current line
-  if (currentLineLineStartOffset <= cursor.offsetStart && currentFormStartToken.type != 'open') {
+  if (currentLineStartOffset <= cursor.offsetStart && currentFormStartToken.type != 'open') {
     hasNewline = true;
-    start = currentLineLineStartOffset;
+    start = currentLineStartOffset;
   }
   // need to squash whitespace?
   if (remainderLineText === '' || remainderLineText === doc.model.lineEnding) {
-    const squashCursor = doc.getTokenCursor(
-      currentLineLineStartOffset - doc.model.lineEndingLength
-    );
+    const squashCursor = doc.getTokenCursor(currentLineStartOffset - doc.model.lineEndingLength);
     const prevCursor = squashCursor.previous();
     if (squashWhitespace && prevCursor?.getToken().raw.endsWith(' ')) {
       start =
-        currentLineLineStartOffset -
+        currentLineStartOffset -
         doc.model.lineEndingLength -
         squashCursor.getToken().raw.length +
         1;
     } else {
-      start = currentLineLineStartOffset - doc.model.lineEndingLength;
+      start = currentLineStartOffset - doc.model.lineEndingLength;
     }
   } else if (hasNewline) {
     // Try to find the first close token to the left of the document's cursor location if any
@@ -479,7 +495,7 @@ export function backwardHybridSexpRange(
     // Start at the line start.
     // Work forwards to find the largest close token offset
     // less than the document's cursor location if any
-    cursor = doc.getTokenCursor(currentLineLineStartOffset);
+    cursor = doc.getTokenCursor(currentLineStartOffset);
     while (cursor.offsetEnd < offset) {
       while (cursor.forwardSexp()) {
         // move forward until the cursor cannot move forward anymore
@@ -496,10 +512,10 @@ export function backwardHybridSexpRange(
       start = cursor.offsetStart - 1; // include the closing token
     } else {
       // no open tokens found so the end is the newline
-      start = currentLineLineStartOffset;
+      start = currentLineStartOffset;
     }
   }
-  return { range: [start, offset], editOptions: { skipFormat: isKillingWhitespace } };
+  return { range: [start, offset], editOptions: { skipFormat: isOnlyKillingWhitespace } };
 }
 
 export function rangeToForwardUpList(
