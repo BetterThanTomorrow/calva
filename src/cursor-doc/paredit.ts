@@ -970,16 +970,8 @@ export async function close(
   }
 }
 
-function onlyWhitespaceLeftOfCursor(doc: EditableDocument, cursor: LispTokenCursor) {
-  const token = cursor.getToken();
-  if (token.type === 'ws') {
-    return token.offset === 0;
-  } else if (doc.selections[0].anchor > cursor.offsetStart) {
-    return false;
-  }
-  const prevToken = cursor.getPrevToken();
-
-  return prevToken.type === 'ws' && prevToken.offset === 0;
+function onlyWhitespaceLeftOfCursor(offset, cursor: LispTokenCursor) {
+  return cursor.isOnlyWhitespaceLeftOfCursor(offset);
 }
 
 function backspaceOnWhitespaceEdit(
@@ -1036,7 +1028,11 @@ export async function backspace(
           selections: [new ModelEditSelection(start - prevToken.raw.length)],
         }
       );
-    } else if (!isTopLevel && !cursor.withinString() && onlyWhitespaceLeftOfCursor(doc, cursor)) {
+    } else if (
+      !isTopLevel &&
+      !cursor.withinString() &&
+      onlyWhitespaceLeftOfCursor(doc.selections[0].anchor, cursor)
+    ) {
       // we are at the beginning of a line, and not inside a string
       return backspaceOnWhitespaceEdit(doc, cursor, config);
     } else {

@@ -823,6 +823,18 @@ export class LispTokenCursor extends TokenCursor {
     return tokenIsWhiteSpace(this.getToken());
   }
 
+  isOnlyWhitespaceLeftOfCursor(offset: number): boolean {
+    const token = this.getToken();
+    if (token.type === 'ws') {
+      return token.offset === 0;
+    } else if (offset > this.offsetStart) {
+      return false;
+    }
+    const prevToken = this.getPrevToken();
+
+    return prevToken.type === 'ws' && prevToken.offset === 0;
+  }
+
   previousIsWhiteSpace(): boolean {
     return tokenIsWhiteSpace(this.getPrevToken());
   }
