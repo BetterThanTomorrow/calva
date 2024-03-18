@@ -2437,8 +2437,8 @@
       {
         "command": "paredit.killLeft",
         "mac": "ctrl+h",
-        "win": "ctrl+h ctrl+h",
-        "linux": "ctrl+h ctrl+h",
+        "win": "ctrl+k ctrl+h",
+        "linux": "ctrl+k ctrl+h",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
       },
       {
