@@ -1,11 +1,15 @@
 import * as expect from 'expect';
-import _ = require('lodash');
 import * as model from '../../../cursor-doc/model';
-import * as paredit from '../../../cursor-doc/paredit';
 import * as handlers from '../../../paredit/commands';
-import { docFromTextNotation, textAndSelection, textAndSelections } from '../common/text-notation';
+import { docFromTextNotation } from '../common/text-notation';
+import _ = require('lodash');
 
 model.initScanner(20000);
+
+/**
+ * Properties that pertain to changes, that we cannot reflect in the "expected" doc in each test.
+ */
+const defaultDocOmit = ["model.deletedLines", "model.insertedLines","model.dirtyLines","model.changedLines", "model.lineEndingLength"]
 
 describe('paredit commands', () => {
   describe('movement', () => {
@@ -671,6 +675,412 @@ describe('paredit commands', () => {
         );
         handlers.selectOpenList(a, true);
         expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
+  });
+
+  describe('deletion', () => {
+    describe('killLeft', () => {
+      // TODO: Test kill-also-copies?
+      // TODO: Test mullticursor
+      it('Single-cursor: Finds whole string in list', async () => {
+        const a = docFromTextNotation('("This needs to find the start of the string."|)');
+        const b = docFromTextNotation('(|)');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds whole string', async () => {
+        const a = docFromTextNotation('"This needs to find the start of the string."|');
+        const b = docFromTextNotation('|');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, 'model')).toEqual(_.omit(b, 'model'));
+      });
+
+      it('Single-cursor: Finds start of string', async () => {
+        const a = docFromTextNotation('"This needs to find the |start of the string."');
+        const b = docFromTextNotation('"|start of the string."');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds line content start in multi line string', async () => {
+        const a = docFromTextNotation('"This needs to find the start\n of the |string."');
+        const b = docFromTextNotation('"This needs to find the start\n |string."');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds line content start in multi line string (Windows)', async () => {
+        const a = docFromTextNotation('"This needs to find the start\r\n of the |string."');
+        const b = docFromTextNotation('"This needs to find the start\r\n |string."');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds start of form from inside comment', async () => {
+        const a = docFromTextNotation('(a ;; foo|\n e)');
+        const b = docFromTextNotation('(|\n e)');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds start of form from inside comment (Windows)', async () => {
+        const a = docFromTextNotation('(a ;; foo|\r\n e)');
+        const b = docFromTextNotation('(|\r\n e)');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Maintains balanced delimiters 1', async () => {
+        const a = docFromTextNotation('(a b (c\n d) e|)');
+        const b = docFromTextNotation('(a b |)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a,defaultDocOmit)).toEqual(_.omit(b,defaultDocOmit));
+      });
+
+      it('Single-cursor: Maintains balanced delimiters 1 (Windows)', async () => {
+        const a = docFromTextNotation('(a b (c\r\n d) e|)');
+        const b = docFromTextNotation('(a b |)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Maintains balanced delimiters 2', async () => {
+        const a = docFromTextNotation('(aa (c (e\nf)) |g)');
+        const b = docFromTextNotation('(aa |g)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a,defaultDocOmit)).toEqual(_.omit(b,defaultDocOmit));
+      });
+
+      it('Single-cursor: Maintains balanced delimiters 2 (Windows)', async () => {
+        const a = docFromTextNotation('(aa (c (e\r\nf)) |g)');
+        const b = docFromTextNotation('(aa |g)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Maintains balanced delimiters 3', async () => {
+        const a = docFromTextNotation('(aa (  c (e\nf)) |g)');
+        const b = docFromTextNotation('(aa |g)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a,defaultDocOmit)).toEqual(_.omit(b,defaultDocOmit));
+      });
+
+      it('Single-cursor: Maintains balanced delimiters 3 (Windows)', async () => {
+        const a = docFromTextNotation('(aa (  c (e\r\nf)) |g)');
+        const b = docFromTextNotation('(aa |g)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Squashes preceding whitespace, stopping at line start', async () => {
+        const a = docFromTextNotation('(a\n |e) g)');
+        const b = docFromTextNotation('(a\n|e) g)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a,defaultDocOmit)).toEqual(_.omit(b,defaultDocOmit));
+      });
+
+      it('Single-cursor: Squashes preceding whitespace, stopping at line start (Windows)', async () => {
+        const a = docFromTextNotation('(a\r\n |e) g)');
+        const b = docFromTextNotation('(a\r\n|e) g)');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Retreats past line start when invoked at line start', async () => {
+        const a = docFromTextNotation('(a\n| e) g)');
+        const b = docFromTextNotation('(a| e) g)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Retreats past line start when invoked at line start (Windows)', async () => {
+        const a = docFromTextNotation('(a\r\n| e) g)');
+        const b = docFromTextNotation('(a| e) g)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Retreats past line start when invoked at line start 2', async () => {
+        const a = docFromTextNotation('(:a :b \n|)');
+        const b = docFromTextNotation('(:a :b |)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      // This one catches the weird `\r\n\|)` case, described inside `backwardHybredSexpRange`'s line comments.
+      it('Single-cursor: Retreats past line start when invoked at line start 2 (Windows)', async () => {
+        const a = docFromTextNotation('(:a :b \r\n|)');
+        const b = docFromTextNotation('(:a :b |)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      
+      it('Single-cursor: Retreats past line start, squashing whitepace when invoked at line start', async () => {
+        const a = docFromTextNotation('(a  \n| e) g)');
+        const b = docFromTextNotation('(a | e) g)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Retreats past line start, squashing whitepace when invoked at line start (Windows)', async () => {
+        const a = docFromTextNotation('(a  \r\n| e) g)');
+        const b = docFromTextNotation('(a | e) g)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Retreats past line start, squashing only preceding whitepace when invoked at line start', async () => {
+        const a = docFromTextNotation('(a  \n| e) g)');
+        const b = docFromTextNotation('(a | e) g)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Retreats past line start, squashing only preceding whitepace when invoked at line start (Windows)', async () => {
+        const a = docFromTextNotation('(a  \r\n| e) g)');
+        const b = docFromTextNotation('(a | e) g)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      // https://github.com/BetterThanTomorrow/calva/pull/2427#issuecomment-1985910937
+      it('Single-cursor: Finds start of line after whitespace', async () => {
+        const a = docFromTextNotation('(a\n |b)');
+        const b = docFromTextNotation('(a\n|b)');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds start of line after whitespace (Windows)', async () => {
+        const a = docFromTextNotation('(a\r\n |b)');
+        const b = docFromTextNotation('(a\r\n|b)');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds newline when at line start', async () => {
+        const a = docFromTextNotation('(a\n| b)');
+        const b = docFromTextNotation('(a| b)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Finds newline when at line start (Windows)', async () => {
+        const a = docFromTextNotation('(a\r\n| b)');
+        const b = docFromTextNotation('(a| b)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Finds start of vectors', async () => {
+        const a = docFromTextNotation('[a [b c d e| f] g h]');
+        const b = docFromTextNotation('[a [| f] g h]');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds start of lists', async () => {
+        const a = docFromTextNotation('(foo |bar)\n');
+        const b = docFromTextNotation('(|bar)\n');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds start of maps', async () => {
+        const a = docFromTextNotation('{:a 1 :b 2| :c 3}');
+        const b = docFromTextNotation('{| :c 3}');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds start of line in multiline maps', async () => {
+        const a = docFromTextNotation('{:a 1 \n:b 2| :c 3}');
+        const b = docFromTextNotation('{:a 1 \n| :c 3}');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds start of line in multiline maps (Windows)', async () => {
+        const a = docFromTextNotation('{:a 1 \r\n:b 2| :c 3}');
+        const b = docFromTextNotation('{:a 1 \r\n| :c 3}');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds start of expr in multiline maps', async () => {
+        const a = docFromTextNotation('{:a 1 :b 2 (+\n 0\n 2\n) 3| :c 4}');
+        const b = docFromTextNotation('{:a 1 :b 2 | :c 4}');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a ,defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Finds start of expr in multiline maps (Windows)', async () => {
+        const a = docFromTextNotation('{:a 1 :b 2 (+\r\n 0\r\n 2\r\n) 3| :c 4}');
+        const b = docFromTextNotation('{:a 1 :b 2 | :c 4}');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a ,defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Finds start of immediate list even in bindings if at list close', async () => {
+        const a = docFromTextNotation('(let [a (+ 1 2)\n b (+ 2 3)|] (+ a b))');
+        const b = docFromTextNotation('(let [a (+ 1 2)\n b |] (+ a b))');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds start of line in bindings if not at list close', async () => {
+        const a = docFromTextNotation('(let [{a :a} c\n {b :b} d|] (+ a b))');
+        const b = docFromTextNotation('(let [{a :a} c\n |] (+ a b))');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds start of expr in multiline bindings', async () => {
+        const a = docFromTextNotation('(let [{a :a\n b :b} d| c (+ 2 3)] (+ a b))');
+        const b = docFromTextNotation('(let [| c (+ 2 3)] (+ a b))');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Finds start of expr in multiline bindings (Windows)', async () => {
+        const a = docFromTextNotation('(let [{a :a\r\n b :b} d| c (+ 2 3)] (+ a b))');
+        const b = docFromTextNotation('(let [| c (+ 2 3)] (+ a b))');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Finds range in line of tokens', async () => {
+        const a = docFromTextNotation('2 \n"hello" :hello/world bye | ');
+        const b = docFromTextNotation('2 \n| ');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds range in token with form over multiple lines', async () => {
+        const a = docFromTextNotation('3 [\n 1 \n] a|');
+        const b = docFromTextNotation('3 |');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Finds range in token with form over multiple lines (Windows)', async () => {
+        const a = docFromTextNotation('3 [\r\n 1 \r\n] a|');
+        const b = docFromTextNotation('3 |');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Deals with comments start of line', async () => {
+        const a = docFromTextNotation('\n;;  hi|');
+        const b = docFromTextNotation('\n|');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Deals with comments start of line (Windows)', async () => {
+        const a = docFromTextNotation('\r\n;;  hi|');
+        const b = docFromTextNotation('\r\n|');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Deals with comments middle of line', async () => {
+        const a = docFromTextNotation('\n;; |hi');
+        const b = docFromTextNotation('\n|hi');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Deals with comments middle of line (Windows)', async () => {
+        const a = docFromTextNotation('\r\n;; |hi');
+        const b = docFromTextNotation('\r\n|hi');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Deals with empty lines', async () => {
+        const a = docFromTextNotation('\n|');
+        const b = docFromTextNotation('|');
+        // const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Deals with empty lines (Windows)', async () => {
+        const a = docFromTextNotation('\r\n|');
+        const b = docFromTextNotation('|');
+        // const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Deals with comments with empty line', async () => {
+        const a = docFromTextNotation('\n;; |');
+        const b = docFromTextNotation('\n|');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Deals with comments with empty line (Windows)', async () => {
+        const a = docFromTextNotation('\r\n;; |');
+        const b = docFromTextNotation('\r\n|');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Does not retreat when on closing token type ', async () => {
+        const a = docFromTextNotation('\n(|a e)\n');
+        const b = docFromTextNotation('\n(||a e)\n');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+      });
+
+      it('Single-cursor: Finds the full form after an ignore marker', async () => {
+        // https://github.com/BetterThanTomorrow/calva/pull/1293#issuecomment-927123696
+        const a = docFromTextNotation(
+          '(comment•  #_[a b (c d•              e•              f) g]|•  :a•)'
+        );
+        const b = docFromTextNotation(
+          '(comment•  #_|•  :a•)'
+        );
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+      });
+
+      it('Single-cursor: Takes 3 invocations to kill to first non-whitespace, preceding whitespace and then preceding newline', async () => {
+        const a = docFromTextNotation('(:a :b \n    :c :d|)');
+        const b = docFromTextNotation('(:a :b \n    |)');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+
+        const c = docFromTextNotation('(:a :b \n|)');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(c);
+
+        const d = docFromTextNotation('(:a :b |)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(d, defaultDocOmit));
+      });
+
+      it('Single-cursor: Takes 3 invocations to kill to first non-whitespace, preceding whitespace and then preceding newline (Windows)', async () => {
+        const a = docFromTextNotation('(:a :b \r\n    :c :d|)');
+        const b = docFromTextNotation('(:a :b \r\n    |)');
+        await handlers.killLeft(a, false);
+        expect(a).toEqual(b);
+
+        const c = docFromTextNotation('(:a :b \r\n|)');
+        await handlers.killLeft(a, false);
+        // expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(c, defaultDocOmit));
+        expect(a).toEqual(c);
+        const aText = a.model.getText(0, a.model.maxOffset);
+        expect(aText).toEqual('(:a :b \r\n)');
+
+        const d = docFromTextNotation('(:a :b |)');
+        await handlers.killLeft(a, false);
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(d, defaultDocOmit));
       });
     });
   });
