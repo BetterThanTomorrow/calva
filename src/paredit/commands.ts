@@ -1,4 +1,4 @@
-import { EditableDocument } from '../cursor-doc/model';
+import { EditableDocument, ModelEditDirectedRange } from '../cursor-doc/model';
 import * as paredit from '../cursor-doc/paredit';
 
 // MOVEMENT
@@ -102,4 +102,22 @@ export function selectCloseList(doc: EditableDocument, isMulti: boolean) {
 }
 export function selectOpenList(doc: EditableDocument, isMulti: boolean) {
   paredit.selectOpenList(doc, isMulti ? doc.selections : [doc.selections[0]]);
+}
+
+// DELETION
+export async function killLeft(
+  doc: EditableDocument,
+  isMulti: boolean,
+  onRange?: (doc: EditableDocument, range: ModelEditDirectedRange) => Promise<void>
+) {
+  // TODO: support multicursor
+  const result = paredit.backwardHybridSexpRange(doc);
+  await onRange?.(doc, result.range);
+  return paredit.killRange(
+    doc,
+    result.range,
+    doc.selections[0].anchor,
+    doc.selections[0].active,
+    result.editOptions
+  );
 }
