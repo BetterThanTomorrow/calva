@@ -573,7 +573,7 @@ describe('paredit', () => {
       it('Retreats past line start when invoked at line start', () => {
         const a = docFromTextNotation('(a\n| e) g)');
         const b = docFromTextNotation('(a|\n| e)');
-        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
         const actual = paredit.backwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
       });
@@ -581,7 +581,7 @@ describe('paredit', () => {
       it('Retreats past line start when invoked at line start (Windows)', () => {
         const a = docFromTextNotation('(a\r\n| e) g)');
         const b = docFromTextNotation('(a|\r\n| e)');
-        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
         const actual = paredit.backwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
       });
@@ -589,7 +589,7 @@ describe('paredit', () => {
       it('Retreats past line start, preserving leading whitepace when invoked at line start with squash off', () => {
         const a = docFromTextNotation('(a  \n| e) g)');
         const b = docFromTextNotation('(a  |\n| e)');
-        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
         const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, false);
         expect(actual).toEqual(expected);
       });
@@ -597,7 +597,7 @@ describe('paredit', () => {
       it('Retreats past line start, preserving leading whitepace when invoked at line start with squash off (Windows)', () => {
         const a = docFromTextNotation('(a  \r\n| e) g)');
         const b = docFromTextNotation('(a  |\r\n| e)');
-        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
         const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, false);
         expect(actual).toEqual(expected);
       });
@@ -605,7 +605,7 @@ describe('paredit', () => {
       it('Retreats past line start, squashing whitepace when invoked at line start', () => {
         const a = docFromTextNotation('(a  \n| e) g)');
         const b = docFromTextNotation('(a | \n| e)');
-        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
         const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
         expect(actual).toEqual(expected);
       });
@@ -613,7 +613,7 @@ describe('paredit', () => {
       it('Retreats past line start, squashing whitepace when invoked at line start (Windows)', () => {
         const a = docFromTextNotation('(a  \r\n| e) g)');
         const b = docFromTextNotation('(a | \r\n| e)');
-        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
         const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
         expect(actual).toEqual(expected);
       });
@@ -621,7 +621,7 @@ describe('paredit', () => {
       it('Retreats past line start, squashing only preceding whitepace when invoked at line start', () => {
         const a = docFromTextNotation('(a  \n| e) g)');
         const b = docFromTextNotation('(a | \n| e)');
-        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
         const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
         expect(actual).toEqual(expected);
       });
@@ -629,7 +629,7 @@ describe('paredit', () => {
       it('Retreats past line start, squashing only preceding whitepace when invoked at line start (Windows)', () => {
         const a = docFromTextNotation('(a  \r\n| e) g)');
         const b = docFromTextNotation('(a | \r\n| e) g)');
-        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
         const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
         expect(actual).toEqual(expected);
       });
@@ -654,7 +654,7 @@ describe('paredit', () => {
       it('Finds newline when at line start', () => {
         const a = docFromTextNotation('(a\n| b)');
         const b = docFromTextNotation('(a|\n| b)');
-        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
         const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
         expect(actual).toEqual(expected);
       });
@@ -662,7 +662,7 @@ describe('paredit', () => {
       it('Finds newline when at line start (Windows)', () => {
         const a = docFromTextNotation('(a\r\n| b)');
         const b = docFromTextNotation('(a|\r\n| b)');
-        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
         const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
         expect(actual).toEqual(expected);
       });
@@ -888,7 +888,7 @@ describe('paredit', () => {
         const thirdDoc = docFromTextNotation('(:a :b |\n|    :c :d)');
         const thirdExpected = {
           range: textAndSelection(thirdDoc)[1],
-          editOptions: { skipFormat: false },
+          editOptions: { skipFormat: true },
         };
         const thirdActual = paredit.backwardHybridSexpRange(thirdBase);
         expect(thirdActual).toEqual(thirdExpected);
@@ -917,7 +917,7 @@ describe('paredit', () => {
         const thirdDoc = docFromTextNotation('(:a :b |\r\n|    :c :d)');
         const thirdExpected = {
           range: textAndSelection(thirdDoc)[1],
-          editOptions: { skipFormat: false },
+          editOptions: { skipFormat: true },
         };
         const thirdActual = paredit.backwardHybridSexpRange(thirdBase);
         expect(thirdActual).toEqual(thirdExpected);
