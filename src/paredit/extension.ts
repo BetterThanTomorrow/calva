@@ -297,7 +297,7 @@ const pareditCommands: PareditCommand[] = [
       return handlers.killLeft(
         doc,
         multiCursorEnabled(),
-        shouldKillAlsoCutToClipboard() && copyRangeToClipboard
+        shouldKillAlsoCutToClipboard() ? copyRangeToClipboard : null
       );
     },
   },
