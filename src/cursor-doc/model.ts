@@ -464,7 +464,7 @@ export class LineInputModel implements EditableModel {
   /**
    * Returns the row and column for a given text offset in this model.
    */
-  getRowCol(offset: number): [number, number] {
+  getRowCol(offset: number): [row: number, col: number] {
     for (let i = 0; i < this.lines.length; i++) {
       if (offset > this.lines[i].text.length) {
         offset -= this.lines[i].text.length + this.lineEndingLength;
@@ -480,9 +480,9 @@ export class LineInputModel implements EditableModel {
    * the model.
    *
    * @param offset The offset in the line model.
-   * @returns [number, number] The start and the index of the word in the model.
+   * @returns {ModelEditRange} The start and the index of the word in the model.
    */
-  getWordSelection(offset: number): [number, number] {
+  getWordSelection(offset: number): ModelEditRange {
     const stopChars = [' ', '"', ';', '.', '(', ')', '[', ']', '{', '}', '\t', '\n', '\r'],
       [row, column] = this.getRowCol(offset),
       text = this.lines[row].text;
@@ -570,8 +570,8 @@ export class LineInputModel implements EditableModel {
     start: number,
     end: number,
     text: string,
-    oldSelection?: [number, number],
-    newSelection?: [number, number]
+    oldSelection?: ModelEditRange,
+    newSelection?: ModelEditRange
   ) {
     const t1 = new Date();
 
@@ -641,8 +641,8 @@ export class LineInputModel implements EditableModel {
   insertString(
     offset: number,
     text: string,
-    oldSelection?: [number, number],
-    newSelection?: [number, number]
+    oldSelection?: ModelEditRange,
+    newSelection?: ModelEditRange
   ): number {
     this.changeRange(offset, offset, text, oldSelection, newSelection);
     return text.length;
@@ -660,8 +660,8 @@ export class LineInputModel implements EditableModel {
   deleteRange(
     offset: number,
     count: number,
-    oldSelection?: [number, number],
-    newSelection?: [number, number]
+    oldSelection?: ModelEditRange,
+    newSelection?: ModelEditRange
   ) {
     this.changeRange(offset, offset + count, '', oldSelection, newSelection);
   }
