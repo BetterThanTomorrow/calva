@@ -430,11 +430,8 @@ export function backwardHybridSexpRange(
   // weird edge case in windows where if the cursor is between \r\n and list close
   // like `\r\n|)`, it needs to move back 2 characters to know the tokenCursor is an eol
   // otherwise, doc.getTokenCursor(offset) & doc.getTokenCursor(offset - 1) are the same:
-  // the list close token 
-  if ("\r\n)" === doc.model.getText(
-    offset - 2,
-    offset + 1
-  )) {
+  // the list close token
+  if ('\r\n)' === doc.model.getText(offset - 2, offset + 1)) {
     cursor = doc.getTokenCursor(offset - 2);
   }
 

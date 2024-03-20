@@ -9,7 +9,13 @@ model.initScanner(20000);
 /**
  * Properties that pertain to changes, that we cannot reflect in the "expected" doc in each test.
  */
-const defaultDocOmit = ["model.deletedLines", "model.insertedLines","model.dirtyLines","model.changedLines", "model.lineEndingLength"]
+const defaultDocOmit = [
+  'model.deletedLines',
+  'model.insertedLines',
+  'model.dirtyLines',
+  'model.changedLines',
+  'model.lineEndingLength',
+];
 
 describe('paredit commands', () => {
   describe('movement', () => {
@@ -736,7 +742,7 @@ describe('paredit commands', () => {
         const a = docFromTextNotation('(a b (c\n d) e|)');
         const b = docFromTextNotation('(a b |)');
         await handlers.killLeft(a, false);
-        expect(_.omit(a,defaultDocOmit)).toEqual(_.omit(b,defaultDocOmit));
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
       });
 
       it('Single-cursor: Maintains balanced delimiters 1 (Windows)', async () => {
@@ -750,7 +756,7 @@ describe('paredit commands', () => {
         const a = docFromTextNotation('(aa (c (e\nf)) |g)');
         const b = docFromTextNotation('(aa |g)');
         await handlers.killLeft(a, false);
-        expect(_.omit(a,defaultDocOmit)).toEqual(_.omit(b,defaultDocOmit));
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
       });
 
       it('Single-cursor: Maintains balanced delimiters 2 (Windows)', async () => {
@@ -764,7 +770,7 @@ describe('paredit commands', () => {
         const a = docFromTextNotation('(aa (  c (e\nf)) |g)');
         const b = docFromTextNotation('(aa |g)');
         await handlers.killLeft(a, false);
-        expect(_.omit(a,defaultDocOmit)).toEqual(_.omit(b,defaultDocOmit));
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
       });
 
       it('Single-cursor: Maintains balanced delimiters 3 (Windows)', async () => {
@@ -778,7 +784,7 @@ describe('paredit commands', () => {
         const a = docFromTextNotation('(a\n |e) g)');
         const b = docFromTextNotation('(a\n|e) g)');
         await handlers.killLeft(a, false);
-        expect(_.omit(a,defaultDocOmit)).toEqual(_.omit(b,defaultDocOmit));
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
       });
 
       it('Single-cursor: Squashes preceding whitespace, stopping at line start (Windows)', async () => {
@@ -817,7 +823,6 @@ describe('paredit commands', () => {
         expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
       });
 
-      
       it('Single-cursor: Retreats past line start, squashing whitepace when invoked at line start', async () => {
         const a = docFromTextNotation('(a  \n| e) g)');
         const b = docFromTextNotation('(a | e) g)');
@@ -914,14 +919,14 @@ describe('paredit commands', () => {
         const a = docFromTextNotation('{:a 1 :b 2 (+\n 0\n 2\n) 3| :c 4}');
         const b = docFromTextNotation('{:a 1 :b 2 | :c 4}');
         await handlers.killLeft(a, false);
-        expect(_.omit(a ,defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
       });
 
       it('Single-cursor: Finds start of expr in multiline maps (Windows)', async () => {
         const a = docFromTextNotation('{:a 1 :b 2 (+\r\n 0\r\n 2\r\n) 3| :c 4}');
         const b = docFromTextNotation('{:a 1 :b 2 | :c 4}');
         await handlers.killLeft(a, false);
-        expect(_.omit(a ,defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
       });
 
       it('Single-cursor: Finds start of immediate list even in bindings if at list close', async () => {
@@ -1043,9 +1048,7 @@ describe('paredit commands', () => {
         const a = docFromTextNotation(
           '(comment•  #_[a b (c d•              e•              f) g]|•  :a•)'
         );
-        const b = docFromTextNotation(
-          '(comment•  #_|•  :a•)'
-        );
+        const b = docFromTextNotation('(comment•  #_|•  :a•)');
         await handlers.killLeft(a, false);
         expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
       });

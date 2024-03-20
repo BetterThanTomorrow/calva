@@ -105,12 +105,13 @@ export function selectOpenList(doc: EditableDocument, isMulti: boolean) {
 }
 
 // DELETION
+
 export async function killLeft(
   doc: EditableDocument,
   isMulti: boolean,
   onRange?: (doc: EditableDocument, range: ModelEditDirectedRange) => Promise<void>
 ) {
-  // TODO: support multicursor
+  // TODO: support multi-cursor
   const result = paredit.backwardHybridSexpRange(doc);
   await onRange?.(doc, result.range);
   return paredit.killRange(
