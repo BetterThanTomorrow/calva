@@ -20,9 +20,7 @@ async function provideClojureDefinition(
   position: vscode.Position,
   _token
 ) {
-  const evalPos = annotations.getEvaluationPosition(position);
-  const posIsEvalPos = evalPos && position.isEqual(evalPos);
-  if (util.getConnectedState() && !posIsEvalPos) {
+  if (util.getConnectedState()) {
     const client = replSession.getSession(util.getFileType(document));
     if (client?.supports('info')) {
       const text = util.getWordAtPosition(document, position);

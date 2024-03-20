@@ -43,6 +43,7 @@ import { capitalize } from './utilities';
 import * as overrides from './overrides';
 import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
+import * as output from './results-output/output';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -63,7 +64,9 @@ function setKeybindingsEnabledContext() {
 function initializeState() {
   setStateValue('connected', false);
   setStateValue('connecting', false);
-  setStateValue('outputChannel', vscode.window.createOutputChannel('Calva says'));
+  const outputChannel = vscode.window.createOutputChannel('Calva says', 'markdown');
+  setStateValue('outputChannel', outputChannel);
+  output.initOutputChannel(outputChannel);
   setStateValue('connectionLogChannel', vscode.window.createOutputChannel('Calva Connection Log'));
   setStateValue(
     'diagnosticCollection',
@@ -238,13 +241,13 @@ async function activate(context: vscode.ExtensionContext) {
     },
     openUserConfigEdn: config.openCalvaConfigEdn,
     prettyPrintReplaceCurrentForm: edit.prettyPrintReplaceCurrentForm,
-    printClojureDocsToOutputWindow: clojureDocs.printClojureDocsToOutputWindow,
+    printClojureDocsToOutputWindow: clojureDocs.printClojureDocsToOutput,
     printClojureDocsToRichComment: clojureDocs.printClojureDocsToRichComment,
     printLastStacktrace: () => {
       outputWindow.printLastStacktrace();
-      outputWindow.appendPrompt();
+      output.replWindowAppendPrompt();
     },
-    printTextToOutputWindowCommand: clojureDocs.printTextToOutputWindowCommand,
+    printTextToOutputCommand: clojureDocs.printTextToOutputCommand,
     printTextToRichCommentCommand: clojureDocs.printTextToRichCommentCommand,
     refresh: refresh.refresh,
     refreshAll: refresh.refreshAll,
@@ -267,6 +270,8 @@ async function activate(context: vscode.ExtensionContext) {
     },
     showNextReplHistoryEntry: replHistory.showNextReplHistoryEntry,
     showOutputWindow: () => outputWindow.revealResultsDoc(false),
+    showOutputChannel: output.showOutputChannel,
+    showResultOutputDestination: output.showResultOutputDestination,
     showPreviousReplHistoryEntry: replHistory.showPreviousReplHistoryEntry,
     startJoyrideReplAndConnect: async () => {
       const projectDir: string = await joyride.prepareForJackingOrConnect();
@@ -378,7 +383,7 @@ async function activate(context: vscode.ExtensionContext) {
         if (evalOnSave) {
           if (!outputWindow.isResultsDoc(document)) {
             await eval.loadDocument(document, config.getConfig().prettyPrintingOptions, false);
-            outputWindow.appendPrompt();
+            output.replWindowAppendPrompt();
           }
         }
 

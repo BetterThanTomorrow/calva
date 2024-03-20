@@ -7,6 +7,33 @@ Changes to Calva.
 - [Add Paredit Kill Left equivalent to Kill Right](https://github.com/BetterThanTomorrow/calva/issues/2426)
 - Fix: Certain `paredit.killRight` edges cases on Windows.
 
+## [2.0.424] - 2024-03-17
+
+- [Add command for revealing the **Calva says** output channel](https://github.com/BetterThanTomorrow/calva/issues/2436)
+- Fix: [Results not shown inline when output-channel configured is configured as for results output](https://github.com/BetterThanTomorrow/calva/issues/2437)
+- [Make the results hover aware of where the results output goes](https://github.com/BetterThanTomorrow/calva/issues/2438)
+
+## [2.0.423] - 2024-03-17
+
+- [Add Output Destinations configuration](https://github.com/BetterThanTomorrow/calva/issues/1104)
+
+## [2.0.422] - 2024-03-11
+
+- Bump deps.clj to `v1.11.2.1446`
+- [Try to find namespace for notebook eval.](https://github.com/BetterThanTomorrow/calva/issues/2408)
+
+## [2.0.421] - 2024-03-11
+
+- Fix: [Slowness printing compiler errors and warnings to Output Window](https://github.com/BetterThanTomorrow/calva/issues/2291)
+
+## [2.0.420] - 2024-03-10
+
+- [Allow to use an array of strings for `afterCLJReplJackInCode` in a connect sequence](https://github.com/BetterThanTomorrow/calva/issues/2423)
+
+## [2.0.419] - 2024-03-08
+
+- [Automatically do Rename Symbol after refactors that add new names](https://github.com/BetterThanTomorrow/calva/issues/2388)
+
 ## [2.0.418] - 2024-03-08
 
 - [Add selection to experimentally supported multicursor paredit commands](https://github.com/BetterThanTomorrow/calva/issues/2421). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)

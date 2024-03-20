@@ -43,15 +43,65 @@ suite('Jack-in suite', () => {
 
   beforeEach(async () => {
     await vscode.workspace.fs.copy(settingsBackupUri, settingsUri, { overwrite: true });
+    await outputWindow.clearResultsDoc();
   });
 
   test('start repl and connect (jack-in)', async function () {
     testUtil.log(suite, 'start repl and connect (jack-in)');
 
+    const settings = {};
+    await writeSettings(settings);
+
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
 
-    await loadAndAssert(suite, testFilePath);
+    await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
 
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    testUtil.log(suite, 'test.clj closed');
+  });
+
+  test('Jack-in afterCLJReplJackInCode can be a string', async () => {
+    testUtil.log(suite, 'Jack-in afterCLJReplJackInCode can be a string');
+    const settings = {
+      'calva.replConnectSequences': [
+        {
+          projectType: 'deps.edn',
+          name: 'string-afterCLJReplJackInCode',
+          autoSelectForJackIn: true,
+          projectRootPath: ['.'],
+          afterCLJReplJackInCode: '(println :hello :world!)',
+        },
+      ],
+    };
+    await writeSettings(settings);
+    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
+    await loadAndAssert(suite, testFilePath, ['; :hello :world!', '; bar', 'nil', 'clj꞉test꞉> ']);
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    testUtil.log(suite, 'test.clj closed');
+  });
+
+  test('Jack-in afterCLJReplJackInCode can be an array', async () => {
+    testUtil.log(suite, 'Jack-in afterCLJReplJackInCode can be an array');
+    const settings = {
+      'calva.replConnectSequences': [
+        {
+          projectType: 'deps.edn',
+          name: 'string-afterCLJReplJackInCode',
+          autoSelectForJackIn: true,
+          projectRootPath: ['.'],
+          afterCLJReplJackInCode: ['(println :hello)', '(println :world!)'],
+        },
+      ],
+    };
+    await writeSettings(settings);
+    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
+    await loadAndAssert(suite, testFilePath, [
+      '; :hello',
+      '; :world!',
+      '; bar',
+      'nil',
+      'clj꞉test꞉> ',
+    ]);
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
   });
@@ -71,7 +121,7 @@ suite('Jack-in suite', () => {
     };
     await writeSettings(settings);
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', undefined, true);
-    await loadAndAssert(suite, testFilePath);
+    await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
@@ -92,7 +142,19 @@ suite('Jack-in suite', () => {
   });
 });
 
-async function loadAndAssert(suite: string, testFilePath: string) {
+function appearInOrder(needle: string[], haystack: string[]) {
+  let lastIndex = -1;
+  return needle.every((str) => {
+    const currentIndex = haystack.slice(lastIndex + 1).indexOf(str);
+    if (currentIndex !== -1) {
+      lastIndex += currentIndex + 1;
+      return true;
+    }
+    return false;
+  });
+}
+
+async function loadAndAssert(suite: string, testFilePath: string, needle: string[]) {
   const resultsDoc = await waitForResult(suite);
 
   // focus the clojure file
@@ -101,20 +163,23 @@ async function loadAndAssert(suite: string, testFilePath: string) {
       preserveFocus: false,
     })
   );
-  testUtil.log(suite, 'opened document again');
+  testUtil.log(suite, 'opened test.clj document again');
 
   await commands.executeCommand('calva.loadFile');
-  const reversedLines = resultsDoc.model.lineInputModel.lines.reverse();
-  assert.deepEqual(
-    ['bar', 'nil', 'clj꞉test꞉> '].reverse(),
-    reversedLines.slice(1, 4).map((v) => v.text)
+  const haystack = resultsDoc.document.getText().split(/\r?\n/);
+  assert.ok(
+    appearInOrder(needle, haystack),
+    `Expected output to contain: ${JSON.stringify(needle)}\n, but got: ${JSON.stringify(
+      haystack
+    )}\n`
   );
 }
 
-async function writeSettings(settings: any): Promise<void> {
+function writeSettings(settings: any): Thenable<void> {
   const settingsData = JSON.stringify(settings, null, 2);
-  await vscode.workspace.fs.writeFile(settingsUri, Buffer.from(settingsData));
+  const p = vscode.workspace.fs.writeFile(settingsUri, Buffer.from(settingsData));
   console.log(`Settings written to ${settingsUri.fsPath}`);
+  return p;
 }
 
 async function waitForResult(suite: string) {
@@ -156,7 +221,7 @@ async function startJackInProcedure(
       // Project root quick pick
       await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
     }
-    await testUtil.sleep(50);
+    await testUtil.sleep(100);
   }
 
   return testFilePath;

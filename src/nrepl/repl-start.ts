@@ -11,6 +11,7 @@ import * as replSession from './repl-session';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import { ReplConnectSequence } from './connectSequence';
 import * as fiddleFiles from '../fiddle-files';
+import * as output from '../results-output/output';
 
 const TEMPLATES_SUB_DIR = 'bundled';
 const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
@@ -265,7 +266,7 @@ export async function startStandaloneRepl(
       preserveFocus: false,
     });
     await eval.loadDocument({}, getConfig().prettyPrintingOptions);
-    outputWindow.appendPrompt();
+    output.replWindowAppendPrompt();
   });
 }
 

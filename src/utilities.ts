@@ -11,6 +11,7 @@ import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
 import { isUndefined } from 'lodash';
 import * as fiddleFiles from './fiddle-files';
+import * as output from './results-output/output';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
@@ -281,14 +282,14 @@ function logSuccess(results) {
 }
 
 function logError(error) {
-  outputWindow.appendLine('; ' + error.reason);
+  output.appendLineOtherErr(error.reason);
   if (
     error.line !== undefined &&
     error.line !== null &&
     error.column !== undefined &&
     error.column !== null
   ) {
-    outputWindow.appendLine(';   at line: ' + error.line + ' and column: ' + error.column);
+    output.appendLineOtherOut('  at line: ' + error.line + ' and column: ' + error.column);
   }
 }
 
@@ -321,12 +322,12 @@ function markError(error) {
 }
 
 function logWarning(warning) {
-  outputWindow.appendLine('; ' + warning.reason);
+  output.appendLineOtherOut(warning.reason);
   if (warning.line !== null) {
     if (warning.column !== null) {
-      outputWindow.appendLine(';   at line: ' + warning.line + ' and column: ' + warning.column);
+      output.appendLineOtherOut('  at line: ' + warning.line + ' and column: ' + warning.column);
     } else {
-      outputWindow.appendLine(';   at line: ' + warning.line);
+      output.appendLineOtherOut('  at line: ' + warning.line);
     }
   }
 }

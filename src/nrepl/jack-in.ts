@@ -19,6 +19,7 @@ import * as liveShareSupport from '../live-share';
 import { getConfig } from '../config';
 import * as joyride from '../joyride';
 import { ConnectType } from './connect-types';
+import * as output from '../results-output/output';
 
 let jackInPTY: JackInTerminal = undefined;
 let jackInTerminal: vscode.Terminal = undefined;
@@ -73,18 +74,18 @@ function executeJackInTask(
         void connector.connect(connectSequence, true, hostname, port).then(() => {
           utilities.setJackedInState(true);
           statusbar.update();
-          outputWindow.appendLine('; Jack-in done.');
-          outputWindow.appendPrompt();
+          output.appendLineOtherOut('Jack-in done.');
+          output.replWindowAppendPrompt();
           if (cb) {
             cb();
           }
         });
       },
       (errorMessage) => {
-        outputWindow.appendLine('; Error in Jack-in: unable to read port file');
-        outputWindow.appendLine(`; ${errorMessage}`);
-        outputWindow.appendLine(
-          '; You may have chosen the wrong jack-in configuration for your project.'
+        output.appendLineOtherErr('Error in Jack-in: unable to read port file');
+        output.appendLineOtherErr(`${errorMessage}`);
+        output.appendLineOtherErr(
+          'You may have chosen the wrong jack-in configuration for your project.'
         );
         void vscode.window.showErrorMessage(
           'Error in Jack-in: unable to read port file. See output window for more information.'
@@ -299,14 +300,14 @@ export async function jackIn(
     console.error('An error occurred while setting up Live Share listener.', e);
   }
   if (state.getProjectRootUri().scheme === 'vsls') {
-    outputWindow.appendLine("; Aborting Jack-in, since you're the guest of a live share session.");
-    outputWindow.appendLine(
-      '; Please use this command instead: Connect to a running REPL server in the project.'
+    output.appendLineOtherErr("Aborting Jack-in, since you're the guest of a live share session.");
+    output.appendLineOtherOut(
+      'Please use this command instead: Connect to a running REPL server in the project.'
     );
     return;
   }
   await outputWindow.initResultsDoc();
-  outputWindow.appendLine('; Jacking in...');
+  output.appendLineOtherOut('Jacking in...');
   await outputWindow.openResultsDoc();
 
   let projectConnectSequence: ReplConnectSequence = connectSequence;
@@ -314,13 +315,13 @@ export async function jackIn(
     try {
       projectConnectSequence = await getProjectConnectSequence(disableAutoSelect);
     } catch (e) {
-      outputWindow.appendLine(`; ${e}\n; Aborting jack-in.`);
+      output.appendLineOtherErr(`${e}\nAborting jack-in.`);
       // TODO: Figure out why this is not shown to the user.
       void vscode.window.showErrorMessage(e, 'OK');
       return;
     }
     if (!projectConnectSequence) {
-      outputWindow.appendLine('; Aborting jack-in. No project type selected.');
+      output.appendLineOtherErr('Aborting jack-in. No project type selected.');
       return;
     }
   }
@@ -391,7 +392,7 @@ export function calvaDisconnect() {
           utilities.setLaunchingState(null);
           utilities.setConnectingState(false);
           statusbar.update();
-          outputWindow.appendLine('; Interrupting Jack-in process.');
+          output.appendLineOtherOut('Interrupting Jack-in process.');
         }
       });
     return;

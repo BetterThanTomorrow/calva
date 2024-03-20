@@ -14,6 +14,7 @@ import * as docMirror from '../doc-mirror/index';
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 import * as replSession from '../nrepl/repl-session';
 import { formatAsLineComments, splitEditQueueForTextBatching } from './util';
+import * as output from './output';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
@@ -174,6 +175,10 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
   }
 }
 
+export async function clearResultsDoc() {
+  await util.writeTextToFile(DOC_URI(), '');
+}
+
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
   const docUri = DOC_URI();
   await vscode.workspace.fs.createDirectory(outputFileDir());
@@ -195,7 +200,9 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     return resultsDoc;
   }
 
-  const greetings = `${formatAsLineComments(START_GREETINGS)}\n\n`;
+  const greetings = `${formatAsLineComments(START_GREETINGS)}\n\n${formatAsLineComments(
+    CLJ_CONNECT_GREETINGS
+  )}\n\n`;
   const edit = new vscode.WorkspaceEdit();
   const fullRange = new vscode.Range(resultsDoc.positionAt(0), resultsDoc.positionAt(Infinity));
   edit.replace(docUri, fullRange, greetings);
@@ -242,7 +249,7 @@ export function setNamespaceFromCurrentFile() {
   );
   setSession(session, ns);
   replSession.updateReplSessionType();
-  appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
@@ -382,7 +389,7 @@ export function appendLine(text = '', onAppended?: OnAppendedCallback): void {
 
 export function discardPendingPrints(): void {
   resultsBuffer = [];
-  appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 export type OutputStacktraceEntry = { uri: vscode.Uri; line: number };

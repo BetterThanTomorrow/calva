@@ -5,6 +5,7 @@ import * as tokenCursor from './cursor-doc/token-cursor';
 import * as repl from './api/repl-v0';
 import _ = require('lodash');
 import { isInteger } from 'lodash';
+import { getNamespace } from './api/document';
 
 export class NotebookProvider implements vscode.NotebookSerializer {
   private readonly decoder = new TextDecoder();
@@ -181,6 +182,7 @@ async function doExecution(
   cell: vscode.NotebookCell,
   controller: vscode.NotebookController
 ): Promise<void> {
+  const ns = getNamespace(cell.notebook.getCells()[0].document);
   const execution = controller.createNotebookCellExecution(cell);
   execution.start(Date.now());
 
@@ -198,6 +200,7 @@ async function doExecution(
           },
         },
         {
+          ns,
           'nrepl.middleware.print/print': 'nrepl.util.print/pr',
           'nrepl.middleware.print/options': { 'print-meta': true },
           'nrepl.middleware.eval/env': { 'calva-notebook': true, notebook: true },

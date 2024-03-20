@@ -6,6 +6,7 @@ import { Config, getConfig } from '../config';
 import * as outputWindow from '../results-output/results-doc';
 import { formatAsLineComments } from '../results-output/util';
 import { ConnectType } from './connect-types';
+import * as output from '../results-output/output';
 
 enum ProjectTypes {
   'Leiningen' = 'Leiningen',
@@ -305,14 +306,12 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
 const connectSequencesDocLink = `  - See https://calva.io/connect-sequences/`;
 
 const defaultProjectSettingMsg = (project: string) =>
-  formatAsLineComments(
-    [
-      `Connecting using "${project}" project type.`,
-      `You can make Calva auto-select this.`,
-      connectSequencesDocLink,
-      '\n',
-    ].join('\n')
-  );
+  [
+    `Connecting using "${project}" project type.`,
+    `You can make Calva auto-select this.`,
+    connectSequencesDocLink,
+    '\n',
+  ].join('\n');
 
 /** Retrieve the replConnectSequences from the config */
 function getCustomConnectSequences(): ReplConnectSequence[] {
@@ -353,7 +352,7 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
 }
 
 function informAboutDefaultProjectForJackIn(project: string) {
-  outputWindow.appendLine(defaultProjectSettingMsg(project));
+  output.appendLineOtherOut(defaultProjectSettingMsg(project));
 }
 
 /**
@@ -384,28 +383,20 @@ function getUserSpecifiedSequence(
     );
 
     if (defaultSequence) {
-      outputWindow.appendLine(
-        formatAsLineComments(
-          [
-            `Auto-selecting project type "${defaultSequence.name}".`,
-            `You can change this from settings:`,
-            connectSequencesDocLink,
-            '\n',
-          ].join('\n')
-        )
+      output.appendLineOtherOut(
+        [
+          `Auto-selecting project type "${defaultSequence.name}".`,
+          `You can change this from settings:`,
+          connectSequencesDocLink,
+          '\n',
+        ].join('\n')
       );
 
       return defaultSequence;
     } else {
-      outputWindow.appendLine(
-        formatAsLineComments(
-          [
-            `Project type "${userSpecifiedProjectType}" not found.`,
-            `You need to update the auto-select setting.`,
-            connectSequencesDocLink,
-            '\n',
-          ].join('\n')
-        )
+      output.appendLineOtherErr(`Project type "${userSpecifiedProjectType}" not found.`);
+      output.appendLineOtherOut(
+        [`You need to update the auto-select setting.`, connectSequencesDocLink, '\n'].join('\n')
       );
     }
   }
