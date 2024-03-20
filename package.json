@@ -2436,7 +2436,7 @@
       },
       {
         "command": "paredit.killLeft",
-        "mac": "ctrl+h",
+        "mac": "cmd+backspace",
         "win": "ctrl+k ctrl+h",
         "linux": "ctrl+k ctrl+h",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
