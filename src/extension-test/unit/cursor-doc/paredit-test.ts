@@ -27,7 +27,7 @@ describe('paredit', () => {
   });
 
   describe('movement', () => {
-    describe('rangeToSexprForward', () => {
+    describe('rangeToSexprForward/forwardSexpRange', () => {
       it('Finds the list in front', () => {
         const a = docFromTextNotation('|(def foo [vec])');
         const b = docFromTextNotation('|(def foo [vec])|');
@@ -100,7 +100,7 @@ describe('paredit', () => {
       });
     });
 
-    describe('rangeToSexprBackward', () => {
+    describe('rangeToSexprBackward/backwardSexpRange', () => {
       it('Finds the list preceding', () => {
         const a = docFromTextNotation('(def foo [vec])|');
         const b = docFromTextNotation('|(def foo [vec])|');
@@ -129,7 +129,7 @@ describe('paredit', () => {
       });
     });
 
-    describe('forwardHybridSexpRange', () => {
+    describe('forwardHybridSexpRange (for killRight)', () => {
       it('Finds end of string', () => {
         const a = docFromTextNotation('"This |needs to find the end of the string."');
         const b = docFromTextNotation('"This |needs to find the end of the string.|"');
@@ -210,9 +210,25 @@ describe('paredit', () => {
         expect(actual).toEqual(expected);
       });
 
+      it('Maintains balanced delimiters 3 (Windows)', () => {
+        const a = docFromTextNotation('(aa| (  c (e\r\nf)) g)');
+        const b = docFromTextNotation('(aa| (  c (e\r\nf))|g)');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
       it('Advances past newline when invoked on newline', () => {
         const a = docFromTextNotation('(a|\n e) g)');
         const b = docFromTextNotation('(a|\n| e)');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Advances past newline when invoked on newline (Windows)', () => {
+        const a = docFromTextNotation('(a|\r\n e) g)');
+        const b = docFromTextNotation('(a|\r\n| e) g)');
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
@@ -226,9 +242,25 @@ describe('paredit', () => {
         expect(actual).toEqual(expected);
       });
 
+      it('Advances past newline, preserving leading whitepace when invoked on newline with squash off (Windows)', () => {
+        const a = docFromTextNotation('(a|\r\n   e) g)');
+        const b = docFromTextNotation('(a|\r\n|   e) g)');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a, a.selections[0].active, false);
+        expect(actual).toEqual(expected);
+      });
+
       it('Advances past newline, squashing leading whitepace when invoked on newline', () => {
         const a = docFromTextNotation('(a|\n   e) g)');
         const b = docFromTextNotation('(a|\n  | e) g)');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Advances past newline, squashing leading whitepace when invoked on newline (Windows)', () => {
+        const a = docFromTextNotation('(a|\r\n   e) g)');
+        const b = docFromTextNotation('(a|\r\n  | e) g)');
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
@@ -274,6 +306,14 @@ describe('paredit', () => {
         expect(actual).toEqual(expected);
       });
 
+      it('Finds end of expr in multiline maps (Windows)', () => {
+        const a = docFromTextNotation('{:a 1 |:b (+\r\n 0\r\n 2\r\n) :c 3}');
+        const b = docFromTextNotation('{:a 1 |:b (+\r\n 0\r\n 2\r\n)| :c 3}');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
       it('Finds end of line in bindings', () => {
         const a = docFromTextNotation('(let [|a (+ 1 2)\n b (+ 2 3)] (+ a b))');
         const b = docFromTextNotation('(let [|a (+ 1 2)|\n b (+ 2 3)] (+ a b))');
@@ -290,6 +330,14 @@ describe('paredit', () => {
         expect(actual).toEqual(expected);
       });
 
+      it('Finds end of expr in multiline bindings (Windows)', () => {
+        const a = docFromTextNotation('(let [|a (+\r\n 1 \r\n 2)\r\n b (+ 2 3)] (+ a b))');
+        const b = docFromTextNotation('(let [|a (+\r\n 1 \r\n 2)|\r\n b (+ 2 3)] (+ a b))');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
       it('Finds range in line of tokens', () => {
         const a = docFromTextNotation(' | 2 "hello" :hello/world\nbye');
         const b = docFromTextNotation(' | 2 "hello" :hello/world|\nbye');
@@ -301,6 +349,30 @@ describe('paredit', () => {
       it('Finds range in token with form over multiple lines', () => {
         const a = docFromTextNotation(' | 2 [\n 1 \n]');
         const b = docFromTextNotation(' | 2 [\n 1 \n]|');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds range in token with form over multiple lines 2', () => {
+        const a = docFromTextNotation('|a [\n 1 \n]');
+        const b = docFromTextNotation('|a [\n 1 \n]|');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds range in token with form over multiple lines 2 (Windows)', () => {
+        const a = docFromTextNotation('|a [\r\n 1 \r\n]');
+        const b = docFromTextNotation('|a [\r\n 1 \r\n]|');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds range in token with form over multiple lines (Windows)', () => {
+        const a = docFromTextNotation(' | 2 [\r\n 1 \r\n]');
+        const b = docFromTextNotation(' | 2 [\r\n 1 \r\n]|');
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
@@ -330,9 +402,25 @@ describe('paredit', () => {
         expect(actual).toEqual(expected);
       });
 
+      it('Deals with empty lines (Windows)', () => {
+        const a = docFromTextNotation('|\r\n');
+        const b = docFromTextNotation('|\r\n|');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
       it('Deals with comments with empty line', () => {
         const a = docFromTextNotation(';; |\n');
         const b = docFromTextNotation(';; |\n|');
+        const expected = textAndSelection(b)[1];
+        const actual = paredit.forwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Deals with comments with empty line (Windows)', () => {
+        const a = docFromTextNotation(';; |\r\n');
+        const b = docFromTextNotation(';; |\r\n|');
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
@@ -357,6 +445,482 @@ describe('paredit', () => {
         const expected = textAndSelection(b)[1];
         const actual = paredit.forwardHybridSexpRange(a);
         expect(actual).toEqual(expected);
+      });
+    });
+
+    // TODO: backwardHybridSexpRange should probably be tested as a Directed range, not undirected
+    describe('backwardHybridSexpRange (for killLeft)', () => {
+      it('Finds whole string in list', () => {
+        const a = docFromTextNotation('("This needs to find the start of the string."|)');
+        const b = docFromTextNotation('(|"This needs to find the start of the string."|)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds whole string', () => {
+        const a = docFromTextNotation('"This needs to find the start of the string."|');
+        const b = docFromTextNotation('|"This needs to find the start of the string."|');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of string', () => {
+        const a = docFromTextNotation('"This needs to find the |start of the string."');
+        const b = docFromTextNotation('"|This needs to find the |start of the string."');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds newline in multi line string', () => {
+        const a = docFromTextNotation('"This needs to find the start\n of the |string."');
+        const b = docFromTextNotation('"This needs to find the start\n |of the |string."');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds newline in multi line string (Windows)', () => {
+        const a = docFromTextNotation('"This needs to find the start\r\n of the |string."');
+        const b = docFromTextNotation('"This needs to find the start\r\n |of the |string."');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of form from inside comment', () => {
+        const a = docFromTextNotation('(a ;; foo|\n e)');
+        const b = docFromTextNotation('(|a ;; foo|\n e)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of form from inside comment (Windows)', () => {
+        const a = docFromTextNotation('(a ;; foo|\r\n e)');
+        const b = docFromTextNotation('(|a ;; foo|\r\n e)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Maintains balanced delimiters 1', () => {
+        const a = docFromTextNotation('(a b (c\n d) e|)');
+        const b = docFromTextNotation('(a b |(c\n d) e|)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Maintains balanced delimiters 1 (Windows)', () => {
+        const a = docFromTextNotation('(a b (c\r\n d) e|)');
+        const b = docFromTextNotation('(a b |(c\r\n d) e|)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Maintains balanced delimiters 2', () => {
+        const a = docFromTextNotation('(aa (c (e\nf)) |g)');
+        const b = docFromTextNotation('(aa |(c (e\nf)) |g)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Maintains balanced delimiters 2 (Windows)', () => {
+        const a = docFromTextNotation('(aa (c (e\r\nf)) |g)');
+        const b = docFromTextNotation('(aa |(c (e\r\nf)) |g)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Maintains balanced delimiters 3', () => {
+        const a = docFromTextNotation('(aa (  c (e\nf)) |g)');
+        const b = docFromTextNotation('(aa |(  c (e\nf)) |g)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Maintains balanced delimiters 3 (Windows)', () => {
+        const a = docFromTextNotation('(aa (  c (e\r\nf)) |g)');
+        const b = docFromTextNotation('(aa |(  c (e\r\nf)) |g)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Squashes preceding whitespace, stopping at line start', () => {
+        const a = docFromTextNotation('(a\n |e) g)');
+        const b = docFromTextNotation('(a\n| |e) g)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Squashes preceding whitespace, stopping at line start (Windows)', () => {
+        const a = docFromTextNotation('(a\r\n |e) g)');
+        const b = docFromTextNotation('(a\r\n| |e) g)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Retreats past line start when invoked at line start', () => {
+        const a = docFromTextNotation('(a\n| e) g)');
+        const b = docFromTextNotation('(a|\n| e)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Retreats past line start when invoked at line start (Windows)', () => {
+        const a = docFromTextNotation('(a\r\n| e) g)');
+        const b = docFromTextNotation('(a|\r\n| e)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Retreats past line start, preserving leading whitepace when invoked at line start with squash off', () => {
+        const a = docFromTextNotation('(a  \n| e) g)');
+        const b = docFromTextNotation('(a  |\n| e)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, false);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Retreats past line start, preserving leading whitepace when invoked at line start with squash off (Windows)', () => {
+        const a = docFromTextNotation('(a  \r\n| e) g)');
+        const b = docFromTextNotation('(a  |\r\n| e)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, false);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Retreats past line start, squashing whitepace when invoked at line start', () => {
+        const a = docFromTextNotation('(a  \n| e) g)');
+        const b = docFromTextNotation('(a | \n| e)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Retreats past line start, squashing whitepace when invoked at line start (Windows)', () => {
+        const a = docFromTextNotation('(a  \r\n| e) g)');
+        const b = docFromTextNotation('(a | \r\n| e)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Retreats past line start, squashing only preceding whitepace when invoked at line start', () => {
+        const a = docFromTextNotation('(a  \n| e) g)');
+        const b = docFromTextNotation('(a | \n| e)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Retreats past line start, squashing only preceding whitepace when invoked at line start (Windows)', () => {
+        const a = docFromTextNotation('(a  \r\n| e) g)');
+        const b = docFromTextNotation('(a | \r\n| e) g)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
+        expect(actual).toEqual(expected);
+      });
+
+      // https://github.com/BetterThanTomorrow/calva/pull/2427#issuecomment-1985910937
+      it('Finds start of line after whitespace', () => {
+        const a = docFromTextNotation('(a\n |b)');
+        const b = docFromTextNotation('(a\n| |b)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of line after whitespace (Windows)', () => {
+        const a = docFromTextNotation('(a\r\n |b)');
+        const b = docFromTextNotation('(a\r\n| |b)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds newline when at line start', () => {
+        const a = docFromTextNotation('(a\n| b)');
+        const b = docFromTextNotation('(a|\n| b)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds newline when at line start (Windows)', () => {
+        const a = docFromTextNotation('(a\r\n| b)');
+        const b = docFromTextNotation('(a|\r\n| b)');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a, a.selections[0].active, true);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of vectors', () => {
+        const a = docFromTextNotation('[a [b c d e| f] g h]');
+        const b = docFromTextNotation('[a [|b c d e| f] g h]');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of lists', () => {
+        const a = docFromTextNotation('(foo |bar)\n');
+        const b = docFromTextNotation('(|foo |bar)\n');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of maps', () => {
+        const a = docFromTextNotation('{:a 1 :b 2| :c 3}');
+        const b = docFromTextNotation('{|:a 1 :b 2| :c 3}');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of line in multiline maps', () => {
+        const a = docFromTextNotation('{:a 1 \n:b 2| :c 3}');
+        const b = docFromTextNotation('{:a 1 \n|:b 2| :c 3}');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of line in multiline maps (Windows)', () => {
+        const a = docFromTextNotation('{:a 1 \r\n:b 2| :c 3}');
+        const b = docFromTextNotation('{:a 1 \r\n|:b 2| :c 3}');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of expr in multiline maps', () => {
+        const a = docFromTextNotation('{:a 1 :b 2 (+\n 0\n 2\n) 3| :c 4}');
+        const b = docFromTextNotation('{:a 1 :b 2 |(+\n 0\n 2\n) 3| :c 4}');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of expr in multiline maps (Windows)', () => {
+        const a = docFromTextNotation('{:a 1 :b 2 (+\r\n 0\r\n 2\r\n) 3| :c 4}');
+        const b = docFromTextNotation('{:a 1 :b 2 |(+\r\n 0\r\n 2\r\n) 3| :c 4}');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of immediate list even in bindings if at list close', () => {
+        const a = docFromTextNotation('(let [a (+ 1 2)\n b (+ 2 3)|] (+ a b))');
+        const b = docFromTextNotation('(let [a (+ 1 2)\n b |(+ 2 3)|] (+ a b))');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of line in bindings if not at list close', () => {
+        const a = docFromTextNotation('(let [{a :a} c\n {b :b} d|] (+ a b))');
+        const b = docFromTextNotation('(let [{a :a} c\n |{b :b} d|] (+ a b))');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of expr in multiline bindings', () => {
+        const a = docFromTextNotation('(let [{a :a\n b :b} d| c (+ 2 3)] (+ a b))');
+        const b = docFromTextNotation('(let [|{a :a\n b :b} d| c (+ 2 3)] (+ a b))');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds start of expr in multiline bindings (Windows)', () => {
+        const a = docFromTextNotation('(let [{a :a\r\n b :b} d| c (+ 2 3)] (+ a b))');
+        const b = docFromTextNotation('(let [|{a :a\r\n b :b} d| c (+ 2 3)] (+ a b))');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds range in line of tokens', () => {
+        const a = docFromTextNotation('2 \n"hello" :hello/world bye | ');
+        const b = docFromTextNotation('2 \n|"hello" :hello/world bye | ');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds range in token with form over multiple lines', () => {
+        const a = docFromTextNotation('3 [\n 1 \n] a|');
+        const b = docFromTextNotation('3 |[\n 1 \n] a|');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds range in token with form over multiple lines (Windows)', () => {
+        const a = docFromTextNotation('3 [\r\n 1 \r\n] a|');
+        const b = docFromTextNotation('3 |[\r\n 1 \r\n] a|');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Deals with comments start of line', () => {
+        const a = docFromTextNotation('\n;;  hi|');
+        const b = docFromTextNotation('\n|;;  hi|');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Deals with comments start of line (Windows)', () => {
+        const a = docFromTextNotation('\r\n;;  hi|');
+        const b = docFromTextNotation('\r\n|;;  hi|');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Deals with comments middle of line', () => {
+        const a = docFromTextNotation('\n;; |hi');
+        const b = docFromTextNotation('\n|;; |hi');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Deals with comments middle of line (Windows)', () => {
+        const a = docFromTextNotation('\r\n;; |hi');
+        const b = docFromTextNotation('\r\n|;; |hi');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Deals with empty lines', () => {
+        const a = docFromTextNotation('\n|');
+        const b = docFromTextNotation('|\n|');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Deals with empty lines (Windows)', () => {
+        const a = docFromTextNotation('\r\n|');
+        const b = docFromTextNotation('|\r\n|');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: true } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Deals with comments with empty line', () => {
+        const a = docFromTextNotation('\n;; |');
+        const b = docFromTextNotation('\n|;; |');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Deals with comments with empty line (Windows)', () => {
+        const a = docFromTextNotation('\r\n;; |');
+        const b = docFromTextNotation('\r\n|;; |');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Does not retreat when on closing token type ', () => {
+        const a = docFromTextNotation('\n(|a e)\n');
+        const b = docFromTextNotation('\n(||a e)\n');
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Finds the full form after an ignore marker', () => {
+        // https://github.com/BetterThanTomorrow/calva/pull/1293#issuecomment-927123696
+        const a = docFromTextNotation(
+          '(comment•  #_[a b (c d•              e•              f) g]|•  :a•)'
+        );
+        const b = docFromTextNotation(
+          // '(comment•  #_<[a b (c d•              e•              f) g]<• :a•)'
+          '(comment•  #_|[a b (c d•              e•              f) g]|• :a•)'
+        );
+        const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
+        const actual = paredit.backwardHybridSexpRange(a);
+        expect(actual).toEqual(expected);
+      });
+
+      it('Takes 3 invocations to kill to first non-whitespace, preceding whitespace and then preceding newline', () => {
+        const firstBase = docFromTextNotation('(:a :b \n    :c :d|)');
+        const firstDoc = docFromTextNotation('(:a :b \n    |:c :d|)');
+        const firstExpected = {
+          range: textAndSelection(firstDoc)[1],
+          editOptions: { skipFormat: false },
+        };
+        const firstActual = paredit.backwardHybridSexpRange(firstBase);
+        expect(firstActual).toEqual(firstExpected);
+
+        const secondBase = docFromTextNotation('(:a :b \n    |:c :d)');
+        const secondDoc = docFromTextNotation('(:a :b \n|    |:c :d)');
+        const secondExpected = {
+          range: textAndSelection(secondDoc)[1],
+          editOptions: { skipFormat: true },
+        };
+        const secondActual = paredit.backwardHybridSexpRange(secondBase);
+        expect(secondActual).toEqual(secondExpected);
+
+        const thirdBase = docFromTextNotation('(:a :b \n|    :c :d)');
+        const thirdDoc = docFromTextNotation('(:a :b |\n|    :c :d)');
+        const thirdExpected = {
+          range: textAndSelection(thirdDoc)[1],
+          editOptions: { skipFormat: true },
+        };
+        const thirdActual = paredit.backwardHybridSexpRange(thirdBase);
+        expect(thirdActual).toEqual(thirdExpected);
+      });
+
+      it('Takes 3 invocations to kill to first non-whitespace, preceding whitespace and then preceding newline (Windows)', () => {
+        const firstBase = docFromTextNotation('(:a :b \r\n    :c :d|)');
+        const firstDoc = docFromTextNotation('(:a :b \r\n    |:c :d|)');
+        const firstExpected = {
+          range: textAndSelection(firstDoc)[1],
+          editOptions: { skipFormat: false },
+        };
+        const firstActual = paredit.backwardHybridSexpRange(firstBase);
+        expect(firstActual).toEqual(firstExpected);
+
+        const secondBase = docFromTextNotation('(:a :b \r\n    |:c :d)');
+        const secondDoc = docFromTextNotation('(:a :b \r\n|    |:c :d)');
+        const secondExpected = {
+          range: textAndSelection(secondDoc)[1],
+          editOptions: { skipFormat: true },
+        };
+        const secondActual = paredit.backwardHybridSexpRange(secondBase);
+        expect(secondActual).toEqual(secondExpected);
+
+        const thirdBase = docFromTextNotation('(:a :b \r\n|    :c :d)');
+        const thirdDoc = docFromTextNotation('(:a :b |\r\n|    :c :d)');
+        const thirdExpected = {
+          range: textAndSelection(thirdDoc)[1],
+          editOptions: { skipFormat: true },
+        };
+        const thirdActual = paredit.backwardHybridSexpRange(thirdBase);
+        expect(thirdActual).toEqual(thirdExpected);
       });
     });
 

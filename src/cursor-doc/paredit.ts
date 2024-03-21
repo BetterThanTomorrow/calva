@@ -1,6 +1,13 @@
 import { FormatterConfig } from '../formatter-config';
 import { validPair } from './clojure-lexer';
-import { ModelEdit, EditableDocument, ModelEditSelection, ModelEditRange } from './model';
+import {
+  ModelEdit,
+  EditableDocument,
+  ModelEditSelection,
+  ModelEditRange,
+  ModelEditDirectedRange,
+  ModelEditOptions,
+} from './model';
 import { LispTokenCursor } from './token-cursor';
 import { backspaceOnWhitespace } from './backspace-on-whitespace';
 import _ = require('lodash');
@@ -20,10 +27,12 @@ export async function killRange(
   doc: EditableDocument,
   range: [number, number],
   start = doc.selections[0].anchor,
-  end = doc.selections[0].active
+  end = doc.selections[0].active,
+  editOptions: Omit<ModelEditOptions, 'selections'> = { skipFormat: false }
 ) {
   const [left, right] = [Math.min(...range), Math.max(...range)];
   return doc.model.edit([new ModelEdit('deleteRange', [left, right - left, [start, end]])], {
+    ...editOptions,
     selections: [new ModelEditSelection(left)],
   });
 }
@@ -296,6 +305,7 @@ export function backwardListRange(
  *  - Return the end of the nearest form to the right of the cursor location if one exists
  *  - Returns the newline's offset if no form exists
  *
+ * If squashWhitespace is true, then successive whitespace characters after the cursor are squashed.
  * This function's output range is needed to implement features similar to paredit's
  * killRight or smartparens' sp-kill-hybrid-sexp.
  *
@@ -308,10 +318,12 @@ export function forwardHybridSexpRange(
   doc: EditableDocument,
   offset = doc.selections[0].end,
   squashWhitespace = true
-): [number, number] {
+): ModelEditDirectedRange {
   let cursor = doc.getTokenCursor(offset);
+  // If at list open, return the range of the list
   if (cursor.getToken().type === 'open') {
     return forwardSexpRange(doc);
+    // else if at list close (but still in it), don't move
   } else if (cursor.getToken().type === 'close') {
     return [offset, offset];
   }
@@ -319,15 +331,20 @@ export function forwardHybridSexpRange(
   const currentLineText = doc.model.getLineText(cursor.line);
   const lineStart = doc.model.getOffsetForLine(cursor.line);
   const currentLineNewlineOffset = lineStart + currentLineText.length;
-  const remainderLineText = doc.model.getText(offset, currentLineNewlineOffset + 1);
+  // contents of line from cursor to end of line, including newline chars
+  const remainderLineText = doc.model.getText(
+    offset,
+    currentLineNewlineOffset + doc.model.lineEndingLength
+  );
 
-  cursor.forwardList(); // move to the end of the current form
+  cursor.forwardList(); // move to the end of the current form if possible
   const currentFormEndToken = cursor.getToken();
-  // when we've advanced the cursor but start is behind us then go to the end
-  // happens when in a clojure comment i.e:  ;; ----
+  // If we've advanced the cursor but the current token's start is behind us,
+  // then jump to the end.
+  // Happens when offset is in a clojure comment or whitespace, i.e: ';; -|---' or ' | '
   const cursorOffsetEnd = cursor.offsetStart <= offset ? cursor.offsetEnd : cursor.offsetStart;
   const text = doc.model.getText(offset, cursorOffsetEnd);
-  let hasNewline = text.indexOf('\n') !== -1;
+  let hasNewline = text.indexOf(doc.model.lineEnding) !== -1;
   let end = cursorOffsetEnd;
 
   // Want the min of closing token or newline
@@ -339,9 +356,11 @@ export function forwardHybridSexpRange(
     end = currentLineNewlineOffset;
   }
 
-  if (remainderLineText === '' || remainderLineText === '\n') {
+  // need to squash whitespace?
+  if (remainderLineText === '' || remainderLineText === doc.model.lineEnding) {
     const squashCursor = doc.getTokenCursor(currentLineNewlineOffset);
     if (squashWhitespace && squashCursor.next().getToken().raw.endsWith(' ')) {
+      // jump ahead to penultimate whitepspace character
       end =
         currentLineNewlineOffset +
         doc.model.lineEndingLength +
@@ -351,7 +370,7 @@ export function forwardHybridSexpRange(
       end = currentLineNewlineOffset + doc.model.lineEndingLength;
     }
   } else if (hasNewline) {
-    // Try to find the first open token to the right of the document's cursor location if any
+    // Try to find the first open token to the right of offset, if any
     let nearestOpenTokenOffset = -1;
 
     // Start at the newline.
@@ -378,6 +397,134 @@ export function forwardHybridSexpRange(
     }
   }
   return [offset, end];
+}
+
+/**
+ * Aims to find the start of the current form (list|vector|map|set|string etc).
+ * Similar to `forwardHybridSexpRange` but moves backwards.
+ * When there is whitespace (ws) before the start of the current form's non-ws text:
+ *  - Return the start of the nearest form to the left of the cursor location if one exists
+ *  - Return the start of the non-whitespace contents's offset if no form exists
+ * When invoked at the first non-ws contents of the line (eg at an indent):
+ *  - Return the line start, which is previous line's newline char + 1
+ *
+ * If squashWhitespace is true, then successive whitespace characters after the cursor are squashed.
+ *
+ * Diverges from most other paredit fns here in that it returns both a range and ModelEditOptions,
+ * so as to express whether it's only killing preceding non-newline-whitespace.
+ * This is in order for `killRange` caller to know whether to conditionally
+ * disable post-edit auto formatting/indenting.
+ *
+ * @param doc
+ * @param offset
+ * @param squashWhitespace
+ * @returns {range: [number, number], editOptions: ModelEditOptions}
+ */
+export function backwardHybridSexpRange(
+  doc: EditableDocument,
+  offset = doc.selections[0].start,
+  squashWhitespace = true
+): { range: ModelEditDirectedRange; editOptions: ModelEditOptions } {
+  let cursor = doc.getTokenCursor(offset - 1);
+
+  // weird edge case in windows where if the cursor is between \r\n and list close
+  // like `\r\n|)`, it needs to move back 2 characters to know the tokenCursor is an eol
+  // otherwise, doc.getTokenCursor(offset) & doc.getTokenCursor(offset - 1) are the same:
+  // the list close token
+  if ('\r\n)' === doc.model.getText(offset - 2, offset + 1)) {
+    cursor = doc.getTokenCursor(offset - 2);
+  }
+
+  if (cursor.getToken().type === 'close') {
+    return { range: backwardSexpRange(doc), editOptions: { skipFormat: false } };
+  } else if (cursor.getToken().type === 'open') {
+    return { range: [offset, offset], editOptions: { skipFormat: false } };
+  } else if (cursor.getToken().raw === '\n') {
+    cursor = doc.getTokenCursor(offset);
+  }
+
+  let currentLineStartOffset = doc.model.getOffsetForLine(cursor.line);
+  let remainderLineText = doc.model.getText(
+    currentLineStartOffset - doc.model.lineEndingLength,
+    offset
+  );
+
+  // there is post-edit formatting we want to suppress if we're only cutting line start whitespace,
+  // otherwise, the formatter will auto indent back to whatever the user tried to kill
+  const isOnlyKillingWhitespace =
+    remainderLineText.substring(doc.model.lineEndingLength).trim().length === 0;
+
+  // if we're NOT only killing whitespace, ensure we only cut to the beginning of non-whitespace.
+  // if user wants to cut non-ws *and* ws at beginning of line, let em killLeft twice.
+  // we do this by making reminderLineText & currentLineStartOffset start at the non-ws
+  if (!isOnlyKillingWhitespace) {
+    currentLineStartOffset +=
+      remainderLineText.indexOf(remainderLineText.trimStart()) - doc.model.lineEndingLength;
+    remainderLineText = doc.model.getText(
+      currentLineStartOffset - doc.model.lineEndingLength,
+      offset
+    );
+  }
+
+  // the main "meat" of killLeft, killing left until ws or list opening
+  cursor.backwardList(); // move to the start of the current form
+  // -1 to include opening token
+  const currentFormStartToken = doc.getTokenCursor(cursor.offsetStart - 1).getToken();
+
+  const cursorOffsetStart = cursor.offsetStart;
+  const text = doc.model.getText(cursorOffsetStart, offset);
+  let hasNewline = text.indexOf('\n') !== -1;
+  let start = cursorOffsetStart;
+
+  // Want the max of opening token or newline (/line start)
+  // After moving backward, the cursor may not yet be at the start of the current line,
+  // and it is not a open token. So we include the newline
+  // because what forms are here extend backwards beyond the start of the current line
+  if (currentLineStartOffset <= cursor.offsetStart && currentFormStartToken.type != 'open') {
+    hasNewline = true;
+    start = currentLineStartOffset;
+  }
+  // need to squash whitespace?
+  if (remainderLineText === '' || remainderLineText === doc.model.lineEnding) {
+    const squashCursor = doc.getTokenCursor(currentLineStartOffset - doc.model.lineEndingLength);
+    const prevCursor = squashCursor.previous();
+    if (squashWhitespace && prevCursor?.getToken().raw.endsWith(' ')) {
+      start =
+        currentLineStartOffset -
+        doc.model.lineEndingLength -
+        squashCursor.getToken().raw.length +
+        1;
+    } else {
+      start = currentLineStartOffset - doc.model.lineEndingLength;
+    }
+  } else if (hasNewline) {
+    // Try to find the first close token to the left of the document's cursor location if any
+    let nearestCloseTokenOffset = -1;
+
+    // Start at the line start.
+    // Work forwards to find the largest close token offset
+    // less than the document's cursor location if any
+    cursor = doc.getTokenCursor(currentLineStartOffset);
+    while (cursor.offsetEnd < offset) {
+      while (cursor.forwardSexp()) {
+        // move forward until the cursor cannot move forward anymore
+      }
+      if (cursor.offsetEnd < offset) {
+        nearestCloseTokenOffset = cursor.offsetStart;
+        cursor = doc.getTokenCursor(cursor.offsetEnd);
+      }
+    }
+
+    if (nearestCloseTokenOffset > 0) {
+      cursor = doc.getTokenCursor(nearestCloseTokenOffset);
+      cursor.backwardList();
+      start = cursor.offsetStart - 1; // include the closing token
+    } else {
+      // no open tokens found so the end is the newline
+      start = currentLineStartOffset;
+    }
+  }
+  return { range: [start, offset], editOptions: { skipFormat: isOnlyKillingWhitespace } };
 }
 
 export function rangeToForwardUpList(
@@ -832,16 +979,8 @@ export async function close(
   }
 }
 
-function onlyWhitespaceLeftOfCursor(doc: EditableDocument, cursor: LispTokenCursor) {
-  const token = cursor.getToken();
-  if (token.type === 'ws') {
-    return token.offset === 0;
-  } else if (doc.selections[0].anchor > cursor.offsetStart) {
-    return false;
-  }
-  const prevToken = cursor.getPrevToken();
-
-  return prevToken.type === 'ws' && prevToken.offset === 0;
+function onlyWhitespaceLeftOfCursor(offset, cursor: LispTokenCursor) {
+  return cursor.isOnlyWhitespaceLeftOfCursor(offset);
 }
 
 function backspaceOnWhitespaceEdit(
@@ -898,7 +1037,11 @@ export async function backspace(
           selections: [new ModelEditSelection(start - prevToken.raw.length)],
         }
       );
-    } else if (!isTopLevel && !cursor.withinString() && onlyWhitespaceLeftOfCursor(doc, cursor)) {
+    } else if (
+      !isTopLevel &&
+      !cursor.withinString() &&
+      onlyWhitespaceLeftOfCursor(doc.selections[0].anchor, cursor)
+    ) {
       // we are at the beginning of a line, and not inside a string
       return backspaceOnWhitespaceEdit(doc, cursor, config);
     } else {

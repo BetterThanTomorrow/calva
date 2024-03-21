@@ -100,7 +100,7 @@ export async function formatRange(document: vscode.TextDocument, range: vscode.R
 export async function formatPositionInfo(
   editor: vscode.TextEditor,
   onType: boolean = false,
-  extraConfig = {}
+  extraConfig: CljFmtConfig = {}
 ) {
   const doc: vscode.TextDocument = editor.document;
   const index = doc.offsetAt(editor.selections[0].active);
@@ -142,11 +142,13 @@ export async function formatPositionInfo(
   };
 }
 
-function _calculateFormatRange(
-  config: { 'format-depth'?: number },
-  cursor: LispTokenCursor,
-  index: number
-) {
+interface CljFmtConfig {
+  'format-depth'?: number;
+  'align-associative?'?: boolean;
+  'remove-multiple-non-indenting-spaces?'?: boolean;
+}
+
+function _calculateFormatRange(config: CljFmtConfig, cursor: LispTokenCursor, index: number) {
   const formatDepth = config?.['format-depth'] ?? _formatDepth(cursor);
   const rangeForTopLevelForm = cursor.rangeForDefun(index, false);
   const topLevelStartCursor = cursor.doc.getTokenCursor(rangeForTopLevelForm[0]);
@@ -195,7 +197,7 @@ function _formatDepth(cursor: LispTokenCursor) {
 export async function formatPosition(
   editor: vscode.TextEditor,
   onType: boolean = false,
-  extraConfig = {}
+  extraConfig: CljFmtConfig = {}
 ): Promise<boolean> {
   const doc: vscode.TextDocument = editor.document,
     formattedInfo = await formatPositionInfo(editor, onType, extraConfig);

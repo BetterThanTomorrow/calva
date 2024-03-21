@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.425] - 2024-03-21
+
+- [Add Paredit Kill Left equivalent to Kill Right](https://github.com/BetterThanTomorrow/calva/issues/2426)
+- Fix: Certain `paredit.killRight` edges cases on Windows.
+
 ## [2.0.424] - 2024-03-17
 
 - [Add command for revealing the **Calva says** output channel](https://github.com/BetterThanTomorrow/calva/issues/2436)

@@ -58,6 +58,17 @@ export class ModelEdit<T extends ModelEditFunction> {
  * even if the selection is in reverse.
  */
 export type ModelEditRange = [start: number, end: number];
+/**
+ * A range with direction representing a cursor/selection in a document.
+ * Is a tuple of [anchor, active] where each is an offset.
+ * It is a selection if `anchor` != `active`, otherwise, it's a cursor.
+ * 'Direction' here means if `anchor` is greater than `active`, the selection is
+ * from right to left, and vice versa.
+ *
+ * This type is only nominal and for documentation purposes, it's technically the
+ * same as `ModelEditRange`
+ */
+export type ModelEditDirectedRange = [anchor: number, active: number];
 
 /**
  * Naming notes for Model Selections:
@@ -447,13 +458,13 @@ export class LineInputModel implements EditableModel {
     if (st[0] != en[0]) {
       lines.push(this.lines[en[0]].text.substring(0, en[1]));
     }
-    return lines.join('\n');
+    return lines.join(this.lineEnding);
   }
 
   /**
    * Returns the row and column for a given text offset in this model.
    */
-  getRowCol(offset: number): [number, number] {
+  getRowCol(offset: number): [row: number, col: number] {
     for (let i = 0; i < this.lines.length; i++) {
       if (offset > this.lines[i].text.length) {
         offset -= this.lines[i].text.length + this.lineEndingLength;
@@ -469,9 +480,9 @@ export class LineInputModel implements EditableModel {
    * the model.
    *
    * @param offset The offset in the line model.
-   * @returns [number, number] The start and the index of the word in the model.
+   * @returns {ModelEditRange} The start and the index of the word in the model.
    */
-  getWordSelection(offset: number): [number, number] {
+  getWordSelection(offset: number): ModelEditRange {
     const stopChars = [' ', '"', ';', '.', '(', ')', '[', ']', '{', '}', '\t', '\n', '\r'],
       [row, column] = this.getRowCol(offset),
       text = this.lines[row].text;
@@ -559,8 +570,8 @@ export class LineInputModel implements EditableModel {
     start: number,
     end: number,
     text: string,
-    oldSelection?: [number, number],
-    newSelection?: [number, number]
+    oldSelection?: ModelEditRange,
+    newSelection?: ModelEditRange
   ) {
     const t1 = new Date();
 
@@ -630,8 +641,8 @@ export class LineInputModel implements EditableModel {
   insertString(
     offset: number,
     text: string,
-    oldSelection?: [number, number],
-    newSelection?: [number, number]
+    oldSelection?: ModelEditRange,
+    newSelection?: ModelEditRange
   ): number {
     this.changeRange(offset, offset, text, oldSelection, newSelection);
     return text.length;
@@ -649,8 +660,8 @@ export class LineInputModel implements EditableModel {
   deleteRange(
     offset: number,
     count: number,
-    oldSelection?: [number, number],
-    newSelection?: [number, number]
+    oldSelection?: ModelEditRange,
+    newSelection?: ModelEditRange
   ) {
     this.changeRange(offset, offset + count, '', oldSelection, newSelection);
   }
