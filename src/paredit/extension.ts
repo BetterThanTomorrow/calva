@@ -29,7 +29,7 @@ const enabled = true;
  * @param doc
  * @param range
  */
-async function copyRangeToClipboard(doc: EditableDocument, [start, end]) {
+export async function copyRangeToClipboard(doc: EditableDocument, [start, end]) {
   const text = doc.model.getText(start, end);
   await vscode.env.clipboard.writeText(text);
 }
@@ -39,7 +39,7 @@ async function copyRangeToClipboard(doc: EditableDocument, [start, end]) {
  * @returns boolean
  */
 function shouldKillAlsoCutToClipboard() {
-  return workspace.getConfiguration().get('calva.paredit.killAlsoCutsToClipboard');
+  return workspace.getConfiguration().get<boolean>('calva.paredit.killAlsoCutsToClipboard');
 }
 
 function multiCursorEnabled() {
@@ -288,6 +288,17 @@ const pareditCommands: PareditCommand[] = [
         await copyRangeToClipboard(doc, range);
       }
       return paredit.killRange(doc, range);
+    },
+  },
+  {
+    command: 'paredit.killLeft',
+    handler: async (doc: EditableDocument) => {
+      // TODO: support multicursor
+      return handlers.killLeft(
+        doc,
+        multiCursorEnabled(),
+        shouldKillAlsoCutToClipboard() ? copyRangeToClipboard : null
+      );
     },
   },
   {

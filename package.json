@@ -1742,6 +1742,12 @@
       },
       {
         "category": "Calva Paredit",
+        "command": "paredit.killLeft",
+        "title": "Kill/Delete Left",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva Paredit",
         "command": "paredit.killSexpForward",
         "title": "Kill/Delete Sexp Forward",
         "enablement": "editorLangId == clojure"
@@ -2486,6 +2492,13 @@
         "mac": "ctrl+k",
         "win": "ctrl+k ctrl+k",
         "linux": "ctrl+k ctrl+k",
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
+      },
+      {
+        "command": "paredit.killLeft",
+        "mac": "cmd+backspace",
+        "win": "ctrl+k ctrl+h",
+        "linux": "ctrl+k ctrl+h",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
       },
       {
