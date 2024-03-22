@@ -6,7 +6,7 @@ Changes to Calva.
 
 ## [2.0.426] - 2024-03-22
 
-- Fix: [Range Error](https://github.com/BetterThanTomorrow/calva/issues/2443)
+- Fix: [Calva Load File Command Results in RangeError on certain machine](https://github.com/BetterThanTomorrow/calva/issues/2443)
 
 ## [2.0.425] - 2024-03-21
 
