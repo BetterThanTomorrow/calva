@@ -22,6 +22,8 @@ A lot of effort has been put into making Calva a good choice to start if you are
 
 (*) Calva is short for Calvados, a liquid gifted to humanity from God. Calvas's REPL power is harvested from the produce of [The Orchard](https://github.com/clojure-emacs/orchard).
 
+![Please give the Calva repository a star!](assets/images/star-calva-repo.png)
+
 ## Users Like it 😍
 
 Crispin Bennett's review:
@@ -169,7 +171,7 @@ Patrons, Gold, and Silver sponsors are also displayed here: https://calva.io/#sp
 
 ### Calva Silver Sponsors
 
-[<img src="assets/images/pitch-logo.png" height="40px" alt="pitch.io"/>](https://pitch.io)
+😭
 
 ### Calva Pro Fans
 
@@ -230,6 +232,7 @@ We are Clojure and Visual Studio Code fans who care about the ergonomics of usin
 * [Brandon Ringe](https://github.com/bpringe)
 * [Cora Sutton](https://github.com/corasaurus-hex)
 * [Lukas Domagala](https://github.com/Cyrik)
+* [Rayat Rahman](https://github.com/riotrah)
 
 ### Alumni
 
