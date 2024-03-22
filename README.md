@@ -22,6 +22,8 @@ A lot of effort has been put into making Calva a good choice to start if you are
 
 (*) Calva is short for Calvados, a liquid gifted to humanity from God. Calvas's REPL power is harvested from the produce of [The Orchard](https://github.com/clojure-emacs/orchard).
 
+![Please give the Calva repository a star!](assets/images/star-calva-repo.png)
+
 ## Users Like it 😍
 
 Crispin Bennett's review:
