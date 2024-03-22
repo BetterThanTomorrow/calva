@@ -169,7 +169,7 @@ Patrons, Gold, and Silver sponsors are also displayed here: https://calva.io/#sp
 
 ### Calva Silver Sponsors
 
-[<img src="assets/images/pitch-logo.png" height="40px" alt="pitch.io"/>](https://pitch.io)
+😭
 
 ### Calva Pro Fans
 
