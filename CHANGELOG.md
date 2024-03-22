@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Implement experimental support for multicursor rewrap commands. Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#2448](https://github.com/BetterThanTomorrow/calva/issues/2448) 
+- [Implement experimental support for multicursor rewrap commands](https://github.com/BetterThanTomorrow/calva/issues/2448). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#2445](https://github.com/BetterThanTomorrow/calva/issues/2445) 
 
 ## [2.0.432] - 2024-03-26
 
