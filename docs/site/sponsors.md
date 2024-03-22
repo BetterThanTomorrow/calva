@@ -65,6 +65,7 @@ These are the sponsoring profiles for the active maintainers of Calva (a.k.a. Th
 * [Brandon Ringe](https://github.com/sponsors/bpringe)
 * [Cora Sutton](https://github.com/sponsors/corasaurus-hex)
 * [Lukas Domagala](https://github.com/sponsors/Cyrik)
+* [Rayat Rahman](https://github.com/sponsors/riotrah)
 
 ## README visibility
 

@@ -230,6 +230,7 @@ We are Clojure and Visual Studio Code fans who care about the ergonomics of usin
 * [Brandon Ringe](https://github.com/bpringe)
 * [Cora Sutton](https://github.com/corasaurus-hex)
 * [Lukas Domagala](https://github.com/Cyrik)
+* [Rayat Rahman](https://github.com/riotrah)
 
 ### Alumni
 
