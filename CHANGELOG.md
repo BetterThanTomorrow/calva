@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.426] - 2024-03-22
+
+- Fix: [Range Error](https://github.com/BetterThanTomorrow/calva/issues/2443)
+
 ## [2.0.425] - 2024-03-21
 
 - [Add Paredit Kill Left equivalent to Kill Right](https://github.com/BetterThanTomorrow/calva/issues/2426)

@@ -527,16 +527,17 @@ export class NReplSession {
     opts['pprint'] = pprintOptions.enabled;
     delete opts.pprintOptions;
     const extraOpts = getServerSidePrinter(pprintOptions);
+    const { stderr, stdout, ...optsLessOut } = opts;
     const evaluation = new NReplEvaluation(
       id,
       this,
-      opts.stderr,
-      opts.stdout,
+      stderr,
+      stdout,
       null,
       new Promise((resolve, reject) => {
         const msg = {
           ...extraOpts,
-          ...opts,
+          ...optsLessOut,
           op: 'load-file',
           session: this.sessionId,
           file,
