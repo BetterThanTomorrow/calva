@@ -122,3 +122,25 @@ export async function killLeft(
     result.editOptions
   );
 }
+
+// REWRAP
+
+export function rewrapQuote(doc: EditableDocument, isMulti: boolean) {
+  return paredit.rewrapSexpr(doc, '"', '"', isMulti ? doc.selections : [doc.selections[0]]);
+}
+
+export function rewrapSet(doc: EditableDocument, isMulti: boolean) {
+  return paredit.rewrapSexpr(doc, '#{', '}', isMulti ? doc.selections : [doc.selections[0]]);
+}
+
+export function rewrapCurly(doc: EditableDocument, isMulti: boolean) {
+  return paredit.rewrapSexpr(doc, '{', '}', isMulti ? doc.selections : [doc.selections[0]]);
+}
+
+export function rewrapSquare(doc: EditableDocument, isMulti: boolean) {
+  return paredit.rewrapSexpr(doc, '[', ']', isMulti ? doc.selections : [doc.selections[0]]);
+}
+
+export function rewrapParens(doc: EditableDocument, isMulti: boolean) {
+  return paredit.rewrapSexpr(doc, '(', ')', isMulti ? doc.selections : [doc.selections[0]]);
+}

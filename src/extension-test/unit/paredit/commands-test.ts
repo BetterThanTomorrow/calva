@@ -1,7 +1,7 @@
 import * as expect from 'expect';
 import * as model from '../../../cursor-doc/model';
 import * as handlers from '../../../paredit/commands';
-import { docFromTextNotation } from '../common/text-notation';
+import { docFromTextNotation, textNotationFromDoc } from '../common/text-notation';
 import _ = require('lodash');
 
 model.initScanner(20000);
@@ -1009,7 +1009,6 @@ describe('paredit commands', () => {
       it('Single-cursor: Deals with empty lines', async () => {
         const a = docFromTextNotation('\n|');
         const b = docFromTextNotation('|');
-        // const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
         await handlers.killLeft(a, false);
         expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
       });
@@ -1017,7 +1016,6 @@ describe('paredit commands', () => {
       it('Single-cursor: Deals with empty lines (Windows)', async () => {
         const a = docFromTextNotation('\r\n|');
         const b = docFromTextNotation('|');
-        // const expected = { range: textAndSelection(b)[1], editOptions: { skipFormat: false } };
         await handlers.killLeft(a, false);
         expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
       });
@@ -1084,6 +1082,152 @@ describe('paredit commands', () => {
         const d = docFromTextNotation('(:a :b |)');
         await handlers.killLeft(a, false);
         expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(d, defaultDocOmit));
+      });
+    });
+  });
+
+  describe('editing', () => {
+    describe('wrapping', () => {
+      describe('rewrap', () => {
+        it('Single-cursor: Rewraps () -> []', async () => {
+          const a = docFromTextNotation('a (b c|) d');
+          const b = docFromTextNotation('a [b c|] d');
+          await handlers.rewrapSquare(a, false);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Rewraps () -> []', async () => {
+          const a = docFromTextNotation('(a|2 (b c|) |1d)|3');
+          const b = docFromTextNotation('[a|2 [b c|] |1d]|3');
+          await handlers.rewrapSquare(a, true);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
+        it('Single-cursor: Rewraps [] -> ()', async () => {
+          const a = docFromTextNotation('[a [b c|] d]');
+          const b = docFromTextNotation('[a (b c|) d]');
+          await handlers.rewrapParens(a, false);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Rewraps [] -> ()', async () => {
+          const a = docFromTextNotation('[a|2 [b c|] |1d]|3');
+          const b = docFromTextNotation('(a|2 (b c|) |1d)|3');
+          await handlers.rewrapParens(a, true);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
+        it('Single-cursor: Rewraps [] -> {}', async () => {
+          const a = docFromTextNotation('[a [b c|] d]');
+          const b = docFromTextNotation('[a {b c|} d]');
+          await handlers.rewrapCurly(a, false);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Rewraps [] -> {}', async () => {
+          const a = docFromTextNotation('[a|2 [b c|] |1d]|3');
+          const b = docFromTextNotation('{a|2 {b c|} |1d}|3');
+          await handlers.rewrapCurly(a, true);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
+        it('Single-cursor: Rewraps #{} -> {}', async () => {
+          const a = docFromTextNotation('#{a #{b c|} d}');
+          const b = docFromTextNotation('#{a {b c|} d}');
+          await handlers.rewrapCurly(a, false);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Rewraps #{} -> {}', async () => {
+          const a = docFromTextNotation('#{a|2 #{b c|} |1d}|3');
+          const b = docFromTextNotation('{a|2 {b c|} |1d}|3');
+          await handlers.rewrapCurly(a, true);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
+        it('Single-cursor: Rewraps #{} -> ""', async () => {
+          const a = docFromTextNotation('#{a #{b c|} d}');
+          const b = docFromTextNotation('#{a "b c|" d}');
+          await handlers.rewrapQuote(a, false);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Rewraps #{} -> ""', async () => {
+          const a = docFromTextNotation('#{a|2 #{b c|} |1d}|3');
+          const b = docFromTextNotation('"a|2 "b c|" |1d"|3');
+          await handlers.rewrapQuote(a, true);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Rewraps #{} -> "" 2', async () => {
+          const a = docFromTextNotation('#{a|2 #{b c|} |1d}|3\n#{a|6 #{b c|4} |5d}|7');
+          const b = docFromTextNotation('"a|2 "b c|" |1d"|3\n"a|6 "b c|4" |5d"|7');
+          await handlers.rewrapQuote(a, true);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Rewraps #{} -> [] 3', async () => {
+          const a = docFromTextNotation('#{a|2 #{b c|} |1d\n#{a|6 #{b c|4} |5d}}|3');
+          const b = docFromTextNotation('[a|2 [b c|] |1d\n[a|6 [b c|4] |5d]]|3');
+          await handlers.rewrapSquare(a, true);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
+        it('Single-cursor: Rewraps [] -> #{}', async () => {
+          const a = docFromTextNotation('[[b c|] d]');
+          const b = docFromTextNotation('[#{b c|} d]');
+          await handlers.rewrapSet(a, false);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Rewraps [] -> #{}', async () => {
+          const a = docFromTextNotation('[[b|2 c|] |1d]|3');
+          const b = docFromTextNotation('#{#{b|2 c|} |1d}|3');
+          await handlers.rewrapSet(a, true);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Rewraps [] -> #{} 2', async () => {
+          const a = docFromTextNotation('[[b|2 c|] |1d]|3\n[a|6 [b c|4] |5d]|7');
+          const b = docFromTextNotation('#{#{b|2 c|} |1d}|3\n#{a|6 #{b c|4} |5d}|7');
+          await handlers.rewrapSet(a, true);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Rewraps [] -> #{} 3', async () => {
+          const a = docFromTextNotation('[[b|2 c|] |1d\n[a|6 [b c|4] |5d]]|3');
+          const b = docFromTextNotation('#{#{b|2 c|} |1d\n#{a|6 #{b c|4} |5d}}|3');
+          await handlers.rewrapSet(a, true);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
+        // TODO: This tests current behavior. What should happen?
+        it('Single-cursor: Rewraps ^{} -> #{}', async () => {
+          const a = docFromTextNotation('^{^{b c|} d}');
+          const b = docFromTextNotation('^{#{b c|} d}');
+          await handlers.rewrapSet(a, false);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Rewraps ^{} -> #{}', async () => {
+          const a = docFromTextNotation('^{^{b|2 c|} |1d}|3');
+          const b = docFromTextNotation('#{#{b|2 c|} |1d}|3');
+          await handlers.rewrapSet(a, true);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
+        // TODO: This tests current behavior. What should happen?
+        it('Single-cursor: Rewraps ~{} -> #{}', async () => {
+          const a = docFromTextNotation('~{~{b c|} d}');
+          const b = docFromTextNotation('~{#{b c|} d}');
+          await handlers.rewrapSet(a, false);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Rewraps ~{} -> #{}', async () => {
+          const a = docFromTextNotation('~{~{b|2 c|} |1d}|3');
+          const b = docFromTextNotation('#{#{b|2 c|} |1d}|3');
+          await handlers.rewrapSet(a, true);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
       });
     });
   });

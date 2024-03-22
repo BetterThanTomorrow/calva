@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Implement experimental support for multicursor rewrap commands. Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#2448](https://github.com/BetterThanTomorrow/calva/issues/2448) 
 - [Add Paredit Kill Left equivalent to Kill Right](https://github.com/BetterThanTomorrow/calva/issues/2426)
 - Fix: Certain `paredit.killRight` edges cases on Windows.
 
