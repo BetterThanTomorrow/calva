@@ -8,6 +8,26 @@ import * as chalk from 'chalk';
 
 const customChalk = new chalk.Instance({ level: 3 });
 
+const lightTheme = {
+  evalOut: customChalk.gray,
+  evalErr: customChalk.red,
+  otherOut: customChalk.green,
+  otherErr: customChalk.red,
+};
+
+const darkTheme = {
+  evalOut: customChalk.grey,
+  evalErr: customChalk.redBright,
+  otherOut: customChalk.grey,
+  otherErr: customChalk.redBright,
+};
+
+function themedChalk() {
+  return vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light
+    ? lightTheme
+    : darkTheme;
+}
+
 export interface AfterAppendCallback {
   (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
 }
@@ -188,7 +208,9 @@ function append(destination: OutputDestination, message: string, after?: AfterAp
  */
 export function appendEvalOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.grey(message) : message;
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().evalOut(message)
+    : message;
   append(destination, coloredMessage, after);
 }
 
@@ -200,7 +222,9 @@ export function appendEvalOut(message: string, after?: AfterAppendCallback) {
  */
 export function appendEvalErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.red(message) : message;
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().evalErr(message)
+    : message;
   append(destination, coloredMessage, after);
 }
 
@@ -213,7 +237,9 @@ export function appendEvalErr(message: string, after?: AfterAppendCallback) {
  */
 export function appendOtherOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.grey(message) : message;
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().otherOut(message)
+    : message;
   append(destination, coloredMessage, after);
 }
 
@@ -226,7 +252,10 @@ export function appendOtherOut(message: string, after?: AfterAppendCallback) {
  */
 export function appendOtherErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  append(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().otherErr(message)
+    : message;
+  append(destination, coloredMessage, after);
 }
 
 function appendLine(destination: OutputDestination, message: string, after?: AfterAppendCallback) {
@@ -257,7 +286,9 @@ function appendLine(destination: OutputDestination, message: string, after?: Aft
  */
 export function appendLineEvalOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.grey(message) : message;
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().evalOut(message)
+    : message;
   appendLine(destination, coloredMessage, after);
 }
 
@@ -270,7 +301,9 @@ export function appendLineEvalOut(message: string, after?: AfterAppendCallback) 
  */
 export function appendLineEvalErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.red(message) : message;
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().evalErr(message)
+    : message;
   appendLine(destination, coloredMessage, after);
 }
 
@@ -283,7 +316,9 @@ export function appendLineEvalErr(message: string, after?: AfterAppendCallback) 
  */
 export function appendLineOtherOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.grey(message) : message;
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().otherOut(message)
+    : message;
   appendLine(destination, coloredMessage, after);
 }
 
@@ -296,7 +331,9 @@ export function appendLineOtherOut(message: string, after?: AfterAppendCallback)
  */
 export function appendLineOtherErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.red(message) : message;
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().otherErr(message)
+    : message;
   appendLine(destination, coloredMessage, after);
 }
 
