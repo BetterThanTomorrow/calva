@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add a Terminal output destination option](https://github.com/BetterThanTomorrow/calva/issues/2452)
+
 ## [2.0.427] - 2024-03-23
 
 - Fix: [Printing non-list Clojure results with code fencing gets verbose](https://github.com/BetterThanTomorrow/calva/issues/2450)

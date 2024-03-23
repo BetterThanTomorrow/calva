@@ -4,6 +4,30 @@ import * as vscode from 'vscode';
 import * as util from '../utilities';
 import * as model from '../cursor-doc/model';
 import * as cursorUtil from '../cursor-doc/utilities';
+import * as chalk from 'chalk';
+import * as printer from '../printer';
+
+const customChalk = new chalk.Instance({ level: 3 });
+
+const lightTheme = {
+  evalOut: customChalk.gray,
+  evalErr: customChalk.red,
+  otherOut: customChalk.green,
+  otherErr: customChalk.red,
+};
+
+const darkTheme = {
+  evalOut: customChalk.grey,
+  evalErr: customChalk.redBright,
+  otherOut: customChalk.grey,
+  otherErr: customChalk.redBright,
+};
+
+function themedChalk() {
+  return vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light
+    ? lightTheme
+    : darkTheme;
+}
 
 export interface AfterAppendCallback {
   (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
@@ -26,19 +50,54 @@ export function showResultOutputDestination() {
   }
 }
 
-export type OutputDestination = 'repl-window' | 'output-channel';
+export type OutputDestination = 'repl-window' | 'output-channel' | 'terminal';
 
 export type OutputDestinationConfiguration = {
   evalResults: OutputDestination;
   evalOutput: OutputDestination;
   otherOutput: OutputDestination;
+  pseudoTerminal: OutputDestination;
 };
 
 export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
   evalResults: 'output-channel',
   evalOutput: 'output-channel',
   otherOutput: 'output-channel',
+  pseudoTerminal: 'terminal',
 };
+
+class OutputTerminal implements vscode.Pseudoterminal {
+  private writeEmitter = new vscode.EventEmitter<string>();
+  onDidWrite: vscode.Event<string> = this.writeEmitter.event;
+  handleInput(data: string): void {
+    if (data === '\r') {
+      return this.writeEmitter.fire('\r\n');
+    }
+    this.writeEmitter.fire(data);
+  }
+  open(_initialDimensions: vscode.TerminalDimensions | undefined): void {
+    this.writeEmitter.fire(
+      'This is a pseudo terminal.\nNB: The contents of this terminal will not survive reloads of the VS Code window.\nYou can type here, but there is no process that will handle your input.\n'
+    );
+  }
+  write(message: string) {
+    this.writeEmitter.fire(message.replace(/\r(?!\n)|(?<!\r)\n/g, '\r\n'));
+  }
+  close(): void {
+    // There's nothing to clean up.
+  }
+}
+
+let outputPTY: OutputTerminal;
+let outputTerminal: vscode.Terminal;
+
+function getTerminal() {
+  if (!outputPTY) {
+    outputPTY = new OutputTerminal();
+    outputTerminal = vscode.window.createTerminal({ name: 'Calva Output', pty: outputPTY });
+  }
+  return outputPTY;
+}
 
 export function getDestinationConfiguration(): OutputDestinationConfiguration {
   return config.getConfig().outputDestinations || defaultDestinationConfiguration;
@@ -48,11 +107,16 @@ function asClojureLineComments(message: string) {
   return message.replace(/\n(?!$)/g, '\n; ');
 }
 
+function destinationSupportsAnsi(destination: OutputDestination) {
+  return destination === 'terminal';
+}
+
 // Used to decide if new result output should be prepended with a newline or not.
 // Also: For non-result output, whether the repl window output should be be printed as line comments.
 const didLastOutputTerminateLine: Record<OutputDestination, boolean> = {
   'repl-window': true,
   'output-channel': true,
+  terminal: true,
 };
 
 function appendClojure(
@@ -73,6 +137,15 @@ function appendClojure(
       cursorUtil.hasMoreThanSingleSexp(doc) || cursorUtil.isRightSexpStructural(cursor);
     const outputMessage = shouldFence ? '```clojure\n' + message + '\n```' : message;
     outputChannel.appendLine((didLastTerminateLine ? '' : '\n') + outputMessage);
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  if (destination === 'terminal') {
+    const printerOptions = { ...printer.prettyPrintingOptions(), 'color?': true };
+    const prettyMessage = printer.prettyPrint(message, printerOptions)?.value || message;
+    getTerminal().write(`${didLastTerminateLine ? '' : '\r\n'}${prettyMessage}\r\n`);
     if (after) {
       after(undefined, undefined);
     }
@@ -116,7 +189,16 @@ function append(destination: OutputDestination, message: string, after?: AfterAp
   }
   if (destination === 'output-channel') {
     outputChannel.append(util.stripAnsi(message));
-    // TODO: Deal with `after`
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  if (destination === 'terminal') {
+    getTerminal().write(`${message}`);
+    if (after) {
+      after(undefined, undefined);
+    }
     return;
   }
 }
@@ -129,7 +211,10 @@ function append(destination: OutputDestination, message: string, after?: AfterAp
  */
 export function appendEvalOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  append(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().evalOut(message)
+    : message;
+  append(destination, coloredMessage, after);
 }
 
 /**
@@ -140,7 +225,10 @@ export function appendEvalOut(message: string, after?: AfterAppendCallback) {
  */
 export function appendEvalErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  append(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().evalErr(message)
+    : message;
+  append(destination, coloredMessage, after);
 }
 
 /**
@@ -152,7 +240,10 @@ export function appendEvalErr(message: string, after?: AfterAppendCallback) {
  */
 export function appendOtherOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  append(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().otherOut(message)
+    : message;
+  append(destination, coloredMessage, after);
 }
 
 /**
@@ -164,7 +255,10 @@ export function appendOtherOut(message: string, after?: AfterAppendCallback) {
  */
 export function appendOtherErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  append(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().otherErr(message)
+    : message;
+  append(destination, coloredMessage, after);
 }
 
 function appendLine(destination: OutputDestination, message: string, after?: AfterAppendCallback) {
@@ -181,6 +275,9 @@ function appendLine(destination: OutputDestination, message: string, after?: Aft
     outputChannel.appendLine(message);
     return;
   }
+  if (destination === 'terminal') {
+    append(destination, message + '\r\n', after);
+  }
 }
 
 /**
@@ -192,7 +289,10 @@ function appendLine(destination: OutputDestination, message: string, after?: Aft
  */
 export function appendLineEvalOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  appendLine(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().evalOut(message)
+    : message;
+  appendLine(destination, coloredMessage, after);
 }
 
 /**
@@ -204,7 +304,10 @@ export function appendLineEvalOut(message: string, after?: AfterAppendCallback) 
  */
 export function appendLineEvalErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  appendLine(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().evalErr(message)
+    : message;
+  appendLine(destination, coloredMessage, after);
 }
 
 /**
@@ -216,7 +319,10 @@ export function appendLineEvalErr(message: string, after?: AfterAppendCallback) 
  */
 export function appendLineOtherOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  appendLine(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().otherOut(message)
+    : message;
+  appendLine(destination, coloredMessage, after);
 }
 
 /**
@@ -228,7 +334,10 @@ export function appendLineOtherOut(message: string, after?: AfterAppendCallback)
  */
 export function appendLineOtherErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  appendLine(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination)
+    ? themedChalk().otherErr(message)
+    : message;
+  appendLine(destination, coloredMessage, after);
 }
 
 /**

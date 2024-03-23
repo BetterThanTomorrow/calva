@@ -168,14 +168,15 @@
           "calva.outputDestinations": {
             "type": "object",
             "markdownDescription": [
-              "Where different types of Calva output should be printed.\nCalva categorizes output into three types:\n- **evaluation results**: Clojure data returned from an evaluation.\n- **evaluation output**: stdout/stderr from an evaluation\n- **other output**: Other messages, logs, etc\n\nYou can select where each category of output should go to: the REPL Window or to the _Calva Says_ Output Channel."
+              "Where different types of Calva output should be printed.\nCalva categorizes output into three types:\n- **evaluation results**: Clojure data returned from an evaluation.\n- **evaluation output**: stdout/stderr from an evaluation\n- **other output**: Other messages, logs, etc\n\nYou can select where each category of output should go to: the REPL Window, the _Calva Says_ Output Channel, or the _Calva output_ (pseudo) terminal."
             ],
             "properties": {
               "evalResults": {
                 "type": "string",
                 "enum": [
                   "repl-window",
-                  "output-channel"
+                  "output-channel",
+                  "terminal"
                 ],
                 "default": "repl-window",
                 "markdownDescription": "Destination for evaluation results. (Clojure data returned from an evaluation)."
@@ -184,7 +185,8 @@
                 "type": "string",
                 "enum": [
                   "repl-window",
-                  "output-channel"
+                  "output-channel",
+                  "terminal"
                 ],
                 "default": "repl-window",
                 "markdownDescription": "Destination for evaluation output (stdout/stderr from an evaluation)."
@@ -193,7 +195,8 @@
                 "type": "string",
                 "enum": [
                   "repl-window",
-                  "output-channel"
+                  "output-channel",
+                  "terminal"
                 ],
                 "default": "repl-window",
                 "markdownDescription": "Destination for other output (Calva messages, out-of-band stdout/stderr, etcetera)."
@@ -3216,6 +3219,7 @@
   "dependencies": {
     "@vscode/debugadapter": "^1.64.0",
     "axios": "^1.4.0",
+    "chalk": "^4.1.2",
     "extract-zip": "^2.0.1",
     "find": "0.2.9",
     "follow-redirects": "^1.15.4",
