@@ -1924,6 +1924,11 @@
       },
       {
         "category": "Calva",
+        "command": "calva.showOutputTerminal",
+        "title": "Show/Open the Calva Output Terminal"
+      },
+      {
+        "category": "Calva",
         "command": "calva.showResultOutputDestination",
         "title": "Show/Open the result output destination"
       },
@@ -2641,12 +2646,17 @@
       },
       {
         "command": "calva.showResultOutputDestination",
-        "key": "ctrl+alt+o ctrl+o",
+        "key": "ctrl+alt+o o",
         "when": "calva:keybindingsEnabled"
       },
       {
         "command": "calva.showOutputChannel",
-        "key": "ctrl+alt+o o",
+        "key": "ctrl+alt+o c",
+        "when": "calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.showOutputTerminal",
+        "key": "ctrl+alt+o t",
         "when": "calva:keybindingsEnabled"
       },
       {
