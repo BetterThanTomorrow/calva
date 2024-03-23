@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.429] - 2024-03-23
+
+- [Add command for opening the Terminal output destination](https://github.com/BetterThanTomorrow/calva/issues/2455)
+
 ## [2.0.428] - 2024-03-23
 
 - [Add a Terminal output destination option](https://github.com/BetterThanTomorrow/calva/issues/2452)

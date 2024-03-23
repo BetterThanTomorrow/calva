@@ -42,12 +42,8 @@ export function showOutputChannel() {
   outputChannel.show(true);
 }
 
-export function showResultOutputDestination() {
-  if (getDestinationConfiguration().evalResults === 'output-channel') {
-    return showOutputChannel();
-  } else {
-    return outputWindow.revealResultsDoc(true);
-  }
+export function showOutputTerminal() {
+  outputTerminal.show(true);
 }
 
 export type OutputDestination = 'repl-window' | 'output-channel' | 'terminal';
@@ -97,6 +93,19 @@ function getTerminal() {
     outputTerminal = vscode.window.createTerminal({ name: 'Calva Output', pty: outputPTY });
   }
   return outputPTY;
+}
+
+export function showResultOutputDestination() {
+  if (getDestinationConfiguration().evalResults === 'output-channel') {
+    return showOutputChannel();
+  }
+  if (getDestinationConfiguration().evalResults === 'terminal') {
+    if (!outputTerminal) {
+      getTerminal();
+    }
+    return showOutputTerminal();
+  }
+  return outputWindow.revealResultsDoc(true);
 }
 
 export function getDestinationConfiguration(): OutputDestinationConfiguration {

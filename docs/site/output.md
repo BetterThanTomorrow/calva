@@ -19,6 +19,15 @@ With the setting `calva.outputDestinations`, you can configure where each catego
 
 The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of different views in different ways. We hope you will find a combination of output destinations that suits you.
 
+## Commands for showing output destinations
+
+These are the commands and their default keyboard shortcuts for revealing output destinations
+
+* **Calva: Show/Open the result output destination** - `ctrl+alt+o o`
+* **Calva: Show/Open the Calva says Output Channel** - `ctrl+alt+o c`
+* **Calva: Show/Open the Calva Output Terminal** - `ctrl+alt+o t`
+* **Calva: Show/Open REPL Window** - `ctrl+alt+o r`
+
 ## REPL process output (stdout and stderr)
 
 When Calva is connected to the REPL, the Output window will by default print not only results of evaluations, but also:
@@ -29,9 +38,3 @@ When Calva is connected to the REPL, the Output window will by default print not
 
 You can control the default via the `calva.redirectServerOutputToRepl` setting. It defaults to `true`. Setting it to `false` before connecting the REPL will result in that **2.** and **3.** will not get printed in the Output window. It will then instead be printed wherever the REPL process is printing its messages, usually the terminal from where it was started (the **Jack-in terminal** if Calva started the REPL).
 
-## Commands for showing output destinations
-
-These are the commands and their default keyboard shortcuts for revealing output destinations
-
-* **Calva: Show/Open the result output destination** - `ctrl+alt+o ctrl+o`
-* **Calva: Show/Open the Calva says Output Channel** - `ctrl+alt+o o`
