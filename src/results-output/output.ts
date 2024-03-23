@@ -4,6 +4,9 @@ import * as vscode from 'vscode';
 import * as util from '../utilities';
 import * as model from '../cursor-doc/model';
 import * as cursorUtil from '../cursor-doc/utilities';
+import * as chalk from 'chalk';
+
+const customChalk = new chalk.Instance({ level: 3 });
 
 export interface AfterAppendCallback {
   (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
@@ -81,6 +84,10 @@ export function getDestinationConfiguration(): OutputDestinationConfiguration {
 
 function asClojureLineComments(message: string) {
   return message.replace(/\n(?!$)/g, '\n; ');
+}
+
+function destinationSupportsAnsi(destination: OutputDestination) {
+  return destination === 'terminal';
 }
 
 // Used to decide if new result output should be prepended with a newline or not.
@@ -181,7 +188,8 @@ function append(destination: OutputDestination, message: string, after?: AfterAp
  */
 export function appendEvalOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  append(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.grey(message) : message;
+  append(destination, coloredMessage, after);
 }
 
 /**
@@ -192,7 +200,8 @@ export function appendEvalOut(message: string, after?: AfterAppendCallback) {
  */
 export function appendEvalErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  append(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.red(message) : message;
+  append(destination, coloredMessage, after);
 }
 
 /**
@@ -204,7 +213,8 @@ export function appendEvalErr(message: string, after?: AfterAppendCallback) {
  */
 export function appendOtherOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  append(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.grey(message) : message;
+  append(destination, coloredMessage, after);
 }
 
 /**
@@ -247,7 +257,8 @@ function appendLine(destination: OutputDestination, message: string, after?: Aft
  */
 export function appendLineEvalOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  appendLine(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.grey(message) : message;
+  appendLine(destination, coloredMessage, after);
 }
 
 /**
@@ -259,7 +270,8 @@ export function appendLineEvalOut(message: string, after?: AfterAppendCallback) 
  */
 export function appendLineEvalErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  appendLine(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.red(message) : message;
+  appendLine(destination, coloredMessage, after);
 }
 
 /**
@@ -271,7 +283,8 @@ export function appendLineEvalErr(message: string, after?: AfterAppendCallback) 
  */
 export function appendLineOtherOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  appendLine(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.grey(message) : message;
+  appendLine(destination, coloredMessage, after);
 }
 
 /**
@@ -283,7 +296,8 @@ export function appendLineOtherOut(message: string, after?: AfterAppendCallback)
  */
 export function appendLineOtherErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  appendLine(destination, message, after);
+  const coloredMessage = destinationSupportsAnsi(destination) ? customChalk.red(message) : message;
+  appendLine(destination, coloredMessage, after);
 }
 
 /**
