@@ -5,6 +5,7 @@ import * as util from '../utilities';
 import * as model from '../cursor-doc/model';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as chalk from 'chalk';
+import * as printer from '../printer';
 
 const customChalk = new chalk.Instance({ level: 3 });
 
@@ -142,7 +143,9 @@ function appendClojure(
     return;
   }
   if (destination === 'terminal') {
-    getTerminal().write(`${didLastTerminateLine ? '' : '\r\n'}${message}\r\n`);
+    const printerOptions = { ...printer.prettyPrintingOptions(), 'color?': true };
+    const prettyMessage = printer.prettyPrint(message, printerOptions)?.value || message;
+    getTerminal().write(`${didLastTerminateLine ? '' : '\r\n'}${prettyMessage}\r\n`);
     if (after) {
       after(undefined, undefined);
     }
