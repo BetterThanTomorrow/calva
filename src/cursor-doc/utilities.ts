@@ -1,4 +1,5 @@
 import * as model from './model';
+import { LispTokenCursor } from './token-cursor';
 
 export type MissingTexts = {
   append: string;
@@ -32,4 +33,27 @@ export function getMissingBrackets(text: string): MissingTexts {
     });
     return { prepend: missingOpens.join(''), append: missingCloses.join('') };
   }
+}
+
+export function isRightSexpStructural(cursor: LispTokenCursor): boolean {
+  cursor.forwardWhitespace();
+  if (cursor.getToken().type === 'comment') {
+    return false;
+  }
+  cursor.forwardSexp(true, true, false);
+  cursor.backwardSexp(false, false, false, false);
+
+  const token = cursor.getToken();
+  if (token.type === 'open') {
+    return !!token.raw.match(/[([{]$/);
+  }
+  return false;
+}
+
+export function hasMoreThanSingleSexp(doc: model.EditableDocument): boolean {
+  const cursor = doc.getTokenCursor(0);
+  cursor.forwardWhitespace(true);
+  cursor.forwardSexp(false, false, false);
+  cursor.forwardWhitespace(false);
+  return !cursor.atEnd();
 }
