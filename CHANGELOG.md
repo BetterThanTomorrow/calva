@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Changing outputDestinations to output-channel breaks **Load/Evaluate Current File and its Requires...**](https://github.com/BetterThanTomorrow/calva/issues/2444)
+
 ## [2.0.426] - 2024-03-22
 
 - Fix: [Calva Load File Command Results in RangeError on certain machine](https://github.com/BetterThanTomorrow/calva/issues/2443)
