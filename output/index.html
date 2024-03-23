@@ -651,15 +651,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#repl-process-output-stdout-and-stderr" class="md-nav__link">
-    REPL process output (stdout and stderr)
+  <a href="#commands-for-showing-output-destinations" class="md-nav__link">
+    Commands for showing output destinations
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#commands-for-showing-output-destinations" class="md-nav__link">
-    Commands for showing output destinations
+  <a href="#repl-process-output-stdout-and-stderr" class="md-nav__link">
+    REPL process output (stdout and stderr)
   </a>
   
 </li>
@@ -1420,15 +1420,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#repl-process-output-stdout-and-stderr" class="md-nav__link">
-    REPL process output (stdout and stderr)
+  <a href="#commands-for-showing-output-destinations" class="md-nav__link">
+    Commands for showing output destinations
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#commands-for-showing-output-destinations" class="md-nav__link">
-    Commands for showing output destinations
+  <a href="#repl-process-output-stdout-and-stderr" class="md-nav__link">
+    REPL process output (stdout and stderr)
   </a>
   
 </li>
@@ -1465,6 +1465,14 @@
 <li>the <em>Calva Output</em> (pseudo) Terminal</li>
 </ul>
 <p>The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of different views in different ways. We hope you will find a combination of output destinations that suits you.</p>
+<h2 id="commands-for-showing-output-destinations">Commands for showing output destinations<a class="headerlink" href="#commands-for-showing-output-destinations" title="Permanent link">#</a></h2>
+<p>These are the commands and their default keyboard shortcuts for revealing output destinations</p>
+<ul>
+<li><strong>Calva: Show/Open the result output destination</strong> - <code>ctrl+alt+o o</code></li>
+<li><strong>Calva: Show/Open the Calva says Output Channel</strong> - <code>ctrl+alt+o c</code></li>
+<li><strong>Calva: Show/Open the Calva Output Terminal</strong> - <code>ctrl+alt+o t</code></li>
+<li><strong>Calva: Show/Open REPL Window</strong> - <code>ctrl+alt+o r</code></li>
+</ul>
 <h2 id="repl-process-output-stdout-and-stderr">REPL process output (stdout and stderr)<a class="headerlink" href="#repl-process-output-stdout-and-stderr" title="Permanent link">#</a></h2>
 <p>When Calva is connected to the REPL, the Output window will by default print not only results of evaluations, but also:</p>
 <ol>
@@ -1473,12 +1481,6 @@
 <li>Anything printed to <code>stdout</code> and <code>stderr</code> by the REPL process</li>
 </ol>
 <p>You can control the default via the <code>calva.redirectServerOutputToRepl</code> setting. It defaults to <code>true</code>. Setting it to <code>false</code> before connecting the REPL will result in that <strong>2.</strong> and <strong>3.</strong> will not get printed in the Output window. It will then instead be printed wherever the REPL process is printing its messages, usually the terminal from where it was started (the <strong>Jack-in terminal</strong> if Calva started the REPL).</p>
-<h2 id="commands-for-showing-output-destinations">Commands for showing output destinations<a class="headerlink" href="#commands-for-showing-output-destinations" title="Permanent link">#</a></h2>
-<p>These are the commands and their default keyboard shortcuts for revealing output destinations</p>
-<ul>
-<li><strong>Calva: Show/Open the result output destination</strong> - <code>ctrl+alt+o ctrl+o</code></li>
-<li><strong>Calva: Show/Open the Calva says Output Channel</strong> - <code>ctrl+alt+o o</code></li>
-</ul>
 
 
   
