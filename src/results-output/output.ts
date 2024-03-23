@@ -26,19 +26,54 @@ export function showResultOutputDestination() {
   }
 }
 
-export type OutputDestination = 'repl-window' | 'output-channel';
+export type OutputDestination = 'repl-window' | 'output-channel' | 'terminal';
 
 export type OutputDestinationConfiguration = {
   evalResults: OutputDestination;
   evalOutput: OutputDestination;
   otherOutput: OutputDestination;
+  pseudoTerminal: OutputDestination;
 };
 
 export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
   evalResults: 'output-channel',
   evalOutput: 'output-channel',
   otherOutput: 'output-channel',
+  pseudoTerminal: 'terminal',
 };
+
+class OutputTerminal implements vscode.Pseudoterminal {
+  private writeEmitter = new vscode.EventEmitter<string>();
+  onDidWrite: vscode.Event<string> = this.writeEmitter.event;
+  handleInput(data: string): void {
+    if (data === '\r') {
+      return this.writeEmitter.fire('\r\n');
+    }
+    this.writeEmitter.fire(data);
+  }
+  open(_initialDimensions: vscode.TerminalDimensions | undefined): void {
+    this.writeEmitter.fire(
+      'This is a pseudo terminal.\nNB: The contents of this terminal will not survive reloads of the VS Code window.\nYou can type here, but there is no process that will handle your input.\n'
+    );
+  }
+  write(message: string) {
+    this.writeEmitter.fire(message.replace(/\r(?!\n)|(?<!\r)\n/g, '\r\n'));
+  }
+  close(): void {
+    // There's nothing to clean up.
+  }
+}
+
+let outputPTY: OutputTerminal;
+let outputTerminal: vscode.Terminal;
+
+function getTerminal() {
+  if (!outputPTY) {
+    outputPTY = new OutputTerminal();
+    outputTerminal = vscode.window.createTerminal({ name: 'Calva Output', pty: outputPTY });
+  }
+  return outputPTY;
+}
 
 export function getDestinationConfiguration(): OutputDestinationConfiguration {
   return config.getConfig().outputDestinations || defaultDestinationConfiguration;
@@ -53,6 +88,7 @@ function asClojureLineComments(message: string) {
 const didLastOutputTerminateLine: Record<OutputDestination, boolean> = {
   'repl-window': true,
   'output-channel': true,
+  terminal: true,
 };
 
 function appendClojure(
@@ -73,6 +109,13 @@ function appendClojure(
       cursorUtil.hasMoreThanSingleSexp(doc) || cursorUtil.isRightSexpStructural(cursor);
     const outputMessage = shouldFence ? '```clojure\n' + message + '\n```' : message;
     outputChannel.appendLine((didLastTerminateLine ? '' : '\n') + outputMessage);
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  if (destination === 'terminal') {
+    getTerminal().write(`${didLastTerminateLine ? '' : '\r\n'}${message}\r\n`);
     if (after) {
       after(undefined, undefined);
     }
@@ -116,7 +159,16 @@ function append(destination: OutputDestination, message: string, after?: AfterAp
   }
   if (destination === 'output-channel') {
     outputChannel.append(util.stripAnsi(message));
-    // TODO: Deal with `after`
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  if (destination === 'terminal') {
+    getTerminal().write(`${message}`);
+    if (after) {
+      after(undefined, undefined);
+    }
     return;
   }
 }
@@ -180,6 +232,9 @@ function appendLine(destination: OutputDestination, message: string, after?: Aft
   if (destination === 'output-channel') {
     outputChannel.appendLine(message);
     return;
+  }
+  if (destination === 'terminal') {
+    append(destination, message + '\r\n', after);
   }
 }
 

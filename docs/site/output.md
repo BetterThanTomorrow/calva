@@ -14,7 +14,10 @@ Calva categorizes output into three types:
 With the setting `calva.outputDestinations`, you can configure where each category of output should go to:
 
 * the [REPL Window](repl-window.md)
-* the _Calva Says_ Output Channel.
+* the _Calva Says_ Output Channel
+* the _Calva Output_ (pseudo) Terminal
+
+The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of different views in different ways. We hope you will find a combination of output destinations that suits you.
 
 ## REPL process output (stdout and stderr)
 
