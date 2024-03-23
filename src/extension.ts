@@ -271,6 +271,7 @@ async function activate(context: vscode.ExtensionContext) {
     showNextReplHistoryEntry: replHistory.showNextReplHistoryEntry,
     showOutputWindow: () => outputWindow.revealResultsDoc(false),
     showOutputChannel: output.showOutputChannel,
+    showOutputTerminal: output.showOutputTerminal,
     showResultOutputDestination: output.showResultOutputDestination,
     showPreviousReplHistoryEntry: replHistory.showPreviousReplHistoryEntry,
     startJoyrideReplAndConnect: async () => {
