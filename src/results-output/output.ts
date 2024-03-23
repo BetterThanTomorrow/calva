@@ -2,6 +2,8 @@ import * as outputWindow from './results-doc';
 import * as config from '../config';
 import * as vscode from 'vscode';
 import * as util from '../utilities';
+import * as model from '../cursor-doc/model';
+import * as cursorUtil from '../cursor-doc/utilities';
 
 export interface AfterAppendCallback {
   (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
@@ -65,9 +67,12 @@ function appendClojure(
     return;
   }
   if (destination === 'output-channel') {
-    outputChannel.appendLine(
-      (didLastTerminateLine ? '' : '\n') + '```clojure\n' + message + '\n```'
-    );
+    const doc = new model.StringDocument(message);
+    const cursor = doc.getTokenCursor(0);
+    const shouldFence =
+      cursorUtil.hasMoreThanSingleSexp(doc) || cursorUtil.isRightSexpStructural(cursor);
+    const outputMessage = shouldFence ? '```clojure\n' + message + '\n```' : message;
+    outputChannel.appendLine((didLastTerminateLine ? '' : '\n') + outputMessage);
     if (after) {
       after(undefined, undefined);
     }

@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Printing non-list Clojure results with code fencing gets verbose](https://github.com/BetterThanTomorrow/calva/issues/2450)
 - Fix: [Changing outputDestinations to output-channel breaks **Load/Evaluate Current File and its Requires...**](https://github.com/BetterThanTomorrow/calva/issues/2444)
 
 ## [2.0.426] - 2024-03-22
