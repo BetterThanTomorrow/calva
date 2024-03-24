@@ -464,8 +464,12 @@ export function printLastStacktrace(): void {
   });
 }
 
-export function appendPrompt(onAppended?: OnAppendedCallback) {
-  appendLine(getPrompt(), onAppended);
+export async function appendPrompt(onAppended?: OnAppendedCallback) {
+  const prompt = getPrompt();
+  const resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
+  if (!resultsDoc.getText().trimEnd().endsWith(prompt.trimEnd())) {
+    appendLine(getPrompt(), onAppended);
+  }
 }
 
 function getUriForCurrentNamespace(): Promise<vscode.Uri> {
