@@ -71,7 +71,14 @@ class OutputTerminal implements vscode.Pseudoterminal {
   }
   open(_initialDimensions: vscode.TerminalDimensions | undefined): void {
     this.write(
-      'This is not a ”real” terminal.\nYou can type here, but there is no process that will handle your input.\n'
+      `This is not a ”real” terminal.
+You can type into the terminal, but there is no process that will handle your input.
+
+To reveal this terminal, use the command ${customChalk.bgWhiteBright.black(
+        ' Calva: Show/Open the Calva Output Terminal '
+      )}.
+
+`
     );
   }
   write(message: string) {
