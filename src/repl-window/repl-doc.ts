@@ -42,6 +42,12 @@ To give yourself a smooth transition, please disable the setting: "calva.useLega
 )
 `;
 
+function replOutputSettingMessage() {
+  if (JSON.stringify(config.getConfig().outputDestinations) === JSON.stringify({})) {
+    return;
+  }
+}
+
 export const CLJ_CONNECT_GREETINGS = [
   'TIPS: As with any Clojure file when the REPL is connected:',
   '- `alt+enter` evaluates the current top level form.',
@@ -394,8 +400,11 @@ async function flushOutput() {
   }
 }
 
+let lastAppended = '';
+
 /* If something must be done after a particular edit, use the onAppended callback. */
 export function append(text: string, onAppended?: OnAppendedCallback): void {
+  lastAppended = text;
   resultsBuffer.push({ text, onAppended });
   void flushOutput();
 }
@@ -464,10 +473,9 @@ export function printLastStacktrace(): void {
   });
 }
 
-export async function appendPrompt(onAppended?: OnAppendedCallback) {
+export function appendPrompt(onAppended?: OnAppendedCallback) {
   const prompt = getPrompt();
-  const resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
-  if (!resultsDoc.getText().trimEnd().endsWith(prompt.trimEnd())) {
+  if (!lastAppended.trimEnd().endsWith(prompt.trimEnd())) {
     appendLine(getPrompt(), onAppended);
   }
 }
