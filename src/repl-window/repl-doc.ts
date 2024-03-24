@@ -16,26 +16,39 @@ import * as replSession from '../nrepl/repl-session';
 import { formatAsLineComments, splitEditQueueForTextBatching } from '../results-output/util';
 import * as output from '../results-output/output';
 
-const REPL_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
+function getReplDocName() {
+  return `${config.getConfig().useLegacyReplWindowPath ? 'output' : 'repl'}.${
+    config.REPL_FILE_EXT
+  }`;
+}
 
 const PROMPT_HINT = 'Use `alt+enter` to evaluate';
 
 const START_GREETINGS = [
-  'This is the Calva evaluation results output window.',
-  'TIPS: The keyboard shortcut `ctrl+alt+o o` shows and focuses this window',
-  '  when connected to a REPL session.',
-  'Please see https://calva.io/output/ for more info.',
+  'This is the Calva REPL Window.',
+  "It's just a file, really, with some special treatment from Calva.",
+  'Use it as a REPL input prompt if you like. (When the REPL is connected.)',
+  'TIPS: The keyboard shortcut `ctrl+alt+o r` shows and focuses this window',
+  'Please see https://calva.io/repl-window/ for more info.',
   'Happy coding! ♥️',
 ].join(`\n`);
 
+const REPL_WINDOW_PATH_CHANGE_MESSAGE = `
+'(
+PLEASE NOTE:
+We will update default location of the this file. The new default location will be "<projectRootPath>/.calva/repl.calva-repl"
+In preparation for this change, the the legacy path is used by default.
+To give yourself a smooth transition, please disable the setting: "calva.useLegacyReplWindowPath" and then add "**/.calva/repl.calva-repl" to your ".gitignore" file.
+)
+`;
+
 export const CLJ_CONNECT_GREETINGS = [
-  'TIPS:',
-  '  - You can edit the contents here. Use it as a REPL if you like.',
-  '  - `alt+enter` evaluates the current top level form.',
-  '  - `ctrl+enter` evaluates the current form.',
-  '  - `alt+up` and `alt+down` traverse up and down the REPL command history',
-  '     when the cursor is after the last contents at the prompt',
-  '  - Clojure lines in stack traces are peekable and clickable.',
+  'TIPS: As with any Clojure file when the REPL is connected:',
+  '- `alt+enter` evaluates the current top level form.',
+  '- `ctrl+enter` evaluates the current form.',
+  'Special for this file:',
+  '- `alt+up` and `alt+down` traverse up and down the REPL command history',
+  '   when the cursor is after the last contents at the prompt',
 ].join(`\n`);
 
 export const CLJS_CONNECT_GREETINGS = [
@@ -48,16 +61,20 @@ function outputFileDir() {
   const projectRoot = state.getProjectRootUri();
   util.assertIsDefined(projectRoot, 'Expected there to be a project root!');
   try {
-    return vscode.Uri.joinPath(projectRoot, '.calva', 'output-window');
+    return config.getConfig().useLegacyReplWindowPath
+      ? vscode.Uri.joinPath(projectRoot, '.calva', 'output-window')
+      : vscode.Uri.joinPath(projectRoot, '.calva');
   } catch {
-    return vscode.Uri.file(path.join(projectRoot.fsPath, '.calva', 'output-window'));
+    return config.getConfig().useLegacyReplWindowPath
+      ? vscode.Uri.file(path.join(projectRoot.fsPath, '.calva', 'output-window'))
+      : vscode.Uri.file(path.join(projectRoot.fsPath, '.calva'));
   }
 }
 
 let isInitialized = false;
 
 const DOC_URI = () => {
-  return vscode.Uri.joinPath(outputFileDir(), REPL_DOC_NAME);
+  return vscode.Uri.joinPath(outputFileDir(), getReplDocName());
 };
 
 let _sessionType: ReplSessionType = 'clj';
@@ -105,7 +122,7 @@ export function setSession(session: NReplSession, newNs?: string): void {
 }
 
 export function isResultsDoc(doc?: vscode.TextDocument): boolean {
-  return !!doc && path.basename(doc.fileName) === REPL_DOC_NAME;
+  return !!doc && path.basename(doc.fileName) === getReplDocName();
 }
 
 function getViewColumn(): vscode.ViewColumn {
@@ -202,7 +219,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
 
   const greetings = `${formatAsLineComments(START_GREETINGS)}\n\n${formatAsLineComments(
     CLJ_CONNECT_GREETINGS
-  )}\n\n`;
+  )}${config.getConfig().useLegacyReplWindowPath ? REPL_WINDOW_PATH_CHANGE_MESSAGE : ''}\n\n`;
   const edit = new vscode.WorkspaceEdit();
   const fullRange = new vscode.Range(resultsDoc.positionAt(0), resultsDoc.positionAt(Infinity));
   edit.replace(docUri, fullRange, greetings);
