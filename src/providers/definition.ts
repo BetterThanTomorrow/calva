@@ -3,7 +3,7 @@ import * as state from '../state';
 import * as util from '../utilities';
 import annotations from './annotations';
 import * as namespace from '../namespace';
-import * as outputWindow from '../results-output/results-doc';
+import * as outputWindow from '../repl-window/repl-doc';
 import * as replSession from '../nrepl/repl-session';
 import * as config from '../config';
 import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';

@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.430] - 2024-03-24
+
+- [Add opt-in setting for migrating the REPL Window file to the new project subpath](https://github.com/BetterThanTomorrow/calva/issues/2458)
+- [Honor existing ANSI escape sequences in messages for terminal output destination](https://github.com/BetterThanTomorrow/calva/issues/2459)
+
 ## [2.0.429] - 2024-03-23
 
 - [Add command for opening the Terminal output destination](https://github.com/BetterThanTomorrow/calva/issues/2455)

@@ -12,7 +12,7 @@ description: Calva comes with batteries included and preconfigured, and if you d
 * `calva:connected`: `true` when Calva is connected to a REPL (there is also `calva:connecting` || `calva:launching`)
 * `calva:outputWindowActive`: `true` when the [Output/REPL window](output.md) has input focus
 * `calva:replHistoryCommandsActive`: `true` when the cursor is in the Output/REPL window at the top level after the last prompt
-* `calva:outputWindowSubmitOnEnter`: `true` when the cursor is adjacent after the last top level form in the Output/REPL window
+* `calva:replWindowSubmitOnEnter`: `true` when the cursor is adjacent after the last top level form in the Output/REPL window
 * `calva:cursorInString`: `true` when the cursor/caret is in a string or a regexp
 * `calva:cursorInComment`: `true` when the cursor is in, or adjacent to a line comment
 * `calva:cursorBeforeComment`: `true` when the cursor is adjacent before a line comment

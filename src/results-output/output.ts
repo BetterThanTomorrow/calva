@@ -1,10 +1,11 @@
-import * as outputWindow from './results-doc';
+import * as outputWindow from '../repl-window/repl-doc';
 import * as config from '../config';
 import * as vscode from 'vscode';
 import * as util from '../utilities';
 import * as model from '../cursor-doc/model';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as chalk from 'chalk';
+import * as ansiRegex from 'ansi-regex';
 import * as printer from '../printer';
 
 const customChalk = new chalk.Instance({ level: 3 });
@@ -52,14 +53,12 @@ export type OutputDestinationConfiguration = {
   evalResults: OutputDestination;
   evalOutput: OutputDestination;
   otherOutput: OutputDestination;
-  pseudoTerminal: OutputDestination;
 };
 
 export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
-  evalResults: 'output-channel',
-  evalOutput: 'output-channel',
-  otherOutput: 'output-channel',
-  pseudoTerminal: 'terminal',
+  evalResults: 'repl-window',
+  evalOutput: 'repl-window',
+  otherOutput: 'repl-window',
 };
 
 class OutputTerminal implements vscode.Pseudoterminal {
@@ -72,8 +71,15 @@ class OutputTerminal implements vscode.Pseudoterminal {
     this.writeEmitter.fire(data);
   }
   open(_initialDimensions: vscode.TerminalDimensions | undefined): void {
-    this.writeEmitter.fire(
-      'This is a pseudo terminal.\nNB: The contents of this terminal will not survive reloads of the VS Code window.\nYou can type here, but there is no process that will handle your input.\n'
+    this.write(
+      `This is not a ”real” terminal.
+You can type into the terminal, but there is no process that will handle your input.
+
+To reveal this terminal, use the command ${customChalk.bgWhiteBright.black(
+        ' Calva: Show/Open the Calva Output Terminal '
+      )}.
+
+`
     );
   }
   write(message: string) {
@@ -118,6 +124,10 @@ function asClojureLineComments(message: string) {
 
 function destinationSupportsAnsi(destination: OutputDestination) {
   return destination === 'terminal';
+}
+
+function messageContainsAnsi(message: string) {
+  return ansiRegex().test(message);
 }
 
 // Used to decide if new result output should be prepended with a newline or not.
@@ -220,9 +230,10 @@ function append(destination: OutputDestination, message: string, after?: AfterAp
  */
 export function appendEvalOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage = destinationSupportsAnsi(destination)
-    ? themedChalk().evalOut(message)
-    : message;
+  const coloredMessage =
+    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+      ? themedChalk().evalOut(message)
+      : message;
   append(destination, coloredMessage, after);
 }
 
@@ -234,9 +245,10 @@ export function appendEvalOut(message: string, after?: AfterAppendCallback) {
  */
 export function appendEvalErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage = destinationSupportsAnsi(destination)
-    ? themedChalk().evalErr(message)
-    : message;
+  const coloredMessage =
+    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+      ? themedChalk().evalErr(message)
+      : message;
   append(destination, coloredMessage, after);
 }
 
@@ -249,9 +261,10 @@ export function appendEvalErr(message: string, after?: AfterAppendCallback) {
  */
 export function appendOtherOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage = destinationSupportsAnsi(destination)
-    ? themedChalk().otherOut(message)
-    : message;
+  const coloredMessage =
+    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+      ? themedChalk().otherOut(message)
+      : message;
   append(destination, coloredMessage, after);
 }
 
@@ -264,9 +277,10 @@ export function appendOtherOut(message: string, after?: AfterAppendCallback) {
  */
 export function appendOtherErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage = destinationSupportsAnsi(destination)
-    ? themedChalk().otherErr(message)
-    : message;
+  const coloredMessage =
+    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+      ? themedChalk().otherErr(message)
+      : message;
   append(destination, coloredMessage, after);
 }
 
@@ -298,9 +312,10 @@ function appendLine(destination: OutputDestination, message: string, after?: Aft
  */
 export function appendLineEvalOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage = destinationSupportsAnsi(destination)
-    ? themedChalk().evalOut(message)
-    : message;
+  const coloredMessage =
+    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+      ? themedChalk().evalOut(message)
+      : message;
   appendLine(destination, coloredMessage, after);
 }
 
@@ -313,9 +328,10 @@ export function appendLineEvalOut(message: string, after?: AfterAppendCallback) 
  */
 export function appendLineEvalErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage = destinationSupportsAnsi(destination)
-    ? themedChalk().evalErr(message)
-    : message;
+  const coloredMessage =
+    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+      ? themedChalk().evalErr(message)
+      : message;
   appendLine(destination, coloredMessage, after);
 }
 
@@ -328,9 +344,10 @@ export function appendLineEvalErr(message: string, after?: AfterAppendCallback) 
  */
 export function appendLineOtherOut(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage = destinationSupportsAnsi(destination)
-    ? themedChalk().otherOut(message)
-    : message;
+  const coloredMessage =
+    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+      ? themedChalk().otherOut(message)
+      : message;
   appendLine(destination, coloredMessage, after);
 }
 
@@ -343,9 +360,10 @@ export function appendLineOtherOut(message: string, after?: AfterAppendCallback)
  */
 export function appendLineOtherErr(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage = destinationSupportsAnsi(destination)
-    ? themedChalk().otherErr(message)
-    : message;
+  const coloredMessage =
+    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+      ? themedChalk().otherErr(message)
+      : message;
   appendLine(destination, coloredMessage, after);
 }
 

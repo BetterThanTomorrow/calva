@@ -4,7 +4,7 @@ import * as state from './state';
 import * as vscode from 'vscode';
 import * as connectSequences from './nrepl/connectSequence';
 import * as open from 'open';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import * as utilities from './utilities';
 import { ConnectType } from './nrepl/connect-types';
 import * as output from './results-output/output';

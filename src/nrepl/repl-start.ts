@@ -5,7 +5,7 @@ import eval from '../evaluate';
 import * as utilities from '../utilities';
 import * as sequence from './connectSequence';
 import * as jackIn from './jack-in';
-import * as outputWindow from '../results-output/results-doc';
+import * as outputWindow from '../repl-window/repl-doc';
 import { getConfig } from '../config';
 import * as replSession from './repl-session';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';

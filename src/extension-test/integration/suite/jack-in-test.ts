@@ -7,7 +7,7 @@ import * as util from '../../../utilities';
 
 import * as vscode from 'vscode';
 // import * as myExtension from '../extension';
-import * as outputWindow from '../../../results-output/results-doc';
+import * as outputWindow from '../../../repl-window/repl-doc';
 import { commands } from 'vscode';
 import { getDocument } from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';

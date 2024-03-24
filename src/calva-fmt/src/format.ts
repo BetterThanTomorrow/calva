@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as config from '../../formatter-config';
-import * as outputWindow from '../../results-output/results-doc';
+import * as outputWindow from '../../repl-window/repl-doc';
 import { getIndent, getDocumentOffset, getDocument } from '../../doc-mirror/index';
 import { formatTextAtRange, formatText, jsify } from '../../../out/cljs-lib/cljs-lib';
 import * as util from '../../utilities';

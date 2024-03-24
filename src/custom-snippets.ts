@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import * as util from './utilities';
 import * as getText from './util/get-text';
 import * as namespace from './namespace';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import evaluate from './evaluate';

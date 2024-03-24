@@ -25,9 +25,9 @@ import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import * as fileSwitcher from './file-switcher/file-switcher';
-import * as replHistory from './results-output/repl-history';
+import * as replHistory from './repl-window/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
@@ -190,7 +190,7 @@ async function activate(context: vscode.ExtensionContext) {
   status.update(context);
 
   // Initial set of the provided contexts
-  outputWindow.setContextForOutputWindowActive(false);
+  outputWindow.setContextForReplWindowActive(false);
   void vscode.commands.executeCommand('setContext', 'calva:launching', false);
   void vscode.commands.executeCommand('setContext', 'calva:connected', false);
   void vscode.commands.executeCommand('setContext', 'calva:jackedIn', false);
@@ -219,7 +219,7 @@ async function activate(context: vscode.ExtensionContext) {
     disconnect: jackIn.calvaDisconnect,
     evaluateCurrentTopLevelForm: eval.evaluateTopLevelForm,
     evaluateEnclosingForm: eval.evaluateEnclosingForm,
-    evaluateOutputWindowForm: eval.evaluateOutputWindowForm,
+    evaluateReplWindowForm: eval.evaluateReplWindowForm,
     evaluateSelection: eval.evaluateCurrentForm,
     evaluateSelectionAsComment: eval.evaluateSelectionAsComment,
     evaluateSelectionReplace: eval.evaluateSelectionReplace,
@@ -395,7 +395,7 @@ async function activate(context: vscode.ExtensionContext) {
       changeTextDocument: annotations.onDidChangeTextDocument,
       closeTextDocument: (document) => {
         if (outputWindow.isResultsDoc(document)) {
-          outputWindow.setContextForOutputWindowActive(false);
+          outputWindow.setContextForReplWindowActive(false);
         }
       },
       changeConfiguration: (e: vscode.ConfigurationChangeEvent) => {
@@ -413,7 +413,7 @@ async function activate(context: vscode.ExtensionContext) {
       changeTextEditorSelection: (event) => onDidChangeEditorOrSelection(event.textEditor),
       changeVisibleTextEditors: (editors) => {
         if (!editors.some((editor) => outputWindow.isResultsDoc(editor.document))) {
-          outputWindow.setContextForOutputWindowActive(false);
+          outputWindow.setContextForReplWindowActive(false);
         }
       },
     },
