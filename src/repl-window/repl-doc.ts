@@ -36,11 +36,12 @@ const START_GREETINGS = [
 const REPL_WINDOW_PATH_CHANGE_MESSAGE = `
 
 PLEASE NOTE
-We will update default location of the this file. 
+We will update the default location of this file. 
 The new default location will be 
   "<projectRootPath>/.calva/repl.calva-repl"
-In preparation for this change, the the legacy path is used by default.
-To give yourself a smooth transition, please disable the setting: 
+For now the legacy path is used by default.
+To give yourself a smooth transition, you can opt in
+to the change, by configuring this setting as false: 
   "calva.useLegacyReplWindowPath"
 and then add "**/.calva/repl.calva-repl" to your ".gitignore" file.
 `;
@@ -50,6 +51,7 @@ function replFilePathChangeMessage() {
 }
 
 const OUTPUT_DESTINATION_SETTINGS_MESSAGE = `
+
 This file is configured as the output destination for all REPL output.
 You can configure this with the setting:
   "calva.outputDestinations"
