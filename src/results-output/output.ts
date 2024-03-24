@@ -72,7 +72,7 @@ class OutputTerminal implements vscode.Pseudoterminal {
     this.writeEmitter.fire(data);
   }
   open(_initialDimensions: vscode.TerminalDimensions | undefined): void {
-    this.writeEmitter.fire(
+    this.write(
       'This is a pseudo terminal.\nNB: The contents of this terminal will not survive reloads of the VS Code window.\nYou can type here, but there is no process that will handle your input.\n'
     );
   }
