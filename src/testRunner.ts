@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as util from './utilities';
 import * as string from './util/string';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import { NReplSession } from './nrepl';
 import * as cider from './nrepl/cider';
 import * as lsp from './lsp/definitions';

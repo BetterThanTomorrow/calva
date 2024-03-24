@@ -13,29 +13,67 @@ import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index';
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 import * as replSession from '../nrepl/repl-session';
-import { formatAsLineComments, splitEditQueueForTextBatching } from './util';
-import * as output from './output';
+import { formatAsLineComments, splitEditQueueForTextBatching } from '../results-output/util';
+import * as output from '../results-output/output';
 
-const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
+function getReplDocName() {
+  return `${config.getConfig().useLegacyReplWindowPath ? 'output' : 'repl'}.${
+    config.REPL_FILE_EXT
+  }`;
+}
 
 const PROMPT_HINT = 'Use `alt+enter` to evaluate';
 
 const START_GREETINGS = [
-  'This is the Calva evaluation results output window.',
-  'TIPS: The keyboard shortcut `ctrl+alt+o o` shows and focuses this window',
-  '  when connected to a REPL session.',
-  'Please see https://calva.io/output/ for more info.',
+  'This is the Calva REPL Window.',
+  "It's just a file, really, with some special treatment from Calva.",
+  'Use it as a REPL input prompt if you like. (When the REPL is connected.)',
+  'TIPS: The keyboard shortcut `ctrl+alt+o r` shows and focuses this window',
+  'Please see https://calva.io/repl-window/ for more info.',
   'Happy coding! ♥️',
 ].join(`\n`);
 
+const REPL_WINDOW_PATH_CHANGE_MESSAGE = `
+
+PLEASE NOTE
+We will update the default location of this file. 
+The new default location will be 
+  "<projectRootPath>/.calva/repl.calva-repl"
+For now the legacy path is used by default.
+To give yourself a smooth transition, you can opt in
+to the change, by configuring this setting as false: 
+  "calva.useLegacyReplWindowPath"
+and then add "**/.calva/repl.calva-repl" to your ".gitignore" file.
+`;
+
+function replFilePathChangeMessage() {
+  return config.getConfig().useLegacyReplWindowPath ? REPL_WINDOW_PATH_CHANGE_MESSAGE : '';
+}
+
+const OUTPUT_DESTINATION_SETTINGS_MESSAGE = `
+
+This file is configured as the output destination for all REPL output.
+You can configure this with the setting:
+  "calva.outputDestinations"
+`;
+
+function outputDestinationSettingMessage() {
+  if (
+    JSON.stringify(config.getConfig().outputDestinations) ===
+    JSON.stringify(output.defaultDestinationConfiguration)
+  ) {
+    return OUTPUT_DESTINATION_SETTINGS_MESSAGE;
+  }
+  return '';
+}
+
 export const CLJ_CONNECT_GREETINGS = [
-  'TIPS:',
-  '  - You can edit the contents here. Use it as a REPL if you like.',
-  '  - `alt+enter` evaluates the current top level form.',
-  '  - `ctrl+enter` evaluates the current form.',
-  '  - `alt+up` and `alt+down` traverse up and down the REPL command history',
-  '     when the cursor is after the last contents at the prompt',
-  '  - Clojure lines in stack traces are peekable and clickable.',
+  'TIPS: As with any Clojure file when the REPL is connected:',
+  '- `alt+enter` evaluates the current top level form.',
+  '- `ctrl+enter` evaluates the current form.',
+  'Special for this file:',
+  '- `alt+up` and `alt+down` traverse up and down the REPL command history',
+  '   when the cursor is after the last contents at the prompt',
 ].join(`\n`);
 
 export const CLJS_CONNECT_GREETINGS = [
@@ -48,16 +86,20 @@ function outputFileDir() {
   const projectRoot = state.getProjectRootUri();
   util.assertIsDefined(projectRoot, 'Expected there to be a project root!');
   try {
-    return vscode.Uri.joinPath(projectRoot, '.calva', 'output-window');
+    return config.getConfig().useLegacyReplWindowPath
+      ? vscode.Uri.joinPath(projectRoot, '.calva', 'output-window')
+      : vscode.Uri.joinPath(projectRoot, '.calva');
   } catch {
-    return vscode.Uri.file(path.join(projectRoot.fsPath, '.calva', 'output-window'));
+    return config.getConfig().useLegacyReplWindowPath
+      ? vscode.Uri.file(path.join(projectRoot.fsPath, '.calva', 'output-window'))
+      : vscode.Uri.file(path.join(projectRoot.fsPath, '.calva'));
   }
 }
 
 let isInitialized = false;
 
 const DOC_URI = () => {
-  return vscode.Uri.joinPath(outputFileDir(), RESULTS_DOC_NAME);
+  return vscode.Uri.joinPath(outputFileDir(), getReplDocName());
 };
 
 let _sessionType: ReplSessionType = 'clj';
@@ -105,20 +147,20 @@ export function setSession(session: NReplSession, newNs?: string): void {
 }
 
 export function isResultsDoc(doc?: vscode.TextDocument): boolean {
-  return !!doc && path.basename(doc.fileName) === RESULTS_DOC_NAME;
+  return !!doc && path.basename(doc.fileName) === getReplDocName();
 }
 
 function getViewColumn(): vscode.ViewColumn {
   const column: vscode.ViewColumn | undefined =
-    state.extensionContext.workspaceState.get(`outputWindowViewColumn`);
+    state.extensionContext.workspaceState.get(`replWindowViewColumn`);
   return column ? column : vscode.ViewColumn.Two;
 }
 
 function setViewColumn(column: vscode.ViewColumn | undefined) {
-  return state.extensionContext.workspaceState.update(`outputWindowViewColumn`, column);
+  return state.extensionContext.workspaceState.update(`replWindowViewColumn`, column);
 }
 
-export function setContextForOutputWindowActive(isActive: boolean): void {
+export function setContextForReplWindowActive(isActive: boolean): void {
   void state.extensionContext.workspaceState.update(`outputWindowActive`, isActive);
   void vscode.commands.executeCommand('setContext', 'calva:outputWindowActive', isActive);
 }
@@ -146,7 +188,7 @@ export function registerSubmitOnEnterHandler(context: vscode.ExtensionContext) {
       }
       void vscode.commands.executeCommand(
         'setContext',
-        'calva:outputWindowSubmitOnEnter',
+        'calva:replWindowSubmitOnEnter',
         submitOnEnter
       );
     })
@@ -159,7 +201,7 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
     vscode.window.onDidChangeActiveTextEditor((event) => {
       if (event) {
         const isOutputWindow = isResultsDoc(event.document);
-        setContextForOutputWindowActive(isOutputWindow);
+        setContextForReplWindowActive(isOutputWindow);
         if (isOutputWindow) {
           void setViewColumn(event.viewColumn);
         }
@@ -170,7 +212,7 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
   // until the next time it's focused
   const activeTextEditor = util.tryToGetActiveTextEditor();
   if (activeTextEditor && isResultsDoc(activeTextEditor.document)) {
-    setContextForOutputWindowActive(true);
+    setContextForReplWindowActive(true);
     replHistory.setReplHistoryCommandsActiveContext(activeTextEditor);
   }
 }
@@ -202,7 +244,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
 
   const greetings = `${formatAsLineComments(START_GREETINGS)}\n\n${formatAsLineComments(
     CLJ_CONNECT_GREETINGS
-  )}\n\n`;
+  )}${replFilePathChangeMessage()}${outputDestinationSettingMessage()}\n\n`;
   const edit = new vscode.WorkspaceEdit();
   const fullRange = new vscode.Range(resultsDoc.positionAt(0), resultsDoc.positionAt(Infinity));
   edit.replace(docUri, fullRange, greetings);
@@ -377,8 +419,11 @@ async function flushOutput() {
   }
 }
 
+let lastAppended = '';
+
 /* If something must be done after a particular edit, use the onAppended callback. */
 export function append(text: string, onAppended?: OnAppendedCallback): void {
+  lastAppended = text;
   resultsBuffer.push({ text, onAppended });
   void flushOutput();
 }
@@ -448,7 +493,10 @@ export function printLastStacktrace(): void {
 }
 
 export function appendPrompt(onAppended?: OnAppendedCallback) {
-  appendLine(getPrompt(), onAppended);
+  const prompt = getPrompt();
+  if (!lastAppended.trimEnd().endsWith(prompt.trimEnd())) {
+    appendLine(getPrompt(), onAppended);
+  }
 }
 
 function getUriForCurrentNamespace(): Promise<vscode.Uri> {

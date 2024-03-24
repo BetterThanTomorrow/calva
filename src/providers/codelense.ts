@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as outputWindow from '../results-output/results-doc';
+import * as outputWindow from '../repl-window/repl-doc';
 
 /**
  * CodelensProvider

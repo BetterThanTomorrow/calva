@@ -1,4 +1,4 @@
-import * as outputWindow from './results-doc';
+import * as outputWindow from '../repl-window/repl-doc';
 import * as config from '../config';
 import * as vscode from 'vscode';
 import * as util from '../utilities';
@@ -52,14 +52,12 @@ export type OutputDestinationConfiguration = {
   evalResults: OutputDestination;
   evalOutput: OutputDestination;
   otherOutput: OutputDestination;
-  pseudoTerminal: OutputDestination;
 };
 
 export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
-  evalResults: 'output-channel',
-  evalOutput: 'output-channel',
-  otherOutput: 'output-channel',
-  pseudoTerminal: 'terminal',
+  evalResults: 'repl-window',
+  evalOutput: 'repl-window',
+  otherOutput: 'repl-window',
 };
 
 class OutputTerminal implements vscode.Pseudoterminal {
@@ -72,8 +70,15 @@ class OutputTerminal implements vscode.Pseudoterminal {
     this.writeEmitter.fire(data);
   }
   open(_initialDimensions: vscode.TerminalDimensions | undefined): void {
-    this.writeEmitter.fire(
-      'This is a pseudo terminal.\nNB: The contents of this terminal will not survive reloads of the VS Code window.\nYou can type here, but there is no process that will handle your input.\n'
+    this.write(
+      `This is not a ”real” terminal.
+You can type into the terminal, but there is no process that will handle your input.
+
+To reveal this terminal, use the command ${customChalk.bgWhiteBright.black(
+        ' Calva: Show/Open the Calva Output Terminal '
+      )}.
+
+`
     );
   }
   write(message: string) {

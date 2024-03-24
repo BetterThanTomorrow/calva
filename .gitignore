@@ -73,9 +73,13 @@ report.*
 
 # clojure-lsp
 .lsp
-output.calva-repl
 .clj-kondo
 /clojure-lsp*
+
+#Calva
+output.calva-repl
+**/.calva/repl.calva-repl
+
 
 # MkDocs
 /site/

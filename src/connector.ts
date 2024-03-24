@@ -17,7 +17,7 @@ import {
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import { formatAsLineComments } from './results-output/util';
 import evaluate from './evaluate';
 import * as liveShareSupport from './live-share';

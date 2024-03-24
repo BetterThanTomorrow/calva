@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add setting for migrating the REPL Window file to the new project subpath](https://github.com/BetterThanTomorrow/calva/issues/2458)
+
 ## [2.0.429] - 2024-03-23
 
 - [Add command for opening the Terminal output destination](https://github.com/BetterThanTomorrow/calva/issues/2455)

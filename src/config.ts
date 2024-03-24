@@ -259,6 +259,7 @@ function getConfig() {
     fiddleFilePaths: configOptions.get<fiddleFilesUtil.FiddleFilePaths>('fiddleFilePaths'),
     outputDestinations:
       configOptions.get<output.OutputDestinationConfiguration>('outputDestinations'),
+    useLegacyReplWindowPath: configOptions.get<boolean>('useLegacyReplWindowPath'),
   };
 }
 
