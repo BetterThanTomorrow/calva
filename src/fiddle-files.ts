@@ -6,7 +6,7 @@ import * as nsUtil from './util/ns-form';
 import eval from './evaluate';
 import * as path from 'path';
 import * as namespace from './namespace';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import * as output from './results-output/output';
 
 // TODO: This viewColumn memory could probably be a shared thing for all of Calva.

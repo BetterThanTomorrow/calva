@@ -1,4 +1,4 @@
-import * as outputWindow from './results-doc';
+import * as outputWindow from '../repl-window/repl-doc';
 import * as config from '../config';
 import * as vscode from 'vscode';
 import * as util from '../utilities';

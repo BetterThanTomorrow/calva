@@ -7,7 +7,7 @@ import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } fr
 import * as debug from '../debugger/calva-debug';
 import * as vscode from 'vscode';
 import debugDecorations from '../debugger/decorations';
-import * as outputWindow from '../results-output/results-doc';
+import * as outputWindow from '../repl-window/repl-doc';
 import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
 import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';

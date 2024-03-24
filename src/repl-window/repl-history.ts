@@ -6,8 +6,8 @@ import {
   getTextAfterLastOccurrenceOfSubstring,
 } from '../util/string';
 import type { ReplSessionType } from '../config';
-import { isResultsDoc, getSessionType, getPrompt, append } from './results-doc';
-import { addToHistory } from './util';
+import { isResultsDoc, getSessionType, getPrompt, append } from './repl-doc';
+import { addToHistory } from '../results-output/util';
 import { isUndefined } from 'lodash';
 
 const replHistoryCommandsActiveContext = 'calva:replHistoryCommandsActive';

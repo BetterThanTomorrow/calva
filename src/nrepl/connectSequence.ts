@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as state from '../state';
 import * as utilities from '../utilities';
 import { Config, getConfig } from '../config';
-import * as outputWindow from '../results-output/results-doc';
+import * as outputWindow from '../repl-window/repl-doc';
 import { formatAsLineComments } from '../results-output/util';
 import { ConnectType } from './connect-types';
 import * as output from '../results-output/output';

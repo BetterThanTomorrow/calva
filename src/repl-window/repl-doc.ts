@@ -13,8 +13,8 @@ import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index';
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 import * as replSession from '../nrepl/repl-session';
-import { formatAsLineComments, splitEditQueueForTextBatching } from './util';
-import * as output from './output';
+import { formatAsLineComments, splitEditQueueForTextBatching } from '../results-output/util';
+import * as output from '../results-output/output';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
