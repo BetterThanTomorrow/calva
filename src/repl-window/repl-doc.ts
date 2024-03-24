@@ -34,18 +34,35 @@ const START_GREETINGS = [
 ].join(`\n`);
 
 const REPL_WINDOW_PATH_CHANGE_MESSAGE = `
-'(
-PLEASE NOTE:
-We will update default location of the this file. The new default location will be "<projectRootPath>/.calva/repl.calva-repl"
+
+PLEASE NOTE
+We will update default location of the this file. 
+The new default location will be 
+  "<projectRootPath>/.calva/repl.calva-repl"
 In preparation for this change, the the legacy path is used by default.
-To give yourself a smooth transition, please disable the setting: "calva.useLegacyReplWindowPath" and then add "**/.calva/repl.calva-repl" to your ".gitignore" file.
-)
+To give yourself a smooth transition, please disable the setting: 
+  "calva.useLegacyReplWindowPath"
+and then add "**/.calva/repl.calva-repl" to your ".gitignore" file.
 `;
 
-function replOutputSettingMessage() {
-  if (JSON.stringify(config.getConfig().outputDestinations) === JSON.stringify({})) {
-    return;
+function replFilePathChangeMessage() {
+  return config.getConfig().useLegacyReplWindowPath ? REPL_WINDOW_PATH_CHANGE_MESSAGE : '';
+}
+
+const OUTPUT_DESTINATION_SETTINGS_MESSAGE = `
+This file is configured as the output destination for all REPL output.
+You can configure this with the setting:
+  "calva.outputDestinations"
+`;
+
+function outputDestinationSettingMessage() {
+  if (
+    JSON.stringify(config.getConfig().outputDestinations) ===
+    JSON.stringify(output.defaultDestinationConfiguration)
+  ) {
+    return OUTPUT_DESTINATION_SETTINGS_MESSAGE;
   }
+  return '';
 }
 
 export const CLJ_CONNECT_GREETINGS = [
@@ -225,7 +242,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
 
   const greetings = `${formatAsLineComments(START_GREETINGS)}\n\n${formatAsLineComments(
     CLJ_CONNECT_GREETINGS
-  )}${config.getConfig().useLegacyReplWindowPath ? REPL_WINDOW_PATH_CHANGE_MESSAGE : ''}\n\n`;
+  )}${replFilePathChangeMessage()}${outputDestinationSettingMessage()}\n\n`;
   const edit = new vscode.WorkspaceEdit();
   const fullRange = new vscode.Range(resultsDoc.positionAt(0), resultsDoc.positionAt(Infinity));
   edit.replace(docUri, fullRange, greetings);
