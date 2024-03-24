@@ -52,14 +52,12 @@ export type OutputDestinationConfiguration = {
   evalResults: OutputDestination;
   evalOutput: OutputDestination;
   otherOutput: OutputDestination;
-  pseudoTerminal: OutputDestination;
 };
 
 export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
-  evalResults: 'output-channel',
-  evalOutput: 'output-channel',
-  otherOutput: 'output-channel',
-  pseudoTerminal: 'terminal',
+  evalResults: 'repl-window',
+  evalOutput: 'repl-window',
+  otherOutput: 'repl-window',
 };
 
 class OutputTerminal implements vscode.Pseudoterminal {
