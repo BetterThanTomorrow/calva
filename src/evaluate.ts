@@ -379,7 +379,7 @@ function evaluateTopLevelForm(document = {}, options = {}) {
   }
 }
 
-function evaluateOutputWindowForm(document = {}, options = {}) {
+function evaluateReplWindowForm(document = {}, options = {}) {
   if (util.getConnectedState()) {
     evaluateSelection(
       document,
@@ -726,5 +726,5 @@ export default {
   toggleEvaluationSendCodeToOutputWindow,
   instrumentTopLevelForm,
   evaluateInOutputWindow,
-  evaluateOutputWindowForm,
+  evaluateReplWindowForm,
 };

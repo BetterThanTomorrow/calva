@@ -2201,9 +2201,9 @@
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
       },
       {
-        "command": "calva.evaluateOutputWindowForm",
+        "command": "calva.evaluateReplWindowForm",
         "key": "enter",
-        "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus && !suggestWidgetVisible"
+        "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:replWindowSubmitOnEnter && editorTextFocus && !suggestWidgetVisible"
       },
       {
         "command": "calva.evaluateSelectionReplace",

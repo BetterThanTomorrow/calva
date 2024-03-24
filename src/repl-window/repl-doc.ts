@@ -16,7 +16,7 @@ import * as replSession from '../nrepl/repl-session';
 import { formatAsLineComments, splitEditQueueForTextBatching } from '../results-output/util';
 import * as output from '../results-output/output';
 
-const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
+const REPL_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
 const PROMPT_HINT = 'Use `alt+enter` to evaluate';
 
@@ -57,7 +57,7 @@ function outputFileDir() {
 let isInitialized = false;
 
 const DOC_URI = () => {
-  return vscode.Uri.joinPath(outputFileDir(), RESULTS_DOC_NAME);
+  return vscode.Uri.joinPath(outputFileDir(), REPL_DOC_NAME);
 };
 
 let _sessionType: ReplSessionType = 'clj';
@@ -105,20 +105,20 @@ export function setSession(session: NReplSession, newNs?: string): void {
 }
 
 export function isResultsDoc(doc?: vscode.TextDocument): boolean {
-  return !!doc && path.basename(doc.fileName) === RESULTS_DOC_NAME;
+  return !!doc && path.basename(doc.fileName) === REPL_DOC_NAME;
 }
 
 function getViewColumn(): vscode.ViewColumn {
   const column: vscode.ViewColumn | undefined =
-    state.extensionContext.workspaceState.get(`outputWindowViewColumn`);
+    state.extensionContext.workspaceState.get(`replWindowViewColumn`);
   return column ? column : vscode.ViewColumn.Two;
 }
 
 function setViewColumn(column: vscode.ViewColumn | undefined) {
-  return state.extensionContext.workspaceState.update(`outputWindowViewColumn`, column);
+  return state.extensionContext.workspaceState.update(`replWindowViewColumn`, column);
 }
 
-export function setContextForOutputWindowActive(isActive: boolean): void {
+export function setContextForReplWindowActive(isActive: boolean): void {
   void state.extensionContext.workspaceState.update(`outputWindowActive`, isActive);
   void vscode.commands.executeCommand('setContext', 'calva:outputWindowActive', isActive);
 }
@@ -146,7 +146,7 @@ export function registerSubmitOnEnterHandler(context: vscode.ExtensionContext) {
       }
       void vscode.commands.executeCommand(
         'setContext',
-        'calva:outputWindowSubmitOnEnter',
+        'calva:replWindowSubmitOnEnter',
         submitOnEnter
       );
     })
@@ -159,7 +159,7 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
     vscode.window.onDidChangeActiveTextEditor((event) => {
       if (event) {
         const isOutputWindow = isResultsDoc(event.document);
-        setContextForOutputWindowActive(isOutputWindow);
+        setContextForReplWindowActive(isOutputWindow);
         if (isOutputWindow) {
           void setViewColumn(event.viewColumn);
         }
@@ -170,7 +170,7 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
   // until the next time it's focused
   const activeTextEditor = util.tryToGetActiveTextEditor();
   if (activeTextEditor && isResultsDoc(activeTextEditor.document)) {
-    setContextForOutputWindowActive(true);
+    setContextForReplWindowActive(true);
     replHistory.setReplHistoryCommandsActiveContext(activeTextEditor);
   }
 }
