@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Using a shortcut to focus on Calva output terminal gives an error](https://github.com/BetterThanTomorrow/calva/issues/2461)
+
 ## [2.0.430] - 2024-03-24
 
 - [Add opt-in setting for migrating the REPL Window file to the new project subpath](https://github.com/BetterThanTomorrow/calva/issues/2458)

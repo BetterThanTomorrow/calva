@@ -34,19 +34,6 @@ export interface AfterAppendCallback {
   (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
 }
 
-let outputChannel: vscode.OutputChannel;
-export function initOutputChannel(channel: vscode.OutputChannel) {
-  outputChannel = channel;
-}
-
-export function showOutputChannel() {
-  outputChannel.show(true);
-}
-
-export function showOutputTerminal() {
-  outputTerminal.show(true);
-}
-
 export type OutputDestination = 'repl-window' | 'output-channel' | 'terminal';
 
 export type OutputDestinationConfiguration = {
@@ -93,7 +80,7 @@ To reveal this terminal, use the command ${customChalk.bgWhiteBright.black(
 let outputPTY: OutputTerminal;
 let outputTerminal: vscode.Terminal;
 
-function getTerminal() {
+function getOutputPTY() {
   if (!outputPTY) {
     outputPTY = new OutputTerminal();
     outputTerminal = vscode.window.createTerminal({ name: 'Calva Output', pty: outputPTY });
@@ -101,14 +88,27 @@ function getTerminal() {
   return outputPTY;
 }
 
+let outputChannel: vscode.OutputChannel;
+export function initOutputChannel(channel: vscode.OutputChannel) {
+  outputChannel = channel;
+}
+
+export function showOutputChannel() {
+  outputChannel.show(true);
+}
+
+export function showOutputTerminal() {
+  if (!outputTerminal) {
+    getOutputPTY();
+  }
+  outputTerminal.show(true);
+}
+
 export function showResultOutputDestination() {
   if (getDestinationConfiguration().evalResults === 'output-channel') {
     return showOutputChannel();
   }
   if (getDestinationConfiguration().evalResults === 'terminal') {
-    if (!outputTerminal) {
-      getTerminal();
-    }
     return showOutputTerminal();
   }
   return outputWindow.revealResultsDoc(true);
@@ -164,7 +164,7 @@ function appendClojure(
   if (destination === 'terminal') {
     const printerOptions = { ...printer.prettyPrintingOptions(), 'color?': true };
     const prettyMessage = printer.prettyPrint(message, printerOptions)?.value || message;
-    getTerminal().write(`${didLastTerminateLine ? '' : '\r\n'}${prettyMessage}\r\n`);
+    getOutputPTY().write(`${didLastTerminateLine ? '' : '\r\n'}${prettyMessage}\r\n`);
     if (after) {
       after(undefined, undefined);
     }
@@ -214,7 +214,7 @@ function append(destination: OutputDestination, message: string, after?: AfterAp
     return;
   }
   if (destination === 'terminal') {
-    getTerminal().write(`${message}`);
+    getOutputPTY().write(`${message}`);
     if (after) {
       after(undefined, undefined);
     }
