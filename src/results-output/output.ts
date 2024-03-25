@@ -73,7 +73,11 @@ To reveal this terminal, use the command ${customChalk.bgWhiteBright.black(
     this.writeEmitter.fire(message.replace(/\r(?!\n)|(?<!\r)\n/g, '\r\n'));
   }
   close(): void {
-    // There's nothing to clean up.
+    outputPTY = undefined;
+    outputTerminal = undefined;
+    // TODO: Decide if we should just recreate the terminal like this
+    // getOutputPTY();
+    // It would still be emptied, so the win isn't that big.
   }
 }
 

@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Using a shortcut to focus on Calva output terminal gives an error](https://github.com/BetterThanTomorrow/calva/issues/2461)
+- Fix: [Re-create Repl Output Terminal after it has been closed.](https://github.com/BetterThanTomorrow/calva/issues/2461)
 
 ## [2.0.430] - 2024-03-24
 
