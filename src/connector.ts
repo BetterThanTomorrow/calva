@@ -139,6 +139,9 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         {}
       );
     }
+    if (!connectSequence.cljsType || connectSequence.cljsType === 'none') {
+      output.maybePrintLegacyREPLWindowOutputMessage();
+    }
     output.replWindowAppendPrompt();
 
     clojureDocs.init(cljSession);
@@ -211,6 +214,7 @@ async function setUpCljsRepl(session: NReplSession, build) {
       ns,
       {}
     );
+    output.maybePrintLegacyREPLWindowOutputMessage();
     output.replWindowAppendPrompt();
   }
   replSession.updateReplSessionType();
