@@ -170,6 +170,11 @@
             "default": true,
             "markdownDescription": "For legacy reasons, the REPL window used to be located in`${projectRootPath}/.calva/output-window/output.calva-repl`. The default directory will change to `${projectRootPath}/.calva/repl.calva-repl`. Disable this setting to start using the new path. And then add `**/.calva/repl.calva-repl` to your `.gitignore`."
           },
+          "calva.legacyPrintBareReplWindowOutput": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Non-result output risks breaking the structure of the Clojure document. Therefore `stdout` from the REPL process is prepended with `;` to make the output into line comments, which is non-structural. Enable this setting to print bare output, without the line comment protection. **NB: The REPL window may stop working, or work very strangely or slowly.** Also note that the REPL Window is being deprecated as a destination for output, so you may anyway instead want to use the `calva.outputDestinations` settings to direct `stdout` and `stderr` to the _Calva Output_ `terminal` destination instead."
+          },
           "calva.outputDestinations": {
             "type": "object",
             "markdownDescription": [
