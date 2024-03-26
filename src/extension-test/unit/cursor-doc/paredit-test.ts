@@ -1464,6 +1464,33 @@ describe('paredit', () => {
         await paredit.dragSexprBackward(a, ['b']);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
+
+      describe('Ignore markers', () => {
+        it('Drags past symbol', async () => {
+          const a = docFromTextNotation('#_a (:b c)|');
+          const b = docFromTextNotation('#_(:b c)| a');
+          await paredit.dragSexprBackward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Drags past map', async () => {
+          const a = docFromTextNotation('#_{:a b} (:c d)|');
+          const b = docFromTextNotation('#_(:c d)| {:a b}');
+          await paredit.dragSexprBackward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Drags past ignore after newline', async () => {
+          const a = docFromTextNotation('(:a b)•#_{:c d}|');
+          const b = docFromTextNotation('(:a b)•{:c d}|#_');
+          await paredit.dragSexprBackward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Drags past ignore after space', async () => {
+          const a = docFromTextNotation('(:a b) #_{:c d}|');
+          const b = docFromTextNotation('(:a b) {:c d}|#_');
+          await paredit.dragSexprBackward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
     });
 
     describe('backwardUp - one line', () => {

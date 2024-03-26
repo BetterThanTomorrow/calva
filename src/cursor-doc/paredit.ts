@@ -1453,10 +1453,13 @@ export async function dragSexprBackward(
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, pairForms);
   const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
+  console.log('BOOM! currentRange', currentRange);
   const newPosOffset = right - currentRange[0];
   const backCursor = doc.getTokenCursor(currentRange[0]);
   backCursor.backwardSexp();
+  console.log('BOOM! backCursor', backCursor);
   const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs);
+  console.log('BOOM! backRange', backRange);
   if (backRange[0] !== currentRange[0]) {
     // there is a sexp to the left
     const leftText = doc.model.getText(backRange[0], backRange[1]);
