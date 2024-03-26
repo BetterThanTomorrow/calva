@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Extraneous newlines printed to terminal for some output](https://github.com/BetterThanTomorrow/calva/issues/2468)
+
 ## [2.0.431] - 2024-03-25
 
 - Fix: [Using a shortcut to focus on Calva output terminal gives an error](https://github.com/BetterThanTomorrow/calva/issues/2461)
