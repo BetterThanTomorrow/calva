@@ -210,10 +210,11 @@ function append(options: AppendOptions, message: string, after?: AfterAppendCall
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = message.endsWith('\n');
   if (destination === 'repl-window') {
-    outputWindow.append(
-      `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(util.stripAnsi(message))}`,
-      after
-    );
+    const decoratedMessage =
+      options.outputCategory === 'evalOut' && config.getConfig().legacyPrintBareReplWindowOutput
+        ? message
+        : `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(util.stripAnsi(message))}`;
+    outputWindow.append(decoratedMessage, after);
     return;
   }
   if (destination === 'output-channel') {
@@ -299,10 +300,11 @@ function appendLine(options: AppendOptions, message: string, after?: AfterAppend
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = true;
   if (destination === 'repl-window') {
-    outputWindow.appendLine(
-      `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(util.stripAnsi(message))}`,
-      after
-    );
+    const decoratedMessage =
+      options.outputCategory === 'evalOut' && config.getConfig().legacyPrintBareReplWindowOutput
+        ? message
+        : `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(util.stripAnsi(message))}`;
+    outputWindow.appendLine(decoratedMessage, after);
     return;
   }
   if (destination === 'output-channel') {

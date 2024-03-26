@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Extraneous newlines printed to terminal for some output](https://github.com/BetterThanTomorrow/calva/issues/2468)
+- [Add legacy opt-in for printing bare `stdout` to the REPL Window](https://github.com/BetterThanTomorrow/calva/issues/2470)
 
 ## [2.0.431] - 2024-03-25
 
