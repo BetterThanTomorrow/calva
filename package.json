@@ -168,7 +168,7 @@
           "calva.useLegacyReplWindowPath": {
             "type": "boolean",
             "default": true,
-            "markdownDescription": "For legacy reasons, the REPL window used to be located in`${projectRootPath}/.calva/output-window/output.calva-repl`. The default directory will change to `${projectRootPath}/.calva/repl.calva-repl`. Disable this setting to start using the new path. And then add `**/.calva/repl.calva-repl` to your `.gitignore`."
+            "markdownDescription": "For legacy reasons, the REPL window used to be located in `${projectRootPath}/.calva/output-window/output.calva-repl`. The default directory will change to `${projectRootPath}/.calva/repl.calva-repl`. Disable this setting to start using the new path. And then add `**/.calva/repl.calva-repl` to your `.gitignore`."
           },
           "calva.legacyPrintBareReplWindowOutput": {
             "type": "boolean",

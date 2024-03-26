@@ -150,6 +150,21 @@ const didLastOutputTerminateLine: Record<OutputDestination, boolean> = {
   terminal: true,
 };
 
+let havePrintedLegacyReplWindowOutputMessage = false;
+
+export function maybePrintLegacyREPLWindowOutputMessage() {
+  if (
+    !havePrintedLegacyReplWindowOutputMessage &&
+    config.getConfig().outputDestinations.evalOutput === 'repl-window' &&
+    !config.getConfig().legacyPrintBareReplWindowOutput
+  ) {
+    const message =
+      '"Please see https://calva.io/output/#about-stdout-in-the-repl-window\nabout why stdout printed to this file is prepended with `;` to be line comments."';
+    outputWindow.appendLine(message);
+    havePrintedLegacyReplWindowOutputMessage = true;
+  }
+}
+
 function appendClojure(options: AppendOptions, message: string, after?: AfterAppendCallback) {
   const destination = options.destination;
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
