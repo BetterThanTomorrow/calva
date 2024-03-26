@@ -10,6 +10,14 @@ import * as printer from '../printer';
 
 const customChalk = new chalk.Instance({ level: 3 });
 
+type OutputCategory = 'evalResults' | 'clojure' | 'evalOut' | 'evalErr' | 'otherOut' | 'otherErr';
+
+type AppendOptions = {
+  destination: OutputDestination;
+  outputCategory: OutputCategory;
+  after?: AfterAppendCallback;
+};
+
 const lightTheme = {
   evalOut: customChalk.gray,
   evalErr: customChalk.red,
@@ -142,11 +150,8 @@ const didLastOutputTerminateLine: Record<OutputDestination, boolean> = {
   terminal: true,
 };
 
-function appendClojure(
-  destination: OutputDestination,
-  message: string,
-  after?: AfterAppendCallback
-) {
+function appendClojure(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+  const destination = options.destination;
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = true;
   if (destination === 'repl-window') {
@@ -185,7 +190,7 @@ function appendClojure(
  */
 export function appendClojureEval(code: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().evalResults;
-  appendClojure(destination, code, after);
+  appendClojure({ destination, outputCategory: 'evalResults' }, code, after);
 }
 
 /**
@@ -197,10 +202,11 @@ export function appendClojureEval(code: string, after?: AfterAppendCallback) {
  */
 export function appendClojureOther(message: string, after?: AfterAppendCallback) {
   const destination = getDestinationConfiguration().otherOutput;
-  appendClojure(destination, message, after);
+  appendClojure({ destination, outputCategory: 'clojure' }, message, after);
 }
 
-function append(destination: OutputDestination, message: string, after?: AfterAppendCallback) {
+function append(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+  const destination = options.destination;
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = message.endsWith('\n');
   if (destination === 'repl-window') {
@@ -238,7 +244,7 @@ export function appendEvalOut(message: string, after?: AfterAppendCallback) {
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().evalOut(message)
       : message;
-  append(destination, coloredMessage, after);
+  append({ destination, outputCategory: 'evalOut' }, coloredMessage, after);
 }
 
 /**
@@ -253,7 +259,7 @@ export function appendEvalErr(message: string, after?: AfterAppendCallback) {
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().evalErr(message)
       : message;
-  append(destination, coloredMessage, after);
+  append({ destination, outputCategory: 'evalErr' }, coloredMessage, after);
 }
 
 /**
@@ -269,7 +275,7 @@ export function appendOtherOut(message: string, after?: AfterAppendCallback) {
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().otherOut(message)
       : message;
-  append(destination, coloredMessage, after);
+  append({ destination, outputCategory: 'otherOut' }, coloredMessage, after);
 }
 
 /**
@@ -285,10 +291,11 @@ export function appendOtherErr(message: string, after?: AfterAppendCallback) {
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().otherErr(message)
       : message;
-  append(destination, coloredMessage, after);
+  append({ destination, outputCategory: 'otherErr' }, coloredMessage, after);
 }
 
-function appendLine(destination: OutputDestination, message: string, after?: AfterAppendCallback) {
+function appendLine(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+  const destination = options.destination;
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = true;
   if (destination === 'repl-window') {
@@ -303,7 +310,7 @@ function appendLine(destination: OutputDestination, message: string, after?: Aft
     return;
   }
   if (destination === 'terminal') {
-    append(destination, message + '\r\n', after);
+    append(options, message + '\r\n', after);
   }
 }
 
@@ -320,7 +327,7 @@ export function appendLineEvalOut(message: string, after?: AfterAppendCallback) 
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().evalOut(message)
       : message;
-  appendLine(destination, coloredMessage, after);
+  appendLine({ destination, outputCategory: 'evalOut' }, coloredMessage, after);
 }
 
 /**
@@ -336,7 +343,7 @@ export function appendLineEvalErr(message: string, after?: AfterAppendCallback) 
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().evalErr(message)
       : message;
-  appendLine(destination, coloredMessage, after);
+  appendLine({ destination, outputCategory: 'evalErr' }, coloredMessage, after);
 }
 
 /**
@@ -352,7 +359,7 @@ export function appendLineOtherOut(message: string, after?: AfterAppendCallback)
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().otherOut(message)
       : message;
-  appendLine(destination, coloredMessage, after);
+  appendLine({ destination, outputCategory: 'otherOut' }, coloredMessage, after);
 }
 
 /**
@@ -368,7 +375,7 @@ export function appendLineOtherErr(message: string, after?: AfterAppendCallback)
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().otherErr(message)
       : message;
-  appendLine(destination, coloredMessage, after);
+  appendLine({ destination, outputCategory: 'otherErr' }, coloredMessage, after);
 }
 
 /**
