@@ -389,25 +389,36 @@ const pareditCommands = [
   {
     command: 'paredit.wrapAroundParens',
     handler: (doc: EditableDocument) => {
-      return paredit.wrapSexpr(doc, '(', ')');
+      const isMulti = multiCursorEnabled();
+      return handlers.wrapAroundParens(doc, isMulti);
     },
   },
   {
     command: 'paredit.wrapAroundSquare',
     handler: (doc: EditableDocument) => {
-      return paredit.wrapSexpr(doc, '[', ']');
+      const isMulti = multiCursorEnabled();
+      return handlers.wrapAroundSquare(doc, isMulti);
     },
   },
   {
     command: 'paredit.wrapAroundCurly',
     handler: (doc: EditableDocument) => {
-      return paredit.wrapSexpr(doc, '{', '}');
+      const isMulti = multiCursorEnabled();
+      return handlers.wrapAroundCurly(doc, isMulti);
+    },
+  },
+  {
+    command: 'paredit.wrapAroundSet',
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      return handlers.wrapAroundSet(doc, isMulti);
     },
   },
   {
     command: 'paredit.wrapAroundQuote',
     handler: (doc: EditableDocument) => {
-      return paredit.wrapSexpr(doc, '"', '"');
+      const isMulti = multiCursorEnabled();
+      return handlers.wrapAroundQuote(doc, isMulti);
     },
   },
   {
