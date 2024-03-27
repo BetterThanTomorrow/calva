@@ -50,6 +50,14 @@ export class ModelEdit<T extends ModelEditFunction> {
   constructor(public editFn: T, public args: Readonly<ModelEditArgs<T>>) {}
 }
 
+export function isModelRange(o: any): o is ModelEditRange {
+  return _.isArray(o) && o.length === 2 && isNumber(o[0]) && isNumber(o[1]);
+}
+
+export function isModelEditSelection(o: any): o is ModelEditSelection {
+  return o instanceof ModelEditSelection;
+}
+
 /**
  * An undirected range representing a cursor/selection in a document.
  * Is a tuple of [start, end] where each is an offset.

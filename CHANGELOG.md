@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Add "Wrap with Set #{}" paredit command.
+- [Implement experimental support for multicursor wrap commands](https://github.com/BetterThanTomorrow/calva/issues/2448). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#2445](https://github.com/BetterThanTomorrow/calva/issues/2445) 
 - [Implement experimental support for multicursor rewrap commands](https://github.com/BetterThanTomorrow/calva/issues/2448). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#2445](https://github.com/BetterThanTomorrow/calva/issues/2445) 
 
 - [Add Paredit Kill Left equivalent to Kill Right](https://github.com/BetterThanTomorrow/calva/issues/2426)

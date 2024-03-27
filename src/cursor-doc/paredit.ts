@@ -12,6 +12,11 @@ import { LispTokenCursor } from './token-cursor';
 import { backspaceOnWhitespace } from './backspace-on-whitespace';
 import _ = require('lodash');
 import { isEqual, last, property } from 'lodash';
+import { mapToItemAndOrder } from '../util/array';
+import {
+  mapRangeOrSelectionToOffset,
+  repositionSelectionByCumulativeOffsets,
+} from './cursor-doc-utils';
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -621,53 +626,84 @@ export function rangeToBackwardList(
   }
 }
 
-export async function wrapSexpr(
+export function wrapSexpr(
   doc: EditableDocument,
   open: string,
   close: string,
-  start: number = doc.selections[0].anchor,
-  end: number = doc.selections[0].active,
+  selections = [doc.selections[0]],
   options = { skipFormat: false }
 ) {
-  const cursor = doc.getTokenCursor(end);
-  if (cursor.withinString() && open == '"') {
-    open = close = '\\"';
-  }
-  if (start == end) {
-    // No selection
-    const currentFormRange = cursor.rangeForCurrentForm(start);
-    if (currentFormRange) {
-      const range = currentFormRange;
-      return doc.model.edit(
-        [
-          new ModelEdit('insertString', [range[1], close]),
-          new ModelEdit('insertString', [
-            range[0],
-            open,
-            [end, end],
-            [start + open.length, start + open.length],
-          ]),
-        ],
-        {
-          selections: [new ModelEditSelection(start + open.length)],
-          skipFormat: options.skipFormat,
-        }
-      );
-    }
-  } else {
-    // there is a selection
-    const range = [Math.min(start, end), Math.max(start, end)];
-    return doc.model.edit(
-      [
-        new ModelEdit('insertString', [range[1], close]),
-        new ModelEdit('insertString', [range[0], open]),
-      ],
-      {
-        selections: [new ModelEditSelection(start + open.length)],
-        skipFormat: options.skipFormat,
+  // TODO: support wrapping with Sets (#{})
+  const edits: ModelEdit<'insertString'>[] = [],
+    // selections = clone(selections).map(mapToItemAndOrder);
+    newSelections = _.clone(selections);
+
+  _(selections)
+    // iterate backwards to simplify dealing with cumulative cursor position offsets as document's text is added to with
+    // parens or whatever is being wrapped with.
+    .map(mapToItemAndOrder)
+    .orderBy(([r]) => mapRangeOrSelectionToOffset('start')(r), 'desc')
+    .forEach(([sel, index]) => {
+      // const { start, end } = sel;
+      const { anchor: start, active: end } = sel;
+      const cursor = doc.getTokenCursor(end);
+      if (cursor.withinString() && open == '"') {
+        open = close = '\\"';
       }
-    );
-  }
+      if (start == end) {
+        // No selection
+        const currentFormRange = cursor.rangeForCurrentForm(start);
+        if (currentFormRange) {
+          const range = currentFormRange;
+          const closeEdit = new ModelEdit('insertString', [range[1], close]);
+          const openEdit = new ModelEdit('insertString', [range[0], open]);
+
+          const existing = _.intersectionWith(edits, [closeEdit, openEdit], _.isEqual);
+          const isNewEdit = _.isEmpty(existing);
+
+          console.log(edits, range, closeEdit, openEdit, existing, isNewEdit);
+
+          edits.push(closeEdit, openEdit);
+          // don't forget to include the index with the selection for later reordering to original order;
+          // selections[index] = [new ModelEditSelection(start + open.length), index];
+          newSelections[index] = new ModelEditSelection(start + (isNewEdit ? open.length : 0));
+        }
+      } else {
+        // there is a selection
+        const range = [Math.min(start, end), Math.max(start, end)];
+        // edits.push(
+        // new ModelEdit('insertString', [range[1], close]),
+        // new ModelEdit('insertString', [range[0], open])
+        // );
+        // don't forget to include the index with the selection for later reordering to original order;
+        // selections[index] = [new ModelEditSelection(start + open.length), index];
+        // newSelections[index] = new ModelEditSelection(start + open.length);
+
+        const closeEdit = new ModelEdit('insertString', [range[1], close]);
+        const openEdit = new ModelEdit('insertString', [range[0], open]);
+
+        const existing = _.intersectionWith(edits, [closeEdit, openEdit], _.isEqual);
+        const isNewEdit = _.isEmpty(existing);
+
+        console.log(edits, range, closeEdit, openEdit, existing, isNewEdit);
+
+        edits.push(closeEdit, openEdit);
+        // don't forget to include the index with the selection for later reordering to original order;
+        // selections[index] = [new ModelEditSelection(start + open.length), index];
+        newSelections[index] = new ModelEditSelection(start + (isNewEdit ? open.length : 0));
+      }
+      return undefined;
+    });
+  const uniqEdits = _.uniqBy(edits, (e) => e.args[0]);
+  // return doc.model.edit(_.uniqWith(edits, _.isEqual), {
+  return doc.model.edit(uniqEdits, {
+    // return doc.model.edit(edits, {
+    // selections: newSelections.map(repositionSelectionByCumulativeOffsets(2)),
+    selections: newSelections.map(
+      repositionSelectionByCumulativeOffsets(open.length + close.length)
+    ),
+    skipFormat: options.skipFormat,
+  });
 }
 
 /**
@@ -700,14 +736,14 @@ export function rewrapSexpr(
   selections.forEach((sel, index) => {
     const { active } = sel;
     const cursor = doc.getTokenCursor(active);
-  if (cursor.backwardList()) {
-    cursor.backwardUpList();
-    const oldOpenStart = cursor.offsetStart;
-    const oldOpenLength = cursor.getToken().raw.length;
-    const oldOpenEnd = oldOpenStart + oldOpenLength;
-    if (cursor.forwardSexp()) {
-      const oldCloseStart = cursor.offsetStart - close.length;
-      const oldCloseEnd = cursor.offsetStart;
+    if (cursor.backwardList()) {
+      cursor.backwardUpList();
+      const oldOpenStart = cursor.offsetStart;
+      const oldOpenLength = cursor.getToken().raw.length;
+      const oldOpenEnd = oldOpenStart + oldOpenLength;
+      if (cursor.forwardSexp()) {
+        const oldCloseStart = cursor.offsetStart - close.length;
+        const oldCloseEnd = cursor.offsetStart;
         const openChange = open.length - oldOpenLength;
         edits.push(
           {
@@ -720,13 +756,13 @@ export function rewrapSexpr(
             change: openChange,
             type: 'open',
           }
-      );
+        );
         newSelections[index] = {
           selection: new ModelEditSelection(active),
           change: openChange,
         };
+      }
     }
-  }
   });
 
   // Due to the nature of dealing with list boundaries, multiple cursors could be targeting
