@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Implement experimental support for multicursor selectCurrentForm command](https://github.com/BetterThanTomorrow/calva/issues/2476). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2476](https://github.com/BetterThanTomorrow/calva/issues/2476) 
+
 ## [2.0.432] - 2024-03-26
 
 - Fix: [Extraneous newlines printed to terminal for some output](https://github.com/BetterThanTomorrow/calva/issues/2468)
