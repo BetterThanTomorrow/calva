@@ -156,4 +156,5 @@ Happy Editing! ❤️
 There is an ongoing effort to support simultaneous multicursor editing with Paredit. This is an experimental feature and is not enabled by default. To enable it, set `calva.paredit.multicursor` to `true`. This feature is still in development and may not work as expected in all cases. Currently, this supports the following categories:
 
 - Movement
-- Selection
+- Selection (except for `Select Current Form` - coming soon!)
+- Rewrap
