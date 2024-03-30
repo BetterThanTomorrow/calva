@@ -49,13 +49,7 @@ export function selectRange(doc: EditableDocument, ranges: ModelEditRange[]) {
   growSelectionStack(doc, ranges);
 }
 
-// TODO: implement via growSelectionStack
-export function selectForm(
-  // doc: MirroredDocument,
-  doc: EditableDocument,
-  topLevel: boolean,
-  selections = doc.selections
-) {
+export function selectForm(doc: EditableDocument, topLevel: boolean, selections = doc.selections) {
   const newSels = selections.map((sel) => {
     const selection = sel;
     if (selection.isCursor) {
@@ -76,7 +70,7 @@ export function selectForm(
     return sel;
   });
 
-  doc.selections = newSels;
+  growSelectionStack(doc, newSels.map(_.property('asDirectedRange')));
 }
 
 export function selectRangeForward(
