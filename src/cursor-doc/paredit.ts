@@ -700,14 +700,14 @@ export function rewrapSexpr(
   selections.forEach((sel, index) => {
     const { active } = sel;
     const cursor = doc.getTokenCursor(active);
-  if (cursor.backwardList()) {
-    cursor.backwardUpList();
-    const oldOpenStart = cursor.offsetStart;
-    const oldOpenLength = cursor.getToken().raw.length;
-    const oldOpenEnd = oldOpenStart + oldOpenLength;
-    if (cursor.forwardSexp()) {
-      const oldCloseStart = cursor.offsetStart - close.length;
-      const oldCloseEnd = cursor.offsetStart;
+    if (cursor.backwardList()) {
+      cursor.backwardUpList();
+      const oldOpenStart = cursor.offsetStart;
+      const oldOpenLength = cursor.getToken().raw.length;
+      const oldOpenEnd = oldOpenStart + oldOpenLength;
+      if (cursor.forwardSexp()) {
+        const oldCloseStart = cursor.offsetStart - close.length;
+        const oldCloseEnd = cursor.offsetStart;
         const openChange = open.length - oldOpenLength;
         edits.push(
           {
@@ -720,13 +720,13 @@ export function rewrapSexpr(
             change: openChange,
             type: 'open',
           }
-      );
+        );
         newSelections[index] = {
           selection: new ModelEditSelection(active),
           change: openChange,
         };
+      }
     }
-  }
   });
 
   // Due to the nature of dealing with list boundaries, multiple cursors could be targeting

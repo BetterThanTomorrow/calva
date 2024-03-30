@@ -1128,6 +1128,35 @@ describe('paredit commands', () => {
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
 
+        it('Multi-cursor: Handles rewrapping nested forms [] -> {}', async () => {
+          const a = docFromTextNotation('[:d :e [a|1 [b c|]]]');
+          const b = docFromTextNotation('[:d :e {a|1 {b c|}}]');
+          await handlers.rewrapCurly(a, true);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Handles rewrapping nested forms [] -> {} 2', async () => {
+          const a = docFromTextNotation('[|1:d :e [a|2 [b c|]]]');
+          const b = docFromTextNotation('{|1:d :e {a|2 {b c|}}}');
+          await handlers.rewrapCurly(a, true);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Handles rewrapping nested forms mixed -> {}', async () => {
+          const a = docFromTextNotation('[:d :e (a|1 {b c|})]');
+          const b = docFromTextNotation('[:d :e {a|1 {b c|}}]');
+          await handlers.rewrapCurly(a, true);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Handles rewrapping nested forms mixed -> {} 2', async () => {
+          const a = docFromTextNotation('[|1:d :e (a|2 {b c|})]');
+          const b = docFromTextNotation('{|1:d :e {a|2 {b c|}}}');
+          await handlers.rewrapCurly(a, true);
+          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
         it('Single-cursor: Rewraps #{} -> {}', async () => {
           const a = docFromTextNotation('#{a #{b c|} d}');
           const b = docFromTextNotation('#{a {b c|} d}');
