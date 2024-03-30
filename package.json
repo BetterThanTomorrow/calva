@@ -1344,12 +1344,6 @@
         "category": "Calva"
       },
       {
-        "command": "calva.selectCurrentForm",
-        "title": "Select Current Form",
-        "category": "Calva",
-        "enablement": "editorLangId == clojure"
-      },
-      {
         "command": "calva.clearInlineResults",
         "title": "Clear Inline Evaluation Results",
         "category": "Calva",
@@ -1565,6 +1559,12 @@
         "category": "Calva Paredit",
         "command": "paredit.closeList",
         "title": "Move Cursor Forward to List End/Close",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva",
+        "command": "paredit.selectCurrentForm",
+        "title": "Select Current Form",
         "enablement": "editorLangId == clojure"
       },
       {
