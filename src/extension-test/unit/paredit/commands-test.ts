@@ -333,6 +333,32 @@ describe('paredit commands', () => {
   });
 
   describe('selection', () => {
+    describe('selectCurrentForm', () => {
+      it('Single-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn|1 [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(|:a|)'
+        );
+        handlers.selectCurrentForm(a, false);
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor:', () => {
+        const a = docFromTextNotation(
+          '(defn|1 |2[a b]•(let [|3^js aa |4#p (+ a)•<5b b<5]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(|1defn|1 |2[a b]|2•(let [|3^js aa|3 |4#p (+ a)|4•<5b b<5]•{:a aa•:b b}))•(|:a|)'
+        );
+        handlers.selectCurrentForm(a, true);
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
     describe('rangeForDefun', () => {
       it('Single-cursor:', () => {
         const a = docFromTextNotation(

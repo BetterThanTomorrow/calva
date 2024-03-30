@@ -49,6 +49,47 @@ export function selectRange(doc: EditableDocument, ranges: ModelEditRange[]) {
   growSelectionStack(doc, ranges);
 }
 
+function getFormSelection(
+  doc: EditableDocument,
+  offset: number,
+  topLevel: boolean
+): ModelEditSelection | undefined {
+  const idx = offset;
+  const cursor = doc.getTokenCursor(idx);
+  const range = topLevel ? cursor.rangeForDefun(idx) : cursor.rangeForCurrentForm(idx);
+  if (range) {
+    return new ModelEditSelection(range[0], range[1]);
+  } else {
+    return undefined;
+  }
+}
+
+export function selectForm(
+  // doc: MirroredDocument,
+  doc: EditableDocument,
+  toplevel: boolean,
+  selections = doc.selections
+) {
+  // const editor = util.getActiveTextEditor(),
+  // doc = util.getDocument(document),
+  // selection = doc.selections[0];
+
+  const newSels = selections.map((sel) => {
+    // const selection = sel.asSelection(vscDoc);
+    const selection = sel;
+    if (selection.isCursor) {
+      // const codeSelection = selectionFn(vscDoc, selection.active, toplevel);
+      const codeSelection = getFormSelection(doc, selection.active, toplevel);
+      if (codeSelection) {
+        return codeSelection;
+      }
+    }
+    return sel;
+  });
+
+  doc.selections = newSels;
+}
+
 export function selectRangeForward(
   doc: EditableDocument,
   ranges: ModelEditRange[],
