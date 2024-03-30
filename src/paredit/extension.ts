@@ -115,6 +115,13 @@ const pareditCommands: PareditCommand[] = [
 
   // SELECTING
   {
+    command: 'paredit.selectCurrentForm',
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.selectCurrentForm(doc, isMulti);
+    },
+  },
+  {
     command: 'paredit.rangeForDefun',
     handler: (doc: EditableDocument) => {
       const isMulti = multiCursorEnabled();

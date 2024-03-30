@@ -56,6 +56,10 @@ export function openList(doc: EditableDocument, isMulti: boolean = false) {
 
 // SELECTION
 
+export function selectCurrentForm(doc: EditableDocument, isMulti: boolean = false) {
+  paredit.selectForm(doc, false, isMulti ? doc.selections : [doc.selections[0]]);
+}
+
 export function rangeForDefun(doc: EditableDocument, isMulti: boolean) {
   const selections = isMulti ? doc.selections : [doc.selections[0]];
   const ranges = selections.map((s) => paredit.rangeForDefun(doc, s.active));
