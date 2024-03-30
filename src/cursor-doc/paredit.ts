@@ -49,7 +49,11 @@ export function selectRange(doc: EditableDocument, ranges: ModelEditRange[]) {
   growSelectionStack(doc, ranges);
 }
 
-export function selectForm(doc: EditableDocument, topLevel: boolean, selections = doc.selections) {
+export function selectCurrentForm(
+  doc: EditableDocument,
+  topLevel: boolean,
+  selections = doc.selections
+) {
   const newSels = selections.map((sel) => {
     const selection = sel;
     if (selection.isCursor) {
