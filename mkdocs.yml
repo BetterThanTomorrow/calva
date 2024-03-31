@@ -21,7 +21,7 @@ extra:
 repo_name: Calva
 repo_url: https://github.com/BetterThanTomorrow/calva
 edit_uri: edit/published/docs/site
-strict: true
+#strict: true
 plugins:
   - search:
      separator: '[\s\-\._]'
