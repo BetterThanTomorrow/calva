@@ -43,6 +43,7 @@ function getReplSessionType(connected: boolean): string | undefined {
 }
 
 function updateReplSessionType() {
+  // TODO: Should the session type be set to cljs even when the cljs repl is not yet connected?
   const connected = cljsLib.getStateValue('connected');
   const replSessionType = getReplSessionType(connected);
   cljsLib.setStateValue('current-session-type', replSessionType);
