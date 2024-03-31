@@ -84,7 +84,7 @@
    :id "1234"}
 
   (post-message-to-webview {:command-name "show-result"
-                            :result "Hello world!!!"})
+                            :result "send while hidden"})
 
   (post-message-to-webview {:command "clear-output"})
 

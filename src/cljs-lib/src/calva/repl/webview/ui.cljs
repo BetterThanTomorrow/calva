@@ -2,31 +2,36 @@
   (:require [reagent.dom :as rdom]
             [reagent.core :as r]))
 
+(defn output-element
+  [element-data]
+  (merge element-data
+         {:output-element/id (random-uuid)}))
+
 (defonce output-elements
-  (r/atom [{:output-element/type :output-element.type/eval-result
-            :output-element/content "{:a 1}"}
-           {:output-element/type :output-element.type/stdout
-            :output-element/content "Hello world"}]))
+  (r/atom [(output-element {:output-element/type :output-element.type/eval-result
+                            :output-element/content "{:a 1}"})
+           (output-element {:output-element/type :output-element.type/stdout
+                            :output-element/content "Hello world"})]))
+
+(defn add-output-element
+  [element]
+  (swap! output-elements conj element))
 
 (defn add-eval-result
   [content]
-  (swap! output-elements
-         conj
-         {:output-element/type :output-element.type/eval-result
-          :output-element/content content}))
+  (add-output-element (output-element {:output-element/type :output-element.type/eval-result
+                                       :output-element/content content})))
 
 (defn add-stdout
   [content]
-  (swap! output-elements
-         conj
-         {:output-element/type :output-element.type/stdout
-          :output-element/content content}))
+  (add-output-element (output-element {:output-element/type :output-element.type/stdout
+                                       :output-element/content content})))
 
 (defn repl-output []
   (let [elements @output-elements]
     [:div
-     (for [{:output-element/keys [content]} elements]
-       [:p content])]))
+     (for [{:output-element/keys [content id]} elements]
+       [:p {:key id} content])]))
 
 (defn main []
   (.. js/window
@@ -45,8 +50,16 @@
   (rdom/render [repl-output] (js/document.getElementById "output")))
 
 (comment
+  (set! *print-namespace-maps* false)
+
+  (binding [*print-namespace-maps* false]
+    @output-elements)
+
+  (println {:user/a 1, :user/b 2})
 
   (reset! output-elements [])
+
+  (print)
 
   @output-elements
 
