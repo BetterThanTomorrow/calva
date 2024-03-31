@@ -18,6 +18,11 @@ type AppendOptions = {
   after?: AfterAppendCallback;
 };
 
+type AppendClojureOptions = {
+  ns?: string;
+  sessionType?: string;
+};
+
 const lightTheme = {
   evalOut: customChalk.gray,
   evalErr: customChalk.red,
@@ -165,7 +170,11 @@ export function maybePrintLegacyREPLWindowOutputMessage() {
   }
 }
 
-function appendClojure(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+function appendClojure(
+  options: AppendOptions & AppendClojureOptions,
+  message: string,
+  after?: AfterAppendCallback
+) {
   const destination = options.destination;
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = true;
@@ -203,9 +212,13 @@ function appendClojure(options: AppendOptions, message: string, after?: AfterApp
  * @param code The code to append
  * @param after Optional callback to run after the append
  */
-export function appendClojureEval(code: string, after?: AfterAppendCallback) {
+export function appendClojureEval(
+  code: string,
+  options: AppendClojureOptions,
+  after?: AfterAppendCallback
+) {
   const destination = getDestinationConfiguration().evalResults;
-  appendClojure({ destination, outputCategory: 'evalResults' }, code, after);
+  appendClojure({ destination, outputCategory: 'evalResults', ...options }, code, after);
 }
 
 /**

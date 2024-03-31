@@ -124,7 +124,7 @@ async function evaluateCodeUpdatingUI(
       if (evaluationSendCodeToOutputWindow) {
         outputWindow.appendLine(code);
         if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
-          output.appendClojureEval(code);
+          output.appendClojureEval(code, { ns, sessionType: session.sessionId });
         }
       }
 
@@ -134,7 +134,7 @@ async function evaluateCodeUpdatingUI(
       result = value;
 
       if (showResult) {
-        output.appendClojureEval(value, async () => {
+        output.appendClojureEval(value, { ns, sessionType: session.sessionId }, async () => {
           if (selection) {
             const c = selection.start.character;
             if (editor && options.replace) {
@@ -171,7 +171,7 @@ async function evaluateCodeUpdatingUI(
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
             if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
-              output.appendClojureOther(errMsg);
+              output.appendEvalErr(errMsg);
             }
           } else {
             output.appendLineEvalErr(errMsg);
@@ -543,7 +543,7 @@ async function loadFile(
   try {
     const value = await res.value;
     if (value) {
-      output.appendClojureEval(value);
+      output.appendClojureEval(value, { ns, sessionType: session.sessionId });
     } else {
       output.appendLineEvalOut('No results from file evaluation.');
     }
