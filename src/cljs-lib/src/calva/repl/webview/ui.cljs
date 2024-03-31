@@ -1,6 +1,7 @@
 (ns calva.repl.webview.ui
-  (:require [reagent.dom :as rdom]
-            [reagent.core :as r]))
+  (:require
+   [reagent.dom.client :as rdom.client]
+   [reagent.core :as r]))
 
 (defn output-element
   [element-data]
@@ -47,7 +48,7 @@
                             (case command
                               "show-result" (add-eval-result data)
                               "show-stdout" (add-stdout data))))))
-  (rdom/render [repl-output] (js/document.getElementById "output")))
+  (rdom.client/render (rdom.client/create-root (js/document.getElementById "output")) [repl-output]))
 
 (comment
   (set! *print-namespace-maps* false)

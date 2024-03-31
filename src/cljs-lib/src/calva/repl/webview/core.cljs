@@ -11,10 +11,11 @@
 ;; TODO: See if there's a way to not have to use ^js in so many places without shadow-cljs warnings
 (defn create-or-get-repl-output-webview-panel []
   (or @repl-output-webview-panel
-      (let [webview-panel (.. ^js @util/vscode -window (createWebviewPanel "calva:repl-output"
-                                                                           "REPL Output"
-                                                                           (.. ^js @util/vscode -ViewColumn -Two)
-                                                                           #js {:enableScripts true}))]
+      (let [webview-panel (.. ^js @util/vscode -window
+                              (createWebviewPanel "calva:repl-output"
+                                                  "REPL Output"
+                                                  (.. ^js @util/vscode -ViewColumn -Two)
+                                                  #js {:enableScripts true}))]
         (.. ^js webview-panel (onDidDispose dispose-repl-output-webview-panel))
         (reset! repl-output-webview-panel webview-panel))))
 
@@ -57,8 +58,9 @@
         js-path (.. ^js @util/vscode
                     -Uri
                     (joinPath (.. ^js @util/context -extensionUri) "repl-output-ui" "js" "main.js"))
-        js-src (.. repl-output-webview-panel -webview (asWebviewUri js-path))]
-    (set! (.. ^js repl-output-webview-panel -webview -html) (get-webview-html js-src))
+        js-src (.. repl-output-webview-panel -webview (asWebviewUri js-path))
+        webview-html (get-webview-html js-src)]
+    (set! (.. ^js repl-output-webview-panel -webview -html) webview-html)
     (let [interval-id (js/setInterval post-message-to-webview
                                       1000
                                       {:command-name "show-result"
