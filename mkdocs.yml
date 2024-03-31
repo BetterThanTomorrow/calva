@@ -27,9 +27,11 @@ plugins:
      separator: '[\s\-\._]'
   - social:
       cards: true
-      cards_color:
-        fill: "#db9550"
-        text: "#fafafa"
+      cards_layout_options:
+        background_color:
+          fill: "#db9550"
+        color:
+          text: "#fafafa"
 markdown_extensions:
   - meta
   - attr_list
