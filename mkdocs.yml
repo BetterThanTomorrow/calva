@@ -21,17 +21,15 @@ extra:
 repo_name: Calva
 repo_url: https://github.com/BetterThanTomorrow/calva
 edit_uri: edit/published/docs/site
-strict: true
+#strict: true
 plugins:
   - search:
      separator: '[\s\-\._]'
   - social:
       cards: true
-      cards_layout_options:
-        background_color:
-          fill: "#db9550"
-        color:
-          text: "#fafafa"
+      cards_color:
+        fill: "#db9550"
+        text: "#fafafa"
 markdown_extensions:
   - meta
   - attr_list
