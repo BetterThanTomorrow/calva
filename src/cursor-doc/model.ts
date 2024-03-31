@@ -1,7 +1,9 @@
 import { Scanner, Token, ScannerState } from './clojure-lexer';
 import { LispTokenCursor } from './token-cursor';
 import { deepEqual as equal } from '../util/object';
-import { isUndefined } from 'lodash';
+import { isNumber, isUndefined } from 'lodash';
+import { TextDocument, Selection } from 'vscode';
+import _ = require('lodash');
 
 let scanner: Scanner;
 
@@ -36,10 +38,37 @@ export class TextLine {
 }
 
 export type ModelEditFunction = 'insertString' | 'changeRange' | 'deleteRange';
+export type ModelEditArgs<T extends ModelEditFunction> = T extends 'insertString'
+  ? Parameters<LineInputModel['insertString']>
+  : T extends 'changeRange'
+  ? Parameters<LineInputModel['changeRange']>
+  : T extends 'deleteRange'
+  ? Parameters<LineInputModel['deleteRange']>
+  : never;
 
-export class ModelEdit {
-  constructor(public editFn: ModelEditFunction, public args: any[]) {}
+export class ModelEdit<T extends ModelEditFunction> {
+  constructor(public editFn: T, public args: Readonly<ModelEditArgs<T>>) {}
 }
+
+/**
+ * An undirected range representing a cursor/selection in a document.
+ * Is a tuple of [start, end] where each is an offset.
+ * It is a selection if `start` != `end`, otherwise, it's a cursor.
+ * 'Undirected' here means the first element, `start`, will always be the leftmost position,
+ * even if the selection is in reverse.
+ */
+export type ModelEditRange = [start: number, end: number];
+/**
+ * A range with direction representing a cursor/selection in a document.
+ * Is a tuple of [anchor, active] where each is an offset.
+ * It is a selection if `anchor` != `active`, otherwise, it's a cursor.
+ * 'Direction' here means if `anchor` is greater than `active`, the selection is
+ * from right to left, and vice versa.
+ *
+ * This type is only nominal and for documentation purposes, it's technically the
+ * same as `ModelEditRange`
+ */
+export type ModelEditDirectedRange = [anchor: number, active: number];
 
 /**
  * Naming notes for Model Selections:
@@ -58,14 +87,46 @@ export class ModelEdit {
 export class ModelEditSelection {
   private _anchor: number;
   private _active: number;
+  private _start: number;
+  private _end: number;
+  private _isReversed: boolean;
 
-  constructor(anchor: number, active?: number) {
-    this._anchor = anchor;
-    if (active !== undefined) {
-      this._active = active;
+  constructor(anchor: number, active?: number, start?: number, end?: number, isReversed?: boolean);
+  constructor(selection: Selection, doc: TextDocument);
+  constructor(
+    anchorOrSelection: number | Selection,
+    activeOrDoc?: number | TextDocument,
+    start?: number,
+    end?: number,
+    isReversed?: boolean
+  ) {
+    if (isNumber(anchorOrSelection)) {
+      const anchor = anchorOrSelection;
+      this._anchor = anchor;
+      if (activeOrDoc !== undefined && isNumber(activeOrDoc)) {
+        this._active = activeOrDoc;
+      } else {
+        this._active = anchor;
+      }
+      const _isReversed = isReversed ?? this._anchor > this._active;
+      this._isReversed = _isReversed;
+      this._start = start ?? Math.min(anchor, this._active);
+      this._end = end ?? Math.max(anchor, this._active);
     } else {
-      this._active = anchor;
+      const { active, anchor, start, end, isReversed } = anchorOrSelection;
+      const doc = activeOrDoc as TextDocument;
+      this._active = doc.offsetAt(active);
+      this._anchor = doc.offsetAt(anchor);
+      this._start = doc.offsetAt(start);
+      this._end = doc.offsetAt(end);
+      this._isReversed = isReversed;
     }
+  }
+
+  private _updateDirection() {
+    this._start = Math.min(this._anchor, this._active);
+    this._end = Math.max(this._anchor, this._active);
+    this._isReversed = this._active < this._anchor;
   }
 
   get anchor() {
@@ -74,6 +135,7 @@ export class ModelEditSelection {
 
   set anchor(v: number) {
     this._anchor = v;
+    this._updateDirection();
   }
 
   get active() {
@@ -82,10 +144,98 @@ export class ModelEditSelection {
 
   set active(v: number) {
     this._active = v;
+    this._updateDirection();
+  }
+
+  get start() {
+    this._updateDirection();
+    return this._start;
+  }
+
+  get end() {
+    this._updateDirection();
+    return this._end;
+  }
+
+  get isCursor() {
+    return this.anchor === this.active;
+  }
+
+  get isSelection() {
+    return this.anchor !== this.active;
+  }
+
+  get isReversed() {
+    this._updateDirection();
+    return this._isReversed;
+  }
+
+  set isReversed(isReversed: boolean) {
+    this._isReversed = isReversed;
+    if (this._isReversed) {
+      this._start = this._active;
+      this._end = this._anchor;
+    } else {
+      this._start = this._anchor;
+      this._end = this._active;
+    }
+  }
+
+  get distance() {
+    return this._end - this._start;
   }
 
   clone() {
     return new ModelEditSelection(this._anchor, this._active);
+  }
+
+  /**
+   * Returns a simple 2-item tuple representing the selection/cursor's range.
+   * Loses directionality, if needed, use `asDirectedRange`.
+   */
+  get asRange(): ModelEditRange {
+    return [this.start, this.end];
+  }
+
+  /**
+   * Same as `ModelEditSelection.asRange` but with the leftmost item being the anchor position, and the rightmost item
+   * being the active position. This way, you can tell if it's reversed by checking if the leftmost item is greater
+   * than the rightmost item.
+   */
+  get asDirectedRange() {
+    return [this.anchor, this.active] as [anchor: number, active: number];
+  }
+
+  /**
+   * Mutates itself!
+   * Very basic, offsets both active/anchor by a positive or negative number lol, with no attempt at clamping.
+   *
+   * Returns self for convenience
+   * @param offset number
+   */
+  reposition(offset: number) {
+    this.active += offset;
+    this.anchor += offset;
+
+    this._updateDirection();
+
+    return this;
+  }
+
+  static isSameRange(a: ModelEditSelection, b: ModelEditSelection) {
+    return _.isEqual(a?.asRange, b?.asRange);
+  }
+
+  static isSameSelection(a: ModelEditSelection, b: ModelEditSelection) {
+    return _.isEqual(a?.asDirectedRange, b?.asDirectedRange);
+  }
+
+  static containsRange(container: ModelEditSelection, containee: ModelEditSelection) {
+    if (containee && container) {
+      const containsStart = containee.start >= container.start && containee.start <= container.end;
+      const containsEnd = containee.end >= container.start && containee.end <= container.end;
+      return containsStart && containsEnd;
+    }
   }
 }
 
@@ -93,18 +243,19 @@ export type ModelEditOptions = {
   undoStopBefore?: boolean;
   formatDepth?: number;
   skipFormat?: boolean;
-  selection?: ModelEditSelection;
+  selections?: ModelEditSelection[];
 };
 
 export interface EditableModel {
   readonly lineEndingLength: number;
+  readonly lineEnding: string;
 
   /**
    * Performs a model edit batch.
    * For some EditableModel's these are performed as one atomic set of edits.
    * @param edits
    */
-  edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
+  edit: (edits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions) => Thenable<boolean>;
 
   getText: (start: number, end: number, mustBeWithin?: boolean) => string;
   getLineText: (line: number) => string;
@@ -113,9 +264,14 @@ export interface EditableModel {
 }
 
 export interface EditableDocument {
-  selection: ModelEditSelection;
+  selections: ModelEditSelection[];
   model: EditableModel;
-  selectionStack: ModelEditSelection[];
+  /**
+   * Selection history stack for grow/shrink selection operations.
+   * Is a 2d array to represent multiple cursors/selections at each grow/shrink step,
+   * with the first Selection of each inner array being the primar and possibly only cursor.
+   */
+  selectionsStack: ModelEditSelection[][];
   getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor;
   insertString: (text: string) => void;
   getSelectionText: () => string;
@@ -127,6 +283,10 @@ export interface EditableDocument {
 export class LineInputModel implements EditableModel {
   /** How many characters in the line endings of the text of this model? */
   constructor(readonly lineEndingLength: number = 1, private document?: EditableDocument) {}
+
+  get lineEnding() {
+    return this.lineEndingLength === 1 ? '\n' : '\r\n';
+  }
 
   /** The input lines. */
   lines: TextLine[] = [new TextLine('', this.getStateForLine(0))];
@@ -298,13 +458,13 @@ export class LineInputModel implements EditableModel {
     if (st[0] != en[0]) {
       lines.push(this.lines[en[0]].text.substring(0, en[1]));
     }
-    return lines.join('\n');
+    return lines.join(this.lineEnding);
   }
 
   /**
    * Returns the row and column for a given text offset in this model.
    */
-  getRowCol(offset: number): [number, number] {
+  getRowCol(offset: number): [row: number, col: number] {
     for (let i = 0; i < this.lines.length; i++) {
       if (offset > this.lines[i].text.length) {
         offset -= this.lines[i].text.length + this.lineEndingLength;
@@ -320,9 +480,9 @@ export class LineInputModel implements EditableModel {
    * the model.
    *
    * @param offset The offset in the line model.
-   * @returns [number, number] The start and the index of the word in the model.
+   * @returns {ModelEditRange} The start and the index of the word in the model.
    */
-  getWordSelection(offset: number): [number, number] {
+  getWordSelection(offset: number): ModelEditRange {
     const stopChars = [' ', '"', ';', '.', '(', ')', '[', ']', '{', '}', '\t', '\n', '\r'],
       [row, column] = this.getRowCol(offset),
       text = this.lines[row].text;
@@ -365,7 +525,7 @@ export class LineInputModel implements EditableModel {
    * Doesn't need to be atomic in the LineInputModel.
    * @param edits
    */
-  edit(edits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
+  edit(edits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): Thenable<boolean> {
     return new Promise((resolve, reject) => {
       for (const edit of edits) {
         switch (edit.editFn) {
@@ -388,8 +548,8 @@ export class LineInputModel implements EditableModel {
             break;
         }
       }
-      if (this.document && options.selection) {
-        this.document.selection = options.selection;
+      if (this.document && options.selections) {
+        this.document.selections = options.selections;
       }
       resolve(true);
     });
@@ -410,8 +570,8 @@ export class LineInputModel implements EditableModel {
     start: number,
     end: number,
     text: string,
-    oldSelection?: [number, number],
-    newSelection?: [number, number]
+    oldSelection?: ModelEditRange,
+    newSelection?: ModelEditRange
   ) {
     const t1 = new Date();
 
@@ -481,8 +641,8 @@ export class LineInputModel implements EditableModel {
   insertString(
     offset: number,
     text: string,
-    oldSelection?: [number, number],
-    newSelection?: [number, number]
+    oldSelection?: ModelEditRange,
+    newSelection?: ModelEditRange
   ): number {
     this.changeRange(offset, offset, text, oldSelection, newSelection);
     return text.length;
@@ -500,8 +660,8 @@ export class LineInputModel implements EditableModel {
   deleteRange(
     offset: number,
     count: number,
-    oldSelection?: [number, number],
-    newSelection?: [number, number]
+    oldSelection?: ModelEditRange,
+    newSelection?: ModelEditRange
   ) {
     this.changeRange(offset, offset + count, '', oldSelection, newSelection);
   }
@@ -542,13 +702,44 @@ export class StringDocument implements EditableDocument {
     if (contents) {
       this.insertString(contents);
     }
+    this.selections = [];
+  }
+  // Selections in real vscode Documents are "deduped" - there cannot be two
+  // cursors in the same location.
+  private _selections: ModelEditSelection[] = [];
+
+  /**
+   * Mimic vscode's selection deduping.
+   * - Remove nils
+   * - Remove duplicate ranges
+   * - Remove selections contained in another, ie, prefer larger selections
+   */
+  set selections(newSelections: ModelEditSelection[]) {
+    const uniqueSelections = _(newSelections)
+      // drop nils
+      .compact()
+      // simple deduping of duplicate ranges
+      .uniqWith(ModelEditSelection.isSameRange)
+      // "dedupe" any selections contained in another
+      .reject(
+        (s, _i, sels) =>
+          _(sels)
+            .without(s) // selection always contains self, so drop self
+            .compact() // drop nils from `without`
+            .some((b) => ModelEditSelection.containsRange(b, s)) // always prefer the larger selection
+      )
+      .value();
+
+    this._selections = uniqueSelections;
   }
 
-  selection: ModelEditSelection;
+  get selections() {
+    return this._selections;
+  }
 
   model: LineInputModel;
 
-  selectionStack: ModelEditSelection[] = [];
+  selectionsStack: ModelEditSelection[][] = [];
 
   getTokenCursor(offset?: number, previous?: boolean): LispTokenCursor {
     if (isUndefined(offset)) {
@@ -566,16 +757,16 @@ export class StringDocument implements EditableDocument {
   getSelectionText: () => string;
 
   delete() {
-    const p = this.selection.anchor;
+    const p = this.selections[0].anchor;
     return this.model.edit([new ModelEdit('deleteRange', [p, 1])], {
-      selection: new ModelEditSelection(p),
+      selections: [new ModelEditSelection(p)],
     });
   }
 
   backspace() {
-    const p = this.selection.anchor;
+    const p = this.selections[0].anchor;
     return this.model.edit([new ModelEdit('deleteRange', [p - 1, 1])], {
-      selection: new ModelEditSelection(p - 1),
+      selections: [new ModelEditSelection(p - 1)],
     });
   }
 }

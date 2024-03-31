@@ -5,12 +5,13 @@ import eval from '../evaluate';
 import * as utilities from '../utilities';
 import * as sequence from './connectSequence';
 import * as jackIn from './jack-in';
-import * as outputWindow from '../results-output/results-doc';
+import * as outputWindow from '../repl-window/repl-doc';
 import { getConfig } from '../config';
 import * as replSession from './repl-session';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import { ReplConnectSequence } from './connectSequence';
 import * as fiddleFiles from '../fiddle-files';
+import * as output from '../results-output/output';
 
 const TEMPLATES_SUB_DIR = 'bundled';
 const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
@@ -250,7 +251,7 @@ export async function startStandaloneRepl(
   );
 
   const firstPos = mainEditor.document.positionAt(0);
-  mainEditor.selection = new vscode.Selection(firstPos, firstPos);
+  mainEditor.selections = [new vscode.Selection(firstPos, firstPos)];
   mainEditor.revealRange(new vscode.Range(firstPos, firstPos));
   await vscode.window.showTextDocument(mainDoc, {
     preview: false,
@@ -265,7 +266,7 @@ export async function startStandaloneRepl(
       preserveFocus: false,
     });
     await eval.loadDocument({}, getConfig().prettyPrintingOptions);
-    outputWindow.appendPrompt();
+    output.replWindowAppendPrompt();
   });
 }
 

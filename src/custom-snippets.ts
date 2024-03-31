@@ -3,12 +3,13 @@ import * as _ from 'lodash';
 import * as util from './utilities';
 import * as getText from './util/get-text';
 import * as namespace from './namespace';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import evaluate from './evaluate';
 import * as state from './state';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import * as output from './results-output/output';
 
 export type CustomREPLCommandSnippet = {
   name: string;
@@ -39,7 +40,7 @@ async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetD
   const editor = util.getActiveTextEditor();
   const [editorNS, _] =
     editor && editor.document && editor.document.languageId === 'clojure'
-      ? namespace.getNamespace(editor.document, editor.selection.active)
+      ? namespace.getNamespace(editor.document, editor.selections[0].active)
       : undefined;
   const editorRepl =
     editor && editor.document && editor.document.languageId === 'clojure'
@@ -76,7 +77,7 @@ async function evaluateCodeInContext(
   options: any
 ) {
   const result = await evaluateSnippet(editor, code, context, options);
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
   return result;
 }
 
@@ -140,8 +141,8 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
       }
     }
     if (pick === undefined) {
-      outputWindow.appendLine(
-        '; No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.'
+      output.appendLineOtherOut(
+        'No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.'
       );
       return;
     }
@@ -157,20 +158,20 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
 
 export function makeContext(editor: vscode.TextEditor, ns: string, editorNS: string, repl: string) {
   return {
-    currentLine: editor.selection.active.line,
-    currentColumn: editor.selection.active.character,
+    currentLine: editor.selections[0].active.line,
+    currentColumn: editor.selections[0].active.character,
     currentFilename: editor.document.fileName,
     ns,
     editorNS,
     repl,
-    selection: editor.document.getText(editor.selection),
+    selection: editor.document.getText(editor.selections[0]),
     selectionWithBracketTrail: getText.selectionAddingBrackets(
       editor.document,
-      editor.selection.active
+      editor.selections[0].active
     ),
     currentFileText: getText.currentFileText(editor.document),
     ...(editor.document.languageId === 'clojure'
-      ? getText.currentClojureContext(editor.document, editor.selection.active)
+      ? getText.currentClojureContext(editor.document, editor.selections[0].active)
       : {}),
   };
 }

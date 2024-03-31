@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as config from '../../formatter-config';
-import * as outputWindow from '../../results-output/results-doc';
+import * as outputWindow from '../../repl-window/repl-doc';
 import { getIndent, getDocumentOffset, getDocument } from '../../doc-mirror/index';
 import { formatTextAtRange, formatText, jsify } from '../../../out/cljs-lib/cljs-lib';
 import * as util from '../../utilities';
@@ -32,7 +32,7 @@ export async function indentPosition(position: vscode.Position, document: vscode
         undoStopBefore: false,
       })
       .then((onFulfilled) => {
-        editor.selection = new vscode.Selection(newPosition, newPosition);
+        editor.selections = [new vscode.Selection(newPosition, newPosition)];
         return onFulfilled;
       });
   } else if (delta < 0) {
@@ -43,7 +43,7 @@ export async function indentPosition(position: vscode.Position, document: vscode
         undoStopBefore: false,
       })
       .then((onFulfilled) => {
-        editor.selection = new vscode.Selection(newPosition, newPosition);
+        editor.selections = [new vscode.Selection(newPosition, newPosition)];
         return onFulfilled;
       });
   }
@@ -100,10 +100,10 @@ export async function formatRange(document: vscode.TextDocument, range: vscode.R
 export async function formatPositionInfo(
   editor: vscode.TextEditor,
   onType: boolean = false,
-  extraConfig = {}
+  extraConfig: CljFmtConfig = {}
 ) {
   const doc: vscode.TextDocument = editor.document;
-  const index = doc.offsetAt(editor.selection.active);
+  const index = doc.offsetAt(editor.selections[0].active);
   const cursor = getDocument(doc).getTokenCursor(index);
 
   const formatRange = _calculateFormatRange(extraConfig, cursor, index);
@@ -142,11 +142,13 @@ export async function formatPositionInfo(
   };
 }
 
-function _calculateFormatRange(
-  config: { 'format-depth'?: number },
-  cursor: LispTokenCursor,
-  index: number
-) {
+interface CljFmtConfig {
+  'format-depth'?: number;
+  'align-associative?'?: boolean;
+  'remove-multiple-non-indenting-spaces?'?: boolean;
+}
+
+function _calculateFormatRange(config: CljFmtConfig, cursor: LispTokenCursor, index: number) {
   const formatDepth = config?.['format-depth'] ?? _formatDepth(cursor);
   const rangeForTopLevelForm = cursor.rangeForDefun(index, false);
   const topLevelStartCursor = cursor.doc.getTokenCursor(rangeForTopLevelForm[0]);
@@ -195,7 +197,7 @@ function _formatDepth(cursor: LispTokenCursor) {
 export async function formatPosition(
   editor: vscode.TextEditor,
   onType: boolean = false,
-  extraConfig = {}
+  extraConfig: CljFmtConfig = {}
 ): Promise<boolean> {
   const doc: vscode.TextDocument = editor.document,
     formattedInfo = await formatPositionInfo(editor, onType, extraConfig);
@@ -208,20 +210,24 @@ export async function formatPosition(
         { undoStopAfter: false, undoStopBefore: false }
       )
       .then((onFulfilled: boolean) => {
-        editor.selection = new vscode.Selection(
-          doc.positionAt(formattedInfo.newIndex),
-          doc.positionAt(formattedInfo.newIndex)
-        );
+        editor.selections = [
+          new vscode.Selection(
+            doc.positionAt(formattedInfo.newIndex),
+            doc.positionAt(formattedInfo.newIndex)
+          ),
+        ];
         return onFulfilled;
       });
   }
   if (formattedInfo) {
     return new Promise((resolve, _reject) => {
       if (formattedInfo.newIndex != formattedInfo.previousIndex) {
-        editor.selection = new vscode.Selection(
-          doc.positionAt(formattedInfo.newIndex),
-          doc.positionAt(formattedInfo.newIndex)
-        );
+        editor.selections = [
+          new vscode.Selection(
+            doc.positionAt(formattedInfo.newIndex),
+            doc.positionAt(formattedInfo.newIndex)
+          ),
+        ];
       }
       resolve(true);
     });

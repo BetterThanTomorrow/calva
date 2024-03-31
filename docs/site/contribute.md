@@ -21,4 +21,8 @@ There are many ways to contribute:
 
 Be creative!
 
+## Please star the Calva repo!
+
+[![Please star the Calva repo!](https://github.com/BetterThanTomorrow/calva/raw/published/assets/images/star-calva-repo.png)](https://github.com/BetterThanTomorrow/calva)
+
 Happy Coding! ❤️

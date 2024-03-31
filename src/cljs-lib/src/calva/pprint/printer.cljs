@@ -3,6 +3,32 @@
             [calva.js-utils :refer [jsify cljify]]
             [clojure.string]))
 
+(def colors {:brace :white,
+             :bracket :white,
+             :char :none,
+             :comma :none,
+             :comment :italic,
+             :deref :blue,
+             :false :blue,
+             :fn :yellow,
+             :hash-brace :white,
+             :hash-paren :white,
+             :keyword :magenta,
+             :left :none,
+             :nil :blue,
+             :none :blue,
+             :number :blue,
+             :paren :white,
+             :quote :white,
+             :regex :green,
+             :right :none,
+             :string :green,
+             :symbol :black,
+             :syntax-quote-paren :none
+             :true :blue,
+             :uneval :none,
+             :user-fn :yellow})
+
 (defn pretty-print
   "Parses the string `s` as EDN and returns it pretty printed as a string.
    Accepts that s is an EDN form already, and skips the parsing, if so.
@@ -10,17 +36,18 @@
   [s opts]
   (let [result (try
                  {:value
-                  (zprint/zprint-file-str s "Calva" opts)}
+                  (zprint/zprint-file-str s "Calva" (assoc opts :color-map colors))}
                  (catch js/Error e
                    {:value s
                     :error (str "Plain printing, b/c pprint failed. (" (.-message e) ")")}))]
     result))
 
 
-(defn pretty-print-js [s {:keys [width, maxLength, maxDepth, map-commas?]}]
-  (let [opts (into {} (remove (comp nil? val) {:width width
-                                               :max-length maxLength
-                                               :max-depth maxDepth}))
+(defn pretty-print-js [s {:keys [maxLength, maxDepth, map-commas?] :as all-opts}]
+  (let [opts (into {} (remove (comp nil? val) (-> all-opts
+                                                  (dissoc :maxLength :maxDepth :printEngine :enabled)
+                                                  (merge {:max-length maxLength
+                                                          :max-depth maxDepth}))))
         opts (if (nil? map-commas?)
                opts
                (assoc opts :map {:comma? map-commas?}))]
@@ -31,7 +58,7 @@
 
 
 ;; SCRAP
-(comment 
+(comment
   (zprint/zprint-file-str "{:a 1, :b 2 :c 3} {:a 1, :b 2 :c 3}" "id" {:map {:comma? false}})
   (zprint/zprint-file-str "a s" "id" {})
   (zprint/zprint-str "a s" {:parse-string? true})
@@ -42,15 +69,15 @@
   ;; => {:value "[##]"}
   (pretty-print [[[[[[[[:deeper]]]]]]]] {:max-depth 4})
   ;; => {:value "[[[[##]]]]"}
-  
+
   (def ignores [#_#_#_#_#_:span "This" "is" "How" "it" "Works"])
   (:value (pretty-print ignores nil))
   ;; => "[(quote \"Works\")]"
-  
+
   (def str-ignores "[  #_  #_  #_#_#_:span \"This\" \"is\" \"How\" \"it\" \"Works\"   ]")
   (:value (pretty-print str-ignores nil))
   ;; => "[#_#_#_#_#_:span \"This\" \"is\" \"How\" \"it\" \"Works\"]"
-  
+
   (def struct '(let [r :r
                      this-page :this-page]
                  [:div.grid-x.grid-margin-x.grid-margin-y

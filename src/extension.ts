@@ -25,9 +25,9 @@ import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import * as fileSwitcher from './file-switcher/file-switcher';
-import * as replHistory from './results-output/repl-history';
+import * as replHistory from './repl-window/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
@@ -47,6 +47,7 @@ import { capitalize } from './utilities';
 import * as overrides from './overrides';
 import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
+import * as output from './results-output/output';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -67,7 +68,9 @@ function setKeybindingsEnabledContext() {
 function initializeState() {
   setStateValue('connected', false);
   setStateValue('connecting', false);
-  setStateValue('outputChannel', vscode.window.createOutputChannel('Calva says'));
+  const outputChannel = vscode.window.createOutputChannel('Calva says', 'markdown');
+  setStateValue('outputChannel', outputChannel);
+  output.initOutputChannel(outputChannel);
   setStateValue('connectionLogChannel', vscode.window.createOutputChannel('Calva Connection Log'));
   setStateValue(
     'diagnosticCollection',
@@ -105,7 +108,6 @@ async function activate(context: vscode.ExtensionContext) {
   testRunner.initialize(testController);
 
   setStateValue('analytics', new Analytics(context));
-  state.analytics().logPath('/start').logEvent('LifeCycle', 'Started').send();
   void state.analytics().logGA4Pageview('/start');
 
   model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
@@ -198,7 +200,7 @@ async function activate(context: vscode.ExtensionContext) {
   status.update(context);
 
   // Initial set of the provided contexts
-  outputWindow.setContextForOutputWindowActive(false);
+  outputWindow.setContextForReplWindowActive(false);
   void vscode.commands.executeCommand('setContext', 'calva:launching', false);
   void vscode.commands.executeCommand('setContext', 'calva:connected', false);
   void vscode.commands.executeCommand('setContext', 'calva:jackedIn', false);
@@ -227,7 +229,7 @@ async function activate(context: vscode.ExtensionContext) {
     disconnect: jackIn.calvaDisconnect,
     evaluateCurrentTopLevelForm: eval.evaluateTopLevelForm,
     evaluateEnclosingForm: eval.evaluateEnclosingForm,
-    evaluateOutputWindowForm: eval.evaluateOutputWindowForm,
+    evaluateReplWindowForm: eval.evaluateReplWindowForm,
     evaluateSelection: eval.evaluateCurrentForm,
     evaluateSelectionAsComment: eval.evaluateSelectionAsComment,
     evaluateSelectionReplace: eval.evaluateSelectionReplace,
@@ -243,23 +245,19 @@ async function activate(context: vscode.ExtensionContext) {
     loadFile: eval.loadFileCommand,
     openCalvaDocs: async () => {
       await context.globalState.update(VIEWED_CALVA_DOCS, true);
-      return open(CALVA_DOCS_URL)
-        .then(() => {
-          state.analytics().logEvent('Calva', 'Docs opened');
-        })
-        .catch((e) => {
-          console.error(`Problems visiting calva docs: ${e}`);
-        });
+      return open(CALVA_DOCS_URL).catch((e) => {
+        console.error(`Problems visiting calva docs: ${e}`);
+      });
     },
     openUserConfigEdn: config.openCalvaConfigEdn,
     prettyPrintReplaceCurrentForm: edit.prettyPrintReplaceCurrentForm,
-    printClojureDocsToOutputWindow: clojureDocs.printClojureDocsToOutputWindow,
+    printClojureDocsToOutputWindow: clojureDocs.printClojureDocsToOutput,
     printClojureDocsToRichComment: clojureDocs.printClojureDocsToRichComment,
     printLastStacktrace: () => {
       outputWindow.printLastStacktrace();
-      outputWindow.appendPrompt();
+      output.replWindowAppendPrompt();
     },
-    printTextToOutputWindowCommand: clojureDocs.printTextToOutputWindowCommand,
+    printTextToOutputCommand: clojureDocs.printTextToOutputCommand,
     printTextToRichCommentCommand: clojureDocs.printTextToRichCommentCommand,
     refresh: refresh.refresh,
     refreshAll: refresh.refreshAll,
@@ -282,6 +280,9 @@ async function activate(context: vscode.ExtensionContext) {
     },
     showNextReplHistoryEntry: replHistory.showNextReplHistoryEntry,
     showOutputWindow: () => outputWindow.revealResultsDoc(false),
+    showOutputChannel: output.showOutputChannel,
+    showOutputTerminal: output.showOutputTerminal,
+    showResultOutputDestination: output.showResultOutputDestination,
     showPreviousReplHistoryEntry: replHistory.showPreviousReplHistoryEntry,
     startJoyrideReplAndConnect: async () => {
       const projectDir: string = await joyride.prepareForJackingOrConnect();
@@ -393,20 +394,18 @@ async function activate(context: vscode.ExtensionContext) {
         if (evalOnSave) {
           if (!outputWindow.isResultsDoc(document)) {
             await eval.loadDocument(document, config.getConfig().prettyPrintingOptions, false);
-            outputWindow.appendPrompt();
-            state.analytics().logEvent('Calva', 'OnSaveLoad').send();
+            output.replWindowAppendPrompt();
           }
         }
 
         if (testOnSave && util.getConnectedState()) {
           void testRunner.runNamespaceTests(testController, document);
-          state.analytics().logEvent('Calva', 'OnSaveTest').send();
         }
       },
       changeTextDocument: annotations.onDidChangeTextDocument,
       closeTextDocument: (document) => {
         if (outputWindow.isResultsDoc(document)) {
-          outputWindow.setContextForOutputWindowActive(false);
+          outputWindow.setContextForReplWindowActive(false);
         }
       },
       changeConfiguration: (e: vscode.ConfigurationChangeEvent) => {
@@ -424,7 +423,7 @@ async function activate(context: vscode.ExtensionContext) {
       changeTextEditorSelection: (event) => onDidChangeEditorOrSelection(event.textEditor),
       changeVisibleTextEditors: (editors) => {
         if (!editors.some((editor) => outputWindow.isResultsDoc(editor.document))) {
-          outputWindow.setContextForOutputWindowActive(false);
+          outputWindow.setContextForReplWindowActive(false);
         }
       },
     },
@@ -500,8 +499,6 @@ async function activate(context: vscode.ExtensionContext) {
     }
   }
 
-  state.analytics().logPath('/activated').logEvent('LifeCycle', 'Activated').send();
-
   if (!cwExtension) {
     try {
       highlight.activate(context);
@@ -527,7 +524,6 @@ async function activate(context: vscode.ExtensionContext) {
 }
 
 async function deactivate(): Promise<void> | undefined {
-  state.analytics().logEvent('LifeCycle', 'Deactivated').send();
   jackIn.calvaJackout();
   paredit.deactivate();
   await lsp.getClientProvider().shutdown();

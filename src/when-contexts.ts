@@ -16,7 +16,7 @@ export function setCursorContextIfChanged(editor: vscode.TextEditor) {
   ) {
     return;
   }
-  const contexts = determineCursorContexts(editor.document, editor.selection.active);
+  const contexts = determineCursorContexts(editor.document, editor.selections[0].active);
   setCursorContexts(contexts);
 }
 

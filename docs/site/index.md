@@ -71,4 +71,8 @@ Easiest way is to chat with us and other Calva users. Please join the [#calva ch
 
 If you're a beginner to Clojure(Script), the [#beginners](https://clojurians.slack.com/messages/beginners) channel of the Clojurians Slack is very active and helpful.
 
+## Please star the Calva repo!
+
+[![Please star the Calva repo!](https://github.com/BetterThanTomorrow/calva/raw/published/assets/images/star-calva-repo.png)](https://github.com/BetterThanTomorrow/calva)
+
 Happy coding!

@@ -10,6 +10,7 @@ import {
   ModelEditOptions,
   LineInputModel,
   ModelEditSelection,
+  ModelEditFunction,
 } from '../cursor-doc/model';
 import { isUndefined } from 'lodash';
 
@@ -24,7 +25,11 @@ export class DocumentModel implements EditableModel {
     this.lineInputModel = new LineInputModel(this.lineEndingLength);
   }
 
-  edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
+  get lineEnding() {
+    return this.lineEndingLength == 2 ? '\r\n' : '\n';
+  }
+
+  edit(modelEdits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): Thenable<boolean> {
     const editor = utilities.getActiveTextEditor(),
       undoStopBefore = !!options.undoStopBefore;
     return editor
@@ -50,12 +55,12 @@ export class DocumentModel implements EditableModel {
       )
       .then((isFulfilled) => {
         if (isFulfilled) {
-          if (options.selection) {
-            this.document.selection = options.selection;
+          if (options.selections) {
+            this.document.selections = options.selections;
           }
           if (!options.skipFormat) {
             return formatter.formatPosition(editor, true, {
-              'format-depth': options.formatDepth ? options.formatDepth : 1,
+              'format-depth': options.formatDepth ?? 1,
             });
           }
         }
@@ -124,10 +129,10 @@ export class MirroredDocument implements EditableDocument {
 
   model = new DocumentModel(this);
 
-  selectionStack: ModelEditSelection[] = [];
+  selectionsStack: ModelEditSelection[][] = [];
 
   public getTokenCursor(
-    offset: number = this.selection.active,
+    offset: number = this.selections[0].active,
     previous: boolean = false
   ): LispTokenCursor {
     return this.model.getTokenCursor(offset, previous);
@@ -135,36 +140,43 @@ export class MirroredDocument implements EditableDocument {
 
   public insertString(text: string) {
     const editor = utilities.getActiveTextEditor(),
-      selection = editor.selection,
+      selection = editor.selections[0],
       wsEdit = new vscode.WorkspaceEdit(),
       // TODO: prob prefer selection.active or .start
-      edit = vscode.TextEdit.insert(this.document.positionAt(this.selection.anchor), text);
+      edit = vscode.TextEdit.insert(this.document.positionAt(this.selections[0].anchor), text);
     wsEdit.set(this.document.uri, [edit]);
     void vscode.workspace.applyEdit(wsEdit).then((_v) => {
-      editor.selection = selection;
+      editor.selections = [selection];
     });
   }
 
-  set selection(selection: ModelEditSelection) {
+  get selections(): ModelEditSelection[] {
     const editor = utilities.getActiveTextEditor(),
-      document = editor.document,
-      anchor = document.positionAt(selection.anchor),
-      active = document.positionAt(selection.active);
-    editor.selection = new vscode.Selection(anchor, active);
-    editor.revealRange(new vscode.Range(active, active));
+      document = editor.document;
+    return editor.selections.map((sel) => {
+      const anchor = document.offsetAt(sel.anchor),
+        active = document.offsetAt(sel.active);
+      return new ModelEditSelection(anchor, active);
+    });
   }
 
-  get selection(): ModelEditSelection {
+  set selections(selections: ModelEditSelection[]) {
     const editor = utilities.getActiveTextEditor(),
-      document = editor.document,
-      anchor = document.offsetAt(editor.selection.anchor),
-      active = document.offsetAt(editor.selection.active);
-    return new ModelEditSelection(anchor, active);
+      document = editor.document;
+    editor.selections = selections.map((selection) => {
+      const anchor = document.positionAt(selection.anchor),
+        active = document.positionAt(selection.active);
+      return new vscode.Selection(anchor, active);
+    });
+
+    const primarySelection = selections[0];
+    const active = document.positionAt(primarySelection.active);
+    editor.revealRange(new vscode.Range(active, active));
   }
 
   public getSelectionText() {
     const editor = utilities.getActiveTextEditor(),
-      selection = editor.selection;
+      selection = editor.selections[0];
     return this.document.getText(selection);
   }
 

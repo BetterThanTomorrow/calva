@@ -1,6 +1,6 @@
 import { NReplSession } from '.';
 import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
-import * as outputWindow from '../results-output/results-doc';
+import * as outputWindow from '../repl-window/repl-doc';
 import { isUndefined } from 'lodash';
 
 function getSession(fileType?: string): NReplSession {
@@ -43,6 +43,7 @@ function getReplSessionType(connected: boolean): string | undefined {
 }
 
 function updateReplSessionType() {
+  // TODO: Should the session type be set to cljs even when the cljs repl is not yet connected?
   const connected = cljsLib.getStateValue('connected');
   const replSessionType = getReplSessionType(connected);
   cljsLib.setStateValue('current-session-type', replSessionType);

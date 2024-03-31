@@ -48,7 +48,7 @@ To make the command descriptions a bit clearer, each entry is animated. When you
 
 ### Strings are not Lists, but Anyway...
 
-In Calva Paredit, strings are treated in much the same way as lists are. Here's an example showing **Slurp** and **Barf**, **Forward/Backward List**, and **Grow Selection**.
+In Calva Paredit, strings are treated in much the same way as lists are. Here's an example showing **Slurp** and **Barf**, **Forward/Backward List**, and **Expand Selection**.
 
 ![](images/paredit/string-as-list.gif)
 
@@ -76,7 +76,7 @@ Most of these commands are selecting ”versions” of the navigation commands a
 Default keybinding    | Action | Description
 ------------------    | ------ | -----------
  `shift+alt+right` (win/linux)<br>`ctrl+w` (mac)                | **Expand Selection** | Starts from the cursor and selects the current form. Then will keep expanding to enclosing forms.<br> ![](images/paredit/grow-selection.gif)
- `shift+alt+left` (win/linux)<br>`ctrl+shift+w` (mac)         | **Shrink Selection** | Contracts back from an expanded selection performed by any Paredit selection command.<br> ![](images/paredit/shrink-selection.gif)<br>(In the animation the selection is first grown using a combination of **Grow Selection** and some lateral selection commands, then shrunk all the way back down to no selection.)
+ `shift+alt+left` (win/linux)<br>`ctrl+shift+w` (mac)         | **Shrink Selection** | Contracts back from an expanded selection performed by any Paredit selection command.<br> ![](images/paredit/shrink-selection.gif)<br>(In the animation the selection is first grown using a combination of **Expand Selection** and some lateral selection commands, then shrunk all the way back down to no selection.)
  `ctrl+alt+w space`      | **Select Top Level Form** | Top level in a structural sense. Typically where your`(def ...)`/`(defn ...)` type forms. Please note that`(comment ...)` forms create a new top level. <br> ![](images/paredit/select-top-level-form.gif)
  `shift+ctrl+right` (win/linux)<br>`shift+alt+right` (mac)  | **Select Forward Sexp** | ![](images/paredit/select-forward-sexp.gif)
   `ctrl+shift+k`         | **Select Right**          | Select forward to the end of the current form or the first newline. See **Kill right** below. (The animation also shows **Shrink Selection**).<br> ![](images/paredit/select-right.gif)
@@ -108,7 +108,8 @@ Default keybinding                | Action | Description
  `ctrl+alt+shift` `k`<br>`ctrl+alt+shift` `j` | **Drag Sexp Forward Up**<br>**Drag Sexp Backward Down** | Moves the current form up/out of the current list, *forwards*, and down/in to the preceding list, *backwards*, keeping the cursor within the sexpr being dragged.<br> ![](images/paredit/drag-forward-up-backward-down.gif)
  `ctrl+shift+c`                      | **Convolute** | ¯\\\_(ツ)_/¯ <br> ![](images/paredit/convolute.gif)
  `ctrl+shift+delete`                   | **Kill Sexp Forward** | Deletes the next form in the same enclosing form as the cursor.<br> ![](images/paredit/kill-forward-sexp.gif)
- `ctrl+k`                            | **Kill Right**          | Delete forward to the end of the current form or the first newline.<br> ![](images/paredit/kill-right.gif)
+ `ctrl+k ctrl+k` (win/linux)<br>`ctrl+k` (mac)                     | **Kill Right**          | Delete forward to the end of the current form or the first newline.<br> ![](images/paredit/kill-right.gif)
+ `ctrl+k ctrl+h` (win/linux)<br>`cmd+backspace` (mac)                     | **Kill Left**          | Delete backward to the start of the current form or the start of the line.<br> ![](images/paredit/kill-left.gif)
  `ctrl+alt+backspace`                | **Kill Sexp Backward** | Deletes the previous form in the same enclosing form as the cursor.<br> ![](images/paredit/kill-backward-sexp.gif)
  `ctrl+delete`                       | **Kill List Forward** | Deletes everything from the cursor to the closing of the current enclosing form.<br> ![](images/paredit/kill-close-list.gif)
  `ctrl+backspace`                    | **Kill List Backward** | Deletes everything from the cursor to the opening of the current enclosing form.<br> ![](images/paredit/kill-open-list.gif)
@@ -148,5 +149,12 @@ There are some context keys you can utilize to configure keyboard shortcuts with
 
 In some instances built-in command defaults are the same as Paredit's defaults, and Paredit's functionality in a particular case is less than what the default is. This is true of *Expand Selection* and *Shrink Selection* for Windows/Linux when multiple lines are selected. In this particular case adding `!editorHasMultipleSelections` to the `when` clause of the binding makes for a better workflow. The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right `when` clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.
 
-
 Happy Editing! ❤️
+
+## Experimental Feature: Multicursor support
+
+There is an ongoing effort to support simultaneous multicursor editing with Paredit. This is an experimental feature and is not enabled by default. To enable it, set `calva.paredit.multicursor` to `true`. This feature is still in development and may not work as expected in all cases. Currently, this supports the following categories:
+
+- Movement
+- Selection (except for `Select Current Form` - coming soon!)
+- Rewrap

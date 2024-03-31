@@ -3,14 +3,30 @@ import * as calva_utils from '../../utilities';
 import * as defs from '../definitions';
 import * as vscode from 'vscode';
 import * as api from '../api';
+import * as _ from 'lodash';
 
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
 
-type ClojureLspCommand = {
+type BaseLspCommand = {
   command: string;
-  extraParamFn?: () => Thenable<string>;
   category?: string;
 };
+
+// If afterCommandFn is defined, then defaultName must be too
+type ClojureLspCommand = BaseLspCommand &
+  (
+    | {
+        afterCommandFn: (
+          commandArgs: Array<string | number>,
+          commandResponse: Record<string, unknown>
+        ) => Thenable<any>;
+        defaultName: string;
+      }
+    | {
+        defaultName?: string;
+        afterCommandFn?: never;
+      }
+  );
 
 type LSPCommandHandlerParams = {
   clients: defs.LspClientStore;
@@ -18,15 +34,136 @@ type LSPCommandHandlerParams = {
 };
 type LSPCommandHandler = (params: LSPCommandHandlerParams) => Promise<void> | void;
 
-function makePromptForInput(placeHolder: string) {
-  return async () => {
-    return await vscode.window.showInputBox({
-      value: '',
-      placeHolder: placeHolder,
-      validateInput: (input) => (input.trim() === '' ? 'Empty input' : null),
-    });
-  };
+async function renameAfterRefactor(
+  commandArgs: Array<string | number>,
+  commandResponse: vscode_lsp.WorkspaceEdit
+) {
+  if (commandArgs[3] !== this.defaultName) {
+    return;
+  }
+
+  let uri, line, character;
+  for (const change of commandResponse.documentChanges) {
+    //This will never be hit, but it's necessary to convince typescript that we have a
+    //TextDocumentEdit and not any of the other union members
+    if (!('textDocument' in change)) {
+      throw new Error(
+        `renameAfterRefactor is not a valid afterCommandFn for event ${this.command}`
+      );
+    }
+
+    uri = change.textDocument.uri;
+
+    // If a previous change added new lines, then edit.range.start.line will be the *old* line
+    // number. Keep track of the number of lines that have been inserted as we go through the edits
+    // to keep the line numbers in sync.
+    let lineOffset = 0;
+
+    for (const edit of change.edits) {
+      // Pad out the beginning of newText to align it with the original line so that the index of
+      // the matched substring is the same as the index of the substring in the document
+      const newText = ' '.repeat(edit.range.start.character) + edit.newText;
+
+      const lines = newText.split('\n');
+
+      for (const [lineNo, lineText] of lines.entries()) {
+        const match = lineText.match(new RegExp(`\\b${this.defaultName}\\b`));
+
+        if (match) {
+          line = edit.range.start.line + lineOffset + lineNo;
+          character = match.index;
+        }
+      }
+
+      lineOffset += Math.max(0, lines.length - 1);
+    }
+  }
+
+  await vscode.commands.executeCommand('editor.action.rename', [
+    vscode.Uri.parse(uri),
+    new vscode.Position(line, character),
+  ]);
+
+  return commandResponse;
 }
+
+const clojureLspCommands: ClojureLspCommand[] = [
+  { command: 'add-import-to-namespace', category: 'clojureLsp.refactor' },
+  { command: 'add-missing-import', category: 'clojureLsp.refactor' },
+  { command: 'add-missing-libspec', category: 'clojureLsp.refactor' },
+  { command: 'add-require-suggestion', category: 'clojureLsp.refactor' },
+  { command: 'change-coll', category: 'clojureLsp.refactor' },
+  { command: 'clean-ns', category: 'clojureLsp.refactor' },
+  { command: 'create-function', category: 'clojureLsp.refactor' },
+  { command: 'create-test', category: 'clojureLsp.refactor' },
+  { command: 'cycle-coll', category: 'clojureLsp.refactor' },
+  { command: 'cycle-keyword-auto-resolve', category: 'clojureLsp.refactor' },
+  { command: 'cycle-privacy', category: 'clojureLsp.refactor' },
+  { command: 'demote-fn', category: 'clojureLsp.refactor' },
+  { command: 'destructure-keys', category: 'clojureLsp.refactor' },
+  { command: 'drag-backward', category: 'clojureLsp.refactor' },
+  { command: 'drag-forward', category: 'clojureLsp.refactor' },
+  { command: 'drag-param-backward', category: 'clojureLsp' },
+  { command: 'drag-param-forward', category: 'clojureLsp' },
+  { command: 'expand-let', category: 'clojureLsp.refactor' },
+  { command: 'get-in-all', category: 'clojureLsp.refactor' },
+  { command: 'get-in-less', category: 'clojureLsp.refactor' },
+  { command: 'get-in-more', category: 'clojureLsp.refactor' },
+  { command: 'get-in-none', category: 'clojureLsp.refactor' },
+  { command: 'inline-symbol', category: 'clojureLsp.refactor' },
+  { command: 'move-coll-entry-down', category: 'clojureLsp.refactor' },
+  { command: 'move-coll-entry-up', category: 'clojureLsp.refactor' },
+  { command: 'move-form', category: 'clojureLsp.refactor' },
+  { command: 'resolve-macro-as', category: 'clojureLsp.refactor' },
+  { command: 'restructure-keys', category: 'clojureLsp.refactor' },
+  { command: 'sort-clauses', category: 'clojureLsp.refactor' },
+  { command: 'sort-map', category: 'clojureLsp.refactor' },
+  { command: 'suppress-diagnostic', category: 'clojureLsp.refactor' },
+  { command: 'thread-first', category: 'clojureLsp.refactor' },
+  { command: 'thread-first-all', category: 'clojureLsp.refactor' },
+  { command: 'thread-last', category: 'clojureLsp.refactor' },
+  { command: 'thread-last-all', category: 'clojureLsp.refactor' },
+  { command: 'unwind-all', category: 'clojureLsp.refactor' },
+  { command: 'unwind-thread', category: 'clojureLsp.refactor' },
+
+  {
+    command: 'introduce-let',
+    afterCommandFn: renameAfterRefactor,
+    defaultName: 'new-binding',
+    category: 'clojureLsp.refactor',
+  },
+  {
+    command: 'move-to-let',
+    afterCommandFn: renameAfterRefactor,
+    defaultName: 'new-binding',
+    category: 'clojureLsp.refactor',
+  },
+  {
+    command: 'extract-function',
+    afterCommandFn: renameAfterRefactor,
+    defaultName: 'new-fn',
+    category: 'clojureLsp.refactor',
+  },
+  {
+    command: 'extract-to-def',
+    afterCommandFn: renameAfterRefactor,
+    defaultName: 'new-binding',
+    category: 'clojureLsp.refactor',
+  },
+
+  // Though promote-fn can introduce new names, it only does so sometimes (i.e. on (fn) to (defn),
+  // but not on #() to (fn)). The data necessary to determine which promotion is occurring is not in
+  // the LSP's arguments or response. Additionally, promoting #() to (fn) can introduce names for
+  // the *function arguments* as well, and there's no reasonable way to step through renaming them
+  // all. For these reasons, performing auto-renaming with promote-fn will require more thought and
+  // probably some changes in clojure-lsp, and it will remain disabled for now.
+  {
+    command: 'promote-fn',
+    // afterCommandFn: renameAfterRefactor,
+    // defaultName: 'new-fn',
+    category: 'clojureLsp.refactor',
+  },
+];
 
 function sendCommandRequest(
   clients: defs.LspClientStore,
@@ -53,11 +190,14 @@ function sendCommandRequest(
     return;
   }
 
+  const cmdSpec = clojureLspCommands.filter((c) => c.command === command)[0];
+
   client
     .sendRequest(vscode_lsp.ExecuteCommandRequest.type, {
       command,
       arguments: args,
     })
+    .then(cmdSpec?.afterCommandFn ? (response) => cmdSpec.afterCommandFn(args, response) : (x) => x)
     .catch((error) => {
       return client.handleFailedRequest(
         vscode_lsp.ExecuteCommandRequest.type,
@@ -78,8 +218,8 @@ const getLSPCommandParams = () => {
     return;
   }
 
-  const line = editor.selection.start.line;
-  const column = editor.selection.start.character;
+  const line = editor.selections[0].start.line;
+  const column = editor.selections[0].start.character;
   const doc_uri = `${document.uri.scheme}://${document.uri.path}`;
   return [doc_uri, line, column];
 };
@@ -92,18 +232,21 @@ function registerUserspaceLspCommand(
   const vscodeCommand = `${category}.${command.command.replace(/-[a-z]/g, (m) =>
     m.substring(1).toUpperCase()
   )}`;
-  return vscode.commands.registerCommand(vscodeCommand, async () => {
+  return vscode.commands.registerCommand(vscodeCommand, () => {
     const params = getLSPCommandParams();
     if (!params) {
       return;
     }
 
-    const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
-    if (command.extraParamFn && !extraParam) {
-      return;
+    // For commands that introduce new names (e.g. move-to-let):
+    // The LSP command takes an optional 4th arg for the value of the new name. Use the specified
+    // default rather than letting clojure-lsp pick a name so that when we trigger a rename action
+    // after the command completes, we know what to rename.
+    if (command.defaultName) {
+      params[3] = command.defaultName;
     }
 
-    sendCommandRequest(clients, command.command, extraParam ? [...params, extraParam] : params);
+    sendCommandRequest(clients, command.command, params);
   });
 }
 
@@ -112,11 +255,19 @@ function registerInternalLspCommand(
   command: ClojureLspCommand
 ): vscode.Disposable {
   return vscode.commands.registerCommand(command.command, (...args) => {
+    // This handler is only called for quick-fix commands (when the user clicks the lightbulb icon).
+    // For commands that introduce new names (e.g. move-to-let), clojure-lsp always sends back a
+    // default name. Replace that name with our own default so we know what to look for when we
+    // trigger a rename action on it afterwards.
+    if (command.defaultName) {
+      args[3] = command.defaultName;
+    }
+
     sendCommandRequest(clients, command.command, args);
   });
 }
 
-function sendCommand(clients: defs.LspClientStore, command: string, args?: any[]) {
+function sendCommand(clients: defs.LspClientStore, command: string, args?: Array<string | number>) {
   const params = getLSPCommandParams();
   if (!params) {
     return;
@@ -126,12 +277,9 @@ function sendCommand(clients: defs.LspClientStore, command: string, args?: any[]
 
 const codeLensReferencesHandler: LSPCommandHandler = async (params) => {
   const [_, line, character] = params.args;
-  calva_utils.getActiveTextEditor().selection = new vscode.Selection(
-    line - 1,
-    character - 1,
-    line - 1,
-    character - 1
-  );
+  calva_utils.getActiveTextEditor().selections = [
+    new vscode.Selection(line - 1, character - 1, line - 1, character - 1),
+  ];
   await vscode.commands.executeCommand('editor.action.referenceSearch.trigger');
 };
 
@@ -139,7 +287,7 @@ const resolveMacroAsCommandHandler: LSPCommandHandler = (params) => {
   const activeTextEditor = calva_utils.tryToGetActiveTextEditor();
   if (activeTextEditor?.document?.languageId === 'clojure') {
     const documentUri = decodeURIComponent(activeTextEditor.document.uri.toString());
-    const { line, character } = activeTextEditor.selection.active;
+    const { line, character } = activeTextEditor.selections[0].active;
     sendCommandRequest(params.clients, RESOLVE_MACRO_AS_COMMAND, [
       documentUri,
       line + 1,
@@ -158,64 +306,6 @@ export function registerLspCommands(clients: defs.LspClientStore) {
     {
       name: 'calva.linting.resolveMacroAs',
       handler: resolveMacroAsCommandHandler,
-    },
-  ];
-
-  const clojureLspCommands: ClojureLspCommand[] = [
-    { command: 'add-import-to-namespace', category: 'clojureLsp.refactor' },
-    { command: 'add-missing-import', category: 'clojureLsp.refactor' },
-    { command: 'add-missing-libspec', category: 'clojureLsp.refactor' },
-    { command: 'add-require-suggestion', category: 'clojureLsp.refactor' },
-    { command: 'change-coll', category: 'clojureLsp.refactor' },
-    { command: 'clean-ns', category: 'clojureLsp.refactor' },
-    { command: 'create-function', category: 'clojureLsp.refactor' },
-    { command: 'create-test', category: 'clojureLsp.refactor' },
-    { command: 'cycle-coll', category: 'clojureLsp.refactor' },
-    { command: 'cycle-keyword-auto-resolve', category: 'clojureLsp.refactor' },
-    { command: 'cycle-privacy', category: 'clojureLsp.refactor' },
-    { command: 'demote-fn', category: 'clojureLsp.refactor' },
-    { command: 'destructure-keys', category: 'clojureLsp.refactor' },
-    { command: 'drag-backward', category: 'clojureLsp.refactor' },
-    { command: 'drag-forward', category: 'clojureLsp.refactor' },
-    { command: 'drag-param-backward', category: 'clojureLsp' },
-    { command: 'drag-param-forward', category: 'clojureLsp' },
-    { command: 'expand-let', category: 'clojureLsp.refactor' },
-    { command: 'extract-to-def', category: 'clojureLsp.refactor' },
-    { command: 'get-in-all', category: 'clojureLsp.refactor' },
-    { command: 'get-in-less', category: 'clojureLsp.refactor' },
-    { command: 'get-in-more', category: 'clojureLsp.refactor' },
-    { command: 'get-in-none', category: 'clojureLsp.refactor' },
-    { command: 'inline-symbol', category: 'clojureLsp.refactor' },
-    { command: 'move-coll-entry-down', category: 'clojureLsp.refactor' },
-    { command: 'move-coll-entry-up', category: 'clojureLsp.refactor' },
-    { command: 'move-form', category: 'clojureLsp.refactor' },
-    { command: 'promote-fn', category: 'clojureLsp.refactor' },
-    { command: 'resolve-macro-as', category: 'clojureLsp.refactor' },
-    { command: 'restructure-keys', category: 'clojureLsp.refactor' },
-    { command: 'sort-clauses', category: 'clojureLsp.refactor' },
-    { command: 'sort-map', category: 'clojureLsp.refactor' },
-    { command: 'suppress-diagnostic', category: 'clojureLsp.refactor' },
-    { command: 'thread-first', category: 'clojureLsp.refactor' },
-    { command: 'thread-first-all', category: 'clojureLsp.refactor' },
-    { command: 'thread-last', category: 'clojureLsp.refactor' },
-    { command: 'thread-last-all', category: 'clojureLsp.refactor' },
-    { command: 'unwind-all', category: 'clojureLsp.refactor' },
-    { command: 'unwind-thread', category: 'clojureLsp.refactor' },
-
-    {
-      command: 'introduce-let',
-      extraParamFn: makePromptForInput('Bind to'),
-      category: 'clojureLsp.refactor',
-    },
-    {
-      command: 'move-to-let',
-      extraParamFn: makePromptForInput('Bind to'),
-      category: 'clojureLsp.refactor',
-    },
-    {
-      command: 'extract-function',
-      extraParamFn: makePromptForInput('Function name'),
-      category: 'clojureLsp.refactor',
     },
   ];
 

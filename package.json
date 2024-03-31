@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.415",
+  "version": "2.0.433",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -112,6 +112,7 @@
           ".boot",
           ".bb",
           ".ly",
+          ".lpy",
           ".calva-repl",
           ".fiddle"
         ],
@@ -164,6 +165,59 @@
         "type": "object",
         "title": "Calva",
         "properties": {
+          "calva.useLegacyReplWindowPath": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "For legacy reasons, the REPL window used to be located in `${projectRootPath}/.calva/output-window/output.calva-repl`. The default directory will change to `${projectRootPath}/.calva/repl.calva-repl`. Disable this setting to start using the new path. And then add `**/.calva/repl.calva-repl` to your `.gitignore`."
+          },
+          "calva.legacyPrintBareReplWindowOutput": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Non-result output risks breaking the structure of the Clojure document. Therefore `stdout` from the REPL process is prepended with `;` to make the output into line comments, which is non-structural. Enable this setting to print bare output, without the line comment protection. **NB: The REPL window may stop working, or work very strangely or slowly.** Also note that the REPL Window is being deprecated as a destination for output, so you may anyway instead want to use the `calva.outputDestinations` settings to direct `stdout` and `stderr` to the _Calva Output_ `terminal` destination instead."
+          },
+          "calva.outputDestinations": {
+            "type": "object",
+            "markdownDescription": [
+              "Where different types of Calva output should be printed.\nCalva categorizes output into three types:\n- **evaluation results**: Clojure data returned from an evaluation.\n- **evaluation output**: stdout/stderr from an evaluation\n- **other output**: Other messages, logs, etc\n\nYou can select where each category of output should go to: the REPL Window, the _Calva Says_ Output Channel, or the _Calva output_ (pseudo) terminal."
+            ],
+            "properties": {
+              "evalResults": {
+                "type": "string",
+                "enum": [
+                  "repl-window",
+                  "output-channel",
+                  "terminal"
+                ],
+                "default": "repl-window",
+                "markdownDescription": "Destination for evaluation results. (Clojure data returned from an evaluation)."
+              },
+              "evalOutput": {
+                "type": "string",
+                "enum": [
+                  "repl-window",
+                  "output-channel",
+                  "terminal"
+                ],
+                "default": "repl-window",
+                "markdownDescription": "Destination for evaluation output (stdout/stderr from an evaluation)."
+              },
+              "otherOutput": {
+                "type": "string",
+                "enum": [
+                  "repl-window",
+                  "output-channel",
+                  "terminal"
+                ],
+                "default": "repl-window",
+                "markdownDescription": "Destination for other output (Calva messages, out-of-band stdout/stderr, etcetera)."
+              }
+            },
+            "default": {
+              "evalResults": "repl-window",
+              "evalOutput": "repl-window",
+              "otherOutput": "repl-window"
+            }
+          },
           "calva.fiddleFilePaths": {
             "type": "array",
             "markdownDescription": "An array of `source` and `fiddle` root paths, relative to the project root. This is used by the commands **Calva: Open Fiddle File for Current File**, and **Calva: Evaluate Fiddle File for Current File**. Example:\n\n```json\n\"calva.fiddleFilePaths\": [\n  {\n    \"source\": [\"src\"],\n    \"fiddle\": [\"env\", \"dev\", \"fiddles\"]\n  }\n]\n```\n\nThe default is `null`, which will make Calva associate files with a `.fiddle` file extension as the fiddle file for a Clojure file. E.g. a file `src/foo/bar/baz_main.cljc`, will have an associated fiddle file named `src/foo/bar/baz_main.fiddle`. See [calva.io/fiddle](https://calva.io/fiddle-files/) for more info.",
@@ -496,7 +550,7 @@
                 },
                 "evaluationSendCodeToOutputWindow": {
                   "type": "boolean",
-                  "markDownDescription": "Should the code snippet evaluated be echoed to the Output/REPL Window?"
+                  "markDownDescription": "Should the code snippet evaluated be echoed to the REPL Window?"
                 }
               },
               "required": [
@@ -619,8 +673,18 @@
                   }
                 },
                 "afterCLJReplJackInCode": {
-                  "type": "string",
-                  "description": "Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ],
+                  "markdownDescription": "Code to evaluate in the CLJ REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.",
                   "required": false
                 },
                 "menuSelections": {
@@ -734,7 +798,7 @@
                         },
                         "printThisLineRegExp": {
                           "type": "string",
-                          "description": "A regular expression which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the Output/REPL window."
+                          "description": "A regular expression which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to wherever Calva prints output."
                         }
                       }
                     }
@@ -956,6 +1020,12 @@
             "markdownDescription": "When enabled, replaces the clipboard content with the deleted code.",
             "default": false,
             "scope": "window"
+          },
+          "calva.paredit.multicursor": {
+            "type": "boolean",
+            "markdownDescription": "Experimental: Support for multiple cursors in paredit commands.\nCurrently supported commands:\n- Cursor movement\n- Cursor selection\n- Rewrap",
+            "default": false,
+            "scope": "window"
           }
         }
       },
@@ -1167,6 +1237,16 @@
       {
         "command": "calva.diagnostics.toggleNreplLoggingEnabled",
         "title": "Toggle nREPL Logging Enabled",
+        "category": "Calva Diagnostics"
+      },
+      {
+        "command": "calva.diagnostics.printTextNotationFromDocument",
+        "title": "Print TextNotation from the current document to Calva says",
+        "category": "Calva Diagnostics"
+      },
+      {
+        "command": "calva.diagnostics.createDocumentFromTextNotation",
+        "title": "Create a new Clojure Document from TextNotation",
         "category": "Calva Diagnostics"
       },
       {
@@ -1675,6 +1755,12 @@
       },
       {
         "category": "Calva Paredit",
+        "command": "paredit.killLeft",
+        "title": "Kill/Delete Left",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva Paredit",
         "command": "paredit.killSexpForward",
         "title": "Kill/Delete Sexp Forward",
         "enablement": "editorLangId == clojure"
@@ -1843,31 +1929,46 @@
       },
       {
         "category": "Calva",
+        "command": "calva.showOutputChannel",
+        "title": "Show/Open the Calva says Output Channel"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.showOutputTerminal",
+        "title": "Show/Open the Calva Output Terminal"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.showResultOutputDestination",
+        "title": "Show/Open the result output destination"
+      },
+      {
+        "category": "Calva",
         "command": "calva.showOutputWindow",
-        "title": "Show Output/REPL Window",
+        "title": "Show/Open REPL Window",
         "enablement": "calva:connected"
       },
       {
         "category": "Calva",
         "command": "calva.showFileForOutputWindowNS",
-        "title": "Show File for the Current Output/REPL Window Namespace",
+        "title": "Show File for the Current REPL Window Namespace",
         "enablement": "calva:connected"
       },
       {
         "command": "calva.setOutputWindowNamespace",
-        "title": "Switch Namespace in Output/REPL Window to Current Namespace",
+        "title": "Switch Namespace in REPL Window to Current Namespace",
         "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.sendCurrentFormToOutputWindow",
-        "title": "Send Current Form to Output/REPL Window",
+        "title": "Send Current Form to REPL Window",
         "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.sendCurrentTopLevelFormToOutputWindow",
-        "title": "Send Current Top Level Form to Output/REPL Window",
+        "title": "Send Current Top Level Form to REPL Window",
         "enablement": "calva:connected",
         "category": "Calva"
       },
@@ -2110,9 +2211,9 @@
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
       },
       {
-        "command": "calva.evaluateOutputWindowForm",
+        "command": "calva.evaluateReplWindowForm",
         "key": "enter",
-        "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus && !suggestWidgetVisible"
+        "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:replWindowSubmitOnEnter && editorTextFocus && !suggestWidgetVisible"
       },
       {
         "command": "calva.evaluateSelectionReplace",
@@ -2412,6 +2513,13 @@
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
       },
       {
+        "command": "paredit.killLeft",
+        "mac": "cmd+backspace",
+        "win": "ctrl+k ctrl+h",
+        "linux": "ctrl+k ctrl+h",
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
+      },
+      {
         "command": "paredit.killSexpForward",
         "key": "ctrl+shift+delete",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
@@ -2547,13 +2655,28 @@
         "when": "calva:keybindingsEnabled && calva:activeEditorIsFiddle"
       },
       {
-        "command": "calva.showOutputWindow",
+        "command": "calva.showResultOutputDestination",
         "key": "ctrl+alt+o o",
-        "when": "calva:keybindingsEnabled && calva:connected && !calva:outputWindowActive"
+        "when": "calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.showOutputChannel",
+        "key": "ctrl+alt+o c",
+        "when": "calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.showOutputTerminal",
+        "key": "ctrl+alt+o t",
+        "when": "calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.showOutputWindow",
+        "key": "ctrl+alt+o r",
+        "when": "calva:keybindingsEnabled && !calva:outputWindowActive"
       },
       {
         "command": "calva.showFileForOutputWindowNS",
-        "key": "ctrl+alt+o o",
+        "key": "ctrl+alt+o r",
         "when": "calva:keybindingsEnabled && calva:connected && calva:outputWindowActive"
       },
       {
@@ -3115,7 +3238,9 @@
   },
   "dependencies": {
     "@vscode/debugadapter": "^1.64.0",
+    "ansi-regex": "^5.0.1",
     "axios": "^1.4.0",
+    "chalk": "^4.1.2",
     "extract-zip": "^2.0.1",
     "find": "0.2.9",
     "follow-redirects": "^1.15.4",
@@ -3132,7 +3257,6 @@
     "react-dom": "^18.2.0",
     "semver": "^7.3.7",
     "tree-kill": "^1.2.2",
-    "universal-analytics": "^0.5.3",
     "uuidv4": "6.2.12",
     "vscode-languageclient": "^8.0.2",
     "vsls": "^1.0.4753"
@@ -3145,7 +3269,6 @@
     "@types/mocha": "^9.1.0",
     "@types/node": "^18.6.3",
     "@types/semver": "^7.3.9",
-    "@types/universal-analytics": "^0.4.5",
     "@types/uuid": "^8.3.4",
     "@types/vscode": "^1.67.0",
     "@typescript-eslint/eslint-plugin": "^5.17.0",

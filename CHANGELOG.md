@@ -4,6 +4,91 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Implement experimental support for multicursor rewrap commands](https://github.com/BetterThanTomorrow/calva/issues/2448). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2473](https://github.com/BetterThanTomorrow/calva/issues/2473) 
+
+## [2.0.432] - 2024-03-26
+
+- Fix: [Extraneous newlines printed to terminal for some output](https://github.com/BetterThanTomorrow/calva/issues/2468)
+- [Add legacy opt-in for printing bare `stdout` to the REPL Window](https://github.com/BetterThanTomorrow/calva/issues/2470)
+
+## [2.0.431] - 2024-03-25
+
+- Fix: [Using a shortcut to focus on Calva output terminal gives an error](https://github.com/BetterThanTomorrow/calva/issues/2461)
+- Fix: [Re-create Repl Output Terminal after it has been closed.](https://github.com/BetterThanTomorrow/calva/issues/2463)
+
+## [2.0.430] - 2024-03-24
+
+- [Add opt-in setting for migrating the REPL Window file to the new project subpath](https://github.com/BetterThanTomorrow/calva/issues/2458)
+- [Honor existing ANSI escape sequences in messages for terminal output destination](https://github.com/BetterThanTomorrow/calva/issues/2459)
+
+## [2.0.429] - 2024-03-23
+
+- [Add command for opening the Terminal output destination](https://github.com/BetterThanTomorrow/calva/issues/2455)
+
+## [2.0.428] - 2024-03-23
+
+- [Add a Terminal output destination option](https://github.com/BetterThanTomorrow/calva/issues/2452)
+
+## [2.0.427] - 2024-03-23
+
+- Fix: [Printing non-list Clojure results with code fencing gets verbose](https://github.com/BetterThanTomorrow/calva/issues/2450)
+- Fix: [Changing outputDestinations to output-channel breaks **Load/Evaluate Current File and its Requires...**](https://github.com/BetterThanTomorrow/calva/issues/2444)
+
+## [2.0.426] - 2024-03-22
+
+- Fix: [Calva Load File Command Results in RangeError on certain machine](https://github.com/BetterThanTomorrow/calva/issues/2443)
+
+## [2.0.425] - 2024-03-21
+
+- [Add Paredit Kill Left equivalent to Kill Right](https://github.com/BetterThanTomorrow/calva/issues/2426)
+- Fix: Certain `paredit.killRight` edges cases on Windows.
+
+## [2.0.424] - 2024-03-17
+
+- [Add command for revealing the **Calva says** output channel](https://github.com/BetterThanTomorrow/calva/issues/2436)
+- Fix: [Results not shown inline when output-channel configured is configured as for results output](https://github.com/BetterThanTomorrow/calva/issues/2437)
+- [Make the results hover aware of where the results output goes](https://github.com/BetterThanTomorrow/calva/issues/2438)
+
+## [2.0.423] - 2024-03-17
+
+- [Add Output Destinations configuration](https://github.com/BetterThanTomorrow/calva/issues/1104)
+
+## [2.0.422] - 2024-03-11
+
+- Bump deps.clj to `v1.11.2.1446`
+- [Try to find namespace for notebook eval.](https://github.com/BetterThanTomorrow/calva/issues/2408)
+
+## [2.0.421] - 2024-03-11
+
+- Fix: [Slowness printing compiler errors and warnings to Output Window](https://github.com/BetterThanTomorrow/calva/issues/2291)
+
+## [2.0.420] - 2024-03-10
+
+- [Allow to use an array of strings for `afterCLJReplJackInCode` in a connect sequence](https://github.com/BetterThanTomorrow/calva/issues/2423)
+
+## [2.0.419] - 2024-03-08
+
+- [Automatically do Rename Symbol after refactors that add new names](https://github.com/BetterThanTomorrow/calva/issues/2388)
+
+## [2.0.418] - 2024-03-08
+
+- [Add selection to experimentally supported multicursor paredit commands](https://github.com/BetterThanTomorrow/calva/issues/2421). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+
+## [2.0.417] - 2024-03-08
+
+- [Implement experimental support for multicursor paredit movement commands](https://github.com/BetterThanTomorrow/calva/issues/2420). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+
+## [2.0.416] - 2024-03-08
+
+- Internal textNotation testing system supports multiple selections, addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+- Add new Calva development utility commands to create textNotations from open buffers, and vice versa
+
+## [2.0.415] - 2024-03-08
+
+- Refactor some internal document and selection APIs in preparation for multiple selections, addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+- [Add default Clojure associations for file extensions `.lpy`](https://github.com/BetterThanTomorrow/calva/issues/2415)
+- [Document telemetry collection](https://github.com/BetterThanTomorrow/calva/issues/2428)
+
 ## [2.0.414] - 2024-02-24
 
 - [HTML->Hiccup: Add option to always keep classes as attributes if so desired](https://github.com/BetterThanTomorrow/calva/issues/2398) 

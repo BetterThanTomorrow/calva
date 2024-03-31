@@ -108,3 +108,16 @@ string. "
 [#|[]]
 ; Should not delete `#`
 (#|())
+
+
+(comment
+  (a b (c
+        d) e)
+  (a ;; comment
+   e)
+  "This is a string
+   it's multiline"
+  #_[a b (c d
+            e
+            f) g]
+  :a)
