@@ -1562,8 +1562,8 @@
         "enablement": "editorLangId == clojure"
       },
       {
-        "category": "Calva",
-        "command": "paredit.selectCurrentForm",
+        "category": "Calva Paredit",
+        "command": "calva.selectCurrentForm", // legacy id for backward compat
         "title": "Select Current Form",
         "enablement": "editorLangId == clojure"
       },
@@ -2151,7 +2151,7 @@
         "when": "calva:keybindingsEnabled"
       },
       {
-        "command": "calva.selectCurrentForm",
+        "command": "calva.selectCurrentForm", // legacy id for backward compat
         "key": "ctrl+alt+c ctrl+s",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
       },
@@ -3078,7 +3078,7 @@
         },
         {
           "when": "editorLangId == clojure",
-          "command": "calva.selectCurrentForm",
+          "command": "calva.selectCurrentForm", // legacy id for backward compat
           "group": "calva/a-structural-editing"
         },
         {
