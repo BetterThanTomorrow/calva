@@ -1,7 +1,7 @@
 import * as expect from 'expect';
 import * as model from '../../../cursor-doc/model';
 import * as handlers from '../../../paredit/commands';
-import { docFromTextNotation } from '../common/text-notation';
+import { docFromTextNotation, textNotationFromDoc } from '../common/text-notation';
 import _ = require('lodash');
 
 model.initScanner(20000);
