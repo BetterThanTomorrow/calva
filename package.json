@@ -1023,7 +1023,7 @@
           },
           "calva.paredit.multicursor": {
             "type": "boolean",
-            "markdownDescription": "Experimental: Support for multiple cursors in paredit commands.\nCurrently supported commands:\n- Cursor movement\n- Cursor selection",
+            "markdownDescription": "Experimental: Support for multiple cursors in paredit commands.\nCurrently supported commands:\n- Cursor movement\n- Cursor selection\n- Rewrap",
             "default": false,
             "scope": "window"
           }
