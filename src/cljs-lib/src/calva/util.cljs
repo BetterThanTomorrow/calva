@@ -4,7 +4,7 @@
 (defonce vscode (atom nil))
 (defonce context (atom nil))
 
-(def project-root-uri-key " connect.projectDirNew ")
+(def project-root-uri-key "connect.projectDirNew")
 
 (defn get-first-workspace-folder-uri []
   (-> (.. ^js @vscode -workspace -workspaceFolders)
