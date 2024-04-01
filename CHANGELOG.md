@@ -5,6 +5,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.433] - 2024-04-01
+
 - [Implement experimental support for multicursor rewrap commands](https://github.com/BetterThanTomorrow/calva/issues/2448). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2473](https://github.com/BetterThanTomorrow/calva/issues/2473)
 - [Add a separator line between evaluation outputs to the Output terminal](https://github.com/BetterThanTomorrow/calva/issues/2483)
 - [Implement experimental support for multicursor selectCurrentForm command](https://github.com/BetterThanTomorrow/calva/issues/2476). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2476](https://github.com/BetterThanTomorrow/calva/issues/2476) 
