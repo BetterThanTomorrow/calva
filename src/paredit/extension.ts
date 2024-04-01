@@ -48,7 +48,8 @@ function multiCursorEnabled() {
 
 type PareditCommand = {
   command: string;
-  handler: (doc: EditableDocument, ...args: readonly any[]) => void | Promise<any> | Thenable<any>; // do we still need to return Thenable from paredit fns?
+  // do we still need to return Thenable from paredit fns?
+  handler: (doc: EditableDocument, arg: any) => void | Promise<any> | Thenable<any>;
 };
 
 const pareditCommands: PareditCommand[] = [
@@ -304,6 +305,7 @@ const pareditCommands: PareditCommand[] = [
       // TODO: support multicursor
       return handlers.killLeft(
         doc,
+        // TODO: actually implement multicursor
         multiCursorEnabled(),
         shouldKillAlsoCutToClipboard() ? copyRangeToClipboard : null
       );
@@ -471,7 +473,7 @@ const pareditCommands: PareditCommand[] = [
 ];
 
 function wrapPareditCommand(command: PareditCommand) {
-  return async (...args: readonly any[]) => {
+  return async (arg) => {
     try {
       const textEditor = window.activeTextEditor;
 
@@ -481,7 +483,7 @@ function wrapPareditCommand(command: PareditCommand) {
       if (!enabled || !languages.has(textEditor.document.languageId)) {
         return;
       }
-      return command.handler(mDoc, ...args);
+      return command.handler(mDoc, arg);
     } catch (e) {
       console.error(e.message);
     }
