@@ -81,7 +81,8 @@ export function activate(context: vscode.ExtensionContext) {
       '\n',
       ')',
       ']',
-      '}'
+      '}',
+      ';'
     )
   );
   context.subscriptions.push(

@@ -26,7 +26,7 @@ function isNewLineInComment(ch: string): boolean {
 export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProvider {
   async provideOnTypeFormattingEdits(
     document: vscode.TextDocument,
-    _position: vscode.Position,
+    position: vscode.Position,
     ch: string,
     _options
   ): Promise<vscode.TextEdit[] | undefined> {
@@ -52,16 +52,45 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
       }
     }
     const editor = util.getActiveTextEditor();
+    if (ch === ';') {
+      const mDoc: EditableDocument = docMirror.getDocument(document);
+      const leftCursor = mDoc.getTokenCursor(document.offsetAt(position) - 2);
+      const rightCursor = mDoc.getTokenCursor(document.offsetAt(position));
+      if (
+        leftCursor.withinComment() ||
+        leftCursor.withinString() ||
+        rightCursor.isOnlyWhitespaceRightOfCursor()
+      ) {
+        return undefined;
+      }
+      if (rightCursor.getToken().raw.match(/^;\s+$|^;.*;/)) {
+        return undefined;
+      }
+
+      await editor.edit(
+        (editBuilder) => {
+          editBuilder.insert(position, '\n');
+        },
+        { undoStopBefore: false, undoStopAfter: false }
+      );
+
+      editor.selections = [new vscode.Selection(position, position)];
+
+      if (formatterConfig.formatOnTypeEnabled()) {
+        await vscode.commands.executeCommand('calva-fmt.formatCurrentForm');
+      }
+      return;
+    }
 
     const pos = editor.selections[0].active;
     if (formatterConfig.formatOnTypeEnabled()) {
       if (vscode.workspace.getConfiguration('calva.fmt').get('newIndentEngine')) {
-        await formatter.indentPosition(pos, document);
+        await formatter.indentPosition(position, document);
       } else {
         try {
           await formatter.formatPosition(editor, true);
         } catch (e) {
-          await formatter.indentPosition(pos, document);
+          await formatter.indentPosition(position, document);
         }
       }
     }
