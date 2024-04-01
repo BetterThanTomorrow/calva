@@ -56,6 +56,9 @@ export function openList(doc: EditableDocument, isMulti: boolean = false) {
 
 // SELECTION
 
+export function selectCurrentForm(doc: EditableDocument, isMulti: boolean = false) {
+  paredit.selectCurrentForm(doc, false, isMulti ? doc.selections : [doc.selections[0]]);
+}
 export function rangeForDefun(doc: EditableDocument, isMulti: boolean) {
   const selections = isMulti ? doc.selections : [doc.selections[0]];
   const ranges = selections.map((s) => paredit.rangeForDefun(doc, s.active));
@@ -121,4 +124,26 @@ export async function killLeft(
     doc.selections[0].active,
     result.editOptions
   );
+}
+
+// REWRAP
+
+export function rewrapQuote(doc: EditableDocument, isMulti: boolean) {
+  return paredit.rewrapSexpr(doc, '"', '"', isMulti ? doc.selections : [doc.selections[0]]);
+}
+
+export function rewrapSet(doc: EditableDocument, isMulti: boolean) {
+  return paredit.rewrapSexpr(doc, '#{', '}', isMulti ? doc.selections : [doc.selections[0]]);
+}
+
+export function rewrapCurly(doc: EditableDocument, isMulti: boolean) {
+  return paredit.rewrapSexpr(doc, '{', '}', isMulti ? doc.selections : [doc.selections[0]]);
+}
+
+export function rewrapSquare(doc: EditableDocument, isMulti: boolean) {
+  return paredit.rewrapSexpr(doc, '[', ']', isMulti ? doc.selections : [doc.selections[0]]);
+}
+
+export function rewrapParens(doc: EditableDocument, isMulti: boolean) {
+  return paredit.rewrapSexpr(doc, '(', ')', isMulti ? doc.selections : [doc.selections[0]]);
 }
