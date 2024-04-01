@@ -38,8 +38,8 @@ export async function copyRangeToClipboard(doc: EditableDocument, [start, end]) 
  * Answers true when `calva.paredit.killAlsoCutsToClipboard` is enabled.
  * @returns boolean
  */
-function shouldKillAlsoCutToClipboard() {
-  return workspace.getConfiguration().get<boolean>('calva.paredit.killAlsoCutsToClipboard');
+function shouldKillAlsoCutToClipboard(override?: boolean): boolean {
+  return override ?? workspace.getConfiguration().get('calva.paredit.killAlsoCutsToClipboard');
 }
 
 function multiCursorEnabled(override?: boolean): boolean {
@@ -301,9 +301,9 @@ const pareditCommands: PareditCommand[] = [
   },
   {
     command: 'paredit.killRight',
-    handler: async (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument, opts?: { copy: boolean }) => {
       const range = paredit.forwardHybridSexpRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
+      if (shouldKillAlsoCutToClipboard(opts?.copy)) {
         await copyRangeToClipboard(doc, range);
       }
       return paredit.killRange(doc, range);
@@ -311,21 +311,20 @@ const pareditCommands: PareditCommand[] = [
   },
   {
     command: 'paredit.killLeft',
-    handler: async (doc: EditableDocument) => {
-      // TODO: support multicursor
+    handler: async (doc: EditableDocument, opts?: { copy: boolean }) => {
       return handlers.killLeft(
         doc,
         // TODO: actually implement multicursor
         multiCursorEnabled(),
-        shouldKillAlsoCutToClipboard() ? copyRangeToClipboard : null
+        shouldKillAlsoCutToClipboard(opts?.copy) ? copyRangeToClipboard : null
       );
     },
   },
   {
     command: 'paredit.killSexpForward',
-    handler: async (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument, opts?: { copy: boolean }) => {
       const range = paredit.forwardSexpRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
+      if (shouldKillAlsoCutToClipboard(opts?.copy)) {
         await copyRangeToClipboard(doc, range);
       }
       return paredit.killRange(doc, range);
@@ -333,9 +332,9 @@ const pareditCommands: PareditCommand[] = [
   },
   {
     command: 'paredit.killSexpBackward',
-    handler: async (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument, opts?: { copy: boolean }) => {
       const range = paredit.backwardSexpRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
+      if (shouldKillAlsoCutToClipboard(opts?.copy)) {
         await copyRangeToClipboard(doc, range);
       }
       return paredit.killRange(doc, range);
@@ -343,9 +342,9 @@ const pareditCommands: PareditCommand[] = [
   },
   {
     command: 'paredit.killListForward',
-    handler: async (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument, opts?: { copy: boolean }) => {
       const range = paredit.forwardListRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
+      if (shouldKillAlsoCutToClipboard(opts?.copy)) {
         await copyRangeToClipboard(doc, range);
       }
       return await paredit.killForwardList(doc, range);
@@ -353,9 +352,9 @@ const pareditCommands: PareditCommand[] = [
   }, // TODO: Implement with killRange
   {
     command: 'paredit.killListBackward',
-    handler: async (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument, opts?: { copy: boolean }) => {
       const range = paredit.backwardListRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
+      if (shouldKillAlsoCutToClipboard(opts?.copy)) {
         await copyRangeToClipboard(doc, range);
       }
       return await paredit.killBackwardList(doc, range);
@@ -363,9 +362,9 @@ const pareditCommands: PareditCommand[] = [
   }, // TODO: Implement with killRange
   {
     command: 'paredit.spliceSexpKillForward',
-    handler: async (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument, opts?: { copy: boolean }) => {
       const range = paredit.forwardListRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
+      if (shouldKillAlsoCutToClipboard(opts?.copy)) {
         await copyRangeToClipboard(doc, range);
       }
       await paredit.killForwardList(doc, range).then((isFulfilled) => {
@@ -375,9 +374,9 @@ const pareditCommands: PareditCommand[] = [
   },
   {
     command: 'paredit.spliceSexpKillBackward',
-    handler: async (doc: EditableDocument) => {
+    handler: async (doc: EditableDocument, opts?: { copy: boolean }) => {
       const range = paredit.backwardListRange(doc);
-      if (shouldKillAlsoCutToClipboard()) {
+      if (shouldKillAlsoCutToClipboard(opts?.copy)) {
         await copyRangeToClipboard(doc, range);
       }
       await paredit.killBackwardList(doc, range).then((isFulfilled) => {
