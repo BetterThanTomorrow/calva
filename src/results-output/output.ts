@@ -20,10 +20,12 @@ type AppendOptions = {
 
 type AppendClojureOptions = {
   ns?: string;
-  sessionType?: string;
+  replSessionType?: string;
 };
 
 const lightTheme = {
+  evalSeparatorSessionType: customChalk.bgGreen,
+  evalSeparatorNs: customChalk.bgBlue,
   evalOut: customChalk.gray,
   evalErr: customChalk.red,
   otherOut: customChalk.green,
@@ -31,7 +33,9 @@ const lightTheme = {
 };
 
 const darkTheme = {
-  evalOut: customChalk.grey,
+  evalSeparatorSessionType: customChalk.bgWhite,
+  evalSeparatorNs: customChalk.bgWhiteBright,
+  evalOut: customChalk.gray,
   evalErr: customChalk.redBright,
   otherOut: customChalk.grey,
   otherErr: customChalk.redBright,
@@ -170,6 +174,29 @@ export function maybePrintLegacyREPLWindowOutputMessage() {
   }
 }
 
+const lastInfoLineData: Record<OutputDestination, AppendClojureOptions> = {
+  'repl-window': {},
+  'output-channel': {},
+  terminal: {},
+};
+
+function saveLastInfoLineData(destination: OutputDestination, options: AppendClojureOptions) {
+  const { ns, replSessionType } = options;
+  if (ns) {
+    lastInfoLineData[destination] = { ns, replSessionType };
+  }
+}
+
+function nsInfoLine(destination: OutputDestination, options: AppendClojureOptions) {
+  return options.ns &&
+    `${options.replSessionType}:${options.ns}` !==
+      `${lastInfoLineData[destination].replSessionType}:${lastInfoLineData[destination].ns}`
+    ? `\n;${themedChalk().evalSeparatorSessionType(
+        ' ' + options.replSessionType + ' '
+      )}${themedChalk().evalSeparatorNs(' ' + options.ns + ' ')}\n`
+    : '\n';
+}
+
 function appendClojure(
   options: AppendOptions & AppendClojureOptions,
   message: string,
@@ -180,9 +207,7 @@ function appendClojure(
   didLastOutputTerminateLine[destination] = true;
   if (destination === 'repl-window') {
     outputWindow.appendLine(`${didLastTerminateLine ? '' : '\n'}${message}`, after);
-    return;
-  }
-  if (destination === 'output-channel') {
+  } else if (destination === 'output-channel') {
     const doc = new model.StringDocument(message);
     const cursor = doc.getTokenCursor(0);
     const shouldFence =
@@ -192,17 +217,18 @@ function appendClojure(
     if (after) {
       after(undefined, undefined);
     }
-    return;
-  }
-  if (destination === 'terminal') {
+  } else if (destination === 'terminal') {
     const printerOptions = { ...printer.prettyPrintingOptions(), 'color?': true };
     const prettyMessage = printer.prettyPrint(message, printerOptions)?.value || message;
-    getOutputPTY().write(`${didLastTerminateLine ? '' : '\r\n'}${prettyMessage}\r\n`);
+    // TODO: Figure if it's worth a setting to opt-in on an ns info line
+    getOutputPTY().write(`${didLastTerminateLine ? '' : '\n'}${nsInfoLine(destination, options)}`);
+    // getOutputPTY().write(`${didLastTerminateLine ? '' : '\n'}`);
+    getOutputPTY().write(`${prettyMessage}\n`);
     if (after) {
       after(undefined, undefined);
     }
-    return;
   }
+  saveLastInfoLineData(destination, options);
 }
 
 /**
@@ -236,7 +262,7 @@ export function appendClojureOther(message: string, after?: AfterAppendCallback)
 function append(options: AppendOptions, message: string, after?: AfterAppendCallback) {
   const destination = options.destination;
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
-  didLastOutputTerminateLine[destination] = message.endsWith('\n');
+  didLastOutputTerminateLine[destination] = util.stripAnsi(message).endsWith('\n');
   if (destination === 'repl-window') {
     const decoratedMessage =
       options.outputCategory === 'evalOut' && config.getConfig().legacyPrintBareReplWindowOutput
@@ -282,13 +308,20 @@ export function appendEvalOut(message: string, after?: AfterAppendCallback) {
  * @param message The message to append
  * @param after Optional callback to run after the append
  */
-export function appendEvalErr(message: string, after?: AfterAppendCallback) {
+export function appendEvalErr(
+  message: string,
+  options: AppendClojureOptions,
+  after?: AfterAppendCallback
+) {
   const destination = getDestinationConfiguration().evalOutput;
   const coloredMessage =
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().evalErr(message)
       : message;
+  // TODO: Figure if it's worth a setting to opt-in on an ns info line
+  append({ destination, outputCategory: 'evalErr' }, nsInfoLine(destination, options));
   append({ destination, outputCategory: 'evalErr' }, coloredMessage, after);
+  saveLastInfoLineData(destination, options);
 }
 
 /**
