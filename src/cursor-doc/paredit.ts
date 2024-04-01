@@ -49,6 +49,34 @@ export function selectRange(doc: EditableDocument, ranges: ModelEditRange[]) {
   growSelectionStack(doc, ranges);
 }
 
+export function selectCurrentForm(
+  doc: EditableDocument,
+  topLevel: boolean,
+  selections = doc.selections
+) {
+  const newSels = selections.map((sel) => {
+    const selection = sel;
+    if (selection.isCursor) {
+      let codeSelection;
+      const cursor = doc.getTokenCursor(selection.active);
+      const range = topLevel
+        ? cursor.rangeForDefun(selection.active)
+        : cursor.rangeForCurrentForm(selection.active);
+      if (range) {
+        codeSelection = new ModelEditSelection(range[0], range[1]);
+      } else {
+        codeSelection = undefined;
+      }
+      if (codeSelection) {
+        return codeSelection;
+      }
+    }
+    return sel;
+  });
+
+  growSelectionStack(doc, newSels.map(_.property('asDirectedRange')));
+}
+
 export function selectRangeForward(
   doc: EditableDocument,
   ranges: ModelEditRange[],

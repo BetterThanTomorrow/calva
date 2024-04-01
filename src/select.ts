@@ -37,28 +37,3 @@ export function getEnclosingFormSelection(
     }
   }
 }
-
-function selectForm(
-  document = {},
-  selectionFn: (
-    doc: vscode.TextDocument,
-    pos: vscode.Position,
-    topLevel: boolean
-  ) => vscode.Selection | undefined,
-  toplevel: boolean
-) {
-  const editor = util.getActiveTextEditor(),
-    doc = util.getDocument(document),
-    selection = editor.selections[0];
-
-  if (selection.isEmpty) {
-    const codeSelection = selectionFn(doc, selection.active, toplevel);
-    if (codeSelection) {
-      editor.selections = [codeSelection];
-    }
-  }
-}
-
-export function selectCurrentForm(document = {}) {
-  selectForm(document, getFormSelection, false);
-}

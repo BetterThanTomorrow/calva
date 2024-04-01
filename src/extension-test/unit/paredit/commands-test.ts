@@ -333,6 +333,99 @@ describe('paredit commands', () => {
   });
 
   describe('selection', () => {
+    describe('selectCurrentForm', () => {
+      it('Single-cursor: handles cases like reader tags/metadata + keeps other selections ', () => {
+        const a = docFromTextNotation(
+          '(defn|1 [a b]•(let [^js a|a #p (+ a)•b b]•{:a aa•:b b}))•(:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let [|^js aa| #p (+ a)•b b]•{:a aa•:b b}))•(:a)'
+        );
+        handlers.selectCurrentForm(a, false);
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor: handles cases like reader tags/metadata + keeps other selections ', () => {
+        const a = docFromTextNotation(
+          '(defn|1 |2[a b]•(let [|3^js aa |4#p (+ a)•<5b b<5]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(|1defn|1 |2[a b]|2•(let [|3^js aa|3 |4#p (+ a)|4•<5b b<5]•{:a aa•:b b}))•(|:a|)'
+        );
+        handlers.selectCurrentForm(a, true);
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+
+      it('Single-cursor: handles cursor at a distance from form', () => {
+        const a = docFromTextNotation('[|1    a b  |2c    d { e f}|3 g   |]');
+        const aSelections = a.selections;
+        const b = docFromTextNotation('[    a b  c    d { e f} |g|   ]');
+        handlers.selectCurrentForm(a, false);
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor: handles cursor at a distance from form', () => {
+        const a = docFromTextNotation('[|1    a b  |2c    d { e f}|3 g   |]');
+        const aSelections = a.selections;
+        const b = docFromTextNotation('[    |1a|1 b  |2c|2    d |3{ e f}|3 |g|   ]');
+        handlers.selectCurrentForm(a, true);
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+
+      it('Single-cursor: collapses overlapping selections', () => {
+        const a = docFromTextNotation(
+          '(de|1fn| [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(|defn| [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:a)'
+        );
+        handlers.selectCurrentForm(a, false);
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor: collapses overlapping selections', () => {
+        const a = docFromTextNotation(
+          '(de|5fn|1 |2[a b]•(let [|3^js aa |4#p (+ a)•<5b b<5]•{:a aa•:b b}))•(:|a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(|1defn|1 |2[a b]|2•(let [|3^js aa|3 |4#p (+ a)|4•<5b b<5]•{:a aa•:b b}))•(|:a|)'
+        );
+        handlers.selectCurrentForm(a, true);
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+
+      it('Single-cursor: collapses overlapping selections preferring the larger one', () => {
+        const a = docFromTextNotation(
+          '(de|1fn| [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(|defn| [a b]•(let [^js aa #p (+ a)•b b]•{:a aa•:b b}))•(:a)'
+        );
+        handlers.selectCurrentForm(a, false);
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+      it('Multi-cursor: collapses overlapping selections preferring the larger one', () => {
+        const a = docFromTextNotation(
+          '(defn [a b]•(let [^js aa #p (+ a)•b |b]|1•|3{:a a|2a•:b b}))•(:a)'
+        );
+        const aSelections = a.selections;
+        const b = docFromTextNotation(
+          '(defn [a b]•(let |1[^js aa #p (+ a)•b b]|1•|3{:a aa•:b b}|3))•(:a)'
+        );
+        handlers.selectCurrentForm(a, true);
+        expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
+        expect(a.selectionsStack).toEqual([aSelections, b.selections]);
+      });
+    });
     describe('rangeForDefun', () => {
       it('Single-cursor:', () => {
         const a = docFromTextNotation(
