@@ -48,11 +48,13 @@ function multiCursorEnabled(override?: boolean): boolean {
 
 type PareditCommand = {
   command: string;
-  // do we still need to return Thenable from paredit fns?
-  handler: (doc: EditableDocument, arg: any) => void | Promise<any> | Thenable<any>;
+  handler: (doc: EditableDocument, arg?: any) => void | Promise<any> | Thenable<any>;
 };
 
-const pareditCommands: PareditCommand[] = [
+// only grab the custom, additional args after the first doc arg from the given command's handler
+type CommandArgOf<C extends PareditCommand> = Parameters<C['handler']>[1];
+
+const pareditCommands = [
   // NAVIGATING
   {
     command: 'paredit.forwardSexp',
@@ -479,10 +481,12 @@ const pareditCommands: PareditCommand[] = [
       await paredit.insertSemiColon(doc);
     },
   },
-];
+] as const;
+// prefer next line if we upgrade to TS v4.9+
+//  ] as const satisfies readonly PareditCommand[];
 
-function wrapPareditCommand(command: PareditCommand) {
-  return async (arg) => {
+function wrapPareditCommand<C extends PareditCommand>(command: C) {
+  return async (arg: CommandArgOf<C>) => {
     try {
       const textEditor = window.activeTextEditor;
 
