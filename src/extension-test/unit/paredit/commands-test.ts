@@ -1,7 +1,11 @@
 import * as expect from 'expect';
 import * as model from '../../../cursor-doc/model';
 import * as handlers from '../../../paredit/commands';
-import { docFromTextNotation, textNotationFromDoc } from '../common/text-notation';
+import {
+  docFromTextNotation,
+  textAndSelections,
+  textNotationFromDoc,
+} from '../common/text-notation';
 import _ = require('lodash');
 
 model.initScanner(20000);
@@ -1186,54 +1190,90 @@ describe('paredit commands', () => {
           const a = docFromTextNotation('a (b c|) |1d');
           const b = docFromTextNotation('a (b [c|]) d');
           await handlers.wrapAroundSquare(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Simply wraps []', async () => {
           const a = docFromTextNotation('a (b c|) d|1 []|2');
           const b = docFromTextNotation('a (b [c|]) [d|1] [[]|2]');
           await handlers.wrapAroundSquare(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Simply wraps [] 2 - from open/left', async () => {
           const a = docFromTextNotation('a (b |c) |1d |2[]');
           const b = docFromTextNotation('a (b [|c]) [|1d] [|2[]]');
           await handlers.wrapAroundSquare(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Simply wraps [] 3 - mixed', async () => {
           const a = docFromTextNotation('a (b c|) |1d []|2');
           const b = docFromTextNotation('a (b [c|]) [|1d] [[]|2]');
           await handlers.wrapAroundSquare(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Handles wrapping multiple cursors around the same form []', async () => {
           const a = docFromTextNotation('a (b |1c|) d');
           const b = docFromTextNotation('a (b [c|]) d');
           await handlers.wrapAroundSquare(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Handles wrapping multiple cursors around the same form []', async () => {
           const a = docFromTextNotation('a (b |1c|) d');
           const b = docFromTextNotation('a (b [|1c|]) d');
           await handlers.wrapAroundSquare(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Handles wrapping multiple cursors targeting the same form []', async () => {
           const a = docFromTextNotation('a (b c| |1) d');
           const b = docFromTextNotation('a (b [c|] ) d');
           await handlers.wrapAroundSquare(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Handles wrapping multiple cursors targeting the same form []', async () => {
           const a = docFromTextNotation('a (b c| |1) d');
           const b = docFromTextNotation('a (b [c|] |1) d');
           await handlers.wrapAroundSquare(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
-        it('Multi-cursor: Handles wrapping multiple cursors targeting the same form #{} 2', async () => {
+        it('Multi-cursor: Handles wrapping multiple cursors targeting the same form #{}', async () => {
           const a = docFromTextNotation('a (b |c| |1) d');
           const b = docFromTextNotation('a (b [|c] |1) d');
           await handlers.wrapAroundSquare(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
 
@@ -1241,60 +1281,189 @@ describe('paredit commands', () => {
           const a = docFromTextNotation('a [b c|] |1d');
           const b = docFromTextNotation('a [b (c|)] d');
           await handlers.wrapAroundParens(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Simply wraps ()', async () => {
           const a = docFromTextNotation('a [b c|] |1d');
           const b = docFromTextNotation('a [b (c|)] (|1d)');
           await handlers.wrapAroundParens(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Simply wraps {}', async () => {
           const a = docFromTextNotation('a [b c|] |1d');
           const b = docFromTextNotation('a [b {c|}] d');
           await handlers.wrapAroundCurly(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Simply wraps {}', async () => {
           const a = docFromTextNotation('a [b c|] |1d');
           const b = docFromTextNotation('a [b {c|}] {|1d}');
           await handlers.wrapAroundCurly(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Simply wraps {}', async () => {
           const a = docFromTextNotation('a #{b c|} |1d');
           const b = docFromTextNotation('a #{b {c|}} d');
           await handlers.wrapAroundCurly(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Simply wraps {}', async () => {
           const a = docFromTextNotation('a #{b c|} |1d');
           const b = docFromTextNotation('a #{b {c|}} {|1d}');
           await handlers.wrapAroundCurly(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Simply wraps ""', async () => {
           const a = docFromTextNotation('a #{b c|} |1d');
           const b = docFromTextNotation('a #{b "c|"} d');
           await handlers.wrapAroundQuote(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Simply wraps ""', async () => {
           const a = docFromTextNotation('a #{b c|} |1d');
           const b = docFromTextNotation('a #{b "c|"} "|1d"');
           await handlers.wrapAroundQuote(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Simply wraps #{}', async () => {
           const a = docFromTextNotation('[b c|] |1d');
           const b = docFromTextNotation('[b #{c|}] d');
           await handlers.wrapAroundSet(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Simply wraps #{}', async () => {
           const a = docFromTextNotation('[b c|] |1d');
           const b = docFromTextNotation('[b #{c|}] #{|1d}');
           await handlers.wrapAroundSet(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Simply wraps {} over multiple lines', async () => {
+          const a = docFromTextNotation(
+            '(defn foo•  |[a b]•  (|2+ a b))••(def bar 1)••|1(foo bar••2)'
+          );
+          const b = docFromTextNotation(
+            '(defn foo•  {|[a b]}•  ({|2+} a b))••(def bar 1)••{|1(foo bar••2)}'
+          );
+          await handlers.wrapAroundCurly(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Simply wraps #{} over multiple lines', async () => {
+          const a = docFromTextNotation(
+            '(defn foo•  |[a b]•  (|2+ a b))••(def bar 1)••|1(foo bar••2)'
+          );
+          const b = docFromTextNotation(
+            '(defn foo•  #{|[a b]}•  (#{|2+} a b))••(def bar 1)••#{|1(foo bar••2)}'
+          );
+          await handlers.wrapAroundSet(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
+        it('Multi-cursor: Handles wrapping nested forms {}', async () => {
+          const a = docFromTextNotation('(defn foo•  [a b]•  (+ a b|1)|)');
+          const b = docFromTextNotation('(defn foo•  [a b]•  {(+ a {b|1})|})');
+          await handlers.wrapAroundCurly(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Handles wrapping nested forms {} 2', async () => {
+          const a = docFromTextNotation('(defn foo•  |2[a b]•  (+ a b|1)|)');
+          const b = docFromTextNotation('{|3(defn foo•  {|2[a b]}•  {(+ a {b|1})|})}');
+          await handlers.wrapAroundCurly(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Handles wrapping nested forms {} 3', async () => {
+          const a = docFromTextNotation('|3(defn foo•  |2[a b]•  (+ a b|1)|)');
+          const b = docFromTextNotation('{|3(defn foo•  {|2[a b]}•  {(+ a {b|1})|})}');
+          await handlers.wrapAroundCurly(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Handles wrapping nested forms #{}', async () => {
+          const a = docFromTextNotation('(defn foo•  [a b]•  (+ a b|1)|)');
+          const b = docFromTextNotation('(defn foo•  [a b]•  #{(+ a #{b|1})|})');
+          await handlers.wrapAroundSet(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Handles wrapping nested forms #{} 2', async () => {
+          const a = docFromTextNotation('(defn foo•  |2[a b]•  (+ a b|1)|)');
+          const b = docFromTextNotation('#{|3(defn foo•  #{|2[a b]}•  #{(+ a #{b|1})|})}');
+          await handlers.wrapAroundSet(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
+          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+        it('Multi-cursor: Handles wrapping nested forms #{} 3', async () => {
+          const a = docFromTextNotation('|3(defn foo•  |2[a b]•  (+ a b|1)|)');
+          const b = docFromTextNotation('#{|3(defn foo•  #{|2[a b]}•  #{(+ a #{b|1})|})}');
+          await handlers.wrapAroundSet(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
 
@@ -1302,36 +1471,60 @@ describe('paredit commands', () => {
           const a = docFromTextNotation('a [b c]| |1d');
           const b = docFromTextNotation('a {[b c]|} d');
           await handlers.wrapAroundCurly(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps from close {}', async () => {
           const a = docFromTextNotation('a [b c]| |1d');
           const b = docFromTextNotation('a {[b c]|} {|1d}');
           await handlers.wrapAroundCurly(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Wraps from close ""', async () => {
           const a = docFromTextNotation('a #{b c}| |1d');
           const b = docFromTextNotation('a "#{b c}|" d');
           await handlers.wrapAroundQuote(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps from close ""', async () => {
           const a = docFromTextNotation('a #{b c}| |1d');
           const b = docFromTextNotation('a "#{b c}|" "|1d"');
           await handlers.wrapAroundQuote(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Wraps from close #{}', async () => {
           const a = docFromTextNotation('a [b c]| |1d');
           const b = docFromTextNotation('a #{[b c]|} d');
           await handlers.wrapAroundSet(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps from close #{}', async () => {
           const a = docFromTextNotation('a [b c]| |1d');
           const b = docFromTextNotation('a #{[b c]|} #{|1d}');
           await handlers.wrapAroundSet(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
 
@@ -1339,36 +1532,60 @@ describe('paredit commands', () => {
           const a = docFromTextNotation('a [b c] | |1d');
           const b = docFromTextNotation('a {[b c]}|  d');
           await handlers.wrapAroundCurly(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps from close from a distance w/ cursor outside {}', async () => {
           const a = docFromTextNotation('a [b c] | |1d');
           const b = docFromTextNotation('a {[b c]}|  {|1d}');
           await handlers.wrapAroundCurly(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Wraps from close from a distance w/ cursor outside ""', async () => {
           const a = docFromTextNotation('a #{b c} | |1d');
           const b = docFromTextNotation('a "#{b c}"|  d');
           await handlers.wrapAroundQuote(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps from close from a distance w/ cursor outside ""', async () => {
           const a = docFromTextNotation('a #{b c} | |1d');
           const b = docFromTextNotation('a "#{b c}"|  "|1d"');
           await handlers.wrapAroundQuote(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Wraps from close from a distance w/ cursor outside #{}', async () => {
           const a = docFromTextNotation('a [b c] | |1d');
           const b = docFromTextNotation('a #{[b c]}|  d');
           await handlers.wrapAroundSet(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps from close from a distance w/ cursor outside #{}', async () => {
           const a = docFromTextNotation('a [b c] | |1d');
           const b = docFromTextNotation('a #{[b c]}|  #{|1d}');
           await handlers.wrapAroundSet(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
 
@@ -1376,36 +1593,60 @@ describe('paredit commands', () => {
           const a = docFromTextNotation('a |[b c] |1d');
           const b = docFromTextNotation('a {|[b c]} d');
           await handlers.wrapAroundCurly(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps from opening {}', async () => {
           const a = docFromTextNotation('a |[b c] |1d');
           const b = docFromTextNotation('a {|[b c]} {|1d}');
           await handlers.wrapAroundCurly(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Wraps from opening ""', async () => {
           const a = docFromTextNotation('a |#{b c} |1d');
           const b = docFromTextNotation('a "|#{b c}" d');
           await handlers.wrapAroundQuote(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps from opening ""', async () => {
           const a = docFromTextNotation('a |#{b c} |1d');
           const b = docFromTextNotation('a "|#{b c}" "|1d"');
           await handlers.wrapAroundQuote(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Wraps from opening #{}', async () => {
           const a = docFromTextNotation('a |[b c] |1d');
           const b = docFromTextNotation('a #{|[b c]} d');
           await handlers.wrapAroundSet(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps from opening #{}', async () => {
           const a = docFromTextNotation('a |[b c] |1d');
           const b = docFromTextNotation('a #{|[b c]} #{|1d}');
           await handlers.wrapAroundSet(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
 
@@ -1413,36 +1654,60 @@ describe('paredit commands', () => {
           const a = docFromTextNotation('a [b c]|[e] |1d');
           const b = docFromTextNotation('a {[b c]|}[e] d');
           await handlers.wrapAroundCurly(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps between directly adjacent lists preferring prior list {}', async () => {
           const a = docFromTextNotation('a [b c]|[e] |1d');
           const b = docFromTextNotation('a {[b c]|}[e] {|1d}');
           await handlers.wrapAroundCurly(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Wraps between directly adjacent lists preferring prior list ""', async () => {
           const a = docFromTextNotation('a #{b c}|#{e} |1d');
           const b = docFromTextNotation('a "#{b c}|"#{e} d');
           await handlers.wrapAroundQuote(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps between directly adjacent lists preferring prior list ""', async () => {
           const a = docFromTextNotation('a #{b c}|#{e} |1d');
           const b = docFromTextNotation('a "#{b c}|"#{e} "|1d"');
           await handlers.wrapAroundQuote(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Wraps between directly adjacent lists preferring prior list #{}', async () => {
           const a = docFromTextNotation('a [b c]|[e] |1d');
           const b = docFromTextNotation('a #{[b c]|}[e] d');
           await handlers.wrapAroundSet(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps between directly adjacent lists preferring prior list #{}', async () => {
           const a = docFromTextNotation('a [b c]|[e] |1d');
           const b = docFromTextNotation('a #{[b c]|}[e] #{|1d}');
           await handlers.wrapAroundSet(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
 
@@ -1450,36 +1715,60 @@ describe('paredit commands', () => {
           const a = docFromTextNotation('a [|b c|] |1d');
           const b = docFromTextNotation('a [{|b c}] d');
           await handlers.wrapAroundCurly(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps from selection leaving cursor at anchor inside list {}', async () => {
           const a = docFromTextNotation('a [|b c|] <1d<1');
           const b = docFromTextNotation('a [{|b c}] {d|1}');
           await handlers.wrapAroundCurly(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Wraps from selection leaving cursor at anchor inside list ""', async () => {
           const a = docFromTextNotation('a #{<b c<} |1d');
           const b = docFromTextNotation('a #{"b c|"} d');
           await handlers.wrapAroundQuote(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps from selection leaving cursor at anchor inside list ""', async () => {
           const a = docFromTextNotation('a #{<b c<} |1d');
           const b = docFromTextNotation('a #{"b c|"} "|1d"');
           await handlers.wrapAroundQuote(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Single-cursor: Wraps from selection leaving cursor at anchor inside list #{}', async () => {
           const a = docFromTextNotation('a [<b c<] |1d');
           const b = docFromTextNotation('a [#{b c|}] d');
           await handlers.wrapAroundSet(a, false);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
         it('Multi-cursor: Wraps from selection leaving cursor at anchor inside list #{}', async () => {
           const a = docFromTextNotation('a [<b c<] |1d');
           const b = docFromTextNotation('a [#{b c|}] #{|1d}');
           await handlers.wrapAroundSet(a, true);
+          expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
+            textAndSelections(b),
+            textNotationFromDoc(b),
+          ]);
           expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
       });
