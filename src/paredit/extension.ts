@@ -48,8 +48,9 @@ function multiCursorEnabled() {
 
 type PareditCommand = {
   command: string;
-  handler: (doc: EditableDocument) => void | Promise<any>;
+  handler: (doc: EditableDocument, ...args: readonly any[]) => void | Promise<any> | Thenable<any>; // do we still need to return Thenable from paredit fns?
 };
+
 const pareditCommands: PareditCommand[] = [
   // NAVIGATING
   {
@@ -470,7 +471,7 @@ const pareditCommands: PareditCommand[] = [
 ];
 
 function wrapPareditCommand(command: PareditCommand) {
-  return async () => {
+  return async (...args: readonly any[]) => {
     try {
       const textEditor = window.activeTextEditor;
 
@@ -480,7 +481,7 @@ function wrapPareditCommand(command: PareditCommand) {
       if (!enabled || !languages.has(textEditor.document.languageId)) {
         return;
       }
-      return command.handler(mDoc);
+      return command.handler(mDoc, ...args);
     } catch (e) {
       console.error(e.message);
     }
