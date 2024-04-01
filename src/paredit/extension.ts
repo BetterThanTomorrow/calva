@@ -42,8 +42,8 @@ function shouldKillAlsoCutToClipboard() {
   return workspace.getConfiguration().get<boolean>('calva.paredit.killAlsoCutsToClipboard');
 }
 
-function multiCursorEnabled() {
-  return workspace.getConfiguration().get<boolean>('calva.paredit.multicursor');
+function multiCursorEnabled(override?: boolean): boolean {
+  return override ?? workspace.getConfiguration().get('calva.paredit.multicursor');
 }
 
 type PareditCommand = {
@@ -56,169 +56,179 @@ const pareditCommands: PareditCommand[] = [
   // NAVIGATING
   {
     command: 'paredit.forwardSexp',
-    handler: (doc: EditableDocument) => {
-      handlers.forwardSexp(doc, multiCursorEnabled());
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
+      handlers.forwardSexp(doc, isMulti);
     },
   },
   {
     command: 'paredit.backwardSexp',
-    handler: (doc: EditableDocument) => {
-      handlers.backwardSexp(doc, multiCursorEnabled());
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
+      handlers.backwardSexp(doc, isMulti);
     },
   },
   {
     command: 'paredit.forwardDownSexp',
-    handler: (doc: EditableDocument) => {
-      handlers.forwardDownSexp(doc, multiCursorEnabled());
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
+      handlers.forwardDownSexp(doc, isMulti);
     },
   },
   {
     command: 'paredit.backwardDownSexp',
-    handler: (doc: EditableDocument) => {
-      handlers.backwardDownSexp(doc, multiCursorEnabled());
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
+      handlers.backwardDownSexp(doc, isMulti);
     },
   },
   {
     command: 'paredit.forwardUpSexp',
-    handler: (doc: EditableDocument) => {
-      handlers.forwardUpSexp(doc, multiCursorEnabled());
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
+      handlers.forwardUpSexp(doc, isMulti);
     },
   },
   {
     command: 'paredit.backwardUpSexp',
-    handler: (doc: EditableDocument) => {
-      handlers.backwardUpSexp(doc, multiCursorEnabled());
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
+      handlers.backwardUpSexp(doc, isMulti);
     },
   },
   {
     command: 'paredit.forwardSexpOrUp',
-    handler: (doc: EditableDocument) => {
-      handlers.forwardSexpOrUp(doc, multiCursorEnabled());
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
+      handlers.forwardSexpOrUp(doc, isMulti);
     },
   },
   {
     command: 'paredit.backwardSexpOrUp',
-    handler: (doc: EditableDocument) => {
-      handlers.backwardSexpOrUp(doc, multiCursorEnabled());
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
+      handlers.backwardSexpOrUp(doc, isMulti);
     },
   },
   {
     command: 'paredit.closeList',
-    handler: (doc: EditableDocument) => {
-      handlers.closeList(doc, multiCursorEnabled());
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
+      handlers.closeList(doc, isMulti);
     },
   },
   {
     command: 'paredit.openList',
-    handler: (doc: EditableDocument) => {
-      handlers.openList(doc, multiCursorEnabled());
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
+      handlers.openList(doc, isMulti);
     },
   },
 
   // SELECTING
   {
     command: 'calva.selectCurrentForm', // legacy command id for backward compat
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.selectCurrentForm(doc, isMulti);
     },
   },
   {
     command: 'paredit.rangeForDefun',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.rangeForDefun(doc, isMulti);
     },
   },
   {
     command: 'paredit.sexpRangeExpansion',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.sexpRangeExpansion(doc, isMulti);
     },
   },
   {
     command: 'paredit.sexpRangeContraction',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.sexpRangeContraction(doc, isMulti);
     },
   },
 
   {
     command: 'paredit.selectForwardSexp',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.selectForwardSexp(doc, isMulti);
     },
   },
   {
     command: 'paredit.selectRight',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.selectRight(doc, isMulti);
     },
   },
   {
     command: 'paredit.selectBackwardSexp',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.selectBackwardSexp(doc, isMulti);
     },
   },
   {
     command: 'paredit.selectForwardDownSexp',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.selectForwardDownSexp(doc, isMulti);
     },
   },
   {
     command: 'paredit.selectBackwardDownSexp',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.selectBackwardDownSexp(doc, isMulti);
     },
   },
   {
     command: 'paredit.selectForwardUpSexp',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.selectForwardUpSexp(doc, isMulti);
     },
   },
   {
     command: 'paredit.selectForwardSexpOrUp',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.selectForwardSexpOrUp(doc, isMulti);
     },
   },
   {
     command: 'paredit.selectBackwardSexpOrUp',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.selectBackwardSexpOrUp(doc, isMulti);
     },
   },
   {
     command: 'paredit.selectBackwardUpSexp',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.selectBackwardUpSexp(doc, isMulti);
     },
   },
   {
     command: 'paredit.selectCloseList',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.selectCloseList(doc, isMulti);
     },
   },
   {
     command: 'paredit.selectOpenList',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       handlers.selectOpenList(doc, isMulti);
     },
   },
@@ -401,36 +411,36 @@ const pareditCommands: PareditCommand[] = [
   },
   {
     command: 'paredit.rewrapParens',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       return handlers.rewrapParens(doc, isMulti);
     },
   },
   {
     command: 'paredit.rewrapSquare',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       return handlers.rewrapSquare(doc, isMulti);
     },
   },
   {
     command: 'paredit.rewrapCurly',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       return handlers.rewrapCurly(doc, isMulti);
     },
   },
   {
     command: 'paredit.rewrapSet',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       return handlers.rewrapSet(doc, isMulti);
     },
   },
   {
     command: 'paredit.rewrapQuote',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       return handlers.rewrapQuote(doc, isMulti);
     },
   },
