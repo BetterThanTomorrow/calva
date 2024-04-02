@@ -199,3 +199,18 @@ There is an ongoing effort to support simultaneous multicursor editing with Pare
 - Movement
 - Selection (except for `Select Current Form` - coming soon!)
 - Rewrap
+
+### Toggling Multicursor per command
+
+The experimental multicursor-supported commands support an optional command arg - like `copy` for the `kill*` commands [mentioned above](#command-args) - to control whether multicursor is enabled for that command. This is an alternative to, or supports binding-specific overrides for, `calva.paredit.multicursor`.
+
+For example:
+
+```json
+{
+  "key": "ctrl+k",
+  "command": "paredit.sexpRangeExpansion",
+  "when": "... your when conditions ...",
+  "args": {"multicursor": false}
+}
+```
