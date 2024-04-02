@@ -161,6 +161,59 @@ There are some context keys you can utilize to configure keyboard shortcuts with
 
 In some instances built-in command defaults are the same as Paredit's defaults, and Paredit's functionality in a particular case is less than what the default is. This is true of *Expand Selection* and *Shrink Selection* for Windows/Linux when multiple lines are selected. In this particular case adding `!editorHasMultipleSelections` to the `when` clause of the binding makes for a better workflow. The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right `when` clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.
 
+### Command Args
+
+VSCode allows you to provide arguments to configured bindings, allowing, for example, different variants or behaviors for the same command, each bound to different shortcuts. Calva takes advantage of this by offering two commands with args:
+
+#### **1. `copy` for all `kill*` commands**
+
+When specified, will control whether killed text will be copied to the clipboard.
+This is an alternative to, or supports binding-specific overrides for, `calva.paredit.killAlsoCutsToClipboard`.
+
+For example, here's 2 keybindings for `paredit.killRight` with different `copy` args, allowing you to choose when or if you want killed text copied at keypress-time, regardless of global `calva.paredit.killAlsoCutsToClipboard` setting:
+
+```json
+{
+  "key": "ctrl+k",
+  "command": "paredit.killRight",
+  "when": "... your when conditions ...",
+  "args": {"copy": false}
+},
+{
+  "key": "cmd+k ctrl+k",
+  "command": "paredit.killRight",
+  "when": "... your when conditions ...",
+  "args": {"copy": true}
+},
+```
+
+Or, you can even have both of them use the **same `key`**, but **separate `when` conditions** to taste, to allow context-conditional copying.
+
+#### **2. `multicursor` for all experimental multicursor-enabled commands**
+
+When specified, will control whether multiple cursors are handled in supported paredit commands, or
+if cursors after the first are discarded. As mentioned in the [Multicursor section below](#experimental-feature-multicursor-support), this is an experimental feature and is not enabled by default. This arg allows you to toggle multicursor globally except for a few commands.
+This is an alternative to, or supports binding-specific overrides for, `calva.paredit.multcursor`.
+
+For example, here's 2 keybindings for `paredit.sexpRangeExpansion` with different `multicursor` args, allowing you to choose when or if you want multicursor handling at keypress-time, regardless of global `calva.paredit.multicursor` setting:
+
+```json
+{
+  "key": "ctrl+k",
+  "command": "paredit.sexpRangeExpansion",
+  "when": "... your when conditions ...",
+  "args": {"multicursor": false}
+},
+{
+  "key": "cmd+k ctrl+k",
+  "command": "paredit.sexpRangeExpansion",
+  "when": "... your when conditions ...",
+  "args": {"multicursor": true}
+},
+```
+
+Or, you can even have both of them use the **same `key`**, but **separate `when` conditions** to taste, allowing context-conditional multicursor.
+
 Happy Editing! ❤️
 
 ## Experimental Feature: Multicursor support
