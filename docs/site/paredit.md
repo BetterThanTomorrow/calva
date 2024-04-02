@@ -187,8 +187,31 @@ There are some context keys you can utilize to configure keyboard shortcuts with
 
 *The Nuclear Option*: You can choose to disable all default key bindings by configuring `calva.paredit.defaultKeyMap` to `none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
 
-In some instances built-in command defaults are the same as Paredit's defaults, and Paredit's functionality in a particular case is less than what the default is. This is true of *Expand Selection* and *Shrink Selection* for Windows/Linux when multiple lines are selected. In this particular case adding `!editorHasMultipleSelections` to the `when` clause of the binding makes for a better workflow. The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right `when` clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.
+### When Clauses and VSCode Default Bindings
 
+There are instances where VSCode's built-in command binding defaults are the same as Paredit's, where Paredit's version has less functionality. For example, Calva's _Expand Selection_ and _Shrink Selection_ doesn't support multiple selections (though this may change in the future - see Multicursor section below). In this particular case, adding `!editorHasMultipleSelections` to the `when` clause of the binding makes up for this gap by letting the binding fall back to VSCode's native grow/shrink selection.
+
+For example, here's the JSON version of the keybindings settings demonstrating the above. Note this can also specified in the Keyboard Shortcuts UI:
+
+```json
+{
+  "key": "shift+alt+right",
+  "command": "paredit.sexpRangeExpansion",
+  "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
+}
+```
+
+to
+
+```json
+{
+  "key": "shift+alt+right",
+  "command": "paredit.sexpRangeExpansion",
+  "when": "!editorHasMultipleSelections && calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
+}
+```
+
+The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right `when` clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.
 
 Happy Editing! ❤️
 
