@@ -1795,6 +1795,41 @@ export async function dragSexprBackwardDown(doc: EditableDocument, p = doc.selec
   }
 }
 
+export function _semiColonWouldBreakStructure(doc: EditableDocument, p = doc.selections[0].active) {
+  const startCursor = doc.getTokenCursor(p);
+  if (startCursor.withinComment() || startCursor.withinString()) {
+    return false;
+  }
+  const probeCursor = startCursor.clone();
+  do {
+    probeCursor.forwardWhitespace(true);
+    if (probeCursor.line !== startCursor.line || probeCursor.atEnd()) {
+      return false;
+    }
+    const moved = probeCursor.forwardSexp(true, true, true);
+    if (probeCursor.line !== startCursor.line) {
+      return true;
+    }
+    if (!moved) {
+      return true;
+    }
+  } while (true);
+}
+
+export async function insertSemiColon(doc: EditableDocument, p = doc.selections[0].active) {
+  return _semiColonWouldBreakStructure(doc, p)
+    ? doc.model.edit([new ModelEdit('insertString', [p, ';\n', [p, p], [p + 1, p + 1]])], {
+        selections: [new ModelEditSelection(p + 1)],
+        skipFormat: false,
+        undoStopBefore: true,
+      })
+    : doc.model.edit([new ModelEdit('insertString', [p, ';', [p, p], [p + 1, p + 1]])], {
+        selections: [new ModelEditSelection(p + 1)],
+        skipFormat: true,
+        undoStopBefore: true,
+      });
+}
+
 function adaptContentsToRichComment(contents: string): string {
   return contents
     .split(/\n/)

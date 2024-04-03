@@ -835,19 +835,14 @@ export class LispTokenCursor extends TokenCursor {
     return prevToken.type === 'ws' && prevToken.offset === 0;
   }
 
-  isOnlyWhitespaceRightOfCursor(): boolean {
-    const token = this.getToken();
-    if (token.raw === this.doc.lineEnding) {
-      return true;
-    }
-    const prevToken = this.getPrevToken();
+  isOnlyWhitespaceRightOfCursor(includeComments = false): boolean {
     const currentLine = this.line;
     const cursor = this.clone();
-    cursor.next();
+    cursor.forwardWhitespace(includeComments);
     return (
-      (token.raw.match(/^\s+$/) && cursor.getToken().raw == cursor.doc.lineEnding) ||
       cursor.line !== currentLine ||
-      cursor.atEnd()
+      cursor.atEnd() ||
+      (includeComments && cursor.getToken().type === 'comment')
     );
   }
 

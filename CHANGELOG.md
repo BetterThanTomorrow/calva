@@ -5,6 +5,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Enable strict mode for `;` (semi-colon)](https://github.com/BetterThanTomorrow/calva/issues/2488)
+
 ## [2.0.433] - 2024-04-01
 
 - [Implement experimental support for multicursor rewrap commands](https://github.com/BetterThanTomorrow/calva/issues/2448). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2473](https://github.com/BetterThanTomorrow/calva/issues/2473)
