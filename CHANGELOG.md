@@ -5,6 +5,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.434] - 2024-04-03
+
 - [Add opt-in strict mode for `;` (semi-colon)](https://github.com/BetterThanTomorrow/calva/issues/2488)
 
 ## [2.0.433] - 2024-04-01
