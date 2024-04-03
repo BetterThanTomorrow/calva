@@ -835,17 +835,6 @@ export class LispTokenCursor extends TokenCursor {
     return prevToken.type === 'ws' && prevToken.offset === 0;
   }
 
-  isOnlyWhitespaceRightOfCursor(includeComments = false): boolean {
-    const currentLine = this.line;
-    const cursor = this.clone();
-    cursor.forwardWhitespace(includeComments);
-    return (
-      cursor.line !== currentLine ||
-      cursor.atEnd() ||
-      (includeComments && cursor.getToken().type === 'comment')
-    );
-  }
-
   previousIsWhiteSpace(): boolean {
     return tokenIsWhiteSpace(this.getPrevToken());
   }
