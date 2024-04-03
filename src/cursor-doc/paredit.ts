@@ -1804,14 +1804,14 @@ export function _semiColonWouldBreakStructure(doc: EditableDocument, p = doc.sel
   do {
     probeCursor.forwardWhitespace(true);
     if (probeCursor.line !== startCursor.line || probeCursor.atEnd()) {
-      return false;
+      return false; // at end of the starting line possibly in whitespace or comment
     }
     const moved = probeCursor.forwardSexp(true, true, true);
     if (probeCursor.line !== startCursor.line) {
-      return true;
+      return true; // the sexp in front ends on a different line
     }
     if (!moved) {
-      return true;
+      return true; // inside a list ending on the same line
     }
   } while (true);
 }
