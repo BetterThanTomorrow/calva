@@ -1795,7 +1795,14 @@ export async function dragSexprBackwardDown(doc: EditableDocument, p = doc.selec
   }
 }
 
-export function _semiColonWouldBreakStructure(doc: EditableDocument, p = doc.selections[0].active) {
+/**
+ * Checks if a semi-colon would break the structure of the document at the given position.
+ * @returns The position where the structure would break, or false if it would not.
+ */
+export function _semiColonWouldBreakStructureWhere(
+  doc: EditableDocument,
+  p = doc.selections[0].active
+): number | false {
   const startCursor = doc.getTokenCursor(p);
   if (startCursor.withinComment() || startCursor.withinString()) {
     return false;
@@ -1806,23 +1813,31 @@ export function _semiColonWouldBreakStructure(doc: EditableDocument, p = doc.sel
     if (probeCursor.line !== startCursor.line || probeCursor.atEnd()) {
       return false; // at end of the starting line possibly in whitespace or comment
     }
+    const offsetBeforeMoving = probeCursor.offsetStart;
     const moved = probeCursor.forwardSexp(true, true, true);
     if (probeCursor.line !== startCursor.line) {
-      return true; // the sexp in front ends on a different line
+      return offsetBeforeMoving; // the sexp in front ends on a different line
     }
     if (!moved) {
-      return true; // inside a list ending on the same line
+      return probeCursor.offsetStart; // inside a list ending on the same line
     }
   } while (true);
 }
 
 export async function insertSemiColon(doc: EditableDocument, p = doc.selections[0].active) {
-  return _semiColonWouldBreakStructure(doc, p)
-    ? doc.model.edit([new ModelEdit('insertString', [p, ';\n', [p, p], [p + 1, p + 1]])], {
-        selections: [new ModelEditSelection(p + 1)],
-        skipFormat: false,
-        undoStopBefore: true,
-      })
+  const wouldBreakWhere = _semiColonWouldBreakStructureWhere(doc, p);
+  return wouldBreakWhere
+    ? doc.model.edit(
+        [
+          new ModelEdit('insertString', [p, ';', [p, p], [p + 1, p + 1]]),
+          new ModelEdit('insertString', [wouldBreakWhere, '\n', [p, p], [p + 1, p + 1]]),
+        ],
+        {
+          selections: [new ModelEditSelection(p + 1)],
+          skipFormat: false,
+          undoStopBefore: true,
+        }
+      )
     : doc.model.edit([new ModelEdit('insertString', [p, ';', [p, p], [p + 1, p + 1]])], {
         selections: [new ModelEditSelection(p + 1)],
         skipFormat: true,
