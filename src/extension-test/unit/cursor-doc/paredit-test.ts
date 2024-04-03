@@ -2252,3 +2252,82 @@ describe('paredit', () => {
     });
   });
 });
+
+describe('paredit util', () => {
+  describe('semiColonWouldBreakStructure', () => {
+    it('returns false at the end of the document', () => {
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a "b c" (d)|'))).toBe(
+        false
+      );
+    });
+    it('returns false at the end of the line', () => {
+      expect(
+        paredit._semiColonWouldBreakStructure(docFromTextNotation('a "b c" (d)|• •   •'))
+      ).toBe(false);
+    });
+    it('returns false at in the whitespace at the end of the line', () => {
+      expect(
+        paredit._semiColonWouldBreakStructure(docFromTextNotation('a "b c" (d)  | • •   •'))
+      ).toBe(false);
+    });
+    it('returns false withing a string', () => {
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a "b| c" d'))).toBe(false);
+    });
+    it('returns false a semicolon would be (illegally) escaped withing a string', () => {
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a "b\\| c" d'))).toBe(
+        false
+      );
+    });
+    it('returns false withing a comment', () => {
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a "b c" d ; e| f'))).toBe(
+        false
+      );
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a "b c" d ; e f|•'))).toBe(
+        false
+      );
+    });
+    it('returns false in whitespace before a comment', () => {
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a "b c" d |; e f'))).toBe(
+        false
+      );
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a "b c" d | ; e f•'))).toBe(
+        false
+      );
+    });
+    it('returns true inside a list ending on the same line', () => {
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a (b |c)• d '))).toBe(true);
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a (b {|} c•) d '))).toBe(
+        true
+      );
+    });
+    it('returns false inside a list ending on some other line', () => {
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a (b |•c)• d '))).toBe(
+        false
+      );
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a (b {|•} c•) d '))).toBe(
+        false
+      );
+    });
+    it('returns true before a list ending on the same line', () => {
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a "b c" | (d)'))).toBe(
+        false
+      );
+    });
+    it('returns false if can move by sexp to the end of the line', () => {
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a "b c" | (d) • e'))).toBe(
+        false
+      );
+      expect(
+        paredit._semiColonWouldBreakStructure(docFromTextNotation('a [b c• |(d) {[e]}•f g] • '))
+      ).toBe(false);
+    });
+    it('returns true before a list ending on some other line', () => {
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('a |(b •c)• d '))).toBe(
+        true
+      );
+      expect(paredit._semiColonWouldBreakStructure(docFromTextNotation('|a (b {•} c•) d '))).toBe(
+        true
+      );
+    });
+  });
+});

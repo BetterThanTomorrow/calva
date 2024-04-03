@@ -461,6 +461,12 @@ const pareditCommands: PareditCommand[] = [
       await paredit.addRichComment(doc);
     },
   },
+  {
+    command: 'paredit.insertSemiColon',
+    handler: async (doc: EditableDocument) => {
+      await paredit.insertSemiColon(doc);
+    },
+  },
 ];
 
 function wrapPareditCommand(command: PareditCommand) {

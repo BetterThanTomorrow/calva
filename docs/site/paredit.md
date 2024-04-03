@@ -36,6 +36,22 @@ Indicator | Paredit Mode
 
 Toggle between Strict and Cave Man using: `ctrl+alt+p ctrl+alt+m`
 
+### A keybinding for protecting the structure from semi-colon
+
+Semi-colons (`;`) in Clojure are non-structural because they comment out the rest of the line regardless of brackets. In a way they can _delete_ brackets. There is a somewhat secret command in Paredit that can be used to insert `;` in a safe way:
+    
+`paredit.insertSemiColon`
+    
+Bind it to the `;` key with a `when` clause that activates it tygether with the other Strict mode commands:
+    
+```json
+{
+    "command": "paredit.insertSemiColon",
+    "key": ";",
+    "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
+ },
+```
+
 ### Prevent Unbalanced Closing Brackets
 
 There is also a setting, `calva.paredit.strictPreventUnmatchedClosingBracket`, that will help you to not enter unbalanced closing brackets into the code.
