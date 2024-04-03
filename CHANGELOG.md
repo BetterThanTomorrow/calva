@@ -5,6 +5,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [The strict `;` (semi-colon) command comments out while protecting balance](https://github.com/BetterThanTomorrow/calva/issues/2490)
+
 ## [2.0.434] - 2024-04-03
 
 - [Add opt-in strict mode for `;` (semi-colon)](https://github.com/BetterThanTomorrow/calva/issues/2488)
