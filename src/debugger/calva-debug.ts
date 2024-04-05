@@ -27,16 +27,18 @@ import {
 } from 'vscode';
 import * as Net from 'net';
 import * as state from '../state';
-import { basename } from 'path';
+import { basename, parse } from 'path';
 import * as docMirror from '../doc-mirror/index';
 import * as vscode from 'vscode';
 import { moveTokenCursorToBreakpoint } from './util';
 import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
-import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
+import { setStateValue, getStateValue, parseEdn } from '../../out/cljs-lib/cljs-lib';
 import * as util from '../utilities';
 import * as replSession from '../nrepl/repl-session';
+import * as TokenCursor from '../cursor-doc/token-cursor';
+import * as cursorUtil from '../cursor-doc/utilities';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
   type: 'clojure',
@@ -71,6 +73,7 @@ class CalvaDebugSession extends LoggingDebugSession {
   static THREAD_ID = 1;
 
   private _variableHandles = new Handles<string>();
+  private variableStructures: { [id: string]: any } = {};
 
   public constructor() {
     super('calva-debug-logs.txt');
@@ -276,12 +279,22 @@ class CalvaDebugSession extends LoggingDebugSession {
   }
 
   private _createVariableFromLocal(local: any[]): Variable {
+    const value = local[1] as string;
+    const name = local[0] as string;
+    const cursor = TokenCursor.createStringCursor(value);
+
+    const variablesReference = cursorUtil.isRightSexpStructural(cursor)
+      ? this._variableHandles.create(name)
+      : 0;
+
+    if (variablesReference !== 0) {
+      this.variableStructures[name] = parseEdn(value);
+    }
+
     return {
       name: local[0],
-      value: local[1],
-      // DEBUG TODO: May need to check type of value. If it's a map or collection, we may need to set variablesReference to something > 0.
-      /** If variablesReference is > 0, the variable is structured and its children can be retrieved by passing variablesReference to the VariablesRequest. */
-      variablesReference: 0,
+      value: value,
+      variablesReference,
     };
   }
 
@@ -290,11 +303,33 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.VariablesArguments,
     request?: DebugProtocol.Request
   ): void {
-    const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
+    const id = this._variableHandles.get(args.variablesReference);
 
-    response.body = {
-      variables: debugResponse.locals.map(this._createVariableFromLocal),
-    };
+    if (id === 'locals') {
+      const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
+      const variables = debugResponse.locals.map((local) => this._createVariableFromLocal(local));
+
+      response.body = { variables };
+    } else {
+      const structure = this.variableStructures[id];
+
+      const variables = Object.keys(structure).map((key) => {
+        const value = structure[key];
+        let variablesReference = 0;
+
+        if (typeof value === 'object' && value !== null) {
+          variablesReference = this._variableHandles.create(key);
+        }
+
+        return {
+          name: key,
+          value: String(value),
+          variablesReference,
+        };
+      });
+
+      response.body = { variables };
+    }
 
     this.sendResponse(response);
   }

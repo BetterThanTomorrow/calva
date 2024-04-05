@@ -88,9 +88,14 @@ When execution is paused at a breakpoint, you can evaluate code in that context.
 
 ### Viewing Variable Values
 
-While debugging, you can view the values of variables in VS Code's debugger side pane. You can also view values by hovering over the variables in the editor. Currently, values for collections and maps are shown as strings, but we plan to make them structured in the future. For now, if you want to see the value of a large structured variable, you can evaluate the variable from the editor or from the REPL window.
+While debugging, you can view the values of variables in VS Code's debugger side pane. You can also view values by hovering over the variables in the editor.
 
 ![Viewing variable values in the side pane](images/debugger/viewing-variable-values.png "Viewing variable values in the side pane")
+
+!!! Note "The order of ordered sets and maps is not retained"
+    Please note that when a variable is a set or a map, the order of the elements will be undetermined, _even if the value is from an ordered structure or not_.
+
+    For now, if you need to see the value of an ordered set or map, in the correct order, you can evaluate the variable from the editor.
 
 ### Viewing the Call Stack
 
