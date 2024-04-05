@@ -68,12 +68,17 @@ const DEBUG_ANALYTICS = {
   },
 };
 
+type ExtractedStructure = {
+  structure: any[];
+  originalStrings: string[];
+};
+
 class CalvaDebugSession extends LoggingDebugSession {
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
   static THREAD_ID = 1;
 
   private _variableHandles = new Handles<string>();
-  private variableStructures: { [id: string]: any } = {};
+  private _variableStructures: { [id: string]: any } = {};
 
   public constructor() {
     super('calva-debug-logs.txt');
@@ -278,6 +283,45 @@ class CalvaDebugSession extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
+  private _textForRightSexp(cursor: TokenCursor.LispTokenCursor): string {
+    const probe = cursor.clone();
+    const start = cursor.offsetStart;
+    probe.forwardSexp();
+    const end = probe.offsetStart;
+    const text = probe.doc.getText(start, end);
+    return text;
+  }
+
+  private _extractStructureFromCursor(cursor: TokenCursor.LispTokenCursor): ExtractedStructure {
+    const probe = cursor.clone();
+    const structure: any[] = [];
+    const originalStrings: string[] = [];
+
+    // We can assume the cursor is at the start some list thing
+    probe.downList();
+    while (probe.forwardSexp()) {
+      probe.backwardSexp();
+      const originalString = this._textForRightSexp(probe);
+      const value = originalString;
+      originalStrings.push(originalString);
+
+      if (cursorUtil.isRightSexpStructural(probe)) {
+        const { structure: nestedStructure, originalStrings: nestedOriginalStrings } =
+          this._extractStructureFromCursor(probe);
+        structure.push(nestedStructure);
+        for (const nestedOriginalString of nestedOriginalStrings) {
+          originalStrings.push(nestedOriginalString);
+        }
+      } else {
+        structure.push(value);
+      }
+      probe.forwardWhitespace();
+      probe.forwardSexp();
+    }
+
+    return { structure, originalStrings };
+  }
+
   private _createVariableFromLocal(local: any[]): Variable {
     const value = local[1] as string;
     const name = local[0] as string;
@@ -288,12 +332,12 @@ class CalvaDebugSession extends LoggingDebugSession {
       : 0;
 
     if (variablesReference !== 0) {
-      this.variableStructures[name] = parseEdn(value);
+      this._variableStructures[name] = this._extractStructureFromCursor(cursor);
     }
 
     return {
-      name: local[0],
-      value: value,
+      name,
+      value,
       variablesReference,
     };
   }
@@ -311,21 +355,21 @@ class CalvaDebugSession extends LoggingDebugSession {
 
       response.body = { variables };
     } else {
-      const structure = this.variableStructures[id];
+      const { structure, originalStrings } = this._variableStructures[id];
 
-      const variables = Object.keys(structure).map((key) => {
+      const variables = Object.keys(structure).map((key, index) => {
         const value = structure[key];
         let variablesReference = 0;
 
         if (typeof value === 'object' && value !== null) {
           const newKey = `${id}.${key}`;
-          this.variableStructures[newKey] = value;
+          this._variableStructures[newKey] = value;
           variablesReference = this._variableHandles.create(newKey);
         }
 
         return {
           name: key,
-          value: typeof value === 'object' ? JSON.stringify(value) : String(value),
+          value: typeof value === 'object' ? originalStrings[index] : String(value),
           variablesReference,
         };
       });
