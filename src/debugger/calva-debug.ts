@@ -318,12 +318,14 @@ class CalvaDebugSession extends LoggingDebugSession {
         let variablesReference = 0;
 
         if (typeof value === 'object' && value !== null) {
-          variablesReference = this._variableHandles.create(key);
+          const newKey = `${id}.${key}`;
+          this.variableStructures[newKey] = value;
+          variablesReference = this._variableHandles.create(newKey);
         }
 
         return {
           name: key,
-          value: String(value),
+          value: typeof value === 'object' ? JSON.stringify(value) : String(value),
           variablesReference,
         };
       });
