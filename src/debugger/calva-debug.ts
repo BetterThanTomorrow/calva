@@ -292,6 +292,12 @@ class CalvaDebugSession extends LoggingDebugSession {
     return text;
   }
 
+  private _rightStructureIsMap(cursor: TokenCursor.LispTokenCursor): boolean {
+    const probe = cursor.clone();
+    probe.downList();
+    return probe.getPrevToken().raw === '{';
+  }
+
   private _extractStructureFromCursor(cursor: TokenCursor.LispTokenCursor): ExtractedStructure {
     const probe = cursor.clone();
     const structure: any[] = [];
@@ -299,16 +305,19 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     // We can assume the cursor is at the start some list thing
     probe.downList();
+    const isMap = probe.getPrevToken().raw === '{';
     while (probe.forwardSexp()) {
       probe.backwardSexp();
-      const originalString = this._textForRightSexp(probe);
-      const value = originalString;
-      originalStrings.push(originalString);
+      console.log(`1 - isMap: ${isMap}`);
+      const value = this._textForRightSexp(probe);
+      originalStrings.push(value);
 
       if (cursorUtil.isRightSexpStructural(probe)) {
         const { structure: nestedStructure, originalStrings: nestedOriginalStrings } =
           this._extractStructureFromCursor(probe);
+
         structure.push(nestedStructure);
+
         for (const nestedOriginalString of nestedOriginalStrings) {
           originalStrings.push(nestedOriginalString);
         }
@@ -319,7 +328,18 @@ class CalvaDebugSession extends LoggingDebugSession {
       probe.forwardSexp();
     }
 
-    return { structure, originalStrings };
+    console.log(`2 - isMap here too?: ${isMap}`);
+    return {
+      structure: isMap
+        ? structure.reduce((acc, curr, index, array) => {
+            if (index % 2 === 0) {
+              acc[curr] = array[index + 1];
+            }
+            return acc;
+          }, {})
+        : structure,
+      originalStrings,
+    };
   }
 
   private _createVariableFromLocal(local: any[]): Variable {
@@ -332,6 +352,9 @@ class CalvaDebugSession extends LoggingDebugSession {
       : 0;
 
     if (variablesReference !== 0) {
+      console.log(`BOOM! Storing structure with id: ${name}`);
+      const text = cursor.doc.getText(0, Infinity);
+      // this._variableStructures[name] = parseEdn(text);
       this._variableStructures[name] = this._extractStructureFromCursor(cursor);
     }
 
@@ -355,6 +378,8 @@ class CalvaDebugSession extends LoggingDebugSession {
 
       response.body = { variables };
     } else {
+      console.log(`BOOM! Retrieving structure with id: ${id}`);
+      // const structure = this._variableStructures[id];
       const { structure, originalStrings } = this._variableStructures[id];
 
       const variables = Object.keys(structure).map((key, index) => {
@@ -363,12 +388,17 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         if (typeof value === 'object' && value !== null) {
           const newKey = `${id}.${key}`;
-          this._variableStructures[newKey] = value;
+          console.log(`BOOM! Storing structure with id: ${newKey}`);
+          this._variableStructures[newKey] = {
+            structure: value,
+            originalStrings: originalStrings[index],
+          };
           variablesReference = this._variableHandles.create(newKey);
         }
 
         return {
           name: key,
+          // value: typeof value === 'object' ? `${id}.${key}` : String(value),
           value: typeof value === 'object' ? originalStrings[index] : String(value),
           variablesReference,
         };
