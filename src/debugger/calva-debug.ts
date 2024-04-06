@@ -292,41 +292,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     return text;
   }
 
-  private _rightStructureIsMap(cursor: TokenCursor.LispTokenCursor): boolean {
-    const probe = cursor.clone();
-    probe.downList();
-    return probe.getPrevToken().raw === '{';
-  }
-
-  // private _extractStructureFromCursor(cursor: TokenCursor.LispTokenCursor): any[] | Map<any, any> {
-  //   const probe = cursor.clone();
-
-  //   // We can assume the cursor is at the start some list thing
-  //   probe.downList();
-  //   const isMap = probe.getPrevToken().raw === '{';
-  //   const structure = isMap ? new Map() : [];
-  //   while (probe.forwardSexp()) {
-  //     probe.backwardSexp();
-  //     const originalString = this._textForRightSexp(probe);
-  //     if (isMap) {
-  //       const keyString = this._textForRightSexp(probe);
-  //       const key = cursorUtil.isRightSexpStructural(probe) ? this._extractStructureFromCursor(probe) : keyString;
-  //       probe.forwardSexp();
-  //       const valueString = this._textForRightSexp(probe);
-  //       const value = cursorUtil.isRightSexpStructural(probe) ? this._extractStructureFromCursor(probe) : valueString;
-  //       // what to store in the map? I want to be able to look up the original string for both keys and values in variableRequest()
-  //     } else {
-  //       const valueString = this._textForRightSexp(probe);
-  //       const value = cursorUtil.isRightSexpStructural(probe) ? this._extractStructureFromCursor(probe) : valueString;
-  //       // what to store in the array? I want to be able to look up the original string for values in variableRequest()
-  //     }
-
-  //     probe.forwardWhitespace();
-  //     probe.forwardSexp();
-  //   }
-  //   return structure;
-  // }
-
   private _extractStructureFromCursor(cursor: TokenCursor.LispTokenCursor): any[] | Map<any, any> {
     const probe = cursor.clone();
 
@@ -376,7 +341,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     if (variablesReference !== 0) {
       console.log(`BOOM! Storing structure with id: ${name}`);
       const text = cursor.doc.getText(0, Infinity);
-      // this._variableStructures[name] = parseEdn(text);
       this._variableStructures[name] = this._extractStructureFromCursor(cursor);
     }
 
