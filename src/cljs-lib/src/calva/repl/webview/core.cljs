@@ -29,10 +29,11 @@
 
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
 
-    <meta http-equiv=\"Content-Security-Policy\"
+    <!-- TODO: Uncomment this and lock it down as much as possible. Remember to disable things that default-src does not. See bottomg of this section: https://web.dev/articles/csp#resource-options -->
+    <!-- <meta http-equiv=\"Content-Security-Policy\"
         content=\"default-src 'none';
                   style-src https://cdnjs.cloudflare.com;
-                  script-src https://cdnjs.cloudflare.com;\">
+                  script-src https://cdnjs.cloudflare.com;\"> -->
 
     <title>REPL Output</title>
 
@@ -44,16 +45,14 @@
     <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js\"></script>
     <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/clojure.min.js\"></script>
 
-    <!-- <script>
-      hljs.highlightAll();
-    </script> -->
-
   </head>
   <body>
+    <pre><code class=\"language-clojure\">:hello-world</code></pre>
+
     <!-- TODO: Disable inline scripts - see security section in webview docs -->
     <div id=\"output\"></div>
 
-    <!-- <script src=\"" js-src "\"></script> -->
+    <script src=\"" js-src "\"></script>
   </body>
 </html>"))
 

@@ -1,7 +1,8 @@
 (ns calva.repl.webview.ui
   (:require
    [reagent.dom.client :as rdom.client]
-   [reagent.core :as r]))
+   [reagent.core :as r]
+   ["react" :as react]))
 
 (defn output-element
   [element-data]
@@ -29,10 +30,14 @@
                                        :output-element/content content})))
 
 (defn repl-output []
+  (react/useEffect (fn []
+                     (prn "highlighting code blocks")
+                     (.. js/window -hljs (highlightAll))))
   (let [elements @output-elements]
-    [:div
-     (for [{:output-element/keys [content id]} elements]
-       [:p {:key id} content])]))
+    [:pre [:code {:class "language-clojure"} ":hello"]]
+    #_[:div
+       (for [{:output-element/keys [content id]} elements]
+         [:p {:key id} content])]))
 
 (defn main []
   (.. js/window
@@ -48,7 +53,7 @@
                             (case command
                               "show-result" (add-eval-result data)
                               "show-stdout" (add-stdout data))))))
-  (rdom.client/render (rdom.client/create-root (js/document.getElementById "output")) [repl-output]))
+  (rdom.client/render (rdom.client/create-root (js/document.getElementById "output")) [:f> repl-output]))
 
 (comment
   (set! *print-namespace-maps* false)
