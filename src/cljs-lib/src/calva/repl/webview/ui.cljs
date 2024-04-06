@@ -30,9 +30,12 @@
                                        :output-element/content content})))
 
 (defn repl-output []
-  (react/useEffect (fn []
-                     (prn "highlighting code blocks")
-                     (.. js/window -hljs (highlightAll))))
+  ;; If doing this after every render isn't performant, consider using highlightjs from node,
+  ;; rendering the output to html then sending it to this webview as a message and adding the html to the DOM
+  ;; as it is. It would already be in the form hightlightjs needs it to be in for its CSS to apply to it.
+  ;;
+  ;; TODO: Test if this is performance when printing a large number of results and a large number of large results
+  (react/useEffect (fn [] (.. js/window -hljs (highlightAll))))
   (let [elements @output-elements]
     [:pre [:code {:class "language-clojure"} ":hello"]]
     #_[:div
