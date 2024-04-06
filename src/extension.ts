@@ -16,7 +16,6 @@ import * as definition from './providers/definition';
 import { CalvaSignatureHelpProvider } from './providers/signature';
 import testRunner from './testRunner';
 import annotations from './providers/annotations';
-import * as select from './select';
 import eval from './evaluate';
 import refresh from './refresh';
 import * as greetings from './greet';
@@ -268,7 +267,6 @@ async function activate(context: vscode.ExtensionContext) {
     runCustomREPLCommand: snippets.evaluateCustomCodeSnippetCommand,
     runNamespaceTests: () => testRunner.runNamespaceTestsCommand(testController),
     runTestUnderCursor: () => testRunner.runTestUnderCursorCommand(testController),
-    selectCurrentForm: select.selectCurrentForm,
     sendCurrentFormToOutputWindow: outputWindow.appendCurrentForm,
     openFiddleForSourceFile: fiddleFiles.openFiddleForSourceFile,
     evaluateFiddleForSourceFile: fiddleFiles.evaluateFiddleForSourceFile,

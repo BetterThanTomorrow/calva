@@ -49,6 +49,34 @@ export function selectRange(doc: EditableDocument, ranges: ModelEditRange[]) {
   growSelectionStack(doc, ranges);
 }
 
+export function selectCurrentForm(
+  doc: EditableDocument,
+  topLevel: boolean,
+  selections = doc.selections
+) {
+  const newSels = selections.map((sel) => {
+    const selection = sel;
+    if (selection.isCursor) {
+      let codeSelection;
+      const cursor = doc.getTokenCursor(selection.active);
+      const range = topLevel
+        ? cursor.rangeForDefun(selection.active)
+        : cursor.rangeForCurrentForm(selection.active);
+      if (range) {
+        codeSelection = new ModelEditSelection(range[0], range[1]);
+      } else {
+        codeSelection = undefined;
+      }
+      if (codeSelection) {
+        return codeSelection;
+      }
+    }
+    return sel;
+  });
+
+  growSelectionStack(doc, newSels.map(_.property('asDirectedRange')));
+}
+
 export function selectRangeForward(
   doc: EditableDocument,
   ranges: ModelEditRange[],
@@ -1765,6 +1793,56 @@ export async function dragSexprBackwardDown(doc: EditableDocument, p = doc.selec
       break;
     }
   }
+}
+
+/**
+ * Checks if a semi-colon would break the structure of the document at the given position.
+ * @returns The position where the structure would break, or false if it would not.
+ */
+export function _semiColonWouldBreakStructureWhere(
+  doc: EditableDocument,
+  p = doc.selections[0].active
+): number | false {
+  const startCursor = doc.getTokenCursor(p);
+  if (startCursor.withinComment() || startCursor.withinString()) {
+    return false;
+  }
+  const probeCursor = startCursor.clone();
+  while (true) {
+    probeCursor.forwardWhitespace(true);
+    if (probeCursor.line !== startCursor.line || probeCursor.atEnd()) {
+      return false; // at end of the starting line possibly in whitespace or comment
+    }
+    const offsetBeforeMoving = probeCursor.offsetStart;
+    const moved = probeCursor.forwardSexp(true, true, true);
+    if (probeCursor.line !== startCursor.line) {
+      return offsetBeforeMoving; // the sexp in front ends on a different line
+    }
+    if (!moved) {
+      return probeCursor.offsetStart; // inside a list ending on the same line
+    }
+  }
+}
+
+export async function insertSemiColon(doc: EditableDocument, p = doc.selections[0].active) {
+  const wouldBreakWhere = _semiColonWouldBreakStructureWhere(doc, p);
+  return wouldBreakWhere
+    ? doc.model.edit(
+        [
+          new ModelEdit('insertString', [p, ';', [p, p], [p + 1, p + 1]]),
+          new ModelEdit('insertString', [wouldBreakWhere, '\n', [p, p], [p + 1, p + 1]]),
+        ],
+        {
+          selections: [new ModelEditSelection(p + 1)],
+          skipFormat: false,
+          undoStopBefore: true,
+        }
+      )
+    : doc.model.edit([new ModelEdit('insertString', [p, ';', [p, p], [p + 1, p + 1]])], {
+        selections: [new ModelEditSelection(p + 1)],
+        skipFormat: true,
+        undoStopBefore: true,
+      });
 }
 
 function adaptContentsToRichComment(contents: string): string {

@@ -292,7 +292,7 @@ export class NReplSession {
       if (msgData.out) {
         output.appendEvalOut(msgData.out);
       } else if (msgData.err) {
-        output.appendEvalErr(msgData.err);
+        output.appendEvalErr(msgData.err, { ns: msgData.ns, replSessionType: this.replType });
       }
     }
   }
