@@ -26,23 +26,34 @@
 <html lang=\"en\">
   <head>
     <meta charset=\"UTF-8\" />
+
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
+
+    <meta http-equiv=\"Content-Security-Policy\"
+        content=\"default-src 'none';
+                  style-src https://cdnjs.cloudflare.com;
+                  script-src https://cdnjs.cloudflare.com;\">
+
     <title>REPL Output</title>
+
     <link
       rel=\"stylesheet\"
       href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css\"
     />
+
     <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js\"></script>
     <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/clojure.min.js\"></script>
-    <script>
+
+    <!-- <script>
       hljs.highlightAll();
-    </script>
+    </script> -->
+
   </head>
   <body>
     <!-- TODO: Disable inline scripts - see security section in webview docs -->
     <div id=\"output\"></div>
 
-    <script src=\"" js-src "\"></script>
+    <!-- <script src=\"" js-src "\"></script> -->
   </body>
 </html>"))
 
