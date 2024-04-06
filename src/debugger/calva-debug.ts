@@ -339,7 +339,6 @@ class CalvaDebugSession extends LoggingDebugSession {
       : 0;
 
     if (variablesReference !== 0) {
-      console.log(`BOOM! Storing structure with id: ${name}`);
       const text = cursor.doc.getText(0, Infinity);
       this._variableStructures[name] = this._extractStructureFromCursor(cursor);
     }
@@ -364,7 +363,6 @@ class CalvaDebugSession extends LoggingDebugSession {
 
       response.body = { variables };
     } else {
-      console.log(`BOOM! Retrieving structure with id: ${id}`);
       const structure = this._variableStructures[id];
 
       let variables;
@@ -376,14 +374,12 @@ class CalvaDebugSession extends LoggingDebugSession {
 
             if (typeof keyObj.value === 'object' && keyObj.value !== null) {
               const newKey = `${id}.${index}.key`;
-              console.log(`BOOM! Storing structure with id: ${newKey}`);
               this._variableStructures[newKey] = keyObj.value;
               keyVariablesReference = this._variableHandles.create(newKey);
             }
 
             if (typeof valueObj.value === 'object' && valueObj.value !== null) {
               const newKey = `${id}.${index}.value`;
-              console.log(`BOOM! Storing structure with id: ${newKey}`);
               this._variableStructures[newKey] = valueObj.value;
               valueVariablesReference = this._variableHandles.create(newKey);
             }
@@ -411,7 +407,6 @@ class CalvaDebugSession extends LoggingDebugSession {
 
           if (typeof valueObj.value === 'object' && valueObj.value !== null) {
             const newKey = `${id}.${index}`;
-            console.log(`BOOM! Storing structure with id: ${newKey}`);
             this._variableStructures[newKey] = valueObj.value;
             variablesReference = this._variableHandles.create(newKey);
           }
