@@ -405,30 +405,42 @@ class CalvaDebugSession extends LoggingDebugSession {
 
       let variables;
       if (structure instanceof Map) {
-        variables = Array.from(structure.entries()).map(([keyObj, valueObj], index) => {
-          let keyVariablesReference = 0;
-          let valueVariablesReference = 0;
+        variables = Array.from(structure.entries())
+          .map(([keyObj, valueObj], index) => {
+            let keyVariablesReference = 0;
+            let valueVariablesReference = 0;
 
-          if (typeof keyObj.value === 'object' && keyObj.value !== null) {
-            const newKey = `${id}.${index}.value`;
-            console.log(`BOOM! Storing structure with id: ${newKey}`);
-            this._variableStructures[newKey] = keyObj.value;
-            keyVariablesReference = this._variableHandles.create(newKey);
-          }
+            if (typeof keyObj.value === 'object' && keyObj.value !== null) {
+              const newKey = `${id}.${index}.key`;
+              console.log(`BOOM! Storing structure with id: ${newKey}`);
+              this._variableStructures[newKey] = keyObj.value;
+              keyVariablesReference = this._variableHandles.create(newKey);
+            }
 
-          if (typeof valueObj.value === 'object' && valueObj.value !== null) {
-            const newKey = `${id}.${index}.value`;
-            console.log(`BOOM! Storing structure with id: ${newKey}`);
-            this._variableStructures[newKey] = valueObj.value;
-            valueVariablesReference = this._variableHandles.create(newKey);
-          }
+            if (typeof valueObj.value === 'object' && valueObj.value !== null) {
+              const newKey = `${id}.${index}.value`;
+              console.log(`BOOM! Storing structure with id: ${newKey}`);
+              this._variableStructures[newKey] = valueObj.value;
+              valueVariablesReference = this._variableHandles.create(newKey);
+            }
 
-          return {
-            name: keyObj.originalString,
-            value: valueObj.originalString,
-            variablesReference: valueVariablesReference, // > 0 ? valueVariablesReference : keyVariablesReference,
-          };
-        });
+            const variables = [];
+            if (keyVariablesReference > 0) {
+              variables.push({
+                name: '[key]',
+                value: keyObj.originalString,
+                variablesReference: keyVariablesReference,
+              });
+            }
+            variables.push({
+              name: keyObj.originalString,
+              value: valueObj.originalString,
+              variablesReference: valueVariablesReference,
+            });
+
+            return variables;
+          })
+          .flat();
       } else {
         variables = structure.map((valueObj, index) => {
           let variablesReference = 0;
