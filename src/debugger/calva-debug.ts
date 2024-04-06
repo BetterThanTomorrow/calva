@@ -347,7 +347,7 @@ class CalvaDebugSession extends LoggingDebugSession {
           ? this._extractStructureFromCursor(probe)
           : valueString;
         (structure as Map<any, any>).set(
-          { key: key, originalString: keyString },
+          { value: key, originalString: keyString },
           { value: value, originalString: valueString }
         );
       } else {
@@ -406,19 +406,27 @@ class CalvaDebugSession extends LoggingDebugSession {
       let variables;
       if (structure instanceof Map) {
         variables = Array.from(structure.entries()).map(([keyObj, valueObj], index) => {
-          let variablesReference = 0;
+          let keyVariablesReference = 0;
+          let valueVariablesReference = 0;
 
-          if (typeof keyObj.key === 'object' && keyObj.key !== null) {
-            const newKey = `${id}.${index}`;
+          if (typeof keyObj.value === 'object' && keyObj.value !== null) {
+            const newKey = `${id}.${index}.value`;
             console.log(`BOOM! Storing structure with id: ${newKey}`);
-            this._variableStructures[newKey] = keyObj.key;
-            variablesReference = this._variableHandles.create(newKey);
+            this._variableStructures[newKey] = keyObj.value;
+            keyVariablesReference = this._variableHandles.create(newKey);
+          }
+
+          if (typeof valueObj.value === 'object' && valueObj.value !== null) {
+            const newKey = `${id}.${index}.value`;
+            console.log(`BOOM! Storing structure with id: ${newKey}`);
+            this._variableStructures[newKey] = valueObj.value;
+            valueVariablesReference = this._variableHandles.create(newKey);
           }
 
           return {
             name: keyObj.originalString,
             value: valueObj.originalString,
-            variablesReference,
+            variablesReference: valueVariablesReference, // > 0 ? valueVariablesReference : keyVariablesReference,
           };
         });
       } else {
