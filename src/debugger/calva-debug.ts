@@ -365,59 +365,57 @@ class CalvaDebugSession extends LoggingDebugSession {
     } else {
       const structure = this._variableStructures[id];
 
-      let variables;
-      if (structure instanceof Map) {
-        variables = Array.from(structure.entries())
-          .map(([keyObj, valueObj], index) => {
-            let keyVariablesReference = 0;
-            let valueVariablesReference = 0;
+      const variables =
+        structure instanceof Map
+          ? Array.from(structure.entries())
+              .map(([keyObj, valueObj], index) => {
+                let keyVariablesReference = 0;
+                let valueVariablesReference = 0;
 
-            if (typeof keyObj.value === 'object' && keyObj.value !== null) {
-              const newKey = `${id}.${index}.key`;
-              this._variableStructures[newKey] = keyObj.value;
-              keyVariablesReference = this._variableHandles.create(newKey);
-            }
+                if (typeof keyObj.value === 'object' && keyObj.value !== null) {
+                  const newKey = `${id}.${index}.key`;
+                  this._variableStructures[newKey] = keyObj.value;
+                  keyVariablesReference = this._variableHandles.create(newKey);
+                }
 
-            if (typeof valueObj.value === 'object' && valueObj.value !== null) {
-              const newKey = `${id}.${index}.value`;
-              this._variableStructures[newKey] = valueObj.value;
-              valueVariablesReference = this._variableHandles.create(newKey);
-            }
+                if (typeof valueObj.value === 'object' && valueObj.value !== null) {
+                  const newKey = `${id}.${index}.value`;
+                  this._variableStructures[newKey] = valueObj.value;
+                  valueVariablesReference = this._variableHandles.create(newKey);
+                }
 
-            const variables = [];
-            if (keyVariablesReference > 0) {
-              variables.push({
-                name: '[key]',
-                value: keyObj.originalString,
-                variablesReference: keyVariablesReference,
-              });
-            }
-            variables.push({
-              name: keyObj.originalString,
-              value: valueObj.originalString,
-              variablesReference: valueVariablesReference,
+                const variables = [];
+                if (keyVariablesReference > 0) {
+                  variables.push({
+                    name: '[key]',
+                    value: keyObj.originalString,
+                    variablesReference: keyVariablesReference,
+                  });
+                }
+                variables.push({
+                  name: keyObj.originalString,
+                  value: valueObj.originalString,
+                  variablesReference: valueVariablesReference,
+                });
+
+                return variables;
+              })
+              .flat()
+          : structure.map((valueObj, index) => {
+              let variablesReference = 0;
+
+              if (typeof valueObj.value === 'object' && valueObj.value !== null) {
+                const newKey = `${id}.${index}`;
+                this._variableStructures[newKey] = valueObj.value;
+                variablesReference = this._variableHandles.create(newKey);
+              }
+
+              return {
+                name: String(index),
+                value: valueObj.originalString,
+                variablesReference,
+              };
             });
-
-            return variables;
-          })
-          .flat();
-      } else {
-        variables = structure.map((valueObj, index) => {
-          let variablesReference = 0;
-
-          if (typeof valueObj.value === 'object' && valueObj.value !== null) {
-            const newKey = `${id}.${index}`;
-            this._variableStructures[newKey] = valueObj.value;
-            variablesReference = this._variableHandles.create(newKey);
-          }
-
-          return {
-            name: String(index),
-            value: valueObj.originalString,
-            variablesReference,
-          };
-        });
-      }
 
       response.body = { variables };
     }
