@@ -298,48 +298,70 @@ class CalvaDebugSession extends LoggingDebugSession {
     return probe.getPrevToken().raw === '{';
   }
 
-  private _extractStructureFromCursor(cursor: TokenCursor.LispTokenCursor): ExtractedStructure {
+  // private _extractStructureFromCursor(cursor: TokenCursor.LispTokenCursor): any[] | Map<any, any> {
+  //   const probe = cursor.clone();
+
+  //   // We can assume the cursor is at the start some list thing
+  //   probe.downList();
+  //   const isMap = probe.getPrevToken().raw === '{';
+  //   const structure = isMap ? new Map() : [];
+  //   while (probe.forwardSexp()) {
+  //     probe.backwardSexp();
+  //     const originalString = this._textForRightSexp(probe);
+  //     if (isMap) {
+  //       const keyString = this._textForRightSexp(probe);
+  //       const key = cursorUtil.isRightSexpStructural(probe) ? this._extractStructureFromCursor(probe) : keyString;
+  //       probe.forwardSexp();
+  //       const valueString = this._textForRightSexp(probe);
+  //       const value = cursorUtil.isRightSexpStructural(probe) ? this._extractStructureFromCursor(probe) : valueString;
+  //       // what to store in the map? I want to be able to look up the original string for both keys and values in variableRequest()
+  //     } else {
+  //       const valueString = this._textForRightSexp(probe);
+  //       const value = cursorUtil.isRightSexpStructural(probe) ? this._extractStructureFromCursor(probe) : valueString;
+  //       // what to store in the array? I want to be able to look up the original string for values in variableRequest()
+  //     }
+
+  //     probe.forwardWhitespace();
+  //     probe.forwardSexp();
+  //   }
+  //   return structure;
+  // }
+
+  private _extractStructureFromCursor(cursor: TokenCursor.LispTokenCursor): any[] | Map<any, any> {
     const probe = cursor.clone();
-    const structure: any[] = [];
-    const originalStrings: string[] = [];
 
     // We can assume the cursor is at the start some list thing
     probe.downList();
     const isMap = probe.getPrevToken().raw === '{';
+    const structure = isMap ? new Map() : [];
     while (probe.forwardSexp()) {
       probe.backwardSexp();
-      console.log(`1 - isMap: ${isMap}`);
-      const value = this._textForRightSexp(probe);
-      originalStrings.push(value);
-
-      if (cursorUtil.isRightSexpStructural(probe)) {
-        const { structure: nestedStructure, originalStrings: nestedOriginalStrings } =
-          this._extractStructureFromCursor(probe);
-
-        structure.push(nestedStructure);
-
-        for (const nestedOriginalString of nestedOriginalStrings) {
-          originalStrings.push(nestedOriginalString);
-        }
+      if (isMap) {
+        const keyString = this._textForRightSexp(probe);
+        const key = cursorUtil.isRightSexpStructural(probe)
+          ? this._extractStructureFromCursor(probe)
+          : keyString;
+        probe.forwardSexp();
+        const valueString = this._textForRightSexp(probe);
+        const value = cursorUtil.isRightSexpStructural(probe)
+          ? this._extractStructureFromCursor(probe)
+          : valueString;
+        (structure as Map<any, any>).set(
+          { key: key, originalString: keyString },
+          { value: value, originalString: valueString }
+        );
       } else {
-        structure.push(value);
+        const valueString = this._textForRightSexp(probe);
+        const value = cursorUtil.isRightSexpStructural(probe)
+          ? this._extractStructureFromCursor(probe)
+          : valueString;
+        (structure as any[]).push({ value: value, originalString: valueString });
       }
+
       probe.forwardWhitespace();
       probe.forwardSexp();
     }
-
-    console.log(`2 - isMap here too?: ${isMap}`);
-    return {
-      structure: isMap
-        ? structure.reduce((acc, curr, index, array) => {
-            if (index % 2 === 0) {
-              acc[curr] = array[index + 1];
-            }
-            return acc;
-          }, {})
-        : structure,
-      originalStrings,
-    };
+    return structure;
   }
 
   private _createVariableFromLocal(local: any[]): Variable {
@@ -379,30 +401,44 @@ class CalvaDebugSession extends LoggingDebugSession {
       response.body = { variables };
     } else {
       console.log(`BOOM! Retrieving structure with id: ${id}`);
-      // const structure = this._variableStructures[id];
-      const { structure, originalStrings } = this._variableStructures[id];
+      const structure = this._variableStructures[id];
 
-      const variables = Object.keys(structure).map((key, index) => {
-        const value = structure[key];
-        let variablesReference = 0;
+      let variables;
+      if (structure instanceof Map) {
+        variables = Array.from(structure.entries()).map(([keyObj, valueObj], index) => {
+          let variablesReference = 0;
 
-        if (typeof value === 'object' && value !== null) {
-          const newKey = `${id}.${key}`;
-          console.log(`BOOM! Storing structure with id: ${newKey}`);
-          this._variableStructures[newKey] = {
-            structure: value,
-            originalStrings: originalStrings[index],
+          if (typeof keyObj.key === 'object' && keyObj.key !== null) {
+            const newKey = `${id}.${index}`;
+            console.log(`BOOM! Storing structure with id: ${newKey}`);
+            this._variableStructures[newKey] = keyObj.key;
+            variablesReference = this._variableHandles.create(newKey);
+          }
+
+          return {
+            name: keyObj.originalString,
+            value: valueObj.originalString,
+            variablesReference,
           };
-          variablesReference = this._variableHandles.create(newKey);
-        }
+        });
+      } else {
+        variables = structure.map((valueObj, index) => {
+          let variablesReference = 0;
 
-        return {
-          name: key,
-          // value: typeof value === 'object' ? `${id}.${key}` : String(value),
-          value: typeof value === 'object' ? originalStrings[index] : String(value),
-          variablesReference,
-        };
-      });
+          if (typeof valueObj.value === 'object' && valueObj.value !== null) {
+            const newKey = `${id}.${index}`;
+            console.log(`BOOM! Storing structure with id: ${newKey}`);
+            this._variableStructures[newKey] = valueObj.value;
+            variablesReference = this._variableHandles.create(newKey);
+          }
+
+          return {
+            name: String(index),
+            value: valueObj.originalString,
+            variablesReference,
+          };
+        });
+      }
 
       response.body = { variables };
     }
