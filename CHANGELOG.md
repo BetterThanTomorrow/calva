@@ -2,7 +2,24 @@
 
 Changes to Calva.
 
+
 ## [Unreleased]
+
+- [Make the debugger present structural variables as traversable structures](https://github.com/BetterThanTomorrow/calva/issues/2494)
+
+## [2.0.435] - 2024-04-03
+
+- [The strict `;` (semi-colon) command comments out while protecting balance](https://github.com/BetterThanTomorrow/calva/issues/2490)
+
+## [2.0.434] - 2024-04-03
+
+- [Add opt-in strict mode for `;` (semi-colon)](https://github.com/BetterThanTomorrow/calva/issues/2488)
+
+## [2.0.433] - 2024-04-01
+
+- [Implement experimental support for multicursor rewrap commands](https://github.com/BetterThanTomorrow/calva/issues/2448). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2473](https://github.com/BetterThanTomorrow/calva/issues/2473)
+- [Add a separator line between evaluation outputs to the Output terminal](https://github.com/BetterThanTomorrow/calva/issues/2483)
+- [Implement experimental support for multicursor selectCurrentForm command](https://github.com/BetterThanTomorrow/calva/issues/2476). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2476](https://github.com/BetterThanTomorrow/calva/issues/2476) 
 
 ## [2.0.432] - 2024-03-26
 

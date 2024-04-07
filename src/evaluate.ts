@@ -124,7 +124,7 @@ async function evaluateCodeUpdatingUI(
       if (evaluationSendCodeToOutputWindow) {
         outputWindow.appendLine(code);
         if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
-          output.appendClojureEval(code);
+          output.appendClojureEval(code, { ns, replSessionType: session.replType });
         }
       }
 
@@ -134,7 +134,7 @@ async function evaluateCodeUpdatingUI(
       result = value;
 
       if (showResult) {
-        output.appendClojureEval(value, async () => {
+        output.appendClojureEval(value, { ns, replSessionType: session.replType }, async () => {
           if (selection) {
             const c = selection.start.character;
             if (editor && options.replace) {
@@ -171,10 +171,10 @@ async function evaluateCodeUpdatingUI(
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
             if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
-              output.appendClojureOther(errMsg);
+              output.appendEvalErr(errMsg, { ns, replSessionType: session.replType });
             }
           } else {
-            output.appendLineEvalErr(errMsg);
+            output.appendEvalErr(errMsg, { ns, replSessionType: session.replType });
           }
         }
       }
@@ -222,7 +222,10 @@ async function evaluateCodeUpdatingUI(
             });
         });
         if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
-          output.appendLineEvalErr(err.length ? err.join('\n') : e);
+          output.appendEvalErr(err.length ? err.join('\n') : e, {
+            ns,
+            replSessionType: session.replType,
+          });
         }
       }
     }
@@ -535,7 +538,7 @@ async function loadFile(
     filePath,
     stdout: (m) => output.appendEvalOut(m),
     stderr: (m) => {
-      output.appendLineEvalErr(m);
+      output.appendEvalErr(m, { ns, replSessionType: session.replType });
       errorMessages.push(m);
     },
     pprintOptions: pprintOptions,
@@ -543,7 +546,7 @@ async function loadFile(
   try {
     const value = await res.value;
     if (value) {
-      output.appendClojureEval(value);
+      output.appendClojureEval(value, { ns, replSessionType: session.replType });
     } else {
       output.appendLineEvalOut('No results from file evaluation.');
     }
@@ -558,7 +561,7 @@ async function loadFile(
       }
     );
     if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
-      output.appendLineEvalErr(`Evaluation of file ${fileName} failed: ${e}`);
+      output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`);
     }
     if (
       !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
@@ -701,7 +704,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
       column: evalPos.character,
     });
   } catch (e) {
-    output.appendLineEvalErr('Evaluation failed.');
+    output.appendLineOtherErr('Evaluation failed.');
   }
 }
 

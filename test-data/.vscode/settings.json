@@ -22,26 +22,26 @@
     }
   ],
   "calva.customREPLHoverSnippets": [
-    {
-      "name": "Selection, closing brackets",
-      "snippet": "$selection-closing-brackets"
-    },
-    {
-      "name": "edn hover hover-text",
-      "snippet": "(str \"**JSON hover hover-text** \" \"$hover-text\")"
-    },
-    {
-      "name": "Show doc string",
-      "snippet": "(clojure.string/replace (with-out-str (clojure.repl/doc $hover-text)) \"\n\" \"\n\n\")"
-    },
-    {
-      "name": "Show current pair",
-      "snippet": "'\"Current pair: $hover-current-pair\""
-    },
-    {
-      "name": "Show current file text",
-      "snippet": "'(\"Current file text: $hover-file-text\")"
-    }
+    // {
+    //   "name": "Selection, closing brackets",
+    //   "snippet": "$selection-closing-brackets"
+    // },
+    // {
+    //   "name": "edn hover hover-text",
+    //   "snippet": "(str \"**JSON hover hover-text** \" \"$hover-text\")"
+    // },
+    // {
+    //   "name": "Show doc string",
+    //   "snippet": "(clojure.string/replace (with-out-str (clojure.repl/doc $hover-text)) \"\n\" \"\n\n\")"
+    // },
+    // {
+    //   "name": "Show current pair",
+    //   "snippet": "'\"Current pair: $hover-current-pair\""
+    // },
+    // {
+    //   "name": "Show current file text",
+    //   "snippet": "'(\"Current file text: $hover-file-text\")"
+    // }
   ],
   "calva.fiddleFilePaths": [
     {

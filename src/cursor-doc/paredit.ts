@@ -49,6 +49,34 @@ export function selectRange(doc: EditableDocument, ranges: ModelEditRange[]) {
   growSelectionStack(doc, ranges);
 }
 
+export function selectCurrentForm(
+  doc: EditableDocument,
+  topLevel: boolean,
+  selections = doc.selections
+) {
+  const newSels = selections.map((sel) => {
+    const selection = sel;
+    if (selection.isCursor) {
+      let codeSelection;
+      const cursor = doc.getTokenCursor(selection.active);
+      const range = topLevel
+        ? cursor.rangeForDefun(selection.active)
+        : cursor.rangeForCurrentForm(selection.active);
+      if (range) {
+        codeSelection = new ModelEditSelection(range[0], range[1]);
+      } else {
+        codeSelection = undefined;
+      }
+      if (codeSelection) {
+        return codeSelection;
+      }
+    }
+    return sel;
+  });
+
+  growSelectionStack(doc, newSels.map(_.property('asDirectedRange')));
+}
+
 export function selectRangeForward(
   doc: EditableDocument,
   ranges: ModelEditRange[],
@@ -670,32 +698,103 @@ export async function wrapSexpr(
   }
 }
 
-export async function rewrapSexpr(
+/**
+ * 'Rewraps' the lists containing each cursor/selection, as provided by `selections`, with
+ * the provided `open` and `close` strings.
+ *
+ * Single cursor is just the simpler special case when `selections.length` is 1
+ * High level overview:
+ * - For each cursor, find the offsets/ranges for its containing list's open/close tokens.
+ * - Make 2 ModelEdits for each token's replacement +  1 Selection; record the offset change.
+ * - Dedupe each edit (as multi cursors could be in the same list).
+ * - Then, reposition the edits and selections by the preceding edits' offset changes.
+ * - Finally, apply the edits and update the selections.
+ *
+ * @param doc
+ * @param open
+ * @param close
+ * @param selections
+ * @returns
+ */
+export function rewrapSexpr(
   doc: EditableDocument,
   open: string,
   close: string,
-  start: number = doc.selections[0].anchor,
-  end: number = doc.selections[0].active
-): Promise<Thenable<boolean>> {
-  const cursor = doc.getTokenCursor(end);
-  if (cursor.backwardList()) {
-    cursor.backwardUpList();
-    const oldOpenStart = cursor.offsetStart;
-    const oldOpenLength = cursor.getToken().raw.length;
-    const oldOpenEnd = oldOpenStart + oldOpenLength;
-    if (cursor.forwardSexp()) {
-      const oldCloseStart = cursor.offsetStart - close.length;
-      const oldCloseEnd = cursor.offsetStart;
-      const d = open.length - oldOpenLength;
-      return doc.model.edit(
-        [
-          new ModelEdit('changeRange', [oldCloseStart, oldCloseEnd, close]),
-          new ModelEdit('changeRange', [oldOpenStart, oldOpenEnd, open]),
-        ],
-        { selections: [new ModelEditSelection(end + d)] }
-      );
+  selections = [doc.selections[0]]
+) {
+  const edits: { type: 'open' | 'close'; change: number; edit: ModelEdit<'changeRange'> }[] = [],
+    newSelections = _.clone(selections).map((s) => ({ selection: s, change: 0 }));
+
+  selections.forEach((sel, index) => {
+    const { active } = sel;
+    const cursor = doc.getTokenCursor(active);
+    if (cursor.backwardList()) {
+      cursor.backwardUpList();
+      const oldOpenStart = cursor.offsetStart;
+      const oldOpenLength = cursor.getToken().raw.length;
+      const oldOpenEnd = oldOpenStart + oldOpenLength;
+      if (cursor.forwardSexp()) {
+        const oldCloseStart = cursor.offsetStart - close.length;
+        const oldCloseEnd = cursor.offsetStart;
+        const openChange = open.length - oldOpenLength;
+        edits.push(
+          {
+            edit: new ModelEdit('changeRange', [oldCloseStart, oldCloseEnd, close]),
+            change: 0,
+            type: 'close',
+          },
+          {
+            edit: new ModelEdit('changeRange', [oldOpenStart, oldOpenEnd, open]),
+            change: openChange,
+            type: 'open',
+          }
+        );
+        newSelections[index] = {
+          selection: new ModelEditSelection(active),
+          change: openChange,
+        };
+      }
     }
+  });
+
+  // Due to the nature of dealing with list boundaries, multiple cursors could be targeting
+  // the same lists, which will result in attempting to delete the same ranges twice. So we dedupe.
+  const uniqEdits = _.uniqWith(edits, _.isEqual);
+
+  // for both edits and new selections, get the offset by which to move each based on prior edits
+  function getOffset(cursorOffset: number) {
+    return _(uniqEdits)
+      .filter((x) => {
+        const [xStart] = x.edit.args;
+        return xStart < cursorOffset;
+      })
+      .map(({ change }) => change)
+      .sum();
   }
+
+  const editsToApply = _(uniqEdits)
+    // First, importantly, sort by list open char offset
+    .sortBy((e) => e.edit.args[0])
+    // now, let's iterate thru each cursor and adjust their positions if earlier chars are delete/added
+    .map((e) => {
+      const [oldStart, oldEnd, text] = e.edit.args;
+      const offset = getOffset(oldStart);
+      const newStart = oldStart + offset;
+      const newEnd = oldEnd + offset;
+      return { ...e.edit, args: [newStart, newEnd, text] as const };
+    })
+    .value();
+  const selectionsToApply = newSelections.map(({ selection }) => {
+    const { active } = selection;
+    const newSel = selection.clone();
+    const offset = getOffset(active);
+    newSel.reposition(offset);
+    return newSel;
+  });
+
+  return doc.model.edit(editsToApply, {
+    selections: selectionsToApply,
+  });
 }
 
 export async function splitSexp(doc: EditableDocument, start: number = doc.selections[0].active) {
@@ -1694,6 +1793,56 @@ export async function dragSexprBackwardDown(doc: EditableDocument, p = doc.selec
       break;
     }
   }
+}
+
+/**
+ * Checks if a semi-colon would break the structure of the document at the given position.
+ * @returns The position where the structure would break, or false if it would not.
+ */
+export function _semiColonWouldBreakStructureWhere(
+  doc: EditableDocument,
+  p = doc.selections[0].active
+): number | false {
+  const startCursor = doc.getTokenCursor(p);
+  if (startCursor.withinComment() || startCursor.withinString()) {
+    return false;
+  }
+  const probeCursor = startCursor.clone();
+  while (true) {
+    probeCursor.forwardWhitespace(true);
+    if (probeCursor.line !== startCursor.line || probeCursor.atEnd()) {
+      return false; // at end of the starting line possibly in whitespace or comment
+    }
+    const offsetBeforeMoving = probeCursor.offsetStart;
+    const moved = probeCursor.forwardSexp(true, true, true);
+    if (probeCursor.line !== startCursor.line) {
+      return offsetBeforeMoving; // the sexp in front ends on a different line
+    }
+    if (!moved) {
+      return probeCursor.offsetStart; // inside a list ending on the same line
+    }
+  }
+}
+
+export async function insertSemiColon(doc: EditableDocument, p = doc.selections[0].active) {
+  const wouldBreakWhere = _semiColonWouldBreakStructureWhere(doc, p);
+  return wouldBreakWhere
+    ? doc.model.edit(
+        [
+          new ModelEdit('insertString', [p, ';', [p, p], [p + 1, p + 1]]),
+          new ModelEdit('insertString', [wouldBreakWhere, '\n', [p, p], [p + 1, p + 1]]),
+        ],
+        {
+          selections: [new ModelEditSelection(p + 1)],
+          skipFormat: false,
+          undoStopBefore: true,
+        }
+      )
+    : doc.model.edit([new ModelEdit('insertString', [p, ';', [p, p], [p + 1, p + 1]])], {
+        selections: [new ModelEditSelection(p + 1)],
+        skipFormat: true,
+        undoStopBefore: true,
+      });
 }
 
 function adaptContentsToRichComment(contents: string): string {

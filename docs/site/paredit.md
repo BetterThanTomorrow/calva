@@ -36,6 +36,22 @@ Indicator | Paredit Mode
 
 Toggle between Strict and Cave Man using: `ctrl+alt+p ctrl+alt+m`
 
+### A keybinding for protecting the structure from semi-colon
+
+Semi-colons (`;`) in Clojure are non-structural because they comment out the rest of the line regardless of brackets. In a way they can _delete_ brackets. There is a somewhat secret command in Paredit that can be used to insert `;` in a safe way:
+
+`paredit.insertSemiColon`
+
+Bind it to the `;` key with a `when` clause that activates it together with the other Strict mode commands:
+
+```json
+{
+    "command": "paredit.insertSemiColon",
+    "key": ";",
+    "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
+ },
+```
+
 ### Prevent Unbalanced Closing Brackets
 
 There is also a setting, `calva.paredit.strictPreventUnmatchedClosingBracket`, that will help you to not enter unbalanced closing brackets into the code.
@@ -125,7 +141,7 @@ Default keybinding                | Action | Description
     You can have the *kill* commands always copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToClipboard` to `true`.  If you want to do this more on-demand, you can kill text by using the [selection commands](#selecting) and then *Cut* once you have the selection.
 
 !!! Note "clojure-lsp drag fwd/back overlap"
-    As an experimental feature, the two commands for dragging forms forward and backward have clojure-lsp alternativs. See the [clojure-lsp](clojure-lsp.md#clojure-lsp-drag-fwdback) page.
+    As an experimental feature, the two commands for dragging forms forward and backward have clojure-lsp alternatives. See the [clojure-lsp](clojure-lsp.md#clojure-lsp-drag-fwdback) page.
 
 ### Drag bindings forward/backward
 
@@ -156,4 +172,5 @@ Happy Editing! ❤️
 There is an ongoing effort to support simultaneous multicursor editing with Paredit. This is an experimental feature and is not enabled by default. To enable it, set `calva.paredit.multicursor` to `true`. This feature is still in development and may not work as expected in all cases. Currently, this supports the following categories:
 
 - Movement
-- Selection
+- Selection (except for `Select Current Form` - coming soon!)
+- Rewrap

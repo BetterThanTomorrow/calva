@@ -115,6 +115,13 @@ const pareditCommands: PareditCommand[] = [
 
   // SELECTING
   {
+    command: 'calva.selectCurrentForm', // legacy command id for backward compat
+    handler: (doc: EditableDocument) => {
+      const isMulti = multiCursorEnabled();
+      handlers.selectCurrentForm(doc, isMulti);
+    },
+  },
+  {
     command: 'paredit.rangeForDefun',
     handler: (doc: EditableDocument) => {
       const isMulti = multiCursorEnabled();
@@ -392,31 +399,36 @@ const pareditCommands: PareditCommand[] = [
   {
     command: 'paredit.rewrapParens',
     handler: (doc: EditableDocument) => {
-      return paredit.rewrapSexpr(doc, '(', ')');
+      const isMulti = multiCursorEnabled();
+      return handlers.rewrapParens(doc, isMulti);
     },
   },
   {
     command: 'paredit.rewrapSquare',
     handler: (doc: EditableDocument) => {
-      return paredit.rewrapSexpr(doc, '[', ']');
+      const isMulti = multiCursorEnabled();
+      return handlers.rewrapSquare(doc, isMulti);
     },
   },
   {
     command: 'paredit.rewrapCurly',
     handler: (doc: EditableDocument) => {
-      return paredit.rewrapSexpr(doc, '{', '}');
+      const isMulti = multiCursorEnabled();
+      return handlers.rewrapCurly(doc, isMulti);
     },
   },
   {
     command: 'paredit.rewrapSet',
     handler: (doc: EditableDocument) => {
-      return paredit.rewrapSexpr(doc, '#{', '}');
+      const isMulti = multiCursorEnabled();
+      return handlers.rewrapSet(doc, isMulti);
     },
   },
   {
     command: 'paredit.rewrapQuote',
     handler: (doc: EditableDocument) => {
-      return paredit.rewrapSexpr(doc, '"', '"');
+      const isMulti = multiCursorEnabled();
+      return handlers.rewrapQuote(doc, isMulti);
     },
   },
   {
@@ -447,6 +459,12 @@ const pareditCommands: PareditCommand[] = [
     command: 'paredit.addRichComment',
     handler: async (doc: EditableDocument) => {
       await paredit.addRichComment(doc);
+    },
+  },
+  {
+    command: 'paredit.insertSemiColon',
+    handler: async (doc: EditableDocument) => {
+      await paredit.insertSemiColon(doc);
     },
   },
 ];
