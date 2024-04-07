@@ -27,16 +27,18 @@ import {
 } from 'vscode';
 import * as Net from 'net';
 import * as state from '../state';
-import { basename } from 'path';
+import { basename, parse } from 'path';
 import * as docMirror from '../doc-mirror/index';
 import * as vscode from 'vscode';
 import { moveTokenCursorToBreakpoint } from './util';
 import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
-import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
+import { setStateValue, getStateValue, parseEdn } from '../../out/cljs-lib/cljs-lib';
 import * as util from '../utilities';
 import * as replSession from '../nrepl/repl-session';
+import * as TokenCursor from '../cursor-doc/token-cursor';
+import * as cursorUtil from '../cursor-doc/utilities';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
   type: 'clojure',
@@ -66,11 +68,17 @@ const DEBUG_ANALYTICS = {
   },
 };
 
+type ExtractedStructure = {
+  structure: any[];
+  originalStrings: string[];
+};
+
 class CalvaDebugSession extends LoggingDebugSession {
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
   static THREAD_ID = 1;
 
   private _variableHandles = new Handles<string>();
+  private _variableStructures: { [id: string]: any } = {};
 
   public constructor() {
     super('calva-debug-logs.txt');
@@ -276,12 +284,23 @@ class CalvaDebugSession extends LoggingDebugSession {
   }
 
   private _createVariableFromLocal(local: any[]): Variable {
+    const value = local[1] as string;
+    const name = local[0] as string;
+    const cursor = TokenCursor.createStringCursor(value);
+
+    const variablesReference = cursorUtil.isRightSexpStructural(cursor)
+      ? this._variableHandles.create(name)
+      : 0;
+
+    if (variablesReference !== 0) {
+      const text = cursor.doc.getText(0, Infinity);
+      this._variableStructures[name] = cursorUtil.structureForRightSexp(cursor);
+    }
+
     return {
-      name: local[0],
-      value: local[1],
-      // DEBUG TODO: May need to check type of value. If it's a map or collection, we may need to set variablesReference to something > 0.
-      /** If variablesReference is > 0, the variable is structured and its children can be retrieved by passing variablesReference to the VariablesRequest. */
-      variablesReference: 0,
+      name,
+      value,
+      variablesReference,
     };
   }
 
@@ -290,11 +309,70 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.VariablesArguments,
     request?: DebugProtocol.Request
   ): void {
-    const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
+    const id = this._variableHandles.get(args.variablesReference);
 
-    response.body = {
-      variables: debugResponse.locals.map(this._createVariableFromLocal),
-    };
+    if (id === 'locals') {
+      const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
+      const variables = debugResponse.locals.map((local) => this._createVariableFromLocal(local));
+
+      response.body = { variables };
+    } else {
+      const structure = this._variableStructures[id];
+
+      const variables =
+        structure instanceof Map
+          ? Array.from(structure.entries())
+              .map(([keyObj, valueObj], index) => {
+                let keyVariablesReference = 0;
+                let valueVariablesReference = 0;
+
+                if (typeof keyObj.value === 'object' && keyObj.value !== null) {
+                  const newKey = `${id}.${index}.key`;
+                  this._variableStructures[newKey] = keyObj.value;
+                  keyVariablesReference = this._variableHandles.create(newKey);
+                }
+
+                if (typeof valueObj.value === 'object' && valueObj.value !== null) {
+                  const newKey = `${id}.${index}.value`;
+                  this._variableStructures[newKey] = valueObj.value;
+                  valueVariablesReference = this._variableHandles.create(newKey);
+                }
+
+                const variables = [];
+                if (keyVariablesReference > 0) {
+                  variables.push({
+                    name: '[key]',
+                    value: keyObj.originalString,
+                    variablesReference: keyVariablesReference,
+                  });
+                }
+                variables.push({
+                  name: keyObj.originalString,
+                  value: valueObj.originalString,
+                  variablesReference: valueVariablesReference,
+                });
+
+                return variables;
+              })
+              .flat()
+          : structure.map((valueObj, index) => {
+              let variablesReference = 0;
+
+              if (typeof valueObj.value === 'object' && valueObj.value !== null) {
+                const newKey = `${id}.${index}`;
+                this._variableStructures[newKey] = valueObj.value;
+                variablesReference = this._variableHandles.create(newKey);
+              }
+
+              return {
+                name: String(index),
+                value: valueObj.originalString,
+                variablesReference,
+              };
+            });
+
+      response.body = { variables };
+    }
 
     this.sendResponse(response);
   }

@@ -50,6 +50,55 @@ export function isRightSexpStructural(cursor: LispTokenCursor): boolean {
   return false;
 }
 
+export function textForRightSexp(cursor: LispTokenCursor): string {
+  const probe = cursor.clone();
+  const start = cursor.offsetStart;
+  probe.forwardSexp();
+  const end = probe.offsetStart;
+  const text = probe.doc.getText(start, end);
+  return text;
+}
+
+/**
+ * Converts a cursor to a TS representation of the right/next sexp.
+ * @param cursor A cursor pointing to the start of the sexp.
+ * @returns The structure of the right sexp from the cursor, or the text if it is not structural.
+ * For structural sexps, the return value is a Map if the Clojure structure is a map, otherwise
+ * an array. In both cases the values in the structure are returned as objects of the shape
+ * `{ value: any, originalString: string }`.
+ * */
+export function structureForRightSexp(cursor: LispTokenCursor): any | any[] | Map<any, any> {
+  const probe = cursor.clone();
+  if (!isRightSexpStructural(probe)) {
+    return textForRightSexp(probe);
+  }
+  probe.downList();
+  const isMap = probe.getPrevToken().raw === '{';
+  const structure = isMap ? new Map() : [];
+  while (probe.forwardSexp()) {
+    probe.backwardSexp();
+    if (isMap) {
+      const keyString = textForRightSexp(probe);
+      const key = structureForRightSexp(probe);
+      probe.forwardSexp();
+      probe.forwardWhitespace();
+      const valueString = textForRightSexp(probe);
+      const value = structureForRightSexp(probe);
+      (structure as Map<any, any>).set(
+        { value: key, originalString: keyString },
+        { value: value, originalString: valueString }
+      );
+    } else {
+      const valueString = textForRightSexp(probe);
+      const value = structureForRightSexp(probe);
+      (structure as any[]).push({ value: value, originalString: valueString });
+    }
+    probe.forwardWhitespace();
+    probe.forwardSexp();
+  }
+  return structure;
+}
+
 export function hasMoreThanSingleSexp(doc: model.EditableDocument): boolean {
   const cursor = doc.getTokenCursor(0);
   cursor.forwardWhitespace(true);

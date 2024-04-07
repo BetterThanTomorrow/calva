@@ -5,6 +5,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make the debugger present structural variables as traversable structures](https://github.com/BetterThanTomorrow/calva/issues/2494)
+
 ## [2.0.435] - 2024-04-03
 
 - [The strict `;` (semi-colon) command comments out while protecting balance](https://github.com/BetterThanTomorrow/calva/issues/2490)
