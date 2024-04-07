@@ -6,6 +6,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Make the debugger present structural variables as traversable structures](https://github.com/BetterThanTomorrow/calva/issues/2494)
+- [Fix regression caused by #2409 for notebooks with uninitialized namespaces](https://github.com/BetterThanTomorrow/calva/issues/2498)
 
 ## [2.0.435] - 2024-04-03
 
