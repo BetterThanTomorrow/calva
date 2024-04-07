@@ -294,7 +294,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     if (variablesReference !== 0) {
       const text = cursor.doc.getText(0, Infinity);
-      this._variableStructures[name] = cursorUtil.extractStructureRightStructuralSexp(cursor);
+      this._variableStructures[name] = cursorUtil.structureForRightSexp(cursor);
     }
 
     return {

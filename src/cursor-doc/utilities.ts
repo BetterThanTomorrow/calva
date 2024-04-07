@@ -60,22 +60,18 @@ export function textForRightSexp(cursor: LispTokenCursor): string {
 }
 
 /**
- * Returns the structure of the right _structural_ sexp from the cursor.
- * @param cursor
- * @returns
- * @description Extracts the structure of the right sexp from the cursor.
- * This function is used to extract the structure of the right sexp from the cursor.
- * It is used to extract the structure of the right sexp from the cursor.
- * It is used to extract the structure of the right sexp from the cursor.
- * It is used to extract the structure of the right sexp from the cursor.
- */
-
-export function extractStructureRightStructuralSexp(
-  cursor: LispTokenCursor
-): any[] | Map<any, any> {
+ * Converts a cursor to a TS representation of the right/next sexp.
+ * @param cursor A cursor pointing to the start of the sexp.
+ * @returns The structure of the right sexp from the cursor, or the text if it is not structural.
+ * For structural sexps, the return value is a Map if the Clojure structure is a map, otherwise
+ * an array. In both cases the values in the structure are returned as objects of the shape
+ * `{ value: any, originalString: string }`.
+ * */
+export function structureForRightSexp(cursor: LispTokenCursor): any | any[] | Map<any, any> {
   const probe = cursor.clone();
-
-  // We can assume the cursor is at the start some list thing
+  if (!isRightSexpStructural(probe)) {
+    return textForRightSexp(probe);
+  }
   probe.downList();
   const isMap = probe.getPrevToken().raw === '{';
   const structure = isMap ? new Map() : [];
@@ -83,26 +79,19 @@ export function extractStructureRightStructuralSexp(
     probe.backwardSexp();
     if (isMap) {
       const keyString = textForRightSexp(probe);
-      const key = isRightSexpStructural(probe)
-        ? extractStructureRightStructuralSexp(probe)
-        : keyString;
+      const key = structureForRightSexp(probe);
       probe.forwardSexp();
       const valueString = textForRightSexp(probe);
-      const value = isRightSexpStructural(probe)
-        ? extractStructureRightStructuralSexp(probe)
-        : valueString;
+      const value = structureForRightSexp(probe);
       (structure as Map<any, any>).set(
         { value: key, originalString: keyString },
         { value: value, originalString: valueString }
       );
     } else {
       const valueString = textForRightSexp(probe);
-      const value = isRightSexpStructural(probe)
-        ? extractStructureRightStructuralSexp(probe)
-        : valueString;
+      const value = structureForRightSexp(probe);
       (structure as any[]).push({ value: value, originalString: valueString });
     }
-
     probe.forwardWhitespace();
     probe.forwardSexp();
   }
