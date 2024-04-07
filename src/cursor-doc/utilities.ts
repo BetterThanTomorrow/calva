@@ -50,6 +50,65 @@ export function isRightSexpStructural(cursor: LispTokenCursor): boolean {
   return false;
 }
 
+export function textForRightSexp(cursor: LispTokenCursor): string {
+  const probe = cursor.clone();
+  const start = cursor.offsetStart;
+  probe.forwardSexp();
+  const end = probe.offsetStart;
+  const text = probe.doc.getText(start, end);
+  return text;
+}
+
+/**
+ * Returns the structure of the right _structural_ sexp from the cursor.
+ * @param cursor
+ * @returns
+ * @description Extracts the structure of the right sexp from the cursor.
+ * This function is used to extract the structure of the right sexp from the cursor.
+ * It is used to extract the structure of the right sexp from the cursor.
+ * It is used to extract the structure of the right sexp from the cursor.
+ * It is used to extract the structure of the right sexp from the cursor.
+ */
+
+export function extractStructureRightStructuralSexp(
+  cursor: LispTokenCursor
+): any[] | Map<any, any> {
+  const probe = cursor.clone();
+
+  // We can assume the cursor is at the start some list thing
+  probe.downList();
+  const isMap = probe.getPrevToken().raw === '{';
+  const structure = isMap ? new Map() : [];
+  while (probe.forwardSexp()) {
+    probe.backwardSexp();
+    if (isMap) {
+      const keyString = textForRightSexp(probe);
+      const key = isRightSexpStructural(probe)
+        ? extractStructureRightStructuralSexp(probe)
+        : keyString;
+      probe.forwardSexp();
+      const valueString = textForRightSexp(probe);
+      const value = isRightSexpStructural(probe)
+        ? extractStructureRightStructuralSexp(probe)
+        : valueString;
+      (structure as Map<any, any>).set(
+        { value: key, originalString: keyString },
+        { value: value, originalString: valueString }
+      );
+    } else {
+      const valueString = textForRightSexp(probe);
+      const value = isRightSexpStructural(probe)
+        ? extractStructureRightStructuralSexp(probe)
+        : valueString;
+      (structure as any[]).push({ value: value, originalString: valueString });
+    }
+
+    probe.forwardWhitespace();
+    probe.forwardSexp();
+  }
+  return structure;
+}
+
 export function hasMoreThanSingleSexp(doc: model.EditableDocument): boolean {
   const cursor = doc.getTokenCursor(0);
   cursor.forwardWhitespace(true);

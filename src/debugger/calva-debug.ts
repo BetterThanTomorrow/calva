@@ -283,52 +283,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  private _textForRightSexp(cursor: TokenCursor.LispTokenCursor): string {
-    const probe = cursor.clone();
-    const start = cursor.offsetStart;
-    probe.forwardSexp();
-    const end = probe.offsetStart;
-    const text = probe.doc.getText(start, end);
-    return text;
-  }
-
-  private _extractStructureFromCursor(cursor: TokenCursor.LispTokenCursor): any[] | Map<any, any> {
-    const probe = cursor.clone();
-
-    // We can assume the cursor is at the start some list thing
-    probe.downList();
-    const isMap = probe.getPrevToken().raw === '{';
-    const structure = isMap ? new Map() : [];
-    while (probe.forwardSexp()) {
-      probe.backwardSexp();
-      if (isMap) {
-        const keyString = this._textForRightSexp(probe);
-        const key = cursorUtil.isRightSexpStructural(probe)
-          ? this._extractStructureFromCursor(probe)
-          : keyString;
-        probe.forwardSexp();
-        const valueString = this._textForRightSexp(probe);
-        const value = cursorUtil.isRightSexpStructural(probe)
-          ? this._extractStructureFromCursor(probe)
-          : valueString;
-        (structure as Map<any, any>).set(
-          { value: key, originalString: keyString },
-          { value: value, originalString: valueString }
-        );
-      } else {
-        const valueString = this._textForRightSexp(probe);
-        const value = cursorUtil.isRightSexpStructural(probe)
-          ? this._extractStructureFromCursor(probe)
-          : valueString;
-        (structure as any[]).push({ value: value, originalString: valueString });
-      }
-
-      probe.forwardWhitespace();
-      probe.forwardSexp();
-    }
-    return structure;
-  }
-
   private _createVariableFromLocal(local: any[]): Variable {
     const value = local[1] as string;
     const name = local[0] as string;
@@ -340,7 +294,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     if (variablesReference !== 0) {
       const text = cursor.doc.getText(0, Infinity);
-      this._variableStructures[name] = this._extractStructureFromCursor(cursor);
+      this._variableStructures[name] = cursorUtil.extractStructureRightStructuralSexp(cursor);
     }
 
     return {
