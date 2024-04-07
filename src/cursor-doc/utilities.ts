@@ -81,6 +81,7 @@ export function structureForRightSexp(cursor: LispTokenCursor): any | any[] | Ma
       const keyString = textForRightSexp(probe);
       const key = structureForRightSexp(probe);
       probe.forwardSexp();
+      probe.forwardWhitespace();
       const valueString = textForRightSexp(probe);
       const value = structureForRightSexp(probe);
       (structure as Map<any, any>).set(
