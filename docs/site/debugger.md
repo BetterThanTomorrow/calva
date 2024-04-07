@@ -92,10 +92,8 @@ While debugging, you can view the values of variables in VS Code's debugger side
 
 ![Viewing variable values in the side pane](images/debugger/viewing-variable-values.png "Viewing variable values in the side pane")
 
-!!! Note "The order of ordered sets and maps is not retained"
-    Please note that when a variable is a set or a map, the order of the elements will be undetermined, _even if the value is from an ordered structure or not_.
-
-    For now, if you need to see the value of an ordered set or map, in the correct order, you can evaluate the variable from the editor.
+!!! Note "Metadata not available"
+    The variable viewer does not have access to any metadata attached to the variable values.
 
 ### Viewing the Call Stack
 
