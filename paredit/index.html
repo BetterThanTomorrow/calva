@@ -2194,7 +2194,7 @@
 <h3 id="a-keybinding-for-protecting-the-structure-from-semi-colon">A keybinding for protecting the structure from semi-colon<a class="headerlink" href="#a-keybinding-for-protecting-the-structure-from-semi-colon" title="Permanent link">#</a></h3>
 <p>Semi-colons (<code>;</code>) in Clojure are non-structural because they comment out the rest of the line regardless of brackets. In a way they can <em>delete</em> brackets. There is a somewhat secret command in Paredit that can be used to insert <code>;</code> in a safe way:</p>
 <p><code>paredit.insertSemiColon</code></p>
-<p>Bind it to the <code>;</code> key with a <code>when</code> clause that activates it tygether with the other Strict mode commands:</p>
+<p>Bind it to the <code>;</code> key with a <code>when</code> clause that activates it together with the other Strict mode commands:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.insertSemiColon&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;;&quot;</span><span class="p">,</span>

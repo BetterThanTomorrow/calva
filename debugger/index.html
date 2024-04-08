@@ -2394,8 +2394,12 @@
 <p>When execution is paused at a breakpoint, you can evaluate code in that context. This can be done in the editor or in the REPL window, as usual.</p>
 <p><img alt="Evaluating code in the paused context from the editor" src="../images/debugger/eval-editor.gif" title="Evaluating code in the paused context from the editor" /></p>
 <h3 id="viewing-variable-values">Viewing Variable Values<a class="headerlink" href="#viewing-variable-values" title="Permanent link">#</a></h3>
-<p>While debugging, you can view the values of variables in VS Code's debugger side pane. You can also view values by hovering over the variables in the editor. Currently, values for collections and maps are shown as strings, but we plan to make them structured in the future. For now, if you want to see the value of a large structured variable, you can evaluate the variable from the editor or from the REPL window.</p>
+<p>While debugging, you can view the values of variables in VS Code's debugger side pane. You can also view values by hovering over the variables in the editor.</p>
 <p><img alt="Viewing variable values in the side pane" src="../images/debugger/viewing-variable-values.png" title="Viewing variable values in the side pane" /></p>
+<div class="admonition note">
+<p class="admonition-title">Metadata not available</p>
+<p>The variable viewer does not have access to any metadata attached to the variable values.</p>
+</div>
 <h3 id="viewing-the-call-stack">Viewing the Call Stack<a class="headerlink" href="#viewing-the-call-stack" title="Permanent link">#</a></h3>
 <p>While debugging, you can view the call stack in VS Code's call stack side pane. Clicking the stack frames will show the related line of code in an editor.</p>
 <div class="admonition note">
