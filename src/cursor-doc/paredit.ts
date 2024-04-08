@@ -1808,7 +1808,7 @@ export function _semiColonWouldBreakStructureWhere(
     return false;
   }
   const probeCursor = startCursor.clone();
-  do {
+  while (true) {
     probeCursor.forwardWhitespace(true);
     if (probeCursor.line !== startCursor.line || probeCursor.atEnd()) {
       return false; // at end of the starting line possibly in whitespace or comment
@@ -1821,7 +1821,7 @@ export function _semiColonWouldBreakStructureWhere(
     if (!moved) {
       return probeCursor.offsetStart; // inside a list ending on the same line
     }
-  } while (true);
+  }
 }
 
 export async function insertSemiColon(doc: EditableDocument, p = doc.selections[0].active) {
