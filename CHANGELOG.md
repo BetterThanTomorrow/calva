@@ -5,6 +5,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Retire experimental setting for strict prevent unmatched closing bracket. Close: [Unexpected cursor movement when using 'Strict Prevent Unmatched Closing Brackets'](https://github.com/BetterThanTomorrow/calva/issues/2500)
+
 ## [2.0.436] - 2024-04-08
 
 - [Make the debugger present structural variables as traversable structures](https://github.com/BetterThanTomorrow/calva/issues/2494)

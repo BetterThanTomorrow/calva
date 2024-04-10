@@ -136,6 +136,7 @@
       "[clojure]": {
         "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
         "editor.autoClosingBrackets": "always",
+        "editor.autoClosingOvertype": "always",
         "editor.autoClosingQuotes": "always",
         "editor.formatOnType": true,
         "editor.autoIndent": "full",
@@ -1007,12 +1008,6 @@
             "type": "boolean",
             "markdownDescription": "When enabled, more VS Code built-in shortcuts are overridden with their ”corresponding” Paredit commands.",
             "default": true,
-            "scope": "window"
-          },
-          "calva.paredit.strictPreventUnmatchedClosingBracket": {
-            "type": "boolean",
-            "markdownDescription": "Experimental: Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
-            "default": false,
             "scope": "window"
           },
           "calva.paredit.killAlsoCutsToClipboard": {
