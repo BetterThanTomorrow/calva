@@ -79,5 +79,9 @@ describe('Debugger Util', () => {
     it('atom', () => {
       expectBreakpointToBeFound('atom.clj');
     });
+
+    it('atom then something', () => {
+      expectBreakpointToBeFound('atom-then-something.clj');
+    });
   });
 });

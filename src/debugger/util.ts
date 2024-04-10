@@ -78,7 +78,7 @@ function moveTokenCursorToBreakpoint(
     // to (deref value) behind the scenes. We will get a coor path to go down the
     // deref form, but can't really act on it. So we break here.
     if (tokenCursor.getToken().raw.startsWith('@')) {
-      break;
+      i++;
     }
   }
 
