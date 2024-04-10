@@ -100,22 +100,35 @@ describe('Debugger Util', () => {
         \`{:hello ~(+ 1 #break y|)})`);
     });
 
-    it('atom', () => {
-      expectBreakpointToBeFound(`;; 3, 1
-      #dbg
-       (defn boom
-         []
-         @!a|)`);
-    });
+    describe('derefs', () => {
+      it('atom', () => {
+        expectBreakpointToBeFound(`;; 3, 1
+        #dbg
+        (defn boom
+          []
+          @!a|)`);
+      });
 
-    it('atom then something', () => {
-      expectBreakpointToBeFound(`;; 4, 2, 1
-      #dbg
-       (defn boom
-         []
-         @!a|
-         (let [x 1]
-           (inc x|)))`);
+      it('atom then something', () => {
+        expectBreakpointToBeFound(`;; 4, 2, 1
+          #dbg
+          (defn boom
+            []
+            @!a|
+            (let [x 1]
+              (inc x|)))`);
+      });
+
+      // TODO: Figure out why this test fails.
+      // It works interactively.
+      // And the coor given to us from cider-nrepl is really [3, 1]
+      xit('deref call', () => {
+        expectBreakpointToBeFound(`;; 3, 1
+        #dbg
+        (defn boom
+          []
+          @(f)|)`);
+      });
     });
   });
 });
