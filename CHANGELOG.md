@@ -5,6 +5,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Update default Jack-in nrepl dependencies](https://github.com/BetterThanTomorrow/calva/issues/2503), nrepl 1.1.1, cider-nrepl 0.47.1
+
 ## [2.0.436] - 2024-04-08
 
 - [Make the debugger present structural variables as traversable structures](https://github.com/BetterThanTomorrow/calva/issues/2494)
