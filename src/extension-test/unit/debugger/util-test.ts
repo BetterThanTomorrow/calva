@@ -75,5 +75,9 @@ describe('Debugger Util', () => {
     it('syntax quote', () => {
       expectBreakpointToBeFound('syntax-quote.clj');
     });
+
+    it('atom', () => {
+      expectBreakpointToBeFound('atom.clj');
+    });
   });
 });
