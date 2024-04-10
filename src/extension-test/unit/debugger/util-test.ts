@@ -114,7 +114,7 @@ describe('Debugger Util', () => {
           #dbg
           (defn boom
             []
-            @!a|
+            @!a
             (let [x 1]
               (inc x|)))`);
       });
