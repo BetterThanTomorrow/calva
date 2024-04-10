@@ -5,6 +5,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Throws error when debugging atoms](https://github.com/BetterThanTomorrow/calva/issues/2501)
+
 ## [2.0.436] - 2024-04-08
 
 - [Make the debugger present structural variables as traversable structures](https://github.com/BetterThanTomorrow/calva/issues/2494)
