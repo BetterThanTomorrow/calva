@@ -6,6 +6,8 @@ Changes to Calva.
 ## [Unreleased]
 
 - Retire experimental setting for strict prevent unmatched closing bracket. Close: [Unexpected cursor movement when using 'Strict Prevent Unmatched Closing Brackets'](https://github.com/BetterThanTomorrow/calva/issues/2500)
+- [Update default Jack-in nrepl dependencies](https://github.com/BetterThanTomorrow/calva/issues/2503), nrepl 1.1.1, cider-nrepl 0.47.1
+- Fix: [Throws error when debugging atoms](https://github.com/BetterThanTomorrow/calva/issues/2501)
 
 ## [2.0.436] - 2024-04-08
 

@@ -28,9 +28,7 @@ function moveTokenCursorToBreakpoint(
   const coor = [...debugResponse.coor]; // Copy the array so we do not modify the one stored in state
 
   for (let i = 0; i < coor.length; i++) {
-    while (!tokenCursor.downListSkippingMeta()) {
-      tokenCursor.next();
-    }
+    tokenCursor.downListSkippingMeta();
     const previousToken = tokenCursor.getPrevToken();
 
     // Check if we just entered a syntax quote, since we have to account for how syntax quoted forms are read
@@ -72,6 +70,15 @@ function moveTokenCursorToBreakpoint(
           throw errorMessage;
         }
       }
+    }
+
+    tokenCursor.forwardWhitespace();
+
+    // If the next sexpr starts with `@` it's dereffing a value, and that is expanded
+    // to (deref value) behind the scenes. We will get a coor path to go down the
+    // deref form, but can't really act on it. So we break here.
+    if (tokenCursor.getToken().raw.startsWith('@')) {
+      i++;
     }
   }
 
