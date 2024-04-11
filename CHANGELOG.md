@@ -2,7 +2,6 @@
 
 Changes to Calva.
 
-
 ## [Unreleased]
 
 ## [2.0.438] - 2024-04-11
@@ -14,6 +13,7 @@ Changes to Calva.
 - Retire experimental setting for strict prevent unmatched closing bracket. Close: [Unexpected cursor movement when using 'Strict Prevent Unmatched Closing Brackets'](https://github.com/BetterThanTomorrow/calva/issues/2500)
 - [Update default Jack-in nrepl dependencies](https://github.com/BetterThanTomorrow/calva/issues/2503), nrepl 1.1.1, cider-nrepl 0.47.1
 - Fix: [Throws error when debugging atoms](https://github.com/BetterThanTomorrow/calva/issues/2501)
+- Fix: [Refresh Changed Namespaces do not output to the selected output destination](https://github.com/BetterThanTomorrow/calva/issues/2506)
 
 ## [2.0.436] - 2024-04-08
 
@@ -33,7 +33,7 @@ Changes to Calva.
 
 - [Implement experimental support for multicursor rewrap commands](https://github.com/BetterThanTomorrow/calva/issues/2448). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2473](https://github.com/BetterThanTomorrow/calva/issues/2473)
 - [Add a separator line between evaluation outputs to the Output terminal](https://github.com/BetterThanTomorrow/calva/issues/2483)
-- [Implement experimental support for multicursor selectCurrentForm command](https://github.com/BetterThanTomorrow/calva/issues/2476). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2476](https://github.com/BetterThanTomorrow/calva/issues/2476) 
+- [Implement experimental support for multicursor selectCurrentForm command](https://github.com/BetterThanTomorrow/calva/issues/2476). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2476](https://github.com/BetterThanTomorrow/calva/issues/2476)
 
 ## [2.0.432] - 2024-03-26
 
@@ -120,7 +120,7 @@ Changes to Calva.
 
 ## [2.0.414] - 2024-02-24
 
-- [HTML->Hiccup: Add option to always keep classes as attributes if so desired](https://github.com/BetterThanTomorrow/calva/issues/2398) 
+- [HTML->Hiccup: Add option to always keep classes as attributes if so desired](https://github.com/BetterThanTomorrow/calva/issues/2398)
 - [Support clojure-lsp Project Tree feature](https://github.com/BetterThanTomorrow/calva/issues/2406)
 
 ## [2.0.413] - 2024-02-20
