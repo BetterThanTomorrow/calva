@@ -234,9 +234,6 @@ function getConfig() {
     autoOpenREPLWindow: configOptions.get<boolean>('autoOpenREPLWindow'),
     autoOpenJackInTerminal: configOptions.get('autoOpenJackInTerminal'),
     referencesCodeLensEnabled: configOptions.get<boolean>('referencesCodeLens.enabled'),
-    strictPreventUnmatchedClosingBracket: pareditOptions.get<boolean>(
-      'strictPreventUnmatchedClosingBracket'
-    ),
     showCalvaSaysOnStart: configOptions.get<boolean>('showCalvaSaysOnStart'),
     enableClojureLspOnStart: configOptions.get<boolean>('enableClojureLspOnStart'),
     projectRootsSearchExclude: configOptions.get<string[]>('projectRootsSearchExclude', []),

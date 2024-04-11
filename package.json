@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.436",
+  "version": "2.0.437",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -136,6 +136,7 @@
       "[clojure]": {
         "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
         "editor.autoClosingBrackets": "always",
+        "editor.autoClosingOvertype": "always",
         "editor.autoClosingQuotes": "always",
         "editor.formatOnType": true,
         "editor.autoIndent": "full",
@@ -491,8 +492,8 @@
               }
             },
             "default": {
-              "nrepl": "1.0.0",
-              "cider-nrepl": "0.28.5",
+              "nrepl": "1.1.1",
+              "cider-nrepl": "0.47.1",
               "cider/piggieback": "0.5.3"
             }
           },
@@ -1007,12 +1008,6 @@
             "type": "boolean",
             "markdownDescription": "When enabled, more VS Code built-in shortcuts are overridden with their ”corresponding” Paredit commands.",
             "default": true,
-            "scope": "window"
-          },
-          "calva.paredit.strictPreventUnmatchedClosingBracket": {
-            "type": "boolean",
-            "markdownDescription": "Experimental: Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
-            "default": false,
             "scope": "window"
           },
           "calva.paredit.killAlsoCutsToClipboard": {

@@ -52,10 +52,6 @@ Bind it to the `;` key with a `when` clause that activates it together with the 
  },
 ```
 
-### Prevent Unbalanced Closing Brackets
-
-There is also a setting, `calva.paredit.strictPreventUnmatchedClosingBracket`, that will help you to not enter unbalanced closing brackets into the code.
-
 ## Commands
 
 The Paredit commands are sorted into **Navigation**, **Selection**, and **Edit**. As mentioned, **Slurp** and **Barf** are power commands, which go into the editing category. Learning to navigate structurally, using shortcuts, also saves time and adds precision to your editing. It has the double effect that you at the same time learn how to select structurally, because that is the same, just adding the shift key.
