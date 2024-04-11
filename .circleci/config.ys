@@ -2,635 +2,635 @@ version: 2
 jobs:
   checkout:
     docker:
-      - image: cimg/openjdk:17.0.1-node
+    - image: cimg/openjdk:17.0.1-node
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - checkout:
-          path: ~/calva
-      - restore_cache:
-          name: Restore dependencies
-          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
-      - run:
-          name: Install node_modules
-          command: cp package.json /tmp && npm install && cp /tmp/package.json .
-      - run:
-          name: Create build workspace
-          command: mkdir /tmp/build
-      - run:
-          name: Copy build
-          command: |
-            cp -r . /tmp/build
-      - save_cache:
-          name: Save dependencies
-          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
-          paths:
-            - ./node_modules
-      - persist_to_workspace:
-          root: /tmp
-          paths:
-            - build
+    - attach_workspace:
+        at: /tmp
+    - checkout:
+        path: ~/calva
+    - restore_cache:
+        name: Restore dependencies
+        key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+    - run:
+        name: Install node_modules
+        command: cp package.json /tmp && npm install && cp /tmp/package.json .
+    - run:
+        name: Create build workspace
+        command: mkdir /tmp/build
+    - run:
+        name: Copy build
+        command: |
+          cp -r . /tmp/build
+    - save_cache:
+        name: Save dependencies
+        key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+        paths:
+        - ./node_modules
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - build
   build:
     docker:
-      - image: cimg/clojure:1.11-node
+    - image: cimg/clojure:1.11-node
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: Install CLJS dependencies
-          command: npx shadow-cljs classpath
-      - run:
-          name: Create artifacts workspace
-          command: mkdir /tmp/artifacts
-      - run:
-          name: Tamper Calva version if not release versioned
-          command: |
-            VERSION=$(node -p 'require("./package.json").version')
-            TAG_VERSION=NO-TAG
-            if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Install CLJS dependencies
+        command: npx shadow-cljs classpath
+    - run:
+        name: Create artifacts workspace
+        command: mkdir /tmp/artifacts
+    - run:
+        name: Tamper Calva version if not release versioned
+        command: |
+          VERSION=$(node -p 'require("./package.json").version')
+          TAG_VERSION=NO-TAG
+          if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
+          then
+            TAG_VERSION=${BASH_REMATCH[1]}
+            echo 'No version tampering because this is a release tag'
+          else
+            COMMIT=${CIRCLE_SHA1:0:8}
+            if [[  "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-(.*) ]]
             then
               TAG_VERSION=${BASH_REMATCH[1]}
-              echo 'No version tampering because this is a release tag'
+              TAG_TITLE=${BASH_REMATCH[2]}
+              PRERELEASE=${TAG_TITLE}-${COMMIT}
             else
-              COMMIT=${CIRCLE_SHA1:0:8}
-              if [[  "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-(.*) ]]
-              then
-                TAG_VERSION=${BASH_REMATCH[1]}
-                TAG_TITLE=${BASH_REMATCH[2]}
-                PRERELEASE=${TAG_TITLE}-${COMMIT}
-              else
-                BRANCH=${CIRCLE_BRANCH//[^[:alnum:]]/-}
-                PRERELEASE=${BRANCH}-${COMMIT}
-              fi
-              echo "Append prerelease to version: -${PRERELEASE}"
-              npx json -I -f package.json -e 'this.version=this.version.replace(/$/,"-'${PRERELEASE}'")'
+              BRANCH=${CIRCLE_BRANCH//[^[:alnum:]]/-}
+              PRERELEASE=${BRANCH}-${COMMIT}
             fi
-            if [ ${TAG_VERSION} = NO-TAG -o "${TAG_VERSION}" = "${VERSION}" ]
-            then
-              VERSION=$(node -p 'require("./package.json").version')
-              echo "Using version: ${VERSION}"
-            else
-              echo >&2 "FATAL! Version missmatch between package.json and tag. Aborting."
-              exit 1
-            fi
-      - run:
-          name: Package vsix
-          command: |
-            if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
-            then
-              echo "Packaging as release"
-              PACKAGE_CMD="vsce package --githubBranch published"
-            else
-              echo "Packaging as pre-release"
-              PACKAGE_CMD="vsce package --pre-release"
-            fi
-            npx ${PACKAGE_CMD}
-      - run:
-          name: Copy vsix
-          command: |
-            cp *.vsix /tmp/artifacts/
-      - run:
-          name: Copy build
-          command: |
-            cp -r out /tmp/build
-            cp  package.json /tmp/build
-      - save_cache:
-          name: Save dependencies
-          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
-          paths:
-            - ./node_modules
-            - ~/.m2
-      - store_artifacts:
-          path: /tmp/artifacts
-      - persist_to_workspace:
-          root: /tmp
-          paths:
-            - artifacts
-            - build
-            - env
+            echo "Append prerelease to version: -${PRERELEASE}"
+            npx json -I -f package.json -e 'this.version=this.version.replace(/$/,"-'${PRERELEASE}'")'
+          fi
+          if [ ${TAG_VERSION} = NO-TAG -o "${TAG_VERSION}" = "${VERSION}" ]
+          then
+            VERSION=$(node -p 'require("./package.json").version')
+            echo "Using version: ${VERSION}"
+          else
+            echo >&2 "FATAL! Version missmatch between package.json and tag. Aborting."
+            exit 1
+          fi
+    - run:
+        name: Package vsix
+        command: |
+          if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
+          then
+            echo "Packaging as release"
+            PACKAGE_CMD="vsce package --githubBranch published"
+          else
+            echo "Packaging as pre-release"
+            PACKAGE_CMD="vsce package --pre-release"
+          fi
+          npx ${PACKAGE_CMD}
+    - run:
+        name: Copy vsix
+        command: |
+          cp *.vsix /tmp/artifacts/
+    - run:
+        name: Copy build
+        command: |
+          cp -r out /tmp/build
+          cp  package.json /tmp/build
+    - save_cache:
+        name: Save dependencies
+        key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+        paths:
+        - ./node_modules
+        - ~/.m2
+    - store_artifacts:
+        path: /tmp/artifacts
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - artifacts
+        - build
+        - env
   test-grammar:
     working_directory: ~/calva
     environment:
       # Required:
-      DISPLAY: ':99'
+      DISPLAY: :99
     docker:
-      - image: arcanemagus/atom-docker-ci
+    - image: arcanemagus/atom-docker-ci
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: Start display server for Atom
-          command: /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1024x768x16 +extension RANDR
-          background: true
-      - run:
-          name: Run package tests
-          command: |
-            cd src/calva-fmt/atom-language-clojure
-            ./run-grammar-tests.sh
-      - save_cache:
-          name: Save dependencies
-          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
-          paths:
-            - ~/.atom/packages
-            - ./node_modules
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Start display server for Atom
+        command: /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1024x768x16 +extension RANDR
+        background: true
+    - run:
+        name: Run package tests
+        command: |
+          cd src/calva-fmt/atom-language-clojure
+          ./run-grammar-tests.sh
+    - save_cache:
+        name: Save dependencies
+        key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+        paths:
+        - ~/.atom/packages
+        - ./node_modules
   prettier-check:
     docker:
-      - image: circleci/node:latest
+    - image: circleci/node:latest
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: Run prettier format check
-          command: npm run prettier-check
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Run prettier format check
+        command: npm run prettier-check
   eslint-check:
     docker:
-      - image: circleci/node:latest
+    - image: circleci/node:latest
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: Run eslint check
-          command: npm run eslint
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Run eslint check
+        command: npm run eslint
   test-cljslib:
     docker:
-      - image: circleci/node:latest
+    - image: circleci/node:latest
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: Run CLJS Tests
-          command: npm run calva-lib-test
-      - store_test_results:
-          path: ~/calva/junit
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Run CLJS Tests
+        command: npm run calva-lib-test
+    - store_test_results:
+        path: ~/calva/junit
   test-ts-unit:
     docker:
-      - image: circleci/node:latest
+    - image: circleci/node:latest
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: Run TS Unit Tests
-          command: npm run unit-test
-      - store_test_results:
-          path: ~/calva/junit
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Run TS Unit Tests
+        command: npm run unit-test
+    - store_test_results:
+        path: ~/calva/junit
   test-integration:
     docker:
-      - image: cimg/clojure:1.11-browsers
+    - image: cimg/clojure:1.11-browsers
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: Compile Extension Tests
-          command: npm run compile-test
-      - run:
-          name: Apt install missing dependencies
-          command: |
-            sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2
-            sudo apt update && sudo apt install -y libnss3
-      - run:
-          name: Run Extension Tests
-          command: npm run integration-test
-      - store_test_results:
-          path: ~/calva/junit
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Compile Extension Tests
+        command: npm run compile-test
+    - run:
+        name: Apt install missing dependencies
+        command: |
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2
+          sudo apt update && sudo apt install -y libnss3
+    - run:
+        name: Run Extension Tests
+        command: npm run integration-test
+    - store_test_results:
+        path: ~/calva/junit
   test-e2e:
     docker:
-      - image: cimg/clojure:1.11-browsers
+    - image: cimg/clojure:1.11-browsers
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: Apt install missing dependencies
-          command: |
-            sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2
-            sudo apt update && sudo apt install -y libnss3
-      - run:
-          name: Run VSIX E2E Tests
-          command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=src/extension-test/e2e-test
-      - run:
-          name: Temporary debug preserving of VS Code network log
-          command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log ; do echo "$f"; echo ---; cat "$f"; echo --- ; done
-          when: always
-      - store_test_results:
-          path: ~/calva/junit
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Apt install missing dependencies
+        command: |
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2
+          sudo apt update && sudo apt install -y libnss3
+    - run:
+        name: Run VSIX E2E Tests
+        command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=src/extension-test/e2e-test
+    - run:
+        name: Temporary debug preserving of VS Code network log
+        command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log ; do echo "$f"; echo ---; cat "$f"; echo --- ; done
+        when: always
+    - store_test_results:
+        path: ~/calva/junit
   test-e2e-sub-projects:
     docker:
-      - image: cimg/clojure:1.11-browsers
+    - image: cimg/clojure:1.11-browsers
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: Apt install missing dependencies
-          command: |
-            sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2
-            sudo apt update && sudo apt install -y libnss3
-      - run:
-          name: Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
-          command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=test-data/projects/e2e-sub-projects
-      - run:
-          name: Temporary debug preserving of VS Code network log
-          command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log ; do echo "$f"; echo ---; cat "$f"; echo --- ; done
-          when: always
-      - store_test_results:
-          path: ~/calva/junit
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Apt install missing dependencies
+        command: |
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2
+          sudo apt update && sudo apt install -y libnss3
+    - run:
+        name: Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
+        command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=test-data/projects/e2e-sub-projects
+    - run:
+        name: Temporary debug preserving of VS Code network log
+        command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log ; do echo "$f"; echo ---; cat "$f"; echo --- ; done
+        when: always
+    - store_test_results:
+        path: ~/calva/junit
   github-release:
     docker:
-      - image: cibuilds/github:0.10
+    - image: cibuilds/github:0.10
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: 'Publish Release on GitHub'
-          command: |
-            EXTRA_RELEASE_OPTIONS=""
-            if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
-            then
-              echo "Publishing GitHub Release: ${CIRCLE_TAG}"
-            else
-              echo "Publishing GitHub Prerelease: ${CIRCLE_TAG}"
-              EXTRA_RELEASE_OPTIONS=-prerelease
-            fi
-            [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+) ]]
-            TAG_VERSION=${BASH_REMATCH[1]}
-            BODY=$(awk '/^## \['${TAG_VERSION}'\]/, started && /^##/ { started=1; if ($0 !~ /(^#|^\s*$)/) { gsub(/["$]/, "\\\\&"); print } }' CHANGELOG.md)
-            echo Changes: "\n" $BODY
-            if [ "${IS_LOCAL}" = YES ]
-            then
-              GHR_CMD=echo
-            else
-              GHR_CMD=ghr
-            fi
-            ${GHR_CMD} -t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -b "${BODY}" -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} /tmp/artifacts/
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Publish Release on GitHub
+        command: |
+          EXTRA_RELEASE_OPTIONS=""
+          if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
+          then
+            echo "Publishing GitHub Release: ${CIRCLE_TAG}"
+          else
+            echo "Publishing GitHub Prerelease: ${CIRCLE_TAG}"
+            EXTRA_RELEASE_OPTIONS=-prerelease
+          fi
+          [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+) ]]
+          TAG_VERSION=${BASH_REMATCH[1]}
+          BODY=$(awk '/^## \['${TAG_VERSION}'\]/, started && /^##/ { started=1; if ($0 !~ /(^#|^\s*$)/) { gsub(/["$]/, "\\\\&"); print } }' CHANGELOG.md)
+          echo Changes: "\n" $BODY
+          if [ "${IS_LOCAL}" = YES ]
+          then
+            GHR_CMD=echo
+          else
+            GHR_CMD=ghr
+          fi
+          ${GHR_CMD} -t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -b "${BODY}" -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} /tmp/artifacts/
   marketplace-publish:
     docker:
-      - image: circleci/node:latest
+    - image: circleci/node:latest
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: Publish to the marketplace
-          command: |
-            VSCE_CMD="vsce publish --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
-            if [ "${IS_LOCAL}" = YES ]
-            then
-              echo "Dry npx ${VSCE_CMD}"
-            else
-              npx ${VSCE_CMD}
-            fi
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Publish to the marketplace
+        command: |
+          VSCE_CMD="vsce publish --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
+          if [ "${IS_LOCAL}" = YES ]
+          then
+            echo "Dry npx ${VSCE_CMD}"
+          else
+            npx ${VSCE_CMD}
+          fi
   marketplace-preview-publish:
     docker:
-      - image: circleci/node:latest
+    - image: circleci/node:latest
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: Publish to the marketplace
-          command: |
-            VSCE_CMD="vsce publish --pre-release --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
-            if [ "${IS_LOCAL}" = YES ]
-            then
-              echo "Dry npx ${VSCE_CMD}"
-            else
-              npx ${VSCE_CMD}
-            fi
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Publish to the marketplace
+        command: |
+          VSCE_CMD="vsce publish --pre-release --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
+          if [ "${IS_LOCAL}" = YES ]
+          then
+            echo "Dry npx ${VSCE_CMD}"
+          else
+            npx ${VSCE_CMD}
+          fi
   open-vsx-publish:
     docker:
-      - image: circleci/node:latest
+    - image: circleci/node:latest
     working_directory: ~/calva
     steps:
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: Restore build
-          command: rmdir ~/calva && cp -r /tmp/build ~/calva
-      - run:
-          name: Publish to Open VSX
-          command: |
-            OVSX_CMD="ovsx publish /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --pat ${OVSX_PUBLISH_TOKEN}"
-            if [ "${IS_LOCAL}" = YES ]
-            then
-              echo "Dry npx ${OVSX_CMD}"
-            else
-              npx ${OVSX_CMD}
-            fi
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Publish to Open VSX
+        command: |
+          OVSX_CMD="ovsx publish /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --pat ${OVSX_PUBLISH_TOKEN}"
+          if [ "${IS_LOCAL}" = YES ]
+          then
+            echo "Dry npx ${OVSX_CMD}"
+          else
+            npx ${OVSX_CMD}
+          fi
   merge-dev-into-published:
     docker:
-      - image: cimg/node:15.8
+    - image: cimg/node:15.8
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - 'd1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14'
-      - checkout
-      - run:
-          name: Merge dev into published
-          command: |
-            git config --global user.email $GITHUB_USER_EMAIL
-            git config --global user.name $GITHUB_USER_NAME
-            git checkout published
-            git pull
-            git merge origin/dev --no-ff -m "Merge branch dev into published"
-            git push origin HEAD
+    - add_ssh_keys:
+        fingerprints:
+        - d1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14
+    - checkout
+    - run:
+        name: Merge dev into published
+        command: |
+          git config --global user.email $GITHUB_USER_EMAIL
+          git config --global user.name $GITHUB_USER_NAME
+          git checkout published
+          git pull
+          git merge origin/dev --no-ff -m "Merge branch dev into published"
+          git push origin HEAD
   merge-published-into-dev:
     docker:
-      - image: cimg/node:15.8
+    - image: cimg/node:15.8
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - 'd1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14'
-      - checkout
-      - run:
-          name: Merge published into dev
-          command: |
-            git config --global user.email $GITHUB_USER_EMAIL
-            git config --global user.name $GITHUB_USER_NAME
-            git checkout dev
-            git pull
-            git merge origin/published --no-ff -m "Merge branch published into dev [skip ci]"
-            git push origin HEAD
+    - add_ssh_keys:
+        fingerprints:
+        - d1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14
+    - checkout
+    - run:
+        name: Merge published into dev
+        command: |
+          git config --global user.email $GITHUB_USER_EMAIL
+          git config --global user.name $GITHUB_USER_NAME
+          git checkout dev
+          git pull
+          git merge origin/published --no-ff -m "Merge branch published into dev [skip ci]"
+          git push origin HEAD
   deploy-docs:
     docker:
-      - image: cimg/python:3.8-node
+    - image: cimg/python:3.8-node
     environment:
       MKDOCS_ENV: production
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - 'd1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14'
-      - checkout
-      - run:
-          name: Update system package lists
-          command: sudo apt-get update
-      - run:
-          name: Install mkdocs-materials dependencies
-          command: |
-            sudo apt-get install libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
-      - run:
-          name: Install mkdocs and mkdocs-materials
-          command: |
-            pip install -r requirements.txt
-      - run:
-          name: Deploy docs
-          command: |
-            git checkout published
-            # mkdocs gh-deploy --config-file mkdocs.yml --message "[skip ci]" --strict --clean
-            mkdocs gh-deploy --config-file mkdocs.yml --message "[skip ci]" --clean
+    - add_ssh_keys:
+        fingerprints:
+        - d1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14
+    - checkout
+    - run:
+        name: Update system package lists
+        command: sudo apt-get update
+    - run:
+        name: Install mkdocs-materials dependencies
+        command: |
+          sudo apt-get install libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
+    - run:
+        name: Install mkdocs and mkdocs-materials
+        command: |
+          pip install -r requirements.txt
+    - run:
+        name: Deploy docs
+        command: |
+          git checkout published
+          # mkdocs gh-deploy --config-file mkdocs.yml --message "[skip ci]" --strict --clean
+          mkdocs gh-deploy --config-file mkdocs.yml --message "[skip ci]" --clean
   bump-dev-version:
     docker:
-      - image: cimg/node:15.8
+    - image: cimg/node:15.8
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - 'd1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14'
-      - checkout
-      - run:
-          name: Bump dev version
-          command: |
-            git config --global user.email $GITHUB_USER_EMAIL
-            git config --global user.name $GITHUB_USER_NAME
-            git checkout dev
-            npm run bump-version
-            git pull
-            git add .
-            git commit -m "Bring on version $(node -p "require('./package').version")!"
-            git push origin HEAD
+    - add_ssh_keys:
+        fingerprints:
+        - d1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14
+    - checkout
+    - run:
+        name: Bump dev version
+        command: |
+          git config --global user.email $GITHUB_USER_EMAIL
+          git config --global user.name $GITHUB_USER_NAME
+          git checkout dev
+          npm run bump-version
+          git pull
+          git add .
+          git commit -m "Bring on version $(node -p "require('./package').version")!"
+          git push origin HEAD
 workflows:
   version: 2
   calva-io-build:
     jobs:
-      - deploy-docs:
-          filters:
-            branches:
-              only: published
-          context: Calva
-      - merge-published-into-dev:
-          filters:
-            branches:
-              only: published
-          context: Calva
+    - deploy-docs:
+        filters:
+          branches:
+            only: published
+        context: Calva
+    - merge-published-into-dev:
+        filters:
+          branches:
+            only: published
+        context: Calva
   # We have two Calva build workflows, because for some reason the tag filter need to be on all jobs...
   build-test:
     jobs:
-      - checkout:
-          filters:
-            tags:
-              ignore: /^v\d+\.\d+\.\d+-?.*/
-      - prettier-check:
-          requires:
-            - checkout
-      - test-grammar:
-          requires:
-            - checkout
-      - build:
-          requires:
-            - checkout
-      - eslint-check:
-          requires:
-            - build
-      - test-cljslib:
-          requires:
-            - build
-      - test-integration:
-          requires:
-            - build
-      - test-e2e:
-          requires:
-            - build
-      - test-e2e-sub-projects:
-          requires:
-            - build
-      - test-ts-unit:
-          requires:
-            - build
-      - marketplace-preview-publish:
-          requires:
-            - prettier-check
-            - eslint-check
-            - test-grammar
-            - test-cljslib
-            - test-integration
-            - test-e2e
-            - test-e2e-sub-projects
-            - test-ts-unit
-          filters:
-            branches:
-              only: disabled # dev (disabled for now because https://github.com/microsoft/vsmarketplace/issues/310)
-          context: Calva
+    - checkout:
+        filters:
+          tags:
+            ignore: /^v\d+\.\d+\.\d+-?.*/
+    - prettier-check:
+        requires:
+        - checkout
+    - test-grammar:
+        requires:
+        - checkout
+    - build:
+        requires:
+        - checkout
+    - eslint-check:
+        requires:
+        - build
+    - test-cljslib:
+        requires:
+        - build
+    - test-integration:
+        requires:
+        - build
+    - test-e2e:
+        requires:
+        - build
+    - test-e2e-sub-projects:
+        requires:
+        - build
+    - test-ts-unit:
+        requires:
+        - build
+    - marketplace-preview-publish:
+        requires:
+        - prettier-check
+        - eslint-check
+        - test-grammar
+        - test-cljslib
+        - test-integration
+        - test-e2e
+        - test-e2e-sub-projects
+        - test-ts-unit
+        filters:
+          branches:
+            only: disabled # dev (disabled for now because https://github.com/microsoft/vsmarketplace/issues/310)
+        context: Calva
   release-publish:
     jobs:
-      - checkout:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
-      - build:
-          requires:
-            - checkout
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
-      - prettier-check:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
-      - eslint-check:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
-      - test-grammar:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
-      - test-cljslib:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
-      - test-integration:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
-      - test-e2e:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
-      - test-e2e-sub-projects:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
-      - test-ts-unit:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
-      - github-release:
-          requires:
-            - prettier-check
-            - eslint-check
-            - test-grammar
-            - test-cljslib
-            - test-integration
-            - test-e2e
-            - test-e2e-sub-projects
-            - test-ts-unit
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
-          context: Calva
-      - marketplace-publish:
-          requires:
-            - github-release
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
-          context: Calva
-      - open-vsx-publish:
-          requires:
-            - github-release
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
-          context: Calva
-      - merge-dev-into-published:
-          requires:
-            - marketplace-publish
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
-          context: Calva
-      - bump-dev-version:
-          requires:
-            - merge-dev-into-published
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
-          context: Calva
+    - checkout:
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
+    - build:
+        requires:
+        - checkout
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
+    - prettier-check:
+        requires:
+        - build
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
+    - eslint-check:
+        requires:
+        - build
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
+    - test-grammar:
+        requires:
+        - build
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
+    - test-cljslib:
+        requires:
+        - build
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
+    - test-integration:
+        requires:
+        - build
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
+    - test-e2e:
+        requires:
+        - build
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
+    - test-e2e-sub-projects:
+        requires:
+        - build
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
+    - test-ts-unit:
+        requires:
+        - build
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
+    - github-release:
+        requires:
+        - prettier-check
+        - eslint-check
+        - test-grammar
+        - test-cljslib
+        - test-integration
+        - test-e2e
+        - test-e2e-sub-projects
+        - test-ts-unit
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
+        context: Calva
+    - marketplace-publish:
+        requires:
+        - github-release
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+$/
+        context: Calva
+    - open-vsx-publish:
+        requires:
+        - github-release
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+$/
+        context: Calva
+    - merge-dev-into-published:
+        requires:
+        - marketplace-publish
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+$/
+        context: Calva
+    - bump-dev-version:
+        requires:
+        - merge-dev-into-published
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+$/
+        context: Calva
