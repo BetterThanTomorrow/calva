@@ -5,6 +5,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.438] - 2024-04-11
+
+- Fix regression: [Version `2.0.437` introduces a jarring, and wrongful, reindent when typing closing brackets](https://github.com/BetterThanTomorrow/calva/issues/2509)
+
 ## [2.0.437] - 2024-04-11
 
 - Retire experimental setting for strict prevent unmatched closing bracket. Close: [Unexpected cursor movement when using 'Strict Prevent Unmatched Closing Brackets'](https://github.com/BetterThanTomorrow/calva/issues/2500)
