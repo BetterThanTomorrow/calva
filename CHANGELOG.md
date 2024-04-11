@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.439] - 2024-04-11
+
 - Fix: [Refresh Changed Namespaces do not output to the selected output destination](https://github.com/BetterThanTomorrow/calva/issues/2506)
 
 ## [2.0.438] - 2024-04-11
