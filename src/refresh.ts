@@ -3,21 +3,21 @@ import * as util from './utilities';
 import * as state from './state';
 import { NReplSession } from './nrepl';
 import * as replSession from './nrepl/repl-session';
-import { appendLineEvalOut } from './results-output/output';
+import * as output from './results-output/output';
 
 function report(res) {
   if (res.status == 'ok') {
-    appendLineEvalOut('Reloaded: (' + res.reloaded.join(' ') + ')');
-    appendLineEvalOut(':ok');
+    output.appendLineEvalOut('Reloaded: (' + res.reloaded.join(' ') + ')');
+    output.appendLineEvalOut(':ok');
   } else {
     if (res.status == 'error') {
-      appendLineEvalOut('Error reloading: ' + res.errorNs);
+      output.appendLineEvalOut('Error reloading: ' + res.errorNs);
       //chan.appendLine(res.error); // TODO: Moar error reporting
     }
     if (res.err != undefined) {
-      appendLineEvalOut(res.err);
+      output.appendLineEvalOut(res.err);
     }
-    appendLineEvalOut(':error 😿');
+    output.appendLineEvalOut(':error 😿');
   }
 }
 
@@ -26,7 +26,7 @@ function refresh(document = {}) {
     client: NReplSession = replSession.getSession(util.getFileType(doc));
 
   if (client != undefined) {
-    appendLineEvalOut('Reloading...');
+    output.appendLineEvalOut('Reloading...');
     void client.refresh().then((res) => {
       report(res);
     });
@@ -40,7 +40,7 @@ function refreshAll(document = {}) {
     client: NReplSession = replSession.getSession(util.getFileType(doc));
 
   if (client != undefined) {
-    appendLineEvalOut('Reloading all the things...');
+    output.appendLineEvalOut('Reloading all the things...');
     void client.refreshAll().then((res) => {
       report(res);
     });
