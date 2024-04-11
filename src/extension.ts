@@ -43,6 +43,7 @@ import * as overrides from './overrides';
 import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
 import * as output from './results-output/output';
+import * as resultsTreeData from './providers/results-tree-data';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -92,6 +93,9 @@ async function activate(context: vscode.ExtensionContext) {
   initializeState();
   await config.updateCalvaConfigFromUserConfigEdn(false);
   await config.updateCalvaConfigFromEdn();
+
+  const nreplResultProvider = new resultsTreeData.NreplResultProvider();
+  vscode.window.createTreeView('resultsTreeView', { treeDataProvider: nreplResultProvider });
 
   context.subscriptions.push(testController);
   testRunner.initialize(testController);
