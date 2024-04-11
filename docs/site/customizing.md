@@ -26,6 +26,7 @@ Calva sets some VS Code settings for all Clojure files. Some of these are needed
         "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
         "editor.autoClosingBrackets": "always",
         "editor.autoClosingQuotes": "always",
+        "editor.autoClosingQuotes": "always",
         "editor.formatOnType": true,
         "editor.autoIndent": "full",
         "editor.formatOnPaste": true,
