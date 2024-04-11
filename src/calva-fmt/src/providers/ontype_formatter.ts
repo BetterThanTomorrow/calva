@@ -26,12 +26,10 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
     ch: string,
     _options
   ): Promise<vscode.TextEdit[] | undefined> {
-    if (isNewLineInComment(ch)) {
+    if (isNewLineInComment(ch) || [')', ']', '}'].includes(ch)) {
       return undefined;
     }
-
     const editor = util.getActiveTextEditor();
-
     const pos = editor.selections[0].active;
     if (formatterConfig.formatOnTypeEnabled()) {
       if (vscode.workspace.getConfiguration('calva.fmt').get('newIndentEngine')) {
@@ -44,7 +42,6 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
         }
       }
     }
-
     return undefined;
   }
 }
