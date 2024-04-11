@@ -60,7 +60,7 @@ To make the command descriptions a bit clearer, each entry is animated. When you
 
 ### Command Args
 
-VSCode allows you to provide arguments to configured bindings, allowing, for example, different variants or behaviors for the same command, each bound to different shortcuts. Calva takes advantage of this by offering one official command with args:
+Some Paredit commands accept arguments. You can utilize this in keybindings and from [Joyride](https://github.com/BetterThanTomorrow/joyride).
 
 #### **`copy` for all `kill*` commands**
 
