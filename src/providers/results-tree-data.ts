@@ -49,7 +49,8 @@ export class NreplResultProvider implements vscode.TreeDataProvider<NreplResult>
   public addResult(result: string): void {
     const cursor = tokenCursor.createStringCursor(result);
     const structure = cursorUtil.structureForRightSexp(cursor);
-    this.treeData = structure.map((item) => this.createNreplResult(item));
+    const newResults = structure.map((item) => this.createNreplResult(item));
+    this.treeData.push(...newResults); // Append new results to the existing tree data
     this.refresh();
   }
 
