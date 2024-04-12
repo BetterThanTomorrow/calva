@@ -9,6 +9,7 @@ CONFIG := config.yml
 
 SRC_FILES := \
   Makefile \
+  bb.edn \
   $(shell find . | grep -E '\.(ys|yaml|bash)$$')
 
 export PATH := $(YS_BIN):$(PATH)
@@ -35,6 +36,7 @@ BASH_FILES := $(shell echo bin/*.bash)
 
 
 #------------------------------------------------------------------------------
+
 .DELETE_ON_ERROR:
 
 default: build
@@ -44,8 +46,10 @@ build: $(CONFIG)
 test: shellcheck
 
 clean:
-	$(RM) $(CONFIG) _$(CONFIG)
+	$(RM) _$(CONFIG)
 	$(RM) -r shellcheck*
+
+#------------------------------------------------------------------------------
 
 %.yml: %.ys $(YS_CLI) $(SRC_FILES)
 	@( \
