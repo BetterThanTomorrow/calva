@@ -39,6 +39,8 @@ export class NreplResultProvider implements vscode.TreeDataProvider<NreplResult>
       children = Array.from(item.value.values()).map((childItem) =>
         this.createNreplResult(childItem)
       );
+    } else if (typeof item.value === 'string') {
+      return new NreplResult(item.originalString, item.value, item.originalString);
     }
 
     return new NreplResult(item.originalString, item.value, item.originalString, children);
@@ -70,7 +72,7 @@ class NreplResult extends vscode.TreeItem {
     children?: Map<NreplResult, NreplResult> | NreplResult[]
   ) {
     super(
-      label,
+      originalString, // Display the originalString as the label
       children === undefined
         ? vscode.TreeItemCollapsibleState.None
         : vscode.TreeItemCollapsibleState.Expanded
