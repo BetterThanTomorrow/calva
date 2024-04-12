@@ -4,17 +4,17 @@ version: 2
 
 jobs::
   reduce:
-    fn [map job]:
-      assoc map job:
-        load: "jobs/$job.yaml"
+    fn [ymap name]:
+      assoc ymap name:
+        load: "jobs/$name.yaml"
     =>: .{}
     load: 'jobs/index.yaml'
 
 workflows::
   reduce:
-    fn [map workflow]:
-      assoc map workflow:
-        load: "workflows/$workflow.yaml"
+    fn [ymap name]:
+      assoc ymap name:
+        load: "workflows/$name.yaml"
     =>::
       version: 2
     load: 'workflows/index.yaml'
