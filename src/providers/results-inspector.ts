@@ -26,7 +26,6 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
       return children;
     } else {
       return this.treeData;
-      // return this.hardcodedResults();
     }
   }
 
@@ -39,27 +38,23 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
         this.createNreplResult(childItem)
       );
     } else if (typeof item.value === 'string') {
-      return new EvaluationResult(item.originalString, item.value, item.originalString);
+      return new EvaluationResult(item.value, item.originalString);
     } else if (typeof item.value === 'object') {
       children = Object.entries(item.value).map(([key, value]) =>
         this.createNreplResult({ originalString: key, value })
       );
     } else {
-      return new EvaluationResult(
-        String(item.originalString),
-        String(item.value),
-        String(item.originalString)
-      );
+      return new EvaluationResult(String(item.value), String(item.originalString));
     }
 
-    return new EvaluationResult(item.originalString, item.value, item.originalString, children);
+    return new EvaluationResult(item.value, item.originalString, children);
   }
 
   public addResult(result: string): void {
     const cursor = tokenCursor.createStringCursor(result);
     const structure = cursorUtil.structureForRightSexp(cursor);
     const newResult = this.createNreplResult({ originalString: result, value: structure });
-    this.treeData.push(newResult); // Append new result to the existing tree data
+    this.treeData.push(newResult);
     this.refresh();
   }
 
@@ -76,7 +71,6 @@ class EvaluationResult extends vscode.TreeItem {
   originalString: string;
 
   constructor(
-    label: string,
     value: string | Map<EvaluationResult, EvaluationResult> | EvaluationResult[],
     originalString: string,
     children?: Map<EvaluationResult, EvaluationResult> | EvaluationResult[]
