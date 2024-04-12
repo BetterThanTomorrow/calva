@@ -8,7 +8,7 @@ jobs::
       assoc map job:
         load: "jobs/$job.yaml"
     =>: .{}
-    load: 'jobs.yaml'
+    load: 'jobs/index.yaml'
 
 workflows::
   reduce:
@@ -17,4 +17,4 @@ workflows::
         load: "workflows/$workflow.yaml"
     =>::
       version: 2
-    load: 'workflows.yaml'
+    load: 'workflows/index.yaml'
