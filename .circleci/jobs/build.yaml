@@ -1,0 +1,81 @@
+docker:
+- image: cimg/clojure:1.11-node
+working_directory: ~/calva
+steps:
+- attach_workspace:
+    at: /tmp
+- run:
+    name: Restore build
+    command: rmdir ~/calva && cp -r /tmp/build ~/calva
+- run:
+    name: Install CLJS dependencies
+    command: npx shadow-cljs classpath
+- run:
+    name: Create artifacts workspace
+    command: mkdir /tmp/artifacts
+- run:
+    name: Tamper Calva version if not release versioned
+    command: |
+      VERSION=$(node -p 'require("./package.json").version')
+      TAG_VERSION=NO-TAG
+      if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
+      then
+        TAG_VERSION=${BASH_REMATCH[1]}
+        echo 'No version tampering because this is a release tag'
+      else
+        COMMIT=${CIRCLE_SHA1:0:8}
+        if [[  "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-(.*) ]]
+        then
+          TAG_VERSION=${BASH_REMATCH[1]}
+          TAG_TITLE=${BASH_REMATCH[2]}
+          PRERELEASE=${TAG_TITLE}-${COMMIT}
+        else
+          BRANCH=${CIRCLE_BRANCH//[^[:alnum:]]/-}
+          PRERELEASE=${BRANCH}-${COMMIT}
+        fi
+        echo "Append prerelease to version: -${PRERELEASE}"
+        npx json -I -f package.json -e 'this.version=this.version.replace(/$/,"-'${PRERELEASE}'")'
+      fi
+      if [ ${TAG_VERSION} = NO-TAG -o "${TAG_VERSION}" = "${VERSION}" ]
+      then
+        VERSION=$(node -p 'require("./package.json").version')
+        echo "Using version: ${VERSION}"
+      else
+        echo >&2 "FATAL! Version missmatch between package.json and tag. Aborting."
+        exit 1
+      fi
+- run:
+    name: Package vsix
+    command: |
+      if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
+      then
+        echo "Packaging as release"
+        PACKAGE_CMD="vsce package --githubBranch published"
+      else
+        echo "Packaging as pre-release"
+        PACKAGE_CMD="vsce package --pre-release"
+      fi
+      npx ${PACKAGE_CMD}
+- run:
+    name: Copy vsix
+    command: |
+      cp *.vsix /tmp/artifacts/
+- run:
+    name: Copy build
+    command: |
+      cp -r out /tmp/build
+      cp  package.json /tmp/build
+- save_cache:
+    name: Save dependencies
+    key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+    paths:
+    - ./node_modules
+    - ~/.m2
+- store_artifacts:
+    path: /tmp/artifacts
+- persist_to_workspace:
+    root: /tmp
+    paths:
+    - artifacts
+    - build
+    - env
