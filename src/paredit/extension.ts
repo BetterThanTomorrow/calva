@@ -388,36 +388,36 @@ const pareditCommands = [
   },
   {
     command: 'paredit.wrapAroundParens',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       return handlers.wrapAroundParens(doc, isMulti);
     },
   },
   {
     command: 'paredit.wrapAroundSquare',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       return handlers.wrapAroundSquare(doc, isMulti);
     },
   },
   {
     command: 'paredit.wrapAroundCurly',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       return handlers.wrapAroundCurly(doc, isMulti);
     },
   },
   {
     command: 'paredit.wrapAroundSet',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       return handlers.wrapAroundSet(doc, isMulti);
     },
   },
   {
     command: 'paredit.wrapAroundQuote',
-    handler: (doc: EditableDocument) => {
-      const isMulti = multiCursorEnabled();
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
       return handlers.wrapAroundQuote(doc, isMulti);
     },
   },
