@@ -87,6 +87,9 @@ async function activate(context: vscode.ExtensionContext) {
 
   lsp.registerGlobally(clientProvider);
 
+  const inspectorDataProvider = eval.initInspectorDataProvider();
+  vscode.window.createTreeView('calva.inspector', { treeDataProvider: inspectorDataProvider });
+
   overrides.activate();
 
   initializeState();
@@ -318,6 +321,7 @@ async function activate(context: vscode.ExtensionContext) {
         resolve(true);
       });
     },
+    clearInspector: inspectorDataProvider.clearResults,
   };
 
   function registerCalvaCommand([command, callback]) {

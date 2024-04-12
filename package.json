@@ -2108,6 +2108,11 @@
         "command": "paredit.addRichComment",
         "title": "Add Rich Comment",
         "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.clearInspector",
+        "title": "Clear Inspector"
       }
     ],
     "keybindings": [
@@ -3164,6 +3169,13 @@
           "command": "calva.copyHtmlAsHiccup",
           "group": "0-calva"
         }
+      ],
+      "view/title": [
+        {
+          "command": "calva.clearInspector",
+          "when": "view == calva.inspector",
+          "group": "navigation"
+        }
       ]
     },
     "views": {
@@ -3175,7 +3187,7 @@
           "contextualTitle": "Project tree"
         },
         {
-          "id": "Inspector",
+          "id": "calva.inspector",
           "name": "Calva Inspector"
         }
       ]

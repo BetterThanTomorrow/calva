@@ -19,8 +19,12 @@ import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
 import * as inspector from './providers/results-inspector';
 
-const inspectorDataProvider = new inspector.ResultsInspectorProvider();
-vscode.window.createTreeView('Inspector', { treeDataProvider: inspectorDataProvider });
+let inspectorDataProvider: inspector.ResultsInspectorProvider;
+
+function initInspectorDataProvider() {
+  inspectorDataProvider = new inspector.ResultsInspectorProvider();
+  return inspectorDataProvider;
+}
 
 function interruptAllEvaluations() {
   if (util.getConnectedState()) {
@@ -735,4 +739,5 @@ export default {
   instrumentTopLevelForm,
   evaluateInOutputWindow,
   evaluateReplWindowForm,
+  initInspectorDataProvider,
 };

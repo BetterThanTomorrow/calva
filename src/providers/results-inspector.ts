@@ -57,6 +57,11 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
     this.treeData.unshift(newResult);
     this.refresh();
   }
+
+  public clearResults(): void {
+    this.treeData = [];
+    this.refresh();
+  }
 }
 
 class EvaluationResult extends vscode.TreeItem {
