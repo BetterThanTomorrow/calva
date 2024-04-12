@@ -18,6 +18,14 @@
        'b :b
        "c" ['c]}
    [1
+    2
+    :a
+    11
+    12
+    68
+    :lök
+    12
+    68
     "abcdef"
     {:alphabet    "abcdefghijklmnopqrstuvwxyz"
      :vowels      [{:foo "aeiou"

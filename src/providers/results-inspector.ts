@@ -50,25 +50,37 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
     return item;
   }
 
-  private createNreplResult(item: any, isTopLevel: boolean): EvaluationResult {
+  private createNreplResult(
+    item: any,
+    isTopLevel: boolean,
+    keyOrIndex?: string | number
+  ): EvaluationResult {
     let children: EvaluationResult[] | undefined;
     if (Array.isArray(item.value)) {
-      children = item.value.map((childItem) => this.createNreplResult(childItem, false));
+      children = item.value.map((childItem, index) =>
+        this.createNreplResult(childItem, false, index.toString())
+      );
     } else if (item.value instanceof Map) {
-      children = Array.from(item.value.values()).map((childItem) =>
-        this.createNreplResult(childItem, false)
-      );
-    } else if (typeof item.value === 'string') {
-      return new EvaluationResult(item.value, item.originalString, isTopLevel);
-    } else if (typeof item.value === 'object') {
-      children = Object.entries(item.value).map(([key, value]) =>
-        this.createNreplResult({ originalString: key, value }, false)
-      );
-    } else {
-      return new EvaluationResult(String(item.value), String(item.originalString), isTopLevel);
+      children = Array.from(item.value.entries()).map(([key, value]) => {
+        const keyItem = this.createNreplResult(key, false);
+        const valueItem = this.createNreplResult(value, false);
+        return new EvaluationResult(
+          valueItem.value,
+          valueItem.originalString,
+          `${keyItem.label} ${valueItem.originalString}`,
+          false,
+          new Map([[keyItem, valueItem]])
+        );
+      });
     }
 
-    return new EvaluationResult(item.value, item.originalString, isTopLevel, children);
+    return new EvaluationResult(
+      item.value,
+      item.originalString,
+      `${keyOrIndex !== undefined ? keyOrIndex + ' ' : ''}${item.originalString}`,
+      isTopLevel,
+      children
+    );
   }
 
   public addResult(result: string): void {
@@ -96,21 +108,24 @@ class EvaluationResult extends vscode.TreeItem {
   children: Map<EvaluationResult, EvaluationResult> | EvaluationResult[] | undefined;
   value: string | Map<EvaluationResult, EvaluationResult> | EvaluationResult[];
   originalString: string;
+  label: string;
 
   constructor(
     value: string | Map<EvaluationResult, EvaluationResult> | EvaluationResult[],
     originalString: string,
+    label: string,
     isTopLevel: boolean,
     children?: Map<EvaluationResult, EvaluationResult> | EvaluationResult[]
   ) {
     super(
-      originalString,
+      label,
       children === undefined
         ? vscode.TreeItemCollapsibleState.None
         : vscode.TreeItemCollapsibleState.Collapsed
     );
     this.value = value;
     this.originalString = originalString;
+    this.label = label;
     this.children = children;
     this.tooltip = new vscode.MarkdownString('```clojure\n' + originalString + '\n```');
     if (isTopLevel) {
