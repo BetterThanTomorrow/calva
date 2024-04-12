@@ -54,14 +54,8 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
     const cursor = tokenCursor.createStringCursor(result);
     const structure = cursorUtil.structureForRightSexp(cursor);
     const newResult = this.createNreplResult({ originalString: result, value: structure });
-    this.treeData.push(newResult);
+    this.treeData.unshift(newResult);
     this.refresh();
-  }
-
-  private hardcodedResults(): EvaluationResult[] {
-    const cursor = tokenCursor.createStringCursor('[#t {:a 1}]');
-    const structure = cursorUtil.structureForRightSexp(cursor);
-    return structure.map((item) => this.createNreplResult(item));
   }
 }
 
