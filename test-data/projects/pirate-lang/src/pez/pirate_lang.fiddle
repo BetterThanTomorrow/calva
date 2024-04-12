@@ -1,5 +1,8 @@
 (ns pez.pirate-lang)
 
+(defrecord Language [alphabet vowels pirate-char])
+(defrecord Point [x y])
+
 (def english-o
   {{:a 1} [:b :c]}
   #_

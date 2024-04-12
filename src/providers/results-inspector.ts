@@ -76,10 +76,10 @@ class EvaluationResult extends vscode.TreeItem {
     children?: Map<EvaluationResult, EvaluationResult> | EvaluationResult[]
   ) {
     super(
-      originalString, // Display the originalString as the label
+      originalString,
       children === undefined
         ? vscode.TreeItemCollapsibleState.None
-        : vscode.TreeItemCollapsibleState.Expanded
+        : vscode.TreeItemCollapsibleState.Collapsed
     );
     this.value = value;
     this.originalString = originalString;
