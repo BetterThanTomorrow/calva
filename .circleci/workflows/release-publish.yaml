@@ -1,0 +1,131 @@
+jobs:
+- checkout:
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+-?.*/
+- build:
+    requires:
+    - checkout
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+-?.*/
+- prettier-check:
+    requires:
+    - build
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+-?.*/
+- eslint-check:
+    requires:
+    - build
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+-?.*/
+- test-grammar:
+    requires:
+    - build
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+-?.*/
+- test-cljslib:
+    requires:
+    - build
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+-?.*/
+- test-integration:
+    requires:
+    - build
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+-?.*/
+- test-e2e:
+    requires:
+    - build
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+-?.*/
+- test-e2e-sub-projects:
+    requires:
+    - build
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+-?.*/
+- test-ts-unit:
+    requires:
+    - build
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+-?.*/
+- github-release:
+    requires:
+    - prettier-check
+    - eslint-check
+    - test-grammar
+    - test-cljslib
+    - test-integration
+    - test-e2e
+    - test-e2e-sub-projects
+    - test-ts-unit
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+-?.*/
+    context: Calva
+- marketplace-publish:
+    requires:
+    - github-release
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+$/
+    context: Calva
+- open-vsx-publish:
+    requires:
+    - github-release
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+$/
+    context: Calva
+- merge-dev-into-published:
+    requires:
+    - marketplace-publish
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+$/
+    context: Calva
+- bump-dev-version:
+    requires:
+    - merge-dev-into-published
+    filters:
+      branches:
+        ignore: /.*/
+      tags:
+        only: /^v\d+\.\d+\.\d+$/
+    context: Calva
