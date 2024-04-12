@@ -17,10 +17,10 @@ import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
 import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
-import * as resultsTreeData from './providers/results-tree-data';
+import * as inspector from './providers/results-inspector';
 
-const resultsTreeDataProvider = new resultsTreeData.NreplResultProvider();
-vscode.window.createTreeView('resultsTreeView', { treeDataProvider: resultsTreeDataProvider });
+const inspectorDataProvider = new inspector.ResultsInspectorProvider();
+vscode.window.createTreeView('Inspector', { treeDataProvider: inspectorDataProvider });
 
 function interruptAllEvaluations() {
   if (util.getConnectedState()) {
@@ -138,7 +138,7 @@ async function evaluateCodeUpdatingUI(
       result = value;
 
       if (showResult) {
-        resultsTreeDataProvider.addResult(value);
+        inspectorDataProvider.addResult(value);
         output.appendClojureEval(value, { ns, replSessionType: session.replType }, async () => {
           if (selection) {
             const c = selection.start.character;
