@@ -15,12 +15,11 @@ steps:
 - run:
     name: Create artifacts workspace
     command: mkdir /tmp/artifacts
-- run:
-    name: Tamper Calva version if not release versioned
-    command:: bin('tamper-calva-version')
-- run:
-    name: Package vsix
-    command:: bin('package-vsix')
+- !run*:
+  - Tamper Calva version if not release versioned
+  - tamper-calva-version
+- !run*:
+  - Package vsix
 - run:
     name: Copy vsix
     command: |
