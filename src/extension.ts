@@ -94,9 +94,6 @@ async function activate(context: vscode.ExtensionContext) {
   await config.updateCalvaConfigFromUserConfigEdn(false);
   await config.updateCalvaConfigFromEdn();
 
-  const nreplResultProvider = new resultsTreeData.NreplResultProvider();
-  vscode.window.createTreeView('resultsTreeView', { treeDataProvider: nreplResultProvider });
-
   context.subscriptions.push(testController);
   testRunner.initialize(testController);
 

@@ -20,6 +20,7 @@ import * as output from './results-output/output';
 import * as resultsTreeData from './providers/results-tree-data';
 
 const resultsTreeDataProvider = new resultsTreeData.NreplResultProvider();
+vscode.window.createTreeView('resultsTreeView', { treeDataProvider: resultsTreeDataProvider });
 
 function interruptAllEvaluations() {
   if (util.getConnectedState()) {
@@ -137,7 +138,7 @@ async function evaluateCodeUpdatingUI(
       result = value;
 
       if (showResult) {
-        resultsTreeDataProvider.convertResultToTreeData(value);
+        resultsTreeDataProvider.addResult(value);
         output.appendClojureEval(value, { ns, replSessionType: session.replType }, async () => {
           if (selection) {
             const c = selection.start.character;
