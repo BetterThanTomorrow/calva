@@ -32,7 +32,6 @@ export class NreplResultProvider implements vscode.TreeDataProvider<NreplResult>
 
   private createNreplResult(item: any): NreplResult {
     let children: NreplResult[] | undefined;
-
     if (Array.isArray(item.value)) {
       children = item.value.map((childItem) => this.createNreplResult(childItem));
     } else if (item.value instanceof Map) {
@@ -41,6 +40,16 @@ export class NreplResultProvider implements vscode.TreeDataProvider<NreplResult>
       );
     } else if (typeof item.value === 'string') {
       return new NreplResult(item.originalString, item.value, item.originalString);
+    } else if (typeof item.value === 'object') {
+      children = Object.entries(item.value).map(([key, value]) =>
+        this.createNreplResult({ originalString: key, value })
+      );
+    } else {
+      return new NreplResult(
+        String(item.originalString),
+        String(item.value),
+        String(item.originalString)
+      );
     }
 
     return new NreplResult(item.originalString, item.value, item.originalString, children);
@@ -49,8 +58,8 @@ export class NreplResultProvider implements vscode.TreeDataProvider<NreplResult>
   public addResult(result: string): void {
     const cursor = tokenCursor.createStringCursor(result);
     const structure = cursorUtil.structureForRightSexp(cursor);
-    const newResults = structure.map((item) => this.createNreplResult(item));
-    this.treeData.push(...newResults); // Append new results to the existing tree data
+    const newResult = this.createNreplResult({ originalString: result, value: structure });
+    this.treeData.push(newResult); // Append new result to the existing tree data
     this.refresh();
   }
 
