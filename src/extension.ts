@@ -43,6 +43,7 @@ import * as overrides from './overrides';
 import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
 import * as output from './results-output/output';
+import { clear } from 'console';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -321,7 +322,12 @@ async function activate(context: vscode.ExtensionContext) {
         resolve(true);
       });
     },
-    clearInspector: inspectorDataProvider.clearResults,
+    clearInspectorResults: () => {
+      inspectorDataProvider.clearResults.bind(inspectorDataProvider)();
+    },
+    clearInspectorResult: (arg) => {
+      inspectorDataProvider.clearResults.bind(inspectorDataProvider)(arg);
+    },
   };
 
   function registerCalvaCommand([command, callback]) {

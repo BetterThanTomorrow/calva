@@ -29,37 +29,65 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
     }
   }
 
-  private createNreplResult(item: any): EvaluationResult {
+  // public resolveTreeItem(
+  //   item: EvaluationResult,
+  //   element: EvaluationResult,
+  //   token: vscode.CancellationToken
+  // ): vscode.ProviderResult<vscode.TreeItem> {
+  //   item.command = {
+  //     command: 'calva.clearInspectorResults',
+  //     arguments: [element],
+  //     title: 'Clear Result',
+  //   };
+  //   return item;
+  // }
+
+  public resolveTreeItem(
+    item: EvaluationResult,
+    element: EvaluationResult,
+    token: vscode.CancellationToken
+  ): vscode.ProviderResult<vscode.TreeItem> {
+    return item;
+  }
+
+  private createNreplResult(item: any, isTopLevel: boolean): EvaluationResult {
     let children: EvaluationResult[] | undefined;
     if (Array.isArray(item.value)) {
-      children = item.value.map((childItem) => this.createNreplResult(childItem));
+      children = item.value.map((childItem) => this.createNreplResult(childItem, false));
     } else if (item.value instanceof Map) {
       children = Array.from(item.value.values()).map((childItem) =>
-        this.createNreplResult(childItem)
+        this.createNreplResult(childItem, false)
       );
     } else if (typeof item.value === 'string') {
-      return new EvaluationResult(item.value, item.originalString);
+      return new EvaluationResult(item.value, item.originalString, isTopLevel);
     } else if (typeof item.value === 'object') {
       children = Object.entries(item.value).map(([key, value]) =>
-        this.createNreplResult({ originalString: key, value })
+        this.createNreplResult({ originalString: key, value }, false)
       );
     } else {
-      return new EvaluationResult(String(item.value), String(item.originalString));
+      return new EvaluationResult(String(item.value), String(item.originalString), isTopLevel);
     }
 
-    return new EvaluationResult(item.value, item.originalString, children);
+    return new EvaluationResult(item.value, item.originalString, isTopLevel, children);
   }
 
   public addResult(result: string): void {
     const cursor = tokenCursor.createStringCursor(result);
     const structure = cursorUtil.structureForRightSexp(cursor);
-    const newResult = this.createNreplResult({ originalString: result, value: structure });
+    const newResult = this.createNreplResult({ originalString: result, value: structure }, true);
     this.treeData.unshift(newResult);
     this.refresh();
   }
 
-  public clearResults(): void {
-    this.treeData = [];
+  public clearResults(resultToClear?: EvaluationResult): void {
+    if (resultToClear) {
+      const index = this.treeData.indexOf(resultToClear);
+      if (index > -1) {
+        this.treeData.splice(index, 1);
+      }
+    } else {
+      this.treeData = [];
+    }
     this.refresh();
   }
 }
@@ -72,6 +100,7 @@ class EvaluationResult extends vscode.TreeItem {
   constructor(
     value: string | Map<EvaluationResult, EvaluationResult> | EvaluationResult[],
     originalString: string,
+    isTopLevel: boolean,
     children?: Map<EvaluationResult, EvaluationResult> | EvaluationResult[]
   ) {
     super(
@@ -84,5 +113,8 @@ class EvaluationResult extends vscode.TreeItem {
     this.originalString = originalString;
     this.children = children;
     this.tooltip = new vscode.MarkdownString('```clojure\n' + originalString + '\n```');
+    if (isTopLevel) {
+      this.contextValue = 'result';
+    }
   }
 }

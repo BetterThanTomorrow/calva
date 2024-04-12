@@ -2111,8 +2111,15 @@
       },
       {
         "category": "Calva",
-        "command": "calva.clearInspector",
-        "title": "Clear Inspector"
+        "command": "calva.clearInspectorResults",
+        "title": "Clear All Inspector Results",
+        "icon": "$(clear-all)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.clearInspectorResult",
+        "title": "Clear Inspector Result",
+        "icon": "$(trash)"
       }
     ],
     "keybindings": [
@@ -3172,8 +3179,15 @@
       ],
       "view/title": [
         {
-          "command": "calva.clearInspector",
+          "command": "calva.clearInspectorResults",
           "when": "view == calva.inspector",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "calva.clearInspectorResult",
+          "when": "view == calva.inspector && viewItem == result",
           "group": "navigation"
         }
       ]
