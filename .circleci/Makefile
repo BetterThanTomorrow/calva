@@ -60,8 +60,8 @@ $(YS_CLI):
 	  PREFIX=$(YS_PREFIX) VERSION=$(YS_VERSION) BIN=1 bash
 
 shellcheck: $(SHELLCHECK_CLI)
-	$< $(BASH_FILES)
-	@echo 'PASS - Bash files are shellcheck clean'
+	$@ $(BASH_FILES)
+	@echo -e "\e[0;32mPASS - Bash files are shellcheck clean\e[0m"
 
 $(SHELLCHECK_CLI):
 	curl -sSLO $(SHELLCHECK_URL)
