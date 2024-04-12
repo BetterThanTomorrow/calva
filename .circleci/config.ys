@@ -1,5 +1,8 @@
 --- !yamlscript/v0/
 
+=>:
+  use: 'helpers'
+
 version: 2
 
 jobs::

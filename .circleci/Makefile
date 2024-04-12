@@ -10,6 +10,7 @@ SRC_FILES := \
   $(shell find . | grep -E '\.(ys|yaml|bash)$$')
 
 export PATH := $(YS_BIN):$(PATH)
+export YSPATH := $(PWD)/lib
 
 CONFIG := config.yml
 

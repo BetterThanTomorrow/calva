@@ -1,0 +1,4 @@
+!yamlscript/v0
+
+defn bin(name):
+  slurp: "bin/$name.bash"
