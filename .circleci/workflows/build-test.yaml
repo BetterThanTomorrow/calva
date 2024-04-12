@@ -42,5 +42,7 @@ jobs:
     - test-ts-unit
     filters:
       branches:
-        only: disabled # dev (disabled for now because https://github.com/microsoft/vsmarketplace/issues/310)
+        # dev (disabled for now because
+        # https://github.com/microsoft/vsmarketplace/issues/310)
+        only: disabled
     context: Calva

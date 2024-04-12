@@ -16,6 +16,7 @@ workflows:
 
   calva-io-build::  load('workflows/calva-io-build.yaml')
 
-  # We have two Calva build workflows, because for some reason the tag filter need to be on all jobs...
+  # We have two Calva build workflows, because for some reason the tag filter
+  # need to be on all jobs...
   build-test::      load('workflows/build-test.yaml')
   release-publish:: load('workflows/release-publish.yaml')

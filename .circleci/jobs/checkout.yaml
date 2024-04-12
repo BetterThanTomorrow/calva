@@ -8,7 +8,9 @@ steps:
     path: ~/calva
 - restore_cache:
     name: Restore dependencies
-    key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+    key: ts-{{ checksum "package.json" }}-cljs-{{
+               checksum "shadow-cljs.edn" }}-grammar-{{
+               checksum "src/calva-fmt/atom-language-clojure/package.json" }}
 - run:
     name: Install node_modules
     command: cp package.json /tmp && npm install && cp /tmp/package.json .
@@ -21,7 +23,9 @@ steps:
       cp -r . /tmp/build
 - save_cache:
     name: Save dependencies
-    key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+    key: ts-{{ checksum "package.json" }}-cljs-{{
+               checksum "shadow-cljs.edn" }}-grammar-{{
+               checksum "src/calva-fmt/atom-language-clojure/package.json" }}
     paths:
     - ./node_modules
 - persist_to_workspace:
