@@ -90,5 +90,6 @@ class EvaluationResult extends vscode.TreeItem {
     this.value = value;
     this.originalString = originalString;
     this.children = children;
+    this.tooltip = new vscode.MarkdownString('```clojure\n' + originalString + '\n```');
   }
 }
