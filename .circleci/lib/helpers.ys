@@ -8,6 +8,7 @@ defn run:
     run:
       name:: label
       command:: bin(name)
+
   (label):
     name =: label.str/lower-case()
             .str/replace(' ', '-')
