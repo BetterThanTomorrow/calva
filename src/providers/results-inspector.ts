@@ -131,26 +131,5 @@ class EvaluationResult extends vscode.TreeItem {
     if (isTopLevel) {
       this.contextValue = 'result';
     }
-    this.resourceUri = vscode.Uri.parse(
-      'calva-results-inspector://result/' + originalString + '.edn'
-    );
-    //this.iconPath = new vscode.ThemeIcon('');
-  }
-}
-
-export class ResultDecorationProvider implements vscode.FileDecorationProvider {
-  onDidChangeFileDecorations: vscode.Event<vscode.Uri | vscode.Uri[]>;
-
-  provideFileDecoration(
-    uri: vscode.Uri,
-    token: vscode.CancellationToken
-  ): vscode.ProviderResult<vscode.FileDecoration> {
-    if (uri.scheme === 'calva-results-inspector') {
-      return new vscode.FileDecoration(
-        undefined,
-        'foo tooltip',
-        new vscode.ThemeColor('terminal.ansiBrightBlue')
-      );
-    }
   }
 }

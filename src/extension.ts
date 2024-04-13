@@ -90,7 +90,6 @@ async function activate(context: vscode.ExtensionContext) {
 
   const inspectorDataProvider = eval.initInspectorDataProvider();
   vscode.window.createTreeView('calva.inspector', { treeDataProvider: inspectorDataProvider });
-  vscode.window.registerFileDecorationProvider(new inspector.ResultDecorationProvider());
 
   overrides.activate();
 
