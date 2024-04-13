@@ -43,7 +43,7 @@ import * as overrides from './overrides';
 import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
 import * as output from './results-output/output';
-import { clear } from 'console';
+import * as inspector from './providers/results-inspector';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -90,6 +90,7 @@ async function activate(context: vscode.ExtensionContext) {
 
   const inspectorDataProvider = eval.initInspectorDataProvider();
   vscode.window.createTreeView('calva.inspector', { treeDataProvider: inspectorDataProvider });
+  vscode.window.registerFileDecorationProvider(new inspector.ResultDecorationProvider());
 
   overrides.activate();
 
