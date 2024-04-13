@@ -3189,7 +3189,7 @@
         {
           "command": "calva.clearInspectorResult",
           "when": "view == calva.inspector && viewItem == result",
-          "title": "Clear"
+          "group": "inline"
         }
       ]
     },
