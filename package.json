@@ -2113,13 +2113,14 @@
         "category": "Calva",
         "command": "calva.clearInspectorResults",
         "title": "Clear All Inspector Results",
-        "icon": "$(clear-all)"
+        "icon": "$(close-all)"
       },
       {
         "category": "Calva",
         "command": "calva.clearInspectorResult",
         "title": "Clear Inspector Result",
-        "icon": "$(trash)"
+        "shortTitle": "Clear",
+        "icon": "$(close)"
       }
     ],
     "keybindings": [
@@ -3188,7 +3189,16 @@
         {
           "command": "calva.clearInspectorResult",
           "when": "view == calva.inspector && viewItem == result",
-          "group": "navigation"
+          "title": "Clear"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "calva",
+          "title": "Calva",
+          "icon": "assets/images/calva-symbol-white.svg"
         }
       ]
     },
@@ -3199,10 +3209,12 @@
           "name": "Project tree",
           "icon": "assets/images/clj.svg",
           "contextualTitle": "Project tree"
-        },
+        }
+      ],
+      "calva": [
         {
           "id": "calva.inspector",
-          "name": "Calva Inspector"
+          "name": "Inspector"
         }
       ]
     },
