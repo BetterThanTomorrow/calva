@@ -59,13 +59,6 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
           new Map([[keyItem, valueItem]])
         );
       });
-      if (item.value instanceof Map) {
-        for (const key of item.value.keys()) {
-          if (Array.isArray(key.value) || key.value instanceof Map) {
-            children.unshift(this.createNreplResult(key, false));
-          }
-        }
-      }
     }
 
     return new EvaluationResult(
