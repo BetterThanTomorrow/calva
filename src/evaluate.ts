@@ -142,7 +142,12 @@ async function evaluateCodeUpdatingUI(
       result = value;
 
       if (showResult) {
-        inspectorDataProvider.addResult(value);
+        try {
+          // Do not croak if the inspector fails to add the result
+          inspectorDataProvider.addResult(value);
+        } catch (e) {
+          console.error('Failed to add result to inspector: ', e);
+        }
         output.appendClojureEval(value, { ns, replSessionType: session.replType }, async () => {
           if (selection) {
             const c = selection.start.character;
