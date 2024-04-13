@@ -1258,7 +1258,7 @@ describe('paredit commands', () => {
         });
         it('Multi-cursor: Handles wrapping multiple cursors targeting the same form []', async () => {
           const a = docFromTextNotation('a (b c| |1) d');
-          const b = docFromTextNotation('a (b [c|] |1) d');
+          const b = docFromTextNotation('a (b [c|]|1 ) d');
           await handlers.wrapAroundSquare(a, true);
           expect([textAndSelections(a), textNotationFromDoc(a)]).toEqual([
             textAndSelections(b),
