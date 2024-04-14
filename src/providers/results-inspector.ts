@@ -103,7 +103,11 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
   }
 }
 
-export class EvaluationResult extends vscode.TreeItem {
+export const copyItemValue = async (item: EvaluationResult) => {
+  await vscode.env.clipboard.writeText(item.originalString);
+};
+
+class EvaluationResult extends vscode.TreeItem {
   children: Map<EvaluationResult, EvaluationResult> | EvaluationResult[] | undefined;
   value: string | Map<EvaluationResult, EvaluationResult> | EvaluationResult[];
   originalString: string;
