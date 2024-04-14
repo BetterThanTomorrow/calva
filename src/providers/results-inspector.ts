@@ -140,7 +140,7 @@ export class EvaluationResult extends vscode.TreeItem {
         ([key, val]) => key instanceof EvaluationResult && val instanceof EvaluationResult
       );
     const [iconSelectorString, iconSelectorValue] = isStructuralKey
-      ? [Array.from(value.entries())[0][1].originalString, Array.from(value.entries())[0][1]]
+      ? [Array.from(value.values())[0].originalString, Array.from(value.values())[0].value]
       : [originalString, value];
     this.iconPath = getIconPath(iconSelectorString, iconSelectorValue);
   }
