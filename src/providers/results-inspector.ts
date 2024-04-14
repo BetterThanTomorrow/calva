@@ -121,27 +121,53 @@ class EvaluationResult extends vscode.TreeItem {
     this.resourceUri = vscode.Uri.parse(
       'calva-results-inspector://result/' + originalString + '.edn'
     );
-    // TODO: Do these checks using ClojureScript instead
-    this.iconPath = new vscode.ThemeIcon(
-      value instanceof Map
-        ? 'symbol-namespace'
-        : Array.isArray(value)
-        ? 'symbol-array'
-        : value === 'nil'
-        ? 'blank'
-        : value.startsWith('#"')
-        ? 'regex'
-        : originalString.startsWith('#')
-        ? 'symbol-string'
-        : value.endsWith('"')
-        ? 'quote'
-        : value.startsWith(':')
-        ? 'symbol-keyword'
-        : Number.parseFloat(value)
-        ? 'symbol-numeric'
-        : 'symbol-key'
-    );
+    this.iconPath = originalString.startsWith('{')
+      ? icon('map')
+      : originalString.startsWith('[')
+      ? icon('vector')
+      : originalString.startsWith('(')
+      ? icon('list')
+      : originalString.startsWith('#{')
+      ? icon('set')
+      : value === 'nil'
+      ? new vscode.ThemeIcon('blank')
+      : value === 'true'
+      ? icon('bool')
+      : value === 'false'
+      ? icon('bool')
+      : originalString.startsWith('#"')
+      ? icon('regex')
+      : originalString.startsWith("#'")
+      ? icon('var')
+      : originalString.startsWith('#')
+      ? icon('tag')
+      : originalString.startsWith('"')
+      ? icon('string')
+      : originalString.startsWith(':')
+      ? icon('kw')
+      : Number.parseFloat(originalString) // works for ratios too b/c javascript
+      ? icon('numeric')
+      : icon('symbol');
   }
+}
+
+function icon(name: string) {
+  const path = (name, theme) => {
+    return vscode.Uri.joinPath(
+      vscode.Uri.file(__filename),
+      '..',
+      '..',
+      '..',
+      'assets',
+      'images',
+      'icons',
+      `${name}-${theme}.svg`
+    );
+  };
+  return {
+    light: path(name, 'light'),
+    dark: path(name, 'dark'),
+  };
 }
 
 export class ResultDecorationProvider implements vscode.FileDecorationProvider {
