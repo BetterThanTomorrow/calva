@@ -38,6 +38,7 @@
       [1 2 3 #{:foo :bar "apa"}]
       {:foo "aeiou"
        :bar #{"å" "ä" "ö" [1 2 3]}}] [1
+                                      'ab
                                       "abcdef"
                                       #inst "2021-10-10T00:00:00.000-00:00"
                                       (new java.awt.Point 10 20)

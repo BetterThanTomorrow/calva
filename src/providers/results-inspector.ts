@@ -37,7 +37,7 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
     return item;
   }
 
-  private createNreplResult(
+  private createResultItem(
     item: any,
     isTopLevel: boolean,
     keyOrIndex?: string | number
@@ -45,12 +45,12 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
     let children: EvaluationResult[] | undefined;
     if (Array.isArray(item.value)) {
       children = item.value.map((childItem, index) =>
-        this.createNreplResult(childItem, false, index.toString())
+        this.createResultItem(childItem, false, index.toString())
       );
     } else if (item.value instanceof Map) {
       children = Array.from(item.value.entries()).map(([key, value]) => {
-        const keyItem = this.createNreplResult(key, false);
-        const valueItem = this.createNreplResult(value, false);
+        const keyItem = this.createResultItem(key, false);
+        const valueItem = this.createResultItem(value, false);
         return new EvaluationResult(
           valueItem.value,
           valueItem.originalString,
@@ -73,8 +73,8 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
   public addResult(result: string): void {
     const cursor = tokenCursor.createStringCursor(result);
     const structure = cursorUtil.structureForRightSexp(cursor);
-    const newResult = this.createNreplResult({ originalString: result, value: structure }, true);
-    this.treeData.unshift(newResult);
+    const items = this.createResultItem({ originalString: result, value: structure }, true);
+    this.treeData.unshift(items);
     this.refresh();
   }
 
@@ -117,6 +117,46 @@ class EvaluationResult extends vscode.TreeItem {
     this.tooltip = new vscode.MarkdownString('```clojure\n' + originalString + '\n```');
     if (isTopLevel) {
       this.contextValue = 'result';
+    }
+    this.resourceUri = vscode.Uri.parse(
+      'calva-results-inspector://result/' + originalString + '.edn'
+    );
+    // TODO: Do these checks using ClojureScript instead
+    this.iconPath = new vscode.ThemeIcon(
+      value instanceof Map
+        ? 'symbol-namespace'
+        : Array.isArray(value)
+        ? 'symbol-array'
+        : value === 'nil'
+        ? 'blank'
+        : value.startsWith('#"')
+        ? 'regex'
+        : originalString.startsWith('#')
+        ? 'symbol-string'
+        : value.endsWith('"')
+        ? 'quote'
+        : value.startsWith(':')
+        ? 'symbol-keyword'
+        : Number.parseFloat(value)
+        ? 'symbol-numeric'
+        : 'symbol-key'
+    );
+  }
+}
+
+export class ResultDecorationProvider implements vscode.FileDecorationProvider {
+  onDidChangeFileDecorations: vscode.Event<vscode.Uri | vscode.Uri[]>;
+
+  provideFileDecoration(
+    uri: vscode.Uri,
+    token: vscode.CancellationToken
+  ): vscode.ProviderResult<vscode.FileDecoration> {
+    if (uri.scheme === 'calva-results-inspector') {
+      return new vscode.FileDecoration(
+        undefined,
+        'foo tooltip',
+        new vscode.ThemeColor('terminal.ansiBrightBlue')
+      );
     }
   }
 }
