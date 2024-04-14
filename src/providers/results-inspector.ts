@@ -50,14 +50,14 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
     } else if (item.value instanceof Map) {
       children = Array.from(item.value.entries()).map(([key, value]) => {
         if (key.value instanceof Map || Array.isArray(key.value)) {
-          const keyItem = this.createResultItem(key, false, 'key');
+          const keyItem = this.createResultItem(key, false);
           const valueItem = this.createResultItem(value, false, 'value');
           return new EvaluationResult(
             new Map([[keyItem, valueItem]]),
             `${keyItem.originalString} ${valueItem.originalString}`,
             `${keyItem.label} ${valueItem.originalString}`,
             false,
-            [keyItem, valueItem]
+            [this.createResultItem(key, false, 'key'), valueItem]
           );
         } else {
           const keyItem = this.createResultItem(key, false);
