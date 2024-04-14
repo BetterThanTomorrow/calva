@@ -112,7 +112,7 @@ class EvaluationResult extends vscode.TreeItem {
     );
     this.value = value;
     this.originalString = originalString;
-    this.label = label;
+    this.label = label.replace(/[\n\r]/g, ' ');
     this.children = children;
     this.tooltip = new vscode.MarkdownString('```clojure\n' + originalString + '\n```');
     if (isTopLevel) {
