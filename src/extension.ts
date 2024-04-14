@@ -328,6 +328,9 @@ async function activate(context: vscode.ExtensionContext) {
     clearInspectorResult: (arg) => {
       inspectorDataProvider.clearResults.bind(inspectorDataProvider)(arg);
     },
+    copyInspectorItem: async (item: inspector.EvaluationResult) => {
+      await vscode.env.clipboard.writeText(item.originalString);
+    },
   };
 
   function registerCalvaCommand([command, callback]) {

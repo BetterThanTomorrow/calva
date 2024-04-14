@@ -91,7 +91,7 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
   }
 }
 
-class EvaluationResult extends vscode.TreeItem {
+export class EvaluationResult extends vscode.TreeItem {
   children: Map<EvaluationResult, EvaluationResult> | EvaluationResult[] | undefined;
   value: string | Map<EvaluationResult, EvaluationResult> | EvaluationResult[];
   originalString: string;
