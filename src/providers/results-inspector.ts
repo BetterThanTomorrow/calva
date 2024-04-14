@@ -133,33 +133,7 @@ export class EvaluationResult extends vscode.TreeItem {
     this.resourceUri = vscode.Uri.parse(
       'calva-results-inspector://result/' + originalString + '.edn'
     );
-    this.iconPath = originalString.startsWith('{')
-      ? icon('map')
-      : originalString.startsWith('[')
-      ? icon('vector')
-      : originalString.startsWith('(')
-      ? icon('list')
-      : originalString.startsWith('#{')
-      ? icon('set')
-      : value === 'nil'
-      ? new vscode.ThemeIcon('blank')
-      : value === 'true'
-      ? icon('bool')
-      : value === 'false'
-      ? icon('bool')
-      : originalString.startsWith('#"')
-      ? icon('regex')
-      : originalString.startsWith("#'")
-      ? icon('var')
-      : originalString.startsWith('#')
-      ? icon('tag')
-      : originalString.startsWith('"')
-      ? icon('string')
-      : originalString.startsWith(':')
-      ? icon('kw')
-      : Number.parseFloat(originalString) // works for ratios too b/c javascript
-      ? icon('numeric')
-      : icon('symbol');
+    this.iconPath = getIconPath(originalString, value);
   }
 }
 
@@ -180,6 +154,39 @@ function icon(name: string) {
     light: path(name, 'light'),
     dark: path(name, 'dark'),
   };
+}
+
+function getIconPath(
+  originalString: string,
+  value: string | EvaluationResult[] | Map<EvaluationResult, EvaluationResult>
+) {
+  return originalString.startsWith('{')
+    ? icon('map')
+    : originalString.startsWith('[')
+    ? icon('vector')
+    : originalString.startsWith('(')
+    ? icon('list')
+    : originalString.startsWith('#{')
+    ? icon('set')
+    : value === 'nil'
+    ? new vscode.ThemeIcon('blank')
+    : value === 'true'
+    ? icon('bool')
+    : value === 'false'
+    ? icon('bool')
+    : originalString.startsWith('#"')
+    ? icon('regex')
+    : originalString.startsWith("#'")
+    ? icon('var')
+    : originalString.startsWith('#')
+    ? icon('tag')
+    : originalString.startsWith('"')
+    ? icon('string')
+    : originalString.startsWith(':')
+    ? icon('kw')
+    : Number.parseFloat(originalString) // works for ratios too b/c javascript
+    ? icon('numeric')
+    : icon('symbol');
 }
 
 export class ResultDecorationProvider implements vscode.FileDecorationProvider {
