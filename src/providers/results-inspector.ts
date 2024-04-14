@@ -133,13 +133,15 @@ export class EvaluationResult extends vscode.TreeItem {
     this.resourceUri = vscode.Uri.parse(
       'calva-results-inspector://result/' + originalString + '.edn'
     );
-    const [iconSelectorString, iconSelectorValue] =
+
+    const isStructuralKey =
       value instanceof Map &&
       Array.from(value.entries()).every(
         ([key, val]) => key instanceof EvaluationResult && val instanceof EvaluationResult
-      )
-        ? [Array.from(value.entries())[0][1].originalString, Array.from(value.entries())[0][1]]
-        : [originalString, value];
+      );
+    const [iconSelectorString, iconSelectorValue] = isStructuralKey
+      ? [Array.from(value.entries())[0][1].originalString, Array.from(value.entries())[0][1]]
+      : [originalString, value];
     this.iconPath = getIconPath(iconSelectorString, iconSelectorValue);
   }
 }
