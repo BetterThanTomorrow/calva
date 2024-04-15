@@ -208,13 +208,18 @@ class EvaluationResult extends vscode.TreeItem {
 
     const isStructuralKey =
       value instanceof Map &&
+      value.size > 0 &&
       Array.from(value.entries()).every(
         ([key, val]) => key instanceof EvaluationResult && val instanceof EvaluationResult
       );
-    const [iconSelectorString, iconSelectorValue] = isStructuralKey
-      ? [Array.from(value.values())[0].originalString, Array.from(value.values())[0].value]
-      : [originalString, value];
-    this.iconPath = getIconPath(iconSelectorString, iconSelectorValue);
+    try {
+      const [iconSelectorString, iconSelectorValue] = isStructuralKey
+        ? [Array.from(value.values())[0].originalString, Array.from(value.values())[0].value]
+        : [originalString, value];
+      this.iconPath = getIconPath(iconSelectorString, iconSelectorValue);
+    } catch (error) {
+      console.error('Error setting iconPath:', error);
+    }
   }
 }
 
