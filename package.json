@@ -2128,6 +2128,13 @@
         "title": "Copy Inspector Item to the Clipboard",
         "shortTitle": "Copy",
         "icon": "$(copy)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.inspectResult",
+        "title": "Inspect Result Item",
+        "shortTitle": "Inspect",
+        "icon": "$(inspect)"
       }
     ],
     "keybindings": [
@@ -3199,9 +3206,14 @@
           "group": "inline@1"
         },
         {
+          "command": "calva.inspectResult",
+          "when": "view == calva.inspector && viewItem == raw",
+          "group": "inline@2"
+        },
+        {
           "command": "calva.clearInspectorResult",
           "when": "view == calva.inspector && viewItem == result",
-          "group": "inline@2"
+          "group": "inline@3"
         }
       ]
     },

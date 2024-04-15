@@ -9,7 +9,7 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
   readonly onDidChangeTreeData: vscode.Event<EvaluationResult | undefined | null | void> =
     this._onDidChangeTreeData.event;
 
-  private treeData: EvaluationResult[] = [];
+  public treeData: EvaluationResult[] = [];
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
@@ -38,36 +38,36 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
     return item;
   }
 
-  private createResultItem(
+  public createResultItem(
     item: any,
-    isTopLevel: boolean,
+    level: number,
     keyOrIndex?: string | number
   ): EvaluationResult {
     let children: EvaluationResult[] | undefined;
     if (Array.isArray(item.value)) {
       children = item.value.map((childItem, index) =>
-        this.createResultItem(childItem, false, index.toString())
+        this.createResultItem(childItem, level++, index.toString())
       );
     } else if (item.value instanceof Map) {
       children = Array.from(item.value.entries()).map(([key, value]) => {
         if (key.value instanceof Map || Array.isArray(key.value)) {
-          const keyItem = this.createResultItem(key, false);
-          const valueItem = this.createResultItem(value, false, 'value');
+          const keyItem = this.createResultItem(key, level++);
+          const valueItem = this.createResultItem(value, level, 'value');
           return new EvaluationResult(
             new Map([[keyItem, valueItem]]),
             `${keyItem.originalString} ${valueItem.originalString}`,
             `${keyItem.label} ${valueItem.originalString}`,
-            false,
-            [this.createResultItem(key, false, 'key'), valueItem]
+            level,
+            [this.createResultItem(key, level, 'key'), valueItem]
           );
         } else {
-          const keyItem = this.createResultItem(key, false);
-          const valueItem = this.createResultItem(value, false);
+          const keyItem = this.createResultItem(key, level++);
+          const valueItem = this.createResultItem(value, level);
           return new EvaluationResult(
             valueItem.value,
             valueItem.originalString,
             `${keyItem.label} ${valueItem.originalString}`,
-            false,
+            level,
             new Map([[keyItem, valueItem]])
           );
         }
@@ -78,43 +78,14 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
       item.value,
       item.originalString,
       `${keyOrIndex !== undefined ? keyOrIndex + ' ' : ''}${item.originalString}`,
-      isTopLevel,
+      level++,
       children
     );
   }
 
   public addResult(result: string): void {
-    const startTime = performance.now();
-
-    const cursorStartTime = performance.now();
-    const cursor = tokenCursor.createStringCursor(result);
-    const cursorEndTime = performance.now();
-
-    const structureStartTime = performance.now();
-    const structure = cursorUtil.structureForRightSexp(cursor);
-    const structureEndTime = performance.now();
-
-    const itemsStartTime = performance.now();
-    const items = this.createResultItem({ originalString: result, value: structure }, true);
-    const itemsEndTime = performance.now();
-
-    this.treeData.unshift(items);
+    this.treeData.unshift(new EvaluationResult(result, result, result, null));
     this.refresh();
-
-    const endTime = performance.now();
-
-    console.log(
-      `Total (ms)=${endTime - startTime}, createStringCursor=${
-        cursorEndTime - cursorStartTime
-      }, structureForRightSexp=${structureEndTime - structureStartTime}, createResultItem=${
-        itemsEndTime - itemsStartTime
-      }`
-    );
-    console.log(
-      'Size of treeData (estimate):',
-      JSON.stringify(this.treeData).length / 1024 / 1024 / 1024,
-      'GB'
-    );
   }
 
   public clearResults(resultToClear?: EvaluationResult): void {
@@ -134,6 +105,44 @@ export const copyItemValue = async (item: EvaluationResult) => {
   await vscode.env.clipboard.writeText(item.originalString);
 };
 
+export function createTreeStructure(item: EvaluationResult) {
+  const index = this.treeData.indexOf(item);
+  if (index > -1) {
+    const result = this.treeData[index].originalString;
+    const startTime = performance.now();
+
+    const cursorStartTime = performance.now();
+    const cursor = tokenCursor.createStringCursor(result);
+    const cursorEndTime = performance.now();
+
+    const structureStartTime = performance.now();
+    const structure = cursorUtil.structureForRightSexp(cursor);
+    const structureEndTime = performance.now();
+
+    const itemsStartTime = performance.now();
+    const items = this.createResultItem({ originalString: result, value: structure }, 0);
+    const itemsEndTime = performance.now();
+
+    const endTime = performance.now();
+
+    console.log(
+      `Total (ms)=${endTime - startTime}, createStringCursor=${
+        cursorEndTime - cursorStartTime
+      }, structureForRightSexp=${structureEndTime - structureStartTime}, createResultItem=${
+        itemsEndTime - itemsStartTime
+      }`
+    );
+    console.log(
+      'Size of treeData (estimate):',
+      JSON.stringify(this.treeData).length / 1024 / 1024 / 1024,
+      'GB'
+    );
+
+    this.treeData[index] = items;
+    this.refresh();
+  }
+}
+
 class EvaluationResult extends vscode.TreeItem {
   children: Map<EvaluationResult, EvaluationResult> | EvaluationResult[] | undefined;
   value: string | Map<EvaluationResult, EvaluationResult> | EvaluationResult[];
@@ -144,7 +153,7 @@ class EvaluationResult extends vscode.TreeItem {
     value: string | Map<EvaluationResult, EvaluationResult> | EvaluationResult[],
     originalString: string,
     label: string,
-    isTopLevel: boolean,
+    level: number | null,
     children?: Map<EvaluationResult, EvaluationResult> | EvaluationResult[]
   ) {
     super(
@@ -158,7 +167,9 @@ class EvaluationResult extends vscode.TreeItem {
     this.label = label.replace(/[\n\r]/g, ' ');
     this.children = children;
     this.tooltip = new vscode.MarkdownString('```clojure\n' + originalString + '\n```');
-    if (isTopLevel) {
+    if (level === null) {
+      this.contextValue = 'raw';
+    } else if (level === 0) {
       this.contextValue = 'result';
     }
     this.resourceUri = vscode.Uri.parse(

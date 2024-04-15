@@ -329,6 +329,9 @@ async function activate(context: vscode.ExtensionContext) {
       inspectorDataProvider.clearResults.bind(inspectorDataProvider)(arg);
     },
     copyInspectorItem: inspector.copyItemValue,
+    inspectResult: (item) => {
+      inspector.createTreeStructure.bind(inspectorDataProvider)(item);
+    },
   };
 
   function registerCalvaCommand([command, callback]) {
