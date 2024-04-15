@@ -1060,15 +1060,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#jack-in-dependency-versions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Jack-in Dependency Versions
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#key-bindings" class="md-nav__link">
     <span class="md-ellipsis">
       Key bindings
@@ -2058,15 +2049,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#jack-in-dependency-versions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Jack-in Dependency Versions
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#key-bindings" class="md-nav__link">
     <span class="md-ellipsis">
       Key bindings
@@ -2183,14 +2165,7 @@
 <p>See <a href="../formatting/">Formatting</a> for information on how to configure this.</p>
 <h2 id="jack-in-and-connect">Jack-in and Connect<a class="headerlink" href="#jack-in-and-connect" title="Permanent link">#</a></h2>
 <p>Jack-in and Connect are very customizable through <a href="../connect-sequences/">Custom Connect Sequences</a>.</p>
-<h2 id="jack-in-dependency-versions">Jack-in Dependency Versions<a class="headerlink" href="#jack-in-dependency-versions" title="Permanent link">#</a></h2>
-<p><a href="../jack-in-guide/">Calva Jack-in</a> injects the following dependencies in order for the REPL session to support IDE features</p>
-<ul>
-<li><a href="https://github.com/nrepl/nrepl">nrepl</a>: nREPL is the wonderful piece of software that gives Calva a structured and extensible connection to the REPL in your Clojure and ClojureScript projects.</li>
-<li><a href="https://github.com/clojure-emacs/cider-nrepl">cider-nrepl</a>: cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.</li>
-<li><a href="https://github.com/nrepl/piggieback">cider/piggieback</a>: Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with <a href="http://shadow-cljs.org">shadow-cljs</a> projects though, which provides its own middleware for this.)</li>
-</ul>
-<p>The versions used are configurable via the VS Code settings <code>calva.jackInDependencyVersions</code>.</p>
+<p>See also <a href="../customizing-jack-in-and-connect/">Customizing Jack-in and Connect</a></p>
 <h2 id="key-bindings">Key bindings<a class="headerlink" href="#key-bindings" title="Permanent link">#</a></h2>
 <p>Most of Calva's commands have default keybindings. They are only defaults, though, and you can change keybindings as you wish. To facilitate precision in binding keys Calva keeps some <a href="https://code.visualstudio.com/api/references/when-clause-contexts">when clause contexts</a> updated.</p>
 <h3 id="when-clause-contexts">When Clause Contexts<a class="headerlink" href="#when-clause-contexts" title="Permanent link">#</a></h3>

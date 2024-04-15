@@ -1070,6 +1070,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#jack-in-dependency-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Jack-in Dependency Versions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#options-for-the-jack-in-command" class="md-nav__link">
     <span class="md-ellipsis">
       Options for the Jack-in Command
@@ -2026,6 +2035,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#jack-in-dependency-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Jack-in Dependency Versions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#options-for-the-jack-in-command" class="md-nav__link">
     <span class="md-ellipsis">
       Options for the Jack-in Command
@@ -2121,7 +2139,7 @@
 <p>If you configure this both in User/global settings and in a Workspace, the workspace configured code will be concatenated on the user level code. Meaning both code snippets will be evaluated, first the User level code, then the Workspace level code. Also <code>null</code> disables the feature:</p>
 <ul>
 <li>If you use <code>null</code> in the User level code, you will disable the onConnect code evaluation for all workspaces that do not configure code for this.</li>
-<li>If you configure code on the User level it will be evaluated in all workspaces, except those that disable the feature by configuring <code>null</code>. </li>
+<li>If you configure code on the User level it will be evaluated in all workspaces, except those that disable the feature by configuring <code>null</code>.</li>
 </ul>
 </div>
 <h2 id="auto-evaluate-code-at-filenamespace-loadevaluation">Auto-evaluate Code at file/namespace load/evaluation<a class="headerlink" href="#auto-evaluate-code-at-filenamespace-loadevaluation" title="Permanent link">#</a></h2>
@@ -2165,10 +2183,29 @@
 <li><code>calva.myLeinProfiles</code>: An array of Leiningen profiles not found in <code>project.clj</code>. Use this to tell Calva Jack-in to launch your REPL using your user defined profiles.</li>
 <li><code>calva.openBrowserWhenFigwheelStarted</code>: <em>For Legacy Figwheel only.</em> A boolean controlling if Calva should automatically launch your ClojureScript app, once it is compiled by Figwheel. Defaults to <code>true</code>.</li>
 <li><code>calva.depsEdnJackInExecutable</code>: A string which should either be <code>clojure</code> or <code>deps.clj</code>, or <code>clojure or deps.clj</code> (default). It determines which executable Calva Jack-in should use for starting a <code>deps.edn</code> project. With this setting at its default, <code>clojure or deps.clj</code>, Calva will test if the <code>clojure</code> executable works, and use it if it does, otherwise <code>deps.clj</code> will be used, which is bundled with Calva.</li>
+<li><code>calva.jackInDependencyVersions</code>: See <a href="#jack-in-dependency-versions">below</a></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>When processing the <code>calva.jackInEnv</code> setting you can refer to existing ENV variables with <code>${env:VARIABLE}</code>.</p>
+</div>
+<h3 id="jack-in-dependency-versions">Jack-in Dependency Versions<a class="headerlink" href="#jack-in-dependency-versions" title="Permanent link">#</a></h3>
+<p><a href="../jack-in-guide/">Calva Jack-in</a> injects the following dependencies in order for the REPL session to support IDE features</p>
+<ul>
+<li><a href="https://github.com/nrepl/nrepl">nrepl</a>: nREPL is the wonderful piece of software that gives Calva a structured and extensible connection to the REPL in your Clojure and ClojureScript projects.</li>
+<li><a href="https://github.com/clojure-emacs/cider-nrepl">cider-nrepl</a>: cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.</li>
+<li><a href="https://github.com/nrepl/piggieback">cider/piggieback</a>: Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with <a href="http://shadow-cljs.org">shadow-cljs</a> projects though, which provides its own middleware for this.)</li>
+</ul>
+<p>The versions used are configurable via the VS Code settings <code>calva.jackInDependencyVersions</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Java 1.8 compatible versions</p>
+<p>The default dependency versions are not compatible with Java 1.8. If your project needs that version of Java you can use these settings in your Workspace <code>.vscode/settings.json</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.jackInDependencyVersions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;nrepl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;cider-nrepl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.28.5&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;cider/piggieback&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.5.3&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
 </div>
 <h3 id="options-for-the-jack-in-command">Options for the Jack-in Command<a class="headerlink" href="#options-for-the-jack-in-command" title="Permanent link">#</a></h3>
 <p>The <code>calva.jackIn</code> command takes an optional options argument defined like so:</p>
@@ -2192,13 +2229,13 @@
 <span class="w"> </span><span class="p">(</span><span class="nf">clj-&gt;js</span><span class="w"> </span><span class="p">{</span><span class="ss">:connectSequence</span><span class="w"> </span><span class="p">{</span><span class="ss">:projectType</span><span class="w"> </span><span class="s">&quot;deps.edn&quot;</span>
 <span class="w">                             </span><span class="ss">:projectRootPath</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;.&quot;</span><span class="p">]}}))</span>
 </code></pre></div>
-<p>It will prompt for any aliases it finds in the <code>deps.edn</code> file.    </p>
+<p>It will prompt for any aliases it finds in the <code>deps.edn</code> file.</p>
 <h2 id="starting-the-repl-from-application-code">Starting the REPL from application code?<a class="headerlink" href="#starting-the-repl-from-application-code" title="Permanent link">#</a></h2>
 <p>If your project is setup so that the REPL server is started by the application code, you will need to get the cider-nrepl middleware in place. See the cider-nrepl docs about <a href="https://docs.cider.mx/cider-nrepl/usage.html#via-embedding-nrepl-in-your-application">embedding nREPL in your application</a>.</p>
 <h2 id="auto-select-project-type-and-project-root">Auto-select Project Type and Project Root<a class="headerlink" href="#auto-select-project-type-and-project-root" title="Permanent link">#</a></h2>
 <p>You can make both Jack-in and Connect stop prompting you for project type and project root path in projects where you always want to use the same. See <a href="../connect-sequences/">Connect Sequences</a>.</p>
 <h2 id="project-roots-search-globing">Project roots search globing<a class="headerlink" href="#project-roots-search-globing" title="Permanent link">#</a></h2>
-<p>When searching for project roots in your workspace, Calva will glob for all files matching <code>project.clj</code>, <code>deps.edn</code>, or <code>shadow-cljs.edn</code>. This is done using VS Code's workspace search engine, and is very efficient. However, in a large monorepo, it is still a substantial task. In order to not waste resources Calva will exclude any directories in the setting <code>calva.projectRootsSearchExclude</code>. </p>
+<p>When searching for project roots in your workspace, Calva will glob for all files matching <code>project.clj</code>, <code>deps.edn</code>, or <code>shadow-cljs.edn</code>. This is done using VS Code's workspace search engine, and is very efficient. However, in a large monorepo, it is still a substantial task. In order to not waste resources Calva will exclude any directories in the setting <code>calva.projectRootsSearchExclude</code>.</p>
 <p><img alt="calva.projectRootsSearchExclude setting" src="../images/calva-project-roots-search-exclude.png" /></p>
 <div class="admonition note">
 <p class="admonition-title">Exclude entry globs</p>
