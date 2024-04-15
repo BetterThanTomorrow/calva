@@ -47,32 +47,32 @@
       [1 2 3 #{:foo :bar "apa"}]
       {:foo "aeiou"
        :bar #{"å" "ä" "ö" [1 2 3]}}]
-     [1
-      '(1 2 3)
-      #{1 2 3}
-      true
-      'ab
-      false
-      "abcdef"
-      :keyword
-      #'english-o
-      #"regex"
-      #inst "2021-10-10T00:00:00.000-00:00"
-      (new java.awt.Point 10 20)
-      (->Language "abcdefghijklmnopqrstuvwxyz" "aeiouåäö" "o")
-      (->Point 10 20)
-      [[[1 2 3] [4 5 6]] [7 8 [9 10 11]]]
-      (with-meta {:alphabet    "abcdefghijklmnopqrstuvwxyz"
-                  :vowels      [{:foo "aeiou"
-                                 :bar #{"å" "ä" "ö" [1 2 3]}}]
-                  :pirate-char "o"} {:a 1 :b 2 :c 3})
-      {{:a [{:foo "aeiou"
-             :bar #{"å" "ä" "ö" [1 2 3] {["x" "y"] 1 :b 2 :c 3}}}]} {:b [1 2 3] :c "c"}}
-      [{:foo "aeiou"
-        :bar #{"å" "ä" "ö" [1 2 3] {:a 1 :b 2 :c 3}}}]
-      [1 2 3 #{:foo :bar "apa"}]
-      {:foo "aeiou"
-       :bar #{"å" "ä" "ö" [1 2 3]}}]})
+     (repeat 100 [1
+                  '(1 2 3)
+                  #{1 2 3}
+                  true
+                  'ab
+                  false
+                  "abcdef"
+                  :keyword
+                  #'english-o
+                  #"regex"
+                  #inst "2021-10-10T00:00:00.000-00:00"
+                  (new java.awt.Point 10 20)
+                  (->Language "abcdefghijklmnopqrstuvwxyz" "aeiouåäö" "o")
+                  (->Point 10 20)
+                  [[[1 2 3] [4 5 6]] [7 8 [9 10 11]]]
+                  (with-meta {:alphabet    "abcdefghijklmnopqrstuvwxyz"
+                              :vowels      [{:foo "aeiou"
+                                             :bar #{"å" "ä" "ö" [1 2 3]}}]
+                              :pirate-char "o"} {:a 1 :b 2 :c 3})
+                  {{:a [{:foo "aeiou"
+                         :bar #{"å" "ä" "ö" [1 2 3] {["x" "y"] 1 :b 2 :c 3}}}]} {:b [1 2 3] :c "c"}}
+                  [{:foo "aeiou"
+                    :bar #{"å" "ä" "ö" [1 2 3] {:a 1 :b 2 :c 3}}}]
+                  [1 2 3 #{:foo :bar "apa"}]
+                  {:foo "aeiou"
+                   :bar #{"å" "ä" "ö" [1 2 3]}}])})
 
 (comment
   (to-pirate-talk "Have you heard about Pirate talk?" english-o)

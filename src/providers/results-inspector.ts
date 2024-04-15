@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as tokenCursor from '../cursor-doc/token-cursor';
+// import { performance } from 'perf_hooks';
 
 export class ResultsInspectorProvider implements vscode.TreeDataProvider<EvaluationResult> {
   private _onDidChangeTreeData: vscode.EventEmitter<EvaluationResult | undefined | null | void> =
@@ -83,11 +84,37 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
   }
 
   public addResult(result: string): void {
+    const startTime = performance.now();
+
+    const cursorStartTime = performance.now();
     const cursor = tokenCursor.createStringCursor(result);
+    const cursorEndTime = performance.now();
+
+    const structureStartTime = performance.now();
     const structure = cursorUtil.structureForRightSexp(cursor);
+    const structureEndTime = performance.now();
+
+    const itemsStartTime = performance.now();
     const items = this.createResultItem({ originalString: result, value: structure }, true);
+    const itemsEndTime = performance.now();
+
     this.treeData.unshift(items);
     this.refresh();
+
+    const endTime = performance.now();
+
+    console.log(
+      `Total (ms)=${endTime - startTime}, createStringCursor=${
+        cursorEndTime - cursorStartTime
+      }, structureForRightSexp=${structureEndTime - structureStartTime}, createResultItem=${
+        itemsEndTime - itemsStartTime
+      }`
+    );
+    console.log(
+      'Size of treeData (estimate):',
+      JSON.stringify(this.treeData).length / 1024 / 1024 / 1024,
+      'GB'
+    );
   }
 
   public clearResults(resultToClear?: EvaluationResult): void {
