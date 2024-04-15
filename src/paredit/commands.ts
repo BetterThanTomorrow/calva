@@ -126,6 +126,28 @@ export async function killLeft(
   );
 }
 
+// WRAP
+
+export function wrapAroundQuote(doc: EditableDocument, isMulti: boolean) {
+  return paredit.wrapSexpr(doc, '"', '"', isMulti ? doc.selections : [doc.selections[0]]);
+}
+
+export function wrapAroundCurly(doc: EditableDocument, isMulti: boolean) {
+  return paredit.wrapSexpr(doc, '{', '}', isMulti ? doc.selections : [doc.selections[0]]);
+}
+
+export function wrapAroundSet(doc: EditableDocument, isMulti: boolean) {
+  return paredit.wrapSexpr(doc, '#{', '}', isMulti ? doc.selections : [doc.selections[0]]);
+}
+
+export function wrapAroundSquare(doc: EditableDocument, isMulti: boolean) {
+  return paredit.wrapSexpr(doc, '[', ']', isMulti ? doc.selections : [doc.selections[0]]);
+}
+
+export function wrapAroundParens(doc: EditableDocument, isMulti: boolean) {
+  return paredit.wrapSexpr(doc, '(', ')', isMulti ? doc.selections : [doc.selections[0]]);
+}
+
 // REWRAP
 
 export function rewrapQuote(doc: EditableDocument, isMulti: boolean) {

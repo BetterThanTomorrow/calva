@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Add "Wrap with Set #{}" paredit command.
+- [Implement experimental support for multicursor wrap commands](https://github.com/BetterThanTomorrow/calva/issues/2448). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#2445](https://github.com/BetterThanTomorrow/calva/issues/2445) 
+- [Support command binding args to toggle multicursor per command or toggle copy per kill command. Closes #2485](https://github.com/BetterThanTomorrow/calva/issues/2485)
+
 ## [2.0.439] - 2024-04-11
 
 - Fix: [Refresh Changed Namespaces do not output to the selected output destination](https://github.com/BetterThanTomorrow/calva/issues/2506)

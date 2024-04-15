@@ -1623,6 +1623,155 @@ describe('paredit', () => {
       });
     });
 
+    describe('Wrap', () => {
+      it('Simply wraps []', async () => {
+        const a = docFromTextNotation('a (b c|) d');
+        const b = docFromTextNotation('a (b [c|]) d');
+        await paredit.wrapSexpr(a, '[', ']');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Simply wraps ()', async () => {
+        const a = docFromTextNotation('a [b c|] d');
+        const b = docFromTextNotation('a [b (c|)] d');
+        await paredit.wrapSexpr(a, '(', ')');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Simply wraps {}', async () => {
+        const a = docFromTextNotation('a [b c|] d');
+        const b = docFromTextNotation('a [b {c|}] d');
+        await paredit.wrapSexpr(a, '{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Simply wraps {}', async () => {
+        const a = docFromTextNotation('a #{b c|} d');
+        const b = docFromTextNotation('a #{b {c|}} d');
+        await paredit.wrapSexpr(a, '{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Simply wraps ""', async () => {
+        const a = docFromTextNotation('a #{b c|} d');
+        const b = docFromTextNotation('a #{b "c|"} d');
+        await paredit.wrapSexpr(a, '"', '"');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Simply wraps #{}', async () => {
+        const a = docFromTextNotation('[b c|] d');
+        const b = docFromTextNotation('[b #{c|}] d');
+        await paredit.wrapSexpr(a, '#{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Wraps from close {}', async () => {
+        const a = docFromTextNotation('a [b c]| d');
+        const b = docFromTextNotation('a {[b c]|} d');
+        await paredit.wrapSexpr(a, '{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Wraps from close ""', async () => {
+        const a = docFromTextNotation('a #{b c}| d');
+        const b = docFromTextNotation('a "#{b c}|" d');
+        await paredit.wrapSexpr(a, '"', '"');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Wraps from close #{}', async () => {
+        const a = docFromTextNotation('a [b c]| d');
+        const b = docFromTextNotation('a #{[b c]|} d');
+        await paredit.wrapSexpr(a, '#{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Wraps from close from a distance w/ cursor outside {}', async () => {
+        const a = docFromTextNotation('a [b c] | d');
+        const b = docFromTextNotation('a {[b c]}|  d');
+        await paredit.wrapSexpr(a, '{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Wraps from close from a distance w/ cursor outside ""', async () => {
+        const a = docFromTextNotation('a #{b c} | d');
+        const b = docFromTextNotation('a "#{b c}"|  d');
+        await paredit.wrapSexpr(a, '"', '"');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Wraps from close from a distance w/ cursor outside #{}', async () => {
+        const a = docFromTextNotation('a [b c] | d');
+        const b = docFromTextNotation('a #{[b c]}|  d');
+        await paredit.wrapSexpr(a, '#{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Wraps from opening {}', async () => {
+        const a = docFromTextNotation('a |[b c] d');
+        const b = docFromTextNotation('a {|[b c]} d');
+        await paredit.wrapSexpr(a, '{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Wraps from opening ""', async () => {
+        const a = docFromTextNotation('a |#{b c} d');
+        const b = docFromTextNotation('a "|#{b c}" d');
+        await paredit.wrapSexpr(a, '"', '"');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Wraps from opening #{}', async () => {
+        const a = docFromTextNotation('a |[b c] d');
+        const b = docFromTextNotation('a #{|[b c]} d');
+        await paredit.wrapSexpr(a, '#{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Wraps between directly adjacent lists preferring prior list {}', async () => {
+        const a = docFromTextNotation('a [b c]|[e] d');
+        const b = docFromTextNotation('a {[b c]|}[e] d');
+        await paredit.wrapSexpr(a, '{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Wraps between directly adjacent lists preferring prior list ""', async () => {
+        const a = docFromTextNotation('a #{b c}|#{e} d');
+        const b = docFromTextNotation('a "#{b c}|"#{e} d');
+        await paredit.wrapSexpr(a, '"', '"');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Wraps between directly adjacent lists preferring prior list #{}', async () => {
+        const a = docFromTextNotation('a [b c]|[e] d');
+        const b = docFromTextNotation('a #{[b c]|}[e] d');
+        await paredit.wrapSexpr(a, '#{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('Wraps from selection leaving cursor at anchor inside list {}', async () => {
+        const a = docFromTextNotation('a [|b c|] d');
+        const b = docFromTextNotation('a [{|b c}] d');
+        await paredit.wrapSexpr(a, '{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Wraps from selection leaving cursor at anchor inside list ""', async () => {
+        const a = docFromTextNotation('a #{<b c<} d');
+        const b = docFromTextNotation('a #{"b c|"} d');
+        await paredit.wrapSexpr(a, '"', '"');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Wraps from selection leaving cursor at anchor inside list #{}', async () => {
+        const a = docFromTextNotation('a [<b c<] d');
+        const b = docFromTextNotation('a [#{b c|}] d');
+        await paredit.wrapSexpr(a, '#{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      // TODO: This tests current behavior. What should happen?
+      it('Simply wraps #{}', async () => {
+        const a = docFromTextNotation('^{b c|} d');
+        const b = docFromTextNotation('^{b #{c|}} d');
+        await paredit.wrapSexpr(a, '#{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      // TODO: This tests current behavior. What should happen?
+      it('Simply wraps #{}', async () => {
+        const a = docFromTextNotation('~{b c|} d');
+        const b = docFromTextNotation('~{b #{c|}} d');
+        await paredit.wrapSexpr(a, '#{', '}');
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
     describe('Rewrap', () => {
       it('Rewraps () -> []', async () => {
         const a = docFromTextNotation('a (b c|) d');
