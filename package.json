@@ -3212,7 +3212,7 @@
         },
         {
           "command": "calva.clearInspectorResult",
-          "when": "view == calva.inspector && viewItem == result",
+          "when": "view == calva.inspector && viewItem =~ /result|raw/",
           "group": "inline@3"
         }
       ]

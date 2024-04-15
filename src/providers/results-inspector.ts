@@ -48,28 +48,28 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
     let children: EvaluationResult[] | undefined;
     if (Array.isArray(item.value)) {
       children = item.value.map((childItem, index) =>
-        this.createResultItem(childItem, level++, index.toString())
+        this.createResultItem(childItem, level + 1, index.toString())
       );
     } else if (item.value instanceof Map) {
       children = Array.from((item.value as Map<any, any>).entries()).map(([key, value]) => {
         if (key.value instanceof Map || Array.isArray(key.value)) {
-          const keyItem = this.createResultItem(key, level++);
-          const valueItem = this.createResultItem(value, level, 'value');
+          const keyItem = this.createResultItem(key, level + 2);
+          const valueItem = this.createResultItem(value, level + 2, 'value');
           return new EvaluationResult(
             new Map([[keyItem, valueItem]]),
             `${keyItem.originalString} ${valueItem.originalString}`,
             `${keyItem.label} ${valueItem.originalString}`,
-            level,
-            [this.createResultItem(key, level, 'key'), valueItem]
+            level + 1,
+            [this.createResultItem(key, level + 2, 'key'), valueItem]
           );
         } else {
-          const keyItem = this.createResultItem(key, level++);
-          const valueItem = this.createResultItem(value, level);
+          const keyItem = this.createResultItem(key, level + 2);
+          const valueItem = this.createResultItem(value, level + 2);
           return new EvaluationResult(
             valueItem.value,
             valueItem.originalString,
             `${keyItem.label} ${valueItem.originalString}`,
-            level,
+            level + 1,
             new Map([[keyItem, valueItem]])
           );
         }
@@ -80,7 +80,7 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
       item.value,
       item.originalString,
       `${keyOrIndex !== undefined ? keyOrIndex + ' ' : ''}${item.originalString}`,
-      level++,
+      level,
       children
     );
   }
