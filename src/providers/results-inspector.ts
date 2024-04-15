@@ -118,6 +118,7 @@ export function createTreeStructure(item: EvaluationResult) {
       title: 'Creating tree structure...',
       cancellable: false,
     },
+    // eslint-disable-next-line @typescript-eslint/require-await
     async (progress) => {
       const index = this.treeData.indexOf(item);
       if (index > -1) {
