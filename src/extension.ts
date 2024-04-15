@@ -329,6 +329,9 @@ async function activate(context: vscode.ExtensionContext) {
       inspectorDataProvider.clearResults.bind(inspectorDataProvider)(arg);
     },
     copyInspectorItem: inspector.copyItemValue,
+    pasteAsInspectorItem: () => {
+      inspector.pasteFromClipboard.bind(inspectorDataProvider)();
+    },
     inspectResult: (item) => {
       inspector.createTreeStructure.bind(inspectorDataProvider)(item);
     },

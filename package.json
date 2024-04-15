@@ -2135,6 +2135,13 @@
         "title": "Inspect Result Item",
         "shortTitle": "Inspect",
         "icon": "$(inspect)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.pasteAsInspectorItem",
+        "title": "Paste as Inspector Item",
+        "shortTitle": "Paste",
+        "icon": "$(arrow-circle-down)"
       }
     ],
     "keybindings": [
@@ -3194,9 +3201,14 @@
       ],
       "view/title": [
         {
+          "command": "calva.pasteAsInspectorItem",
+          "when": "view == calva.inspector",
+          "group": "navigation@1"
+        },
+        {
           "command": "calva.clearInspectorResults",
           "when": "view == calva.inspector",
-          "group": "navigation"
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [
@@ -3208,12 +3220,12 @@
         {
           "command": "calva.inspectResult",
           "when": "view == calva.inspector && viewItem == raw",
-          "group": "inline@2"
+          "group": "inline@3"
         },
         {
           "command": "calva.clearInspectorResult",
           "when": "view == calva.inspector && viewItem =~ /result|raw/",
-          "group": "inline@3"
+          "group": "inline@4"
         }
       ]
     },

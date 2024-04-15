@@ -106,6 +106,11 @@ export const copyItemValue = async (item: EvaluationResult) => {
   await vscode.env.clipboard.writeText(item.originalString);
 };
 
+export async function pasteFromClipboard() {
+  const clipboardContent = await vscode.env.clipboard.readText();
+  this.addResult(clipboardContent);
+}
+
 export function createTreeStructure(item: EvaluationResult) {
   void vscode.window.withProgress(
     {
