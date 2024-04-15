@@ -2,8 +2,7 @@ import * as vscode from 'vscode';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as tokenCursor from '../cursor-doc/token-cursor';
 import * as state from '../state';
-import { stat } from 'fs';
-// import { performance } from 'perf_hooks';
+import * as printer from '../printer';
 
 export class ResultsInspectorProvider implements vscode.TreeDataProvider<EvaluationResult> {
   private _onDidChangeTreeData: vscode.EventEmitter<EvaluationResult | undefined | null | void> =
@@ -108,41 +107,65 @@ export const copyItemValue = async (item: EvaluationResult) => {
 };
 
 export function createTreeStructure(item: EvaluationResult) {
-  const index = this.treeData.indexOf(item);
-  if (index > -1) {
-    const result = this.treeData[index].originalString;
-    const startTime = performance.now();
+  void vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: 'Creating tree structure...',
+      cancellable: false,
+    },
+    async (progress) => {
+      const index = this.treeData.indexOf(item);
+      if (index > -1) {
+        progress.report({ increment: 0 });
+        const result = this.treeData[index].originalString;
+        const startTime = performance.now();
 
-    const cursorStartTime = performance.now();
-    const cursor = tokenCursor.createStringCursor(result);
-    const cursorEndTime = performance.now();
+        const prettyPrintStartTime = performance.now();
+        const printerOptions = printer.prettyPrintingOptions();
+        const firstLineLength = result.split('\n')[0].length;
+        const needPrettyPrint = firstLineLength > 10000;
+        const prettyResult = needPrettyPrint
+          ? printer.prettyPrint(result, printerOptions)?.value || result
+          : result;
+        const prettyPrintEndTime = performance.now();
+        progress.report({ increment: 85 });
 
-    const structureStartTime = performance.now();
-    const structure = cursorUtil.structureForRightSexp(cursor);
-    const structureEndTime = performance.now();
+        const cursorStartTime = performance.now();
+        const cursor = tokenCursor.createStringCursor(prettyResult);
+        const cursorEndTime = performance.now();
+        progress.report({ increment: 90 });
 
-    const itemsStartTime = performance.now();
-    const items = this.createResultItem({ originalString: result, value: structure }, 0);
-    const itemsEndTime = performance.now();
+        const structureStartTime = performance.now();
+        const structure = cursorUtil.structureForRightSexp(cursor);
+        const structureEndTime = performance.now();
+        progress.report({ increment: 95 });
 
-    const endTime = performance.now();
+        const itemsStartTime = performance.now();
+        const items = this.createResultItem({ originalString: result, value: structure }, 0);
+        const itemsEndTime = performance.now();
+        progress.report({ increment: 99 });
 
-    console.log(
-      `Total (ms)=${endTime - startTime}, createStringCursor=${
-        cursorEndTime - cursorStartTime
-      }, structureForRightSexp=${structureEndTime - structureStartTime}, createResultItem=${
-        itemsEndTime - itemsStartTime
-      }`
-    );
-    console.log(
-      'Size of treeData (estimate):',
-      JSON.stringify(this.treeData).length / 1024 / 1024 / 1024,
-      'GB'
-    );
+        const endTime = performance.now();
 
-    this.treeData[index] = items;
-    this.refresh();
-  }
+        console.log(
+          `Total (ms)=${endTime - startTime}, prettyPrinting=${
+            prettyPrintEndTime - prettyPrintStartTime
+          }, createStringCursor=${cursorEndTime - cursorStartTime}, structureForRightSexp=${
+            structureEndTime - structureStartTime
+          }, createResultItem=${itemsEndTime - itemsStartTime}`
+        );
+        console.log(
+          'Size of treeData (estimate):',
+          JSON.stringify(this.treeData).length / 1024 / 1024 / 1024,
+          'GB'
+        );
+
+        this.treeData[index] = items;
+        this.refresh();
+        progress.report({ increment: 100 });
+      }
+    }
+  );
 }
 
 class EvaluationResult extends vscode.TreeItem {
