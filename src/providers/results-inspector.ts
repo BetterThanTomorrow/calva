@@ -20,6 +20,10 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
     return element;
   }
 
+  getParent(element: EvaluationResult): vscode.ProviderResult<EvaluationResult> {
+    return null;
+  }
+
   getChildren(element?: EvaluationResult): vscode.ProviderResult<EvaluationResult[]> {
     if (element) {
       const children = Array.isArray(element.children)

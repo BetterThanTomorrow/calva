@@ -89,7 +89,9 @@ async function activate(context: vscode.ExtensionContext) {
   lsp.registerGlobally(clientProvider);
 
   const inspectorDataProvider = eval.initInspectorDataProvider();
-  vscode.window.createTreeView('calva.inspector', { treeDataProvider: inspectorDataProvider });
+  const inspectorTreeView = vscode.window.createTreeView('calva.inspector', {
+    treeDataProvider: inspectorDataProvider,
+  });
   vscode.window.registerFileDecorationProvider(new inspector.ResultDecorationProvider());
   overrides.activate();
 
@@ -334,6 +336,9 @@ async function activate(context: vscode.ExtensionContext) {
     },
     inspectResult: (item) => {
       inspector.createTreeStructure.bind(inspectorDataProvider)(item);
+    },
+    revealInspector: () => {
+      void inspectorTreeView.reveal(undefined, { focus: true, select: true });
     },
   };
 

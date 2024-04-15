@@ -2142,6 +2142,11 @@
         "title": "Paste as Inspector Item",
         "shortTitle": "Paste",
         "icon": "$(add)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.revealInspector",
+        "title": "Reveal Inspector"
       }
     ],
     "keybindings": [
@@ -2707,6 +2712,11 @@
         "command": "calva.showFileForOutputWindowNS",
         "key": "ctrl+alt+o r",
         "when": "calva:keybindingsEnabled && calva:connected && calva:outputWindowActive"
+      },
+      {
+        "command": "calva.revealInspector",
+        "key": "ctrl+alt+o i",
+        "when": "calva:keybindingsEnabled"
       },
       {
         "command": "calva.setOutputWindowNamespace",
