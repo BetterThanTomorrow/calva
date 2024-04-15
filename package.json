@@ -2141,7 +2141,7 @@
         "command": "calva.pasteAsInspectorItem",
         "title": "Paste as Inspector Item",
         "shortTitle": "Paste",
-        "icon": "$(arrow-circle-down)"
+        "icon": "$(add)"
       }
     ],
     "keybindings": [
