@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as tokenCursor from '../cursor-doc/token-cursor';
+import * as state from '../state';
+import { stat } from 'fs';
 // import { performance } from 'perf_hooks';
 
 export class ResultsInspectorProvider implements vscode.TreeDataProvider<EvaluationResult> {
@@ -49,7 +51,7 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
         this.createResultItem(childItem, level++, index.toString())
       );
     } else if (item.value instanceof Map) {
-      children = Array.from(item.value.entries()).map(([key, value]) => {
+      children = Array.from((item.value as Map<any, any>).entries()).map(([key, value]) => {
         if (key.value instanceof Map || Array.isArray(key.value)) {
           const keyItem = this.createResultItem(key, level++);
           const valueItem = this.createResultItem(value, level, 'value');
@@ -189,12 +191,10 @@ class EvaluationResult extends vscode.TreeItem {
 }
 
 function icon(name: string) {
+  const extensionContext = state.extensionContext;
   const path = (name, theme) => {
     return vscode.Uri.joinPath(
-      vscode.Uri.file(__filename),
-      '..',
-      '..',
-      '..',
+      extensionContext.extensionUri,
       'assets',
       'images',
       'icons',
