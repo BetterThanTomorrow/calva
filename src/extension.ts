@@ -338,7 +338,7 @@ async function activate(context: vscode.ExtensionContext) {
       inspector.createTreeStructure.bind(inspectorDataProvider)(item);
     },
     revealInspector: () => {
-      void inspectorTreeView.reveal(undefined, { focus: true, select: true });
+      void inspectorTreeView.reveal(undefined, { focus: false, select: false });
     },
   };
 
