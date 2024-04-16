@@ -2145,6 +2145,12 @@
       },
       {
         "category": "Calva",
+        "command": "calva.addToInspector",
+        "title": "Add Selection or Current Form to Inspector",
+        "icon": "$(inspect)"
+      },
+      {
+        "category": "Calva",
         "command": "calva.revealInspector",
         "title": "Reveal Inspector"
       }

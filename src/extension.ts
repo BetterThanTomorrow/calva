@@ -92,6 +92,7 @@ async function activate(context: vscode.ExtensionContext) {
   const inspectorTreeView = vscode.window.createTreeView('calva.inspector', {
     treeDataProvider: inspectorDataProvider,
   });
+  inspectorDataProvider.treeView = inspectorTreeView;
   vscode.window.registerFileDecorationProvider(new inspector.ResultDecorationProvider());
   overrides.activate();
 
@@ -333,6 +334,9 @@ async function activate(context: vscode.ExtensionContext) {
     copyInspectorItem: inspector.copyItemValue,
     pasteAsInspectorItem: () => {
       inspector.pasteFromClipboard.bind(inspectorDataProvider)();
+    },
+    addToInspector: (arg) => {
+      inspector.addToInspector.bind(inspectorDataProvider)(arg);
     },
     inspectResult: (item) => {
       inspector.createTreeStructure.bind(inspectorDataProvider)(item);

@@ -3,13 +3,14 @@ import * as cursorUtil from '../cursor-doc/utilities';
 import * as tokenCursor from '../cursor-doc/token-cursor';
 import * as state from '../state';
 import * as printer from '../printer';
+import * as select from '../select';
 
 export class ResultsInspectorProvider implements vscode.TreeDataProvider<EvaluationResult> {
   private _onDidChangeTreeData: vscode.EventEmitter<EvaluationResult | undefined | null | void> =
     new vscode.EventEmitter<EvaluationResult | undefined>();
   readonly onDidChangeTreeData: vscode.Event<EvaluationResult | undefined | null | void> =
     this._onDidChangeTreeData.event;
-
+  public treeView: vscode.TreeView<EvaluationResult>;
   public treeData: EvaluationResult[] = [];
 
   refresh(): void {
@@ -21,7 +22,7 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
   }
 
   getParent(element: EvaluationResult): vscode.ProviderResult<EvaluationResult> {
-    return null;
+    return element ? element.parent : null;
   }
 
   getChildren(element?: EvaluationResult): vscode.ProviderResult<EvaluationResult[]> {
@@ -46,33 +47,36 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
   public createResultItem(
     item: any,
     level: number,
+    parent: EvaluationResult | null,
     keyOrIndex?: string | number
   ): EvaluationResult {
     let children: EvaluationResult[] | undefined;
     if (Array.isArray(item.value)) {
       children = item.value.map((childItem, index) =>
-        this.createResultItem(childItem, level + 1, index.toString())
+        this.createResultItem(childItem, level + 1, parent, index.toString())
       );
     } else if (item.value instanceof Map) {
       children = Array.from((item.value as Map<any, any>).entries()).map(([key, value]) => {
         if (key.value instanceof Map || Array.isArray(key.value)) {
-          const keyItem = this.createResultItem(key, level + 2);
-          const valueItem = this.createResultItem(value, level + 2, 'value');
+          const keyItem = this.createResultItem(key, level + 2, parent);
+          const valueItem = this.createResultItem(value, level + 2, parent, 'value');
           return new EvaluationResult(
             new Map([[keyItem, valueItem]]),
             `${keyItem.originalString} ${valueItem.originalString}`,
             `${keyItem.label} ${valueItem.originalString}`,
             level + 1,
-            [this.createResultItem(key, level + 2, 'key'), valueItem]
+            parent,
+            [this.createResultItem(key, level + 2, parent, 'key'), valueItem]
           );
         } else {
-          const keyItem = this.createResultItem(key, level + 2);
-          const valueItem = this.createResultItem(value, level + 2);
+          const keyItem = this.createResultItem(key, level + 2, parent);
+          const valueItem = this.createResultItem(value, level + 2, parent);
           return new EvaluationResult(
             valueItem.value,
             valueItem.originalString,
             `${keyItem.label} ${valueItem.originalString}`,
             level + 1,
+            parent,
             new Map([[keyItem, valueItem]])
           );
         }
@@ -84,13 +88,18 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
       item.originalString,
       `${keyOrIndex !== undefined ? keyOrIndex + ' ' : ''}${item.originalString}`,
       level,
+      parent,
       children
     );
   }
 
-  public addResult(result: string): void {
-    this.treeData.unshift(new EvaluationResult(result, result, result, null));
+  public addResult(result: string, reveal = false): void {
+    const newItem = new EvaluationResult(result, result, result, null, null);
+    this.treeData.unshift(newItem);
     this.refresh();
+    if (reveal) {
+      void this.treeView.reveal(newItem, { select: true, focus: true });
+    }
   }
 
   public clearResults(resultToClear?: EvaluationResult): void {
@@ -112,7 +121,21 @@ export const copyItemValue = async (item: EvaluationResult) => {
 
 export async function pasteFromClipboard() {
   const clipboardContent = await vscode.env.clipboard.readText();
-  this.addResult(clipboardContent);
+  this.addResult(clipboardContent, true);
+}
+
+export function addToInspector(arg: string) {
+  const selection = vscode.window.activeTextEditor?.selection;
+  const document = vscode.window.activeTextEditor?.document;
+  const text = arg || selection ? document?.getText(selection) : '';
+  if (text && text !== '') {
+    this.addResult(text, true);
+    return;
+  }
+  if (document && selection) {
+    const currentFormSelection = select.getFormSelection(document, selection.active, false);
+    this.addResult(document.getText(currentFormSelection), true);
+  }
 }
 
 export function createTreeStructure(item: EvaluationResult) {
@@ -183,12 +206,14 @@ class EvaluationResult extends vscode.TreeItem {
   value: string | Map<EvaluationResult, EvaluationResult> | EvaluationResult[];
   originalString: string;
   label: string;
+  parent: EvaluationResult | null;
 
   constructor(
     value: string | Map<EvaluationResult, EvaluationResult> | EvaluationResult[],
     originalString: string,
     label: string,
     level: number | null,
+    parent: EvaluationResult | null,
     children?: Map<EvaluationResult, EvaluationResult> | EvaluationResult[]
   ) {
     super(
@@ -200,6 +225,7 @@ class EvaluationResult extends vscode.TreeItem {
     this.value = value;
     this.originalString = originalString;
     this.label = label.replace(/[\n\r]/g, ' ');
+    this.parent = parent;
     this.children = children;
     this.tooltip = new vscode.MarkdownString('```clojure\n' + originalString + '\n```');
     if (level === null) {
