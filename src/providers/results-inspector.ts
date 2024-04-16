@@ -57,29 +57,16 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
       );
     } else if (item.value instanceof Map) {
       children = Array.from((item.value as Map<any, any>).entries()).map(([key, value]) => {
-        if (key.value instanceof Map || Array.isArray(key.value)) {
-          const keyItem = this.createResultItem(key, level + 2, parent);
-          const valueItem = this.createResultItem(value, level + 2, parent, 'value');
-          return new EvaluationResult(
-            new Map([[keyItem, valueItem]]),
-            `${keyItem.originalString} ${valueItem.originalString}`,
-            `${keyItem.label} ${valueItem.originalString}`,
-            level + 1,
-            parent,
-            [this.createResultItem(key, level + 2, parent, 'key'), valueItem]
-          );
-        } else {
-          const keyItem = this.createResultItem(key, level + 2, parent);
-          const valueItem = this.createResultItem(value, level + 2, parent);
-          return new EvaluationResult(
-            valueItem.value,
-            valueItem.originalString,
-            `${keyItem.label} ${valueItem.originalString}`,
-            level + 1,
-            parent,
-            new Map([[keyItem, valueItem]])
-          );
-        }
+        const keyItem = this.createResultItem(key, level + 2, parent);
+        const valueItem = this.createResultItem(value, level + 2, parent, 'v:');
+        return new EvaluationResult(
+          new Map([[keyItem, valueItem]]),
+          `${keyItem.originalString} ${valueItem.originalString}`,
+          `${keyItem.label} ${valueItem.originalString}`,
+          level + 1,
+          parent,
+          [this.createResultItem(key, level + 2, parent, 'k:'), valueItem]
+        );
       });
     }
 
