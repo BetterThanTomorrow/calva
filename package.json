@@ -2125,21 +2125,24 @@
         "command": "calva.clearInspectorResult",
         "title": "Clear Inspector Result",
         "shortTitle": "Clear",
-        "icon": "$(close)"
+        "icon": "$(close)",
+        "enablement": "view == calva.inspector && viewItem =~ /result|raw/"
       },
       {
         "category": "Calva",
         "command": "calva.copyInspectorItem",
         "title": "Copy Inspector Item to the Clipboard",
         "shortTitle": "Copy",
-        "icon": "$(copy)"
+        "icon": "$(copy)",
+        "enablement": "view == calva.inspector"
       },
       {
         "category": "Calva",
         "command": "calva.inspectResult",
         "title": "Inspect Result Item",
         "shortTitle": "Inspect",
-        "icon": "$(inspect)"
+        "icon": "$(inspect)",
+        "enablement": "view == calva.inspector && viewItem == raw"
       },
       {
         "category": "Calva",
