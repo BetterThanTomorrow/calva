@@ -5,7 +5,7 @@ description: The Calva Inspector lets you view and explorer data structures in a
 
 # Unfold that data
 
-All REPL evaluation results are added to the Calva Inspector, a tree view that lets you expand and collapse Clojure data structures.
+All REPL evaluation results are added to the Calva Inspector, a tree view that lets you expand and collapse Clojure data structures. (This happens in _addition_ to results being printed to the configured [Output Destination](output.md).)
 
 ![The Calva Inspector](images/inspector/inspector-view.png)
 
