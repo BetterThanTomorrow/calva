@@ -173,9 +173,9 @@ export function createTreeStructure(item: EvaluationResult) {
         const structureEndTime = performance.now();
         progress.report({ increment: 95 });
 
-        const itemsStartTime = performance.now();
-        const items = this.createResultItem({ originalString: result, value: structure }, 0);
-        const itemsEndTime = performance.now();
+        const itemStartTime = performance.now();
+        const item = this.createResultItem({ originalString: result, value: structure }, 0);
+        const itemEndTime = performance.now();
         progress.report({ increment: 99 });
 
         const endTime = performance.now();
@@ -185,7 +185,7 @@ export function createTreeStructure(item: EvaluationResult) {
             prettyPrintEndTime - prettyPrintStartTime
           }, createStringCursor=${cursorEndTime - cursorStartTime}, structureForRightSexp=${
             structureEndTime - structureStartTime
-          }, createResultItem=${itemsEndTime - itemsStartTime}`
+          }, createResultItem=${itemEndTime - itemStartTime}`
         );
         console.log(
           'Size of treeData (estimate):',
@@ -193,8 +193,10 @@ export function createTreeStructure(item: EvaluationResult) {
           'GB'
         );
 
-        this.treeData[index] = items;
+        this.treeData[index] = item;
         this.refresh();
+        // TODO: Remove this workaround when vscode.TreeItemCollapsibleState.Expanded works
+        this.treeView.reveal(item, { select: true, focus: true, expand: true });
         progress.report({ increment: 100 });
       }
     }
@@ -220,6 +222,8 @@ class EvaluationResult extends vscode.TreeItem {
       label,
       children === undefined
         ? vscode.TreeItemCollapsibleState.None
+        : level === 0
+        ? vscode.TreeItemCollapsibleState.Expanded // Note: Doesn't work, see createTreeStructure
         : vscode.TreeItemCollapsibleState.Collapsed
     );
     this.value = value;
