@@ -865,6 +865,11 @@
             "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in.",
             "default": true
           },
+          "calva.autoOpenInspector": {
+            "type": "boolean",
+            "markdownDescription": "Automatically open/reveal the Calva Inspector on Jack-in or Connect.",
+            "default": true
+          },
           "calva.keybindingsEnabled": {
             "type": "boolean",
             "description": "Activate keybindings.",

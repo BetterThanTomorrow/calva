@@ -4,6 +4,7 @@ import * as tokenCursor from '../cursor-doc/token-cursor';
 import * as state from '../state';
 import * as printer from '../printer';
 import * as select from '../select';
+import * as config from '../config';
 
 export class ResultsInspectorProvider implements vscode.TreeDataProvider<EvaluationResult> {
   private _onDidChangeTreeData: vscode.EventEmitter<EvaluationResult | undefined | null | void> =
@@ -309,5 +310,11 @@ export class ResultDecorationProvider implements vscode.FileDecorationProvider {
         new vscode.ThemeColor('terminal.ansiBrightBlue')
       );
     }
+  }
+}
+
+export function revealOnConnect() {
+  if (config.getConfig().autoOpenInspector) {
+    void vscode.commands.executeCommand('calva.revealInspector');
   }
 }

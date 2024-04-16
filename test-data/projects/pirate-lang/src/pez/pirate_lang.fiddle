@@ -3,76 +3,76 @@
 (defrecord Language [alphabet vowels pirate-char])
 (defrecord Point [x y])
 
-(def english-o
-  {"string strung" "strung"
-   [0] true
-   [1] nil
-   [2] "string"
-   [3] {:a :map}
-   [4] #{:set}}
-  #_
-  {[{:x "x"} [:y :z]] #{1 2 3 4 5 6}
-   {:b {:c 3 :d 4}} {:e 5 :f 6}
-   {:a 1} [1 2 3 4]
-   [1 2 3 4] {:a 1}}
-  #_{{:a 1} [:b :c]}
-  #_
-    {(->Language "abcdefghijklmnopqrstuvwxyz" "aeiouåäö" "o") :l
-     (->Point 10 20)
-     {:alphabet    "abcdefghijklmnopqrstuvwxyz"
-      :vowels      "aeiouåäö"
-      :pirate-char "o"}
-     :x "x"
-     :a [1 2 3]
-     :y "y"
-     :z {:a "a"
-         'b :b
-         "c" ['c]}
-     [1
-      2
-      :a
-      11
-      12
-      68
-      :lök
-      12
-      68
-      "abcdef"
-      {:alphabet    "abcdefghijklmnopqrstuvwxyz"
-       :vowels      [{:foo "aeiou"
-                      :bar #{"å" "ä" "ö" [1 2 3]}}]
-       :pirate-char "o"}
-      [{:foo "aeiou"
-        :bar #{"å" "ä" "ö" [1 2 3]}}]
-      [1 2 3 #{:foo :bar "apa"}]
-      {:foo "aeiou"
-       :bar #{"å" "ä" "ö" [1 2 3]}}]
-     (repeat 100 [1
-                  '(1 2 3)
-                  #{1 2 3}
-                  true
-                  'ab
-                  false
-                  "abcdef"
-                  :keyword
-                  #'english-o
-                  #"regex"
-                  #inst "2021-10-10T00:00:00.000-00:00"
-                  (new java.awt.Point 10 20)
-                  (->Language "abcdefghijklmnopqrstuvwxyz" "aeiouåäö" "o")
-                  (->Point 10 20)
-                  [[[1 2 3] [4 5 6]] [7 8 [9 10 11]]]
-                  (with-meta {:alphabet    "abcdefghijklmnopqrstuvwxyz"
-                              :vowels      [{:foo "aeiou"
-                                             :bar #{"å" "ä" "ö" [1 2 3]}}]
-                              :pirate-char "o"} {:a 1 :b 2 :c 3})
-                  {{:a [{:foo "aeiou"
-                         :bar #{"å" "ä" "ö" [1 2 3] {["x" "y"] 1 :b 2 :c 3}}}]} {:b [1 2 3] :c "c"}}
-                  [{:foo "aeiou"
-                    :bar #{"å" "ä" "ö" [1 2 3] {:a 1 :b 2 :c 3}}}]
-                  [1 2 3 #{:foo :bar "apa"}]
-                  {:foo "aeiou"
-                   :bar #{"å" "ä" "ö" [1 2 3]}}])})
+{"string strung" "strung"
+ [0] true
+ [1] nil
+ [2] "string"
+ [3] {:a :map}
+ [4] #{:set}}
+
+{[{:x "x"} [:y :z]] #{1 2 3 4 5 6}
+    {:b {:c 3 :d 4}} {:e 5 :f 6}
+    {:a 1} [1 2 3 4]
+    [1 2 3 4] {:a 1}}
+
+{{:a 1} [:b :c]}
+
+{(->Language "abcdefghijklmnopqrstuvwxyz" "aeiouåäö" "o") :l
+ (->Point 10 20)
+ {:alphabet    "abcdefghijklmnopqrstuvwxyz"
+  :vowels      "aeiouåäö"
+  :pirate-char "o"}
+ :x "x"
+ :a [1 2 3]
+ :y "y"
+ :z {:a "a"
+     'b :b
+     "c" ['c]}
+ [1
+  2
+  :a
+  11
+  12
+  68
+  :lök
+  12
+  68
+  "abcdef"
+  {:alphabet    "abcdefghijklmnopqrstuvwxyz"
+   :vowels      [{:foo "aeiou"
+                  :bar #{"å" "ä" "ö" [1 2 3]}}]
+   :pirate-char "o"}
+  [{:foo "aeiou"
+    :bar #{"å" "ä" "ö" [1 2 3]}}]
+  [1 2 3 #{:foo :bar "apa"}]
+  {:foo "aeiou"
+   :bar #{"å" "ä" "ö" [1 2 3]}}]
+
+ (repeat 100 [1
+              '(1 2 3)
+              #{1 2 3}
+              true
+              'ab
+              false
+              "abcdef"
+              :keyword
+              #"regex"
+              #inst "2021-10-10T00:00:00.000-00:00"
+              (new java.awt.Point 10 20)
+              (->Language "abcdefghijklmnopqrstuvwxyz" "aeiouåäö" "o")
+              (->Point 10 20)
+              [[[1 2 3] [4 5 6]] [7 8 [9 10 11]]]
+              (with-meta {:alphabet    "abcdefghijklmnopqrstuvwxyz"
+                          :vowels      [{:foo "aeiou"
+                                         :bar #{"å" "ä" "ö" [1 2 3]}}]
+                          :pirate-char "o"} {:a 1 :b 2 :c 3})
+              {{:a [{:foo "aeiou"
+                     :bar #{"å" "ä" "ö" [1 2 3] {["x" "y"] 1 :b 2 :c 3}}}]} {:b [1 2 3] :c "c"}}
+              [{:foo "aeiou"
+                :bar #{"å" "ä" "ö" [1 2 3] {:a 1 :b 2 :c 3}}}]
+              [1 2 3 #{:foo :bar "apa"}]
+              {:foo "aeiou"
+               :bar #{"å" "ä" "ö" [1 2 3]}}])}
 
 (comment
   (to-pirate-talk "Have you heard about Pirate talk?" english-o)
