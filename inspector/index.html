@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="The Calva Inspector lets you view and explorer data structures in a tree view.">
+        <meta name="description" content="The Calva Inspector lets you view and explore data structures in a tree view.">
       
       
       
@@ -75,7 +75,7 @@
       
         <meta  property="og:title"  content="Inspect Evaluation Results and more - Calva User Guide" >
       
-        <meta  property="og:description"  content="The Calva Inspector lets you view and explorer data structures in a tree view." >
+        <meta  property="og:description"  content="The Calva Inspector lets you view and explore data structures in a tree view." >
       
         <meta  property="og:image"  content="https://calva.io/assets/images/social/inspector.png" >
       
@@ -91,7 +91,7 @@
       
         <meta  name="twitter:title"  content="Inspect Evaluation Results and more - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="The Calva Inspector lets you view and explorer data structures in a tree view." >
+        <meta  name="twitter:description"  content="The Calva Inspector lets you view and explore data structures in a tree view." >
       
         <meta  name="twitter:image"  content="https://calva.io/assets/images/social/inspector.png" >
       
@@ -1969,18 +1969,18 @@
 <p><img alt="The Calva Inspector" src="../images/inspector/inspector-view.png" /></p>
 <div class="admonition note">
 <p class="admonition-title">Only for realized data</p>
-<p>Results are added to the inspector after they have been processed by your pretty printer, if you have pretty printing enabled. This means that <a href="../pprint/#configuration">maxLength and maxDepth</a> applies. The inspector can't be used to explore infinite sequences.</p>
+<p>Results are added to the inspector after they have been processed by your pretty printer (if you have pretty printing enabled). This means that <a href="../pprint/#configuration">maxLength and maxDepth</a> applies. The inspector can't be used to explore infinite sequences. Also, any metadata is lost in the translation.</p>
 </div>
 <h2 id="uifeatures">UI/Features<a class="headerlink" href="#uifeatures" title="Permanent link">#</a></h2>
 <p>The inspector view can be placed in the left or right side bars, or in the bottom panel. It can also be placed as a section in an existing side bar view, or in split with any existing bottom panel view.</p>
-<p>Inspector items are not expandable until you make them so with the Inspect Result Item button. This is because parsing and building the structure for the tree can take a little while and we don't want it to lock the UI for you when you edit and evaluate code.</p>
-<p>Speaking of buttons. Items in the view have context commands that show up as buttons on hover. The Inspect Result Item button is one of them. All rows in the inspector have a <strong>Copy</strong> button, letting you copy the data at any folding level to the clipboard.All root items also have a clear button for removing the item from the inspector.</p>
+<p>Inspector items are not expandable until you make them so with the <strong>Inspect Result Item</strong> button. This is because parsing and building the structure for the tree can take a little while and we don't want it to lock the UI for you when you edit and evaluate code.</p>
+<p>Speaking of buttons. Items in the view have context commands that show up as buttons on hover. The <strong>Inspect Result Item</strong> button is one of them. All rows in the inspector have a <strong>Copy</strong> button, letting you copy the data at any folding level to the clipboard. All root items also have a <strong>Clear</strong> button for removing the item from the inspector.</p>
 <p>The view itself has two buttons, one for clearing all results and one for pasting whatever is on the clipboard as an inspector item.</p>
 <h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">#</a></h2>
 <p>There are four commands for the inspector:</p>
 <ul>
 <li><strong>Calva: Reveal Inspector</strong>. Reveals/shows the inspector. Default keybinding is <code>ctrl+alt+o i</code></li>
-<li><strong>Calva: Add Selection or Current Form to Inspector</strong>. Adds the current form (without evaluating it) to the inspeector. If there is text selected, will add that text instead. (Only the first selection, if there are multiple). There is no default keybinding for this command.</li>
+<li><strong>Calva: Add Selection or Current Form to Inspector</strong>. Adds the current form (without evaluating it) to the inspector. If there is text selected, the command will add that text instead. (Only the first selection, if there are multiple). There is no default keybinding for this command.</li>
 <li><strong>Calva: Clear All Inspector Results</strong>. You can use the command or the button for this in the view. No default keybinding.</li>
 <li><strong>Calva: Paste as Inspector Item</strong>. Same as the view button. No default keybinding.</li>
 </ul>
