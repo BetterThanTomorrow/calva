@@ -36,12 +36,12 @@ const START_GREETINGS = [
 const REPL_WINDOW_PATH_CHANGE_MESSAGE = `
 
 PLEASE NOTE
-We will update the default location of this file. 
-The new default location will be 
+We will update the default location of this file.
+The new default location will be
   "<projectRootPath>/.calva/repl.calva-repl"
 For now the legacy path is used by default.
 To give yourself a smooth transition, you can opt in
-to the change, by configuring this setting as false: 
+to the change, by configuring this setting as false:
   "calva.useLegacyReplWindowPath"
 and then add "**/.calva/repl.calva-repl" to your ".gitignore" file.
 `;
@@ -74,6 +74,8 @@ export const CLJ_CONNECT_GREETINGS = [
   'Special for this file:',
   '- `alt+up` and `alt+down` traverse up and down the REPL command history',
   '   when the cursor is after the last contents at the prompt',
+  '',
+  'See also the Calva Inspector: https://calva.io/inspector/',
 ].join(`\n`);
 
 export const CLJS_CONNECT_GREETINGS = [

@@ -35,4 +35,4 @@ The command for adding the current form to the inspector has a command ID of `ca
 
 ## Configuration
 
-There is only one setting for the inspector: `calva.autoOpenInspector` controls wether the view is revealed as part of connecting the REPL to Calva. It defaults to `true`.
+There is only one setting for the inspector: `calva.autoOpenInspector` controls wether the view is revealed as part of connecting the REPL to Calva. It defaults to `false`.
