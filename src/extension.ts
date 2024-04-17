@@ -43,6 +43,7 @@ import * as overrides from './overrides';
 import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
 import * as output from './results-output/output';
+import * as inspector from './providers/results-inspector';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -87,6 +88,12 @@ async function activate(context: vscode.ExtensionContext) {
 
   lsp.registerGlobally(clientProvider);
 
+  const inspectorDataProvider = eval.initInspectorDataProvider();
+  const inspectorTreeView = vscode.window.createTreeView('calva.inspector', {
+    treeDataProvider: inspectorDataProvider,
+  });
+  inspectorDataProvider.treeView = inspectorTreeView;
+  vscode.window.registerFileDecorationProvider(new inspector.ResultDecorationProvider());
   overrides.activate();
 
   initializeState();
@@ -317,6 +324,25 @@ async function activate(context: vscode.ExtensionContext) {
       return new Promise((resolve, _reject) => {
         resolve(true);
       });
+    },
+    clearInspectorResults: () => {
+      inspectorDataProvider.clearResults.bind(inspectorDataProvider)();
+    },
+    clearInspectorResult: (arg) => {
+      inspectorDataProvider.clearResults.bind(inspectorDataProvider)(arg);
+    },
+    copyInspectorItem: inspector.copyItemValue,
+    pasteAsInspectorItem: () => {
+      inspector.pasteFromClipboard.bind(inspectorDataProvider)();
+    },
+    addToInspector: (arg) => {
+      inspector.addToInspector.bind(inspectorDataProvider)(arg);
+    },
+    inspectResult: (item) => {
+      inspector.createTreeStructure.bind(inspectorDataProvider)(item);
+    },
+    revealInspector: () => {
+      void inspectorTreeView.reveal(undefined, { focus: false, select: false });
     },
   };
 

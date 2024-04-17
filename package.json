@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.439",
+  "version": "2.0.440",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -864,6 +864,11 @@
             "type": "boolean",
             "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in.",
             "default": true
+          },
+          "calva.autoOpenInspector": {
+            "type": "boolean",
+            "markdownDescription": "Automatically open/reveal the Calva Inspector on Jack-in or Connect.",
+            "default": false
           },
           "calva.keybindingsEnabled": {
             "type": "boolean",
@@ -2108,6 +2113,54 @@
         "command": "paredit.addRichComment",
         "title": "Add Rich Comment",
         "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.clearInspectorResults",
+        "title": "Clear All Inspector Results",
+        "icon": "$(close-all)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.clearInspectorResult",
+        "title": "Clear Inspector Result",
+        "shortTitle": "Clear",
+        "icon": "$(close)",
+        "enablement": "view == calva.inspector && viewItem =~ /result|raw/"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.copyInspectorItem",
+        "title": "Copy Inspector Item to the Clipboard",
+        "shortTitle": "Copy",
+        "icon": "$(copy)",
+        "enablement": "view == calva.inspector"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.inspectResult",
+        "title": "Inspect Result Item",
+        "shortTitle": "Inspect",
+        "icon": "$(inspect)",
+        "enablement": "view == calva.inspector && viewItem == raw"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.pasteAsInspectorItem",
+        "title": "Paste as Inspector Item",
+        "shortTitle": "Paste",
+        "icon": "$(add)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.addToInspector",
+        "title": "Add Selection or Current Form to Inspector",
+        "icon": "$(inspect)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.revealInspector",
+        "title": "Reveal Inspector"
       }
     ],
     "keybindings": [
@@ -2675,6 +2728,11 @@
         "when": "calva:keybindingsEnabled && calva:connected && calva:outputWindowActive"
       },
       {
+        "command": "calva.revealInspector",
+        "key": "ctrl+alt+o i",
+        "when": "calva:keybindingsEnabled"
+      },
+      {
         "command": "calva.setOutputWindowNamespace",
         "key": "ctrl+alt+c n",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && !calva:outputWindowActive"
@@ -3164,6 +3222,44 @@
           "command": "calva.copyHtmlAsHiccup",
           "group": "0-calva"
         }
+      ],
+      "view/title": [
+        {
+          "command": "calva.pasteAsInspectorItem",
+          "when": "view == calva.inspector",
+          "group": "navigation@1"
+        },
+        {
+          "command": "calva.clearInspectorResults",
+          "when": "view == calva.inspector",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "calva.copyInspectorItem",
+          "when": "view == calva.inspector",
+          "group": "inline@1"
+        },
+        {
+          "command": "calva.inspectResult",
+          "when": "view == calva.inspector && viewItem == raw",
+          "group": "inline@3"
+        },
+        {
+          "command": "calva.clearInspectorResult",
+          "when": "view == calva.inspector && viewItem =~ /result|raw/",
+          "group": "inline@4"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "calva",
+          "title": "Calva",
+          "icon": "assets/images/calva-symbol-white.svg"
+        }
       ]
     },
     "views": {
@@ -3173,6 +3269,12 @@
           "name": "Project tree",
           "icon": "assets/images/clj.svg",
           "contextualTitle": "Project tree"
+        }
+      ],
+      "calva": [
+        {
+          "id": "calva.inspector",
+          "name": "Inspector"
         }
       ]
     },

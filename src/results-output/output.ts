@@ -83,6 +83,8 @@ To reveal this terminal, use the command ${customChalk.bgWhiteBright.black(
         ' Calva: Show/Open the Calva Output Terminal '
       )}.
 
+See also the Calva Inspector: https://calva.io/inspector
+
 `
     );
   }

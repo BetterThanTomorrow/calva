@@ -48,8 +48,8 @@ class ProjectTreeDataProvider
 {
   constructor(private readonly client: vscode_lsp.LanguageClient) {}
 
-  private _onDidChangeTreeData: vscode.EventEmitter<any> = new vscode.EventEmitter<any>();
-  readonly onDidChangeTreeData: vscode.Event<any> = this._onDidChangeTreeData.event;
+  // private _onDidChangeTreeData: vscode.EventEmitter<any> = new vscode.EventEmitter<any>();
+  // readonly onDidChangeTreeData: vscode.Event<any> = this._onDidChangeTreeData.event;
 
   private _elementTypeToIcon(type: ProjectTreeNodeType): vscode.ThemeIcon {
     switch (type) {
