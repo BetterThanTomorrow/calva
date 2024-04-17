@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.440] - 2024-04-17
+
 - [Make exploring complex results convenient - inspiration: the CIDER Inspector](https://github.com/BetterThanTomorrow/calva/issues/1717)
 - [Support command binding args to toggle multicursor per command or toggle copy per kill command. Closes #2485](https://github.com/BetterThanTomorrow/calva/issues/2485)
 
