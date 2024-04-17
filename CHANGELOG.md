@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Extra empty lines printed between lines of stderr from out-of-band nrepl messages](https://github.com/BetterThanTomorrow/calva/issues/2514)
+
 ## [2.0.441] - 2024-04-17
 
 - Refactor naming of inspector items (mostly internal, but also renames some command ids)

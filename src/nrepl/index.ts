@@ -290,9 +290,9 @@ export class NReplSession {
 
     if ((msgData.out || msgData.err) && this.replType) {
       if (msgData.out) {
-        output.appendEvalOut(msgData.out);
+        output.appendOtherOut(msgData.out);
       } else if (msgData.err) {
-        output.appendEvalErr(msgData.err, { ns: msgData.ns, replSessionType: this.replType });
+        output.appendOtherErr(msgData.err);
       }
     }
   }
