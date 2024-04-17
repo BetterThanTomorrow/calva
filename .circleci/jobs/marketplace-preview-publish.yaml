@@ -1,19 +1,14 @@
+!yamlscript/v0/
+
 docker:
 - image: circleci/node:latest
+
 working_directory: ~/calva
+
 steps:
 - attach_workspace:
     at: /tmp
-- run:
-    name: Restore build
-    command: rmdir ~/calva && cp -r /tmp/build ~/calva
-- run:
-    name: Publish to the marketplace
-    command: |
-      VSCE_CMD="vsce publish --pre-release --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
-      if [ "${IS_LOCAL}" = YES ]
-      then
-        echo "Dry npx ${VSCE_CMD}"
-      else
-        npx ${VSCE_CMD}
-      fi
+- !cmd:
+  - Restore build
+  - rmdir ~/calva && cp -r /tmp/build ~/calva
+- !bin: Publish to the marketplace

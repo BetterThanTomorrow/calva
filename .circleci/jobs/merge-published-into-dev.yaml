@@ -1,16 +1,11 @@
+!yamlscript/v0/
+
 docker:
 - image: cimg/node:15.8
+
 steps:
 - add_ssh_keys:
     fingerprints:
     - d1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14
 - checkout
-- run:
-    name: Merge published into dev
-    command: |
-      git config --global user.email $GITHUB_USER_EMAIL
-      git config --global user.name $GITHUB_USER_NAME
-      git checkout dev
-      git pull
-      git merge origin/published --no-ff -m "Merge branch published into dev [skip ci]"
-      git push origin HEAD
+- !bin: Merge published into dev

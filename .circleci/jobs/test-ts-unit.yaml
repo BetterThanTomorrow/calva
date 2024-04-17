@@ -1,14 +1,18 @@
+!yamlscript/v0/
+
 docker:
 - image: circleci/node:latest
+
 working_directory: ~/calva
+
 steps:
 - attach_workspace:
     at: /tmp
-- run:
-    name: Restore build
-    command: rmdir ~/calva && cp -r /tmp/build ~/calva
-- run:
-    name: Run TS Unit Tests
-    command: npm run unit-test
+- !cmd:
+  - Restore build
+  - rmdir ~/calva && cp -r /tmp/build ~/calva
+- !cmd:
+  - Run TS Unit Tests
+  - npm run unit-test
 - store_test_results:
     path: ~/calva/junit

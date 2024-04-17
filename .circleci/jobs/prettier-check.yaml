@@ -1,12 +1,16 @@
+!yamlscript/v0/
+
 docker:
 - image: circleci/node:latest
+
 working_directory: ~/calva
+
 steps:
 - attach_workspace:
     at: /tmp
-- run:
-    name: Restore build
-    command: rmdir ~/calva && cp -r /tmp/build ~/calva
-- run:
-    name: Run prettier format check
-    command: npm run prettier-check
+- !cmd:
+  - Restore build
+  - rmdir ~/calva && cp -r /tmp/build ~/calva
+- !cmd:
+  - Run prettier format check
+  - npm run prettier-check
