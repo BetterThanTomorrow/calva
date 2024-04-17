@@ -117,12 +117,13 @@ export async function pasteFromClipboard() {
 export function addToInspector(arg: string | { value?: string; info: string } | undefined) {
   const selection = vscode.window.activeTextEditor?.selection;
   const document = vscode.window.activeTextEditor?.document;
+  const relativePath = vscode.workspace.asRelativePath(document?.uri);
   const text = arg || selection ? document?.getText(selection) : '';
   const info =
     arg && typeof arg === 'object'
       ? arg.info
       : document
-      ? `${document.fileName}:${selection.active.line}:${selection.active.character}`
+      ? `${relativePath}:${selection.active.line + 1}:${selection.active.character + 1}`
       : undefined;
   if (text && text !== '') {
     this.addItem(text, true, info);
