@@ -63,6 +63,7 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
         return new InspectorItem(
           new Map([[keyItem, valueItem]]),
           `${keyItem.originalString} ${valueItem.originalString}`,
+          undefined,
           `${keyItem.label} ${valueItem.originalString}`,
           level + 1,
           parent,
@@ -74,6 +75,7 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
     return new InspectorItem(
       item.value,
       item.originalString,
+      item.info,
       `${keyOrIndex !== undefined ? keyOrIndex + ' ' : ''}${item.originalString}`,
       level,
       parent,
@@ -81,8 +83,8 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
     );
   }
 
-  public addItem(text: string, reveal = false): void {
-    const newItem = new InspectorItem(text, text, text, null, null);
+  public addItem(text: string, reveal, info?: string): void {
+    const newItem = new InspectorItem(text, text, info, text, null, null);
     this.treeData.unshift(newItem);
     this.refresh();
     if (reveal) {
@@ -112,17 +114,24 @@ export async function pasteFromClipboard() {
   this.addItem(clipboardContent, true);
 }
 
-export function addToInspector(arg: string) {
+export function addToInspector(arg: string | { value?: string; info: string } | undefined) {
   const selection = vscode.window.activeTextEditor?.selection;
   const document = vscode.window.activeTextEditor?.document;
+  const relativePath = vscode.workspace.asRelativePath(document?.uri);
   const text = arg || selection ? document?.getText(selection) : '';
+  const info =
+    arg && typeof arg === 'object'
+      ? arg.info
+      : document
+      ? `${relativePath}:${selection.active.line + 1}:${selection.active.character + 1}`
+      : undefined;
   if (text && text !== '') {
-    this.addItem(text, true);
+    this.addItem(text, true, info);
     return;
   }
   if (document && selection) {
     const currentFormSelection = select.getFormSelection(document, selection.active, false);
-    this.addItem(document.getText(currentFormSelection), true);
+    this.addItem(document.getText(currentFormSelection), true, info);
   }
 }
 
@@ -162,9 +171,10 @@ export function createTreeStructure(item: InspectorItem) {
         progress.report({ increment: 95 });
 
         const itemStartTime = performance.now();
-        const item = this.createInspectorItem(
-          { originalString: originalString, value: structure },
-          0
+        const inspectableItem = this.createInspectorItem(
+          { originalString: originalString, value: structure, info: item.info },
+          0,
+          null
         );
         const itemEndTime = performance.now();
         progress.report({ increment: 99 });
@@ -184,10 +194,10 @@ export function createTreeStructure(item: InspectorItem) {
           'GB'
         );
 
-        this.treeData[index] = item;
+        this.treeData[index] = inspectableItem;
         this.refresh();
         // TODO: Remove this workaround when vscode.TreeItemCollapsibleState.Expanded works
-        this.treeView.reveal(item, { select: true, focus: true, expand: true });
+        this.treeView.reveal(inspectableItem, { select: true, focus: true, expand: true });
         progress.report({ increment: 100 });
       }
     }
@@ -198,12 +208,14 @@ class InspectorItem extends vscode.TreeItem {
   children: Map<InspectorItem, InspectorItem> | InspectorItem[] | undefined;
   value: string | Map<InspectorItem, InspectorItem> | InspectorItem[];
   originalString: string;
+  info: string;
   label: string;
   parent: InspectorItem | null;
 
   constructor(
     value: string | Map<InspectorItem, InspectorItem> | InspectorItem[],
     originalString: string,
+    info: string,
     label: string,
     level: number | null,
     parent: InspectorItem | null,
@@ -219,10 +231,13 @@ class InspectorItem extends vscode.TreeItem {
     );
     this.value = value;
     this.originalString = originalString;
+    this.info = info;
     this.label = label.replace(/[\n\r]/g, ' ');
     this.parent = parent;
     this.children = children;
-    this.tooltip = new vscode.MarkdownString('```clojure\n' + originalString + '\n```');
+    this.tooltip = new vscode.MarkdownString(
+      (info ? info + '\n' : '') + '```clojure\n' + originalString + '\n```'
+    );
     if (level === null) {
       this.contextValue = 'raw';
     } else if (level === 0) {
