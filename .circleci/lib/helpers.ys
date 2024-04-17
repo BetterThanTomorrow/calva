@@ -1,0 +1,15 @@
+!yamlscript/v0
+
+defn bin(name):
+  slurp: "bin/$name.bash"
+
+defn run:
+  (label name)::
+    run:
+      name:: label
+      command:: bin(name)
+
+  (label):
+    name =: label.str/lower-case()
+            .str/replace(' ', '-')
+    run: label name

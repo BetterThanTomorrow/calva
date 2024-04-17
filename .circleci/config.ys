@@ -1,0 +1,23 @@
+--- !yamlscript/v0/
+
+=>:
+  use: 'helpers'
+
+version: 2
+
+jobs::
+  reduce:
+    fn [ymap name]:
+      assoc ymap name:
+        load: "jobs/$name.yaml"
+    =>: .{}
+    load: 'jobs/index.yaml'
+
+workflows::
+  reduce:
+    fn [ymap name]:
+      assoc ymap name:
+        load: "workflows/$name.yaml"
+    =>::
+      version: 2
+    load: 'workflows/index.yaml'

@@ -1,0 +1,12 @@
+!yamlscript/v0/
+
+docker:
+- image: cibuilds/github:0.10
+working_directory: ~/calva
+steps:
+- attach_workspace:
+    at: /tmp
+- run:
+    name: Restore build
+    command: rmdir ~/calva && cp -r /tmp/build ~/calva
+- !run: Publish Release on GitHub
