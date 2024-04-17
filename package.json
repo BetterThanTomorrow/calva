@@ -2125,7 +2125,7 @@
         "command": "calva.clearInspectorItem",
         "title": "Clear",
         "icon": "$(close)",
-        "enablement": "view == calva.inspector && viewItem =~ /result|raw/"
+        "enablement": "view == calva.inspector && viewItem =~ /inspectable|raw/"
       },
       {
         "category": "Calva",

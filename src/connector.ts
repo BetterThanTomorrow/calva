@@ -30,7 +30,7 @@ import { addEdnConfig, getConfig } from './config';
 import { getJarContents } from './utilities';
 import { ConnectType } from './nrepl/connect-types';
 import * as output from './results-output/output';
-import * as inspector from './providers/results-inspector';
+import * as inspector from './providers/inspector';
 
 async function readJarContent(uri: string) {
   try {

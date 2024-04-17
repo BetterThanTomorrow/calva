@@ -17,7 +17,7 @@ import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
 import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
-import * as inspector from './providers/results-inspector';
+import * as inspector from './providers/inspector';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
