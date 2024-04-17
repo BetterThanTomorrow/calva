@@ -114,17 +114,23 @@ export async function pasteFromClipboard() {
   this.addItem(clipboardContent, true);
 }
 
-export function addToInspector(arg: string) {
+export function addToInspector(arg: string | { value?: string; info: string } | undefined) {
   const selection = vscode.window.activeTextEditor?.selection;
   const document = vscode.window.activeTextEditor?.document;
   const text = arg || selection ? document?.getText(selection) : '';
+  const info =
+    arg && typeof arg === 'object'
+      ? arg.info
+      : document
+      ? `${document.fileName}:${selection.active.line}:${selection.active.character}`
+      : undefined;
   if (text && text !== '') {
-    this.addItem(text, true);
+    this.addItem(text, true, info);
     return;
   }
   if (document && selection) {
     const currentFormSelection = select.getFormSelection(document, selection.active, false);
-    this.addItem(document.getText(currentFormSelection), true);
+    this.addItem(document.getText(currentFormSelection), true, info);
   }
 }
 
@@ -164,9 +170,10 @@ export function createTreeStructure(item: InspectorItem) {
         progress.report({ increment: 95 });
 
         const itemStartTime = performance.now();
-        const item = this.createInspectorItem(
-          { originalString: originalString, value: structure },
-          0
+        const inspectableItem = this.createInspectorItem(
+          { originalString: originalString, value: structure, info: item.info },
+          0,
+          null
         );
         const itemEndTime = performance.now();
         progress.report({ increment: 99 });
@@ -186,10 +193,10 @@ export function createTreeStructure(item: InspectorItem) {
           'GB'
         );
 
-        this.treeData[index] = item;
+        this.treeData[index] = inspectableItem;
         this.refresh();
         // TODO: Remove this workaround when vscode.TreeItemCollapsibleState.Expanded works
-        this.treeView.reveal(item, { select: true, focus: true, expand: true });
+        this.treeView.reveal(inspectableItem, { select: true, focus: true, expand: true });
         progress.report({ increment: 100 });
       }
     }
