@@ -6,27 +6,27 @@ import * as printer from '../printer';
 import * as select from '../select';
 import * as config from '../config';
 
-export class ResultsInspectorProvider implements vscode.TreeDataProvider<EvaluationResult> {
-  private _onDidChangeTreeData: vscode.EventEmitter<EvaluationResult | undefined | null | void> =
-    new vscode.EventEmitter<EvaluationResult | undefined>();
-  readonly onDidChangeTreeData: vscode.Event<EvaluationResult | undefined | null | void> =
+export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorItem> {
+  private _onDidChangeTreeData: vscode.EventEmitter<InspectorItem | undefined | null | void> =
+    new vscode.EventEmitter<InspectorItem | undefined>();
+  readonly onDidChangeTreeData: vscode.Event<InspectorItem | undefined | null | void> =
     this._onDidChangeTreeData.event;
-  public treeView: vscode.TreeView<EvaluationResult>;
-  public treeData: EvaluationResult[] = [];
+  public treeView: vscode.TreeView<InspectorItem>;
+  public treeData: InspectorItem[] = [];
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
   }
 
-  getTreeItem(element: EvaluationResult): vscode.TreeItem {
+  getTreeItem(element: InspectorItem): vscode.TreeItem {
     return element;
   }
 
-  getParent(element: EvaluationResult): vscode.ProviderResult<EvaluationResult> {
+  getParent(element: InspectorItem): vscode.ProviderResult<InspectorItem> {
     return element ? element.parent : null;
   }
 
-  getChildren(element?: EvaluationResult): vscode.ProviderResult<EvaluationResult[]> {
+  getChildren(element?: InspectorItem): vscode.ProviderResult<InspectorItem[]> {
     if (element) {
       const children = Array.isArray(element.children)
         ? element.children
@@ -38,40 +38,40 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
   }
 
   public resolveTreeItem(
-    item: EvaluationResult,
-    element: EvaluationResult,
+    item: InspectorItem,
+    element: InspectorItem,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.TreeItem> {
     return item;
   }
 
-  public createResultItem(
+  public createInspectorItem(
     item: any,
     level: number,
-    parent: EvaluationResult | null,
+    parent: InspectorItem | null,
     keyOrIndex?: string | number
-  ): EvaluationResult {
-    let children: EvaluationResult[] | undefined;
+  ): InspectorItem {
+    let children: InspectorItem[] | undefined;
     if (Array.isArray(item.value)) {
       children = item.value.map((childItem, index) =>
-        this.createResultItem(childItem, level + 1, parent, index.toString())
+        this.createInspectorItem(childItem, level + 1, parent, index.toString())
       );
     } else if (item.value instanceof Map) {
       children = Array.from((item.value as Map<any, any>).entries()).map(([key, value]) => {
-        const keyItem = this.createResultItem(key, level + 2, parent);
-        const valueItem = this.createResultItem(value, level + 2, parent, 'v:');
-        return new EvaluationResult(
+        const keyItem = this.createInspectorItem(key, level + 2, parent);
+        const valueItem = this.createInspectorItem(value, level + 2, parent, 'v:');
+        return new InspectorItem(
           new Map([[keyItem, valueItem]]),
           `${keyItem.originalString} ${valueItem.originalString}`,
           `${keyItem.label} ${valueItem.originalString}`,
           level + 1,
           parent,
-          [this.createResultItem(key, level + 2, parent, 'k:'), valueItem]
+          [this.createInspectorItem(key, level + 2, parent, 'k:'), valueItem]
         );
       });
     }
 
-    return new EvaluationResult(
+    return new InspectorItem(
       item.value,
       item.originalString,
       `${keyOrIndex !== undefined ? keyOrIndex + ' ' : ''}${item.originalString}`,
@@ -81,8 +81,8 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
     );
   }
 
-  public addResult(result: string, reveal = false): void {
-    const newItem = new EvaluationResult(result, result, result, null, null);
+  public addItem(text: string, reveal = false): void {
+    const newItem = new InspectorItem(text, text, text, null, null);
     this.treeData.unshift(newItem);
     this.refresh();
     if (reveal) {
@@ -90,9 +90,9 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
     }
   }
 
-  public clearResults(resultToClear?: EvaluationResult): void {
-    if (resultToClear) {
-      const index = this.treeData.indexOf(resultToClear);
+  public clearInspector(itemToClear?: InspectorItem): void {
+    if (itemToClear) {
+      const index = this.treeData.indexOf(itemToClear);
       if (index > -1) {
         this.treeData.splice(index, 1);
       }
@@ -103,13 +103,13 @@ export class ResultsInspectorProvider implements vscode.TreeDataProvider<Evaluat
   }
 }
 
-export const copyItemValue = async (item: EvaluationResult) => {
+export const copyItemValue = async (item: InspectorItem) => {
   await vscode.env.clipboard.writeText(item.originalString);
 };
 
 export async function pasteFromClipboard() {
   const clipboardContent = await vscode.env.clipboard.readText();
-  this.addResult(clipboardContent, true);
+  this.addItem(clipboardContent, true);
 }
 
 export function addToInspector(arg: string) {
@@ -117,16 +117,16 @@ export function addToInspector(arg: string) {
   const document = vscode.window.activeTextEditor?.document;
   const text = arg || selection ? document?.getText(selection) : '';
   if (text && text !== '') {
-    this.addResult(text, true);
+    this.addItem(text, true);
     return;
   }
   if (document && selection) {
     const currentFormSelection = select.getFormSelection(document, selection.active, false);
-    this.addResult(document.getText(currentFormSelection), true);
+    this.addItem(document.getText(currentFormSelection), true);
   }
 }
 
-export function createTreeStructure(item: EvaluationResult) {
+export function createTreeStructure(item: InspectorItem) {
   void vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
@@ -138,21 +138,21 @@ export function createTreeStructure(item: EvaluationResult) {
       const index = this.treeData.indexOf(item);
       if (index > -1) {
         progress.report({ increment: 0 });
-        const result = this.treeData[index].originalString;
+        const originalString = this.treeData[index].originalString;
         const startTime = performance.now();
 
         const prettyPrintStartTime = performance.now();
         const printerOptions = printer.prettyPrintingOptions();
-        const firstLineLength = result.split('\n')[0].length;
+        const firstLineLength = originalString.split('\n')[0].length;
         const needPrettyPrint = firstLineLength > 10000;
-        const prettyResult = needPrettyPrint
-          ? printer.prettyPrint(result, printerOptions)?.value || result
-          : result;
+        const prettyString = needPrettyPrint
+          ? printer.prettyPrint(originalString, printerOptions)?.value || originalString
+          : originalString;
         const prettyPrintEndTime = performance.now();
         progress.report({ increment: 85 });
 
         const cursorStartTime = performance.now();
-        const cursor = tokenCursor.createStringCursor(prettyResult);
+        const cursor = tokenCursor.createStringCursor(prettyString);
         const cursorEndTime = performance.now();
         progress.report({ increment: 90 });
 
@@ -162,7 +162,10 @@ export function createTreeStructure(item: EvaluationResult) {
         progress.report({ increment: 95 });
 
         const itemStartTime = performance.now();
-        const item = this.createResultItem({ originalString: result, value: structure }, 0);
+        const item = this.createInspectorItem(
+          { originalString: originalString, value: structure },
+          0
+        );
         const itemEndTime = performance.now();
         progress.report({ increment: 99 });
 
@@ -173,7 +176,7 @@ export function createTreeStructure(item: EvaluationResult) {
             prettyPrintEndTime - prettyPrintStartTime
           }, createStringCursor=${cursorEndTime - cursorStartTime}, structureForRightSexp=${
             structureEndTime - structureStartTime
-          }, createResultItem=${itemEndTime - itemStartTime}`
+          }, createInspectorItem=${itemEndTime - itemStartTime}`
         );
         console.log(
           'Size of treeData (estimate):',
@@ -191,20 +194,20 @@ export function createTreeStructure(item: EvaluationResult) {
   );
 }
 
-class EvaluationResult extends vscode.TreeItem {
-  children: Map<EvaluationResult, EvaluationResult> | EvaluationResult[] | undefined;
-  value: string | Map<EvaluationResult, EvaluationResult> | EvaluationResult[];
+class InspectorItem extends vscode.TreeItem {
+  children: Map<InspectorItem, InspectorItem> | InspectorItem[] | undefined;
+  value: string | Map<InspectorItem, InspectorItem> | InspectorItem[];
   originalString: string;
   label: string;
-  parent: EvaluationResult | null;
+  parent: InspectorItem | null;
 
   constructor(
-    value: string | Map<EvaluationResult, EvaluationResult> | EvaluationResult[],
+    value: string | Map<InspectorItem, InspectorItem> | InspectorItem[],
     originalString: string,
     label: string,
     level: number | null,
-    parent: EvaluationResult | null,
-    children?: Map<EvaluationResult, EvaluationResult> | EvaluationResult[]
+    parent: InspectorItem | null,
+    children?: Map<InspectorItem, InspectorItem> | InspectorItem[]
   ) {
     super(
       label,
@@ -223,17 +226,15 @@ class EvaluationResult extends vscode.TreeItem {
     if (level === null) {
       this.contextValue = 'raw';
     } else if (level === 0) {
-      this.contextValue = 'result';
+      this.contextValue = 'inspectable';
     }
-    this.resourceUri = vscode.Uri.parse(
-      'calva-results-inspector://result/' + originalString + '.edn'
-    );
+    this.resourceUri = vscode.Uri.parse('calva-inspector://item/' + originalString);
 
     const isStructuralKey =
       value instanceof Map &&
       value.size > 0 &&
       Array.from(value.entries()).every(
-        ([key, val]) => key instanceof EvaluationResult && val instanceof EvaluationResult
+        ([key, val]) => key instanceof InspectorItem && val instanceof InspectorItem
       );
     try {
       const [iconSelectorString, iconSelectorValue] = isStructuralKey
@@ -265,7 +266,7 @@ function icon(name: string) {
 
 function getIconPath(
   originalString: string,
-  value: string | EvaluationResult | EvaluationResult[] | Map<EvaluationResult, EvaluationResult>
+  value: string | InspectorItem | InspectorItem[] | Map<InspectorItem, InspectorItem>
 ) {
   return originalString.startsWith('{')
     ? icon('map')
@@ -296,14 +297,14 @@ function getIconPath(
     : icon('symbol');
 }
 
-export class ResultDecorationProvider implements vscode.FileDecorationProvider {
+export class InspectorItemDecorationProvider implements vscode.FileDecorationProvider {
   onDidChangeFileDecorations: vscode.Event<vscode.Uri | vscode.Uri[]>;
 
   provideFileDecoration(
     uri: vscode.Uri,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.FileDecoration> {
-    if (uri.scheme === 'calva-results-inspector') {
+    if (uri.scheme === 'calva-inspector') {
       return new vscode.FileDecoration(
         undefined,
         'foo tooltip',

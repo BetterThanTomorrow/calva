@@ -93,7 +93,7 @@ async function activate(context: vscode.ExtensionContext) {
     treeDataProvider: inspectorDataProvider,
   });
   inspectorDataProvider.treeView = inspectorTreeView;
-  vscode.window.registerFileDecorationProvider(new inspector.ResultDecorationProvider());
+  vscode.window.registerFileDecorationProvider(new inspector.InspectorItemDecorationProvider());
   overrides.activate();
 
   initializeState();
@@ -325,11 +325,11 @@ async function activate(context: vscode.ExtensionContext) {
         resolve(true);
       });
     },
-    clearInspectorResults: () => {
-      inspectorDataProvider.clearResults.bind(inspectorDataProvider)();
+    clearInspector: () => {
+      inspectorDataProvider.clearInspector.bind(inspectorDataProvider)();
     },
-    clearInspectorResult: (arg) => {
-      inspectorDataProvider.clearResults.bind(inspectorDataProvider)(arg);
+    clearInspectorItem: (arg) => {
+      inspectorDataProvider.clearInspector.bind(inspectorDataProvider)(arg);
     },
     copyInspectorItem: inspector.copyItemValue,
     pasteAsInspectorItem: () => {
@@ -338,7 +338,7 @@ async function activate(context: vscode.ExtensionContext) {
     addToInspector: (arg) => {
       inspector.addToInspector.bind(inspectorDataProvider)(arg);
     },
-    inspectResult: (item) => {
+    inspectItem: (item) => {
       inspector.createTreeStructure.bind(inspectorDataProvider)(item);
     },
     revealInspector: () => {

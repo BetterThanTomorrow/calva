@@ -28,7 +28,7 @@ There are four commands for the inspector:
 
 * **Calva: Reveal Inspector**. Reveals/shows the inspector. Default keybinding is `ctrl+alt+o i`
 * **Calva: Add Selection or Current Form to Inspector**. Adds the current form (without evaluating it) to the inspector. If there is text selected, the command will add that text instead. (Only the first selection, if there are multiple). There is no default keybinding for this command.
-* **Calva: Clear All Inspector Results**. You can use the command or the button for this in the view. No default keybinding.
+* **Calva: Clear Inspector**. You can use the command or the button for this in the view. No default keybinding.
 * **Calva: Paste as Inspector Item**. Same as the view button. No default keybinding.
 
 The command for adding the current form to the inspector has a command ID of `calva.addToInspector`. The command takes an optional argument, a string to be added. This is meant for [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts that want to add things to the inspector.
