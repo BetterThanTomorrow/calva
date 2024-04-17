@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="How Calva supports and promotes a Rich Comments powered workflow. The REPL is not a prompt!">
+        <meta name="description" content="The Calva Inspector lets you view and explorer data structures in a tree view.">
       
       
       
-        <link rel="canonical" href="https://calva.io/rich-comments/">
+        <link rel="canonical" href="https://calva.io/inspector/">
       
       
-        <link rel="prev" href="../test-runner/">
+        <link rel="prev" href="../output/">
       
       
-        <link rel="next" href="../namespace-form-auto-creation/">
+        <link rel="next" href="../fiddle-files/">
       
       
       <link rel="icon" href="../img/favicon.ico">
@@ -24,7 +24,7 @@
     
     
       
-        <title>Rich Comments Support - Calva User Guide</title>
+        <title>Inspect Evaluation Results and more - Calva User Guide</title>
       
     
     
@@ -73,11 +73,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Rich Comments Support - Calva User Guide" >
+        <meta  property="og:title"  content="Inspect Evaluation Results and more - Calva User Guide" >
       
-        <meta  property="og:description"  content="How Calva supports and promotes a Rich Comments powered workflow. The REPL is not a prompt!" >
+        <meta  property="og:description"  content="The Calva Inspector lets you view and explorer data structures in a tree view." >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/rich-comments.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/inspector.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -85,15 +85,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/rich-comments/" >
+        <meta  property="og:url"  content="https://calva.io/inspector/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Rich Comments Support - Calva User Guide" >
+        <meta  name="twitter:title"  content="Inspect Evaluation Results and more - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="How Calva supports and promotes a Rich Comments powered workflow. The REPL is not a prompt!" >
+        <meta  name="twitter:description"  content="The Calva Inspector lets you view and explorer data structures in a tree view." >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/rich-comments.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/inspector.png" >
       
     
     
@@ -109,7 +109,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#rich-comments-support" class="md-skip">
+        <a href="#unfold-that-data" class="md-skip">
           Skip to content
         </a>
       
@@ -144,7 +144,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Rich Comments Support
+              Inspect Evaluation Results and more
             
           </span>
         </div>
@@ -654,10 +654,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../inspector/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Inspect Evaluation Results and more
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -666,6 +686,53 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#uifeatures" class="md-nav__link">
+    <span class="md-ellipsis">
+      UI/Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -864,30 +931,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Rich Comments Support
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../rich-comments/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -896,119 +943,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#things-in-comment-are-not-evaluated" class="md-nav__link">
-    <span class="md-ellipsis">
-      Things in comment are not evaluated
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#calva-encourages-rich-comments" class="md-nav__link">
-    <span class="md-ellipsis">
-      Calva encourages Rich comments
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Calva encourages Rich comments">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#comment-is-top-level" class="md-nav__link">
-    <span class="md-ellipsis">
-      comment is top-level
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#special-formatting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Special formatting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Special formatting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#special-formatting-disabled-for-trailing-rcf" class="md-nav__link">
-    <span class="md-ellipsis">
-      Special formatting disabled for trailing :rcf
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#thinking-space-is-kept" class="md-nav__link">
-    <span class="md-ellipsis">
-      Thinking space is kept
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#fold-when-done" class="md-nav__link">
-    <span class="md-ellipsis">
-      Fold when done
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#enabled-by-default" class="md-nav__link">
-    <span class="md-ellipsis">
-      Enabled by default
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#only-for-the-current-form" class="md-nav__link">
-    <span class="md-ellipsis">
-      Only for the Current Form
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1986,95 +1920,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#things-in-comment-are-not-evaluated" class="md-nav__link">
+  <a href="#uifeatures" class="md-nav__link">
     <span class="md-ellipsis">
-      Things in comment are not evaluated
+      UI/Features
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#calva-encourages-rich-comments" class="md-nav__link">
+  <a href="#commands" class="md-nav__link">
     <span class="md-ellipsis">
-      Calva encourages Rich comments
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Calva encourages Rich comments">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#comment-is-top-level" class="md-nav__link">
-    <span class="md-ellipsis">
-      comment is top-level
+      Commands
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#special-formatting" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Special formatting
+      Configuration
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Special formatting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#special-formatting-disabled-for-trailing-rcf" class="md-nav__link">
-    <span class="md-ellipsis">
-      Special formatting disabled for trailing :rcf
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#thinking-space-is-kept" class="md-nav__link">
-    <span class="md-ellipsis">
-      Thinking space is kept
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#fold-when-done" class="md-nav__link">
-    <span class="md-ellipsis">
-      Fold when done
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#enabled-by-default" class="md-nav__link">
-    <span class="md-ellipsis">
-      Enabled by default
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#only-for-the-current-form" class="md-nav__link">
-    <span class="md-ellipsis">
-      Only for the Current Form
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2096,118 +1964,29 @@
   
 
 
-<h1 id="rich-comments-support">Rich Comments Support<a class="headerlink" href="#rich-comments-support" title="Permanent link">#</a></h1>
-<p>Why bother with <strong>Rich comments</strong>? Read on. Consider watching <a href="https://www.youtube.com/watch?v=d0K1oaFGvuQ">this Youtube video</a> for a demo of the workflow using the (in?)famous FizzBuzz problem as an example.</p>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/d0K1oaFGvuQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
-<h2 id="things-in-comment-are-not-evaluated">Things in <code>comment</code> are not evaluated<a class="headerlink" href="#things-in-comment-are-not-evaluated" title="Permanent link">#</a></h2>
-<p>The Clojure <code>comment</code> macro is defined like so:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defmacro </span><span class="nv">comment</span>
-<span class="w">  </span><span class="s">&quot;Ignores body, yields nil&quot;</span>
-<span class="w">  </span><span class="p">{</span><span class="ss">:added</span><span class="w"> </span><span class="s">&quot;1.0&quot;</span><span class="p">}</span>
-<span class="w">  </span><span class="p">[</span><span class="o">&amp;</span><span class="w"> </span><span class="nv">body</span><span class="p">])</span>
-</code></pre></div>
-<p>It has no forms in its body and will therefore always (as long as the Clojure Reader can read it) evaluate to <code>nil</code>. That is: <em>nothing in the <code>(comment ...)</code> form will get evaluated when the file is loaded</em>.</p>
-<p>This makes it a very good ”place” where you can develop code, experiment with code, and keep example code. Since you will be able to load/evaluate the current file without worrying that the code in the <code>comment</code> form will get evaluated. This also holds true when using tools that hot-reload the code on save, such as <a href="https://figwheel.org">Figwheel</a>, <a href="https://github.com/thheller/shadow-cljs">shadow-cljs</a> and <a href="https://calva.io/krell/">Krell</a>.</p>
-<p>To develop or refine a function you might:</p>
-<ol>
-<li>Open up a <code>(comment ...)</code> form</li>
-<li>Inside this form, type a first, super simple, version (or refinement) of your function and evaluate it</li>
-<li>Inside the same <code>comment</code> form, type some code to test your function and evaluate that<ul>
-<li>Or type and evaluate some code you might need for your function</li>
+<h1 id="unfold-that-data">Unfold that data<a class="headerlink" href="#unfold-that-data" title="Permanent link">#</a></h1>
+<p>All REPL evaluation results are added to the Calva Inspector, a tree view that lets you expand and collapse Clojure data structures. (This happens in <em>addition</em> to results being printed to the configured <a href="../output/">Output Destination</a>.)</p>
+<p><img alt="The Calva Inspector" src="../images/inspector/inspector-view.png" /></p>
+<div class="admonition note">
+<p class="admonition-title">Only for realized data</p>
+<p>Results are added to the inspector after they have been processed by your pretty printer, if you have pretty printing enabled. This means that <a href="../pprint/#configuration">maxLength and maxDepth</a> applies. The inspector can't be used to explore infinite sequences.</p>
+</div>
+<h2 id="uifeatures">UI/Features<a class="headerlink" href="#uifeatures" title="Permanent link">#</a></h2>
+<p>The inspector view can be placed in the left or right side bars, or in the bottom panel. It can also be placed as a section in an existing side bar view, or in split with any existing bottom panel view.</p>
+<p>Inspector items are not expandable until you make them so with the Inspect Result Item button. This is because parsing and building the structure for the tree can take a little while and we don't want it to lock the UI for you when you edit and evaluate code.</p>
+<p>Speaking of buttons. Items in the view have context commands that show up as buttons on hover. The Inspect Result Item button is one of them. All rows in the inspector have a <strong>Copy</strong> button, letting you copy the data at any folding level to the clipboard.All root items also have a clear button for removing the item from the inspector.</p>
+<p>The view itself has two buttons, one for clearing all results and one for pasting whatever is on the clipboard as an inspector item.</p>
+<h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">#</a></h2>
+<p>There are four commands for the inspector:</p>
+<ul>
+<li><strong>Calva: Reveal Inspector</strong>. Reveals/shows the inspector. Default keybinding is <code>ctrl+alt+o i</code></li>
+<li><strong>Calva: Add Selection or Current Form to Inspector</strong>. Adds the current form (without evaluating it) to the inspeector. If there is text selected, will add that text instead. (Only the first selection, if there are multiple). There is no default keybinding for this command.</li>
+<li><strong>Calva: Clear All Inspector Results</strong>. You can use the command or the button for this in the view. No default keybinding.</li>
+<li><strong>Calva: Paste as Inspector Item</strong>. Same as the view button. No default keybinding.</li>
 </ul>
-</li>
-<li>Repeat from <em>2.</em>, until the function does what you want it to do</li>
-<li>Move the function definition out of the <code>comment</code> form</li>
-<li>Clean up the <code>comment</code> form to keep some of the test code as example use, or ”design decision log” for the function.</li>
-</ol>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Using <code>(comment ...)</code> forms for developing code is very common among Clojure coders. Rich Hickey is known for using it, which is why they are called <strong>Rich comments</strong> to begin with (even if it also is a very rich experience).</p>
-</div>
-<h2 id="calva-encourages-rich-comments">Calva encourages Rich comments<a class="headerlink" href="#calva-encourages-rich-comments" title="Permanent link">#</a></h2>
-<p>Calva has several features to facilitate the Rich comments workflow, e.g.</p>
-<ol>
-<li>A command that helps you create a new Rich comment form quickly: <strong>Calva: Add Rich Comment</strong>, <kbd>ctrl+alt+r c</kbd></li>
-<li>A snippet for creating Rich comment form quickly. Typing <code>(rcf</code>, will make it appear.</li>
-<li>Special <a href="../customizing/#calva-highlight">Syntax highlight</a>. By default <code>comment</code> forms are rendered in <em>italics</em></li>
-<li>Special <a href="../evaluation/#current-top-level-form">top-level form</a> context</li>
-<li>Special formatting</li>
-</ol>
-<p>Note that the command and snippet for creating Rich comments add the keyword <code>:rcf</code> right before the closing paren. This makes the closing paren stay and not fold when you format the code. The special formatting (see below) will treat this and also any ignored (with <code>#_</code>) form at the end of the form specially.</p>
-<h3 id="comment-is-top-level"><code>comment</code> is top-level<a class="headerlink" href="#comment-is-top-level" title="Permanent link">#</a></h3>
-<p>To make it easy to evaluate forms in <code>(comment ...)</code> forms, they create a new top-level context. Instead of you having to place the cursor with precision before evaluating the <strong>current form</strong>, you can have the cursor anywhere within a <code>comment</code> enclosed form and <a href="../evaluation/#current-top-level-form"><strong>Evaluate Top-Level Form</strong></a>.</p>
-<p>This carries over to all commands in Calva which deal with the top level form. Including <a href="../custom-commands/">custom command snippets</a>.</p>
-<h3 id="special-formatting">Special formatting<a class="headerlink" href="#special-formatting" title="Permanent link">#</a></h3>
-<p>To invite a <strong>Rich comments</strong> workflow, the Calva command <strong>Format Current Form</strong> will not fold the closing bracket of the <code>(comment ...)</code> form. Instead it will place this bracket on a line of its own (or keep it there).</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-<span class="w">  </span><span class="p">)</span>
-</code></pre></div>
-<p>With the cursor somewhere directly inside the comment form (denoted with a <code>|</code>):</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="ss">:foo</span><span class="p">)</span><span class="nv">|</span><span class="p">)</span>
-</code></pre></div>
-<p><kbd>tab</kbd></p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="w">    </span><span class="ss">:foo</span><span class="p">)</span>
-<span class="w">  </span><span class="nv">|</span><span class="p">)</span>
-</code></pre></div>
-<p>!!! Note "Only for the current comment form”
-    The special formatting only applies in the current <code>comment</code> form. When outside it, formatting tucks the closing paren in again. That's why fold when done, <a href="#fold-when-done">below</a> works like it does. This also applies to VS Code commands like <strong>Format Document</strong>, or when you have <strong>Format On Save</strong> enabled. There are several reasons for this, and one is that there is no <code>cljfmt</code> config for it and leaving the closing comment un-tucked might give you troubles with CI pipelines that enforce some cljfmt config be followed. (Another reason is that it would be pretty hard to do on the whole document.)</p>
-<h4 id="special-formatting-disabled-for-trailing-rcf">Special formatting disabled for trailing <code>:rcf</code><a class="headerlink" href="#special-formatting-disabled-for-trailing-rcf" title="Permanent link">#</a></h4>
-<p>If the Rich comment ends with <code>:rcf</code> (or an ignored form), the special formatting doesn't happen. So if you have:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="ss">:foo</span><span class="p">)</span>
-<span class="w">  </span><span class="nv">|</span>
-<span class="w">  </span><span class="ss">:rcf</span><span class="p">)</span>
-</code></pre></div>
-<p>And hit <kbd>tab</kbd>, you will get:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="w">    </span><span class="ss">:foo</span><span class="p">)</span>
-<span class="w">  </span><span class="nv">|</span>
-<span class="w">  </span><span class="ss">:rcf</span><span class="p">)</span>
-</code></pre></div>
-<h4 id="thinking-space-is-kept">Thinking space is kept<a class="headerlink" href="#thinking-space-is-kept" title="Permanent link">#</a></h4>
-<p>The formatter will not remove newlines between the cursor and the closing bracket. So if you have entered a few lines to get ”thinking” room:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="ss">:foo</span><span class="p">)</span>
-
-<span class="nv">|</span>
-
-<span class="p">)</span>
-</code></pre></div>
-<p><kbd>tab</kbd></p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="w">    </span><span class="ss">:foo</span><span class="p">)</span>
-
-<span class="w">  </span><span class="nv">|</span>
-
-<span class="w">  </span><span class="p">)</span>
-</code></pre></div>
-<h4 id="fold-when-done">Fold when done<a class="headerlink" href="#fold-when-done" title="Permanent link">#</a></h4>
-<p>To fold the trailing paren automatically, place the cursor immediately outside (before or after) the form:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="ss">:foo</span><span class="p">))</span><span class="nv">|</span>
-</code></pre></div>
-<p><kbd>tab</kbd></p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
-<span class="w">  </span><span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
-<span class="w">    </span><span class="ss">:foo</span><span class="p">))</span><span class="nv">|</span>
-</code></pre></div>
-<h4 id="enabled-by-default">Enabled by default<a class="headerlink" href="#enabled-by-default" title="Permanent link">#</a></h4>
-<p>You can disable this behavior with the setting: <code>calva.fmt.keepCommentTrailParenOnOwnLine</code>.</p>
-<h4 id="only-for-the-current-form">Only for the Current Form<a class="headerlink" href="#only-for-the-current-form" title="Permanent link">#</a></h4>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This treatment only applies to formatting of <a href="../evaluation/#current-form">the current form</a>. With <a href="#fold-when-done">fold when done</a> as an exception.</p>
-</div>
+<p>The command for adding the current form to the inspector has a command ID of <code>calva.addToInspector</code>. The command takes an optional argument, a string to be added. This is meant for <a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> scripts that want to add things to the inspector.</p>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
+<p>There is only one setting for the inspector: <code>calva.autoOpenInspector</code> controls wether the view is revealed as part of connecting the REPL to Calva. It defaults to <code>false</code>.</p>
 
 
 
