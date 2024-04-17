@@ -233,6 +233,7 @@ function getConfig() {
     enableJSCompletions: configOptions.get<boolean>('enableJSCompletions'),
     autoOpenREPLWindow: configOptions.get<boolean>('autoOpenREPLWindow'),
     autoOpenJackInTerminal: configOptions.get('autoOpenJackInTerminal'),
+    autoOpenInspector: configOptions.get('autoOpenInspector'),
     referencesCodeLensEnabled: configOptions.get<boolean>('referencesCodeLens.enabled'),
     showCalvaSaysOnStart: configOptions.get<boolean>('showCalvaSaysOnStart'),
     enableClojureLspOnStart: configOptions.get<boolean>('enableClojureLspOnStart'),

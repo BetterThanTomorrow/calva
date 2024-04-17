@@ -8,6 +8,7 @@ import * as outputWindow from './repl-window/repl-doc';
 import * as utilities from './utilities';
 import { ConnectType } from './nrepl/connect-types';
 import * as output from './results-output/output';
+import * as inspector from './providers/results-inspector';
 
 const JOYRIDE_NREPL_START_API_VERSION = '0.0.5';
 
@@ -49,6 +50,7 @@ export async function prepareForJackingOrConnect() {
   await state.initProjectDir(ConnectType.JackIn, undefined).catch((e) => {
     void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
   });
+  inspector.revealOnConnect();
   await outputWindow.initResultsDoc();
   await outputWindow.openResultsDoc();
   return state.getProjectRootLocal();
