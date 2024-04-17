@@ -8,7 +8,7 @@ import * as outputWindow from './repl-window/repl-doc';
 import * as utilities from './utilities';
 import { ConnectType } from './nrepl/connect-types';
 import * as output from './results-output/output';
-import * as inspector from './providers/results-inspector';
+import * as inspector from './providers/inspector';
 
 const JOYRIDE_NREPL_START_API_VERSION = '0.0.5';
 

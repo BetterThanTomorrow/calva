@@ -20,7 +20,7 @@ import { getConfig } from '../config';
 import * as joyride from '../joyride';
 import { ConnectType } from './connect-types';
 import * as output from '../results-output/output';
-import * as inspector from '../providers/results-inspector';
+import * as inspector from '../providers/inspector';
 
 let jackInPTY: JackInTerminal = undefined;
 let jackInTerminal: vscode.Terminal = undefined;

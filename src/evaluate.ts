@@ -17,12 +17,12 @@ import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
 import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
-import * as inspector from './providers/results-inspector';
+import * as inspector from './providers/inspector';
 
-let inspectorDataProvider: inspector.ResultsInspectorProvider;
+let inspectorDataProvider: inspector.InspectorDataProvider;
 
 function initInspectorDataProvider() {
-  inspectorDataProvider = new inspector.ResultsInspectorProvider();
+  inspectorDataProvider = new inspector.InspectorDataProvider();
   return inspectorDataProvider;
 }
 
@@ -144,7 +144,7 @@ async function evaluateCodeUpdatingUI(
       if (showResult) {
         try {
           // Do not croak if the inspector fails to add the result
-          inspectorDataProvider.addResult(value);
+          inspectorDataProvider.addItem(value);
         } catch (e) {
           console.error('Failed to add result to inspector: ', e);
         }

@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.440",
+  "version": "2.0.441",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -2116,31 +2116,28 @@
       },
       {
         "category": "Calva",
-        "command": "calva.clearInspectorResults",
-        "title": "Clear All Inspector Results",
+        "command": "calva.clearInspector",
+        "title": "Clear All",
         "icon": "$(close-all)"
       },
       {
         "category": "Calva",
-        "command": "calva.clearInspectorResult",
-        "title": "Clear Inspector Result",
-        "shortTitle": "Clear",
+        "command": "calva.clearInspectorItem",
+        "title": "Clear",
         "icon": "$(close)",
-        "enablement": "view == calva.inspector && viewItem =~ /result|raw/"
+        "enablement": "view == calva.inspector && viewItem =~ /inspectable|raw/"
       },
       {
         "category": "Calva",
         "command": "calva.copyInspectorItem",
-        "title": "Copy Inspector Item to the Clipboard",
-        "shortTitle": "Copy",
+        "title": "Copy",
         "icon": "$(copy)",
         "enablement": "view == calva.inspector"
       },
       {
         "category": "Calva",
-        "command": "calva.inspectResult",
-        "title": "Inspect Result Item",
-        "shortTitle": "Inspect",
+        "command": "calva.inspectItem",
+        "title": "Inspect Item",
         "icon": "$(inspect)",
         "enablement": "view == calva.inspector && viewItem == raw"
       },
@@ -3230,7 +3227,7 @@
           "group": "navigation@1"
         },
         {
-          "command": "calva.clearInspectorResults",
+          "command": "calva.clearInspector",
           "when": "view == calva.inspector",
           "group": "navigation@2"
         }
@@ -3242,13 +3239,13 @@
           "group": "inline@1"
         },
         {
-          "command": "calva.inspectResult",
+          "command": "calva.inspectItem",
           "when": "view == calva.inspector && viewItem == raw",
           "group": "inline@3"
         },
         {
-          "command": "calva.clearInspectorResult",
-          "when": "view == calva.inspector && viewItem =~ /result|raw/",
+          "command": "calva.clearInspectorItem",
+          "when": "view == calva.inspector && viewItem =~ /inspectable|raw/",
           "group": "inline@4"
         }
       ]
