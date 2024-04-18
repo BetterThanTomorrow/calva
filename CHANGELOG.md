@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Replace Current Form seems to stop working from v2.0.428 onwards](https://github.com/BetterThanTomorrow/calva/issues/2512)
+
 ## [2.0.442] - 2024-04-17
 
 - Fix: [Extra empty lines printed between lines of stderr from out-of-band nrepl messages](https://github.com/BetterThanTomorrow/calva/issues/2514)
