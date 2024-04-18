@@ -1,5 +1,5 @@
 # This is the main YAMLScript file that expands to the desired CircleCI
-# config.yml file when we run 'make build' or 'bb buid'.
+# config.yml file when we run 'make build' or 'bb build'.
 
 --- !yamlscript/v0/data
 
