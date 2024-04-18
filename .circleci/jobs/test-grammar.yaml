@@ -10,8 +10,7 @@ docker:
 - image: arcanemagus/atom-docker-ci
 
 steps:
-- attach_workspace:
-    at: /tmp
+- !attach-workspace: /tmp
 
 - !cmd:
   - Restore build

@@ -6,26 +6,31 @@ docker:
 working_directory: ~/calva
 
 steps:
-- attach_workspace:
-    at: /tmp
+- !attach-workspace: /tmp
 
 - !cmd:
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
+
 - !cmd:
   - Install CLJS dependencies
   - npx shadow-cljs classpath
+
 - !cmd:
   - Create artifacts workspace
   - mkdir /tmp/artifacts
+
 - !bin*:
   - Tamper Calva version if not release versioned
   - tamper-calva-version
+
 - !bin*:
   - Package vsix
+
 - !cmd:
   - Copy vsix
   - cp *.vsix /tmp/artifacts/
+
 - !cmd:
   - Copy build
   - cp -r out /tmp/build;

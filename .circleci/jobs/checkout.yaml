@@ -6,8 +6,7 @@ docker:
 working_directory: ~/calva
 
 steps:
-- attach_workspace:
-    at: /tmp
+- !attach-workspace: /tmp
 
 - checkout:
     path: ~/calva
@@ -21,9 +20,11 @@ steps:
 - !cmd:
   - Install node_modules
   - cp package.json /tmp && npm install && cp /tmp/package.json .
+
 - !cmd:
   - Create build workspace
   - mkdir /tmp/build
+
 - !cmd:
   - Copy build
   - cp -r . /tmp/build

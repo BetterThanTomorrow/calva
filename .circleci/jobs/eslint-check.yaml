@@ -6,8 +6,8 @@ docker:
 working_directory: ~/calva
 
 steps:
-- attach_workspace:
-    at: /tmp
+- !attach-workspace: /tmp
+
 - !cmd:
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva

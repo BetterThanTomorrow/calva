@@ -16,3 +16,11 @@ defn cmd([label code])::
   run:
     name:: label
     command:: code
+
+defn docker(image)::
+  docker:
+    image:: image
+
+defn attach-workspace(path)::
+  attach_workspace:
+    at:: path

@@ -6,17 +6,18 @@ docker:
 working_directory: ~/calva
 
 steps:
-- attach_workspace:
-    at: /tmp
+- !attach-workspace: /tmp
 
 - !cmd:
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
+
 - !cmd:
   - Apt install missing dependencies
   - sudo apt-key adv --keyserver keyserver.ubuntu.com
                      --recv-keys E88979FB9B30ACF2;
     sudo apt update && sudo apt install -y libnss3
+
 - !cmd:
   - Run VSIX E2E Tests
   - npm run e2e-test --
