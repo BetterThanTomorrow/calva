@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.442",
+  "version": "2.0.443",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -3328,7 +3328,8 @@
     "prettier-format-watch": "onchange \"./**/*.{ts,js,json}\" -- prettier --write {{changed}}",
     "preprettier-format-watch": "npm run prettier-format",
     "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
-    "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch"
+    "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch",
+    "install-ys": "curl -sS https://yamlscript.org/install | PREFIX=/tmp/yamlscript VERSION=0.1.56 bash"
   },
   "dependencies": {
     "@vscode/debugadapter": "^1.64.0",
