@@ -22,7 +22,7 @@ else
     -e 'this.version=this.version.replace(/$/,"-'"$PRERELEASE"'")'
 fi
 
-if [[ $TAG_VERSION == NO-TAG || $TAG_VERSION = "$VERSION" ]]; then
+if [[ $TAG_VERSION == NO-TAG || $TAG_VERSION == "$VERSION" ]]; then
   VERSION=$(node -p 'require("./package.json").version')
   echo "Using version: $VERSION"
 
