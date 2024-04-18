@@ -8,13 +8,16 @@ working_directory: ~/calva
 steps:
 - attach_workspace:
     at: /tmp
+
 - checkout:
     path: ~/calva
+
 - restore_cache:
     name: Restore dependencies
     key: ts-{{ checksum "package.json" }}-cljs-{{
                checksum "shadow-cljs.edn" }}-grammar-{{
                checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+
 - !cmd:
   - Install node_modules
   - cp package.json /tmp && npm install && cp /tmp/package.json .
@@ -23,8 +26,8 @@ steps:
   - mkdir /tmp/build
 - !cmd:
   - Copy build
-  - |
-    cp -r . /tmp/build
+  - cp -r . /tmp/build
+
 - save_cache:
     name: Save dependencies
     key: ts-{{ checksum "package.json" }}-cljs-{{
@@ -32,6 +35,7 @@ steps:
                checksum "src/calva-fmt/atom-language-clojure/package.json" }}
     paths:
     - ./node_modules
+
 - persist_to_workspace:
     root: /tmp
     paths:

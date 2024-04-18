@@ -14,23 +14,27 @@ steps:
   - rmdir ~/calva && cp -r /tmp/build ~/calva
 - !cmd:
   - Apt install missing dependencies
-  - |
-    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2
+  - sudo apt-key adv --keyserver keyserver.ubuntu.com
+                     --recv-keys E88979FB9B30ACF2;
     sudo apt update && sudo apt install -y libnss3
 - !cmd:
   - Run VSIX E2E Tests
   - npm run e2e-test --
-      --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix
+      --calva-vsix=/tmp/artifacts/calva-$(
+          node -p 'require("./package.json").version'
+        ).vsix
       --test-workspace=src/extension-test/e2e-test
+
 - run:
     name: Temporary debug preserving of VS Code network log
     command:
-      for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log ;
-        do echo "$f";
+      for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log; do
+        echo "$f";
         echo ---;
         cat "$f";
-        echo --- ;
+        echo ---;
       done
     when: always
+
 - store_test_results:
     path: ~/calva/junit

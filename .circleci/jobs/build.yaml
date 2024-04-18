@@ -8,6 +8,7 @@ working_directory: ~/calva
 steps:
 - attach_workspace:
     at: /tmp
+
 - !cmd:
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
@@ -24,13 +25,12 @@ steps:
   - Package vsix
 - !cmd:
   - Copy vsix
-  - |
-    cp *.vsix /tmp/artifacts/
+  - cp *.vsix /tmp/artifacts/
 - !cmd:
   - Copy build
-  - |
-    cp -r out /tmp/build
-    cp  package.json /tmp/build
+  - cp -r out /tmp/build;
+    cp package.json /tmp/build
+
 - save_cache:
     name: Save dependencies
     key: ts-{{ checksum "package.json" }}-cljs-{{
@@ -39,8 +39,10 @@ steps:
     paths:
     - ./node_modules
     - ~/.m2
+
 - store_artifacts:
     path: /tmp/artifacts
+
 - persist_to_workspace:
     root: /tmp
     paths:

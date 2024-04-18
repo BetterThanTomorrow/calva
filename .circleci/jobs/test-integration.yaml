@@ -8,6 +8,7 @@ working_directory: ~/calva
 steps:
 - attach_workspace:
     at: /tmp
+
 - !cmd:
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
@@ -16,11 +17,12 @@ steps:
   - npm run compile-test
 - !cmd:
   - Apt install missing dependencies
-  - |
-    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2
+  - sudo apt-key adv --keyserver keyserver.ubuntu.com
+                     --recv-keys E88979FB9B30ACF2;
     sudo apt update && sudo apt install -y libnss3
 - !cmd:
   - Run Extension Tests
   - npm run integration-test
+
 - store_test_results:
     path: ~/calva/junit

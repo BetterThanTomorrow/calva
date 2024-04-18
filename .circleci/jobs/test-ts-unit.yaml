@@ -8,11 +8,13 @@ working_directory: ~/calva
 steps:
 - attach_workspace:
     at: /tmp
+
 - !cmd:
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
 - !cmd:
   - Run TS Unit Tests
   - npm run unit-test
+
 - store_test_results:
     path: ~/calva/junit

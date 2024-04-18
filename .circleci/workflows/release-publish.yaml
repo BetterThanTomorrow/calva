@@ -5,6 +5,7 @@ jobs:
         ignore: /.*/
       tags:
         only: /^v\d+\.\d+\.\d+-?.*/
+
 - build:
     requires:
     - checkout
@@ -13,6 +14,7 @@ jobs:
         ignore: /.*/
       tags:
         only: /^v\d+\.\d+\.\d+-?.*/
+
 - prettier-check:
     requires:
     - build
@@ -21,6 +23,7 @@ jobs:
         ignore: /.*/
       tags:
         only: /^v\d+\.\d+\.\d+-?.*/
+
 - eslint-check:
     requires:
     - build
@@ -29,6 +32,7 @@ jobs:
         ignore: /.*/
       tags:
         only: /^v\d+\.\d+\.\d+-?.*/
+
 - test-grammar:
     requires:
     - build
@@ -77,6 +81,7 @@ jobs:
         ignore: /.*/
       tags:
         only: /^v\d+\.\d+\.\d+-?.*/
+
 - github-release:
     requires:
     - prettier-check
@@ -93,6 +98,7 @@ jobs:
       tags:
         only: /^v\d+\.\d+\.\d+-?.*/
     context: Calva
+
 - marketplace-publish:
     requires:
     - github-release
@@ -111,6 +117,7 @@ jobs:
       tags:
         only: /^v\d+\.\d+\.\d+$/
     context: Calva
+
 - merge-dev-into-published:
     requires:
     - marketplace-publish
@@ -120,6 +127,7 @@ jobs:
       tags:
         only: /^v\d+\.\d+\.\d+$/
     context: Calva
+
 - bump-dev-version:
     requires:
     - merge-dev-into-published

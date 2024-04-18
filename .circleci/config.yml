@@ -22,8 +22,7 @@ jobs:
         command: mkdir /tmp/build
     - run:
         name: Copy build
-        command: |
-          cp -r . /tmp/build
+        command: cp -r . /tmp/build
     - save_cache:
         name: Save dependencies
         key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
@@ -99,13 +98,10 @@ jobs:
           npx "${PACKAGE_CMD[@]}"
     - run:
         name: Copy vsix
-        command: |
-          cp *.vsix /tmp/artifacts/
+        command: cp *.vsix /tmp/artifacts/
     - run:
         name: Copy build
-        command: |
-          cp -r out /tmp/build
-          cp  package.json /tmp/build
+        command: cp -r out /tmp/build; cp package.json /tmp/build
     - save_cache:
         name: Save dependencies
         key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
@@ -138,9 +134,7 @@ jobs:
         background: true
     - run:
         name: Run package tests
-        command: |
-          cd src/calva-fmt/atom-language-clojure
-          ./run-grammar-tests.sh
+        command: cd src/calva-fmt/atom-language-clojure; ./run-grammar-tests.sh
     - save_cache:
         name: Save dependencies
         key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
@@ -218,9 +212,7 @@ jobs:
         command: npm run compile-test
     - run:
         name: Apt install missing dependencies
-        command: |
-          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2
-          sudo apt update && sudo apt install -y libnss3
+        command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3
     - run:
         name: Run Extension Tests
         command: npm run integration-test
@@ -238,15 +230,13 @@ jobs:
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
     - run:
         name: Apt install missing dependencies
-        command: |
-          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2
-          sudo apt update && sudo apt install -y libnss3
+        command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3
     - run:
         name: Run VSIX E2E Tests
-        command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=src/extension-test/e2e-test
+        command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$( node -p 'require("./package.json").version' ).vsix --test-workspace=src/extension-test/e2e-test
     - run:
         name: Temporary debug preserving of VS Code network log
-        command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log ; do echo "$f"; echo ---; cat "$f"; echo --- ; done
+        command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log; do echo "$f"; echo ---; cat "$f"; echo ---; done
         when: always
     - store_test_results:
         path: ~/calva/junit
@@ -262,15 +252,13 @@ jobs:
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
     - run:
         name: Apt install missing dependencies
-        command: |
-          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2
-          sudo apt update && sudo apt install -y libnss3
+        command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3
     - run:
         name: Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
-        command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=test-data/projects/e2e-sub-projects
+        command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$( node -p 'require("./package.json").version' ).vsix --test-workspace=test-data/projects/e2e-sub-projects
     - run:
         name: Temporary debug preserving of VS Code network log
-        command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log ; do echo "$f"; echo ---; cat "$f"; echo --- ; done
+        command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log; do echo "$f"; echo ---; cat "$f"; echo ---; done
         when: always
     - store_test_results:
         path: ~/calva/junit
@@ -448,18 +436,13 @@ jobs:
         command: sudo apt-get update
     - run:
         name: Install mkdocs-materials dependencies
-        command: |
-          sudo apt-get install libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
+        command: sudo apt-get install libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
     - run:
         name: Install mkdocs and mkdocs-materials
-        command: |
-          pip install -r requirements.txt
+        command: pip install -r requirements.txt
     - run:
         name: Deploy docs
-        command: |
-          git checkout published
-          # mkdocs gh-deploy --config-file mkdocs.yml --message "[skip ci]" --strict --clean
-          mkdocs gh-deploy --config-file mkdocs.yml --message "[skip ci]" --clean
+        command: git checkout published; mkdocs gh-deploy --config-file mkdocs.yml --message "[skip ci]" --clean
   bump-dev-version:
     docker:
     - image: cimg/node:15.8

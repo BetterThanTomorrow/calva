@@ -7,5 +7,7 @@ steps:
 - add_ssh_keys:
     fingerprints:
     - d1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14
+
 - checkout
+
 - !bin: Merge published into dev
