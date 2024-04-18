@@ -337,12 +337,17 @@ jobs:
     - run:
         name: Publish to the marketplace
         command: |
-          VSCE_CMD="vsce publish --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
-          if [ "${IS_LOCAL}" = YES ]
-          then
-            echo "Dry npx ${VSCE_CMD}"
+          VSCE_CMD=(
+            vsce publish --packagePath "/tmp/artifacts/calva-$(
+              node -p 'require("./package.json").version'
+            ).vsix" -p "$PUBLISH_TOKEN"
+          )
+
+          if [[ $IS_LOCAL == YES ]]; then
+            echo "Dry npx ${VSCE_CMD[*]}"
+
           else
-            npx ${VSCE_CMD}
+            npx "${VSCE_CMD[@]}"
           fi
   marketplace-preview-publish:
     docker:
@@ -357,12 +362,17 @@ jobs:
     - run:
         name: Publish to the marketplace
         command: |
-          VSCE_CMD="vsce publish --pre-release --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
-          if [ "${IS_LOCAL}" = YES ]
-          then
-            echo "Dry npx ${VSCE_CMD}"
+          VSCE_CMD=(
+            vsce publish --pre-release --packagePath "/tmp/artifacts/calva-$(
+              node -p 'require("./package.json").version'
+            ).vsixi" -p "$PUBLISH_TOKEN"
+          )
+
+          if [[ $IS_LOCAL == YES ]]; then
+            echo "Dry npx ${VSCE_CMD[*]}"
+
           else
-            npx ${VSCE_CMD}
+            npx "${VSCE_CMD[@]}"
           fi
   open-vsx-publish:
     docker:
@@ -377,12 +387,17 @@ jobs:
     - run:
         name: Publish to Open VSX
         command: |
-          OVSX_CMD="ovsx publish /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --pat ${OVSX_PUBLISH_TOKEN}"
-          if [ "${IS_LOCAL}" = YES ]
-          then
-            echo "Dry npx ${OVSX_CMD}"
+          OVSX_CMD=(
+            ovsx publish "/tmp/artifacts/calva-$(
+              node -p 'require("./package.json").version'
+            ).vsix" --pat "$OVSX_PUBLISH_TOKEN"
+          )
+
+          if [[ $IS_LOCAL == YES ]]; then
+            echo "Dry npx ${OVSX_CMD[*]}"
+
           else
-            npx ${OVSX_CMD}
+            npx "${OVSX_CMD[@]}"
           fi
   merge-dev-into-published:
     docker:
@@ -395,8 +410,8 @@ jobs:
     - run:
         name: Merge dev into published
         command: |
-          git config --global user.email $GITHUB_USER_EMAIL
-          git config --global user.name $GITHUB_USER_NAME
+          git config --global user.email "$GITHUB_USER_EMAIL"
+          git config --global user.name "$GITHUB_USER_NAME"
           git checkout published
           git pull
           git merge origin/dev --no-ff -m "Merge branch dev into published"
@@ -412,8 +427,8 @@ jobs:
     - run:
         name: Merge published into dev
         command: |
-          git config --global user.email $GITHUB_USER_EMAIL
-          git config --global user.name $GITHUB_USER_NAME
+          git config --global user.email "$GITHUB_USER_EMAIL"
+          git config --global user.name "$GITHUB_USER_NAME"
           git checkout dev
           git pull
           git merge origin/published --no-ff -m "Merge branch published into dev [skip ci]"
