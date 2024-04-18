@@ -41,6 +41,7 @@ jobs:
         ignore: /.*/
       tags:
         only: /^v\d+\.\d+\.\d+-?.*/
+
 - test-cljslib:
     requires:
     - build
@@ -49,6 +50,7 @@ jobs:
         ignore: /.*/
       tags:
         only: /^v\d+\.\d+\.\d+-?.*/
+
 - test-integration:
     requires:
     - build
@@ -57,6 +59,7 @@ jobs:
         ignore: /.*/
       tags:
         only: /^v\d+\.\d+\.\d+-?.*/
+
 - test-e2e:
     requires:
     - build
@@ -65,6 +68,7 @@ jobs:
         ignore: /.*/
       tags:
         only: /^v\d+\.\d+\.\d+-?.*/
+
 - test-e2e-sub-projects:
     requires:
     - build
@@ -73,6 +77,7 @@ jobs:
         ignore: /.*/
       tags:
         only: /^v\d+\.\d+\.\d+-?.*/
+
 - test-ts-unit:
     requires:
     - build
@@ -108,6 +113,7 @@ jobs:
       tags:
         only: /^v\d+\.\d+\.\d+$/
     context: Calva
+
 - open-vsx-publish:
     requires:
     - github-release

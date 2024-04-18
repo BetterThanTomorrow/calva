@@ -23,15 +23,19 @@ jobs:
 - test-cljslib:
     requires:
     - build
+
 - test-integration:
     requires:
     - build
+
 - test-e2e:
     requires:
     - build
+
 - test-e2e-sub-projects:
     requires:
     - build
+
 - test-ts-unit:
     requires:
     - build
