@@ -15,6 +15,8 @@
   # Import the 'lib/helpers.ys' library:
   use: 'helpers'
 
+  ssh-fingerprint-1 =: 'd1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14'
+
   # These names act as mapping keys and also the names of files to load that
   # contain the associated definition:
   job-names =::

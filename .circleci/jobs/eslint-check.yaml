@@ -11,6 +11,7 @@ steps:
 - !cmd:
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
+
 - !cmd:
   - Run eslint check
   - npm run eslint

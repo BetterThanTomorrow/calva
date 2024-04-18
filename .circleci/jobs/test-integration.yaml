@@ -26,5 +26,5 @@ steps:
   - Run Extension Tests
   - npm run integration-test
 
-- store_test_results:
-    path: ~/calva/junit
+- !store:
+    test_results: ~/calva/junit

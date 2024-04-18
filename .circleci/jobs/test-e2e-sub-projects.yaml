@@ -37,5 +37,5 @@ steps:
       done
     when: always
 
-- store_test_results:
-    path: ~/calva/junit
+- !store:
+    test_results: ~/calva/junit

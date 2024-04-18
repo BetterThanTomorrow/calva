@@ -21,6 +21,19 @@ defn docker(image)::
   docker:
     image:: image
 
+defn add-ssh(fingerprint)::
+  add_ssh_keys:
+    fingerprints:
+    - ! fingerprint.symbol()
+        .resolve().var-get()
+
 defn attach-workspace(path)::
   attach_workspace:
     at:: path
+
+defn store(pair):
+  type =: pair.keys().0
+  path =: pair.vals().0
+  =>::
+    ! "store_$type":
+      path:: path

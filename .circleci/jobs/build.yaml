@@ -24,8 +24,7 @@ steps:
   - Tamper Calva version if not release versioned
   - tamper-calva-version
 
-- !bin*:
-  - Package vsix
+- !bin: Package vsix
 
 - !cmd:
   - Copy vsix
@@ -45,8 +44,8 @@ steps:
     - ./node_modules
     - ~/.m2
 
-- store_artifacts:
-    path: /tmp/artifacts
+- !store:
+    artifacts: /tmp/artifacts
 
 - persist_to_workspace:
     root: /tmp
