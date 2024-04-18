@@ -1,6 +1,6 @@
 SHELL := bash
 
-YS_VERSION := 0.1.55
+YS_VERSION := 0.1.56
 YS_PREFIX := /tmp/yamlscript
 YS_BIN := $(YS_PREFIX)/bin
 YS_CLI := $(YS_BIN)/ys

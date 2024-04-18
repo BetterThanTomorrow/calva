@@ -1,26 +1,31 @@
+!yamlscript/v0/
+
 docker:
 - image: cimg/python:3.8-node
+
 environment:
   MKDOCS_ENV: production
+
 steps:
-- add_ssh_keys:
-    fingerprints:
-    - d1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14
+- !add-ssh: ssh-fingerprint-1
+
 - checkout
-- run:
-    name: Update system package lists
-    command: sudo apt-get update
-- run:
-    name: Install mkdocs-materials dependencies
-    command: |
-      sudo apt-get install libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
-- run:
-    name: Install mkdocs and mkdocs-materials
-    command: |
-      pip install -r requirements.txt
-- run:
-    name: Deploy docs
-    command: |
-      git checkout published
-      # mkdocs gh-deploy --config-file mkdocs.yml --message "[skip ci]" --strict --clean
-      mkdocs gh-deploy --config-file mkdocs.yml --message "[skip ci]" --clean
+
+- !cmd:
+  - Update system package lists
+  - sudo apt-get update
+
+- !cmd:
+  - Install mkdocs-materials dependencies
+  - sudo apt-get install libcairo2-dev libfreetype6-dev
+                 libffi-dev libjpeg-dev libpng-dev libz-dev
+
+- !cmd:
+  - Install mkdocs and mkdocs-materials
+  - pip install -r requirements.txt
+
+- !cmd:
+  - Deploy docs
+  - git checkout published;
+    mkdocs gh-deploy --config-file mkdocs.yml
+                     --message "[skip ci]" --clean

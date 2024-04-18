@@ -1,26 +1,34 @@
+!yamlscript/v0/
+
 docker:
 - image: cimg/openjdk:17.0.1-node
+
 working_directory: ~/calva
+
 steps:
-- attach_workspace:
-    at: /tmp
+- !attach-workspace: /tmp
+
 - checkout:
     path: ~/calva
+
 - restore_cache:
     name: Restore dependencies
     key: ts-{{ checksum "package.json" }}-cljs-{{
                checksum "shadow-cljs.edn" }}-grammar-{{
                checksum "src/calva-fmt/atom-language-clojure/package.json" }}
-- run:
-    name: Install node_modules
-    command: cp package.json /tmp && npm install && cp /tmp/package.json .
-- run:
-    name: Create build workspace
-    command: mkdir /tmp/build
-- run:
-    name: Copy build
-    command: |
-      cp -r . /tmp/build
+
+- !cmd:
+  - Install node_modules
+  - cp package.json /tmp && npm install && cp /tmp/package.json .
+
+- !cmd:
+  - Create build workspace
+  - mkdir /tmp/build
+
+- !cmd:
+  - Copy build
+  - cp -r . /tmp/build
+
 - save_cache:
     name: Save dependencies
     key: ts-{{ checksum "package.json" }}-cljs-{{
@@ -28,6 +36,7 @@ steps:
                checksum "src/calva-fmt/atom-language-clojure/package.json" }}
     paths:
     - ./node_modules
+
 - persist_to_workspace:
     root: /tmp
     paths:

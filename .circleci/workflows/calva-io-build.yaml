@@ -4,6 +4,7 @@ jobs:
       branches:
         only: published
     context: Calva
+
 - merge-published-into-dev:
     filters:
       branches:

@@ -1,32 +1,41 @@
+!yamlscript/v0/
+
 docker:
 - image: cimg/clojure:1.11-browsers
+
 working_directory: ~/calva
+
 steps:
-- attach_workspace:
-    at: /tmp
-- run:
-    name: Restore build
-    command: rmdir ~/calva && cp -r /tmp/build ~/calva
-- run:
-    name: Apt install missing dependencies
-    command: |
-      sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2
-      sudo apt update && sudo apt install -y libnss3
-- run:
-    name: Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
-    command:
-      npm run e2e-test --
-          --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix
-          --test-workspace=test-data/projects/e2e-sub-projects
+- !attach-workspace: /tmp
+
+- !cmd:
+  - Restore build
+  - rmdir ~/calva && cp -r /tmp/build ~/calva
+
+- !cmd:
+  - Apt install missing dependencies
+  - sudo apt-key adv --keyserver keyserver.ubuntu.com
+                     --recv-keys E88979FB9B30ACF2;
+    sudo apt update && sudo apt install -y libnss3
+
+- !cmd:
+  - Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
+  - npm run e2e-test --
+      --calva-vsix=/tmp/artifacts/calva-$(
+          node -p 'require("./package.json").version'
+        ).vsix
+      --test-workspace=test-data/projects/e2e-sub-projects
+
 - run:
     name: Temporary debug preserving of VS Code network log
     command:
-      for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log ;
-        do echo "$f";
+      for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log; do
+        echo "$f";
         echo ---;
         cat "$f";
-        echo --- ;
+        echo ---;
       done
     when: always
-- store_test_results:
-    path: ~/calva/junit
+
+- !store:
+    test_results: ~/calva/junit

@@ -1,15 +1,21 @@
+!yamlscript/v0/
+
 working_directory: ~/calva
+
 environment:
   # Required:
   DISPLAY: :99
+
 docker:
 - image: arcanemagus/atom-docker-ci
+
 steps:
-- attach_workspace:
-    at: /tmp
-- run:
-    name: Restore build
-    command: rmdir ~/calva && cp -r /tmp/build ~/calva
+- !attach-workspace: /tmp
+
+- !cmd:
+  - Restore build
+  - rmdir ~/calva && cp -r /tmp/build ~/calva
+
 - run:
     name: Start display server for Atom
     command:
@@ -20,11 +26,12 @@ steps:
           --
           :99 -ac -screen 0 1024x768x16 +extension RANDR
     background: true
-- run:
-    name: Run package tests
-    command: |
-      cd src/calva-fmt/atom-language-clojure
-      ./run-grammar-tests.sh
+
+- !cmd:
+  - Run package tests
+  - cd src/calva-fmt/atom-language-clojure;
+    ./run-grammar-tests.sh
+
 - save_cache:
     name: Save dependencies
     key: ts-{{ checksum "package.json" }}-cljs-{{
