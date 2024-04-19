@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make the inspector item context commands work on the selected item when not invoked via the buttons](https://github.com/BetterThanTomorrow/calva/issues/2519)
+
 ## [2.0.443] - 2024-04-18
 
 - Fix: [Replace Current Form seems to stop working from v2.0.428 onwards](https://github.com/BetterThanTomorrow/calva/issues/2512)

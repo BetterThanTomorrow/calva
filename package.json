@@ -2117,29 +2117,26 @@
       {
         "category": "Calva",
         "command": "calva.clearInspector",
-        "title": "Clear All",
+        "title": "Clear All Inspector Items",
         "icon": "$(close-all)"
       },
       {
         "category": "Calva",
         "command": "calva.clearInspectorItem",
-        "title": "Clear",
-        "icon": "$(close)",
-        "enablement": "view == calva.inspector && viewItem =~ /inspectable|raw/"
+        "title": "Clear Inspector Item",
+        "icon": "$(close)"
       },
       {
         "category": "Calva",
         "command": "calva.copyInspectorItem",
-        "title": "Copy",
-        "icon": "$(copy)",
-        "enablement": "view == calva.inspector"
+        "title": "Copy Inspector Item",
+        "icon": "$(copy)"
       },
       {
         "category": "Calva",
         "command": "calva.inspectItem",
         "title": "Inspect Item",
-        "icon": "$(inspect)",
-        "enablement": "view == calva.inspector && viewItem == raw"
+        "icon": "$(inspect)"
       },
       {
         "category": "Calva",

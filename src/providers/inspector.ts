@@ -26,6 +26,10 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
     return element ? element.parent : null;
   }
 
+  public getTopMostItem(): InspectorItem | undefined {
+    return this.treeData[0];
+  }
+
   getChildren(element?: InspectorItem): vscode.ProviderResult<InspectorItem[]> {
     if (element) {
       const children = Array.isArray(element.children)

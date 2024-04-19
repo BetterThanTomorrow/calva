@@ -325,24 +325,33 @@ async function activate(context: vscode.ExtensionContext) {
         resolve(true);
       });
     },
-    clearInspector: () => {
-      inspectorDataProvider.clearInspector.bind(inspectorDataProvider)();
-    },
-    clearInspectorItem: (arg) => {
-      inspectorDataProvider.clearInspector.bind(inspectorDataProvider)(arg);
-    },
-    copyInspectorItem: inspector.copyItemValue,
     pasteAsInspectorItem: () => {
       inspector.pasteFromClipboard.bind(inspectorDataProvider)();
     },
-    addToInspector: (arg) => {
+    addToInspector: (arg: any) => {
       inspector.addToInspector.bind(inspectorDataProvider)(arg);
     },
-    inspectItem: (item) => {
-      inspector.createTreeStructure.bind(inspectorDataProvider)(item);
+    clearInspector: () => {
+      inspectorDataProvider.clearInspector.bind(inspectorDataProvider)();
     },
-    revealInspector: () => {
-      void inspectorTreeView.reveal(undefined, { focus: false, select: false });
+    clearInspectorItem: (item) => {
+      const selectedItem =
+        item || inspectorTreeView.selection[0] || inspectorDataProvider.getTopMostItem();
+      inspectorDataProvider.clearInspector.bind(inspectorDataProvider)(selectedItem);
+    },
+    copyInspectorItem: (item) => {
+      const selectedItem =
+        item || inspectorTreeView.selection[0] || inspectorDataProvider.getTopMostItem();
+      return inspector.copyItemValue(selectedItem);
+    },
+    inspectItem: (item) => {
+      const selectedItem =
+        item || inspectorTreeView.selection[0] || inspectorDataProvider.getTopMostItem();
+      inspector.createTreeStructure.bind(inspectorDataProvider)(selectedItem);
+    },
+    revealInspector: ({ select = true, focus = false, expand = false } = {}) => {
+      const selectedItem = inspectorTreeView.selection[0] || inspectorDataProvider.getTopMostItem();
+      return inspectorTreeView.reveal(selectedItem, { select, focus, expand });
     },
   };
 
