@@ -1,10 +1,10 @@
-EXTRA_RELEASE_OPTIONS=''
+EXTRA_RELEASE_OPTIONS=()
 
 if [[ $CIRCLE_TAG =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
   echo "Publishing GitHub Release: $CIRCLE_TAG"
 else
   echo "Publishing GitHub Prerelease: $CIRCLE_TAG"
-  EXTRA_RELEASE_OPTIONS=-prerelease
+  EXTRA_RELEASE_OPTIONS=(-prerelease)
 fi
 
 [[ $CIRCLE_TAG =~ ^v([0-9]+\.[0-9]+\.[0-9]+) ]] || exit
@@ -28,7 +28,8 @@ else
   GHR_CMD=ghr
 fi
 
-${GHR_CMD} -t "$GITHUB_TOKEN" "$EXTRA_RELEASE_OPTIONS" \
+$GHR_CMD -t "$GITHUB_TOKEN" \
+  "${EXTRA_RELEASE_OPTIONS[@]}" \
   -u "$CIRCLE_PROJECT_USERNAME" \
   -r "$CIRCLE_PROJECT_REPONAME" \
   -b "$BODY" \
