@@ -1977,14 +1977,19 @@
 <p>Speaking of buttons. Items in the view have context commands that show up as buttons on hover. The <strong>Inspect Result Item</strong> button is one of them. All rows in the inspector have a <strong>Copy</strong> button, letting you copy the data at any folding level to the clipboard. All root items also have a <strong>Clear</strong> button for removing the item from the inspector.</p>
 <p>The view itself has two buttons, one for clearing all results and one for pasting whatever is on the clipboard as an inspector item.</p>
 <h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">#</a></h2>
-<p>There are four commands for the inspector:</p>
+<p>These are the commands available for the inspector:</p>
 <ul>
-<li><strong>Calva: Reveal Inspector</strong>. Reveals/shows the inspector. Default keybinding is <code>ctrl+alt+o i</code></li>
+<li><strong>Calva: Reveal Inspector</strong>. Reveals/shows the inspector without focusing it. Default keybinding is <code>ctrl+alt+o i</code></li>
+<li>This command, when used from keyboard shortcuts or <a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a>, has the command ID of <code>calva.revealInspector</code>, and takes an object argument: <code>{ focus: boolean, select: boolean, expand: boolean | number }</code>. <code>focus</code> lets you focus the inspector view (or not), <code>select</code> and <code>expand</code> lets you select or expand the current item which, like with several of the inspector commands, will be the already selected item, or the topmost item if none is selected. It is passed to the TreeView backing the inspector, see <a href="https://code.visualstudio.com/api/references/vscode-api#TreeView.reveal">the VS Code API docs regarding revealing tree view items</a> for details.</li>
 <li><strong>Calva: Add Selection or Current Form to Inspector</strong>. Adds the current form (without evaluating it) to the inspector. If there is text selected, the command will add that text instead. (Only the first selection, if there are multiple). There is no default keybinding for this command.</li>
-<li><strong>Calva: Clear Inspector</strong>. You can use the command or the button for this in the view. No default keybinding.</li>
+<li>This command has the ID of <code>calva.addToInspector</code>. The command takes an optional argument, a string to be added. This is meant for Joyride scripts that want to add things to the inspector.</li>
+<li><strong>Calva: Clear All Inspector Items</strong>. You can use the command or the button for this in the view. No default keybinding.</li>
 <li><strong>Calva: Paste as Inspector Item</strong>. Same as the view button. No default keybinding.</li>
+<li><strong>Calva: Inspect Item</strong>. Makes the selected item inspectable, expands it one level, selects it, and focuses the inspector. Works on the topmost item if none is selected. No default keybinding.</li>
+<li><strong>Calva: Copy Inspector Item</strong>. Copies the text of the selected inspector item, or the topmost item if none are selected. No default keybinding.</li>
+<li><strong>Calva: Clear Inspector Item</strong>. Clears the selected inspector item, or the topmost item if none are selected. No default keybinding.</li>
 </ul>
-<p>The command for adding the current form to the inspector has a command ID of <code>calva.addToInspector</code>. The command takes an optional argument, a string to be added. This is meant for <a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> scripts that want to add things to the inspector.</p>
+<p>The VS Code Shortcuts editor is a good tool for looking up command IDs and, duh, register custom shortcuts for these commands.</p>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
 <p>There is only one setting for the inspector: <code>calva.autoOpenInspector</code> controls wether the view is revealed as part of connecting the REPL to Calva. It defaults to <code>false</code>.</p>
 
