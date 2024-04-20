@@ -52,15 +52,39 @@ Bind it to the `;` key with a `when` clause that activates it together with the 
  },
 ```
 
-### Prevent Unbalanced Closing Brackets
-
-There is also a setting, `calva.paredit.strictPreventUnmatchedClosingBracket`, that will help you to not enter unbalanced closing brackets into the code.
-
 ## Commands
 
 The Paredit commands are sorted into **Navigation**, **Selection**, and **Edit**. As mentioned, **Slurp** and **Barf** are power commands, which go into the editing category. Learning to navigate structurally, using shortcuts, also saves time and adds precision to your editing. It has the double effect that you at the same time learn how to select structurally, because that is the same, just adding the shift key.
 
 To make the command descriptions a bit clearer, each entry is animated. When you try to figure out what is going on in the GIFs, focus on where the cursor is at the start of the animation loop.
+
+### Command Args
+
+Some Paredit commands accept arguments. You can utilize this in keybindings and from [Joyride](https://github.com/BetterThanTomorrow/joyride).
+
+#### **`copy` for all `kill*` commands**
+
+When specified, will control whether killed text will be copied to the clipboard.
+This is an alternative to, or supports binding-specific overrides for, `calva.paredit.killAlsoCutsToClipboard`.
+
+For example, here's 2 keybindings for `paredit.killRight` with different `copy` args, allowing you to choose when or if you want killed text copied at keypress-time, regardless of global `calva.paredit.killAlsoCutsToClipboard` setting:
+
+```json
+{
+  "key": "ctrl+k",
+  "command": "paredit.killRight",
+  "when": "... your when conditions ...",
+  "args": {"copy": false}
+},
+{
+  "key": "cmd+k ctrl+k",
+  "command": "paredit.killRight",
+  "when": "... your when conditions ...",
+  "args": {"copy": true}
+},
+```
+
+Or, you can even have both of them use the **same `key`**, but **separate `when` conditions** to taste, to allow context-conditional copying.
 
 ### Strings are not Lists, but Anyway...
 
@@ -163,7 +187,31 @@ There are some context keys you can utilize to configure keyboard shortcuts with
 
 *The Nuclear Option*: You can choose to disable all default key bindings by configuring `calva.paredit.defaultKeyMap` to `none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
 
-In some instances built-in command defaults are the same as Paredit's defaults, and Paredit's functionality in a particular case is less than what the default is. This is true of *Expand Selection* and *Shrink Selection* for Windows/Linux when multiple lines are selected. In this particular case adding `!editorHasMultipleSelections` to the `when` clause of the binding makes for a better workflow. The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right `when` clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.
+### When Clauses and VSCode Default Bindings
+
+There are instances where VSCode's built-in command binding defaults are the same as Paredit's, where Paredit's version has less functionality. For example, Calva's _Expand Selection_ and _Shrink Selection_ doesn't support multiple selections (though this may change in the future - see Multicursor section below). In this particular case, adding `!editorHasMultipleSelections` to the `when` clause of the binding makes up for this gap by letting the binding fall back to VSCode's native grow/shrink selection.
+
+For example, here's the JSON version of the keybindings settings demonstrating the above. Note this can also specified in the Keyboard Shortcuts UI:
+
+```json
+{
+  "key": "shift+alt+right",
+  "command": "paredit.sexpRangeExpansion",
+  "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
+}
+```
+
+to
+
+```json
+{
+  "key": "shift+alt+right",
+  "command": "paredit.sexpRangeExpansion",
+  "when": "!editorHasMultipleSelections && calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
+}
+```
+
+The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right `when` clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.
 
 Happy Editing! ❤️
 
@@ -174,3 +222,18 @@ There is an ongoing effort to support simultaneous multicursor editing with Pare
 - Movement
 - Selection (except for `Select Current Form` - coming soon!)
 - Rewrap
+
+### Toggling Multicursor per command
+
+The experimental multicursor-supported commands support an optional command arg - like `copy` for the `kill*` commands [mentioned above](#command-args) - to control whether multicursor is enabled for that command. This is an alternative to, or supports binding-specific overrides for, `calva.paredit.multicursor`.
+
+For example:
+
+```json
+{
+  "key": "ctrl+k",
+  "command": "paredit.sexpRangeExpansion",
+  "when": "... your when conditions ...",
+  "args": {"multicursor": false}
+}
+```

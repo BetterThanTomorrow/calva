@@ -44,10 +44,12 @@
 
 
 (defn pretty-print-js [s {:keys [maxLength, maxDepth, map-commas?] :as all-opts}]
-  (let [opts (into {} (remove (comp nil? val) (-> all-opts
-                                                  (dissoc :maxLength :maxDepth :printEngine :enabled)
-                                                  (merge {:max-length maxLength
-                                                          :max-depth maxDepth}))))
+  (let [opts (into {}
+                   (remove (comp nil? val)
+                           (-> all-opts
+                               (dissoc :maxLength :maxDepth :printEngine :enabled :map-commas?)
+                               (merge {:max-length maxLength
+                                       :max-depth maxDepth}))))
         opts (if (nil? map-commas?)
                opts
                (assoc opts :map {:comma? map-commas?}))]
@@ -59,6 +61,7 @@
 
 ;; SCRAP
 (comment
+  (pretty-print-js-bridge "a s" #js {:enabled true :map-commas? true})
   (zprint/zprint-file-str "{:a 1, :b 2 :c 3} {:a 1, :b 2 :c 3}" "id" {:map {:comma? false}})
   (zprint/zprint-file-str "a s" "id" {})
   (zprint/zprint-str "a s" {:parse-string? true})

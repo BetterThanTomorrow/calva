@@ -33,7 +33,7 @@ Set either of these to `null` to disable the feature for that REPL type. (The Se
     If you configure this both in User/global settings and in a Workspace, the workspace configured code will be concatenated on the user level code. Meaning both code snippets will be evaluated, first the User level code, then the Workspace level code. Also `null` disables the feature:
 
     - If you use `null` in the User level code, you will disable the onConnect code evaluation for all workspaces that do not configure code for this.
-    - If you configure code on the User level it will be evaluated in all workspaces, except those that disable the feature by configuring `null`. 
+    - If you configure code on the User level it will be evaluated in all workspaces, except those that disable the feature by configuring `null`.
 
 ## Auto-evaluate Code at file/namespace load/evaluation
 
@@ -51,7 +51,7 @@ With the setting `calva.autoConnectRepl` you can make Calva automatically connec
 
 With this and the below mentioned auto-select options you can make connect a prompt-less experience. See: [Connect Sequences](connect-sequences.md).
 
-#### Options for the Connect Command 
+#### Options for the Connect Command
 
 The `calva.connect` command takes an optional options argument defined like so:
 
@@ -94,11 +94,34 @@ There are also these settings:
 * `calva.myLeinProfiles`: An array of Leiningen profiles not found in `project.clj`. Use this to tell Calva Jack-in to launch your REPL using your user defined profiles.
 * `calva.openBrowserWhenFigwheelStarted`: _For Legacy Figwheel only._ A boolean controlling if Calva should automatically launch your ClojureScript app, once it is compiled by Figwheel. Defaults to `true`.
 * `calva.depsEdnJackInExecutable`: A string which should either be `clojure` or `deps.clj`, or `clojure or deps.clj` (default). It determines which executable Calva Jack-in should use for starting a `deps.edn` project. With this setting at its default, `clojure or deps.clj`, Calva will test if the `clojure` executable works, and use it if it does, otherwise `deps.clj` will be used, which is bundled with Calva.
+* `calva.jackInDependencyVersions`: See [below](#jack-in-dependency-versions)
 
 !!! Note
     When processing the `calva.jackInEnv` setting you can refer to existing ENV variables with `${env:VARIABLE}`.
 
-### Options for the Jack-in Command 
+### Jack-in Dependency Versions
+
+[Calva Jack-in](jack-in-guide.md) injects the following dependencies in order for the REPL session to support IDE features
+
+- [nrepl](https://github.com/nrepl/nrepl): nREPL is the wonderful piece of software that gives Calva a structured and extensible connection to the REPL in your Clojure and ClojureScript projects.
+- [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl): cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.
+- [cider/piggieback](https://github.com/nrepl/piggieback): Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with [shadow-cljs](http://shadow-cljs.org) projects though, which provides its own middleware for this.)
+
+The versions used are configurable via the VS Code settings `calva.jackInDependencyVersions`.
+
+!!! Note "Java 1.8 compatible versions"
+    The default dependency versions are not compatible with Java 1.8. If your project needs that version of Java you can use these settings in your Workspace `.vscode/settings.json`:
+
+    ```json
+    "calva.jackInDependencyVersions": {
+      "nrepl": "1.0.0",
+      "cider-nrepl": "0.28.5",
+      "cider/piggieback": "0.5.3"
+    }
+    ```
+
+
+### Options for the Jack-in Command
 
 The `calva.jackIn` command takes an optional options argument defined like so:
 
@@ -132,7 +155,7 @@ A Joyride command for starting a `deps.edn` REPL for a project in the root of th
                              :projectRootPath ["."]}}))
 ```
 
-It will prompt for any aliases it finds in the `deps.edn` file.    
+It will prompt for any aliases it finds in the `deps.edn` file.
 
 ## Starting the REPL from application code?
 
@@ -144,7 +167,7 @@ You can make both Jack-in and Connect stop prompting you for project type and pr
 
 ## Project roots search globing
 
-When searching for project roots in your workspace, Calva will glob for all files matching `project.clj`, `deps.edn`, or `shadow-cljs.edn`. This is done using VS Code's workspace search engine, and is very efficient. However, in a large monorepo, it is still a substantial task. In order to not waste resources Calva will exclude any directories in the setting `calva.projectRootsSearchExclude`. 
+When searching for project roots in your workspace, Calva will glob for all files matching `project.clj`, `deps.edn`, or `shadow-cljs.edn`. This is done using VS Code's workspace search engine, and is very efficient. However, in a large monorepo, it is still a substantial task. In order to not waste resources Calva will exclude any directories in the setting `calva.projectRootsSearchExclude`.
 
 ![calva.projectRootsSearchExclude setting](images/calva-project-roots-search-exclude.png)
 

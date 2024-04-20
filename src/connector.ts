@@ -30,6 +30,7 @@ import { addEdnConfig, getConfig } from './config';
 import { getJarContents } from './utilities';
 import { ConnectType } from './nrepl/connect-types';
 import * as output from './results-output/output';
+import * as inspector from './providers/inspector';
 
 async function readJarContent(uri: string) {
   try {
@@ -740,6 +741,7 @@ async function standaloneConnect(
   port?: string
 ) {
   await outputWindow.initResultsDoc();
+  inspector.revealOnConnect();
   await outputWindow.openResultsDoc();
 
   if (connectSequence) {
@@ -779,6 +781,7 @@ export default {
       ConnectType.Connect,
       undefined
     );
+    inspector.revealOnConnect();
     await outputWindow.initResultsDoc();
     await outputWindow.openResultsDoc();
 

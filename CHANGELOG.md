@@ -2,8 +2,49 @@
 
 Changes to Calva.
 
-
 ## [Unreleased]
+
+## [2.0.444] - 2024-04-19
+
+- [Make the inspector item context commands work on the selected item when not invoked via the buttons](https://github.com/BetterThanTomorrow/calva/issues/2519)
+
+## [2.0.443] - 2024-04-18
+
+- Fix: [Replace Current Form seems to stop working from v2.0.428 onwards](https://github.com/BetterThanTomorrow/calva/issues/2512)
+
+## [2.0.442] - 2024-04-17
+
+- Fix: [Extra empty lines printed between lines of stderr from out-of-band nrepl messages](https://github.com/BetterThanTomorrow/calva/issues/2514)
+- [Add source info in tooltip of inspector items](https://github.com/BetterThanTomorrow/calva/issues/2516)
+
+## [2.0.441] - 2024-04-17
+
+- Refactor naming of inspector items (mostly internal, but also renames some command ids)
+
+## [2.0.440] - 2024-04-17
+
+- [Make exploring complex results convenient - inspiration: the CIDER Inspector](https://github.com/BetterThanTomorrow/calva/issues/1717)
+- [Support command binding args to toggle multicursor per command or toggle copy per kill command. Closes #2485](https://github.com/BetterThanTomorrow/calva/issues/2485)
+
+## [2.0.439] - 2024-04-11
+
+- Fix: [Refresh Changed Namespaces do not output to the selected output destination](https://github.com/BetterThanTomorrow/calva/issues/2506)
+
+## [2.0.438] - 2024-04-11
+
+- Fix regression: [Version `2.0.437` introduces a jarring, and wrongful, reindent when typing closing brackets](https://github.com/BetterThanTomorrow/calva/issues/2509)
+
+## [2.0.437] - 2024-04-11
+
+- Retire experimental setting for strict prevent unmatched closing bracket. Close: [Unexpected cursor movement when using 'Strict Prevent Unmatched Closing Brackets'](https://github.com/BetterThanTomorrow/calva/issues/2500)
+- [Update default Jack-in nrepl dependencies](https://github.com/BetterThanTomorrow/calva/issues/2503), nrepl 1.1.1, cider-nrepl 0.47.1
+- Fix: [Throws error when debugging atoms](https://github.com/BetterThanTomorrow/calva/issues/2501)
+
+## [2.0.436] - 2024-04-08
+
+- [Make the debugger present structural variables as traversable structures](https://github.com/BetterThanTomorrow/calva/issues/2494)
+- Fix: [The Clojure lexer fails on readertags with underscores in them](https://github.com/BetterThanTomorrow/calva/issues/2497)
+- Fix: [Regression caused by #2409 for notebooks with uninitialized namespaces](https://github.com/BetterThanTomorrow/calva/issues/2498)
 
 ## [2.0.435] - 2024-04-03
 
@@ -17,7 +58,7 @@ Changes to Calva.
 
 - [Implement experimental support for multicursor rewrap commands](https://github.com/BetterThanTomorrow/calva/issues/2448). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2473](https://github.com/BetterThanTomorrow/calva/issues/2473)
 - [Add a separator line between evaluation outputs to the Output terminal](https://github.com/BetterThanTomorrow/calva/issues/2483)
-- [Implement experimental support for multicursor selectCurrentForm command](https://github.com/BetterThanTomorrow/calva/issues/2476). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2476](https://github.com/BetterThanTomorrow/calva/issues/2476) 
+- [Implement experimental support for multicursor selectCurrentForm command](https://github.com/BetterThanTomorrow/calva/issues/2476). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2476](https://github.com/BetterThanTomorrow/calva/issues/2476)
 
 ## [2.0.432] - 2024-03-26
 
@@ -104,7 +145,7 @@ Changes to Calva.
 
 ## [2.0.414] - 2024-02-24
 
-- [HTML->Hiccup: Add option to always keep classes as attributes if so desired](https://github.com/BetterThanTomorrow/calva/issues/2398) 
+- [HTML->Hiccup: Add option to always keep classes as attributes if so desired](https://github.com/BetterThanTomorrow/calva/issues/2398)
 - [Support clojure-lsp Project Tree feature](https://github.com/BetterThanTomorrow/calva/issues/2406)
 
 ## [2.0.413] - 2024-02-20

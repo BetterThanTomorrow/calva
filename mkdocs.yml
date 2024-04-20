@@ -58,18 +58,19 @@ nav:
     - syntax-highlighting.md
     - paredit.md
     - linting.md
-    - rich-comments.md
+    - repl-window.md
+    - output.md
+    - inspector.md
     - fiddle-files.md
     - refactoring.md
     - custom-commands.md
     - connect-sequences.md
     - notebooks.md
     - clojuredocs.md
-    - repl-window.md
-    - output.md
     - debugger.md
     - pprint.md
     - test-runner.md
+    - rich-comments.md
     - namespace-form-auto-creation.md
     - hiccup.md
   - Customizing Calva:

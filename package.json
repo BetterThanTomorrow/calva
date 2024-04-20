@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.436",
+  "version": "2.0.445",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -136,6 +136,7 @@
       "[clojure]": {
         "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
         "editor.autoClosingBrackets": "always",
+        "editor.autoClosingOvertype": "always",
         "editor.autoClosingQuotes": "always",
         "editor.formatOnType": true,
         "editor.autoIndent": "full",
@@ -491,8 +492,8 @@
               }
             },
             "default": {
-              "nrepl": "1.0.0",
-              "cider-nrepl": "0.28.5",
+              "nrepl": "1.1.1",
+              "cider-nrepl": "0.47.1",
               "cider/piggieback": "0.5.3"
             }
           },
@@ -864,6 +865,11 @@
             "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in.",
             "default": true
           },
+          "calva.autoOpenInspector": {
+            "type": "boolean",
+            "markdownDescription": "Automatically open/reveal the Calva Inspector on Jack-in or Connect.",
+            "default": false
+          },
           "calva.keybindingsEnabled": {
             "type": "boolean",
             "description": "Activate keybindings.",
@@ -1007,12 +1013,6 @@
             "type": "boolean",
             "markdownDescription": "When enabled, more VS Code built-in shortcuts are overridden with their ”corresponding” Paredit commands.",
             "default": true,
-            "scope": "window"
-          },
-          "calva.paredit.strictPreventUnmatchedClosingBracket": {
-            "type": "boolean",
-            "markdownDescription": "Experimental: Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
-            "default": false,
             "scope": "window"
           },
           "calva.paredit.killAlsoCutsToClipboard": {
@@ -2113,6 +2113,48 @@
         "command": "paredit.addRichComment",
         "title": "Add Rich Comment",
         "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.clearInspector",
+        "title": "Clear All Inspector Items",
+        "icon": "$(close-all)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.clearInspectorItem",
+        "title": "Clear Inspector Item",
+        "icon": "$(close)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.copyInspectorItem",
+        "title": "Copy Inspector Item",
+        "icon": "$(copy)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.inspectItem",
+        "title": "Inspect Item",
+        "icon": "$(inspect)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.pasteAsInspectorItem",
+        "title": "Paste as Inspector Item",
+        "shortTitle": "Paste",
+        "icon": "$(add)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.addToInspector",
+        "title": "Add Selection or Current Form to Inspector",
+        "icon": "$(inspect)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.revealInspector",
+        "title": "Reveal Inspector"
       }
     ],
     "keybindings": [
@@ -2680,6 +2722,11 @@
         "when": "calva:keybindingsEnabled && calva:connected && calva:outputWindowActive"
       },
       {
+        "command": "calva.revealInspector",
+        "key": "ctrl+alt+o i",
+        "when": "calva:keybindingsEnabled"
+      },
+      {
         "command": "calva.setOutputWindowNamespace",
         "key": "ctrl+alt+c n",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && !calva:outputWindowActive"
@@ -3169,6 +3216,44 @@
           "command": "calva.copyHtmlAsHiccup",
           "group": "0-calva"
         }
+      ],
+      "view/title": [
+        {
+          "command": "calva.pasteAsInspectorItem",
+          "when": "view == calva.inspector",
+          "group": "navigation@1"
+        },
+        {
+          "command": "calva.clearInspector",
+          "when": "view == calva.inspector",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "calva.copyInspectorItem",
+          "when": "view == calva.inspector",
+          "group": "inline@1"
+        },
+        {
+          "command": "calva.inspectItem",
+          "when": "view == calva.inspector && viewItem == raw",
+          "group": "inline@3"
+        },
+        {
+          "command": "calva.clearInspectorItem",
+          "when": "view == calva.inspector && viewItem =~ /inspectable|raw/",
+          "group": "inline@4"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "calva",
+          "title": "Calva",
+          "icon": "assets/images/calva-symbol-white.svg"
+        }
       ]
     },
     "views": {
@@ -3178,6 +3263,12 @@
           "name": "Project tree",
           "icon": "assets/images/clj.svg",
           "contextualTitle": "Project tree"
+        }
+      ],
+      "calva": [
+        {
+          "id": "calva.inspector",
+          "name": "Inspector"
         }
       ]
     },
@@ -3234,7 +3325,8 @@
     "prettier-format-watch": "onchange \"./**/*.{ts,js,json}\" -- prettier --write {{changed}}",
     "preprettier-format-watch": "npm run prettier-format",
     "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
-    "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch"
+    "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch",
+    "install-ys": "curl -sS https://yamlscript.org/install | PREFIX=/tmp/yamlscript VERSION=0.1.56 bash"
   },
   "dependencies": {
     "@vscode/debugadapter": "^1.64.0",

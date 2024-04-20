@@ -26,6 +26,7 @@ Calva sets some VS Code settings for all Clojure files. Some of these are needed
         "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
         "editor.autoClosingBrackets": "always",
         "editor.autoClosingQuotes": "always",
+        "editor.autoClosingQuotes": "always",
         "editor.formatOnType": true,
         "editor.autoIndent": "full",
         "editor.formatOnPaste": true,
@@ -75,15 +76,7 @@ See [Formatting](formatting.md) for information on how to configure this.
 
 Jack-in and Connect are very customizable through [Custom Connect Sequences](connect-sequences.md).
 
-## Jack-in Dependency Versions
-
-[Calva Jack-in](jack-in-guide.md) injects the following dependencies in order for the REPL session to support IDE features
-
-- [nrepl](https://github.com/nrepl/nrepl): nREPL is the wonderful piece of software that gives Calva a structured and extensible connection to the REPL in your Clojure and ClojureScript projects.
-- [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl): cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.
-- [cider/piggieback](https://github.com/nrepl/piggieback): Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with [shadow-cljs](http://shadow-cljs.org) projects though, which provides its own middleware for this.)
-
-The versions used are configurable via the VS Code settings `calva.jackInDependencyVersions`.
+See also [Customizing Jack-in and Connect](customizing-jack-in-and-connect.md)
 
 ## Key bindings
 

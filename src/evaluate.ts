@@ -17,6 +17,14 @@ import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
 import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
+import * as inspector from './providers/inspector';
+
+let inspectorDataProvider: inspector.InspectorDataProvider;
+
+function initInspectorDataProvider() {
+  inspectorDataProvider = new inspector.InspectorDataProvider();
+  return inspectorDataProvider;
+}
 
 function interruptAllEvaluations() {
   if (util.getConnectedState()) {
@@ -134,6 +142,7 @@ async function evaluateCodeUpdatingUI(
       result = value;
 
       if (showResult) {
+        inspectorDataProvider.addItem(value, false, `[${session.replType}] ${ns}`);
         output.appendClojureEval(value, { ns, replSessionType: session.replType }, async () => {
           if (selection) {
             const c = selection.start.character;
@@ -730,4 +739,5 @@ export default {
   instrumentTopLevelForm,
   evaluateInOutputWindow,
   evaluateReplWindowForm,
+  initInspectorDataProvider,
 };
