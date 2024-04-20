@@ -258,10 +258,12 @@ class InspectorItem extends vscode.TreeItem {
     level: number | null;
     children?: Map<InspectorItem, InspectorItem> | InspectorItem[];
   }) {
-    const isKVSentinels = [KV_PAIR_SENTINEL, KV_PAIR_KEY_SENTINEL].includes(keyOrIndex as string);
+    const isKVSentinel = [KV_PAIR_VALUE_SENTINEL, KV_PAIR_KEY_SENTINEL].includes(
+      keyOrIndex as string
+    );
 
     const label = (
-      keyOrIndex && !(itemChildType === 'array-item' || isKVSentinels)
+      keyOrIndex && itemChildType !== 'array-item' && !isKVSentinel
         ? `${keyOrIndex} ${originalString}`
         : originalString
     ).replace(/\s+/g, ' ');
