@@ -5,6 +5,7 @@
         vvvvalvalval/supdate {:mvn/version "0.2.3"}
         camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.3"}
         reagent/reagent {:mvn/version "1.2.0"}
+        no.cjohansen/replicant {:mvn/version "0.2024.03.25.1"}
         #_#_org.clojars.liverm0r/dartclojure {:local/root "../DartClojure"}}
  :paths ["src/cljs-lib/src"
          "src/cljs-lib/test"]}

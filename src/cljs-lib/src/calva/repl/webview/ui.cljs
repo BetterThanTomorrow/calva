@@ -2,7 +2,8 @@
   (:require
    [reagent.dom.client :as rdom.client]
    [reagent.core :as r]
-   ["react" :as react]))
+   ["react" :as react]
+   [replicant.dom :as d]))
 
 (defn output-element
   [element-data]
