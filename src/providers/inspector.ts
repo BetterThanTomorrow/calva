@@ -58,20 +58,20 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
     let children: InspectorItem[] | undefined;
     if (Array.isArray(item.value)) {
       children = item.value.map((childItem, index) =>
-        this.createInspectorItem(childItem, level + 1, parent, index)
+        this.createInspectorItem(childItem, level + 1, item, index)
       );
     } else if (item.value instanceof Map) {
       children = Array.from((item.value as Map<any, any>).entries()).map(([key, value]) => {
-        const keyItem = this.createInspectorItem(key, level + 2, parent);
-        const valueItem = this.createInspectorItem(value, level + 2, parent, 'v:');
+        const keyItem = this.createInspectorItem(key, level + 2, item);
+        const valueItem = this.createInspectorItem(value, level + 2, item, 'v:');
         return new InspectorItem({
           value: new Map([[keyItem, valueItem]]),
           originalString: valueItem.originalString,
           keyOrIndex: keyItem.originalString,
           info: undefined,
           level: level + 1,
-          parent: parent,
-          children: [this.createInspectorItem(key, level + 2, parent, 'k:'), valueItem],
+          parent: item,
+          children: [this.createInspectorItem(key, level + 2, item, 'k:'), valueItem],
         });
       });
     }
