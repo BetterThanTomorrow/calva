@@ -22,8 +22,10 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
     return element;
   }
 
-  getParent(element: InspectorItem): vscode.ProviderResult<InspectorItem> {
-    return element ? element.parent : null;
+  getParent(_element: InspectorItem): vscode.ProviderResult<InspectorItem> {
+    // We must implement this method to satisfy VS Code's revealing,
+    // but we don't need it for our purposes and things seem to work with this.
+    return null;
   }
 
   public getTopMostItem(): InspectorItem | undefined {
@@ -52,26 +54,24 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
   public createInspectorItem(
     item: any,
     level: number,
-    parent: InspectorItem | null,
     keyOrIndex?: string | number
   ): InspectorItem {
     let children: InspectorItem[] | undefined;
     if (Array.isArray(item.value)) {
       children = item.value.map((childItem, index) =>
-        this.createInspectorItem(childItem, level + 1, item, index)
+        this.createInspectorItem(childItem, level + 1, index)
       );
     } else if (item.value instanceof Map) {
       children = Array.from((item.value as Map<any, any>).entries()).map(([key, value]) => {
-        const keyItem = this.createInspectorItem(key, level + 2, item);
-        const valueItem = this.createInspectorItem(value, level + 2, item, 'v:');
+        const keyItem = this.createInspectorItem(key, level + 2, 'k:');
+        const valueItem = this.createInspectorItem(value, level + 2, 'v:');
         return new InspectorItem({
-          value: new Map([[keyItem, valueItem]]),
+          value: '{-kv-pair-}',
           originalString: valueItem.originalString,
           keyOrIndex: keyItem.originalString,
           info: undefined,
           level: level + 1,
-          parent: item,
-          children: [this.createInspectorItem(key, level + 2, item, 'k:'), valueItem],
+          children: [keyItem, valueItem],
         });
       });
     }
@@ -82,7 +82,6 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
       info: item.info,
       keyOrIndex: keyOrIndex,
       level: level,
-      parent: parent,
       children: children,
     });
   }
@@ -93,7 +92,6 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
       originalString: text,
       info: info,
       level: null,
-      parent: null,
     });
     this.treeData.unshift(newItem);
     this.refresh();
@@ -216,11 +214,10 @@ export function createTreeStructure(item: InspectorItem) {
 
 class InspectorItem extends vscode.TreeItem {
   children: Map<InspectorItem, InspectorItem> | InspectorItem[] | undefined;
-  value: string | Map<InspectorItem, InspectorItem> | InspectorItem[];
+  value: string;
   originalString: string;
   keyOrIndex: number | string | undefined;
   info: string;
-  parent: InspectorItem | null;
 
   constructor({
     value,
@@ -228,20 +225,19 @@ class InspectorItem extends vscode.TreeItem {
     keyOrIndex,
     info,
     level,
-    parent,
     children,
   }: {
-    value: string | Map<InspectorItem, InspectorItem> | InspectorItem[];
+    value: string;
     originalString: string;
     keyOrIndex?: number | string;
     info: string;
     level: number | null;
-    parent: InspectorItem | null;
     children?: Map<InspectorItem, InspectorItem> | InspectorItem[];
   }) {
-    const label = (
-      keyOrIndex !== undefined ? `${keyOrIndex} ${originalString}` : originalString
-    ).replace(/\s+/g, ' ');
+    const label = (keyOrIndex ? `${keyOrIndex} ${originalString}` : originalString).replace(
+      /\s+/g,
+      ' '
+    );
     super(
       label,
       children === undefined
@@ -253,7 +249,6 @@ class InspectorItem extends vscode.TreeItem {
     this.value = value;
     this.originalString = originalString;
     this.info = info;
-    this.parent = parent;
     this.children = children;
     this.tooltip = new vscode.MarkdownString(
       (info ? info + '\n' : '') + '```clojure\n' + originalString + '\n```'
@@ -288,11 +283,10 @@ function icon(name: string) {
   };
 }
 
-function cljType(
-  originalString: string,
-  value: string | InspectorItem | InspectorItem[] | Map<InspectorItem, InspectorItem>
-) {
-  return originalString.startsWith('{')
+function cljType(originalString: string, value: string) {
+  return value === '{-kv-pair-}'
+    ? 'kv-pair'
+    : originalString.startsWith('{')
     ? 'map'
     : originalString.startsWith('[')
     ? 'vector'
