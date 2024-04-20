@@ -6,9 +6,11 @@ import * as printer from '../printer';
 import * as select from '../select';
 import * as config from '../config';
 
-// Used to represent a key-value pair in the tree data.
-// It can't appear in valid Clojure code
+// Used to represent a key-value pair, and keys in the tree data.
+// Chosen so that they can't appear in valid Clojure code
 const KV_PAIR_SENTINEL = ': {-kv-pair-} :';
+const KV_PAIR_KEY_SENTINEL = ': {-kv-pair-key-} :';
+const KV_PAIR_VALUE_SENTINEL = ': {-kv-pair-value-} :';
 
 export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<InspectorItem | undefined | null | void> =
@@ -67,8 +69,8 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
       );
     } else if (item.value instanceof Map) {
       children = Array.from((item.value as Map<any, any>).entries()).map(([key, value]) => {
-        const keyItem = this.createInspectorItem(key, level + 2, 'k:');
-        const valueItem = this.createInspectorItem(value, level + 2, 'v:');
+        const keyItem = this.createInspectorItem(key, level + 2, KV_PAIR_KEY_SENTINEL);
+        const valueItem = this.createInspectorItem(value, level + 2, KV_PAIR_VALUE_SENTINEL);
         return new InspectorItem({
           value: KV_PAIR_SENTINEL,
           originalString: valueItem.originalString,
