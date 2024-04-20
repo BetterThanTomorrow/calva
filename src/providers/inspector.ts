@@ -263,22 +263,11 @@ class InspectorItem extends vscode.TreeItem {
     } else if (level === 0) {
       this.contextValue = 'inspectable';
     }
-    this.resourceUri = vscode.Uri.parse('calva-inspector://item/' + originalString);
-
-    const isStructuralKey =
-      value instanceof Map &&
-      value.size > 0 &&
-      Array.from(value.entries()).every(
-        ([key, val]) => key instanceof InspectorItem && val instanceof InspectorItem
-      );
-    try {
-      const [iconSelectorString, iconSelectorValue] = isStructuralKey
-        ? [Array.from(value.values())[0].originalString, Array.from(value.values())[0].value]
-        : [originalString, value];
-      this.iconPath = getIconPath(iconSelectorString, iconSelectorValue);
-    } catch (error) {
-      console.error('Error setting iconPath:', error);
-    }
+    const type = cljType(originalString, value);
+    this.resourceUri = vscode.Uri.parse(
+      `calva-inspector://${type}/${keyOrIndex}/${originalString}`
+    );
+    this.iconPath = icon(type);
   }
 }
 
@@ -299,37 +288,37 @@ function icon(name: string) {
   };
 }
 
-function getIconPath(
+function cljType(
   originalString: string,
   value: string | InspectorItem | InspectorItem[] | Map<InspectorItem, InspectorItem>
 ) {
   return originalString.startsWith('{')
-    ? icon('map')
+    ? 'map'
     : originalString.startsWith('[')
-    ? icon('vector')
+    ? 'vector'
     : originalString.startsWith('(')
-    ? icon('list')
+    ? 'list'
     : originalString.startsWith('#{')
-    ? icon('set')
+    ? 'set'
     : value === 'nil'
-    ? new vscode.ThemeIcon('blank')
+    ? 'nil'
     : value === 'true'
-    ? icon('bool')
+    ? 'bool'
     : value === 'false'
-    ? icon('bool')
+    ? 'bool'
     : originalString.startsWith('#"')
-    ? icon('regex')
+    ? 'regex'
     : originalString.startsWith("#'")
-    ? icon('var')
+    ? 'var'
     : originalString.startsWith('#')
-    ? icon('tag')
+    ? 'tag'
     : originalString.startsWith('"')
-    ? icon('string')
+    ? 'string'
     : originalString.startsWith(':')
-    ? icon('kw')
+    ? 'kw'
     : Number.parseFloat(originalString) // works for ratios too b/c javascript
-    ? icon('numeric')
-    : icon('symbol');
+    ? 'numeric'
+    : 'symbol';
 }
 
 export class InspectorItemDecorationProvider implements vscode.FileDecorationProvider {
