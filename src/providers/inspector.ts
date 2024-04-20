@@ -58,7 +58,7 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
     let children: InspectorItem[] | undefined;
     if (Array.isArray(item.value)) {
       children = item.value.map((childItem, index) =>
-        this.createInspectorItem(childItem, level + 1, parent, index.toString())
+        this.createInspectorItem(childItem, level + 1, parent, index)
       );
     } else if (item.value instanceof Map) {
       children = Array.from((item.value as Map<any, any>).entries()).map(([key, value]) => {
@@ -66,9 +66,9 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
         const valueItem = this.createInspectorItem(value, level + 2, parent, 'v:');
         return new InspectorItem({
           value: new Map([[keyItem, valueItem]]),
-          originalString: `${keyItem.originalString} ${valueItem.originalString}`,
+          originalString: valueItem.originalString,
+          keyOrIndex: keyItem.originalString,
           info: undefined,
-          label: `${keyItem.label} ${valueItem.originalString}`,
           level: level + 1,
           parent: parent,
           children: [this.createInspectorItem(key, level + 2, parent, 'k:'), valueItem],
@@ -80,7 +80,7 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
       value: item.value,
       originalString: item.originalString,
       info: item.info,
-      label: `${keyOrIndex !== undefined ? keyOrIndex + ' ' : ''}${item.originalString}`,
+      keyOrIndex: keyOrIndex,
       level: level,
       parent: parent,
       children: children,
@@ -92,7 +92,6 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
       value: text,
       originalString: text,
       info: info,
-      label: text,
       level: null,
       parent: null,
     });
@@ -219,27 +218,30 @@ class InspectorItem extends vscode.TreeItem {
   children: Map<InspectorItem, InspectorItem> | InspectorItem[] | undefined;
   value: string | Map<InspectorItem, InspectorItem> | InspectorItem[];
   originalString: string;
+  keyOrIndex: number | string | undefined;
   info: string;
-  label: string;
   parent: InspectorItem | null;
 
   constructor({
     value,
     originalString,
+    keyOrIndex,
     info,
-    label,
     level,
     parent,
     children,
   }: {
     value: string | Map<InspectorItem, InspectorItem> | InspectorItem[];
     originalString: string;
+    keyOrIndex?: number | string;
     info: string;
-    label: string;
     level: number | null;
     parent: InspectorItem | null;
     children?: Map<InspectorItem, InspectorItem> | InspectorItem[];
   }) {
+    const label = (
+      keyOrIndex !== undefined ? `${keyOrIndex} ${originalString}` : originalString
+    ).replace(/\s+/g, ' ');
     super(
       label,
       children === undefined
@@ -251,7 +253,6 @@ class InspectorItem extends vscode.TreeItem {
     this.value = value;
     this.originalString = originalString;
     this.info = info;
-    this.label = label.replace(/[\n\r]/g, ' ');
     this.parent = parent;
     this.children = children;
     this.tooltip = new vscode.MarkdownString(
