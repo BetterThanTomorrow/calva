@@ -140,6 +140,10 @@ Here the breakpoint is exactly in front of a form that contains as its last expr
 
 When you load a file, any breakpoints that were previously set in functions will be unset. If you have the "Eval On Save" setting enabled, your file is also loaded with each save, therefore saving the file will remove breakpoints previously set.
 
+## Clashes with Emacs/CIDER debugger
+
+When both CIDER and Calva is connected to the same REPL, stepping the debugger in one editor may have it stop on the breakpoint in the other one. Reported here: https://github.com/BetterThanTomorrow/calva/issues/2496
+
 ## Troubleshooting
 
 ### Debugger hangs when stepping over infinite seqs
