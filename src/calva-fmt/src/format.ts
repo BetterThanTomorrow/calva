@@ -148,9 +148,16 @@ interface CljFmtConfig {
   'remove-multiple-non-indenting-spaces?'?: boolean;
 }
 
-function _calculateFormatRange(config: CljFmtConfig, cursor: LispTokenCursor, index: number) {
+function _calculateFormatRange(
+  config: CljFmtConfig,
+  cursor: LispTokenCursor,
+  index: number
+): [number, number] {
   const formatDepth = config?.['format-depth'] ?? _formatDepth(cursor);
   const rangeForTopLevelForm = cursor.rangeForDefun(index, false);
+  if (!rangeForTopLevelForm) {
+    return;
+  }
   const topLevelStartCursor = cursor.doc.getTokenCursor(rangeForTopLevelForm[0]);
   const rangeForList = cursor.rangeForList(formatDepth);
   if (rangeForList) {

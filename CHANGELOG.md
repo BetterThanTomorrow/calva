@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Make list items in the inspector get a bit easier to read](https://github.com/BetterThanTomorrow/calva/issues/2521)
+- Fix: [Deleting the last form in document throws an error](https://github.com/BetterThanTomorrow/calva/issues/2523)
 
 ## [2.0.444] - 2024-04-19
 

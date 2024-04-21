@@ -224,6 +224,11 @@ describe('ns-form util', () => {
         fail(`Expected no error to be thrown, but got ${error}`);
       }
     });
+    // https://github.com/BetterThanTomorrow/calva/issues/2523
+    // (This wasn't the bug it seems, but it is a good test case.)
+    it('returns null when no text in the document', function () {
+      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('|'))).toBe(null);
+    });
   });
 
   describe('nsFromText', function () {
