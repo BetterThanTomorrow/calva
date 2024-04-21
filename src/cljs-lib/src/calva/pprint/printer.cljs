@@ -52,7 +52,7 @@
                                        :max-depth maxDepth}))))
         opts (if (nil? map-commas?)
                opts
-               (assoc opts :map {:comma? map-commas?}))]
+               (assoc-in opts [:map :comma?] map-commas?))]
     (jsify (pretty-print s opts))))
 
 (defn ^:export pretty-print-js-bridge [s ^js opts]
