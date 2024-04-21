@@ -6,6 +6,14 @@ import * as printer from '../printer';
 import * as select from '../select';
 import * as config from '../config';
 
+// Used to represent a key-value pair, and keys in the tree data.
+// Chosen so that they can't appear in valid Clojure code
+const KV_PAIR_SENTINEL = ': {-kv-pair-} :';
+const KV_PAIR_KEY_SENTINEL = ': {-kv-pair-key-} :';
+const KV_PAIR_VALUE_SENTINEL = ': {-kv-pair-value-} :';
+
+type ItemChildType = 'array-item' | 'map-entry' | 'kv-pair-map-entry' | 'root';
+
 export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<InspectorItem | undefined | null | void> =
     new vscode.EventEmitter<InspectorItem | undefined>();
@@ -22,8 +30,10 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
     return element;
   }
 
-  getParent(element: InspectorItem): vscode.ProviderResult<InspectorItem> {
-    return element ? element.parent : null;
+  getParent(_element: InspectorItem): vscode.ProviderResult<InspectorItem> {
+    // We must implement this method to satisfy VS Code's revealing,
+    // but we don't need it for our purposes and things seem to work with this.
+    return null;
   }
 
   public getTopMostItem(): InspectorItem | undefined {
@@ -52,26 +62,36 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
   public createInspectorItem(
     item: any,
     level: number,
-    parent: InspectorItem | null,
-    keyOrIndex?: string | number
+    itemChildType: ItemChildType,
+    keyOrIndex: string | number
   ): InspectorItem {
     let children: InspectorItem[] | undefined;
     if (Array.isArray(item.value)) {
       children = item.value.map((childItem, index) =>
-        this.createInspectorItem(childItem, level + 1, parent, index.toString())
+        this.createInspectorItem(childItem, level + 1, 'array-item', index)
       );
     } else if (item.value instanceof Map) {
       children = Array.from((item.value as Map<any, any>).entries()).map(([key, value]) => {
-        const keyItem = this.createInspectorItem(key, level + 2, parent);
-        const valueItem = this.createInspectorItem(value, level + 2, parent, 'v:');
+        const keyItem = this.createInspectorItem(
+          key,
+          level + 2,
+          'kv-pair-map-entry',
+          KV_PAIR_KEY_SENTINEL
+        );
+        const valueItem = this.createInspectorItem(
+          value,
+          level + 2,
+          'kv-pair-map-entry',
+          KV_PAIR_VALUE_SENTINEL
+        );
         return new InspectorItem({
-          value: new Map([[keyItem, valueItem]]),
-          originalString: `${keyItem.originalString} ${valueItem.originalString}`,
+          value: KV_PAIR_SENTINEL,
+          originalString: valueItem.originalString,
+          keyOrIndex: keyItem.originalString,
+          itemChildType: 'map-entry',
           info: undefined,
-          label: `${keyItem.label} ${valueItem.originalString}`,
           level: level + 1,
-          parent: parent,
-          children: [this.createInspectorItem(key, level + 2, parent, 'k:'), valueItem],
+          children: [keyItem, valueItem],
         });
       });
     }
@@ -80,9 +100,9 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
       value: item.value,
       originalString: item.originalString,
       info: item.info,
-      label: `${keyOrIndex !== undefined ? keyOrIndex + ' ' : ''}${item.originalString}`,
+      itemChildType: itemChildType,
+      keyOrIndex: keyOrIndex,
       level: level,
-      parent: parent,
       children: children,
     });
   }
@@ -91,10 +111,9 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
     const newItem = new InspectorItem({
       value: text,
       originalString: text,
+      itemChildType: 'root',
       info: info,
-      label: text,
       level: null,
-      parent: null,
     });
     this.treeData.unshift(newItem);
     this.refresh();
@@ -217,29 +236,37 @@ export function createTreeStructure(item: InspectorItem) {
 
 class InspectorItem extends vscode.TreeItem {
   children: Map<InspectorItem, InspectorItem> | InspectorItem[] | undefined;
-  value: string | Map<InspectorItem, InspectorItem> | InspectorItem[];
+  value: string;
   originalString: string;
+  keyOrIndex: number | string | undefined;
   info: string;
-  label: string;
-  parent: InspectorItem | null;
 
   constructor({
     value,
     originalString,
+    itemChildType,
+    keyOrIndex,
     info,
-    label,
     level,
-    parent,
     children,
   }: {
-    value: string | Map<InspectorItem, InspectorItem> | InspectorItem[];
+    value: string;
     originalString: string;
+    keyOrIndex?: number | string;
+    itemChildType: ItemChildType;
     info: string;
-    label: string;
     level: number | null;
-    parent: InspectorItem | null;
     children?: Map<InspectorItem, InspectorItem> | InspectorItem[];
   }) {
+    const isKVSentinel = [KV_PAIR_VALUE_SENTINEL, KV_PAIR_KEY_SENTINEL].includes(
+      keyOrIndex as string
+    );
+
+    const label = (
+      keyOrIndex && itemChildType !== 'array-item' && !isKVSentinel
+        ? `${keyOrIndex} ${originalString}`
+        : originalString
+    ).replace(/\s+/g, ' ');
     super(
       label,
       children === undefined
@@ -251,8 +278,6 @@ class InspectorItem extends vscode.TreeItem {
     this.value = value;
     this.originalString = originalString;
     this.info = info;
-    this.label = label.replace(/[\n\r]/g, ' ');
-    this.parent = parent;
     this.children = children;
     this.tooltip = new vscode.MarkdownString(
       (info ? info + '\n' : '') + '```clojure\n' + originalString + '\n```'
@@ -262,22 +287,11 @@ class InspectorItem extends vscode.TreeItem {
     } else if (level === 0) {
       this.contextValue = 'inspectable';
     }
-    this.resourceUri = vscode.Uri.parse('calva-inspector://item/' + originalString);
-
-    const isStructuralKey =
-      value instanceof Map &&
-      value.size > 0 &&
-      Array.from(value.entries()).every(
-        ([key, val]) => key instanceof InspectorItem && val instanceof InspectorItem
-      );
-    try {
-      const [iconSelectorString, iconSelectorValue] = isStructuralKey
-        ? [Array.from(value.values())[0].originalString, Array.from(value.values())[0].value]
-        : [originalString, value];
-      this.iconPath = getIconPath(iconSelectorString, iconSelectorValue);
-    } catch (error) {
-      console.error('Error setting iconPath:', error);
-    }
+    const type = cljType(originalString, value);
+    this.resourceUri = vscode.Uri.parse(
+      `calva-inspector://${type}/${itemChildType}/#${keyOrIndex}`
+    );
+    this.iconPath = icon(type);
   }
 }
 
@@ -298,37 +312,36 @@ function icon(name: string) {
   };
 }
 
-function getIconPath(
-  originalString: string,
-  value: string | InspectorItem | InspectorItem[] | Map<InspectorItem, InspectorItem>
-) {
-  return originalString.startsWith('{')
-    ? icon('map')
+function cljType(originalString: string, value: string) {
+  return value === KV_PAIR_SENTINEL
+    ? 'kv-pair'
+    : originalString.startsWith('{')
+    ? 'map'
     : originalString.startsWith('[')
-    ? icon('vector')
+    ? 'vector'
     : originalString.startsWith('(')
-    ? icon('list')
+    ? 'list'
     : originalString.startsWith('#{')
-    ? icon('set')
+    ? 'set'
     : value === 'nil'
-    ? new vscode.ThemeIcon('blank')
+    ? 'nil'
     : value === 'true'
-    ? icon('bool')
+    ? 'bool'
     : value === 'false'
-    ? icon('bool')
+    ? 'bool'
     : originalString.startsWith('#"')
-    ? icon('regex')
+    ? 'regex'
     : originalString.startsWith("#'")
-    ? icon('var')
+    ? 'var'
     : originalString.startsWith('#')
-    ? icon('tag')
+    ? 'tag'
     : originalString.startsWith('"')
-    ? icon('string')
+    ? 'string'
     : originalString.startsWith(':')
-    ? icon('kw')
+    ? 'kw'
     : Number.parseFloat(originalString) // works for ratios too b/c javascript
-    ? icon('numeric')
-    : icon('symbol');
+    ? 'numeric'
+    : 'symbol';
 }
 
 export class InspectorItemDecorationProvider implements vscode.FileDecorationProvider {
@@ -338,11 +351,24 @@ export class InspectorItemDecorationProvider implements vscode.FileDecorationPro
     uri: vscode.Uri,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.FileDecoration> {
+    const keyOrIndex = uri.fragment;
+    const childType = uri.path.split('/')[1];
+    const badge =
+      childType === 'kv-pair-map-entry'
+        ? keyOrIndex === KV_PAIR_KEY_SENTINEL
+          ? 'k'
+          : 'v'
+        : childType === 'array-item'
+        ? Number(keyOrIndex) < 100
+          ? keyOrIndex
+          : '…'
+        : undefined;
     if (uri.scheme === 'calva-inspector') {
       return new vscode.FileDecoration(
+        badge,
         undefined,
-        'foo tooltip',
-        new vscode.ThemeColor('terminal.ansiBrightBlue')
+        undefined // Probably best to use the default color
+        // new vscode.ThemeColor('terminal.ansiBrightBlue')
       );
     }
   }

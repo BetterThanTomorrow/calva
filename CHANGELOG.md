@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make list items in the inspector get a bit easier to read](https://github.com/BetterThanTomorrow/calva/issues/2521)
+
 ## [2.0.444] - 2024-04-19
 
 - [Make the inspector item context commands work on the selected item when not invoked via the buttons](https://github.com/BetterThanTomorrow/calva/issues/2519)
