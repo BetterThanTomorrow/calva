@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.446] - 2024-04-21
+
 - [Re-indent text when copied from the inspector as well as tooltips](https://github.com/BetterThanTomorrow/calva/issues/2524)
 
 ## [2.0.445] - 2024-04-21
