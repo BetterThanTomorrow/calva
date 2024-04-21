@@ -367,7 +367,7 @@ export class InspectorItemDecorationProvider implements vscode.FileDecorationPro
       return new vscode.FileDecoration(
         badge,
         'foo tooltip',
-        new vscode.ThemeColor('terminal.ansiBrightBlue')
+        undefined //new vscode.ThemeColor('terminal.ansiBrightBlue')
       );
     }
   }
