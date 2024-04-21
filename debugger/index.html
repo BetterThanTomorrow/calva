@@ -1012,6 +1012,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#clashes-with-emacscider-debugger" class="md-nav__link">
+    <span class="md-ellipsis">
+      Clashes with Emacs/CIDER debugger
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       Troubleshooting
@@ -2277,6 +2286,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#clashes-with-emacscider-debugger" class="md-nav__link">
+    <span class="md-ellipsis">
+      Clashes with Emacs/CIDER debugger
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       Troubleshooting
@@ -2455,6 +2473,8 @@
 <p>Here the breakpoint is exactly in front of a form that contains as its last expression a <code>recur</code> which is wrapped in a loop. This breakpoint has no effect. This does not mean you cannot use the debugger with <code>loop</code>, it just means you have to set your debug statements more carefully.</p>
 <h3 id="loading-the-file-and-eval-on-save">Loading the File and "Eval On Save"<a class="headerlink" href="#loading-the-file-and-eval-on-save" title="Permanent link">#</a></h3>
 <p>When you load a file, any breakpoints that were previously set in functions will be unset. If you have the "Eval On Save" setting enabled, your file is also loaded with each save, therefore saving the file will remove breakpoints previously set.</p>
+<h2 id="clashes-with-emacscider-debugger">Clashes with Emacs/CIDER debugger<a class="headerlink" href="#clashes-with-emacscider-debugger" title="Permanent link">#</a></h2>
+<p>When both CIDER and Calva is connected to the same REPL, stepping the debugger in one editor may have it stop on the breakpoint in the other one. Reported here: https://github.com/BetterThanTomorrow/calva/issues/2496</p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
 <h3 id="debugger-hangs-when-stepping-over-infinite-seqs">Debugger hangs when stepping over infinite seqs<a class="headerlink" href="#debugger-hangs-when-stepping-over-infinite-seqs" title="Permanent link">#</a></h3>
 <p>This is because the debugger tries to evaluate the form when it's stepped over, and if <code>clojure.core/*print-length*</code> is set to <code>nil</code> as it is by default, evaluation will never complete. If you want to debug a form with an infinite seq, make sure to set <code>*print-length*</code> beforehand. For example:</p>
