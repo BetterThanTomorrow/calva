@@ -40,4 +40,46 @@ The VS Code Shortcuts editor is a good tool for looking up command IDs and, duh,
 
 ## Configuration
 
-There is only one setting for the inspector: `calva.autoOpenInspector` controls wether the view is revealed as part of connecting the REPL to Calva. It defaults to `false`.
+The settings for the inspector are:
+
+* `calva.autoOpenInspector`: controls wether the view is revealed as part of connecting the REPL to Calva. It defaults to `false`.
+* `calva.enableInspectorRainbow`: when enabled, the inspector items representing collection types will be colored using the theme colors used by VS Code to color bracket pair levels.
+
+### `calva.enableInspectorRainbow` example
+
+Depending on your theme, enabling the inspector rainbow can make some items not display at all. This is because not all themes provide all (or any) bracket level colorings. You can define the missing ones, or all, levels in your settings JSON file. Here's an example harmonizing the levels coloring with the default [Calva Highlight](syntax-highlighting.md) rainbow (included in the example for easy comparison):
+
+```json
+  "workbench.colorCustomizations": {
+    "[GitHub Light Default]": {
+      "editorBracketHighlight.foreground1": "#000",
+    },
+    "[GitHub Dark Default]": {
+      "editorBracketHighlight.foreground1": "#cccccc",
+    },
+    "editorBracketHighlight.foreground2": "#0098e6",
+    "editorBracketHighlight.foreground3": "#e16d6d",
+    "editorBracketHighlight.foreground4": "#3fa455",
+    "editorBracketHighlight.foreground5": "#c968e6",
+    "editorBracketHighlight.foreground6": "#999",
+    "terminal.ansiRed": "#ff7a5a",
+  },
+  "calva.highlight.bracketColors": [
+    [
+      "#000",
+      "#ccc"
+    ],
+    "#0098e6",
+    "#e16d6d",
+    "#3fa455",
+    "#c968e6",
+    "#999",
+    "#ce7e00"
+  ],
+```
+
+This is the setting used for the screenshot above. Here's a rainbow-only screenshot:
+
+![A Calva Inspector Rainbow](images/inspector/calva-inspector-rainbow.png)
+
+Note that with the Calva Highlight rainbow colors, we use a tuple for `light` and `dark` theme colors. The VS Code theme color settings do not allow this, so if you need different colors for light and dark themes, you need to specify the exact theme. We do this in the example, since the default Calva Highlight rainbow needs different light/dark colors for the top level brackets.

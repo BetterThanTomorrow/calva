@@ -4,6 +4,13 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.445] - 2024-04-21
+
+- [Make list items in the inspector get a bit easier to read](https://github.com/BetterThanTomorrow/calva/issues/2521)
+- Fix: [Deleting the last form in document throws an error](https://github.com/BetterThanTomorrow/calva/issues/2523)
+- Workaround: [Default to `indentation` folding strategy to dodge clojure-lsp bug](https://github.com/BetterThanTomorrow/calva/issues/2486)
+- [Add opt-in setting to rainbow colorize the collection types in the inspector](https://github.com/BetterThanTomorrow/calva/issues/2527)
+
 ## [2.0.444] - 2024-04-19
 
 - [Make the inspector item context commands work on the selected item when not invoked via the buttons](https://github.com/BetterThanTomorrow/calva/issues/2519)
