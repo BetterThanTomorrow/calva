@@ -57,6 +57,13 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
     element: InspectorItem,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.TreeItem> {
+    const prettyString: string = prettifiedOriginalString(item);
+    item.tooltip = new vscode.MarkdownString(
+      (item.info ? item.info + '\n' : '') +
+        '```clojure\n' +
+        prettyString.substring(0, 10000) +
+        '\n```'
+    );
     return item;
   }
 
@@ -148,8 +155,19 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
   }
 }
 
+function prettifiedOriginalString(item: InspectorItem) {
+  const printerOptions = {
+    ...printer.prettyPrintingOptions(),
+    width: 80,
+    style: ['community', 'justified'],
+    map: { 'sort?': false, 'comma?': false },
+  };
+  const result = printer.prettyPrint(item.originalString, printerOptions);
+  return result?.value || item.originalString;
+}
+
 export const copyItemValue = async (item: InspectorItem) => {
-  await vscode.env.clipboard.writeText(item.originalString);
+  await vscode.env.clipboard.writeText(prettifiedOriginalString(item));
 };
 
 export async function pasteFromClipboard() {
@@ -194,7 +212,11 @@ export function createTreeStructure(item: InspectorItem) {
         const startTime = performance.now();
 
         const prettyPrintStartTime = performance.now();
-        const printerOptions = printer.prettyPrintingOptions();
+        const printerOptions = {
+          ...printer.prettyPrintingOptions(),
+          width: 500,
+          map: { 'sort?': false, 'commas?': false },
+        };
         const firstLineLength = originalString.split('\n')[0].length;
         const needPrettyPrint = firstLineLength > 10000;
         const prettyString = needPrettyPrint
@@ -297,9 +319,6 @@ class InspectorItem extends vscode.TreeItem {
     this.originalString = originalString;
     this.info = info;
     this.children = children;
-    this.tooltip = new vscode.MarkdownString(
-      (info ? info + '\n' : '') + '```clojure\n' + originalString + '\n```'
-    );
     if (level === null) {
       this.contextValue = 'raw';
     } else if (level === 0) {
