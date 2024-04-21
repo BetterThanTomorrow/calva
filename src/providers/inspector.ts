@@ -13,6 +13,7 @@ const KV_PAIR_KEY_SENTINEL = ': {-kv-pair-key-} :';
 const KV_PAIR_VALUE_SENTINEL = ': {-kv-pair-value-} :';
 
 type ItemChildType = 'array-item' | 'map-entry' | 'kv-pair-map-entry' | 'root';
+type ItemType = 'array' | 'map' | 'kv-pair-map' | 'atomic';
 
 export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<InspectorItem | undefined | null | void> =
@@ -62,25 +63,31 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
   public createInspectorItem(
     item: any,
     level: number,
+    rainbowEnabled: boolean,
     itemChildType: ItemChildType,
     keyOrIndex: string | number
   ): InspectorItem {
     let children: InspectorItem[] | undefined;
+    let itemType: ItemType = 'atomic';
     if (Array.isArray(item.value)) {
+      itemType = 'array';
       children = item.value.map((childItem, index) =>
-        this.createInspectorItem(childItem, level + 1, 'array-item', index)
+        this.createInspectorItem(childItem, level + 1, rainbowEnabled, 'array-item', index)
       );
     } else if (item.value instanceof Map) {
+      itemType = 'map';
       children = Array.from((item.value as Map<any, any>).entries()).map(([key, value]) => {
         const keyItem = this.createInspectorItem(
           key,
-          level + 2,
+          level + 1,
+          rainbowEnabled,
           'kv-pair-map-entry',
           KV_PAIR_KEY_SENTINEL
         );
         const valueItem = this.createInspectorItem(
           value,
-          level + 2,
+          level + 1,
+          rainbowEnabled,
           'kv-pair-map-entry',
           KV_PAIR_VALUE_SENTINEL
         );
@@ -88,9 +95,11 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
           value: KV_PAIR_SENTINEL,
           originalString: valueItem.originalString,
           keyOrIndex: keyItem.originalString,
+          itemType: 'kv-pair-map',
           itemChildType: 'map-entry',
           info: undefined,
           level: level + 1,
+          rainbowEnabled: rainbowEnabled,
           children: [keyItem, valueItem],
         });
       });
@@ -101,7 +110,9 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
       originalString: item.originalString,
       info: item.info,
       itemChildType: itemChildType,
+      itemType: itemType,
       keyOrIndex: keyOrIndex,
+      rainbowEnabled: rainbowEnabled,
       level: level,
       children: children,
     });
@@ -112,6 +123,8 @@ export class InspectorDataProvider implements vscode.TreeDataProvider<InspectorI
       value: text,
       originalString: text,
       itemChildType: 'root',
+      itemType: 'atomic',
+      rainbowEnabled: config.getConfig().enableInspectorRainbow,
       info: info,
       level: null,
     });
@@ -204,6 +217,7 @@ export function createTreeStructure(item: InspectorItem) {
         const inspectableItem = this.createInspectorItem(
           { originalString: originalString, value: structure, info: item.info },
           0,
+          config.getConfig().enableInspectorRainbow,
           null
         );
         const itemEndTime = performance.now();
@@ -244,18 +258,22 @@ class InspectorItem extends vscode.TreeItem {
   constructor({
     value,
     originalString,
+    itemType,
     itemChildType,
     keyOrIndex,
     info,
     level,
+    rainbowEnabled,
     children,
   }: {
     value: string;
     originalString: string;
     keyOrIndex?: number | string;
+    itemType: ItemType;
     itemChildType: ItemChildType;
     info: string;
     level: number | null;
+    rainbowEnabled: boolean;
     children?: Map<InspectorItem, InspectorItem> | InspectorItem[];
   }) {
     const isKVSentinel = [KV_PAIR_VALUE_SENTINEL, KV_PAIR_KEY_SENTINEL].includes(
@@ -288,8 +306,9 @@ class InspectorItem extends vscode.TreeItem {
       this.contextValue = 'inspectable';
     }
     const type = cljType(originalString, value);
+    const rainbowEnabledString = rainbowEnabled ? 'rainbowEnabled' : 'rainbowDisabled';
     this.resourceUri = vscode.Uri.parse(
-      `calva-inspector://${type}/${itemChildType}/#${keyOrIndex}`
+      `calva-inspector://${type}/${itemType}/${itemChildType}/${level}/${rainbowEnabledString}/#${keyOrIndex}`
     );
     this.iconPath = icon(type);
   }
@@ -344,6 +363,15 @@ function cljType(originalString: string, value: string) {
     : 'symbol';
 }
 
+const rainbow = [
+  'editorBracketHighlight.foreground1',
+  'editorBracketHighlight.foreground2',
+  'editorBracketHighlight.foreground3',
+  'editorBracketHighlight.foreground4',
+  'editorBracketHighlight.foreground5',
+  'editorBracketHighlight.foreground6',
+];
+
 export class InspectorItemDecorationProvider implements vscode.FileDecorationProvider {
   onDidChangeFileDecorations: vscode.Event<vscode.Uri | vscode.Uri[]>;
 
@@ -351,8 +379,11 @@ export class InspectorItemDecorationProvider implements vscode.FileDecorationPro
     uri: vscode.Uri,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.FileDecoration> {
+    const colorIndex = (i: number) => i % rainbow.length;
+
     const keyOrIndex = uri.fragment;
-    const childType = uri.path.split('/')[1];
+    const [itemType, childType, level, rainbowEnabledString] = uri.path.split('/').slice(1);
+    const rainbowEnabled = rainbowEnabledString === 'rainbowEnabled';
     const badge =
       childType === 'kv-pair-map-entry'
         ? keyOrIndex === KV_PAIR_KEY_SENTINEL
@@ -367,8 +398,9 @@ export class InspectorItemDecorationProvider implements vscode.FileDecorationPro
       return new vscode.FileDecoration(
         badge,
         undefined,
-        undefined // Probably best to use the default color
-        // new vscode.ThemeColor('terminal.ansiBrightBlue')
+        rainbowEnabled && ['map', 'array'].includes(itemType)
+          ? new vscode.ThemeColor(rainbow[colorIndex(Number(level))])
+          : undefined
       );
     }
   }

@@ -17,6 +17,27 @@
 
 {{:a 1} [:b :c]}
 
+[1
+ [[[[[[[[[[[[]]]]]]]]]]]]
+ 2
+ :a
+ 11
+ 12
+ 68
+ :lök
+ 12
+ 68
+ "abcdef"
+ {:alphabet    "abcdefghijklmnopqrstuvwxyz"
+  :vowels      [{:foo "aeiou"
+                 :bar #{"å" "ä" "ö" [1 2 3]}}]
+  :pirate-char "o"}
+ [{:foo "aeiou"
+   :bar #{"å" "ä" "ö" [1 2 3]}}]
+ [1 2 3 #{:foo :bar "apa"}]
+ {:foo "aeiou"
+  :bar #{"å" "ä" "ö" [1 2 3]}}]
+
 {(->Language "abcdefghijklmnopqrstuvwxyz" "aeiouåäö" "o") :l
  (->Point 10 20)
  {:alphabet    "abcdefghijklmnopqrstuvwxyz"
