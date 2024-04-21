@@ -44,10 +44,12 @@
 
 
 (defn pretty-print-js [s {:keys [maxLength, maxDepth, map-commas?] :as all-opts}]
+  (println "all-opts" all-opts)
   (let [opts (into {}
                    (remove (comp nil? val)
                            (-> all-opts
                                (dissoc :maxLength :maxDepth :printEngine :enabled :map-commas?)
+                               (update :style (partial mapv keyword))
                                (merge {:max-length maxLength
                                        :max-depth maxDepth}))))
         opts (if (nil? map-commas?)
