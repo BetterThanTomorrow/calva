@@ -147,7 +147,8 @@
         "editor.unicodeHighlight.allowedCharacters": {
           " ": true,
           "꞉": true
-        }
+        },
+        "editor.foldingStrategy": "indentation"
       }
     },
     "semanticTokenScopes": [
