@@ -727,6 +727,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#calvaenableinspectorrainbow-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      calva.enableInspectorRainbow example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1944,6 +1959,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#calvaenableinspectorrainbow-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      calva.enableInspectorRainbow example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1991,7 +2021,43 @@
 </ul>
 <p>The VS Code Shortcuts editor is a good tool for looking up command IDs and, duh, register custom shortcuts for these commands.</p>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
-<p>There is only one setting for the inspector: <code>calva.autoOpenInspector</code> controls wether the view is revealed as part of connecting the REPL to Calva. It defaults to <code>false</code>.</p>
+<p>The settings for the inspector are:</p>
+<ul>
+<li><code>calva.autoOpenInspector</code>: controls wether the view is revealed as part of connecting the REPL to Calva. It defaults to <code>false</code>.</li>
+<li><code>calva.enableInspectorRainbow</code>: when enabled, the inspector items representing collection types will be colored using the theme colors used by VS Code to color bracket pair levels.</li>
+</ul>
+<h3 id="calvaenableinspectorrainbow-example"><code>calva.enableInspectorRainbow</code> example<a class="headerlink" href="#calvaenableinspectorrainbow-example" title="Permanent link">#</a></h3>
+<p>Depending on your theme, enabling the inspector rainbow can make some items not display at all. This is because not all themes provide all (or any) bracket level colorings. You can define the missing ones, or all, levels in your settings JSON file. Here's an example harmonizing the levels coloring with the default <a href="../syntax-highlighting/">Calva Highlight</a> rainbow (included in the example for easy comparison):</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">&quot;workbench.colorCustomizations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;[GitHub Light Default]&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;editorBracketHighlight.foreground1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#000&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;[GitHub Dark Default]&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;editorBracketHighlight.foreground1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#cccccc&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;editorBracketHighlight.foreground2&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#0098e6&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;editorBracketHighlight.foreground3&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#e16d6d&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;editorBracketHighlight.foreground4&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#3fa455&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;editorBracketHighlight.foreground5&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#c968e6&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;editorBracketHighlight.foreground6&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#999&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;terminal.ansiRed&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#ff7a5a&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;calva.highlight.bracketColors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;#000&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;#ccc&quot;</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="s2">&quot;#0098e6&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;#e16d6d&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;#3fa455&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;#c968e6&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;#999&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;#ce7e00&quot;</span>
+<span class="w">  </span><span class="p">],</span>
+</code></pre></div>
+<p>This is the setting used for the screenshot above. Here's a rainbow-only screenshot:</p>
+<p><img alt="A Calva Inspector Rainbow" src="../images/inspector/calva-inspector-rainbow.png" /></p>
+<p>Note that with the Calva Highlight rainbow colors, we use a tuple for <code>light</code> and <code>dark</code> theme colors. The VS Code theme color settings do not allow this, so if you need different colors for light and dark themes, you need to specify the exact theme. We do this in the example, since the default Calva Highlight rainbow needs different light/dark colors for the top level brackets.</p>
 
 
 

@@ -2149,22 +2149,31 @@
 </code></pre></div>
 <h2 id="clojure-defaults">Clojure Defaults<a class="headerlink" href="#clojure-defaults" title="Permanent link">#</a></h2>
 <p>Calva sets some VS Code settings for all Clojure files. Some of these are needed for Calva to function correctly, which should not be tampered with unless you really know what you are doing, and some of them are convenient defaults. If you add a setting to your <code>settings.json</code> and accept the snippet help you get when you type <code>"[clojure]"</code>, you will get the Calva defaults pasted:</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;[clojure]&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="w">      </span><span class="nt">&quot;[clojure]&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">&quot;editor.wordSeparators&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;\t ()\&quot;&#39;:,;~@#$%^&amp;{}[]`&quot;</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;editor.autoClosingBrackets&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;always&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;editor.autoClosingQuotes&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;always&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;editor.autoClosingOvertype&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;always&quot;</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;editor.autoClosingQuotes&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;always&quot;</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;editor.formatOnType&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;editor.autoIndent&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;full&quot;</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;editor.formatOnPaste&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">&quot;editor.matchBrackets&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;never&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;editor.renderIndentGuides&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;editor.parameterHints.enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
-<span class="w">    </span><span class="p">}</span>
+<span class="w">        </span><span class="nt">&quot;editor.guides.indentation&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;editor.parameterHints.enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;editor.unicodeHighlight.allowedCharacters&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot; &quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;꞉&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;editor.foldingStrategy&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;indentation&quot;</span>
+<span class="w">      </span><span class="p">}</span>
 </code></pre></div>
 <div class="admonition note">
-<p class="admonition-title">Note</p>
+<p class="admonition-title"><code>editor.wordSeparators</code></p>
 <p>The above <code>editor.wordSeparators</code> setting establish Clojure word boundaries. E.g <code>-</code> is considered to be part of words. This affects what happens when double-clicking symbols and other things. If you want to include <code>-</code> or something else as a word boundary, just add it to the setting.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title"><code>editor.foldingStrategy</code></p>
+<p>To use the folding levels provided by clojure-lsp, set this to <code>auto</code>. Though at the time of this writing there is a bug in clojure-lsp <a href="https://github.com/BetterThanTomorrow/calva/issues/2486">making folding stop working with this setting</a>.</p>
 </div>
 <h2 id="pretty-printing">Pretty Printing<a class="headerlink" href="#pretty-printing" title="Permanent link">#</a></h2>
 <p>Calva's pretty printing mode can be configured a bit. See <a href="../pprint/">Pretty Printing</a>.</p>
