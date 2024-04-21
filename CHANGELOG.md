@@ -6,6 +6,7 @@ Changes to Calva.
 
 - [Make list items in the inspector get a bit easier to read](https://github.com/BetterThanTomorrow/calva/issues/2521)
 - Fix: [Deleting the last form in document throws an error](https://github.com/BetterThanTomorrow/calva/issues/2523)
+- Workaround: [Default to `indentation` folding strategy to dodge clojure-lsp bug](https://github.com/BetterThanTomorrow/calva/issues/2486)
 
 ## [2.0.444] - 2024-04-19
 
