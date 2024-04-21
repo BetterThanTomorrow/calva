@@ -366,8 +366,9 @@ export class InspectorItemDecorationProvider implements vscode.FileDecorationPro
     if (uri.scheme === 'calva-inspector') {
       return new vscode.FileDecoration(
         badge,
-        'foo tooltip',
-        undefined //new vscode.ThemeColor('terminal.ansiBrightBlue')
+        undefined,
+        undefined // Probably best to use the default color
+        // new vscode.ThemeColor('terminal.ansiBrightBlue')
       );
     }
   }
