@@ -1493,6 +1493,35 @@ describe('paredit', () => {
       });
     });
 
+    describe('currentSexpsRange', () => {
+      const docSelectionCursorPosition = (positionNotation: string, rangeNotation: string) => {
+        const positionDoc = docFromTextNotation(positionNotation);
+        const rangeDoc = docFromTextNotation(rangeNotation);
+        const [_text1, positionSelection] = textAndSelection(positionDoc);
+        const position = positionSelection[0];
+        const [_text2, selection] = textAndSelection(rangeDoc);
+        const cursor = positionDoc.getTokenCursor(position);
+        return { doc: positionDoc, selection: selection, cursor, position };
+      };
+
+      it('Finds range with cursor between ignore marker and form, separated by whitespace before', () => {
+        const { doc, selection, cursor, position } = docSelectionCursorPosition(
+          '#_ |(:a b)',
+          '#_ |(:a b)|'
+        );
+        const range = paredit.currentSexpsRange(doc, cursor, position, false);
+        expect(range).toStrictEqual(selection);
+      });
+      it('Finds range with cursor between ignore marker and form, no whitespace', () => {
+        const { doc, selection, cursor, position } = docSelectionCursorPosition(
+          '#_|(:a b)',
+          '#_|(:a b)|'
+        );
+        const range = paredit.currentSexpsRange(doc, cursor, position, false);
+        expect(range).toStrictEqual(selection);
+      });
+    });
+
     describe('backwardUp - one line', () => {
       it('Drags up from start of vector', async () => {
         const b = docFromTextNotation(`(def foo [:|foo :bar :baz])`);
