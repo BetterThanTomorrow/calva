@@ -747,6 +747,18 @@ describe('Token Cursor', () => {
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
       expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toBeUndefined();
     });
+    it('Selects atomic form to the right, when squeezed by an ignore marker', () => {
+      const a = docFromTextNotation('#_|a');
+      const b = docFromTextNotation('#_|a|');
+      const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
+      expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toEqual(textAndSelection(b)[1]);
+    });
+    it('Selects list form to the right, when squeezed by an ignore marker', () => {
+      const a = docFromTextNotation('#_|(a)');
+      const b = docFromTextNotation('#_|(a)|');
+      const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
+      expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toEqual(textAndSelection(b)[1]);
+    });
   });
 
   describe('Top Level Form', () => {

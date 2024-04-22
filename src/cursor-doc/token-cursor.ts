@@ -653,6 +653,7 @@ export class LispTokenCursor extends TokenCursor {
         cursor.getToken().type !== 'reader' &&
         !cursor.tokenBeginsMetadata() &&
         cursor.getPrevToken().type !== 'reader' &&
+        cursor.getPrevToken().type !== 'ignore' &&
         !cursor.prevTokenBeginsMetadata()
       ) {
         if (cursor.backwardSexp() && !cursor.tokenBeginsMetadata()) {
