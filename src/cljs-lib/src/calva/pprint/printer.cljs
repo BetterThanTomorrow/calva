@@ -40,7 +40,7 @@
                   (zprint/zprint-file-str s "Calva" (assoc opts :color-map colors))}
                  (catch js/Error e
                    {:value s
-                    :error (str "Plain printing, b/c pprint failed. (" (.-message e) ")")}))]
+                    :error (str "Pretty print failed. (" (.-message e) ")")}))]
     result))
 
 (defn string-to-keyword [x]
@@ -52,7 +52,6 @@
   (walk/postwalk string-to-keyword data))
 
 (defn pretty-print-js [s {:keys [maxLength, maxDepth, map-commas?] :as all-opts}]
-  (println "all-opts" all-opts)
   (let [opts (into {}
                    (remove (comp nil? val)
                            (-> all-opts

@@ -77,7 +77,9 @@ export function prettyPrintReplaceCurrentForm(
     : selection;
   const text = document.getText(range);
   const result = printer.prettyPrint(text, options);
-  if (result) {
-    return replace(editor, range, result.value);
+  if (result.error) {
+    void vscode.window.showErrorMessage(`${result.error}`, 'OK');
+    return;
   }
+  return replace(editor, range, result.value);
 }
