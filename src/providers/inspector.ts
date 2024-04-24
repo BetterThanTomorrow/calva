@@ -215,13 +215,10 @@ export function createTreeStructure(item: InspectorItem) {
         const printerOptions = {
           ...printer.prettyPrintingOptions(),
           width: 500,
-          map: { 'sort?': false, 'commas?': false },
+          map: { 'sort?': true, 'comma?': false },
         };
-        const firstLineLength = originalString.split('\n')[0].length;
-        const needPrettyPrint = firstLineLength > 10000;
-        const prettyString = needPrettyPrint
-          ? printer.prettyPrint(originalString, printerOptions)?.value || originalString
-          : originalString;
+        const prettyResults = printer.prettyPrint(originalString, printerOptions);
+        const prettyString = prettyResults?.value || originalString;
         const prettyPrintEndTime = performance.now();
         progress.report({ increment: 85 });
 
