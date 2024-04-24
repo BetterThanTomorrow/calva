@@ -66,7 +66,9 @@ export function replace(
   );
 }
 
-export function prettyPrintReplaceCurrentForm(options = { enabled: true }) {
+export function prettyPrintReplaceCurrentForm(
+  options = { map: { 'sort?': false, 'comma?': false } }
+) {
   const editor = util.getActiveTextEditor();
   const document = editor.document;
   const selection = editor.selections[0];
@@ -74,7 +76,7 @@ export function prettyPrintReplaceCurrentForm(options = { enabled: true }) {
     ? select.getFormSelection(document, selection.active, false)
     : selection;
   const text = document.getText(range);
-  const result = printer.prettyPrint(text, { ...options, 'map-commas?': false });
+  const result = printer.prettyPrint(text, options);
   if (result) {
     return replace(editor, range, result.value);
   }
