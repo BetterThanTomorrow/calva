@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make the inspector sort maps on the keys](https://github.com/BetterThanTomorrow/calva/issues/2534)
+- Fix: [The inspector fails to crate an inspectable tree on large results](https://github.com/BetterThanTomorrow/calva/issues/2535)
+
 ## [2.0.446] - 2024-04-21
 
 - [Re-indent text when copied from the inspector as well as tooltips](https://github.com/BetterThanTomorrow/calva/issues/2524)
