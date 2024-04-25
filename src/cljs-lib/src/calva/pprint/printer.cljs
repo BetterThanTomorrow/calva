@@ -1,7 +1,8 @@
 (ns calva.pprint.printer
   (:require [zprint.core :as zprint]
             [calva.js-utils :refer [jsify cljify]]
-            [clojure.string]))
+            [clojure.string]
+            [clojure.walk :as walk]))
 
 (def colors {:brace :white,
              :bracket :white,
@@ -39,17 +40,23 @@
                   (zprint/zprint-file-str s "Calva" (assoc opts :color-map colors))}
                  (catch js/Error e
                    {:value s
-                    :error (str "Plain printing, b/c pprint failed. (" (.-message e) ")")}))]
+                    :error (str "Pretty print failed. (" (.-message e) ")")}))]
     result))
 
+(defn string-to-keyword [x]
+  (if (string? x)
+    (keyword x)
+    x))
+
+(defn strings->keywords [data]
+  (walk/postwalk string-to-keyword data))
 
 (defn pretty-print-js [s {:keys [maxLength, maxDepth, map-commas?] :as all-opts}]
-  (println "all-opts" all-opts)
   (let [opts (into {}
                    (remove (comp nil? val)
                            (-> all-opts
                                (dissoc :maxLength :maxDepth :printEngine :enabled :map-commas?)
-                               (update :style (partial mapv keyword))
+                               strings->keywords
                                (merge {:max-length maxLength
                                        :max-depth maxDepth}))))
         opts (if (nil? map-commas?)
