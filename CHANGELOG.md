@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.448] - 2024-04-25
+
+- Fix: [Replace Current Form with Pretty Printed Form also sorts map entries alphabetically by key](https://github.com/BetterThanTomorrow/calva/issues/2535)
+
 ## [2.0.447] - 2024-04-24
 
 - [Make the inspector sort maps on the keys](https://github.com/BetterThanTomorrow/calva/issues/2534)
