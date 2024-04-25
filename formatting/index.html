@@ -611,6 +611,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="3. Replace Current Form (or Selection) with Pretty Printed Form">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provide-zprint-config-via-keyboard-shortcuts-or-joyride" class="md-nav__link">
+    <span class="md-ellipsis">
+      Provide zprint config via keyboard shortcuts (or Joyride)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -2044,6 +2059,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="3. Replace Current Form (or Selection) with Pretty Printed Form">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#provide-zprint-config-via-keyboard-shortcuts-or-joyride" class="md-nav__link">
+    <span class="md-ellipsis">
+      Provide zprint config via keyboard shortcuts (or Joyride)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -2197,6 +2227,22 @@
 <p class="admonition-title">Applies to the other Current Form</p>
 <p>Unlike the other Format commands, which applies to the current <em>enclosing</em> form, this one applies to the <a href="../evaluation/#current-form">Current Form, same as with evaluations</a>. That is because this is not really part of the Calva formatter, but rather is a convenience command for tidying up code or data.</p>
 </div>
+<h4 id="provide-zprint-config-via-keyboard-shortcuts-or-joyride">Provide zprint config via keyboard shortcuts (or Joyride)<a class="headerlink" href="#provide-zprint-config-via-keyboard-shortcuts-or-joyride" title="Permanent link">#</a></h4>
+<p>The default options for the command are to not sort maps and to not insert commas between map entries. However, the command takes a map as an argument, expecting this map to be a <a href="(https://github.com/kkinnear/zprint/blob/main/doc/reference.md)">zprint configuration</a> map. You can provide the argument map via keyboard shortcuts. In VS Code settings, you use JSON, but it will be converted to EDN before handed to zprint.</p>
+<p>Say you want to have maps sorted by their keys, and generally use community standard formating + justify maps and bindings. This keyboard shortcut does that.</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+p enter&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.prettyPrintReplaceCurrentForm&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;style&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;community&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;justified&quot;</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">&quot;map&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;comma?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;sort?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+</code></pre></div>
+<p>Note that we have to specify <code>"comma?": false</code> here, because this argument will replace the default options maps for the command.</p>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
 <p>You can adjust the above mentioned defaults, and the default indents, by configuring the formatting using <a href="https://github.com/weavejester/cljfmt#configuration">cljfmt's configuration EDN</a>.</p>
 <p>This configuration can either be provided via a file or via clojure-lsp. See <a href="#providing-configuration-via-clojure-lsp">Providing configuration via clojure-lsp</a> below.</p>
