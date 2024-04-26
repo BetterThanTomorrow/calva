@@ -30,7 +30,7 @@ function getTextAfterLastOccurrenceOfSubstring(
 ): string | undefined {
   const indexOfLastPrompt = text.lastIndexOf(substring);
   if (indexOfLastPrompt === -1) {
-    return undefined;
+    return text;
   }
   const indexOfEndOfPrompt = indexOfLastPrompt + substring.length;
   return text.substring(indexOfEndOfPrompt);
