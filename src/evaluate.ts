@@ -131,7 +131,7 @@ async function evaluateCodeUpdatingUI(
     try {
       if (evaluationSendCodeToOutputWindow) {
         outputWindow.appendLine(code);
-        if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
+        if (output.getDestinationConfiguration().evalResults !== 'repl-window') {
           output.appendClojureEval(code, { ns, replSessionType: session.replType });
         }
       }
