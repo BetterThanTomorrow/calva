@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.449] - 2024-04-26
+
+- Fix: [The evaluated expression is printed twice to the REPL window with `evaluationSendCodeToOutputWindow` enabled](https://github.com/BetterThanTomorrow/calva/issues/2538)
+
 ## [2.0.448] - 2024-04-25
 
 - Fix: [Replace Current Form with Pretty Printed Form also sorts map entries alphabetically by key](https://github.com/BetterThanTomorrow/calva/issues/2533)
