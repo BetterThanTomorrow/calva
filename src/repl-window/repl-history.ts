@@ -142,9 +142,26 @@ function showNextReplHistoryEntry(): void {
   }
 }
 
+function searchReplHistory(): void {
+  const editor = util.getActiveTextEditor();
+  const history = getHistory(getSessionType());
+  vscode.window.showInputBox({
+    prompt: 'Enter search term for REPL history',
+    validateInput: (text) => {
+      const entry = history.filter((entry) => entry.includes(text)).pop();
+      if (entry !== undefined) {
+        showReplHistoryEntry(prependNewline(entry), editor);
+        return undefined;
+      }
+      return 'No matching entry found in REPL history';
+    },
+  });
+}
+
 export {
   addToHistory,
   addToReplHistory,
+  searchReplHistory,
   showPreviousReplHistoryEntry,
   showNextReplHistoryEntry,
   resetState,

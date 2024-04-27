@@ -273,6 +273,7 @@ async function activate(context: vscode.ExtensionContext) {
     showFileForOutputWindowNS: () => {
       return outputWindow.revealDocForCurrentNS(false);
     },
+    searchReplHistory: replHistory.searchReplHistory,
     showNextReplHistoryEntry: replHistory.showNextReplHistoryEntry,
     showOutputWindow: () => outputWindow.revealResultsDoc(false),
     showOutputChannel: output.showOutputChannel,
