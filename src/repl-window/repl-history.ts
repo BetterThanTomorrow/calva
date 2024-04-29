@@ -73,14 +73,14 @@ function showReplHistoryEntry(
   historyEntry: string | undefined,
   resultsEditor: vscode.TextEditor
 ): void {
-  const prompt = getPrompt();
+  const prompt = promptLine();
   const resultsDoc = resultsEditor.document;
   const docText = resultsDoc.getText();
   const indexOfLastPrompt = docText.lastIndexOf(prompt);
   const insertOffset = indexOfLastPrompt === -1 ? 0 : indexOfLastPrompt + prompt.length;
   const startPosition = resultsDoc.positionAt(insertOffset);
   const range = new vscode.Range(startPosition, resultsDoc.positionAt(Infinity));
-  const entry = historyEntry || '\n';
+  const entry = historyEntry || '';
   const edit = new vscode.WorkspaceEdit();
   edit.replace(resultsDoc.uri, range, entry);
   void vscode.workspace.applyEdit(edit).then((_) => {
@@ -89,8 +89,8 @@ function showReplHistoryEntry(
   });
 }
 
-function prependNewline(text: string) {
-  return `\n${text}`;
+function promptLine() {
+  return `${getPrompt()}\n`;
 }
 
 function showPreviousReplHistoryEntry(): void {
@@ -101,7 +101,7 @@ function showPreviousReplHistoryEntry(): void {
   if (!isResultsDoc(doc) || historyIndex === 0 || history.length === 0) {
     return;
   }
-  const textAtPrompt = getTextAfterLastOccurrenceOfSubstring(doc.getText(), getPrompt());
+  const textAtPrompt = getTextAfterLastOccurrenceOfSubstring(doc.getText(), promptLine());
   if (isUndefined(historyIndex)) {
     historyIndex = history.length;
     lastTextAtPrompt = textAtPrompt;
@@ -110,7 +110,7 @@ function showPreviousReplHistoryEntry(): void {
     updateReplHistory(replSessionType, history, textAtPrompt, historyIndex);
   }
   historyIndex--;
-  showReplHistoryEntry(prependNewline(history[historyIndex]), editor);
+  showReplHistoryEntry(history[historyIndex], editor);
 }
 
 function showNextReplHistoryEntry(): void {
@@ -125,13 +125,13 @@ function showNextReplHistoryEntry(): void {
     historyIndex = undefined;
     showReplHistoryEntry(lastTextAtPrompt, editor);
   } else {
-    const textAtPrompt = getTextAfterLastOccurrenceOfSubstring(doc.getText(), getPrompt());
+    const textAtPrompt = getTextAfterLastOccurrenceOfSubstring(doc.getText(), promptLine());
     util.assertIsDefined(textAtPrompt, 'Expected to find text at the prompt!');
     util.assertIsDefined(historyIndex, 'Expected a value for historyIndex!');
     updateReplHistory(replSessionType, history, textAtPrompt, historyIndex);
     historyIndex++;
     const nextHistoryEntry = history[historyIndex];
-    showReplHistoryEntry(prependNewline(nextHistoryEntry), editor);
+    showReplHistoryEntry(nextHistoryEntry, editor);
   }
 }
 
