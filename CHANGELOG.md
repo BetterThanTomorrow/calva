@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [REPL History commands do not work in a cleared window](https://github.com/BetterThanTomorrow/calva/issues/2545)
+
 ## [2.0.449] - 2024-04-26
 
 - Fix: [The evaluated expression is printed twice to the REPL window with `evaluationSendCodeToOutputWindow` enabled](https://github.com/BetterThanTomorrow/calva/issues/2538)
