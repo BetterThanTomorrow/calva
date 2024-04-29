@@ -77,14 +77,7 @@ function showReplHistoryEntry(
   const resultsDoc = resultsEditor.document;
   const docText = resultsDoc.getText();
   const indexOfLastPrompt = docText.lastIndexOf(prompt);
-  if (indexOfLastPrompt === -1) {
-    // Prompt not found in results doc, so append a prompt and re-run this function
-    append(getPrompt(), (_) => {
-      showReplHistoryEntry(historyEntry, resultsEditor);
-    });
-    return;
-  }
-  const insertOffset = indexOfLastPrompt + prompt.length;
+  const insertOffset = indexOfLastPrompt === -1 ? 0 : indexOfLastPrompt + prompt.length;
   const startPosition = resultsDoc.positionAt(insertOffset);
   const range = new vscode.Range(startPosition, resultsDoc.positionAt(Infinity));
   const entry = historyEntry || '\n';
