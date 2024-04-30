@@ -41,8 +41,8 @@ describe('string', () => {
   });
 
   describe('getTextAfterLastOccurrenceOfSubstring', () => {
-    it('returns undefined if substring does not exist', () => {
-      expect(getTextAfterLastOccurrenceOfSubstring('hello world', '123')).toBeUndefined();
+    it('returns text if substring does not exist', () => {
+      expect(getTextAfterLastOccurrenceOfSubstring('hello world', '123')).toBe('hello world');
     });
     it('returns text after last occurrence of substring', () => {
       expect('foo').toBe(getTextAfterLastOccurrenceOfSubstring('hello > world\nprompt >foo', '>'));

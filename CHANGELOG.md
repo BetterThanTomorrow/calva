@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.451] - 2024-04-30
+
+- Fix: [REPL History commands do not work in a cleared window](https://github.com/BetterThanTomorrow/calva/issues/2545)
+
 ## [2.0.450] - 2024-04-27
 
 - [Create jack-in subshell the unix way on non-Windows](https://github.com/BetterThanTomorrow/calva/issues/2543)
