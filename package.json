@@ -1979,6 +1979,12 @@
         "category": "Calva"
       },
       {
+        "command": "calva.searchReplHistory",
+        "title": "Search REPL History",
+        "enablement": "calva:connected && calva:outputWindowActive && calva:replHistoryCommandsActive",
+        "category": "Calva"
+      },
+      {
         "command": "calva.showPreviousReplHistoryEntry",
         "title": "Show Previous REPL History Entry",
         "enablement": "calva:connected && calva:outputWindowActive && calva:replHistoryCommandsActive",
@@ -2749,6 +2755,11 @@
         "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && !calva:outputWindowActive"
       },
       {
+        "command": "calva.searchReplHistory",
+        "key": "alt+shift+r",
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && calva:outputWindowActive"
+      },
+      {
         "command": "calva.showPreviousReplHistoryEntry",
         "key": "alt+up",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && calva:outputWindowActive"
@@ -3068,6 +3079,10 @@
         {
           "command": "calva.debug.instrument",
           "when": "editorLangId == clojure"
+        },
+        {
+          "command": "calva.searchReplHistory",
+          "when": "calva:connected && calva:outputWindowActive"
         },
         {
           "command": "calva.showPreviousReplHistoryEntry",
