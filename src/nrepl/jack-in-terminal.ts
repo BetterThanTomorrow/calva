@@ -76,7 +76,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
       this.process = child.spawn(this.options.executable, this.options.args, {
         env: this.options.env,
         cwd: this.options.cwd,
-        shell: this.options.useShell,
+        shell: process.platform === 'win32' ? 'cmd.exe' : this.options.useShell,
       });
       this.process.on('exit', (status) => {
         this.writeEmitter.fire(`Jack-in process exited. Status: ${status}\r\n`);
