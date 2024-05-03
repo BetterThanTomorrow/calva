@@ -23,10 +23,26 @@ The reason there are several options for this is partly legacy and partly becaus
 
 These are the commands and their default keyboard shortcuts for revealing output destinations
 
-* **Calva: Show/Open the result output destination** - `ctrl+alt+o o`
-* **Calva: Show/Open the Calva says Output Channel** - `ctrl+alt+o c`
-* **Calva: Show/Open the Calva Output Terminal** - `ctrl+alt+o t`
-* **Calva: Show/Open REPL Window** - `ctrl+alt+o r`
+* **Calva: Show/Open the result output destination**, without focusing it - `ctrl+alt+o o`
+* **Calva: Show/Open the Calva says Output Channel**, without focusing it - `ctrl+alt+o c`
+* **Calva: Show/Open the Calva Output Terminal**, without focusing it - `ctrl+alt+o t`
+* **Calva: Show/Open REPL Window**, also focuses it - `ctrl+alt+o r`
+
+!!! Note "Focusing the output destination"
+    The commands for opening the result destination all take a boolean argument for wether they should preserve focus or not. You can register keybindings that behave differently than the default ones. E.g.:
+
+    ```json
+    {
+      "key": "ctrl+alt+o ctrl+alt+o",
+      "command": "calva.showResultOutputDestination",
+      "args": false
+    },
+    {
+      "key": "ctrl+alt+o ctrl+alt+r",
+      "command": "calva.showOutputWindow", // Show/Open REPL Window
+      "args": true
+    },
+    ```
 
 ## About stdout in the REPL Window
 

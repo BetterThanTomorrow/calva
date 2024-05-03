@@ -2720,11 +2720,13 @@
       {
         "command": "calva.showOutputWindow",
         "key": "ctrl+alt+o r",
+        "args": false,
         "when": "calva:keybindingsEnabled && !calva:outputWindowActive"
       },
       {
         "command": "calva.showFileForOutputWindowNS",
         "key": "ctrl+alt+o r",
+        "args": false,
         "when": "calva:keybindingsEnabled && calva:connected && calva:outputWindowActive"
       },
       {
