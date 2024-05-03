@@ -116,25 +116,25 @@ export function initOutputChannel(channel: vscode.OutputChannel) {
   outputChannel = channel;
 }
 
-export function showOutputChannel() {
-  outputChannel.show(true);
+export function showOutputChannel(preserveFocus = true) {
+  outputChannel.show(preserveFocus);
 }
 
-export function showOutputTerminal() {
+export function showOutputTerminal(preserveFocus = true) {
   if (!outputTerminal) {
     getOutputPTY();
   }
-  outputTerminal.show(true);
+  outputTerminal.show(preserveFocus);
 }
 
-export function showResultOutputDestination() {
+export function showResultOutputDestination(preserveFocus = true) {
   if (getDestinationConfiguration().evalResults === 'output-channel') {
-    return showOutputChannel();
+    return showOutputChannel(preserveFocus);
   }
   if (getDestinationConfiguration().evalResults === 'terminal') {
-    return showOutputTerminal();
+    return showOutputTerminal(preserveFocus);
   }
-  return outputWindow.revealResultsDoc(true);
+  return outputWindow.revealResultsDoc(preserveFocus);
 }
 
 export function getDestinationConfiguration(): OutputDestinationConfiguration {

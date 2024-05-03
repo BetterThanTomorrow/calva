@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.452] - 2024-05-03
+
+- [Make the commands for opening output destinations accept arguments](https://github.com/BetterThanTomorrow/calva/issues/2547)
+
 ## [2.0.451] - 2024-04-30
 
 - Fix: [REPL History commands do not work in a cleared window](https://github.com/BetterThanTomorrow/calva/issues/2545)
