@@ -270,13 +270,13 @@ export async function openResultsDoc(): Promise<vscode.TextDocument> {
   return resultsDoc;
 }
 
-export function revealResultsDoc(preserveFocus: boolean = true) {
+export function revealResultsDoc(preserveFocus = true) {
   return openResultsDoc().then((doc) => {
     return vscode.window.showTextDocument(doc, getViewColumn(), preserveFocus);
   });
 }
 
-export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
+export async function revealDocForCurrentNS(preserveFocus = true) {
   const uri = await getUriForCurrentNamespace();
   return vscode.workspace.openTextDocument(uri).then((doc) =>
     vscode.window.showTextDocument(doc, {
