@@ -1999,11 +1999,26 @@
 <h2 id="commands-for-showing-output-destinations">Commands for showing output destinations<a class="headerlink" href="#commands-for-showing-output-destinations" title="Permanent link">#</a></h2>
 <p>These are the commands and their default keyboard shortcuts for revealing output destinations</p>
 <ul>
-<li><strong>Calva: Show/Open the result output destination</strong> - <code>ctrl+alt+o o</code></li>
-<li><strong>Calva: Show/Open the Calva says Output Channel</strong> - <code>ctrl+alt+o c</code></li>
-<li><strong>Calva: Show/Open the Calva Output Terminal</strong> - <code>ctrl+alt+o t</code></li>
-<li><strong>Calva: Show/Open REPL Window</strong> - <code>ctrl+alt+o r</code></li>
+<li><strong>Calva: Show/Open the result output destination</strong>, without focusing it - <code>ctrl+alt+o o</code></li>
+<li><strong>Calva: Show/Open the Calva says Output Channel</strong>, without focusing it - <code>ctrl+alt+o c</code></li>
+<li><strong>Calva: Show/Open the Calva Output Terminal</strong>, without focusing it - <code>ctrl+alt+o t</code></li>
+<li><strong>Calva: Show/Open REPL Window</strong>, also focuses it - <code>ctrl+alt+o r</code></li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Focusing the output destination</p>
+<p>The commands for opening the result destination all take a boolean argument for wether they should preserve focus or not. You can register keybindings that behave differently than the default ones. E.g.:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+o ctrl+alt+o&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.showResultOutputDestination&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+o ctrl+alt+r&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.showOutputWindow&quot;</span><span class="p">,</span><span class="w"> </span><span class="c1">// Show/Open REPL Window</span>
+<span class="w">  </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="p">},</span>
+</code></pre></div>
+</div>
 <h2 id="about-stdout-in-the-repl-window">About stdout in the REPL Window<a class="headerlink" href="#about-stdout-in-the-repl-window" title="Permanent link">#</a></h2>
 <p>Since Calva v2.0.423 the REPL Window prints <code>stdout</code> prepended with <code>;</code> to make it into line comments. This is because stdout output easily breaks the Clojure structure of the REPL Window, making it misbehave in various ways. We made this change because as maintainers of Calva we have seen all too often how this hits users, and it is also taking too much of our Calva time to try mitigate the problem, which is fundamentally not fixable.</p>
 <p>There are now other output destinations that do not have this limitation.</p>
