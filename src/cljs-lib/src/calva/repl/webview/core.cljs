@@ -47,8 +47,6 @@
 
   </head>
   <body>
-    <pre><code class=\"language-clojure\">:hello-world</code></pre>
-
     <!-- TODO: Disable inline scripts - see security section in webview docs -->
     <div id=\"output\"></div>
 
@@ -71,12 +69,12 @@
         js-src (.. repl-output-webview-panel -webview (asWebviewUri js-path))
         webview-html (get-webview-html js-src)]
     (set! (.. ^js repl-output-webview-panel -webview -html) webview-html)
-    (let [interval-id (js/setInterval post-message-to-webview
-                                      1000
-                                      {:command-name "show-result"
-                                       :result "Hello world!!!"})]
-      (js/setTimeout #(js/clearInterval interval-id)
-                     11000))))
+    #_(let [interval-id (js/setInterval post-message-to-webview
+                                        1000
+                                        {:command-name "show-result"
+                                         :result "Hello world!!!"})]
+        (js/setTimeout #(js/clearInterval interval-id)
+                       11000))))
 
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
 ;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."

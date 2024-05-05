@@ -1,9 +1,28 @@
 (ns calva.repl.webview.ui
   (:require
    [reagent.dom.client :as rdom.client]
+   [snitch.core :refer [defn*]]
    [reagent.core :as r]
    ["react" :as react]
-   [replicant.dom :as d]))
+   [replicant.dom :as replicant]))
+
+(def el (js/document.getElementById "output"))
+
+(defmulti run-command
+  "Runs a given command with the given args."
+  (fn [_replicant-data command & _args]
+    command))
+
+(defmethod run-command :repl-output/highlight-code
+  [_replicant-data _command _args]
+  (.. js/window -hljs (highlightAll)))
+
+(defn dispatch
+  [replicant-data hook-data]
+  (doseq [[command-name & args] hook-data]
+    (apply run-command replicant-data command-name args)))
+
+(replicant/set-dispatch! dispatch)
 
 (defn output-element
   [element-data]
@@ -30,18 +49,22 @@
   (add-output-element (output-element {:output-element/type :output-element.type/stdout
                                        :output-element/content content})))
 
-(defn repl-output []
+#_(defn repl-output []
   ;; If doing this after every render isn't performant, consider using highlightjs from node,
   ;; rendering the output to html then sending it to this webview as a message and adding the html to the DOM
   ;; as it is. It would already be in the form hightlightjs needs it to be in for its CSS to apply to it.
   ;;
   ;; TODO: Test if this is performance when printing a large number of results and a large number of large results
-  (react/useEffect (fn [] (.. js/window -hljs (highlightAll))))
-  (let [elements @output-elements]
-    [:pre [:code {:class "language-clojure"} ":hello"]]
-    #_[:div
-       (for [{:output-element/keys [content id]} elements]
-         [:p {:key id} content])]))
+    (react/useEffect (fn [] (.. js/window -hljs (highlightAll))))
+    (let [elements @output-elements]
+      [:pre [:code {:class "language-clojure"} ":hello"]]
+      #_[:div
+         (for [{:output-element/keys [content id]} elements]
+           [:p {:key id} content])]))
+
+(def repl-output
+  [:div {:replicant/on-render [[:repl-output/highlight-code]]}
+   [:pre [:code {:class "language-clojure"} ":hello"]]])
 
 (defn main []
   (.. js/window
@@ -57,7 +80,8 @@
                             (case command
                               "show-result" (add-eval-result data)
                               "show-stdout" (add-stdout data))))))
-  (rdom.client/render (rdom.client/create-root (js/document.getElementById "output")) [:f> repl-output]))
+  (replicant/render el repl-output)
+  #_(rdom.client/render (rdom.client/create-root (js/document.getElementById "output")) [:f> repl-output]))
 
 (comment
   (set! *print-namespace-maps* false)
