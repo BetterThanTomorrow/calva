@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.445",
+  "version": "2.0.453",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -147,7 +147,8 @@
         "editor.unicodeHighlight.allowedCharacters": {
           " ": true,
           "꞉": true
-        }
+        },
+        "editor.foldingStrategy": "indentation"
       }
     },
     "semanticTokenScopes": [
@@ -868,6 +869,11 @@
           "calva.autoOpenInspector": {
             "type": "boolean",
             "markdownDescription": "Automatically open/reveal the Calva Inspector on Jack-in or Connect.",
+            "default": false
+          },
+          "calva.enableInspectorRainbow": {
+            "type": "boolean",
+            "markdownDescription": "Should the Calva Inspector items use rainbow colors? When enabled, the collection items will be colored with the same colors as VS Code uses for bracket pairs. See https://calva.io/inspector for info.",
             "default": false
           },
           "calva.keybindingsEnabled": {
@@ -2714,11 +2720,13 @@
       {
         "command": "calva.showOutputWindow",
         "key": "ctrl+alt+o r",
+        "args": false,
         "when": "calva:keybindingsEnabled && !calva:outputWindowActive"
       },
       {
         "command": "calva.showFileForOutputWindowNS",
         "key": "ctrl+alt+o r",
+        "args": false,
         "when": "calva:keybindingsEnabled && calva:connected && calva:outputWindowActive"
       },
       {

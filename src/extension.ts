@@ -280,11 +280,9 @@ async function activate(context: vscode.ExtensionContext) {
     openSourceFileForFiddle: fiddleFiles.openSourceFileForFiddle,
     sendCurrentTopLevelFormToOutputWindow: outputWindow.appendCurrentTopLevelForm,
     setOutputWindowNamespace: outputWindow.setNamespaceFromCurrentFile,
-    showFileForOutputWindowNS: () => {
-      return outputWindow.revealDocForCurrentNS(false);
-    },
+    showFileForOutputWindowNS: outputWindow.revealDocForCurrentNS,
     showNextReplHistoryEntry: replHistory.showNextReplHistoryEntry,
-    showOutputWindow: () => outputWindow.revealResultsDoc(false),
+    showOutputWindow: outputWindow.revealResultsDoc,
     showOutputChannel: output.showOutputChannel,
     showOutputTerminal: output.showOutputTerminal,
     showResultOutputDestination: output.showResultOutputDestination,

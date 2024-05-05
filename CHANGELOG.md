@@ -4,6 +4,42 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.452] - 2024-05-03
+
+- [Make the commands for opening output destinations accept arguments](https://github.com/BetterThanTomorrow/calva/issues/2547)
+
+## [2.0.451] - 2024-04-30
+
+- Fix: [REPL History commands do not work in a cleared window](https://github.com/BetterThanTomorrow/calva/issues/2545)
+
+## [2.0.450] - 2024-04-27
+
+- [Create jack-in subshell the unix way on non-Windows](https://github.com/BetterThanTomorrow/calva/issues/2543)
+
+## [2.0.449] - 2024-04-26
+
+- Fix: [The evaluated expression is printed twice to the REPL window with `evaluationSendCodeToOutputWindow` enabled](https://github.com/BetterThanTomorrow/calva/issues/2538)
+
+## [2.0.448] - 2024-04-25
+
+- Fix: [Replace Current Form with Pretty Printed Form also sorts map entries alphabetically by key](https://github.com/BetterThanTomorrow/calva/issues/2533)
+
+## [2.0.447] - 2024-04-24
+
+- [Make the inspector sort maps on the keys](https://github.com/BetterThanTomorrow/calva/issues/2534)
+- Fix: [The inspector fails to crate an inspectable tree on large results](https://github.com/BetterThanTomorrow/calva/issues/2535)
+
+## [2.0.446] - 2024-04-21
+
+- [Re-indent text when copied from the inspector as well as tooltips](https://github.com/BetterThanTomorrow/calva/issues/2524)
+
+## [2.0.445] - 2024-04-21
+
+- [Make list items in the inspector get a bit easier to read](https://github.com/BetterThanTomorrow/calva/issues/2521)
+- Fix: [Deleting the last form in document throws an error](https://github.com/BetterThanTomorrow/calva/issues/2523)
+- Workaround: [Default to `indentation` folding strategy to dodge clojure-lsp bug](https://github.com/BetterThanTomorrow/calva/issues/2486)
+- [Add opt-in setting to rainbow colorize the collection types in the inspector](https://github.com/BetterThanTomorrow/calva/issues/2527)
+
 ## [2.0.444] - 2024-04-19
 
 - [Make the inspector item context commands work on the selected item when not invoked via the buttons](https://github.com/BetterThanTomorrow/calva/issues/2519)

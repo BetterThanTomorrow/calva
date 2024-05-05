@@ -22,22 +22,30 @@ Tip for VS Code newcomers: The search box in **Settings** is your friend. Also, 
 Calva sets some VS Code settings for all Clojure files. Some of these are needed for Calva to function correctly, which should not be tampered with unless you really know what you are doing, and some of them are convenient defaults. If you add a setting to your `settings.json` and accept the snippet help you get when you type `"[clojure]"`, you will get the Calva defaults pasted:
 
 ```json
-    "[clojure]": {
+      "[clojure]": {
         "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
         "editor.autoClosingBrackets": "always",
-        "editor.autoClosingQuotes": "always",
+        "editor.autoClosingOvertype": "always",
         "editor.autoClosingQuotes": "always",
         "editor.formatOnType": true,
         "editor.autoIndent": "full",
         "editor.formatOnPaste": true,
         "editor.matchBrackets": "never",
-        "editor.renderIndentGuides": false,
-        "editor.parameterHints.enabled": false
-    }
+        "editor.guides.indentation": false,
+        "editor.parameterHints.enabled": false,
+        "editor.unicodeHighlight.allowedCharacters": {
+          " ": true,
+          "꞉": true
+        },
+        "editor.foldingStrategy": "indentation"
+      }
 ```
 
-!!! Note
+!!! Note "`editor.wordSeparators`"
     The above `editor.wordSeparators` setting establish Clojure word boundaries. E.g `-` is considered to be part of words. This affects what happens when double-clicking symbols and other things. If you want to include `-` or something else as a word boundary, just add it to the setting.
+
+!!! Note "`editor.foldingStrategy`"
+    To use the folding levels provided by clojure-lsp, set this to `auto`. Though at the time of this writing there is a bug in clojure-lsp [making folding stop working with this setting](https://github.com/BetterThanTomorrow/calva/issues/2486).
 
 ## Pretty Printing
 
