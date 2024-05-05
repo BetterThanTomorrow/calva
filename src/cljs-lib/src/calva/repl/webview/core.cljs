@@ -29,7 +29,7 @@
 
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
 
-    <!-- TODO: Uncomment this and lock it down as much as possible. Remember to disable things that default-src does not. See bottomg of this section: https://web.dev/articles/csp#resource-options -->
+    <!-- TODO: Uncomment this and lock it down as much as possible. Remember to disable things that default-src does not. See bottom of this section: https://web.dev/articles/csp#resource-options -->
     <!-- <meta http-equiv=\"Content-Security-Policy\"
         content=\"default-src 'none';
                   style-src https://cdnjs.cloudflare.com;
