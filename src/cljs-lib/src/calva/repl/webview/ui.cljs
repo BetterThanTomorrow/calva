@@ -1,12 +1,9 @@
 (ns calva.repl.webview.ui
   (:require
-   [reagent.dom.client :as rdom.client]
-   [snitch.core :refer [defn*]]
-   [reagent.core :as r]
-   ["react" :as react]
+
    [replicant.dom :as replicant]))
 
-(def el (js/document.getElementById "output"))
+(def output-dom-element (js/document.getElementById "output"))
 
 (defmulti run-command
   "Runs a given command with the given args."
@@ -24,47 +21,47 @@
 
 (replicant/set-dispatch! dispatch)
 
-(defn output-element
+(defn repl-output-element
   [element-data]
   (merge element-data
          {:output-element/id (random-uuid)}))
 
-(defonce output-elements
-  (r/atom [(output-element {:output-element/type :output-element.type/eval-result
-                            :output-element/content "{:a 1}"})
-           (output-element {:output-element/type :output-element.type/stdout
-                            :output-element/content "Hello world"})]))
+(defonce state
+  (atom {:repl-output/elements
+         [(repl-output-element {:output-element/type :output-element.type/eval-result
+                                :output-element/content "{:a 1}"})
+          (repl-output-element {:output-element/type :output-element.type/stdout
+                                :output-element/content "Hello world"})]}))
 
-(defn add-output-element
+(defn render-repl-output
+  "The watch function for the output elements that renders the output elements."
+  [_key _atom _old-state new-state])
+
+(add-watch state :render-repl-output render-repl-output)
+
+(defn add-repl-output-element
   [element]
-  (swap! output-elements conj element))
+  (swap! state update :repl-output/elements conj element))
 
 (defn add-eval-result
   [content]
-  (add-output-element (output-element {:output-element/type :output-element.type/eval-result
-                                       :output-element/content content})))
+  (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/eval-result
+                                                 :output-element/content content})))
 
 (defn add-stdout
   [content]
-  (add-output-element (output-element {:output-element/type :output-element.type/stdout
-                                       :output-element/content content})))
+  (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/stdout
+                                                 :output-element/content content})))
 
-#_(defn repl-output []
-  ;; If doing this after every render isn't performant, consider using highlightjs from node,
-  ;; rendering the output to html then sending it to this webview as a message and adding the html to the DOM
-  ;; as it is. It would already be in the form hightlightjs needs it to be in for its CSS to apply to it.
-  ;;
-  ;; TODO: Test if this is performance when printing a large number of results and a large number of large results
-    (react/useEffect (fn [] (.. js/window -hljs (highlightAll))))
-    (let [elements @output-elements]
-      [:pre [:code {:class "language-clojure"} ":hello"]]
-      #_[:div
-         (for [{:output-element/keys [content id]} elements]
-           [:p {:key id} content])]))
+(defn clojure-code-hiccup
+  "Accepts a string of Clojure code and returns hiccup for rendering it in the output view."
+  [clojure-code]
+  [:pre [:code {:class "language-clojure"} clojure-code]])
 
-(def repl-output
+(defn repl-output-hiccup
+  [state]
   [:div {:replicant/on-render [[:repl-output/highlight-code]]}
-   [:pre [:code {:class "language-clojure"} ":hello"]]])
+   (clojure-code-hiccup "{:a 1}")])
 
 (defn main []
   (.. js/window
@@ -80,26 +77,4 @@
                             (case command
                               "show-result" (add-eval-result data)
                               "show-stdout" (add-stdout data))))))
-  (replicant/render el repl-output)
-  #_(rdom.client/render (rdom.client/create-root (js/document.getElementById "output")) [:f> repl-output]))
-
-(comment
-  (set! *print-namespace-maps* false)
-
-  (binding [*print-namespace-maps* false]
-    @output-elements)
-
-  (println {:user/a 1, :user/b 2})
-
-  (reset! output-elements [])
-
-  (print)
-
-  @output-elements
-
-  ;; For some reason this is not causing the UI to update...
-  ;; Reason: It was because I was connected to the calva-lib (node) build and not the repl-output-ui (browser) build
-  (swap! output-elements conj {:output-element/type :output-element.type/eval-result
-                               :output-element/content "{:a 1}"})
-
-  :rcf)
+  (replicant/render output-dom-element (repl-output-hiccup @state)))
