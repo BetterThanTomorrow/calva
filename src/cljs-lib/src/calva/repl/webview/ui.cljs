@@ -33,9 +33,47 @@
           (repl-output-element {:output-element/type :output-element.type/stdout
                                 :output-element/content "Hello world"})]}))
 
+(defn clojure-code-hiccup
+  "Accepts a string of Clojure code and returns hiccup for rendering it in the output view."
+  [clojure-code]
+  [:pre [:code {:class "language-clojure"} clojure-code]])
+
+(defmulti repl-output-element-hiccup
+  "Returns hiccup for rendering a given output element."
+  :output-element/type)
+
+(defmethod repl-output-element-hiccup :output-element.type/eval-result
+  [element]
+  (clojure-code-hiccup (:output-element/content element)))
+
+(defmethod repl-output-element-hiccup :output-element.type/stdout
+  [element]
+  [:p (:output-element/content element)])
+
+(defn repl-output-hiccup
+  [state]
+  (into [:div {:replicant/on-render [[:repl-output/highlight-code]]}]
+        (map repl-output-element-hiccup (:repl-output/elements state))))
+
+(defn render [state]
+  (replicant/render output-dom-element (repl-output-hiccup state)))
+
 (defn render-repl-output
   "The watch function for the output elements that renders the output elements."
-  [_key _atom _old-state new-state])
+  [_key _atom _old-state new-state]
+  (render new-state))
+
+(defn scroll-to-bottom
+  "Scrolls to the bottom of the output view if a new output element was added."
+  [_key _atom old-state new-state]
+  (when (> (count (:repl-output/elements new-state))
+           (count (:repl-output/elements old-state)))
+    (.. output-dom-element (scrollTo 0 (.. output-dom-element -scrollHeight)))))
+
+;; TODO: Use this map to add watches to the state atom
+(def state-watchers
+  {:render-repl-output render-repl-output
+   :scroll-to-bottom scroll-to-bottom})
 
 (add-watch state :render-repl-output render-repl-output)
 
@@ -53,16 +91,6 @@
   (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/stdout
                                                  :output-element/content content})))
 
-(defn clojure-code-hiccup
-  "Accepts a string of Clojure code and returns hiccup for rendering it in the output view."
-  [clojure-code]
-  [:pre [:code {:class "language-clojure"} clojure-code]])
-
-(defn repl-output-hiccup
-  [state]
-  [:div {:replicant/on-render [[:repl-output/highlight-code]]}
-   (clojure-code-hiccup "{:a 1}")])
-
 (defn main []
   (.. js/window
       (addEventListener "message"
@@ -77,4 +105,4 @@
                             (case command
                               "show-result" (add-eval-result data)
                               "show-stdout" (add-stdout data))))))
-  (replicant/render output-dom-element (repl-output-hiccup @state)))
+  (render @state))
