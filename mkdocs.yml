@@ -88,6 +88,7 @@ nav:
     - reveal.md
     - babashka.md
     - nbb.md
+    - basilisp.md
     - joyride.md
     - clojuredart.md
     - luminus.md

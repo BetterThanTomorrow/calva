@@ -260,6 +260,7 @@ function getConfig() {
       configOptions.get<output.OutputDestinationConfiguration>('outputDestinations'),
     useLegacyReplWindowPath: configOptions.get<boolean>('useLegacyReplWindowPath'),
     legacyPrintBareReplWindowOutput: configOptions.get<boolean>('legacyPrintBareReplWindowOutput'),
+    basilispPath: configOptions.get<string>('basilispPath'),
   };
 }
 
