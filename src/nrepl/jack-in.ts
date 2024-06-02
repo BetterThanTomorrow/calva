@@ -215,7 +215,7 @@ async function getJackInTerminalOptions(
   let args: string[] = commandLineInfo.args;
   let cmd: string[];
   if (projectTypes.isWin) {
-    cmd = projectType.winCmd;
+    cmd = typeof projectType.winCmd === 'function' ? projectType.winCmd() : projectType.winCmd;
     if (projectType.resolveBundledPathWin) {
       const jarSourceUri = vscode.Uri.file(
         path.join(state.extensionContext.extensionPath, 'deps.clj.jar')

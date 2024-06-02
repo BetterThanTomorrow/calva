@@ -25,7 +25,7 @@ export type ProjectType = {
   name: string;
   cljsTypes?: string[];
   cmd?: string[] | (() => string[]);
-  winCmd?: string[];
+  winCmd?: string[] | (() => string[]);
   resolveBundledPathWin?: () => string;
   resolveBundledPathUnix?: () => string;
   processShellWin?: boolean;
@@ -544,6 +544,27 @@ const projectTypes: { [id: string]: ProjectType } = {
       const port = await getPort();
       return {
         args: ['nbb', 'nrepl-server', ':port', port],
+        substitutions: { 'NREPL-PORT': port.toString() },
+      };
+    },
+  },
+  basilisp: {
+    name: 'basilisp',
+    cljsTypes: [],
+    cmd: () => {
+      return [getConfig().basilispPath];
+    },
+    winCmd: () => {
+      return [getConfig().basilispPath];
+    },
+    processShellUnix: true,
+    processShellWin: true,
+    useWhenExists: ['basilisp.edn'],
+    nReplPortFile: ['.nrepl-port'],
+    commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+      const port = await getPort();
+      return {
+        args: ['nrepl-server', '--port', port],
         substitutions: { 'NREPL-PORT': port.toString() },
       };
     },

@@ -997,6 +997,11 @@
             "type": "boolean",
             "markdownDescription": "Redirect the output from the REPL server process to the REPL/Output window. With this disabled output from child threads of evaluations will not be shown in the REPL/Output window, but instead in the terminal where the REPL is started (the jack-in terminal if Calva started the REPL).",
             "default": true
+          },
+          "calva.basilispPath": {
+            "type": "string",
+            "default": "basilisp",
+            "markdownDescription": "The path to the `basilisp` executable. If Basilisp is installed in a virtual environment, update this to the full path of the `basilisp` executable within that virtual environment."
           }
         }
       },

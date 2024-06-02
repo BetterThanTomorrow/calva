@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Bump deps.clj to v1.11.3.1463
+- [jack-in support for the Basilisp Clojure compatible dialect impelmented in Python](https://github.com/BetterThanTomorrow/calva/issues/2559)
 
 ## [2.0.452] - 2024-05-03
 

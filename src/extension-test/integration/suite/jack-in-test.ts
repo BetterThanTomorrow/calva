@@ -11,7 +11,7 @@ import * as outputWindow from '../../../repl-window/repl-doc';
 import { commands } from 'vscode';
 import { getDocument } from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
-import { updateWorkspaceConfig } from '../../../config';
+import { getConfig, updateWorkspaceConfig } from '../../../config';
 
 const settingsUri: vscode.Uri = vscode.Uri.joinPath(
   vscode.workspace.workspaceFolders[0].uri,
@@ -52,12 +52,40 @@ suite('Jack-in suite', () => {
     const settings = {};
     await writeSettings(settings);
 
-    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
+    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn', 'test.clj');
 
     await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
+  });
+
+  test('start repl and connect (jack-in) to Basilisp', async function () {
+    testUtil.log(suite, 'start repl and connect (jack-in) to Basilisp');
+    const basilispPath = getConfig().basilispPath;
+    const executablePath = testUtil.getExecutablePath(basilispPath);
+
+    if (executablePath === null && !testUtil.isCircleCI) {
+      testUtil.log(suite, `Basilisp executable '${basilispPath}' not found, skipping test...`);
+      this.skip();
+    } else {
+      testUtil.log(suite, `Basilisp executable found at ${executablePath}`);
+
+      const settings = {};
+      await writeSettings(settings);
+
+      const testFilePath = await startJackInProcedure(
+        suite,
+        'calva.jackIn',
+        'basilisp',
+        '../projects/minimal-basilisp/src/test.lpy'
+      );
+
+      await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
+
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+      testUtil.log(suite, 'test.lpy closed for Basilisp');
+    }
   });
 
   test('Jack-in afterCLJReplJackInCode can be a string', async () => {
@@ -74,7 +102,7 @@ suite('Jack-in suite', () => {
       ],
     };
     await writeSettings(settings);
-    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
+    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn', 'test.clj');
     await loadAndAssert(suite, testFilePath, ['; :hello :world!', '; bar', 'nil', 'clj꞉test꞉> ']);
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
@@ -94,7 +122,7 @@ suite('Jack-in suite', () => {
       ],
     };
     await writeSettings(settings);
-    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
+    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn', 'test.clj');
     await loadAndAssert(suite, testFilePath, [
       '; :hello',
       '; :world!',
@@ -120,7 +148,13 @@ suite('Jack-in suite', () => {
       ],
     };
     await writeSettings(settings);
-    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', undefined, true);
+    const testFilePath = await startJackInProcedure(
+      suite,
+      'calva.jackIn',
+      undefined,
+      'test.clj',
+      true
+    );
     await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
@@ -130,12 +164,16 @@ suite('Jack-in suite', () => {
   test('Copy Jack-in command line', async function () {
     testUtil.log('Copy Jack-in command line');
 
-    await startJackInProcedure(suite, 'calva.copyJackInCommandToClipboard', 'deps.edn');
+    await startJackInProcedure(suite, 'calva.copyJackInCommandToClipboard', 'deps.edn', 'test.clj');
 
     const cmdLine = await vscode.env.clipboard.readText();
     testUtil.log(suite, 'cmdLine', cmdLine);
 
-    assert.ok(cmdLine.includes('clojure'));
+    if (util.isWindows) {
+      assert.ok(cmdLine.includes('deps.clj'));
+    } else {
+      assert.ok(cmdLine.includes('clojure'));
+    }
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
@@ -185,7 +223,7 @@ function writeSettings(settings: any): Thenable<void> {
 async function waitForResult(suite: string) {
   while (!util.getConnectedState()) {
     testUtil.log(suite, 'waiting for connect...');
-    await testUtil.sleep(200);
+    await testUtil.sleep(1000);
   }
   await testUtil.sleep(500); // wait a little longer for repl output to be done
   testUtil.log(suite, 'connected to repl');
@@ -197,11 +235,12 @@ async function startJackInProcedure(
   suite: string,
   cmdId: string,
   projectType: string,
+  testFile: string,
   autoSelectProjectRoot = false
 ) {
-  const testFilePath = path.join(testUtil.testDataDir, 'test.clj');
+  const testFilePath = path.join(testUtil.testDataDir, testFile);
   await testUtil.openFile(testFilePath);
-  testUtil.log(suite, 'test.clj opened');
+  testUtil.log(suite, `${testFile} opened for project type ${projectType}`);
 
   const projectRootUri = projectRoot.findClosestParent(
     vscode.window.activeTextEditor?.document.uri,
