@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as which from 'which';
 
 export const testDataDir = path.join(
   __dirname,
@@ -7,6 +8,8 @@ export const testDataDir = path.join(
   'test-data',
   'integration-test'
 );
+
+export const isCircleCI = process.env.CIRCLECI === 'true';
 
 export async function openFile(filePath: string) {
   const uri = vscode.Uri.file(filePath);
@@ -30,4 +33,12 @@ export function log(suite: string, ...things: any[]) {
 
 export function showMessage(suite: string, message: string) {
   void vscode.window.showInformationMessage(`Integration testing, ${suite}: ${message}`);
+}
+
+export function getExecutablePath(executablePathMaybe: string) {
+  try {
+    return which.sync(executablePathMaybe);
+  } catch (_e) {
+    return null;
+  }
 }

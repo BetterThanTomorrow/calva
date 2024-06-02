@@ -4,7 +4,6 @@ import * as path from 'path';
 import * as testUtil from './util';
 import * as state from '../../../state';
 import * as util from '../../../utilities';
-import * as which from 'which';
 
 import * as vscode from 'vscode';
 // import * as myExtension from '../extension';
@@ -53,7 +52,7 @@ suite('Jack-in suite', () => {
     const settings = {};
     await writeSettings(settings);
 
-    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
+    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn', 'test.clj');
 
     await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
 
@@ -63,23 +62,30 @@ suite('Jack-in suite', () => {
 
   test('start repl and connect (jack-in) to Basilisp', async function () {
     testUtil.log(suite, 'start repl and connect (jack-in) to Basilisp');
-    // Set the `basilispPath` configuration option in package.json to
-    // the path of the Basilisp executable in your virtual
-    // environment, or install it globally using `pip install
-    // basilisp`. The `which` call below will fail the test if the
-    // executable cannot be found.
     const basilispPath = getConfig().basilispPath;
-    testUtil.log(suite, `Basilisp executable found at ${which.sync(basilispPath)}`);
+    const executablePath = testUtil.getExecutablePath(basilispPath);
 
-    const settings = {};
-    await writeSettings(settings);
+    if (executablePath === null && !testUtil.isCircleCI) {
+      testUtil.log(suite, `Basilisp executable '${basilispPath}' not found, skipping test...`);
+      this.skip();
+    } else {
+      testUtil.log(suite, `Basilisp executable found at ${executablePath}`);
 
-    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'basilisp');
+      const settings = {};
+      await writeSettings(settings);
 
-    await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
+      const testFilePath = await startJackInProcedure(
+        suite,
+        'calva.jackIn',
+        'basilisp',
+        '../projects/minimal-basilisp/src/test.lpy'
+      );
 
-    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-    testUtil.log(suite, 'test.clj closed for Basilisp');
+      await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
+
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+      testUtil.log(suite, 'test.lpy closed for Basilisp');
+    }
   });
 
   test('Jack-in afterCLJReplJackInCode can be a string', async () => {
@@ -96,7 +102,7 @@ suite('Jack-in suite', () => {
       ],
     };
     await writeSettings(settings);
-    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
+    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn', 'test.clj');
     await loadAndAssert(suite, testFilePath, ['; :hello :world!', '; bar', 'nil', 'clj꞉test꞉> ']);
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
@@ -116,7 +122,7 @@ suite('Jack-in suite', () => {
       ],
     };
     await writeSettings(settings);
-    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn');
+    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn', 'test.clj');
     await loadAndAssert(suite, testFilePath, [
       '; :hello',
       '; :world!',
@@ -142,7 +148,13 @@ suite('Jack-in suite', () => {
       ],
     };
     await writeSettings(settings);
-    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', undefined, true);
+    const testFilePath = await startJackInProcedure(
+      suite,
+      'calva.jackIn',
+      undefined,
+      'test.clj',
+      true
+    );
     await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
@@ -152,7 +164,7 @@ suite('Jack-in suite', () => {
   test('Copy Jack-in command line', async function () {
     testUtil.log('Copy Jack-in command line');
 
-    await startJackInProcedure(suite, 'calva.copyJackInCommandToClipboard', 'deps.edn');
+    await startJackInProcedure(suite, 'calva.copyJackInCommandToClipboard', 'deps.edn', 'test.clj');
 
     const cmdLine = await vscode.env.clipboard.readText();
     testUtil.log(suite, 'cmdLine', cmdLine);
@@ -223,11 +235,12 @@ async function startJackInProcedure(
   suite: string,
   cmdId: string,
   projectType: string,
+  testFile: string,
   autoSelectProjectRoot = false
 ) {
-  const testFilePath = path.join(testUtil.testDataDir, 'test.clj');
+  const testFilePath = path.join(testUtil.testDataDir, testFile);
   await testUtil.openFile(testFilePath);
-  testUtil.log(suite, `test.clj opened for project type ${projectType}`);
+  testUtil.log(suite, `${testFile} opened for project type ${projectType}`);
 
   const projectRootUri = projectRoot.findClosestParent(
     vscode.window.activeTextEditor?.document.uri,
