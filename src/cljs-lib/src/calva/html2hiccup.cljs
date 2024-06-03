@@ -37,7 +37,7 @@
 
 (defn- mapify-style [style-str]
   (try
-    (into {} (for [[_ k v] (re-seq #"(\S+):\s+([^;]+);?" style-str)]
+    (into {} (for [[_ k v] (re-seq #"(\S+):\s*([^;]+);?" style-str)]
                [(-> k string/lower-case keyword) (normalize-css-value v)]))
     (catch :default e
       (js/console.warn "Failed to mapify style: '" style-str "'." (.-message e))
@@ -76,7 +76,7 @@
                     (string/split class #"\s+"))
           [kw-classes remaining-classes] (if-not (:add-classes-to-tag-keyword? options)
                                            [() classes]
-                                           (bisect-all-by valid-as-hiccup-kw? classes)) 
+                                           (bisect-all-by valid-as-hiccup-kw? classes))
           tag-w-id+classes (build-tag-with-classes tag+id kw-classes)
           remaining-attrs (cond-> normalized-attrs
                             :always (dissoc :class)
