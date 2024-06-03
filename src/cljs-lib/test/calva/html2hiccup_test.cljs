@@ -101,7 +101,10 @@
            (sut/html->hiccup "<foo style='color:blue'></foo>" {:mapify-style? false}))))
   (testing "style attributes do not need whitespace between entries with mapify-style? enabled"
     (is (= [[:foo {:style {:color :blue}}]]
-           (sut/html->hiccup "<foo style='color:blue'></foo>" {:mapify-style? true})))))
+           (sut/html->hiccup "<foo style='color:blue'></foo>" {:mapify-style? true})))
+    (is (= [[:foo {:style {:color :blue
+                           :stroke :red}}]]
+           (sut/html->hiccup "<foo style='color:blue;stroke:red;'></foo>" {:mapify-style? true})))))
 
 (deftest html->hiccup-w-mapify-style?
   (testing "style attribute is mapified with :mapify-style? enabled"

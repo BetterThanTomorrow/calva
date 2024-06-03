@@ -37,7 +37,7 @@
 
 (defn- mapify-style [style-str]
   (try
-    (into {} (for [[_ k v] (re-seq #"(\S+):\s*([^;]+);?" style-str)]
+    (into {} (for [[_ k v] (re-seq #"(\S+?)\s*:\s*([^;]+);?" style-str)]
                [(-> k string/lower-case keyword) (normalize-css-value v)]))
     (catch :default e
       (js/console.warn "Failed to mapify style: '" style-str "'." (.-message e))
