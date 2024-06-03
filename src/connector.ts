@@ -714,7 +714,9 @@ export async function connect(
     console.error(e);
   }
   initializeDebugger(nClient.session);
-  if (!['babashka', 'nbb', 'joyride', 'generic'].includes(connectSequence.projectType)) {
+  if (
+    !['babashka', 'nbb', 'joyride', 'basilisp', 'generic'].includes(connectSequence.projectType)
+  ) {
     if (!nClient.session.supports('info')) {
       void vscode.window
         .showWarningMessage(

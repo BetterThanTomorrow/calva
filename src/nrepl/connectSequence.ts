@@ -16,6 +16,7 @@ enum ProjectTypes {
   'Gradle' = 'Gradle',
   'babashka' = 'babashka',
   'nbb' = 'nbb',
+  'basilisp' = 'basilisp',
   'joyride' = 'joyride',
   'generic' = 'generic',
   'custom' = 'custom',
@@ -226,6 +227,15 @@ const joyrideDefaults: ReplConnectSequence[] = [
   },
 ];
 
+const basilispDefaults: ReplConnectSequence[] = [
+  {
+    name: 'basilisp',
+    projectType: ProjectTypes['basilisp'],
+    cljsType: CljsTypes.none,
+    nReplPortFile: ['.nrepl-port'],
+  },
+];
+
 const defaultSequences = {
   lein: leiningenDefaults,
   clj: cljDefaults,
@@ -236,6 +246,7 @@ const defaultSequences = {
   custom: customDefaults,
   babashka: babashkaDefaults,
   nbb: nbbDefaults,
+  basilisp: basilispDefaults,
   joyride: joyrideDefaults,
   'cljs-only': cljsOnlyDefaults,
 };

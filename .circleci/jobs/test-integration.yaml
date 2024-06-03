@@ -23,6 +23,17 @@ steps:
     sudo apt update && sudo apt install -y libnss3
 
 - !cmd:
+  - Pip install Basilisp (Python)
+  - sudo add-apt-repository --yes ppa:deadsnakes/ppa;
+    sudo apt-get update;
+    sudo apt-get install python3.12;
+    wget https://bootstrap.pypa.io/get-pip.py;
+    sudo python3.12 get-pip.py;
+    sudo python3.12 -m pip install --upgrade pip setuptools wheel;
+    sudo python3.12 -m pip install pipenv;
+    python3.12 -m pip install basilisp==0.1.0b2;
+
+- !cmd:
   - Run Extension Tests
   - npm run integration-test
 

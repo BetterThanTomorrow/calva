@@ -49,7 +49,13 @@ type FindRootParams = {
 export async function findProjectRootsWithReasons(params?: FindRootParams) {
   const lspDirectories = ['.lsp/config.edn', '.clj-kondo/config.edn'];
 
-  const projectFileNames: string[] = ['project.clj', 'shadow-cljs.edn', 'deps.edn', 'bb.edn'];
+  const projectFileNames: string[] = [
+    'project.clj',
+    'shadow-cljs.edn',
+    'deps.edn',
+    'bb.edn',
+    'basilisp.edn',
+  ];
   if (params?.include_lsp_directories) {
     projectFileNames.push(...lspDirectories);
   }
@@ -121,7 +127,7 @@ function findMatchingParent(
 ) {
   return uris.reduce((root: vscode.Uri | undefined, uri) => {
     const relative = path.relative(uri.fsPath, from.fsPath);
-    if (relative && !relative.includes('../')) {
+    if (relative && !relative.includes('..' + path.sep)) {
       if (!root) {
         return uri;
       }
