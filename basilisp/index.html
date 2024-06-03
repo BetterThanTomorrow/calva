@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Prettiness is on by default and all your evaluation results will get the treatment">
+        <meta name="description" content="Basilisp aims to enable writing Clojure programs on Python with full Python interoperability. It is highly compatible with Clojure.">
       
       
       
-        <link rel="canonical" href="https://calva.io/pprint/">
+        <link rel="canonical" href="https://calva.io/basilisp/">
       
       
-        <link rel="prev" href="../debugger/">
+        <link rel="prev" href="../nbb/">
       
       
-        <link rel="next" href="../test-runner/">
+        <link rel="next" href="../joyride/">
       
       
       <link rel="icon" href="../img/favicon.ico">
@@ -24,7 +24,7 @@
     
     
       
-        <title>Pretty Printing - Calva User Guide</title>
+        <title>Basilisp - Calva User Guide</title>
       
     
     
@@ -73,11 +73,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Pretty Printing - Calva User Guide" >
+        <meta  property="og:title"  content="Basilisp - Calva User Guide" >
       
-        <meta  property="og:description"  content="Prettiness is on by default and all your evaluation results will get the treatment" >
+        <meta  property="og:description"  content="Basilisp aims to enable writing Clojure programs on Python with full Python interoperability. It is highly compatible with Clojure." >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/pprint.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/basilisp.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -85,15 +85,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/pprint/" >
+        <meta  property="og:url"  content="https://calva.io/basilisp/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Pretty Printing - Calva User Guide" >
+        <meta  name="twitter:title"  content="Basilisp - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Prettiness is on by default and all your evaluation results will get the treatment" >
+        <meta  name="twitter:description"  content="Basilisp aims to enable writing Clojure programs on Python with full Python interoperability. It is highly compatible with Clojure." >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/pprint.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/basilisp.png" >
       
     
     
@@ -109,7 +109,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#pretty-printing" class="md-skip">
+        <a href="#using-calva-with-basilisp" class="md-skip">
           Skip to content
         </a>
       
@@ -144,7 +144,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Pretty Printing
+              Basilisp
             
           </span>
         </div>
@@ -449,19 +449,17 @@
       
   
   
-    
   
   
-  
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -475,7 +473,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             Features
@@ -822,30 +820,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Pretty Printing
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../pprint/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -854,116 +832,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#toggle-it" class="md-nav__link">
-    <span class="md-ellipsis">
-      Toggle it
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#your-selection-of-prettifiers" class="md-nav__link">
-    <span class="md-ellipsis">
-      Your Selection of Prettifiers
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Your Selection of Prettifiers">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#or-configure-printfn" class="md-nav__link">
-    <span class="md-ellipsis">
-      Or configure printFn
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#why-does-server-or-client-side-matter" class="md-nav__link">
-    <span class="md-ellipsis">
-      Why does Server or Client Side Matter?
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#need-more-configurability" class="md-nav__link">
-    <span class="md-ellipsis">
-      Need More Configurability?
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#pprint-is-not-working" class="md-nav__link">
-    <span class="md-ellipsis">
-      pprint is not working
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1209,17 +1077,19 @@
       
   
   
+    
   
   
+  
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
         
           
           <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
@@ -1233,7 +1103,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             Using Calva with ...
@@ -1412,10 +1282,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../basilisp/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Basilisp
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -1424,6 +1314,44 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#start-your-project-with-a-repl-and-connect" class="md-nav__link">
+    <span class="md-ellipsis">
+      Start your project with a REPL and connect
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connect-to-a-running-repl-in-your-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connect to a running REPL in your project
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2004,92 +1932,20 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#toggle-it" class="md-nav__link">
+  <a href="#start-your-project-with-a-repl-and-connect" class="md-nav__link">
     <span class="md-ellipsis">
-      Toggle it
+      Start your project with a REPL and connect
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
+  <a href="#connect-to-a-running-repl-in-your-project" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration
+      Connect to a running REPL in your project
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#your-selection-of-prettifiers" class="md-nav__link">
-    <span class="md-ellipsis">
-      Your Selection of Prettifiers
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Your Selection of Prettifiers">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#or-configure-printfn" class="md-nav__link">
-    <span class="md-ellipsis">
-      Or configure printFn
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#why-does-server-or-client-side-matter" class="md-nav__link">
-    <span class="md-ellipsis">
-      Why does Server or Client Side Matter?
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#need-more-configurability" class="md-nav__link">
-    <span class="md-ellipsis">
-      Need More Configurability?
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#pprint-is-not-working" class="md-nav__link">
-    <span class="md-ellipsis">
-      pprint is not working
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2111,116 +1967,24 @@
   
 
 
-<h1 id="pretty-printing">Pretty Printing<a class="headerlink" href="#pretty-printing" title="Permanent link">#</a></h1>
-<p>In Calva, pretty printing is a mode. Prettiness is on by default and all your evaluation results will get that treatment.</p>
-<div class="admonition note">
-<p class="admonition-title">You can also pretty print code on demand</p>
-<p>There is a command <strong>Replace Current Form (or Selection) with Pretty Printed Form</strong>. See <a href="../formatting/#3-replace-current-form-or-selection-with-pretty-printed-form">Clojure Formmatting</a> for more on this.</p>
-</div>
-<h2 id="toggle-it">Toggle it<a class="headerlink" href="#toggle-it" title="Permanent link">#</a></h2>
-<p>There is a <code>pprint</code> indicator to the right in the status bar which shows the status of the mode. Click the indicator to toggle prettification on and off. There is also a <strong>Calva: Toggle Pretty Printing for All Evaluations</strong> command.</p>
-<p>Tip: If you have evaluated something time consuming, or that is not idempotent, with pretty printing mistakenly off: <em>toggle it on and evaluate <code>*1</code>.</em></p>
-<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
-<p>For most people the defaults will probably work, but Calva pretty printing comes a few knobs you can turn, and they are all available through the <code>calva.prettyPrintingOptions</code> settings. Things you can set are:</p>
-<table>
-<thead>
-<tr>
-<th>Setting</th>
-<th>Type</th>
-<th>Effect</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>enabled</code></td>
-<td>boolean</td>
-<td>So this is a third way you can change this mode 😄</td>
-</tr>
-<tr>
-<td><code>printEngine</code></td>
-<td>enum</td>
-<td>Which printer function that will be used. Default is <code>pprint</code>, more about this setting below</td>
-</tr>
-<tr>
-<td><code>printFn</code></td>
-<td>object</td>
-<td>You can configure Calva to use a custom <code>nREPL</code> compatible <code>print</code> function, more below.</td>
-</tr>
-<tr>
-<td><code>width</code></td>
-<td>number</td>
-<td>The maximum line length of printed output (or at least the printers will try)</td>
-</tr>
-<tr>
-<td><code>maxLength</code></td>
-<td>number</td>
-<td>The maximum number of elements printed in nested nodes, <a href="https://clojuredocs.org/clojure.core/*print-length*#example-542692cac026201cdc326b12">good for evaluating something like <code>(iterate inc 0)</code></a>, which you shouldn't do without setting <code>maxLength</code>. Most printers will indicate truncated lists with <code>...</code> at the end.</td>
-</tr>
-<tr>
-<td><code>maxDepth</code></td>
-<td>number</td>
-<td>The maximum number of levels deep that will get printed. Different printers mark a stop different ways. <code>puget</code> doesn't support it at all.</td>
-</tr>
-</tbody>
-</table>
-<p>See <a href="../customizing/">Customizing Calva</a> for some tips on adding settings like these.</p>
-<p>Here's an example of how <code>zprint</code> handles <code>maxDepth</code> (from the <a href="https://github.com/BetterThanTomorrow/calva/blob/dev/src/cljs-lib/src/calva/pprint/printer.cljs">Calva implementation</a> of it's client side pretty printing.).</p>
-<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="p">(</span><span class="nf">pretty-print</span><span class="w"> </span><span class="p">[[[[[[[[</span><span class="ss">:deeper</span><span class="p">]]]]]]]]</span><span class="w"> </span><span class="p">{</span><span class="ss">:max-depth</span><span class="w"> </span><span class="mi">4</span><span class="p">})</span>
-<span class="w">  </span><span class="c1">;; =&gt; {:value &quot;[[[[##]]]]&quot;}</span>
+<h1 id="using-calva-with-basilisp">Using Calva with Basilisp<a class="headerlink" href="#using-calva-with-basilisp" title="Permanent link">#</a></h1>
+<p>To install Basilisp, run:</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>basilisp
 </code></pre></div>
-<h3 id="your-selection-of-prettifiers">Your Selection of Prettifiers<a class="headerlink" href="#your-selection-of-prettifiers" title="Permanent link">#</a></h3>
-<p>Pretty printing can happen on the <em>server</em> (i.e. in the JVM, via nREPL), or on the <em>client</em> (i.e. in node, via VS Code/Calva). Client side always uses <code>zprint</code>. Server side you can choose from these printers:</p>
-<table>
-<thead>
-<tr>
-<th>Print Engine</th>
-<th>Client or Server Side</th>
-<th>Comments</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>calva</code></td>
-<td>client</td>
-<td>The nREPL server will plain print the results, and then Calva will pretty it (using <code>zprint</code>).</td>
-</tr>
-<tr>
-<td><a href="https://clojure.github.io/clojure/clojure.pprint-api.html"><strong><code>pprint</code></strong></a></td>
-<td>server</td>
-<td><strong>Current Calva default.</strong> <code>clojure.core/pprint</code> is a bit basic, but it's tried and tested, and doesn't suffer from the issues with the other server side printing options, mentioned below.</td>
-</tr>
-<tr>
-<td><a href="https://github.com/brandonbloom/fipp"><code>fipp</code></a></td>
-<td>server</td>
-<td></td>
-</tr>
-<tr>
-<td><a href="https://github.com/greglook/puget"><code>puget</code></a></td>
-<td>server</td>
-<td>Lacks <code>maxDepth</code> option.</td>
-</tr>
-<tr>
-<td><a href="https://github.com/kkinnear/zprint"><code>zprint</code></a></td>
-<td>server</td>
-<td>A very good option. However, it will need to be configured before <a href="../connect/">Jack-in</a> if you want Calva's help to inject its dependencies. (If you are not using Jack-in, you'll need to supply this dependency yourself.)</td>
-</tr>
-</tbody>
-</table>
-<p>These particular server side functions were chosen because they have pre-configured print-functions in <a href="https://docs.cider.mx/cider-nrepl/"><code>cider-nrepl</code></a>.</p>
-<h4 id="or-configure-printfn">Or configure <code>printFn</code><a class="headerlink" href="#or-configure-printfn" title="Permanent link">#</a></h4>
-<p>If the selection of built-in <code>printEngine</code> support doesn't cut it, you can configure a custom function. This function will need to conform to the requirements of nREPL print functions. The VS Code settings editor will help you configure this one. (This is also a bit experimental, please consider giving feedback about how it works for you if you try it.)</p>
-<h3 id="why-does-server-or-client-side-matter">Why does Server or Client Side Matter?<a class="headerlink" href="#why-does-server-or-client-side-matter" title="Permanent link">#</a></h3>
-<p>This matters because on the server all pretty printers, except <code>pprint</code> does more than just pretty print the result that would be printed with plain printing. Pretty printing results on the server causes some results to get expanded. This can have huge implications depending on the results and which printer is used. E.g. for <a href="https://www.datomic.com">Datomic</a> transaction results, you will get the whole database printed. Twice. Depending on the database, you could be so unlucky that nothing gets printed, and instead you will soon have a very hot computer.</p>
-<blockquote>
-<p>Note: With the help of zprint creator, <a href="https://github.com/kkinnear">Kim Kinnear</a>, we have <a href="https://github.com/kkinnear/zprint/issues/111">found ways</a> to compensate for this problem. Ways that are not yet implemented, but please stay tuned.</p>
-</blockquote>
-<p>Then why not always do it client side? It turns out that on the client side there are also things going on. Calva gets the results back as a string and therefore it needs to first be parsed back to <a href="https://github.com/edn-format/edn">EDN</a>, before it can be pretty printed by <code>zprint</code>. And – here's the catch – all results are not valid EDN and therefore can't be pretty printed by <code>zprint</code>. Datomic transaction results are one example.</p>
-<h3 id="need-more-configurability">Need More Configurability?<a class="headerlink" href="#need-more-configurability" title="Permanent link">#</a></h3>
-<p>The current options are limited, because our time developing Calva is limited. But <code>cider-nrepl</code> really allows for fully configurable pretty printing, so it is within reach. Please feel invited to give us feedback on what you would want to configure for the printing of results. File issues and/or chat us up in #calva in the Clojurians slack.</p>
-<h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h3>
-<h4 id="pprint-is-not-working">pprint is not working<a class="headerlink" href="#pprint-is-not-working" title="Permanent link">#</a></h4>
-<p>If pprint is not working, try a different pprint engine or use Calva's jack-in to make sure the necessary dependencies are loaded in your REPL. If you are starting your REPL without jack-in and want to continue doing so, you can use the command <code>Copy Jack-in Command Line to Clipboard</code> then paste the command somewhere to see what dependencies it injects. You can then add these dependencies to your REPL in whatever way suits your needs.</p>
-<p>Enjoy Prettiful Printing! ❤️</p>
+<p>There are several ways to connect to Basilisp.</p>
+<h2 id="start-your-project-with-a-repl-and-connect">Start your project with a REPL and connect<a class="headerlink" href="#start-your-project-with-a-repl-and-connect" title="Permanent link">#</a></h2>
+<p>If you have created a <code>basilisp.edn</code> project file at your root of your project tree, you can jack in  with the <code>Start a Project REPL and connect</code> command. </p>
+<p>The <code>basilisp.edn</code> is similar to <code>deps.edn</code> for clojure-cli projects. It can be left empty just to mark the root of your Basilisp project.</p>
+<h2 id="connect-to-a-running-repl-in-your-project">Connect to a running REPL in your project<a class="headerlink" href="#connect-to-a-running-repl-in-your-project" title="Permanent link">#</a></h2>
+<p>You can start its bundled nREPL server:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>basilisp<span class="w"> </span>nrepl-server
+</code></pre></div>
+<p>and connect to it afterward using <code>Connect to a running REPL in your project</code> command.</p>
+<p>To see available options, type <code>basilisp nrepl-server -h</code> in a shell prompt.</p>
+<h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h1>
+<h2 id="calva-basilisp-path">Calva: Basilisp Path<a class="headerlink" href="#calva-basilisp-path" title="Permanent link">#</a></h2>
+<p>The path to the basilisp executable, typically <code>basilisp</code>.</p>
+<p>If Basilisp is installed in a virtual environment, update this to the full path of the basilisp executable within that virtual environment.</p>
 
 
 
