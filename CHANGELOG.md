@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+[Extend "Refresh Changed Namespaces" to accept optional parameters exposed by cider-nrepl](https://github.com/BetterThanTomorrow/calva/issues/2556)
+
 ## [2.0.454] - 2024-06-03
 
 - Fix: [HTML->Hiccup fails on style attribute strings where the entries do not have whitespace](https://github.com/BetterThanTomorrow/calva/issues/2561)

@@ -17,7 +17,7 @@ import { CalvaSignatureHelpProvider } from './providers/signature';
 import testRunner from './testRunner';
 import annotations from './providers/annotations';
 import eval from './evaluate';
-import refresh from './refresh';
+import * as refresh from './refresh';
 import * as greetings from './greet';
 import Analytics from './analytics';
 import * as open from 'open';
