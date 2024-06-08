@@ -763,7 +763,7 @@ export class NReplSession {
     });
   }
 
-  private _refresh(cmd, opts: { dirs?: string[]; before?: string[]; after?: string[] } = {}) {
+  private _refresh(cmd, opts = {}) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
       const msg = {
@@ -793,6 +793,9 @@ export class NReplSession {
           if (msg.err) {
             err += msg.err;
           }
+          if (msg.out) {
+            output.appendOtherOut(msg.out);
+          }
           if (hasStatus(msg, 'done')) {
             const res = { reloaded, status } as any;
             if (error) {
@@ -816,11 +819,11 @@ export class NReplSession {
     });
   }
 
-  refresh(opts: { dirs?: string[]; before?: string[]; after?: string[] } = {}) {
+  refresh(opts = {}) {
     return this._refresh('refresh', opts);
   }
 
-  refreshAll(opts: { dirs?: string[]; before?: string[]; after?: string[] } = {}) {
+  refreshAll(opts = {}) {
     return this._refresh('refresh-all', opts);
   }
 
