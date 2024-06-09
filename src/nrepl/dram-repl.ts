@@ -290,6 +290,7 @@ export async function maybeStartDramRepl() {
 
 export async function startDramRepl() {
   const args = await deserializeDramReplStartConfig(state.getProjectRootUri());
+  void vscode.workspace.fs.delete(ARGS_FILE_PATH(state.getProjectRootUri()));
   await state.initProjectDir(ConnectType.JackIn, args.dramTemplate.connectSequence, false);
   const projectRootUri = state.getProjectRootUri();
   const [mainDoc, mainEditor] = await openStoredDoc(projectRootUri, args.config.files[0]);
