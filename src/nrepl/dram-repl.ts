@@ -58,7 +58,7 @@ const calculateBranch = () => {
 };
 
 const dramsBaseUrl = () => {
-  return `${DRAM_BASE_URL}/${calculateBranch()}/drams`;
+  return `${DRAM_BASE_URL}/${calculateBranch()}/drams/v2`;
 };
 
 async function fetchConfig(configName: string): Promise<DramConfig> {
@@ -123,7 +123,7 @@ async function putStoreDocInPlace(
     if (e instanceof vscode.FileSystemError && e.code === 'FileExists') {
       console.info(`File ${dramFile.path} already exists in temp dir, skipping copy.`);
     } else {
-      console.log('Unexpected error:', e);
+      console.error('Unexpected error:', e);
     }
   }
   return destUri;
