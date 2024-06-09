@@ -5,6 +5,7 @@ import * as highlight from './highlight/src/extension';
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
 import * as replStart from './nrepl/repl-start';
+import * as dramRepl from './nrepl/dram-repl';
 import * as util from './utilities';
 import { NotebookKernel, NotebookProvider } from './NotebookProvider';
 import status from './status';
@@ -285,16 +286,16 @@ async function activate(context: vscode.ExtensionContext) {
     },
     startOrConnectRepl: replStart.startOrConnectRepl,
     startStandaloneCljsBrowserRepl: () => {
-      return replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_BROWSER_TEMPLATE, false);
+      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_CLJS_BROWSER_TEMPLATE, false);
     },
     startStandaloneCljsNodeRepl: () => {
-      return replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_NODE_TEMPLATE, false);
+      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_CLJS_NODE_TEMPLATE, false);
     },
     startStandaloneHelloRepl: () => {
-      return replStart.startStandaloneRepl(context, replStart.HELLO_TEMPLATE, false);
+      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_TEMPLATE, false);
     },
     startStandaloneRepl: () => {
-      return replStart.startStandaloneRepl(context, replStart.USER_TEMPLATE, true);
+      return dramRepl.startStandaloneRepl(context, dramRepl.USER_TEMPLATE, true);
     },
     switchCljsBuild: connector.switchCljsBuild,
     tapCurrentTopLevelForm: () =>
@@ -539,7 +540,7 @@ async function activate(context: vscode.ExtensionContext) {
 
   fiddleFiles.activate(context);
 
-  void replStart.maybeStartDramRepl();
+  void dramRepl.maybeStartDramRepl();
 
   console.info('Calva activate END');
 
