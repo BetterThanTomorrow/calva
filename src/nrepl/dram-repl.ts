@@ -110,11 +110,11 @@ async function openStoredDoc(
 
 async function putStoreDocInPlace(
   storageUri: vscode.Uri,
-  tempDirUri: vscode.Uri,
+  projectRootUri: vscode.Uri,
   dramFile: DramFile
 ) {
   const sourceUri = vscode.Uri.file(path.join(storageUri.fsPath, dramFile.path));
-  const destUri = vscode.Uri.file(path.join(tempDirUri.fsPath, dramFile.path));
+  const destUri = vscode.Uri.file(path.join(projectRootUri.fsPath, dramFile.path));
   try {
     await vscode.workspace.fs.copy(sourceUri, destUri, {
       overwrite: false,
@@ -187,12 +187,12 @@ export async function startStandaloneRepl(
       ? await fetchConfig(dramTemplate.config)
       : dramTemplate.config;
   const docNames = config.files.map((f) => f.path);
-  const tempDirUri = await state.setOrCreateNonProjectRoot(context);
+  const projectRootUri = await state.setOrCreateNonProjectRoot(context);
 
   const storageUri = vscode.Uri.joinPath(context.globalStorageUri, 'drams');
 
   await vscode.workspace.fs.createDirectory(storageUri);
-  await vscode.workspace.fs.createDirectory(tempDirUri);
+  await vscode.workspace.fs.createDirectory(projectRootUri);
   if (areBundled) {
     await extractBundledFiles(context, storageUri, docNames);
   } else {
@@ -202,17 +202,17 @@ export async function startStandaloneRepl(
     });
   }
 
-  const destUris = config.files.map((file) => putStoreDocInPlace(storageUri, tempDirUri, file));
+  const destUris = config.files.map((file) => putStoreDocInPlace(storageUri, projectRootUri, file));
   await Promise.all(destUris);
 
-  await serializeDramReplStartConfig(tempDirUri, {
+  await serializeDramReplStartConfig(projectRootUri, {
     config,
     lastMenuSlug,
     dramTemplateName,
     dramTemplate,
   });
 
-  return vscode.commands.executeCommand('vscode.openFolder', tempDirUri, true);
+  return vscode.commands.executeCommand('vscode.openFolder', projectRootUri, true);
 }
 
 type DramReplStartConfig = {
@@ -222,8 +222,8 @@ type DramReplStartConfig = {
   dramTemplate: DramTemplate;
 };
 
-async function serializeDramReplStartConfig(tempDirUri, args: DramReplStartConfig) {
-  const argsFilePath = vscode.Uri.joinPath(tempDirUri, 'dram-repl-args.json');
+async function serializeDramReplStartConfig(projectRootUri, args: DramReplStartConfig) {
+  const argsFilePath = vscode.Uri.joinPath(projectRootUri, 'dram-repl-args.json');
   const data = new TextEncoder().encode(JSON.stringify(args));
   return vscode.workspace.fs.writeFile(argsFilePath, data);
 }
