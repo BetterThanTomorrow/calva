@@ -187,7 +187,40 @@ export async function startStandaloneRepl(
       ? await fetchConfig(dramTemplate.config)
       : dramTemplate.config;
   const docNames = config.files.map((f) => f.path);
-  const projectRootUri = await state.setOrCreateNonProjectRoot(context);
+
+  const choice = await vscode.window.showInformationMessage(
+    `${DRAM_TEMPLATE_TO_MENU_OPTION[dramTemplateName]}`,
+    {
+      modal: true,
+      detail:
+        'Next you will be asked to select a folder to create the project in. Creating a new project folder is recommended.',
+    },
+    'OK',
+    'Use random temp directory'
+  );
+
+  if (choice === undefined) {
+    return;
+  }
+
+  let projectRootUri: vscode.Uri;
+  if (choice === 'Use random temp directory') {
+    projectRootUri = await state.setOrCreateNonProjectRoot(context);
+  } else {
+    const folderUris = await vscode.window.showOpenDialog({
+      canSelectFolders: true,
+      canSelectFiles: false,
+      canSelectMany: false,
+    });
+
+    if (folderUris && folderUris.length > 0) {
+      projectRootUri = folderUris[0];
+    }
+  }
+
+  if (!projectRootUri) {
+    return;
+  }
 
   const storageUri = vscode.Uri.joinPath(context.globalStorageUri, 'drams');
 
@@ -222,17 +255,19 @@ type DramReplStartConfig = {
   dramTemplate: DramTemplate;
 };
 
+function ARGS_FILE_PATH(projectRootUri: vscode.Uri) {
+  return vscode.Uri.joinPath(projectRootUri, '.calva', 'drams', 'repl-start-config.json');
+}
+
 async function serializeDramReplStartConfig(projectRootUri, args: DramReplStartConfig) {
-  const argsFilePath = vscode.Uri.joinPath(projectRootUri, 'dram-repl-args.json');
   const data = new TextEncoder().encode(JSON.stringify(args));
-  return vscode.workspace.fs.writeFile(argsFilePath, data);
+  return vscode.workspace.fs.writeFile(ARGS_FILE_PATH(projectRootUri), data);
 }
 
 async function deserializeDramReplStartConfig(
   projectRootUri: vscode.Uri
 ): Promise<DramReplStartConfig> {
-  const argsFilePath = vscode.Uri.joinPath(projectRootUri, 'dram-repl-args.json');
-  const data = await vscode.workspace.fs.readFile(argsFilePath);
+  const data = await vscode.workspace.fs.readFile(ARGS_FILE_PATH(projectRootUri));
   return JSON.parse(new TextDecoder().decode(data));
 }
 
@@ -241,8 +276,7 @@ async function dramReplStartConfigExists(): Promise<boolean> {
   if (!projectRootUri) {
     return false;
   }
-  const argsFilePath = vscode.Uri.joinPath(projectRootUri, 'dram-repl-args.json');
-  return vscode.workspace.fs.stat(argsFilePath).then(
+  return vscode.workspace.fs.stat(ARGS_FILE_PATH(projectRootUri)).then(
     () => true,
     () => false
   );
