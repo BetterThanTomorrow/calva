@@ -539,6 +539,8 @@ async function activate(context: vscode.ExtensionContext) {
 
   fiddleFiles.activate(context);
 
+  void replStart.maybeStartDramRepl();
+
   console.info('Calva activate END');
 
   return api.getApi();

@@ -12,6 +12,7 @@ import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import { ReplConnectSequence } from './connectSequence';
 import * as fiddleFiles from '../fiddle-files';
 import * as output from '../results-output/output';
+import { ConnectType } from './connect-types';
 
 const TEMPLATES_SUB_DIR = 'bundled';
 const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
@@ -38,7 +39,7 @@ export const USER_TEMPLATE: DramTemplate = {
 
 export const HELLO_TEMPLATE: DramTemplate = {
   config: 'calva_getting_started',
-  connectSequence: sequence.genericDefaults[0],
+  connectSequence: sequence.cljDefaults[0],
 };
 
 export const HELLO_CLJS_BROWSER_TEMPLATE: DramTemplate = {
@@ -94,10 +95,26 @@ export async function downloadDrams(
 }
 
 async function openStoredDoc(
+  projectRootUri: vscode.Uri,
+  dramFile: DramFile
+): Promise<[vscode.TextDocument, vscode.TextEditor] | undefined> {
+  const destUri = vscode.Uri.file(path.join(projectRootUri.fsPath, dramFile.path));
+  if (dramFile['open?']) {
+    const doc = await vscode.workspace.openTextDocument(destUri);
+    const editor = await vscode.window.showTextDocument(doc, {
+      preview: false,
+      viewColumn: vscode.ViewColumn.One,
+      preserveFocus: true,
+    });
+    return [doc, editor];
+  }
+}
+
+async function putStoreDocInPlace(
   storageUri: vscode.Uri,
   tempDirUri: vscode.Uri,
   dramFile: DramFile
-): Promise<[vscode.TextDocument, vscode.TextEditor] | undefined> {
+) {
   const sourceUri = vscode.Uri.file(path.join(storageUri.fsPath, dramFile.path));
   const destUri = vscode.Uri.file(path.join(tempDirUri.fsPath, dramFile.path));
   try {
@@ -111,15 +128,7 @@ async function openStoredDoc(
       console.log('Unexpected error:', e);
     }
   }
-  if (dramFile['open?']) {
-    const doc = await vscode.workspace.openTextDocument(destUri);
-    const editor = await vscode.window.showTextDocument(doc, {
-      preview: false,
-      viewColumn: vscode.ViewColumn.One,
-      preserveFocus: true,
-    });
-    return [doc, editor];
-  }
+  return destUri;
 }
 
 async function extractBundledFiles(
@@ -238,16 +247,72 @@ export async function startStandaloneRepl(
     });
   }
 
-  const [mainDoc, mainEditor] = await openStoredDoc(storageUri, tempDirUri, config.files[0]);
-  for (const file of config.files.slice(1)) {
-    await openStoredDoc(storageUri, tempDirUri, file);
+  const destUris = config.files.map((file) => putStoreDocInPlace(storageUri, tempDirUri, file));
+  await Promise.all(destUris);
+
+  await serializeDramReplStartConfig(tempDirUri, {
+    config,
+    lastMenuSlug,
+    dramTemplateName,
+    dramTemplate,
+  });
+
+  return vscode.commands.executeCommand('vscode.openFolder', tempDirUri, true);
+}
+
+type DramReplStartConfig = {
+  config: DramConfig;
+  lastMenuSlug: { prefix: string; suffix: string };
+  dramTemplateName: string;
+  dramTemplate: DramTemplate;
+};
+
+async function serializeDramReplStartConfig(tempDirUri, args: DramReplStartConfig) {
+  const argsFilePath = vscode.Uri.joinPath(tempDirUri, 'dram-repl-args.json');
+  const data = new TextEncoder().encode(JSON.stringify(args));
+  return vscode.workspace.fs.writeFile(argsFilePath, data);
+}
+
+async function deserializeDramReplStartConfig(
+  projectRootUri: vscode.Uri
+): Promise<DramReplStartConfig> {
+  const argsFilePath = vscode.Uri.joinPath(projectRootUri, 'dram-repl-args.json');
+  const data = await vscode.workspace.fs.readFile(argsFilePath);
+  return JSON.parse(new TextDecoder().decode(data));
+}
+
+async function dramReplStartConfigExists(): Promise<boolean> {
+  const projectRootUri = state.getProjectRootUri();
+  if (!projectRootUri) {
+    return false;
+  }
+  const argsFilePath = vscode.Uri.joinPath(projectRootUri, 'dram-repl-args.json');
+  return vscode.workspace.fs.stat(argsFilePath).then(
+    () => true,
+    () => false
+  );
+}
+
+export async function maybeStartDramRepl() {
+  if (await dramReplStartConfigExists()) {
+    return startDramRepl();
+  }
+}
+
+export async function startDramRepl() {
+  const args = await deserializeDramReplStartConfig(state.getProjectRootUri());
+  await state.initProjectDir(ConnectType.JackIn, args.dramTemplate.connectSequence, false);
+  const projectRootUri = state.getProjectRootUri();
+  const [mainDoc, mainEditor] = await openStoredDoc(projectRootUri, args.config.files[0]);
+  for (const file of args.config.files.slice(1)) {
+    await openStoredDoc(projectRootUri, file);
   }
 
   // We now have the proper project root for the REPL Menu “command palette”
   const newMenuSlug = menuSlugForProjectRoot();
   await state.extensionContext.workspaceState.update(
-    `qps-${newMenuSlug.prefix}/${lastMenuSlug.suffix}`,
-    DRAM_TEMPLATE_TO_MENU_OPTION[dramTemplateName]
+    `qps-${newMenuSlug.prefix}/${args.lastMenuSlug.suffix}`,
+    JACK_IN_OPTION //DRAM_TEMPLATE_TO_MENU_OPTION[args.dramTemplateName]
   );
 
   const firstPos = mainEditor.document.positionAt(0);
@@ -259,7 +324,7 @@ export async function startStandaloneRepl(
     preserveFocus: false,
   });
 
-  return jackIn.jackIn(dramTemplate.connectSequence, false, async () => {
+  return jackIn.jackIn(args.dramTemplate.connectSequence, false, async () => {
     await vscode.window.showTextDocument(mainDoc, {
       preview: false,
       viewColumn: vscode.ViewColumn.One,
