@@ -4,6 +4,10 @@
         org.clojars.liverm0r/dartclojure {:mvn/version "0.2.22-SNAPSHOT"}
         vvvvalvalval/supdate {:mvn/version "0.2.3"}
         camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.3"}
+        no.cjohansen/replicant {:git/url "https://github.com/cjohansen/replicant.git"
+                                :git/sha "ef2fecbe301cafa8449b74a1e2cbe4fc3ddc18ac"}
+        org.clojars.abhinav/snitch {:mvn/version "0.1.14"}
         #_#_org.clojars.liverm0r/dartclojure {:local/root "../DartClojure"}}
+ :aliases {:dev {:extra-deps {org.clojars.abhinav/snitch {:mvn/version "0.1.14"}}}}
  :paths ["src/cljs-lib/src"
          "src/cljs-lib/test"]}
