@@ -78,6 +78,28 @@ function initializeState() {
 async function activate(context: vscode.ExtensionContext) {
   console.info('Calva activate START');
 
+  initializeState();
+  state.setExtensionContext(context);
+  state.initDepsEdnJackInExecutable();
+  const isDramReplStart = await dramRepl.dramReplStartConfigExists();
+
+  const inspectorDataProvider = eval.initInspectorDataProvider();
+  const inspectorTreeView = vscode.window.createTreeView('calva.inspector', {
+    treeDataProvider: inspectorDataProvider,
+  });
+  inspectorDataProvider.treeView = inspectorTreeView;
+  vscode.window.registerFileDecorationProvider(new inspector.InspectorItemDecorationProvider());
+
+  overrides.activate();
+
+  if (isDramReplStart) {
+    overrides.addWarningExclusionRegexp(/classpath lookup failed/i);
+    overrides.addErrorExclusionRegexp(/classpath lookup failed/i);
+  }
+
+  await config.updateCalvaConfigFromUserConfigEdn(false);
+  await config.updateCalvaConfigFromEdn();
+
   const testController = vscode.tests.createTestController('calvaTestController', 'Calva');
   const clientProvider = lsp.createClientProvider({
     context,
@@ -88,19 +110,6 @@ async function activate(context: vscode.ExtensionContext) {
   await clientProvider.init();
 
   lsp.registerGlobally(clientProvider);
-
-  const inspectorDataProvider = eval.initInspectorDataProvider();
-  const inspectorTreeView = vscode.window.createTreeView('calva.inspector', {
-    treeDataProvider: inspectorDataProvider,
-  });
-  inspectorDataProvider.treeView = inspectorTreeView;
-  vscode.window.registerFileDecorationProvider(new inspector.InspectorItemDecorationProvider());
-  overrides.activate();
-
-  initializeState();
-  await config.updateCalvaConfigFromUserConfigEdn(false);
-  await config.updateCalvaConfigFromEdn();
-
   context.subscriptions.push(testController);
   testRunner.initialize(testController);
 
@@ -158,8 +167,6 @@ async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  state.setExtensionContext(context);
-  state.initDepsEdnJackInExecutable();
   void depsClj.downloadDepsClj(context.extensionPath);
 
   if (cljKondoExtension) {

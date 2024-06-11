@@ -271,7 +271,7 @@ async function deserializeDramReplStartConfig(
   return JSON.parse(new TextDecoder().decode(data));
 }
 
-async function dramReplStartConfigExists(): Promise<boolean> {
+export async function dramReplStartConfigExists(): Promise<boolean> {
   const projectRootUri = state.getProjectRootUri();
   if (!projectRootUri) {
     return false;
