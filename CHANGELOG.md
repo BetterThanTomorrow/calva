@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Start Getting Started/Quick Start REPLs in a proper VS Code foldered window](https://github.com/BetterThanTomorrow/calva/issues/2566)
+
 ## [2.0.455] - 2024-06-08
 
 [Extend "Refresh Changed Namespaces" to accept optional parameters exposed by cider-nrepl](https://github.com/BetterThanTomorrow/calva/issues/2556)
