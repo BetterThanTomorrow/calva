@@ -5,6 +5,7 @@ import * as highlight from './highlight/src/extension';
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
 import * as replStart from './nrepl/repl-start';
+import * as dramRepl from './nrepl/dram-repl';
 import * as util from './utilities';
 import { NotebookKernel, NotebookProvider } from './NotebookProvider';
 import status from './status';
@@ -77,6 +78,28 @@ function initializeState() {
 async function activate(context: vscode.ExtensionContext) {
   console.info('Calva activate START');
 
+  initializeState();
+  state.setExtensionContext(context);
+  state.initDepsEdnJackInExecutable();
+  const isDramReplStart = await dramRepl.dramReplStartConfigExists();
+
+  const inspectorDataProvider = eval.initInspectorDataProvider();
+  const inspectorTreeView = vscode.window.createTreeView('calva.inspector', {
+    treeDataProvider: inspectorDataProvider,
+  });
+  inspectorDataProvider.treeView = inspectorTreeView;
+  vscode.window.registerFileDecorationProvider(new inspector.InspectorItemDecorationProvider());
+
+  overrides.activate();
+
+  if (isDramReplStart) {
+    overrides.addWarningExclusionRegexp(/classpath lookup failed/i);
+    overrides.addErrorExclusionRegexp(/classpath lookup failed/i);
+  }
+
+  await config.updateCalvaConfigFromUserConfigEdn(false);
+  await config.updateCalvaConfigFromEdn();
+
   const testController = vscode.tests.createTestController('calvaTestController', 'Calva');
   const clientProvider = lsp.createClientProvider({
     context,
@@ -87,19 +110,6 @@ async function activate(context: vscode.ExtensionContext) {
   await clientProvider.init();
 
   lsp.registerGlobally(clientProvider);
-
-  const inspectorDataProvider = eval.initInspectorDataProvider();
-  const inspectorTreeView = vscode.window.createTreeView('calva.inspector', {
-    treeDataProvider: inspectorDataProvider,
-  });
-  inspectorDataProvider.treeView = inspectorTreeView;
-  vscode.window.registerFileDecorationProvider(new inspector.InspectorItemDecorationProvider());
-  overrides.activate();
-
-  initializeState();
-  await config.updateCalvaConfigFromUserConfigEdn(false);
-  await config.updateCalvaConfigFromEdn();
-
   context.subscriptions.push(testController);
   testRunner.initialize(testController);
 
@@ -157,8 +167,6 @@ async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  state.setExtensionContext(context);
-  state.initDepsEdnJackInExecutable();
   void depsClj.downloadDepsClj(context.extensionPath);
 
   if (cljKondoExtension) {
@@ -285,16 +293,16 @@ async function activate(context: vscode.ExtensionContext) {
     },
     startOrConnectRepl: replStart.startOrConnectRepl,
     startStandaloneCljsBrowserRepl: () => {
-      return replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_BROWSER_TEMPLATE, false);
+      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_CLJS_BROWSER_TEMPLATE, false);
     },
     startStandaloneCljsNodeRepl: () => {
-      return replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_NODE_TEMPLATE, false);
+      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_CLJS_NODE_TEMPLATE, false);
     },
     startStandaloneHelloRepl: () => {
-      return replStart.startStandaloneRepl(context, replStart.HELLO_TEMPLATE, false);
+      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_TEMPLATE, false);
     },
     startStandaloneRepl: () => {
-      return replStart.startStandaloneRepl(context, replStart.USER_TEMPLATE, true);
+      return dramRepl.startStandaloneRepl(context, dramRepl.USER_TEMPLATE, true);
     },
     switchCljsBuild: connector.switchCljsBuild,
     tapCurrentTopLevelForm: () =>
@@ -538,6 +546,8 @@ async function activate(context: vscode.ExtensionContext) {
   }
 
   fiddleFiles.activate(context);
+
+  void dramRepl.maybeStartDramRepl();
 
   console.info('Calva activate END');
 
