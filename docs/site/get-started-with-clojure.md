@@ -11,7 +11,7 @@ Welcome to an interactive guide to get you started with [Clojure](https://clojur
 
 ![Get Started with Clojure](images/getting-started-with-clojure/get-started-with-clojure-header-wo-header.png)
 
-The guide will take you through installing the prerequisites: [Java](https://www.oracle.com/java/), [VS Code](https://code.visualstudio.com), and [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) (a Clojure extension to VS Code.). You will also install the Clojure CLI tools, because this is about **Getting Started with Clojure**.
+You will need [Java](https://www.oracle.com/java/), [VS Code](https://code.visualstudio.com), and [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) (a Clojure extension to VS Code).  Instructions for where to find installers are provided [further down on this page](#install). You will also install the Clojure CLI tools, because this is about **Getting Started with Clojure**.
 
 ??? Note "I am new to VS Code"
     You may want to have a look at [this Getting Started with VS Code video](https://code.visualstudio.com/docs/introvideos/basics). Also, have [this overview of the VS Code interface](https://code.visualstudio.com/docs/getstarted/userinterface) handy.
