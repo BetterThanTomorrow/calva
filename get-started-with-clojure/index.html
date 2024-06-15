@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Welcome to a zero-install, interactive, guide to get you started with Clojure and Interactive Programming">
+        <meta name="description" content="An interactive guide to get you started with Clojure and Interactive Programming">
       
       
       
@@ -75,7 +75,7 @@
       
         <meta  property="og:title"  content="Get Started with Clojure - Calva User Guide" >
       
-        <meta  property="og:description"  content="Welcome to a zero-install, interactive, guide to get you started with Clojure and Interactive Programming" >
+        <meta  property="og:description"  content="An interactive guide to get you started with Clojure and Interactive Programming" >
       
         <meta  property="og:image"  content="https://calva.io/assets/images/social/get-started-with-clojure.png" >
       
@@ -91,7 +91,7 @@
       
         <meta  name="twitter:title"  content="Get Started with Clojure - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Welcome to a zero-install, interactive, guide to get you started with Clojure and Interactive Programming" >
+        <meta  name="twitter:description"  content="An interactive guide to get you started with Clojure and Interactive Programming" >
       
         <meta  name="twitter:image"  content="https://calva.io/assets/images/social/get-started-with-clojure.png" >
       
@@ -1874,28 +1874,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-you-need" class="md-nav__link">
+  <a href="#lets-go" class="md-nav__link">
     <span class="md-ellipsis">
-      What you need
+      Let's go!
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Let's go!">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install" class="md-nav__link">
+    <span class="md-ellipsis">
+      Install
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      How it works
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="How it works">
-      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#lets-go" class="md-nav__link">
+  <a href="#run-the-getting-started-repl" class="md-nav__link">
     <span class="md-ellipsis">
-      Let's go!
+      Run the Getting Started REPL
     </span>
   </a>
   
@@ -2101,28 +2101,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-you-need" class="md-nav__link">
+  <a href="#lets-go" class="md-nav__link">
     <span class="md-ellipsis">
-      What you need
+      Let's go!
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Let's go!">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install" class="md-nav__link">
+    <span class="md-ellipsis">
+      Install
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      How it works
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="How it works">
-      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#lets-go" class="md-nav__link">
+  <a href="#run-the-getting-started-repl" class="md-nav__link">
     <span class="md-ellipsis">
-      Let's go!
+      Run the Getting Started REPL
     </span>
   </a>
   
@@ -2206,29 +2206,17 @@
 
 
 <h1 id="get-started-with-clojure">Get Started with Clojure<a class="headerlink" href="#get-started-with-clojure" title="Permanent link">#</a></h1>
+<p>Welcome to an interactive guide to get you started with <a href="https://clojure.org/">Clojure</a>. You will learn Clojure in the way it is intended to be used: from within your editor, jacked in to the running application.</p>
 <p><img alt="Get Started with Clojure" src="../images/getting-started-with-clojure/get-started-with-clojure-header-wo-header.png" /></p>
-<p>Welcome to a zero-install, interactive, guide to get you started with <a href="https://clojure.org/">Clojure</a> using:</p>
-<ul>
-<li><a href="https://clojure.org/">Clojure</a></li>
-<li><a href="https://www.gitpod.io/">Gitpod</a> (A development environment delivered via the web browser)</li>
-<li><a href="https://code.visualstudio.com">VS Code</a> (Or Gitpod Code, actually. In your web browser.)</li>
-<li><a href="https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva">Calva</a> (A Clojure extension to VS Code. The thing this site is about.)</li>
-<li>Calva's <a href="../getting-started/">Getting Started REPL</a></li>
-</ul>
+<p>You will need <a href="https://www.oracle.com/java/">Java</a>, <a href="https://code.visualstudio.com">VS Code</a>, and <a href="https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva">Calva</a> (a Clojure extension to VS Code).  Instructions for where to find installers are provided <a href="#install">further down on this page</a>. You will also install the Clojure CLI tools, because this is about <strong>Getting Started with Clojure</strong>.</p>
 <details class="note">
-<summary>I have VS Code and Java</summary>
-<p>Clojure runs on the JVM. How to install it is a big topic. Since you have already done that, you can, if you want, choose to install Calva in your local VS Code and fire up the <a href="../getting-started/">Getting Started REPL</a>. By all means read this page anyway, you can just skip the Gitpod parts.</p>
-<p>Also: <em>If you are using Windows</em> your Java might have <a href="https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8266473">a bug</a> that <a href="https://github.com/BetterThanTomorrow/calva/issues/1162">prevents things from working</a>. Then you might want to defer fixing that and use the zero-install option first.</p>
+<summary>I am new to VS Code</summary>
+<p>You may want to have a look at <a href="https://code.visualstudio.com/docs/introvideos/basics">this Getting Started with VS Code video</a>. Also, have <a href="https://code.visualstudio.com/docs/getstarted/userinterface">this overview of the VS Code interface</a> handy.</p>
 </details>
-<details class="note">
-<summary>Is Gitpod Code exactly as VS Code?</summary>
-<p>Almost! But, yeah, there are <em>some</em> difference between regular VS Code and Gitpod's ditto. Most of it doesn't matter, but finding the main menu can be a bit tricky:
-<img alt="Here is the menu in Gitpod VS Code" src="../images/getting-started-with-clojure/gitpod-vscode-menu.png" /></p>
-</details>
+<p>If you have these things installed, and just want to get going, jump to <a href="#run-the-getting-started-repl">Run the Getting Started REPL</a> below.</p>
 <h2 id="what-youll-learn">What you'll learn<a class="headerlink" href="#what-youll-learn" title="Permanent link">#</a></h2>
 <ul>
 <li>The basics of the Clojure language (at least the start of the basics)</li>
-<li>The basics of the <a href="https://clojurescript.org">ClojureScript</a> language (we won't be using ClojureScript, but it is same language 😀)</li>
 <li>The basics of Calva (It's a bit as a side effect. You need it to learn Clojure this way, and by learning Clojure this way, Calva knowledge trickles in.)</li>
 <li>What is meant by, and some ways to perform, <em>Interactive Programming</em> (aka REPL Driven Development)</li>
 <li>Where to find Clojurians, i.e. folks who use Clojure and care about it (you will thus find help, the friendliest help you have ever seen a community provide)</li>
@@ -2245,64 +2233,50 @@
 </details>
 <h2 id="what-you-wont-learn">What you won't learn<a class="headerlink" href="#what-you-wont-learn" title="Permanent link">#</a></h2>
 <ul>
-<li>How to install Clojure for your operating system of choice</li>
 <li>About various old and new build and dependency tools</li>
-<li>How to create projects and do real stuff</li>
+<li>How to create projects</li>
 </ul>
 <details class="note">
 <summary>Why won't I learn about this?</summary>
-<p>All in due time. 😄 It can be a bit confusing with all the things you find out about installing Clojure and creating projects when searching for information about it. We want you to relax about all that and just enjoy learning a bit about this fantastic programming language and the wonderful mode of development it offers.</p>
-<p>There is a lot of info about this out there already. And since you will learn where to find Clojurians, you will also find guidance. But we suggest do these things later. First, let's focus on having fun with Interactive Programming!</p>
+<p>All in due time. 😄 Creating a Clojure project can mean a lot of different things, and demand different tooling, depending on a what kind of project it is. That said, the Getting Started Guide itself is a small Clojure project, so you can keep building on it as your first Clojure project.</p>
 </details>
-<h2 id="what-you-need">What you need<a class="headerlink" href="#what-you-need" title="Permanent link">#</a></h2>
-<ul>
-<li>Curiosity about Clojure</li>
-<li>A web browser</li>
-</ul>
-<details class="note">
-<summary>The browser ate my keyboard shortcuts!</summary>
-<p>There is always a competition for which system gets to catch keyboard shortcuts first. This worsens a bit when an application like VS Code runs in the web browser. Remember this if some shortcut/command doesn't work.</p>
-<p>On some machines, with some web browsers, some shortcuts are caught by the web browser and instead re-opening a closed tab or whatever. These have been observed:</p>
-<ul>
-<li>Undo (undoing something web browser related)</li>
-<li>Select the line (focusing the browser URL input)</li>
-<li>Open the command palette (opening a private browsing window. Looking at you Firefox.)</li>
-<li>Escape key shortcuts (are you using VIM bindings in your browser?)</li>
-</ul>
-<p>Sometimes the workaround is to redefine the shortcuts in VS Code, sometimes making your web browser stop catching the shortcut.</p>
-</details>
-<details class="note">
-<summary>I am new to VS Code</summary>
-<p>You might want to have a look at <a href="https://code.visualstudio.com/docs/introvideos/basics">this Getting Started with VS Code video</a>. (You can of course ignore the parts about installing for now.) Also, have <a href="https://code.visualstudio.com/docs/getstarted/userinterface">this overview of the VS Code interface</a> handy.</p>
-</details>
-<h2 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">#</a></h2>
+<h2 id="lets-go">Let's go!<a class="headerlink" href="#lets-go" title="Permanent link">#</a></h2>
+<p>Ready? Awesome. Let's start by installing the needed stuff.</p>
+<h3 id="install">Install<a class="headerlink" href="#install" title="Permanent link">#</a></h3>
 <ol>
-<li>You will open an instance of VS Code in a development environment running in the browser. The environment will have Java, Clojure tools, and Calva installed.<ul>
-<li>
-<details class="note" open="open">
-<summary>Gitpod Sign-in</summary>
-   You will be asked to sign in to Gitpod, if you aren't already. You need to use the ”Sign in with GitHub” option.</details>
-</li>
-</ul>
-</li>
-<li>Instructions will be automatically displayed (very brief such, because it is mainly about firing up the <a href="../getting-started/">Getting Started REPL</a>)</li>
-<li>The guides are a mix of prose (in Clojure line comments), Clojure code, and exercises. What's extra poetic is that you will use Calva and Clojure to learn Calva and Clojure.</li>
+<li><strong>Java</strong>: There are downloads and instructions for your system here: <a href="https://www.oracle.com/java/technologies/downloads/">Oracle: Java Downloads</a>. Or, to give yourself a great Java SDK manager, consider using <a href="https://sdkman.io/">SDK-MAN!</a>. (Even works on Windows under Windows Subsystem for Linux, aka WSL.)</li>
+<li><strong>Clojure CLI</strong>: Follow the instructions at: <a href="https://clojure.org/guides/install_clojure">Clojure CLI tools</a>.</li>
+<li><strong>VS Code</strong>: Download installer for your system here: <a href="https://code.visualstudio.com/Download">VS Code Downloads</a>.</li>
+<li><strong>Calva</strong>: Start VS Code and search for Calva in the <strong>Extensions</strong> pane. You can open the Extensions pane by running the command <strong>Extensions: Install Extensions...</strong> from the VS Code command palette.</li>
 </ol>
-<p>Use a desktop/laptop computer. Even if it actually works on the phone, it is far from convenient.</p>
-<p>It sometimes takes a while (several minutes) for the environment to initialize. Take some deep breaths and be patient. 😎</p>
-<h3 id="lets-go">Let's go!<a class="headerlink" href="#lets-go" title="Permanent link">#</a></h3>
-<p>Ready? Awesome. Click this button to start the guide in a new browser tab.</p>
+<details class="note">
+<summary>Using Windows?</summary>
+<p>The official Clojure CLI tools can be hard to get working on Windows. Consider using <a href="https://github.com/borkdude/deps.clj">deps.clj</a>, a cross platform drop-in replacement for the <code>clojure</code> tool, written in Clojure. Here's <a href="https://github.com/casselc/clj-msi">a Windows installer that will install the deps.clj versions of <code>clojure</code> and <code>clj</code></a> on your system. (Instructions at the link.)</p>
+<p>If installing <code>clojure</code> proves to be a problem on your machine, you can skip it for now. The guide will work without it.</p>
+</details>
+<details class="note">
+<summary>I don't want to install anything</summary>
+<p>OK. There is actually a zero-install option, with VS Code running in the browser (using <a href="Gitpod">https://gitpod.io</a>). Click this button to start the guide.</p>
 <div style="display: flex; flex-direction: column; align-items: center;">
-
-<a title="Open Getting Started with Clojure in Gitpod" alt="Open in Gitpod button" href="https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure" target="_blank"><img src="https://img.shields.io/badge/Gitpod-Start the Clojure Guide-908a85?logo=gitpod" width="550"/></a>
-
-<a href="https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure">https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure</a>
-
+<p><a title="Open Getting Started with Clojure in Gitpod" alt="Open in Gitpod button" href="https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure" target="_blank"><img src="https://img.shields.io/badge/Gitpod-Start the Clojure Guide-908a85?logo=gitpod" width="550"/></a></p>
+<p><a href="https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure">https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure</a></p>
 </div>
-
+</details>
+<h3 id="run-the-getting-started-repl">Run the Getting Started REPL<a class="headerlink" href="#run-the-getting-started-repl" title="Permanent link">#</a></h3>
+<p>You will be running the guide from within VS Code, starting it from the VS Code command palette.</p>
+<p>The guide will:</p>
+<ol>
+<li>Ask you to select a folder to create the Getting Started project in</li>
+<li>Create and open that project</li>
+<li>Open a few Clojure files, introducing you to some basics of how to use Calva and then to learning Clojure.</li>
+</ol>
+<p>The instructions will be in the form of Clojure comments, and you will be running the Clojure code snippets in the files, as well as be encouraged to edit and add code.</p>
+<p>The command to run is: <strong>Calva: Fire up the Getting Started REPL</strong>.</p>
+<p><img alt="VS Code Command Palette, Calva Getting Started" src="/images/getting-started-with-clojure/vscode-command-palette-calva-getting-started.png.jpg" /></p>
+<p>That's it. Do it now. This page has some more information to make the start of your Clojure adventure fun and smooth. It ain't going anywhere, though. 😀 Come back to it.</p>
 <details class="note" open="open">
 <summary>Stuck? Something not working? Or just unclear?</summary>
-<p>Please don't hesitate to reach out for help, should you get stuck. See below for where to find Clojurians. As for the Calva team, we are almost always (true story) to be found at the Clojurians Slack, especially in the <code>#calva</code> Channel. We are <code>@pez</code> and <code>@bringe</code> there.</p>
+<p>Please don't hesitate to reach out for help, should you get stuck. See below for where to find Clojurians. As for the Calva team, we are almost always (true story) to be found at the Clojurians Slack, especially in the <code>#calva</code> Channel.</p>
 </details>
 <p>Happy Interactive Programming! ❤️</p>
 <h2 id="and-where-do-i-find-those-clojurians">And where do I find those Clojurians?<a class="headerlink" href="#and-where-do-i-find-those-clojurians" title="Permanent link">#</a></h2>
