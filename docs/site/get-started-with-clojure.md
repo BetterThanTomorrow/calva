@@ -7,14 +7,20 @@ search:
 
 # Get Started with Clojure
 
+Welcome to an interactive guide to get you started with [Clojure](https://clojure.org/). You will learn Clojure in the way it is intended to be used: from within your editor, jacked in to the running application.
+
 ![Get Started with Clojure](images/getting-started-with-clojure/get-started-with-clojure-header-wo-header.png)
 
-Welcome to an interactive guide to get you started with [Clojure](https://clojure.org/). You will learn Clojure in the way it is intended to be used, from within your editor, jacked in to the running application.
+The guide will take you through installing the prerequisites: [Java](https://www.oracle.com/java/), [VS Code](https://code.visualstudio.com), and [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) (a Clojure extension to VS Code.). You will also install the Clojure CLI tools, because this is about **Getting Started with Clojure**.
+
+??? Note "I am new to VS Code"
+    You may want to have a look at [this Getting Started with VS Code video](https://code.visualstudio.com/docs/introvideos/basics). Also, have [this overview of the VS Code interface](https://code.visualstudio.com/docs/getstarted/userinterface) handy.
+
+If you have these things installed, and just want to get going, jump to [Run the Getting Started REPL](#run-the-getting-started-repl) below.
 
 ## What you'll learn
 
 * The basics of the Clojure language (at least the start of the basics)
-* The basics of the [ClojureScript](https://clojurescript.org) language (we won't be using ClojureScript, but it is same language 😀)
 * The basics of Calva (It's a bit as a side effect. You need it to learn Clojure this way, and by learning Clojure this way, Calva knowledge trickles in.)
 * What is meant by, and some ways to perform, *Interactive Programming* (aka REPL Driven Development)
 * Where to find Clojurians, i.e. folks who use Clojure and care about it (you will thus find help, the friendliest help you have ever seen a community provide)
@@ -36,17 +42,6 @@ Welcome to an interactive guide to get you started with [Clojure](https://clojur
 ??? Note "Why won't I learn about this?"
     All in due time. 😄 Creating a Clojure project can mean a lot of different things, and demand different tooling, depending on a what kind of project it is. That said, the Getting Started Guide itself is a small Clojure project, so you can keep building on it as your first Clojure project.
 
-## How it works
-
-You will be running the guide from within VS Code, starting it from the VS Code command palette. The guide will open a few Clojure files, introducing you to some basics of how to use Calva and then to learning Clojure. The instructions will be in the form of Clojure comments, and you will be running the Clojure code snippets in the files, as well as be encouraged to edit and add code.
-
-??? Note "I am new to VS Code"
-    You may want to have a look at [this Getting Started with VS Code video](https://code.visualstudio.com/docs/introvideos/basics). Also, have [this overview of the VS Code interface](https://code.visualstudio.com/docs/getstarted/userinterface) handy.
-
-## What you need
-
-The guide needs [Java](https://www.oracle.com/java/), [VS Code](https://code.visualstudio.com), and [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) (A Clojure extension to VS Code.). We will also install the Clojure CLI tools, because this is about **Getting Started with Clojure**.
-
 ## Let's go!
 
 Ready? Awesome. Let's start by installing the needed stuff.
@@ -54,17 +49,19 @@ Ready? Awesome. Let's start by installing the needed stuff.
 ### Install
 
 1. **Java**: There are downloads and instructions for your system here: [Oracle: Java Downloads](https://www.oracle.com/java/technologies/downloads/). Or, to give yourself a great Java SDK manager, consider using [SDK-MAN!](https://sdkman.io/). (Even works on Windows under Windows Subsystem for Linux, aka WSL.)
-2. **Clojure CLI**: Follow the instructions at [Clojure CLI tools](https://clojure.org/guides/install_clojure).
-3. **VS Code**: Download installer for your system here. [VS Code Downloads](https://code.visualstudio.com/Download).
+2. **Clojure CLI**: Follow the instructions at: [Clojure CLI tools](https://clojure.org/guides/install_clojure).
+3. **VS Code**: Download installer for your system here: [VS Code Downloads](https://code.visualstudio.com/Download).
 4. **Calva**: Start VS Code and search for Calva in the **Extensions** pane. You can open the Extensions pane by running the command **Extensions: Install Extensions...** from the VS Code command palette.
 
 ??? Note "Using Windows?"
-       The official Clojure CLI tools can be hard to get working on Windows. Consider using [deps.clj](https://github.com/borkdude/deps.clj), a cross platform drop-in replacement for the `clojure` tool, written in Clojure. (Or use WSL for your Clojure adventures.) Here's a way to
+       The official Clojure CLI tools can be hard to get working on Windows. Consider using [deps.clj](https://github.com/borkdude/deps.clj), a cross platform drop-in replacement for the `clojure` tool, written in Clojure. Here's [a Windows installer that will install the deps.clj versions of `clojure` and `clj`](https://github.com/casselc/clj-msi) on your system. (Instructions at the link.)
+
+       If installing `clojure` proves to be a problem on your machine, you can skip it for now. The guide will work without it.
 
 
 ??? Note "I don't want to install anything"
 
-    OK. There is actually a zero-install option, using [https://gitpod.io](Gitpod). Click this button to start the guide (and VS Code) in a new browser tab.
+    OK. There is actually a zero-install option, with VS Code running in the browser (using [https://gitpod.io](Gitpod)). Click this button to start the guide.
 
     <div style="display: flex; flex-direction: column; align-items: center;">
 
@@ -74,6 +71,23 @@ Ready? Awesome. Let's start by installing the needed stuff.
 
     </div>
 
+### Run the Getting Started REPL
+
+You will be running the guide from within VS Code, starting it from the VS Code command palette.
+
+The guide will:
+
+1. Ask you to select a folder to create the Getting Started project in
+1. Create and open that project
+1. Open a few Clojure files, introducing you to some basics of how to use Calva and then to learning Clojure.
+
+The instructions will be in the form of Clojure comments, and you will be running the Clojure code snippets in the files, as well as be encouraged to edit and add code.
+
+The command to run is: **Calva: Fire up the Getting Started REPL**.
+
+![VS Code Command Palette, Calva Getting Started](/images/getting-started-with-clojure/vscode-command-palette-calva-getting-started.png.jpg)
+
+That's it. Do it now. This page has some more information to make the start of your Clojure adventure fun and smooth. It ain't going anywhere, though. 😀 Come back to it.
 
 ???+ Note "Stuck? Something not working? Or just unclear?"
      Please don't hesitate to reach out for help, should you get stuck. See below for where to find Clojurians. As for the Calva team, we are almost always (true story) to be found at the Clojurians Slack, especially in the `#calva` Channel.
