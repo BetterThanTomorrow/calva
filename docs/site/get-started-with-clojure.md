@@ -71,6 +71,14 @@ Ready? Awesome. Let's start by installing the needed stuff.
 
     </div>
 
+    You will need a GitHub account to access the workspace.
+
+    ![Open the Gitpod Workspace with your GitHub account](/images/getting-started-with-clojure/gitpod-sign-in.png)
+
+    The defaults for the new workspace are fine. Click **Continue**.
+
+    ![](/images/getting-started-with-clojure/gitpod-new-workspace.png)
+
 ### Run the Getting Started REPL
 
 You will be running the guide from within VS Code, starting it from the VS Code command palette.
