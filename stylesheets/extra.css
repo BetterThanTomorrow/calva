@@ -1,4 +1,10 @@
 :root {
     --md-primary-fg-color: rgb(219, 149, 80);
     --md-accent-fg-color: rgb(144, 180, 254);
+    /* --md-admonition-bg-color: var(--md-accent-fg-color); */
+}
+
+.md-typeset .admonition, .md-typeset details,
+.md-typeset .admonition.note, .md-typeset details.note {
+    border: 0.075rem solid var(--md-accent-fg-color);
 }
