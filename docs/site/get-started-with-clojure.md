@@ -34,6 +34,8 @@ If you have these things installed, and just want to get going, jump to [Run the
     * [Developer Ergonomics with VS Code, Clojure, and ClojureScript](https://www.youtube.com/watch?v=LR7Wv6bSZqE) - with Peter Strömberg
     * [Clojure in VS Code Workflow using FizzBuzz](https://www.youtube.com/watch?v=d0K1oaFGvuQ) - with Peter Strömberg
 
+    There is also this zero-threshold way you can **Try Clojure** in the browser: [https://tryclojure.org/](https://tryclojure.org/)
+
 ## What you won't learn
 
 * About various old and new build and dependency tools
@@ -141,6 +143,7 @@ Clojurians draw tremendous value from [ClojureDocs](https://clojuredocs.org). At
 * [Clojure for the Brave and True](https://www.braveclojure.com) - helping you from beginner to pretty advanced stuff, very popular among Clojurians
 * [on the code again](https://www.youtube.com/user/VideosDanA) - often features Clojure concepts, with snappy, well communicated, and entertaining videos
 * [Clojure Koans with VS Code/Calva instructions](https://github.com/DanBunea/clojure-koans)
+* [Try Clojure](https://tryclojure.org/) - Try some Clojure really quickly and conveniently in the browser.
 
 ## Help us help beginners
 
