@@ -16,7 +16,7 @@ You will need [Java](https://www.oracle.com/java/), [VS Code](https://code.visua
 ??? Note "I am new to VS Code"
     You may want to have a look at [this Getting Started with VS Code video](https://code.visualstudio.com/docs/introvideos/basics). Also, have [this overview of the VS Code interface](https://code.visualstudio.com/docs/getstarted/userinterface) handy.
 
-If you have these things installed, and just want to get going, jump to [Run the Getting Started REPL](#run-the-getting-started-repl) below.
+If you have these things installed, and just want to get going, jump to [Start the Guide](#start-the-guide) below.
 
 ## What you'll learn
 
@@ -44,11 +44,7 @@ If you have these things installed, and just want to get going, jump to [Run the
 ??? Note "Why won't I learn about this?"
     All in due time. 😄 Creating a Clojure project can mean a lot of different things, and demand different tooling, depending on a what kind of project it is. That said, the Getting Started Guide itself is a small Clojure project, so you can keep building on it as your first Clojure project.
 
-## Let's go!
-
-Ready? Awesome. Let's start by installing the needed stuff.
-
-### Install
+## Install
 
 1. **Java**: There are downloads and instructions for your system here: [Oracle: Java Downloads](https://www.oracle.com/java/technologies/downloads/). Or, to give yourself a great Java SDK manager, consider using [SDK-MAN!](https://sdkman.io/). (Even works on Windows under Windows Subsystem for Linux, aka WSL.)
 2. **Clojure CLI**: Follow the instructions at: [Clojure CLI tools](https://clojure.org/guides/install_clojure).
@@ -81,9 +77,11 @@ Ready? Awesome. Let's start by installing the needed stuff.
 
     ![](/images/getting-started-with-clojure/gitpod-new-workspace.png)
 
-### Run the Getting Started REPL
+## Start the Guide
 
-You will be running the guide from within VS Code, starting it from the VS Code command palette.
+To start the guide, begin with starting VS Code, with Calva installed (as per [instructions above](#install))
+
+You will be using the VS Code command palette to run the guide.
 
 The guide will:
 
@@ -104,7 +102,9 @@ That's it. Do it now. This page has some more information to make the start of y
 
 Happy Interactive Programming! ❤️
 
-## And where do I find those Clojurians?
+## More resources
+
+### And where do I find those Clojurians?
 
 We Clojurians inhabit a lot of community platforms. I'll list some of the more popular ones here in some order of popularity.
 
@@ -117,7 +117,7 @@ We Clojurians inhabit a lot of community platforms. I'll list some of the more p
 You can also ask questions, and find answers, about Clojure at [ask.clojure.org](https://ask.clojure.org)
 
 
-## Learn and Practice Clojure using Rich 4Clojure
+### Learn and Practice Clojure using Rich 4Clojure
 
 If you like the style of interactive learning that this guide provides, you should definitely check [Rich 4Clojure](https://github.com/PEZ/rich4clojure) out. It also can be used in the zero-installed way.
 
@@ -126,15 +126,15 @@ You can regard it as a companion to this guide. It is aimed at practicing Clojur
 ??? Note "Can I use Rich 4Clojure instead of this guide?"
     We suggest you start by opening up this guide and do the Calva part of the excerises. Then use the `welcome_to_clojure.clj` guide in combination with **Rich 4Clojure**..
 
-## Run the Clojure Exercism Track in your browser
+### Run the Clojure Exercism Track in your browser
 
 In a similar manner to the Get Started with Clojure project, you can run the Clojure Exercism Track in your browser without installing anything and with full Interactive Programming enabled using this [Template project](https://github.com/PEZ/clojure-exercism-template).
 
-## ClojureDocs
+### ClojureDocs
 
 Clojurians draw tremendous value from [ClojureDocs](https://clojuredocs.org). At ClojureDocs the concise documentation for Clojure core functions, etcetera, are amended with examples and advice from fellow Clojurians. Crowdsourcing at its very best! It is a big part of the reason why you won't find an abundance of Clojure information at StackOverflow.
 
-## Other learning resources
+### Other learning resources
 
 * [CalvaTV](https://www.youtube.com/c/CalvaTV) - Calva's YouTube channel often focuses on beginning with Clojure and ClojureScript. Subscribe, please!
 * [Clojure Beginner Resources](https://gist.github.com/yogthos/be323be0361c589570a6da4ccc85f58f) - a much more comprehensive list than this one
@@ -145,7 +145,7 @@ Clojurians draw tremendous value from [ClojureDocs](https://clojuredocs.org). At
 * [Clojure Koans with VS Code/Calva instructions](https://github.com/DanBunea/clojure-koans)
 * [Try Clojure](https://tryclojure.org/) - Try some Clojure really quickly and conveniently in the browser.
 
-## Help us help beginners
+### Help us help beginners
 
 Give us feedback. Spread the word. Please consider:
 
