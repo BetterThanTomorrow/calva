@@ -293,16 +293,21 @@ async function activate(context: vscode.ExtensionContext) {
     },
     startOrConnectRepl: replStart.startOrConnectRepl,
     startStandaloneCljsBrowserRepl: () => {
-      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_CLJS_BROWSER_TEMPLATE, false);
+      return dramRepl.startStandaloneRepl(
+        context,
+        dramRepl.HELLO_CLJS_BROWSER_TEMPLATE,
+        false,
+        '.'
+      );
     },
     startStandaloneCljsNodeRepl: () => {
-      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_CLJS_NODE_TEMPLATE, false);
+      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_CLJS_NODE_TEMPLATE, false, '.');
     },
     startStandaloneHelloRepl: () => {
-      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_TEMPLATE, false);
+      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_TEMPLATE, false, '.');
     },
     startStandaloneRepl: () => {
-      return dramRepl.startStandaloneRepl(context, dramRepl.USER_TEMPLATE, true);
+      return dramRepl.startStandaloneRepl(context, dramRepl.USER_TEMPLATE, true, 'minimal');
     },
     switchCljsBuild: connector.switchCljsBuild,
     tapCurrentTopLevelForm: () =>
