@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Improve error message when tutorial files are unreachable](https://github.com/BetterThanTomorrow/calva/issues/2572)
+
 ## [2.0.456] - 2024-06-15
 
 - [Start Getting Started/Quick Start REPLs in a proper VS Code foldered window](https://github.com/BetterThanTomorrow/calva/issues/2566)

@@ -115,7 +115,7 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceRoot}", "--folder-uri=null"],
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}"],
       "stopOnEntry": false,
       "sourceMaps": true,
       "env": {
