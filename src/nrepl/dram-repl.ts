@@ -193,6 +193,13 @@ export async function startStandaloneRepl(
     typeof dramTemplate.config === 'string'
       ? await fetchConfig(dramTemplate.config)
       : dramTemplate.config;
+
+  if (!config?.files) {
+    console.error(`Error fetching configuration from dram repository`);
+    void vscode.window.showErrorMessage(`Error fetching configuration from dram repository`);
+    return;
+  }
+
   const docNames = config.files.map((f) => f.path);
 
   const choice = await vscode.window.showInformationMessage(

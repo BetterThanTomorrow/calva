@@ -107,7 +107,11 @@ async function activate(context: vscode.ExtensionContext) {
       testRunner.onTestTree(testController, tree);
     },
   });
-  await clientProvider.init();
+  try {
+    await clientProvider.init();
+  } catch (e) {
+    console.error('Failed initializing LSP client provider: ' + e.message);
+  }
 
   lsp.registerGlobally(clientProvider);
   context.subscriptions.push(testController);
