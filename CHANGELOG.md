@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- [Getting Started REPL fails when there is no folder open](https://github.com/BetterThanTomorrow/calva/issues/2572)
+- [Improve error message when tutorial files are unreachable](https://github.com/BetterThanTomorrow/calva/issues/2572)
 
 ## [2.0.456] - 2024-06-15
 
