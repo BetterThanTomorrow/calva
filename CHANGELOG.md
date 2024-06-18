@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Getting Started REPL fails when there is no folder open](https://github.com/BetterThanTomorrow/calva/issues/2572)
+
 ## [2.0.456] - 2024-06-15
 
 - [Start Getting Started/Quick Start REPLs in a proper VS Code foldered window](https://github.com/BetterThanTomorrow/calva/issues/2566)
