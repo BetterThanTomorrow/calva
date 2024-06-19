@@ -19,7 +19,7 @@
   },
   "engines": {
     "node": ">=16",
-    "vscode": "^1.67.0"
+    "vscode": "^1.75.0"
   },
   "sponsor": {
     "url": "https://calva.io/sponsors/"
@@ -53,21 +53,6 @@
     }
   ],
   "activationEvents": [
-    "onLanguage:clojure",
-    "onCommand:calva.activateCalva",
-    "onCommand:calva.startStandaloneRepl",
-    "onCommand:calva.startStandaloneHelloRepl",
-    "onCommand:calva.startStandaloneCljsBrowserRepl",
-    "onCommand:calva.startStandaloneCljsNodeRepl",
-    "onCommand:calva.calva.startJoyrideReplAndConnect",
-    "onCommand:calva.jackIn",
-    "onCommand:calva.startOrConnectRepl",
-    "onCommand:calva.connect",
-    "onCommand:calva.connectNonProjectREPL",
-    "onCommand:calva.convertJs2Cljs",
-    "onCommand:calva.convertDart2Clj",
-    "onCommand:calva.convertHtml2Hiccup",
-    "onCommand:calva.pasteHtmlAsHiccup",
     "workspaceContains:**/project.clj",
     "workspaceContains:**/shadow-cljs.edn",
     "workspaceContains:**/deps.edn",
