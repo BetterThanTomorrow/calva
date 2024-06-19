@@ -1314,8 +1314,8 @@
         "category": "Calva"
       },
       {
-        "command": "calva.startStandaloneRepl",
-        "title": "Start a standalone REPL (not in a project)",
+        "command": "calva.createMinimalProject",
+        "title": "Create a minimal Clojure project",
         "category": "Calva"
       },
       {

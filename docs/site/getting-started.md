@@ -78,9 +78,9 @@ If you are new to Clojure or ClojureScript altogether, please check out the guid
 
 There are also many great books on Clojure. [Clojure for the Brave and True](https://www.braveclojure.com/clojure-for-the-brave-and-true/) can be read for free online. It is a great resource for beginners.
 
-## There is also Standalone REPL
+## Create a minimal Clojure project
 
-When you are more familiar with Calva, and want a standalone REPL, there is a separate command: **Start a standalone REPL (not in project)**. It will open up a `user.clj` in a temporary directory, containing only an `(ns user)` form, and start and connect the REPL.
+When you are more familiar with Calva, and want a standalone REPL, there is a separate command: **Calva: Create a minimal Clojure project**. It will ask for folder to create the project in, and open this project for you, connecting the REPL. The project is _really_ minimal.
 
 ## Dram - Where the Guides Live
 

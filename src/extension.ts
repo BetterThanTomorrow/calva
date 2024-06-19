@@ -310,7 +310,7 @@ async function activate(context: vscode.ExtensionContext) {
     startStandaloneHelloRepl: () => {
       return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_TEMPLATE, false, '.');
     },
-    startStandaloneRepl: () => {
+    createMinimalProject: () => {
       return dramRepl.startStandaloneRepl(context, dramRepl.USER_TEMPLATE, true, 'minimal');
     },
     switchCljsBuild: connector.switchCljsBuild,

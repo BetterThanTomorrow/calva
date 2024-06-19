@@ -26,8 +26,8 @@ const OPEN_SOURCE_FOR_FIDDLE_COMMAND = 'calva.openSourceFileForFiddle';
 // Disconnected menu items
 export const JACK_IN_OPTION = 'Start your project with a REPL and connect (a.k.a. Jack-in)';
 const JACK_IN_COMMAND = 'calva.jackIn';
-export const START_REPL_OPTION = 'Start a standalone REPL';
-const START_REPL_COMMAND = 'calva.startStandaloneRepl';
+export const CREATE_PROJECT_OPTION = 'Create a minimal Clojure project';
+const CREATE_PROJECT_COMMAND = 'calva.createMinimalProject';
 const START_JOYRIDE_REPL_OPTION = 'Start a Joyride REPL and Connect';
 const START_JOYRIDE_REPL_COMMAND = 'calva.startJoyrideReplAndConnect';
 export const START_HELLO_REPL_OPTION = 'Fire up the ”Getting Started” REPL';
@@ -59,6 +59,7 @@ function composeConnectedMenu() {
     OPEN_FIDDLE_OPTION,
     EVALUATE_FIDDLE_OPTION,
     OPEN_SOURCE_FOR_FIDDLE_OPTION,
+    CREATE_PROJECT_OPTION,
   ];
 
   const commands = {};
@@ -79,6 +80,7 @@ function composeConnectedMenu() {
   if (!fiddleFiles.activeEditorIsFiddle) {
     commands[EVALUATE_FIDDLE_OPTION] = EVALUATE_FIDDLE_COMMAND;
   }
+  commands[CREATE_PROJECT_OPTION] = CREATE_PROJECT_COMMAND;
   return { commands, PREFERRED_ORDER };
 }
 
@@ -86,12 +88,12 @@ function composeDisconnectedMenu() {
   const PREFERRED_ORDER = [
     JACK_IN_OPTION,
     CONNECT_PROJECT_OPTION,
-    START_REPL_OPTION,
     START_JOYRIDE_REPL_OPTION,
     CONNECT_STANDALONE_OPTION,
     START_HELLO_REPL_OPTION,
     START_HELLO_CLJS_BROWSER_OPTION,
     START_HELLO_CLJS_NODE_OPTION,
+    CREATE_PROJECT_OPTION,
   ];
 
   const commands = {};
@@ -103,12 +105,12 @@ function composeDisconnectedMenu() {
     commands[CONNECT_PROJECT_OPTION] = CONNECT_PROJECT_COMMAND;
   } else {
     commands[CONNECT_STANDALONE_OPTION] = CONNECT_STANDALONE_COMMAND;
-    commands[START_REPL_OPTION] = START_REPL_COMMAND;
   }
   commands[START_JOYRIDE_REPL_OPTION] = START_JOYRIDE_REPL_COMMAND;
   commands[START_HELLO_REPL_OPTION] = START_HELLO_REPL_COMMAND;
   commands[START_HELLO_CLJS_BROWSER_OPTION] = START_HELLO_CLJS_BROWSER_COMMAND;
   commands[START_HELLO_CLJS_NODE_OPTION] = START_HELLO_CLJS_NODE_COMMAND;
+  commands[CREATE_PROJECT_OPTION] = CREATE_PROJECT_COMMAND;
   return { commands, PREFERRED_ORDER };
 }
 

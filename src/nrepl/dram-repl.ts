@@ -160,7 +160,7 @@ async function extractBundledFiles(
 const DRAM_TEMPLATE_TO_MENU_OPTION: { [key: string]: string } = {};
 
 DRAM_TEMPLATE_TO_MENU_OPTION[(USER_TEMPLATE.config as DramConfig).name] =
-  replStart.START_REPL_OPTION;
+  replStart.CREATE_PROJECT_OPTION;
 DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_TEMPLATE.config as string] = replStart.START_HELLO_REPL_OPTION;
 DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_CLJS_BROWSER_TEMPLATE.config as string] =
   replStart.START_HELLO_CLJS_BROWSER_COMMAND;
