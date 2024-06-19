@@ -290,7 +290,7 @@ async function activate(context: vscode.ExtensionContext) {
     showResultOutputDestination: output.showResultOutputDestination,
     showPreviousReplHistoryEntry: replHistory.showPreviousReplHistoryEntry,
     startJoyrideReplAndConnect: async () => {
-      const projectDir: string = await joyride.prepareForJackingOrConnect();
+      const projectDir: string = await joyride.prepareForJackInOrConnect();
       if (projectDir !== undefined) {
         return joyride.joyrideJackIn(projectDir);
       }
