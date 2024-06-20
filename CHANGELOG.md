@@ -2,12 +2,11 @@
 
 Changes to Calva.
 
-- [Add Command for creating a minimal Clojure project](https://github.com/BetterThanTomorrow/calva/issues/2570)
-
 ## [Unreleased]
 
 ## [2.0.457] - 2024-06-20
 
+- [Add Command for creating a minimal Clojure project](https://github.com/BetterThanTomorrow/calva/issues/2570)
 - [Improve error message when tutorial files are unreachable](https://github.com/BetterThanTomorrow/calva/issues/2572)
 
 ## [2.0.456] - 2024-06-15
