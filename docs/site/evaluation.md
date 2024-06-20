@@ -7,7 +7,7 @@ search:
 
 # Code Evaluation
 
-Calva tries to make it easy to evaluate code, supporting interactive development. The fastest path to learning about it is to use the **Fire up the Getting Started REPL** command, which you can learn more about in the [Getting Started](getting-started.md) section.
+Calva tries to make it easy to evaluate code, supporting interactive development. The fastest path to learning about it is to use the **Create a Getting Started REPL project** command, which you can learn more about in the [Getting Started](getting-started.md) section.
 
 NB: _The below assumes you have read about [Finding Calva Commands and Shortcuts](finding-commands.md)._
 

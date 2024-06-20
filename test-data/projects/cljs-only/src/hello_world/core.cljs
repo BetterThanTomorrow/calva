@@ -24,10 +24,10 @@
       (set! "Hello ClojureScript REPL from Calva!")
       ;; reload browser page to restore the original content 😎
       )
-  
+
   ;; Please edit the code in this block and see
   ;; what happens when you evaluate.
   )
 
 ;; Learn about the Calva REPL and about Clojure with
-;; the command: *Fire up the Getting Started REPL*.
+;; the command: Calva: Create a Getting Started REPL project*.

@@ -36,7 +36,9 @@ export function activationGreetings(chan: vscode.OutputChannel) {
   }
   chan.appendLine('');
   chan.appendLine('If you are new to Calva, please see: https://calva.io/getting-started/');
-  chan.appendLine('  And please consider the command: **Calva: Fire up the Getting Started REPL**');
+  chan.appendLine(
+    '  And please consider the command: **Calva: Create a Getting Started REPL project**'
+  );
   chan.appendLine('');
   chan.appendLine(
     'Calva version used: v' +

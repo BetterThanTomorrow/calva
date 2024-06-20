@@ -1320,17 +1320,17 @@
       },
       {
         "command": "calva.startStandaloneHelloRepl",
-        "title": "Fire up the Getting Started REPL",
+        "title": "Create a Getting Started REPL project",
         "category": "Calva"
       },
       {
         "command": "calva.startStandaloneCljsBrowserRepl",
-        "title": "Fire up the ClojureScript Quick Start Browser REPL",
+        "title": "Create a ClojureScript Quick Start Browser project",
         "category": "Calva"
       },
       {
         "command": "calva.startStandaloneCljsNodeRepl",
-        "title": "Fire up the ClojureScript Quick Start Node REPL",
+        "title": "Create a ClojureScript Quick Start Node project",
         "category": "Calva"
       },
       {
