@@ -1,4 +1,3 @@
-'use strict';
 import { StatusBar } from './statusbar';
 import * as vscode from 'vscode';
 import {

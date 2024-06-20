@@ -107,7 +107,11 @@ async function activate(context: vscode.ExtensionContext) {
       testRunner.onTestTree(testController, tree);
     },
   });
-  await clientProvider.init();
+  try {
+    await clientProvider.init();
+  } catch (e) {
+    console.error('Failed initializing LSP client provider: ' + e.message);
+  }
 
   lsp.registerGlobally(clientProvider);
   context.subscriptions.push(testController);
@@ -286,23 +290,28 @@ async function activate(context: vscode.ExtensionContext) {
     showResultOutputDestination: output.showResultOutputDestination,
     showPreviousReplHistoryEntry: replHistory.showPreviousReplHistoryEntry,
     startJoyrideReplAndConnect: async () => {
-      const projectDir: string = await joyride.prepareForJackingOrConnect();
+      const projectDir: string = await joyride.prepareForJackInOrConnect();
       if (projectDir !== undefined) {
         return joyride.joyrideJackIn(projectDir);
       }
     },
     startOrConnectRepl: replStart.startOrConnectRepl,
     startStandaloneCljsBrowserRepl: () => {
-      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_CLJS_BROWSER_TEMPLATE, false);
+      return dramRepl.startStandaloneRepl(
+        context,
+        dramRepl.HELLO_CLJS_BROWSER_TEMPLATE,
+        false,
+        '.'
+      );
     },
     startStandaloneCljsNodeRepl: () => {
-      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_CLJS_NODE_TEMPLATE, false);
+      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_CLJS_NODE_TEMPLATE, false, '.');
     },
     startStandaloneHelloRepl: () => {
-      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_TEMPLATE, false);
+      return dramRepl.startStandaloneRepl(context, dramRepl.HELLO_TEMPLATE, false, '.');
     },
-    startStandaloneRepl: () => {
-      return dramRepl.startStandaloneRepl(context, dramRepl.USER_TEMPLATE, true);
+    createMinimalProject: () => {
+      return dramRepl.startStandaloneRepl(context, dramRepl.USER_TEMPLATE, true, 'minimal');
     },
     switchCljsBuild: connector.switchCljsBuild,
     tapCurrentTopLevelForm: () =>

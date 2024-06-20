@@ -130,13 +130,14 @@ export function getProjectRootUri(useCache = true): vscode.Uri | undefined {
 const NON_PROJECT_DIR_KEY = 'calva.connect.nonProjectDir';
 
 export async function getNonProjectRootDir(
-  context: vscode.ExtensionContext
+  context: vscode.ExtensionContext,
+  useExisting = false
 ): Promise<vscode.Uri | undefined> {
   let root: vscode.Uri | undefined = undefined;
   if (!process.env['NEW_DRAMS']) {
     root = await context.globalState.get<Promise<vscode.Uri>>(NON_PROJECT_DIR_KEY);
   }
-  if (root) {
+  if (root && !useExisting) {
     const createNewOption = 'Create new temp directory, download new files';
     const useExistingOption = 'Use existing temp directory, reuse any existing files';
     root = await vscode.window
@@ -159,14 +160,15 @@ export async function setNonProjectRootDir(context: vscode.ExtensionContext, roo
 
 export async function setOrCreateNonProjectRoot(
   context: vscode.ExtensionContext,
-  preferProjectDir = false
+  preferProjectDir = false,
+  useExisting = false
 ): Promise<vscode.Uri> {
   let root: vscode.Uri | undefined = undefined;
   if (preferProjectDir) {
     root = getProjectRootUri();
   }
   if (!root) {
-    root = await getNonProjectRootDir(context);
+    root = await getNonProjectRootDir(context, useExisting);
   }
   if (!root) {
     const subDir = util.randomSlug();
@@ -198,7 +200,8 @@ function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
 export async function initProjectDir(
   connectType: ConnectType,
   connectSequence: ReplConnectSequence,
-  disableAutoSelect = false
+  disableAutoSelect = false,
+  useExisting = false
 ) {
   const candidatePaths = await projectRoot.findProjectRoots();
   const active_uri = vscode.window.activeTextEditor?.document.uri;
@@ -240,7 +243,7 @@ export async function initProjectDir(
     setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
     return projectRootPath;
   }
-  return setOrCreateNonProjectRoot(extensionContext, true);
+  return setOrCreateNonProjectRoot(extensionContext, true, useExisting);
 }
 
 /**

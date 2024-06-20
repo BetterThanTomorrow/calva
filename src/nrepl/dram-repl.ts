@@ -30,9 +30,14 @@ type DramTemplate = {
 export const USER_TEMPLATE: DramTemplate = {
   config: {
     name: 'Standalone REPL',
-    files: [{ path: 'user.clj', 'open?': true }],
+    files: [
+      { path: 'src/minimal_clj/user.clj', 'open?': true },
+      { path: 'deps.edn', 'open?': false },
+      { path: '.gitignore', 'open?': false },
+      { path: '.vscode/settings.json', 'open?': false },
+    ],
   },
-  connectSequence: sequence.genericDefaults[0],
+  connectSequence: null, //sequence.cljDefaults[0],
 };
 
 export const HELLO_TEMPLATE: DramTemplate = {
@@ -132,20 +137,21 @@ async function putStoreDocInPlace(
 async function extractBundledFiles(
   context: vscode.ExtensionContext,
   storageUri: vscode.Uri,
-  docNames: string[]
+  docNames: string[],
+  subDirectory: string
 ) {
   await Promise.all(
     docNames.map(async (docName) => {
-      const docUri: vscode.Uri = vscode.Uri.file(path.join(storageUri.fsPath, docName));
       const templateUri = vscode.Uri.file(
-        path.join(context.extensionPath, TEMPLATES_SUB_DIR, docName)
+        path.join(context.extensionPath, TEMPLATES_SUB_DIR, subDirectory, docName)
       );
+      const docUri: vscode.Uri = vscode.Uri.file(path.join(storageUri.fsPath, docName));
       try {
         await vscode.workspace.fs.copy(templateUri, docUri, {
           overwrite: true,
         });
-      } catch {
-        // continue regardless of error
+      } catch (e) {
+        console.error(`Error copying ${docName} from bundled files: ${e.message}`);
       }
     })
   );
@@ -154,7 +160,7 @@ async function extractBundledFiles(
 const DRAM_TEMPLATE_TO_MENU_OPTION: { [key: string]: string } = {};
 
 DRAM_TEMPLATE_TO_MENU_OPTION[(USER_TEMPLATE.config as DramConfig).name] =
-  replStart.START_REPL_OPTION;
+  replStart.CREATE_PROJECT_OPTION;
 DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_TEMPLATE.config as string] = replStart.START_HELLO_REPL_OPTION;
 DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_CLJS_BROWSER_TEMPLATE.config as string] =
   replStart.START_HELLO_CLJS_BROWSER_COMMAND;
@@ -164,7 +170,8 @@ DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_CLJS_NODE_TEMPLATE.config as string] =
 export async function startStandaloneRepl(
   context: vscode.ExtensionContext,
   dramTemplate: DramTemplate,
-  areBundled: boolean
+  areBundled: boolean,
+  subDirectory: string
 ) {
   // This is so that we can update the REPL Menu “command palette”
   // with the default reconnect option, based on dram template used
@@ -186,6 +193,13 @@ export async function startStandaloneRepl(
     typeof dramTemplate.config === 'string'
       ? await fetchConfig(dramTemplate.config)
       : dramTemplate.config;
+
+  if (!config?.files) {
+    console.error(`Error fetching configuration from dram repository`);
+    void vscode.window.showErrorMessage(`Error fetching configuration from dram repository`);
+    return;
+  }
+
   const docNames = config.files.map((f) => f.path);
 
   const choice = await vscode.window.showInformationMessage(
@@ -227,7 +241,7 @@ export async function startStandaloneRepl(
   await vscode.workspace.fs.createDirectory(storageUri);
   await vscode.workspace.fs.createDirectory(projectRootUri);
   if (areBundled) {
-    await extractBundledFiles(context, storageUri, docNames);
+    await extractBundledFiles(context, storageUri, docNames, subDirectory);
   } else {
     await downloadDrams(storageUri, dramTemplate.config as string, docNames).catch((err) => {
       console.error(`Error downloading drams: ${err.message}`);

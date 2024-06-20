@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.456",
+  "version": "2.0.457",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -19,7 +19,7 @@
   },
   "engines": {
     "node": ">=16",
-    "vscode": "^1.67.0"
+    "vscode": "^1.75.0"
   },
   "sponsor": {
     "url": "https://calva.io/sponsors/"
@@ -53,21 +53,6 @@
     }
   ],
   "activationEvents": [
-    "onLanguage:clojure",
-    "onCommand:calva.activateCalva",
-    "onCommand:calva.startStandaloneRepl",
-    "onCommand:calva.startStandaloneHelloRepl",
-    "onCommand:calva.startStandaloneCljsBrowserRepl",
-    "onCommand:calva.startStandaloneCljsNodeRepl",
-    "onCommand:calva.calva.startJoyrideReplAndConnect",
-    "onCommand:calva.jackIn",
-    "onCommand:calva.startOrConnectRepl",
-    "onCommand:calva.connect",
-    "onCommand:calva.connectNonProjectREPL",
-    "onCommand:calva.convertJs2Cljs",
-    "onCommand:calva.convertDart2Clj",
-    "onCommand:calva.convertHtml2Hiccup",
-    "onCommand:calva.pasteHtmlAsHiccup",
     "workspaceContains:**/project.clj",
     "workspaceContains:**/shadow-cljs.edn",
     "workspaceContains:**/deps.edn",
@@ -1329,23 +1314,23 @@
         "category": "Calva"
       },
       {
-        "command": "calva.startStandaloneRepl",
-        "title": "Start a standalone REPL (not in a project)",
+        "command": "calva.createMinimalProject",
+        "title": "Create a minimal Clojure project",
         "category": "Calva"
       },
       {
         "command": "calva.startStandaloneHelloRepl",
-        "title": "Fire up the Getting Started REPL",
+        "title": "Create a Getting Started REPL project",
         "category": "Calva"
       },
       {
         "command": "calva.startStandaloneCljsBrowserRepl",
-        "title": "Fire up the ClojureScript Quick Start Browser REPL",
+        "title": "Create a ClojureScript Quick Start Browser project",
         "category": "Calva"
       },
       {
         "command": "calva.startStandaloneCljsNodeRepl",
-        "title": "Fire up the ClojureScript Quick Start Node REPL",
+        "title": "Create a ClojureScript Quick Start Node project",
         "category": "Calva"
       },
       {

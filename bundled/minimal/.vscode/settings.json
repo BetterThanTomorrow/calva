@@ -1,0 +1,15 @@
+{
+  "calva.replConnectSequences": [
+    {
+      "name": "Get started with Clojure",
+      "autoSelectForConnect": true,
+      "autoSelectForJackIn": true,
+      "projectRootPath": ["."],
+      "cljsType": "none",
+      "projectType": "deps.edn",
+      "menuSelections": {
+        "cljAliases": ["test"]
+      }
+    }
+  ]
+}
