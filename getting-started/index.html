@@ -428,9 +428,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#there-is-also-standalone-repl" class="md-nav__link">
+  <a href="#create-a-minimal-clojure-project" class="md-nav__link">
     <span class="md-ellipsis">
-      There is also Standalone REPL
+      Create a minimal Clojure project
     </span>
   </a>
   
@@ -2125,9 +2125,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#there-is-also-standalone-repl" class="md-nav__link">
+  <a href="#create-a-minimal-clojure-project" class="md-nav__link">
     <span class="md-ellipsis">
-      There is also Standalone REPL
+      Create a minimal Clojure project
     </span>
   </a>
   
@@ -2195,16 +2195,17 @@
 <p>See <a href="../get-started-with-clojure/">Get Started with Clojure</a>.</p>
 </details>
 <h3 id="theres-a-getting-started-repl">There's a ”Getting Started” REPL<a class="headerlink" href="#theres-a-getting-started-repl" title="Permanent link">#</a></h3>
-<p>If you are new to Calva, a good place to start is using the command <strong>Fire up the ”Getting Started” REPL</strong>. (You can open the command palette using the VS Code top menu by going to <code>View -&gt; Command Palette...</code> or by running the associated keyboard shortcut for your OS.) Demo:</p>
-<p><img alt="Command Palette Start Standalone REPL" src="../images/howto/start-hello-repl.png" title="Fire up the ”Getting Started” REPL" /></p>
-<p>It will open up a three files in a temporary directory, and start and connect a REPL. The files are:</p>
+<p>If you are new to Calva, a good place to start is using the command <strong>Calva: Create a ”Getting Started” REPL</strong>. (You can open the command palette using the VS Code top menu by going to <code>View -&gt; Command Palette...</code> or by running the associated keyboard shortcut for your OS.) Demo:</p>
+<p><img alt="Command Palette Getting Started REPL" src="/images/getting-started-with-clojure/vscode-command-palette-calva-getting-started.png" title="Create a ”Getting Started” REPL" /></p>
+<p>It will create a new project, open up a three files, and start and connect a REPL. The files are:</p>
 <ul>
 <li><code>hello_repl.clj</code> – The basics of how to evaluate code in Calva</li>
 <li><code>hello_paredit.clj</code> - A super brief intro to Calva structural editing</li>
 <li><code>welcome_to_clojure.clj</code> - The very basics of the Clojure language</li>
 </ul>
 <p><img alt="Hello REPL" src="../images/howto/hello-repl.png" title="hello-repl.clj" /></p>
-<p>The only prerequisite here is that you have Java installed. <em>No pre-installed clojure tools required.</em> (You will want to install these tools later, of course.)</p>
+<p>The only prerequisite here is that you have Java installed.</p>
+<p>See the <a href="../get-started-with-clojure/">Getting Started with Clojure</a> guide for a bit more about this feature.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>On Windows the Oracle Java installer sets Java up in some funny way so that the Getting Started REPL fails to start. We are figuring about workarounds for this, but for now, if you are on Windows, you will need to make VS Code have some other Java in the <code>PATH</code> of its environment for this feature to work. See <a href="https://github.com/BetterThanTomorrow/calva/issues/1162">this issue on the Calva repo</a> for more on this, including any progress.</p>
@@ -2212,11 +2213,11 @@
 <h3 id="there-are-standalone-clojurescript-quick-start-repls">There are standalone ”ClojureScript Quick Start” REPLs<a class="headerlink" href="#there-are-standalone-clojurescript-quick-start-repls" title="Permanent link">#</a></h3>
 <p>Without creating a project structure or installing anything but Calva, you can start standalone ClojureScript REPLs both in a browser and for node:</p>
 <ul>
-<li>Fire up the ClojureScript Quick Start <strong>Browser</strong> REPL<ul>
+<li>Create a ClojureScript Quick Start <strong>Browser</strong> project<ul>
 <li>Opens the files <code>core.cljs</code> and <code>index.html</code> and starts the ClojureScript app, opening it in the browser.</li>
 </ul>
 </li>
-<li>Fire up the ClojureScript Quick Start <strong>Node</strong> REPL<ul>
+<li>Create a ClojureScript Quick Start <strong>Node</strong> project<ul>
 <li>Opens a file, <code>core.cljs</code>, and starts a nodejs REPL where it loads the file.</li>
 </ul>
 </li>
@@ -2232,8 +2233,8 @@
 <li><a href="https://clojurescript.org/guides/quick-start">ClojureScript Quick Start</a></li>
 </ul>
 <p>There are also many great books on Clojure. <a href="https://www.braveclojure.com/clojure-for-the-brave-and-true/">Clojure for the Brave and True</a> can be read for free online. It is a great resource for beginners.</p>
-<h2 id="there-is-also-standalone-repl">There is also Standalone REPL<a class="headerlink" href="#there-is-also-standalone-repl" title="Permanent link">#</a></h2>
-<p>When you are more familiar with Calva, and want a standalone REPL, there is a separate command: <strong>Start a standalone REPL (not in project)</strong>. It will open up a <code>user.clj</code> in a temporary directory, containing only an <code>(ns user)</code> form, and start and connect the REPL.</p>
+<h2 id="create-a-minimal-clojure-project">Create a minimal Clojure project<a class="headerlink" href="#create-a-minimal-clojure-project" title="Permanent link">#</a></h2>
+<p>When you are more familiar with Calva, and want a standalone REPL, there is a separate command: <strong>Calva: Create a minimal Clojure project</strong>. It will ask for folder to create the project in, and open this project for you, connecting the REPL. The project is <em>really</em> minimal.</p>
 <h2 id="dram-where-the-guides-live">Dram - Where the Guides Live<a class="headerlink" href="#dram-where-the-guides-live" title="Permanent link">#</a></h2>
 <p>The command for starting the Getting Started REPL will download the files from <a href="https://github.com/BetterThanTomorrow/dram">this repository</a>. It is very much work in progress, and there is not even a finished Clojure Beginner's Guide there yet. When you run the command again, and from then on, you will get the option to download new files or keep using your existing. Downloading new ones will not overwrite your existing ones, because they will be downloaded to a new temp directory. You can find the directory easily using VS Codes context menu command for revealing a file in the Explorer/Finder.</p>
 <h2 id="one-last-thing">One Last Thing<a class="headerlink" href="#one-last-thing" title="Permanent link">#</a></h2>
