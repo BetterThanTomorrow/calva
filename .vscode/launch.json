@@ -106,11 +106,27 @@
       "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
-      "name": "Launch w/ no folder",
+      "name": "Launch w/ folder-less foo.clj",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceRoot}", "--disable-restore-windows"],
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}", "--folder-uri=foo.clj"],
+      "sourceMaps": true,
+      "env": {
+        "IS_DEBUG": "true",
+        "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
+        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
+        "DEBUG": "no-debug-universal-analytics"
+      },
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
+    },
+    {
+      "name": "Launch w/ no folder specified",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}"],
       "sourceMaps": true,
       "env": {
         "IS_DEBUG": "true",
