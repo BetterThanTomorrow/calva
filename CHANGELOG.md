@@ -6,6 +6,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.457] - 2024-06-20
+
 - [Improve error message when tutorial files are unreachable](https://github.com/BetterThanTomorrow/calva/issues/2572)
 
 ## [2.0.456] - 2024-06-15
