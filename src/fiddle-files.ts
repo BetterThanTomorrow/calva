@@ -22,7 +22,7 @@ export function updateFiddleFileOpenedContext(editor: vscode.TextEditor) {
   }
   activeEditorIsFiddle = fiddleFilesUtil.isFiddleFile(
     editor.document.fileName,
-    state.getProjectRootUri().fsPath,
+    state.getProjectRootUri()?.fsPath,
     config.getConfig().fiddleFilePaths
   );
   void vscode.commands.executeCommand(
