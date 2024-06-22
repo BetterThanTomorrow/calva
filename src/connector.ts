@@ -415,7 +415,7 @@ function createCLJSReplType(
         useDefaultBuild = false;
       } else {
         if (typeof initCode === 'object' || initCode.includes('%BUILD%')) {
-          build = await util.quickPickSingle({
+          const buildItem = await util.quickPickSingle({
             values: startedBuilds
               ? startedBuilds.map((a) => ({ label: a }))
               : (await figwheelOrShadowBuilds(cljsTypeName)).map((a) => ({ label: a })),
@@ -426,6 +426,7 @@ function createCLJSReplType(
             )}-build`,
             autoSelect: true,
           });
+          build = buildItem.label;
         }
       }
 
@@ -522,17 +523,19 @@ function createCLJSReplType(
             const allBuilds = (await figwheelOrShadowBuilds(cljsTypeName)).filter(
               (build) => !['browser-repl', 'node-repl'].includes(build)
             );
-            builds =
-              allBuilds.length <= 1
-                ? allBuilds
-                : await util.quickPickMulti({
-                    values: allBuilds.map((a) => ({ label: a })),
-                    placeHolder: 'Please select which builds to start',
-                    saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
-                      ' ',
-                      '-'
-                    )}-builds`,
-                  });
+            if (allBuilds.length <= 1) {
+              builds = allBuilds;
+            } else {
+              const selectedBuilds = await util.quickPickMulti({
+                values: allBuilds.map((a) => ({ label: a })),
+                placeHolder: 'Please select which builds to start',
+                saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
+                  ' ',
+                  '-'
+                )}-builds`,
+              });
+              builds = selectedBuilds.map((build) => build.label);
+            }
           }
           if (builds) {
             output.appendLineOtherOut('Starting cljs repl for: ' + projectTypeName + '...');
