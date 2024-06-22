@@ -31,7 +31,7 @@ export const USER_TEMPLATE: DramTemplate = {
   config: {
     name: 'Standalone REPL',
     files: [
-      { path: 'src/minimal_clj/user.clj', 'open?': true },
+      { path: 'src/minimal_clj/playground.clj', 'open?': true },
       { path: 'deps.edn', 'open?': false },
       { path: '.gitignore', 'open?': false },
       { path: '.vscode/settings.json', 'open?': false },
