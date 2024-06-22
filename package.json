@@ -844,9 +844,14 @@
           "calva.autoOpenREPLWindow": {
             "type": "boolean",
             "markdownDescription": "Automatically open the REPL window on Jack-in or Connect.",
-            "default": true
+            "default": false
           },
           "calva.autoOpenJackInTerminal": {
+            "type": "boolean",
+            "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in.",
+            "default": true
+          },
+          "calva.autoOpenResultOutputDestination": {
             "type": "boolean",
             "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in.",
             "default": true

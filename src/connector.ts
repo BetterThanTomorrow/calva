@@ -113,6 +113,9 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     setStateValue('clj', cljSession);
     setStateValue('cljc', cljSession);
     status.update();
+    if (getConfig().autoOpenResultOutputDestination) {
+      void output.showResultOutputDestination(true);
+    }
     output.appendLineOtherOut(`Connected session: clj`);
     replSession.updateReplSessionType();
 
