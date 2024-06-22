@@ -1,7 +1,15 @@
 {
+  "calva.autoOpenInspector": true,
+  "calva.autoOpenREPLWindow": false,
+  "calva.enableInspectorRainbow": true,
+  "calva.outputDestinations": {
+    "evalResults": "terminal",
+    "evalOutput": "terminal",
+    "otherOutput": "terminal"
+  },
   "calva.replConnectSequences": [
     {
-      "name": "Get started with Clojure",
+      "name": "The Minimal Clojure Project",
       "autoSelectForConnect": true,
       "autoSelectForJackIn": true,
       "projectRootPath": ["."],
