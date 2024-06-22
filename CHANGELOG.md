@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Always include the project creation commands in the REPL menu](https://github.com/BetterThanTomorrow/calva/issues/2575)
+
 ## [2.0.457] - 2024-06-20
 
 - [Add Command for creating a minimal Clojure project](https://github.com/BetterThanTomorrow/calva/issues/2570)

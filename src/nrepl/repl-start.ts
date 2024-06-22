@@ -32,12 +32,12 @@ const START_JOYRIDE_REPL_OPTION = 'Start a Joyride REPL and Connect';
 const START_JOYRIDE_REPL_COMMAND = 'calva.startJoyrideReplAndConnect';
 const STOP_JOYRIDE_NREPL_OPTION = 'Stop the Joyride nREPL server';
 const STOP_JOYRIDE_NREPL_COMMAND = 'joyride.stopNReplServer';
-export const START_HELLO_REPL_OPTION = 'Create a ”Getting Started” REPL project';
-const START_HELLO_REPL_COMMAND = 'calva.startStandaloneHelloRepl';
-const START_HELLO_CLJS_BROWSER_OPTION = 'Create a ”ClojureScript Quick Start” Browser Project';
-export const START_HELLO_CLJS_BROWSER_COMMAND = 'calva.startStandaloneCljsBrowserRepl';
-const START_HELLO_CLJS_NODE_OPTION = 'Create a ”ClojureScript Quick Start” Node Project';
-export const START_HELLO_CLJS_NODE_COMMAND = 'calva.startStandaloneCljsNodeRepl';
+export const CREATE_HELLO_CLJ_REPL_OPTION = 'Create a ”Getting Started” REPL project';
+const CREATE_HELLO_CLJ_REPL_COMMAND = 'calva.startStandaloneHelloRepl';
+const CREATE_HELLO_CLJS_BROWSER_OPTION = 'Create a ”ClojureScript Quick Start” Browser Project';
+export const CREATE_HELLO_CLJS_BROWSER_COMMAND = 'calva.startStandaloneCljsBrowserRepl';
+const CREATE_HELLO_CLJS_NODE_OPTION = 'Create a ”ClojureScript Quick Start” Node Project';
+export const CREATE_HELLO_CLJS_NODE_COMMAND = 'calva.startStandaloneCljsNodeRepl';
 const CONNECT_PROJECT_OPTION = 'Connect to a running REPL in your project';
 const CONNECT_PROJECT_COMMAND = 'calva.connect';
 const CONNECT_STANDALONE_OPTION = 'Connect to a running REPL, not in your project';
@@ -61,6 +61,9 @@ function composeConnectedMenu() {
     OPEN_FIDDLE_OPTION,
     EVALUATE_FIDDLE_OPTION,
     OPEN_SOURCE_FOR_FIDDLE_OPTION,
+    CREATE_HELLO_CLJ_REPL_OPTION,
+    CREATE_HELLO_CLJS_BROWSER_OPTION,
+    CREATE_HELLO_CLJS_NODE_OPTION,
     CREATE_PROJECT_OPTION,
   ];
 
@@ -82,6 +85,9 @@ function composeConnectedMenu() {
   if (!fiddleFiles.activeEditorIsFiddle) {
     commands[EVALUATE_FIDDLE_OPTION] = EVALUATE_FIDDLE_COMMAND;
   }
+  commands[CREATE_HELLO_CLJ_REPL_OPTION] = CREATE_HELLO_CLJ_REPL_COMMAND;
+  commands[CREATE_HELLO_CLJS_BROWSER_OPTION] = CREATE_HELLO_CLJS_BROWSER_COMMAND;
+  commands[CREATE_HELLO_CLJS_NODE_OPTION] = CREATE_HELLO_CLJS_NODE_COMMAND;
   commands[CREATE_PROJECT_OPTION] = CREATE_PROJECT_COMMAND;
   return { commands, PREFERRED_ORDER };
 }
@@ -93,9 +99,9 @@ function composeDisconnectedMenu() {
     START_JOYRIDE_REPL_OPTION,
     STOP_JOYRIDE_NREPL_OPTION,
     CONNECT_STANDALONE_OPTION,
-    START_HELLO_REPL_OPTION,
-    START_HELLO_CLJS_BROWSER_OPTION,
-    START_HELLO_CLJS_NODE_OPTION,
+    CREATE_HELLO_CLJ_REPL_OPTION,
+    CREATE_HELLO_CLJS_BROWSER_OPTION,
+    CREATE_HELLO_CLJS_NODE_OPTION,
     CREATE_PROJECT_OPTION,
   ];
 
@@ -114,9 +120,9 @@ function composeDisconnectedMenu() {
   } else {
     commands[START_JOYRIDE_REPL_OPTION] = START_JOYRIDE_REPL_COMMAND;
   }
-  commands[START_HELLO_REPL_OPTION] = START_HELLO_REPL_COMMAND;
-  commands[START_HELLO_CLJS_BROWSER_OPTION] = START_HELLO_CLJS_BROWSER_COMMAND;
-  commands[START_HELLO_CLJS_NODE_OPTION] = START_HELLO_CLJS_NODE_COMMAND;
+  commands[CREATE_HELLO_CLJ_REPL_OPTION] = CREATE_HELLO_CLJ_REPL_COMMAND;
+  commands[CREATE_HELLO_CLJS_BROWSER_OPTION] = CREATE_HELLO_CLJS_BROWSER_COMMAND;
+  commands[CREATE_HELLO_CLJS_NODE_OPTION] = CREATE_HELLO_CLJS_NODE_COMMAND;
   commands[CREATE_PROJECT_OPTION] = CREATE_PROJECT_COMMAND;
   return { commands, PREFERRED_ORDER };
 }
