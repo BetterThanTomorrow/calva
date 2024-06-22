@@ -31,7 +31,7 @@ export const USER_TEMPLATE: DramTemplate = {
   config: {
     name: 'Standalone REPL',
     files: [
-      { path: 'src/minimal_clj/user.clj', 'open?': true },
+      { path: 'src/minimal_clj/playground.clj', 'open?': true },
       { path: 'deps.edn', 'open?': false },
       { path: '.gitignore', 'open?': false },
       { path: '.vscode/settings.json', 'open?': false },
@@ -161,11 +161,12 @@ const DRAM_TEMPLATE_TO_MENU_OPTION: { [key: string]: string } = {};
 
 DRAM_TEMPLATE_TO_MENU_OPTION[(USER_TEMPLATE.config as DramConfig).name] =
   replStart.CREATE_PROJECT_OPTION;
-DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_TEMPLATE.config as string] = replStart.START_HELLO_REPL_OPTION;
+DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_TEMPLATE.config as string] =
+  replStart.CREATE_HELLO_CLJ_REPL_OPTION;
 DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_CLJS_BROWSER_TEMPLATE.config as string] =
-  replStart.START_HELLO_CLJS_BROWSER_COMMAND;
+  replStart.CREATE_HELLO_CLJS_BROWSER_COMMAND;
 DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_CLJS_NODE_TEMPLATE.config as string] =
-  replStart.START_HELLO_CLJS_NODE_COMMAND;
+  replStart.CREATE_HELLO_CLJS_NODE_COMMAND;
 
 export async function startStandaloneRepl(
   context: vscode.ExtensionContext,

@@ -233,6 +233,7 @@ function getConfig() {
     enableJSCompletions: configOptions.get<boolean>('enableJSCompletions'),
     autoOpenREPLWindow: configOptions.get<boolean>('autoOpenREPLWindow'),
     autoOpenJackInTerminal: configOptions.get('autoOpenJackInTerminal'),
+    autoOpenResultOutputDestination: configOptions.get('autoOpenResultOutputDestination'),
     autoOpenInspector: configOptions.get<boolean>('autoOpenInspector'),
     enableInspectorRainbow: configOptions.get<boolean>('enableInspectorRainbow'),
     referencesCodeLensEnabled: configOptions.get<boolean>('referencesCodeLens.enabled'),
