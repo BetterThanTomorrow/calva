@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.457",
+  "version": "2.0.458",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -844,9 +844,14 @@
           "calva.autoOpenREPLWindow": {
             "type": "boolean",
             "markdownDescription": "Automatically open the REPL window on Jack-in or Connect.",
-            "default": true
+            "default": false
           },
           "calva.autoOpenJackInTerminal": {
+            "type": "boolean",
+            "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in.",
+            "default": true
+          },
+          "calva.autoOpenResultOutputDestination": {
             "type": "boolean",
             "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in.",
             "default": true

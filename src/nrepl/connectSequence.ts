@@ -429,9 +429,10 @@ async function askForConnectSequence(
 
   const defaultSequence = getUserSpecifiedSequence(sequences, connectType, disableAutoSelect);
 
-  const projectConnectSequenceName =
-    defaultSequence?.name ??
-    (await utilities.quickPickSingle({
+  let projectConnectSequenceName = defaultSequence?.name;
+
+  if (!projectConnectSequenceName) {
+    const pickedSequence = await utilities.quickPickSingle({
       title: `${menuTitleType}: Project Type/Connect Sequence`,
       values: sequences
         .filter((s) => !(s.projectType === 'custom' && !s.customJackInCommandLine))
@@ -440,9 +441,14 @@ async function askForConnectSequence(
       placeHolder: 'Please select a project type',
       saveAs: saveAsPath,
       autoSelect: true,
-    }));
+    });
 
-  !defaultSequence && void informAboutDefaultProjectForJackIn(projectConnectSequenceName);
+    projectConnectSequenceName = pickedSequence.label;
+
+    if (projectConnectSequenceName) {
+      informAboutDefaultProjectForJackIn(projectConnectSequenceName);
+    }
+  }
 
   if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
     return;

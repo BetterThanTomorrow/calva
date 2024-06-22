@@ -248,7 +248,7 @@ async function startJackInProcedure(
   );
   // Project type pre-select, qps = quickPickSingle
   const saveAs = `qps-${projectRootUri.toString()}/jack-in-type`;
-  await state.extensionContext.workspaceState.update(saveAs, projectType);
+  await state.extensionContext.workspaceState.update(saveAs, { label: projectType });
 
   let resolved = false;
   void commands.executeCommand(cmdId).then(() => {

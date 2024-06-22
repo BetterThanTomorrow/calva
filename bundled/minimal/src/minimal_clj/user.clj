@@ -1,1 +1,0 @@
-(ns minimal-clj.user)

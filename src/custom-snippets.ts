@@ -128,14 +128,15 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
     // Called without args, show snippets menu
     if (snippetsMenuItems.length > 0) {
       try {
-        pick = await util.quickPickSingle({
+        const pickResult = await util.quickPickSingle({
           values: snippetsMenuItems.map((a) => ({ label: a })),
           placeHolder: 'Choose a command to run at the REPL',
           saveAs: 'runCustomREPLCommand',
         });
-        if (pick === undefined || pick.length < 1) {
+        if (pickResult === undefined || pickResult.label.length < 1) {
           return;
         }
+        pick = pickResult.label; // Assign the label property to pick
       } catch (e) {
         console.error(e);
       }
