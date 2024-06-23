@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Do not open auto open the jack-in terminal by default](https://github.com/BetterThanTomorrow/calva/issues/2578)
+- [Don't show Calva says output channel by default](https://github.com/BetterThanTomorrow/calva/issues/2580)
 
 ## [2.0.458] - 2024-06-22
 
