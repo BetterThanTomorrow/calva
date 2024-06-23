@@ -7,7 +7,7 @@ Changes to Calva.
 ## [2.0.458] - 2024-06-22
 
 - [Always include the project creation commands in the REPL menu](https://github.com/BetterThanTomorrow/calva/issues/2575)
-- [Automatically reveal the configured result output definition on REPL connect](https://github.com/BetterThanTomorrow/calva/issues/2576)
+- [Automatically reveal the configured result output destination on REPL connect](https://github.com/BetterThanTomorrow/calva/issues/2576)
 
 ## [2.0.457] - 2024-06-20
 
