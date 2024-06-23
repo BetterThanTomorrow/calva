@@ -849,11 +849,11 @@
           "calva.autoOpenJackInTerminal": {
             "type": "boolean",
             "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in.",
-            "default": true
+            "default": false
           },
           "calva.autoOpenResultOutputDestination": {
             "type": "boolean",
-            "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in.",
+            "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in or Connect.",
             "default": true
           },
           "calva.autoOpenInspector": {
