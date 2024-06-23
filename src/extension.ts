@@ -205,7 +205,7 @@ async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  status.update(context);
+  status.update();
 
   // Initial set of the provided contexts
   outputWindow.setContextForReplWindowActive(false);
