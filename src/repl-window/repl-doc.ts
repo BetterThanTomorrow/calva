@@ -240,6 +240,9 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     resultsEditor.selections = [new vscode.Selection(lastPos, lastPos)];
     resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
   }
+  if (config.getConfig().autoOpenResultOutputDestination) {
+    void output.showResultOutputDestination(true);
+  }
   if (isInitialized) {
     return resultsDoc;
   }
