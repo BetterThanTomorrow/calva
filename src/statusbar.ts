@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import * as state from './state';
 import * as util from './utilities';
 import * as config from './config';
-import status from './status';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getSession, getReplSessionTypeFromState } from './nrepl/repl-session';
 
@@ -38,7 +37,7 @@ function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration)
   return value!;
 }
 
-function update(context = state.extensionContext) {
+function update() {
   const currentConf = vscode.workspace.getConfiguration(
     `calva.statusColor.${
       vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light ? 'light' : 'dark'

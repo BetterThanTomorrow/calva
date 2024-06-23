@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Do not open auto open the jack-in terminal by default](https://github.com/BetterThanTomorrow/calva/issues/2578)
+- [Don't show Calva says output channel by default](https://github.com/BetterThanTomorrow/calva/issues/2580)
+- [Default to reveal the Calva inspector on repl connect](https://github.com/BetterThanTomorrow/calva/issues/2581)
+- [Send load/evaluate current file results to the inspector](https://github.com/BetterThanTomorrow/calva/issues/2579)
+
 ## [2.0.458] - 2024-06-22
 
 - [Always include the project creation commands in the REPL menu](https://github.com/BetterThanTomorrow/calva/issues/2575)

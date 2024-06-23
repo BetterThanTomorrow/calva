@@ -849,17 +849,17 @@
           "calva.autoOpenJackInTerminal": {
             "type": "boolean",
             "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in.",
-            "default": true
+            "default": false
           },
           "calva.autoOpenResultOutputDestination": {
             "type": "boolean",
-            "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in.",
+            "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in or Connect.",
             "default": true
           },
           "calva.autoOpenInspector": {
             "type": "boolean",
             "markdownDescription": "Automatically open/reveal the Calva Inspector on Jack-in or Connect.",
-            "default": false
+            "default": true
           },
           "calva.enableInspectorRainbow": {
             "type": "boolean",
@@ -875,7 +875,7 @@
           "calva.showCalvaSaysOnStart": {
             "type": "boolean",
             "markdownDescription": "Show the Calva Says output panel on start?",
-            "default": true
+            "default": false
           },
           "calva.definitionProviderPriority": {
             "markdownDescription": "Calva can provide definitions using both the REPL connection and via clojure-lsp. Which provider should Calva prioritize when both are available?",

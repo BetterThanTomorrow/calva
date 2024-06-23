@@ -7,7 +7,6 @@ import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
 import * as outputWindow from './repl-window/repl-doc';
-import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import * as replHistory from './repl-window/repl-history';
 import { formatAsLineComments } from './results-output/util';
@@ -555,6 +554,7 @@ async function loadFile(
   try {
     const value = await res.value;
     if (value) {
+      inspectorDataProvider.addItem(value, false, `[${session.replType}] ${ns}`);
       output.appendClojureEval(value, { ns, replSessionType: session.replType });
     } else {
       output.appendLineEvalOut('No results from file evaluation.');
