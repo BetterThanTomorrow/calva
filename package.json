@@ -859,7 +859,7 @@
           "calva.autoOpenInspector": {
             "type": "boolean",
             "markdownDescription": "Automatically open/reveal the Calva Inspector on Jack-in or Connect.",
-            "default": false
+            "default": true
           },
           "calva.enableInspectorRainbow": {
             "type": "boolean",
