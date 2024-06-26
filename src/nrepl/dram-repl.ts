@@ -323,19 +323,10 @@ export async function startDramRepl() {
   const firstPos = mainEditor.document.positionAt(0);
   mainEditor.selections = [new vscode.Selection(firstPos, firstPos)];
   mainEditor.revealRange(new vscode.Range(firstPos, firstPos));
+
   await vscode.window.showTextDocument(mainDoc, {
     preview: false,
     viewColumn: vscode.ViewColumn.One,
     preserveFocus: false,
-  });
-
-  return jackIn.jackIn(args.dramTemplate.connectSequence, false, async () => {
-    await vscode.window.showTextDocument(mainDoc, {
-      preview: false,
-      viewColumn: vscode.ViewColumn.One,
-      preserveFocus: false,
-    });
-    await eval.loadDocument({}, getConfig().prettyPrintingOptions);
-    output.replWindowAppendPrompt();
   });
 }

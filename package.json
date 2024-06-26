@@ -460,6 +460,11 @@
             "default": false,
             "markdownDescription": "If true, Calva will auto-connect the REPL when a project is opened and there exists an nRepl port file."
           },
+          "calva.autoStartRepl": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "If true, Calva will auto-start and connect the REPL (a.k.a. Jack-in) when a Clojure project is opened. **NB:** To fully automate the jack-in process, you need to configure `calva.replConnectSequences` such that one sequence is marked with `autoSelectForJackIn`, has `projectRootPath` set, and has `menuSelections` configured."
+          },
           "calva.jackInDependencyVersions": {
             "type": "object",
             "description": "Versions of the dependencies injected by Calva Jack-in",
@@ -3314,6 +3319,7 @@
     "compile-test": "tsc -p ./",
     "postrelease": "",
     "package-vsix": "vsce package",
+    "package-vsix-prerelease": "vsce package",
     "vscode:prepublish": "npm run release",
     "bump-version": "npm set git-tag-version false && npm version patch",
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
