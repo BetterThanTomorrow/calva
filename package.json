@@ -1325,7 +1325,7 @@
       },
       {
         "command": "calva.createMinimalProject",
-        "title": "Create a minimal Clojure project",
+        "title": "Create a mini Clojure project",
         "category": "Calva"
       },
       {
