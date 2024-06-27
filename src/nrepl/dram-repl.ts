@@ -1,14 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as state from '../state';
-import eval from '../evaluate';
 import * as utilities from '../utilities';
 import * as sequence from './connectSequence';
-import * as jackIn from './jack-in';
-import { getConfig } from '../config';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import { ReplConnectSequence } from './connectSequence';
-import * as output from '../results-output/output';
 import { ConnectType } from './connect-types';
 import * as replStart from './repl-start';
 
@@ -31,7 +27,7 @@ export const USER_TEMPLATE: DramTemplate = {
   config: {
     name: 'Standalone REPL',
     files: [
-      { path: 'src/minimal_clj/playground.clj', 'open?': true },
+      { path: 'src/mini/playground.clj', 'open?': true },
       { path: 'deps.edn', 'open?': false },
       { path: '.gitignore', 'open?': false },
       { path: '.vscode/settings.json', 'open?': false },

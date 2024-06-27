@@ -1,13 +1,23 @@
+// Configurration of the mini-project for use with Calva
+// * It will autostart the repl and connect it to the editor (Jack-in)
+// * It will use the Output “terminal” for evaluation results
+//   and side effect output.
+// * It won't open the REPL prompt window automatically
+//   There's a command for opening it, but we recommend using regular
+//   editor files instead.
+// * It reveals the Calva Inspector when the repl connects.
+//   (All evaluation results are available in the inspector.)
 {
   "calva.autoOpenInspector": true,
   "calva.autoOpenREPLWindow": false,
   "calva.enableInspectorRainbow": true,
+  // https://calva.io/output/
   "calva.outputDestinations": {
     "evalResults": "terminal",
     "evalOutput": "terminal",
     "otherOutput": "terminal"
   },
-  "calva.autoStartRepl": true,
+  // https://calva.io/connect-sequences/
   "calva.replConnectSequences": [
     {
       "name": "The Minimal Clojure Project",
@@ -20,5 +30,6 @@
         "cljAliases": ["test"]
       }
     }
-  ]
+  ],
+  "calva.autoStartRepl": true
 }
