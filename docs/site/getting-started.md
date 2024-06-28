@@ -69,7 +69,7 @@ There are also many great books on Clojure. [Clojure for the Brave and True](htt
 
 ## Create a mini Clojure project
 
-When you are more familiar with Calva, and want a standalone REPL, there is a separate command: **Calva: Create a minimal Clojure project**. It will ask for folder to create the project in, and open this project for you, connecting the REPL. This project only contains one source file and has no build tooling. For creating more “real” project starters, we recommend using [deps-new](https://github.com/seancorfield/deps-new), by sSean Corfield.
+When you are more familiar with Calva, and want a standalone REPL, there is a separate command: **Calva: Create a mini Clojure project**. It will ask for folder to create the project in, and open this project for you, connecting the REPL. This project only contains one source file and has no build tooling. For creating more “real” project starters, we recommend using [deps-new](https://github.com/seancorfield/deps-new), by sSean Corfield.
 
 ## Dram - Where the Guides Live
 
