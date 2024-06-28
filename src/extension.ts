@@ -550,11 +550,13 @@ async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  if (await connector.shouldAutoConnect()) {
+  fiddleFiles.activate(context);
+
+  if (config.getConfig().autoStartRepl) {
+    void vscode.commands.executeCommand('calva.jackIn');
+  } else if (await connector.shouldAutoConnect()) {
     void vscode.commands.executeCommand('calva.connect');
   }
-
-  fiddleFiles.activate(context);
 
   void dramRepl.maybeStartDramRepl();
 
