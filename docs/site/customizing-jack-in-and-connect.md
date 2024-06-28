@@ -16,7 +16,7 @@ The main mechanism for customizing your Jack-in, including automating menu selec
 
 There are also these settings:
 
-* `calva.autoStartRepl`: If true, Calva will auto-start and connect the REPL (a.k.a. Jack-in) when a Clojure project is opened. **NB:** To fully automate the jack-in process, you need to configure [`calva.replConnectSequences]connect-sequences.md) such that one sequence is marked with `autoSelectForJackIn`, has `projectRootPath` set, and has `menuSelections` configured.
+* `calva.autoStartRepl`: If true, Calva will auto-start and connect the REPL (a.k.a. Jack-in) when a Clojure project is opened. **NB:** To fully automate the jack-in process, you need to configure [`calva.replConnectSequences`](connect-sequences.md) such that one sequence is marked with `autoSelectForJackIn`, has `projectRootPath` set, and has `menuSelections` configured.
 * `calva.jackInEnv`: An object with environment variables that will be added to the environment of the Jack-in process.
 * `calva.myCljAliases`: An array of `deps.edn` aliases not found in the project file. Use this to tell Calva Jack-in to launch your REPL using your user defined aliases.
 * `calva.myLeinProfiles`: An array of Leiningen profiles not found in `project.clj`. Use this to tell Calva Jack-in to launch your REPL using your user defined profiles.
