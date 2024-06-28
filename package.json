@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.459",
+  "version": "2.0.460",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -459,6 +459,11 @@
             "type": "boolean",
             "default": false,
             "markdownDescription": "If true, Calva will auto-connect the REPL when a project is opened and there exists an nRepl port file."
+          },
+          "calva.autoStartRepl": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "If true, Calva will auto-start and connect the REPL (a.k.a. Jack-in) when a Clojure project is opened. **NB:** To fully automate the jack-in process, you need to configure `calva.replConnectSequences` such that one sequence is marked with `autoSelectForJackIn`, has `projectRootPath` set, and has `menuSelections` configured."
           },
           "calva.jackInDependencyVersions": {
             "type": "object",
@@ -1320,7 +1325,7 @@
       },
       {
         "command": "calva.createMinimalProject",
-        "title": "Create a minimal Clojure project",
+        "title": "Create a mini Clojure project",
         "category": "Calva"
       },
       {
@@ -3314,6 +3319,7 @@
     "compile-test": "tsc -p ./",
     "postrelease": "",
     "package-vsix": "vsce package",
+    "package-vsix-prerelease": "vsce package",
     "vscode:prepublish": "npm run release",
     "bump-version": "npm set git-tag-version false && npm version patch",
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",

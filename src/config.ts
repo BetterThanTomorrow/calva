@@ -246,6 +246,7 @@ function getConfig() {
     depsCljPath: configOptions.get<string>('depsCljPath'),
     autoSelectNReplPortFromPortFile: configOptions.get<boolean>('autoSelectNReplPortFromPortFile'),
     autoConnectRepl: configOptions.get<boolean>('autoConnectRepl'),
+    autoStartRepl: configOptions.get<boolean>('autoStartRepl'),
     html2HiccupOptions: configOptions.get<converters.HiccupOptions>('html2HiccupOptions'),
     autoEvaluateCode: nreplUtil.mergeAutoEvaluateConfigs(
       [

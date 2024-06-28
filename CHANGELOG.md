@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.460] - 2024-06-28
+
+- [Add configuration for automatically starting and connecting the project REPL](https://github.com/BetterThanTomorrow/calva/issues/2583)
+
 ## [2.0.459] - 2024-06-23
 
 - [Do not open auto open the jack-in terminal by default](https://github.com/BetterThanTomorrow/calva/issues/2578)
