@@ -39,20 +39,7 @@ If you are new to Calva, a good place to start is using the command **Calva: Cre
 
 ![Command Palette Getting Started REPL](/images/getting-started-with-clojure/vscode-command-palette-calva-getting-started.png "Create a ”Getting Started” REPL")
 
-It will create a new project, open up a three files, and start and connect a REPL. The files are:
-
-- `hello_repl.clj` – The basics of how to evaluate code in Calva
-- `hello_paredit.clj` - A super brief intro to Calva structural editing
-- `welcome_to_clojure.clj` - The very basics of the Clojure language
-
-![Hello REPL](images/howto/hello-repl.png "hello-repl.clj")
-
-The only prerequisite here is that you have Java installed.
-
 See the [Getting Started with Clojure](get-started-with-clojure.md) guide for a bit more about this feature.
-
-!!! Note
-    On Windows the Oracle Java installer sets Java up in some funny way so that the Getting Started REPL fails to start. We are figuring about workarounds for this, but for now, if you are on Windows, you will need to make VS Code have some other Java in the `PATH` of its environment for this feature to work. See [this issue on the Calva repo](https://github.com/BetterThanTomorrow/calva/issues/1162) for more on this, including any progress.
 
 ### There are standalone ”ClojureScript Quick Start” REPLs
 
