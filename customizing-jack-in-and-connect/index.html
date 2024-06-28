@@ -2328,7 +2328,7 @@
 <p>The main mechanism for customizing your Jack-in, including automating menu selections, and custom CLJS REPL types is <a href="../connect-sequences/">Custom Connect Sequences</a>.</p>
 <p>There are also these settings:</p>
 <ul>
-<li><code>calva.autoStartRepl</code>: If true, Calva will auto-start and connect the REPL (a.k.a. Jack-in) when a Clojure project is opened. <strong>NB:</strong> To fully automate the jack-in process, you need to configure [<code>calva.replConnectSequences]connect-sequences.md) such that one sequence is marked with</code>autoSelectForJackIn<code>, has</code>projectRootPath<code>set, and has</code>menuSelections` configured.</li>
+<li><code>calva.autoStartRepl</code>: If true, Calva will auto-start and connect the REPL (a.k.a. Jack-in) when a Clojure project is opened. <strong>NB:</strong> To fully automate the jack-in process, you need to configure <a href="../connect-sequences/"><code>calva.replConnectSequences</code></a> such that one sequence is marked with <code>autoSelectForJackIn</code>, has <code>projectRootPath</code> set, and has <code>menuSelections</code> configured.</li>
 <li><code>calva.jackInEnv</code>: An object with environment variables that will be added to the environment of the Jack-in process.</li>
 <li><code>calva.myCljAliases</code>: An array of <code>deps.edn</code> aliases not found in the project file. Use this to tell Calva Jack-in to launch your REPL using your user defined aliases.</li>
 <li><code>calva.myLeinProfiles</code>: An array of Leiningen profiles not found in <code>project.clj</code>. Use this to tell Calva Jack-in to launch your REPL using your user defined profiles.</li>
