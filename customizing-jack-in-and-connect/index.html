@@ -2326,15 +2326,16 @@
 <p>This page lists some more Jack-in and Connect configuration options.</p>
 <h2 id="customizing-jack-in">Customizing Jack-in<a class="headerlink" href="#customizing-jack-in" title="Permanent link">#</a></h2>
 <p>The main mechanism for customizing your Jack-in, including automating menu selections, and custom CLJS REPL types is <a href="../connect-sequences/">Custom Connect Sequences</a>.</p>
-<p>There are also these settings:
-<a href="#customizing-jack-in"></a>
-* <code>calva.autoStartRepl</code>: If true, Calva will auto-start and connect the REPL (a.k.a. Jack-in) when a Clojure project is opened. <strong>NB:</strong> To fully automate the jack-in process, you need to configure [<code>calva.replConnectSequences]connect-sequences.md) such that one sequence is marked with</code>autoSelectForJackIn<code>, has</code>projectRootPath<code>set, and has</code>menuSelections<code>configured.
-*</code>calva.jackInEnv<code>: An object with environment variables that will be added to the environment of the Jack-in process.
-*</code>calva.myCljAliases<code>: An array of</code>deps.edn<code>aliases not found in the project file. Use this to tell Calva Jack-in to launch your REPL using your user defined aliases.
-*</code>calva.myLeinProfiles<code>: An array of Leiningen profiles not found in</code>project.clj<code>. Use this to tell Calva Jack-in to launch your REPL using your user defined profiles.
-*</code>calva.openBrowserWhenFigwheelStarted<code>: _For Legacy Figwheel only._ A boolean controlling if Calva should automatically launch your ClojureScript app, once it is compiled by Figwheel. Defaults to</code>true<code>.
-*</code>calva.depsEdnJackInExecutable<code>: A string which should either be</code>clojure<code>or</code>deps.clj<code>, or</code>clojure or deps.clj<code>(default). It determines which executable Calva Jack-in should use for starting a</code>deps.edn<code>project. With this setting at its default,</code>clojure or deps.clj<code>, Calva will test if the</code>clojure<code>executable works, and use it if it does, otherwise</code>deps.clj<code>will be used, which is bundled with Calva.
-*</code>calva.jackInDependencyVersions`: See <a href="#jack-in-dependency-versions">below</a></p>
+<p>There are also these settings:</p>
+<ul>
+<li><code>calva.autoStartRepl</code>: If true, Calva will auto-start and connect the REPL (a.k.a. Jack-in) when a Clojure project is opened. <strong>NB:</strong> To fully automate the jack-in process, you need to configure [<code>calva.replConnectSequences]connect-sequences.md) such that one sequence is marked with</code>autoSelectForJackIn<code>, has</code>projectRootPath<code>set, and has</code>menuSelections` configured.</li>
+<li><code>calva.jackInEnv</code>: An object with environment variables that will be added to the environment of the Jack-in process.</li>
+<li><code>calva.myCljAliases</code>: An array of <code>deps.edn</code> aliases not found in the project file. Use this to tell Calva Jack-in to launch your REPL using your user defined aliases.</li>
+<li><code>calva.myLeinProfiles</code>: An array of Leiningen profiles not found in <code>project.clj</code>. Use this to tell Calva Jack-in to launch your REPL using your user defined profiles.</li>
+<li><code>calva.openBrowserWhenFigwheelStarted</code>: <em>For Legacy Figwheel only.</em> A boolean controlling if Calva should automatically launch your ClojureScript app, once it is compiled by Figwheel. Defaults to <code>true</code>.</li>
+<li><code>calva.depsEdnJackInExecutable</code>: A string which should either be <code>clojure</code> or <code>deps.clj</code>, or <code>clojure or deps.clj</code> (default). It determines which executable Calva Jack-in should use for starting a <code>deps.edn</code> project. With this setting at its default, <code>clojure or deps.clj</code>, Calva will test if the <code>clojure</code> executable works, and use it if it does, otherwise <code>deps.clj</code> will be used, which is bundled with Calva.</li>
+<li><code>calva.jackInDependencyVersions</code>: See <a href="#jack-in-dependency-versions">below</a></li>
+</ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>When processing the <code>calva.jackInEnv</code> setting you can refer to existing ENV variables with <code>${env:VARIABLE}</code>.</p>
