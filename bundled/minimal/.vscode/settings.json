@@ -9,7 +9,7 @@
   // https://calva.io/connect-sequences/
   "calva.replConnectSequences": [
     {
-      "name": "The Minimal Clojure Project",
+      "name": "Mini Clojure Project",
       "autoSelectForConnect": true,
       "autoSelectForJackIn": true,
       "projectRootPath": ["."],
