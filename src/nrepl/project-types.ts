@@ -340,7 +340,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     cmd: ['lein'],
     winCmd: ['cmd.exe', '/d', '/c', 'lein'],
     processShellUnix: true,
-    processShellWin: 'cmd.exe',
+    processShellWin: false,
     useWhenExists: ['project.clj'],
     nReplPortFile: ['.nrepl-port'],
     /** Build the command line args for a lein-project.
@@ -375,7 +375,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: ['java', '-jar'],
     resolveBundledPathWin: depsCljWindowsPath,
     processShellUnix: true,
-    processShellWin: 'cmd.exe',
+    processShellWin: false,
     useWhenExists: ['deps.edn'],
     nReplPortFile: ['.nrepl-port'],
     /** Build the command line args for a clj-project.
@@ -440,7 +440,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     cmd: ['lein'],
     winCmd: ['cmd.exe', '/d', '/c', 'lein'],
     processShellUnix: true,
-    processShellWin: 'cmd.exe',
+    processShellWin: false,
     useWhenExists: ['project.clj'],
     nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
     /**
@@ -478,7 +478,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     cmd: ['./gradlew'],
     winCmd: ['cmd.exe', '/d', '/c', 'gradlew.bat'],
     processShellUnix: true,
-    processShellWin: 'cmd.exe',
+    processShellWin: false,
     useWhenExists: ['settings.gradle', 'settings.gradle.kts'],
     nReplPortFile: ['.nrepl-port'],
     /**
@@ -499,7 +499,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     resolveBundledPathUnix: () =>
       `'${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}'`,
     processShellUnix: true,
-    processShellWin: 'cmd.exe',
+    processShellWin: false,
     useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
     commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
@@ -564,7 +564,7 @@ const projectTypes: { [id: string]: ProjectType } = {
       return [getConfig().basilispPath];
     },
     processShellUnix: true,
-    processShellWin: 'cmd.exe',
+    processShellWin: false,
     useWhenExists: ['basilisp.edn'],
     nReplPortFile: ['.nrepl-port'],
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
