@@ -328,6 +328,17 @@ function depsCljWindowsPath() {
   return `"${path.join('.', '.calva', 'deps.clj.jar')}"`;
 }
 
+const clojureCmdFn = () => {
+  const q = isWin ? '"' : "'";
+  const configuredCmd =
+    getConfig().depsEdnJackInExecutable === 'clojure or deps.clj'
+      ? getStateValue('depsEdnJackInDefaultExecutable') ?? 'deps.clj'
+      : getConfig().depsEdnJackInExecutable;
+  return configuredCmd === 'deps.clj'
+    ? ['java', '-jar', `${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}`]
+    : ['clojure'];
+};
+
 const projectTypes: { [id: string]: ProjectType } = {
   lein: {
     name: 'Leiningen',
@@ -363,16 +374,8 @@ const projectTypes: { [id: string]: ProjectType } = {
       'ClojureScript built-in for browser',
       'ClojureScript built-in for node',
     ],
-    cmd: () => {
-      const configuredCmd =
-        getConfig().depsEdnJackInExecutable === 'clojure or deps.clj'
-          ? getStateValue('depsEdnJackInDefaultExecutable') ?? 'deps.clj'
-          : getConfig().depsEdnJackInExecutable;
-      return configuredCmd === 'deps.clj'
-        ? ['java', '-jar', `'${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}'`]
-        : ['clojure'];
-    },
-    winCmd: ['java', '-jar'],
+    cmd: clojureCmdFn,
+    winCmd: clojureCmdFn,
     resolveBundledPathWin: depsCljWindowsPath,
     processShellUnix: true,
     processShellWin: false,
@@ -493,8 +496,8 @@ const projectTypes: { [id: string]: ProjectType } = {
   generic: {
     name: 'generic',
     cljsTypes: [],
-    cmd: ['java', '-jar'],
-    winCmd: ['java', '-jar'],
+    cmd: clojureCmdFn,
+    winCmd: clojureCmdFn,
     resolveBundledPathWin: depsCljWindowsPath,
     resolveBundledPathUnix: () =>
       `'${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}'`,
