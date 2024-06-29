@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Powershell sometimes used for jack-in on windows, and it doesn't work](https://github.com/BetterThanTomorrow/calva/issues/2586)
+
 ## [2.0.460] - 2024-06-28
 
 - [Add configuration for automatically starting and connecting the project REPL](https://github.com/BetterThanTomorrow/calva/issues/2583)
