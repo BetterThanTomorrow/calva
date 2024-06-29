@@ -295,12 +295,17 @@ export async function dramReplStartConfigExists(): Promise<boolean> {
 
 export async function maybeStartDramRepl() {
   if (await dramReplStartConfigExists()) {
+    console.debug('Dram start config exists');
     return startDramRepl();
+  } else {
+    console.debug('No dram start config');
   }
 }
 
 export async function startDramRepl() {
+  console.debug('Starting dram repl');
   const args = await deserializeDramReplStartConfig(state.getProjectRootUri());
+  console.debug('Dram repl start config:', args);
   void vscode.workspace.fs.delete(ARGS_FILE_PATH(state.getProjectRootUri()));
   await state.initProjectDir(ConnectType.JackIn, args.dramTemplate.connectSequence, false);
   const projectRootUri = state.getProjectRootUri();
