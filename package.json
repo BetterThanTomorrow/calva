@@ -1320,7 +1320,7 @@
       },
       {
         "command": "calva.showReplMenu",
-        "title": "Show/open/reveal the REPL Menu",
+        "title": "Open the REPL Menu (Start/Connect a REPL, etc.)",
         "category": "Calva"
       },
       {
