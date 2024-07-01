@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
 import * as utilities from '../utilities';
-import * as replSession from './repl-session';
 import * as fiddleFiles from '../fiddle-files';
 import * as joyride from '../joyride';
 
@@ -31,6 +30,8 @@ const DISCONNECT_OPTION = 'Disconnect from the REPL';
 const DISCONNECT_COMMAND = 'calva.disconnect';
 const OPEN_REPL_WINDOW_OPTION = 'Show the REPL Window';
 const OPEN_REPL_WINDOW_COMMAND = 'calva.showOutputWindow';
+const OPEN_INSPECTOR_OPTION = 'Show the Inspector';
+const OPEN_INSPECTOR_COMMAND = 'calva.revealInspector';
 const OPEN_FIDDLE_OPTION = 'Open Fiddle for Current File';
 const OPEN_FIDDLE_COMMAND = 'calva.openFiddleForSourceFile';
 const EVALUATE_FIDDLE_OPTION = 'Evaluate Fiddle for Current File';
@@ -57,6 +58,10 @@ const CONNECT_STANDALONE_OPTION = 'Connect to a running REPL, not in your projec
 const CONNECT_STANDALONE_COMMAND = 'calva.connectNonProjectREPL';
 
 const connectedMenuItems: MenuItem[] = [
+  {
+    label: OPEN_INSPECTOR_OPTION,
+    command: OPEN_INSPECTOR_COMMAND,
+  },
   { label: INTERRUPT_OPTION, command: INTERRUPT_COMMAND },
   {
     label: RE_JACK_IN_OPTION,
@@ -87,7 +92,6 @@ const connectedMenuItems: MenuItem[] = [
   {
     label: OPEN_REPL_WINDOW_OPTION,
     command: OPEN_REPL_WINDOW_COMMAND,
-    condition: () => replSession.getSession('clj'),
   },
   { label: CREATE_HELLO_CLJ_REPL_OPTION, command: CREATE_HELLO_CLJ_REPL_COMMAND },
   {
