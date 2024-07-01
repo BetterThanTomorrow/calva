@@ -29,7 +29,7 @@ const INTERRUPT_OPTION = 'Interrupt running Evaluations';
 const INTERRUPT_COMMAND = 'calva.interruptAllEvaluations';
 const DISCONNECT_OPTION = 'Disconnect from the REPL';
 const DISCONNECT_COMMAND = 'calva.disconnect';
-const OPEN_REPL_WINDOW_OPTION = 'Open the REPL Window';
+const OPEN_REPL_WINDOW_OPTION = 'Show the REPL Window';
 const OPEN_REPL_WINDOW_COMMAND = 'calva.showOutputWindow';
 const OPEN_FIDDLE_OPTION = 'Open Fiddle for Current File';
 const OPEN_FIDDLE_COMMAND = 'calva.openFiddleForSourceFile';
@@ -59,11 +59,6 @@ const CONNECT_STANDALONE_COMMAND = 'calva.connectNonProjectREPL';
 const connectedMenuItems: MenuItem[] = [
   { label: INTERRUPT_OPTION, command: INTERRUPT_COMMAND },
   {
-    label: OPEN_REPL_WINDOW_OPTION,
-    command: OPEN_REPL_WINDOW_COMMAND,
-    condition: () => replSession.getSession('clj'),
-  },
-  {
     label: RE_JACK_IN_OPTION,
     command: RE_JACK_IN_COMMAND,
     condition: utilities.getJackedInState,
@@ -88,6 +83,11 @@ const connectedMenuItems: MenuItem[] = [
     label: OPEN_SOURCE_FOR_FIDDLE_OPTION,
     command: OPEN_SOURCE_FOR_FIDDLE_COMMAND,
     condition: () => fiddleFiles.activeEditorIsFiddle,
+  },
+  {
+    label: OPEN_REPL_WINDOW_OPTION,
+    command: OPEN_REPL_WINDOW_COMMAND,
+    condition: () => replSession.getSession('clj'),
   },
   { label: CREATE_HELLO_CLJ_REPL_OPTION, command: CREATE_HELLO_CLJ_REPL_COMMAND },
   {
