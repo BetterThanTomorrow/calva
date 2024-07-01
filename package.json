@@ -1950,7 +1950,7 @@
       },
       {
         "category": "Calva",
-        "command": "calva.showOutputWindow",
+        "command": "calva.showReplWindow",
         "title": "Show/Open REPL Window",
         "enablement": "calva:connected"
       },
@@ -2718,7 +2718,7 @@
         "when": "calva:keybindingsEnabled"
       },
       {
-        "command": "calva.showOutputWindow",
+        "command": "calva.showReplWindow",
         "key": "ctrl+alt+o r",
         "args": false,
         "when": "calva:keybindingsEnabled && !calva:outputWindowActive"
@@ -3080,7 +3080,7 @@
           "when": "calva:connected && calva:outputWindowActive"
         },
         {
-          "command": "calva.showOutputWindow",
+          "command": "calva.showReplWindow",
           "when": "!calva:outputWindowActive"
         },
         {

@@ -39,7 +39,7 @@ These are the commands and their default keyboard shortcuts for revealing output
     },
     {
       "key": "ctrl+alt+o ctrl+alt+r",
-      "command": "calva.showOutputWindow", // Show/Open REPL Window
+      "command": "calva.showReplWindow", // Show/Open REPL Window
       "args": true
     },
     ```

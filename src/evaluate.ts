@@ -584,7 +584,7 @@ async function loadFile(
         )
         .then((choice) => {
           if (choice === 'Show output') {
-            void vscode.commands.executeCommand('calva.showOutputWindow');
+            void output.showResultOutputDestination(true);
           }
         });
     }

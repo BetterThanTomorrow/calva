@@ -284,7 +284,8 @@ async function activate(context: vscode.ExtensionContext) {
     setOutputWindowNamespace: outputWindow.setNamespaceFromCurrentFile,
     showFileForOutputWindowNS: outputWindow.revealDocForCurrentNS,
     showNextReplHistoryEntry: replHistory.showNextReplHistoryEntry,
-    showOutputWindow: outputWindow.revealResultsDoc,
+    showReplWindow: outputWindow.revealResultsDoc,
+    showOutputWindow: outputWindow.revealResultsDoc, // backwards compatibility
     showOutputChannel: output.showOutputChannel,
     showOutputTerminal: output.showOutputTerminal,
     showResultOutputDestination: output.showResultOutputDestination,
