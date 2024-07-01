@@ -10,7 +10,7 @@ export interface JackInTerminalOptions extends vscode.TerminalOptions {
   executable: string;
   args: string[];
   isWin: boolean;
-  useShell: boolean;
+  useShell: boolean | string;
 }
 
 export function createCommandLine(options: JackInTerminalOptions): string {
@@ -67,6 +67,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
   private async startClojureProgram(): Promise<child.ChildProcess> {
     return new Promise<child.ChildProcess>(() => {
       const data = `${createCommandLine(this.options)}\r\n`;
+      this.writeEmitter.fire(`Process shell is: ${this.options.useShell}\r\n`);
       this.writeEmitter.fire('⚡️ Starting the REPL ⚡️ using the below command line:\r\n');
       this.writeEmitter.fire(data);
       if (this.process && !this.process.killed) {

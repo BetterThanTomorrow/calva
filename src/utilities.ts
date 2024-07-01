@@ -48,7 +48,7 @@ async function quickPickSingle(opts: {
   values: vscode.QuickPickItem[];
   saveAs: string;
   default?: vscode.QuickPickItem;
-  placeHolder: string;
+  placeHolder?: string;
   autoSelect?: boolean;
 }): Promise<vscode.QuickPickItem | undefined> {
   if (opts.values.length == 0) {

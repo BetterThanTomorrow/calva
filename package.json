@@ -990,7 +990,7 @@
           },
           "calva.redirectServerOutputToRepl": {
             "type": "boolean",
-            "markdownDescription": "Redirect the output from the REPL server process to the REPL/Output window. With this disabled output from child threads of evaluations will not be shown in the REPL/Output window, but instead in the terminal where the REPL is started (the jack-in terminal if Calva started the REPL).",
+            "markdownDescription": "Redirect the output from the REPL server process to the Output Destination. With this disabled, output from child threads of evaluations will not be shown in the output destination, but instead in the terminal where the REPL is started (the jack-in terminal if Calva started the REPL).",
             "default": true
           },
           "calva.basilispPath": {
@@ -1319,8 +1319,8 @@
         "category": "Calva"
       },
       {
-        "command": "calva.startOrConnectRepl",
-        "title": "Start or Connect to a Clojure REPL",
+        "command": "calva.showReplMenu",
+        "title": "Open the REPL Menu (Start/Connect a REPL, etc.)",
         "category": "Calva"
       },
       {
@@ -1427,7 +1427,7 @@
       },
       {
         "command": "calva.printLastStacktrace",
-        "title": "Print Last Stacktrace to Output Window",
+        "title": "Print Last Stacktrace to REPL Window",
         "enablement": "calva:connected",
         "category": "Calva"
       },
@@ -1950,7 +1950,7 @@
       },
       {
         "category": "Calva",
-        "command": "calva.showOutputWindow",
+        "command": "calva.showReplWindow",
         "title": "Show/Open REPL Window",
         "enablement": "calva:connected"
       },
@@ -2180,7 +2180,7 @@
         "when": "calva:keybindingsEnabled"
       },
       {
-        "command": "calva.startOrConnectRepl",
+        "command": "calva.showReplMenu",
         "key": "ctrl+alt+c ctrl+alt+r"
       },
       {
@@ -2718,7 +2718,7 @@
         "when": "calva:keybindingsEnabled"
       },
       {
-        "command": "calva.showOutputWindow",
+        "command": "calva.showReplWindow",
         "key": "ctrl+alt+o r",
         "args": false,
         "when": "calva:keybindingsEnabled && !calva:outputWindowActive"
@@ -3064,7 +3064,7 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "calva.startOrConnectRepl",
+          "command": "calva.showReplMenu",
           "when": "true"
         },
         {
@@ -3080,7 +3080,7 @@
           "when": "calva:connected && calva:outputWindowActive"
         },
         {
-          "command": "calva.showOutputWindow",
+          "command": "calva.showReplWindow",
           "when": "!calva:outputWindowActive"
         },
         {
@@ -3122,7 +3122,7 @@
         {
           "when": "editorLangId == clojure",
           "enablement": "!calva:connected",
-          "command": "calva.startOrConnectRepl",
+          "command": "calva.showReplMenu",
           "group": "calva/x-connect"
         },
         {

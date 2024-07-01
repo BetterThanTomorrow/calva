@@ -367,7 +367,7 @@ function offerToConnect() {
     .then(
       (choice) => {
         if (choice === 'Connect') {
-          void vscode.commands.executeCommand('calva.startOrConnectRepl');
+          void vscode.commands.executeCommand('calva.showReplMenu');
         }
       },
       (reason) => {
@@ -584,7 +584,7 @@ async function loadFile(
         )
         .then((choice) => {
           if (choice === 'Show output') {
-            void vscode.commands.executeCommand('calva.showOutputWindow');
+            void output.showResultOutputDestination(true);
           }
         });
     }
