@@ -32,6 +32,8 @@ const OPEN_REPL_WINDOW_OPTION = 'Show the REPL Window';
 const OPEN_REPL_WINDOW_COMMAND = 'calva.showReplWindow';
 const OPEN_INSPECTOR_OPTION = 'Show the Inspector';
 const OPEN_INSPECTOR_COMMAND = 'calva.revealInspector';
+const OPEN_OUTPUT_DESTINATION_OPTION = 'Show the Output Destination';
+const OPEN_OUTPUT_DESTINATION_COMMAND = 'calva.showResultOutputDestination';
 const OPEN_FIDDLE_OPTION = 'Open Fiddle for Current File';
 const OPEN_FIDDLE_COMMAND = 'calva.openFiddleForSourceFile';
 const EVALUATE_FIDDLE_OPTION = 'Evaluate Fiddle for Current File';
@@ -61,6 +63,10 @@ const connectedMenuItems: MenuItem[] = [
   {
     label: OPEN_INSPECTOR_OPTION,
     command: OPEN_INSPECTOR_COMMAND,
+  },
+  {
+    label: OPEN_OUTPUT_DESTINATION_OPTION,
+    command: OPEN_OUTPUT_DESTINATION_COMMAND,
   },
   { label: INTERRUPT_OPTION, command: INTERRUPT_COMMAND },
   {
