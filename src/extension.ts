@@ -295,7 +295,8 @@ async function activate(context: vscode.ExtensionContext) {
         return joyride.joyrideJackIn(projectDir);
       }
     },
-    startOrConnectRepl: replStart.startOrConnectRepl,
+    startOrConnectRepl: replStart.showReplMenu, // backwards compatibility
+    showReplMenu: replStart.showReplMenu,
     startStandaloneCljsBrowserRepl: () => {
       return dramRepl.startStandaloneRepl(
         context,

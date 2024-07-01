@@ -2,9 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as state from '../state';
 import * as utilities from '../utilities';
-import * as sequence from './connectSequence';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
-import { ReplConnectSequence } from './connectSequence';
 import { ConnectType } from './connect-types';
 import * as replStart from './repl-start';
 

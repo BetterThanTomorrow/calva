@@ -29,8 +29,8 @@ const INTERRUPT_OPTION = 'Interrupt running Evaluations';
 const INTERRUPT_COMMAND = 'calva.interruptAllEvaluations';
 const DISCONNECT_OPTION = 'Disconnect from the REPL';
 const DISCONNECT_COMMAND = 'calva.disconnect';
-const OPEN_WINDOW_OPTION = 'Open the Output Window';
-const OPEN_WINDOW_COMMAND = 'calva.showOutputWindow';
+const OPEN_REPL_WINDOW_OPTION = 'Open the REPL Window';
+const OPEN_REPL_WINDOW_COMMAND = 'calva.showOutputWindow';
 const OPEN_FIDDLE_OPTION = 'Open Fiddle for Current File';
 const OPEN_FIDDLE_COMMAND = 'calva.openFiddleForSourceFile';
 const EVALUATE_FIDDLE_OPTION = 'Evaluate Fiddle for Current File';
@@ -59,8 +59,8 @@ const CONNECT_STANDALONE_COMMAND = 'calva.connectNonProjectREPL';
 const connectedMenuItems: MenuItem[] = [
   { label: INTERRUPT_OPTION, command: INTERRUPT_COMMAND },
   {
-    label: OPEN_WINDOW_OPTION,
-    command: OPEN_WINDOW_COMMAND,
+    label: OPEN_REPL_WINDOW_OPTION,
+    command: OPEN_REPL_WINDOW_COMMAND,
     condition: () => replSession.getSession('clj'),
   },
   {
@@ -134,7 +134,7 @@ function composeMenu(items: MenuItem[]): MenuItem[] {
   return items.filter((item) => !item.condition || item.condition());
 }
 
-export async function startOrConnectRepl() {
+export async function showReplMenu() {
   const menuItems: MenuItem[] = shouldShowConnectedMenu()
     ? composeMenu(connectedMenuItems)
     : composeMenu(disconnectedMenuItems);
@@ -142,12 +142,12 @@ export async function startOrConnectRepl() {
     title: 'Calva REPL commands',
     values: menuItems.map((item) => ({ label: item.label })),
     placeHolder: 'Start or Connect a REPL',
-    saveAs: 'calva.repl.startOrConnectRepl.lastPickedItem',
+    saveAs: 'calva.showReplMenu',
   });
   if (pickedItem) {
     const menuItem = menuItems.find((item) => item.label === pickedItem.label);
     if (menuItem) {
-      await vscode.commands.executeCommand(menuItem.command);
+      return vscode.commands.executeCommand(menuItem.command);
     }
   }
 }

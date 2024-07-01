@@ -990,7 +990,7 @@
           },
           "calva.redirectServerOutputToRepl": {
             "type": "boolean",
-            "markdownDescription": "Redirect the output from the REPL server process to the REPL/Output window. With this disabled output from child threads of evaluations will not be shown in the REPL/Output window, but instead in the terminal where the REPL is started (the jack-in terminal if Calva started the REPL).",
+            "markdownDescription": "Redirect the output from the REPL server process to the Output Destination. With this disabled, output from child threads of evaluations will not be shown in the output destination, but instead in the terminal where the REPL is started (the jack-in terminal if Calva started the REPL).",
             "default": true
           },
           "calva.basilispPath": {
@@ -1319,8 +1319,8 @@
         "category": "Calva"
       },
       {
-        "command": "calva.startOrConnectRepl",
-        "title": "Start or Connect to a Clojure REPL",
+        "command": "calva.showReplMenu",
+        "title": "Show the REPL Menu",
         "category": "Calva"
       },
       {
@@ -1427,7 +1427,7 @@
       },
       {
         "command": "calva.printLastStacktrace",
-        "title": "Print Last Stacktrace to Output Window",
+        "title": "Print Last Stacktrace to REPL Window",
         "enablement": "calva:connected",
         "category": "Calva"
       },
@@ -2180,7 +2180,7 @@
         "when": "calva:keybindingsEnabled"
       },
       {
-        "command": "calva.startOrConnectRepl",
+        "command": "calva.showReplMenu",
         "key": "ctrl+alt+c ctrl+alt+r"
       },
       {
@@ -3064,7 +3064,7 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "calva.startOrConnectRepl",
+          "command": "calva.showReplMenu",
           "when": "true"
         },
         {
@@ -3122,7 +3122,7 @@
         {
           "when": "editorLangId == clojure",
           "enablement": "!calva:connected",
-          "command": "calva.startOrConnectRepl",
+          "command": "calva.showReplMenu",
           "group": "calva/x-connect"
         },
         {

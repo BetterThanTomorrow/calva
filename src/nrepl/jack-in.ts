@@ -89,7 +89,7 @@ function executeJackInTask(
           'You may have chosen the wrong jack-in configuration for your project.'
         );
         void vscode.window.showErrorMessage(
-          'Error in Jack-in: unable to read port file. See output window for more information.'
+          'Error in Jack-in: unable to read port file. See output destination for more information.'
         );
         cancelJackInTask();
       }
