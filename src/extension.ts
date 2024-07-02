@@ -81,7 +81,7 @@ async function activate(context: vscode.ExtensionContext) {
   initializeState();
   state.setExtensionContext(context);
   state.initDepsEdnJackInExecutable();
-  const isDramReplStart = await drams.dramReplStartConfigExists();
+  const isDramReplStart = await drams.dramStartConfigExists();
 
   const inspectorDataProvider = eval.initInspectorDataProvider();
   const inspectorTreeView = vscode.window.createTreeView('calva.inspector', {
@@ -299,16 +299,16 @@ async function activate(context: vscode.ExtensionContext) {
     startOrConnectRepl: replStart.showReplMenu, // backwards compatibility
     showReplMenu: replStart.showReplMenu,
     startStandaloneCljsBrowserRepl: () => {
-      return drams.startStandaloneRepl(context, drams.HELLO_CLJS_BROWSER_TEMPLATE, false, '.');
+      return drams.createAndOpenDram(context, drams.HELLO_CLJS_BROWSER_TEMPLATE, false, '.');
     },
     startStandaloneCljsNodeRepl: () => {
-      return drams.startStandaloneRepl(context, drams.HELLO_CLJS_NODE_TEMPLATE, false, '.');
+      return drams.createAndOpenDram(context, drams.HELLO_CLJS_NODE_TEMPLATE, false, '.');
     },
     startStandaloneHelloRepl: () => {
-      return drams.startStandaloneRepl(context, drams.HELLO_TEMPLATE, false, '.');
+      return drams.createAndOpenDram(context, drams.HELLO_TEMPLATE, false, '.');
     },
     createMinimalProject: () => {
-      return drams.startStandaloneRepl(context, drams.USER_TEMPLATE, true, 'minimal');
+      return drams.createAndOpenDram(context, drams.USER_TEMPLATE, true, 'minimal');
     },
     switchCljsBuild: connector.switchCljsBuild,
     tapCurrentTopLevelForm: () =>
@@ -555,7 +555,7 @@ async function activate(context: vscode.ExtensionContext) {
     void vscode.commands.executeCommand('calva.connect');
   }
 
-  void drams.maybeStartDramRepl();
+  void drams.maybeStartDram();
 
   console.info('Calva activate END');
 

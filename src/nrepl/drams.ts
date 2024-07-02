@@ -157,7 +157,7 @@ DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_CLJS_BROWSER_TEMPLATE.config as string] =
 DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_CLJS_NODE_TEMPLATE.config as string] =
   replStart.CREATE_HELLO_CLJS_NODE_COMMAND;
 
-export async function startStandaloneRepl(
+export async function createAndOpenDram(
   context: vscode.ExtensionContext,
   dramTemplate: DramTemplate,
   areBundled: boolean,
@@ -242,7 +242,7 @@ export async function startStandaloneRepl(
   const destUris = config.files.map((file) => putStoreDocInPlace(storageUri, projectRootUri, file));
   await Promise.all(destUris);
 
-  await serializeDramReplStartConfig(projectRootUri, {
+  await serializeDramStartConfig(projectRootUri, {
     config,
     lastMenuSlug,
     dramTemplateName,
@@ -252,7 +252,7 @@ export async function startStandaloneRepl(
   return vscode.commands.executeCommand('vscode.openFolder', projectRootUri, true);
 }
 
-type DramReplStartConfig = {
+type DramStartConfig = {
   config: DramConfig;
   lastMenuSlug: { prefix: string; suffix: string };
   dramTemplateName: string;
@@ -260,22 +260,20 @@ type DramReplStartConfig = {
 };
 
 function ARGS_FILE_PATH(projectRootUri: vscode.Uri) {
-  return vscode.Uri.joinPath(projectRootUri, '.calva', 'drams', 'repl-start-config.json');
+  return vscode.Uri.joinPath(projectRootUri, '.calva', 'drams', 'start-config.json');
 }
 
-async function serializeDramReplStartConfig(projectRootUri, args: DramReplStartConfig) {
+async function serializeDramStartConfig(projectRootUri, args: DramStartConfig) {
   const data = new TextEncoder().encode(JSON.stringify(args));
   return vscode.workspace.fs.writeFile(ARGS_FILE_PATH(projectRootUri), data);
 }
 
-async function deserializeDramReplStartConfig(
-  projectRootUri: vscode.Uri
-): Promise<DramReplStartConfig> {
+async function deserializeDramStartConfig(projectRootUri: vscode.Uri): Promise<DramStartConfig> {
   const data = await vscode.workspace.fs.readFile(ARGS_FILE_PATH(projectRootUri));
   return JSON.parse(new TextDecoder().decode(data));
 }
 
-export async function dramReplStartConfigExists(): Promise<boolean> {
+export async function dramStartConfigExists(): Promise<boolean> {
   const projectRootUri = state.getProjectRootUri();
   if (!projectRootUri) {
     return false;
@@ -286,19 +284,19 @@ export async function dramReplStartConfigExists(): Promise<boolean> {
   );
 }
 
-export async function maybeStartDramRepl() {
-  if (await dramReplStartConfigExists()) {
+export async function maybeStartDram() {
+  if (await dramStartConfigExists()) {
     console.debug('Dram start config exists');
-    return startDramRepl();
+    return startDram();
   } else {
     console.debug('No dram start config');
   }
 }
 
-export async function startDramRepl() {
-  console.debug('Starting dram repl');
-  const args = await deserializeDramReplStartConfig(state.getProjectRootUri());
-  console.debug('Dram repl start config:', args);
+export async function startDram() {
+  console.debug('Starting dram..');
+  const args = await deserializeDramStartConfig(state.getProjectRootUri());
+  console.debug('Dram start config:', args);
   void vscode.workspace.fs.delete(ARGS_FILE_PATH(state.getProjectRootUri()));
   await state.initProjectDir(ConnectType.JackIn, null, false);
   const projectRootUri = state.getProjectRootUri();
