@@ -202,15 +202,15 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
   state.extensionContext.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((event) => {
       if (event) {
-        const isOutputWindow = isResultsDoc(event.document);
-        setContextForReplWindowActive(isOutputWindow);
-        if (isOutputWindow) {
+        const isReplWindow = isResultsDoc(event.document);
+        setContextForReplWindowActive(isReplWindow);
+        if (isReplWindow) {
           void setViewColumn(event.viewColumn);
         }
       }
     })
   );
-  // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
+  // If the repl window is active when initResultsDoc is run, these contexts won't be set properly without the below
   // until the next time it's focused
   const activeTextEditor = util.tryToGetActiveTextEditor();
   if (activeTextEditor && isResultsDoc(activeTextEditor.document)) {

@@ -1,13 +1,15 @@
 // Configurration of the mini-project for use with Calva
-// It will autostart the repl and connect it to the editor (Jack-in)
 {
-  // It will autostart the repl and connect it to the editor (Jack-in)
+  // Autostart the repl and connect it to the editor (Jack-in)
   // https://calva.io/customizing-jack-in-and-connect/#customizing-jack-in
   "calva.autoStartRepl": true,
+  // If you disable the above setting, you start the repl
+  // manually with the command;
+  // "Calva: Start a Project REPL and Connect (aka Jack-in)"
   // https://calva.io/connect-sequences/
   "calva.replConnectSequences": [
     {
-      "name": "The Minimal Clojure Project",
+      "name": "Mini Clojure Project",
       "autoSelectForConnect": true,
       "autoSelectForJackIn": true,
       "projectRootPath": ["."],
@@ -19,28 +21,28 @@
     }
   ],
 
-  // The below settings are more suitible for user settings.
+  // The below settings are more suitible for User settings.
   // They are included here to make it easier to write guides
   // about using Calva to create the mini project.
-  // You can also regard them as a suggestion for a nice repl
-  // workflow setup.
-  // Remove them from here to keep using your custom user settings.
+  // You can also see them as a suggestion for a nice repl
+  // workflow setup. Move the settings you like to your
+  // User (global) settings.json file.
 
-  // It will use the Output “terminal” for evaluation results
+  // We use the Output “terminal” for evaluation results
   // and side effect output.
-  // https://calva.io/output/
+  // See https://calva.io/output/
   "calva.outputDestinations": {
     "evalResults": "terminal",
     "evalOutput": "terminal",
     "otherOutput": "terminal"
   },
-  // It reveals the Calva Inspector when the repl connects.
-  //   (All evaluation results are available in the inspector.)
+  // Auto-open the Calva Inspector when the repl connects.
+  // (All evaluation results are available in the inspector.)
   "calva.autoOpenInspector": true,
   "calva.enableInspectorRainbow": true,
-  // It won't open the REPL prompt window automatically
+  // Don't open the REPL prompt window automatically
   // We recommend using regular editor files instead.
+  // See also: https://calva.io/fiddle-files/
   // (There's a command for opening the REPL window.)
   "calva.autoOpenREPLWindow": false
-  // See also: https://calva.io/fiddle-files/
 }

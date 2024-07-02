@@ -82,7 +82,7 @@ function update() {
     connectionStatus.tooltip = `nrepl://${getStateValue('hostname')}:${getStateValue(
       'port'
     )} (Click to reset connection)`;
-    connectionStatus.command = 'calva.startOrConnectRepl';
+    connectionStatus.command = 'calva.showReplMenu';
     typeStatus.color = colorValue('typeStatusColor', currentConf);
     const replType = getReplSessionTypeFromState();
     if (replType !== null) {
@@ -123,7 +123,7 @@ function update() {
     connectionStatus.text = 'REPL $(zap)';
     connectionStatus.tooltip = 'Click to jack-in or Connect to REPL Server';
     connectionStatus.color = colorValue('disconnectedColor', currentConf);
-    connectionStatus.command = 'calva.startOrConnectRepl';
+    connectionStatus.command = 'calva.showReplMenu';
   }
   connectionStatus.show();
   if (cljsBuildStatus.text) {

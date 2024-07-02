@@ -35,7 +35,7 @@ A connect sequence configures the following:
     * `shouldOpenUrl`: Choose if Calva should automatically open the URL for you or not.
     * `connectCode`: (required) Clojure code to be evaluated to convert the REPL to a CLJS REPL that Calva can use to connect to the application. (For some setups this could also conditionally start the CLJS REPL. If so: `startCode` should be omitted.)
     * `isConnectedRegExp`: (required) A regular expression which, when matched in the `stdout` from the `connectCode` evaluation, will tell Calva that the application is connected. The default is `To quit, type: :cljs/quit` and you should leave it at that unless you know it won't work.
-    * `printThisLineRegExp`: regular expression which, when matched in the `stdout` from any code evaluations in the `cljsType`, will make the matched text be printed to the [Output window](output.md).
+    * `printThisLineRegExp`: regular expression which, when matched in the `stdout` from any code evaluations in the `cljsType`, will make the matched text be printed to the [Output destination](output.md).
     * `buildsRequired`: Boolean. If the repl type requires that builds are started in order to connect to them, set this to true.
 * `menuSelections`: a dictionary with pre-filled-in selections for the Jack-in and Connect prompts, making Calva not prompt for that particular selection:
     * `leinProfiles`: At Jack-in to a Leiningen project, use these profiles to launch the repl.

@@ -28,8 +28,8 @@ export type ProjectType = {
   winCmd?: string[] | (() => string[]);
   resolveBundledPathWin?: () => string;
   resolveBundledPathUnix?: () => string;
-  processShellWin?: boolean;
-  processShellUnix?: boolean;
+  processShellWin?: boolean | string;
+  processShellUnix?: boolean | string;
   commandLine?: (
     connectSequence: ReplConnectSequence,
     cljsType: CljsTypes
@@ -328,6 +328,17 @@ function depsCljWindowsPath() {
   return `"${path.join('.', '.calva', 'deps.clj.jar')}"`;
 }
 
+const clojureCmdFn = () => {
+  const q = isWin ? '"' : "'";
+  const configuredCmd =
+    getConfig().depsEdnJackInExecutable === 'clojure or deps.clj'
+      ? getStateValue('depsEdnJackInDefaultExecutable') ?? 'deps.clj'
+      : getConfig().depsEdnJackInExecutable;
+  return configuredCmd === 'deps.clj'
+    ? ['java', '-jar', `${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}`]
+    : ['clojure'];
+};
+
 const projectTypes: { [id: string]: ProjectType } = {
   lein: {
     name: 'Leiningen',
@@ -363,19 +374,11 @@ const projectTypes: { [id: string]: ProjectType } = {
       'ClojureScript built-in for browser',
       'ClojureScript built-in for node',
     ],
-    cmd: () => {
-      const configuredCmd =
-        getConfig().depsEdnJackInExecutable === 'clojure or deps.clj'
-          ? getStateValue('depsEdnJackInDefaultExecutable') ?? 'deps.clj'
-          : getConfig().depsEdnJackInExecutable;
-      return configuredCmd === 'deps.clj'
-        ? ['java', '-jar', `'${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}'`]
-        : ['clojure'];
-    },
-    winCmd: ['java', '-jar'],
+    cmd: clojureCmdFn,
+    winCmd: clojureCmdFn,
     resolveBundledPathWin: depsCljWindowsPath,
     processShellUnix: true,
-    processShellWin: true,
+    processShellWin: false,
     useWhenExists: ['deps.edn'],
     nReplPortFile: ['.nrepl-port'],
     /** Build the command line args for a clj-project.
@@ -493,13 +496,13 @@ const projectTypes: { [id: string]: ProjectType } = {
   generic: {
     name: 'generic',
     cljsTypes: [],
-    cmd: ['java', '-jar'],
-    winCmd: ['java', '-jar'],
+    cmd: clojureCmdFn,
+    winCmd: clojureCmdFn,
     resolveBundledPathWin: depsCljWindowsPath,
     resolveBundledPathUnix: () =>
       `'${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}'`,
     processShellUnix: true,
-    processShellWin: true,
+    processShellWin: false,
     useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
     commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
@@ -564,7 +567,7 @@ const projectTypes: { [id: string]: ProjectType } = {
       return [getConfig().basilispPath];
     },
     processShellUnix: true,
-    processShellWin: true,
+    processShellWin: false,
     useWhenExists: ['basilisp.edn'],
     nReplPortFile: ['.nrepl-port'],
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {

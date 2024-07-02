@@ -39,7 +39,7 @@ These are the commands and their default keyboard shortcuts for revealing output
     },
     {
       "key": "ctrl+alt+o ctrl+alt+r",
-      "command": "calva.showOutputWindow", // Show/Open REPL Window
+      "command": "calva.showReplWindow", // Show/Open REPL Window
       "args": true
     },
     ```
@@ -50,17 +50,17 @@ Since Calva v2.0.423 the REPL Window prints `stdout` prepended with `;` to make 
 
 There are now other output destinations that do not have this limitation.
 
-All that said. If you want to keep using the REPL Window for stdout output, and need the old behavior, you can enable the setting: `calva.legacyPrintBareReplWindowOutput`. Please note that at some point after we have created a dedicated Output Window, the REPL Window will be retired as a destination for output.
+All that said. If you want to keep using the REPL Window for stdout output, and need the old behavior, you can enable the setting: `calva.legacyPrintBareReplWindowOutput`. Please note that at some point after we have created a dedicated Output Window, the REPL Window will probably be retired as a destination for output.
 
 ## REPL process output (stdout and stderr)
 
-When Calva is connected to the REPL, the Output window will by default print not only results of evaluations, but also:
+When Calva is connected to the REPL, the Output destination will by default print not only results of evaluations, but also:
 
 1. Things printed to `stdout` and `stderr` in the **main thread** of the evaluations
 2. Things printed to `stdout` and `stderr` from **child threads** of the evaluations
 3. Anything printed to `stdout` and `stderr` by the REPL process
 
-You can control the default via the `calva.redirectServerOutputToRepl` setting. It defaults to `true`. Setting it to `false` before connecting the REPL will result in that **2.** and **3.** will not get printed in the Output window. It will then instead be printed wherever the REPL process is printing its messages, usually the terminal from where it was started (the **Jack-in terminal** if Calva started the REPL).
+You can control the default via the `calva.redirectServerOutputToRepl` setting. It defaults to `true`. Setting it to `false` before connecting the REPL will result in that **2.** and **3.** will not get printed in the Output destination. It will then instead be printed wherever the REPL process is printing its messages, usually the terminal from where it was started (the **Jack-in terminal** if Calva started the REPL).
 
 ## See also
 

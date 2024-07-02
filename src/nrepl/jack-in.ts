@@ -89,7 +89,7 @@ function executeJackInTask(
           'You may have chosen the wrong jack-in configuration for your project.'
         );
         void vscode.window.showErrorMessage(
-          'Error in Jack-in: unable to read port file. See output window for more information.'
+          'Error in Jack-in: unable to read port file. See output destination for more information.'
         );
         cancelJackInTask();
       }
@@ -216,27 +216,8 @@ async function getJackInTerminalOptions(
   let cmd: string[];
   if (projectTypes.isWin) {
     cmd = typeof projectType.winCmd === 'function' ? projectType.winCmd() : projectType.winCmd;
-    if (projectType.resolveBundledPathWin) {
-      const jarSourceUri = vscode.Uri.file(
-        path.join(state.extensionContext.extensionPath, 'deps.clj.jar')
-      );
-      const jarDestUri = vscode.Uri.file(
-        path.join(state.getProjectRootLocal(), '.calva', 'deps.clj.jar')
-      );
-      try {
-        await vscode.workspace.fs.copy(jarSourceUri, jarDestUri, {
-          overwrite: false,
-        });
-      } catch {
-        // continue regardless of error
-      }
-      cmd = [...cmd, projectType.resolveBundledPathWin()];
-    }
   } else {
     cmd = typeof projectType.cmd === 'function' ? projectType.cmd() : projectType.cmd;
-    if (projectType.resolveBundledPathUnix) {
-      cmd = [...cmd, projectType.resolveBundledPathUnix()];
-    }
   }
   const nReplPortFile = projectConnectSequence.nReplPortFile ?? projectType.nReplPortFile;
   const substitutions = {

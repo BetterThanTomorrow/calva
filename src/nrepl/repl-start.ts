@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
 import * as utilities from '../utilities';
-import * as replSession from './repl-session';
 import * as fiddleFiles from '../fiddle-files';
 import * as joyride from '../joyride';
 
@@ -15,10 +14,10 @@ export function menuSlugForProjectRoot(): MenuSlug {
   return { prefix, suffix };
 }
 
-type MenuItem = {
-  label: string;
-  command: string;
+type MenuItem = vscode.QuickPickItem & {
+  command?: string;
   condition?: () => boolean;
+  kind?: vscode.QuickPickItemKind;
 };
 
 const RE_JACK_IN_OPTION = 'Restart the Project REPL (a.k.a. Re-jack-in)';
@@ -29,8 +28,12 @@ const INTERRUPT_OPTION = 'Interrupt running Evaluations';
 const INTERRUPT_COMMAND = 'calva.interruptAllEvaluations';
 const DISCONNECT_OPTION = 'Disconnect from the REPL';
 const DISCONNECT_COMMAND = 'calva.disconnect';
-const OPEN_WINDOW_OPTION = 'Open the Output Window';
-const OPEN_WINDOW_COMMAND = 'calva.showOutputWindow';
+const OPEN_REPL_WINDOW_OPTION = 'Show the REPL Window';
+const OPEN_REPL_WINDOW_COMMAND = 'calva.showReplWindow';
+const OPEN_INSPECTOR_OPTION = 'Show the Inspector';
+const OPEN_INSPECTOR_COMMAND = 'calva.revealInspector';
+const OPEN_OUTPUT_DESTINATION_OPTION = 'Show the Output Destination';
+const OPEN_OUTPUT_DESTINATION_COMMAND = 'calva.showResultOutputDestination';
 const OPEN_FIDDLE_OPTION = 'Open Fiddle for Current File';
 const OPEN_FIDDLE_COMMAND = 'calva.openFiddleForSourceFile';
 const EVALUATE_FIDDLE_OPTION = 'Evaluate Fiddle for Current File';
@@ -56,13 +59,45 @@ const CONNECT_PROJECT_COMMAND = 'calva.connect';
 const CONNECT_STANDALONE_OPTION = 'Connect to a running REPL, not in your project';
 const CONNECT_STANDALONE_COMMAND = 'calva.connectNonProjectREPL';
 
-const connectedMenuItems: MenuItem[] = [
-  { label: INTERRUPT_OPTION, command: INTERRUPT_COMMAND },
+const createProjectMenuItems: MenuItem[] = [
   {
-    label: OPEN_WINDOW_OPTION,
-    command: OPEN_WINDOW_COMMAND,
-    condition: () => replSession.getSession('clj'),
+    label: '',
+    kind: vscode.QuickPickItemKind.Separator,
   },
+  {
+    label: CREATE_HELLO_CLJ_REPL_OPTION,
+    command: CREATE_HELLO_CLJ_REPL_COMMAND,
+    description: 'Requires Java',
+    detail: 'An interactive guide introducing you to Calva and Clojure.',
+  },
+  {
+    label: CREATE_HELLO_CLJS_BROWSER_OPTION,
+    description: 'Requires Java',
+    command: CREATE_HELLO_CLJS_BROWSER_COMMAND,
+  },
+  {
+    label: CREATE_HELLO_CLJS_NODE_OPTION,
+    description: 'Requires Java & Node.js',
+    command: CREATE_HELLO_CLJS_NODE_COMMAND,
+  },
+  {
+    label: CREATE_PROJECT_OPTION,
+    description: 'Requires Java',
+    detail: 'A quick way to Fire up a Clojure REPL',
+    command: CREATE_PROJECT_COMMAND,
+  },
+];
+
+const connectedMenuItems: MenuItem[] = [
+  {
+    label: OPEN_INSPECTOR_OPTION,
+    command: OPEN_INSPECTOR_COMMAND,
+  },
+  {
+    label: OPEN_OUTPUT_DESTINATION_OPTION,
+    command: OPEN_OUTPUT_DESTINATION_COMMAND,
+  },
+  { label: INTERRUPT_OPTION, command: INTERRUPT_COMMAND },
   {
     label: RE_JACK_IN_OPTION,
     command: RE_JACK_IN_COMMAND,
@@ -89,16 +124,11 @@ const connectedMenuItems: MenuItem[] = [
     command: OPEN_SOURCE_FOR_FIDDLE_COMMAND,
     condition: () => fiddleFiles.activeEditorIsFiddle,
   },
-  { label: CREATE_HELLO_CLJ_REPL_OPTION, command: CREATE_HELLO_CLJ_REPL_COMMAND },
   {
-    label: CREATE_HELLO_CLJS_BROWSER_OPTION,
-    command: CREATE_HELLO_CLJS_BROWSER_COMMAND,
+    label: OPEN_REPL_WINDOW_OPTION,
+    command: OPEN_REPL_WINDOW_COMMAND,
   },
-  {
-    label: CREATE_HELLO_CLJS_NODE_OPTION,
-    command: CREATE_HELLO_CLJS_NODE_COMMAND,
-  },
-  { label: CREATE_PROJECT_OPTION, command: CREATE_PROJECT_COMMAND },
+  ...createProjectMenuItems,
 ];
 
 const disconnectedMenuItems: MenuItem[] = [
@@ -107,6 +137,8 @@ const disconnectedMenuItems: MenuItem[] = [
   {
     label: START_JOYRIDE_REPL_OPTION,
     command: START_JOYRIDE_REPL_COMMAND,
+    description: 'Requires the Joyride extension',
+    detail: 'Hack VS Code like Emacs!',
     condition: () => !joyride.isJoyrideNReplServerRunning(),
   },
   {
@@ -118,36 +150,26 @@ const disconnectedMenuItems: MenuItem[] = [
     label: CONNECT_STANDALONE_OPTION,
     command: CONNECT_STANDALONE_COMMAND,
   },
-  { label: CREATE_HELLO_CLJ_REPL_OPTION, command: CREATE_HELLO_CLJ_REPL_COMMAND },
-  {
-    label: CREATE_HELLO_CLJS_BROWSER_OPTION,
-    command: CREATE_HELLO_CLJS_BROWSER_COMMAND,
-  },
-  {
-    label: CREATE_HELLO_CLJS_NODE_OPTION,
-    command: CREATE_HELLO_CLJS_NODE_COMMAND,
-  },
-  { label: CREATE_PROJECT_OPTION, command: CREATE_PROJECT_COMMAND },
+  ...createProjectMenuItems,
 ];
 
 function composeMenu(items: MenuItem[]): MenuItem[] {
   return items.filter((item) => !item.condition || item.condition());
 }
 
-export async function startOrConnectRepl() {
+export async function showReplMenu() {
   const menuItems: MenuItem[] = shouldShowConnectedMenu()
     ? composeMenu(connectedMenuItems)
     : composeMenu(disconnectedMenuItems);
   const pickedItem = await utilities.quickPickSingle({
     title: 'Calva REPL commands',
-    values: menuItems.map((item) => ({ label: item.label })),
-    placeHolder: 'Start or Connect a REPL',
-    saveAs: 'calva.repl.startOrConnectRepl.lastPickedItem',
+    values: menuItems,
+    saveAs: 'calva.showReplMenu',
   });
   if (pickedItem) {
     const menuItem = menuItems.find((item) => item.label === pickedItem.label);
     if (menuItem) {
-      await vscode.commands.executeCommand(menuItem.command);
+      return vscode.commands.executeCommand(menuItem.command);
     }
   }
 }

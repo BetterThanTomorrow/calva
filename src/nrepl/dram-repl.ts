@@ -2,9 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as state from '../state';
 import * as utilities from '../utilities';
-import * as sequence from './connectSequence';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
-import { ReplConnectSequence } from './connectSequence';
 import { ConnectType } from './connect-types';
 import * as replStart from './repl-start';
 
@@ -20,7 +18,6 @@ export type DramConfig = {
 
 type DramTemplate = {
   config: DramConfig | string;
-  connectSequence: ReplConnectSequence;
 };
 
 export const USER_TEMPLATE: DramTemplate = {
@@ -33,22 +30,18 @@ export const USER_TEMPLATE: DramTemplate = {
       { path: '.vscode/settings.json', 'open?': false },
     ],
   },
-  connectSequence: null, //sequence.cljDefaults[0],
 };
 
 export const HELLO_TEMPLATE: DramTemplate = {
   config: 'calva_getting_started',
-  connectSequence: sequence.cljDefaults[0],
 };
 
 export const HELLO_CLJS_BROWSER_TEMPLATE: DramTemplate = {
   config: 'calva_cljs_browser_quick_start',
-  connectSequence: sequence.cljDefaults[3],
 };
 
 export const HELLO_CLJS_NODE_TEMPLATE: DramTemplate = {
   config: 'calva_cljs_node_quick_start',
-  connectSequence: sequence.cljDefaults[4],
 };
 
 const calculateBranch = () => {
@@ -295,14 +288,19 @@ export async function dramReplStartConfigExists(): Promise<boolean> {
 
 export async function maybeStartDramRepl() {
   if (await dramReplStartConfigExists()) {
+    console.debug('Dram start config exists');
     return startDramRepl();
+  } else {
+    console.debug('No dram start config');
   }
 }
 
 export async function startDramRepl() {
+  console.debug('Starting dram repl');
   const args = await deserializeDramReplStartConfig(state.getProjectRootUri());
+  console.debug('Dram repl start config:', args);
   void vscode.workspace.fs.delete(ARGS_FILE_PATH(state.getProjectRootUri()));
-  await state.initProjectDir(ConnectType.JackIn, args.dramTemplate.connectSequence, false);
+  await state.initProjectDir(ConnectType.JackIn, null, false);
   const projectRootUri = state.getProjectRootUri();
   const [mainDoc, mainEditor] = await openStoredDoc(projectRootUri, args.config.files[0]);
   for (const file of args.config.files.slice(1)) {
