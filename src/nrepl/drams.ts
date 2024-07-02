@@ -22,9 +22,9 @@ type DramTemplate = {
 
 export const USER_TEMPLATE: DramTemplate = {
   config: {
-    name: 'Standalone REPL',
+    name: 'Mini project REPL',
     files: [
-      { path: 'src/mini/playground.clj', 'open?': true },
+      { path: 'src/{project-name}/playground.clj', 'open?': true },
       { path: 'deps.edn', 'open?': false },
       { path: '.gitignore', 'open?': false },
       { path: '.vscode/settings.json', 'open?': false },

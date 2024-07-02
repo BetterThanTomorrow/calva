@@ -5,7 +5,7 @@ import * as highlight from './highlight/src/extension';
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
 import * as replStart from './nrepl/repl-start';
-import * as dramRepl from './nrepl/dram-repl';
+import * as dramRepl from './nrepl/drams';
 import * as util from './utilities';
 import { NotebookKernel, NotebookProvider } from './NotebookProvider';
 import status from './status';
