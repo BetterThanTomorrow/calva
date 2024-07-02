@@ -2336,7 +2336,7 @@
 
 
 <h1 id="the-repl-windowfile">The REPL Window/File<a class="headerlink" href="#the-repl-windowfile" title="Permanent link">#</a></h1>
-<p>The Calva REPL Window is actually a regular file with some extra treatment from Calva, like displaying a prompt, offering evaluation history recall and generally “following” the current namespace. This file is created and opened when Calva is connected to a REPL. You can use it for experimental code (though there are also <a href="../rich-comments/">Rich Comments</a> and <a href="../fiddle-files/">Fiddle Files</a> for this). </p>
+<p>The Calva REPL Window is actually a regular file with some extra treatment from Calva, like displaying a prompt, offering evaluation history recall and generally “following” the current namespace. This file is created and opened when Calva is connected to a REPL. You can use it for experimental code (though there are also <a href="../rich-comments/">Rich Comments</a> and <a href="../fiddle-files/">Fiddle Files</a> for this).</p>
 <p>In ClojureScript projects, the window will be associated with the <code>cljs</code> REPL once it is connected. It will then look something like this:</p>
 <p><img alt="REPL Window Connected" src="../images/howto/output/output-window-connected.png" /></p>
 <p>The first prompt is from when the <code>clj</code> REPL is connected, and the second from <code>cljs</code>. The first <em>part</em> of the prompt tells you which REPL type the window is currently connected to.</p>
@@ -2361,7 +2361,7 @@
 </code></pre></div>
 <p>If the REPL Window is the configured destination for evaluation results, the defined var will be printed there. Otherwise, it will be printed to the destination you've configured. In either case, the REPL window will print a new prompt reflecting the current REPL connection and namespace:</p>
 <p><img alt="eval-results-1" src="../images/howto/output/eval-results-1.png" /></p>
-<p>If you then switch to the output window (<code>ctrl+alt+o r</code>), and enter this at the prompt:</p>
+<p>If you then switch to the repl window (<code>ctrl+alt+o r</code>), and enter this at the prompt:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">mount-target</span>
 </code></pre></div>
 <p>then evaluate it using <code>alt+enter</code>, you'll get this:</p>
@@ -2375,13 +2375,13 @@
 <h3 id="clear-repl-history">Clear REPL History<a class="headerlink" href="#clear-repl-history" title="Permanent link">#</a></h3>
 <p>You can clear the repl history by running the command "Clear REPL History" from the command palette.</p>
 <h2 id="stack-traces">Stack Traces<a class="headerlink" href="#stack-traces" title="Permanent link">#</a></h2>
-<p>When an evaluation produces an error, it will automatically be printed in the REPL Window. If there is a stack trace associated with the error, it can now be printed on demand using the <strong>Calva: Print Last Stacktrace to the Output Window</strong> command. You can also print the stack trace for any error message printed to the REPL Window via the Codelens button below it.</p>
+<p>When an evaluation produces an error, it will automatically be printed in the REPL Window. If there is a stack trace associated with the error, it can now be printed on demand using the <strong>Calva: Print Last Stacktrace to the REPL Window</strong> command. You can also print the stack trace for any error message printed to the REPL Window via the Codelens button below it.</p>
 <p><img alt="Print Stacktrace Codelense button" src="../images/howto/output/print-stacktrace-codelense.png" title="Print Stacktrace Codelense button" /></p>
 <p>For printed stacktraces, when source locations are available (Clojure files), you will be able to navigate to them by pressing <code>ctrl+click</code> (<code>cmd+click</code> on Mac) on the file name. You can also hover over symbols in the stack trace to see the symbol's documentation, and <code>ctrl+click</code> (<code>cmd+click</code> on Mac) the symbol to Peek Definition.</p>
 <p><img alt="Stack trace clicking and peeking definition" src="../images/howto/output/stack-traces.gif" title="Stack trace clicking and peeking definition" /></p>
 <div class="admonition note">
 <p class="admonition-title">Output destinations</p>
-<p>If you have configured some other destination for stderr output, the error message will be printed there as well. But it will <em>also</em> be printed to the REPL Window, because the augmented stack traces need this (because reasons). </p>
+<p>If you have configured some other destination for stderr output, the error message will be printed there as well. But it will <em>also</em> be printed to the REPL Window, because the augmented stack traces need this (because reasons).</p>
 </div>
 <h2 id="load-current-namespace">Load Current Namespace<a class="headerlink" href="#load-current-namespace" title="Permanent link">#</a></h2>
 <p>When navigating namespaces it is easy to <a href="https://clojure.org/guides/repl/navigating_namespaces#_how_things_can_go_wrong">forget to first require them</a> and that can be tricky to debug. To help with this, Calva's command <strong>Load/Evaluate Current File and its Requires/Dependencies</strong> also works in the REPL Window, but there, it acts like <strong>Load Current Namespace</strong>.</p>
@@ -2400,7 +2400,7 @@
 <span class="p">(</span><span class="nb">println </span><span class="s">&quot;Hello&quot;</span><span class="w"> </span><span class="nv">pez.xxx/a</span><span class="p">)</span>
 </code></pre></div>
 <p>Then, with a freshly jacked-in REPL, you evaluate <code>(ns pez.yyy)</code> and want to work with the vars defined there, Clojure will complain. But if you <strong>Load/Evaluate Current File and its Requires/Dependencies</strong>, it will start working. Something like so:</p>
-<p><img alt="Load Current Namespace in the Calva Output Window" src="../images/howto/output/load-current-namespace.png" /></p>
+<p><img alt="Calva: Switch Namespace in REPL Window to Current Namespace" src="../images/howto/output/load-current-namespace.png" /></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This currently suffers from a limitation in Calva where it won't reload dependencies, so you will sometimes have to do this ”manually” anyways (by opening the files and loading them yourself). See <a href="https://github.com/BetterThanTomorrow/calva/issues/907">Calva issue #907</a></p>
@@ -2411,7 +2411,7 @@
 <p>The REPL Window is mostly a regular Calva Clojure/ClojureScript file, which makes everything that works in a regular file work in this file, including <a href="../paredit/">Paredit</a>. This makes it easy to navigate the input and output there. For instance, to select the last evaluation results, you can press <code>ctrl+w</code> (<code>shift+alt+right</code> on Windows and Linux):</p>
 <p><img alt="Paredit select current form" src="../images/howto/output/select-last-result.png" /></p>
 <h2 id="debugger-enabled">Debugger Enabled<a class="headerlink" href="#debugger-enabled" title="Permanent link">#</a></h2>
-<p>The output window is mostly a regular... (you get it), which means you also have the <a href="../debugger/">Calva debugger</a> at your command at the REPL prompt (only for <code>clj</code> sessions, for now). So instead of evaluating a function definition using <code>alt+enter</code>, you can evaluate it and instrument it for debugging using <code>ctrl+alt+c i</code>, and then call the function.</p>
+<p>The repl window is mostly a regular... (you get it), which means you also have the <a href="../debugger/">Calva debugger</a> at your command at the REPL prompt (only for <code>clj</code> sessions, for now). So instead of evaluating a function definition using <code>alt+enter</code>, you can evaluate it and instrument it for debugging using <code>ctrl+alt+c i</code>, and then call the function.</p>
 <p><img alt="repl-file debugger" src="../images/howto/output/repl-file-debugger.png" /></p>
 <h2 id="it-is-ephemeral">It is Ephemeral<a class="headerlink" href="#it-is-ephemeral" title="Permanent link">#</a></h2>
 <p>The contents of the output/REPL window is written to a file named <code>output.repl</code> in the <code>.calva/output-window</code> directory of your project. The file is recreated every new session, so you should copy or save anything you want to preserve between sessions.</p>

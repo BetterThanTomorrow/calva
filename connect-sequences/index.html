@@ -2320,7 +2320,7 @@
 <li><code>shouldOpenUrl</code>: Choose if Calva should automatically open the URL for you or not.</li>
 <li><code>connectCode</code>: (required) Clojure code to be evaluated to convert the REPL to a CLJS REPL that Calva can use to connect to the application. (For some setups this could also conditionally start the CLJS REPL. If so: <code>startCode</code> should be omitted.)</li>
 <li><code>isConnectedRegExp</code>: (required) A regular expression which, when matched in the <code>stdout</code> from the <code>connectCode</code> evaluation, will tell Calva that the application is connected. The default is <code>To quit, type: :cljs/quit</code> and you should leave it at that unless you know it won't work.</li>
-<li><code>printThisLineRegExp</code>: regular expression which, when matched in the <code>stdout</code> from any code evaluations in the <code>cljsType</code>, will make the matched text be printed to the <a href="../output/">Output window</a>.</li>
+<li><code>printThisLineRegExp</code>: regular expression which, when matched in the <code>stdout</code> from any code evaluations in the <code>cljsType</code>, will make the matched text be printed to the <a href="../output/">Output destination</a>.</li>
 <li><code>buildsRequired</code>: Boolean. If the repl type requires that builds are started in order to connect to them, set this to true.</li>
 </ul>
 </li>

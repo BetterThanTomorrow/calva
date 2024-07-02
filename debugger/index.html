@@ -2652,7 +2652,7 @@ We configure slf4j-simple logging level via a Java system property (<code>-D</co
 <span class="p">}</span>
 </code></pre></div>
 <p>Once you saved the file, the next time you <code>Jack in</code> the project, this variable is read by the JVM and the configuration is applied accordingly.</p>
-<p>You should see something like the message below in the Calva terminal output window:</p>
+<p>You should see something like the message below in the Calva jack-in terminal:</p>
 <div class="highlight"><pre><span></span><code>clojure<span class="w"> </span>-Sdeps<span class="w"> </span><span class="s1">&#39;{:deps {nrepl/nrepl {:mvn/version,&quot;0.8.3&quot;},cider/cider-nrepl {:mvn/version,&quot;0.26.0&quot;}}}&#39;</span><span class="w"> </span>-A:debug<span class="w"> </span>-m<span class="w"> </span>nrepl.cmdline<span class="w"> </span>--middleware<span class="w"> </span><span class="s2">&quot;[cider.nrepl/cider-middleware]&quot;</span>
 Picked<span class="w"> </span>up<span class="w"> </span>JAVA_TOOL_OPTIONS:<span class="w">  </span>-Dorg.slf4j.simpleLogger.defaultLogLevel<span class="o">=</span>TRACE<span class="w"> </span>-Xdebug<span class="w"> </span>-Xrunjdwp:transport<span class="o">=</span>dt_socket,server<span class="o">=</span>y,suspend<span class="o">=</span>n,address<span class="o">=</span><span class="m">7896</span>
 Listening<span class="w"> </span><span class="k">for</span><span class="w"> </span>transport<span class="w"> </span>dt_socket<span class="w"> </span>at<span class="w"> </span>address:<span class="w"> </span><span class="m">7896</span>

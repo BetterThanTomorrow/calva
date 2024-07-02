@@ -2135,7 +2135,7 @@
 </ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Currently Calva has troubles following the app-start with shadow-cljs, so Calva will report <code>Jack-in done.</code> in the output window before shadow-cljs is actually done building the app. If you open the app page at that stage, you will see a message to “Please run <code>lein shadow watch app</code>”. Rest assured that <em>this is already underway.</em> Follow the Jack-in process in the <em>Terminal</em> tab in VS Code for the message that the app is built, <em>then</em> reload the app page in the web browser.</p>
+<p>Currently Calva has troubles following the app-start with shadow-cljs, so Calva will report <code>Jack-in done.</code> in the output destination before shadow-cljs is actually done building the app. If you open the app page at that stage, you will see a message to “Please run <code>lein shadow watch app</code>”. Rest assured that <em>this is already underway.</em> Follow the Jack-in process in the <em>Terminal</em> tab in VS Code for the message that the app is built, <em>then</em> reload the app page in the web browser.</p>
 </div>
 <h2 id="server-only">Server Only<a class="headerlink" href="#server-only" title="Permanent link">#</a></h2>
 <p>The workflow here is really just: Jack-in and start hacking. However, the first time it will involve these steps:</p>
@@ -2147,7 +2147,7 @@
     <div class="highlight"><pre><span></span><code>$<span class="w"> </span>code<span class="w"> </span>my-luminus-server
 </code></pre></div></li>
 <li>Use the Calva command <strong>Start a Project REPL and Connect (aka Jack-in)</strong>: <code>ctrl+alt+c ctrl+alt+j</code><ul>
-<li>Select to start <strong>my-luminus-shadow Server</strong> and wait until you see <code>Jack-in done.</code> in the output window.</li>
+<li>Select to start <strong>my-luminus-shadow Server</strong> and wait until you see <code>Jack-in done.</code> in the output destination.</li>
 </ul>
 </li>
 <li>Open <a href="http://127.0.0.1:3000">127.0.0.1:3000</a> in your web browser and start hacking.</li>
