@@ -24,7 +24,7 @@ export const USER_TEMPLATE: DramTemplate = {
   config: {
     name: 'Mini project REPL',
     files: [
-      { path: 'src/{project-name}/playground.clj', 'open?': true },
+      { path: 'src/mini/playground.clj', 'open?': true },
       { path: 'deps.edn', 'open?': false },
       { path: '.gitignore', 'open?': false },
       { path: '.vscode/settings.json', 'open?': false },
