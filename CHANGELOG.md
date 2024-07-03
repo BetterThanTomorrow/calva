@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.462] - 2024-07-03
+
 - [Stop offering to use existing temp files when creating a project](https://github.com/BetterThanTomorrow/calva/issues/2589)
 - Fix: [Version 2.0.461 of Calva breaks deps.edn jack-in on some Windows machines](https://github.com/BetterThanTomorrow/calva/issues/2592)
 
