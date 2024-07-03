@@ -81,7 +81,7 @@ async function activate(context: vscode.ExtensionContext) {
   initializeState();
   state.setExtensionContext(context);
   state.initDepsEdnJackInExecutable();
-  const isDramReplStart = await drams.dramStartConfigExists();
+  const isDramStart = await drams.dramStartConfigExists();
 
   const inspectorDataProvider = eval.initInspectorDataProvider();
   const inspectorTreeView = vscode.window.createTreeView('calva.inspector', {
@@ -92,7 +92,7 @@ async function activate(context: vscode.ExtensionContext) {
 
   overrides.activate();
 
-  if (isDramReplStart) {
+  if (isDramStart) {
     overrides.addWarningExclusionRegexp(/classpath lookup failed/i);
     overrides.addErrorExclusionRegexp(/classpath lookup failed/i);
   }
