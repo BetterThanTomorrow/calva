@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Stop offering to use existing temp files when creating a project](https://github.com/BetterThanTomorrow/calva/issues/2589)
+
 ## [2.0.461] - 2024-07-01
 
 - Fix: [Powershell sometimes used for jack-in on windows, and it doesn't work](https://github.com/BetterThanTomorrow/calva/issues/2586)
