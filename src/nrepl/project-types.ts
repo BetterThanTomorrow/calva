@@ -378,7 +378,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     winCmd: clojureCmdFn,
     resolveBundledPathWin: depsCljWindowsPath,
     processShellUnix: true,
-    processShellWin: false,
+    processShellWin: true,
     useWhenExists: ['deps.edn'],
     nReplPortFile: ['.nrepl-port'],
     /** Build the command line args for a clj-project.
