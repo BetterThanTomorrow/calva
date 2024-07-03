@@ -329,7 +329,6 @@ function depsCljWindowsPath() {
 }
 
 const clojureCmdFn = () => {
-  const q = isWin ? '"' : "'";
   const configuredCmd =
     getConfig().depsEdnJackInExecutable === 'clojure or deps.clj'
       ? getStateValue('depsEdnJackInDefaultExecutable') ?? 'deps.clj'
@@ -337,6 +336,10 @@ const clojureCmdFn = () => {
   return configuredCmd === 'deps.clj'
     ? ['java', '-jar', `${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}`]
     : ['clojure'];
+};
+
+const clojureCmdWinFn = () => {
+  return ['java', '-jar', `${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}`];
 };
 
 const projectTypes: { [id: string]: ProjectType } = {
@@ -375,10 +378,10 @@ const projectTypes: { [id: string]: ProjectType } = {
       'ClojureScript built-in for node',
     ],
     cmd: clojureCmdFn,
-    winCmd: clojureCmdFn,
+    winCmd: clojureCmdWinFn,
     resolveBundledPathWin: depsCljWindowsPath,
     processShellUnix: true,
-    processShellWin: false,
+    processShellWin: 'cmd.exe',
     useWhenExists: ['deps.edn'],
     nReplPortFile: ['.nrepl-port'],
     /** Build the command line args for a clj-project.
@@ -669,7 +672,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
   const aliasesOption =
     aliases.length > 0 ? `${aliasesFlag[0]}${aliases.join('')}` : aliasesFlag[1];
   const q = isWin ? '"' : "'";
-  const dQ = isWin ? '""' : '"';
+  const dQ = isWin ? '\\"' : '"';
   for (const dep in dependencies) {
     out.push(dep + ` {:mvn/version,${dQ}${dependencies[dep]}${dQ}}`);
   }
