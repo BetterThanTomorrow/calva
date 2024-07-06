@@ -61,10 +61,6 @@ const CONNECT_STANDALONE_COMMAND = 'calva.connectNonProjectREPL';
 
 const createProjectMenuItems: MenuItem[] = [
   {
-    label: '',
-    kind: vscode.QuickPickItemKind.Separator,
-  },
-  {
     label: CREATE_HELLO_CLJ_REPL_OPTION,
     command: CREATE_HELLO_CLJ_REPL_COMMAND,
     description: 'Requires Java',
@@ -128,6 +124,10 @@ const connectedMenuItems: MenuItem[] = [
     label: OPEN_REPL_WINDOW_OPTION,
     command: OPEN_REPL_WINDOW_COMMAND,
   },
+  {
+    label: '',
+    kind: vscode.QuickPickItemKind.Separator,
+  },
   ...createProjectMenuItems,
 ];
 
@@ -149,6 +149,10 @@ const disconnectedMenuItems: MenuItem[] = [
   {
     label: CONNECT_STANDALONE_OPTION,
     command: CONNECT_STANDALONE_COMMAND,
+  },
+  {
+    label: '',
+    kind: vscode.QuickPickItemKind.Separator,
   },
   ...createProjectMenuItems,
 ];
