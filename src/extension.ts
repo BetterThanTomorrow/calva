@@ -4,7 +4,7 @@ import * as fmt from './calva-fmt/src/extension';
 import * as highlight from './highlight/src/extension';
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
-import * as replStart from './nrepl/repl-start';
+import * as replMenu from './nrepl/repl-menu';
 import * as drams from './nrepl/drams';
 import * as util from './utilities';
 import { NotebookKernel, NotebookProvider } from './NotebookProvider';
@@ -296,8 +296,8 @@ async function activate(context: vscode.ExtensionContext) {
         return joyride.joyrideJackIn(projectDir);
       }
     },
-    startOrConnectRepl: replStart.showReplMenu, // backwards compatibility
-    showReplMenu: replStart.showReplMenu,
+    startOrConnectRepl: replMenu.showReplMenu, // backwards compatibility
+    showReplMenu: replMenu.showReplMenu,
     startStandaloneCljsBrowserRepl: () => {
       return drams.createAndOpenDram(context, drams.HELLO_CLJS_BROWSER_TEMPLATE, false, '.');
     },

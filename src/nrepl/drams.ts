@@ -4,7 +4,7 @@ import * as state from '../state';
 import * as utilities from '../utilities';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import { ConnectType } from './connect-types';
-import * as replStart from './repl-start';
+import * as replMenu from './repl-menu';
 
 const TEMPLATES_SUB_DIR = 'bundled';
 const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
@@ -149,13 +149,13 @@ async function extractBundledFiles(
 const DRAM_TEMPLATE_TO_MENU_OPTION: { [key: string]: string } = {};
 
 DRAM_TEMPLATE_TO_MENU_OPTION[(USER_TEMPLATE.config as DramConfig).name] =
-  replStart.CREATE_PROJECT_OPTION;
+  replMenu.CREATE_PROJECT_OPTION;
 DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_TEMPLATE.config as string] =
-  replStart.CREATE_HELLO_CLJ_REPL_OPTION;
+  replMenu.CREATE_HELLO_CLJ_REPL_OPTION;
 DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_CLJS_BROWSER_TEMPLATE.config as string] =
-  replStart.CREATE_HELLO_CLJS_BROWSER_COMMAND;
+  replMenu.CREATE_HELLO_CLJS_BROWSER_COMMAND;
 DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_CLJS_NODE_TEMPLATE.config as string] =
-  replStart.CREATE_HELLO_CLJS_NODE_COMMAND;
+  replMenu.CREATE_HELLO_CLJS_NODE_COMMAND;
 
 export async function createAndOpenDram(
   context: vscode.ExtensionContext,
@@ -170,7 +170,7 @@ export async function createAndOpenDram(
   // the project root different for the dram files than for the main
   // window.
   // TODO: The code can probably express it better than it currently does.
-  const { prefix, suffix } = replStart.menuSlugForProjectRoot();
+  const { prefix, suffix } = replMenu.menuSlugForProjectRoot();
   const lastMenuSlug = { prefix, suffix };
   const dramTemplateName =
     typeof dramTemplate.config === 'string' ? dramTemplate.config : dramTemplate.config.name;
@@ -306,10 +306,10 @@ export async function startDram() {
   }
 
   // We now have the proper project root for the REPL Menu “command palette”
-  const newMenuSlug = replStart.menuSlugForProjectRoot();
+  const newMenuSlug = replMenu.menuSlugForProjectRoot();
   await state.extensionContext.workspaceState.update(
     `qps-${newMenuSlug.prefix}/${args.lastMenuSlug.suffix}`,
-    replStart.JACK_IN_OPTION
+    replMenu.JACK_IN_OPTION
   );
 
   const firstPos = mainEditor.document.positionAt(0);
