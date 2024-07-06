@@ -3,6 +3,7 @@ import * as state from '../state';
 import * as utilities from '../utilities';
 import * as fiddleFiles from '../fiddle-files';
 import * as joyride from '../joyride';
+import * as drams from './drams';
 
 type MenuSlug = { prefix: string; suffix: string };
 
@@ -14,7 +15,7 @@ export function menuSlugForProjectRoot(): MenuSlug {
   return { prefix, suffix };
 }
 
-type MenuItem = vscode.QuickPickItem & {
+export type MenuItem = vscode.QuickPickItem & {
   command?: string;
   condition?: () => boolean;
   kind?: vscode.QuickPickItemKind;
@@ -42,47 +43,14 @@ const OPEN_SOURCE_FOR_FIDDLE_OPTION = 'Open Source File for Current Fiddle';
 const OPEN_SOURCE_FOR_FIDDLE_COMMAND = 'calva.openSourceFileForFiddle';
 export const JACK_IN_OPTION = 'Start your project with a REPL and connect (a.k.a. Jack-in)';
 const JACK_IN_COMMAND = 'calva.jackIn';
-export const CREATE_PROJECT_OPTION = 'Create a mini Clojure project';
-const CREATE_PROJECT_COMMAND = 'calva.createMinimalProject';
 const START_JOYRIDE_REPL_OPTION = 'Start a Joyride REPL and Connect';
 const START_JOYRIDE_REPL_COMMAND = 'calva.startJoyrideReplAndConnect';
 const STOP_JOYRIDE_NREPL_OPTION = 'Stop the Joyride nREPL server';
 const STOP_JOYRIDE_NREPL_COMMAND = 'joyride.stopNReplServer';
-export const CREATE_HELLO_CLJ_REPL_OPTION = 'Create a ”Getting Started” REPL project';
-const CREATE_HELLO_CLJ_REPL_COMMAND = 'calva.startStandaloneHelloRepl';
-const CREATE_HELLO_CLJS_BROWSER_OPTION = 'Create a ”ClojureScript Quick Start” Browser Project';
-export const CREATE_HELLO_CLJS_BROWSER_COMMAND = 'calva.startStandaloneCljsBrowserRepl';
-const CREATE_HELLO_CLJS_NODE_OPTION = 'Create a ”ClojureScript Quick Start” Node Project';
-export const CREATE_HELLO_CLJS_NODE_COMMAND = 'calva.startStandaloneCljsNodeRepl';
 const CONNECT_PROJECT_OPTION = 'Connect to a running REPL in your project';
 const CONNECT_PROJECT_COMMAND = 'calva.connect';
 const CONNECT_STANDALONE_OPTION = 'Connect to a running REPL, not in your project';
 const CONNECT_STANDALONE_COMMAND = 'calva.connectNonProjectREPL';
-
-const createProjectMenuItems: MenuItem[] = [
-  {
-    label: CREATE_HELLO_CLJ_REPL_OPTION,
-    command: CREATE_HELLO_CLJ_REPL_COMMAND,
-    description: 'Requires Java',
-    detail: 'An interactive guide introducing you to Calva and Clojure.',
-  },
-  {
-    label: CREATE_HELLO_CLJS_BROWSER_OPTION,
-    description: 'Requires Java',
-    command: CREATE_HELLO_CLJS_BROWSER_COMMAND,
-  },
-  {
-    label: CREATE_HELLO_CLJS_NODE_OPTION,
-    description: 'Requires Java & Node.js',
-    command: CREATE_HELLO_CLJS_NODE_COMMAND,
-  },
-  {
-    label: CREATE_PROJECT_OPTION,
-    description: 'Requires Java',
-    detail: 'A quick way to Fire up a Clojure REPL',
-    command: CREATE_PROJECT_COMMAND,
-  },
-];
 
 const connectedMenuItems: MenuItem[] = [
   {
@@ -128,7 +96,7 @@ const connectedMenuItems: MenuItem[] = [
     label: '',
     kind: vscode.QuickPickItemKind.Separator,
   },
-  ...createProjectMenuItems,
+  ...drams.createProjectMenuItems,
 ];
 
 const disconnectedMenuItems: MenuItem[] = [
@@ -154,7 +122,7 @@ const disconnectedMenuItems: MenuItem[] = [
     label: '',
     kind: vscode.QuickPickItemKind.Separator,
   },
-  ...createProjectMenuItems,
+  ...drams.createProjectMenuItems,
 ];
 
 function composeMenu(items: MenuItem[]): MenuItem[] {

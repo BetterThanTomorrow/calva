@@ -146,16 +146,48 @@ async function extractBundledFiles(
   );
 }
 
+const CREATE_PROJECT_OPTION = 'Create a mini Clojure project';
+const CREATE_PROJECT_COMMAND = 'calva.createMinimalProject';
+const CREATE_HELLO_CLJ_REPL_OPTION = 'Create a ”Getting Started” REPL project';
+const CREATE_HELLO_CLJ_REPL_COMMAND = 'calva.startStandaloneHelloRepl';
+const CREATE_HELLO_CLJS_BROWSER_OPTION = 'Create a ”ClojureScript Quick Start” Browser Project';
+const CREATE_HELLO_CLJS_BROWSER_COMMAND = 'calva.startStandaloneCljsBrowserRepl';
+const CREATE_HELLO_CLJS_NODE_OPTION = 'Create a ”ClojureScript Quick Start” Node Project';
+const CREATE_HELLO_CLJS_NODE_COMMAND = 'calva.startStandaloneCljsNodeRepl';
+
+export const createProjectMenuItems: replMenu.MenuItem[] = [
+  {
+    label: CREATE_HELLO_CLJ_REPL_OPTION,
+    command: CREATE_HELLO_CLJ_REPL_COMMAND,
+    description: 'Requires Java',
+    detail: 'An interactive guide introducing you to Calva and Clojure.',
+  },
+  {
+    label: CREATE_HELLO_CLJS_BROWSER_OPTION,
+    description: 'Requires Java',
+    command: CREATE_HELLO_CLJS_BROWSER_COMMAND,
+  },
+  {
+    label: CREATE_HELLO_CLJS_NODE_OPTION,
+    description: 'Requires Java & Node.js',
+    command: CREATE_HELLO_CLJS_NODE_COMMAND,
+  },
+  {
+    label: CREATE_PROJECT_OPTION,
+    description: 'Requires Java',
+    detail: 'A quick way to Fire up a Clojure REPL',
+    command: CREATE_PROJECT_COMMAND,
+  },
+];
+
 const DRAM_TEMPLATE_TO_MENU_OPTION: { [key: string]: string } = {};
 
-DRAM_TEMPLATE_TO_MENU_OPTION[(USER_TEMPLATE.config as DramConfig).name] =
-  replMenu.CREATE_PROJECT_OPTION;
-DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_TEMPLATE.config as string] =
-  replMenu.CREATE_HELLO_CLJ_REPL_OPTION;
+DRAM_TEMPLATE_TO_MENU_OPTION[(USER_TEMPLATE.config as DramConfig).name] = CREATE_PROJECT_OPTION;
+DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_TEMPLATE.config as string] = CREATE_HELLO_CLJ_REPL_OPTION;
 DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_CLJS_BROWSER_TEMPLATE.config as string] =
-  replMenu.CREATE_HELLO_CLJS_BROWSER_COMMAND;
+  CREATE_HELLO_CLJS_BROWSER_COMMAND;
 DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_CLJS_NODE_TEMPLATE.config as string] =
-  replMenu.CREATE_HELLO_CLJS_NODE_COMMAND;
+  CREATE_HELLO_CLJS_NODE_COMMAND;
 
 export async function createAndOpenDram(
   context: vscode.ExtensionContext,
