@@ -323,17 +323,15 @@ async function runNamespaceTests(controller: vscode.TestController, document: vs
   if (outputWindow.isResultsDoc(doc)) {
     return;
   }
-  const session = getSession(util.getFileType(document));
   const [currentDocNs, _] = namespace.getNamespace(
     doc,
     vscode.window.activeTextEditor?.selections[0]?.active
   );
-  await loadTestNS(currentDocNs, session);
   const namespacesToRunTestsFor = [
     currentDocNs,
     currentDocNs.endsWith('-test') ? currentDocNs.slice(0, -5) : currentDocNs + '-test',
   ];
-  void runNamespaceTestsImpl(controller, document, namespacesToRunTestsFor);
+  return runNamespaceTestsImpl(controller, document, namespacesToRunTestsFor);
 }
 
 function getTestUnderCursor() {
