@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.463] - 2024-07-08
+
 - [Stop the test runner from loading the test namespace before running tests](https://github.com/BetterThanTomorrow/calva/issues/2594)
 
 ## [2.0.462] - 2024-07-03
