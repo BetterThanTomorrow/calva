@@ -7,7 +7,7 @@ import { ConnectType } from './connect-types';
 import * as replMenu from './repl-menu';
 
 const TEMPLATES_SUB_DIR = 'bundled';
-const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
+const DRAM_REPO_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
 
 type DramFile = { path: string; 'open?': boolean };
 
@@ -20,7 +20,7 @@ type DramTemplate = {
   config: DramConfig | string;
 };
 
-export const USER_TEMPLATE: DramTemplate = {
+export const MINI_TEMPLATE: DramTemplate = {
   config: {
     name: 'Mini project REPL',
     files: [
@@ -44,42 +44,36 @@ export const HELLO_CLJS_NODE_TEMPLATE: DramTemplate = {
   config: 'calva_cljs_node_quick_start',
 };
 
-const calculateBranch = () => {
+const dramUrl = (slug: string) => {
   const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
   const calvaVersion = calva.packageJSON.version;
+  const isDevBuild = calvaVersion.match(/-.+$/);
   const isDebug = process.env['IS_DEBUG'] === 'true';
-  return isDebug || calvaVersion.match(/-.+$/) ? 'dev' : 'published';
+  return isDebug
+    ? `file://${path.join(calva.extensionPath)}/../dram/drams/v2/${slug}`
+    : `${DRAM_REPO_URL}/${isDevBuild ? 'dev' : 'published'}/drams/v2/${slug}`;
 };
 
-const dramsBaseUrl = () => {
-  return `${DRAM_BASE_URL}/${calculateBranch()}/drams/v2`;
-};
-
-async function fetchConfig(configName: string): Promise<DramConfig> {
-  const configEdn = await utilities.fetchFromUrl(`${dramsBaseUrl()}/${configName}/dram.edn`);
+async function fetchConfig(dramSrc: string): Promise<DramConfig> {
+  const configEdn = await utilities.fetchFromUrl(`${dramSrc}/dram.edn`);
   const config: DramConfig = cljsLib.parseEdn(configEdn);
   return config;
 }
 
-async function downloadDram(storageUri: vscode.Uri, configPath: string, filePath: string) {
-  const downloadUrl = `${dramsBaseUrl()}/${configPath}/${filePath}`;
+async function downloadDramFile(storageUri: vscode.Uri, src: string, filePath: string) {
   const directoryPath = path.dirname(filePath).split(/\//);
   const dirUri = vscode.Uri.joinPath(storageUri, ...directoryPath);
   await vscode.workspace.fs.createDirectory(dirUri);
   const storeFileUri = vscode.Uri.joinPath(storageUri, path.join(...filePath.split(/\//)));
-  return await utilities.downloadFromUrl(downloadUrl, storeFileUri.fsPath).catch((err) => {
+  return await utilities.downloadFromUrl(`${src}/${filePath}`, storeFileUri.fsPath).catch((err) => {
     console.error(`Error downloading ${filePath}: ${err.message}`);
   });
 }
 
-export async function downloadDrams(
-  storageUri: vscode.Uri,
-  configPath: string,
-  filePaths: string[]
-) {
+export async function downloadDramFiles(storageUri: vscode.Uri, src: string, filePaths: string[]) {
   await Promise.all(
     filePaths.map(async (filePath) => {
-      await downloadDram(storageUri, configPath, filePath).then(() => {
+      await downloadDramFile(storageUri, src, filePath).then(() => {
         console.log(`Downloaded ${filePath}`);
       });
     })
@@ -123,98 +117,54 @@ async function putStoreDocInPlace(
   return destUri;
 }
 
-async function extractBundledFiles(
-  context: vscode.ExtensionContext,
-  storageUri: vscode.Uri,
-  docNames: string[],
-  subDirectory: string
-) {
-  await Promise.all(
-    docNames.map(async (docName) => {
-      const templateUri = vscode.Uri.file(
-        path.join(context.extensionPath, TEMPLATES_SUB_DIR, subDirectory, docName)
-      );
-      const docUri: vscode.Uri = vscode.Uri.file(path.join(storageUri.fsPath, docName));
-      try {
-        await vscode.workspace.fs.copy(templateUri, docUri, {
-          overwrite: true,
-        });
-      } catch (e) {
-        console.error(`Error copying ${docName} from bundled files: ${e.message}`);
-      }
-    })
-  );
-}
+type DramSourceConfig = {
+  title: string;
+  src: string;
+  description?: string;
+  extraDetail?: string;
+};
 
-const CREATE_PROJECT_OPTION = 'Create a mini Clojure project';
-const CREATE_PROJECT_COMMAND = 'calva.createMinimalProject';
-const CREATE_HELLO_CLJ_REPL_OPTION = 'Create a ”Getting Started” REPL project';
-const CREATE_HELLO_CLJ_REPL_COMMAND = 'calva.startStandaloneHelloRepl';
-const CREATE_HELLO_CLJS_BROWSER_OPTION = 'Create a ”ClojureScript Quick Start” Browser Project';
-const CREATE_HELLO_CLJS_BROWSER_COMMAND = 'calva.startStandaloneCljsBrowserRepl';
-const CREATE_HELLO_CLJS_NODE_OPTION = 'Create a ”ClojureScript Quick Start” Node Project';
-const CREATE_HELLO_CLJS_NODE_COMMAND = 'calva.startStandaloneCljsNodeRepl';
-
-export const createProjectMenuItems: replMenu.MenuItem[] = [
+const DRAM_CONFIGS: DramSourceConfig[] = [
   {
-    label: CREATE_HELLO_CLJ_REPL_OPTION,
-    command: CREATE_HELLO_CLJ_REPL_COMMAND,
-    description: 'Requires Java',
-    detail: 'An interactive guide introducing you to Calva and Clojure.',
+    title: 'Create a ”Getting Started” REPL project',
+    src: `${dramUrl('calva_getting_started')}`,
+    description: 'An interactive guide introducing you to Calva and Clojure.',
+    extraDetail: 'Requires Java',
   },
   {
-    label: CREATE_HELLO_CLJS_BROWSER_OPTION,
-    description: 'Requires Java',
-    command: CREATE_HELLO_CLJS_BROWSER_COMMAND,
+    title: 'Create a ”ClojureScript Quick Start” Browser Project',
+    src: `${dramUrl('calva_cljs_browser_quick_start')}`,
+    extraDetail: 'Requires Java',
   },
   {
-    label: CREATE_HELLO_CLJS_NODE_OPTION,
-    description: 'Requires Java & Node.js',
-    command: CREATE_HELLO_CLJS_NODE_COMMAND,
+    title: 'Create a ”ClojureScript Quick Start” Node Project',
+    src: `${dramUrl('calva_cljs_node_quick_start')}`,
+    extraDetail: 'Requires Java & Node.js',
   },
   {
-    label: CREATE_PROJECT_OPTION,
-    description: 'Requires Java',
-    detail: 'A quick way to Fire up a Clojure REPL',
-    command: CREATE_PROJECT_COMMAND,
+    title: 'Create a mini Clojure project',
+    src: `${dramUrl('mini')}`,
+    extraDetail: 'Starts a REPL, requires Java',
+    description: 'A quick way to Fire up a Clojure REPL',
   },
 ];
 
-const DRAM_TEMPLATE_TO_MENU_OPTION: { [key: string]: string } = {};
-
-DRAM_TEMPLATE_TO_MENU_OPTION[(USER_TEMPLATE.config as DramConfig).name] = CREATE_PROJECT_OPTION;
-DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_TEMPLATE.config as string] = CREATE_HELLO_CLJ_REPL_OPTION;
-DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_CLJS_BROWSER_TEMPLATE.config as string] =
-  CREATE_HELLO_CLJS_BROWSER_COMMAND;
-DRAM_TEMPLATE_TO_MENU_OPTION[HELLO_CLJS_NODE_TEMPLATE.config as string] =
-  CREATE_HELLO_CLJS_NODE_COMMAND;
+export function createProjectMenuItems(): replMenu.MenuItem[] {
+  return DRAM_CONFIGS.map((config) => ({
+    label: config.title,
+    description: config.extraDetail,
+    detail: config.description,
+    command: 'calva.createAndOpenProjectFromDram',
+    dramSrc: config.src,
+  }));
+}
 
 export async function createAndOpenDram(
   context: vscode.ExtensionContext,
-  dramTemplate: DramTemplate,
-  areBundled: boolean,
-  subDirectory: string
+  title: string,
+  src: string
 ) {
-  // This is so that we can update the REPL Menu “command palette”
-  // with the default reconnect option, based on dram template used
-  // See end of this function for the other place where we update this,
-  // That's because the dram content is opened in a temp dir, making
-  // the project root different for the dram files than for the main
-  // window.
-  // TODO: The code can probably express it better than it currently does.
-  const { prefix, suffix } = replMenu.menuSlugForProjectRoot();
-  const lastMenuSlug = { prefix, suffix };
-  const dramTemplateName =
-    typeof dramTemplate.config === 'string' ? dramTemplate.config : dramTemplate.config.name;
-  await state.extensionContext.workspaceState.update(
-    `qps-${prefix}/${suffix}`,
-    DRAM_TEMPLATE_TO_MENU_OPTION[dramTemplateName]
-  );
-
-  const config =
-    typeof dramTemplate.config === 'string'
-      ? await fetchConfig(dramTemplate.config)
-      : dramTemplate.config;
+  const config = await fetchConfig(src);
 
   if (!config?.files) {
     console.error(`Error fetching configuration from dram repository`);
@@ -225,7 +175,7 @@ export async function createAndOpenDram(
   const docNames = config.files.map((f) => f.path);
 
   const choice = await vscode.window.showInformationMessage(
-    `${DRAM_TEMPLATE_TO_MENU_OPTION[dramTemplateName]}`,
+    `${title}`,
     {
       modal: true,
       detail:
@@ -262,45 +212,29 @@ export async function createAndOpenDram(
 
   await vscode.workspace.fs.createDirectory(storageUri);
   await vscode.workspace.fs.createDirectory(projectRootUri);
-  if (areBundled) {
-    await extractBundledFiles(context, storageUri, docNames, subDirectory);
-  } else {
-    await downloadDrams(storageUri, dramTemplate.config as string, docNames).catch((err) => {
-      console.error(`Error downloading drams: ${err.message}`);
-      void vscode.window.showWarningMessage(`Error downloading files: ${err.message}`);
-    });
-  }
+  await downloadDramFiles(storageUri, src, docNames).catch((err) => {
+    console.error(`Error downloading drams: ${err.message}`);
+    void vscode.window.showWarningMessage(`Error downloading files: ${err.message}`);
+  });
 
   const destUris = config.files.map((file) => putStoreDocInPlace(storageUri, projectRootUri, file));
   await Promise.all(destUris);
 
-  await serializeDramStartConfig(projectRootUri, {
-    config,
-    lastMenuSlug,
-    dramTemplateName,
-    dramTemplate,
-  });
+  await serializeDramStartConfig(projectRootUri, config);
 
   return vscode.commands.executeCommand('vscode.openFolder', projectRootUri, true);
 }
-
-type DramStartConfig = {
-  config: DramConfig;
-  lastMenuSlug: { prefix: string; suffix: string };
-  dramTemplateName: string;
-  dramTemplate: DramTemplate;
-};
 
 function ARGS_FILE_PATH(projectRootUri: vscode.Uri) {
   return vscode.Uri.joinPath(projectRootUri, '.calva', 'drams', 'start-config.json');
 }
 
-async function serializeDramStartConfig(projectRootUri, args: DramStartConfig) {
+async function serializeDramStartConfig(projectRootUri, args: DramConfig) {
   const data = new TextEncoder().encode(JSON.stringify(args));
   return vscode.workspace.fs.writeFile(ARGS_FILE_PATH(projectRootUri), data);
 }
 
-async function deserializeDramStartConfig(projectRootUri: vscode.Uri): Promise<DramStartConfig> {
+async function deserializeDramStartConfig(projectRootUri: vscode.Uri): Promise<DramConfig> {
   const data = await vscode.workspace.fs.readFile(ARGS_FILE_PATH(projectRootUri));
   return JSON.parse(new TextDecoder().decode(data));
 }
@@ -327,22 +261,15 @@ export async function maybeStartDram() {
 
 export async function startDram() {
   console.debug('Starting dram..');
-  const args = await deserializeDramStartConfig(state.getProjectRootUri());
-  console.debug('Dram start config:', args);
+  const config = await deserializeDramStartConfig(state.getProjectRootUri());
+  console.debug('Dram start config:', config);
   void vscode.workspace.fs.delete(ARGS_FILE_PATH(state.getProjectRootUri()));
   await state.initProjectDir(ConnectType.JackIn, null, false);
   const projectRootUri = state.getProjectRootUri();
-  const [mainDoc, mainEditor] = await openStoredDoc(projectRootUri, args.config.files[0]);
-  for (const file of args.config.files.slice(1)) {
+  const [mainDoc, mainEditor] = await openStoredDoc(projectRootUri, config.files[0]);
+  for (const file of config.files.slice(1)) {
     await openStoredDoc(projectRootUri, file);
   }
-
-  // We now have the proper project root for the REPL Menu “command palette”
-  const newMenuSlug = replMenu.menuSlugForProjectRoot();
-  await state.extensionContext.workspaceState.update(
-    `qps-${newMenuSlug.prefix}/${args.lastMenuSlug.suffix}`,
-    replMenu.JACK_IN_OPTION
-  );
 
   const firstPos = mainEditor.document.positionAt(0);
   mainEditor.selections = [new vscode.Selection(firstPos, firstPos)];

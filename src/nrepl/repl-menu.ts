@@ -17,6 +17,7 @@ export function menuSlugForProjectRoot(): MenuSlug {
 
 export type MenuItem = vscode.QuickPickItem & {
   command?: string;
+  dramSrc?: any;
   condition?: () => boolean;
   kind?: vscode.QuickPickItemKind;
 };
@@ -96,7 +97,7 @@ const connectedMenuItems: MenuItem[] = [
     label: '',
     kind: vscode.QuickPickItemKind.Separator,
   },
-  ...drams.createProjectMenuItems,
+  ...drams.createProjectMenuItems(),
 ];
 
 const disconnectedMenuItems: MenuItem[] = [
@@ -122,7 +123,7 @@ const disconnectedMenuItems: MenuItem[] = [
     label: '',
     kind: vscode.QuickPickItemKind.Separator,
   },
-  ...drams.createProjectMenuItems,
+  ...drams.createProjectMenuItems(),
 ];
 
 function composeMenu(items: MenuItem[]): MenuItem[] {
@@ -140,8 +141,12 @@ export async function showReplMenu() {
   });
   if (pickedItem) {
     const menuItem = menuItems.find((item) => item.label === pickedItem.label);
-    if (menuItem) {
-      return vscode.commands.executeCommand(menuItem.command);
+    if (menuItem?.command) {
+      if ('dramSrc' in menuItem) {
+        return vscode.commands.executeCommand(menuItem.command, menuItem.label, menuItem.dramSrc);
+      } else {
+        return vscode.commands.executeCommand(menuItem.command);
+      }
     }
   }
 }

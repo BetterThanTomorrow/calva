@@ -300,16 +300,19 @@ async function activate(context: vscode.ExtensionContext) {
     startOrConnectRepl: replMenu.showReplMenu, // backwards compatibility
     showReplMenu: replMenu.showReplMenu,
     startStandaloneCljsBrowserRepl: () => {
-      return drams.createAndOpenDram(context, drams.HELLO_CLJS_BROWSER_TEMPLATE, false, '.');
+      return drams.createAndOpenDram(context, 'cljs browse', 'calva_cljs_browser_quick_start');
     },
     startStandaloneCljsNodeRepl: () => {
-      return drams.createAndOpenDram(context, drams.HELLO_CLJS_NODE_TEMPLATE, false, '.');
+      return drams.createAndOpenDram(context, 'cljs node', 'calva_cljs_node_quick_start');
     },
     startStandaloneHelloRepl: () => {
-      return drams.createAndOpenDram(context, drams.HELLO_TEMPLATE, false, '.');
+      return drams.createAndOpenDram(context, 'getting started', 'calva_getting_started');
     },
     createMinimalProject: () => {
-      return drams.createAndOpenDram(context, drams.USER_TEMPLATE, true, 'minimal');
+      return drams.createAndOpenDram(context, 'mini proj', 'mini');
+    },
+    createAndOpenProjectFromDram: (title: string, src: string) => {
+      return drams.createAndOpenDram(context, title, src);
     },
     switchCljsBuild: connector.switchCljsBuild,
     tapCurrentTopLevelForm: () =>
