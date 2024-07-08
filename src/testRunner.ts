@@ -284,7 +284,7 @@ async function loadTestNS() {
   if (testFilePath && testFilePath !== '') {
     const filePath = vscode.Uri.parse(testFilePath).path;
     const loadForms = `(load-file "${filePath}")`;
-    await session.eval(loadForms, testNS).value;
+    return session.eval(loadForms, testNS).value;
   }
 }
 
