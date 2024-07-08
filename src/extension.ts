@@ -275,6 +275,7 @@ async function activate(context: vscode.ExtensionContext) {
     runAllTests: () => testRunner.runAllTestsCommand(testController),
     runCustomREPLCommand: snippets.evaluateCustomCodeSnippetCommand,
     runNamespaceTests: () => testRunner.runNamespaceTestsCommand(testController),
+    loadTestFileForCurrentNamespace: testRunner.loadTestNS,
     runTestUnderCursor: () => testRunner.runTestUnderCursorCommand(testController),
     sendCurrentFormToOutputWindow: outputWindow.appendCurrentForm,
     openFiddleForSourceFile: fiddleFiles.openFiddleForSourceFile,
