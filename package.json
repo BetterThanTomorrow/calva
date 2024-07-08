@@ -1456,7 +1456,7 @@
       },
       {
         "command": "calva.loadTestFileForCurrentNamespace",
-        "title": "Load Test File (as saved on disk) for Current Namespace",
+        "title": "Load/Evaluate Test File (as saved on disk) for Current Namespace",
         "enablement": "calva:connected",
         "category": "Calva"
       },
