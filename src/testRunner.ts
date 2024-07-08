@@ -268,7 +268,16 @@ function runAllTestsCommand(controller: vscode.TestController) {
   });
 }
 
-async function loadTestNS(ns: string, session: NReplSession) {
+async function loadTestNS() {
+  const document = util.getActiveTextEditor().document;
+  const session = getSession(util.getFileType(document));
+  const doc = util.tryToGetDocument(document);
+
+  const [ns, _] = namespace.getNamespace(
+    doc,
+    vscode.window.activeTextEditor?.selections[0]?.active
+  );
+
   const testNS = !ns.endsWith('-test') ? ns + '-test' : ns;
   const nsPath = await session.nsPath(testNS);
   const testFilePath = nsPath.path;
@@ -492,4 +501,5 @@ export default {
   rerunTestsCommand,
   runTestUnderCursorCommand,
   onTestTree,
+  loadTestNS,
 };
