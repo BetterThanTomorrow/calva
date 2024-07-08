@@ -23,7 +23,7 @@ async function uriForFile(fileName: string): Promise<vscode.Uri> {
 }
 
 // Return a valid TestItem for the namespace.
-// Creates a new item if one does not exist, othrwise we find the existing entry.
+// Creates a new item if one does not exist, otherwise we find the existing entry.
 // If a Range is supplied, that we set the range on the returned item.
 function upsertNamespace(
   controller: vscode.TestController,
@@ -43,7 +43,7 @@ function upsertNamespace(
 }
 
 // Return a valid TestItem for the test var.
-// Creates a new item if one does not exist, othrwise we find the existing entry.
+// Creates a new item if one does not exist, otherwise we find the existing entry.
 // If a Range is supplied, that we set the range on the returned item.
 function upsertTest(
   controller: vscode.TestController,
@@ -268,14 +268,23 @@ function runAllTestsCommand(controller: vscode.TestController) {
   });
 }
 
-async function loadTestNS(ns: string, session: NReplSession) {
+async function loadTestNS() {
+  const document = util.getActiveTextEditor().document;
+  const session = getSession(util.getFileType(document));
+  const doc = util.tryToGetDocument(document);
+
+  const [ns, _] = namespace.getNamespace(
+    doc,
+    vscode.window.activeTextEditor?.selections[0]?.active
+  );
+
   const testNS = !ns.endsWith('-test') ? ns + '-test' : ns;
   const nsPath = await session.nsPath(testNS);
   const testFilePath = nsPath.path;
   if (testFilePath && testFilePath !== '') {
     const filePath = vscode.Uri.parse(testFilePath).path;
     const loadForms = `(load-file "${filePath}")`;
-    await session.eval(loadForms, testNS).value;
+    return session.eval(loadForms, testNS).value;
   }
 }
 
@@ -323,17 +332,15 @@ async function runNamespaceTests(controller: vscode.TestController, document: vs
   if (outputWindow.isResultsDoc(doc)) {
     return;
   }
-  const session = getSession(util.getFileType(document));
   const [currentDocNs, _] = namespace.getNamespace(
     doc,
     vscode.window.activeTextEditor?.selections[0]?.active
   );
-  await loadTestNS(currentDocNs, session);
   const namespacesToRunTestsFor = [
     currentDocNs,
     currentDocNs.endsWith('-test') ? currentDocNs.slice(0, -5) : currentDocNs + '-test',
   ];
-  void runNamespaceTestsImpl(controller, document, namespacesToRunTestsFor);
+  return runNamespaceTestsImpl(controller, document, namespacesToRunTestsFor);
 }
 
 function getTestUnderCursor() {
@@ -494,4 +501,5 @@ export default {
   rerunTestsCommand,
   runTestUnderCursorCommand,
   onTestTree,
+  loadTestNS,
 };
