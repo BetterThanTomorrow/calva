@@ -16,6 +16,10 @@ export type DramConfig = {
   files: DramFile[];
 };
 
+export type DramStartConfig = {
+  config: DramConfig;
+};
+
 type DramTemplate = {
   config: DramConfig | string;
 };
@@ -44,13 +48,13 @@ export const HELLO_CLJS_NODE_TEMPLATE: DramTemplate = {
   config: 'calva_cljs_node_quick_start',
 };
 
-const dramUrl = (slug: string) => {
+export const dramUrl = (slug: string) => {
   const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
   const calvaVersion = calva.packageJSON.version;
   const isDevBuild = calvaVersion.match(/-.+$/);
   const isDebug = process.env['IS_DEBUG'] === 'true';
   return isDebug
-    ? `file://${path.join(calva.extensionPath)}/../dram/drams/v2/${slug}`
+    ? `${DRAM_REPO_URL}/${isDevBuild ? 'dev' : 'published'}/drams/v2/${slug}` // `file://${path.join(calva.extensionPath)}/../dram/drams/v2/${slug}`
     : `${DRAM_REPO_URL}/${isDevBuild ? 'dev' : 'published'}/drams/v2/${slug}`;
 };
 
@@ -220,7 +224,7 @@ export async function createAndOpenDram(
   const destUris = config.files.map((file) => putStoreDocInPlace(storageUri, projectRootUri, file));
   await Promise.all(destUris);
 
-  await serializeDramStartConfig(projectRootUri, config);
+  await serializeDramStartConfig(projectRootUri, { config });
 
   return vscode.commands.executeCommand('vscode.openFolder', projectRootUri, true);
 }
@@ -229,12 +233,12 @@ function ARGS_FILE_PATH(projectRootUri: vscode.Uri) {
   return vscode.Uri.joinPath(projectRootUri, '.calva', 'drams', 'start-config.json');
 }
 
-async function serializeDramStartConfig(projectRootUri, args: DramConfig) {
-  const data = new TextEncoder().encode(JSON.stringify(args));
+async function serializeDramStartConfig(projectRootUri, config: DramStartConfig) {
+  const data = new TextEncoder().encode(JSON.stringify(config));
   return vscode.workspace.fs.writeFile(ARGS_FILE_PATH(projectRootUri), data);
 }
 
-async function deserializeDramStartConfig(projectRootUri: vscode.Uri): Promise<DramConfig> {
+async function deserializeDramStartConfig(projectRootUri: vscode.Uri): Promise<DramStartConfig> {
   const data = await vscode.workspace.fs.readFile(ARGS_FILE_PATH(projectRootUri));
   return JSON.parse(new TextDecoder().decode(data));
 }
@@ -261,7 +265,7 @@ export async function maybeStartDram() {
 
 export async function startDram() {
   console.debug('Starting dram..');
-  const config = await deserializeDramStartConfig(state.getProjectRootUri());
+  const config = (await deserializeDramStartConfig(state.getProjectRootUri())).config;
   console.debug('Dram start config:', config);
   void vscode.workspace.fs.delete(ARGS_FILE_PATH(state.getProjectRootUri()));
   await state.initProjectDir(ConnectType.JackIn, null, false);
@@ -269,6 +273,10 @@ export async function startDram() {
   const [mainDoc, mainEditor] = await openStoredDoc(projectRootUri, config.files[0]);
   for (const file of config.files.slice(1)) {
     await openStoredDoc(projectRootUri, file);
+  }
+
+  if (config.files?.length > 0) {
+    await openStoredDoc(projectRootUri, config.files[0]);
   }
 
   const firstPos = mainEditor.document.positionAt(0);
