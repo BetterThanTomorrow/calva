@@ -23,7 +23,7 @@ async function uriForFile(fileName: string): Promise<vscode.Uri> {
 }
 
 // Return a valid TestItem for the namespace.
-// Creates a new item if one does not exist, othrwise we find the existing entry.
+// Creates a new item if one does not exist, otherwise we find the existing entry.
 // If a Range is supplied, that we set the range on the returned item.
 function upsertNamespace(
   controller: vscode.TestController,
@@ -43,7 +43,7 @@ function upsertNamespace(
 }
 
 // Return a valid TestItem for the test var.
-// Creates a new item if one does not exist, othrwise we find the existing entry.
+// Creates a new item if one does not exist, otherwise we find the existing entry.
 // If a Range is supplied, that we set the range on the returned item.
 function upsertTest(
   controller: vscode.TestController,
