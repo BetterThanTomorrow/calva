@@ -1324,23 +1324,13 @@
         "category": "Calva"
       },
       {
-        "command": "calva.createMinimalProject",
-        "title": "Create a mini Clojure project",
-        "category": "Calva"
-      },
-      {
         "command": "calva.startStandaloneHelloRepl",
         "title": "Create a Getting Started REPL project",
         "category": "Calva"
       },
       {
-        "command": "calva.startStandaloneCljsBrowserRepl",
-        "title": "Create a ClojureScript Quick Start Browser project",
-        "category": "Calva"
-      },
-      {
-        "command": "calva.startStandaloneCljsNodeRepl",
-        "title": "Create a ClojureScript Quick Start Node project",
+        "command": "calva.createMinimalProject",
+        "title": "Create a mini Clojure project",
         "category": "Calva"
       },
       {
