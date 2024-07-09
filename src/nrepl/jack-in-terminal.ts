@@ -66,6 +66,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
 
   private async startClojureProgram(): Promise<child.ChildProcess> {
     return new Promise<child.ChildProcess>(() => {
+      let hasReplStarted = false;
       const data = `${createCommandLine(this.options)}\r\n`;
       this.writeEmitter.fire(`Process shell is: ${this.options.useShell}\r\n`);
       this.writeEmitter.fire('⚡️ Starting the REPL ⚡️ using the below command line:\r\n');
@@ -91,6 +92,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
         // nbb - nRepl server started on port %d . nrepl-cljs-sci version %s 1337 TODO
         // TODO: Remove nbb WIP match
         if (msg.match(/Started nREPL server|nREPL server started/i)) {
+          hasReplStarted = true;
           const [_, port1, host1, host2, port2, port3] = msg.match(
             /(?:Started nREPL server|nREPL server started)[^\r\n]+?(?:(?:on port (\d+)(?: on host (\S+))?)|([^\s/]+):(\d+))|.*?(\d+) TODO/
           );
@@ -104,6 +106,9 @@ export class JackInTerminal implements vscode.Pseudoterminal {
       this.process.stderr.on('data', (data) => {
         const msg = this.dataToString(data);
         this.writeEmitter.fire(`${msg}\r\n`);
+        if (!hasReplStarted && msg.match(/error|exception/i)) {
+          this.whenError(msg);
+        }
       });
     });
   }

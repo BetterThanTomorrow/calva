@@ -25,6 +25,12 @@ import * as inspector from '../providers/inspector';
 let jackInPTY: JackInTerminal = undefined;
 let jackInTerminal: vscode.Terminal = undefined;
 
+export function revealJackInTerminal() {
+  if (jackInTerminal) {
+    jackInTerminal.show();
+  }
+}
+
 function cancelJackInTask() {
   setTimeout(() => {
     calvaJackout();
@@ -56,57 +62,71 @@ function executeJackInTask(
   connectSequence: ReplConnectSequence,
   cb?: () => unknown
 ) {
-  utilities.setLaunchingState(connectSequence.name);
-  statusbar.update();
+  return vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: `Jacking in: ${connectSequence.name}...`,
+      cancellable: true,
+    },
+    (progress, token) => {
+      return new Promise<void>((resolve, reject) => {
+        utilities.setLaunchingState(connectSequence.name);
+        statusbar.update();
 
-  // in case we have a running task present try to end it.
-  calvaJackout();
-  if (jackInTerminal !== undefined) {
-    jackInTerminal.dispose();
-    jackInTerminal = undefined;
-  }
+        // in case we have a running task present try to end it.
+        calvaJackout();
+        if (jackInTerminal !== undefined) {
+          jackInTerminal.dispose();
+          jackInTerminal = undefined;
+        }
 
-  try {
-    const pty = new JackInTerminal(
-      terminalOptions,
-      (_p, hostname: string, port: string) => {
-        jackInPTY = pty;
-        utilities.setLaunchingState(null);
-        void connector.connect(connectSequence, true, hostname, port).then(() => {
-          utilities.setJackedInState(true);
-          statusbar.update();
-          output.appendLineOtherOut('Jack-in done.');
-          output.replWindowAppendPrompt();
-          if (cb) {
-            cb();
+        try {
+          const pty = new JackInTerminal(
+            terminalOptions,
+            (_p, hostname: string, port: string) => {
+              jackInPTY = pty;
+              utilities.setLaunchingState(null);
+              resolve();
+              void connector.connect(connectSequence, true, hostname, port).then(() => {
+                utilities.setJackedInState(true);
+                statusbar.update();
+                output.appendLineOtherOut('Jack-in done.');
+                output.replWindowAppendPrompt();
+                if (cb) {
+                  cb();
+                }
+              });
+            },
+            (errorMessage: string) => {
+              void vscode.window
+                .showErrorMessage(
+                  `Problems during jack-in. ${errorMessage}`,
+                  'Show Jack-in Terminal'
+                )
+                .then((item) => {
+                  if (item) {
+                    void vscode.commands.executeCommand('calva.revealJackInTerminal');
+                  }
+                });
+            }
+          );
+          jackInTerminal = (<any>vscode.window).createTerminal({
+            name: `Calva Jack-in: ${connectSequence.name}`,
+            pty: pty,
+          });
+          if (getConfig().autoOpenJackInTerminal) {
+            jackInTerminal.show();
           }
-        });
-      },
-      (errorMessage) => {
-        output.appendLineOtherErr('Error in Jack-in: unable to read port file');
-        output.appendLineOtherErr(`${errorMessage}`);
-        output.appendLineOtherErr(
-          'You may have chosen the wrong jack-in configuration for your project.'
-        );
-        void vscode.window.showErrorMessage(
-          'Error in Jack-in: unable to read port file. See output destination for more information.'
-        );
-        cancelJackInTask();
-      }
-    );
-    jackInTerminal = (<any>vscode.window).createTerminal({
-      name: `Calva Jack-in: ${connectSequence.name}`,
-      pty: pty,
-    });
-    if (getConfig().autoOpenJackInTerminal) {
-      jackInTerminal.show();
+          pty.onDidClose((e) => {
+            calvaJackout();
+          });
+        } catch (exception) {
+          console.error('Failed executing task: ', exception.message);
+          reject(exception);
+        }
+      });
     }
-    pty.onDidClose((e) => {
-      calvaJackout();
-    });
-  } catch (exception) {
-    console.error('Failed executing task: ', exception.message);
-  }
+  );
 }
 
 export function calvaJackout() {
