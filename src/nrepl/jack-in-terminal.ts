@@ -82,6 +82,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
       });
       this.process.on('exit', (status) => {
         this.writeEmitter.fire(`Jack-in process exited. Status: ${status}\r\n`);
+        this.whenError(null);
       });
       this.process.stdout.on('data', (data) => {
         const msg = this.dataToString(data);

@@ -4,7 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Change how drams (projects that Calva can create) are bing defined. Preparing for ways to contribute drams to Calva.
+- Internal: Change how drams (projects that Calva can create) are bing defined. Preparing for ways to contribute drams to Calva.
+- [Make the user aware about errors during jack-in](https://github.com/BetterThanTomorrow/calva/issues/2597)
 
 ## [2.0.463] - 2024-07-08
 

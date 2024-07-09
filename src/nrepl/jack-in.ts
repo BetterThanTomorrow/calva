@@ -84,7 +84,6 @@ function executeJackInTask(
           const pty = new JackInTerminal(
             terminalOptions,
             (_p, hostname: string, port: string) => {
-              jackInPTY = pty;
               utilities.setLaunchingState(null);
               resolve();
               void connector.connect(connectSequence, true, hostname, port).then(() => {
@@ -98,27 +97,38 @@ function executeJackInTask(
               });
             },
             (errorMessage: string) => {
-              void vscode.window
-                .showErrorMessage(
-                  `Problems during jack-in. ${errorMessage}`,
-                  'Show Jack-in Terminal'
-                )
-                .then((item) => {
-                  if (item) {
-                    void vscode.commands.executeCommand('calva.revealJackInTerminal');
-                  }
-                });
+              if (errorMessage) {
+                void vscode.window
+                  .showErrorMessage(
+                    `Problems during jack-in. ${errorMessage}`,
+                    'Show Jack-in Terminal'
+                  )
+                  .then((item) => {
+                    if (item) {
+                      void vscode.commands.executeCommand('calva.revealJackInTerminal');
+                    }
+                  });
+              } else {
+                resolve();
+                calvaJackout(pty);
+              }
             }
           );
+          jackInPTY = pty;
           jackInTerminal = (<any>vscode.window).createTerminal({
             name: `Calva Jack-in: ${connectSequence.name}`,
             pty: pty,
+          });
+          token.onCancellationRequested(() => {
+            calvaJackout(pty);
+            reject(new Error('Jack-in was cancelled by the user.'));
           });
           if (getConfig().autoOpenJackInTerminal) {
             jackInTerminal.show();
           }
           pty.onDidClose((e) => {
             calvaJackout();
+            resolve();
           });
         } catch (exception) {
           console.error('Failed executing task: ', exception.message);
@@ -129,8 +139,9 @@ function executeJackInTask(
   );
 }
 
-export function calvaJackout() {
-  if (jackInPTY !== undefined) {
+export function calvaJackout(pty?: JackInTerminal) {
+  const somePty = pty || jackInPTY;
+  if (somePty !== undefined) {
     if (projectTypes.isWin) {
       // this is a hack under Windows to terminate the
       // repl process from the repl client because the
@@ -150,7 +161,7 @@ export function calvaJackout() {
       }
     }
     connector.default.disconnect();
-    jackInPTY.killProcess();
+    somePty.killProcess();
     jackInPTY = undefined;
     utilities.setLaunchingState(null);
     utilities.setJackedInState(false);
@@ -343,7 +354,7 @@ export async function jackIn(
       try {
         const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
         if (terminalJackInOptions) {
-          executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
+          void executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
         }
       } catch (e) {
         void vscode.window.showErrorMessage(`Error creating jack-in command line: ${e}`, 'OK');
