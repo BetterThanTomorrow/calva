@@ -6,7 +6,6 @@ import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import { ConnectType } from './connect-types';
 import * as replMenu from './repl-menu';
 
-const TEMPLATES_SUB_DIR = 'bundled';
 const DRAM_REPO_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
 
 type DramFile = { path: string; 'open?': boolean };
@@ -22,30 +21,6 @@ export type DramStartConfig = {
 
 type DramTemplate = {
   config: DramConfig | string;
-};
-
-export const MINI_TEMPLATE: DramTemplate = {
-  config: {
-    name: 'Mini project REPL',
-    files: [
-      { path: 'src/mini/playground.clj', 'open?': true },
-      { path: 'deps.edn', 'open?': false },
-      { path: '.gitignore', 'open?': false },
-      { path: '.vscode/settings.json', 'open?': false },
-    ],
-  },
-};
-
-export const HELLO_TEMPLATE: DramTemplate = {
-  config: 'calva_getting_started',
-};
-
-export const HELLO_CLJS_BROWSER_TEMPLATE: DramTemplate = {
-  config: 'calva_cljs_browser_quick_start',
-};
-
-export const HELLO_CLJS_NODE_TEMPLATE: DramTemplate = {
-  config: 'calva_cljs_node_quick_start',
 };
 
 export const dramUrl = (slug: string) => {
