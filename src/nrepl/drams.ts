@@ -19,19 +19,13 @@ export type DramStartConfig = {
   config: DramConfig;
 };
 
-type DramTemplate = {
-  config: DramConfig | string;
-};
-
-export const dramUrl = (slug: string) => {
+function devBuild() {
   const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
   const calvaVersion = calva.packageJSON.version;
   const isDevBuild = calvaVersion.match(/-.+$/);
   const isDebug = process.env['IS_DEBUG'] === 'true';
-  return isDebug
-    ? `file://${path.join(calva.extensionPath)}/../dram/drams/v2/${slug}`
-    : `${DRAM_REPO_URL}/${isDevBuild ? 'dev' : 'published'}/drams/v2/${slug}`;
-};
+  return { isDevBuild, isDebug };
+}
 
 async function fetchConfig(dramSrc: string): Promise<DramConfig> {
   const configEdn = await utilities.fetchFromUrl(`${dramSrc}/dram.edn`);
@@ -96,6 +90,22 @@ async function putStoreDocInPlace(
   return destUri;
 }
 
+const dramsUrl = () => {
+  const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
+  const { isDevBuild, isDebug } = devBuild();
+  return `file://${path.join(calva.extensionPath)}/bundled/drams-${
+    isDebug ? 'local' : isDevBuild ? 'dev' : 'published'
+  }.edn`;
+};
+
+export const dramUrl = (slug: string) => {
+  const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
+  const { isDevBuild, isDebug } = devBuild();
+  return isDebug
+    ? `file://${path.join(calva.extensionPath)}/../dram/drams/v2/${slug}`
+    : `${DRAM_REPO_URL}/${isDevBuild ? 'dev' : 'published'}/drams/v2/${slug}`;
+};
+
 type DramSourceConfig = {
   title: string;
   src: string;
@@ -103,33 +113,18 @@ type DramSourceConfig = {
   extraDetail?: string;
 };
 
-const DRAM_CONFIGS: DramSourceConfig[] = [
-  {
-    title: 'Create a ”Getting Started” REPL project',
-    src: `${dramUrl('calva_getting_started')}`,
-    description: 'An interactive guide introducing you to Calva and Clojure.',
-    extraDetail: 'Requires Java',
-  },
-  {
-    title: 'Create a ”ClojureScript Quick Start” Browser Project',
-    src: `${dramUrl('calva_cljs_browser_quick_start')}`,
-    extraDetail: 'Requires Java',
-  },
-  {
-    title: 'Create a ”ClojureScript Quick Start” Node Project',
-    src: `${dramUrl('calva_cljs_node_quick_start')}`,
-    extraDetail: 'Requires Java & Node.js',
-  },
-  {
-    title: 'Create a mini Clojure project',
-    src: `${dramUrl('mini')}`,
-    extraDetail: 'Starts a REPL, requires Java',
-    description: 'A quick way to Fire up a Clojure REPL',
-  },
-];
+async function fetchDramConfigs(src: string): Promise<DramSourceConfig[]> {
+  const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
+  const configsEdn = await utilities.fetchFromUrl(`${src}`);
+  const config: DramSourceConfig[] = cljsLib.parseEdn(configsEdn);
+  return config.map((c) => ({
+    ...c,
+    src: c.src.replace(/^LOCAL-REPO/, `file://${path.join(calva.extensionPath)}/../dram`),
+  }));
+}
 
-export function createProjectMenuItems(): replMenu.MenuItem[] {
-  return DRAM_CONFIGS.map((config) => ({
+export async function createProjectMenuItems(): Promise<replMenu.MenuItem[]> {
+  return (await fetchDramConfigs(dramsUrl())).map((config) => ({
     label: config.title,
     description: config.extraDetail,
     detail: config.description,
