@@ -299,7 +299,7 @@ async function activate(context: vscode.ExtensionContext) {
     },
     startOrConnectRepl: replMenu.showReplMenu, // backwards compatibility
     showReplMenu: replMenu.showReplMenu,
-    startStandaloneCljsBrowserRepl: () => {
+    startStandaloneHelloRepl: () => {
       return drams.createAndOpenDram(
         context,
         'cljs browse',

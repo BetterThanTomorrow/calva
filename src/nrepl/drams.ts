@@ -54,7 +54,7 @@ export const dramUrl = (slug: string) => {
   const isDevBuild = calvaVersion.match(/-.+$/);
   const isDebug = process.env['IS_DEBUG'] === 'true';
   return isDebug
-    ? `${DRAM_REPO_URL}/${isDevBuild ? 'dev' : 'published'}/drams/v2/${slug}` // `file://${path.join(calva.extensionPath)}/../dram/drams/v2/${slug}`
+    ? `file://${path.join(calva.extensionPath)}/../dram/drams/v2/${slug}`
     : `${DRAM_REPO_URL}/${isDevBuild ? 'dev' : 'published'}/drams/v2/${slug}`;
 };
 
