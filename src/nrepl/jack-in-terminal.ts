@@ -38,7 +38,6 @@ export class JackInTerminal implements vscode.Pseudoterminal {
     this.writeEmitter.fire(
       'This is a pseudo terminal, only used for hosting the Jack-in REPL process. It takes no input.\r\nPressing ctrl+c with this terminal focused, killing this terminal, or closing/reloading the VS Code window will all stop/kill the Jack-in REPL process.\r\n\r\n'
     );
-    void this.startClojureProgram();
   }
 
   close(): void {
@@ -64,7 +63,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
     return data.toString().replace(/\r?\n/g, '\r\n').replace(/\r\n$/, '');
   }
 
-  private async startClojureProgram(): Promise<child.ChildProcess> {
+  public async startClojureProgram(): Promise<child.ChildProcess> {
     return new Promise<child.ChildProcess>(() => {
       let hasReplStarted = false;
       const data = `${createCommandLine(this.options)}\r\n`;

@@ -127,9 +127,10 @@ function executeJackInTask(
             jackInTerminal.show();
           }
           pty.onDidClose((e) => {
-            calvaJackout();
+            calvaJackout(pty);
             resolve();
           });
+          void pty.startClojureProgram();
         } catch (exception) {
           console.error('Failed executing task: ', exception.message);
           reject(exception);
