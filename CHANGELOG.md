@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.465] - 2024-07-10
+
 - [Only alert if the Jack-in process is interrupted before the repl is started](https://github.com/BetterThanTomorrow/calva/issues/2600)
 
 ## [2.0.464] - 2024-07-10
