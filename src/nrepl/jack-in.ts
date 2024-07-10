@@ -102,24 +102,18 @@ async function executeJackInTask(
                 }
               });
             },
-            (errorMessage: string) => {
-              if (errorMessage) {
-                void vscode.window
-                  .showWarningMessage(
-                    `There is error output in the Jack-in terminal.`,
-                    'Show Jack-in Terminal'
-                  )
-                  .then((item) => {
-                    if (item) {
-                      void vscode.commands.executeCommand('calva.revealJackInTerminal');
-                    }
-                  });
-              } else {
-                resolve();
-              }
-            },
             (status: number) => {
               setJackedOutStatus();
+              void vscode.window
+                .showErrorMessage(
+                  `Jack-in was interrupted. Exit code: ${status}`,
+                  'Show Jack-in Terminal'
+                )
+                .then((item) => {
+                  if (item) {
+                    void vscode.commands.executeCommand('calva.revealJackInTerminal');
+                  }
+                });
               resolve();
             }
           );
