@@ -299,17 +299,18 @@ async function activate(context: vscode.ExtensionContext) {
     },
     startOrConnectRepl: replMenu.showReplMenu, // backwards compatibility
     showReplMenu: replMenu.showReplMenu,
-    startStandaloneCljsBrowserRepl: () => {
-      return drams.createAndOpenDram(context, drams.HELLO_CLJS_BROWSER_TEMPLATE, false, '.');
-    },
-    startStandaloneCljsNodeRepl: () => {
-      return drams.createAndOpenDram(context, drams.HELLO_CLJS_NODE_TEMPLATE, false, '.');
-    },
     startStandaloneHelloRepl: () => {
-      return drams.createAndOpenDram(context, drams.HELLO_TEMPLATE, false, '.');
+      return drams.createAndOpenDram(
+        context,
+        'cljs browse',
+        `${drams.dramUrl('calva_getting_started')}`
+      );
     },
     createMinimalProject: () => {
-      return drams.createAndOpenDram(context, drams.USER_TEMPLATE, true, 'minimal');
+      return drams.createAndOpenDram(context, 'mini proj', `${drams.dramUrl('mini')}`);
+    },
+    createAndOpenProjectFromDram: (title: string, src: string) => {
+      return drams.createAndOpenDram(context, title, src);
     },
     switchCljsBuild: connector.switchCljsBuild,
     tapCurrentTopLevelForm: () =>
@@ -366,6 +367,7 @@ async function activate(context: vscode.ExtensionContext) {
       const selectedItem = inspectorTreeView.selection[0] || inspectorDataProvider.getTopMostItem();
       return inspectorTreeView.reveal(selectedItem, { select, focus, expand });
     },
+    revealJackInTerminal: jackIn.revealJackInTerminal,
   };
 
   function registerCalvaCommand([command, callback]) {

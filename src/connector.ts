@@ -470,30 +470,32 @@ function createCLJSReplType(
       const runtimes = await cljSession.eval(getRuntimesCode, 'user').value;
       return runtimes && parseInt(runtimes) > 0;
     };
-    const hasRuntimes = await checkForRuntimes();
-    if (hasRuntimes) {
-      return true;
-    }
-    let tries = 600; // Wait for 1 minute at most
-    const waitForRuntimes = async () => {
-      while (!(await checkForRuntimes())) {
-        tries--;
-        if (tries <= 0) {
-          output.appendLineOtherOut(
-            'Timed out waiting for Shadow CLJS runtimes, pretending we are connected.'
-          );
-          return true;
-        } else if (tries % 50 == 0) {
-          output.appendLineOtherOut('Waiting for Shadow CLJS runtimes, start your CLJS app...');
+    return new Promise<boolean>((resolve, reject) => {
+      void vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: 'Waiting for shadow-cljs runtimes...',
+          cancellable: true,
+        },
+        async (progress, token) => {
+          token.onCancellationRequested(() => {
+            reject(new Error('User cancelled waiting for shadow-cljs runtimes.'));
+          });
+
+          while (!(await checkForRuntimes())) {
+            if (token.isCancellationRequested) {
+              break;
+            }
+            progress.report({ message: 'Please start your ClojureScript app...' });
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+
+          if (!token.isCancellationRequested) {
+            resolve(true);
+          }
         }
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-      return true;
-    };
-    output.appendLineOtherOut(
-      'Please start your ClojureScript app (load it in the browser, or whatever is appropriate) so that Calva can connect to its REPL...'
-    );
-    return await waitForRuntimes();
+      );
+    });
   }
 
   async function handleConnected(result, out, err): Promise<boolean> {
@@ -505,7 +507,7 @@ function createCLJSReplType(
       if (!isConnectCodeEvaluatedSuccessfully || !isShadowCljsReplType(cljsType)) {
         return isConnectCodeEvaluatedSuccessfully;
       }
-      return await waitForShadowCljsRuntimes();
+      return waitForShadowCljsRuntimes();
     } else {
       return true;
     }

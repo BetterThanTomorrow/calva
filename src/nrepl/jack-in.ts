@@ -14,22 +14,17 @@ import {
 } from './connectSequence';
 import * as projectTypes from './project-types';
 import * as outputWindow from '../repl-window/repl-doc';
-import { JackInTerminal, JackInTerminalOptions, createCommandLine } from './jack-in-terminal';
+import {
+  JackInPTY as JackInPTY,
+  JackInPTYOptions as JackInPTYOptions,
+  createCommandLine,
+} from './jack-in-terminal';
 import * as liveShareSupport from '../live-share';
 import { getConfig } from '../config';
 import * as joyride from '../joyride';
 import { ConnectType } from './connect-types';
 import * as output from '../results-output/output';
 import * as inspector from '../providers/inspector';
-
-let jackInPTY: JackInTerminal = undefined;
-let jackInTerminal: vscode.Terminal = undefined;
-
-function cancelJackInTask() {
-  setTimeout(() => {
-    calvaJackout();
-  }, 1000);
-}
 
 function resolveEnvVariables(entry: any): any {
   if (typeof entry === 'string') {
@@ -51,62 +46,96 @@ function getGlobalJackInEnv() {
   };
 }
 
-function executeJackInTask(
-  terminalOptions: JackInTerminalOptions,
+let jackInPTY: JackInPTY = undefined;
+let jackInTerminal: vscode.Terminal = undefined;
+
+async function executeJackInTask(
+  terminalOptions: JackInPTYOptions,
   connectSequence: ReplConnectSequence,
   cb?: () => unknown
 ) {
   utilities.setLaunchingState(connectSequence.name);
   statusbar.update();
 
-  // in case we have a running task present try to end it.
-  calvaJackout();
-  if (jackInTerminal !== undefined) {
-    jackInTerminal.dispose();
-    jackInTerminal = undefined;
-  }
-
-  try {
-    const pty = new JackInTerminal(
-      terminalOptions,
-      (_p, hostname: string, port: string) => {
-        jackInPTY = pty;
-        utilities.setLaunchingState(null);
-        void connector.connect(connectSequence, true, hostname, port).then(() => {
-          utilities.setJackedInState(true);
-          statusbar.update();
-          output.appendLineOtherOut('Jack-in done.');
-          output.replWindowAppendPrompt();
-          if (cb) {
-            cb();
-          }
-        });
-      },
-      (errorMessage) => {
-        output.appendLineOtherErr('Error in Jack-in: unable to read port file');
-        output.appendLineOtherErr(`${errorMessage}`);
-        output.appendLineOtherErr(
-          'You may have chosen the wrong jack-in configuration for your project.'
-        );
-        void vscode.window.showErrorMessage(
-          'Error in Jack-in: unable to read port file. See output destination for more information.'
-        );
-        cancelJackInTask();
-      }
-    );
+  if (!jackInPTY) {
+    jackInPTY = new JackInPTY();
     jackInTerminal = (<any>vscode.window).createTerminal({
       name: `Calva Jack-in: ${connectSequence.name}`,
-      pty: pty,
+      pty: jackInPTY,
     });
-    if (getConfig().autoOpenJackInTerminal) {
-      jackInTerminal.show();
-    }
-    pty.onDidClose((e) => {
+    jackInPTY.onDidClose((e) => {
       calvaJackout();
     });
-  } catch (exception) {
-    console.error('Failed executing task: ', exception.message);
+  } else {
+    jackInPTY.clearTerminal();
   }
+
+  if (getConfig().autoOpenJackInTerminal) {
+    jackInTerminal.show();
+  }
+
+  return vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: `Jacking in: ${connectSequence.name}...`,
+      cancellable: true,
+    },
+    (progress, token) => {
+      return new Promise<void>((resolve, reject) => {
+        try {
+          token.onCancellationRequested(() => {
+            calvaJackout();
+            reject(new Error('Jack-in was cancelled by the user.'));
+          });
+          void jackInPTY.startClojureProgram(
+            terminalOptions,
+            (_p, hostname: string, port: string) => {
+              utilities.setLaunchingState(null);
+              resolve();
+              void connector.connect(connectSequence, true, hostname, port).then(() => {
+                utilities.setJackedInState(true);
+                statusbar.update();
+                output.appendLineOtherOut('Jack-in done.');
+                output.replWindowAppendPrompt();
+                if (cb) {
+                  cb();
+                }
+              });
+            },
+            (errorMessage: string) => {
+              if (errorMessage) {
+                void vscode.window
+                  .showWarningMessage(
+                    `There is error output in the Jack-in terminal.`,
+                    'Show Jack-in Terminal'
+                  )
+                  .then((item) => {
+                    if (item) {
+                      void vscode.commands.executeCommand('calva.revealJackInTerminal');
+                    }
+                  });
+              } else {
+                resolve();
+              }
+            },
+            (status: number) => {
+              setJackedOutStatus();
+              resolve();
+            }
+          );
+        } catch (exception) {
+          console.error('Failed executing task: ', exception.message);
+          reject(exception);
+        }
+      });
+    }
+  );
+}
+
+function setJackedOutStatus() {
+  utilities.setLaunchingState(null);
+  utilities.setJackedInState(false);
+  statusbar.update();
 }
 
 export function calvaJackout() {
@@ -131,13 +160,16 @@ export function calvaJackout() {
     }
     connector.default.disconnect();
     jackInPTY.killProcess();
-    jackInPTY = undefined;
-    utilities.setLaunchingState(null);
-    utilities.setJackedInState(false);
-    statusbar.update();
+    setJackedOutStatus();
   }
 
   liveShareSupport.didJackOut();
+}
+
+export function revealJackInTerminal() {
+  if (jackInTerminal) {
+    jackInTerminal.show();
+  }
 }
 
 export async function copyJackInCommandToClipboard(): Promise<void> {
@@ -195,7 +227,7 @@ function substituteCustomCommandLinePlaceholders(
 
 async function getJackInTerminalOptions(
   projectConnectSequence: ReplConnectSequence
-): Promise<JackInTerminalOptions> {
+): Promise<JackInPTYOptions> {
   const projectTypeName: string = projectConnectSequence.projectType;
   let selectedCljsType: CljsTypes;
 
@@ -242,7 +274,7 @@ async function getJackInTerminalOptions(
     : cmd[0];
   args = projectConnectSequence.customJackInCommandLine ? [] : [...cmd.slice(1), ...args];
 
-  const terminalOptions: JackInTerminalOptions = {
+  const terminalOptions: JackInPTYOptions = {
     name: `Calva Jack-in: ${projectConnectSequence.name}`,
     executable,
     args,
@@ -275,7 +307,7 @@ async function getProjectConnectSequence(disableAutoSelect: boolean): Promise<Re
   }
 }
 
-export async function jackIn(
+async function executeJackIn(
   connectSequence: ReplConnectSequence,
   disableAutoSelect: boolean,
   cb?: () => unknown
@@ -323,7 +355,7 @@ export async function jackIn(
       try {
         const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
         if (terminalJackInOptions) {
-          executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
+          void executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
         }
       } catch (e) {
         void vscode.window.showErrorMessage(`Error creating jack-in command line: ${e}`, 'OK');
@@ -337,6 +369,23 @@ export async function jackIn(
   }
 
   void liveShareSupport.didJackIn();
+}
+
+export async function jackIn(
+  connectSequence: ReplConnectSequence,
+  disableAutoSelect: boolean,
+  cb?: () => unknown
+): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    if (jackInPTY && !jackInPTY.isProcessAlive()) {
+      resolve(executeJackIn(connectSequence, disableAutoSelect, cb));
+    } else {
+      calvaJackout();
+      setTimeout(() => {
+        resolve(executeJackIn(connectSequence, disableAutoSelect, cb));
+      }, 1000);
+    }
+  });
 }
 
 export function jackOutCommand() {
