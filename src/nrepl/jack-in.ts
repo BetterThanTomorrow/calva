@@ -117,6 +117,10 @@ async function executeJackInTask(
               } else {
                 resolve();
               }
+            },
+            (status: number) => {
+              setJackedOutStatus();
+              resolve();
             }
           );
         } catch (exception) {
@@ -126,6 +130,12 @@ async function executeJackInTask(
       });
     }
   );
+}
+
+function setJackedOutStatus() {
+  utilities.setLaunchingState(null);
+  utilities.setJackedInState(false);
+  statusbar.update();
 }
 
 export function calvaJackout() {
@@ -150,9 +160,7 @@ export function calvaJackout() {
     }
     connector.default.disconnect();
     jackInPTY.killProcess();
-    utilities.setLaunchingState(null);
-    utilities.setJackedInState(false);
-    statusbar.update();
+    setJackedOutStatus();
   }
 
   liveShareSupport.didJackOut();
