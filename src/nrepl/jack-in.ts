@@ -105,8 +105,8 @@ async function executeJackInTask(
             (errorMessage: string) => {
               if (errorMessage) {
                 void vscode.window
-                  .showErrorMessage(
-                    `Problems during jack-in. ${errorMessage}`,
+                  .showWarningMessage(
+                    `There is error output in the Jack-in terminal.`,
                     'Show Jack-in Terminal'
                   )
                   .then((item) => {
