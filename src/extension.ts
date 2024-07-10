@@ -367,6 +367,7 @@ async function activate(context: vscode.ExtensionContext) {
       const selectedItem = inspectorTreeView.selection[0] || inspectorDataProvider.getTopMostItem();
       return inspectorTreeView.reveal(selectedItem, { select, focus, expand });
     },
+    revealJackInTerminal: jackIn.revealJackInTerminal,
   };
 
   function registerCalvaCommand([command, callback]) {

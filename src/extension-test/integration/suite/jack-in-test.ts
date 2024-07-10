@@ -114,7 +114,7 @@ suite('Jack-in suite', () => {
       'calva.replConnectSequences': [
         {
           projectType: 'deps.edn',
-          name: 'string-afterCLJReplJackInCode',
+          name: 'array-afterCLJReplJackInCode',
           autoSelectForJackIn: true,
           projectRootPath: ['.'],
           afterCLJReplJackInCode: ['(println :hello)', '(println :world!)'],
