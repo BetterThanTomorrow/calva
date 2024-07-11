@@ -115,7 +115,7 @@ export const dramUrl = (name: string) => {
   return `${dramBaseUrl()}/${name}`;
 };
 
-type DramSourceConfig = {
+type DramMenuItemConfig = {
   title: string;
   src: string;
   description?: string;
@@ -138,10 +138,10 @@ export function refreshDramConfigs() {
   }
 }
 
-async function readDramConfigs(filePath: string): Promise<DramSourceConfig[]> {
+async function readDramMenuConfig(filePath: string): Promise<DramMenuItemConfig[]> {
   const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
   const configsEdn = await utilities.getFileContents(filePath);
-  const config: DramSourceConfig[] = cljsLib.parseEdn(configsEdn);
+  const config: DramMenuItemConfig[] = cljsLib.parseEdn(configsEdn);
   return config.map((c) => ({
     ...c,
     src: c.src.replace(/^LOCAL-REPO/, `file://${path.join(calva.extensionPath)}/../dram`),
@@ -149,13 +149,18 @@ async function readDramConfigs(filePath: string): Promise<DramSourceConfig[]> {
 }
 
 export async function createProjectMenuItems(): Promise<replMenu.MenuItem[]> {
-  return (await readDramConfigs(dramsPath())).map((config) => ({
-    label: config.title,
-    description: config.extraDetail,
-    detail: config.description,
-    command: 'calva.createAndOpenProjectFromDram',
-    dramSrc: config.src,
-  }));
+  try {
+    return (await readDramMenuConfig(dramsPath())).map((config) => ({
+      label: config.title,
+      description: config.extraDetail,
+      detail: config.description,
+      command: 'calva.createAndOpenProjectFromDram',
+      dramSrc: config.src,
+    }));
+  } catch (e) {
+    console.error('Error reading dram configs:', e);
+    return [];
+  }
 }
 
 export async function createAndOpenDram(
