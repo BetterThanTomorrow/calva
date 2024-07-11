@@ -122,13 +122,19 @@ type DramSourceConfig = {
   extraDetail?: string;
 };
 
-export async function refreshDramConfigs() {
+export function refreshDramConfigs() {
   for (const slug of ['local', 'dev', 'published']) {
-    const dramConfigs = await utilities.fetchFromUrl(`${dramBaseUrl()}/calva/drams-${slug}.edn`);
-    await utilities.writeTextToFile(
-      vscode.Uri.file(path.join(dramsBasePath(), `drams-${slug}.edn`)),
-      dramConfigs
-    );
+    utilities
+      .fetchFromUrl(`${dramBaseUrl()}/calva/drams-${slug}.edn`)
+      .then(async (dramConfigs) => {
+        await utilities.writeTextToFile(
+          vscode.Uri.file(path.join(dramsBasePath(), `drams-${slug}.edn`)),
+          dramConfigs
+        );
+      })
+      .catch((err) => {
+        console.error(`Error fetching dram configs: ${err.message}`);
+      });
   }
 }
 
