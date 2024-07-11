@@ -90,12 +90,14 @@ async function putStoreDocInPlace(
   return destUri;
 }
 
-const dramsUrl = () => {
+const dramsPath = () => {
   const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
   const { isDevBuild, isDebug } = devBuild();
-  return `file://${path.join(calva.extensionPath)}/bundled/drams-${
-    isDebug ? 'local' : isDevBuild ? 'dev' : 'published'
-  }.edn`;
+  return path.join(
+    calva.extensionPath,
+    'bundled',
+    `drams-${isDebug ? 'local' : isDevBuild ? 'dev' : 'published'}.edn`
+  );
 };
 
 export const dramUrl = (slug: string) => {
@@ -113,9 +115,9 @@ type DramSourceConfig = {
   extraDetail?: string;
 };
 
-async function fetchDramConfigs(src: string): Promise<DramSourceConfig[]> {
+async function fetchDramConfigs(filePath: string): Promise<DramSourceConfig[]> {
   const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
-  const configsEdn = await utilities.fetchFromUrl(`${src}`);
+  const configsEdn = await utilities.getFileContents(filePath);
   const config: DramSourceConfig[] = cljsLib.parseEdn(configsEdn);
   return config.map((c) => ({
     ...c,
@@ -124,7 +126,7 @@ async function fetchDramConfigs(src: string): Promise<DramSourceConfig[]> {
 }
 
 export async function createProjectMenuItems(): Promise<replMenu.MenuItem[]> {
-  return (await fetchDramConfigs(dramsUrl())).map((config) => ({
+  return (await fetchDramConfigs(dramsPath())).map((config) => ({
     label: config.title,
     description: config.extraDetail,
     detail: config.description,
