@@ -100,12 +100,16 @@ const dramsPath = () => {
   );
 };
 
-export const dramUrl = (slug: string) => {
+export const dramBaseUrl = () => {
   const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
   const { isDevBuild, isDebug } = devBuild();
   return isDebug
-    ? `file://${path.join(calva.extensionPath)}/../dram/drams/v2/${slug}`
-    : `${DRAM_REPO_URL}/${isDevBuild ? 'dev' : 'published'}/drams/v2/${slug}`;
+    ? `file://${path.join(calva.extensionPath)}/../dram/drams/v2`
+    : `${DRAM_REPO_URL}/${isDevBuild ? 'dev' : 'published'}/drams/v2`;
+};
+
+export const dramUrl = (name: string) => {
+  return `${dramBaseUrl()}/${name}`;
 };
 
 type DramSourceConfig = {
