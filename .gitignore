@@ -89,6 +89,7 @@ output.calva-repl
 clojure.tmLanguage.json
 .cpcache/
 backup/
+bundled/drams-menu/drams-local.edn
 
 # Calva grammars (running the atom-ci docker image locally)
 src/calva-fmt/atom-language-clojure/.cache/
