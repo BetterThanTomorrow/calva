@@ -82,6 +82,7 @@ async function activate(context: vscode.ExtensionContext) {
   state.setExtensionContext(context);
   state.initDepsEdnJackInExecutable();
   const isDramStart = await drams.dramStartConfigExists();
+  void drams.refreshDramConfigs();
 
   const inspectorDataProvider = eval.initInspectorDataProvider();
   const inspectorTreeView = vscode.window.createTreeView('calva.inspector', {
