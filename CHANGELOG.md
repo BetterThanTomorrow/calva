@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.467] - 2024-07-14
+
+- Fix: [Test explorer creates a test case each time a keystroke is registered](https://github.com/BetterThanTomorrow/calva/issues/2530)
+
 ## [2.0.466] - 2024-07-13
 
 - Internal: Move drams-menu configuration to the Drams repository. Preparing for ways to contribute drams to Calva.

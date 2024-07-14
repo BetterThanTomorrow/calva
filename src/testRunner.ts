@@ -23,18 +23,15 @@ async function uriForFile(fileName: string): Promise<vscode.Uri> {
 }
 
 // Return a valid TestItem for the namespace.
-// Creates a new item if one does not exist, otherwise we find the existing entry.
+// Creates a new item and adds it to the controller, replacing any existing item for the namespace.
 // If a Range is supplied, that we set the range on the returned item.
-function upsertNamespace(
+function createCleanNamespaceItem(
   controller: vscode.TestController,
   uri: vscode.Uri,
   nsName: string,
   range?: vscode.Range
 ): vscode.TestItem {
-  let ns = controller.items.get(nsName);
-  if (!ns) {
-    ns = controller.createTestItem(nsName, nsName, uri);
-  }
+  const ns = controller.createTestItem(nsName, nsName, uri);
   if (range) {
     ns.range = range;
   }
@@ -52,7 +49,7 @@ function upsertTest(
   varName: string,
   range?: vscode.Range
 ): vscode.TestItem {
-  const ns = upsertNamespace(controller, uri, nsName);
+  const ns = controller.items.get(nsName);
   const testId = nsName + '/' + varName;
   let test = ns.children.get(testId);
   if (!test) {
@@ -483,7 +480,12 @@ function onTestTree(controller: vscode.TestController, testTree: lsp.TestTreePar
   }
   try {
     const uri = vscode.Uri.parse(testTree.uri);
-    const ns = upsertNamespace(controller, uri, testTree.tree.name, createRange(testTree.tree));
+    const ns = createCleanNamespaceItem(
+      controller,
+      uri,
+      testTree.tree.name,
+      createRange(testTree.tree)
+    );
     ns.canResolveChildren = true;
     testTree.tree.children.forEach((c) => {
       upsertTest(controller, uri, testTree.tree.name, c.name, createRange(c));
