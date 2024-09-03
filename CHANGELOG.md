@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.468] - 2024-09-03
+
 - Bump deps.clj to v1.11.3.1463
 - [Prioritize Workspace configured connect sequences over User configured dittos](https://github.com/BetterThanTomorrow/calva/issues/2606)
 
