@@ -2336,6 +2336,15 @@
 </ul>
 <p>The <a href="https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts">Calva built-in sequences</a> also use this format, check them out to get a clearer picture of how these settings work.</p>
 <div class="admonition note">
+<p class="admonition-title">How sequence configurations are merged</p>
+<p>The sequence configuration, <code>calva.replConnectSequences</code> is an array and the sequences in the array will be listed and processed in the order they appear. However, you can configure connect sequences in several places, even if they make most sense on the Workspace level. The configurations are merged in the following order:</p>
+<ol>
+<li>Workspace Folder settings</li>
+<li>Workspace settings</li>
+<li>User settings</li>
+</ol>
+</div>
+<div class="admonition note">
 <p class="admonition-title">Force the project type menu to show</p>
 <p>The convenience of <code>autoSelectForJackIn/Connect</code> can be an inconvenience when you want to use another project type/sequence for a project. For this reason, the <code>calva.connect</code> and <code>calva.jackIn</code> can be provided with an option <code>disableAutoSelect</code>, which forces the project root and project type menus to show. See <a href="../connect/#options-for-the-jack-in-command">Options for the Connect Command</a> and <a href="../connect/#options-for-the-connect-command">Options for the Jack-in Command</a> for more on this.</p>
 </div>
