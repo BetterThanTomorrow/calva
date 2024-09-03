@@ -183,9 +183,9 @@ function getConfig() {
   const replConnectSequencesConfig =
     configOptions.inspect<ReplConnectSequence[]>('replConnectSequences');
   const replConnectSequences = [
-    ...(replConnectSequencesConfig.globalValue ?? []),
-    ...(replConnectSequencesConfig.workspaceValue ?? []),
     ...(replConnectSequencesConfig.workspaceFolderValue ?? []),
+    ...(replConnectSequencesConfig.workspaceValue ?? []),
+    ...(replConnectSequencesConfig.globalValue ?? []),
   ].map((sequence) => {
     if (Array.isArray(sequence.afterCLJReplJackInCode)) {
       return {
