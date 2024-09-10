@@ -26,16 +26,5 @@ steps:
         ).vsix
       --test-workspace=src/extension-test/e2e-test
 
-- run:
-    name: Temporary debug preserving of VS Code network log
-    command:
-      for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log; do
-        echo "$f";
-        echo ---;
-        cat "$f";
-        echo ---;
-      done
-    when: always
-
 - !store:
     test_results: ~/calva/junit
