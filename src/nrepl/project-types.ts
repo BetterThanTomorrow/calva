@@ -400,9 +400,9 @@ const projectTypes: { [id: string]: ProjectType } = {
     name: 'shadow-cljs',
     cljsTypes: [],
     cmd: ['npx'],
-    winCmd: ['npx.cmd'],
+    winCmd: ['npx'],
     processShellUnix: true,
-    processShellWin: false,
+    processShellWin: true,
     useWhenExists: ['shadow-cljs.edn'],
     nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
     /**
