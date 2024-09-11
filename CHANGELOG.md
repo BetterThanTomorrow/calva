@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.470] - 2024-09-11
+
+- Bump deps.clj to v1.12.0.1479
+
 ## [2.0.469] - 2024-09-10
 
 - Fix: [Windows – Jack-in for shadow-cljs fails to start with "Error: spawn EINVAL" on the latest VS Code version](https://github.com/BetterThanTomorrow/calva/issues/2616)
