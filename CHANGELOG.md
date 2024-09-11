@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.470] - 2024-09-11
+
 - Bump deps.clj to v1.12.0.1479
 
 ## [2.0.469] - 2024-09-10
