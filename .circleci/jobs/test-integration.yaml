@@ -20,7 +20,7 @@ steps:
   - Apt install missing dependencies
   - sudo apt-key adv --keyserver keyserver.ubuntu.com
                      --recv-keys E88979FB9B30ACF2;
-    sudo apt update && sudo apt install -y libnss3
+    sudo apt update && sudo apt install -y libnss3 imagemagick
 
 - !cmd:
   - Pip install Basilisp (Python)
@@ -39,3 +39,7 @@ steps:
 
 - !store:
     test_results: ~/calva/junit
+
+- store_artifacts:
+    path: ~/calva/out/extension-test/integration/screenshots
+    destination: integration-screenshots
