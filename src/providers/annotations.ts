@@ -102,7 +102,8 @@ function decorateResults(
   const uri = editor.document.uri;
   const key = uri + ':resultDecorationRanges';
   let decorationRanges = util.cljsLib.getStateValue(key) || [];
-  const decoration = evaluated(` => ${resultString} `, resultString, hasError);
+  const resultTrimmed = resultString.trimStart();
+  const decoration = evaluated(` => ${resultTrimmed} `, resultTrimmed, hasError);
   decorationRanges = _.filter(decorationRanges, (o) => {
     return !o.codeRange.intersection(codeSelection);
   });
