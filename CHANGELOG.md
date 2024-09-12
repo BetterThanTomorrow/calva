@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.471] - 2024-09-12
+
+- [Trim leading newlines from the result/error string before inline display](https://github.com/BetterThanTomorrow/calva/issues/2617)
+
 ## [2.0.470] - 2024-09-11
 
 - Bump deps.clj to v1.12.0.1479
