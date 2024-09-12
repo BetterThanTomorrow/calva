@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Trim leading whitespaces from string before using as inline result/error decoration](https://github.com/BetterThanTomorrow/calva/issues/2617)
+- [Trim leading newlines from the result/error string before inline display](https://github.com/BetterThanTomorrow/calva/issues/2617)
 
 ## [2.0.470] - 2024-09-11
 
