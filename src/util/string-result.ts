@@ -13,7 +13,7 @@ function commentifyResult(firstPrefix: string, restPrefix: string, result: strin
 }
 
 export function resultAsComment(indent: number, result: string) {
-  const commentified = commentifyResult(';; => ', ';;    ', result);
+  const commentified = commentifyResult(';;=> ', ';;   ', result);
   const indented = indentAllLines(indent, commentified);
   const prepend = `${' '.repeat(indent)}`;
   return `\n${prepend}${indented}`;
