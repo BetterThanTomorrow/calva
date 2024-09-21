@@ -59,10 +59,11 @@ async function addAsComment(
   result: string,
   codeSelection: vscode.Selection,
   editor: vscode.TextEditor,
-  selection: vscode.Selection
+  selection: vscode.Selection,
+  commentStyle: string
 ) {
   const endOfLinePosition = editor.document.lineAt(codeSelection.end.line).range.end;
-  const commentText = resultAsComment(codeSelection.start.character, result);
+  const commentText = resultAsComment(codeSelection.start.character, result, commentStyle);
   await editor.edit((editBuilder) => {
     editBuilder.insert(endOfLinePosition, commentText);
   });
@@ -151,7 +152,13 @@ async function evaluateCodeUpdatingUI(
               void vscode.workspace.applyEdit(wsEdit);
             } else {
               if (editor && options.comment) {
-                await addAsComment(value, selection, editor, editor.selections[0]);
+                await addAsComment(
+                  value,
+                  selection,
+                  editor,
+                  editor.selections[0],
+                  options.commentStyle
+                );
               }
               if (editor && !outputWindow.isResultsDoc(editor.document)) {
                 annotations.decorateSelection(
@@ -194,7 +201,13 @@ async function evaluateCodeUpdatingUI(
             const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
             const currentCursorPos = editor.selections[0].active;
             if (editor && options.comment) {
-              await addAsComment(editorError, selection, editor, editor.selections[0]);
+              await addAsComment(
+                editorError,
+                selection,
+                editor,
+                editor.selections[0],
+                options.commentStyle
+              );
             }
             if (editor && !outputWindow.isResultsDoc(editor.document)) {
               annotations.decorateSelection(
