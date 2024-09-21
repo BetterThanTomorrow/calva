@@ -18,6 +18,7 @@ import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
 import { resultAsComment } from './util/string-result';
+import { highlight } from './highlight/src/extension';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -63,11 +64,11 @@ async function addAsComment(
   const c = codeSelection.start.character;
   const endOfLinePosition = editor.document.lineAt(codeSelection.end.line).range.end;
   const commentText = resultAsComment(c, result);
-  const edit = vscode.TextEdit.insert(endOfLinePosition, commentText);
-  const wsEdit = new vscode.WorkspaceEdit();
-  wsEdit.set(editor.document.uri, [edit]);
-  await vscode.workspace.applyEdit(wsEdit);
+  await editor.edit((editBuilder) => {
+    editBuilder.insert(endOfLinePosition, commentText);
+  });
   editor.selections = [selection];
+  highlight(editor);
 }
 
 // TODO: Clean up this mess
