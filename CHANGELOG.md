@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add some different types of comment styles when evaluating to comment](https://github.com/BetterThanTomorrow/calva/issues/2626)
+
 ## [2.0.472] - 2024-09-15
 
 - [Preserve whitespaces format of evaluation error in tooltip](https://github.com/BetterThanTomorrow/calva/issues/2623)
