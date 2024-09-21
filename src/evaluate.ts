@@ -323,7 +323,16 @@ function evaluateSelectionReplace(document = {}, options = {}) {
   }
 }
 
-function evaluateSelectionAsComment(document = {}, options = {}) {
+function validateCommentStyle(commentStyle: string) {
+  if (!['line', 'ignore', 'rcf'].includes(commentStyle)) {
+    throw new Error(
+      `Invalid comment style: ${commentStyle}. Must be one of "line", "ignore", or "rcf".`
+    );
+  }
+}
+
+function evaluateSelectionAsComment(options = { commentStyle: 'line' }, document = {}) {
+  validateCommentStyle(options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
       document,
@@ -338,7 +347,8 @@ function evaluateSelectionAsComment(document = {}, options = {}) {
   }
 }
 
-function evaluateTopLevelFormAsComment(document = {}, options = {}) {
+function evaluateTopLevelFormAsComment(options = { commentStyle: 'line' }, document = {}) {
+  validateCommentStyle(options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
       document,
