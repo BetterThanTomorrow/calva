@@ -17,7 +17,7 @@ import * as getText from './util/get-text';
 import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
-import { resultAsComment } from './util/result-as-comment';
+import { resultAsComment } from './util/string-result';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
