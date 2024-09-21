@@ -55,14 +55,15 @@ function interruptAllEvaluations() {
 }
 
 async function addAsComment(
-  c: number,
   result: string,
   codeSelection: vscode.Selection,
   editor: vscode.TextEditor,
   selection: vscode.Selection
 ) {
+  const c = codeSelection.start.character;
+  const endOfLinePosition = editor.document.lineAt(codeSelection.end.line).range.end;
   const commentText = resultAsComment(c, result);
-  const edit = vscode.TextEdit.insert(codeSelection.end, commentText);
+  const edit = vscode.TextEdit.insert(endOfLinePosition, commentText);
   const wsEdit = new vscode.WorkspaceEdit();
   wsEdit.set(editor.document.uri, [edit]);
   await vscode.workspace.applyEdit(wsEdit);
@@ -150,7 +151,7 @@ async function evaluateCodeUpdatingUI(
               void vscode.workspace.applyEdit(wsEdit);
             } else {
               if (editor && options.comment) {
-                await addAsComment(c, value, selection, editor, editor.selections[0]);
+                await addAsComment(value, selection, editor, editor.selections[0]);
               }
               if (editor && !outputWindow.isResultsDoc(editor.document)) {
                 annotations.decorateSelection(
@@ -193,13 +194,7 @@ async function evaluateCodeUpdatingUI(
             const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
             const currentCursorPos = editor.selections[0].active;
             if (editor && options.comment) {
-              await addAsComment(
-                selection.start.character,
-                editorError,
-                selection,
-                editor,
-                editor.selections[0]
-              );
+              await addAsComment(editorError, selection, editor, editor.selections[0]);
             }
             if (editor && !outputWindow.isResultsDoc(editor.document)) {
               annotations.decorateSelection(
