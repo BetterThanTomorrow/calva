@@ -2294,16 +2294,57 @@
 <p>Calva has many commands for evaluating forms, including the <strong>current form</strong> and the <strong>current top-level form</strong>.</p>
 <p>Some of the commands also let you choose what should happen with the results:</p>
 <ol>
-<li><strong>Inline.</strong> This will display the results (or some of it, if it is long) inline in the editor.</li>
+<li><strong>Inline.</strong> This will display the results (or some of it, if it is long) inline in the editor.<ul>
 <li>This also creates a hover pane including the full results and a button which will copy the results to the clipboard.</li>
 <li>There is also a command for copying the last result to the clipboard.</li>
 <li>The full results are always available in the <a href="../output/">output destination</a>.<ul>
 <li>There is a command for showing the output destination, allowing for a workflow where you either generally have it closed, or have it as one of the tabs in the same editor group as the files you are working with.</li>
 </ul>
 </li>
+</ul>
+</li>
 <li><strong>To comments.</strong> This will add the results as line comments below the current line.</li>
 <li><strong>Replace the evaluated code.</strong> This will do what it says, the evaluated code will be replaced with its results.</li>
 </ol>
+<details class="note">
+<summary>Evaluate to comments support different comment styles</summary>
+<p>When using the commands for evaluating to comments, <strong>Evaluate Top Level Form (defun) to Comment</strong>, and <strong>Evaluate Selection to Comment</strong>, the commands will insert the results as line comments (<code>;; ...</code>) below the evaluated form. However, there are two additional comment styles available. To use these you need to execute the commands via VS Code API, typically from keybindings. The commands take an argument map with the key <code>commentStyle</code>. You can choose between three different comment styles: <code>line</code>, <code>ignore</code>, and <code>rcf</code>:</p>
+<ul>
+<li>The default is <code>line</code>.</li>
+<li>The <code>line</code> style is the default.</li>
+<li>The <code>ignore</code> style will put an ignore marker (<code>#_</code>) before the result.</li>
+<li>The <code>rcf</code> style will wrap the result in a rich comment form ( <code>(comment ...)</code>).</li>
+</ul>
+<p>Here are some example keybindings for using the different comment styles with the <strong>Evaluate Top Level Form (defun) to Comment</strong> command:</p>
+<div class="highlight"><pre><span></span><code>{
+  &quot;key&quot;: &quot;ctrl+alt+c ctrl+space&quot;,
+  &quot;command&quot;: &quot;calva.evaluateTopLevelFormAsComment&quot;,
+  &quot;when&quot;: &quot;editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39;&quot;,
+  &quot;args&quot;: {
+    &quot;commentStyle&quot;: &quot;line&quot;
+  }
+},
+{
+  &quot;key&quot;: &quot;ctrl+alt+c ctrl+i&quot;,
+  &quot;command&quot;: &quot;calva.evaluateTopLevelFormAsComment&quot;,
+  // &quot;command&quot;: &quot;calva.evaluateSelectionAsComment&quot;,
+  &quot;when&quot;: &quot;editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39;&quot;,
+  &quot;args&quot;: {
+    &quot;commentStyle&quot;: &quot;ignore&quot;
+  }
+},
+{
+  &quot;key&quot;: &quot;ctrl+alt+c ctrl+r&quot;,
+  &quot;command&quot;: &quot;calva.evaluateTopLevelFormAsComment&quot;,
+  // &quot;command&quot;: &quot;calva.evaluateSelectionAsComment&quot;,
+  &quot;when&quot;: &quot;editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39;&quot;,
+  &quot;args&quot;: {
+    &quot;commentStyle&quot;: &quot;rcf&quot;
+  }
+},
+</code></pre></div>
+<p>The first keybinding there is the default for the command, and only included as an example.</p>
+</details>
 <h2 id="wait-current-form-top-level-form">Wait, Current Form? Top-level Form?<a class="headerlink" href="#wait-current-form-top-level-form" title="Permanent link">#</a></h2>
 <p>These are important concepts in Calva in order for you to create your most effective workflow. This video explains it a bit:</p>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/8ygw7LLLU1w" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
