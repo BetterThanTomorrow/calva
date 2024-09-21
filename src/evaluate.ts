@@ -17,6 +17,7 @@ import * as getText from './util/get-text';
 import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
+import { resultAsComment } from './util/result-as-comment';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -60,13 +61,9 @@ async function addAsComment(
   editor: vscode.TextEditor,
   selection: vscode.Selection
 ) {
-  const indent = `${' '.repeat(c)}`,
-    output = result
-      .replace(/\n\r?$/, '')
-      .split(/\n\r?/)
-      .join(`\n${indent};;    `),
-    edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`),
-    wsEdit = new vscode.WorkspaceEdit();
+  const commentText = resultAsComment(c, result);
+  const edit = vscode.TextEdit.insert(codeSelection.end, commentText);
+  const wsEdit = new vscode.WorkspaceEdit();
   wsEdit.set(editor.document.uri, [edit]);
   await vscode.workspace.applyEdit(wsEdit);
   editor.selections = [selection];
