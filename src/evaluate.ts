@@ -61,9 +61,8 @@ async function addAsComment(
   editor: vscode.TextEditor,
   selection: vscode.Selection
 ) {
-  const c = codeSelection.start.character;
   const endOfLinePosition = editor.document.lineAt(codeSelection.end.line).range.end;
-  const commentText = resultAsComment(c, result);
+  const commentText = resultAsComment(codeSelection.start.character, result);
   await editor.edit((editBuilder) => {
     editBuilder.insert(endOfLinePosition, commentText);
   });
