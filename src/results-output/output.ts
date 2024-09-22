@@ -221,6 +221,7 @@ function appendClojure(
     }
   } else if (destination === 'terminal') {
     const printerOptions = { ...printer.prettyPrintingOptions(), 'color?': true };
+    delete printerOptions.printFn; // Zprint croaks on options it doesn't understand
     const prettyMessage = printer.prettyPrint(message, printerOptions)?.value || message;
     // TODO: Figure if it's worth a setting to opt-in on an ns info line
     getOutputPTY().write(`${didLastTerminateLine ? '' : '\n'}${nsInfoLine(destination, options)}`);
