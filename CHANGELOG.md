@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- [Sync the extensions between Calva an Calva Spritz](https://github.com/BetterThanTomorrow/calva/issues/2629)
+- [Synchronize the file extensions for Calva and Calva Spritz](https://github.com/BetterThanTomorrow/calva/issues/2629)
 
 ## [2.0.473] - 2024-09-21
 
