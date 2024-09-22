@@ -32,7 +32,6 @@ Some of the commands also let you choose what should happen with the results:
 ??? Note "Evaluate to comments support different comment styles"
     When using the commands for evaluating to comments, **Evaluate Top Level Form (defun) to Comment**, and **Evaluate Selection to Comment**, the commands will insert the results as line comments (`;; ...`) below the evaluated form. However, there are two additional comment styles available. To use these you need to execute the commands via VS Code API, typically from keybindings. The commands take an argument map with the key `commentStyle`. You can choose between three different comment styles: `line`, `ignore`, and `rcf`:
 
-    * The default is `line`.
     * The `line` style is the default.
     * The `ignore` style will put an ignore marker (`#_`) before the result.
     * The `rcf` style will wrap the result in a rich comment form ( `(comment ...)`).
