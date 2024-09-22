@@ -2310,7 +2310,6 @@
 <summary>Evaluate to comments support different comment styles</summary>
 <p>When using the commands for evaluating to comments, <strong>Evaluate Top Level Form (defun) to Comment</strong>, and <strong>Evaluate Selection to Comment</strong>, the commands will insert the results as line comments (<code>;; ...</code>) below the evaluated form. However, there are two additional comment styles available. To use these you need to execute the commands via VS Code API, typically from keybindings. The commands take an argument map with the key <code>commentStyle</code>. You can choose between three different comment styles: <code>line</code>, <code>ignore</code>, and <code>rcf</code>:</p>
 <ul>
-<li>The default is <code>line</code>.</li>
 <li>The <code>line</code> style is the default.</li>
 <li>The <code>ignore</code> style will put an ignore marker (<code>#_</code>) before the result.</li>
 <li>The <code>rcf</code> style will wrap the result in a rich comment form ( <code>(comment ...)</code>).</li>
