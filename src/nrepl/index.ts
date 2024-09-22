@@ -3,14 +3,19 @@ import { BEncoderStream, BDecoderStream } from './bencode';
 import * as cider from './cider';
 import * as state from './../state';
 import * as util from '../utilities';
-import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from '../printer';
+import {
+  PrettyPrintingOptions,
+  disabledPrettyPrinter,
+  getServerSidePrinter,
+  prettyPrint,
+} from '../printer';
 import * as debug from '../debugger/calva-debug';
 import * as vscode from 'vscode';
 import debugDecorations from '../debugger/decorations';
 import * as outputWindow from '../repl-window/repl-doc';
 import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
-import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
+import { getStateValue } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
 import { log, Direction } from './logging';
 import * as string from '../util/string';
