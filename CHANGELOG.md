@@ -4,10 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Can't start REPL in lein projects with backtick on project.clj](https://github.com/BetterThanTomorrow/calva/issues/2633)
+
 ## [2.0.474] - 2024-09-22
 
 - [Synchronize the file extensions for Calva and Calva Spritz](https://github.com/BetterThanTomorrow/calva/issues/2629)
-- [Terminal output pretty printing fails when using `printerFn` pretty print option](https://github.com/BetterThanTomorrow/calva/issues/2630)
+- Fix: [Terminal output pretty printing fails when using `printerFn` pretty print option](https://github.com/BetterThanTomorrow/calva/issues/2630)
 
 ## [2.0.473] - 2024-09-21
 

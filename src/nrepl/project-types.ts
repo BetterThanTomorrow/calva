@@ -158,7 +158,9 @@ async function leinDefProject(): Promise<any> {
     const parsed = parseForms(data);
     return parsed.find((x) => x[0] == 'defproject');
   } catch (e) {
-    void vscode.window.showErrorMessage('Could not parse project.clj');
+    void vscode.window.showErrorMessage(
+      "Could not parse project.clj. You'll need to start the REPL manually, and then use the Connect REPL command instead."
+    );
     throw e;
   }
 }
