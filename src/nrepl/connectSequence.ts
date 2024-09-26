@@ -67,6 +67,7 @@ interface ReplConnectSequence {
   cljsType: CljsTypes | CljsTypeConfig;
   menuSelections?: MenuSelections;
   nReplPortFile?: string[];
+  extraNReplMiddleware?: string[];
   jackInEnv?: Record<string, string>;
 }
 
