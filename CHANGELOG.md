@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.476] - 2024-09-28
+
+- Fix: [Formatting and some pretty printing croaks on new Clojure 1.12.0 syntax](https://github.com/BetterThanTomorrow/calva/issues/2637)
+
 ## [2.0.475] - 2024-09-24
 
 - Fix: [Can't start REPL in lein projects with backtick on project.clj](https://github.com/BetterThanTomorrow/calva/issues/2633)
