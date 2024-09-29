@@ -87,9 +87,9 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
   const workspaceSnippets = getConfig().customREPLCommandSnippetsWorkspace;
   const workspaceFolderSnippets = getConfig().customREPLCommandSnippetsWorkspaceFolder;
   let snippets = [
-    ...(globalSnippets ? globalSnippets : []),
-    ...(workspaceSnippets ? workspaceSnippets : []),
     ...(workspaceFolderSnippets ? workspaceFolderSnippets : []),
+    ...(workspaceSnippets ? workspaceSnippets : []),
+    ...(globalSnippets ? globalSnippets : []),
   ];
   if (snippets.length < 1) {
     snippets = getConfig().customREPLCommandSnippets;
