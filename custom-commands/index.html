@@ -2169,7 +2169,7 @@
 <li><code>$tail</code>: The text between the cursor and the end of the current list</li>
 </ul>
 <h2 id="user-and-workspace-settings">User and Workspace Settings<a class="headerlink" href="#user-and-workspace-settings" title="Permanent link">#</a></h2>
-<p>Settings from your User (global) level and the workspace are merged.</p>
+<p>Settings from your User (global) level and the workspace are concatenated. Except for the <code>key</code> field, are merged.</p>
 <p>With these <strong>User</strong> settings:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span>
@@ -2206,8 +2206,7 @@
 <span class="w">        </span><span class="p">}</span>
 <span class="w">    </span><span class="p">],</span>
 </code></pre></div>
-<p>Issuing <strong>Run Custom REPL Command</strong> will then render this VS Code menu:</p>
-<p><img alt="" src="../images/custom-command-menu.png" /></p>
+<p>Issuing <strong>Run Custom REPL Command</strong> will then render a VS Code menu with all the commands, where the Workspace configured commands will be listed first.</p>
 <p>The default keyboard shortcut for the command is <code>ctrl+alt+space space</code>. (Beware: on MacOS it may conflict with the default shortuct for Input Sources - Select next source in Input menu.)</p>
 <h2 id="binding-keyboard-shortcuts">Binding Keyboard Shortcuts<a class="headerlink" href="#binding-keyboard-shortcuts" title="Permanent link">#</a></h2>
 <p>There are four ways to bind shortcuts to custom commands:</p>
@@ -2216,7 +2215,7 @@
 <li>The digits <code>0</code> through <code>9</code></li>
 <li>The English letters <code>a</code> through <code>z</code></li>
 <li>Arrow keys <code>right</code>, <code>left</code>, <code>up</code>, or <code>down</code></li>
-<li>One of <code>tab</code>, <code>backspace</code>, <code>,</code>, <code>.</code>, or <code>-</code> </li>
+<li>One of <code>tab</code>, <code>backspace</code>, <code>,</code>, <code>.</code>, or <code>-</code></li>
 </ul>
 </li>
 <li>Bind <code>calva.runCustomREPLCommand</code> to a shortcut with whatever code you want to evaluate in the <code>args</code> slot. You have access to the substitution variables here as well.</li>
