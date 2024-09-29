@@ -44,7 +44,7 @@ There are also substitutions available, which will take elements from the curren
 
 ## User and Workspace Settings
 
-Settings from your User (global) level and the workspace are merged.
+Settings from your User (global) level and the workspace are concatenated. Except for the `key` field, are merged.
 
 With these **User** settings:
 
@@ -89,9 +89,7 @@ And these **Workspace** settings:
 
 ```
 
-Issuing **Run Custom REPL Command** will then render this VS Code menu:
-
-![](images/custom-command-menu.png)
+Issuing **Run Custom REPL Command** will then render a VS Code menu with all the commands, where the Workspace configured commands will be listed first.
 
 The default keyboard shortcut for the command is `ctrl+alt+space space`. (Beware: on MacOS it may conflict with the default shortuct for Input Sources - Select next source in Input menu.)
 
@@ -103,7 +101,7 @@ There are four ways to bind shortcuts to custom commands:
     * The digits `0` through `9`
     * The English letters `a` through `z`
     * Arrow keys `right`, `left`, `up`, or `down`
-    * One of `tab`, `backspace`, `,`, `.`, or `-` 
+    * One of `tab`, `backspace`, `,`, `.`, or `-`
 2. Bind `calva.runCustomREPLCommand` to a shortcut with whatever code you want to evaluate in the `args` slot. You have access to the substitution variables here as well.
 3. Bind `calva.runCustomREPLCommand` to a keyboard shortcut referencing the `key` of one of your `calva.customREPLCommandSnippets`. (If not using any of the `key`s mentioned in **1.**)
 4. Bind `calva.runCustomREPLCommand` to a shortcut with a `customREPLCommandSnippets` in the `args` slot. You have access to the substitution variables here as well.
