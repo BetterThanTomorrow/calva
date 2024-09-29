@@ -106,8 +106,12 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
     const entry = { ...c };
     entry.ns = entry.ns ? entry.ns : editorNS;
     entry.repl = entry.repl ? entry.repl : editorRepl;
-    const prefix = entry.key !== undefined ? `${entry.key}: ` : '';
-    const item = { label: `${prefix}${entry.name} (${entry.repl})`, snippet: entry.snippet };
+    const item = {
+      label: `${entry.key ? entry.key + ': ' : ''}${entry.name}`,
+      detail: `${entry.snippet}`,
+      description: `${entry.repl}`,
+      snippet: entry.snippet,
+    };
     snippetsMenuItems.push(item);
     if (!snippetsDict[entry.key]) {
       snippetsDict[entry.key] = entry;
