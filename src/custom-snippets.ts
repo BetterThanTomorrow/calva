@@ -95,8 +95,7 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
     snippets = getConfig().customREPLCommandSnippets;
   }
   const snippetsDict = {};
-  const snippetsKeyDict = {};
-  const snippetsMenuItems: string[] = [];
+  const snippetsMenuItems: vscode.QuickPickItem[] = [];
   snippets.forEach((c: CustomREPLCommandSnippet) => {
     const undefs = ['name', 'snippet'].filter((k) => {
       return !c[k];
@@ -108,10 +107,11 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
     entry.ns = entry.ns ? entry.ns : editorNS;
     entry.repl = entry.repl ? entry.repl : editorRepl;
     const prefix = entry.key !== undefined ? `${entry.key}: ` : '';
-    const item = `${prefix}${entry.name} (${entry.repl})`;
+    const item = { label: `${prefix}${entry.name} (${entry.repl})`, snippet: entry.snippet };
     snippetsMenuItems.push(item);
-    snippetsDict[item] = entry;
-    snippetsKeyDict[entry.key] = item;
+    if (!snippetsDict[entry.key]) {
+      snippetsDict[entry.key] = entry;
+    }
   });
 
   if (configErrors.length > 0) {
@@ -123,20 +123,20 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
     return;
   }
 
-  let pick: string;
+  let pick: any;
   if (codeOrKey === undefined) {
     // Called without args, show snippets menu
     if (snippetsMenuItems.length > 0) {
       try {
         const pickResult = await util.quickPickSingle({
-          values: snippetsMenuItems.map((a) => ({ label: a })),
+          values: snippetsMenuItems,
           placeHolder: 'Choose a command to run at the REPL',
           saveAs: 'runCustomREPLCommand',
         });
         if (pickResult === undefined || pickResult.label.length < 1) {
           return;
         }
-        pick = pickResult.label; // Assign the label property to pick
+        pick = pickResult;
       } catch (e) {
         console.error(e);
       }
@@ -151,10 +151,10 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
 
   if (pick === undefined) {
     // still no pick, but codeOrKey might be one
-    pick = snippetsKeyDict[codeOrKey];
+    pick = snippetsDict[codeOrKey];
   }
 
-  return pick !== undefined ? snippetsDict[pick] : { snippet: codeOrKey };
+  return pick ?? { snippet: codeOrKey };
 }
 
 export function makeContext(editor: vscode.TextEditor, ns: string, editorNS: string, repl: string) {
