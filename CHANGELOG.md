@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.477] - 2024-09-29
+
 - Fix: [Global custom repl command keys override workspace dittos, should be the other way around](https://github.com/BetterThanTomorrow/calva/issues/2640)
 
 ## [2.0.476] - 2024-09-28
