@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.478] - 2024-09-30
+
+- [Calva should not suggest projects in a .devenv/ directory when starting a project REPL and connecting (jack-in)](https://github.com/BetterThanTomorrow/calva/issues/2642)
 - [Add `extraNReplMiddleware` to `connectSequence`](https://github.com/BetterThanTomorrow/calva/issues/1691)
 
 ## [2.0.477] - 2024-09-29
