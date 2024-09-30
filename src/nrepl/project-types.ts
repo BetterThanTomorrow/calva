@@ -668,7 +668,11 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
     ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
     ...serverPrinterDependencies,
   };
-  const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
+  const useMiddleware = [
+    ...middleware,
+    ...(cljsType ? cljsMiddleware[cljsType] : []),
+    ...(connectSequence.extraNReplMiddleware || []),
+  ];
 
   const aliasesFlag = getStateValue('isClojureCLIVersionAncient') ? ['-A', ''] : ['-M', '-M'];
   const aliasesOption =
