@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Autostart REPL in created projects, also when created in the current folder](https://github.com/BetterThanTomorrow/calva/issues/2644)
+
 ## [2.0.478] - 2024-09-30
 
 - [Add `extraNReplMiddleware` to `connectSequence`](https://github.com/BetterThanTomorrow/calva/issues/1691)
