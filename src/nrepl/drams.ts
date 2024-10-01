@@ -226,7 +226,14 @@ export async function createAndOpenDram(
 
   await serializeDramStartConfig(projectRootUri, { config });
 
-  return vscode.commands.executeCommand('vscode.openFolder', projectRootUri, true);
+  const currentWorkspaceFolder = vscode.workspace.workspaceFolders?.[0];
+
+  if (currentWorkspaceFolder && currentWorkspaceFolder.uri.fsPath === projectRootUri.fsPath) {
+    await startDram();
+    return vscode.commands.executeCommand('calva.jackIn');
+  } else {
+    return vscode.commands.executeCommand('vscode.openFolder', projectRootUri, true);
+  }
 }
 
 function ARGS_FILE_PATH(projectRootUri: vscode.Uri) {
