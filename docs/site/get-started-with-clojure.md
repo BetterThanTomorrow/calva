@@ -59,7 +59,11 @@ If you have these things installed, and just want to get going, jump to [Start t
 
 ??? Note "I don't want to install anything"
 
-    OK. There is actually a zero-install option, with VS Code running in the browser (using [https://gitpod.io](Gitpod)). Click this button to start the guide.
+    OK. There is actually a zero-install option, at least until April 1 2025, using only the the browser (utilizing [https://gitpod.io](Gitpod)).
+
+    **NB: This Zero install option will stop working on April 1, 2025, when Gitpod is sunsetting what they now call Gitpod Classic. Enjoy it while it lasts! And uncountable thanks to Gitpod for having made this option possible for three years! 🙏❤️**
+
+    Click this button to start the guide.
 
     <div style="display: flex; flex-direction: column; align-items: center;">
 
