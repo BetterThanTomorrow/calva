@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [ns inner blocks are kept on the same line by default when using the clean ns command](https://github.com/BetterThanTomorrow/calva/issues/2648)
+
 ## [2.0.479] - 2024-10-01
 
 - [Autostart REPL in created projects, also when created in the current folder](https://github.com/BetterThanTomorrow/calva/issues/2644)
