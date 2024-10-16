@@ -28,7 +28,7 @@ import * as inspector from '../providers/inspector';
 
 function resolveEnvVariables(entry: any): any {
   if (typeof entry === 'string') {
-    const s = entry.replace(/\$\{env:(\w+)\}/, (_, v) => (process.env[v] ? process.env[v] : ''));
+    const s = entry.replace(/\$\{env:(\w+)\}/g, (_, v) => (process.env[v] ? process.env[v] : ''));
     return s;
   } else {
     return entry;
