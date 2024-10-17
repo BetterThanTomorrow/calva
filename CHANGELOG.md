@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Only the first environment variable is resolved in jackInEnvironment](https://github.com/BetterThanTomorrow/calva/issues/2650)
 
 - Fix: [ns inner blocks are kept on the same line by default when using the clean ns command](https://github.com/BetterThanTomorrow/calva/issues/2648)
 
