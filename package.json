@@ -820,6 +820,7 @@
               "*.code-search",
               ".cpcache",
               "_darcs",
+              ".devenv",
               ".DS_Store",
               ".ensime_cache",
               ".eunit",

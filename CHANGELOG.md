@@ -13,6 +13,9 @@ Changes to Calva.
 
 ## [2.0.478] - 2024-09-30
 
+## [2.0.478] - 2024-09-30
+
+- [Stop Calva from, by default, including .devenv/ directory when starting a project REPL](https://github.com/BetterThanTomorrow/calva/issues/2642)
 - [Add `extraNReplMiddleware` to `connectSequence`](https://github.com/BetterThanTomorrow/calva/issues/1691)
 
 ## [2.0.477] - 2024-09-29
