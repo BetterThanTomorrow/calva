@@ -405,7 +405,7 @@ export class LispTokenCursor extends TokenCursor {
     let hasReader = false;
     while (true) {
       cursor.backwardWhitespace();
-      if (cursor.getPrevToken().type === 'reader') {
+      if (['reader', 'ignore'].includes(cursor.getPrevToken().type)) {
         cursor.previous();
         this.set(cursor);
         hasReader = true;
@@ -425,7 +425,7 @@ export class LispTokenCursor extends TokenCursor {
     let hasReader = false;
     while (true) {
       cursor.forwardWhitespace();
-      if (cursor.getToken().type === 'reader') {
+      if (['reader', 'ignore'].includes(cursor.getToken().type)) {
         cursor.next();
         this.set(cursor);
         hasReader = true;
@@ -653,6 +653,7 @@ export class LispTokenCursor extends TokenCursor {
         cursor.getToken().type !== 'reader' &&
         !cursor.tokenBeginsMetadata() &&
         cursor.getPrevToken().type !== 'reader' &&
+        cursor.getPrevToken().type !== 'ignore' &&
         !cursor.prevTokenBeginsMetadata()
       ) {
         if (cursor.backwardSexp() && !cursor.tokenBeginsMetadata()) {
