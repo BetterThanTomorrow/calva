@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Update deps.clj to version 1.12.0.1488
+- [Enable linkedEditingRange provided by clojure-lsp](https://github.com/BetterThanTomorrow/calva/pull/2704/files)
+
 ## [2.0.483] - 2025-01-08
 
 - Fix: [Paredit garbles while backspacing rapidly](https://github.com/BetterThanTomorrow/calva/issues/2611)
@@ -12,7 +15,7 @@ Changes to Calva.
 
 ## [2.0.482] - 2024-12-03
 
-- Fix: [Added 'replace-refer-all-with-alias' & 'replace-refer-all-with-refer' actions to calva.](https://github.com/BetterThanTomorrow/calva/issues/2667) 
+- Fix: [Added 'replace-refer-all-with-alias' & 'replace-refer-all-with-refer' actions to calva.](https://github.com/BetterThanTomorrow/calva/issues/2667)
 
 ## [2.0.481] - 2024-10-29
 
