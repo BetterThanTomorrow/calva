@@ -170,9 +170,6 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
           }
           return next(change);
         },
-        provideLinkedEditingRange: (_document, _position, _token, _next): null => {
-          return null;
-        },
         async provideHover(document, position, token, next) {
           const hovers = await provideHover(getClientProvider(), document, position);
           if (hovers) {
