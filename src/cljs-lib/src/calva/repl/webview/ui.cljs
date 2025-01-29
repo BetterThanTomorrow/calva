@@ -23,6 +23,7 @@
 (replicant/set-dispatch! dispatch)
 
 (defn repl-output-element
+  "Creates a repl output element - adding a unique ID to the :output-element/id attribute."
   [element-data]
   (merge element-data
          {:output-element/id (random-uuid)}))
