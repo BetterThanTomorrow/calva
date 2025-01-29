@@ -2,6 +2,7 @@
   (:require
    [replicant.dom :as replicant]))
 
+;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
 
 (defmulti run-command
