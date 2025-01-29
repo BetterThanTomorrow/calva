@@ -1,6 +1,5 @@
 (ns calva.repl.webview.ui
   (:require
-
    [replicant.dom :as replicant]))
 
 (def output-dom-element (js/document.getElementById "output"))
