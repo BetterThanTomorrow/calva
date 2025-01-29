@@ -1,0 +1,18 @@
+[{:title "Create a Getting Started REPL project",
+  :src "https://raw.githubusercontent.com/BetterThanTomorrow/dram/dev/drams/v2/calva_getting_started",
+  :description "An interactive guide introducing you to Calva and Clojure.",
+  :extraDetail "Requires Java"}
+ {:title "Create a ClojureScript Quick Start Browser Project",
+  :src "https://raw.githubusercontent.com/BetterThanTomorrow/dram/dev/drams/v2/calva_cljs_browser_quick_start",
+  :extraDetail "Requires Java"}
+ {:title "Create a ClojureScript Quick Start Node Project",
+  :src "https://raw.githubusercontent.com/BetterThanTomorrow/dram/dev/drams/v2/calva_cljs_node_quick_start",
+  :extraDetail "Requires Java & Node.js"}
+ {:title "Create a mini Clojure project",
+  :src "https://raw.githubusercontent.com/BetterThanTomorrow/dram/dev/drams/v2/mini",
+  :extraDetail "Starts a REPL, requires Java",
+  :description "A quick way to Fire up a Clojure REPL"}
+ {:title "Create a mini shadow-cljs Fullstack project",
+  :src "https://raw.githubusercontent.com/BetterThanTomorrow/dram/dev/drams/v2/mini_shadow_fullstack",
+  :extraDetail "Starts a REPL, requires Java",
+  :description "From Thomas Helller's Fullstack Workflow with shadow-cljs"}]

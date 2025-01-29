@@ -21,7 +21,7 @@ Calva integrates this information in two ways:
     * **Print clojuredocs.org examples to OutputWindow**, `ctrl+alt+o d`
 2. ClojureDocs information is included in the symbol lookup hovers, where each example has two buttons:
     * **To Rich Comment**
-    * **To Output Window** 
+    * **To Output**
 
 That means that if you just want to glance at the examples, you look in the hover. And when you want to bring the examples to the REPL to play with them, you can do so very easily.
 
@@ -56,9 +56,9 @@ That first example would be interesting to play with, right? Click **To Rich Com
       trimmed-text)))
 
 (comment
-  ;; = when-not - Example 1 = 
+  ;; = when-not - Example 1 =
 
-  ;; build tuples over sets with the same cardinality 
+  ;; build tuples over sets with the same cardinality
   (map
    #(when-not (= %2 %3) [%1 %2 %3])
    (iterate inc 0)   ; a lazy list of indices

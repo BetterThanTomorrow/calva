@@ -212,12 +212,18 @@ jobs:
         command: npm run compile-test
     - run:
         name: Apt install missing dependencies
-        command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3
+        command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3 imagemagick
+    - run:
+        name: Pip install Basilisp (Python)
+        command: sudo add-apt-repository --yes ppa:deadsnakes/ppa; sudo apt-get update; sudo apt-get install python3.12; wget https://bootstrap.pypa.io/get-pip.py; sudo python3.12 get-pip.py; sudo python3.12 -m pip install --upgrade pip setuptools wheel; sudo python3.12 -m pip install pipenv; python3.12 -m pip install basilisp==0.1.0b2;
     - run:
         name: Run Extension Tests
         command: npm run integration-test
     - store_test_results:
         path: ~/calva/junit
+    - store_artifacts:
+        path: ~/calva/out/extension-test/integration/screenshots
+        destination: integration-screenshots
   test-e2e:
     docker:
     - image: cimg/clojure:1.11-browsers
@@ -234,10 +240,6 @@ jobs:
     - run:
         name: Run VSIX E2E Tests
         command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$( node -p 'require("./package.json").version' ).vsix --test-workspace=src/extension-test/e2e-test
-    - run:
-        name: Temporary debug preserving of VS Code network log
-        command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log; do echo "$f"; echo ---; cat "$f"; echo ---; done
-        when: always
     - store_test_results:
         path: ~/calva/junit
   test-e2e-sub-projects:
@@ -256,10 +258,6 @@ jobs:
     - run:
         name: Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
         command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$( node -p 'require("./package.json").version' ).vsix --test-workspace=test-data/projects/e2e-sub-projects
-    - run:
-        name: Temporary debug preserving of VS Code network log
-        command: for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log; do echo "$f"; echo ---; cat "$f"; echo ---; done
-        when: always
     - store_test_results:
         path: ~/calva/junit
   github-release:

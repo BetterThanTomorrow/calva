@@ -150,7 +150,6 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
         'auto-add-ns-to-new-files?': true,
         'document-formatting?': false,
         'document-range-formatting?': false,
-        'keep-require-at-start?': true,
       },
       middleware: {
         didOpen: (document, next) => {

@@ -223,7 +223,7 @@ NOTE: You can of course pass other env variables here.
 
 Once you saved the file, the next time you `Jack in` the project, this variable is read by the JVM and the configuration is applied accordingly.
 
-You should see something like the message below in the Calva terminal output window:
+You should see something like the message below in the Calva jack-in terminal:
 
 ```shell
 clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version,"0.8.3"},cider/cider-nrepl {:mvn/version,"0.26.0"}}}' -A:debug -m nrepl.cmdline --middleware "[cider.nrepl/cider-middleware]"

@@ -5,7 +5,7 @@ description: The REPL window can be used as a live coding environment, and can a
 
 # The REPL Window/File
 
-The Calva REPL Window is actually a regular file with some extra treatment from Calva, like displaying a prompt, offering evaluation history recall and generally “following” the current namespace. This file is created and opened when Calva is connected to a REPL. You can use it for experimental code (though there are also [Rich Comments](rich-comments.md) and [Fiddle Files](fiddle-files.md) for this). 
+The Calva REPL Window is actually a regular file with some extra treatment from Calva, like displaying a prompt, offering evaluation history recall and generally “following” the current namespace. This file is created and opened when Calva is connected to a REPL. You can use it for experimental code (though there are also [Rich Comments](rich-comments.md) and [Fiddle Files](fiddle-files.md) for this).
 
 In ClojureScript projects, the window will be associated with the `cljs` REPL once it is connected. It will then look something like this:
 
@@ -46,7 +46,7 @@ If the REPL Window is the configured destination for evaluation results, the def
 
 ![eval-results-1](images/howto/output/eval-results-1.png)
 
-If you then switch to the output window (`ctrl+alt+o r`), and enter this at the prompt:
+If you then switch to the repl window (`ctrl+alt+o r`), and enter this at the prompt:
 
 ```clojure
 mount-target
@@ -74,7 +74,7 @@ You can clear the repl history by running the command "Clear REPL History" from 
 
 ## Stack Traces
 
-When an evaluation produces an error, it will automatically be printed in the REPL Window. If there is a stack trace associated with the error, it can now be printed on demand using the **Calva: Print Last Stacktrace to the Output Window** command. You can also print the stack trace for any error message printed to the REPL Window via the Codelens button below it.
+When an evaluation produces an error, it will automatically be printed in the REPL Window. If there is a stack trace associated with the error, it can now be printed on demand using the **Calva: Print Last Stacktrace to the REPL Window** command. You can also print the stack trace for any error message printed to the REPL Window via the Codelens button below it.
 
 ![Print Stacktrace Codelense button](images/howto/output/print-stacktrace-codelense.png "Print Stacktrace Codelense button")
 
@@ -83,7 +83,7 @@ For printed stacktraces, when source locations are available (Clojure files), yo
 ![Stack trace clicking and peeking definition](images/howto/output/stack-traces.gif "Stack trace clicking and peeking definition")
 
 !!! Note "Output destinations"
-    If you have configured some other destination for stderr output, the error message will be printed there as well. But it will _also_ be printed to the REPL Window, because the augmented stack traces need this (because reasons). 
+    If you have configured some other destination for stderr output, the error message will be printed there as well. But it will _also_ be printed to the REPL Window, because the augmented stack traces need this (because reasons).
 
 ## Load Current Namespace
 
@@ -110,7 +110,7 @@ Suppose you have two files, `pez/xxx.clj` and `pez/yyy.clj`, where `pez.yyy` req
 
 Then, with a freshly jacked-in REPL, you evaluate `(ns pez.yyy)` and want to work with the vars defined there, Clojure will complain. But if you **Load/Evaluate Current File and its Requires/Dependencies**, it will start working. Something like so:
 
-![Load Current Namespace in the Calva Output Window](images/howto/output/load-current-namespace.png)
+![Calva: Switch Namespace in REPL Window to Current Namespace](images/howto/output/load-current-namespace.png)
 
 !!! Note
     This currently suffers from a limitation in Calva where it won't reload dependencies, so you will sometimes have to do this ”manually” anyways (by opening the files and loading them yourself). See [Calva issue #907](https://github.com/BetterThanTomorrow/calva/issues/907)
@@ -127,7 +127,7 @@ The REPL Window is mostly a regular Calva Clojure/ClojureScript file, which make
 
 ## Debugger Enabled
 
-The output window is mostly a regular... (you get it), which means you also have the [Calva debugger](debugger.md) at your command at the REPL prompt (only for `clj` sessions, for now). So instead of evaluating a function definition using `alt+enter`, you can evaluate it and instrument it for debugging using `ctrl+alt+c i`, and then call the function.
+The repl window is mostly a regular... (you get it), which means you also have the [Calva debugger](debugger.md) at your command at the REPL prompt (only for `clj` sessions, for now). So instead of evaluating a function definition using `alt+enter`, you can evaluate it and instrument it for debugging using `ctrl+alt+c i`, and then call the function.
 
 ![repl-file debugger](images/howto/output/repl-file-debugger.png)
 

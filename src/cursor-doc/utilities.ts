@@ -41,7 +41,7 @@ export function isRightSexpStructural(cursor: LispTokenCursor): boolean {
     return false;
   }
   cursor.forwardSexp(true, true, false);
-  cursor.backwardSexp(false, false, false, false);
+  cursor.backwardSexp(false, false, false);
 
   const token = cursor.getToken();
   if (token.type === 'open') {

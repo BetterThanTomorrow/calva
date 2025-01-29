@@ -1,9 +1,10 @@
 SHELL := bash
 
-YS_VERSION := 0.1.56
-YS_PREFIX := /tmp/yamlscript
+YS_VERSION := 0.1.82
+YS_PREFIX := /tmp/yamlscript-calva
 YS_BIN := $(YS_PREFIX)/bin
-YS_CLI := $(YS_BIN)/ys
+YS := ys-$(YS_VERSION)
+YS_CLI := $(YS_BIN)/$(YS)
 
 CONFIG := config.yml
 
@@ -45,18 +46,25 @@ build: $(CONFIG)
 
 test: shellcheck
 
+env: $(YS_CLI)
+	which ys
+	ys --version
+
 clean:
 	$(RM) _$(CONFIG)
 	$(RM) -r shellcheck*
 
 #------------------------------------------------------------------------------
 
-%.yml: %.ys $(YS_CLI) $(SRC_FILES)
+always:
+	@true
+
+%.yml: %.ys $(YS_CLI) $(SRC_FILES) always
 	@( \
 	  echo "# DO NOT EDIT - This file was generated from 'config.ys'."; \
 	  echo \
 	) > _$@
-	ys --load --yaml --ordered $< >> _$@
+	$(YS) --load --yaml $< >> _$@
 	mv _$@ $@
 
 $(YS_CLI):

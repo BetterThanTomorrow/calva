@@ -14,6 +14,8 @@
 !CHANGELOG.md
 !LICENSE
 !clojure-lsp.jar
+!clojure-lsp-version
 !deps.clj.jar
+!deps-clj-version
 !bundled/**
 !snippets.jsonc

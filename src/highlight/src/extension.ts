@@ -39,6 +39,8 @@ let lastHighlightedEditor,
   commentFormType: vscode.TextEditorDecorationType,
   ignoredFormStyle,
   ignoredFormType: vscode.TextEditorDecorationType,
+  ignoredTopLevelFormStyle,
+  ignoredTopLevelFormType: vscode.TextEditorDecorationType,
   enableBracketColors,
   useRainbowIndentGuides,
   highlightActiveIndent,
@@ -152,6 +154,13 @@ function reset_styles() {
   }
   ignoredFormType = decorationType(ignoredFormStyle || { textDecoration: 'none; opacity: 0.5' });
 
+  if (ignoredTopLevelFormType) {
+    activeEditor.setDecorations(ignoredTopLevelFormType, []);
+  }
+  ignoredTopLevelFormType = decorationType(
+    ignoredTopLevelFormStyle || ignoredFormStyle || { textDecoration: 'none; opacity: 0.5' }
+  );
+
   dirty = false;
 }
 
@@ -206,6 +215,11 @@ function reloadConfig() {
     dirty = true;
   }
 
+  if (!isEqual(ignoredTopLevelFormStyle, configuration.get('ignoredTopLevelFormStyle'))) {
+    ignoredTopLevelFormStyle = configuration.get('ignoredTopLevelFormStyle');
+    dirty = true;
+  }
+
   if (dirty) {
     scheduleRainbowBrackets();
   }
@@ -231,18 +245,19 @@ function updateRainbowBrackets() {
     reset_styles();
   }
 
-  const doc = activeEditor.document,
-    mirrorDoc = docMirror.getDocument(doc),
-    rainbow = rainbowTypes.map(() => []),
-    rainbowGuides = rainbowTypes.map(() => []),
-    misplaced = [],
-    comment_forms = [],
-    ignores = [],
-    len = rainbowTypes.length,
-    colorsEnabled = enableBracketColors && len > 0,
-    guideColorsEnabled = useRainbowIndentGuides && len > 0,
-    activeGuideEnabled = highlightActiveIndent && len > 0,
-    colorIndex = cycleBracketColors ? (i) => i % len : (i) => Math.min(i, len - 1);
+  const doc = activeEditor.document;
+  const mirrorDoc = docMirror.getDocument(doc);
+  const rainbow = rainbowTypes.map(() => []);
+  const rainbowGuides = rainbowTypes.map(() => []);
+  const misplaced = [];
+  const comment_forms = [];
+  const ignores = [];
+  const topLevelIgnores = [];
+  const len = rainbowTypes.length;
+  const colorsEnabled = enableBracketColors && len > 0;
+  const guideColorsEnabled = useRainbowIndentGuides && len > 0;
+  const activeGuideEnabled = highlightActiveIndent && len > 0;
+  const colorIndex = cycleBracketColors ? (i) => i % len : (i) => Math.min(i, len - 1);
 
   let in_comment_form = false;
   let stack_depth = 0;
@@ -252,14 +267,14 @@ function updateRainbowBrackets() {
   placedGuidesColor = new Map();
   activeEditor.visibleRanges.forEach((range) => {
     // Find the visible forms
-    const startOffset = doc.offsetAt(range.start),
-      endOffset = doc.offsetAt(range.end),
-      startCursor: LispTokenCursor = mirrorDoc.getTokenCursor(0),
-      startRange = startCursor.rangeForDefun(startOffset, false),
-      endCursor: LispTokenCursor = mirrorDoc.getTokenCursor(endOffset),
-      endRange = endCursor.rangeForDefun(endOffset, false),
-      rangeStart = startRange ? startRange[0] : startOffset,
-      rangeEnd = endRange ? endRange[1] : endOffset;
+    const startOffset = doc.offsetAt(range.start);
+    const endOffset = doc.offsetAt(range.end);
+    const startCursor: LispTokenCursor = mirrorDoc.getTokenCursor(0);
+    const startRange = startCursor.rangeForDefun(startOffset, false);
+    const endCursor: LispTokenCursor = mirrorDoc.getTokenCursor(endOffset);
+    const endRange = endCursor.rangeForDefun(endOffset, false);
+    const rangeStart = startRange ? startRange[0] : startOffset;
+    const rangeEnd = endRange ? endRange[1] : endOffset;
     // Look for top level ignores, and adjust starting point if found
     const topLevelSentinelCursor = mirrorDoc.getTokenCursor(rangeStart);
     let startPaintingFrom = rangeStart;
@@ -299,7 +314,11 @@ function updateRainbowBrackets() {
             ignoreCursor.forwardSexp(true, true, true);
           }
           const ignore_end = activeEditor.document.positionAt(ignoreCursor.offsetStart);
-          ignores.push(new Range(ignore_start, ignore_end));
+          if (cursor.atTopLevel()) {
+            topLevelIgnores.push(new Range(ignore_start, ignore_end));
+          } else {
+            ignores.push(new Range(ignore_start, ignore_end));
+          }
         }
       }
       const token = cursor.getToken(),
@@ -399,6 +418,7 @@ function updateRainbowBrackets() {
   activeEditor.setDecorations(misplacedType, misplaced);
   activeEditor.setDecorations(commentFormType, comment_forms);
   activeEditor.setDecorations(ignoredFormType, ignores);
+  activeEditor.setDecorations(ignoredTopLevelFormType, topLevelIgnores);
   matchPairs();
   if (activeGuideEnabled) {
     decorateActiveGuides();

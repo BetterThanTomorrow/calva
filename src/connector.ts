@@ -415,7 +415,7 @@ function createCLJSReplType(
         useDefaultBuild = false;
       } else {
         if (typeof initCode === 'object' || initCode.includes('%BUILD%')) {
-          build = await util.quickPickSingle({
+          const buildItem = await util.quickPickSingle({
             values: startedBuilds
               ? startedBuilds.map((a) => ({ label: a }))
               : (await figwheelOrShadowBuilds(cljsTypeName)).map((a) => ({ label: a })),
@@ -426,6 +426,7 @@ function createCLJSReplType(
             )}-build`,
             autoSelect: true,
           });
+          build = buildItem.label;
         }
       }
 
@@ -469,30 +470,32 @@ function createCLJSReplType(
       const runtimes = await cljSession.eval(getRuntimesCode, 'user').value;
       return runtimes && parseInt(runtimes) > 0;
     };
-    const hasRuntimes = await checkForRuntimes();
-    if (hasRuntimes) {
-      return true;
-    }
-    let tries = 600; // Wait for 1 minute at most
-    const waitForRuntimes = async () => {
-      while (!(await checkForRuntimes())) {
-        tries--;
-        if (tries <= 0) {
-          output.appendLineOtherOut(
-            'Timed out waiting for Shadow CLJS runtimes, pretending we are connected.'
-          );
-          return true;
-        } else if (tries % 50 == 0) {
-          output.appendLineOtherOut('Waiting for Shadow CLJS runtimes, start your CLJS app...');
+    return new Promise<boolean>((resolve, reject) => {
+      void vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: 'Waiting for shadow-cljs runtimes...',
+          cancellable: true,
+        },
+        async (progress, token) => {
+          token.onCancellationRequested(() => {
+            reject(new Error('User cancelled waiting for shadow-cljs runtimes.'));
+          });
+
+          while (!(await checkForRuntimes())) {
+            if (token.isCancellationRequested) {
+              break;
+            }
+            progress.report({ message: 'Please start your ClojureScript app...' });
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+
+          if (!token.isCancellationRequested) {
+            resolve(true);
+          }
         }
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-      return true;
-    };
-    output.appendLineOtherOut(
-      'Please start your ClojureScript app (load it in the browser, or whatever is appropriate) so that Calva can connect to its REPL...'
-    );
-    return await waitForRuntimes();
+      );
+    });
   }
 
   async function handleConnected(result, out, err): Promise<boolean> {
@@ -504,7 +507,7 @@ function createCLJSReplType(
       if (!isConnectCodeEvaluatedSuccessfully || !isShadowCljsReplType(cljsType)) {
         return isConnectCodeEvaluatedSuccessfully;
       }
-      return await waitForShadowCljsRuntimes();
+      return waitForShadowCljsRuntimes();
     } else {
       return true;
     }
@@ -522,17 +525,19 @@ function createCLJSReplType(
             const allBuilds = (await figwheelOrShadowBuilds(cljsTypeName)).filter(
               (build) => !['browser-repl', 'node-repl'].includes(build)
             );
-            builds =
-              allBuilds.length <= 1
-                ? allBuilds
-                : await util.quickPickMulti({
-                    values: allBuilds.map((a) => ({ label: a })),
-                    placeHolder: 'Please select which builds to start',
-                    saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
-                      ' ',
-                      '-'
-                    )}-builds`,
-                  });
+            if (allBuilds.length <= 1) {
+              builds = allBuilds;
+            } else {
+              const selectedBuilds = await util.quickPickMulti({
+                values: allBuilds.map((a) => ({ label: a })),
+                placeHolder: 'Please select which builds to start',
+                saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
+                  ' ',
+                  '-'
+                )}-builds`,
+              });
+              builds = selectedBuilds.map((build) => build.label);
+            }
           }
           if (builds) {
             output.appendLineOtherOut('Starting cljs repl for: ' + projectTypeName + '...');
@@ -714,7 +719,9 @@ export async function connect(
     console.error(e);
   }
   initializeDebugger(nClient.session);
-  if (!['babashka', 'nbb', 'joyride', 'generic'].includes(connectSequence.projectType)) {
+  if (
+    !['babashka', 'nbb', 'joyride', 'basilisp', 'generic'].includes(connectSequence.projectType)
+  ) {
     if (!nClient.session.supports('info')) {
       void vscode.window
         .showWarningMessage(

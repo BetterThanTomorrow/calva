@@ -10,9 +10,9 @@ docker:
 - image: arcanemagus/atom-docker-ci
 
 steps:
-- !attach-workspace: /tmp
+- !:attach-workspace /tmp
 
-- !cmd:
+- !:cmd
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
 
@@ -27,7 +27,7 @@ steps:
           :99 -ac -screen 0 1024x768x16 +extension RANDR
     background: true
 
-- !cmd:
+- !:cmd
   - Run package tests
   - cd src/calva-fmt/atom-language-clojure;
     ./run-grammar-tests.sh

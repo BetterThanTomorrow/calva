@@ -7,24 +7,24 @@ environment:
   MKDOCS_ENV: production
 
 steps:
-- !add-ssh: ssh-fingerprint-1
+- !:add-ssh ssh-fingerprint-1
 
 - checkout
 
-- !cmd:
+- !:cmd
   - Update system package lists
   - sudo apt-get update
 
-- !cmd:
+- !:cmd
   - Install mkdocs-materials dependencies
   - sudo apt-get install libcairo2-dev libfreetype6-dev
                  libffi-dev libjpeg-dev libpng-dev libz-dev
 
-- !cmd:
+- !:cmd
   - Install mkdocs and mkdocs-materials
   - pip install -r requirements.txt
 
-- !cmd:
+- !:cmd
   - Deploy docs
   - git checkout published;
     mkdocs gh-deploy --config-file mkdocs.yml

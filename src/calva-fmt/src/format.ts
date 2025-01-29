@@ -49,10 +49,10 @@ export async function indentPosition(position: vscode.Position, document: vscode
   }
 }
 
-export async function formatRangeEdits(
+export function formatRangeEdits(
   document: vscode.TextDocument,
   originalRange: vscode.Range
-): Promise<vscode.TextEdit[] | undefined> {
+): vscode.TextEdit[] | undefined {
   const mirrorDoc = getDocument(document);
   const startIndex = document.offsetAt(originalRange.start);
   const cursor = mirrorDoc.getTokenCursor(startIndex);
@@ -63,7 +63,7 @@ export async function formatRangeEdits(
     const trailingWs = originalText.match(/\s*$/)[0];
     const missingTexts = cursorDocUtils.getMissingBrackets(originalText);
     const healedText = `${missingTexts.prepend}${originalText.trim()}${missingTexts.append}`;
-    const formattedHealedText = await formatCode(healedText, document.eol);
+    const formattedHealedText = formatCode(healedText, document.eol);
     const leadingEolPos = leadingWs.lastIndexOf(eol);
     const startIndent =
       leadingEolPos === -1
@@ -86,7 +86,7 @@ export async function formatRangeEdits(
 
 export async function formatRange(document: vscode.TextDocument, range: vscode.Range) {
   const wsEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
-  const edits = await formatRangeEdits(document, range);
+  const edits = formatRangeEdits(document, range);
 
   if (isUndefined(edits)) {
     console.error('formatRangeEdits returned undefined!', cloneDeep({ document, range }));
@@ -97,14 +97,22 @@ export async function formatRange(document: vscode.TextDocument, range: vscode.R
   return vscode.workspace.applyEdit(wsEdit);
 }
 
-export async function formatPositionInfo(
+export function formatPositionInfo(
   editor: vscode.TextEditor,
   onType: boolean = false,
   extraConfig: CljFmtConfig = {}
 ) {
   const doc: vscode.TextDocument = editor.document;
   const index = doc.offsetAt(editor.selections[0].active);
-  const cursor = getDocument(doc).getTokenCursor(index);
+  const mDoc = getDocument(doc);
+
+  if (mDoc.model.documentVersion != doc.version) {
+    console.warn(
+      'Model for formatPositionInfo is out of sync with document; will not reformat now'
+    );
+    return;
+  }
+  const cursor = mDoc.getTokenCursor(index);
 
   const formatRange = _calculateFormatRange(extraConfig, cursor, index);
   if (!formatRange) {
@@ -122,7 +130,7 @@ export async function formatPositionInfo(
     _convertEolNumToStringNotation(doc.eol),
     onType,
     {
-      ...(await config.getConfig()),
+      ...config.getConfigNow(),
       ...extraConfig,
       'comment-form?': cursor.getFunctionName() === 'comment',
     }
@@ -206,9 +214,13 @@ export async function formatPosition(
   onType: boolean = false,
   extraConfig: CljFmtConfig = {}
 ): Promise<boolean> {
+  // Stop trying if ever the document version changes - don't want to trample User's work
   const doc: vscode.TextDocument = editor.document,
-    formattedInfo = await formatPositionInfo(editor, onType, extraConfig);
-  if (formattedInfo && formattedInfo.previousText != formattedInfo.formattedText) {
+    documentVersion = editor.document.version,
+    formattedInfo = formatPositionInfo(editor, onType, extraConfig);
+  if (documentVersion != editor.document.version) {
+    return;
+  } else if (formattedInfo && formattedInfo.previousText != formattedInfo.formattedText) {
     return editor
       .edit(
         (textEditorEdit) => {
@@ -217,16 +229,19 @@ export async function formatPosition(
         { undoStopAfter: false, undoStopBefore: false }
       )
       .then((onFulfilled: boolean) => {
-        editor.selections = [
-          new vscode.Selection(
-            doc.positionAt(formattedInfo.newIndex),
-            doc.positionAt(formattedInfo.newIndex)
-          ),
-        ];
+        if (onFulfilled) {
+          if (documentVersion + 1 == editor.document.version) {
+            editor.selections = [
+              new vscode.Selection(
+                doc.positionAt(formattedInfo.newIndex),
+                doc.positionAt(formattedInfo.newIndex)
+              ),
+            ];
+          }
+        }
         return onFulfilled;
       });
-  }
-  if (formattedInfo) {
+  } else if (formattedInfo) {
     return new Promise((resolve, _reject) => {
       if (formattedInfo.newIndex != formattedInfo.previousIndex) {
         editor.selections = [
@@ -238,16 +253,54 @@ export async function formatPosition(
       }
       resolve(true);
     });
-  }
-  if (!onType && !outputWindow.isResultsDoc(doc)) {
+  } else if (!onType && !outputWindow.isResultsDoc(doc)) {
     return formatRange(
       doc,
       new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length))
     );
+  } else {
+    return new Promise((resolve, _reject) => {
+      resolve(true);
+    });
   }
-  return new Promise((resolve, _reject) => {
-    resolve(true);
-  });
+}
+
+// Debounce format-as-you-type and toss it aside if User seems still to be working
+let scheduledFormatCircumstances = undefined;
+const scheduledFormatDelayMs = 250;
+
+function formatPositionCallback(extraConfig: CljFmtConfig) {
+  if (
+    scheduledFormatCircumstances &&
+    vscode.window.activeTextEditor === scheduledFormatCircumstances['editor'] &&
+    vscode.window.activeTextEditor.document.version ==
+      scheduledFormatCircumstances['documentVersion']
+  ) {
+    formatPosition(scheduledFormatCircumstances['editor'], true, extraConfig).finally(() => {
+      scheduledFormatCircumstances = undefined;
+    });
+  }
+  // do not anull scheduledFormatCircumstances. Another callback might have been scheduled
+}
+
+export function scheduleFormatAsType(editor: vscode.TextEditor, extraConfig: CljFmtConfig = {}) {
+  const expectedDocumentVersionUponCallback = 1 + editor.document.version;
+  if (
+    !scheduledFormatCircumstances ||
+    expectedDocumentVersionUponCallback != scheduledFormatCircumstances['documentVersion']
+  ) {
+    // Unschedule (if scheduled) & reschedule: best effort to reformat at a quiet time
+    if (scheduledFormatCircumstances?.timeoutId) {
+      clearTimeout(scheduledFormatCircumstances?.timeoutId);
+    }
+    scheduledFormatCircumstances = {
+      editor: editor,
+      documentVersion: expectedDocumentVersionUponCallback,
+      timeoutId: setTimeout(function () {
+        formatPositionCallback(extraConfig);
+      }, scheduledFormatDelayMs),
+    };
+  }
 }
 
 export function formatPositionCommand(editor: vscode.TextEditor) {
@@ -262,11 +315,11 @@ export function trimWhiteSpacePositionCommand(editor: vscode.TextEditor) {
   void formatPosition(editor, false, { 'remove-multiple-non-indenting-spaces?': true });
 }
 
-export async function formatCode(code: string, eol: number) {
+export function formatCode(code: string, eol: number) {
   const d = {
     'range-text': code,
     eol: _convertEolNumToStringNotation(eol),
-    config: await config.getConfig(),
+    config: config.getConfigNow(),
   };
   const result = jsify(formatText(d));
   if (!result['error']) {

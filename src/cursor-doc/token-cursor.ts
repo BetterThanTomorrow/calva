@@ -316,12 +316,7 @@ export class LispTokenCursor extends TokenCursor {
    *
    * @returns true if the cursor was moved, false otherwise.
    */
-  backwardSexp(
-    skipComments = true,
-    skipMetadata = false,
-    skipIgnoredForms = false,
-    skipReaders = true
-  ) {
+  backwardSexp(skipComments = true, skipMetadata = false, skipReaders = true) {
     const stack = [];
     this.backwardWhitespace(skipComments);
     if (this.getPrevToken().type === 'open') {
@@ -345,9 +340,9 @@ export class LispTokenCursor extends TokenCursor {
           }
           if (skipMetadata) {
             const metaCursor = this.clone();
-            metaCursor.backwardSexp(true, false, false, false);
+            metaCursor.backwardSexp(true, false, false);
             if (metaCursor.tokenBeginsMetadata()) {
-              this.backwardSexp(skipComments, skipMetadata, skipIgnoredForms);
+              this.backwardSexp(skipComments, skipMetadata, skipReaders);
             }
           }
           if (skipReaders) {
@@ -376,9 +371,9 @@ export class LispTokenCursor extends TokenCursor {
           }
           if (skipMetadata) {
             const metaCursor = this.clone();
-            metaCursor.backwardSexp(true, false, false, false);
+            metaCursor.backwardSexp(true, false, false);
             if (metaCursor.tokenBeginsMetadata()) {
-              this.backwardSexp(skipComments, skipMetadata, skipIgnoredForms);
+              this.backwardSexp(skipComments, skipMetadata, skipReaders);
             }
           }
           if (skipReaders) {

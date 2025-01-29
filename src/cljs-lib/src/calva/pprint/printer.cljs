@@ -108,4 +108,10 @@
 
   (:value (pretty-print struct {:max-length 3}))
   ;; => "(let [r :r\n      this-page :this-page]\n  [:div.grid-x.grid-margin-x.grid-margin-y\n   [:div.cell.align-center.margin-top.show-for-medium\n    [:a#foo.button {:href \"#how-it-works\"} [\"Works\"]]\n    [:a#bar.button {:on-click (fn* [] (citrus/broadcast! r :submit ...))}\n     \"Send\"]]])"
+
+  (pretty-print "^[Long] foo" {})
+  ;;=> {:value "^[Long] foo"}
+
+  (pretty-print "^Long/1 foo" {})
+  ;;=> {:value "^Long/1 foo", :error "Pretty print failed. (Invalid symbol: Long/1.)"}
   )

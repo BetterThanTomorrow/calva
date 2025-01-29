@@ -6,15 +6,15 @@ docker:
 working_directory: ~/calva
 
 steps:
-- !attach-workspace: /tmp
+- !:attach-workspace /tmp
 
-- !cmd:
+- !:cmd
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
 
-- !cmd:
+- !:cmd
   - Run CLJS Tests
   - npm run calva-lib-test
 
-- !store:
+- !:store
     test_results: ~/calva/junit

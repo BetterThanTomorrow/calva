@@ -1,7 +1,7 @@
 # This is the main YAMLScript file that expands to the desired CircleCI
 # config.yml file when we run 'make build' or 'bb build'.
 
---- !yamlscript/v0/data
+!yamlscript/v0/data
 
 # We start in data mode with the tag above.
 
@@ -11,44 +11,47 @@
 # Note: These definitions could be kept in a seaparate file, but probably
 # better to define them here to better see the intents.
 
-=>:
+::
   # Import the 'lib/helpers.ys' library:
-  use: 'helpers'
+  use: helpers
 
+  # Define a binding used in other files (def):
   ssh-fingerprint-1 =: 'd1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14'
 
-  # These names act as mapping keys and also the names of files to load that
-  # contain the associated definition:
-  job-names =::
-  - checkout
-  - build
-  - test-grammar
-  - prettier-check
-  - eslint-check
-  - test-cljslib
-  - test-ts-unit
-  - test-integration
-  - test-e2e
-  - test-e2e-sub-projects
-  - github-release
-  - marketplace-publish
-  - marketplace-preview-publish
-  - open-vsx-publish
-  - merge-dev-into-published
-  - merge-published-into-dev
-  - deploy-docs
-  - bump-dev-version
+# Define local file bindings (let):
 
-  workflow-names =::
-  - calva-io-build
-  # We have two Calva build workflows, because for some reason the
-  # tag filter need to be on all jobs...
-  - build-test
-  - release-publish
+# These names act as mapping keys and also the names of files to load that
+# contain the associated definition:
+job-names =::
+- checkout
+- build
+- test-grammar
+- prettier-check
+- eslint-check
+- test-cljslib
+- test-ts-unit
+- test-integration
+- test-e2e
+- test-e2e-sub-projects
+- github-release
+- marketplace-publish
+- marketplace-preview-publish
+- open-vsx-publish
+- merge-dev-into-published
+- merge-published-into-dev
+- deploy-docs
+- bump-dev-version
 
-  # Start of the 'workflows' section mapping that we'll add to below:
-  workflows-map =::
-    version: 2
+workflow-names =::
+- calva-io-build
+# We have two Calva build workflows, because for some reason the
+# tag filter needs to be on all jobs...
+- build-test
+- release-publish
+
+# Start of the 'workflows' section mapping that we'll add to below:
+workflows-map =::
+  version: 2
 
 #------------------------------------------------------------------------------
 # The intended 'config.yml' definition starts here.
@@ -64,17 +67,14 @@ version: 2
 
 # Generate 'jobs' section:
 jobs::
-  reduce:
-    fn [mapping name]:
+  reduce _ {} job-names:
+    fn(mapping name):
       assoc mapping name:
         load: "jobs/$name.yaml"
-    =>: .{}
-    =>: job-names
 
 # Generate 'workflows' section:
 workflows::
-  reduce:
-    fn [mapping name]:
-      ."workflows/$name.yaml".load()
-      .assoc(mapping name _)
-    workflows-map |: workflow-names
+  reduce _ workflows-map workflow-names:
+    fn(mapping name):
+      assoc mapping name:
+        load: "workflows/$name.yaml"

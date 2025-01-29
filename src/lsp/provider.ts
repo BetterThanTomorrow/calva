@@ -191,7 +191,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
   };
 
   const provisionClientInFirstWorkspaceRoot = async () => {
-    const folder = vscode.workspace.workspaceFolders[0];
+    const folder = vscode.workspace.workspaceFolders?.[0];
     if (!folder) {
       return;
     }

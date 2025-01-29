@@ -2,9 +2,9 @@ import statusbar from './statusbar';
 import * as state from './state';
 import { updateReplSessionType } from './nrepl/repl-session';
 
-function update(context = state.extensionContext) {
+function update() {
   updateReplSessionType();
-  statusbar.update(context);
+  statusbar.update();
 }
 
 export default {

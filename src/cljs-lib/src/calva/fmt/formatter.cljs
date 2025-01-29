@@ -83,7 +83,13 @@
               :indents {"foo" [["inner" 0]]}
               :remove-trailing-whitespace? false
               :remove-consecutive-blank-lines? false
-              :align-associative? true}}}))
+              :align-associative? true}}})
+
+  (format-text
+   {:range-text "^[Long] foo"})
+
+  (format-text
+   {:range-text "^Long/1 foo"}))
 
 (defn extract-range-text
   [{:keys [all-text range]}]

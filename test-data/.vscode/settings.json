@@ -75,6 +75,7 @@
       "projectType": "deps.edn",
       "projectRootPath": ["projects/pirate-lang"],
       "afterCLJReplJackInCode": ["(require 'repl)", "(println 1)", "(println 2)"],
+      // "autoSelectForJackIn": true,
       "cljsType": "none",
       "menuSelections": {
         "cljAliases": ["dev", "test"]
@@ -131,6 +132,15 @@
       "nReplPortFile": ["foo", "bar", ".nrepl-port"],
       "customJackInCommandLine": "echo PROJECT-ROOT-PATH: 'JACK-IN-PROJECT-ROOT-PATH', NREPL-PORT-FILE: 'JACK-IN-NREPL-PORT-FILE', NREPL-PORT: 'JACK-IN-NREPL-PORT', LEIN-PROFILES: 'JACK-IN-LEIN-PROFILES', LEIN-LAUNCH-ALIAS 'JACK-IN-LEIN-LAUNCH-ALIAS', CLJ-MIDDLEWARE: 'JACK-IN-CLJ-MIDDLEWARE', CLJS-MIDDLEWARE: 'JACK-IN-CLJS-MIDDLEWARE' ; ../../custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION",
       "cljsType": "shadow-cljs"
+    },
+    {
+      "name": "Array jack-in code",
+      "projectType": "deps.edn",
+      "afterCL]ReplJackInCode": ["(println :hello)", "(println :world!)"],
+      "cljsType": "none"
     }
-  ]
+  ],
+  "calva.highlight.ignoredTopLevelFormStyle": {
+    "textDecoration": "none; text-shadow: 2px 2px 5px rgba(255, 215, 0, 0.75)"
+  }
 }

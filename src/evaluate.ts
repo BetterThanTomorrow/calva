@@ -7,7 +7,6 @@ import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
 import * as outputWindow from './repl-window/repl-doc';
-import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import * as replHistory from './repl-window/repl-history';
 import { formatAsLineComments } from './results-output/util';
@@ -18,6 +17,8 @@ import * as getText from './util/get-text';
 import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
+import { resultAsComment } from './util/string-result';
+import { highlight } from './highlight/src/extension';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -55,22 +56,19 @@ function interruptAllEvaluations() {
 }
 
 async function addAsComment(
-  c: number,
   result: string,
   codeSelection: vscode.Selection,
   editor: vscode.TextEditor,
-  selection: vscode.Selection
+  selection: vscode.Selection,
+  commentStyle: string
 ) {
-  const indent = `${' '.repeat(c)}`,
-    output = result
-      .replace(/\n\r?$/, '')
-      .split(/\n\r?/)
-      .join(`\n${indent};;    `),
-    edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`),
-    wsEdit = new vscode.WorkspaceEdit();
-  wsEdit.set(editor.document.uri, [edit]);
-  await vscode.workspace.applyEdit(wsEdit);
+  const endOfLinePosition = editor.document.lineAt(codeSelection.end.line).range.end;
+  const commentText = resultAsComment(codeSelection.start.character, result, commentStyle);
+  await editor.edit((editBuilder) => {
+    editBuilder.insert(endOfLinePosition, commentText);
+  });
   editor.selections = [selection];
+  highlight(editor);
 }
 
 // TODO: Clean up this mess
@@ -154,7 +152,13 @@ async function evaluateCodeUpdatingUI(
               void vscode.workspace.applyEdit(wsEdit);
             } else {
               if (editor && options.comment) {
-                await addAsComment(c, value, selection, editor, editor.selections[0]);
+                await addAsComment(
+                  value,
+                  selection,
+                  editor,
+                  editor.selections[0],
+                  options.commentStyle
+                );
               }
               if (editor && !outputWindow.isResultsDoc(editor.document)) {
                 annotations.decorateSelection(
@@ -198,11 +202,11 @@ async function evaluateCodeUpdatingUI(
             const currentCursorPos = editor.selections[0].active;
             if (editor && options.comment) {
               await addAsComment(
-                selection.start.character,
                 editorError,
                 selection,
                 editor,
-                editor.selections[0]
+                editor.selections[0],
+                options.commentStyle
               );
             }
             if (editor && !outputWindow.isResultsDoc(editor.document)) {
@@ -332,7 +336,16 @@ function evaluateSelectionReplace(document = {}, options = {}) {
   }
 }
 
-function evaluateSelectionAsComment(document = {}, options = {}) {
+function validateCommentStyle(commentStyle: string) {
+  if (!['line', 'ignore', 'rcf'].includes(commentStyle)) {
+    throw new Error(
+      `Invalid comment style: ${commentStyle}. Must be one of "line", "ignore", or "rcf".`
+    );
+  }
+}
+
+function evaluateSelectionAsComment(options = { commentStyle: 'line' }, document = {}) {
+  validateCommentStyle(options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
       document,
@@ -347,7 +360,8 @@ function evaluateSelectionAsComment(document = {}, options = {}) {
   }
 }
 
-function evaluateTopLevelFormAsComment(document = {}, options = {}) {
+function evaluateTopLevelFormAsComment(options = { commentStyle: 'line' }, document = {}) {
+  validateCommentStyle(options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
       document,
@@ -368,7 +382,7 @@ function offerToConnect() {
     .then(
       (choice) => {
         if (choice === 'Connect') {
-          void vscode.commands.executeCommand('calva.startOrConnectRepl');
+          void vscode.commands.executeCommand('calva.showReplMenu');
         }
       },
       (reason) => {
@@ -555,6 +569,7 @@ async function loadFile(
   try {
     const value = await res.value;
     if (value) {
+      inspectorDataProvider.addItem(value, false, `[${session.replType}] ${ns}`);
       output.appendClojureEval(value, { ns, replSessionType: session.replType });
     } else {
       output.appendLineEvalOut('No results from file evaluation.');
@@ -584,7 +599,7 @@ async function loadFile(
         )
         .then((choice) => {
           if (choice === 'Show output') {
-            void vscode.commands.executeCommand('calva.showOutputWindow');
+            void output.showResultOutputDestination(true);
           }
         });
     }

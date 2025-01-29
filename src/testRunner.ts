@@ -23,18 +23,15 @@ async function uriForFile(fileName: string): Promise<vscode.Uri> {
 }
 
 // Return a valid TestItem for the namespace.
-// Creates a new item if one does not exist, othrwise we find the existing entry.
+// Creates a new item and adds it to the controller, replacing any existing item for the namespace.
 // If a Range is supplied, that we set the range on the returned item.
-function upsertNamespace(
+function createCleanNamespaceItem(
   controller: vscode.TestController,
   uri: vscode.Uri,
   nsName: string,
   range?: vscode.Range
 ): vscode.TestItem {
-  let ns = controller.items.get(nsName);
-  if (!ns) {
-    ns = controller.createTestItem(nsName, nsName, uri);
-  }
+  const ns = controller.createTestItem(nsName, nsName, uri);
   if (range) {
     ns.range = range;
   }
@@ -43,7 +40,7 @@ function upsertNamespace(
 }
 
 // Return a valid TestItem for the test var.
-// Creates a new item if one does not exist, othrwise we find the existing entry.
+// Creates a new item if one does not exist, otherwise we find the existing entry.
 // If a Range is supplied, that we set the range on the returned item.
 function upsertTest(
   controller: vscode.TestController,
@@ -52,7 +49,7 @@ function upsertTest(
   varName: string,
   range?: vscode.Range
 ): vscode.TestItem {
-  const ns = upsertNamespace(controller, uri, nsName);
+  const ns = controller.items.get(nsName);
   const testId = nsName + '/' + varName;
   let test = ns.children.get(testId);
   if (!test) {
@@ -142,6 +139,8 @@ async function onTestResult(
         run.errored(assertion, new vscode.TestMessage(cider.shortMessage(result)));
         break;
       case 'fail':
+        run.failed(assertion, new vscode.TestMessage(cider.detailedMessage(result)));
+        break;
       default:
         run.failed(assertion, new vscode.TestMessage(cider.shortMessage(result)));
         break;
@@ -268,14 +267,23 @@ function runAllTestsCommand(controller: vscode.TestController) {
   });
 }
 
-async function loadTestNS(ns: string, session: NReplSession) {
+async function loadTestNS() {
+  const document = util.getActiveTextEditor().document;
+  const session = getSession(util.getFileType(document));
+  const doc = util.tryToGetDocument(document);
+
+  const [ns, _] = namespace.getNamespace(
+    doc,
+    vscode.window.activeTextEditor?.selections[0]?.active
+  );
+
   const testNS = !ns.endsWith('-test') ? ns + '-test' : ns;
   const nsPath = await session.nsPath(testNS);
   const testFilePath = nsPath.path;
   if (testFilePath && testFilePath !== '') {
     const filePath = vscode.Uri.parse(testFilePath).path;
     const loadForms = `(load-file "${filePath}")`;
-    await session.eval(loadForms, testNS).value;
+    return session.eval(loadForms, testNS).value;
   }
 }
 
@@ -323,17 +331,15 @@ async function runNamespaceTests(controller: vscode.TestController, document: vs
   if (outputWindow.isResultsDoc(doc)) {
     return;
   }
-  const session = getSession(util.getFileType(document));
   const [currentDocNs, _] = namespace.getNamespace(
     doc,
     vscode.window.activeTextEditor?.selections[0]?.active
   );
-  await loadTestNS(currentDocNs, session);
   const namespacesToRunTestsFor = [
     currentDocNs,
     currentDocNs.endsWith('-test') ? currentDocNs.slice(0, -5) : currentDocNs + '-test',
   ];
-  void runNamespaceTestsImpl(controller, document, namespacesToRunTestsFor);
+  return runNamespaceTestsImpl(controller, document, namespacesToRunTestsFor);
 }
 
 function getTestUnderCursor() {
@@ -476,7 +482,12 @@ function onTestTree(controller: vscode.TestController, testTree: lsp.TestTreePar
   }
   try {
     const uri = vscode.Uri.parse(testTree.uri);
-    const ns = upsertNamespace(controller, uri, testTree.tree.name, createRange(testTree.tree));
+    const ns = createCleanNamespaceItem(
+      controller,
+      uri,
+      testTree.tree.name,
+      createRange(testTree.tree)
+    );
     ns.canResolveChildren = true;
     testTree.tree.children.forEach((c) => {
       upsertTest(controller, uri, testTree.tree.name, c.name, createRange(c));
@@ -494,4 +505,5 @@ export default {
   rerunTestsCommand,
   runTestUnderCursorCommand,
   onTestTree,
+  loadTestNS,
 };

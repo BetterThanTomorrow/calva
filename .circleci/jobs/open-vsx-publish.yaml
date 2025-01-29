@@ -6,10 +6,10 @@ docker:
 working_directory: ~/calva
 
 steps:
-- !attach-workspace: /tmp
+- !:attach-workspace /tmp
 
-- !cmd:
+- !:cmd
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
 
-- !bin: Publish to Open VSX
+- !:bin Publish to Open VSX

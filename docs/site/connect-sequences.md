@@ -19,7 +19,7 @@ NB: _Connect sequence configuration affects Calva's Jack-in menu in the followin
 A connect sequence configures the following:
 
 * `name`: (required) This will show up in the Jack-in quick-pick menu when you start Jack-in (see above).
-* `projectType`: (required) This is either "Leiningen”, "deps.edn", "shadow-cljs", "lein-shadow", "Gradle", ”generic”, or  "custom".
+* `projectType`: (required) This is either "Leiningen”, "deps.edn", "shadow-cljs", "lein-shadow", "Gradle", "babashka", "nbb", "basilisp", "joyride", ”generic”, "custom", or "cljs-only".
 * `autoSelectForJackIn`: A boolean. If true, this sequence will be automatically selected at **Jack-in**, suppressing the Project Type. Use together with `projectRootPath` to also suppress the Project Root menu. Add usage of `menuSelections` to go for a prompt-less REPL Jack-in. If you have more than one sequence with `autoSelectForJackIn` set to true, the first one will be used.
 * `autoSelectForConnect`: A boolean. If true, this sequence will be automatically selected at **Connect**, suppressing the Project Type menu. Use together with `projectRootPath` to also suppress the Project Root menu. If you have more than one sequence with `autoSelectForConnect` set to true, the first one will be used.
 * `projectRootPath`: An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with `autoSelectForJackIn`/`autoSelectForConnect` to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder.
@@ -35,7 +35,7 @@ A connect sequence configures the following:
     * `shouldOpenUrl`: Choose if Calva should automatically open the URL for you or not.
     * `connectCode`: (required) Clojure code to be evaluated to convert the REPL to a CLJS REPL that Calva can use to connect to the application. (For some setups this could also conditionally start the CLJS REPL. If so: `startCode` should be omitted.)
     * `isConnectedRegExp`: (required) A regular expression which, when matched in the `stdout` from the `connectCode` evaluation, will tell Calva that the application is connected. The default is `To quit, type: :cljs/quit` and you should leave it at that unless you know it won't work.
-    * `printThisLineRegExp`: regular expression which, when matched in the `stdout` from any code evaluations in the `cljsType`, will make the matched text be printed to the [Output window](output.md).
+    * `printThisLineRegExp`: regular expression which, when matched in the `stdout` from any code evaluations in the `cljsType`, will make the matched text be printed to the [Output destination](output.md).
     * `buildsRequired`: Boolean. If the repl type requires that builds are started in order to connect to them, set this to true.
 * `menuSelections`: a dictionary with pre-filled-in selections for the Jack-in and Connect prompts, making Calva not prompt for that particular selection:
     * `leinProfiles`: At Jack-in to a Leiningen project, use these profiles to launch the repl.
@@ -44,8 +44,16 @@ A connect sequence configures the following:
     * `cljsLaunchBuilds`: The cljs builds to start/watch at Jack-in/connect.
     * `cljsDefaultBuild`: Which cljs build to attach to at the initial connect.
 * `jackInEnv`: An object with environment variables that will be merged with the global `calva.jackInEnv` and then applied to the Jack-in process. The merge is very similar to how Clojure's `merge` works. So for any common keys between the global setting and this one, the ones from this setting will win.
+* `extraNReplMiddleware`: Array of strings of the fully qualified names of extra middleware that should be applied to the nREPL server when started.
 
 The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts) also use this format, check them out to get a clearer picture of how these settings work.
+
+!!! Note "How sequence configurations are merged"
+    The sequence configuration, `calva.replConnectSequences` is an array and the sequences in the array will be listed and processed in the order they appear. However, you can configure connect sequences in several places, even if they make most sense on the Workspace level. The configurations are merged in the following order:
+    
+    1. Workspace Folder settings
+    1. Workspace settings
+    1. User settings
 
 !!! Note "Force the project type menu to show"
     The convenience of `autoSelectForJackIn/Connect` can be an inconvenience when you want to use another project type/sequence for a project. For this reason, the `calva.connect` and `calva.jackIn` can be provided with an option `disableAutoSelect`, which forces the project root and project type menus to show. See [Options for the Connect Command](connect.md#options-for-the-jack-in-command) and [Options for the Jack-in Command](connect.md#options-for-the-connect-command) for more on this.
@@ -89,7 +97,7 @@ Depending on the project type Calva will also look for these placeholders:
 * `JACK-IN-LEIN-LAUNCH-ALIAS`: For Leiningen projects, the launch alias selected by the user
 * `JACK-IN-CLI-ALIASES`: For deps.edn projects, the aliases selected by the user
 * `JACK-IN-CLJS-LAUNCH-BUILDS`: For ClojureScript REPLs that configures builds, the builds selected by the user
-* `JACK-IN-NREPL-PORT`: For some project types (currently `nbb` and `Babashka`) Calva provided the TCP port they should use.
+* `JACK-IN-NREPL-PORT`: For some project types (currently `nbb`, `Babashka` and `Basilisp`) Calva provided the TCP port they should use.
 
 ### Example Custom Jack-in Command lines
 

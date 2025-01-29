@@ -19,4 +19,6 @@ description: Calva comes with batteries included and preconfigured, and if you d
 * `calva:cursorAfterComment`: `true` when the cursor is adjacent after a line comment
 * `calva:cursorAtStartOfLine`: `true` when the cursor is at the start of a line including any leading whitespace
 * `calva:cursorAtEndOfLine`: `true` when the cursor is at the end of a line including any trailing whitespace
-
+* `calva:projectRoot`: A string with the absolute path to the repl project root, _without trailing slash_
+* `calva:ns`: A string with the current namespace
+* `calva:replSessionType`: `clj`, or `cljs` depending on the file type of the current file

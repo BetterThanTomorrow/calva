@@ -23,7 +23,11 @@
   "Parses out all top level forms from `s`.
    Returns a vector with the parsed forms."
   [s]
-  (let [pbr (rt/string-push-back-reader (str/replace s #"#=\(" "nil #_("))]
+  (let [pbr (rt/string-push-back-reader (-> s ; tools.reader croaks on some Clojure constructs
+                                              ; at least the way we use it here
+                                              ; And we're not interested in actually parsing these
+                                            (str/replace #"#=\(" "nil #_(")
+                                            (str/replace #"`" "'")))]
     (loop [parsed-forms []]
       (let [parsed-form (tr/read {:eof 'CALVA-EOF
                                   :read-cond :preserve} pbr)]

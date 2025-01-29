@@ -12,6 +12,7 @@ import { LispTokenCursor } from './token-cursor';
 import { backspaceOnWhitespace } from './backspace-on-whitespace';
 import _ = require('lodash');
 import { isEqual, last, property } from 'lodash';
+import { TextEditorEdit } from 'vscode';
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -1083,34 +1084,37 @@ function onlyWhitespaceLeftOfCursor(offset, cursor: LispTokenCursor) {
 }
 
 function backspaceOnWhitespaceEdit(
+  builder: TextEditorEdit,
   doc: EditableDocument,
   cursor: LispTokenCursor,
   config?: FormatterConfig
 ) {
   const changeArgs = backspaceOnWhitespace(doc, cursor, config);
-  return doc.model.edit(
+  return doc.model.editNow(
     [
-      new ModelEdit('changeRange', [
-        changeArgs.start,
-        changeArgs.end,
-        ' '.repeat(changeArgs.indent),
-      ]),
+      new ModelEdit('deleteRange', [changeArgs.end, changeArgs.start - changeArgs.end]),
+      new ModelEdit('insertString', [changeArgs.end, ' '.repeat(changeArgs.indent)]),
     ],
     {
-      selections: [new ModelEditSelection(changeArgs.end + changeArgs.indent)],
+      builder: builder,
       skipFormat: true,
     }
   );
 }
 
-export async function backspace(
+export function backspace(
   doc: EditableDocument,
+  builder?: TextEditorEdit,
   config?: FormatterConfig,
   start: number = doc.selections[0].anchor,
   end: number = doc.selections[0].active
-): Promise<boolean> {
+): void {
   if (start != end) {
-    return doc.backspace();
+    const [left, right] = [Math.min(start, end), Math.max(start, end)];
+    return doc.model.editNow([new ModelEdit('deleteRange', [left, right - left])], {
+      builder: builder,
+      skipFormat: true,
+    });
   } else {
     const cursor = doc.getTokenCursor(start);
     const isTopLevel = doc.getTokenCursor(end).atTopLevel();
@@ -1120,20 +1124,21 @@ export async function backspace(
         ? nextToken // we are “in” a token
         : cursor.getPrevToken(); // we are “between” tokens
     if (prevToken.type == 'prompt') {
-      return new Promise<boolean>((resolve) => resolve(true));
+      return;
     } else if (nextToken.type == 'prompt') {
-      return new Promise<boolean>((resolve) => resolve(true));
+      return;
     } else if (doc.model.getText(start - 2, start, true) == '\\"') {
       // delete quoted double quote
-      return doc.model.edit([new ModelEdit('deleteRange', [start - 2, 2])], {
-        selections: [new ModelEditSelection(start - 2)],
+      return doc.model.editNow([new ModelEdit('deleteRange', [start - 2, 2])], {
+        builder: builder,
+        skipFormat: true,
       });
     } else if (prevToken.type === 'open' && nextToken.type === 'close') {
       // delete empty list
-      return doc.model.edit(
+      return doc.model.editNow(
         [new ModelEdit('deleteRange', [start - prevToken.raw.length, prevToken.raw.length + 1])],
         {
-          selections: [new ModelEditSelection(start - prevToken.raw.length)],
+          builder: builder,
         }
       );
     } else if (
@@ -1142,47 +1147,60 @@ export async function backspace(
       onlyWhitespaceLeftOfCursor(doc.selections[0].anchor, cursor)
     ) {
       // we are at the beginning of a line, and not inside a string
-      return backspaceOnWhitespaceEdit(doc, cursor, config);
+      return backspaceOnWhitespaceEdit(builder, doc, cursor, config);
     } else {
       if (['open', 'close'].includes(prevToken.type) && cursor.docIsBalanced()) {
         doc.selections = [new ModelEditSelection(start - prevToken.raw.length)];
-        return new Promise<boolean>((resolve) => resolve(true));
+        return;
       } else {
-        return doc.backspace();
+        const [left, right] = [Math.max(start - 1, 0), start];
+        return doc.model.editNow([new ModelEdit('deleteRange', [left, right - left])], {
+          builder: builder,
+          skipFormat: true,
+        });
       }
     }
   }
 }
 
-export async function deleteForward(
+export function deleteForward(
   doc: EditableDocument,
+  builder?: TextEditorEdit,
   start: number = doc.selections[0].anchor,
   end: number = doc.selections[0].active
 ) {
   if (start != end) {
-    await doc.delete();
+    const [left, right] = [Math.min(start, end), Math.max(start, end)];
+    return doc.model.editNow([new ModelEdit('deleteRange', [start, end - start])], {
+      builder: builder,
+    });
   } else {
+    // Note: skipFormat, lest formatter unexpectedly move the point (eg skipping past commas)
     const cursor = doc.getTokenCursor(start);
     const prevToken = cursor.getPrevToken();
     const nextToken = cursor.getToken();
     const p = start;
     if (doc.model.getText(p, p + 2, true) == '\\"') {
-      return doc.model.edit([new ModelEdit('deleteRange', [p, 2])], {
-        selections: [new ModelEditSelection(p)],
+      return doc.model.editNow([new ModelEdit('deleteRange', [p, 2])], {
+        builder: builder,
+        skipFormat: true,
       });
     } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-      return doc.model.edit(
+      return doc.model.editNow(
         [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
         {
-          selections: [new ModelEditSelection(p - prevToken.raw.length)],
+          builder: builder,
         }
       );
     } else {
       if (['open', 'close'].includes(nextToken.type) && cursor.docIsBalanced()) {
         doc.selections = [new ModelEditSelection(p + 1)];
-        return new Promise<boolean>((resolve) => resolve(true));
+        return;
       } else {
-        return doc.delete();
+        return doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
+          builder: builder,
+          skipFormat: true,
+        });
       }
     }
   }

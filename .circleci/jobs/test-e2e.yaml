@@ -6,19 +6,19 @@ docker:
 working_directory: ~/calva
 
 steps:
-- !attach-workspace: /tmp
+- !:attach-workspace /tmp
 
-- !cmd:
+- !:cmd
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
 
-- !cmd:
+- !:cmd
   - Apt install missing dependencies
   - sudo apt-key adv --keyserver keyserver.ubuntu.com
                      --recv-keys E88979FB9B30ACF2;
     sudo apt update && sudo apt install -y libnss3
 
-- !cmd:
+- !:cmd
   - Run VSIX E2E Tests
   - npm run e2e-test --
       --calva-vsix=/tmp/artifacts/calva-$(
@@ -26,16 +26,5 @@ steps:
         ).vsix
       --test-workspace=src/extension-test/e2e-test
 
-- run:
-    name: Temporary debug preserving of VS Code network log
-    command:
-      for f in /home/circleci/.config/'Code - Insiders'/logs/*/network.log; do
-        echo "$f";
-        echo ---;
-        cat "$f";
-        echo ---;
-      done
-    when: always
-
-- !store:
+- !:store
     test_results: ~/calva/junit

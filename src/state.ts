@@ -127,36 +127,6 @@ export function getProjectRootUri(useCache = true): vscode.Uri | undefined {
   }
 }
 
-const NON_PROJECT_DIR_KEY = 'calva.connect.nonProjectDir';
-
-export async function getNonProjectRootDir(
-  context: vscode.ExtensionContext
-): Promise<vscode.Uri | undefined> {
-  let root: vscode.Uri | undefined = undefined;
-  if (!process.env['NEW_DRAMS']) {
-    root = await context.globalState.get<Promise<vscode.Uri>>(NON_PROJECT_DIR_KEY);
-  }
-  if (root) {
-    const createNewOption = 'Create new temp directory, download new files';
-    const useExistingOption = 'Use existing temp directory, reuse any existing files';
-    root = await vscode.window
-      .showQuickPick([useExistingOption, createNewOption], {
-        placeHolder: 'Reuse the existing REPL temp dir and its files?',
-      })
-      .then((option) => {
-        return option === useExistingOption ? root : undefined;
-      });
-  }
-  if (typeof root === 'object') {
-    root = vscode.Uri.file(root.path);
-  }
-  return root;
-}
-
-export async function setNonProjectRootDir(context: vscode.ExtensionContext, root: vscode.Uri) {
-  await context.globalState.update(NON_PROJECT_DIR_KEY, root);
-}
-
 export async function setOrCreateNonProjectRoot(
   context: vscode.ExtensionContext,
   preferProjectDir = false
@@ -166,12 +136,8 @@ export async function setOrCreateNonProjectRoot(
     root = getProjectRootUri();
   }
   if (!root) {
-    root = await getNonProjectRootDir(context);
-  }
-  if (!root) {
     const subDir = util.randomSlug();
     root = vscode.Uri.file(path.join(util.calvaTmpDir(), subDir));
-    await setNonProjectRootDir(context, root);
   }
   await setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
   await setStateValue(PROJECT_DIR_URI_KEY, root);
@@ -236,6 +202,8 @@ export async function initProjectDir(
     );
   }
   if (projectRootPath) {
+    console.log('Setting project root to: ', projectRootPath.fsPath);
+    void vscode.commands.executeCommand('setContext', 'calva:projectRoot', projectRootPath.fsPath);
     setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
     setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
     return projectRootPath;

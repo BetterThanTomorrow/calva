@@ -1,12 +1,16 @@
 (ns calva.fmt.formatter-test
   (:require [calva.fmt.formatter :as sut]
-            [cljfmt.core :as cljfmt :refer [includes?]]
             [cljs.test :include-macros true :refer [deftest is testing]]))
 
 (deftest format-text-at-range
   (is (= "(foo)\n(defn bar\n  [x]\n  baz)"
          (:range-text (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]}))))
   (is (not (contains? (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]}) :new-index))))
+
+(deftest clojure-1-12-syntax
+  (is (= {:all-text "^Long/1 a", :range [1 10], :range-tail "Long/1 a", :range-text "Long/1 a"}
+         (sut/format-text-at-range {:all-text "^Long/1 a" :range [1 10]})))
+  (is (nil? (:error (sut/format-text-at-range {:all-text "^Long/1 a" :range [1 10]})))))
 
 (def all-text "  (foo)
   (defn bar

@@ -183,9 +183,9 @@ function getConfig() {
   const replConnectSequencesConfig =
     configOptions.inspect<ReplConnectSequence[]>('replConnectSequences');
   const replConnectSequences = [
-    ...(replConnectSequencesConfig.globalValue ?? []),
-    ...(replConnectSequencesConfig.workspaceValue ?? []),
     ...(replConnectSequencesConfig.workspaceFolderValue ?? []),
+    ...(replConnectSequencesConfig.workspaceValue ?? []),
+    ...(replConnectSequencesConfig.globalValue ?? []),
   ].map((sequence) => {
     if (Array.isArray(sequence.afterCLJReplJackInCode)) {
       return {
@@ -233,6 +233,7 @@ function getConfig() {
     enableJSCompletions: configOptions.get<boolean>('enableJSCompletions'),
     autoOpenREPLWindow: configOptions.get<boolean>('autoOpenREPLWindow'),
     autoOpenJackInTerminal: configOptions.get('autoOpenJackInTerminal'),
+    autoOpenResultOutputDestination: configOptions.get('autoOpenResultOutputDestination'),
     autoOpenInspector: configOptions.get<boolean>('autoOpenInspector'),
     enableInspectorRainbow: configOptions.get<boolean>('enableInspectorRainbow'),
     referencesCodeLensEnabled: configOptions.get<boolean>('referencesCodeLens.enabled'),
@@ -245,6 +246,7 @@ function getConfig() {
     depsCljPath: configOptions.get<string>('depsCljPath'),
     autoSelectNReplPortFromPortFile: configOptions.get<boolean>('autoSelectNReplPortFromPortFile'),
     autoConnectRepl: configOptions.get<boolean>('autoConnectRepl'),
+    autoStartRepl: configOptions.get<boolean>('autoStartRepl'),
     html2HiccupOptions: configOptions.get<converters.HiccupOptions>('html2HiccupOptions'),
     autoEvaluateCode: nreplUtil.mergeAutoEvaluateConfigs(
       [
@@ -260,6 +262,7 @@ function getConfig() {
       configOptions.get<output.OutputDestinationConfiguration>('outputDestinations'),
     useLegacyReplWindowPath: configOptions.get<boolean>('useLegacyReplWindowPath'),
     legacyPrintBareReplWindowOutput: configOptions.get<boolean>('legacyPrintBareReplWindowOutput'),
+    basilispPath: configOptions.get<string>('basilispPath'),
   };
 }
 

@@ -3,14 +3,19 @@ import { BEncoderStream, BDecoderStream } from './bencode';
 import * as cider from './cider';
 import * as state from './../state';
 import * as util from '../utilities';
-import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from '../printer';
+import {
+  PrettyPrintingOptions,
+  disabledPrettyPrinter,
+  getServerSidePrinter,
+  prettyPrint,
+} from '../printer';
 import * as debug from '../debugger/calva-debug';
 import * as vscode from 'vscode';
 import debugDecorations from '../debugger/decorations';
 import * as outputWindow from '../repl-window/repl-doc';
 import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
-import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
+import { getStateValue } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
 import { log, Direction } from './logging';
 import * as string from '../util/string';
@@ -763,7 +768,7 @@ export class NReplSession {
     });
   }
 
-  private _refresh(cmd, opts: { dirs?: string[]; before?: string[]; after?: string[] } = {}) {
+  private _refresh(cmd, opts = {}) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
       const msg = {
@@ -793,6 +798,9 @@ export class NReplSession {
           if (msg.err) {
             err += msg.err;
           }
+          if (msg.out) {
+            output.appendOtherOut(msg.out);
+          }
           if (hasStatus(msg, 'done')) {
             const res = { reloaded, status } as any;
             if (error) {
@@ -816,11 +824,11 @@ export class NReplSession {
     });
   }
 
-  refresh(opts: { dirs?: string[]; before?: string[]; after?: string[] } = {}) {
+  refresh(opts = {}) {
     return this._refresh('refresh', opts);
   }
 
-  refreshAll(opts: { dirs?: string[]; before?: string[]; after?: string[] } = {}) {
+  refreshAll(opts = {}) {
     return this._refresh('refresh-all', opts);
   }
 

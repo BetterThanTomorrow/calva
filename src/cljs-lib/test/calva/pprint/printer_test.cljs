@@ -39,3 +39,9 @@
       (testing "Can opt out of added commas in maps"
         (is (= {:value "{:a 1 :b 1 :c 1}"}
                (pretty-print "{:a 1, :b 1 :c 1}" {:map {:comma? false}})))))))
+
+(deftest clojure-1-12-syntax
+  (testing "Valid EDN"
+    (is (= {:value "^Long/1 a"}
+           (pretty-print "^Long/1 a" nil)))
+    (is (nil? (:error (pretty-print "^Long/1 a" nil))))))

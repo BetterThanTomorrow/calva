@@ -202,15 +202,15 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
   state.extensionContext.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((event) => {
       if (event) {
-        const isOutputWindow = isResultsDoc(event.document);
-        setContextForReplWindowActive(isOutputWindow);
-        if (isOutputWindow) {
+        const isReplWindow = isResultsDoc(event.document);
+        setContextForReplWindowActive(isReplWindow);
+        if (isReplWindow) {
           void setViewColumn(event.viewColumn);
         }
       }
     })
   );
-  // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
+  // If the repl window is active when initResultsDoc is run, these contexts won't be set properly without the below
   // until the next time it's focused
   const activeTextEditor = util.tryToGetActiveTextEditor();
   if (activeTextEditor && isResultsDoc(activeTextEditor.document)) {
@@ -239,6 +239,9 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     const lastPos = resultsDoc.positionAt(Infinity);
     resultsEditor.selections = [new vscode.Selection(lastPos, lastPos)];
     resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
+  }
+  if (config.getConfig().autoOpenResultOutputDestination) {
+    void output.showResultOutputDestination(true);
   }
   if (isInitialized) {
     return resultsDoc;
@@ -296,7 +299,7 @@ export function setNamespaceFromCurrentFile() {
   output.replWindowAppendPrompt();
 }
 
-async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
+function appendFormGrabbingSessionAndNS(topLevel: boolean): void {
   const session = replSession.getSession();
   const [ns, _] = namespace.getNamespace(
     util.tryToGetDocument({}),
@@ -308,9 +311,9 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
   let code = '';
   if (selection.isEmpty) {
     const formSelection = select.getFormSelection(doc, selection.active, topLevel);
-    code = await formatCode(doc.getText(formSelection), doc.eol);
+    code = formatCode(doc.getText(formSelection), doc.eol);
   } else {
-    code = await formatCode(doc.getText(selection), doc.eol);
+    code = formatCode(doc.getText(selection), doc.eol);
   }
   if (code != '') {
     setSession(session, ns);
@@ -319,11 +322,11 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
 }
 
 export function appendCurrentForm() {
-  void appendFormGrabbingSessionAndNS(false);
+  appendFormGrabbingSessionAndNS(false);
 }
 
 export function appendCurrentTopLevelForm() {
-  void appendFormGrabbingSessionAndNS(true);
+  appendFormGrabbingSessionAndNS(true);
 }
 
 export async function lastLineIsEmpty(): Promise<boolean> {

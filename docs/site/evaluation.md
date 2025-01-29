@@ -7,7 +7,7 @@ search:
 
 # Code Evaluation
 
-Calva tries to make it easy to evaluate code, supporting interactive development. The fastest path to learning about it is to use the **Fire up the Getting Started REPL** command, which you can learn more about in the [Getting Started](getting-started.md) section.
+Calva tries to make it easy to evaluate code, supporting interactive development. The fastest path to learning about it is to use the **Create a Getting Started REPL project** command, which you can learn more about in the [Getting Started](getting-started.md) section.
 
 NB: _The below assumes you have read about [Finding Calva Commands and Shortcuts](finding-commands.md)._
 
@@ -22,12 +22,52 @@ Calva has many commands for evaluating forms, including the **current form** and
 Some of the commands also let you choose what should happen with the results:
 
 1. **Inline.** This will display the results (or some of it, if it is long) inline in the editor.
-   - This also creates a hover pane including the full results and a button which will copy the results to the clipboard.
-   - There is also a command for copying the last result to the clipboard.
-   - The full results are always available in the [output window](output.md).
-     - There is a command for showing the output window, allowing for a workflow where you either generally have it closed, or have it as one of the tabs in the same editor group as the files you are working with.
+     * This also creates a hover pane including the full results and a button which will copy the results to the clipboard.
+     * There is also a command for copying the last result to the clipboard.
+     * The full results are always available in the [output destination](output.md).
+         * There is a command for showing the output destination, allowing for a workflow where you either generally have it closed, or have it as one of the tabs in the same editor group as the files you are working with.
 1. **To comments.** This will add the results as line comments below the current line.
 1. **Replace the evaluated code.** This will do what it says, the evaluated code will be replaced with its results.
+
+??? Note "Evaluate to comments support different comment styles"
+    When using the commands for evaluating to comments, **Evaluate Top Level Form (defun) to Comment**, and **Evaluate Selection to Comment**, the commands will insert the results as line comments (`;; ...`) below the evaluated form. However, there are two additional comment styles available. To use these you need to execute the commands via VS Code API, typically from keybindings. The commands take an argument map with the key `commentStyle`. You can choose between three different comment styles: `line`, `ignore`, and `rcf`:
+
+    * The `line` style is the default.
+    * The `ignore` style will put an ignore marker (`#_`) before the result.
+    * The `rcf` style will wrap the result in a rich comment form ( `(comment ...)`).
+
+    Here are some example keybindings for using the different comment styles with the **Evaluate Top Level Form (defun) to Comment** command:
+
+    ```jsonc
+    {
+      "key": "ctrl+alt+c ctrl+space",
+      "command": "calva.evaluateTopLevelFormAsComment",
+      "when": "editorTextFocus && editorLangId == 'clojure'",
+      "args": {
+        "commentStyle": "line"
+      }
+    },
+    {
+      "key": "ctrl+alt+c ctrl+i",
+      "command": "calva.evaluateTopLevelFormAsComment",
+      // "command": "calva.evaluateSelectionAsComment",
+      "when": "editorTextFocus && editorLangId == 'clojure'",
+      "args": {
+        "commentStyle": "ignore"
+      }
+    },
+    {
+      "key": "ctrl+alt+c ctrl+r",
+      "command": "calva.evaluateTopLevelFormAsComment",
+      // "command": "calva.evaluateSelectionAsComment",
+      "when": "editorTextFocus && editorLangId == 'clojure'",
+      "args": {
+        "commentStyle": "rcf"
+      }
+    },
+    ```
+
+    The first keybinding there is the default for the command, and only included as an example.
 
 ## Wait, Current Form? Top-level Form?
 
@@ -67,6 +107,8 @@ Default shortcut for evaluating the current top level form: `alt+enter`.
 The **current top-level form** means top-level in a structural sense. It is _not_ the topmost form in the file. Typically in a Clojure file you will find `def` and `defn` (and `defwhatever`) forms at the top level, which also is one major intended use for evaluating top level form: _to define and redefine variables_. However, Calva does not check the contents of the form in order to determine it as a top-level forms: _all forms not enclosed in any other form are top level forms_.
 
 An ”exception” is introduced by the `comment` form. It will create a new top level context, so that any forms immediately inside a `(comment ...)` form will be considered top-level by Calva. This is to support a workflow with what is often referred to the [Rich Comments](rich-comments.md).
+
+A special case is ignored forms (using the `#_` marker) at the top level. They will always be selected as top level forms separately from their ignore marker, enabling evaluating them as top level forms. Similar to Rich Comments.
 
 At the top level the selection of which form is the current top level form follows the same rules as those for [the current form](#current-form).
 

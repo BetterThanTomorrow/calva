@@ -4,6 +4,8 @@
 
 _Distilled from [CIDER](https://cider.mx/)*._
 
+[![chat - #clojure](https://img.shields.io/badge/chat-%23calva-db9550?style=for-the-badge&logo=zulip)](https://clojurians.zulipchat.com/#narrow/channel/151858-calva)
+
 Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an integrated, REPL powered, development environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) programming in [Visual Studio Code](https://code.visualstudio.com). It includes:
 
 * inline [code evaluation](https://calva.io/evaluation/)

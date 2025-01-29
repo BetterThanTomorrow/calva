@@ -444,7 +444,7 @@ export function appendLineOtherErr(message: string, after?: AfterAppendCallback)
 }
 
 /**
- * Appends a prompt to the output window.
+ * Appends a prompt to the repl window.
  * Needs to be called via here, because we keep track of wether the last output ended with a newline or not.
  * @param onAppended Optional callback to run after the append
  */

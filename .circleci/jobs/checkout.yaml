@@ -6,7 +6,7 @@ docker:
 working_directory: ~/calva
 
 steps:
-- !attach-workspace: /tmp
+- !:attach-workspace /tmp
 
 - checkout:
     path: ~/calva
@@ -17,15 +17,15 @@ steps:
                checksum "shadow-cljs.edn" }}-grammar-{{
                checksum "src/calva-fmt/atom-language-clojure/package.json" }}
 
-- !cmd:
+- !:cmd
   - Install node_modules
   - cp package.json /tmp && npm install && cp /tmp/package.json .
 
-- !cmd:
+- !:cmd
   - Create build workspace
   - mkdir /tmp/build
 
-- !cmd:
+- !:cmd
   - Copy build
   - cp -r . /tmp/build
 

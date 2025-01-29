@@ -19,37 +19,33 @@ function report(res) {
     }
     output.appendLineEvalOut(':error 😿');
   }
+  return res;
 }
 
-function refresh(document = {}) {
-  const doc = util.tryToGetDocument(document),
+export function refresh(opts?: Record<string, unknown>) {
+  const doc = util.tryToGetDocument({}),
     client: NReplSession = replSession.getSession(util.getFileType(doc));
 
   if (client != undefined) {
     output.appendLineEvalOut('Reloading...');
-    void client.refresh().then((res) => {
-      report(res);
+    return client.refresh(opts).then((res) => {
+      return report(res);
     });
   } else {
-    void vscode.window.showErrorMessage('Not connected to a REPL.');
+    return vscode.window.showErrorMessage('Not connected to a REPL.');
   }
 }
 
-function refreshAll(document = {}) {
-  const doc = util.tryToGetDocument(document),
+export function refreshAll(opts?: Record<string, unknown>) {
+  const doc = util.tryToGetDocument({}),
     client: NReplSession = replSession.getSession(util.getFileType(doc));
 
   if (client != undefined) {
     output.appendLineEvalOut('Reloading all the things...');
-    void client.refreshAll().then((res) => {
-      report(res);
+    return client.refreshAll(opts).then((res) => {
+      return report(res);
     });
   } else {
-    void vscode.window.showErrorMessage('Not connected to a REPL.');
+    return vscode.window.showErrorMessage('Not connected to a REPL.');
   }
 }
-
-export default {
-  refresh,
-  refreshAll,
-};

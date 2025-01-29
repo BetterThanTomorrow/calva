@@ -142,6 +142,33 @@ export function lineInformation(result: TestResult): string {
   return ` (${result.file}:${result.line})`;
 }
 
+function getDiffMessages(result: TestResult): string[] {
+  const diffs = result.diffs;
+  const messages: string[] = [];
+
+  if (!diffs || !Array.isArray(diffs) || diffs.length === 0) {
+    return messages;
+  }
+
+  diffs.forEach((diffPair: [string, [string, string]]) => {
+    if (Array.isArray(diffPair) && diffPair.length === 2) {
+      const [_, [removed, added]] = diffPair;
+
+      if (removed || added) {
+        messages.push('; diff:');
+        messages.push(removed ? `- ${removed}` : '');
+        if (added) {
+          messages.push(`+ ${added}`);
+        }
+      }
+    } else {
+      console.warn('Invalid diff pair format:', diffPair);
+    }
+  });
+
+  return messages;
+}
+
 // Return a detailed message about why a test failed.
 // If the test passed, return the empty string.
 // The message contains "comment" lines that are prepended with ;
@@ -172,6 +199,11 @@ export function detailedMessage(result: TestResult): string | undefined {
     }
     if (result.actual) {
       messages.push(`; actual:\n${result.actual}`);
+    }
+
+    const diffMessages = getDiffMessages(result);
+    if (diffMessages.length > 0) {
+      messages.push(...diffMessages);
     }
   }
   return messages.length > 0 ? messages.join('\n') : undefined;
