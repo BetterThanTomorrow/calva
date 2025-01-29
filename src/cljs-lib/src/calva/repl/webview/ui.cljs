@@ -15,6 +15,7 @@
   (.. js/window -hljs (highlightAll)))
 
 (defn dispatch
+  "Dispatches commands in hook-data"
   [replicant-data hook-data]
   (doseq [[command-name & args] hook-data]
     (apply run-command replicant-data command-name args)))
