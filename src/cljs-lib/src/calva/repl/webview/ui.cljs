@@ -63,6 +63,7 @@
   [_key _atom _old-state new-state]
   (render new-state))
 
+;; TODO: The output window is append-only, so we could just scroll any time there's a change.
 (defn scroll-to-bottom
   "Scrolls to the bottom of the output view if a new output element was added."
   [_key _atom old-state new-state]

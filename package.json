@@ -178,7 +178,8 @@
                 "enum": [
                   "repl-window",
                   "output-channel",
-                  "terminal"
+                  "terminal",
+                  "webview"
                 ],
                 "default": "repl-window",
                 "markdownDescription": "Destination for evaluation results. (Clojure data returned from an evaluation)."
@@ -188,7 +189,8 @@
                 "enum": [
                   "repl-window",
                   "output-channel",
-                  "terminal"
+                  "terminal",
+                  "webview"
                 ],
                 "default": "repl-window",
                 "markdownDescription": "Destination for evaluation output (stdout/stderr from an evaluation)."
@@ -198,7 +200,8 @@
                 "enum": [
                   "repl-window",
                   "output-channel",
-                  "terminal"
+                  "terminal",
+                  "webview"
                 ],
                 "default": "repl-window",
                 "markdownDescription": "Destination for other output (Calva messages, out-of-band stdout/stderr, etcetera)."

@@ -93,7 +93,7 @@
    ;; Message id
    :id "1234"}
 
-  (post-message-to-webview {:command-name "show-result"
+  (post-message-to-webview {:command-name "show-stdout"
                             :result "send while hidden"})
 
   (post-message-to-webview {:command "clear-output"})
