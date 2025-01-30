@@ -1,8 +1,8 @@
 (ns calva.repl.webview.ui
   (:require
-
    [replicant.dom :as replicant]))
 
+;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
 
 (defmulti run-command
@@ -15,6 +15,7 @@
   (.. js/window -hljs (highlightAll)))
 
 (defn dispatch
+  "Dispatches commands in hook-data"
   [replicant-data hook-data]
   (doseq [[command-name & args] hook-data]
     (apply run-command replicant-data command-name args)))
@@ -22,6 +23,7 @@
 (replicant/set-dispatch! dispatch)
 
 (defn repl-output-element
+  "Creates a repl output element - adding a unique ID to the :output-element/id attribute."
   [element-data]
   (merge element-data
          {:output-element/id (random-uuid)}))
