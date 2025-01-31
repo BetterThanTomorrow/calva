@@ -7,6 +7,7 @@ import * as cursorUtil from '../cursor-doc/utilities';
 import * as chalk from 'chalk';
 import * as ansiRegex from 'ansi-regex';
 import * as printer from '../printer';
+import { appendToReplOutputWebview, showReplOutputWebviewPanel } from '../../out/cljs-lib/cljs-lib';
 
 const customChalk = new chalk.Instance({ level: 3 });
 
@@ -51,7 +52,7 @@ export interface AfterAppendCallback {
   (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
 }
 
-export type OutputDestination = 'repl-window' | 'output-channel' | 'terminal';
+export type OutputDestination = 'repl-window' | 'output-channel' | 'terminal' | 'webview';
 
 export type OutputDestinationConfiguration = {
   evalResults: OutputDestination;
@@ -134,6 +135,9 @@ export function showResultOutputDestination(preserveFocus = true) {
   if (getDestinationConfiguration().evalResults === 'terminal') {
     return showOutputTerminal(preserveFocus);
   }
+  if (getDestinationConfiguration().evalResults === 'webview') {
+    return showReplOutputWebviewPanel();
+  }
   return outputWindow.revealResultsDoc(preserveFocus);
 }
 
@@ -154,11 +158,12 @@ function messageContainsAnsi(message: string) {
 }
 
 // Used to decide if new result output should be prepended with a newline or not.
-// Also: For non-result output, whether the repl window output should be be printed as line comments.
+// Also: For non-result output, whether the repl window output should be printed as line comments.
 const didLastOutputTerminateLine: Record<OutputDestination, boolean> = {
   'repl-window': true,
   'output-channel': true,
   terminal: true,
+  webview: true,
 };
 
 let havePrintedLegacyReplWindowOutputMessage = false;
@@ -180,6 +185,7 @@ const lastInfoLineData: Record<OutputDestination, AppendClojureOptions> = {
   'repl-window': {},
   'output-channel': {},
   terminal: {},
+  webview: {},
 };
 
 function saveLastInfoLineData(destination: OutputDestination, options: AppendClojureOptions) {
@@ -376,6 +382,10 @@ function appendLine(options: AppendOptions, message: string, after?: AfterAppend
   }
   if (destination === 'terminal') {
     append(options, message + '\r\n', after);
+  }
+  // TODO: Assign these destination strings to variables and use the variables
+  if (destination === 'webview') {
+    appendToReplOutputWebview(options, message, after);
   }
 }
 

@@ -5,6 +5,9 @@
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
 
+;; See here for a description of this function: https://code.visualstudio.com/api/extension-guides/webview#passing-messages-from-a-webview-to-an-extension
+(defonce vs-code-api (js/acquireVsCodeApi))
+
 (defmulti run-command
   "Runs a given command with the given args."
   (fn [_replicant-data command & _args]
@@ -30,10 +33,11 @@
 
 (defonce state
   (atom {:repl-output/elements
-         [(repl-output-element {:output-element/type :output-element.type/eval-result
-                                :output-element/content "{:a 1}"})
-          (repl-output-element {:output-element/type :output-element.type/stdout
-                                :output-element/content "Hello world"})]}))
+         ;; TODO: Create schemas for these elements
+         [#_(repl-output-element {:output-element/type :output-element.type/eval-result
+                                  :output-element/content "{:a 1}"})
+          #_(repl-output-element {:output-element/type :output-element.type/stdout
+                                  :output-element/content "hello world"})]}))
 
 (defn clojure-code-hiccup
   "Accepts a string of Clojure code and returns hiccup for rendering it in the output view."
@@ -73,12 +77,22 @@
            (count (:repl-output/elements old-state)))
     (.. output-dom-element (scrollTo 0 (.. output-dom-element -scrollHeight)))))
 
+(defn save-state
+  [_key _atom _old-state new-state]
+  (prn "saving state")
+  (.. vs-code-api (saveState new-state)))
+
 ;; TODO: Use this map to add watches to the state atom
 (def state-watchers
-  {:render-repl-output render-repl-output
-   :scroll-to-bottom scroll-to-bottom})
+  {;; TODO: Should this happen on every state update or just when the webview is hidden?
+   :save-state save-state
+   :render-repl-output render-repl-output
+   #_#_:scroll-to-bottom scroll-to-bottom})
 
 (add-watch state :render-repl-output render-repl-output)
+
+;; TODO: Finish this to add all watchers
+;; (run! (fn [[]]) state-watchers)
 
 (defn add-repl-output-element
   [element]
@@ -98,14 +112,20 @@
   (.. js/window
       (addEventListener "message"
                         (fn [^js message]
-                          (js/console.log "message" message)
                           ;; TODO: Convert message data to CLJ before accessing its properties
-                          (let [id (.. message -data -id)
+                          (let [_id (.. message -data -id)
                                 command (aget message "data" "command-name")
-                                data (.. message -data -result)]
-                            (js/console.log "id" id)
-                            (js/console.log "command" command)
+                                content (.. message -data -content)]
                             (case command
-                              "show-result" (add-eval-result data)
-                              "show-stdout" (add-stdout data))))))
+                              "show-result" (add-eval-result content)
+                              "show-stdout" (add-stdout content))))))
+  ;; TODO: Persist state and reload it when webview is created so that the webview content persists
+  ;; in the UI when the webview is hidden then focused again
+  ;; https://code.visualstudio.com/api/extension-guides/webview#persistence
   (render @state))
+
+(comment
+  (.. vs-code-api (setState @state))
+  (.. vs-code-api (getState))
+  (js/acquireVsCodeApi)
+  :rcf)

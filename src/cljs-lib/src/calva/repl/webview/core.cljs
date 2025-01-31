@@ -12,10 +12,16 @@
 (defn create-or-get-repl-output-webview-panel []
   (or @repl-output-webview-panel
       (let [webview-panel (.. ^js @util/vscode -window
-                              (createWebviewPanel "calva:repl-output"
-                                                  "REPL Output"
-                                                  (.. ^js @util/vscode -ViewColumn -Two)
-                                                  #js {:enableScripts true}))]
+                              (createWebviewPanel
+                               "calva:repl-output"
+                               "REPL Output"
+                               #js {:preserveFocus true
+                                    :viewColumn (.. ^js @util/vscode -ViewColumn -Beside)}
+                               #js {:enableScripts true
+                                    ;; If performance or memory consumption becomes a problem, we can use the setState
+                                    ;; and getState to manually retain the context of the webview when it's hidden.
+                                    ;; See https://code.visualstudio.com/api/extension-guides/webview#persistence
+                                    :retainContextWhenHidden true}))]
         (.. ^js webview-panel (onDidDispose dispose-repl-output-webview-panel))
         (reset! repl-output-webview-panel webview-panel))))
 
@@ -68,13 +74,14 @@
                     (joinPath (.. ^js @util/context -extensionUri) "repl-output-ui" "js" "main.js"))
         js-src (.. repl-output-webview-panel -webview (asWebviewUri js-path))
         webview-html (get-webview-html js-src)]
-    (set! (.. ^js repl-output-webview-panel -webview -html) webview-html)
-    #_(let [interval-id (js/setInterval post-message-to-webview
-                                        1000
-                                        {:command-name "show-result"
-                                         :result "Hello world!!!"})]
-        (js/setTimeout #(js/clearInterval interval-id)
-                       11000))))
+    (set! (.. ^js repl-output-webview-panel -webview -html) webview-html)))
+
+(defn append
+  [^js options message post-append-callback]
+  ;; TODO: Call the post-append-callback
+  (condp = (.-outputCategory options)
+    "otherOut" (post-message-to-webview {:command-name "show-stdout"
+                                         :content message})))
 
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
 ;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
