@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Fix description of calva.autoOpenResultOutputDestination setting](https://github.com/BetterThanTomorrow/calva/pull/2721)
+
 ## [2.0.485] - 2025-01-27
 
 - Fix: [Stop considering a clj-kondo config as a valid project to start LSP processes](https://github.com/BetterThanTomorrow/calva/issues/2712)

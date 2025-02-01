@@ -851,7 +851,7 @@
           },
           "calva.enableJSCompletions": {
             "type": "boolean",
-            "description": "Should Calva use suitible and bring you JavaScript completions? This is an experimental cider-nrepl feature. Disable if completions start to throw errors.",
+            "description": "Should Calva use suitable and bring you JavaScript completions? This is an experimental cider-nrepl feature. Disable if completions start to throw errors.",
             "default": true
           },
           "calva.autoOpenREPLWindow": {
@@ -866,7 +866,7 @@
           },
           "calva.autoOpenResultOutputDestination": {
             "type": "boolean",
-            "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in or Connect.",
+            "markdownDescription": "Automatically open the the result output destination on Jack-in or Connect.",
             "default": true
           },
           "calva.autoOpenInspector": {
