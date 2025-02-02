@@ -61,11 +61,13 @@
 </html>"))
 
 (defn post-message-to-webview [message]
-  (.. ^js @repl-output-webview-panel
-      -webview
-      (postMessage (clj->js (merge
-                             {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
-                             message)))))
+  (let [webview-panel ^js @repl-output-webview-panel]
+    (when webview-panel
+      (.. webview-panel
+          -webview
+          (postMessage (clj->js (merge
+                                 {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
+                                 message)))))))
 
 (defn show-repl-output-webview-panel []
   (let [^js repl-output-webview-panel (create-or-get-repl-output-webview-panel)
@@ -76,18 +78,25 @@
         webview-html (get-webview-html js-src)]
     (set! (.. ^js repl-output-webview-panel -webview -html) webview-html)))
 
+;; TODO: Add tests
 (defn append
-  [^js options message post-append-callback]
-  ;; TODO: Call the post-append-callback
-  (condp = (.-outputCategory options)
-    "otherOut" (post-message-to-webview {:command-name "show-stdout"
-                                         :content message})))
+  [^js options message]
+  (let [output-category (.-outputCategory options)]
+    (case output-category
+      "otherOut" (post-message-to-webview {:command-name "show-stdout"
+                                           :content message})
+      "evalOut" (post-message-to-webview {:command-name "show-stdout"
+                                          :content message})
+      (js/console.error
+       (str "Cannot append content to output webview. No outputCategory matches \"" output-category "\"")))))
 
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
 ;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
 ;; https://code.visualstudio.com/api/extension-guides/webview#theming-webview-content
 
 (comment
+  (def output-category "foo")
+  (def message "hello")
   (show-repl-output-webview-panel)
 
   ;; TODO: Implement this interface for communicating with the webview

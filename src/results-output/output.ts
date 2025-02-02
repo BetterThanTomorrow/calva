@@ -293,6 +293,9 @@ function append(options: AppendOptions, message: string, after?: AfterAppendCall
     }
     return;
   }
+  if (destination === 'webview') {
+    appendToReplOutputWebview(options, message);
+  }
 }
 
 /**
@@ -385,7 +388,7 @@ function appendLine(options: AppendOptions, message: string, after?: AfterAppend
   }
   // TODO: Assign these destination strings to variables and use the variables
   if (destination === 'webview') {
-    appendToReplOutputWebview(options, message, after);
+    appendToReplOutputWebview(options, message);
   }
 }
 
