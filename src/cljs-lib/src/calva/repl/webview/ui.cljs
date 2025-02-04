@@ -1,6 +1,7 @@
 (ns calva.repl.webview.ui
   (:require
-   [replicant.dom :as replicant]))
+   [replicant.dom :as replicant]
+   [clojure.string :as str]))
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
@@ -14,8 +15,8 @@
     command))
 
 (defmethod run-command :repl-output/highlight-code
-  [_replicant-data _command _args]
-  (.. js/window -hljs (highlightAll)))
+  [{:replicant/keys [node]} _command _args]
+  (.. js/window -hljs (highlightElement node)))
 
 (defn dispatch
   "Dispatches commands in hook-data"
@@ -42,7 +43,7 @@
 (defn clojure-code-hiccup
   "Accepts a string of Clojure code and returns hiccup for rendering it in the output view."
   [clojure-code]
-  [:pre [:code {:class "language-clojure"} clojure-code]])
+  [:pre [:code {:class "language-clojure" :replicant/on-render [[:repl-output/highlight-code]]} clojure-code]])
 
 (defmulti repl-output-element-hiccup
   "Returns hiccup for rendering a given output element."
@@ -54,11 +55,19 @@
 
 (defmethod repl-output-element-hiccup :output-element.type/stdout
   [element]
-  [:p (:output-element/content element)])
+  (let [content (:output-element/content element)
+        lines (str/split-lines content)]
+    (into [:p] (map (fn [line] [:span line [:br]]) lines))))
+
+(comment
+  (str/split-lines "hello\n\nworld")
+  :rcf)
 
 (defn repl-output-hiccup
   [state]
-  (into [:div {:replicant/on-render [[:repl-output/highlight-code]]}]
+  ;; TODO: Don't run highlightAll on every render of the top-level div.
+  ;; Instead, run it on each code block as it's added.
+  (into [:div]
         (map repl-output-element-hiccup (:repl-output/elements state))))
 
 (defn render [state]
@@ -69,27 +78,25 @@
   [_key _atom _old-state new-state]
   (render new-state))
 
-;; TODO: The output window is append-only, so we could just scroll any time there's a change.
 (defn scroll-to-bottom
-  "Scrolls to the bottom of the output view if a new output element was added."
-  [_key _atom old-state new-state]
-  (when (> (count (:repl-output/elements new-state))
-           (count (:repl-output/elements old-state)))
-    (.. output-dom-element (scrollTo 0 (.. output-dom-element -scrollHeight)))))
+  "Scrolls to the bottom of the output view."
+  [_key _atom _old-state _new-state]
+  (.. output-dom-element (scrollIntoView #js {:behavior "instant" :block "end"})))
 
 (defn save-state
   [_key _atom _old-state new-state]
-  (prn "saving state")
   (.. vs-code-api (saveState new-state)))
 
 ;; TODO: Use this map to add watches to the state atom
 (def state-watchers
-  {;; TODO: Should this happen on every state update or just when the webview is hidden?
-   :save-state save-state
+  {#_#_:save-state save-state
    :render-repl-output render-repl-output
-   #_#_:scroll-to-bottom scroll-to-bottom})
+   :scroll-to-bottom scroll-to-bottom})
 
-(add-watch state :render-repl-output render-repl-output)
+(defn add-state-watchers! []
+  (run! (fn [[key f]]
+          (add-watch state key f))
+        state-watchers))
 
 ;; TODO: Finish this to add all watchers
 ;; (run! (fn [[]]) state-watchers)
@@ -109,6 +116,7 @@
                                                  :output-element/content content})))
 
 (defn main []
+  (add-state-watchers!)
   (.. js/window
       (addEventListener "message"
                         (fn [^js message]
