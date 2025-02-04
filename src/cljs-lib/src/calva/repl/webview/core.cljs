@@ -8,23 +8,6 @@
   (println "Disposing repl-output-webview-panel")
   (reset! repl-output-webview-panel nil))
 
-;; TODO: See if there's a way to not have to use ^js in so many places without shadow-cljs warnings
-(defn create-or-get-repl-output-webview-panel []
-  (or @repl-output-webview-panel
-      (let [webview-panel (.. ^js @util/vscode -window
-                              (createWebviewPanel
-                               "calva:repl-output"
-                               "REPL Output"
-                               #js {:preserveFocus true
-                                    :viewColumn (.. ^js @util/vscode -ViewColumn -Beside)}
-                               #js {:enableScripts true
-                                    ;; If performance or memory consumption becomes a problem, we can use the setState
-                                    ;; and getState to manually retain the context of the webview when it's hidden.
-                                    ;; See https://code.visualstudio.com/api/extension-guides/webview#persistence
-                                    :retainContextWhenHidden true}))]
-        (.. ^js webview-panel (onDidDispose dispose-repl-output-webview-panel))
-        (reset! repl-output-webview-panel webview-panel))))
-
 (defn get-webview-html
   [js-src]
   (str "
@@ -60,6 +43,31 @@
   </body>
 </html>"))
 
+(defn set-webview-html!
+  [webview-panel]
+  (let [js-path (.. ^js @util/vscode
+                    -Uri
+                    (joinPath (.. ^js @util/context -extensionUri) "repl-output-ui" "js" "main.js"))
+        js-src (.. webview-panel -webview (asWebviewUri js-path))
+        webview-html (get-webview-html js-src)]
+    (set! (.. ^js repl-output-webview-panel -webview -html) webview-html)))
+
+(defn create-repl-output-webview-panel []
+  (let [webview-panel (.. ^js @util/vscode -window
+                          (createWebviewPanel
+                           "calva:repl-output"
+                           "REPL Output"
+                           #js {:preserveFocus true
+                                :viewColumn (.. ^js @util/vscode -ViewColumn -Beside)}
+                           #js {:enableScripts true
+                                    ;; If performance or memory consumption becomes a problem, we can use the setState
+                                    ;; and getState to manually retain the context of the webview when it's hidden.
+                                    ;; See https://code.visualstudio.com/api/extension-guides/webview#persistence
+                                :retainContextWhenHidden true}))]
+    (.. ^js webview-panel (onDidDispose dispose-repl-output-webview-panel))
+    (set-webview-html! webview-panel)
+    (reset! repl-output-webview-panel webview-panel)))
+
 (defn post-message-to-webview [message]
   (let [webview-panel ^js @repl-output-webview-panel]
     (when webview-panel
@@ -70,13 +78,8 @@
                                  message)))))))
 
 (defn show-repl-output-webview-panel []
-  (let [^js repl-output-webview-panel (create-or-get-repl-output-webview-panel)
-        js-path (.. ^js @util/vscode
-                    -Uri
-                    (joinPath (.. ^js @util/context -extensionUri) "repl-output-ui" "js" "main.js"))
-        js-src (.. repl-output-webview-panel -webview (asWebviewUri js-path))
-        webview-html (get-webview-html js-src)]
-    (set! (.. ^js repl-output-webview-panel -webview -html) webview-html)))
+  (let [^js webview-panel (or @repl-output-webview-panel (create-repl-output-webview-panel))]
+    (.. webview-panel (reveal nil true))))
 
 ;; TODO: Add tests
 ;; TODO: Refactor this to use a mapping of output category -> command name
