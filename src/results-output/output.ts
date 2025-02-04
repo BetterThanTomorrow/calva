@@ -235,6 +235,11 @@ function appendClojure(
     if (after) {
       after(undefined, undefined);
     }
+  } else if (destination === 'webview') {
+    appendToReplOutputWebview(options, message);
+    if (after) {
+      after(undefined, undefined);
+    }
   }
   saveLastInfoLineData(destination, options);
 }

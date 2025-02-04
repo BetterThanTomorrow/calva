@@ -79,6 +79,7 @@
     (set! (.. ^js repl-output-webview-panel -webview -html) webview-html)))
 
 ;; TODO: Add tests
+;; TODO: Refactor this to use a mapping of output category -> command name
 (defn append
   [^js options message]
   (let [output-category (.-outputCategory options)]
@@ -87,6 +88,8 @@
                                            :content message})
       "evalOut" (post-message-to-webview {:command-name "show-stdout"
                                           :content message})
+      "evalResults" (post-message-to-webview {:command-name "show-result"
+                                              :content message})
       (js/console.error
        (str "Cannot append content to output webview. No outputCategory matches \"" output-category "\"")))))
 
