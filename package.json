@@ -1431,7 +1431,7 @@
       },
       {
         "command": "calva.printLastStacktrace",
-        "title": "Print Last Stacktrace to Output Destination",
+        "title": "Print last stacktrace to result output destination",
         "enablement": "calva:connected",
         "category": "Calva"
       },
