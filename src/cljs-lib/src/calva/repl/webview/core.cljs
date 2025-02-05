@@ -1,6 +1,7 @@
 (ns calva.repl.webview.core
   (:require
-   [calva.util :as util]))
+   [calva.util :as util]
+   [clojure.string :as str]))
 
 (defonce repl-output-webview-panel (atom nil))
 
@@ -44,13 +45,13 @@
 </html>"))
 
 (defn set-webview-html!
-  [webview-panel]
+  [^js webview-panel]
   (let [js-path (.. ^js @util/vscode
                     -Uri
                     (joinPath (.. ^js @util/context -extensionUri) "repl-output-ui" "js" "main.js"))
-        js-src (.. webview-panel -webview (asWebviewUri js-path))
+        js-src (.. ^js webview-panel -webview (asWebviewUri js-path))
         webview-html (get-webview-html js-src)]
-    (set! (.. ^js repl-output-webview-panel -webview -html) webview-html)))
+    (set! (.. webview-panel -webview -html) webview-html)))
 
 (defn create-repl-output-webview-panel []
   (let [webview-panel (.. ^js @util/vscode -window
@@ -100,6 +101,27 @@
                                            :content message})
       (js/console.error
        (str "Cannot append content to output webview. No outputCategory matches \"" output-category "\"")))))
+
+(def stacktrace-classes-to-ignore
+  #{"clojure.lang.RestFn"
+    "clojure.lang.AFn"})
+
+(defn stacktrace-entry->string
+  [{:keys [var name file line]}]
+  (let [name (or var name)]
+    (str name " (" file ":" line ")")))
+
+(defn append-stacktrace
+  [^js stacktrace]
+  (let [stacktrace (js->clj stacktrace :keywordize-keys true)
+        stacktrace-message (->> stacktrace
+                                (filter (fn [{:keys [flags class]}]
+                                          (and (not (some #{"dup"} flags))
+                                               (not (contains? stacktrace-classes-to-ignore class)))))
+                                (map stacktrace-entry->string)
+                                (str/join "\n"))]
+    (post-message-to-webview {:command-name "show-stdout"
+                              :content stacktrace-message})))
 
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
 ;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
