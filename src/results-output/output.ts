@@ -7,7 +7,12 @@ import * as cursorUtil from '../cursor-doc/utilities';
 import * as chalk from 'chalk';
 import * as ansiRegex from 'ansi-regex';
 import * as printer from '../printer';
-import { appendToReplOutputWebview, showReplOutputWebviewPanel } from '../../out/cljs-lib/cljs-lib';
+import {
+  appendToReplOutputWebview,
+  showReplOutputWebviewPanel,
+  appendStackTraceToReplOutputWebview,
+} from '../../out/cljs-lib/cljs-lib';
+import * as replSession from '../nrepl/repl-session';
 
 const customChalk = new chalk.Instance({ level: 3 });
 
@@ -469,4 +474,41 @@ export function appendLineOtherErr(message: string, after?: AfterAppendCallback)
 export function replWindowAppendPrompt(onAppended?: outputWindow.OnAppendedCallback) {
   didLastOutputTerminateLine['output-window'] = true;
   outputWindow.appendPrompt(onAppended);
+}
+
+function printStackTrace(stacktrace) {
+  const evalResultsOutputDestination = getDestinationConfiguration().evalResults;
+  switch (evalResultsOutputDestination) {
+    // TODO: Make these strings an enum
+    case 'repl-window':
+      outputWindow.printLastStacktrace();
+      replWindowAppendPrompt();
+      break;
+    case 'webview':
+      appendStackTraceToReplOutputWebview(stacktrace);
+      break;
+    // case 'output-channel':
+    //   appendStackTraceToReplOutputWebview(stacktrace);
+    //   break;
+    default:
+      console.error(
+        'Printing the last stacktrace is not supported for the configured results output destination:',
+        evalResultsOutputDestination
+      );
+      break;
+  }
+}
+
+export function printLastStacktrace() {
+  const session = replSession.getSession();
+  session
+    .stacktrace()
+    .then((stacktrace) => {
+      if (stacktrace.stacktrace) {
+        printStackTrace(stacktrace.stacktrace);
+      }
+    })
+    .catch((e) => {
+      console.error(`Failed fetching stacktrace: ${e.message}`);
+    });
 }

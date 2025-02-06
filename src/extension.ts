@@ -34,7 +34,7 @@ import * as whenContexts from './when-contexts';
 import {
   setStateValue,
   initializeCljs,
-  showReplOutputWebviewPanel,
+  appendStackTraceToReplOutputWebview,
 } from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
@@ -270,10 +270,7 @@ async function activate(context: vscode.ExtensionContext) {
     prettyPrintReplaceCurrentForm: edit.prettyPrintReplaceCurrentForm,
     printClojureDocsToOutputWindow: clojureDocs.printClojureDocsToOutput,
     printClojureDocsToRichComment: clojureDocs.printClojureDocsToRichComment,
-    printLastStacktrace: () => {
-      outputWindow.printLastStacktrace();
-      output.replWindowAppendPrompt();
-    },
+    printLastStacktrace: output.printLastStacktrace,
     printTextToOutputCommand: clojureDocs.printTextToOutputCommand,
     printTextToRichCommentCommand: clojureDocs.printTextToRichCommentCommand,
     refresh: refresh.refresh,

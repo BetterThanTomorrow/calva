@@ -10,7 +10,7 @@ import * as outputWindow from './repl-window/repl-doc';
 import * as namespace from './namespace';
 import * as replHistory from './repl-window/repl-history';
 import { formatAsLineComments } from './results-output/util';
-import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import { getStateValue, appendStackTraceToReplOutputWebview } from '../out/cljs-lib/cljs-lib';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
@@ -19,7 +19,6 @@ import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
 import { resultAsComment } from './util/string-result';
 import { highlight } from './highlight/src/extension';
-import { appendStackTraceToReplOutputWebview } from '../out/cljs-lib/cljs-lib';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
