@@ -115,7 +115,10 @@
   (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/stdout
                                                  :output-element/content content})))
 
-(defn main []
+(defn ^:export clear-webview []
+  (swap! state assoc :repl-output/elements []))
+
+(defn ^:export main []
   (add-state-watchers!)
   (.. js/window
       (addEventListener "message"
@@ -126,7 +129,8 @@
                                 content (.. message -data -content)]
                             (case command
                               "show-result" (add-eval-result content)
-                              "show-stdout" (add-stdout content))))))
+                              "show-stdout" (add-stdout content)
+                              "clear-webview" (clear-webview))))))
   ;; TODO: Persist state and reload it when webview is created so that the webview content persists
   ;; in the UI when the webview is hidden then focused again
   ;; https://code.visualstudio.com/api/extension-guides/webview#persistence

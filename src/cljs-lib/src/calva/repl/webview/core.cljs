@@ -123,9 +123,10 @@
     (post-message-to-webview {:command-name "show-stdout"
                               :content stacktrace-message})))
 
-(defn clear []
+(defn clear-webview []
   ;; TODO: Finish this
-  (println "clearing webview"))
+  (println "clearing webview")
+  (post-message-to-webview {:command-name "clear-webview"}))
 
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
 ;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
