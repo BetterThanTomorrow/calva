@@ -476,7 +476,22 @@ export function replWindowAppendPrompt(onAppended?: outputWindow.OnAppendedCallb
   outputWindow.appendPrompt(onAppended);
 }
 
-function printStackTrace(stacktrace) {
+function formatStacktraceForOutputChannel(stacktrace: any[]) {
+  return stacktrace
+    .filter((entry) => {
+      return (
+        !entry.flags.includes('dup') &&
+        !['clojure.lang.RestFn', 'clojure.lang.AFn'].includes(entry.class)
+      );
+    })
+    .map((entry) => {
+      const name = entry.var || entry.name;
+      return `${name} (${entry.file}:${entry.line})`;
+    })
+    .join('\n');
+}
+
+function printStackTrace(stacktrace: any[]) {
   const evalResultsOutputDestination = getDestinationConfiguration().evalResults;
   switch (evalResultsOutputDestination) {
     // TODO: Make these strings an enum
@@ -487,9 +502,11 @@ function printStackTrace(stacktrace) {
     case 'webview':
       appendStackTraceToReplOutputWebview(stacktrace);
       break;
-    // case 'output-channel':
-    //   appendStackTraceToReplOutputWebview(stacktrace);
-    //   break;
+    case 'output-channel':
+      const formattedStacktrace = formatStacktraceForOutputChannel(stacktrace);
+      outputChannel.appendLine('');
+      outputChannel.appendLine(formattedStacktrace);
+      break;
     default:
       console.error(
         'Printing the last stacktrace is not supported for the configured results output destination:',
