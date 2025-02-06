@@ -1360,6 +1360,11 @@
         "enablement": "editorLangId == clojure"
       },
       {
+        "command": "calva.clearReplOutputWebview",
+        "title": "Clear REPL Output Webview",
+        "category": "Calva"
+      },
+      {
         "command": "calva.interruptAllEvaluations",
         "title": "Interrupt Running Evaluations",
         "enablement": "calva:connected",

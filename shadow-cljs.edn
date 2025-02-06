@@ -26,7 +26,8 @@
                              :initializeCljs calva.util/initialize-cljs
                              :showReplOutputWebviewPanel calva.repl.webview.core/show-repl-output-webview-panel
                              :appendToReplOutputWebview calva.repl.webview.core/append
-                             :appendStackTraceToReplOutputWebview calva.repl.webview.core/append-stacktrace}
+                             :appendStackTraceToReplOutputWebview calva.repl.webview.core/append-stacktrace
+                             :clearReplOutputWebview calva.repl.webview.core/clear}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test

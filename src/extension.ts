@@ -31,11 +31,7 @@ import * as replHistory from './repl-window/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
-import {
-  setStateValue,
-  initializeCljs,
-  appendStackTraceToReplOutputWebview,
-} from '../out/cljs-lib/cljs-lib';
+import { setStateValue, initializeCljs, clearReplOutputWebview } from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
@@ -227,6 +223,7 @@ async function activate(context: vscode.ExtensionContext) {
   // COMMANDS
   const commands = {
     clearInlineResults: annotations.clearAllEvaluationDecorations,
+    clearReplOutputWebview: clearReplOutputWebview,
     clearReplHistory: replHistory.clearHistory,
     connect: connector.connectCommand,
     connectNonProjectREPL: () => {
