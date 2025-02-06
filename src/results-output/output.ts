@@ -476,7 +476,7 @@ export function replWindowAppendPrompt(onAppended?: outputWindow.OnAppendedCallb
   outputWindow.appendPrompt(onAppended);
 }
 
-function formatStacktraceForOutputChannel(stacktrace: any[]) {
+function formatStacktrace(stacktrace: any[]) {
   return stacktrace
     .filter((entry) => {
       return (
@@ -503,9 +503,11 @@ function printStackTrace(stacktrace: any[]) {
       appendStackTraceToReplOutputWebview(stacktrace);
       break;
     case 'output-channel':
-      const formattedStacktrace = formatStacktraceForOutputChannel(stacktrace);
       outputChannel.appendLine('');
-      outputChannel.appendLine(formattedStacktrace);
+      outputChannel.appendLine(formatStacktrace(stacktrace));
+      break;
+    case 'terminal':
+      getOutputPTY().write('\n' + formatStacktrace(stacktrace) + '\n');
       break;
     default:
       console.error(
