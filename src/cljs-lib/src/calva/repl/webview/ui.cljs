@@ -1,7 +1,8 @@
 (ns calva.repl.webview.ui
   (:require
    [replicant.dom :as replicant]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [cljs.core.async :as async]))
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
@@ -59,14 +60,8 @@
         lines (str/split-lines content)]
     (into [:p] (map (fn [line] [:span line [:br]]) lines))))
 
-(comment
-  (str/split-lines "hello\n\nworld")
-  :rcf)
-
 (defn repl-output-hiccup
   [state]
-  ;; TODO: Don't run highlightAll on every render of the top-level div.
-  ;; Instead, run it on each code block as it's added.
   (into [:div]
         (map repl-output-element-hiccup (:repl-output/elements state))))
 
@@ -93,13 +88,9 @@
    :render-repl-output render-repl-output
    :scroll-to-bottom scroll-to-bottom})
 
-(defn add-state-watchers! []
-  (run! (fn [[key f]]
-          (add-watch state key f))
-        state-watchers))
-
-;; TODO: Finish this to add all watchers
-;; (run! (fn [[]]) state-watchers)
+(run! (fn [[key f]]
+        (add-watch state key f))
+      state-watchers)
 
 (defn add-repl-output-element
   [element]
@@ -118,25 +109,30 @@
 (defn ^:export clear-webview []
   (swap! state assoc :repl-output/elements []))
 
-(defn ^:export main []
-  (add-state-watchers!)
+(defn handle-message
+  [^js message]
+  (let [_id (.. message -data -id)
+        command (aget message "data" "command-name")
+        content (.. message -data -content)]
+    (case command
+      "show-result" (add-eval-result content)
+      "show-stdout" (add-stdout content)
+      "clear-webview" (clear-webview))))
+
+(defn add-event-listeners []
   (.. js/window
-      (addEventListener "message"
-                        (fn [^js message]
-                          ;; TODO: Convert message data to CLJ before accessing its properties
-                          (let [_id (.. message -data -id)
-                                command (aget message "data" "command-name")
-                                content (.. message -data -content)]
-                            (case command
-                              "show-result" (add-eval-result content)
-                              "show-stdout" (add-stdout content)
-                              "clear-webview" (clear-webview))))))
+      (addEventListener "message" handle-message)))
+
+(defn ^:export main []
+  (add-event-listeners)
   ;; TODO: Persist state and reload it when webview is created so that the webview content persists
   ;; in the UI when the webview is hidden then focused again
   ;; https://code.visualstudio.com/api/extension-guides/webview#persistence
   (render @state))
 
 (comment
+  (time (dotimes [_ 1000000] (clojure.string/capitalize "aBcDeF")))
+  (simple-benchmark [] (clojure.string/capitalize "aBcDeF") 1000000)
   (.. vs-code-api (setState @state))
   (.. vs-code-api (getState))
   (js/acquireVsCodeApi)

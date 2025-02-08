@@ -6,7 +6,6 @@
 (defonce repl-output-webview-panel (atom nil))
 
 (defn dispose-repl-output-webview-panel []
-  (println "Disposing repl-output-webview-panel")
   (reset! repl-output-webview-panel nil))
 
 (defn get-webview-html
@@ -84,7 +83,7 @@
 
 ;; TODO: Add tests
 ;; TODO: Refactor this to use a mapping of output category -> command name
-(defn append
+(defn ^:export append
   [^js options message]
   (let [output-category (.-outputCategory options)]
     (case output-category
@@ -111,7 +110,7 @@
   (let [name (or var name)]
     (str name " (" file ":" line ")")))
 
-(defn append-stacktrace
+(defn ^:export append-stacktrace
   [^js stacktrace]
   (let [stacktrace (js->clj stacktrace :keywordize-keys true)
         stacktrace-message (->> stacktrace
@@ -123,9 +122,7 @@
     (post-message-to-webview {:command-name "show-stdout"
                               :content stacktrace-message})))
 
-(defn clear-webview []
-  ;; TODO: Finish this
-  (println "clearing webview")
+(defn ^:export clear-webview []
   (post-message-to-webview {:command-name "clear-webview"}))
 
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
