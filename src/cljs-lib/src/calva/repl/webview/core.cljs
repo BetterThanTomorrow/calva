@@ -9,7 +9,7 @@
   (reset! repl-output-webview-panel nil))
 
 (defn get-webview-html
-  [js-src]
+  [js-src csp-source]
   (str "
 <!DOCTYPE html>
 <html lang=\"en\">
@@ -18,11 +18,19 @@
 
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
 
-    <!-- TODO: Uncomment this and lock it down as much as possible. Remember to disable things that default-src does not. See bottom of this section: https://web.dev/articles/csp#resource-options -->
-    <!-- <meta http-equiv=\"Content-Security-Policy\"
-        content=\"default-src 'none';
-                  style-src https://cdnjs.cloudflare.com;
-                  script-src https://cdnjs.cloudflare.com;\"> -->
+    <!-- TODO: Remember to disable things that default-src does not. See bottom of this section: https://web.dev/articles/csp#resource-options -->
+    <meta http-equiv=\"Content-Security-Policy\"
+          content=\"default-src 'none';
+                    style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css
+                              " csp-source ";
+                    <!-- TODO: See if we can just add 'unsafe-eval' in the dev env and not the prod build. -->
+                    script-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js
+                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/clojure.min.js
+                               'unsafe-eval'
+                               " csp-source ";
+                    <!-- This is for connecting to the shadow-cljs remote relay. -->
+                    <!-- TODO: See if we can just add this in the dev env and not the prod build. -->
+                    connect-src ws://localhost:9630/api/remote-relay;\">
 
     <title>REPL Output</title>
 
@@ -48,8 +56,9 @@
   (let [js-path (.. ^js @util/vscode
                     -Uri
                     (joinPath (.. ^js @util/context -extensionUri) "repl-output-ui" "js" "main.js"))
-        js-src (.. ^js webview-panel -webview (asWebviewUri js-path))
-        webview-html (get-webview-html js-src)]
+        js-source (.. ^js webview-panel -webview (asWebviewUri js-path))
+        csp-source (.. ^js webview-panel -webview -cspSource)
+        webview-html (get-webview-html js-source csp-source)]
     (set! (.. webview-panel -webview -html) webview-html)))
 
 (defn create-repl-output-webview-panel []
