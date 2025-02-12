@@ -105,6 +105,7 @@ nav:
     - quirks.md
     - async-out.md
     - clj-java-decompiler.md
+    - virgil.md
   - API:
     - api.md
     - commands.md
