@@ -10,7 +10,8 @@
 
 (defn get-webview-html
   [js-src csp-source]
-  (str "
+  (let [is-debug-env js/process.env.IS_DEBUG]
+    (str "
 <!DOCTYPE html>
 <html lang=\"en\">
   <head>
@@ -23,14 +24,18 @@
           content=\"default-src 'none';
                     style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css
                               " csp-source ";
-                    <!-- TODO: See if we can just add 'unsafe-eval' in the dev env and not the prod build. -->
                     script-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js
                                https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/clojure.min.js
-                               'unsafe-eval'
-                               " csp-source ";
-                    <!-- This is for connecting to the shadow-cljs remote relay. -->
-                    <!-- TODO: See if we can just add this in the dev env and not the prod build. -->
-                    connect-src ws://localhost:9630/api/remote-relay;\">
+                               " (when is-debug-env " 'unsafe-eval' ") csp-source ";
+                    " (when is-debug-env "connect-src ws://localhost:9630/api/remote-relay;") "\">
+
+    <!-- <meta http-equiv=\"Content-Security-Policy\"
+          content=\"default-src 'none';
+                    style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css
+                              " csp-source ";
+                    script-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js
+                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/clojure.min.js
+                               " csp-source ";\"> -->
 
     <title>REPL Output</title>
 
@@ -49,7 +54,7 @@
 
     <script src=\"" js-src "\"></script>
   </body>
-</html>"))
+</html>")))
 
 (defn set-webview-html!
   [^js webview-panel]
