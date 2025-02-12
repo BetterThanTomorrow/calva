@@ -99,6 +99,8 @@
                                           :content message})
       "otherErr" (post-message-to-webview {:command-name "show-stdout"
                                            :content message})
+      "clojure" (post-message-to-webview {:command-name "show-result"
+                                          :content message})
       (js/console.error
        (str "Cannot append content to output webview. No outputCategory matches \"" output-category "\"")))))
 
