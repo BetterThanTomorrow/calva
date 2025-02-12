@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Basilisp aims to enable writing Clojure programs on Python with full Python interoperability. It is highly compatible with Clojure.">
+        <meta name="description" content="REPL driven development of mixed Clojure / Java projects using Virgil">
       
       
       
-        <link rel="canonical" href="https://calva.io/basilisp/">
+        <link rel="canonical" href="https://calva.io/virgil/">
       
       
-        <link rel="prev" href="../nbb/">
+        <link rel="prev" href="../clj-java-decompiler/">
       
       
-        <link rel="next" href="../joyride/">
+        <link rel="next" href="../api/">
       
       
       <link rel="icon" href="../img/favicon.ico">
@@ -24,7 +24,7 @@
     
     
       
-        <title>Basilisp - Calva User Guide</title>
+        <title>REPL hot-reload Java code with Virgil - Calva User Guide</title>
       
     
     
@@ -73,11 +73,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Basilisp - Calva User Guide" >
+        <meta  property="og:title"  content="REPL hot-reload Java code with Virgil - Calva User Guide" >
       
-        <meta  property="og:description"  content="Basilisp aims to enable writing Clojure programs on Python with full Python interoperability. It is highly compatible with Clojure." >
+        <meta  property="og:description"  content="REPL driven development of mixed Clojure / Java projects using Virgil" >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/basilisp.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/virgil.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -85,15 +85,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/basilisp/" >
+        <meta  property="og:url"  content="https://calva.io/virgil/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Basilisp - Calva User Guide" >
+        <meta  name="twitter:title"  content="REPL hot-reload Java code with Virgil - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Basilisp aims to enable writing Clojure programs on Python with full Python interoperability. It is highly compatible with Clojure." >
+        <meta  name="twitter:description"  content="REPL driven development of mixed Clojure / Java projects using Virgil" >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/basilisp.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/virgil.png" >
       
     
     
@@ -109,7 +109,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#using-calva-with-basilisp" class="md-skip">
+        <a href="#mixed-clojure-java-projects" class="md-skip">
           Skip to content
         </a>
       
@@ -144,7 +144,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Basilisp
+              REPL hot-reload Java code with Virgil
             
           </span>
         </div>
@@ -1163,19 +1163,17 @@
       
   
   
-    
   
   
-  
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
         
           
           <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
@@ -1189,7 +1187,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             Using Calva with ...
@@ -1368,30 +1366,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Basilisp
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../basilisp/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1400,44 +1378,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#start-your-project-with-a-repl-and-connect" class="md-nav__link">
-    <span class="md-ellipsis">
-      Start your project with a REPL and connect
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#connect-to-a-running-repl-in-your-project" class="md-nav__link">
-    <span class="md-ellipsis">
-      Connect to a running REPL in your project
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1622,17 +1562,19 @@
       
   
   
+    
   
   
+  
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
         
           
           <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
@@ -1646,7 +1588,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             Tips and Tricks
@@ -1762,10 +1704,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../virgil/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    REPL hot-reload Java code with Virgil
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -1774,6 +1736,53 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mixed-builds" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mixed builds
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#java-development-in-vscode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Java development in VSCode
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#virgil" class="md-nav__link">
+    <span class="md-ellipsis">
+      Virgil
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2061,18 +2070,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#start-your-project-with-a-repl-and-connect" class="md-nav__link">
+  <a href="#mixed-builds" class="md-nav__link">
     <span class="md-ellipsis">
-      Start your project with a REPL and connect
+      Mixed builds
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#connect-to-a-running-repl-in-your-project" class="md-nav__link">
+  <a href="#java-development-in-vscode" class="md-nav__link">
     <span class="md-ellipsis">
-      Connect to a running REPL in your project
+      Java development in VSCode
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#virgil" class="md-nav__link">
+    <span class="md-ellipsis">
+      Virgil
     </span>
   </a>
   
@@ -2096,24 +2114,28 @@
   
 
 
-<h1 id="using-calva-with-basilisp">Using Calva with Basilisp<a class="headerlink" href="#using-calva-with-basilisp" title="Permanent link">#</a></h1>
-<p>To install Basilisp, run:</p>
-<div class="highlight"><pre><span></span><code><span class="w">  </span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>basilisp
-</code></pre></div>
-<p>There are several ways to connect to Basilisp.</p>
-<h2 id="start-your-project-with-a-repl-and-connect">Start your project with a REPL and connect<a class="headerlink" href="#start-your-project-with-a-repl-and-connect" title="Permanent link">#</a></h2>
-<p>If you have created a <code>basilisp.edn</code> project file at your root of your project tree, you can jack in  with the <code>Start a Project REPL and connect</code> command. </p>
-<p>The <code>basilisp.edn</code> is similar to <code>deps.edn</code> for clojure-cli projects. It can be left empty just to mark the root of your Basilisp project.</p>
-<h2 id="connect-to-a-running-repl-in-your-project">Connect to a running REPL in your project<a class="headerlink" href="#connect-to-a-running-repl-in-your-project" title="Permanent link">#</a></h2>
-<p>You can start its bundled nREPL server:</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>basilisp<span class="w"> </span>nrepl-server
-</code></pre></div>
-<p>and connect to it afterward using <code>Connect to a running REPL in your project</code> command.</p>
-<p>To see available options, type <code>basilisp nrepl-server -h</code> in a shell prompt.</p>
-<h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h1>
-<h2 id="calva-basilisp-path">Calva: Basilisp Path<a class="headerlink" href="#calva-basilisp-path" title="Permanent link">#</a></h2>
-<p>The path to the basilisp executable, typically <code>basilisp</code>.</p>
-<p>If Basilisp is installed in a virtual environment, update this to the full path of the basilisp executable within that virtual environment.</p>
+<h1 id="mixed-clojure-java-projects">Mixed Clojure / Java projects<a class="headerlink" href="#mixed-clojure-java-projects" title="Permanent link">#</a></h1>
+<h2 id="mixed-builds">Mixed builds<a class="headerlink" href="#mixed-builds" title="Permanent link">#</a></h2>
+<p>Combined Java and Clojure projects where possible from the first day of Clojure.
+The official Clojure documentation describes 
+<a href="https://clojure.org/guides/tools_build#_mixed_java_clojure_build">here</a> such a 
+setup incl. a <code>build.clj</code></p>
+<p>For Leiningen we have a similar setup documented <a href="https://github.com/technomancy/leiningen/blob/github/doc/MIXED_PROJECTS.md">here</a> .</p>
+<h2 id="java-development-in-vscode">Java development in VSCode<a class="headerlink" href="#java-development-in-vscode" title="Permanent link">#</a></h2>
+<p>VSCode has good <a href="https://code.visualstudio.com/docs/languages/java">first class support</a> for Java.</p>
+<p>So we have</p>
+<ul>
+<li>a "mixed build" </li>
+<li>comfortable editing of Clojure code with VSCode/Calva</li>
+<li>comfortable editing of Java source code with VSCode/Java extensions</li>
+</ul>
+<p>but these do not address a REPL driven workflow spanning changing Clojure and Java files.</p>
+<h2 id="virgil">Virgil<a class="headerlink" href="#virgil" title="Permanent link">#</a></h2>
+<p>For quite a while, there was no real answer, as any change to a Java class required
+the restart of the REPL, which is not a smooth workflow.</p>
+<p><a href="https://github.com/clj-commons/virgil">Virgil</a> has changed this !</p>
+<p>Virgil is a small Clojure library which continuously watches your java source files and recompiles them on each change and loads the changed classes into the running Clojure JVM.</p>
+<p>This allows side-by-side development of Java and Clojure code and Virgil makes sure that the Clojure JVM gets the changed Java files injected.</p>
 
 
 
