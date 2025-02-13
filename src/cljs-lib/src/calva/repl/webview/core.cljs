@@ -27,15 +27,9 @@
                     script-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js
                                https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/clojure.min.js
                                " (when is-debug-env " 'unsafe-eval' ") csp-source ";
-                    " (when is-debug-env "connect-src ws://localhost:9630/api/remote-relay;") "\">
-
-    <!-- <meta http-equiv=\"Content-Security-Policy\"
-          content=\"default-src 'none';
-                    style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css
-                              " csp-source ";
-                    script-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js
-                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/clojure.min.js
-                               " csp-source ";\"> -->
+                    " (when is-debug-env "connect-src ws://localhost:9630/api/remote-relay;") "
+                    base-uri 'none';
+                    form-action 'none';\">
 
     <title>REPL Output</title>
 
