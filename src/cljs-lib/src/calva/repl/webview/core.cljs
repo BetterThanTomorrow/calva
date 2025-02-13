@@ -19,7 +19,8 @@
 
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
 
-    <!-- TODO: Remember to disable things that default-src does not. See bottom of this section: https://web.dev/articles/csp#resource-options -->
+    <!-- The connect-src and 'unsafe-eval' are only needed in development mode for the
+         shadow-cljs dev workflow to function properly -->
     <meta http-equiv=\"Content-Security-Policy\"
           content=\"default-src 'none';
                     style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css
@@ -43,7 +44,6 @@
 
   </head>
   <body>
-    <!-- TODO: Disable inline scripts - see security section in webview docs -->
     <div id=\"output\"></div>
 
     <script src=\"" js-src "\"></script>
