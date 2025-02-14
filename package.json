@@ -1965,6 +1965,11 @@
       },
       {
         "category": "Calva",
+        "command": "calva.showReplOutputWebview",
+        "title": "Show/Open the REPL output webview"
+      },
+      {
+        "category": "Calva",
         "command": "calva.showReplWindow",
         "title": "Show/Open REPL Window",
         "enablement": "calva:connected"
