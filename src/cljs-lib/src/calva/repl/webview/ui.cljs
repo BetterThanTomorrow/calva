@@ -43,7 +43,6 @@
 (defn clojure-code-hiccup
   "Accepts a string of Clojure code and returns hiccup for rendering it in the output view."
   [clojure-code]
-  ;; TODO: See if the language-clojure class is necessary
   [:pre [:code {:class "language-clojure" :replicant/on-render [[:repl-output/highlight-code]]} clojure-code]])
 
 (defmulti repl-output-element-hiccup

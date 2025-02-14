@@ -32,10 +32,13 @@
          shadow-cljs dev workflow to function properly -->
     <meta http-equiv=\"Content-Security-Policy\"
           content=\"default-src 'none';
-                    style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css
+                    style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css
+                              https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css
+                              https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css
+                              https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css
                               " csp-source ";
-                    script-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js
-                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/clojure.min.js
+                    script-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js
+                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/clojure.min.js
                                " (when is-debug-env " 'unsafe-eval' ") csp-source ";
                     " (when is-debug-env "connect-src ws://localhost:9630/api/remote-relay;") "
                     base-uri 'none';
@@ -48,31 +51,31 @@
     <!-- Should these stylesheets and scripts be saved and referenced locally so that if users are offline the webview still functions as expected? -->
     <link
       rel=\"stylesheet\"
-      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css\"
+      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css\"
       data-code-theme=\"dark\"
       disabled
     />
     <link
       rel=\"stylesheet\"
-      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css\"
+      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css\"
       data-code-theme=\"light\"
       disabled
     />
     <link
       rel=\"stylesheet\"
-      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css\"
+      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css\"
       data-code-theme=\"high-contrast\"
       disabled
     />
     <link
       rel=\"stylesheet\"
-      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css\"
+      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css\"
       data-code-theme=\"high-contrast-light\"
       disabled
     />
 
-    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js\"></script>
-    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/clojure.min.js\"></script>
+    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js\"></script>
+    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/clojure.min.js\"></script>
 
   </head>
   <body>
@@ -104,7 +107,7 @@
                             (.. color-theme-kind -Dark)  "dark"
                             (.. color-theme-kind -Light) "light"
                             (.. color-theme-kind -HighContrast) "high-contrast"
-                            (.. color-theme-kind -HighContrastLight) "high-contract-light")]
+                            (.. color-theme-kind -HighContrastLight) "high-contrast-light")]
            (post-message-to-webview {:command-name "set-code-theme"
                                      :content code-theme}))))))
 
