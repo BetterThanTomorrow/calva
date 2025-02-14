@@ -96,20 +96,30 @@
         webview-html (get-webview-html js-source css-href csp-source)]
     (set! (.. webview-panel -webview -html) webview-html)))
 
+(defn set-code-theme!
+  "Takes a vscode.ColorThemeKind and sets the code theme in the webview"
+  [color-theme-kind]
+  (let [color-theme-kind-enum (.. ^js @util/vscode -ColorThemeKind)
+        code-theme (condp = color-theme-kind
+                     (.. color-theme-kind-enum -Dark)  "dark"
+                     (.. color-theme-kind-enum -Light) "light"
+                     (.. color-theme-kind-enum -HighContrast) "high-contrast"
+                     (.. color-theme-kind-enum -HighContrastLight) "high-contrast-light"
+                     nil)]
+    (if code-theme
+      (post-message-to-webview {:command-name "set-code-theme"
+                                :content code-theme})
+      (js/console.error
+       "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
+       color-theme-kind))))
+
 ;; TODO: Refactor functions like this to take in the required state as parameters?
 ;; It would make testing easier.
 (defn color-theme-change-listener []
   (.. ^js @util/vscode -window
       (onDidChangeActiveColorTheme
        (fn [e]
-         (let [color-theme-kind (.. ^js @util/vscode -ColorThemeKind)
-               code-theme (condp = (.. e -kind)
-                            (.. color-theme-kind -Dark)  "dark"
-                            (.. color-theme-kind -Light) "light"
-                            (.. color-theme-kind -HighContrast) "high-contrast"
-                            (.. color-theme-kind -HighContrastLight) "high-contrast-light")]
-           (post-message-to-webview {:command-name "set-code-theme"
-                                     :content code-theme}))))))
+         (set-code-theme! (.. e -kind))))))
 
 (defn add-subscriptions []
   (let [subscriptions [(color-theme-change-listener)]]
@@ -136,8 +146,10 @@
     (reset! repl-output-webview-panel webview-panel)))
 
 (defn show-repl-output-webview-panel []
-  (let [^js webview-panel (or @repl-output-webview-panel (create-repl-output-webview-panel))]
-    (.. webview-panel (reveal nil true))))
+  (let [^js webview-panel (or @repl-output-webview-panel (create-repl-output-webview-panel))
+        active-code-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)]
+    (.. webview-panel (reveal nil true))
+    (set-code-theme! active-code-theme-kind)))
 
 ;; TODO: Add tests
 ;; TODO: Refactor this to use a mapping of output category -> command name

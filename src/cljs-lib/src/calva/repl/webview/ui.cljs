@@ -110,7 +110,6 @@
 
 (defn set-code-theme!
   [theme]
-  (println "setting code theme to" theme)
   (let [code-theme-link-nodes (js/document.querySelectorAll "[data-code-theme]")]
     (.. code-theme-link-nodes (forEach (fn [^js node]
                                          (let [code-theme (.. node -dataset -codeTheme)]
