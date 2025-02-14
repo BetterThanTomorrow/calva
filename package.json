@@ -3319,7 +3319,7 @@
   },
   "scripts": {
     "watch-docs": "mkdocs serve",
-    "clean": "rimraf ./out ./tsconfig.tsbuildinfo ./cljs-out ./repl-output-ui",
+    "clean": "rimraf ./out ./tsconfig.tsbuildinfo ./cljs-out ./repl-output-ui/js",
     "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
     "precompile": "npm i && npm run clean && npm run update-grammar",
     "compile-cljs": "npx shadow-cljs compile :calva-lib :test :repl-output-ui",

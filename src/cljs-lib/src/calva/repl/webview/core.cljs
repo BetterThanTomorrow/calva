@@ -8,8 +8,17 @@
 (defn dispose-repl-output-webview-panel []
   (reset! repl-output-webview-panel nil))
 
+(defn post-message-to-webview [message]
+  (let [webview-panel ^js @repl-output-webview-panel]
+    (when webview-panel
+      (.. webview-panel
+          -webview
+          (postMessage (clj->js (merge
+                                 {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
+                                 message)))))))
+
 (defn get-webview-html
-  [js-src csp-source]
+  [js-source css-href csp-source]
   (let [is-debug-env js/process.env.IS_DEBUG]
     (str "
 <!DOCTYPE html>
@@ -34,9 +43,32 @@
 
     <title>REPL Output</title>
 
+    <link rel=\"stylesheet\" href=\"" css-href "\" />
+
+    <!-- Should these stylesheets and scripts be saved and referenced locally so that if users are offline the webview still functions as expected? -->
     <link
       rel=\"stylesheet\"
       href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css\"
+      data-code-theme=\"dark\"
+      disabled
+    />
+    <link
+      rel=\"stylesheet\"
+      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css\"
+      data-code-theme=\"light\"
+      disabled
+    />
+    <link
+      rel=\"stylesheet\"
+      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css\"
+      data-code-theme=\"high-contrast\"
+      disabled
+    />
+    <link
+      rel=\"stylesheet\"
+      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css\"
+      data-code-theme=\"high-contrast-light\"
+      disabled
     />
 
     <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js\"></script>
@@ -46,21 +78,44 @@
   <body>
     <div id=\"output\"></div>
 
-    <script src=\"" js-src "\"></script>
+    <script src=\"" js-source "\"></script>
   </body>
 </html>")))
 
 (defn set-webview-html!
   [^js webview-panel]
-  (let [js-path (.. ^js @util/vscode
-                    -Uri
-                    (joinPath (.. ^js @util/context -extensionUri) "repl-output-ui" "js" "main.js"))
+  (let [extension-uri (.. ^js @util/context -extensionUri)
+        js-path (.. ^js @util/vscode -Uri (joinPath extension-uri "repl-output-ui" "js" "main.js"))
         js-source (.. ^js webview-panel -webview (asWebviewUri js-path))
+        css-path (.. ^js @util/vscode -Uri (joinPath extension-uri "repl-output-ui" "css" "main.css"))
+        css-href (.. ^js webview-panel -webview (asWebviewUri css-path))
         csp-source (.. ^js webview-panel -webview -cspSource)
-        webview-html (get-webview-html js-source csp-source)]
+        webview-html (get-webview-html js-source css-href csp-source)]
     (set! (.. webview-panel -webview -html) webview-html)))
 
+;; TODO: Refactor functions like this to take in the required state as parameters?
+;; It would make testing easier.
+(defn color-theme-change-listener []
+  (.. ^js @util/vscode -window
+      (onDidChangeActiveColorTheme
+       (fn [e]
+         (let [color-theme-kind (.. ^js @util/vscode -ColorThemeKind)
+               code-theme (condp = (.. e -kind)
+                            (.. color-theme-kind -Dark)  "dark"
+                            (.. color-theme-kind -Light) "light"
+                            (.. color-theme-kind -HighContrast) "high-contrast"
+                            (.. color-theme-kind -HighContrastLight) "high-contract-light")]
+           (post-message-to-webview {:command-name "set-code-theme"
+                                     :content code-theme}))))))
+
+(defn add-subscriptions []
+  (let [subscriptions [(color-theme-change-listener)]]
+    (run! (fn [subscription]
+            (.. ^js @util/context -subscriptions (push subscription)))
+          subscriptions)))
+
 (defn create-repl-output-webview-panel []
+  (add-subscriptions)
   (let [webview-panel (.. ^js @util/vscode -window
                           (createWebviewPanel
                            "calva:repl-output"
@@ -76,15 +131,6 @@
     (.. ^js webview-panel (onDidDispose dispose-repl-output-webview-panel))
     (set-webview-html! webview-panel)
     (reset! repl-output-webview-panel webview-panel)))
-
-(defn post-message-to-webview [message]
-  (let [webview-panel ^js @repl-output-webview-panel]
-    (when webview-panel
-      (.. webview-panel
-          -webview
-          (postMessage (clj->js (merge
-                                 {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
-                                 message)))))))
 
 (defn show-repl-output-webview-panel []
   (let [^js webview-panel (or @repl-output-webview-panel (create-repl-output-webview-panel))]

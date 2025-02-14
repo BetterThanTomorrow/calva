@@ -11,7 +11,7 @@
       first ;; Handle nil here?
       (.. -uri)))
 
-(defn get-project-root-uri
+(defn ^:export get-project-root-uri
   ([]
    (get-project-root-uri true))
   ([use-cache]
@@ -21,7 +21,7 @@
        (get-first-workspace-folder-uri))
      (get-first-workspace-folder-uri))))
 
-(defn initialize-cljs
+(defn ^:export initialize-cljs
   "This is meant to be called upon extension activation, and will store the vscode api reference and the context in atoms.
 
    This allows the cljs code to access the vscode API, without having to require it, which can cause testing issues.

@@ -1,8 +1,7 @@
 (ns calva.repl.webview.ui
   (:require
    [replicant.dom :as replicant]
-   [clojure.string :as str]
-   [cljs.core.async :as async]))
+   [clojure.string :as str]))
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
@@ -44,6 +43,7 @@
 (defn clojure-code-hiccup
   "Accepts a string of Clojure code and returns hiccup for rendering it in the output view."
   [clojure-code]
+  ;; TODO: See if the language-clojure class is necessary
   [:pre [:code {:class "language-clojure" :replicant/on-render [[:repl-output/highlight-code]]} clojure-code]])
 
 (defmulti repl-output-element-hiccup
@@ -109,6 +109,16 @@
 (defn ^:export clear-webview []
   (swap! state assoc :repl-output/elements []))
 
+(defn set-code-theme!
+  [theme]
+  (println "setting code theme to" theme)
+  (let [code-theme-link-nodes (js/document.querySelectorAll "[data-code-theme]")]
+    (.. code-theme-link-nodes (forEach (fn [^js node]
+                                         (let [code-theme (.. node -dataset -codeTheme)]
+                                           (if (= code-theme theme)
+                                             (.. node (removeAttribute "disabled"))
+                                             (.. node (setAttribute "disabled" "disabled")))))))))
+
 (defn handle-message
   [^js message]
   (let [_id (.. message -data -id)
@@ -117,7 +127,8 @@
     (case command
       "show-result" (add-eval-result content)
       "show-stdout" (add-stdout content)
-      "clear-webview" (clear-webview))))
+      "clear-webview" (clear-webview)
+      "set-code-theme" (set-code-theme! content))))
 
 (defn add-event-listeners []
   (.. js/window
@@ -131,6 +142,9 @@
   (render @state))
 
 (comment
+  (def code-theme-links (js/document.querySelectorAll "[data-code-theme]"))
+  (.. code-theme-links (forEach (fn [node]
+                                  (prn node))))
   (time (dotimes [_ 1000000] (clojure.string/capitalize "aBcDeF")))
   (simple-benchmark [] (clojure.string/capitalize "aBcDeF") 1000000)
   (.. vs-code-api (setState @state))

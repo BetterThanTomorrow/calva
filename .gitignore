@@ -50,7 +50,7 @@ jspm_packages
 lib/
 cljs-out/
 test-out/
-repl-output-ui/
+repl-output-ui/js
 
 # This and that
 .nrepl-port
