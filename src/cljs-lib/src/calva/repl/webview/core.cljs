@@ -5,8 +5,9 @@
 
 (defonce repl-output-webview-panel (atom nil))
 
-(defn dispose-repl-output-webview-panel []
-  (reset! repl-output-webview-panel nil))
+(defn dispose-repl-output-webview-panel
+  [webview-panel]
+  (reset! webview-panel nil))
 
 (defn post-message-to-webview [message]
   (let [webview-panel ^js @repl-output-webview-panel]
@@ -136,12 +137,12 @@
                            #js {:preserveFocus true
                                 :viewColumn (.. ^js @util/vscode -ViewColumn -Beside)}
                            #js {:enableScripts true
-                                    ;; If performance or memory consumption becomes a problem, we can use the setState
-                                    ;; and getState to manually retain the context of the webview when it's hidden.
-                                    ;; See https://code.visualstudio.com/api/extension-guides/webview#persistence
+                                ;; If performance or memory consumption becomes a problem, we can use the setState
+                                ;; and getState to manually retain the context of the webview when it's hidden.
+                                ;; See https://code.visualstudio.com/api/extension-guides/webview#persistence
                                 :retainContextWhenHidden true
                                 :enableFindWidget true}))]
-    (.. ^js webview-panel (onDidDispose dispose-repl-output-webview-panel))
+    (.. ^js webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel))))
     (set-webview-html! webview-panel)
     (reset! repl-output-webview-panel webview-panel)))
 
