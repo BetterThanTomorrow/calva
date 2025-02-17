@@ -6,17 +6,16 @@
 (defonce repl-output-webview-panel (atom nil))
 
 (defn dispose-repl-output-webview-panel
-  [webview-panel]
-  (reset! webview-panel nil))
+  [webview-panel-atom]
+  (reset! webview-panel-atom nil))
 
-(defn post-message-to-webview [message]
-  (let [webview-panel ^js @repl-output-webview-panel]
-    (when webview-panel
-      (.. webview-panel
-          -webview
-          (postMessage (clj->js (merge
-                                 {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
-                                 message)))))))
+(defn post-message-to-webview [^js webview-panel message]
+  (when webview-panel
+    (.. webview-panel
+        -webview
+        (postMessage (clj->js (merge
+                               {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
+                               message))))))
 
 (defn get-webview-html
   [js-source css-href csp-source]
@@ -108,8 +107,8 @@
                      (.. color-theme-kind-enum -HighContrastLight) "high-contrast-light"
                      nil)]
     (if code-theme
-      (post-message-to-webview {:command-name "set-code-theme"
-                                :content code-theme})
+      (post-message-to-webview @repl-output-webview-panel {:command-name "set-code-theme"
+                                                           :content code-theme})
       (js/console.error
        "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
        color-theme-kind))))
@@ -158,19 +157,19 @@
   [^js options message]
   (let [output-category (.-outputCategory options)]
     (case output-category
-      "otherOut" (post-message-to-webview {:command-name "show-stdout"
-                                           :content message})
-      "evalOut" (post-message-to-webview {:command-name "show-stdout"
-                                          :content message})
-      "evalResults" (post-message-to-webview {:command-name "show-result"
-                                              :content message})
+      "otherOut" (post-message-to-webview @repl-output-webview-panel {:command-name "show-stdout"
+                                                                      :content message})
+      "evalOut" (post-message-to-webview @repl-output-webview-panel {:command-name "show-stdout"
+                                                                     :content message})
+      "evalResults" (post-message-to-webview @repl-output-webview-panel {:command-name "show-result"
+                                                                         :content message})
       ;; TODO: Make this show differently?
-      "evalErr" (post-message-to-webview {:command-name "show-stdout"
-                                          :content message})
-      "otherErr" (post-message-to-webview {:command-name "show-stdout"
-                                           :content message})
-      "clojure" (post-message-to-webview {:command-name "show-result"
-                                          :content message})
+      "evalErr" (post-message-to-webview @repl-output-webview-panel {:command-name "show-stdout"
+                                                                     :content message})
+      "otherErr" (post-message-to-webview @repl-output-webview-panel {:command-name "show-stdout"
+                                                                      :content message})
+      "clojure" (post-message-to-webview @repl-output-webview-panel {:command-name "show-result"
+                                                                     :content message})
       (js/console.error
        (str "Cannot append content to output webview. No outputCategory matches \"" output-category "\"")))))
 
@@ -192,11 +191,11 @@
                                                (not (contains? stacktrace-classes-to-ignore class)))))
                                 (map stacktrace-entry->string)
                                 (str/join "\n"))]
-    (post-message-to-webview {:command-name "show-stdout"
-                              :content stacktrace-message})))
+    (post-message-to-webview @repl-output-webview-panel {:command-name "show-stdout"
+                                                         :content stacktrace-message})))
 
 (defn ^:export clear-webview []
-  (post-message-to-webview {:command-name "clear-webview"}))
+  (post-message-to-webview @repl-output-webview-panel {:command-name "clear-webview"}))
 
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
 ;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
@@ -217,10 +216,10 @@
    ;; Message id
    :id "1234"}
 
-  (post-message-to-webview {:command-name "show-stdout"
-                            :result "send while hidden"})
+  (post-message-to-webview @repl-output-webview-panel {:command-name "show-stdout"
+                                                       :result "send while hidden"})
 
-  (post-message-to-webview {:command "clear-output"})
+  (post-message-to-webview @repl-output-webview-panel {:command "clear-output"})
 
   @repl-output-webview-panel
 

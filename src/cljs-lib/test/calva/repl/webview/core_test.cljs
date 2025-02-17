@@ -8,4 +8,8 @@
       (core/dispose-repl-output-webview-panel webview-panel-atom)
       (is (= nil @webview-panel-atom)))))
 
+(deftest post-message-to-webview-test
+  (testing "Given a webview panel and a message, should post the message to the webview panel with an :id attribute added to it"
+    (let [])))
+
 (run-tests)
