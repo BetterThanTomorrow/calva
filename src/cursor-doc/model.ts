@@ -287,6 +287,57 @@ export interface EditableDocument {
   getSelectionText: () => string;
 }
 
+// An editing transaction - array of ModelEdit - shifts the selection(s)
+// to compensate for insertions or deletions to their left.
+// Here we predict how edits will affect selections.
+const selectionsAfterEdits = (function () {
+  const decodeChangeRange = function (edit): [any, any] {
+    return [edit.args[0], edit.args[2].length - (edit.args[1] - edit.args[0])];
+  };
+  const decodeDeleteRange = function (edit): [any, any] {
+    return [edit.args[0], 0 - edit.args[1]];
+  };
+  const decodeInsertString = function (edit): [any, any] {
+    return [edit.args[0] + edit.args[1].length, edit.args[1].length];
+  };
+  const bump = function (n, [point, delta]) {
+    return n != undefined ? (n > point ? n + delta : n) : undefined;
+  };
+  return function (edits, selections: ModelEditSelection[]) {
+    // The ModelEdit array is in order by end-of-doc to start.
+    // Traverse it, bumping selections
+    // according to the growth or shrinkage of each edit.
+    let monotonicallyDecreasing = -1; // check edit order
+    let retSelections: ModelEditSelection[] = [...selections];
+    for (let ic = 0; ic < edits.length; ic++) {
+      const affected: [any, any] =
+        edits[ic].editFn == 'deleteRange'
+          ? decodeDeleteRange(edits[ic])
+          : edits[ic].editFn == 'changeRange'
+          ? decodeChangeRange(edits[ic])
+          : decodeInsertString(edits[ic]);
+      const [point, delta] = affected;
+      if (monotonicallyDecreasing != -1 && point >= monotonicallyDecreasing) {
+        console.error(
+          'Edits not back-to-front. Inference of resulting selection might be inaccurate'
+        ); // TBD take the time to sort? or should commands emit edits in back-to-front order?
+      }
+      monotonicallyDecreasing = point;
+      if (delta != 0) {
+        retSelections = retSelections.map(function (s: ModelEditSelection) {
+          return new ModelEditSelection(
+            bump(s.end, affected),
+            bump(s.active, affected),
+            bump(s.start, affected),
+            bump(s.end, affected)
+          );
+        });
+      }
+    }
+    return retSelections;
+  };
+})();
+
 /** The underlying model for the REPL readline. */
 export class LineInputModel implements EditableModel {
   /** How many characters in the line endings of the text of this model? */
@@ -536,8 +587,12 @@ export class LineInputModel implements EditableModel {
   edit(edits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): Thenable<boolean> {
     return new Promise((resolve, reject) => {
       this.editTextNow(edits, options);
-      if (this.document && options.selections) {
-        this.document.selections = options.selections;
+      if (this.document) {
+        if (options.selections) {
+          this.document.selections = options.selections;
+        } else {
+          this.document.selections = selectionsAfterEdits(edits, this.document.selections);
+        }
       }
       resolve(true);
     });

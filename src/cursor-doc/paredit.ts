@@ -708,8 +708,7 @@ export async function wrapSexpr(
  * - For each cursor, find the offsets/ranges for its containing list's open/close tokens.
  * - Make 2 ModelEdits for each token's replacement +  1 Selection; record the offset change.
  * - Dedupe each edit (as multi cursors could be in the same list).
- * - Then, reposition the edits and selections by the preceding edits' offset changes.
- * - Finally, apply the edits and update the selections.
+ * - Finally, apply the edits.
  *
  * @param doc
  * @param open
@@ -723,37 +722,23 @@ export function rewrapSexpr(
   close: string,
   selections = [doc.selections[0]]
 ) {
-  const edits: { type: 'open' | 'close'; change: number; edit: ModelEdit<'changeRange'> }[] = [],
-    newSelections = _.clone(selections).map((s) => ({ selection: s, change: 0 }));
+  const edits: ModelEdit<'changeRange'>[] = [];
 
   selections.forEach((sel, index) => {
     const { active } = sel;
     const cursor = doc.getTokenCursor(active);
     if (cursor.backwardList()) {
       cursor.backwardUpList();
-      const oldOpenStart = cursor.offsetStart;
+      const openStart = cursor.offsetStart;
       const oldOpenLength = cursor.getToken().raw.length;
-      const oldOpenEnd = oldOpenStart + oldOpenLength;
+      const oldOpenEnd = openStart + oldOpenLength;
       if (cursor.forwardSexp()) {
-        const oldCloseStart = cursor.offsetStart - close.length;
-        const oldCloseEnd = cursor.offsetStart;
-        const openChange = open.length - oldOpenLength;
+        const closeStart = cursor.offsetStart - close.length;
+        const closeEnd = cursor.offsetStart;
         edits.push(
-          {
-            edit: new ModelEdit('changeRange', [oldCloseStart, oldCloseEnd, close]),
-            change: 0,
-            type: 'close',
-          },
-          {
-            edit: new ModelEdit('changeRange', [oldOpenStart, oldOpenEnd, open]),
-            change: openChange,
-            type: 'open',
-          }
+          new ModelEdit('changeRange', [closeStart, closeEnd, close]),
+          new ModelEdit('changeRange', [openStart, oldOpenEnd, open])
         );
-        newSelections[index] = {
-          selection: new ModelEditSelection(active),
-          change: openChange,
-        };
       }
     }
   });
@@ -762,39 +747,12 @@ export function rewrapSexpr(
   // the same lists, which will result in attempting to delete the same ranges twice. So we dedupe.
   const uniqEdits = _.uniqWith(edits, _.isEqual);
 
-  // for both edits and new selections, get the offset by which to move each based on prior edits
-  function getOffset(cursorOffset: number) {
-    return _(uniqEdits)
-      .filter((x) => {
-        const [xStart] = x.edit.args;
-        return xStart < cursorOffset;
-      })
-      .map(({ change }) => change)
-      .sum();
-  }
-
+  // edit needs the ModelEdit array in order from end-of-doc to start
   const editsToApply = _(uniqEdits)
-    // First, importantly, sort by list open char offset
-    .sortBy((e) => e.edit.args[0])
-    // now, let's iterate thru each cursor and adjust their positions if earlier chars are delete/added
-    .map((e) => {
-      const [oldStart, oldEnd, text] = e.edit.args;
-      const offset = getOffset(oldStart);
-      const newStart = oldStart + offset;
-      const newEnd = oldEnd + offset;
-      return { ...e.edit, args: [newStart, newEnd, text] as const };
-    })
+    .sortBy((e) => -e.args[0])
     .value();
-  const selectionsToApply = newSelections.map(({ selection }) => {
-    const { active } = selection;
-    const newSel = selection.clone();
-    const offset = getOffset(active);
-    newSel.reposition(offset);
-    return newSel;
-  });
-
   return doc.model.edit(editsToApply, {
-    selections: selectionsToApply,
+    //skipFormat: selections.length > 1, // reformat-as-you-type works with only 1 selection
   });
 }
 

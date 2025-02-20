@@ -4,7 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Fix description of calva.autoOpenResultOutputDestination setting](https://github.com/BetterThanTomorrow/calva/pull/2721)
+## [2.0.486] - 2025-02-16
+
+- Fix: [Rewrapping to or from a Set introduces imbalance](https://github.com/BetterThanTomorrow/calva/issues/2726)
 
 ## [2.0.485] - 2025-01-27
 
