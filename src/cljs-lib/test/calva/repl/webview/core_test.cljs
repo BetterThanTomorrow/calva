@@ -67,12 +67,18 @@
       (testing "should call asWebviewUri with result of call to joinPath"
         (is (spy/called-once-with? as-webview-uri-spy "some-path")))
       (testing "should return result of call to asWebviewUri"
-        (is (= result "some-webview-uri"))))))
+        (is (= "some-webview-uri" result))))))
+
+(deftest get-css-path
+  (testing "Given a context"
+    (let [join-path-spy (spy/stub "some-path")
+          extension-uri "extension-uri"
+          context {:vscode/context (clj->js {:extensionUri extension-uri})
+                   :vscode/vscode (clj->js {:Uri {:joinPath (wrap-spy join-path-spy)}})}
+          result (sut/get-css-path context)]
+      (testing "should call joinPath with expected args"
+        (is (spy/called-once-with? join-path-spy extension-uri "repl-output-ui" "css" "main.css")))
+      (testing "should return the result of joinPath"
+        (is (= "some-path" result))))))
 
 (run-tests)
-
-(comment
-  (set! js/process.env.IS_DEBUG "false")
-  (count (re-seq #"csp-source" "ccsp-sourceecsp-source"))
-
-  :rcf)
