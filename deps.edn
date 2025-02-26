@@ -11,6 +11,7 @@
         no.cjohansen/replicant {:git/url "https://github.com/cjohansen/replicant.git"
                                 :git/sha "ef2fecbe301cafa8449b74a1e2cbe4fc3ddc18ac"}
         org.clojars.abhinav/snitch {:mvn/version "0.1.14"}
+        tortue/spy {:mvn/version "2.15.0"}
         #_#_org.clojars.liverm0r/dartclojure {:local/root "../DartClojure"}}
  :aliases {:dev {:extra-deps {org.clojars.abhinav/snitch {:mvn/version "0.1.14"}}}}
  :paths ["src/cljs-lib/src"
