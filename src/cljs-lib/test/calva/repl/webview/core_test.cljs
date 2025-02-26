@@ -81,4 +81,19 @@
       (testing "should return the result of joinPath"
         (is (= "some-path" result))))))
 
+(deftest set-webview-html!-test
+  (testing "Given a context and a webview panel"
+    (let [context {:some "context"}
+          get-js-source-spy (spy/stub "some-js-source")
+          get-css-path-spy (spy/stub "some-css-path")
+          as-webview-uri-spy (spy/stub "some-css-href")
+          webview-panel (clj->js {:webview {:asWebviewUri (wrap-spy as-webview-uri-spy)
+                                            :cspSource "some-csp-source"}})
+          get-webview-html-spy (spy/stub "some-html")])
+    (testing "should call get-js-source with expected args")
+    (testing "should call get-css-path with expected args")
+    (testing "should call asWebviewUri with expected args")
+    (testing "should call get-webview-html with expected args")
+    (testing "should set webview html to result of call to get-webview-html")))
+
 (run-tests)
