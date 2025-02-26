@@ -5,6 +5,8 @@
    [spy.core :as spy]))
 
 (defn wrap-spy
+  "This is a helper that returns a function that calls the spy, so that the shadow-cljs doesn't complain,
+   which is does if a spy is used and called directly in a test - it will say the thing is not a function"
   [spy]
   (fn [& args] (apply spy args)))
 
