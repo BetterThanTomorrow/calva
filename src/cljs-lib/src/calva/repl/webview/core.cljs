@@ -20,9 +20,8 @@
 ;; The connect-src and unsafe-eval are only needed in development mode for the shadow-cljs
 ;; dev workflow to function properly
 (defn get-webview-html
-  [js-source css-href csp-source]
-  (let [is-debug-env js/process.env.IS_DEBUG]
-    (str "
+  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source]}]
+  (str "
 <!DOCTYPE html>
 <html lang=\"en\">
   <head>
@@ -39,8 +38,8 @@
                               " csp-source ";
                     script-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js
                                https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/clojure.min.js
-                               " (when (= is-debug-env "true") " 'unsafe-eval' ") csp-source ";
-                    " (when (= is-debug-env "true") "connect-src ws://localhost:9630/api/remote-relay;") "
+                               " (when is-debug " 'unsafe-eval' ") csp-source ";
+                    " (when is-debug "connect-src ws://localhost:9630/api/remote-relay;") "
                     base-uri 'none';
                     form-action 'none';\">
 
@@ -83,21 +82,17 @@
 
     <script src=\"" js-source "\"></script>
   </body>
-</html>")))
-
-(comment
-  (boolean "false")
-  :rcf)
+</html>"))
 
 (defn set-webview-html!
-  [^js webview-panel]
+  [context ^js webview-panel]
   (let [extension-uri (.. ^js @util/context -extensionUri)
         js-path (.. ^js @util/vscode -Uri (joinPath extension-uri "repl-output-ui" "js" "main.js"))
         js-source (.. ^js webview-panel -webview (asWebviewUri js-path))
         css-path (.. ^js @util/vscode -Uri (joinPath extension-uri "repl-output-ui" "css" "main.css"))
         css-href (.. ^js webview-panel -webview (asWebviewUri css-path))
         csp-source (.. ^js webview-panel -webview -cspSource)
-        webview-html (get-webview-html js-source css-href csp-source)]
+        webview-html (get-webview-html context {:js-source js-source :css-href css-href :csp-source csp-source})]
     (set! (.. webview-panel -webview -html) webview-html)))
 
 (defn set-code-theme!
@@ -131,7 +126,8 @@
             (.. ^js @util/context -subscriptions (push subscription)))
           subscriptions)))
 
-(defn create-repl-output-webview-panel []
+(defn create-repl-output-webview-panel
+  [context]
   (add-subscriptions)
   (let [webview-panel (.. ^js @util/vscode -window
                           (createWebviewPanel
@@ -146,11 +142,13 @@
                                 :retainContextWhenHidden true
                                 :enableFindWidget true}))]
     (.. ^js webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel))))
-    (set-webview-html! webview-panel)
+    (set-webview-html! context webview-panel)
     (reset! repl-output-webview-panel webview-panel)))
 
-(defn show-repl-output-webview-panel []
-  (let [^js webview-panel (or @repl-output-webview-panel (create-repl-output-webview-panel))
+;; TODO: Write spec/schema for context
+(defn ^:export show-repl-output-webview-panel []
+  (let [context {:env/is-debug (if (= js/process.env.IS_DEBUG "true") true false)}
+        ^js webview-panel (or @repl-output-webview-panel (create-repl-output-webview-panel context))
         active-code-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)]
     (.. webview-panel (reveal nil true))
     (set-code-theme! active-code-theme-kind)))
@@ -208,7 +206,6 @@
 (comment
   (def output-category "foo")
   (def message "hello")
-  (show-repl-output-webview-panel)
 
   ;; TODO: Implement this interface for communicating with the webview
   ;; Message

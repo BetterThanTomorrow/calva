@@ -2,7 +2,6 @@
   (:require
    [calva.repl.webview.core :as sut]
    [cljs.test :refer-macros [deftest testing is run-tests]]
-   [clojure.string :as str]
    [spy.core :as spy]))
 
 (deftest dispose-repl-output-webview-panel-test
@@ -28,8 +27,9 @@
 
 (deftest get-webview-html-test
   (testing "Given valid args and that the environment is debug, should return the expected html markup"
-    (set! js/process.env.IS_DEBUG "true")
-    (let [result (sut/get-webview-html "js-source" "css-href" "csp-source")]
+    (let [result (sut/get-webview-html {:env/is-debug true} {:js-source "js-source"
+                                                             :css-href "css-href"
+                                                             :csp-source "csp-source"})]
       (is (= 1 (count (re-seq #"js-source" result))))
       (is (= 1 (count (re-seq #"css-href" result))))
       ;; It should be in the style-src and script-src directives in the content security policy
@@ -37,16 +37,15 @@
       (is (= 1 (count (re-seq #"'unsafe-eval'" result))))
       (is (= 1 (count (re-seq #"connect-src ws://localhost:9630/api/remote-relay" result))))))
   (testing "Given valid args and that the environment is not debug, should return the expected html markup"
-    (set! js/process.env.IS_DEBUG "false")
-    (let [result (sut/get-webview-html "js-source" "css-href" "csp-source")]
+    (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
+                                                              :css-href "css-href"
+                                                              :csp-source "csp-source"})]
       (is (= 1 (count (re-seq #"js-source" result))))
       (is (= 1 (count (re-seq #"css-href" result))))
       ;; It should be in the style-src and script-src directives in the content security policy
       (is (= 2 (count (re-seq #"csp-source" result))))
       (is (zero? (count (re-seq #"'unsafe-eval'" result))))
-      (is (zero? (count (re-seq #"connect-src ws://localhost:9630/api/remote-relay" result)))))
-    ;; Set it back just to make sure there are no unexpected side effects when developing in the repl
-    (set! js/process.env.IS_DEBUG "true")))
+      (is (zero? (count (re-seq #"connect-src ws://localhost:9630/api/remote-relay" result)))))))
 
 (run-tests)
 
