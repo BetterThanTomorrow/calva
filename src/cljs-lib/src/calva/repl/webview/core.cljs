@@ -17,6 +17,8 @@
                                {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
                                message))))))
 
+;; The connect-src and unsafe-eval are only needed in development mode for the shadow-cljs
+;; dev workflow to function properly
 (defn get-webview-html
   [js-source css-href csp-source]
   (let [is-debug-env js/process.env.IS_DEBUG]
@@ -28,8 +30,6 @@
 
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
 
-    <!-- The connect-src and 'unsafe-eval' are only needed in development mode for the
-         shadow-cljs dev workflow to function properly -->
     <meta http-equiv=\"Content-Security-Policy\"
           content=\"default-src 'none';
                     style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css
@@ -39,8 +39,8 @@
                               " csp-source ";
                     script-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js
                                https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/clojure.min.js
-                               " (when is-debug-env " 'unsafe-eval' ") csp-source ";
-                    " (when is-debug-env "connect-src ws://localhost:9630/api/remote-relay;") "
+                               " (when (= is-debug-env "true") " 'unsafe-eval' ") csp-source ";
+                    " (when (= is-debug-env "true") "connect-src ws://localhost:9630/api/remote-relay;") "
                     base-uri 'none';
                     form-action 'none';\">
 
@@ -84,6 +84,10 @@
     <script src=\"" js-source "\"></script>
   </body>
 </html>")))
+
+(comment
+  (boolean "false")
+  :rcf)
 
 (defn set-webview-html!
   [^js webview-panel]

@@ -1,7 +1,9 @@
 (ns calva.repl.webview.core-test
-  (:require [cljs.test :refer-macros [deftest testing is run-tests]]
-            [calva.repl.webview.core :as sut]
-            [spy.core :as spy]))
+  (:require
+   [calva.repl.webview.core :as sut]
+   [cljs.test :refer-macros [deftest testing is run-tests]]
+   [clojure.string :as str]
+   [spy.core :as spy]))
 
 (deftest dispose-repl-output-webview-panel-test
   (testing "Given an atom holding some value, should set the value to nil"
@@ -24,6 +26,32 @@
         (is (= "world" (.-hello message-arg)))
         (is (string? (.-id message-arg)))))))
 
+(deftest get-webview-html-test
+  (testing "Given valid args and that the environment is debug, should return the expected html markup"
+    (set! js/process.env.IS_DEBUG "true")
+    (let [result (sut/get-webview-html "js-source" "css-href" "csp-source")]
+      (is (= 1 (count (re-seq #"js-source" result))))
+      (is (= 1 (count (re-seq #"css-href" result))))
+      ;; It should be in the style-src and script-src directives in the content security policy
+      (is (= 2 (count (re-seq #"csp-source" result))))
+      (is (= 1 (count (re-seq #"'unsafe-eval'" result))))
+      (is (= 1 (count (re-seq #"connect-src ws://localhost:9630/api/remote-relay" result))))))
+  (testing "Given valid args and that the environment is not debug, should return the expected html markup"
+    (set! js/process.env.IS_DEBUG "false")
+    (let [result (sut/get-webview-html "js-source" "css-href" "csp-source")]
+      (is (= 1 (count (re-seq #"js-source" result))))
+      (is (= 1 (count (re-seq #"css-href" result))))
+      ;; It should be in the style-src and script-src directives in the content security policy
+      (is (= 2 (count (re-seq #"csp-source" result))))
+      (is (zero? (count (re-seq #"'unsafe-eval'" result))))
+      (is (zero? (count (re-seq #"connect-src ws://localhost:9630/api/remote-relay" result)))))
+    ;; Set it back just to make sure there are no unexpected side effects when developing in the repl
+    (set! js/process.env.IS_DEBUG "true")))
+
+(run-tests)
+
 (comment
-  (run-tests)
+  (set! js/process.env.IS_DEBUG "false")
+  (count (re-seq #"csp-source" "ccsp-sourceecsp-source"))
+
   :rcf)
