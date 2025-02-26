@@ -2,7 +2,7 @@
   (:require [calva.state :as state]))
 
 (defonce vscode (atom nil))
-(defonce context (atom nil))
+(defonce vscode-context (atom nil))
 
 (def project-root-uri-key "connect.projectDirNew")
 
@@ -31,4 +31,4 @@
    write unit tests for any TypeScript code that imports the cljs code, if any of the cljs code requires the VS Code API."
   [^js vsc ^js ctx]
   (reset! vscode vsc)
-  (reset! context ctx))
+  (reset! vscode-context ctx))

@@ -4,6 +4,10 @@
    [cljs.test :refer-macros [deftest testing is run-tests]]
    [spy.core :as spy]))
 
+(defn wrap-spy
+  [spy]
+  (fn [& args] (apply spy args)))
+
 (deftest dispose-repl-output-webview-panel-test
   (testing "Given an atom holding some value, should set the value to nil"
     (let [webview-panel-atom (atom {:mock "webview-panel"})]
@@ -46,6 +50,22 @@
       (is (= 2 (count (re-seq #"csp-source" result))))
       (is (zero? (count (re-seq #"'unsafe-eval'" result))))
       (is (zero? (count (re-seq #"connect-src ws://localhost:9630/api/remote-relay" result)))))))
+
+(deftest get-js-source-test
+  (testing "Given a context and a webview-panel,"
+    (let [join-path-spy (spy/stub "some-path")
+          extension-uri "extension-uri"
+          context {:vscode/context (clj->js {:extensionUri extension-uri})
+                   :vscode/vscode (clj->js {:Uri {:joinPath (wrap-spy join-path-spy)}})}
+          as-webview-uri-spy (spy/stub "some-webview-uri")
+          webview-panel (clj->js {:webview {:asWebviewUri (wrap-spy as-webview-uri-spy)}})
+          result (sut/get-js-source context {:webview-panel webview-panel})]
+      (testing "should call joinPath with expected args"
+        (is (spy/called-once-with? join-path-spy extension-uri "repl-output-ui" "js" "main.js")))
+      (testing "should call asWebviewUri with result of call to joinPath"
+        (is (spy/called-once-with? as-webview-uri-spy "some-path")))
+      (testing "should return result of call to asWebviewUri"
+        (is (= result "some-webview-uri"))))))
 
 (run-tests)
 

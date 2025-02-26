@@ -84,12 +84,25 @@
   </body>
 </html>"))
 
+(defn get-js-source
+  [{:keys [vscode/vscode]
+    vscode-context :vscode/context}
+   {:keys [^js webview-panel]}]
+  (let [extension-uri (.. ^js vscode-context -extensionUri)
+        js-path (.. ^js vscode -Uri (joinPath extension-uri "repl-output-ui" "js" "main.js"))]
+    (.. ^js webview-panel -webview (asWebviewUri js-path))))
+
+(defn get-css-path
+  [{:keys [vscode/vscode]
+    vscode-context :vscode/context}]
+  (let [extension-uri (.. ^js vscode-context -extensionUri)]
+    (.. ^js vscode -Uri (joinPath extension-uri "repl-output-ui" "css" "main.css"))))
+
 (defn set-webview-html!
-  [context ^js webview-panel]
-  (let [extension-uri (.. ^js @util/context -extensionUri)
-        js-path (.. ^js @util/vscode -Uri (joinPath extension-uri "repl-output-ui" "js" "main.js"))
-        js-source (.. ^js webview-panel -webview (asWebviewUri js-path))
-        css-path (.. ^js @util/vscode -Uri (joinPath extension-uri "repl-output-ui" "css" "main.css"))
+  [context
+   {:keys [^js webview-panel]}]
+  (let [js-source (get-js-source context {:webview-panel webview-panel})
+        css-path (get-css-path context)
         css-href (.. ^js webview-panel -webview (asWebviewUri css-path))
         csp-source (.. ^js webview-panel -webview -cspSource)
         webview-html (get-webview-html context {:js-source js-source :css-href css-href :csp-source csp-source})]
@@ -123,7 +136,7 @@
 (defn add-subscriptions []
   (let [subscriptions [(color-theme-change-listener)]]
     (run! (fn [subscription]
-            (.. ^js @util/context -subscriptions (push subscription)))
+            (.. ^js @util/vscode-context -subscriptions (push subscription)))
           subscriptions)))
 
 (defn create-repl-output-webview-panel
@@ -142,12 +155,14 @@
                                 :retainContextWhenHidden true
                                 :enableFindWidget true}))]
     (.. ^js webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel))))
-    (set-webview-html! context webview-panel)
+    (set-webview-html! context {:webview-panel webview-panel})
     (reset! repl-output-webview-panel webview-panel)))
 
 ;; TODO: Write spec/schema for context
 (defn ^:export show-repl-output-webview-panel []
-  (let [context {:env/is-debug (if (= js/process.env.IS_DEBUG "true") true false)}
+  (let [context {:env/is-debug (if (= js/process.env.IS_DEBUG "true") true false)
+                 :vscode/vscode @util/vscode
+                 :vscode/context @util/vscode-context}
         ^js webview-panel (or @repl-output-webview-panel (create-repl-output-webview-panel context))
         active-code-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)]
     (.. webview-panel (reveal nil true))
