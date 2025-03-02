@@ -1,7 +1,12 @@
 import * as vscode from 'vscode';
 import * as config from '../../formatter-config';
 import * as outputWindow from '../../repl-window/repl-doc';
-import { getIndent, getDocumentOffset, getDocument } from '../../doc-mirror/index';
+import {
+  getIndent,
+  getDocumentOffset,
+  getDocument,
+  nonOverlappingRanges,
+} from '../../doc-mirror/index';
 import { formatTextAtRange, formatText, jsify } from '../../../out/cljs-lib/cljs-lib';
 import * as util from '../../utilities';
 import * as cursorDocUtils from '../../cursor-doc/utilities';
@@ -9,11 +14,6 @@ import { isUndefined, cloneDeep } from 'lodash';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
 import { formatIndex } from './format-index';
 import * as state from '../../state';
-
-const FormatDepthDefaults = {
-  deftype: 2,
-  defprotocol: 2,
-};
 
 export async function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
   const editor = util.getActiveTextEditor();
@@ -49,10 +49,10 @@ export async function indentPosition(position: vscode.Position, document: vscode
   }
 }
 
-export function formatRangeEdits(
+function rangeReformatChanges(
   document: vscode.TextDocument,
   originalRange: vscode.Range
-): vscode.TextEdit[] | undefined {
+): ReformatChange[] | undefined {
   const mirrorDoc = getDocument(document);
   const startIndex = document.offsetAt(originalRange.start);
   const cursor = mirrorDoc.getTokenCursor(startIndex);
@@ -80,8 +80,22 @@ export function formatRangeEdits(
     const newText = `${formattedText.startsWith(leadingWs) ? '' : leadingWs}${formattedText}${
       formattedText.endsWith(trailingWs) ? '' : trailingWs
     }`;
-    return [vscode.TextEdit.replace(originalRange, newText)];
+    const whitespaceEdits =
+      originalText == newText ? [] : reformatChanges(startIndex, originalText, newText);
+    return whitespaceEdits;
   }
+}
+
+export function formatRangeEdits(
+  document: vscode.TextDocument,
+  originalRange: vscode.Range
+): vscode.TextEdit[] | undefined {
+  return rangeReformatChanges(document, originalRange).map((chg) =>
+    vscode.TextEdit.replace(
+      new vscode.Range(document.positionAt(chg.start), document.positionAt(chg.end)),
+      chg.text
+    )
+  );
 }
 
 export async function formatRange(document: vscode.TextDocument, range: vscode.Range) {
@@ -97,28 +111,40 @@ export async function formatRange(document: vscode.TextDocument, range: vscode.R
   return vscode.workspace.applyEdit(wsEdit);
 }
 
-export function formatPositionInfo(
-  editor: vscode.TextEditor,
-  onType: boolean = false,
-  extraConfig: CljFmtConfig = {}
-) {
-  const doc: vscode.TextDocument = editor.document;
-  const index = doc.offsetAt(editor.selections[0].active);
+/** [start,end] of range to reformat with attention to offset 'index' */
+export function formatDocIndexRange(
+  doc: vscode.TextDocument,
+  index: number,
+  extraConfig: CljFmtConfig
+): [number, number] {
   const mDoc = getDocument(doc);
-
   if (mDoc.model.documentVersion != doc.version) {
-    console.warn(
-      'Model for formatPositionInfo is out of sync with document; will not reformat now'
-    );
+    console.warn('Model is stale; skipping reformatting');
     return;
   }
   const cursor = mDoc.getTokenCursor(index);
 
-  const formatRange = _calculateFormatRange(extraConfig, cursor, index);
+  // If a top-level form "needs" formatting and is indented, reformat the whole document:
+  const formatRangeSmall = _calculateFormatRange(extraConfig, cursor, index);
+  const formatRange: [number, number] = formatRangeSmall
+    ? formatRangeSmall
+    : [0, doc.getText().length];
+
+  return formatRange;
+}
+
+export function formatDocIndexInfo(
+  doc: vscode.TextDocument,
+  onType: boolean,
+  index: number,
+  extraConfig: CljFmtConfig = {}
+) {
+  const mDoc = getDocument(doc);
+  const cursor = mDoc.getTokenCursor(index);
+  const formatRange = formatDocIndexRange(doc, index, extraConfig);
   if (!formatRange) {
     return;
   }
-
   const formatted: {
     'range-text': string;
     range: number[];
@@ -141,12 +167,18 @@ export function formatPositionInfo(
   );
   const newIndex: number = doc.offsetAt(range.start) + formatted['new-index'];
   const previousText: string = doc.getText(range);
+  const formattedText = formatted['range-text'];
+  const changes =
+    previousText == formattedText
+      ? []
+      : reformatChanges(doc.offsetAt(range.start), previousText, formattedText);
   return {
-    formattedText: formatted['range-text'],
+    formattedText: formattedText,
     range: range,
     previousText: previousText,
     previousIndex: index,
     newIndex: newIndex,
+    changes: changes,
   };
 }
 
@@ -156,18 +188,21 @@ interface CljFmtConfig {
   'remove-multiple-non-indenting-spaces?'?: boolean;
 }
 
+/** [Start,end] of the range to reformat around the cursor, with special cases:
+ * - Undefined if not within a top-level form.
+ * - Undefined if the form to reformat would be a top-level form that is indented.
+ */
 function _calculateFormatRange(
   config: CljFmtConfig,
   cursor: LispTokenCursor,
   index: number
 ): [number, number] {
-  const formatDepth = config?.['format-depth'] ?? _formatDepth(cursor);
   const rangeForTopLevelForm = cursor.rangeForDefun(index, false);
   if (!rangeForTopLevelForm) {
     return;
   }
   const topLevelStartCursor = cursor.doc.getTokenCursor(rangeForTopLevelForm[0]);
-  const rangeForList = cursor.rangeForList(formatDepth);
+  const rangeForList = cursor.rangeForList(1);
   if (rangeForList) {
     if (rangeForList[0] === rangeForTopLevelForm[0]) {
       if (topLevelStartCursor.rowCol[1] !== 0) {
@@ -203,10 +238,117 @@ function _calculateFormatRange(
   }
 }
 
-function _formatDepth(cursor: LispTokenCursor) {
-  const cursorClone = cursor.clone();
-  cursorClone.backwardFunction(1);
-  return FormatDepthDefaults?.[cursorClone.getFunctionName()] ?? 1;
+//----------
+
+export type ReformatChange = {
+  start: number;
+  end: number;
+  text: string;
+};
+
+/** whitespace and substance. Pre-format and re-formatted text can be expressed
+ * as a series of SpacedUnit. The substance parts can be aligned and then
+ * changes in size can be translated to TextEdits.
+ */
+type SpacedUnit = [spaces: string, stuff: string];
+
+/** Array of [spaces, nonspaces] which if concatenated would equal s.
+ * Treats comma and JS regex \s as spaces.
+ */
+function spacedUnits(s: string): SpacedUnit[] {
+  const frags = s.match(/[\s,]+|[^\s,]+/g);
+  // Ensure 1st item is of whitespace:
+  if (frags[0].match(/[^\s,]/)) {
+    frags.unshift('');
+  }
+  // Ensure last item is of non-whitespace stuff:
+  if (frags.length % 2) {
+    frags.push('');
+  }
+  // Partition items into [space, stuff] pairs:
+  const units = [];
+  for (let i = 0; i < frags.length; i += 2) {
+    units.push([frags[i], frags[i + 1]]);
+  }
+  return units;
+}
+
+/* A single word in a or b may have been split into multiple words in the other (eg at punctuation).
+   Adjust a and b to the finest granularity of words in either of them.
+*/
+function alignSpacedUnits(a: SpacedUnit[], b: SpacedUnit[]): [SpacedUnit[], SpacedUnit[]] {
+  const a2 = [],
+    b2 = [];
+  while (a.length && b.length) {
+    if (a[0][1] == b[0][1]) {
+      a2.push(a[0]);
+      b2.push(b[0]);
+      a.shift();
+      b.shift();
+    } else if (a[0][1].length < b[0][1].length) {
+      const aWhole = a[0][1];
+      const bPart = b[0][1].slice(0, a[0][1].length);
+      if (aWhole == bPart) {
+        a2.push(a[0]);
+        a.shift();
+        b2.push([b[0][0], bPart]);
+        b[0] = ['', b[0][1].slice(aWhole.length)];
+      } else {
+        console.error('alignSpacedUnits: a/b mismatch wherein a is shorter');
+        return [undefined, undefined];
+      }
+    } else {
+      const bWhole = b[0][1];
+      const aPart = a[0][1].slice(0, b[0][1].length);
+      if (bWhole == aPart) {
+        b2.push(b[0]);
+        b.shift();
+        a2.push([a[0][0], aPart]);
+        a[0] = ['', a[0][1].slice(bWhole.length)];
+      } else {
+        console.error('alignSpacedUnits: a/b mismatch wherein b is shorter');
+        return [undefined, undefined];
+      }
+    }
+  }
+  return [a2, b2];
+}
+
+/** Edits to accomplish the reformatting at one point in the document.
+ * Edits are ordered from end- to start-of-document.
+ */
+// - For VS Code to move all cursors meaningfully when reformatting,
+// - there should be one replacement operation per insertion/removal of whitespace
+// - (and none for non-whitespace)
+export function reformatChanges(
+  offset: number,
+  previousText: string,
+  formattedText: string
+): ReformatChange[] {
+  const a = spacedUnits(previousText);
+  const b = spacedUnits(formattedText);
+  // A single word in a or b may have been split into multiple words in the other (eg at punctuation).
+  // Adjust a and b to the finest granularity of words in either of them.
+  const [a2, b2] = alignSpacedUnits(a, b);
+  // The result should be an equal number of words in a and b:
+  if (a2.length != b2.length) {
+    console.error('Uneven words in a and b', 'a2', a2, 'b2', b2);
+    return [];
+  }
+  const ret: ReformatChange[] = [];
+  let aPos = offset;
+  for (let i = 0; i < a2.length; i++) {
+    const aSpaces = a2[i][0];
+    const bSpaces = b2[i][0];
+    if (aSpaces != bSpaces) {
+      const start: number = aPos;
+      const end: number = aPos + aSpaces.length;
+      const text: string = bSpaces;
+      ret.unshift({ start, end, text });
+    }
+    aPos += a2[i][0].length + a2[i][1].length;
+  }
+  return ret;
 }
 
 export async function formatPosition(
@@ -214,55 +356,42 @@ export async function formatPosition(
   onType: boolean = false,
   extraConfig: CljFmtConfig = {}
 ): Promise<boolean> {
-  // Stop trying if ever the document version changes - don't want to trample User's work
-  const doc: vscode.TextDocument = editor.document,
-    documentVersion = editor.document.version,
-    formattedInfo = formatPositionInfo(editor, onType, extraConfig);
-  if (documentVersion != editor.document.version) {
-    return;
-  } else if (formattedInfo && formattedInfo.previousText != formattedInfo.formattedText) {
-    return editor
-      .edit(
-        (textEditorEdit) => {
-          textEditorEdit.replace(formattedInfo.range, formattedInfo.formattedText);
-        },
-        { undoStopAfter: false, undoStopBefore: false }
+  const doc: vscode.TextDocument = editor.document;
+  const ranges = editor.selections
+    .map((sel) => doc.offsetAt(sel.active))
+    .map((index) => formatDocIndexRange(doc, index, extraConfig))
+    .filter((rng) => rng != undefined);
+  const dedupedRanges = nonOverlappingRanges(ranges);
+  const wholeDocRange: [number, number] = [0, doc.getText().length];
+  const wholeDoc =
+    dedupedRanges.filter((r) => r[0] == wholeDocRange[0] && r[1] == wholeDocRange[1]).length > 0;
+  const orderedChanges: ReformatChange[] = wholeDoc
+    ? rangeReformatChanges(
+        doc,
+        new vscode.Range(doc.positionAt(wholeDocRange[0]), doc.positionAt(wholeDocRange[1]))
       )
-      .then((onFulfilled: boolean) => {
-        if (onFulfilled) {
-          if (documentVersion + 1 == editor.document.version) {
-            editor.selections = [
-              new vscode.Selection(
-                doc.positionAt(formattedInfo.newIndex),
-                doc.positionAt(formattedInfo.newIndex)
-              ),
-            ];
-          }
-        }
-        return onFulfilled;
-      });
-  } else if (formattedInfo) {
-    return new Promise((resolve, _reject) => {
-      if (formattedInfo.newIndex != formattedInfo.previousIndex) {
-        editor.selections = [
-          new vscode.Selection(
-            doc.positionAt(formattedInfo.newIndex),
-            doc.positionAt(formattedInfo.newIndex)
-          ),
-        ];
+    : dedupedRanges
+        .map((rng) => rng[0])
+        .flatMap((index) => {
+          const formattedInfo = formatDocIndexInfo(doc, onType, index, extraConfig);
+          return formattedInfo ? formattedInfo.changes : [];
+        })
+        .sort((a, b) => b.start - a.start);
+
+  return editor.edit((textEditorEdit) => {
+    let monotonicallyDecreasing = -1;
+    orderedChanges.forEach((change) => {
+      const pos1 = doc.positionAt(change.start);
+      const pos2 = doc.positionAt(change.end);
+      // with multiple cursors, especially near each other, the edits may overlap.
+      // VS Code rejects overlapping edits. Skip them:
+      if (monotonicallyDecreasing == -1 || change.end < monotonicallyDecreasing) {
+        const range = new vscode.Range(pos1, pos2);
+        textEditorEdit.replace(range, change.text);
+        monotonicallyDecreasing = change.start;
       }
-      resolve(true);
     });
-  } else if (!onType && !outputWindow.isResultsDoc(doc)) {
-    return formatRange(
-      doc,
-      new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length))
-    );
-  } else {
-    return new Promise((resolve, _reject) => {
-      resolve(true);
-    });
-  }
+  });
 }
 
 // Debounce format-as-you-type and toss it aside if User seems still to be working

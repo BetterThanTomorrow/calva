@@ -241,7 +241,6 @@ export class ModelEditSelection {
 
 export type ModelEditOptions = {
   undoStopBefore?: boolean;
-  formatDepth?: number;
   skipFormat?: boolean;
   selections?: ModelEditSelection[];
   builder?: TextEditorEdit;
@@ -290,47 +289,59 @@ export interface EditableDocument {
 // An editing transaction - array of ModelEdit - shifts the selection(s)
 // to compensate for insertions or deletions to their left.
 // Here we predict how edits will affect selections.
-const selectionsAfterEdits = (function () {
-  const decodeChangeRange = function (edit): [any, any] {
-    return [edit.args[0], edit.args[2].length - (edit.args[1] - edit.args[0])];
+export const selectionsAfterEdits = (function () {
+  // 'Decoders' of ModelEdit:
+  //  [point, change-in-size, inserted-text-or-undefined]
+  const decodeChangeRange = function (edit): [any, any, any] {
+    const delta = edit.args[2].length - (edit.args[1] - edit.args[0]);
+    return [edit.args[0], delta, delta > 0 ? edit.args[2] : undefined];
   };
-  const decodeDeleteRange = function (edit): [any, any] {
-    return [edit.args[0], 0 - edit.args[1]];
+  const decodeDeleteRange = function (edit): [any, any, any] {
+    return [edit.args[0], 0 - edit.args[1], undefined];
   };
-  const decodeInsertString = function (edit): [any, any] {
-    return [edit.args[0] + edit.args[1].length, edit.args[1].length];
+  const decodeInsertString = function (edit): [any, any, any] {
+    return [edit.args[0] + edit.args[1].length, edit.args[1].length, edit.args[1]];
   };
-  const bump = function (n, [point, delta]) {
-    return n != undefined ? (n > point ? n + delta : n) : undefined;
+  const bump = function (n: number, [point, delta, inserted]) {
+    if (n == undefined) {
+      return undefined;
+    } else {
+      // The bump condition is usually >, but it is >= when inserting a list-open
+      const lastInsertedChar = !inserted || inserted == '' ? '' : inserted[inserted.length - 1];
+      const threshold = ['(', '[', '{', '#{'].includes(lastInsertedChar) ? point - 1 : point;
+      const p = n > threshold ? Math.max(n + delta, point) : n;
+      return p;
+    }
   };
-  return function (edits, selections: ModelEditSelection[]) {
+  return function (edits: ModelEdit<ModelEditFunction>[], selections: ModelEditSelection[]) {
     // The ModelEdit array is in order by end-of-doc to start.
     // Traverse it, bumping selections
     // according to the growth or shrinkage of each edit.
     let monotonicallyDecreasing = -1; // check edit order
     let retSelections: ModelEditSelection[] = [...selections];
     for (let ic = 0; ic < edits.length; ic++) {
-      const affected: [any, any] =
+      const affected: [any, any, any] =
         edits[ic].editFn == 'deleteRange'
           ? decodeDeleteRange(edits[ic])
           : edits[ic].editFn == 'changeRange'
           ? decodeChangeRange(edits[ic])
           : decodeInsertString(edits[ic]);
       const [point, delta] = affected;
-      if (monotonicallyDecreasing != -1 && point >= monotonicallyDecreasing) {
+      if (monotonicallyDecreasing != -1 && point > monotonicallyDecreasing) {
         console.error(
           'Edits not back-to-front. Inference of resulting selection might be inaccurate'
-        ); // TBD take the time to sort? or should commands emit edits in back-to-front order?
+        );
       }
       monotonicallyDecreasing = point;
       if (delta != 0) {
         retSelections = retSelections.map(function (s: ModelEditSelection) {
-          return new ModelEditSelection(
+          const r = new ModelEditSelection(
             bump(s.end, affected),
             bump(s.active, affected),
             bump(s.start, affected),
             bump(s.end, affected)
           );
+          return r;
         });
       }
     }
