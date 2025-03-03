@@ -14,6 +14,7 @@ import { isUndefined, cloneDeep } from 'lodash';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
 import { formatIndex } from './format-index';
 import * as state from '../../state';
+import * as healer from './healer';
 
 export async function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
   const editor = util.getActiveTextEditor();
@@ -59,27 +60,9 @@ function rangeReformatChanges(
   if (!cursor.withinString() && !cursor.withinComment()) {
     const eol = _convertEolNumToStringNotation(document.eol);
     const originalText = document.getText(originalRange);
-    const leadingWs = originalText.match(/^\s*/)[0];
-    const trailingWs = originalText.match(/\s*$/)[0];
-    const missingTexts = cursorDocUtils.getMissingBrackets(originalText);
-    const healedText = `${missingTexts.prepend}${originalText.trim()}${missingTexts.append}`;
-    const formattedHealedText = formatCode(healedText, document.eol);
-    const leadingEolPos = leadingWs.lastIndexOf(eol);
-    const startIndent =
-      leadingEolPos === -1
-        ? originalRange.start.character
-        : leadingWs.length - leadingEolPos - eol.length;
-    const formattedText = formattedHealedText
-      .substring(
-        missingTexts.prepend.length,
-        missingTexts.prepend.length + formattedHealedText.length - missingTexts.append.length
-      )
-      .split(eol)
-      .map((line: string, i: number) => (i === 0 ? line : `${' '.repeat(startIndent)}${line}`))
-      .join(eol);
-    const newText = `${formattedText.startsWith(leadingWs) ? '' : leadingWs}${formattedText}${
-      formattedText.endsWith(trailingWs) ? '' : trailingWs
-    }`;
+    const healing = healer.bandage(originalText, originalRange.start.character, eol);
+    const formattedHealedText = formatCode(healing.healedText, document.eol);
+    const newText = healer.unbandage(healing, formattedHealedText);
     const whitespaceEdits =
       originalText == newText ? [] : reformatChanges(startIndex, originalText, newText);
     return whitespaceEdits;

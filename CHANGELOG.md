@@ -6,6 +6,8 @@ Changes to Calva.
 
 - Fix: [Reformat all edited locations after multicursor structural edit](https://github.com/BetterThanTomorrow/calva/issues/2738)
 - Fix: [splice-kill-forward or splice-kill-backward, then undo, undoes too much](https://github.com/BetterThanTomorrow/calva/issues/2737)
+- Bump deps.clj.jar to v1.12.0.1517
+- [Add unit tests for the reformatter's "healer" of incomplete forms](https://github.com/BetterThanTomorrow/calva/issues/2742)
 
 ## [2.0.486] - 2025-02-16
 
