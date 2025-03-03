@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Bump deps.clj.jar to v1.12.0.1517
+- Add unit tests for the reformatter's "healer" of incomplete forms
 
 ## [2.0.486] - 2025-02-16
 
