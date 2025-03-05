@@ -1823,6 +1823,18 @@ describe('paredit', () => {
           await paredit.forwardBarfSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+        it('keeps cursor within the list that lost a member (1)', async () => {
+          const a = docFromTextNotation('(str |"foo")');
+          const b = docFromTextNotation('(str|) "foo"');
+          await paredit.forwardBarfSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('keeps cursor within the list that lost a member (2)', async () => {
+          const a = docFromTextNotation('(str "foo"|)');
+          const b = docFromTextNotation('(str|) "foo"');
+          await paredit.forwardBarfSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
 
       describe('Barfing backwards', () => {
@@ -1835,6 +1847,12 @@ describe('paredit', () => {
         it('barfs first form in list including meta and readers', async () => {
           const a = docFromTextNotation('(^{:a b} #c ^d "foo"|)');
           const b = docFromTextNotation('^{:a b} #c ^d "foo"(|)');
+          await paredit.backwardBarfSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('keeps cursor within the list that lost its first member', async () => {
+          const a = docFromTextNotation('(|(str) foo)');
+          const b = docFromTextNotation('(str) (|foo)');
           await paredit.backwardBarfSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
