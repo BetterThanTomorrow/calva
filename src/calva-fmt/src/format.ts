@@ -9,6 +9,7 @@ import {
 } from '../../doc-mirror/index';
 import { formatTextAtRange, formatText, jsify } from '../../../out/cljs-lib/cljs-lib';
 import * as util from '../../utilities';
+import * as respacer from './respacer';
 import * as cursorDocUtils from '../../cursor-doc/utilities';
 import { isUndefined, cloneDeep } from 'lodash';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
@@ -53,7 +54,7 @@ export async function indentPosition(position: vscode.Position, document: vscode
 function rangeReformatChanges(
   document: vscode.TextDocument,
   originalRange: vscode.Range
-): ReformatChange[] | undefined {
+): respacer.WhitespaceChange[] | undefined {
   const mirrorDoc = getDocument(document);
   const startIndex = document.offsetAt(originalRange.start);
   const cursor = mirrorDoc.getTokenCursor(startIndex);
@@ -64,7 +65,7 @@ function rangeReformatChanges(
     const formattedHealedText = formatCode(healing.healedText, document.eol);
     const newText = healer.unbandage(healing, formattedHealedText);
     const whitespaceEdits =
-      originalText == newText ? [] : reformatChanges(startIndex, originalText, newText);
+      originalText == newText ? [] : respacer.whitespaceEdits(startIndex, originalText, newText);
     return whitespaceEdits;
   }
 }
@@ -73,6 +74,7 @@ export function formatRangeEdits(
   document: vscode.TextDocument,
   originalRange: vscode.Range
 ): vscode.TextEdit[] | undefined {
+  const startIndex = document.offsetAt(originalRange.start);
   return rangeReformatChanges(document, originalRange).map((chg) =>
     vscode.TextEdit.replace(
       new vscode.Range(document.positionAt(chg.start), document.positionAt(chg.end)),
@@ -154,7 +156,7 @@ export function formatDocIndexInfo(
   const changes =
     previousText == formattedText
       ? []
-      : reformatChanges(doc.offsetAt(range.start), previousText, formattedText);
+      : respacer.whitespaceEdits(doc.offsetAt(range.start), previousText, formattedText);
   return {
     formattedText: formattedText,
     range: range,
@@ -221,119 +223,6 @@ function _calculateFormatRange(
   }
 }
 
-//----------
-
-export type ReformatChange = {
-  start: number;
-  end: number;
-  text: string;
-};
-
-/** whitespace and substance. Pre-format and re-formatted text can be expressed
- * as a series of SpacedUnit. The substance parts can be aligned and then
- * changes in size can be translated to TextEdits.
- */
-type SpacedUnit = [spaces: string, stuff: string];
-
-/** Array of [spaces, nonspaces] which if concatenated would equal s.
- * Treats comma and JS regex \s as spaces.
- */
-function spacedUnits(s: string): SpacedUnit[] {
-  const frags = s.match(/[\s,]+|[^\s,]+/g);
-  // Ensure 1st item is of whitespace:
-  if (frags[0].match(/[^\s,]/)) {
-    frags.unshift('');
-  }
-  // Ensure last item is of non-whitespace stuff:
-  if (frags.length % 2) {
-    frags.push('');
-  }
-  // Partition items into [space, stuff] pairs:
-  const units = [];
-  for (let i = 0; i < frags.length; i += 2) {
-    units.push([frags[i], frags[i + 1]]);
-  }
-  return units;
-}
-
-/* A single word in a or b may have been split into multiple words in the other (eg at punctuation).
-   Adjust a and b to the finest granularity of words in either of them.
-*/
-function alignSpacedUnits(a: SpacedUnit[], b: SpacedUnit[]): [SpacedUnit[], SpacedUnit[]] {
-  const a2 = [],
-    b2 = [];
-  while (a.length && b.length) {
-    if (a[0][1] == b[0][1]) {
-      a2.push(a[0]);
-      b2.push(b[0]);
-      a.shift();
-      b.shift();
-    } else if (a[0][1].length < b[0][1].length) {
-      const aWhole = a[0][1];
-      const bPart = b[0][1].slice(0, a[0][1].length);
-      if (aWhole == bPart) {
-        a2.push(a[0]);
-        a.shift();
-        b2.push([b[0][0], bPart]);
-        b[0] = ['', b[0][1].slice(aWhole.length)];
-      } else {
-        console.error('alignSpacedUnits: a/b mismatch wherein a is shorter');
-        return [undefined, undefined];
-      }
-    } else {
-      const bWhole = b[0][1];
-      const aPart = a[0][1].slice(0, b[0][1].length);
-      if (bWhole == aPart) {
-        b2.push(b[0]);
-        b.shift();
-        a2.push([a[0][0], aPart]);
-        a[0] = ['', a[0][1].slice(bWhole.length)];
-      } else {
-        console.error('alignSpacedUnits: a/b mismatch wherein b is shorter');
-        return [undefined, undefined];
-      }
-    }
-  }
-  return [a2, b2];
-}
-
-/** Edits to accomplish the reformatting at one point in the document.
- * Edits are ordered from end- to start-of-document.
- */
-// - For VS Code to move all cursors meaningfully when reformatting,
-// - there should be one replacement operation per insertion/removal of whitespace
-// - (and none for non-whitespace)
-export function reformatChanges(
-  offset: number,
-  previousText: string,
-  formattedText: string
-): ReformatChange[] {
-  const a = spacedUnits(previousText);
-  const b = spacedUnits(formattedText);
-  // A single word in a or b may have been split into multiple words in the other (eg at punctuation).
-  // Adjust a and b to the finest granularity of words in either of them.
-  const [a2, b2] = alignSpacedUnits(a, b);
-  // The result should be an equal number of words in a and b:
-  if (a2.length != b2.length) {
-    console.error('Uneven words in a and b', 'a2', a2, 'b2', b2);
-    return [];
-  }
-  const ret: ReformatChange[] = [];
-  let aPos = offset;
-  for (let i = 0; i < a2.length; i++) {
-    const aSpaces = a2[i][0];
-    const bSpaces = b2[i][0];
-    if (aSpaces != bSpaces) {
-      const start: number = aPos;
-      const end: number = aPos + aSpaces.length;
-      const text: string = bSpaces;
-      ret.unshift({ start, end, text });
-    }
-    aPos += a2[i][0].length + a2[i][1].length;
-  }
-  return ret;
-}
-
 export async function formatPosition(
   editor: vscode.TextEditor,
   onType: boolean = false,
@@ -348,7 +237,7 @@ export async function formatPosition(
   const wholeDocRange: [number, number] = [0, doc.getText().length];
   const wholeDoc =
     dedupedRanges.filter((r) => r[0] == wholeDocRange[0] && r[1] == wholeDocRange[1]).length > 0;
-  const orderedChanges: ReformatChange[] = wholeDoc
+  const orderedChanges: respacer.WhitespaceChange[] = wholeDoc
     ? rangeReformatChanges(
         doc,
         new vscode.Range(doc.positionAt(wholeDocRange[0]), doc.positionAt(wholeDocRange[1]))
