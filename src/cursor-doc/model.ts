@@ -291,24 +291,25 @@ export interface EditableDocument {
 // Here we predict how edits will affect selections.
 export const selectionsAfterEdits = (function () {
   // 'Decoders' of ModelEdit:
-  //  [point, change-in-size, inserted-text-or-undefined]
-  const decodeChangeRange = function (edit): [any, any, any] {
+  //  [threshold, point, change-in-size]
+  const decodeChangeRange = function (edit): [number, number, number] {
     const delta = edit.args[2].length - (edit.args[1] - edit.args[0]);
-    return [edit.args[0], delta, delta > 0 ? edit.args[2] : undefined];
+    const inserted = delta > 0 ? edit.args[2] : undefined;
+    const lastInsertedChar = !inserted || inserted == '' ? '' : inserted[inserted.length - 1];
+    const point = edit.args[0];
+    const threshold = ['(', '[', '{', '#{'].includes(lastInsertedChar) ? point - 1 : point;
+    return [threshold, point, delta];
   };
-  const decodeDeleteRange = function (edit): [any, any, any] {
-    return [edit.args[0], 0 - edit.args[1], undefined];
+  const decodeDeleteRange = function (edit): [number, number, number] {
+    return [edit.args[0], edit.args[0], 0 - edit.args[1]];
   };
-  const decodeInsertString = function (edit): [any, any, any] {
-    return [edit.args[0] + edit.args[1].length, edit.args[1].length, edit.args[1]];
+  const decodeInsertString = function (edit): [number, number, number] {
+    return [edit.args[0] - 1, edit.args[0] + edit.args[1].length, edit.args[1].length];
   };
-  const bump = function (n: number, [point, delta, inserted]) {
+  const bump = function (n: number, [threshold, point, delta]) {
     if (n == undefined) {
       return undefined;
     } else {
-      // The bump condition is usually >, but it is >= when inserting a list-open
-      const lastInsertedChar = !inserted || inserted == '' ? '' : inserted[inserted.length - 1];
-      const threshold = ['(', '[', '{', '#{'].includes(lastInsertedChar) ? point - 1 : point;
       const p = n > threshold ? Math.max(n + delta, point) : n;
       return p;
     }
@@ -320,13 +321,13 @@ export const selectionsAfterEdits = (function () {
     let monotonicallyDecreasing = -1; // check edit order
     let retSelections: ModelEditSelection[] = [...selections];
     for (let ic = 0; ic < edits.length; ic++) {
-      const affected: [any, any, any] =
+      const affected: [number, number, number] =
         edits[ic].editFn == 'deleteRange'
           ? decodeDeleteRange(edits[ic])
           : edits[ic].editFn == 'changeRange'
           ? decodeChangeRange(edits[ic])
           : decodeInsertString(edits[ic]);
-      const [point, delta] = affected;
+      const [threshold, point, delta] = affected;
       if (monotonicallyDecreasing != -1 && point > monotonicallyDecreasing) {
         console.error(
           'Edits not back-to-front. Inference of resulting selection might be inaccurate'
