@@ -107,5 +107,12 @@
         (testing "should set webview html to result of call to get-webview-html"
           (is (= "some-html" (.. webview-panel -webview -html))))))))
 
+(deftest set-code-theme!-test
+  (testing "Given a context and a ColorThemeKind,"
+    (testing "when the ColorThemeKind is Dark, should set the code theme to dark")
+    (testing "when the ColorThemeKind is Light, should set the code theme to light")
+    (testing "when the ColorThemeKind is HighContrast, should set the code theme to high-contrast")
+    (testing "when the ColorThemeKind is HighContrastLight, should set the code theme to high-contrast-light")
+    (testing "when there is no configured code theme for the ColorThemeKind, should log the expected error")))
 
 (run-tests)
