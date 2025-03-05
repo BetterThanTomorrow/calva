@@ -2,6 +2,7 @@ export { getIndent } from '../cursor-doc/indent';
 import * as vscode from 'vscode';
 import * as utilities from '../utilities';
 import * as formatter from '../calva-fmt/src/format';
+import * as respacer from '../calva-fmt/src/respacer';
 import { LispTokenCursor } from '../cursor-doc/token-cursor';
 import {
   ModelEdit,
@@ -145,7 +146,7 @@ export class DocumentModel implements EditableModel {
 
   private postEditReformat(editor: vscode.TextEditor, offsets: number[]): Thenable<boolean> {
     // Now that the document has been edited, calculate the reformatting:
-    const reformatChange: formatter.ReformatChange[] = sortedUniq(offsets.sort((a, b) => a - b))
+    const reformatChange: respacer.WhitespaceChange[] = sortedUniq(offsets.sort((a, b) => a - b))
       .flatMap((p) => {
         const doc = this.document.document;
         const formattedInfo = formatter.formatDocIndexInfo(doc, true, p);
@@ -157,7 +158,7 @@ export class DocumentModel implements EditableModel {
           // VS Code rejects an edit transaction if any operations overlap.
           // Remove overlapping edits:
           let monotonicallyDecreasing = -1;
-          return function (change: formatter.ReformatChange) {
+          return function (change: respacer.WhitespaceChange) {
             if (change.end < change.start) {
               console.error('Backwards change!');
               return false;
