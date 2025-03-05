@@ -87,14 +87,25 @@
           get-js-source-spy (spy/stub "some-js-source")
           get-css-path-spy (spy/stub "some-css-path")
           as-webview-uri-spy (spy/stub "some-css-href")
-          webview-panel (clj->js {:webview {:asWebviewUri (wrap-spy as-webview-uri-spy)
-                                            :cspSource "some-csp-source"}})
-          get-webview-html-spy (spy/stub "some-html")])
-    (testing "should call get-js-source with expected args")
-    (testing "should call get-css-path with expected args")
-    (testing "should call asWebviewUri with expected args")
-    (testing "should call get-webview-html with expected args")
-    (testing "should set webview html to result of call to get-webview-html")))
+          ^js webview-panel (clj->js {:webview {:asWebviewUri (wrap-spy as-webview-uri-spy)
+                                                :cspSource "some-csp-source"}})
+          get-webview-html-spy (spy/stub "some-html")]
+      (with-redefs [sut/get-js-source (wrap-spy get-js-source-spy)
+                    sut/get-css-path (wrap-spy get-css-path-spy)
+                    sut/get-webview-html (wrap-spy get-webview-html-spy)]
+        (sut/set-webview-html! context {:webview-panel webview-panel})
+        (testing "should call get-js-source with expected args"
+          (is (spy/called-once-with? get-js-source-spy context {:webview-panel webview-panel})))
+        (testing "should call get-css-path with expected args"
+          (is (spy/called-once-with? get-css-path-spy context)))
+        (testing "should call asWebviewUri with expected args"
+          (is (spy/called-once-with? as-webview-uri-spy "some-css-path")))
+        (testing "should call get-webview-html with expected args"
+          (is (spy/called-once-with? get-webview-html-spy context {:js-source "some-js-source"
+                                                                   :css-href "some-css-href"
+                                                                   :csp-source "some-csp-source"})))
+        (testing "should set webview html to result of call to get-webview-html"
+          (is (= "some-html" (.. webview-panel -webview -html))))))))
 
 
 (run-tests)
