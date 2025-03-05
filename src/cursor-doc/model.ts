@@ -611,51 +611,39 @@ export class LineInputModel implements EditableModel {
   }
 
   editNow(edits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): void {
-    const ultimateSelections = this.editTextNow(edits, options);
+    this.editTextNow(edits, options);
     if (this.document && options.selections) {
       this.document.selections = options.selections;
     } else {
-      // Mimic TextEditorEdit, which leaves the selection at the end of the insertion or start of deletion:
-      if (this.document && ultimateSelections) {
-        this.document.selections = ultimateSelections;
+      if (this.document) {
+        this.document.selections = selectionsAfterEdits(edits, this.document.selections);
       }
     }
   }
 
   // Returns the selection that would mimic TextEditorEdit
-  editTextNow(
-    edits: ModelEdit<ModelEditFunction>[],
-    options: ModelEditOptions
-  ): ModelEditSelection[] {
-    let ultimateSelections = undefined;
+  editTextNow(edits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): void {
     for (const edit of edits) {
       switch (edit.editFn) {
         case 'insertString': {
           const fn = this.insertString;
-          ultimateSelections = this.insertString(
-            ...(edit.args.slice(0, 4) as Parameters<typeof fn>)
-          );
+          this.insertString(...(edit.args.slice(0, 4) as Parameters<typeof fn>));
           break;
         }
         case 'changeRange': {
           const fn = this.changeRange;
-          ultimateSelections = this.changeRange(
-            ...(edit.args.slice(0, 5) as Parameters<typeof fn>)
-          );
+          this.changeRange(...(edit.args.slice(0, 5) as Parameters<typeof fn>));
           break;
         }
         case 'deleteRange': {
           const fn = this.deleteRange;
-          ultimateSelections = this.deleteRange(
-            ...(edit.args.slice(0, 5) as Parameters<typeof fn>)
-          );
+          this.deleteRange(...(edit.args.slice(0, 5) as Parameters<typeof fn>));
           break;
         }
         default:
           break;
       }
     }
-    return ultimateSelections;
   }
 
   /**
@@ -675,12 +663,9 @@ export class LineInputModel implements EditableModel {
     text: string,
     oldSelection?: ModelEditRange,
     newSelection?: ModelEditRange
-  ): ModelEditSelection[] {
-    const t1 = new Date();
-
+  ): void {
     const startPos = Math.min(start, end);
     const endPos = Math.max(start, end);
-    const deletedText = this.recordingUndo ? this.getText(startPos, endPos) : '';
     const [startLine, startCol] = this.getRowCol(startPos);
     const [endLine, endCol] = this.getRowCol(endPos);
     // extract the lines we will replace
@@ -727,11 +712,6 @@ export class LineInputModel implements EditableModel {
       this.changedLines.add(startLine + i);
       this.markDirty(startLine + i);
     }
-
-    // console.log("Parsing took: ", new Date().valueOf() - t1.valueOf());
-
-    // To mimic TextEditorEdit: No change to selection by default:
-    return undefined;
   }
 
   /**
@@ -749,10 +729,8 @@ export class LineInputModel implements EditableModel {
     text: string,
     oldSelection?: ModelEditRange,
     newSelection?: ModelEditRange
-  ): ModelEditSelection[] {
+  ): void {
     this.changeRange(offset, offset, text);
-    // To mimic TextEditorEdit: selection moves to end of insertion, by default
-    return [new ModelEditSelection(offset + text.length)];
   }
 
   /**
@@ -769,10 +747,8 @@ export class LineInputModel implements EditableModel {
     count: number,
     oldSelection?: ModelEditRange,
     newSelection?: ModelEditRange
-  ): ModelEditSelection[] {
+  ): void {
     this.changeRange(offset, offset + count, '');
-    // To mimic TextEditorEdit: selection moves to start of deletion, by default
-    return [new ModelEditSelection(offset)];
   }
 
   /** Return the offset of the last character in this model. */
