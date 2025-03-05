@@ -1,6 +1,6 @@
 /**
  * @module
- * Adapter, between a code reformatter and a multi-cursor VS Code document,
+ * Adapter between a code reformatter and a multi-cursor VS Code document,
  * that finds a set of whitespace edits to transform an original code
  * block to an edited code block - on the understanding that the formatter
  * intends to change only whitespace and that changing more than the minimum
@@ -43,6 +43,8 @@ function spacedUnits(s: string): SpacedUnit[] {
   for (let i = 0; i < frags.length; i += 2) {
     units.push([frags[i], frags[i + 1]]);
   }
+  // Pad the end - in case the reformatting adds spaces to the end:
+  units.push(['', '']);
   return units;
 }
 
