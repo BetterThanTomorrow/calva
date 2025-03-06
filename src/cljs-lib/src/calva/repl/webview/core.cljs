@@ -109,9 +109,10 @@
     (set! (.. webview-panel -webview -html) webview-html)))
 
 (defn set-code-theme!
-  "Takes a vscode.ColorThemeKind and sets the code theme in the webview"
-  [color-theme-kind]
-  (let [color-theme-kind-enum (.. ^js @util/vscode -ColorThemeKind)
+  "Takes a context, a webview panel and a vscode.ColorThemeKind enum value and sets the code theme in the webview based
+   on the given color theme kind."
+  [{:keys [vscode/vscode]} {:keys [color-theme-kind webview-panel]}]
+  (let [color-theme-kind-enum (.. ^js vscode -ColorThemeKind)
         code-theme (condp = color-theme-kind
                      (.. color-theme-kind-enum -Dark)  "dark"
                      (.. color-theme-kind-enum -Light) "light"
@@ -119,9 +120,10 @@
                      (.. color-theme-kind-enum -HighContrastLight) "high-contrast-light"
                      nil)]
     (if code-theme
-      (post-message-to-webview @repl-output-webview-panel {:command-name "set-code-theme"
-                                                           :content code-theme})
-      (js/console.error
+      (post-message-to-webview webview-panel {:command-name "set-code-theme"
+                                              :content code-theme})
+      (util/log-to-console
+       :error
        "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
        color-theme-kind))))
 
@@ -131,7 +133,9 @@
   (.. ^js @util/vscode -window
       (onDidChangeActiveColorTheme
        (fn [e]
-         (set-code-theme! (.. e -kind))))))
+         (let [context {:vscode/vscode @util/vscode}]
+           (set-code-theme! context {:color-theme-kind (.. e -kind)
+                                     :webview-panel @repl-output-webview-panel}))))))
 
 (defn add-subscriptions []
   (let [subscriptions [(color-theme-change-listener)]]
@@ -166,7 +170,8 @@
         ^js webview-panel (or @repl-output-webview-panel (create-repl-output-webview-panel context))
         active-code-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)]
     (.. webview-panel (reveal nil true))
-    (set-code-theme! active-code-theme-kind)))
+    (set-code-theme! context {:color-theme-kind active-code-theme-kind
+                              :webview-panel webview-panel})))
 
 ;; TODO: Add tests
 ;; TODO: Refactor this to use a mapping of output category -> command name
@@ -187,7 +192,8 @@
                                                                       :content message})
       "clojure" (post-message-to-webview @repl-output-webview-panel {:command-name "show-result"
                                                                      :content message})
-      (js/console.error
+      (util/log-to-console
+       :error
        (str "Cannot append content to output webview. No outputCategory matches \"" output-category "\"")))))
 
 (def stacktrace-classes-to-ignore
@@ -217,28 +223,3 @@
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
 ;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
 ;; https://code.visualstudio.com/api/extension-guides/webview#theming-webview-content
-
-(comment
-  (def output-category "foo")
-  (def message "hello")
-
-  ;; TODO: Implement this interface for communicating with the webview
-  ;; Message
-  {;; This message contains a command
-   :command {;; Command name
-             :name "show-result"
-             ;; Command args
-             :args {:result "Hello world"}}
-   ;; Message id
-   :id "1234"}
-
-  (post-message-to-webview @repl-output-webview-panel {:command-name "show-stdout"
-                                                       :result "send while hidden"})
-
-  (post-message-to-webview @repl-output-webview-panel {:command "clear-output"})
-
-  @repl-output-webview-panel
-
-  ;; TODO: Don't worry about scrolling yet. We know we can do that. Explore other important unknowns first.
-
-  :rcf)

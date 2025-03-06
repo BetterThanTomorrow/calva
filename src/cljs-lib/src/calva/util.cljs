@@ -32,3 +32,17 @@
   [^js vsc ^js ctx]
   (reset! vscode vsc)
   (reset! vscode-context ctx))
+
+(defn log-to-console
+  "Log to the console. This is a simple interface to js/console.* functions.
+   The first argument is the log level. Log levels accepted are :info, :error, and :warn.
+   Arguments after the first are passed to the js/console.* function.
+   This function exists to help with testing, since using with-redefs with a js/console.*
+   function directly doesn't seem to work."
+  [& args]
+  (let [log-level (first args)
+        log-fn (case log-level
+                 :info js/console.info
+                 :error js/console.error
+                 :warn js/console.warn)]
+    (apply log-fn (rest args))))
