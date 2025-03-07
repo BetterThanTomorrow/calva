@@ -2,6 +2,7 @@
   (:require
    [calva.repl.webview.core :as sut]
    [calva.util :as util]
+   [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest testing is run-tests]]
    [spy.core :as spy]))
 
@@ -28,10 +29,10 @@
           message {:hello "world"}]
       (sut/post-message-to-webview webview-panel-mock message)
       (let [calls (spy/calls post-message-spy)
-            ^js message-arg (ffirst calls)]
+            message-arg (reader/read-string (ffirst calls))]
         (is (= 1 (count calls)))
-        (is (= "world" (.-hello message-arg)))
-        (is (string? (.-id message-arg)))))))
+        (is (= "world" (:hello message-arg)))
+        (is (string? (:id message-arg)))))))
 
 (deftest get-webview-html-test
   (testing "Given valid args and that the environment is debug, should return the expected html markup"
@@ -122,28 +123,28 @@
           (with-redefs [sut/post-message-to-webview (wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:Dark color-theme-kind-enum)
                                           :webview-panel webview-panel})
-            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command-name "set-code-theme"
+            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
                                                                                   :content "dark"})))))
       (testing "when the ColorThemeKind is Light, should set the code theme to light"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:Light color-theme-kind-enum)
                                           :webview-panel webview-panel})
-            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command-name "set-code-theme"
+            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
                                                                                   :content "light"})))))
       (testing "when the ColorThemeKind is HighContrast, should set the code theme to high-contrast"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:HighContrast color-theme-kind-enum)
                                           :webview-panel webview-panel})
-            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command-name "set-code-theme"
+            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
                                                                                   :content "high-contrast"})))))
       (testing "when the ColorThemeKind is HighContrastLight, should set the code theme to high-contrast-light"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:HighContrastLight color-theme-kind-enum)
                                           :webview-panel webview-panel})
-            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command-name "set-code-theme"
+            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
                                                                                   :content "high-contrast-light"})))))
       (testing "when there is no configured code theme for the ColorThemeKind, should log the expected error"
         (let [log-to-console-spy (spy/spy)

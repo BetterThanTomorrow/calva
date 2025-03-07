@@ -1,7 +1,8 @@
 (ns calva.repl.webview.ui
   (:require
    [replicant.dom :as replicant]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [cljs.reader :as reader]))
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
@@ -119,10 +120,10 @@
 
 (defn handle-message
   [^js message]
-  (let [_id (.. message -data -id)
-        command (aget message "data" "command-name")
-        content (.. message -data -content)]
-    (case command
+  (let [message-data (reader/read-string (.-data message))
+        command-name (:command/name message-data)
+        content (:content message-data)]
+    (case command-name
       "show-result" (add-eval-result content)
       "show-stdout" (add-stdout content)
       "clear-webview" (clear-webview)

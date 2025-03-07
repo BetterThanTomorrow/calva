@@ -13,9 +13,9 @@
   (when webview-panel
     (.. webview-panel
         -webview
-        (postMessage (clj->js (merge
-                               {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
-                               message))))))
+        (postMessage (pr-str (merge
+                              {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
+                              message))))))
 
 ;; The connect-src and unsafe-eval are only needed in development mode for the shadow-cljs
 ;; dev workflow to function properly
@@ -120,7 +120,7 @@
                      (.. color-theme-kind-enum -HighContrastLight) "high-contrast-light"
                      nil)]
     (if code-theme
-      (post-message-to-webview webview-panel {:command-name "set-code-theme"
+      (post-message-to-webview webview-panel {:command/name "set-code-theme"
                                               :content code-theme})
       (util/log-to-console
        :error
@@ -179,18 +179,18 @@
   [^js options message]
   (let [output-category (.-outputCategory options)]
     (case output-category
-      "otherOut" (post-message-to-webview @repl-output-webview-panel {:command-name "show-stdout"
+      "otherOut" (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
                                                                       :content message})
-      "evalOut" (post-message-to-webview @repl-output-webview-panel {:command-name "show-stdout"
+      "evalOut" (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
                                                                      :content message})
-      "evalResults" (post-message-to-webview @repl-output-webview-panel {:command-name "show-result"
+      "evalResults" (post-message-to-webview @repl-output-webview-panel {:command/name "show-result"
                                                                          :content message})
       ;; TODO: Make this show differently?
-      "evalErr" (post-message-to-webview @repl-output-webview-panel {:command-name "show-stdout"
+      "evalErr" (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
                                                                      :content message})
-      "otherErr" (post-message-to-webview @repl-output-webview-panel {:command-name "show-stdout"
+      "otherErr" (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
                                                                       :content message})
-      "clojure" (post-message-to-webview @repl-output-webview-panel {:command-name "show-result"
+      "clojure" (post-message-to-webview @repl-output-webview-panel {:command/name "show-result"
                                                                      :content message})
       (util/log-to-console
        :error
@@ -214,11 +214,11 @@
                                                (not (contains? stacktrace-classes-to-ignore class)))))
                                 (map stacktrace-entry->string)
                                 (str/join "\n"))]
-    (post-message-to-webview @repl-output-webview-panel {:command-name "show-stdout"
+    (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
                                                          :content stacktrace-message})))
 
 (defn ^:export clear-webview []
-  (post-message-to-webview @repl-output-webview-panel {:command-name "clear-webview"}))
+  (post-message-to-webview @repl-output-webview-panel {:command/name "clear-webview"}))
 
 ;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
 ;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
