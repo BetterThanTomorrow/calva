@@ -145,7 +145,6 @@
 
 (defn create-repl-output-webview-panel
   [context]
-  (add-subscriptions)
   (let [webview-panel (.. ^js @util/vscode -window
                           (createWebviewPanel
                            "calva:repl-output"
@@ -160,7 +159,9 @@
                                 :enableFindWidget true}))]
     (.. ^js webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel))))
     (set-webview-html! context {:webview-panel webview-panel})
-    (reset! repl-output-webview-panel webview-panel)))
+    (reset! repl-output-webview-panel webview-panel)
+    (add-subscriptions)
+    webview-panel))
 
 ;; TODO: Write spec/schema for context
 (defn ^:export show-repl-output-webview-panel []
