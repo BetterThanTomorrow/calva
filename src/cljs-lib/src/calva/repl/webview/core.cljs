@@ -127,18 +127,18 @@
        "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
        color-theme-kind))))
 
-;; TODO: Refactor functions like this to take in the required state as parameters?
-;; It would make testing easier.
-(defn color-theme-change-listener []
-  (.. ^js @util/vscode -window
+(defn create-color-theme-change-listener
+  [{:keys [^js vscode/vscode] :as context}
+   {:keys [webview-panel]}]
+  (.. vscode -window
       (onDidChangeActiveColorTheme
        (fn [e]
-         (let [context {:vscode/vscode @util/vscode}]
-           (set-code-theme! context {:color-theme-kind (.. e -kind)
-                                     :webview-panel @repl-output-webview-panel}))))))
+         (set-code-theme! context {:color-theme-kind (.. e -kind)
+                                   :webview-panel webview-panel})))))
 
 (defn add-subscriptions []
-  (let [subscriptions [(color-theme-change-listener)]]
+  (let [context {:vscode/vscode @util/vscode}
+        subscriptions [(create-color-theme-change-listener context {:webview-panel @repl-output-webview-panel})]]
     (run! (fn [subscription]
             (.. ^js @util/vscode-context -subscriptions (push subscription)))
           subscriptions)))

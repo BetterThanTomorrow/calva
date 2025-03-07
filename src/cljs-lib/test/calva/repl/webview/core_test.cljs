@@ -158,4 +158,7 @@
                  "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
                  color-theme-kind))))))))
 
+(deftest create-color-theme-change-listener-test
+  (testing "Given a context and a webview panel, should call onDidChangeActiveColorTheme and pass it a function"))
+
 (run-tests)
