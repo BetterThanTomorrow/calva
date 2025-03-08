@@ -751,7 +751,9 @@ export function rewrapSexpr(
   const editsToApply = _(uniqEdits)
     .sortBy((e) => -e.args[0])
     .value();
-  return doc.model.edit(editsToApply, {});
+  return doc.model.edit(editsToApply, {
+    //skipFormat: selections.length > 1, // reformat-as-you-type works with only 1 selection
+  });
 }
 
 export async function splitSexp(doc: EditableDocument, start: number = doc.selections[0].active) {
@@ -802,7 +804,7 @@ export async function joinSexp(
             [prevEnd, prevEnd],
           ]),
         ],
-        { selections: [new ModelEditSelection(prevEnd)] }
+        { selections: [new ModelEditSelection(prevEnd)], formatDepth: 2 }
       );
     }
   }
@@ -866,7 +868,7 @@ export async function killForwardList(doc: EditableDocument, [start, end]: [numb
 export async function forwardSlurpSexp(
   doc: EditableDocument,
   start: number = doc.selections[0].active,
-  extraOpts = {}
+  extraOpts = { formatDepth: 1 }
 ) {
   const cursor = doc.getTokenCursor(start);
   cursor.forwardList();
@@ -900,7 +902,10 @@ export async function forwardSlurpSexp(
         }
       );
     } else {
-      return forwardSlurpSexp(doc, cursor.offsetStart, {});
+      const formatDepth = extraOpts['formatDepth'] ? extraOpts['formatDepth'] : 1;
+      return forwardSlurpSexp(doc, cursor.offsetStart, {
+        formatDepth: formatDepth + 1,
+      });
     }
   }
 }
@@ -933,7 +938,10 @@ export async function backwardSlurpSexp(
         }
       );
     } else {
-      return backwardSlurpSexp(doc, cursor.offsetStart, {});
+      const formatDepth = extraOpts['formatDepth'] ? extraOpts['formatDepth'] : 1;
+      return backwardSlurpSexp(doc, cursor.offsetStart, {
+        formatDepth: formatDepth + 1,
+      });
     }
   }
 }
@@ -947,23 +955,20 @@ export async function forwardBarfSexp(
   if (cursor.getToken().type == 'close') {
     const offset = cursor.offsetStart,
       close = cursor.getToken().raw;
-    const insideEndOfList = cursor.clone();
     cursor.backwardSexp(true, true);
-    // Avoid overlapping deletion and insertion when the list is already empty:
-    if (cursor.offsetStart != insideEndOfList.offsetStart) {
-      cursor.backwardWhitespace();
-      return doc.model.edit(
-        [
-          new ModelEdit('deleteRange', [offset, close.length]),
-          new ModelEdit('insertString', [cursor.offsetStart, close]),
-        ],
-        start >= cursor.offsetStart
-          ? {
-              selections: [new ModelEditSelection(cursor.offsetStart)],
-            }
-          : {}
-      );
-    }
+    cursor.backwardWhitespace();
+    return doc.model.edit(
+      [
+        new ModelEdit('deleteRange', [offset, close.length]),
+        new ModelEdit('insertString', [cursor.offsetStart, close]),
+      ],
+      start >= cursor.offsetStart
+        ? {
+            selections: [new ModelEditSelection(cursor.offsetStart)],
+            formatDepth: 2,
+          }
+        : { formatDepth: 2 }
+    );
   }
 }
 
@@ -979,23 +984,20 @@ export async function backwardBarfSexp(
     const offset = cursor.offsetStart;
     const close = cursor.getToken().raw;
     cursor.next();
-    const insideStartOfList = cursor.clone();
     cursor.forwardSexp(true, true);
-    // Avoid overlapping edits when the list is already empty
-    if (insideStartOfList.offsetStart != cursor.offsetStart) {
-      cursor.forwardWhitespace(false);
-      return doc.model.edit(
-        [
-          new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
-          new ModelEdit('deleteRange', [offset, tk.raw.length]),
-        ],
-        start <= cursor.offsetStart
-          ? {
-              selections: [new ModelEditSelection(cursor.offsetStart)],
-            }
-          : {}
-      );
-    }
+    cursor.forwardWhitespace(false);
+    return doc.model.edit(
+      [
+        new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
+        new ModelEdit('deleteRange', [offset, tk.raw.length]),
+      ],
+      start <= cursor.offsetStart
+        ? {
+            selections: [new ModelEditSelection(cursor.offsetStart)],
+            formatDepth: 2,
+          }
+        : { formatDepth: 2 }
+    );
   }
 }
 
