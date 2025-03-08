@@ -19,14 +19,16 @@ import { isUndefined, sortedUniq } from 'lodash';
 
 const documents = new Map<vscode.TextDocument, MirroredDocument>();
 
-/** Disjoint ranges */
+/** Non-nested ranges (favoring long ranges).
+ * The input ranges reflect forms, so they might overlap but only by nesting.
+ */
 export function nonOverlappingRanges(ranges: ModelEditRange[]): ModelEditRange[] {
   const listRanges: ModelEditRange[] = ranges.sort(
     (a: ModelEditRange, b: ModelEditRange) => b[1] - b[0] - (a[1] - a[0])
   );
   // Discard ranges embedded in other ranges. O(n^2)
-  // -Sort by length. Then traverse the list once for 'outer ranges'. At each step,
-  // -traverse the remainder of the list once for 'inner ranges',
+  // -Traverse the list once, for 'outer ranges', in order longest range to shortest.
+  // -At each step, traverse the remainder of the list once for 'inner ranges',
   //   discarding inner ranges included in the outer range.
   // -Instead of moving array elements, just mark the bad ones using start=-1.
   for (let i = 0; i < listRanges.length; i++) {
@@ -47,7 +49,8 @@ export function nonOverlappingRanges(ranges: ModelEditRange[]): ModelEditRange[]
 }
 
 /**
- * Ranges-to-reformat, capturing distinct, disjoint lists surrounding the given edits.
+ * Ranges-to-reformat in a post-edit document, capturing disjoint lists surrounding the given edits,
+ * undefined if the top-level needs reformatting.
  * Positions in edits are relative to the document *before* any of the edits are applied.
  */
 const reformatListRangesForEdits = (function () {
@@ -211,9 +214,9 @@ export class DocumentModel implements EditableModel {
     // The edits are stated in terms of the document-as-it-is, before any of the edits.
     // Reformat's offsets must be in post-edit terms (i.e., "a later as-is", before reformatting).
     // Translate pre-edit to post-edit offsets:
-    const ranges: ModelEditRange[] = reformatListRangesForEdits(this, modelEdits);
-    const ranges2: ModelEditRange[] = ranges
-      ? ranges
+    const surgicalRanges: ModelEditRange[] = reformatListRangesForEdits(this, modelEdits);
+    const rangesOrWhole: ModelEditRange[] = surgicalRanges
+      ? surgicalRanges
       : [[0, this.document.document.getText().length]];
     const postEditPlanDraft = {
       forDocumentVersion: this.document.document.version + 1, // none of this matters if another edit intervenes
@@ -221,7 +224,7 @@ export class DocumentModel implements EditableModel {
         ? undefined
         : selectionsAfterEdits(
             modelEdits,
-            ranges2.flatMap((r: ModelEditRange): ModelEditSelection[] => {
+            rangesOrWhole.flatMap((r: ModelEditRange): ModelEditSelection[] => {
               return [
                 new ModelEditSelection(r[0], r[0], r[0], r[0]),
                 new ModelEditSelection(r[1], r[1], r[1], r[1]),

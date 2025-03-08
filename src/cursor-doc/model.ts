@@ -310,8 +310,7 @@ export const selectionsAfterEdits = (function () {
     if (n == undefined) {
       return undefined;
     } else {
-      const p = n > threshold ? Math.max(n + delta, point) : n;
-      return p;
+      return n > threshold ? Math.max(n + delta, point) : n;
     }
   };
   return function (edits: ModelEdit<ModelEditFunction>[], selections: ModelEditSelection[]) {
@@ -336,13 +335,12 @@ export const selectionsAfterEdits = (function () {
       monotonicallyDecreasing = point;
       if (delta != 0) {
         retSelections = retSelections.map(function (s: ModelEditSelection) {
-          const r = new ModelEditSelection(
+          return new ModelEditSelection(
             bump(s.end, affected),
             bump(s.active, affected),
             bump(s.start, affected),
             bump(s.end, affected)
           );
-          return r;
         });
       }
     }
@@ -621,7 +619,6 @@ export class LineInputModel implements EditableModel {
     }
   }
 
-  // Returns the selection that would mimic TextEditorEdit
   editTextNow(edits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): void {
     for (const edit of edits) {
       switch (edit.editFn) {

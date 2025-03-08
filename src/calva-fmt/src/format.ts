@@ -64,9 +64,9 @@ function rangeReformatChanges(
     const healing = healer.bandage(originalText, originalRange.start.character, eol);
     const formattedHealedText = formatCode(healing.healedText, document.eol);
     const newText = healer.unbandage(healing, formattedHealedText);
-    const whitespaceEdits =
-      originalText == newText ? [] : respacer.whitespaceEdits(startIndex, originalText, newText);
-    return whitespaceEdits;
+    return originalText == newText
+      ? []
+      : respacer.whitespaceEdits(startIndex, originalText, newText);
   }
 }
 
@@ -74,7 +74,6 @@ export function formatRangeEdits(
   document: vscode.TextDocument,
   originalRange: vscode.Range
 ): vscode.TextEdit[] | undefined {
-  const startIndex = document.offsetAt(originalRange.start);
   return rangeReformatChanges(document, originalRange).map((chg) =>
     vscode.TextEdit.replace(
       new vscode.Range(document.positionAt(chg.start), document.positionAt(chg.end)),
@@ -111,11 +110,7 @@ export function formatDocIndexRange(
 
   // If a top-level form "needs" formatting and is indented, reformat the whole document:
   const formatRangeSmall = _calculateFormatRange(extraConfig, cursor, index);
-  const formatRange: [number, number] = formatRangeSmall
-    ? formatRangeSmall
-    : [0, doc.getText().length];
-
-  return formatRange;
+  return formatRangeSmall ? formatRangeSmall : [0, doc.getText().length];
 }
 
 export function formatDocIndexInfo(
@@ -130,6 +125,7 @@ export function formatDocIndexInfo(
   if (!formatRange) {
     return;
   }
+
   const formatted: {
     'range-text': string;
     range: number[];
