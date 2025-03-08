@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.488] - 2025-03-08
+
 - [Use latest nrepl and cider-nrepl default jack-in dependencies](https://github.com/BetterThanTomorrow/calva/issues/2745)
 
 ## [2.0.487] - 2025-03-08
