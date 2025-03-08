@@ -66,7 +66,7 @@ function rangeReformatChanges(
     const newText = healer.unbandage(healing, formattedHealedText);
     return originalText == newText
       ? []
-      : respacer.whitespaceEdits(startIndex, originalText, newText);
+      : respacer.whitespaceEdits(eol, startIndex, originalText, newText);
   }
 }
 
@@ -125,23 +125,17 @@ export function formatDocIndexInfo(
   if (!formatRange) {
     return;
   }
+  const eol = _convertEolNumToStringNotation(doc.eol);
 
   const formatted: {
     'range-text': string;
     range: number[];
     'new-index': number;
-  } = formatIndex(
-    doc.getText(),
-    formatRange,
-    index,
-    _convertEolNumToStringNotation(doc.eol),
-    onType,
-    {
-      ...config.getConfigNow(),
-      ...extraConfig,
-      'comment-form?': cursor.getFunctionName() === 'comment',
-    }
-  );
+  } = formatIndex(doc.getText(), formatRange, index, eol, onType, {
+    ...config.getConfigNow(),
+    ...extraConfig,
+    'comment-form?': cursor.getFunctionName() === 'comment',
+  });
   const range: vscode.Range = new vscode.Range(
     doc.positionAt(formatted.range[0]),
     doc.positionAt(formatted.range[1])
@@ -152,7 +146,7 @@ export function formatDocIndexInfo(
   const changes =
     previousText == formattedText
       ? []
-      : respacer.whitespaceEdits(doc.offsetAt(range.start), previousText, formattedText);
+      : respacer.whitespaceEdits(eol, doc.offsetAt(range.start), previousText, formattedText);
   return {
     formattedText: formattedText,
     range: range,
