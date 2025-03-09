@@ -5,7 +5,7 @@
  :extra-indents  {#re "fooa?$" [[:inner 0]]
                   #re "bar" [[:block 0]]
                   #re "^baz" [[:inner 0]]
-                  'with-special [[:default]]}
+                  with-special [[:default]]}
 
  :test {:fooa (fooa 1
                 2
@@ -23,7 +23,7 @@
         :with (with-something 1
                 :x)
         :with-special (with-special 1
-                        :x)
+                                    :x)
         :let (let []
                hello)
         :-> (-> foo/bar
