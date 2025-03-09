@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Use latest cljfmt (v0.13.0) ](https://github.com/BetterThanTomorrow/calva/issues/2743)
+
 ## [2.0.489] - 2025-03-08
 
 - [Temporarily revert multi-cursor formatting, because regression](https://github.com/BetterThanTomorrow/calva/issues/2748)
