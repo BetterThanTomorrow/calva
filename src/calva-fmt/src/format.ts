@@ -59,8 +59,8 @@ function rangeReformatChanges(
   const mirrorDoc = getDocument(document);
   const startIndex = document.offsetAt(originalRange.start);
   const cursor = mirrorDoc.getTokenCursor(startIndex);
-  // Do not format comments as individual ranges. 
-  // But do not evade formatting the whole doc if it happens to begin with a comment. 
+  // Do not format comments as individual ranges.
+  // But do not evade formatting the whole doc if it happens to begin with a comment.
   if (startIndex == 0 || (!cursor.withinString() && !cursor.withinComment())) {
     const eol = _convertEolNumToStringNotation(document.eol);
     const originalText = document.getText(originalRange);
@@ -73,9 +73,8 @@ function rangeReformatChanges(
     return originalText == newText
       ? []
       : respacer.whitespaceEdits(eol, startIndex, originalText, newText);
-  } else
-  {
-    console.warn("Range starting in comment or string is not being formatted")
+  } else {
+    console.warn('Range starting in comment or string is not being formatted');
     return [];
   }
 }
