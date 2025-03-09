@@ -53,16 +53,40 @@ function spacedUnits(s: string): SpacedUnit[] {
  * Adjust a and b to the finest granularity of words
  * in either of them.
  */
-function alignSpacedUnits(a: SpacedUnit[], b: SpacedUnit[]): [SpacedUnit[], SpacedUnit[]] {
+function alignSpacedUnits(
+  eol: string,
+  a: SpacedUnit[],
+  b: SpacedUnit[]
+): [SpacedUnit[], SpacedUnit[]] {
   const a2 = [],
     b2 = [];
   while (a.length && b.length) {
+    // will consume a and b, eroding them with shift
+    // To the degree the next word in a and b is preceded by multi-line whitespace,
+    // subdivide it into lines, so that reformatting's changes to each
+    // of those lines will be a distinct text edit,
+    // in case cursors were located within the changed whitespace -
+    // we'd like VS Code to shift the cursors minimally.
+    while (true) {
+      const aSpaceFirstLineLength = a[0][0].indexOf(eol);
+      const bSpaceFirstLineLength = b[0][0].indexOf(eol);
+      if (aSpaceFirstLineLength == -1 || bSpaceFirstLineLength == -1) {
+        break;
+      } else {
+        a2.push([a[0][0].substring(0, aSpaceFirstLineLength), eol]);
+        b2.push([b[0][0].substring(0, bSpaceFirstLineLength), eol]);
+        a[0][0] = a[0][0].substring(aSpaceFirstLineLength + eol.length);
+        b[0][0] = b[0][0].substring(bSpaceFirstLineLength + eol.length);
+      }
+    }
     if (a[0][1] == b[0][1]) {
+      // same substance in a and b
       a2.push(a[0]);
       b2.push(b[0]);
       a.shift();
       b.shift();
     } else if (a[0][1].length < b[0][1].length) {
+      // a's substance is a prefix of b's
       const aWhole = a[0][1];
       const bPart = b[0][1].slice(0, a[0][1].length);
       if (aWhole == bPart) {
@@ -75,6 +99,7 @@ function alignSpacedUnits(a: SpacedUnit[], b: SpacedUnit[]): [SpacedUnit[], Spac
         return [undefined, undefined];
       }
     } else {
+      // b's substance is a prefix of a's
       const bWhole = b[0][1];
       const aPart = a[0][1].slice(0, b[0][1].length);
       if (bWhole == aPart) {
@@ -102,6 +127,7 @@ function alignSpacedUnits(a: SpacedUnit[], b: SpacedUnit[]): [SpacedUnit[], Spac
  * @returns Whitespace changes to transform previousText to formattedText
  */
 export function whitespaceEdits(
+  eol: string,
   offset: number,
   previousText: string,
   formattedText: string
@@ -110,7 +136,7 @@ export function whitespaceEdits(
   const b = spacedUnits(formattedText);
   // A single word in a or b may have been split into multiple words in the other (eg at punctuation).
   // Adjust a and b to the finest granularity of words in either of them.
-  const [a2, b2] = alignSpacedUnits(a, b);
+  const [a2, b2] = alignSpacedUnits(eol, a, b);
   // The result should be an equal number of words in a and b:
   if (a2.length != b2.length) {
     console.error('Uneven words in a and b', 'a2', a2, 'b2', b2);
