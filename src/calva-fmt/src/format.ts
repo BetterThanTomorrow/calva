@@ -244,6 +244,8 @@ export async function formatPosition(
     const dedupedRanges = nonOverlappingRanges(ranges);
     orderedChanges = dedupedRanges
       .map((rng) => {
+        // Find a cursor that might be in this block and pass it as the index to the reformatter.
+        // The reformatter may treat it specially, e.g., by not trimming it out of existence.
         const cursorsInRange = editor.selections
           .map((sel) => sel.active)
           .map((point) => doc.offsetAt(point))
@@ -251,8 +253,6 @@ export async function formatPosition(
         return cursorsInRange.length > 0 ? cursorsInRange[0] : rng[0];
       })
       .flatMap((index) => {
-        // Find a cursor that might be in this block and pass it as the index to the reformatter.
-        // The reformatter may treat it specially, e.g., by not trimming it out of existence.
         const formattedInfo = formatDocIndexInfo(doc, onType, index, extraConfig);
         return formattedInfo ? formattedInfo.changes : [];
       })
