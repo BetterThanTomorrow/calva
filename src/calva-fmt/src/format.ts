@@ -234,6 +234,7 @@ export async function formatPosition(
     .filter((rng) => rng != undefined);
   const isWholeDoc = ranges.filter((r) => r[0] == -1 && r[1] == -1).length > 0;
   let orderedChanges = undefined;
+  let aNewIndex = undefined;
   if (isWholeDoc) {
     orderedChanges = rangeReformatChanges(
       doc,
@@ -253,11 +254,13 @@ export async function formatPosition(
       })
       .flatMap((index) => {
         const formattedInfo = formatDocIndexInfo(doc, onType, index, extraConfig);
+        aNewIndex = formattedInfo.newIndex;
         return formattedInfo ? formattedInfo.changes : [];
       })
       .sort((a, b) => b.start - a.start);
   }
-  return editor.edit((textEditorEdit) => {
+  const docVersionBeforeFormatting = doc.version;
+  const formattingEditsPromised = editor.edit((textEditorEdit) => {
     let monotonicallyDecreasing = -1;
     orderedChanges.forEach((change) => {
       const pos1 = doc.positionAt(change.start);
@@ -271,6 +274,27 @@ export async function formatPosition(
       }
     });
   });
+  // Impose the formatter's newIndex cursor position, if there is only one cursor:
+  if (editor.selections.length == 1) {
+    return formattingEditsPromised.then((done) => {
+      // doc.version will be unchanged if there were no edits
+      const expectedDocVersion =
+        orderedChanges.length > 0 ? docVersionBeforeFormatting + 1 : docVersionBeforeFormatting;
+      if (done) {
+        if (doc.version == expectedDocVersion) {
+          if (editor.selections.length == 1) {
+            if (aNewIndex != doc.offsetAt(editor.selections[0].active)) {
+              const p = doc.positionAt(aNewIndex);
+              editor.selections = [new vscode.Selection(p, p)];
+            }
+          }
+        }
+      }
+      return done;
+    });
+  } else {
+    return formattingEditsPromised;
+  }
 }
 
 // Debounce format-as-you-type and toss it aside if User seems still to be working
