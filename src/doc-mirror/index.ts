@@ -80,7 +80,16 @@ const reformatListRangesForEdits = (function () {
     // Compute disjoint ranges.
     const listRanges1: ModelEditRange[] = edits
       .flatMap(pointsModelEdit)
-      .map((n: number) => model.getTokenCursor(n).rangeForList(1));
+      .map((n: number) => {
+        const cursor = model.getTokenCursor(n);
+        let x = cursor.rangeForList(1); 
+        // Fall back to rangeForCurrentForm if no form encloses the offset:
+        if (!x || x[0]==undefined)
+        {
+          x = cursor.rangeForCurrentForm(n);
+        }
+        return x;
+      });
     const wholeDoc = listRanges1.filter((x) => x == undefined).length > 0;
     return wholeDoc ? undefined : nonOverlappingRanges(listRanges1);
   };

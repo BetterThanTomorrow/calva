@@ -51,6 +51,7 @@ export async function indentPosition(position: vscode.Position, document: vscode
   }
 }
 
+/** undefined if range starts in a string or comment */
 function rangeReformatChanges(
   document: vscode.TextDocument,
   originalRange: vscode.Range
