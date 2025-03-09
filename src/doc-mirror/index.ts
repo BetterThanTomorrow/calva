@@ -153,7 +153,7 @@ export class DocumentModel implements EditableModel {
       .flatMap((p) => {
         const doc = this.document.document;
         const formattedInfo = formatter.formatDocIndexInfo(doc, true, p);
-        return formattedInfo.changes;
+        return formattedInfo ? formattedInfo.changes : [];
       })
       .filter(
         (function () {

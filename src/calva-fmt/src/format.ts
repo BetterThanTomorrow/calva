@@ -95,7 +95,7 @@ export async function formatRange(document: vscode.TextDocument, range: vscode.R
   return vscode.workspace.applyEdit(wsEdit);
 }
 
-/** [start,end] of range to reformat with attention to offset 'index' */
+/** [start,end] of range to reformat with attention to offset 'index', or [-1,-1] to reformat the whole document */
 export function formatDocIndexRange(
   doc: vscode.TextDocument,
   index: number,
@@ -110,7 +110,7 @@ export function formatDocIndexRange(
 
   // If a top-level form "needs" formatting and is indented, reformat the whole document:
   const formatRangeSmall = _calculateFormatRange(extraConfig, cursor, index);
-  return formatRangeSmall ? formatRangeSmall : [0, doc.getText().length];
+  return formatRangeSmall ? formatRangeSmall : [-1, -1];
 }
 
 export function formatDocIndexInfo(
@@ -122,7 +122,7 @@ export function formatDocIndexInfo(
   const mDoc = getDocument(doc);
   const cursor = mDoc.getTokenCursor(index);
   const formatRange = formatDocIndexRange(doc, index, extraConfig);
-  if (!formatRange) {
+  if (!formatRange || (formatRange[0] == -1 && formatRange[1] == -1)) {
     return;
   }
   const eol = _convertEolNumToStringNotation(doc.eol);
@@ -223,23 +223,31 @@ export async function formatPosition(
     .map((sel) => doc.offsetAt(sel.active))
     .map((index) => formatDocIndexRange(doc, index, extraConfig))
     .filter((rng) => rng != undefined);
-  const dedupedRanges = nonOverlappingRanges(ranges);
-  const wholeDocRange: [number, number] = [0, doc.getText().length];
-  const wholeDoc =
-    dedupedRanges.filter((r) => r[0] == wholeDocRange[0] && r[1] == wholeDocRange[1]).length > 0;
-  const orderedChanges: respacer.WhitespaceChange[] = wholeDoc
-    ? rangeReformatChanges(
-        doc,
-        new vscode.Range(doc.positionAt(wholeDocRange[0]), doc.positionAt(wholeDocRange[1]))
-      )
-    : dedupedRanges
-        .map((rng) => rng[0])
-        .flatMap((index) => {
-          const formattedInfo = formatDocIndexInfo(doc, onType, index, extraConfig);
-          return formattedInfo ? formattedInfo.changes : [];
-        })
-        .sort((a, b) => b.start - a.start);
-
+  const isWholeDoc = ranges.filter((r) => r[0] == -1 && r[1] == -1).length > 0;
+  let orderedChanges = undefined;
+  if (isWholeDoc) {
+    orderedChanges = rangeReformatChanges(
+      doc,
+      new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length))
+    );
+  } else {
+    const dedupedRanges = nonOverlappingRanges(ranges);
+    orderedChanges = dedupedRanges
+      .map((rng) => {
+        const cursorsInRange = editor.selections
+          .map((sel) => sel.active)
+          .map((point) => doc.offsetAt(point))
+          .filter((offset) => offset >= rng[0] && offset < rng[1]);
+        return cursorsInRange.length > 0 ? cursorsInRange[0] : rng[0];
+      })
+      .flatMap((index) => {
+        // Find a cursor that might be in this block and pass it as the index to the reformatter.
+        // The reformatter may treat it specially, e.g., by not trimming it out of existence.
+        const formattedInfo = formatDocIndexInfo(doc, onType, index, extraConfig);
+        return formattedInfo ? formattedInfo.changes : [];
+      })
+      .sort((a, b) => b.start - a.start);
+  }
   return editor.edit((textEditorEdit) => {
     let monotonicallyDecreasing = -1;
     orderedChanges.forEach((change) => {
