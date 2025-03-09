@@ -241,7 +241,6 @@ export class ModelEditSelection {
 
 export type ModelEditOptions = {
   undoStopBefore?: boolean;
-  formatDepth?: number;
   skipFormat?: boolean;
   selections?: ModelEditSelection[];
   builder?: TextEditorEdit;
@@ -290,37 +289,48 @@ export interface EditableDocument {
 // An editing transaction - array of ModelEdit - shifts the selection(s)
 // to compensate for insertions or deletions to their left.
 // Here we predict how edits will affect selections.
-const selectionsAfterEdits = (function () {
-  const decodeChangeRange = function (edit): [any, any] {
-    return [edit.args[0], edit.args[2].length - (edit.args[1] - edit.args[0])];
+export const selectionsAfterEdits = (function () {
+  // 'Decoders' of ModelEdit:
+  //  [threshold, point, change-in-size]
+  const decodeChangeRange = function (edit): [number, number, number] {
+    const delta = edit.args[2].length - (edit.args[1] - edit.args[0]);
+    const inserted = delta > 0 ? edit.args[2] : undefined;
+    const lastInsertedChar = !inserted || inserted == '' ? '' : inserted[inserted.length - 1];
+    const point = edit.args[0];
+    const threshold = ['(', '[', '{', '#{'].includes(lastInsertedChar) ? point - 1 : point;
+    return [threshold, point, delta];
   };
-  const decodeDeleteRange = function (edit): [any, any] {
-    return [edit.args[0], 0 - edit.args[1]];
+  const decodeDeleteRange = function (edit): [number, number, number] {
+    return [edit.args[0], edit.args[0], 0 - edit.args[1]];
   };
-  const decodeInsertString = function (edit): [any, any] {
-    return [edit.args[0] + edit.args[1].length, edit.args[1].length];
+  const decodeInsertString = function (edit): [number, number, number] {
+    return [edit.args[0] - 1, edit.args[0] + edit.args[1].length, edit.args[1].length];
   };
-  const bump = function (n, [point, delta]) {
-    return n != undefined ? (n > point ? n + delta : n) : undefined;
+  const bump = function (n: number, [threshold, point, delta]) {
+    if (n == undefined) {
+      return undefined;
+    } else {
+      return n > threshold ? Math.max(n + delta, point) : n;
+    }
   };
-  return function (edits, selections: ModelEditSelection[]) {
+  return function (edits: ModelEdit<ModelEditFunction>[], selections: ModelEditSelection[]) {
     // The ModelEdit array is in order by end-of-doc to start.
     // Traverse it, bumping selections
     // according to the growth or shrinkage of each edit.
     let monotonicallyDecreasing = -1; // check edit order
     let retSelections: ModelEditSelection[] = [...selections];
     for (let ic = 0; ic < edits.length; ic++) {
-      const affected: [any, any] =
+      const affected: [number, number, number] =
         edits[ic].editFn == 'deleteRange'
           ? decodeDeleteRange(edits[ic])
           : edits[ic].editFn == 'changeRange'
           ? decodeChangeRange(edits[ic])
           : decodeInsertString(edits[ic]);
-      const [point, delta] = affected;
-      if (monotonicallyDecreasing != -1 && point >= monotonicallyDecreasing) {
+      const [threshold, point, delta] = affected;
+      if (monotonicallyDecreasing != -1 && point > monotonicallyDecreasing) {
         console.error(
           'Edits not back-to-front. Inference of resulting selection might be inaccurate'
-        ); // TBD take the time to sort? or should commands emit edits in back-to-front order?
+        );
       }
       monotonicallyDecreasing = point;
       if (delta != 0) {
@@ -599,51 +609,38 @@ export class LineInputModel implements EditableModel {
   }
 
   editNow(edits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): void {
-    const ultimateSelections = this.editTextNow(edits, options);
+    this.editTextNow(edits, options);
     if (this.document && options.selections) {
       this.document.selections = options.selections;
     } else {
-      // Mimic TextEditorEdit, which leaves the selection at the end of the insertion or start of deletion:
-      if (this.document && ultimateSelections) {
-        this.document.selections = ultimateSelections;
+      if (this.document) {
+        this.document.selections = selectionsAfterEdits(edits, this.document.selections);
       }
     }
   }
 
-  // Returns the selection that would mimic TextEditorEdit
-  editTextNow(
-    edits: ModelEdit<ModelEditFunction>[],
-    options: ModelEditOptions
-  ): ModelEditSelection[] {
-    let ultimateSelections = undefined;
+  editTextNow(edits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): void {
     for (const edit of edits) {
       switch (edit.editFn) {
         case 'insertString': {
           const fn = this.insertString;
-          ultimateSelections = this.insertString(
-            ...(edit.args.slice(0, 4) as Parameters<typeof fn>)
-          );
+          this.insertString(...(edit.args.slice(0, 4) as Parameters<typeof fn>));
           break;
         }
         case 'changeRange': {
           const fn = this.changeRange;
-          ultimateSelections = this.changeRange(
-            ...(edit.args.slice(0, 5) as Parameters<typeof fn>)
-          );
+          this.changeRange(...(edit.args.slice(0, 5) as Parameters<typeof fn>));
           break;
         }
         case 'deleteRange': {
           const fn = this.deleteRange;
-          ultimateSelections = this.deleteRange(
-            ...(edit.args.slice(0, 5) as Parameters<typeof fn>)
-          );
+          this.deleteRange(...(edit.args.slice(0, 5) as Parameters<typeof fn>));
           break;
         }
         default:
           break;
       }
     }
-    return ultimateSelections;
   }
 
   /**
@@ -663,12 +660,9 @@ export class LineInputModel implements EditableModel {
     text: string,
     oldSelection?: ModelEditRange,
     newSelection?: ModelEditRange
-  ): ModelEditSelection[] {
-    const t1 = new Date();
-
+  ): void {
     const startPos = Math.min(start, end);
     const endPos = Math.max(start, end);
-    const deletedText = this.recordingUndo ? this.getText(startPos, endPos) : '';
     const [startLine, startCol] = this.getRowCol(startPos);
     const [endLine, endCol] = this.getRowCol(endPos);
     // extract the lines we will replace
@@ -715,11 +709,6 @@ export class LineInputModel implements EditableModel {
       this.changedLines.add(startLine + i);
       this.markDirty(startLine + i);
     }
-
-    // console.log("Parsing took: ", new Date().valueOf() - t1.valueOf());
-
-    // To mimic TextEditorEdit: No change to selection by default:
-    return undefined;
   }
 
   /**
@@ -737,10 +726,8 @@ export class LineInputModel implements EditableModel {
     text: string,
     oldSelection?: ModelEditRange,
     newSelection?: ModelEditRange
-  ): ModelEditSelection[] {
+  ): void {
     this.changeRange(offset, offset, text);
-    // To mimic TextEditorEdit: selection moves to end of insertion, by default
-    return [new ModelEditSelection(offset + text.length)];
   }
 
   /**
@@ -757,10 +744,8 @@ export class LineInputModel implements EditableModel {
     count: number,
     oldSelection?: ModelEditRange,
     newSelection?: ModelEditRange
-  ): ModelEditSelection[] {
+  ): void {
     this.changeRange(offset, offset + count, '');
-    // To mimic TextEditorEdit: selection moves to start of deletion, by default
-    return [new ModelEditSelection(offset)];
   }
 
   /** Return the offset of the last character in this model. */
