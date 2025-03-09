@@ -297,7 +297,7 @@ export const selectionsAfterEdits = (function () {
     const inserted = delta > 0 ? edit.args[2] : undefined;
     const lastInsertedChar = !inserted || inserted == '' ? '' : inserted[inserted.length - 1];
     const point = edit.args[0];
-    const threshold = ['(', '[', '{', '#{'].includes(lastInsertedChar) ? point - 1 : point;
+    const threshold = ['(', '[', '{', '#{', ' '].includes(lastInsertedChar) ? point - 1 : point;
     return [threshold, point, delta];
   };
   const decodeDeleteRange = function (edit): [number, number, number] {
