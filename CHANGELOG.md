@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Try again with multi-cursor formatting, fixing [Wrong cursor position when using **Calva Format: Format Current Form**](https://github.com/BetterThanTomorrow/calva/issues/2748)
+
 ## [2.0.490] - 2025-03-09
 
 - [Use latest cljfmt (v0.13.0) ](https://github.com/BetterThanTomorrow/calva/issues/2743)
