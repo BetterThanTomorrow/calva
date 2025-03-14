@@ -159,6 +159,13 @@
                  color-theme-kind))))))))
 
 (deftest create-color-theme-change-listener-test
-  (testing "Given a context and a webview panel, should call onDidChangeActiveColorTheme and pass it a function"))
+  (testing "Given a context and a webview panel, should call onDidChangeActiveColorTheme and pass it a function"
+    (let [on-did-change-active-color-theme-spy (spy/spy)
+          context {:vscode/vscode (clj->js {:window {:onDidChangeActiveColorTheme
+                                                     (wrap-spy on-did-change-active-color-theme-spy)}})}]
+      (sut/create-color-theme-change-listener context {:webview-panel {:some "webview-panel"}})
+      (let [calls (spy/calls on-did-change-active-color-theme-spy)]
+        (is (= 1 (count calls)))
+        (is (fn? (type (ffirst calls))))))))
 
 (run-tests)
