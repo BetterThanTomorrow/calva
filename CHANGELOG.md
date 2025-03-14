@@ -4,7 +4,23 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Bump deps.clj.jar to v1.12.0.1517
+## [2.0.490] - 2025-03-09
+
+- [Use latest cljfmt (v0.13.0) ](https://github.com/BetterThanTomorrow/calva/issues/2743)
+
+## [2.0.489] - 2025-03-08
+
+- [Temporarily revert multi-cursor formatting, because regression](https://github.com/BetterThanTomorrow/calva/issues/2748)
+
+## [2.0.488] - 2025-03-08
+
+- [Use latest nrepl and cider-nrepl default jack-in dependencies](https://github.com/BetterThanTomorrow/calva/issues/2745)
+
+## [2.0.487] - 2025-03-08
+
+- Fix: [Reformat all edited locations after multicursor structural edit](https://github.com/BetterThanTomorrow/calva/issues/2738)
+- Fix: [splice-kill-forward or splice-kill-backward, then undo, undoes too much](https://github.com/BetterThanTomorrow/calva/issues/2737)
+- Bump deps.clj.jar to v1.12.0.1530
 - [Add unit tests for the reformatter's "healer" of incomplete forms](https://github.com/BetterThanTomorrow/calva/issues/2742)
 
 ## [2.0.486] - 2025-02-16

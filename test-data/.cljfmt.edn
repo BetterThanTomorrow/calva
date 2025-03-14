@@ -1,0 +1,33 @@
+{:remove-surrounding-whitespace? true
+ :remove-trailing-whitespace? true
+ :remove-consecutive-blank-lines? true
+ :insert-missing-whitespace? true
+ :extra-indents  {#re "fooa?$" [[:inner 0]]
+                  #re "bar" [[:block 0]]
+                  #re "^baz" [[:inner 0]]
+                  with-special [[:default]]}
+
+ :test {:fooa (fooa 1
+                2
+                {:a    a
+                 :aa a
+                 :bbb bbb})
+        :foo (foo 1
+               2
+               3)
+        :foob (foob 1
+                    2
+                    3)
+        :baz (bazzo 1
+               :x)
+        :with (with-something 1
+                :x)
+        :with-special (with-special 1
+                                    :x)
+        :let (let []
+               hello)
+        :-> (-> foo/bar
+                1
+                2)}
+ :test-2 (defn f [x]
+           x)}
