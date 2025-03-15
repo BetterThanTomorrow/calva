@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.490",
+  "version": "2.0.491",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -642,11 +642,11 @@
                 },
                 "autoSelectForJackIn": {
                   "type": "boolean",
-                  "markdownDescription": "If true, this sequence will be automatically selected at **Jack-in**, suppressing the Project Type. Use together with `projectRootPath` to also suppress the Project Root menu. Add usage of `menuSelections` to go for a prompt-less REPL Jack-in. If you have more than one sequence with `autoSelectForJackIn` set to true, the first one will be used."
+                  "markdownDescription": "If true, this sequence will be automatically selected at **Jack-in**, suppressing the Project Type. Use together with `projectRootPath` to also suppress the Project Root menu. Add usage of `menuSelections` to go for a prompt-less REPL Jack-in. If you have more than one sequence with `autoSelectForJackIn` set to true, Calva will use the sequence with its `projectRootPath` closest to the currently active editor file. And if there is no such closest file, the first sequence will be used."
                 },
                 "autoSelectForConnect": {
                   "type": "boolean",
-                  "markdownDescription": "If true, this sequence will be automatically selected at **Connect**, suppressing the Project Type menu. Use together with `projectRootPath` to also suppress the Project Root menu. If you have more than one sequence with `autoSelectForConnect` set to true, the first one will be used."
+                  "markdownDescription": "If true, this sequence will be automatically selected at **Connect**, suppressing the Project Type menu. Use together with `projectRootPath` to also suppress the Project Root menu. If you have more than one sequence with `autoSelectForConnect` set to true, Calva will use the sequence with its `projectRootPath` closest to the currently active editor file. And if there is no such closest file, the first sequence will be used."
                 },
                 "projectRootPath": {
                   "type": "array",

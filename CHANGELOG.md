@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.491] - 2025-03-15
+
+- [Add support for multiple default connect sequences based on different project roots](https://github.com/BetterThanTomorrow/calva/issues/2753)
+
 ## [2.0.490] - 2025-03-09
 
 - [Use latest cljfmt (v0.13.0) ](https://github.com/BetterThanTomorrow/calva/issues/2743)
