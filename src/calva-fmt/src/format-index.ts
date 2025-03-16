@@ -1,16 +1,26 @@
 import { formatTextAtIdx, formatTextAtIdxOnType, jsify } from '../../../out/cljs-lib/cljs-lib';
 
-export function formatIndex(
+/**
+ *
+ * @param allText Document text
+ * @param range Range of document to format
+ * @param indexes Offsets into allText where blank-line indentation should be respected or corrected
+ * @param eol End-of-line marker or the document
+ * @param onType
+ * @param config
+ * @returns
+ */
+export function formatIndexes(
   allText: string,
   range: [number, number],
-  index: number,
+  indexes: number[],
   eol: string,
   onType: boolean = false,
   config = {}
-): { 'range-text': string; range: number[]; 'new-index': number; idx: number } {
+): { 'range-text': string; range: number[] } {
   const d = {
     'all-text': allText,
-    idx: index,
+    idxs: indexes,
     eol,
     range,
     config,
@@ -19,7 +29,7 @@ export function formatIndex(
   if (!result['error']) {
     return result;
   } else {
-    console.error('Error in `formatIndex`:', result['error']);
+    console.error('Error in `formatIndexes`:', result['error']);
     throw result['error'];
   }
 }

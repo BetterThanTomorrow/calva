@@ -13,7 +13,7 @@ import * as respacer from './respacer';
 import * as cursorDocUtils from '../../cursor-doc/utilities';
 import { isUndefined, cloneDeep } from 'lodash';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
-import { formatIndex } from './format-index';
+import { formatIndexes } from './format-index';
 import * as state from '../../state';
 import * as healer from './healer';
 
@@ -122,15 +122,16 @@ export function formatDocIndexRange(
   return formatRangeSmall ? formatRangeSmall : [-1, -1];
 }
 
-export function formatDocIndexInfo(
+export function formatDocIndexesInfo(
   doc: vscode.TextDocument,
   onType: boolean,
-  index: number,
+  indexOfRange: number,
+  cursorIndexes: number[],
   extraConfig: CljFmtConfig = {}
 ) {
   const mDoc = getDocument(doc);
-  const cursor = mDoc.getTokenCursor(index);
-  const formatRange = formatDocIndexRange(doc, index, extraConfig);
+  const cursor = mDoc.getTokenCursor(indexOfRange);
+  const formatRange = formatDocIndexRange(doc, indexOfRange, extraConfig);
   if (!formatRange || (formatRange[0] == -1 && formatRange[1] == -1)) {
     return;
   }
@@ -139,8 +140,7 @@ export function formatDocIndexInfo(
   const formatted: {
     'range-text': string;
     range: number[];
-    'new-index': number;
-  } = formatIndex(doc.getText(), formatRange, index, eol, onType, {
+  } = formatIndexes(doc.getText(), formatRange, cursorIndexes, eol, onType, {
     ...config.getConfigNow(),
     ...extraConfig,
     'comment-form?': cursor.getFunctionName() === 'comment',
@@ -149,19 +149,20 @@ export function formatDocIndexInfo(
     doc.positionAt(formatted.range[0]),
     doc.positionAt(formatted.range[1])
   );
-  const newIndex: number = doc.offsetAt(range.start) + formatted['new-index'];
-  const previousText: string = doc.getText(range);
+  const previousText: string = doc.getText(
+    new vscode.Range(doc.positionAt(formatRange[0]), doc.positionAt(formatRange[1]))
+  );
   const formattedText = formatted['range-text'];
-  const changes =
-    previousText == formattedText
-      ? []
-      : respacer.whitespaceEdits(eol, doc.offsetAt(range.start), previousText, formattedText);
+  const changes = respacer.whitespaceEdits(
+    eol,
+    doc.offsetAt(range.start),
+    previousText,
+    formattedText
+  );
   return {
     formattedText: formattedText,
     range: range,
     previousText: previousText,
-    previousIndex: index,
-    newIndex: newIndex,
     changes: changes,
   };
 }
@@ -234,7 +235,6 @@ export async function formatPosition(
     .filter((rng) => rng != undefined);
   const isWholeDoc = ranges.filter((r) => r[0] == -1 && r[1] == -1).length > 0;
   let orderedChanges = undefined;
-  let aNewIndex = undefined;
   if (isWholeDoc) {
     orderedChanges = rangeReformatChanges(
       doc,
@@ -242,6 +242,7 @@ export async function formatPosition(
     );
   } else {
     const dedupedRanges = nonOverlappingRanges(ranges);
+    const cursorOffsets = editor.selections.map((sel) => doc.offsetAt(sel.active));
     orderedChanges = dedupedRanges
       .map((rng) => {
         // Find a cursor that might be in this block and pass it as the index to the reformatter.
@@ -253,14 +254,12 @@ export async function formatPosition(
         return cursorsInRange.length > 0 ? cursorsInRange[0] : rng[0];
       })
       .flatMap((index) => {
-        const formattedInfo = formatDocIndexInfo(doc, onType, index, extraConfig);
-        aNewIndex = formattedInfo.newIndex;
+        const formattedInfo = formatDocIndexesInfo(doc, onType, index, cursorOffsets, extraConfig);
         return formattedInfo ? formattedInfo.changes : [];
       })
       .sort((a, b) => b.start - a.start);
   }
-  const docVersionBeforeFormatting = doc.version;
-  const formattingEditsPromised = editor.edit((textEditorEdit) => {
+  return editor.edit((textEditorEdit) => {
     let monotonicallyDecreasing = -1;
     orderedChanges.forEach((change) => {
       const pos1 = doc.positionAt(change.start);
@@ -274,27 +273,6 @@ export async function formatPosition(
       }
     });
   });
-  // Impose the formatter's newIndex cursor position, if there is only one cursor:
-  if (editor.selections.length == 1) {
-    return formattingEditsPromised.then((done) => {
-      // doc.version will be unchanged if there were no edits
-      const expectedDocVersion =
-        orderedChanges.length > 0 ? docVersionBeforeFormatting + 1 : docVersionBeforeFormatting;
-      if (done) {
-        if (doc.version == expectedDocVersion) {
-          if (editor.selections.length == 1) {
-            if (aNewIndex != doc.offsetAt(editor.selections[0].active)) {
-              const p = doc.positionAt(aNewIndex);
-              editor.selections = [new vscode.Selection(p, p)];
-            }
-          }
-        }
-      }
-      return done;
-    });
-  } else {
-    return formattingEditsPromised;
-  }
 }
 
 // Debounce format-as-you-type and toss it aside if User seems still to be working

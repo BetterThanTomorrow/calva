@@ -158,7 +158,12 @@ export class DocumentModel implements EditableModel {
     const reformatChange: respacer.WhitespaceChange[] = sortedUniq(offsets.sort((a, b) => a - b))
       .flatMap((p) => {
         const doc = this.document.document;
-        const formattedInfo = formatter.formatDocIndexInfo(doc, true, p);
+        const formattedInfo = formatter.formatDocIndexesInfo(
+          doc,
+          true,
+          p,
+          editor.selections.map((s) => s.active).map((p) => doc.offsetAt(p))
+        );
         return formattedInfo ? formattedInfo.changes : [];
       })
       .filter(
