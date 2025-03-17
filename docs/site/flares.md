@@ -17,23 +17,21 @@ Flares are special values that, when encountered by the IDE, prompt it to perfor
 
 ## How to Create Flares
 
-Flares take the form of a map with a single key-value pair.
-The key specifies the flare is for Calva `:calva/flare`, while the value contains the details of the request.
+Flares are tagged literals
 
 ```clojure
-{:calva/flare {:type :info
-               :message "Congratulations, you sent a flare!"}}
+(tagged-literal 'flare/message {:type :info
+                                :message "Congratulations, you sent a flare!"})
 ```
 
-- **Key**: `:calva/flare` – Identifies this as a flare for Calva.
-- **Value**: A map defining the specific request, such as showing a message, rendering HTML, or invoking an IDE command.
+- **Tag**: `:flare/message` – Identifies this as a message flare
+- **Value**: A map defining the request.
 
 Here’s a flare to display a HTML greeting:
 
 ```clojure
-{:calva/flare {:type :webview
-               :html "<h1>Hello, Calva!</h1>",
-               :title "Greeting"}}
+(tagged-literal 'flare/html {:html "<h1>Hello, Calva!</h1>",
+                             :title "Greeting"})
 ```
 
 ## Typical Uses of Flares
@@ -45,14 +43,13 @@ Flares enhance your development experience by enabling IDE features directly fro
 Used with tools like Clay, you can render HTML, SVG, or other visual elements directly in the IDE:
 
 ```clojure
-(calva.clay/webview $current-form $file)
+(snippets/current-form-calva $current-form $file)
 ```
 
 Produces a flare:
 
 ```clojure
-{:calva/flare {:type :webview
-               :url "https://localhost:1971"}}}
+(tagged-literal 'flare/html {:url "https://localhost:1971"})
 ```
 
 Enabling you to create a custom action "Send to Clay" to visualize Kindly annotated visualizations.
@@ -62,68 +59,26 @@ Enabling you to create a custom action "Send to Clay" to visualize Kindly annota
 Test results or task completion:
 
 ```clojure
-{:calva/flare {:type :info
-               :message "Tests Passed 🎉"}}}
+(tagged-literal 'flare/message {:type :info
+                                :message "Tests Passed 🎉"})
 ```
-
-### 3. VSCode Commands
-
-Developers can define custom workflows or integrate with external tools:
-
-```clojure
-{:calva/flare {:type :command
-               :command "workbench.action.toggleLightDarkThemes" }}
-```
-
-### 4. Debugging and Status Updates
-
-Send contextual data back to the IDE for live updates or inline annotations.
-
-## Why Use Flares?
-
-Flares enhance the feedback loop between your code and the IDE, reducing context switching and enabling a more interactive development experience.
-
-### Key Benefits
-
-- **Immediate Feedback**: See results, warnings, or visualizations inline as part of your workflow.
-- **Custom Workflows**: Tailor IDE behavior to suit your needs using tools like Clay or by creating custom flares.
-- **IDE-Specific Features**: Leverage the unique capabilities of Calva while maintaining the flexibility to extend or modify functionality.
-
-## Allowed Commands
-
-Calva supports a predefined set of flare actions and commands that are allowed.
-If you want to access other commands, enable them in settings.
-
-Be mindful that flares are values, and values may originate from sources outside of your code.
-For example if you read a value out of a logfile into a map, it could be a flare!
-
-If you want to experiment with new flare handlers, consider using Joyride to inject them.
 
 ## Flare Reference
 
-All flares may have a `:then` in them which is a fully qualified symbol of a function to invoke with the result of the processed flare.
+### `flare/message`
 
-| type | keys |
-|------|-----|
-| `:info` | `:message`, `items` |
-| `:warn` | `:message`, `items` |
-| `:error` | `:message`, `items` |
-| `:webview` | `:title`, `:html`, `:url`, `:key` |
-| `:command` | `:command`, `:args` |
+`:type` should be one of `:info`, `:warn`, `:error` (defaults to `info`).
 
-VSCode commands aren't comprehensively documented, you'll have to discover their ids and arguments with some guesswork and research.
+`:items` are are responses the user may choose, for example `["yes" "no"]`.
 
-## Recap of how to use Flares
+`:then` is an optional fully qualified symbol that should resolve to a function to invoke with the selected item.
 
-To start using flares in your Calva environment, follow these steps:
+### `flare/html`
 
-1. Ensure you have the latest version of Calva installed.
-2. Open your Clojure project in Calva.
-3. Connect to your REPL.
-4. Use the provided examples to experiment with flares from the REPL.
-5. Create custom user actions that trigger flares.
-6. Request toolmakers provide flare producing actions.
+`:title` will be shown in the panel title.
 
-Flares enhance our development experience in Calva.
-Whether you're visualizing data or creating custom workflows, they open up more possibilities for interactive development.
-Let us know how you’re using flares, and share your feedback to make this feature even better.
+`:html` raw HTML string to show in a WebView.
+
+`:url` show the page hosted at URL in a WebView.
+
+`:key` an identifier for the panel. The request will reuse an open WebView if it exists already.
