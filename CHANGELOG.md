@@ -6,6 +6,50 @@ Changes to Calva.
 
 - [Add flare handler and webview](https://github.com/BetterThanTomorrow/calva/issues/2679)
 
+## [2.0.491] - 2025-03-15
+
+- [Add support for multiple default connect sequences based on different project roots](https://github.com/BetterThanTomorrow/calva/issues/2753)
+
+## [2.0.490] - 2025-03-09
+
+- [Use latest cljfmt (v0.13.0) ](https://github.com/BetterThanTomorrow/calva/issues/2743)
+
+## [2.0.489] - 2025-03-08
+
+- [Temporarily revert multi-cursor formatting, because regression](https://github.com/BetterThanTomorrow/calva/issues/2748)
+
+## [2.0.488] - 2025-03-08
+
+- [Use latest nrepl and cider-nrepl default jack-in dependencies](https://github.com/BetterThanTomorrow/calva/issues/2745)
+
+## [2.0.487] - 2025-03-08
+
+- Fix: [Reformat all edited locations after multicursor structural edit](https://github.com/BetterThanTomorrow/calva/issues/2738)
+- Fix: [splice-kill-forward or splice-kill-backward, then undo, undoes too much](https://github.com/BetterThanTomorrow/calva/issues/2737)
+- Bump deps.clj.jar to v1.12.0.1530
+- [Add unit tests for the reformatter's "healer" of incomplete forms](https://github.com/BetterThanTomorrow/calva/issues/2742)
+
+## [2.0.486] - 2025-02-16
+
+- Fix: [Rewrapping to or from a Set introduces imbalance](https://github.com/BetterThanTomorrow/calva/issues/2726)
+
+## [2.0.485] - 2025-01-27
+
+- Fix: [Stop considering a clj-kondo config as a valid project to start LSP processes](https://github.com/BetterThanTomorrow/calva/issues/2712)
+- Bump deps.clj to v1.12.0.1495-2
+
+## [2.0.484] - 2025-01-26
+
+- [Have test runner show diff between "actual" and "expected"](https://github.com/BetterThanTomorrow/calva/issues/1007)
+- Fix: [cursor-context calva:ns is less accurate than the *ns* used by calva.evaluateSelection](https://github.com/BetterThanTomorrow/calva/issues/2708)
+- Fix: [Computing cursor-context calva:ns slows down editing and moving the cursor](https://github.com/BetterThanTomorrow/calva/issues/2707)
+
+## [2.0.483] - 2025-01-08
+
+- Fix: [Paredit garbles while backspacing rapidly](https://github.com/BetterThanTomorrow/calva/issues/2611)
+- Fix: [Paredit garbles when deleteForward is repeated rapidly](https://github.com/BetterThanTomorrow/calva/issues/2691)
+- Fix: [Del key, after emptying a comment line, then imbalances the next form](https://github.com/BetterThanTomorrow/calva/issues/2686)
+
 ## [2.0.482] - 2024-12-03
 
 - Fix: [Added 'replace-refer-all-with-alias' & 'replace-refer-all-with-refer' actions to calva.](https://github.com/BetterThanTomorrow/calva/issues/2667)

@@ -47,7 +47,7 @@ type FindRootParams = {
  * selection menus to help the user.
  */
 export async function findProjectRootsWithReasons(params?: FindRootParams) {
-  const lspDirectories = ['.lsp/config.edn', '.clj-kondo/config.edn'];
+  const lspDirectories = ['.lsp/config.edn'];
 
   const projectFileNames: string[] = [
     'project.clj',

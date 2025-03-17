@@ -299,7 +299,7 @@ export function setNamespaceFromCurrentFile() {
   output.replWindowAppendPrompt();
 }
 
-async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
+function appendFormGrabbingSessionAndNS(topLevel: boolean): void {
   const session = replSession.getSession();
   const [ns, _] = namespace.getNamespace(
     util.tryToGetDocument({}),
@@ -311,9 +311,9 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
   let code = '';
   if (selection.isEmpty) {
     const formSelection = select.getFormSelection(doc, selection.active, topLevel);
-    code = await formatCode(doc.getText(formSelection), doc.eol);
+    code = formatCode(doc.getText(formSelection), doc.eol);
   } else {
-    code = await formatCode(doc.getText(selection), doc.eol);
+    code = formatCode(doc.getText(selection), doc.eol);
   }
   if (code != '') {
     setSession(session, ns);
@@ -322,11 +322,11 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
 }
 
 export function appendCurrentForm() {
-  void appendFormGrabbingSessionAndNS(false);
+  appendFormGrabbingSessionAndNS(false);
 }
 
 export function appendCurrentTopLevelForm() {
-  void appendFormGrabbingSessionAndNS(true);
+  appendFormGrabbingSessionAndNS(true);
 }
 
 export async function lastLineIsEmpty(): Promise<boolean> {

@@ -19,6 +19,8 @@ const documents = new Map<vscode.TextDocument, MirroredDocument>();
 export class DocumentModel implements EditableModel {
   readonly lineEndingLength: number;
   lineInputModel: LineInputModel;
+  documentVersion: number; // model reflects this version
+  staleDocumentVersion: number; // this version is outdated by queued edits
 
   constructor(private document: MirroredDocument) {
     this.lineEndingLength = document.document.eol == vscode.EndOfLine.CRLF ? 2 : 1;
@@ -29,27 +31,61 @@ export class DocumentModel implements EditableModel {
     return this.lineEndingLength == 2 ? '\r\n' : '\n';
   }
 
+  /** A loggable message if the model is out-of-date with the given document version
+   * or has been edited beyond that document version */
+  stale(editorVersion: number): string {
+    if (this.documentVersion && this.documentVersion != editorVersion) {
+      return 'model=' + this.documentVersion + ' vs document=' + editorVersion;
+    } else if (this.documentVersion && this.documentVersion == this.staleDocumentVersion) {
+      return 'edited since ' + this.documentVersion;
+    } else {
+      return null;
+    }
+  }
+
+  private editNowTextOnly(
+    modelEdits: ModelEdit<ModelEditFunction>[],
+    options: ModelEditOptions
+  ): void {
+    const builder = options.builder;
+    for (const modelEdit of modelEdits) {
+      switch (modelEdit.editFn) {
+        case 'insertString':
+          this.insertEdit.apply(this, [builder, ...modelEdit.args]);
+          break;
+        case 'changeRange':
+          this.replaceEdit.apply(this, [builder, ...modelEdit.args]);
+          break;
+        case 'deleteRange':
+          this.deleteEdit.apply(this, [builder, ...modelEdit.args]);
+          break;
+        default:
+          break;
+      }
+    }
+    this.staleDocumentVersion = this.documentVersion;
+  }
+
+  editNow(modelEdits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): void {
+    this.editNowTextOnly(modelEdits, options);
+    if (options.selections) {
+      this.document.selections = options.selections;
+    }
+    if (!options.skipFormat) {
+      const editor = utilities.getActiveTextEditor();
+      void formatter.scheduleFormatAsType(editor, {
+        'format-depth': options.formatDepth ?? 1,
+      });
+    }
+  }
+
   edit(modelEdits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): Thenable<boolean> {
     const editor = utilities.getActiveTextEditor(),
       undoStopBefore = !!options.undoStopBefore;
     return editor
       .edit(
         (builder) => {
-          for (const modelEdit of modelEdits) {
-            switch (modelEdit.editFn) {
-              case 'insertString':
-                this.insertEdit.apply(this, [builder, ...modelEdit.args]);
-                break;
-              case 'changeRange':
-                this.replaceEdit.apply(this, [builder, ...modelEdit.args]);
-                break;
-              case 'deleteRange':
-                this.deleteEdit.apply(this, [builder, ...modelEdit.args]);
-                break;
-              default:
-                break;
-            }
-          }
+          this.editNowTextOnly(modelEdits, { builder: builder, ...options });
         },
         { undoStopBefore, undoStopAfter: false }
       )
@@ -179,14 +215,6 @@ export class MirroredDocument implements EditableDocument {
       selection = editor.selections[0];
     return this.document.getText(selection);
   }
-
-  public delete(): Thenable<boolean> {
-    return vscode.commands.executeCommand('deleteRight');
-  }
-
-  public backspace(): Thenable<boolean> {
-    return vscode.commands.executeCommand('deleteLeft');
-  }
 }
 
 let registered = false;
@@ -215,6 +243,9 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
   model.lineInputModel.dirtyLines = [];
   model.lineInputModel.insertedLines.clear();
   model.lineInputModel.deletedLines.clear();
+
+  model.documentVersion = event.document.version;
+  model.staleDocumentVersion = undefined;
 }
 
 export function tryToGetDocument(doc: vscode.TextDocument) {

@@ -1,5 +1,5 @@
 ---
-title: Evaluation results and outher output
+title: Evaluation results and other output
 description: Calva displays the first line of the evaluation results inline, and also prints results, other REPL output and more to the configured Output Destination.
 ---
 

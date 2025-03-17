@@ -48,7 +48,6 @@ import * as inspector from './providers/inspector';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
-  whenContexts.setCursorContextIfChanged(editor);
 }
 
 function setKeybindingsEnabledContext() {
@@ -420,6 +419,54 @@ async function activate(context: vscode.ExtensionContext) {
 
   Object.entries(languageProviders).forEach(registerLangProvider);
 
+  // Coordinate event handling that may affect the 'when' cursor contexts.
+  // Update context upon editor change, selection change, or text change
+  // (e.g., upon deleting a comment-defining semicolon without moving the point)
+  // But try not to repeatedly update context in response to the same essential event
+  // (e.g., most text changes, which also move the point)
+  // without depending on the order of TextDocumentChangeEvent or TextEditorSelectionChangeEvent
+  let contextSettingEditor: vscode.TextEditor = undefined;
+  let contextSettingCircumstances = undefined;
+  function contextSettingOnChangeActiveTextEditor(editor: vscode.TextEditor) {
+    whenContexts.setCursorContextIfChanged(editor);
+    const circumstances = {
+      version: editor.document.version,
+      active: editor.selection.active,
+    };
+    contextSettingEditor = editor;
+    contextSettingCircumstances = circumstances;
+  }
+  function contextSettingOnTextDocumentChangeEvent(dce: vscode.TextDocumentChangeEvent) {
+    if (contextSettingEditor) {
+      const circumstances = {
+        version: dce.document.version,
+        active: contextSettingEditor.selection.active,
+      };
+      if (
+        !(
+          (contextSettingEditor && dce.document !== contextSettingEditor.document) ||
+          circumstances == contextSettingCircumstances
+        )
+      ) {
+        whenContexts.setCursorContextIfChanged(contextSettingEditor);
+        contextSettingCircumstances = circumstances;
+      }
+    }
+  }
+  function contextSettingOnChangeTextEditorSelection(tsce: vscode.TextEditorSelectionChangeEvent) {
+    const circumstances = {
+      version: tsce.textEditor.document.version,
+      active: tsce.selections[0].active,
+    };
+    if (
+      !(contextSettingEditor === tsce.textEditor && circumstances == contextSettingCircumstances)
+    ) {
+      whenContexts.setCursorContextIfChanged(tsce.textEditor);
+      contextSettingEditor = tsce.textEditor;
+      contextSettingCircumstances = circumstances;
+    }
+  }
+
   //EVENTS
   const onDidEvents = {
     workspace: {
@@ -441,7 +488,10 @@ async function activate(context: vscode.ExtensionContext) {
           void testRunner.runNamespaceTests(testController, document);
         }
       },
-      changeTextDocument: annotations.onDidChangeTextDocument,
+      changeTextDocument: (e: vscode.TextDocumentChangeEvent) => {
+        annotations.onDidChangeTextDocument(e);
+        contextSettingOnTextDocumentChangeEvent(e);
+      },
       closeTextDocument: (document) => {
         if (outputWindow.isResultsDoc(document)) {
           outputWindow.setContextForReplWindowActive(false);
@@ -458,8 +508,12 @@ async function activate(context: vscode.ExtensionContext) {
       changeActiveTextEditor: (editor) => {
         status.update();
         onDidChangeEditorOrSelection(editor);
+        contextSettingOnChangeActiveTextEditor(editor);
       },
-      changeTextEditorSelection: (event) => onDidChangeEditorOrSelection(event.textEditor),
+      changeTextEditorSelection: (event) => {
+        onDidChangeEditorOrSelection(event.textEditor);
+        contextSettingOnChangeTextEditorSelection(event);
+      },
       changeVisibleTextEditors: (editors) => {
         if (!editors.some((editor) => outputWindow.isResultsDoc(editor.document))) {
           outputWindow.setContextForReplWindowActive(false);

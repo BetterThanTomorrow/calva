@@ -12,6 +12,7 @@ import { LispTokenCursor } from './token-cursor';
 import { backspaceOnWhitespace } from './backspace-on-whitespace';
 import _ = require('lodash');
 import { isEqual, last, property } from 'lodash';
+import { TextEditorEdit } from 'vscode';
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -707,8 +708,7 @@ export async function wrapSexpr(
  * - For each cursor, find the offsets/ranges for its containing list's open/close tokens.
  * - Make 2 ModelEdits for each token's replacement +  1 Selection; record the offset change.
  * - Dedupe each edit (as multi cursors could be in the same list).
- * - Then, reposition the edits and selections by the preceding edits' offset changes.
- * - Finally, apply the edits and update the selections.
+ * - Finally, apply the edits.
  *
  * @param doc
  * @param open
@@ -722,37 +722,23 @@ export function rewrapSexpr(
   close: string,
   selections = [doc.selections[0]]
 ) {
-  const edits: { type: 'open' | 'close'; change: number; edit: ModelEdit<'changeRange'> }[] = [],
-    newSelections = _.clone(selections).map((s) => ({ selection: s, change: 0 }));
+  const edits: ModelEdit<'changeRange'>[] = [];
 
   selections.forEach((sel, index) => {
     const { active } = sel;
     const cursor = doc.getTokenCursor(active);
     if (cursor.backwardList()) {
       cursor.backwardUpList();
-      const oldOpenStart = cursor.offsetStart;
+      const openStart = cursor.offsetStart;
       const oldOpenLength = cursor.getToken().raw.length;
-      const oldOpenEnd = oldOpenStart + oldOpenLength;
+      const oldOpenEnd = openStart + oldOpenLength;
       if (cursor.forwardSexp()) {
-        const oldCloseStart = cursor.offsetStart - close.length;
-        const oldCloseEnd = cursor.offsetStart;
-        const openChange = open.length - oldOpenLength;
+        const closeStart = cursor.offsetStart - close.length;
+        const closeEnd = cursor.offsetStart;
         edits.push(
-          {
-            edit: new ModelEdit('changeRange', [oldCloseStart, oldCloseEnd, close]),
-            change: 0,
-            type: 'close',
-          },
-          {
-            edit: new ModelEdit('changeRange', [oldOpenStart, oldOpenEnd, open]),
-            change: openChange,
-            type: 'open',
-          }
+          new ModelEdit('changeRange', [closeStart, closeEnd, close]),
+          new ModelEdit('changeRange', [openStart, oldOpenEnd, open])
         );
-        newSelections[index] = {
-          selection: new ModelEditSelection(active),
-          change: openChange,
-        };
       }
     }
   });
@@ -761,39 +747,12 @@ export function rewrapSexpr(
   // the same lists, which will result in attempting to delete the same ranges twice. So we dedupe.
   const uniqEdits = _.uniqWith(edits, _.isEqual);
 
-  // for both edits and new selections, get the offset by which to move each based on prior edits
-  function getOffset(cursorOffset: number) {
-    return _(uniqEdits)
-      .filter((x) => {
-        const [xStart] = x.edit.args;
-        return xStart < cursorOffset;
-      })
-      .map(({ change }) => change)
-      .sum();
-  }
-
+  // edit needs the ModelEdit array in order from end-of-doc to start
   const editsToApply = _(uniqEdits)
-    // First, importantly, sort by list open char offset
-    .sortBy((e) => e.edit.args[0])
-    // now, let's iterate thru each cursor and adjust their positions if earlier chars are delete/added
-    .map((e) => {
-      const [oldStart, oldEnd, text] = e.edit.args;
-      const offset = getOffset(oldStart);
-      const newStart = oldStart + offset;
-      const newEnd = oldEnd + offset;
-      return { ...e.edit, args: [newStart, newEnd, text] as const };
-    })
+    .sortBy((e) => -e.args[0])
     .value();
-  const selectionsToApply = newSelections.map(({ selection }) => {
-    const { active } = selection;
-    const newSel = selection.clone();
-    const offset = getOffset(active);
-    newSel.reposition(offset);
-    return newSel;
-  });
-
   return doc.model.edit(editsToApply, {
-    selections: selectionsToApply,
+    //skipFormat: selections.length > 1, // reformat-as-you-type works with only 1 selection
   });
 }
 
@@ -1083,34 +1042,37 @@ function onlyWhitespaceLeftOfCursor(offset, cursor: LispTokenCursor) {
 }
 
 function backspaceOnWhitespaceEdit(
+  builder: TextEditorEdit,
   doc: EditableDocument,
   cursor: LispTokenCursor,
   config?: FormatterConfig
 ) {
   const changeArgs = backspaceOnWhitespace(doc, cursor, config);
-  return doc.model.edit(
+  return doc.model.editNow(
     [
-      new ModelEdit('changeRange', [
-        changeArgs.start,
-        changeArgs.end,
-        ' '.repeat(changeArgs.indent),
-      ]),
+      new ModelEdit('deleteRange', [changeArgs.end, changeArgs.start - changeArgs.end]),
+      new ModelEdit('insertString', [changeArgs.end, ' '.repeat(changeArgs.indent)]),
     ],
     {
-      selections: [new ModelEditSelection(changeArgs.end + changeArgs.indent)],
+      builder: builder,
       skipFormat: true,
     }
   );
 }
 
-export async function backspace(
+export function backspace(
   doc: EditableDocument,
+  builder?: TextEditorEdit,
   config?: FormatterConfig,
   start: number = doc.selections[0].anchor,
   end: number = doc.selections[0].active
-): Promise<boolean> {
+): void {
   if (start != end) {
-    return doc.backspace();
+    const [left, right] = [Math.min(start, end), Math.max(start, end)];
+    return doc.model.editNow([new ModelEdit('deleteRange', [left, right - left])], {
+      builder: builder,
+      skipFormat: true,
+    });
   } else {
     const cursor = doc.getTokenCursor(start);
     const isTopLevel = doc.getTokenCursor(end).atTopLevel();
@@ -1120,20 +1082,21 @@ export async function backspace(
         ? nextToken // we are “in” a token
         : cursor.getPrevToken(); // we are “between” tokens
     if (prevToken.type == 'prompt') {
-      return new Promise<boolean>((resolve) => resolve(true));
+      return;
     } else if (nextToken.type == 'prompt') {
-      return new Promise<boolean>((resolve) => resolve(true));
+      return;
     } else if (doc.model.getText(start - 2, start, true) == '\\"') {
       // delete quoted double quote
-      return doc.model.edit([new ModelEdit('deleteRange', [start - 2, 2])], {
-        selections: [new ModelEditSelection(start - 2)],
+      return doc.model.editNow([new ModelEdit('deleteRange', [start - 2, 2])], {
+        builder: builder,
+        skipFormat: true,
       });
     } else if (prevToken.type === 'open' && nextToken.type === 'close') {
       // delete empty list
-      return doc.model.edit(
+      return doc.model.editNow(
         [new ModelEdit('deleteRange', [start - prevToken.raw.length, prevToken.raw.length + 1])],
         {
-          selections: [new ModelEditSelection(start - prevToken.raw.length)],
+          builder: builder,
         }
       );
     } else if (
@@ -1142,47 +1105,60 @@ export async function backspace(
       onlyWhitespaceLeftOfCursor(doc.selections[0].anchor, cursor)
     ) {
       // we are at the beginning of a line, and not inside a string
-      return backspaceOnWhitespaceEdit(doc, cursor, config);
+      return backspaceOnWhitespaceEdit(builder, doc, cursor, config);
     } else {
       if (['open', 'close'].includes(prevToken.type) && cursor.docIsBalanced()) {
         doc.selections = [new ModelEditSelection(start - prevToken.raw.length)];
-        return new Promise<boolean>((resolve) => resolve(true));
+        return;
       } else {
-        return doc.backspace();
+        const [left, right] = [Math.max(start - 1, 0), start];
+        return doc.model.editNow([new ModelEdit('deleteRange', [left, right - left])], {
+          builder: builder,
+          skipFormat: true,
+        });
       }
     }
   }
 }
 
-export async function deleteForward(
+export function deleteForward(
   doc: EditableDocument,
+  builder?: TextEditorEdit,
   start: number = doc.selections[0].anchor,
   end: number = doc.selections[0].active
 ) {
   if (start != end) {
-    await doc.delete();
+    const [left, right] = [Math.min(start, end), Math.max(start, end)];
+    return doc.model.editNow([new ModelEdit('deleteRange', [start, end - start])], {
+      builder: builder,
+    });
   } else {
+    // Note: skipFormat, lest formatter unexpectedly move the point (eg skipping past commas)
     const cursor = doc.getTokenCursor(start);
     const prevToken = cursor.getPrevToken();
     const nextToken = cursor.getToken();
     const p = start;
     if (doc.model.getText(p, p + 2, true) == '\\"') {
-      return doc.model.edit([new ModelEdit('deleteRange', [p, 2])], {
-        selections: [new ModelEditSelection(p)],
+      return doc.model.editNow([new ModelEdit('deleteRange', [p, 2])], {
+        builder: builder,
+        skipFormat: true,
       });
     } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-      return doc.model.edit(
+      return doc.model.editNow(
         [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
         {
-          selections: [new ModelEditSelection(p - prevToken.raw.length)],
+          builder: builder,
         }
       );
     } else {
       if (['open', 'close'].includes(nextToken.type) && cursor.docIsBalanced()) {
         doc.selections = [new ModelEditSelection(p + 1)];
-        return new Promise<boolean>((resolve) => resolve(true));
+        return;
       } else {
-        return doc.delete();
+        return doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
+          builder: builder,
+          skipFormat: true,
+        });
       }
     }
   }

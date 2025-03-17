@@ -139,6 +139,8 @@ async function onTestResult(
         run.errored(assertion, new vscode.TestMessage(cider.shortMessage(result)));
         break;
       case 'fail':
+        run.failed(assertion, new vscode.TestMessage(cider.detailedMessage(result)));
+        break;
       default:
         run.failed(assertion, new vscode.TestMessage(cider.shortMessage(result)));
         break;
