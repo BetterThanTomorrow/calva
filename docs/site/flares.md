@@ -1,69 +1,106 @@
 ---
-title: Calva Flares Documentation
-description: Learn how to use Calva Flares to enhance your development experience.
+title: Flares and Webviews
+description: Learn how to use Flares to show HTML and messages in Calva.
 ---
 
-# Calva Flares
+# Flares
 
-Flares are a mechanism in Calva that allow the REPL server (where your Clojure code runs) to send requests to the REPL client (your Calva IDE) to trigger specific behaviors.
-They bridge the gap between user-space code and IDE features, enabling dynamic and interactive workflows.
+Flares are special values that request Calva behavior like showing HTML in a WebView panel.
+Flares are used by tools like [Clay](https://scicloj.github.io/clay/) to show data visualizations.
+You can make Custom REPL Commands that produce flares.
+Calva inspects all REPL evaluation for flares, so you can use them in the REPL too.
 
-Flares are special values that, when encountered by the IDE, prompt it to perform predefined actions such as rendering HTML, showing notifications, or visualizing data.
+## Try Flares in the REPL
 
-> **TIP:**
-> Don't put flares in your project code.
-> Flares are IDE specific, so they should be created by tooling code.
-> Flares will be created when invoking a tool or custom action from your IDE.
-
-## How to Create Flares
-
-Flares are tagged literals
+Try this example by copying it to your Calva REPL:
 
 ```clojure
-(tagged-literal 'flare/message {:type :info
-                                :message "Congratulations, you sent a flare!"})
+(tagged-literal 'flare/html {:html "<h1>Hello, Flares!</h1>",
+                             :title "Greeting"
+                             :key "example"})
 ```
 
-- **Tag**: `:flare/message` – Identifies this as a message flare
-- **Value**: A map defining the request.
+A WebView panel opens up showing the rendered HTML content.
 
-Here’s a flare to display a HTML greeting:
+Flares are [tagged literals](https://clojure.org/reference/reader#tagged_literals) consisting of a tag indicating the desired action, and a map containing the request details.
+The `tagged-literal` function is a clojure.core function that creates the special value.
+Clojure prints tagged literals as `#tag{...}`, so when you create the flare, it will be printed as `#flare/html{...}`.
+
+- **Tag**: `flare/html` – Indicates a WebView request
+- **Request**: `{:html "..."}` - HTML content to display
+
+To show a webpage, pass a `:url` instead of `:html` in the request:
 
 ```clojure
-(tagged-literal 'flare/html {:html "<h1>Hello, Calva!</h1>",
-                             :title "Greeting"})
+(tagged-literal 'flare/html {:url "https://calva.io/",
+                             :title "Calva homepage"
+                             :key "example"})
 ```
 
-## Typical Uses of Flares
+The `:key` parameter is optional and can be used to reuse the same WebView panel.
+If omitted, a new WebView panel will be created per request.
 
-Flares enhance your development experience by enabling IDE features directly from user-space code. Below are common use cases:
+## Try a more interesting example
 
-### 1. Data Visualization
-
-Used with tools like Clay, you can render HTML, SVG, or other visual elements directly in the IDE:
+Let's create an SVG containing circles of varying radii and colors:
 
 ```clojure
-(snippets/current-form-calva $current-form $file)
+(require '[clojure.string :as str])
+(defn svg []
+  (let [circles (for [i (range 10 100 10)]
+                  (let [hue (* (/ i 100) 360) ; Map radius to hue (0-360)
+                        color (str "hsl(" hue ", 100%, 50%)")]
+                    (str "<circle r='" i "' stroke='" color "'/>")))]
+    (str "<svg height='200' width='200'>"
+         "<g transform='translate(100,100)' fill='none'>"
+         (str/join circles)
+         "</g>"
+         "</svg>")))
+(tagged-literal 'flare/html {:html (svg)
+                             :title "SVG Circles"
+                             :key "example"})
 ```
 
-Produces a flare:
+Copy this code into your Calva REPL and evaluate it to see the SVG image.
+The WebView panel will display the SVG content.
 
-```clojure
-(tagged-literal 'flare/html {:url "https://localhost:1971"})
-```
+![SVG Circles](images/flare.png)
 
-Enabling you to create a custom action "Send to Clay" to visualize Kindly annotated visualizations.
+You can iterate quickly, modifying code and using the flare to see the result.
+To make it more convenient, you might use a custom action instead.
+Flares are useful for creating your own visualization shortcuts,
+and tools can also use Flares to show information in the IDE.
 
-### 2. Notifications
+Use [Hiccup](https://github.com/weavejester/hiccup) to generate HTML or SVG.
+This example uses string concatenation to avoid setting up the dependency.
 
-Test results or task completion:
+## Data Visualization
 
-```clojure
-(tagged-literal 'flare/message {:type :info
-                                :message "Tests Passed 🎉"})
-```
+The WebView panel is perfect for charts, tables and other data visualizations.
+
+[Clay](https://scicloj.github.io/clay/) shows visualizations in a WebView panel by using Flares.
+[Clay visualization examples](https://scicloj.github.io/clay/clay_book.examples.html)
+[Clay in Calva setup](https://scicloj.github.io/clay/#vscode-calva)
+
+## What can the WebView panel do?
+
+The [WebView panel](https://code.visualstudio.com/api/extension-guides/webview) is a full browser,
+so you can do anything you can do in a browser, there's really no limit.
 
 ## Flare Reference
+
+### `flare/html`
+
+| Key | Type | Default | Description |
+|--- |--- |--- |--- |
+| `:title` | string | "WebView" | Shown in the panel title. |
+| `:html` | string | nil | HTML to show in a WebView. |
+| `:url` | string | nil | Show the page hosted at URL in a WebView. |
+| `:key` | string | nil | An identifier for the panel. The request will reuse an open WebView if it exists already. |
+| `:reload` | boolean | false | If true, sets the content even if it didn't change. |
+| `:reveal` | boolean | true | If true, reveals the panel if it is not visible. |
+| `:column` | integer | vscode.ViewColumn.Beside | See [ViewColumn](https://code.visualstudio.com/api/references/vscode-api#ViewColumn) |
+| `:opts` | map | {} | See [WebviewOptions](https://code.visualstudio.com/api/references/vscode-api#WebviewOptions) |
 
 ### `flare/message`
 
@@ -73,12 +110,6 @@ Test results or task completion:
 
 `:then` is an optional fully qualified symbol that should resolve to a function to invoke with the selected item.
 
-### `flare/html`
+### Suggestions welcome
 
-`:title` will be shown in the panel title.
-
-`:html` raw HTML string to show in a WebView.
-
-`:url` show the page hosted at URL in a WebView.
-
-`:key` an identifier for the panel. The request will reuse an open WebView if it exists already.
+If there are other use cases for Flares, please let us know.

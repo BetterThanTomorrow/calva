@@ -70,23 +70,65 @@ export function inspect(edn: string, evaluate: EvaluateFunction): any {
 
 // Webview below here (doesn't build when in another file)
 
-const defaultOpts = {
+const defaultWebviewOptions = {
   enableScripts: true,
 };
 
-// keep track of open webviews that have a key,
-// so that they can be updated
-const webviewRegistry: Record<string, vscode.WebviewPanel> = {};
+interface CalvaWebPanel extends vscode.WebviewPanel {
+  url?: string;
+}
 
-function setHtml(panel: vscode.WebviewPanel, title: string, html: string): vscode.WebviewPanel {
+// keep track of open webviews that have a key
+// so that they can be updated in the future
+const calvaWebPanels: Record<string, CalvaWebPanel> = {};
+
+function showWebView({
+  title = 'WebView',
+  key,
+  html,
+  url,
+  reload = false,
+  reveal = true,
+  column = vscode.ViewColumn.Beside,
+  opts = defaultWebviewOptions,
+}: {
+  title?: string;
+  key?: string;
+  html?: string;
+  url?: string;
+  reload?: boolean;
+  reveal?: boolean;
+  column?: vscode.ViewColumn;
+  opts?: typeof defaultWebviewOptions;
+}): void {
+  let panel: CalvaWebPanel;
+  if (key) {
+    panel = calvaWebPanels[key];
+  }
+  if (!panel) {
+    panel = vscode.window.createWebviewPanel('calva-webview', title, column, opts);
+    if (key) {
+      calvaWebPanels[key] = panel;
+      panel.onDidDispose(() => delete calvaWebPanels[key]);
+    }
+  }
+
+  if (html && panel.webview.html != html) {
+    panel.webview.html = html;
+  }
+
+  if (url && (url != panel.url || reload)) {
+    panel.url = url;
+    panel.webview.html = urlInIframe(url);
+  }
+
   if (panel.title !== title) {
     panel.title = title;
   }
-  if (panel.webview.html !== html) {
-    panel.webview.html = html;
+
+  if (reveal) {
+    panel.reveal();
   }
-  panel.reveal();
-  return panel;
 }
 
 function urlInIframe(uri: string): string {
@@ -106,38 +148,4 @@ function urlInIframe(uri: string): string {
   <iframe src="${uri}" style="width:100%; height:100%; border:none;"></iframe>
 </body>
 </html>`;
-}
-
-function showWebView({
-  title = 'Webview',
-  html,
-  url,
-  key,
-  column = vscode.ViewColumn.Beside,
-  opts = defaultOpts,
-}: {
-  title?: string;
-  html?: string;
-  url?: string;
-  key?: string;
-  column?: vscode.ViewColumn;
-  opts?: typeof defaultOpts;
-}): vscode.WebviewPanel {
-  const finalHtml = url ? urlInIframe(url) : html || '';
-  if (key) {
-    const existingPanel = webviewRegistry[key];
-    if (existingPanel) {
-      return setHtml(existingPanel, title, finalHtml);
-    }
-  }
-
-  const panel = vscode.window.createWebviewPanel('calva-webview', title, column, opts);
-  setHtml(panel, title, finalHtml);
-
-  if (key) {
-    webviewRegistry[key] = panel;
-    panel.onDidDispose(() => delete webviewRegistry[key]);
-  }
-
-  return panel;
 }
