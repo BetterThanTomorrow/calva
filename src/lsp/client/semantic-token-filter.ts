@@ -1,7 +1,4 @@
-// Token type 10 (:comment) as defined in clojure-lsp's token-types vector
-const COMMENT_TOKEN_TYPE = 10;
-
-export function filterCommentTokens(data: Uint32Array) {
+export function filterCommentTokens(data: Uint32Array, remove: number) {
   const filteredData: number[] = [];
   let accumulatedDeltaLine = 0;
 
@@ -14,7 +11,7 @@ export function filterCommentTokens(data: Uint32Array) {
       data[i + 4],
     ];
 
-    if (tokenType === COMMENT_TOKEN_TYPE) {
+    if (tokenType == remove) {
       accumulatedDeltaLine += deltaLine;
       continue;
     }

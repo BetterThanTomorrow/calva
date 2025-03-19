@@ -3,7 +3,7 @@ import { filterCommentTokens } from '../../../lsp/client/semantic-token-filter';
 
 describe('Semantic token filtering', () => {
   it('Handles empty token array', () => {
-    expect(filterCommentTokens(new Uint32Array([]))).toEqual([]);
+    expect(filterCommentTokens(new Uint32Array([]), 10)).toEqual([]);
   });
 
   it('Empties token array with only comments', () => {
@@ -18,7 +18,8 @@ describe('Semantic token filtering', () => {
           5,
           10,
           0, // the two-line comment, line 0, col 0, len 5, type comment
-        ])
+        ]),
+        10
       )
     ).toEqual([]);
   });
@@ -45,7 +46,7 @@ describe('Semantic token filtering', () => {
       2,
       0, // [x], line +2, col 3, len 1, type function
     ];
-    expect(filterCommentTokens(new Uint32Array(tokens))).toEqual(tokens);
+    expect(filterCommentTokens(new Uint32Array(tokens), 10)).toEqual(tokens);
   });
 
   it('Removes comment token between two non-comments', () => {
@@ -72,7 +73,8 @@ describe('Semantic token filtering', () => {
           4,
           3,
           0, // [defn] line +2, col 1, len 4, type macro
-        ])
+        ]),
+        10
       )
     ).toEqual([
       0,
@@ -118,7 +120,8 @@ describe('Semantic token filtering', () => {
           5,
           3,
           0, // [defn] line +1, col 0, type macro
-        ])
+        ]),
+        10
       )
     ).toEqual([
       0,
@@ -293,7 +296,8 @@ describe('Semantic token filtering', () => {
           3,
           6,
           0, // [foo] line +0, col 8, len 3, type variable
-        ])
+        ]),
+        10
       )
     ).toEqual([
       0,

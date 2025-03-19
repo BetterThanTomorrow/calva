@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { getClientProvider } from '../state';
 import * as tokenFilter from './semantic-token-filter';
+import * as api from '../api';
 
 /**
  * This can potentially be used to replace or alter the automatic command instrumentation performed by the
@@ -93,6 +94,9 @@ class TestTreeFeature implements vscode_lsp.StaticFeature {
     return { kind: 'static' };
   }
 }
+
+// Cache for semantic token type, so we don't need to hit the LSP server every time
+let commentTokenType: number | null = null;
 
 type CreateClientParams = {
   lsp_server_path: string;
@@ -221,10 +225,20 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
           if (!result) {
             return result;
           }
+          if (!commentTokenType) {
+            try {
+              const serverTokens = await api.getSemanticTokens(client);
+              console.debug('lsp serverTokens:', serverTokens);
+              commentTokenType = serverTokens?.indexOf('comment') || 10;
+            } catch (e) {
+              console.error('Failed to get semantic tokens from server:', e);
+              commentTokenType = 10;
+            }
+          }
 
           const filterTokens = (tokens: vscode.SemanticTokens) => {
             const data = new Uint32Array(tokens.data);
-            const filteredData = tokenFilter.filterCommentTokens(data);
+            const filteredData = tokenFilter.filterCommentTokens(data, commentTokenType);
             return new vscode.SemanticTokens(new Uint32Array(filteredData));
           };
 
