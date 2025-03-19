@@ -9,7 +9,7 @@ Flares are special values that request Calva behavior like showing HTML in a Web
 Flares are used by tools like [Clay](https://scicloj.github.io/clay/) to show data visualizations.
 You can make Custom REPL Commands that produce flares.
 Calva inspects all REPL evaluation for flares, so you can use them in the REPL too.
-Flares are usable ith any type of REPL: Clojure, ClojureScript, Babashka, Joyride.
+Flares can be used with any type of REPL, including: Clojure, ClojureScript, Babashka, Joyride.
 
 ## Try Flares in the REPL
 
