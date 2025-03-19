@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.492] - 2025-03-19
+
 - [Add flare handler and webview](https://github.com/BetterThanTomorrow/calva/issues/2679)
 
 ## [2.0.491] - 2025-03-15
