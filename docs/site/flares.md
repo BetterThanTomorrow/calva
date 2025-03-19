@@ -100,7 +100,7 @@ so you can do anything you can do in a browser, there's really no limit.
 | `:reload` | boolean | false | If true, sets the content even if it didn't change. |
 | `:reveal` | boolean | true | If true, reveals the panel if it is not visible. |
 | `:column` | integer | vscode.ViewColumn.Beside | See [ViewColumn](https://code.visualstudio.com/api/references/vscode-api#ViewColumn) |
-| `:opts` | map | {} | See [WebviewOptions](https://code.visualstudio.com/api/references/vscode-api#WebviewOptions) |
+| `:opts` | map | {:enableScripts true} | See [WebviewOptions](https://code.visualstudio.com/api/references/vscode-api#WebviewOptions) |
 
 ### Suggestions welcome
 

@@ -3,12 +3,6 @@ import { parseEdn } from '../out/cljs-lib/cljs-lib';
 
 type EvaluateFunction = (code: string) => Promise<string | null>;
 
-type MessageRequest = {
-  type: 'info' | 'warn' | 'error';
-  message: string;
-  items?: string[];
-  then?: string;
-};
 type WebviewRequest = {
   title?: string;
   html?: string;
@@ -19,7 +13,7 @@ type WebviewRequest = {
   then?: string;
 };
 
-type ActRequest = MessageRequest | WebviewRequest;
+type ActRequest = WebviewRequest;
 
 const actHandlers: Record<string, (request: ActRequest, EvaluateFunction) => void> = {
   html: ({ then, ...request }: WebviewRequest, evaluate: EvaluateFunction) => {
