@@ -2,7 +2,53 @@ import * as expect from 'expect';
 import { filterCommentTokens } from '../../../lsp/client/semantic-token-filter';
 
 describe('Semantic token filtering', () => {
-  it('handles a simple document with namespace and defn', () => {
+  it('Handles empty token array', () => {
+    expect(filterCommentTokens(new Uint32Array([]))).toEqual([]);
+  });
+
+  it('Empties token array with only comments', () => {
+    // Document:
+    //   #[
+    //   ]
+    expect(
+      filterCommentTokens(
+        new Uint32Array([
+          0,
+          0,
+          5,
+          10,
+          0, // the two-line comment, line 0, col 0, len 5, type comment
+        ])
+      )
+    ).toEqual([]);
+  });
+
+  it('Leaves a token array with no comments alone', () => {
+    // Document:
+    //   (def x 1)
+    //
+    //   (f x)
+    const tokens = [
+      0,
+      1,
+      3,
+      3,
+      0, // [def], line 0, col 1, len 3, type macro
+      0,
+      4,
+      1,
+      2,
+      1, // [x], line 0, col 4, len 1, type function
+      2,
+      3,
+      1,
+      2,
+      0, // [x], line +2, col 3, len 1, type function
+    ];
+    expect(filterCommentTokens(new Uint32Array(tokens))).toEqual(tokens);
+  });
+
+  it('Removes comment token between two non-comments', () => {
     // Document:
     //   (ns clojure-lsp.foo)
     //   #_
@@ -13,7 +59,7 @@ describe('Semantic token filtering', () => {
       4,
       15,
       0,
-      0, // [ns] line 0, col 4, len 15, type namespace
+      0, // [clojure-lsp.foo] line 0, col 4, len 15, type namespace
       1,
       0,
       4,
@@ -62,15 +108,10 @@ describe('Semantic token filtering', () => {
       0, // [#_ form1] line +1, col 0, type comment
       1,
       0,
-      8,
-      10,
-      0, // [; comment] line +1, col 0, type comment
-      1,
-      0,
       7,
       10,
       0, // [#_ form2] line +1, col 0, type comment
-      1,
+      2,
       0,
       5,
       3,
