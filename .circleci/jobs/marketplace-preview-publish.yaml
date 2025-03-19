@@ -1,4 +1,4 @@
-!yamlscript/v0/
+!YS-v0:
 
 docker:
 - image: circleci/node:latest
