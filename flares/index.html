@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Community Styleguide conforming formatting by default. And it just works.">
+        <meta name="description" content="Learn how to use Flares to show HTML and messages in Calva.">
       
       
       
-        <link rel="canonical" href="https://calva.io/formatting/">
+        <link rel="canonical" href="https://calva.io/flares/">
       
       
-        <link rel="prev" href="../evaluation/">
+        <link rel="prev" href="../custom-commands/">
       
       
-        <link rel="next" href="../syntax-highlighting/">
+        <link rel="next" href="../refactoring/">
       
       
       <link rel="icon" href="../img/favicon.ico">
@@ -24,7 +24,7 @@
     
     
       
-        <title>Clojure Formatting - Calva User Guide</title>
+        <title>Flares and Webviews - Calva User Guide</title>
       
     
     
@@ -73,11 +73,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Clojure Formatting - Calva User Guide" >
+        <meta  property="og:title"  content="Flares and Webviews - Calva User Guide" >
       
-        <meta  property="og:description"  content="Community Styleguide conforming formatting by default. And it just works." >
+        <meta  property="og:description"  content="Learn how to use Flares to show HTML and messages in Calva." >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/formatting.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/flares.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -85,15 +85,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/formatting/" >
+        <meta  property="og:url"  content="https://calva.io/flares/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Clojure Formatting - Calva User Guide" >
+        <meta  name="twitter:title"  content="Flares and Webviews - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Community Styleguide conforming formatting by default. And it just works." >
+        <meta  name="twitter:description"  content="Learn how to use Flares to show HTML and messages in Calva." >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/formatting.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/flares.png" >
       
     
     
@@ -109,7 +109,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#formatting" class="md-skip">
+        <a href="#flares" class="md-skip">
           Skip to content
         </a>
       
@@ -144,7 +144,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Clojure Formatting
+              Flares and Webviews
             
           </span>
         </div>
@@ -528,30 +528,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Clojure Formatting
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../formatting/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -560,158 +540,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#format-current-form-command-variants" class="md-nav__link">
-    <span class="md-ellipsis">
-      Format current form command variants
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Format current form command variants">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-format-and-align-current-form" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Format and Align Current Form
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-format-current-form-and-trim-space-between-forms" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Format Current Form and trim space between forms
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-replace-current-form-or-selection-with-pretty-printed-form" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Replace Current Form (or Selection) with Pretty Printed Form
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Replace Current Form (or Selection) with Pretty Printed Form">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provide-zprint-config-via-keyboard-shortcuts-or-joyride" class="md-nav__link">
-    <span class="md-ellipsis">
-      Provide zprint config via keyboard shortcuts (or Joyride)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#providing-configuration-via-a-config-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      Providing configuration via a config file
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#providing-configuration-via-clojure-lsp" class="md-nav__link">
-    <span class="md-ellipsis">
-      Providing configuration via clojure-lsp
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#indentation-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      Indentation rules
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#rich-comments" class="md-nav__link">
-    <span class="md-ellipsis">
-      Rich Comments
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#etecetera" class="md-nav__link">
-    <span class="md-ellipsis">
-      Etecetera
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Etecetera">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#about-aligning-associative-forms" class="md-nav__link">
-    <span class="md-ellipsis">
-      About aligning associative forms
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -763,17 +591,19 @@
                 
   
   
+    
   
   
+  
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" checked>
         
           
           <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
@@ -787,7 +617,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4_6">
             <span class="md-nav__icon md-icon"></span>
             REPL
@@ -924,10 +754,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../flares/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Flares and Webviews
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -936,6 +786,95 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#try-flares-in-the-repl" class="md-nav__link">
+    <span class="md-ellipsis">
+      Try Flares in the REPL
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#try-a-more-interesting-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Try a more interesting example
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-visualization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Visualization
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-can-the-webview-panel-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      What can the WebView panel do?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flare-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Flare Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Flare Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flarehtml" class="md-nav__link">
+    <span class="md-ellipsis">
+      flare/html
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#suggestions-welcome" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suggestions welcome
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2196,127 +2135,64 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#format-current-form-command-variants" class="md-nav__link">
+  <a href="#try-flares-in-the-repl" class="md-nav__link">
     <span class="md-ellipsis">
-      Format current form command variants
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Format current form command variants">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-format-and-align-current-form" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Format and Align Current Form
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-format-current-form-and-trim-space-between-forms" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Format Current Form and trim space between forms
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-replace-current-form-or-selection-with-pretty-printed-form" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Replace Current Form (or Selection) with Pretty Printed Form
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Replace Current Form (or Selection) with Pretty Printed Form">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#provide-zprint-config-via-keyboard-shortcuts-or-joyride" class="md-nav__link">
-    <span class="md-ellipsis">
-      Provide zprint config via keyboard shortcuts (or Joyride)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#providing-configuration-via-a-config-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      Providing configuration via a config file
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#providing-configuration-via-clojure-lsp" class="md-nav__link">
-    <span class="md-ellipsis">
-      Providing configuration via clojure-lsp
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#indentation-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      Indentation rules
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#rich-comments" class="md-nav__link">
-    <span class="md-ellipsis">
-      Rich Comments
+      Try Flares in the REPL
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#etecetera" class="md-nav__link">
+  <a href="#try-a-more-interesting-example" class="md-nav__link">
     <span class="md-ellipsis">
-      Etecetera
+      Try a more interesting example
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Etecetera">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-visualization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Visualization
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-can-the-webview-panel-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      What can the WebView panel do?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flare-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Flare Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Flare Reference">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#about-aligning-associative-forms" class="md-nav__link">
+  <a href="#flarehtml" class="md-nav__link">
     <span class="md-ellipsis">
-      About aligning associative forms
+      flare/html
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#suggestions-welcome" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suggestions welcome
     </span>
   </a>
   
@@ -2345,145 +2221,131 @@
   
 
 
-<h1 id="formatting">Formatting<a class="headerlink" href="#formatting" title="Permanent link">#</a></h1>
-<p>We have tried to make Calva's formatter so that it <em>just works</em>. It is enabled by default for Clojure files, and with the default configuration it mostly follows Bozhidar Batsov's <a href="https://github.com/bbatsov/clojure-style-guide">Clojure Style Guide</a>. Calva uses <a href="https://github.com/weavejester/cljfmt">cljfmt</a> for the formatting.</p>
-<div class="admonition tips">
-<p class="admonition-title">Tab formats the current surrounding form</p>
-<p>Calva's code formatter sets the default keybinding of its <strong>Format Current Form</strong> command to <code>tab</code>. Meaning that most often when things look a bit untidy, you can press <code>tab</code> to make things look pretty. Good to know, right? For performance reasons it only formats the current enclosing form, so sometimes you want to move the cursor up/out a form (<code>ctrl+up</code>) first. See <a href="../paredit/">The Paredit Guide</a> for more on moving the cursor structurally through your code.</p>
-</div>
-<p>With the default settings, Calva's formatting behaves like so:</p>
+<h1 id="flares">Flares<a class="headerlink" href="#flares" title="Permanent link">#</a></h1>
+<p>Flares are special values that request Calva behavior like showing HTML in a WebView panel.
+Flares are used by tools like <a href="https://scicloj.github.io/clay/">Clay</a> to show data visualizations.
+You can make Custom REPL Commands that produce flares.
+Calva inspects all REPL evaluation for flares, so you can use them in the REPL too.
+Flares can be used with any type of REPL, including: Clojure, ClojureScript, Babashka, Joyride.</p>
+<h2 id="try-flares-in-the-repl">Try Flares in the REPL<a class="headerlink" href="#try-flares-in-the-repl" title="Permanent link">#</a></h2>
+<p>Try this example by copying it to your Calva REPL:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">&#39;flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="s">&quot;&lt;h1&gt;Hello, Flares!&lt;/h1&gt;&quot;</span>,
+<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">&quot;Greeting&quot;</span>
+<span class="w">                             </span><span class="ss">:key</span><span class="w"> </span><span class="s">&quot;example&quot;</span><span class="p">})</span>
+</code></pre></div>
+<p>A WebView panel opens up showing the rendered HTML content.</p>
+<p>Flares are <a href="https://clojure.org/reference/reader#tagged_literals">tagged literals</a> consisting of a tag indicating the desired action, and a map containing the request details.
+The <code>tagged-literal</code> function is a clojure.core function that creates the special value.
+Clojure prints tagged literals as <code>#tag{...}</code>, so when you create the flare, it will be printed as <code>#flare/html{...}</code>.</p>
 <ul>
-<li>indents as you type (when entering new lines)</li>
-<li>formats the current enclosing form when you hit <code>tab</code></li>
-<li>formats pasted code</li>
-<li>formats according to <a href="https://github.com/bbatsov/clojure-style-guide">community standards</a></li>
-<li>formats the current form, <em>aligning map keys and values</em>, when you press <code>ctrl+alt+l</code></li>
-<li>formats <code>(comment ...)</code> forms special, see <a href="#rich-comments">rich comments</a></li>
+<li><strong>Tag</strong>: <code>flare/html</code> – Indicates a WebView request</li>
+<li><strong>Request</strong>: <code>{:html "..."}</code> - HTML content to display</li>
 </ul>
-<div class="admonition tips">
-<p class="admonition-title">Infer parens at will</p>
-<p>Calva has a command that will ”heal” the bracket structure if it is correctly indented using Parinfer <strong>Infer parens</strong>. This command is default bound to <code>ctrl+alt+p i</code>.</p>
-</div>
-<p>Also: If you have <strong>Format on Save</strong> enabled in VS Code, it will be Calva doing the formatting for Clojure files.</p>
-<p>Calva's formatting is mostly about indenting, but it also (again, defaults):</p>
-<ul>
-<li>trims whitespace at the end of the line</li>
-<li>trims whitespace inside brackets<ul>
-<li>this also folds trailing brackets (a k a <em>the paren trail</em>) up on the same line</li>
-</ul>
-</li>
-<li>inserts whitespace between forms</li>
-</ul>
-<p>Not a fan of some default setting? The formatter is quite <a href="#configuration">configurable</a>.</p>
-<h2 id="format-current-form-command-variants">Format current form command variants<a class="headerlink" href="#format-current-form-command-variants" title="Permanent link">#</a></h2>
-<p>There are <em>three</em> special commands for formatting the current form:</p>
-<h3 id="1-format-and-align-current-form">1. Format and Align Current Form<a class="headerlink" href="#1-format-and-align-current-form" title="Permanent link">#</a></h3>
-<p>Aligns associative structures and bindings in two columns. See more <a href="#about-aligning-associative-forms">below</a>.</p>
-<h3 id="2-format-current-form-and-trim-space-between-forms">2. Format Current Form and trim space between forms<a class="headerlink" href="#2-format-current-form-and-trim-space-between-forms" title="Permanent link">#</a></h3>
-<p>This formats the text, and trims consecutive, non-indent, whitespace on a line to just one space. Something like:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span><span class="w">    </span><span class="ss">:b</span><span class="p">]</span>
-<span class="p">(</span><span class="nb">str </span><span class="s">&quot;foo&quot;</span><span class="w">     </span><span class="s">&quot;bar&quot;</span><span class="w"> </span><span class="s">&quot;baz&quot;</span>
-<span class="s">&quot;a&quot;</span><span class="w">    </span><span class="nv">a</span><span class="p">))</span>
+<p>To show a webpage, pass a <code>:url</code> instead of <code>:html</code> in the request:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">&#39;flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:url</span><span class="w"> </span><span class="s">&quot;https://calva.io/&quot;</span>,
+<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">&quot;Calva homepage&quot;</span>
+<span class="w">                             </span><span class="ss">:key</span><span class="w"> </span><span class="s">&quot;example&quot;</span><span class="p">})</span>
 </code></pre></div>
-<p>Becomes:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span><span class="w"> </span><span class="ss">:b</span><span class="p">]</span>
-<span class="w">  </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;foo&quot;</span><span class="w"> </span><span class="s">&quot;bar&quot;</span><span class="w"> </span><span class="s">&quot;baz&quot;</span>
-<span class="w">       </span><span class="s">&quot;a&quot;</span><span class="w"> </span><span class="nv">a</span><span class="p">))</span>
+<p>The <code>:key</code> parameter is optional and can be used to reuse the same WebView panel.
+If omitted, a new WebView panel will be created per request.</p>
+<h2 id="try-a-more-interesting-example">Try a more interesting example<a class="headerlink" href="#try-a-more-interesting-example" title="Permanent link">#</a></h2>
+<p>Let's create an SVG containing circles of varying radii and colors:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">&#39;</span><span class="p">[</span><span class="nv">clojure.string</span><span class="w"> </span><span class="ss">:as</span><span class="w"> </span><span class="nv">str</span><span class="p">])</span>
+<span class="p">(</span><span class="kd">defn </span><span class="nv">svg</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">  </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">circles</span><span class="w"> </span><span class="p">(</span><span class="nb">for </span><span class="p">[</span><span class="nv">i</span><span class="w"> </span><span class="p">(</span><span class="nb">range </span><span class="mi">10</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="mi">10</span><span class="p">)]</span>
+<span class="w">                  </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">hue</span><span class="w"> </span><span class="p">(</span><span class="nb">* </span><span class="p">(</span><span class="nb">/ </span><span class="nv">i</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span><span class="w"> </span><span class="mi">360</span><span class="p">)</span><span class="w"> </span><span class="c1">; Map radius to hue (0-360)</span>
+<span class="w">                        </span><span class="nv">color</span><span class="w"> </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;hsl(&quot;</span><span class="w"> </span><span class="nv">hue</span><span class="w"> </span><span class="s">&quot;, 100%, 50%)&quot;</span><span class="p">)]</span>
+<span class="w">                    </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;&lt;circle r=&#39;&quot;</span><span class="w"> </span><span class="nv">i</span><span class="w"> </span><span class="s">&quot;&#39; stroke=&#39;&quot;</span><span class="w"> </span><span class="nv">color</span><span class="w"> </span><span class="s">&quot;&#39;/&gt;&quot;</span><span class="p">)))]</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;&lt;svg height=&#39;200&#39; width=&#39;200&#39;&gt;&quot;</span>
+<span class="w">         </span><span class="s">&quot;&lt;g transform=&#39;translate(100,100)&#39; fill=&#39;none&#39;&gt;&quot;</span>
+<span class="w">         </span><span class="p">(</span><span class="nf">str/join</span><span class="w"> </span><span class="nv">circles</span><span class="p">)</span>
+<span class="w">         </span><span class="s">&quot;&lt;/g&gt;&quot;</span>
+<span class="w">         </span><span class="s">&quot;&lt;/svg&gt;&quot;</span><span class="p">)))</span>
+<span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">&#39;flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="p">(</span><span class="nf">svg</span><span class="p">)</span>
+<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">&quot;SVG Circles&quot;</span>
+<span class="w">                             </span><span class="ss">:key</span><span class="w"> </span><span class="s">&quot;example&quot;</span><span class="p">})</span>
 </code></pre></div>
-<p>Basically, it behaves like if <code>:remove-multiple-non-indenting-spaces? true</code> was added to the <code>cljfmt</code> config. Which, in fact, is what happens. Calva merges that onto your cljfmt config when this command is used.</p>
-<h3 id="3-replace-current-form-or-selection-with-pretty-printed-form">3. Replace Current Form (or Selection) with Pretty Printed Form<a class="headerlink" href="#3-replace-current-form-or-selection-with-pretty-printed-form" title="Permanent link">#</a></h3>
-<p>This command will run the code of the <a href="../evaluation/#current-form">Current Form</a> through Calva's <a href="../pprint/">pretty printer</a> (the engine named <code>calva</code>, which is using <a href="https://github.com/kkinnear/zprint">zprint</a>) and replace the current form inline in the editor with the pretty printed results.</p>
-<p>Unlike with the ”real” Calva Formatter, which never breaks up lines, this one will follow your <a href="../pprint/">pretty printing</a> options and break up lines if you have set <code>maxWidth</code> to something that calls for breaking up lines.</p>
-<div class="admonition note">
-<p class="admonition-title">Applies to the other Current Form</p>
-<p>Unlike the other Format commands, which applies to the current <em>enclosing</em> form, this one applies to the <a href="../evaluation/#current-form">Current Form, same as with evaluations</a>. That is because this is not really part of the Calva formatter, but rather is a convenience command for tidying up code or data.</p>
-</div>
-<h4 id="provide-zprint-config-via-keyboard-shortcuts-or-joyride">Provide zprint config via keyboard shortcuts (or Joyride)<a class="headerlink" href="#provide-zprint-config-via-keyboard-shortcuts-or-joyride" title="Permanent link">#</a></h4>
-<p>The default options for the command are to not sort maps and to not insert commas between map entries. However, the command takes a map as an argument, expecting this map to be a <a href="(https://github.com/kkinnear/zprint/blob/main/doc/reference.md)">zprint configuration</a> map. You can provide the argument map via keyboard shortcuts. In VS Code settings, you use JSON, but it will be converted to EDN before handed to zprint.</p>
-<p>Say you want to have maps sorted by their keys, and generally use community standard formating + justify maps and bindings. This keyboard shortcut does that.</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+p enter&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.prettyPrintReplaceCurrentForm&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;style&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;community&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;justified&quot;</span><span class="p">],</span>
-<span class="w">            </span><span class="nt">&quot;map&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                </span><span class="nt">&quot;comma?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;sort?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">            </span><span class="p">}</span>
-<span class="w">        </span><span class="p">}</span>
-<span class="w">    </span><span class="p">}</span>
-</code></pre></div>
-<p>Note that we have to specify <code>"comma?": false</code> here, because this argument will replace the default options maps for the command.</p>
-<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
-<p>You can adjust the above mentioned defaults, and the default indents, by configuring the formatting using <a href="https://github.com/weavejester/cljfmt#configuration">cljfmt's configuration EDN</a>.</p>
-<p>This configuration can either be provided via a file or via clojure-lsp. See <a href="#providing-configuration-via-clojure-lsp">Providing configuration via clojure-lsp</a> below.</p>
-<h3 id="providing-configuration-via-a-config-file">Providing configuration via a config file<a class="headerlink" href="#providing-configuration-via-a-config-file" title="Permanent link">#</a></h3>
-<p>Calva will look for the configuration in one  of the <a href="https://github.com/weavejester/cljfmt#configuration">default cljfmt paths</a> ('.cljfmt.edn', '.cljfmt.clj', 'cljfmt.edn', or 'cljfmt.clj' in the workspace root). If your file is somewhere else use the <code>calva.fmt.configPath</code> to tell Calva where to find it. The path should either be absolute, or relative to the workspace root directory. If your config file is somewhere in the workspace root, Calva will hot reload it when you update it.</p>
-<p>Wherever the config file is, a suggested path for providing your configuration is to start changing the Calva formatting defaults by pasting the following map into a file and save it.</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span><span class="w"> </span><span class="nv">true</span>
-<span class="w"> </span><span class="ss">:remove-trailing-whitespace?</span><span class="w"> </span><span class="nv">true</span>
-<span class="w"> </span><span class="ss">:remove-consecutive-blank-lines?</span><span class="w"> </span><span class="nv">false</span>
-<span class="w"> </span><span class="ss">:insert-missing-whitespace?</span><span class="w"> </span><span class="nv">true</span>
-<span class="w"> </span><span class="ss">:remove-multiple-non-indenting-spaces?</span><span class="w"> </span><span class="nv">false</span><span class="p">}</span>
-</code></pre></div>
-<p>If the file is in the workspace, you can quickly test how different settings affect the formatting. Try:</p>
-<ol>
-<li>Adding <code>:align-associative? true</code> to the config</li>
-<li>then save</li>
-<li>then hit <code>tab</code>, and see what happens.</li>
-</ol>
-<details class="note">
-<summary><code>:align-associative?</code> is experimental</summary>
-<p>This particular setting is experimental and known to cause trouble together with namespaced keywords. Consider using <code>ctrl+alt+l</code> instead of <code>tab</code> as your formatting command, instead of enabling this setting. See below for more info about this. See <a href="#about-aligning-associative-forms">more below</a> about this.</p>
-</details>
-<details class="note">
-<summary>No Leiningen config support</summary>
-<p>The <strong>cljfmt</strong> docs mention the <code>:cljfmt</code> config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.</p>
-</details>
-<h3 id="providing-configuration-via-clojure-lsp">Providing configuration via clojure-lsp<a class="headerlink" href="#providing-configuration-via-clojure-lsp" title="Permanent link">#</a></h3>
-<p>If you work in a team where some members use clojure-lsp for formatting, you can make Calva format using the same configuration by telling setting <code>calva.fmt.configPath</code> to <code>CLOJURE-LSP</code> (case sensitive). See <a href="https://clojure-lsp.io/settings/">Clojure LSP Settings</a>) for how to provide the configuration. (It might not be provided from where you think it is, specifically check clojure-lsp's global config in you user home directory.) Use the command <strong>Calva Diagnostics: Clojure-lsp Server Info</strong> to see what cljfmt configuration is being used (under the <code>cljfmt-raw</code> key).</p>
-<p>Note that doing this you will not have hot reload of the formatting configuration, and of course you will be depending on that clojure-lsp is running and functioning.</p>
-<h3 id="indentation-rules">Indentation rules<a class="headerlink" href="#indentation-rules" title="Permanent link">#</a></h3>
-<p>The <code>cljfmt</code> indents are highly configurable. They, and the rest of the configuration options, are masterly detailed <a href="https://github.com/weavejester/cljfmt#configuration">here</a>.</p>
-<div class="admonition note">
-<p class="admonition-title"><code>:extra-indents</code> vs <code>:indents</code></p>
-<p>Since Calva <code>v2.0.383</code> we are using <strong>cljfmt</strong> <code>0.11.x</code> which has a breaking configuration change. From the cljfmt README:</p>
-<blockquote>
-<p>The <code>:indents</code> key has been split into <code>:indents</code> and :extra-indents. The <code>:indents</code> key <strong>replaces</strong> all default indents, while the <code>:extra-indents</code> key will append to the default indents.</p>
-</blockquote>
-<p>If something prevents you from using a config with <code>:extra-indents</code>, there's an escape hatch to keep using the <code>:indents</code> key as before, by adding <code>:legacy/merge-indents? true</code> to the config map.</p>
-</div>
-<p>Calva is an extra good tool for experimenting with these settings. <code>cljfmt</code> doesn't care about keys in the map that it doesn't know about so you can sneak in test code there to quickly see how it will get formatted by certain rules. Try this, for instance:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:remove-surrounding-whitespace?</span><span class="w"> </span><span class="nv">true</span>
-<span class="w"> </span><span class="ss">:remove-trailing-whitespace?</span><span class="w"> </span><span class="nv">true</span>
-<span class="w"> </span><span class="ss">:remove-consecutive-blank-lines?</span><span class="w"> </span><span class="nv">false</span>
-<span class="w"> </span><span class="ss">:insert-missing-whitespace?</span><span class="w"> </span><span class="nv">false</span>
-<span class="w"> </span><span class="ss">:indents</span><span class="w"> </span><span class="p">{</span><span class="o">#</span><span class="nv">re</span><span class="w"> </span><span class="s">&quot;^\w&quot;</span><span class="w"> </span><span class="p">[[</span><span class="ss">:inner</span><span class="w"> </span><span class="mi">0</span><span class="p">]]}</span>
-<span class="w"> </span><span class="ss">:test-code</span>
-<span class="w"> </span><span class="p">(</span><span class="nb">concat </span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-<span class="w">         </span><span class="p">(</span><span class="nb">map </span><span class="o">#</span><span class="p">(</span><span class="nb">inc </span><span class="p">(</span><span class="nb">* </span><span class="nv">%</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span>
-<span class="w">              </span><span class="p">(</span><span class="nb">filter </span><span class="o">#</span><span class="p">(</span><span class="nb">aget </span><span class="nv">sieved</span><span class="w"> </span><span class="nv">%</span><span class="p">)</span>
-<span class="w">                      </span><span class="p">(</span><span class="nb">range </span><span class="mi">1</span><span class="w"> </span><span class="nv">hn</span><span class="p">))))}</span>
-</code></pre></div>
-<p>Save, then hit <code>tab</code>, and the code should get formatted like so:</p>
-<div class="highlight"><pre><span></span><code><span class="w"> </span><span class="ss">:test-code</span>
-<span class="w"> </span><span class="p">(</span><span class="nb">concat </span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-<span class="w">    </span><span class="p">(</span><span class="nb">map </span><span class="o">#</span><span class="p">(</span><span class="nb">inc </span><span class="p">(</span><span class="nb">* </span><span class="nv">%</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span>
-<span class="w">      </span><span class="p">(</span><span class="nb">filter </span><span class="o">#</span><span class="p">(</span><span class="nb">aget </span><span class="nv">sieved</span><span class="w"> </span><span class="nv">%</span><span class="p">)</span>
-<span class="w">        </span><span class="p">(</span><span class="nb">range </span><span class="mi">1</span><span class="w"> </span><span class="nv">hn</span><span class="p">))))</span>
-</code></pre></div>
-<p>That's somewhat similar to Nikita Prokopov's <a href="https://tonsky.me/blog/clojurefmt/">Better Clojure Formatting</a> suggestion. (Please be aware that this setting might not be sufficient to get complete <strong>Tonsky Formatting</strong>, please share any settings you use to get full compliance.)</p>
-<h2 id="rich-comments">Rich Comments<a class="headerlink" href="#rich-comments" title="Permanent link">#</a></h2>
-<p>To encourage use of <code>(comment ...)</code> forms for development, the default settings give these forms get a special treatment when formatting. Use the <code>calva.fmt.keepCommentTrailParenOnOwnLine</code> setting to control this behaviour. See <a href="../rich-comments/">Rich Comments</a> first.</p>
-<h2 id="etecetera">Etecetera<a class="headerlink" href="#etecetera" title="Permanent link">#</a></h2>
-<h3 id="about-aligning-associative-forms">About aligning associative forms<a class="headerlink" href="#about-aligning-associative-forms" title="Permanent link">#</a></h3>
-<p>Calva loooks in the config map for the key <code>:align-associative?</code> and if it is <code>true</code> it will use an old version of <strong>cljfmt</strong> which is <a href="https://github.com/weavejester/cljfmt/pull/77">patched</a> with functionality for doing this alignment. Note, though:</p>
-<ul>
-<li>The implementation is a bit buggy and can do a bit crazy formatting on certain forms.</li>
-<li>The older version of cljfmt lacks updates for some new Clojure features and also some bugs fixed since the fork are not applied.</li>
-</ul>
-<p>You are hereby warned, and let us also remind you about the <strong>Format and Align Current Form</strong> command which lets you apply this formatting a bit more surgically, and on demand.</p>
-<p>This old version of <strong>cljfmt</strong> is inlined in the Calva repository along with the discontinued <code>rewrite-cljs</code> project. Regard it as frozen code. If you want Calva's formatter to have full support for newer Clojure constructs and the bugs in the alignment code fixed, contribute to <strong>cljfmt</strong>. See <a href="https://github.com/weavejester/cljfmt/issues/36">this issue</a> for starting to collect context.</p>
+<p>Copy this code into your Calva REPL and evaluate it to see the SVG image.
+The WebView panel will display the SVG content.</p>
+<p><img alt="SVG Circles" src="../images/flare.png" /></p>
+<p>You can iterate quickly, modifying code and using the flare to see the result.
+To make it more convenient, you might use a custom action instead.
+Flares are useful for creating your own visualization shortcuts,
+and tools can also use Flares to show information in the IDE.</p>
+<p>Use <a href="https://github.com/weavejester/hiccup">Hiccup</a> to generate HTML or SVG.
+This example uses string concatenation to avoid setting up the dependency.</p>
+<h2 id="data-visualization">Data Visualization<a class="headerlink" href="#data-visualization" title="Permanent link">#</a></h2>
+<p>The WebView panel is perfect for charts, tables and other data visualizations.</p>
+<p><a href="https://scicloj.github.io/clay/">Clay</a> shows visualizations in a WebView panel by using Flares.
+<a href="https://scicloj.github.io/clay/clay_book.examples.html">Clay visualization examples</a>
+<a href="https://scicloj.github.io/clay/#vscode-calva">Clay in Calva setup</a></p>
+<h2 id="what-can-the-webview-panel-do">What can the WebView panel do?<a class="headerlink" href="#what-can-the-webview-panel-do" title="Permanent link">#</a></h2>
+<p>The <a href="https://code.visualstudio.com/api/extension-guides/webview">WebView panel</a> is a full browser,
+so you can do anything you can do in a browser, there's really no limit.</p>
+<h2 id="flare-reference">Flare Reference<a class="headerlink" href="#flare-reference" title="Permanent link">#</a></h2>
+<h3 id="flarehtml"><code>flare/html</code><a class="headerlink" href="#flarehtml" title="Permanent link">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>:title</code></td>
+<td>string</td>
+<td>"WebView"</td>
+<td>Shown in the panel title.</td>
+</tr>
+<tr>
+<td><code>:html</code></td>
+<td>string</td>
+<td>nil</td>
+<td>HTML to show in a WebView.</td>
+</tr>
+<tr>
+<td><code>:url</code></td>
+<td>string</td>
+<td>nil</td>
+<td>Show the page hosted at URL in a WebView.</td>
+</tr>
+<tr>
+<td><code>:key</code></td>
+<td>string</td>
+<td>nil</td>
+<td>An identifier for the panel. The request will reuse an open WebView if it exists already.</td>
+</tr>
+<tr>
+<td><code>:reload</code></td>
+<td>boolean</td>
+<td>false</td>
+<td>If true, sets the content even if it didn't change.</td>
+</tr>
+<tr>
+<td><code>:reveal</code></td>
+<td>boolean</td>
+<td>true</td>
+<td>If true, reveals the panel if it is not visible.</td>
+</tr>
+<tr>
+<td><code>:column</code></td>
+<td>integer</td>
+<td>vscode.ViewColumn.Beside</td>
+<td>See <a href="https://code.visualstudio.com/api/references/vscode-api#ViewColumn">ViewColumn</a></td>
+</tr>
+<tr>
+<td><code>:opts</code></td>
+<td>map</td>
+<td>{:enableScripts true}</td>
+<td>See <a href="https://code.visualstudio.com/api/references/vscode-api#WebviewOptions">WebviewOptions</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="suggestions-welcome">Suggestions welcome<a class="headerlink" href="#suggestions-welcome" title="Permanent link">#</a></h3>
+<p>If there are other use cases for Flares, please let us know.</p>
 
 
 
