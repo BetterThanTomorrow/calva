@@ -1,4 +1,4 @@
-!yamlscript/v0/
+!YS-v0:
 
 docker:
 - image: cimg/python:3.8-node
@@ -7,7 +7,7 @@ environment:
   MKDOCS_ENV: production
 
 steps:
-- !:add-ssh ssh-fingerprint-1
+- !:add-ssh: ssh-fingerprint-1
 
 - checkout
 

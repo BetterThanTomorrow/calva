@@ -1,6 +1,6 @@
 SHELL := bash
 
-YS_VERSION := 0.1.82
+YS_VERSION := 0.1.95
 YS_PREFIX := /tmp/yamlscript-calva
 YS_BIN := $(YS_PREFIX)/bin
 YS := ys-$(YS_VERSION)
