@@ -22,22 +22,6 @@ type WebviewRequest = {
 type ActRequest = MessageRequest | WebviewRequest;
 
 const actHandlers: Record<string, (request: ActRequest, EvaluateFunction) => void> = {
-  message: ({ type, message, items = [], then }: MessageRequest, evaluate: EvaluateFunction) => {
-    const messageHandlers = {
-      info: vscode.window.showInformationMessage,
-      warn: vscode.window.showWarningMessage,
-      error: vscode.window.showErrorMessage,
-    };
-    const handler = messageHandlers[type] || messageHandlers.info;
-    const p = handler(message, ...items);
-    if (then) {
-      void p.then((x: any) =>
-        evaluate(`((resolve '${then}) ${JSON.stringify(x)})`).catch((e) => {
-          void vscode.window.showErrorMessage('Failed callback ${then}: ' + e);
-        })
-      );
-    }
-  },
   html: ({ then, ...request }: WebviewRequest, evaluate: EvaluateFunction) => {
     showWebView(request);
   },

@@ -102,14 +102,6 @@ so you can do anything you can do in a browser, there's really no limit.
 | `:column` | integer | vscode.ViewColumn.Beside | See [ViewColumn](https://code.visualstudio.com/api/references/vscode-api#ViewColumn) |
 | `:opts` | map | {} | See [WebviewOptions](https://code.visualstudio.com/api/references/vscode-api#WebviewOptions) |
 
-### `flare/message`
-
-`:type` should be one of `:info`, `:warn`, `:error` (defaults to `info`).
-
-`:items` are are responses the user may choose, for example `["yes" "no"]`.
-
-`:then` is an optional fully qualified symbol that should resolve to a function to invoke with the selected item.
-
 ### Suggestions welcome
 
 If there are other use cases for Flares, please let us know.
