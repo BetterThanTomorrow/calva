@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Filter lsp semantic comment tokens](https://github.com/BetterThanTomorrow/calva/issues/2757)
+
 ## [2.0.491] - 2025-03-15
 
 - [Add support for multiple default connect sequences based on different project roots](https://github.com/BetterThanTomorrow/calva/issues/2753)

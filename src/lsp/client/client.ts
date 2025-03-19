@@ -9,6 +9,7 @@ import * as utils from '../utils';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { getClientProvider } from '../state';
+import * as tokenFilter from './semantic-token-filter';
 
 /**
  * This can potentially be used to replace or alter the automatic command instrumentation performed by the
@@ -207,6 +208,27 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
         },
         provideCompletionItem(_document, _position, _context, _token, _next) {
           return null;
+        },
+        provideDocumentSemanticTokens: async (
+          document: vscode.TextDocument,
+          token: vscode.CancellationToken,
+          next: (
+            document: vscode.TextDocument,
+            token: vscode.CancellationToken
+          ) => Thenable<vscode.SemanticTokens> | vscode.SemanticTokens | null
+        ) => {
+          const result = await next(document, token);
+          if (!result) {
+            return result;
+          }
+
+          const filterTokens = (tokens: vscode.SemanticTokens) => {
+            const data = new Uint32Array(tokens.data);
+            const filteredData = tokenFilter.filterCommentTokens(data);
+            return new vscode.SemanticTokens(new Uint32Array(filteredData));
+          };
+
+          return filterTokens(result);
         },
         async provideSignatureHelp(document, position, context, token, next) {
           const help = await provideSignatureHelp(document, position, token);
