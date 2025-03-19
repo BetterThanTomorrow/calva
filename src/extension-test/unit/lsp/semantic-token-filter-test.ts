@@ -54,27 +54,27 @@ describe('Semantic token filtering', () => {
     //   #_
     //   f
     //   (defn)
-    const tokens = new Uint32Array([
-      0,
-      4,
-      15,
-      0,
-      0, // [clojure-lsp.foo] line 0, col 4, len 15, type namespace
-      1,
-      0,
-      4,
-      10,
-      0, // [#_ f] line +1, col 0, len 4, type comment
-      2,
-      1,
-      4,
-      3,
-      0, // [defn] line +2, col 1, len 4, type macro
-    ]);
-
-    const filtered = filterCommentTokens(tokens);
-
-    expect(filtered).toEqual([
+    expect(
+      filterCommentTokens(
+        new Uint32Array([
+          0,
+          4,
+          15,
+          0,
+          0, // [clojure-lsp.foo] line 0, col 4, len 15, type namespace
+          1,
+          0,
+          4,
+          10,
+          0, // [#_ f] line +1, col 0, len 4, type comment
+          2,
+          1,
+          4,
+          3,
+          0, // [defn] line +2, col 1, len 4, type macro
+        ])
+      )
+    ).toEqual([
       0,
       4,
       15,
@@ -95,32 +95,32 @@ describe('Semantic token filtering', () => {
     //   ; comment
     //   #_ form2
     //   (defn)
-    const tokens = new Uint32Array([
-      0,
-      0,
-      7,
-      0,
-      0, // [ns] line 0, col 0, len 7, type namespace
-      1,
-      0,
-      7,
-      10,
-      0, // [#_ form1] line +1, col 0, type comment
-      1,
-      0,
-      7,
-      10,
-      0, // [#_ form2] line +1, col 0, type comment
-      2,
-      0,
-      5,
-      3,
-      0, // [defn] line +1, col 0, type macro
-    ]);
-
-    const filtered = filterCommentTokens(tokens);
-
-    expect(filtered).toEqual([
+    expect(
+      filterCommentTokens(
+        new Uint32Array([
+          0,
+          0,
+          7,
+          0,
+          0, // [ns] line 0, col 0, len 7, type namespace
+          1,
+          0,
+          7,
+          10,
+          0, // [#_ form1] line +1, col 0, type comment
+          1,
+          0,
+          7,
+          10,
+          0, // [#_ form2] line +1, col 0, type comment
+          2,
+          0,
+          5,
+          3,
+          0, // [defn] line +1, col 0, type macro
+        ])
+      )
+    ).toEqual([
       0,
       0,
       7,
@@ -165,137 +165,137 @@ describe('Semantic token filtering', () => {
     //
     //   (defn bar [foo]
     //     (println foo))
-    const tokens = new Uint32Array([
-      0,
-      4,
-      15,
-      0,
-      0, // [ns] line 0, col 4, len 15, type namespace
-      1,
-      4,
-      7,
-      4,
-      0, // [require] line +1, col 4, len 7, type keyword
-      1,
-      27,
-      2,
-      4,
-      0, // [b] line +1, col 27, len 2, type keyword
-      1,
-      0,
-      4,
-      10,
-      0, // [#_ f] line +1, col 0, len 4, type comment
-      2,
-      0,
-      30,
-      10,
-      0, // [#_(defn...)] line +2, col 0, len 30, type comment
-      2,
-      0,
-      6,
-      10,
-      0, // [#_[] line +2, col 0, len 6, type comment
-      4,
-      1,
-      3,
-      3,
-      0, // [def] line +4, col 1, len 3, type macro
-      0,
-      4,
-      1,
-      2,
-      1, // [f] line +0, col 4, len 1, type function
-      3,
-      2,
-      3,
-      0,
-      0, // [fn] line +3, col 2, len 3, type function
-      0,
-      4,
-      1,
-      2,
-      1, // [a] line +0, col 4, len 1, type function
-      3,
-      2,
-      3,
-      0,
-      0, // [b] line +3, col 2, len 3, type function
-      2,
-      0,
-      26,
-      10,
-      0, // [#_ #_ [...]] line +2, col 0, len 26, type comment
-      7,
-      2,
-      1,
-      4,
-      0, // [q] line +7, col 2, len 1, type keyword
-      0,
-      4,
-      4,
-      10,
-      0, // [#_:b] line +0, col 4, len 4, type comment
-      0,
-      5,
-      53,
-      10,
-      0, // [#_[2...5]] line +0, col 5, len 53, type comment
-      3,
-      17,
-      8,
-      10,
-      0, // [#_#_:c 3] line +3, col 17, len 8, type comment
-      0,
-      10,
-      1,
-      4,
-      0, // [:d] line +0, col 10, len 1, type keyword
-      5,
-      1,
-      4,
-      0,
-      0, // [:e] line +5, col 1, len 4, type keyword
-      5,
-      1,
-      4,
-      0,
-      0, // [:f] line +5, col 1, len 4, type keyword
-      5,
-      1,
-      4,
-      0,
-      0, // [:g] line +5, col 1, len 4, type keyword
-      2,
-      1,
-      4,
-      3,
-      0, // [defn] line +2, col 1, len 4, type macro
-      0,
-      5,
-      3,
-      2,
-      1, // [bar] line +0, col 5, len 3, type function
-      5,
-      3,
-      6,
-      0,
-      1, // [foo] line +5, col 3, len 6, type variable
-      3,
-      7,
-      2,
-      0,
-      0, // [println] line +3, col 7, len 2, type function
-      0,
-      8,
-      3,
-      6,
-      0, // [foo] line +0, col 8, len 3, type variable
-    ]);
-
-    const filtered = filterCommentTokens(tokens);
-
-    expect(filtered).toEqual([
+    expect(
+      filterCommentTokens(
+        new Uint32Array([
+          0,
+          4,
+          15,
+          0,
+          0, // [ns] line 0, col 4, len 15, type namespace
+          1,
+          4,
+          7,
+          4,
+          0, // [require] line +1, col 4, len 7, type keyword
+          1,
+          27,
+          2,
+          4,
+          0, // [b] line +1, col 27, len 2, type keyword
+          1,
+          0,
+          4,
+          10,
+          0, // [#_ f] line +1, col 0, len 4, type comment
+          2,
+          0,
+          30,
+          10,
+          0, // [#_(defn...)] line +2, col 0, len 30, type comment
+          2,
+          0,
+          6,
+          10,
+          0, // [#_[] line +2, col 0, len 6, type comment
+          4,
+          1,
+          3,
+          3,
+          0, // [def] line +4, col 1, len 3, type macro
+          0,
+          4,
+          1,
+          2,
+          1, // [f] line +0, col 4, len 1, type function
+          3,
+          2,
+          3,
+          0,
+          0, // [fn] line +3, col 2, len 3, type function
+          0,
+          4,
+          1,
+          2,
+          1, // [a] line +0, col 4, len 1, type function
+          3,
+          2,
+          3,
+          0,
+          0, // [b] line +3, col 2, len 3, type function
+          2,
+          0,
+          26,
+          10,
+          0, // [#_ #_ [...]] line +2, col 0, len 26, type comment
+          7,
+          2,
+          1,
+          4,
+          0, // [q] line +7, col 2, len 1, type keyword
+          0,
+          4,
+          4,
+          10,
+          0, // [#_:b] line +0, col 4, len 4, type comment
+          0,
+          5,
+          53,
+          10,
+          0, // [#_[2...5]] line +0, col 5, len 53, type comment
+          3,
+          17,
+          8,
+          10,
+          0, // [#_#_:c 3] line +3, col 17, len 8, type comment
+          0,
+          10,
+          1,
+          4,
+          0, // [:d] line +0, col 10, len 1, type keyword
+          5,
+          1,
+          4,
+          0,
+          0, // [:e] line +5, col 1, len 4, type keyword
+          5,
+          1,
+          4,
+          0,
+          0, // [:f] line +5, col 1, len 4, type keyword
+          5,
+          1,
+          4,
+          0,
+          0, // [:g] line +5, col 1, len 4, type keyword
+          2,
+          1,
+          4,
+          3,
+          0, // [defn] line +2, col 1, len 4, type macro
+          0,
+          5,
+          3,
+          2,
+          1, // [bar] line +0, col 5, len 3, type function
+          5,
+          3,
+          6,
+          0,
+          1, // [foo] line +5, col 3, len 6, type variable
+          3,
+          7,
+          2,
+          0,
+          0, // [println] line +3, col 7, len 2, type function
+          0,
+          8,
+          3,
+          6,
+          0, // [foo] line +0, col 8, len 3, type variable
+        ])
+      )
+    ).toEqual([
       0,
       4,
       15,
