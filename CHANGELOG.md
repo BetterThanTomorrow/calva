@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Auto-connect/Jack-in sequences fail if projectRootPath is not set](https://github.com/BetterThanTomorrow/calva/issues/2759)
+
 ## [2.0.493] - 2025-03-20
 
 - [Filter lsp semantic comment tokens](https://github.com/BetterThanTomorrow/calva/issues/2757)
