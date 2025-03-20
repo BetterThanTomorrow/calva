@@ -396,8 +396,9 @@ async function getUserSpecifiedSequence(
   const autoSelectedSequence =
     autoSelectedSequences.find(
       (s) =>
+        s.projectRootPath &&
         vscode.workspace.asRelativePath(path.join(...s.projectRootPath)) ===
-        vscode.workspace.asRelativePath(closestRootPath)
+          vscode.workspace.asRelativePath(closestRootPath)
     ) || autoSelectedSequences.shift();
   const userSpecifiedProjectType = autoSelectedSequence?.name;
 

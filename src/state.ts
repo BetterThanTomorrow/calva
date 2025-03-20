@@ -182,8 +182,9 @@ export async function initProjectDir(
   const defaultSequence =
     defaultSequences.find(
       (s) =>
+        s.projectRootPath &&
         vscode.workspace.asRelativePath(path.join(...s.projectRootPath)) ===
-        vscode.workspace.asRelativePath(closestRootPath)
+          vscode.workspace.asRelativePath(closestRootPath)
     ) || defaultSequences.shift();
 
   let projectRootPath: vscode.Uri;
