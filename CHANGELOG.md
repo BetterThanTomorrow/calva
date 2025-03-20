@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.493] - 2025-03-20
+
 - [Filter lsp semantic comment tokens](https://github.com/BetterThanTomorrow/calva/issues/2757)
 
 ## [2.0.492] - 2025-03-19
