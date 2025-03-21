@@ -4,7 +4,23 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Try again with multi-cursor formatting, fixing [Wrong cursor position when using **Calva Format: Format Current Form**](https://github.com/BetterThanTomorrow/calva/issues/2748)
+- Fix: [Reformat all edited locations after multicursor structural edit](https://github.com/BetterThanTomorrow/calva/issues/2738), [Wrong cursor position when using **Calva Format: Format Current Form**](https://github.com/BetterThanTomorrow/calva/issues/2748)
+
+## [2.0.494] - 2025-03-20
+
+- Fix: [Auto-connect/Jack-in sequences fail if projectRootPath is not set](https://github.com/BetterThanTomorrow/calva/issues/2759)
+
+## [2.0.493] - 2025-03-20
+
+- [Filter lsp semantic comment tokens](https://github.com/BetterThanTomorrow/calva/issues/2757)
+
+## [2.0.492] - 2025-03-19
+
+- [Add flare handler and webview](https://github.com/BetterThanTomorrow/calva/issues/2679)
+
+## [2.0.491] - 2025-03-15
+
+- [Add support for multiple default connect sequences based on different project roots](https://github.com/BetterThanTomorrow/calva/issues/2753)
 
 ## [2.0.490] - 2025-03-09
 

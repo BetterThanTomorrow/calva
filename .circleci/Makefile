@@ -1,6 +1,14 @@
+ifneq (GNU,$(firstword $(shell $(MAKE) --version)))
+  $(error Error: 'make' must be 'GNU make')
+endif
+
 SHELL := bash
 
-YS_VERSION := 0.1.82
+ifeq (,$(shell command -v curl))
+  $(error This Makefile requires the 'curl' command)
+endif
+
+YS_VERSION := 0.1.95
 YS_PREFIX := /tmp/yamlscript-calva
 YS_BIN := $(YS_PREFIX)/bin
 YS := ys-$(YS_VERSION)

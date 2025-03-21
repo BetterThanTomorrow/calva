@@ -1,11 +1,13 @@
-!yamlscript/v0
+!YS-v0
+
+ns: helpers
 
 defn bin:
   (label name)::
     run:
       name:: label
       command::
-        slurp: "bin/$name.bash"
+        read: "bin/$name.bash"
 
   (label):
     name =: label:lc.replace(' ', '-')
@@ -22,8 +24,7 @@ defn docker(image)::
 
 defn add-ssh(fingerprint)::
   add_ssh_keys:
-    fingerprints:
-    - ! fingerprint:value
+    fingerprints:: -[fingerprint]
 
 defn attach-workspace(path)::
   attach_workspace:
