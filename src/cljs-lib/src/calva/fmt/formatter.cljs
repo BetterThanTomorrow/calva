@@ -5,8 +5,7 @@
             [calva.js-utils :refer [jsify cljify]]
             [calva.fmt.util :as util]
             [calva.parse :refer [parse-clj-edn]]
-            [clojure.string]
-            [clojure.core :as c]))
+            [clojure.string]))
 
 (def ^:private default-fmt
   {:remove-surrounding-whitespace? true
@@ -112,13 +111,6 @@
           (last)
           (count)))))
 
-(defn- normalize-indents
-  "Normalizes indents based on where the text starts on the first line"
-  [{:keys [range-text eol] :as m}]
-  (let [indent-before (apply str (repeat (indent-before-range m) " "))
-        lines (clojure.string/split range-text #"\r?\n(?!\s*;)" -1)]
-    (assoc m :range-text (clojure.string/join (str eol indent-before) lines))))
-
 (defn generate-marker!
   "Lexically plausible, space-free s-expr that does not appear in s"
   [s]
@@ -148,12 +140,12 @@
 ;; work with the range in a loop, then substitute modified range back into all-text.
 (defn add-indent-token-to-blank-idx-lines
   "m unmodified unless it needed tokens inserted, in which case
- with additional key :indent-token, and updated :all-text and :range 
+ with additional key :indent-token, and updated :all-text and :range
  reflecting growth or shrinkage due to indent-tokens replacing blanks.
  (Indent-tokens are placed AFTER the blanks on a blank line
  because those blanks, if inside a string, are significant
  and we must not delete them. However, if the blank line isn't in a string,
- this may prevent the formatter from curing excessive indentation.) 
+ this may prevent the formatter from curing excessive indentation.)
  DOES NOT update :idxs to reflect insertion of indent tokens."
   [{[a b :as _range] :range :keys [all-text idxs] :as m}]
   (let [range-text (subs all-text a b)
@@ -168,7 +160,7 @@
                        (let [range-idx (- idx a)
                              [line-start line-end] (line-about-idx erg range-idx)
                              line (subs erg line-start line-end)]
-                         (if (string-clojure-blank? line) 
+                         (if (string-clojure-blank? line)
                            (str (subs erg 0 line-end) @marker (subs erg line-end))
                            erg)))
                      range-text
@@ -179,33 +171,30 @@
       (let [all-text' (str (subs all-text 0 a) range-text' (subs all-text b))]
         (-> m
             (assoc :indent-token @marker
-                   #_#_:range-text range-text'
                    :all-text all-text'
                    :range range'))))))
 
 (defn remove-indent-tokens
-  "m unmodified if there is no indent-token, otherwise with 
- range-text and range adjusted by removal of 
+  "m unmodified if there is no indent-token, otherwise with
+ range-text and range adjusted by removal of
  indent-tokens"
-  [{#_#_[a _b] :range :keys [range-text indent-token] :as m}]
+  [{:keys [range-text indent-token] :as m}]
   (if-not indent-token
     m
-    (let [range-text' (clojure.string/replace range-text indent-token "")
-          #_#_ range' [a (+ a (.-length range-text'))]] 
+    (let [range-text' (clojure.string/replace range-text indent-token "")]
       (-> m
-          (assoc :range-text range-text'
-                #_#_ :range range')
+          (assoc :range-text range-text')
           (dissoc :indent-token
           :range)))))
 
 (defn format-text-at-range
   "m with formatted :range-text, and :all-text removed"
   [m]
-  (let [indent-before (indent-before-range m) 
-        padding (apply str (repeat indent-before " ")) 
-        range-text (extract-range-text m) 
-        padded-text (str padding range-text) 
-        formatted-m (format-text (assoc m :range-text padded-text)) 
+  (let [indent-before (indent-before-range m)
+        padding (apply str (repeat indent-before " "))
+        range-text (extract-range-text m)
+        padded-text (str padding range-text)
+        formatted-m (format-text (assoc m :range-text padded-text))
         formatted-text (subs (:range-text formatted-m) indent-before)]
     (-> (assoc formatted-m
                :range-text formatted-text)
@@ -260,7 +249,7 @@
 
 (defn remove-trail-symbol-if-comment
   "m with updated :range and :range-text reflecting removal of comment prop"
-  [{:keys [range-text config] :as m} #_original-range]
+  [{:keys [range-text config] :as m}]
   (let [keep-trailing-bracket-on-own-line?
         (and (:keep-comment-forms-trail-paren-on-own-line? config)
              (:comment-form? config))]
@@ -274,13 +263,13 @@
       m)))
 
 (defn format-text-at-idx
-  "Formats the range, preserving and creating indentation 
+  "Formats the range, preserving and creating indentation
   for blank lines at cursor offsets in :idxs"
   [{:keys [range] :as m}]
   (-> m
       (add-trail-symbol-if-comment)
       (add-indent-token-to-blank-idx-lines)
-      (format-text-at-range) 
+      (format-text-at-range)
       (remove-indent-tokens)
       (remove-trail-symbol-if-comment)
       (assoc :range range)))

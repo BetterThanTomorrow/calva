@@ -123,13 +123,6 @@ baz))"
                        (assoc a-comment :idxs [47]))
                       [:range-text]))))
 
-(deftest normalize-indents
-  (is (= "(foo)\n  (defn bar\n    [x]\n    baz)"
-         (:range-text (sut/normalize-indents {:eol "\n"
-                                              :all-text "  (foo)\n(defn bar\n[x]\nbaz)"
-                                              :range [2 26]
-                                              :range-text "(foo)\n(defn bar\n  [x]\n  baz)"})))))
-
 (def first-top-level-text "
 ;; foo
 (defn foo [x]
