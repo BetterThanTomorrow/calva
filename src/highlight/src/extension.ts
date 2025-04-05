@@ -527,7 +527,7 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.window.onDidChangeActiveTextEditor(
     (editor) => {
       activeEditor = editor;
-      if (is_clojure(editor)) {
+      if (editor && is_clojure(editor)) {
         scheduleRainbowBrackets();
       }
     },
@@ -537,7 +537,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   vscode.window.onDidChangeTextEditorSelection(
     (event) => {
-      if (event.textEditor === tryToGetActiveTextEditor() && is_clojure(event.textEditor)) {
+      const activeEditor = tryToGetActiveTextEditor();
+      if (activeEditor && event.textEditor === activeEditor && is_clojure(event.textEditor)) {
         if (lastHighlightedEditor !== event.textEditor) {
           scheduleRainbowBrackets();
         } else {
@@ -547,7 +548,10 @@ export function activate(context: vscode.ExtensionContext) {
           matchTimer = setTimeout(() => {
             matchPairs();
             if (highlightActiveIndent && rainbowTypes.length) {
-              decorateActiveGuides();
+              const activeEditor = tryToGetActiveTextEditor();
+              if (activeEditor) {
+                decorateActiveGuides();
+              }
             }
           }, 16);
         }
