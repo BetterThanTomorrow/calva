@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Broken characters in "Calva REPL Commands" menu](https://github.com/BetterThanTomorrow/calva/issues/2765)
+
 ## [2.0.495] - 2025-03-24
 
 - [Find calva.exports that are not in a JAR file](https://github.com/BetterThanTomorrow/calva/issues/2762)

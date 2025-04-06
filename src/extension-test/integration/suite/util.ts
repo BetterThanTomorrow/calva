@@ -104,3 +104,12 @@ export function createVscTextEditorProxy(editor: vscode.TextEditor): vscode.Text
 
   return proxyEditor;
 }
+
+export async function ensureOutputDir(projectPath: string): Promise<void> {
+  const outputDir = path.join(projectPath, '.calva', 'output-window');
+  try {
+    await fs.promises.mkdir(outputDir, { recursive: true });
+  } catch (err) {
+    console.log(`Error creating output directory: ${err}`);
+  }
+}
