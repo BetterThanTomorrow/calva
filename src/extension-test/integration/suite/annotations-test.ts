@@ -11,8 +11,9 @@ import * as testUtil from './util';
 suite('Annotations suite', () => {
   const suite = 'Annotations';
 
-  before(() => {
+  before(async () => {
     testUtil.showMessage(suite, `suite starting!`);
+    await testUtil.ensureOutputDir(testUtil.testDataDir);
   });
 
   after(() => {
