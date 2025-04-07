@@ -53,9 +53,27 @@
               :hover-tail (or (safe-second (.-hoverTail context)) "")})
       base-map)))
 
+(defn- apply-modifier [value [modifier & args]]
+  (case modifier
+    "stringify" (js/JSON.stringify value)
+    "upper" (string/upper-case value)
+    "replace" (if (>= (count args) 2)
+                (string/replace value (re-pattern (first args)) (second args))
+                value)
+    value))
+
 (defn interpolate-variables [language-id code ^js context]
-  (let [context-map (build-context-map language-id context)]
-    (string/replace code
-                    #"\$([a-zA-Z][a-zA-Z0-9-]*)"
-                    (fn [[_ var-name]]
-                      (context-map (keywordize var-name))))))
+  (let [context-map (build-context-map language-id context)
+        expanded (string/replace code
+                                 #"\$\{([^}]+)\}"
+                                 (fn [[_ expr]]
+                                   (let [[var-name & modifiers] (string/split expr #"\|")
+                                         value (get context-map (keywordize var-name) "")]
+                                     (if (seq modifiers)
+                                       (apply-modifier value modifiers)
+                                       value))))
+        with-legacy (string/replace expanded
+                                    #"\$([a-zA-Z][a-zA-Z0-9-]*)"
+                                    (fn [[_ var-name]]
+                                      (get context-map (keywordize var-name) "")))]
+    with-legacy))

@@ -190,3 +190,26 @@
                                       "File: $file"
                                       #js {:currentFilename "C:\\path\\to\\file.clj"})
            "File: C:\\\\path\\\\to\\\\file.clj"))))
+
+(deftest interpolate-variables-with-modifiers
+  (testing "parameter expansion with modifiers"
+    (is (= (sut/interpolate-variables
+            "clojure"
+            "${current-form|stringify}"
+            #js {:currentForm #js [nil "(+ 1 2)"]})
+           "\"(+ 1 2)\"")
+        "stringifies the value")
+
+    (is (= (sut/interpolate-variables
+            "clojure"
+            "${current-form|upper}"
+            #js {:currentForm #js [nil "(+ 1 2)"]})
+           "(+ 1 2)")
+        "converts text to uppercase")
+
+    (is (= (sut/interpolate-variables
+            "clojure"
+            "${selection|replace|\\s+|_}"
+            #js {:selection "hello world"})
+           "hello_world")
+        "replaces text using regex pattern")))
