@@ -2,48 +2,60 @@
   (:require
    [clojure.string :as string]))
 
+(defn- keywordize [s]
+  (-> s
+      (string/replace #"^\$" "")
+      keyword))
+
+(defn- build-context-map [language-id ^js context]
+  (let [safe-second (fn [x] (if (and (seq x)
+                                     (second x))
+                              (second x)
+                              ""))
+        base-map
+        {:line (str (.-currentLine context))
+         :hover-line (str (.-hoverLine context))
+         :column (str (.-currentColumn context))
+         :hover-column (str (.-hoverColumn context))
+         :file-text (safe-second (.-currentFileText context))
+         :file (or (some-> (.-currentFilename context)
+                           (string/replace #"\\" "\\\\"))
+                   "")
+         :hover-file-text (or (safe-second (.-hoverCurrentFileText context)) "")
+         :hover-file (or (some-> (.-hoverFilename context)
+                                 (string/replace #"\\" "\\\\"))
+                         "")
+         :ns (str (.-ns context))
+         :editor-ns (str (.-editorNs context))
+         :repl (str (.-repl context))
+         :selection-closing-brackets (safe-second (.-selectionWithBracketTrail context))
+         :selection (str (.-selection context))
+         :hover-text (str (.-hoverText context))}]
+    (if (= "clojure" language-id)
+      (merge base-map
+             {:current-form (safe-second (.-currentForm context))
+              :current-pair (safe-second (.-currentPair context))
+              :enclosing-form (safe-second (.-enclosingForm context))
+              :top-level-form (safe-second (.-topLevelForm context))
+              :current-fn (safe-second (.-currentFn context))
+              :top-level-fn (safe-second (.-topLevelFn context))
+              :top-level-defined-symbol (or (safe-second (.-topLevelDefinedForm context)) "")
+              :head (safe-second (.-head context))
+              :tail (safe-second (.-tail context))
+              :hover-current-form (or (safe-second (.-hoverCurrentForm context)) "")
+              :hover-current-pair (or (safe-second (.-hoverCurrentPair context)) "")
+              :hover-enclosing-form (or (safe-second (.-hoverEnclosingForm context)) "")
+              :hover-top-level-form (or (safe-second (.-hoverTopLevelForm context)) "")
+              :hover-current-fn (or (safe-second (.-hoverCurrentFn context)) "")
+              :hover-top-level-fn (or (safe-second (.-hoverTopLevelFn context)) "")
+              :hover-top-level-defined-symbol (or (safe-second (.-hoverTopLevelDefinedForm context)) "")
+              :hover-head (or (safe-second (.-hoverHead context)) "")
+              :hover-tail (or (safe-second (.-hoverTail context)) "")})
+      base-map)))
+
 (defn interpolate-variables [language-id code ^js context]
-  (def language-id language-id)
-  (def code code)
-  (def context context)
-  (let [base-interpolated
-        (-> code
-            (string/replace #"\$line" (str (.-currentLine context)))
-            (string/replace #"\$hover-line" (str (.-hoverLine context)))
-            (string/replace #"\$column" (str (.-currentColumn context)))
-            (string/replace #"\$hover-column" (str (.-hoverColumn context)))
-            (string/replace #"\$file-text" (second (.-currentFileText context)))
-            (string/replace #"\$file" (or (some-> (.-currentFilename context)
-                                                  (string/replace #"\\" "\\\\"))
-                                          ""))
-            (string/replace #"\$hover-file-text" (or (second (.-hoverCurrentFileText context)) ""))
-            (string/replace #"\$hover-file" (or (some-> (.-hoverFilename context)
-                                                       (string/replace #"\\" "\\\\"))
-                                              ""))
-            (string/replace #"\$ns" (.-ns context))
-            (string/replace #"\$editor-ns" (.-editorNs context))
-            (string/replace #"\$repl" (.-repl context))
-            (string/replace #"\$selection-closing-brackets" (second (.-selectionWithBracketTrail context)))
-            (string/replace #"\$selection" (.-selection context))
-            (string/replace #"\$hover-text" (.-hoverText context)))]
-    (if-not (= language-id "clojure")
-      base-interpolated
-      (-> base-interpolated
-          (string/replace #"\$current-form" (second (.-currentForm context)))
-          (string/replace #"\$current-pair" (second (.-currentPair context)))
-          (string/replace #"\$enclosing-form" (second (.-enclosingForm context)))
-          (string/replace #"\$top-level-form" (second (.-topLevelForm context)))
-          (string/replace #"\$current-fn" (second (.-currentFn context)))
-          (string/replace #"\$top-level-fn" (second (.-topLevelFn context)))
-          (string/replace #"\$top-level-defined-symbol" (or (second (.-topLevelDefinedForm context)) ""))
-          (string/replace #"\$head" (second (.-head context)))
-          (string/replace #"\$tail" (second (.-tail context)))
-          (string/replace #"\$hover-current-form" (or (second (.-hoverCurrentForm context)) ""))
-          (string/replace #"\$hover-current-pair" (or (second (.-hoverCurrentPair context)) ""))
-          (string/replace #"\$hover-enclosing-form" (or (second (.-hoverEnclosingForm context)) ""))
-          (string/replace #"\$hover-top-level-form" (or (second (.-hoverTopLevelForm context)) ""))
-          (string/replace #"\$hover-current-fn" (or (second (.-hoverCurrentFn context)) ""))
-          (string/replace #"\$hover-top-level-fn" (or (second (.-hoverTopLevelFn context)) ""))
-          (string/replace #"\$hover-top-level-defined-symbol" (or (second (.-hoverTopLevelDefinedForm context)) ""))
-          (string/replace #"\$hover-head" (or (second (.-hoverHead context)) ""))
-          (string/replace #"\$hover-tail" (or (second (.-hoverTail context)) ""))))))
+  (let [context-map (build-context-map language-id context)]
+    (string/replace code
+                    #"\$([a-zA-Z][a-zA-Z0-9-]*)"
+                    (fn [[_ var-name]]
+                      (context-map (keywordize var-name))))))
