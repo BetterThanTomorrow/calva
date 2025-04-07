@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add modifiers `pr-str`, `replace`, and `replace-first` to command snippet variables](https://github.com/BetterThanTomorrow/calva/issues/2282)
+
 ## [2.0.496] - 2025-04-06
 
 - Fix: [Broken characters in "Calva REPL Commands" menu](https://github.com/BetterThanTomorrow/calva/issues/2765)
