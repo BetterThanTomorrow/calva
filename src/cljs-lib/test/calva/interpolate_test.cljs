@@ -212,4 +212,13 @@
             "${selection|replace|\\s+|_}"
             #js {:selection "hello world"})
            "hello_world")
-        "replaces text using regex pattern")))
+        "replaces text using regex pattern"))
+
+  (testing "number handling"
+    (let [context #js {:currentLine 42}]
+      (is (= (sut/interpolate-variables
+              "text"
+              "$line ${line}"
+              context)
+             "42 42")
+          "legacy syntax stringifies numbers, new syntax preserves numbers"))))

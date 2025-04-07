@@ -13,10 +13,10 @@
                               (second x)
                               ""))
         base-map
-        {:line (str (.-currentLine context))
-         :hover-line (str (.-hoverLine context))
-         :column (str (.-currentColumn context))
-         :hover-column (str (.-hoverColumn context))
+        {:line (.-currentLine context)
+         :hover-line (.-hoverLine context)
+         :column (.-currentColumn context)
+         :hover-column (.-hoverColumn context)
          :file-text (safe-second (.-currentFileText context))
          :file (or (some-> (.-currentFilename context)
                            (string/replace #"\\" "\\\\"))
@@ -25,12 +25,12 @@
          :hover-file (or (some-> (.-hoverFilename context)
                                  (string/replace #"\\" "\\\\"))
                          "")
-         :ns (str (.-ns context))
-         :editor-ns (str (.-editorNs context))
-         :repl (str (.-repl context))
+         :ns (.-ns context)
+         :editor-ns (.-editorNs context)
+         :repl (.-repl context)
          :selection-closing-brackets (safe-second (.-selectionWithBracketTrail context))
-         :selection (str (.-selection context))
-         :hover-text (str (.-hoverText context))}]
+         :selection (.-selection context)
+         :hover-text (.-hoverText context)}]
     (if (= "clojure" language-id)
       (merge base-map
              {:current-form (safe-second (.-currentForm context))
@@ -65,15 +65,16 @@
 (defn interpolate-variables [language-id code ^js context]
   (let [context-map (build-context-map language-id context)
         expanded (string/replace code
-                                 #"\$\{([^}]+)\}"
-                                 (fn [[_ expr]]
-                                   (let [[var-name & modifiers] (string/split expr #"\|")
-                                         value (get context-map (keywordize var-name) "")]
-                                     (if (seq modifiers)
-                                       (apply-modifier value modifiers)
+                                 #"\$\{([a-zA-Z][a-zA-Z0-9-]*)([^}]*)\}"
+                                 (fn [[_ var-name modifiers]]
+                                   (let [value (get context-map (keywordize var-name) "")
+                                         mods (when (seq modifiers)
+                                                (rest (string/split modifiers #"\|")))]
+                                     (if (seq mods)
+                                       (apply-modifier value mods)
                                        value))))
         with-legacy (string/replace expanded
                                     #"\$([a-zA-Z][a-zA-Z0-9-]*)"
                                     (fn [[_ var-name]]
-                                      (get context-map (keywordize var-name) "")))]
+                                      (str (get context-map (keywordize var-name) ""))))]
     with-legacy))
