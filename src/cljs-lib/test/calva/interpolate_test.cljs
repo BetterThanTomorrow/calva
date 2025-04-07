@@ -195,17 +195,17 @@
   (testing "parameter expansion with modifiers"
     (is (= (sut/interpolate-variables
             "clojure"
-            "${current-form|stringify}"
+            "${current-form|pr-str}"
             #js {:currentForm #js [nil "(+ 1 2)"]})
            "\"(+ 1 2)\"")
         "stringifies the value")
 
     (is (= (sut/interpolate-variables
             "clojure"
-            "${current-form|upper}"
-            #js {:currentForm #js [nil "(+ 1 2)"]})
-           "(+ 1 2)")
-        "converts text to uppercase")
+            "${line|str}"
+            #js {:currentLine 1})
+           "1")
+        "applies str")
 
     (is (= (sut/interpolate-variables
             "clojure"

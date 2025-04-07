@@ -7,7 +7,7 @@
       (string/replace #"^\$" "")
       keyword))
 
-(defn- build-context-map [language-id ^js context]
+(defn- extract-context [language-id ^js context]
   (let [safe-second (fn [x] (if (and (seq x)
                                      (second x))
                               (second x)
@@ -55,19 +55,19 @@
 
 (defn- apply-modifier [value [modifier & args]]
   (case modifier
-    "stringify" (js/JSON.stringify value)
-    "upper" (string/upper-case value)
+    "pr-str" (pr-str value)
+    "str" (str value)
     "replace" (if (>= (count args) 2)
                 (string/replace value (re-pattern (first args)) (second args))
                 value)
     value))
 
-(defn interpolate-variables [language-id code ^js context]
-  (let [context-map (build-context-map language-id context)
+(defn interpolate-variables [language-id code ^js js-context]
+  (let [context (extract-context language-id js-context)
         expanded (string/replace code
                                  #"\$\{([a-zA-Z][a-zA-Z0-9-]*)([^}]*)\}"
                                  (fn [[_ var-name modifiers]]
-                                   (let [value (get context-map (keywordize var-name) "")
+                                   (let [value (get context (keywordize var-name) "")
                                          mods (when (seq modifiers)
                                                 (rest (string/split modifiers #"\|")))]
                                      (if (seq mods)
@@ -76,5 +76,5 @@
         with-legacy (string/replace expanded
                                     #"\$([a-zA-Z][a-zA-Z0-9-]*)"
                                     (fn [[_ var-name]]
-                                      (str (get context-map (keywordize var-name) ""))))]
+                                      (str (get context (keywordize var-name) ""))))]
     with-legacy))
