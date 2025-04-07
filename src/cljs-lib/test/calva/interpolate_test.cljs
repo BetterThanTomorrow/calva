@@ -215,10 +215,19 @@
         "replaces text using regex pattern"))
 
   (testing "number handling"
-    (let [context #js {:currentLine 42}]
+    (let [context #js {:currentLine 42
+                       :currentColumn 2
+                       :hoverLine 3
+                       :hoverColumn 4}]
       (is (= (sut/interpolate-variables
               "text"
-              "$line ${line}"
+              (str "$line ${line}"
+                   "$column ${column}"
+                   "$hover-line ${hover-line}"
+                   "$hover-column ${hover-column}")
               context)
-             "42 42")
+             (str "42 42"
+                  "2 2"
+                  "3 3"
+                  "4 4"))
           "legacy syntax stringifies numbers, new syntax preserves numbers"))))
