@@ -8,9 +8,8 @@ import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import evaluate from './evaluate';
 import * as state from './state';
-import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import { getStateValue, interpolateVariables } from '../out/cljs-lib/cljs-lib';
 import * as output from './results-output/output';
-import * as interpolate from './interpolate';
 
 export type CustomREPLCommandSnippet = {
   name: string;
@@ -186,6 +185,6 @@ export function makeContext(editor: vscode.TextEditor, ns: string, editorNS: str
 export async function evaluateSnippet(editor: vscode.TextEditor, code, context, options) {
   const ns = context.ns;
   const repl = context.repl;
-  const interpolatedCode = interpolate.interpolateCode(editor.document.languageId, code, context);
+  const interpolatedCode = interpolateVariables(editor.document.languageId, code, context);
   return await evaluate.evaluateInOutputWindow(interpolatedCode, repl, ns, options);
 }
