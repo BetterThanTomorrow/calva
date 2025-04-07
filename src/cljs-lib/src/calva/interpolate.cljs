@@ -1,5 +1,6 @@
 (ns calva.interpolate
   (:require
+   [clojure.edn :as edn]
    [clojure.string :as string]))
 
 (defn- keywordize [s]
@@ -65,18 +66,26 @@
     value))
 
 (defn interpolate-variables [language-id code ^js js-context]
-  (let [context (extract-context language-id js-context)
-        expanded (string/replace code
-                                 #"\$\{([a-zA-Z][a-zA-Z0-9-]*)([^}]*)\}"
-                                 (fn [[_ var-name modifiers]]
-                                   (let [value (get context (keywordize var-name) "")
-                                         mods (when (seq modifiers)
-                                                (rest (string/split modifiers #"\|")))]
-                                     (if (seq mods)
-                                       (apply-modifier value mods)
-                                       value))))
-        with-legacy (string/replace expanded
-                                    #"\$([a-zA-Z][a-zA-Z0-9-]*)"
-                                    (fn [[_ var-name]]
-                                      (str (get context (keywordize var-name) ""))))]
-    with-legacy))
+  (let [context (extract-context language-id js-context)]
+    (loop [current code
+           prev nil]
+      (if (= current prev)
+        current
+        (recur
+         (-> current
+             (string/replace
+              #"\$\{([^{}]+)\}"
+              (fn [[_ content]]
+                (let [[var-name & modifier-parts] (string/split content #"\|")
+                      raw-value (if (re-find #"^[a-zA-Z][a-zA-Z0-9-]*$" var-name)
+                                  (get context (keywordize var-name) "")
+                                  var-name)
+                      value raw-value]
+                  (if (seq modifier-parts)
+                    (apply-modifier value modifier-parts)
+                    value))))
+             (string/replace
+              #"\$([a-zA-Z][a-zA-Z0-9-]*)"
+              (fn [[_ var-name]]
+                (str (get context (keywordize var-name) "")))))
+         current)))))
