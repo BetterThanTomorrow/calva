@@ -48,6 +48,7 @@
                 "Hover File Text: hover file contents\n"
                 "Hover Text: hovered text\n"))
         "interpolates all non-clojure variables"))
+
   (testing "all clojure-specific variables"
     (is (= (sut/interpolate-variables "clojure"
                                       (str "Current Form: $current-form\n"
@@ -69,7 +70,7 @@
                                            "Hover Head: $hover-head\n"
                                            "Hover Tail: $hover-tail\n")
                                       #js {:currentForm #js [nil "(+ 1 2)"]
-                                           :currentPair #js [nil "[a b]"]
+                                           :currentPair #js [nil "a b"]
                                            :enclosingForm #js [nil "(let [x 1] (+ x 2))"]
                                            :topLevelForm #js [nil "(defn foo [x] (+ x 1))"]
                                            :currentFn #js [nil "+"]
@@ -87,7 +88,7 @@
                                            :hoverHead #js [nil "(- 3"]
                                            :hoverTail #js [nil "4)"]})
            (str "Current Form: (+ 1 2)\n"
-                "Current Pair: [a b]\n"
+                "Current Pair: a b\n"
                 "Enclosing Form: (let [x 1] (+ x 2))\n"
                 "Top Level Form: (defn foo [x] (+ x 1))\n"
                 "Current Fn: +\n"
@@ -106,8 +107,77 @@
                 "Hover Tail: 4)\n"))
         "interpolates all clojure-specific variables"))
 
+  (testing "missing variables"
+    (is (= (sut/interpolate-variables "clojure"
+                                      (str "Line: $line\n"
+                                           "Column: $column\n"
+                                           "File: $file\n"
+                                           "File Text: $file-text\n"
+                                           "NS: $ns\n"
+                                           "Editor NS: $editor-ns\n"
+                                           "REPL: $repl\n"
+                                           "Selection: $selection\n"
+                                           "Selection+Brackets: $selection-closing-brackets\n"
+                                           "Hover Line: $hover-line\n"
+                                           "Hover Column: $hover-column\n"
+                                           "Hover File: $hover-file\n"
+                                           "Hover File Text: $hover-file-text\n"
+                                           "Hover Text: $hover-text\n"
+                                           "Current Form: $current-form\n"
+                                           "Current Pair: $current-pair\n"
+                                           "Enclosing Form: $enclosing-form\n"
+                                           "Top Level Form: $top-level-form\n"
+                                           "Current Fn: $current-fn\n"
+                                           "Top Level Fn: $top-level-fn\n"
+                                           "Top Level Defined Symbol: $top-level-defined-symbol\n"
+                                           "Head: $head\n"
+                                           "Tail: $tail\n"
+                                           "Hover Current Form: $hover-current-form\n"
+                                           "Hover Current Pair: $hover-current-pair\n"
+                                           "Hover Enclosing Form: $hover-enclosing-form\n"
+                                           "Hover Top Level Form: $hover-top-level-form\n"
+                                           "Hover Current Fn: $hover-current-fn\n"
+                                           "Hover Top Level Fn: $hover-top-level-fn\n"
+                                           "Hover Top Level Defined Symbol: $hover-top-level-defined-symbol\n"
+                                           "Hover Head: $hover-head\n"
+                                           "Hover Tail: $hover-tail\n")
+                                      #js {})
+           (str "Line: \n"
+                "Column: \n"
+                "File: \n"
+                "File Text: \n"
+                "NS: \n"
+                "Editor NS: \n"
+                "REPL: \n"
+                "Selection: \n"
+                "Selection+Brackets: \n"
+                "Hover Line: \n"
+                "Hover Column: \n"
+                "Hover File: \n"
+                "Hover File Text: \n"
+                "Hover Text: \n"
+                "Current Form: \n"
+                "Current Pair: \n"
+                "Enclosing Form: \n"
+                "Top Level Form: \n"
+                "Current Fn: \n"
+                "Top Level Fn: \n"
+                "Top Level Defined Symbol: \n"
+                "Head: \n"
+                "Tail: \n"
+                "Hover Current Form: \n"
+                "Hover Current Pair: \n"
+                "Hover Enclosing Form: \n"
+                "Hover Top Level Form: \n"
+                "Hover Current Fn: \n"
+                "Hover Top Level Fn: \n"
+                "Hover Top Level Defined Symbol: \n"
+                "Hover Head: \n"
+                "Hover Tail: \n"))
+        "handles missing variables by replacing them with empty strings"))
+
   (testing "backslash escaping in filenames"
-    (let [context #js {:currentFilename "C:\\path\\to\\file.clj"}
-          code "File: $file"]
-      (is (= (sut/interpolate-variables "text" code context)
-             "File: C:\\\\path\\\\to\\\\file.clj")))))
+    (is (= (sut/interpolate-variables "text"
+                                      "File: $file"
+                                      #js {:currentFilename "C:\\path\\to\\file.clj"})
+           "File: C:\\\\path\\\\to\\\\file.clj"))))
