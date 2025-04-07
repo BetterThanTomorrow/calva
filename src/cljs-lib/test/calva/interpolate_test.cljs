@@ -212,7 +212,14 @@
             "clojure"
             "${selection|replace-first|l|L}"
             #js {:selection "hello world"}))
-        "replace-first on text using regex pattern")))
+        "replace-first on text using regex pattern")
+
+    (is (= "world hello"
+           (sut/interpolate-variables
+            "clojure"
+            "${selection|replace|(hello) (world)|$2 $1}"
+            #js {:selection "hello world"}))
+        "replace supports capture groups")))
 
 (deftest interpolate-chained-modifiers
   (testing "chained modifiers"
