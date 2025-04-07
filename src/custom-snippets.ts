@@ -111,6 +111,7 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
       label: `${entry.key ? entry.key + ': ' : ''}${entry.name}`,
       detail: `${entry.snippet}`,
       description: `${entry.repl}`,
+      repl: `${entry.repl}`,
       snippet: entry.snippet,
     };
     snippetsMenuItems.push(item);
