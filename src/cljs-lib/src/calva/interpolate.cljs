@@ -56,44 +56,38 @@
 
 (defn interpolate-variables [language-id code ^js js-context]
   (let [context (extract-context language-id js-context)]
-    (loop [current code
-           prev nil]
-      (if (= current prev)
-        current
-        (recur
-         (-> current
-             (string/replace
-              #"\$\{([^{}]+)\}"
-              (fn [[_ content]]
-                (let [parts (string/split content #"\|")
-                      var-name (first parts)
-                      modifiers (rest parts)
-                      initial-value (if (re-find #"^[a-zA-Z][a-zA-Z0-9-]*$" var-name)
-                                      (get context (keywordize var-name) "")
-                                      var-name)]
-                  ;; Process modifiers sequentially
-                  (loop [remaining-mods modifiers
-                         current-value initial-value]
-                    (if (empty? remaining-mods)
-                      current-value
-                      (let [modifier (first remaining-mods)
-                            args-needed (case modifier
-                                          ("replace" "replace-first") 2
-                                          0)
-                            args (take args-needed (rest remaining-mods))
-                            next-modifiers (drop (inc args-needed) remaining-mods)]
-                        (recur next-modifiers
-                               (case modifier
-                                 "pr-str" (pr-str current-value)
-                                 "replace" (if (= 2 (count args))
-                                             (string/replace current-value (re-pattern (first args)) (second args))
-                                             current-value)
-                                 "replace-first" (if (= 2 (count args))
-                                                   (string/replace-first current-value (re-pattern (first args)) (second args))
-                                                   current-value)
-                                 current-value))))))))
-             (string/replace
-              #"\$([a-zA-Z][a-zA-Z0-9-]*)"
-              (fn [[_ var-name]]
-                (str (get context (keywordize var-name) "")))))
-         current)))))
+    (-> code
+        (string/replace
+         #"\$\{([^{}]+)\}"
+         (fn [[_ content]]
+           (let [parts (string/split content #"\|")
+                 var-name (first parts)
+                 modifiers (rest parts)
+                 initial-value (if (re-find #"^[a-zA-Z][a-zA-Z0-9-]*$" var-name)
+                                 (get context (keywordize var-name) "")
+                                 var-name)]
+             ;; Process modifiers sequentially
+             (loop [remaining-mods modifiers
+                    current-value initial-value]
+               (if (empty? remaining-mods)
+                 current-value
+                 (let [modifier (first remaining-mods)
+                       args-needed (case modifier
+                                     ("replace" "replace-first") 2
+                                     0)
+                       args (take args-needed (rest remaining-mods))
+                       next-modifiers (drop (inc args-needed) remaining-mods)]
+                   (recur next-modifiers
+                          (case modifier
+                            "pr-str" (pr-str current-value)
+                            "replace" (if (= 2 (count args))
+                                        (string/replace current-value (re-pattern (first args)) (second args))
+                                        current-value)
+                            "replace-first" (if (= 2 (count args))
+                                              (string/replace-first current-value (re-pattern (first args)) (second args))
+                                              current-value)
+                            current-value))))))))
+        (string/replace
+         #"\$([a-zA-Z][a-zA-Z0-9-]*)"
+         (fn [[_ var-name]]
+           (str (get context (keywordize var-name) "")))))))
