@@ -250,3 +250,40 @@
             "${current-form|pr-str|replace|\\s+|_|replace-first|\\(|[}"
             #js {:currentForm #js [nil "(var foo = 1)"]}))
         "chains multiple transformations")))
+
+(deftest interpolate-special-chars
+  (testing "special characters in replacement strings"
+    (is (= "(defn* ...)"
+           (sut/interpolate-variables
+            "clojure"
+            "${selection|replace|^\\(defn\\s+|(defn* }"
+            #js {:selection "(defn ...)"}))
+        "replaces with pipe character")
+
+    (is (= "hello|world"
+           (sut/interpolate-variables
+            "clojure"
+            "${selection|replace|\\s+|\\|}"
+            #js {:selection "hello world"}))
+        "replaces with pipe character")
+
+    (is (= "hello{world"
+           (sut/interpolate-variables
+            "clojure"
+            "${selection|replace|\\s+|\\{}"
+            #js {:selection "hello world"}))
+        "replaces with open brace")
+
+    (is (= "hello}world"
+           (sut/interpolate-variables
+            "clojure"
+            "${selection|replace|\\s+|\\}}"
+            #js {:selection "hello world"}))
+        "replaces with close brace")
+
+    (is (= "{my code block}"
+           (sut/interpolate-variables
+            "clojure"
+            "${selection|replace|\\(|\\{|replace|\\)|\\}}"
+            #js {:selection "(my code block)"}))
+        "replaces multiple special characters")))
