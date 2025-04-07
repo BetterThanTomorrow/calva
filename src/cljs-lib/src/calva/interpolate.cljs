@@ -56,10 +56,12 @@
 (defn- apply-modifier [value [modifier & args]]
   (case modifier
     "pr-str" (pr-str value)
-    "str" (str value)
-    "replace" (if (>= (count args) 2)
+    "replace" (if (= 2 (count args))
                 (string/replace value (re-pattern (first args)) (second args))
                 value)
+    "replace-first" (if (= 2 (count args))
+                      (string/replace-first value (re-pattern (first args)) (second args))
+                      value)
     value))
 
 (defn interpolate-variables [language-id code ^js js-context]

@@ -202,32 +202,14 @@
 
     (is (= (sut/interpolate-variables
             "clojure"
-            "${line|str}"
-            #js {:currentLine 1})
-           "1")
-        "applies str")
-
-    (is (= (sut/interpolate-variables
-            "clojure"
             "${selection|replace|\\s+|_}"
             #js {:selection "hello world"})
            "hello_world")
-        "replaces text using regex pattern"))
+        "replaces text using regex pattern")
 
-  (testing "number handling"
-    (let [context #js {:currentLine 42
-                       :currentColumn 2
-                       :hoverLine 3
-                       :hoverColumn 4}]
-      (is (= (sut/interpolate-variables
-              "text"
-              (str "$line ${line}"
-                   "$column ${column}"
-                   "$hover-line ${hover-line}"
-                   "$hover-column ${hover-column}")
-              context)
-             (str "42 42"
-                  "2 2"
-                  "3 3"
-                  "4 4"))
-          "legacy syntax stringifies numbers, new syntax preserves numbers"))))
+    (is (= (sut/interpolate-variables
+            "clojure"
+            "${selection|replace-first|l|L}"
+            #js {:selection "hello world"})
+           "heLlo world")
+        "replace-first on text using regex pattern")))
