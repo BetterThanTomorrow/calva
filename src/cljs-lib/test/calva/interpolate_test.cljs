@@ -4,7 +4,21 @@
 
 (deftest interpolate-basic-variables-test
   (testing "all non-clojure variables interpolation"
-    (is (= (sut/interpolate-variables "text"
+    (is (= (str "Line: 42\n"
+                "Column: 10\n"
+                "File: /path/to/file.clj\n"
+                "File Text: file contents\n"
+                "NS: user\n"
+                "Editor NS: editor.ns\n"
+                "REPL: clj\n"
+                "Selection: selected text\n"
+                "Selection+Brackets: selected text)\n"
+                "Hover Line: 43\n"
+                "Hover Column: 11\n"
+                "Hover File: /path/to/hover.clj\n"
+                "Hover File Text: hover file contents\n"
+                "Hover Text: hovered text\n")
+           (sut/interpolate-variables "text"
                                       (str "Line: $line\n"
                                            "Column: $column\n"
                                            "File: $file\n"
@@ -32,25 +46,29 @@
                                            :hoverColumn 11
                                            :hoverFilename "/path/to/hover.clj"
                                            :hoverCurrentFileText #js [nil "hover file contents"]
-                                           :hoverText "hovered text"})
-           (str "Line: 42\n"
-                "Column: 10\n"
-                "File: /path/to/file.clj\n"
-                "File Text: file contents\n"
-                "NS: user\n"
-                "Editor NS: editor.ns\n"
-                "REPL: clj\n"
-                "Selection: selected text\n"
-                "Selection+Brackets: selected text)\n"
-                "Hover Line: 43\n"
-                "Hover Column: 11\n"
-                "Hover File: /path/to/hover.clj\n"
-                "Hover File Text: hover file contents\n"
-                "Hover Text: hovered text\n"))
+                                           :hoverText "hovered text"}))
         "interpolates all non-clojure variables"))
 
   (testing "all clojure-specific variables"
-    (is (= (sut/interpolate-variables "clojure"
+    (is (= (str "Current Form: (+ 1 2)\n"
+                "Current Pair: a b\n"
+                "Enclosing Form: (let [x 1] (+ x 2))\n"
+                "Top Level Form: (defn foo [x] (+ x 1))\n"
+                "Current Fn: +\n"
+                "Top Level Fn: defn\n"
+                "Top Level Defined Symbol: foo\n"
+                "Head: (+ 1\n"
+                "Tail: 2)\n"
+                "Hover Current Form: (- 3 4)\n"
+                "Hover Current Pair: [c d]\n"
+                "Hover Enclosing Form: (let [y 2] (- y 3))\n"
+                "Hover Top Level Form: (defn bar [y] (- y 2))\n"
+                "Hover Current Fn: -\n"
+                "Hover Top Level Fn: defn\n"
+                "Hover Top Level Defined Symbol: bar\n"
+                "Hover Head: (- 3\n"
+                "Hover Tail: 4)\n")
+           (sut/interpolate-variables "clojure"
                                       (str "Current Form: $current-form\n"
                                            "Current Pair: $current-pair\n"
                                            "Enclosing Form: $enclosing-form\n"
@@ -86,25 +104,7 @@
                                            :hoverTopLevelFn #js [nil "defn"]
                                            :hoverTopLevelDefinedForm #js [nil "bar"]
                                            :hoverHead #js [nil "(- 3"]
-                                           :hoverTail #js [nil "4)"]})
-           (str "Current Form: (+ 1 2)\n"
-                "Current Pair: a b\n"
-                "Enclosing Form: (let [x 1] (+ x 2))\n"
-                "Top Level Form: (defn foo [x] (+ x 1))\n"
-                "Current Fn: +\n"
-                "Top Level Fn: defn\n"
-                "Top Level Defined Symbol: foo\n"
-                "Head: (+ 1\n"
-                "Tail: 2)\n"
-                "Hover Current Form: (- 3 4)\n"
-                "Hover Current Pair: [c d]\n"
-                "Hover Enclosing Form: (let [y 2] (- y 3))\n"
-                "Hover Top Level Form: (defn bar [y] (- y 2))\n"
-                "Hover Current Fn: -\n"
-                "Hover Top Level Fn: defn\n"
-                "Hover Top Level Defined Symbol: bar\n"
-                "Hover Head: (- 3\n"
-                "Hover Tail: 4)\n"))
+                                           :hoverTail #js [nil "4)"]}))
         "interpolates all clojure-specific variables"))
 
   (testing "missing variables"
@@ -172,17 +172,17 @@
                         "Hover Top Level Defined Symbol: \n"
                         "Hover Head: \n"
                         "Hover Tail: \n")]
-      (is (= (sut/interpolate-variables "clojure"
+      (is (= expected
+             (sut/interpolate-variables "clojure"
                                         text
-                                        #js {})
-             expected)
+                                        #js {}))
           "handles missing variables by replacing them with empty strings")
-      (is (= (sut/interpolate-variables "clojure"
+      (is (= expected
+             (sut/interpolate-variables "clojure"
                                         text
                                         #js {:currentLine js/undefined
                                              :currentFileText #js [nil js/undefined]
-                                             :selectionWithBracketTrail js/undefined})
-             expected)
+                                             :selectionWithBracketTrail js/undefined}))
           "handles undefined variables by replacing them with empty strings")))
 
   (testing "backslash escaping in filenames"
@@ -193,23 +193,23 @@
 
 (deftest interpolate-variables-with-modifiers
   (testing "parameter expansion with modifiers"
-    (is (= (sut/interpolate-variables
+    (is (= "\"(+ 1 2)\""
+           (sut/interpolate-variables
             "clojure"
             "${current-form|pr-str}"
-            #js {:currentForm #js [nil "(+ 1 2)"]})
-           "\"(+ 1 2)\"")
+            #js {:currentForm #js [nil "(+ 1 2)"]}))
         "stringifies the value")
 
-    (is (= (sut/interpolate-variables
+    (is (= "hello_world"
+           (sut/interpolate-variables
             "clojure"
             "${selection|replace|\\s+|_}"
-            #js {:selection "hello world"})
-           "hello_world")
+            #js {:selection "hello world"}))
         "replaces text using regex pattern")
 
-    (is (= (sut/interpolate-variables
+    (is (= "heLlo world"
+           (sut/interpolate-variables
             "clojure"
             "${selection|replace-first|l|L}"
-            #js {:selection "hello world"})
-           "heLlo world")
+            #js {:selection "hello world"}))
         "replace-first on text using regex pattern")))
