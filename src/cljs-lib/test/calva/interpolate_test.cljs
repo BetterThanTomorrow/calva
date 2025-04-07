@@ -281,6 +281,13 @@
             #js {:selection "hello world"}))
         "replaces with close brace")
 
+    (is (= "hello$world"
+           (sut/interpolate-variables
+            "clojure"
+            "${selection|replace|\\s+|$}"
+            #js {:selection "hello world"}))
+        "replaces with dollar sign")
+
     (is (= "{my code block}"
            (sut/interpolate-variables
             "clojure"

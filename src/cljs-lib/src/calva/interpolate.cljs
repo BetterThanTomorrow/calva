@@ -60,6 +60,10 @@
   (let [context (extract-context language-id js-context)]
     (-> code
         (string/replace
+         #"\$([a-zA-Z][a-zA-Z0-9-]*)"
+         (fn [[_ var-name]]
+           (str (get context (keywordize var-name) ""))))
+        (string/replace
          #"\$\{((?:\\.|[^{}])*)\}"
          (fn [[_ content]]
            (let [parts (string/split content #"(?<!\\)\|")
@@ -91,8 +95,4 @@
                                                                     (re-pattern (first args))
                                                                     (unescape (second args)))
                                               current-value)
-                            current-value))))))))
-        (string/replace
-         #"\$([a-zA-Z][a-zA-Z0-9-]*)"
-         (fn [[_ var-name]]
-           (str (get context (keywordize var-name) "")))))))
+                            current-value)))))))))))
