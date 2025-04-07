@@ -250,3 +250,40 @@
             "${${${current-form|pr-str}|replace|\\s+|_}|replace-first|\\(|[}"
             #js {:currentForm #js [nil "(var foo = 1)"]}))
         "three levels deep nestling")))
+
+(deftest interpolate-chained-modifiers
+  (testing "chained modifiers"
+    (is (= "\"hello_world\""
+           (sut/interpolate-variables
+            "clojure"
+            "${selection|pr-str|replace|\\s+|_}"
+            #js {:selection "hello world"}))
+        "pr-str then replace")
+
+    (is (= "\"hello_world\""
+           (sut/interpolate-variables
+            "clojure"
+            "${selection|replace|\\s+|_|pr-str}"
+            #js {:selection "hello world"}))
+        "replace then pr-str")
+
+    (is (= "HELLO_world"
+           (sut/interpolate-variables
+            "clojure"
+            "${selection|replace|hello|HELLO|replace|\\s+|_}"
+            #js {:selection "hello world"}))
+        "multiple replacements in sequence")
+
+    (is (= "\"(var_foo_=_1)\""
+           (sut/interpolate-variables
+            "clojure"
+            "${current-form|pr-str|replace|\\s+|_}"
+            #js {:currentForm #js [nil "(var foo = 1)"]}))
+        "works with stringified code")
+
+    (is (= "\"[var_foo_=_1)\""
+           (sut/interpolate-variables
+            "clojure"
+            "${current-form|pr-str|replace|\\s+|_|replace-first|\\(|[}"
+            #js {:currentForm #js [nil "(var foo = 1)"]}))
+        "chains multiple transformations")))
