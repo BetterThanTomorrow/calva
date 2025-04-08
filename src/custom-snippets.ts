@@ -28,6 +28,7 @@ type SnippetDefinition = {
 
 export function evaluateCustomCodeSnippetCommand(codeOrKeyOrSnippet?: string | SnippetDefinition) {
   evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet).catch((err) => {
+    void vscode.window.showErrorMessage('Failed to run snippet. ' + err.message);
     console.log('Failed to run snippet', err);
   });
 }
@@ -200,5 +201,9 @@ export async function evaluateSnippet(editor: vscode.TextEditor, code, context, 
   const ns = context.ns;
   const repl = context.repl;
   const interpolatedCode = interpolateVariables(editor.document.languageId, code, context);
-  return await evaluate.evaluateInCurrentEditor(editor, interpolatedCode, repl, ns, options);
+  if (typeof interpolatedCode === 'string') {
+    return await evaluate.evaluateInCurrentEditor(editor, interpolatedCode, repl, ns, options);
+  } else {
+    console.log(interpolatedCode.error);
+  }
 }

@@ -78,7 +78,7 @@ export async function provideHover(
               hovers.push(hover);
             }
           } catch (error) {
-            console.log('custom hover exploded');
+            console.log('custom hover exploded', error);
           }
         })
       );
