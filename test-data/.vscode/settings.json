@@ -21,21 +21,17 @@
       "snippet": "$selection-closing-brackets"
     },
     {
-      "name": "Add snitch dependency",
-      "snippet": "$selection-closing-brackets"
-    },
-    {
       "name": "qol: Add Snitch dependency",
       "repl": "clj",
       "snippet": "(require '[clojure.repl.deps :refer [add-libs]])\n\n\n(add-libs '{ org.clojars.abhinav/snitch {:mvn/version \"0.1.16\"}})"
     },
     {
-      "name": "qol: Evaluate as Snitch defn* ",
+      "name": "qol: Evaluate as Snitch defn* (ctrl+alt+c s)",
       "repl": "clj",
       "snippet": "(require '[snitch.core :refer [defn* defmethod* *fn *let]])\n${top-level-form|replace|^\\(defn-?|(defn*}"
     },
     {
-      "name": "cljs qol: Evaluate as Snitch defn* ",
+      "name": "qol cljs: Evaluate as Snitch defn* ctrl+alt+c ctrl+alt+s",
       "repl": "cljs",
       "snippet": "(require '[snitch.core :refer-macros [defn*]])\n${top-level-form|replace|^\\(defn-?|(defn*}"
     }

@@ -523,7 +523,7 @@ async function loadDocument(
     void vscode.window.showTextDocument(doc, { preview: false });
   }
   const fileType = util.getFileType(doc);
-  const [ns, _] = namespace.getNamespace(doc, doc.positionAt(0));
+  const [ns, nsForm] = namespace.getNamespace(doc, doc.positionAt(0));
   const session = replSession.getSession(util.getFileType(doc));
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
@@ -531,7 +531,7 @@ async function loadDocument(
       ? await namespace.getUriForNamespace(session, ns)
       : doc.uri;
     const filePath = docUri.path;
-    return await loadFile(filePath, ns, pprintOptions, fileType);
+    return await loadFile(filePath, ns, nsForm, pprintOptions, fileType);
   }
 }
 
@@ -549,6 +549,7 @@ async function loadFileCommand() {
 async function loadFile(
   filePath: string,
   ns: string,
+  nsForm: string,
   pprintOptions: PrettyPrintingOptions,
   fileType: string
 ) {
@@ -611,7 +612,13 @@ async function loadFile(
     replSession.updateReplSessionType();
     if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
       output.appendLineOtherOut(`Evaluating \`autoEvaluateCode.onFileLoaded.${fileType}\``);
-      const context = customSnippets.makeContext(vscode.window.activeTextEditor, ns, ns, fileType);
+      const context = customSnippets.makeContext(
+        vscode.window.activeTextEditor,
+        ns,
+        ns,
+        nsForm,
+        fileType
+      );
       await customSnippets.evaluateSnippet(
         util.getActiveTextEditor(),
         getConfig().autoEvaluateCode.onFileLoaded[fileType],

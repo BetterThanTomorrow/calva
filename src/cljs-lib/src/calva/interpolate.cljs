@@ -27,6 +27,7 @@
                          "")
          :ns (.-ns context)
          :editor-ns (.-editorNs context)
+         :ns-form (.-nsForm context)
          :repl (.-repl context)
          :selection-closing-brackets (safe-second (.-selectionWithBracketTrail context))
          :selection (.-selection context)

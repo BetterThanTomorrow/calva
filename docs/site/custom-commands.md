@@ -32,6 +32,7 @@ There are also substitutions available, which will take elements from the curren
 * `$file-text`: The text of the current file edited
 * `$ns`: The namespace used for evaluating the command
 * `$editor-ns`: The namespace of the editor from which the command was run
+* `$ns-form`: The `ns` form which would be used if evaluating something from the current cursor position (often the `ns` form of the current file)
 * `$selection`: The currently selected text
 * `$current-form`: The text of the [current form](evaluation.md#current-form)
 * `$current-pair`: The text of the current pair if in a binding, otherwise empty string
@@ -87,7 +88,7 @@ With these **User** settings:
 
 ```json
     "calva.customREPLCommandSnippets": [
-        {
+        {s
             "name": "Call Current Form",
             "key": "c",
             "snippet": "($current-form)"

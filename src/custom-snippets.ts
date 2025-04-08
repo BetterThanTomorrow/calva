@@ -38,7 +38,7 @@ async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetD
     return;
   }
   const editor = util.getActiveTextEditor();
-  const [editorNS, _] =
+  const [editorNS, nsForm] =
     editor && editor.document && editor.document.languageId === 'clojure'
       ? namespace.getNamespace(editor.document, editor.selections[0].active)
       : undefined;
@@ -67,7 +67,13 @@ async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetD
       ? false
       : undefined;
 
-  const context = makeContext(editor, snippetDefinition.ns, editorNS, snippetDefinition.repl);
+  const context = makeContext(
+    editor,
+    snippetDefinition.ns,
+    editorNS,
+    nsForm,
+    snippetDefinition.repl
+  );
   await evaluateCodeInContext(editor, snippetDefinition.snippet, context, options);
 }
 
@@ -163,13 +169,20 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
   return pick ?? { snippet: codeOrKey };
 }
 
-export function makeContext(editor: vscode.TextEditor, ns: string, editorNS: string, repl: string) {
+export function makeContext(
+  editor: vscode.TextEditor,
+  ns: string,
+  editorNS: string,
+  nsForm,
+  repl: string
+) {
   return {
     currentLine: editor.selections[0].active.line,
     currentColumn: editor.selections[0].active.character,
     currentFilename: editor.document.fileName,
     ns,
     editorNS,
+    nsForm,
     repl,
     selection: editor.document.getText(editor.selections[0]),
     selectionWithBracketTrail: getText.selectionAddingBrackets(
