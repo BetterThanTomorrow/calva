@@ -23,7 +23,7 @@
     {
       "name": "qol: Add Snitch dependency",
       "repl": "clj",
-      "snippet": "(require '[clojure.repl.deps :refer [add-libs]])\n\n\n(add-libs '{ org.clojars.abhinav/snitch {:mvn/version \"0.1.16\"}})"
+      "snippet": "(require '[clojure.repl.deps :refer [add-libs]])\n\n(add-libs '{ org.clojars.abhinav/snitch {:mvn/version \"0.1.16\"}})\n\n(require '[snitch.core :refer [defn* defmethod* *fn *let]])"
     },
     {
       "name": "qol: Evaluate as Snitch defn* (ctrl+alt+c s)",

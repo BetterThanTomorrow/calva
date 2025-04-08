@@ -742,6 +742,33 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
   }
 }
 
+async function evaluateInCurrentEditor(
+  editor: vscode.TextEditor,
+  code: string,
+  sessionType: string,
+  ns: string,
+  options
+) {
+  const document = editor?.document;
+  if (document) {
+    const evalPos = editor.selection.active;
+    try {
+      const session = replSession.getSession(sessionType);
+      return await evaluateCodeUpdatingUI(code, {
+        ...options,
+        filePath: document.fileName,
+        session,
+        ns,
+        nsForm: options.nsForm ?? `(in-ns '${ns})`,
+        line: evalPos.line,
+        column: evalPos.character,
+      });
+    } catch (e) {
+      output.appendLineOtherErr('Evaluation failed.');
+    }
+  }
+}
+
 export default {
   interruptAllEvaluations,
   loadDocument,
@@ -763,6 +790,7 @@ export default {
   toggleEvaluationSendCodeToOutputWindow,
   instrumentTopLevelForm,
   evaluateInOutputWindow,
+  evaluateInCurrentEditor,
   evaluateReplWindowForm,
   initInspectorDataProvider,
 };

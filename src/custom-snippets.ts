@@ -200,5 +200,5 @@ export async function evaluateSnippet(editor: vscode.TextEditor, code, context, 
   const ns = context.ns;
   const repl = context.repl;
   const interpolatedCode = interpolateVariables(editor.document.languageId, code, context);
-  return await evaluate.evaluateInOutputWindow(interpolatedCode, repl, ns, options);
+  return await evaluate.evaluateInCurrentEditor(editor, interpolatedCode, repl, ns, options);
 }
