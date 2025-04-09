@@ -219,10 +219,7 @@ export class NReplSession {
     }
   }
 
-  constructor(
-    public sessionId: string,
-    public client: NReplClient
-  ) {
+  constructor(public sessionId: string, public client: NReplClient) {
     client.sessions[sessionId] = this;
     NReplSession.Instances.push(this);
   }
