@@ -6,11 +6,12 @@ import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
 import { isUndefined } from 'lodash';
 import * as fiddleFiles from './fiddle-files';
+import * as output from './results-output/output';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
@@ -46,20 +47,21 @@ async function quickPickSingle(opts: {
   title?: string;
   values: vscode.QuickPickItem[];
   saveAs: string;
-  default?: string;
-  placeHolder: string;
+  default?: vscode.QuickPickItem;
+  placeHolder?: string;
   autoSelect?: boolean;
-}): Promise<string | undefined> {
+}): Promise<vscode.QuickPickItem | undefined> {
   if (opts.values.length == 0) {
     return;
   }
   const saveAs = `qps-${opts.saveAs}`;
-  const selected = opts.default ?? state.extensionContext.workspaceState.get<string>(saveAs);
+  const selected =
+    opts.default ?? state.extensionContext.workspaceState.get<vscode.QuickPickItem>(saveAs);
 
   const hasOnlyOneOption = opts.autoSelect && opts.values.length == 1;
 
   const result = hasOnlyOneOption
-    ? opts.values[0]?.label
+    ? opts.values[0]
     : await quickPick(opts.values, selected ? [selected] : [], [], {
         title: opts.title,
         placeHolder: opts.placeHolder,
@@ -76,7 +78,7 @@ async function quickPickMulti(opts: {
   placeHolder: string;
 }) {
   const saveAs = `qps-${opts.saveAs}`;
-  const selected = state.extensionContext.workspaceState.get<string[]>(saveAs) || [];
+  const selected = state.extensionContext.workspaceState.get<vscode.QuickPickItem[]>(saveAs) || [];
   const result = await quickPick(opts.values, [], selected, {
     placeHolder: opts.placeHolder,
     canPickMany: true,
@@ -92,23 +94,23 @@ let quickPickActive: Promise<void>;
 
 function quickPick(
   itemsToPick: vscode.QuickPickItem[],
-  active: string[],
-  selected: string[],
+  active: vscode.QuickPickItem[],
+  selected: vscode.QuickPickItem[],
   quickPickOptions: vscode.QuickPickOptions & { canPickMany: true }
-): Promise<string[]>;
+): Promise<vscode.QuickPickItem[]>;
 function quickPick(
   itemsToPick: vscode.QuickPickItem[],
-  active: string[],
-  selected: string[],
+  active: vscode.QuickPickItem[],
+  selected: vscode.QuickPickItem[],
   quickPickOptions: vscode.QuickPickOptions
-): Promise<string>;
+): Promise<vscode.QuickPickItem>;
 
 async function quickPick(
   itemsToPick: vscode.QuickPickItem[],
-  active: string[],
-  selected: string[],
+  active: vscode.QuickPickItem[],
+  selected: vscode.QuickPickItem[],
   quickPickOptions: vscode.QuickPickOptions
-): Promise<string[] | string | undefined> {
+): Promise<vscode.QuickPickItem[] | vscode.QuickPickItem | undefined> {
   const items = itemsToPick; //.map((x) => ({ label: x }));
 
   const qp = vscode.window.createQuickPick();
@@ -120,27 +122,29 @@ async function quickPick(
   qp.matchOnDescription = !!quickPickOptions.matchOnDescription;
   qp.matchOnDetail = !!quickPickOptions.matchOnDetail;
   qp.items = items;
-  qp.activeItems = items.filter((x) => active.indexOf(x.label) != -1);
-  qp.selectedItems = items.filter((x) => selected.indexOf(x.label) != -1);
-  return new Promise<string[] | string | undefined>((resolve, reject) => {
-    qp.show();
-    qp.onDidAccept(() => {
-      if (qp.canSelectMany) {
-        resolve(qp.selectedItems.map((x) => x?.label));
-      } else if (qp.selectedItems.length) {
-        resolve(qp.selectedItems[0]?.label);
-      } else {
-        resolve(undefined);
-      }
-      qp.hide();
-      quickPickActive = undefined;
-    });
-    qp.onDidHide(() => {
-      resolve(qp.canSelectMany ? [] : undefined);
-      qp.hide();
-      quickPickActive = undefined;
-    });
-  });
+  qp.activeItems = items.filter((x) => active.some((item) => item.label === x.label));
+  qp.selectedItems = items.filter((x) => selected.some((item) => item.label === x.label));
+  return new Promise<vscode.QuickPickItem[] | vscode.QuickPickItem | undefined>(
+    (resolve, reject) => {
+      qp.show();
+      qp.onDidAccept(() => {
+        if (qp.canSelectMany) {
+          resolve(qp.selectedItems.map((x) => x));
+        } else if (qp.selectedItems.length) {
+          resolve(qp.selectedItems[0]);
+        } else {
+          resolve(undefined);
+        }
+        qp.hide();
+        quickPickActive = undefined;
+      });
+      qp.onDidHide(() => {
+        resolve(qp.canSelectMany ? [] : undefined);
+        qp.hide();
+        quickPickActive = undefined;
+      });
+    }
+  );
 }
 
 function getCljsReplStartCode() {
@@ -281,14 +285,14 @@ function logSuccess(results) {
 }
 
 function logError(error) {
-  outputWindow.appendLine('; ' + error.reason);
+  output.appendLineOtherErr(error.reason);
   if (
     error.line !== undefined &&
     error.line !== null &&
     error.column !== undefined &&
     error.column !== null
   ) {
-    outputWindow.appendLine(';   at line: ' + error.line + ' and column: ' + error.column);
+    output.appendLineOtherOut('  at line: ' + error.line + ' and column: ' + error.column);
   }
 }
 
@@ -321,12 +325,12 @@ function markError(error) {
 }
 
 function logWarning(warning) {
-  outputWindow.appendLine('; ' + warning.reason);
+  output.appendLineOtherOut(warning.reason);
   if (warning.line !== null) {
     if (warning.column !== null) {
-      outputWindow.appendLine(';   at line: ' + warning.line + ' and column: ' + warning.column);
+      output.appendLineOtherOut('  at line: ' + warning.line + ' and column: ' + warning.column);
     } else {
-      outputWindow.appendLine(';   at line: ' + warning.line);
+      output.appendLineOtherOut('  at line: ' + warning.line);
     }
   }
 }
@@ -385,7 +389,7 @@ function filterVisibleRanges(
 
 function scrollToBottom(editor: vscode.TextEditor) {
   const lastPos = editor.document.positionAt(Infinity);
-  editor.selection = new vscode.Selection(lastPos, lastPos);
+  editor.selections = [new vscode.Selection(lastPos, lastPos)];
   editor.revealRange(new vscode.Range(lastPos, lastPos));
 }
 
@@ -450,61 +454,88 @@ function sortByPresetOrder(arr: any[], presetOrder: any[]) {
 }
 
 function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
-  const ab = new ArrayBuffer(text.length);
-  const ui8a = new Uint8Array(ab);
-  for (let i = 0, strLen = text.length; i < strLen; i++) {
-    ui8a[i] = text.charCodeAt(i);
-  }
-  return vscode.workspace.fs.writeFile(uri, ui8a);
+  const encoder = new TextEncoder();
+  const uint8Array = encoder.encode(text);
+  return vscode.workspace.fs.writeFile(uri, uint8Array);
 }
 
-async function downloadFromUrl(url: string, savePath: string) {
+async function downloadFromUrl(fileUrl: string, savePath: string) {
   return new Promise((resolve, reject) => {
     const saveFile = fs.createWriteStream(savePath);
-    https.get(url, (res) => {
-      if (res.statusCode === 200) {
-        res.pipe(saveFile);
-      } else {
-        saveFile.close();
-        reject(new Error(`Server responded with ${res.statusCode}: ${res.statusMessage}`));
-      }
-      res.on('end', () => {
-        saveFile.close();
-        resolve(true);
+    if (fileUrl.startsWith('file:')) {
+      fs.readFile(url.fileURLToPath(fileUrl), 'utf8', (err, data) => {
+        if (err) {
+          console.error(`Error reading file: ${err.message}`);
+          reject(err);
+          return;
+        }
+        saveFile.write(data, 'utf8', (err) => {
+          if (err) {
+            console.error(`Error writing file: ${err.message}`);
+            reject(err);
+            return;
+          }
+          saveFile.close();
+          resolve(true);
+        });
       });
-      res.on('error', (err: any) => {
-        console.error(`Error downloading file from ${url}: ${err.message}`);
-        reject(err);
+    } else {
+      https.get(fileUrl, (res) => {
+        if (res.statusCode === 200) {
+          res.pipe(saveFile);
+        } else {
+          saveFile.close();
+          reject(new Error(`Server responded with ${res.statusCode}: ${res.statusMessage}`));
+        }
+        res.on('end', () => {
+          saveFile.close();
+          resolve(true);
+        });
+        res.on('error', (err: any) => {
+          console.error(`Error downloading file from ${fileUrl}: ${err.message}`);
+          reject(err);
+        });
       });
-    });
+    }
   });
 }
 
 async function fetchFromUrl(fullUrl: string): Promise<string> {
   const q = url.parse(fullUrl);
   return new Promise((resolve, reject) => {
-    https
-      .get(
-        {
-          host: q.hostname,
-          path: q.pathname,
-          port: q.port,
-          headers: { 'user-agent': 'node.js' },
-        },
-        (res) => {
-          let data = '';
-          res.on('data', (chunk: any) => {
-            data += chunk;
-          });
-          res.on('end', () => {
-            resolve(data);
-          });
+    if (fullUrl.startsWith('file:')) {
+      fs.readFile(url.fileURLToPath(fullUrl), 'utf8', (err, data) => {
+        if (err) {
+          console.error(`Error reading file: ${err.message}`);
+          reject(err);
+          return;
         }
-      )
-      .on('error', (err: any) => {
-        console.error(`Error downloading file from ${url}: ${err.message}`);
-        reject(err);
+        resolve(data);
       });
+    } else {
+      https
+        .get(
+          {
+            host: q.hostname,
+            path: q.pathname,
+            port: q.port,
+            headers: { 'user-agent': 'node.js' },
+          },
+          (res) => {
+            let data = '';
+            res.on('data', (chunk: any) => {
+              data += chunk;
+            });
+            res.on('end', () => {
+              resolve(data);
+            });
+          }
+        )
+        .on('error', (err: any) => {
+          console.error(`Error downloading file from ${url}: ${err.message}`);
+          reject(err);
+        });
+    }
   });
 }
 

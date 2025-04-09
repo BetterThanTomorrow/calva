@@ -9,3 +9,4 @@
 **/.shadow-cljs/
 **/out/
 clojure.tmLanguage.json
+*.md

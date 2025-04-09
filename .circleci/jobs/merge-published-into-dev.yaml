@@ -1,0 +1,11 @@
+!YS-v0:
+
+docker:
+- image: cimg/node:15.8
+
+steps:
+- !:add-ssh: ssh-fingerprint-1
+
+- checkout
+
+- !:bin Merge published into dev

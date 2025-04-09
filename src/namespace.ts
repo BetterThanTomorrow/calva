@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as docMirror from './doc-mirror/index';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import * as utilities from './utilities';
 import * as replSession from './nrepl/repl-session';
 import { NReplSession } from './nrepl';
@@ -15,7 +15,7 @@ export function getNamespace(
 ): NsAndNsForm {
   if (outputWindow.isResultsDoc(doc)) {
     const outputWindowNs = outputWindow.getNs();
-    utilities.assertIsDefined(outputWindowNs, 'Expected output window to have a namespace!');
+    utilities.assertIsDefined(outputWindowNs, 'Expected repl window to have a namespace!');
     return [outputWindowNs, `(in-ns '${outputWindowNs})`];
   }
   if (doc && doc.languageId == 'clojure') {

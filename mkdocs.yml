@@ -21,7 +21,7 @@ extra:
 repo_name: Calva
 repo_url: https://github.com/BetterThanTomorrow/calva
 edit_uri: edit/published/docs/site
-strict: true
+#strict: true
 plugins:
   - search:
      separator: '[\s\-\._]'
@@ -57,25 +57,30 @@ nav:
     - formatting.md
     - syntax-highlighting.md
     - paredit.md
-    - linting.md
-    - rich-comments.md
-    - fiddle-files.md
+    - REPL:
+      - repl-window.md
+      - output.md
+      - inspector.md
+      - fiddle-files.md
+      - connect-sequences.md
+      - custom-commands.md
+      - flares.md
     - refactoring.md
-    - custom-commands.md
-    - connect-sequences.md
     - notebooks.md
     - clojuredocs.md
-    - output.md
     - debugger.md
     - pprint.md
     - test-runner.md
-    - namespace-form-auto-creation.md
+    - rich-comments.md
     - hiccup.md
+  - Via clojure-lsp:
+    - clojure-lsp.md
+    - linting.md
+    - namespace-form-auto-creation.md
   - Customizing Calva:
     - customizing.md
     - customizing-jack-in-and-connect.md
     - when-clauses.md
-  - clojure-lsp.md
   - nrepl_and_cider-nrepl.md
   - Using Calva with ...:
     - shadow-cljs.md
@@ -86,6 +91,7 @@ nav:
     - reveal.md
     - babashka.md
     - nbb.md
+    - basilisp.md
     - joyride.md
     - clojuredart.md
     - luminus.md
@@ -100,11 +106,13 @@ nav:
     - quirks.md
     - async-out.md
     - clj-java-decompiler.md
-  - api.md
-  - In Depth:
-    - jack-in-guide.md
+    - virgil.md
+  - API:
+    - api.md
+    - commands.md
   - Guides:
     - get-started-with-clojure.md
+    - jack-in-guide.md
   - tao.md
   - contribute.md
   - sponsors.md

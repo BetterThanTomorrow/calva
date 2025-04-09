@@ -1,0 +1,12 @@
+jobs:
+- deploy-docs:
+    filters:
+      branches:
+        only: published
+    context: Calva
+
+- merge-published-into-dev:
+    filters:
+      branches:
+        only: published
+    context: Calva

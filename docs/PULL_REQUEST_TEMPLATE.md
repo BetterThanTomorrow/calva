@@ -35,9 +35,6 @@ I have:
 - [ ] Made sure I have changed the PR base branch, so that it is not `published`. (Sorry for the nagging.)
 - [ ] Made sure there is an issue registered with a clear problem statement that this PR addresses, (created the issue if it was not present).
     - [ ] Updated the `[Unreleased]` entry in `CHANGELOG.md`, linking the issue(s) that the PR is addressing.
-    - [ ] Referenced the issue I am fixing/addressing _in a commit message for the pull request_.
-        - [ ] If I am fixing the issue, I have used [GitHub's fixes/closes syntax](https://help.github.com/en/articles/closing-issues-using-keywords)
-        - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
 - [ ] Figured if **anything** about the fix warrants tests on Mac/Linux/Windows/Remote/Whatever, and either tested it there if so, or mentioned it in the PR.
 - [ ] Added to or updated docs in this branch, if appropriate
 - [ ] Tests

@@ -1,0 +1,45 @@
+!YS-v0:
+
+docker:
+- image: cimg/clojure:1.11-browsers
+
+working_directory: ~/calva
+
+steps:
+- !:attach-workspace /tmp
+
+- !:cmd
+  - Restore build
+  - rmdir ~/calva && cp -r /tmp/build ~/calva
+
+- !:cmd
+  - Compile Extension Tests
+  - npm run compile-test
+
+- !:cmd
+  - Apt install missing dependencies
+  - sudo apt-key adv --keyserver keyserver.ubuntu.com
+                     --recv-keys E88979FB9B30ACF2;
+    sudo apt update && sudo apt install -y libnss3 imagemagick
+
+- !:cmd
+  - Pip install Basilisp (Python)
+  - sudo add-apt-repository --yes ppa:deadsnakes/ppa;
+    sudo apt-get update;
+    sudo apt-get install python3.12;
+    wget https://bootstrap.pypa.io/get-pip.py;
+    sudo python3.12 get-pip.py;
+    sudo python3.12 -m pip install --upgrade pip setuptools wheel;
+    sudo python3.12 -m pip install pipenv;
+    python3.12 -m pip install basilisp==0.1.0b2;
+
+- !:cmd
+  - Run Extension Tests
+  - npm run integration-test
+
+- !:store
+    test_results: ~/calva/junit
+
+- store_artifacts:
+    path: ~/calva/out/extension-test/integration/screenshots
+    destination: integration-screenshots

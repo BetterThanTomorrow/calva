@@ -13,8 +13,25 @@ const defaultCljfmtContent =
 
 const LSP_CONFIG_KEY = 'CLOJURE-LSP';
 let lspFormatConfig: string | undefined;
+let lspFormatDate: number = 0;
+const lspFormatTTLms: number = 6000;
 
-function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmt: string) {
+function configuration(): {
+  'format-as-you-type': boolean;
+  'keep-comment-forms-trail-paren-on-own-line?': boolean;
+  'cljfmt-options-string': string;
+  'cljfmt-options': object;
+} {
+  const workspaceConfig = vscode.workspace.getConfiguration('calva.fmt');
+  const configPath: string | undefined = getConfigPath(workspaceConfig);
+
+  const cljfmtContent: string | undefined =
+    configPath === LSP_CONFIG_KEY
+      ? lspFormatConfig
+        ? lspFormatConfig
+        : defaultCljfmtContent
+      : filesCache.content(configPath);
+  const cljfmt = cljfmtContent ? cljfmtContent : defaultCljfmtContent;
   const cljfmtOptions = cljsLib.cljfmtOptionsFromString(cljfmt);
   return {
     'format-as-you-type': !!formatOnTypeEnabled(),
@@ -60,25 +77,27 @@ export async function getConfig(
         console.error(
           'Fetching formatting settings from clojure-lsp failed. Check that you are running a version of clojure-lsp that provides "cljfmt-raw" in serverInfo.'
         );
+      } else {
+        lspFormatDate = Date.now();
       }
     }
   }
-  const cljfmtContent: string | undefined =
-    configPath === LSP_CONFIG_KEY
-      ? lspFormatConfig
-        ? lspFormatConfig
-        : defaultCljfmtContent
-      : filesCache.content(configPath);
-  const config = configuration(
-    workspaceConfig,
-    cljfmtContent ? cljfmtContent : defaultCljfmtContent
-  );
-  if (config['cljfmt-options']['error']) {
-    void vscode.window.showErrorMessage(
-      `Error parsing ${configPath}: ${config['cljfmt-options']['error']}\n\nUsing default formatting configuration.`
-    );
+  return configuration();
+}
+
+/**
+ * @param document
+ * @returns FormatterConfig, possibly with cached or default LSP information
+ */
+export function getConfigNow(
+  document: vscode.TextDocument = vscode.window.activeTextEditor?.document
+): FormatterConfig {
+  // Begin async update from LSP if stale:
+  if (Date.now() - lspFormatDate > lspFormatTTLms) {
+    void getConfig(document);
   }
-  return config;
+  // Config using cached LSP info:
+  return configuration();
 }
 
 export function formatOnTypeEnabled() {

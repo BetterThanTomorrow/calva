@@ -1,0 +1,30 @@
+!YS-v0:
+
+docker:
+- image: cimg/clojure:1.11-browsers
+
+working_directory: ~/calva
+
+steps:
+- !:attach-workspace /tmp
+
+- !:cmd
+  - Restore build
+  - rmdir ~/calva && cp -r /tmp/build ~/calva
+
+- !:cmd
+  - Apt install missing dependencies
+  - sudo apt-key adv --keyserver keyserver.ubuntu.com
+                     --recv-keys E88979FB9B30ACF2;
+    sudo apt update && sudo apt install -y libnss3
+
+- !:cmd
+  - Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
+  - npm run e2e-test --
+      --calva-vsix=/tmp/artifacts/calva-$(
+          node -p 'require("./package.json").version'
+        ).vsix
+      --test-workspace=test-data/projects/e2e-sub-projects
+
+- !:store
+    test_results: ~/calva/junit

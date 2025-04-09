@@ -44,7 +44,7 @@
 (defn commit-changelog [file-name message]
   (println "Committing")
   (shell/sh "git" "add" file-name)
-  (throw-if-error (shell/sh "git" "commit" 
+  (throw-if-error (shell/sh "git" "commit"
                             "-m" message
                             "-o" file-name)))
 
@@ -104,5 +104,7 @@
                                                        calva-version)]
         (spit changelog-filename updated-changelog-text)
         (commit-changelog changelog-filename
-                          (str "Add changelog section for v" calva-version " [skip ci]"))
+                          (str "Add changelog section for v" calva-version " [skip ci]"
+                               (when *command-line-args*
+                                 (str "\n\n" (first *command-line-args*)))))
         (publish calva-version)))))

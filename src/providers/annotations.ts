@@ -27,24 +27,6 @@ const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
   rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen,
 });
 
-let resultsLocations: [vscode.Range, vscode.Position, vscode.Location][] = [];
-
-function getResultsLocation(pos: vscode.Position): vscode.Location | undefined {
-  for (const [range, _evaluatePosition, location] of resultsLocations) {
-    if (range.contains(pos)) {
-      return location;
-    }
-  }
-}
-
-function getEvaluationPosition(pos: vscode.Position): vscode.Position | undefined {
-  for (const [range, evaluatePosition, _location] of resultsLocations) {
-    if (range.contains(pos)) {
-      return evaluatePosition;
-    }
-  }
-}
-
 function evaluated(contentText, hoverText, hasError) {
   return {
     renderOptions: {
@@ -81,7 +63,7 @@ function setResultDecorations(editor: vscode.TextEditor, ranges) {
   editor.setDecorations(evalResultsDecorationType, ranges);
 }
 
-function setSelectionDecorations(editor, ranges, status) {
+function setSelectionDecorations(editor: vscode.TextEditor, ranges, status) {
   const key = editor.document.uri + ':selectionDecorationRanges:' + status;
   util.cljsLib.setStateValue(key, ranges);
   editor.setDecorations(evalSelectionDecorationTypes[status], ranges);
@@ -102,7 +84,6 @@ function clearEvaluationDecorations(editor?: vscode.TextEditor) {
       setSelectionDecorations(editor, [], status);
     }
   }
-  resultsLocations = [];
 }
 
 function clearAllEvaluationDecorations() {
@@ -112,6 +93,8 @@ function clearAllEvaluationDecorations() {
   void vscode.commands.executeCommand('setContext', 'calva:hasInlineResults', false);
 }
 
+// Amongst other things, this function removes any leading whitespace
+// from the RESULTSTRING displayed in the decoration.
 function decorateResults(
   resultString,
   hasError,
@@ -121,7 +104,8 @@ function decorateResults(
   const uri = editor.document.uri;
   const key = uri + ':resultDecorationRanges';
   let decorationRanges = util.cljsLib.getStateValue(key) || [];
-  const decoration = evaluated(` => ${resultString} `, resultString, hasError);
+  const resultTrimmed = resultString.trimStart();
+  const decoration = evaluated(` => ${resultTrimmed} `, resultTrimmed, hasError);
   decorationRanges = _.filter(decorationRanges, (o) => {
     return !o.codeRange.intersection(codeSelection);
   });
@@ -132,12 +116,37 @@ function decorateResults(
   void vscode.commands.executeCommand('setContext', 'calva:hasInlineResults', true);
 }
 
+// Returns a string of commands seperated by `|` to display in the
+// results tooltip for the given RESULTSTRING.
+//
+// The commands are
+//
+// 1. Copy results to the clipboard.
+// 2. Reveal the output destination.
+function getDecorateSelectionCmdsString(resultString: string) {
+  const copyCommandUri = `command:calva.copyAnnotationHoverText?${encodeURIComponent(
+      JSON.stringify([{ text: resultString }])
+    )}`,
+    copyCommandMd = `[Copy](${copyCommandUri} "Copy results to the clipboard")`;
+  const openWindowCommandUri = `command:calva.showResultOutputDestination`,
+    openWindowCommandMd = `[Show Output](${openWindowCommandUri} "Reveal the output destination")`;
+
+  return `${copyCommandMd} | ${openWindowCommandMd}`;
+}
+
+// Amongst other things, this function generates the hover content for
+// RESULTSTRING based on the STATUS value:
+//
+// - `ERROR`: Includes the commands header from `getDecorateSelectionCmdsString`, followed by RESULTSTRING
+//   wrapped in a Markdown plain code block preserving whitespaces.
+//
+// - `SUCCESS`: Includes the commands header from `getDecorateSelectionCmdsString`, followed by RESULTSTRING
+//   wrapped in a Markdown Clojure code block.
 function decorateSelection(
   resultString: string,
   codeSelection: vscode.Selection,
   editor: vscode.TextEditor,
   evaluatePosition: vscode.Position,
-  resultsLocation,
   status: AnnotationStatus
 ) {
   const uri = editor.document.uri;
@@ -149,17 +158,15 @@ function decorateSelection(
   });
   decoration['range'] = codeSelection;
   if (status != AnnotationStatus.PENDING && status != AnnotationStatus.REPL_WINDOW) {
-    const copyCommandUri = `command:calva.copyAnnotationHoverText?${encodeURIComponent(
-        JSON.stringify([{ text: resultString }])
-      )}`,
-      copyCommandMd = `[Copy](${copyCommandUri} "Copy results to the clipboard")`;
-    const openWindowCommandUri = `command:calva.showOutputWindow`,
-      openWindowCommandMd = `[Open Output Window](${openWindowCommandUri} "Open the output window")`;
+    const codeBlockLang = status == AnnotationStatus.ERROR ? '' : 'clojure';
     const hoverMessage = new vscode.MarkdownString(
-      `${copyCommandMd} | ${openWindowCommandMd}\n` + '```clojure\n' + resultString + '\n```'
+      getDecorateSelectionCmdsString(resultString) +
+        `\n\`\`\`${codeBlockLang}\n` +
+        resultString +
+        '\n```'
     );
     hoverMessage.isTrusted = true;
-    decoration['hoverMessage'] = status == AnnotationStatus.ERROR ? resultString : hoverMessage;
+    decoration['hoverMessage'] = hoverMessage;
   }
   // for (let s = 0; s < evalSelectionDecorationTypes.length; s++) {
   //     setSelectionDecorations(editor, [], s);.
@@ -167,9 +174,6 @@ function decorateSelection(
   setSelectionDecorations(editor, [], status);
   decorationRanges.push(decoration);
   setSelectionDecorations(editor, decorationRanges, status);
-  if (status == AnnotationStatus.SUCCESS || status == AnnotationStatus.ERROR) {
-    resultsLocations.push([codeSelection, evaluatePosition, resultsLocation]);
-  }
 }
 
 function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
@@ -188,7 +192,21 @@ function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
 function copyHoverTextCommand(args: { [x: string]: string }) {
   void vscode.env.clipboard.writeText(args['text']);
 }
+
+// ------------- EXPORT FOR UNIT TEST USE ONLY ----------------------------------
+
+const _getDecorateSelectionHeader = getDecorateSelectionCmdsString;
+
+/// retuns the selection decoration type of the given annotation STATUS.
+function _getEvalSelectionDecorationTypes(status: AnnotationStatus) {
+  return evalSelectionDecorationTypes[status];
+}
+
+// ------------------------------------------------------------------------------
+
 export default {
+  _getDecorateSelectionHeader,
+  _getEvalSelectionDecorationTypes,
   AnnotationStatus,
   clearEvaluationDecorations,
   clearAllEvaluationDecorations,
@@ -196,6 +214,4 @@ export default {
   decorateResults,
   decorateSelection,
   onDidChangeTextDocument,
-  getResultsLocation,
-  getEvaluationPosition,
 };

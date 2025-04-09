@@ -1,26 +1,25 @@
 import * as vscode from 'vscode';
 import * as child from 'child_process';
 import * as kill from 'tree-kill';
-import * as outputWindow from '../results-output/results-doc';
+import * as output from '../results-output/output';
 
-export interface JackInTerminalOptions extends vscode.TerminalOptions {
+export interface JackInPTYOptions extends vscode.TerminalOptions {
   name: string;
   cwd: string;
   env: { [key: string]: string };
   executable: string;
   args: string[];
   isWin: boolean;
-  useShell: boolean;
+  useShell: boolean | string;
 }
 
-export function createCommandLine(options: JackInTerminalOptions): string {
-  const commandSeparator = options.isWin ? '&' : ';';
-  return `pushd ${options.cwd} ${commandSeparator} ${options.executable} ${options.args.join(
-    ' '
-  )} ${commandSeparator} popd`;
+export function createCommandLine(options: JackInPTYOptions): string {
+  return options.isWin
+    ? `pushd ${options.cwd} & ${options.executable} ${options.args.join(' ')} & popd`
+    : `(cd ${options.cwd}; ${options.executable} ${options.args.join(' ')})`;
 }
 
-export class JackInTerminal implements vscode.Pseudoterminal {
+export class JackInPTY implements vscode.Pseudoterminal {
   private writeEmitter = new vscode.EventEmitter<string>();
   onDidWrite: vscode.Event<string> = this.writeEmitter.event;
   private closeEmitter = new vscode.EventEmitter<void>();
@@ -28,23 +27,19 @@ export class JackInTerminal implements vscode.Pseudoterminal {
 
   private process: child.ChildProcess;
 
-  constructor(
-    private options: JackInTerminalOptions,
-    private whenREPLStarted: (p: child.ChildProcess, host: string, port: string) => void,
-    private whenError: (errorMessage: string) => void
-  ) {}
-
   open(initialDimensions: vscode.TerminalDimensions | undefined): void {
-    outputWindow.appendLine(`; Starting Jack-in Terminal: ${createCommandLine(this.options)}`);
     this.writeEmitter.fire(
       'This is a pseudo terminal, only used for hosting the Jack-in REPL process. It takes no input.\r\nPressing ctrl+c with this terminal focused, killing this terminal, or closing/reloading the VS Code window will all stop/kill the Jack-in REPL process.\r\n\r\n'
     );
-    void this.startClojureProgram();
   }
 
   close(): void {
     this.killProcess();
     this.closeEmitter.fire();
+  }
+
+  public clearTerminal() {
+    this.writeEmitter.fire('\x1b[2J\x1b[H');
   }
 
   handleInput(data: string) {
@@ -65,22 +60,32 @@ export class JackInTerminal implements vscode.Pseudoterminal {
     return data.toString().replace(/\r?\n/g, '\r\n').replace(/\r\n$/, '');
   }
 
-  private async startClojureProgram(): Promise<child.ChildProcess> {
+  public isProcessAlive(): boolean {
+    return this.process && !this.process.killed;
+  }
+
+  public async startClojureProgram(
+    options: JackInPTYOptions,
+    whenREPLStarted: (p: child.ChildProcess, host: string, port: string) => void,
+    whenJackInInterrupted: (status: number) => void
+  ): Promise<child.ChildProcess> {
+    output.appendLineOtherOut(`Starting Jack-in: ${createCommandLine(options)}`);
     return new Promise<child.ChildProcess>(() => {
-      const data = `${createCommandLine(this.options)}\r\n`;
+      let hasReplStarted = false;
+      const data = `${createCommandLine(options)}\r\n`;
+      this.writeEmitter.fire(`Process shell is: ${options.useShell}\r\n`);
       this.writeEmitter.fire('⚡️ Starting the REPL ⚡️ using the below command line:\r\n');
       this.writeEmitter.fire(data);
-      if (this.process && !this.process.killed) {
-        console.log('Restarting Jack-in process');
-        this.killProcess();
-      }
-      this.process = child.spawn(this.options.executable, this.options.args, {
-        env: this.options.env,
-        cwd: this.options.cwd,
-        shell: this.options.useShell,
+      this.process = child.spawn(options.executable, options.args, {
+        env: options.env,
+        cwd: options.cwd,
+        shell: options.useShell,
       });
       this.process.on('exit', (status) => {
-        this.writeEmitter.fire(`Jack-in process exited. Status: ${status}\r\n`);
+        this.writeEmitter.fire(`Jack-in process exited. Exit code: ${status}\r\n`);
+        if (!hasReplStarted) {
+          whenJackInInterrupted(status);
+        }
       });
       this.process.stdout.on('data', (data) => {
         const msg = this.dataToString(data);
@@ -91,10 +96,11 @@ export class JackInTerminal implements vscode.Pseudoterminal {
         // nbb - nRepl server started on port %d . nrepl-cljs-sci version %s 1337 TODO
         // TODO: Remove nbb WIP match
         if (msg.match(/Started nREPL server|nREPL server started/i)) {
+          hasReplStarted = true;
           const [_, port1, host1, host2, port2, port3] = msg.match(
             /(?:Started nREPL server|nREPL server started)[^\r\n]+?(?:(?:on port (\d+)(?: on host (\S+))?)|([^\s/]+):(\d+))|.*?(\d+) TODO/
           );
-          this.whenREPLStarted(
+          whenREPLStarted(
             this.process,
             host1 ? host1 : host2 ? host2 : 'localhost',
             port1 ? port1 : port2 ? port2 : port3
@@ -120,9 +126,10 @@ export class JackInTerminal implements vscode.Pseudoterminal {
         kill(this.process.pid, 'SIGTERM', (err) => {
           if (err) {
             console.log('Jack-in terminal killProcess(): Error killing process', err);
+          } else {
+            // The test for this.process.killed above needs this to have happened too
+            this.process.kill();
           }
-          // The test for this.process.killed above needs this to have happened too
-          this.process.kill();
         });
       });
     } else if (this.process && this.process.killed) {

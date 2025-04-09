@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.413",
+  "version": "2.0.497",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -19,7 +19,7 @@
   },
   "engines": {
     "node": ">=16",
-    "vscode": "^1.67.0"
+    "vscode": "^1.75.0"
   },
   "sponsor": {
     "url": "https://calva.io/sponsors/"
@@ -47,27 +47,17 @@
   },
   "badges": [
     {
+      "url": "https://img.shields.io/badge/chat-%23calva-db9550?style=for-the-badge&logo=zulip",
+      "href": "https://clojurians.zulipchat.com/#narrow/channel/151858-calva",
+      "description": "Let's talk in the #calva channel at the Clojurians Slack"
+    },
+    {
       "url": "https://img.shields.io/badge/clojurians-calva--dev-blue.svg?logo=slack",
       "href": "https://clojurians.slack.com/messages/calva/",
       "description": "Let's talk in the #calva channel at the Clojurians Slack"
     }
   ],
   "activationEvents": [
-    "onLanguage:clojure",
-    "onCommand:calva.activateCalva",
-    "onCommand:calva.startStandaloneRepl",
-    "onCommand:calva.startStandaloneHelloRepl",
-    "onCommand:calva.startStandaloneCljsBrowserRepl",
-    "onCommand:calva.startStandaloneCljsNodeRepl",
-    "onCommand:calva.calva.startJoyrideReplAndConnect",
-    "onCommand:calva.jackIn",
-    "onCommand:calva.startOrConnectRepl",
-    "onCommand:calva.connect",
-    "onCommand:calva.connectNonProjectREPL",
-    "onCommand:calva.convertJs2Cljs",
-    "onCommand:calva.convertDart2Clj",
-    "onCommand:calva.convertHtml2Hiccup",
-    "onCommand:calva.pasteHtmlAsHiccup",
     "workspaceContains:**/project.clj",
     "workspaceContains:**/shadow-cljs.edn",
     "workspaceContains:**/deps.edn",
@@ -112,6 +102,7 @@
           ".boot",
           ".bb",
           ".ly",
+          ".lpy",
           ".calva-repl",
           ".fiddle"
         ],
@@ -135,6 +126,7 @@
       "[clojure]": {
         "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
         "editor.autoClosingBrackets": "always",
+        "editor.autoClosingOvertype": "always",
         "editor.autoClosingQuotes": "always",
         "editor.formatOnType": true,
         "editor.autoIndent": "full",
@@ -145,7 +137,8 @@
         "editor.unicodeHighlight.allowedCharacters": {
           " ": true,
           "꞉": true
-        }
+        },
+        "editor.foldingStrategy": "indentation"
       }
     },
     "semanticTokenScopes": [
@@ -164,6 +157,59 @@
         "type": "object",
         "title": "Calva",
         "properties": {
+          "calva.useLegacyReplWindowPath": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "For legacy reasons, the REPL window used to be located in `${projectRootPath}/.calva/output-window/output.calva-repl`. The default directory will change to `${projectRootPath}/.calva/repl.calva-repl`. Disable this setting to start using the new path. And then add `**/.calva/repl.calva-repl` to your `.gitignore`."
+          },
+          "calva.legacyPrintBareReplWindowOutput": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Non-result output risks breaking the structure of the Clojure document. Therefore `stdout` from the REPL process is prepended with `;` to make the output into line comments, which is non-structural. Enable this setting to print bare output, without the line comment protection. **NB: The REPL window may stop working, or work very strangely or slowly.** Also note that the REPL Window is being deprecated as a destination for output, so you may anyway instead want to use the `calva.outputDestinations` settings to direct `stdout` and `stderr` to the _Calva Output_ `terminal` destination instead."
+          },
+          "calva.outputDestinations": {
+            "type": "object",
+            "markdownDescription": [
+              "Where different types of Calva output should be printed.\nCalva categorizes output into three types:\n- **evaluation results**: Clojure data returned from an evaluation.\n- **evaluation output**: stdout/stderr from an evaluation\n- **other output**: Other messages, logs, etc\n\nYou can select where each category of output should go to: the REPL Window, the _Calva Says_ Output Channel, or the _Calva output_ (pseudo) terminal."
+            ],
+            "properties": {
+              "evalResults": {
+                "type": "string",
+                "enum": [
+                  "repl-window",
+                  "output-channel",
+                  "terminal"
+                ],
+                "default": "repl-window",
+                "markdownDescription": "Destination for evaluation results. (Clojure data returned from an evaluation)."
+              },
+              "evalOutput": {
+                "type": "string",
+                "enum": [
+                  "repl-window",
+                  "output-channel",
+                  "terminal"
+                ],
+                "default": "repl-window",
+                "markdownDescription": "Destination for evaluation output (stdout/stderr from an evaluation)."
+              },
+              "otherOutput": {
+                "type": "string",
+                "enum": [
+                  "repl-window",
+                  "output-channel",
+                  "terminal"
+                ],
+                "default": "repl-window",
+                "markdownDescription": "Destination for other output (Calva messages, out-of-band stdout/stderr, etcetera)."
+              }
+            },
+            "default": {
+              "evalResults": "repl-window",
+              "evalOutput": "repl-window",
+              "otherOutput": "repl-window"
+            }
+          },
           "calva.fiddleFilePaths": {
             "type": "array",
             "markdownDescription": "An array of `source` and `fiddle` root paths, relative to the project root. This is used by the commands **Calva: Open Fiddle File for Current File**, and **Calva: Evaluate Fiddle File for Current File**. Example:\n\n```json\n\"calva.fiddleFilePaths\": [\n  {\n    \"source\": [\"src\"],\n    \"fiddle\": [\"env\", \"dev\", \"fiddles\"]\n  }\n]\n```\n\nThe default is `null`, which will make Calva associate files with a `.fiddle` file extension as the fiddle file for a Clojure file. E.g. a file `src/foo/bar/baz_main.cljc`, will have an associated fiddle file named `src/foo/bar/baz_main.fiddle`. See [calva.io/fiddle](https://calva.io/fiddle-files/) for more info.",
@@ -419,6 +465,11 @@
             "default": false,
             "markdownDescription": "If true, Calva will auto-connect the REPL when a project is opened and there exists an nRepl port file."
           },
+          "calva.autoStartRepl": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "If true, Calva will auto-start and connect the REPL (a.k.a. Jack-in) when a Clojure project is opened. **NB:** To fully automate the jack-in process, you need to configure `calva.replConnectSequences` such that one sequence is marked with `autoSelectForJackIn`, has `projectRootPath` set, and has `menuSelections` configured."
+          },
           "calva.jackInDependencyVersions": {
             "type": "object",
             "description": "Versions of the dependencies injected by Calva Jack-in",
@@ -437,9 +488,9 @@
               }
             },
             "default": {
-              "nrepl": "1.0.0",
-              "cider-nrepl": "0.28.5",
-              "cider/piggieback": "0.5.3"
+              "nrepl": "1.3.1",
+              "cider-nrepl": "0.52.1",
+              "cider/piggieback": "0.6.0"
             }
           },
           "calva.clojureLspVersion": {
@@ -496,7 +547,7 @@
                 },
                 "evaluationSendCodeToOutputWindow": {
                   "type": "boolean",
-                  "markDownDescription": "Should the code snippet evaluated be echoed to the Output/REPL Window?"
+                  "markDownDescription": "Should the code snippet evaluated be echoed to the REPL Window?"
                 }
               },
               "required": [
@@ -591,11 +642,11 @@
                 },
                 "autoSelectForJackIn": {
                   "type": "boolean",
-                  "markdownDescription": "If true, this sequence will be automatically selected at **Jack-in**, suppressing the Project Type. Use together with `projectRootPath` to also suppress the Project Root menu. Add usage of `menuSelections` to go for a prompt-less REPL Jack-in. If you have more than one sequence with `autoSelectForJackIn` set to true, the first one will be used."
+                  "markdownDescription": "If true, this sequence will be automatically selected at **Jack-in**, suppressing the Project Type. Use together with `projectRootPath` to also suppress the Project Root menu. Add usage of `menuSelections` to go for a prompt-less REPL Jack-in. If you have more than one sequence with `autoSelectForJackIn` set to true, Calva will use the sequence with its `projectRootPath` closest to the currently active editor file. And if there is no such closest file, the first sequence will be used."
                 },
                 "autoSelectForConnect": {
                   "type": "boolean",
-                  "markdownDescription": "If true, this sequence will be automatically selected at **Connect**, suppressing the Project Type menu. Use together with `projectRootPath` to also suppress the Project Root menu. If you have more than one sequence with `autoSelectForConnect` set to true, the first one will be used."
+                  "markdownDescription": "If true, this sequence will be automatically selected at **Connect**, suppressing the Project Type menu. Use together with `projectRootPath` to also suppress the Project Root menu. If you have more than one sequence with `autoSelectForConnect` set to true, Calva will use the sequence with its `projectRootPath` closest to the currently active editor file. And if there is no such closest file, the first sequence will be used."
                 },
                 "projectRootPath": {
                   "type": "array",
@@ -619,8 +670,18 @@
                   }
                 },
                 "afterCLJReplJackInCode": {
-                  "type": "string",
-                  "description": "Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ],
+                  "markdownDescription": "Code to evaluate in the CLJ REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.",
                   "required": false
                 },
                 "menuSelections": {
@@ -734,7 +795,7 @@
                         },
                         "printThisLineRegExp": {
                           "type": "string",
-                          "description": "A regular expression which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the Output/REPL window."
+                          "description": "A regular expression which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to wherever Calva prints output."
                         }
                       }
                     }
@@ -787,18 +848,33 @@
           },
           "calva.enableJSCompletions": {
             "type": "boolean",
-            "description": "Should Calva use suitible and bring you JavaScript completions? This is an experimental cider-nrepl feature. Disable if completions start to throw errors.",
+            "description": "Should Calva use suitable and bring you JavaScript completions? This is an experimental cider-nrepl feature. Disable if completions start to throw errors.",
             "default": true
           },
           "calva.autoOpenREPLWindow": {
             "type": "boolean",
             "markdownDescription": "Automatically open the REPL window on Jack-in or Connect.",
-            "default": true
+            "default": false
           },
           "calva.autoOpenJackInTerminal": {
             "type": "boolean",
             "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in.",
+            "default": false
+          },
+          "calva.autoOpenResultOutputDestination": {
+            "type": "boolean",
+            "markdownDescription": "Automatically open the the result output destination on Jack-in or Connect.",
             "default": true
+          },
+          "calva.autoOpenInspector": {
+            "type": "boolean",
+            "markdownDescription": "Automatically open/reveal the Calva Inspector on Jack-in or Connect.",
+            "default": true
+          },
+          "calva.enableInspectorRainbow": {
+            "type": "boolean",
+            "markdownDescription": "Should the Calva Inspector items use rainbow colors? When enabled, the collection items will be colored with the same colors as VS Code uses for bracket pairs. See https://calva.io/inspector for info.",
+            "default": false
           },
           "calva.keybindingsEnabled": {
             "type": "boolean",
@@ -809,7 +885,7 @@
           "calva.showCalvaSaysOnStart": {
             "type": "boolean",
             "markdownDescription": "Show the Calva Says output panel on start?",
-            "default": true
+            "default": false
           },
           "calva.definitionProviderPriority": {
             "markdownDescription": "Calva can provide definitions using both the REPL connection and via clojure-lsp. Which provider should Calva prioritize when both are available?",
@@ -860,7 +936,17 @@
                 "type": "boolean",
                 "markdownDescription": "Should the attribute names be converted to a kebab-case?",
                 "default": false
+              },
+              "add-classes-to-tag-keyword?": {
+                "type": "boolean",
+                "markdownDescription": "Should all class names be added as CSS-like shortcuts to tag keyword?",
+                "default": true
               }
+            },
+            "default": {
+              "mapify-style?": false,
+              "kebab-attrs?": false,
+              "add-classes-to-tag-keyword?": true
             }
           },
           "calva.autoEvaluateCode": {
@@ -909,8 +995,13 @@
           },
           "calva.redirectServerOutputToRepl": {
             "type": "boolean",
-            "markdownDescription": "Redirect the output from the REPL server process to the REPL/Output window. With this disabled output from child threads of evaluations will not be shown in the REPL/Output window, but instead in the terminal where the REPL is started (the jack-in terminal if Calva started the REPL).",
+            "markdownDescription": "Redirect the output from the REPL server process to the Output Destination. With this disabled, output from child threads of evaluations will not be shown in the output destination, but instead in the terminal where the REPL is started (the jack-in terminal if Calva started the REPL).",
             "default": true
+          },
+          "calva.basilispPath": {
+            "type": "string",
+            "default": "basilisp",
+            "markdownDescription": "The path to the `basilisp` executable. If Basilisp is installed in a virtual environment, update this to the full path of the `basilisp` executable within that virtual environment."
           }
         }
       },
@@ -935,15 +1026,15 @@
             "default": true,
             "scope": "window"
           },
-          "calva.paredit.strictPreventUnmatchedClosingBracket": {
-            "type": "boolean",
-            "markdownDescription": "Experimental: Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
-            "default": false,
-            "scope": "window"
-          },
           "calva.paredit.killAlsoCutsToClipboard": {
             "type": "boolean",
             "markdownDescription": "When enabled, replaces the clipboard content with the deleted code.",
+            "default": false,
+            "scope": "window"
+          },
+          "calva.paredit.multicursor": {
+            "type": "boolean",
+            "markdownDescription": "Experimental: Support for multiple cursors in paredit commands.\nCurrently supported commands:\n- Cursor movement\n- Cursor selection\n- Rewrap",
             "default": false,
             "scope": "window"
           }
@@ -1056,6 +1147,12 @@
             "default": null,
             "description": "Style of `#_` ignored forms",
             "scope": "resource"
+          },
+          "calva.highlight.ignoredTopLevelFormStyle": {
+            "type": "object",
+            "default": null,
+            "markdownDescription": "Style of top level `#_` ignored forms. If not specified, it will be the same as what's set for `calva.highlight.ignoredFormStyle`",
+            "scope": "resource"
           }
         }
       }
@@ -1160,6 +1257,16 @@
         "category": "Calva Diagnostics"
       },
       {
+        "command": "calva.diagnostics.printTextNotationFromDocument",
+        "title": "Print TextNotation from the current document to Calva says",
+        "category": "Calva Diagnostics"
+      },
+      {
+        "command": "calva.diagnostics.createDocumentFromTextNotation",
+        "title": "Create a new Clojure Document from TextNotation",
+        "category": "Calva Diagnostics"
+      },
+      {
         "command": "calva.linting.resolveMacroAs",
         "title": "Resolve Macro As",
         "category": "Calva Linting",
@@ -1223,28 +1330,18 @@
         "category": "Calva"
       },
       {
-        "command": "calva.startOrConnectRepl",
-        "title": "Start or Connect to a Clojure REPL",
-        "category": "Calva"
-      },
-      {
-        "command": "calva.startStandaloneRepl",
-        "title": "Start a standalone REPL (not in a project)",
+        "command": "calva.showReplMenu",
+        "title": "Open the REPL Menu (Start/Connect a REPL, etc.)",
         "category": "Calva"
       },
       {
         "command": "calva.startStandaloneHelloRepl",
-        "title": "Fire up the Getting Started REPL",
+        "title": "Create a Getting Started REPL project",
         "category": "Calva"
       },
       {
-        "command": "calva.startStandaloneCljsBrowserRepl",
-        "title": "Fire up the ClojureScript Quick Start Browser REPL",
-        "category": "Calva"
-      },
-      {
-        "command": "calva.startStandaloneCljsNodeRepl",
-        "title": "Fire up the ClojureScript Quick Start Node REPL",
+        "command": "calva.createMinimalProject",
+        "title": "Create a mini Clojure project",
         "category": "Calva"
       },
       {
@@ -1252,12 +1349,6 @@
         "title": "Toggle the REPL Connection (clj or cljs) used for CLJC Files",
         "enablement": "calva:connected",
         "category": "Calva"
-      },
-      {
-        "command": "calva.selectCurrentForm",
-        "title": "Select Current Form",
-        "category": "Calva",
-        "enablement": "editorLangId == clojure"
       },
       {
         "command": "calva.clearInlineResults",
@@ -1337,7 +1428,7 @@
       },
       {
         "command": "calva.printLastStacktrace",
-        "title": "Print Last Stacktrace to Output Window",
+        "title": "Print Last Stacktrace to REPL Window",
         "enablement": "calva:connected",
         "category": "Calva"
       },
@@ -1361,6 +1452,12 @@
       {
         "command": "calva.runNamespaceTests",
         "title": "Run Tests for Current Namespace",
+        "enablement": "calva:connected",
+        "category": "Calva"
+      },
+      {
+        "command": "calva.loadTestFileForCurrentNamespace",
+        "title": "Load/Evaluate Test File (as saved on disk) for Current Namespace",
         "enablement": "calva:connected",
         "category": "Calva"
       },
@@ -1475,6 +1572,12 @@
         "category": "Calva Paredit",
         "command": "paredit.closeList",
         "title": "Move Cursor Forward to List End/Close",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva Paredit",
+        "command": "calva.selectCurrentForm",
+        "title": "Select Current Form",
         "enablement": "editorLangId == clojure"
       },
       {
@@ -1665,6 +1768,12 @@
       },
       {
         "category": "Calva Paredit",
+        "command": "paredit.killLeft",
+        "title": "Kill/Delete Left",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva Paredit",
         "command": "paredit.killSexpForward",
         "title": "Kill/Delete Sexp Forward",
         "enablement": "editorLangId == clojure"
@@ -1833,31 +1942,46 @@
       },
       {
         "category": "Calva",
-        "command": "calva.showOutputWindow",
-        "title": "Show Output/REPL Window",
+        "command": "calva.showOutputChannel",
+        "title": "Show/Open the Calva says Output Channel"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.showOutputTerminal",
+        "title": "Show/Open the Calva Output Terminal"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.showResultOutputDestination",
+        "title": "Show/Open the result output destination"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.showReplWindow",
+        "title": "Show/Open REPL Window",
         "enablement": "calva:connected"
       },
       {
         "category": "Calva",
         "command": "calva.showFileForOutputWindowNS",
-        "title": "Show File for the Current Output/REPL Window Namespace",
+        "title": "Show File for the Current REPL Window Namespace",
         "enablement": "calva:connected"
       },
       {
         "command": "calva.setOutputWindowNamespace",
-        "title": "Switch Namespace in Output/REPL Window to Current Namespace",
+        "title": "Switch Namespace in REPL Window to Current Namespace",
         "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.sendCurrentFormToOutputWindow",
-        "title": "Send Current Form to Output/REPL Window",
+        "title": "Send Current Form to REPL Window",
         "enablement": "calva:connected",
         "category": "Calva"
       },
       {
         "command": "calva.sendCurrentTopLevelFormToOutputWindow",
-        "title": "Send Current Top Level Form to Output/REPL Window",
+        "title": "Send Current Top Level Form to REPL Window",
         "enablement": "calva:connected",
         "category": "Calva"
       },
@@ -2002,6 +2126,48 @@
         "command": "paredit.addRichComment",
         "title": "Add Rich Comment",
         "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.clearInspector",
+        "title": "Clear All Inspector Items",
+        "icon": "$(close-all)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.clearInspectorItem",
+        "title": "Clear Inspector Item",
+        "icon": "$(close)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.copyInspectorItem",
+        "title": "Copy Inspector Item",
+        "icon": "$(copy)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.inspectItem",
+        "title": "Inspect Item",
+        "icon": "$(inspect)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.pasteAsInspectorItem",
+        "title": "Paste as Inspector Item",
+        "shortTitle": "Paste",
+        "icon": "$(add)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.addToInspector",
+        "title": "Add Selection or Current Form to Inspector",
+        "icon": "$(inspect)"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.revealInspector",
+        "title": "Reveal Inspector"
       }
     ],
     "keybindings": [
@@ -2021,7 +2187,7 @@
         "when": "calva:keybindingsEnabled"
       },
       {
-        "command": "calva.startOrConnectRepl",
+        "command": "calva.showReplMenu",
         "key": "ctrl+alt+c ctrl+alt+r"
       },
       {
@@ -2100,9 +2266,9 @@
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
       },
       {
-        "command": "calva.evaluateOutputWindowForm",
+        "command": "calva.evaluateReplWindowForm",
         "key": "enter",
-        "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus && !suggestWidgetVisible"
+        "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:replWindowSubmitOnEnter && editorTextFocus && !suggestWidgetVisible"
       },
       {
         "command": "calva.evaluateSelectionReplace",
@@ -2402,6 +2568,13 @@
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
       },
       {
+        "command": "paredit.killLeft",
+        "mac": "cmd+backspace",
+        "win": "ctrl+k ctrl+h",
+        "linux": "ctrl+k ctrl+h",
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
+      },
+      {
         "command": "paredit.killSexpForward",
         "key": "ctrl+shift+delete",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
@@ -2537,14 +2710,36 @@
         "when": "calva:keybindingsEnabled && calva:activeEditorIsFiddle"
       },
       {
-        "command": "calva.showOutputWindow",
+        "command": "calva.showResultOutputDestination",
         "key": "ctrl+alt+o o",
-        "when": "calva:keybindingsEnabled && calva:connected && !calva:outputWindowActive"
+        "when": "calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.showOutputChannel",
+        "key": "ctrl+alt+o c",
+        "when": "calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.showOutputTerminal",
+        "key": "ctrl+alt+o t",
+        "when": "calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.showReplWindow",
+        "key": "ctrl+alt+o r",
+        "args": false,
+        "when": "calva:keybindingsEnabled && !calva:outputWindowActive"
       },
       {
         "command": "calva.showFileForOutputWindowNS",
-        "key": "ctrl+alt+o o",
+        "key": "ctrl+alt+o r",
+        "args": false,
         "when": "calva:keybindingsEnabled && calva:connected && calva:outputWindowActive"
+      },
+      {
+        "command": "calva.revealInspector",
+        "key": "ctrl+alt+o i",
+        "when": "calva:keybindingsEnabled"
       },
       {
         "command": "calva.setOutputWindowNamespace",
@@ -2876,7 +3071,7 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "calva.startOrConnectRepl",
+          "command": "calva.showReplMenu",
           "when": "true"
         },
         {
@@ -2892,7 +3087,7 @@
           "when": "calva:connected && calva:outputWindowActive"
         },
         {
-          "command": "calva.showOutputWindow",
+          "command": "calva.showReplWindow",
           "when": "!calva:outputWindowActive"
         },
         {
@@ -2934,7 +3129,7 @@
         {
           "when": "editorLangId == clojure",
           "enablement": "!calva:connected",
-          "command": "calva.startOrConnectRepl",
+          "command": "calva.showReplMenu",
           "group": "calva/x-connect"
         },
         {
@@ -3036,6 +3231,60 @@
           "command": "calva.copyHtmlAsHiccup",
           "group": "0-calva"
         }
+      ],
+      "view/title": [
+        {
+          "command": "calva.pasteAsInspectorItem",
+          "when": "view == calva.inspector",
+          "group": "navigation@1"
+        },
+        {
+          "command": "calva.clearInspector",
+          "when": "view == calva.inspector",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "calva.copyInspectorItem",
+          "when": "view == calva.inspector",
+          "group": "inline@1"
+        },
+        {
+          "command": "calva.inspectItem",
+          "when": "view == calva.inspector && viewItem == raw",
+          "group": "inline@3"
+        },
+        {
+          "command": "calva.clearInspectorItem",
+          "when": "view == calva.inspector && viewItem =~ /inspectable|raw/",
+          "group": "inline@4"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "calva",
+          "title": "Calva",
+          "icon": "assets/images/calva-symbol-white.svg"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "projectTree",
+          "name": "Project tree",
+          "icon": "assets/images/clj.svg",
+          "contextualTitle": "Project tree"
+        }
+      ],
+      "calva": [
+        {
+          "id": "calva.inspector",
+          "name": "Inspector"
+        }
       ]
     },
     "colors": [
@@ -3076,6 +3325,8 @@
     "prerelease": "npm run precompile && npm run release-cljs",
     "compile-test": "tsc -p ./",
     "postrelease": "",
+    "package-vsix": "vsce package",
+    "package-vsix-prerelease": "vsce package",
     "vscode:prepublish": "npm run release",
     "bump-version": "npm set git-tag-version false && npm version patch",
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
@@ -3090,11 +3341,14 @@
     "prettier-format-watch": "onchange \"./**/*.{ts,js,json}\" -- prettier --write {{changed}}",
     "preprettier-format-watch": "npm run prettier-format",
     "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
-    "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch"
+    "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch",
+    "install-ys": "curl -sS https://yamlscript.org/install | PREFIX=/tmp/yamlscript VERSION=0.1.56 bash"
   },
   "dependencies": {
     "@vscode/debugadapter": "^1.64.0",
+    "ansi-regex": "^5.0.1",
     "axios": "^1.4.0",
+    "chalk": "^4.1.2",
     "extract-zip": "^2.0.1",
     "find": "0.2.9",
     "follow-redirects": "^1.15.4",
@@ -3110,7 +3364,6 @@
     "posthtml-parser": "^0.11.0",
     "semver": "^7.3.7",
     "tree-kill": "^1.2.2",
-    "universal-analytics": "^0.5.3",
     "uuidv4": "6.2.12",
     "vscode-languageclient": "^8.0.2",
     "vsls": "^1.0.4753"
@@ -3122,8 +3375,8 @@
     "@types/lodash": "^4.14.167",
     "@types/mocha": "^9.1.0",
     "@types/node": "^18.6.3",
+    "@types/screenshot-desktop": "^1.12.3",
     "@types/semver": "^7.3.9",
-    "@types/universal-analytics": "^0.4.5",
     "@types/uuid": "^8.3.4",
     "@types/vscode": "^1.67.0",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
@@ -3140,7 +3393,7 @@
     "glob": "^7.1.6",
     "jest": "^27.2.5",
     "json": "^10.0.0",
-    "mocha": "^9.2.2",
+    "mocha": "^11.1.0",
     "mocha-junit-reporter": "^2.0.2",
     "mocha-multi-reporters": "^1.5.1",
     "node-gyp": "^8.4.1",
@@ -3148,10 +3401,12 @@
     "ovsx": "^0.8.3",
     "prettier": "2.5.1",
     "rimraf": "^2.7.1",
-    "shadow-cljs": "^2.25.2",
+    "screenshot-desktop": "^1.15.0",
+    "shadow-cljs": "^2.28.15",
     "source-map-support": "^0.5.16",
     "ts-loader": "^8.0.18",
     "ts-node": "^10.3.0",
+    "ts-sinon": "^2.0.2",
     "typescript": "^4.6.3",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.0"

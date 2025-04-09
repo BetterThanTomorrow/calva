@@ -1,7 +1,7 @@
 import * as messages from './messages';
 import { provideSignatureHelp } from '../../providers/signature';
 import { provideHover } from '../../providers/hover';
-import { isResultsDoc } from '../../results-output/results-doc';
+import { isResultsDoc } from '../../repl-window/repl-doc';
 import * as vscode_lsp from 'vscode-languageclient/node';
 import * as defs from '../definitions';
 import * as config from '../../config';
@@ -9,6 +9,8 @@ import * as utils from '../utils';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { getClientProvider } from '../state';
+import * as tokenFilter from './semantic-token-filter';
+import * as api from '../api';
 
 /**
  * This can potentially be used to replace or alter the automatic command instrumentation performed by the
@@ -93,6 +95,9 @@ class TestTreeFeature implements vscode_lsp.StaticFeature {
   }
 }
 
+// Cache for semantic token type, so we don't need to hit the LSP server every time
+let commentTokenType: number | null = null;
+
 type CreateClientParams = {
   lsp_server_path: string;
   uri: vscode.Uri;
@@ -150,7 +155,6 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
         'auto-add-ns-to-new-files?': true,
         'document-formatting?': false,
         'document-range-formatting?': false,
-        'keep-require-at-start?': true,
       },
       middleware: {
         didOpen: (document, next) => {
@@ -208,6 +212,37 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
         },
         provideCompletionItem(_document, _position, _context, _token, _next) {
           return null;
+        },
+        provideDocumentSemanticTokens: async (
+          document: vscode.TextDocument,
+          token: vscode.CancellationToken,
+          next: (
+            document: vscode.TextDocument,
+            token: vscode.CancellationToken
+          ) => Thenable<vscode.SemanticTokens> | vscode.SemanticTokens | null
+        ) => {
+          const result = await next(document, token);
+          if (!result) {
+            return result;
+          }
+          if (!commentTokenType) {
+            try {
+              const serverTokens = await api.getSemanticTokens(client);
+              console.debug('lsp serverTokens:', serverTokens);
+              commentTokenType = serverTokens?.indexOf('comment') || 10;
+            } catch (e) {
+              console.error('Failed to get semantic tokens from server:', e);
+              commentTokenType = 10;
+            }
+          }
+
+          const filterTokens = (tokens: vscode.SemanticTokens) => {
+            const data = new Uint32Array(tokens.data);
+            const filteredData = tokenFilter.filterCommentTokens(data, commentTokenType);
+            return new vscode.SemanticTokens(new Uint32Array(filteredData));
+          };
+
+          return filterTokens(result);
         },
         async provideSignatureHelp(document, position, context, token, next) {
           const help = await provideSignatureHelp(document, position, token);

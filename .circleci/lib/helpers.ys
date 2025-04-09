@@ -1,0 +1,38 @@
+!YS-v0
+
+ns: helpers
+
+defn bin:
+  (label name)::
+    run:
+      name:: label
+      command::
+        read: "bin/$name.bash"
+
+  (label):
+    name =: label:lc.replace(' ', '-')
+    bin: label name
+
+defn cmd([label code])::
+  run:
+    name:: label
+    command:: code
+
+defn docker(image)::
+  docker:
+    image:: image
+
+defn add-ssh(fingerprint)::
+  add_ssh_keys:
+    fingerprints:: -[fingerprint]
+
+defn attach-workspace(path)::
+  attach_workspace:
+    at:: path
+
+defn store(pair):
+  type =: pair:keys.0
+  path =: pair:vals.0
+  =>::
+    ! "store_$type":
+      path:: path

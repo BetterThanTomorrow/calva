@@ -88,9 +88,12 @@ When execution is paused at a breakpoint, you can evaluate code in that context.
 
 ### Viewing Variable Values
 
-While debugging, you can view the values of variables in VS Code's debugger side pane. You can also view values by hovering over the variables in the editor. Currently, values for collections and maps are shown as strings, but we plan to make them structured in the future. For now, if you want to see the value of a large structured variable, you can evaluate the variable from the editor or from the REPL window.
+While debugging, you can view the values of variables in VS Code's debugger side pane. You can also view values by hovering over the variables in the editor.
 
 ![Viewing variable values in the side pane](images/debugger/viewing-variable-values.png "Viewing variable values in the side pane")
+
+!!! Note "Metadata not available"
+    The variable viewer does not have access to any metadata attached to the variable values.
 
 ### Viewing the Call Stack
 
@@ -136,6 +139,10 @@ Here the breakpoint is exactly in front of a form that contains as its last expr
 ### Loading the File and "Eval On Save"
 
 When you load a file, any breakpoints that were previously set in functions will be unset. If you have the "Eval On Save" setting enabled, your file is also loaded with each save, therefore saving the file will remove breakpoints previously set.
+
+## Clashes with Emacs/CIDER debugger
+
+When both CIDER and Calva is connected to the same REPL, stepping the debugger in one editor may have it stop on the breakpoint in the other one. Reported here: https://github.com/BetterThanTomorrow/calva/issues/2496
 
 ## Troubleshooting
 
@@ -216,7 +223,7 @@ NOTE: You can of course pass other env variables here.
 
 Once you saved the file, the next time you `Jack in` the project, this variable is read by the JVM and the configuration is applied accordingly.
 
-You should see something like the message below in the Calva terminal output window:
+You should see something like the message below in the Calva jack-in terminal:
 
 ```shell
 clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version,"0.8.3"},cider/cider-nrepl {:mvn/version,"0.26.0"}}}' -A:debug -m nrepl.cmdline --middleware "[cider.nrepl/cider-middleware]"

@@ -1,0 +1,85 @@
+!YS-v0:
+
+::
+  defn filters(type='prerelease')::
+    branches:
+      ignore: /.*/
+    tags:
+      only::
+        case type:
+          'prerelease': '/^v\d+\.\d+\.\d+-?.*/'
+          'release':    '/^v\d+\.\d+\.\d+$/'
+          else: die("Unexpected filter type '$type'")
+
+jobs:
+- checkout:
+    filters:: filters()
+
+- build:
+    requires: [checkout]
+    filters:: filters()
+
+- prettier-check:
+    requires: [build]
+    filters:: filters()
+
+- eslint-check:
+    requires: [build]
+    filters:: filters()
+
+- test-grammar:
+    requires: [build]
+    filters:: filters()
+
+- test-cljslib:
+    requires: [build]
+    filters:: filters()
+
+- test-integration:
+    requires: [build]
+    filters:: filters()
+
+- test-e2e:
+    requires: [build]
+    filters:: filters()
+
+- test-e2e-sub-projects:
+    requires: [build]
+    filters:: filters()
+
+- test-ts-unit:
+    requires: [build]
+    filters:: filters()
+
+- github-release:
+    requires:
+    - prettier-check
+    - eslint-check
+    - test-grammar
+    - test-cljslib
+    - test-integration
+    - test-e2e
+    - test-e2e-sub-projects
+    - test-ts-unit
+    filters:: filters()
+    context: Calva
+
+- marketplace-publish:
+    requires: [github-release]
+    filters:: filters('release')
+    context: Calva
+
+- open-vsx-publish:
+    requires: [github-release]
+    filters:: filters('release')
+    context: Calva
+
+- merge-dev-into-published:
+    requires: [marketplace-publish]
+    filters:: filters('release')
+    context: Calva
+
+- bump-dev-version:
+    requires: [merge-dev-into-published]
+    filters:: filters('release')
+    context: Calva

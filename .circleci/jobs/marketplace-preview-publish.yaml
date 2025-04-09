@@ -1,0 +1,15 @@
+!YS-v0:
+
+docker:
+- image: circleci/node:latest
+
+working_directory: ~/calva
+
+steps:
+- !:attach-workspace /tmp
+
+- !:cmd
+  - Restore build
+  - rmdir ~/calva && cp -r /tmp/build ~/calva
+
+- !:bin Publish to the marketplace

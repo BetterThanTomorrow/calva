@@ -43,7 +43,8 @@ You are in charge of how brackets and comments are highlighted via the `calva.hi
 | `cycleBracketColors` | Whether same colors should be <br> reused for deeply nested brackets | `true` |
 | `misplacedBracketStyle` | Style of misplaced bracket | `{ "border": "2px solid #c33" }` |
 | `matchedBracketStyle` | Style of bracket pair highlight | `{"backgroundColor": "#E0E0E0"}` |
-| `ignoredFormStyle` | Style of `#_...` form | `{"textDecoration": "none; opacity: 0.5"}` |
+| `ignoredFormStyle` | Style of `#_...` forms | `{"textDecoration": "none; opacity: 0.5"}` |
+| `ignoredTopLevelFormStyle` | Style of `#_...` forms at the top level. (If not set, uses `ignoredFormStyle`) | `{ "textDecoration": "none; text-shadow: 2px 2px 5px rgba(255, 215, 0, 0.75)" }` |
 | `commentFormStyle` | Style of `(comment ...)` form | `{"fontStyle": "italic"}` |
 
 !!! Note "Calva disables the VS Code built-in indent guides"

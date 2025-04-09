@@ -3,12 +3,13 @@ import * as _ from 'lodash';
 import * as util from './utilities';
 import * as getText from './util/get-text';
 import * as namespace from './namespace';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import evaluate from './evaluate';
 import * as state from './state';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import * as output from './results-output/output';
 
 export type CustomREPLCommandSnippet = {
   name: string;
@@ -39,7 +40,7 @@ async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetD
   const editor = util.getActiveTextEditor();
   const [editorNS, _] =
     editor && editor.document && editor.document.languageId === 'clojure'
-      ? namespace.getNamespace(editor.document, editor.selection.active)
+      ? namespace.getNamespace(editor.document, editor.selections[0].active)
       : undefined;
   const editorRepl =
     editor && editor.document && editor.document.languageId === 'clojure'
@@ -50,8 +51,9 @@ async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetD
       ? codeOrKeyOrSnippet
       : await getSnippetDefinition(codeOrKeyOrSnippet as string, editorNS, editorRepl);
 
-  snippetDefinition.ns = snippetDefinition.ns ?? editorNS;
   snippetDefinition.repl = snippetDefinition.repl ?? editorRepl;
+  snippetDefinition.ns =
+    snippetDefinition.ns ?? (editorRepl === snippetDefinition.repl ? editorNS : undefined);
   snippetDefinition.evaluationSendCodeToOutputWindow =
     snippetDefinition.evaluationSendCodeToOutputWindow ?? true;
 
@@ -76,7 +78,7 @@ async function evaluateCodeInContext(
   options: any
 ) {
   const result = await evaluateSnippet(editor, code, context, options);
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
   return result;
 }
 
@@ -86,16 +88,15 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
   const workspaceSnippets = getConfig().customREPLCommandSnippetsWorkspace;
   const workspaceFolderSnippets = getConfig().customREPLCommandSnippetsWorkspaceFolder;
   let snippets = [
-    ...(globalSnippets ? globalSnippets : []),
-    ...(workspaceSnippets ? workspaceSnippets : []),
     ...(workspaceFolderSnippets ? workspaceFolderSnippets : []),
+    ...(workspaceSnippets ? workspaceSnippets : []),
+    ...(globalSnippets ? globalSnippets : []),
   ];
   if (snippets.length < 1) {
     snippets = getConfig().customREPLCommandSnippets;
   }
   const snippetsDict = {};
-  const snippetsKeyDict = {};
-  const snippetsMenuItems: string[] = [];
+  const snippetsMenuItems: vscode.QuickPickItem[] = [];
   snippets.forEach((c: CustomREPLCommandSnippet) => {
     const undefs = ['name', 'snippet'].filter((k) => {
       return !c[k];
@@ -106,11 +107,16 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
     const entry = { ...c };
     entry.ns = entry.ns ? entry.ns : editorNS;
     entry.repl = entry.repl ? entry.repl : editorRepl;
-    const prefix = entry.key !== undefined ? `${entry.key}: ` : '';
-    const item = `${prefix}${entry.name} (${entry.repl})`;
+    const item = {
+      label: `${entry.key ? entry.key + ': ' : ''}${entry.name}`,
+      detail: `${entry.snippet}`,
+      description: `${entry.repl}`,
+      snippet: entry.snippet,
+    };
     snippetsMenuItems.push(item);
-    snippetsDict[item] = entry;
-    snippetsKeyDict[entry.key] = item;
+    if (!snippetsDict[entry.key]) {
+      snippetsDict[entry.key] = entry;
+    }
   });
 
   if (configErrors.length > 0) {
@@ -122,26 +128,27 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
     return;
   }
 
-  let pick: string;
+  let pick: any;
   if (codeOrKey === undefined) {
     // Called without args, show snippets menu
     if (snippetsMenuItems.length > 0) {
       try {
-        pick = await util.quickPickSingle({
-          values: snippetsMenuItems.map((a) => ({ label: a })),
+        const pickResult = await util.quickPickSingle({
+          values: snippetsMenuItems,
           placeHolder: 'Choose a command to run at the REPL',
           saveAs: 'runCustomREPLCommand',
         });
-        if (pick === undefined || pick.length < 1) {
+        if (pickResult === undefined || pickResult.label.length < 1) {
           return;
         }
+        pick = pickResult;
       } catch (e) {
         console.error(e);
       }
     }
     if (pick === undefined) {
-      outputWindow.appendLine(
-        '; No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.'
+      output.appendLineOtherOut(
+        'No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.'
       );
       return;
     }
@@ -149,28 +156,28 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
 
   if (pick === undefined) {
     // still no pick, but codeOrKey might be one
-    pick = snippetsKeyDict[codeOrKey];
+    pick = snippetsDict[codeOrKey];
   }
 
-  return pick !== undefined ? snippetsDict[pick] : { snippet: codeOrKey };
+  return pick ?? { snippet: codeOrKey };
 }
 
 export function makeContext(editor: vscode.TextEditor, ns: string, editorNS: string, repl: string) {
   return {
-    currentLine: editor.selection.active.line,
-    currentColumn: editor.selection.active.character,
+    currentLine: editor.selections[0].active.line,
+    currentColumn: editor.selections[0].active.character,
     currentFilename: editor.document.fileName,
     ns,
     editorNS,
     repl,
-    selection: editor.document.getText(editor.selection),
+    selection: editor.document.getText(editor.selections[0]),
     selectionWithBracketTrail: getText.selectionAddingBrackets(
       editor.document,
-      editor.selection.active
+      editor.selections[0].active
     ),
     currentFileText: getText.currentFileText(editor.document),
     ...(editor.document.languageId === 'clojure'
-      ? getText.currentClojureContext(editor.document, editor.selection.active)
+      ? getText.currentClojureContext(editor.document, editor.selections[0].active)
       : {}),
   };
 }

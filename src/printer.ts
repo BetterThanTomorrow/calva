@@ -129,5 +129,7 @@ export function getServerSidePrinterDependencies() {
 }
 
 export function prettyPrint(value: any, options: any = prettyPrintingOptions()) {
-  return calvaLib.prettyPrint(value, options);
+  const optionsClone = JSON.parse(JSON.stringify(options));
+  delete optionsClone['printFn']; // Zprint croaks on options it doesn't understand
+  return calvaLib.prettyPrint(value, optionsClone);
 }

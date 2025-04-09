@@ -23,7 +23,7 @@ interface ResultOptions {
 }
 
 export function inferParensCommand(editor: vscode.TextEditor) {
-  const position: vscode.Position = editor.selection.active,
+  const position: vscode.Position = editor.selections[0].active,
     document = editor.document,
     currentText = document.getText(),
     r: ResultOptions = inferParens({
@@ -37,7 +37,7 @@ export function inferParensCommand(editor: vscode.TextEditor) {
 }
 
 export function indentCommand(editor: vscode.TextEditor, spacing: string, forward: boolean = true) {
-  const prevPosition: vscode.Position = editor.selection.active,
+  const prevPosition: vscode.Position = editor.selections[0].active,
     document = editor.document;
   let deletedText = '',
     doEdit = true;
@@ -71,7 +71,7 @@ export function indentCommand(editor: vscode.TextEditor, spacing: string, forwar
     )
     .then((_onFulfilled: boolean) => {
       if (doEdit) {
-        const position: vscode.Position = editor.selection.active,
+        const position: vscode.Position = editor.selections[0].active,
           currentText = document.getText(),
           r: ResultOptions = inferIndents({
             text: currentText,

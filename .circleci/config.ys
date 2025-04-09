@@ -1,0 +1,80 @@
+# This is the main YAMLScript file that expands to the desired CircleCI
+# config.yml file when we run 'make build' or 'bb build'.
+
+!yamlscript/v0/data
+
+# We start in data mode with the tag above.
+
+#------------------------------------------------------------------------------
+# This section initializes the things declaratively:
+#
+# Note: These definitions could be kept in a seaparate file, but probably
+# better to define them here to better see the intents.
+
+# Import the 'lib/helpers.ys' library:
+
+# Define a binding used in other files (def):
+::
+  use helpers: :all
+  ssh-fingerprint-1 =: 'd1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14'
+
+# Define local file bindings (let):
+
+# These names act as mapping keys and also the names of files to load that
+# contain the associated definition:
+job-names =::
+- checkout
+- build
+- test-grammar
+- prettier-check
+- eslint-check
+- test-cljslib
+- test-ts-unit
+- test-integration
+- test-e2e
+- test-e2e-sub-projects
+- github-release
+- marketplace-publish
+- marketplace-preview-publish
+- open-vsx-publish
+- merge-dev-into-published
+- merge-published-into-dev
+- deploy-docs
+- bump-dev-version
+
+workflow-names =::
+- calva-io-build
+# We have two Calva build workflows, because for some reason the
+# tag filter needs to be on all jobs...
+- build-test
+- release-publish
+
+# Start of the 'workflows' section mapping that we'll add to below:
+workflows-map =::
+  version: 2
+
+#------------------------------------------------------------------------------
+# The intended 'config.yml' definition starts here.
+# The final config.yml file is a mapping with 3 top level keys:
+# 'version', 'jobs' and 'workflows'.
+# The 'version' value is literal and we use a simple 'reduce' to generate the
+# other 2.
+#
+# Note: The 2 different coding styles used for 'jobs' and 'workflows' is just
+# an example of different ways to express code in YAMLScript.
+
+version: 2
+
+# Generate 'jobs' section:
+jobs::
+  reduce _ {} job-names:
+    fn(mapping name):
+      assoc mapping name:
+        load: "jobs/$name.yaml"
+
+# Generate 'workflows' section:
+workflows::
+  reduce _ workflows-map workflow-names:
+    fn(mapping name):
+      assoc mapping name:
+        load: "workflows/$name.yaml"

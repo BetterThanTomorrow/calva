@@ -3,7 +3,7 @@ import * as state from '../state';
 import * as util from '../utilities';
 import annotations from './annotations';
 import * as namespace from '../namespace';
-import * as outputWindow from '../results-output/results-doc';
+import * as outputWindow from '../repl-window/repl-doc';
 import * as replSession from '../nrepl/repl-session';
 import * as config from '../config';
 import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
@@ -20,9 +20,7 @@ async function provideClojureDefinition(
   position: vscode.Position,
   _token
 ) {
-  const evalPos = annotations.getEvaluationPosition(position);
-  const posIsEvalPos = evalPos && position.isEqual(evalPos);
-  if (util.getConnectedState() && !posIsEvalPos) {
+  if (util.getConnectedState()) {
     const client = replSession.getSession(util.getFileType(document));
     if (client?.supports('info')) {
       const text = util.getWordAtPosition(document, position);

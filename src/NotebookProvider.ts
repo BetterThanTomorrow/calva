@@ -2,9 +2,10 @@ import * as vscode from 'vscode';
 import { TextDecoder, TextEncoder } from 'util';
 import { prettyPrint } from '../out/cljs-lib/cljs-lib';
 import * as tokenCursor from './cursor-doc/token-cursor';
-import * as repl from './api/repl-v0';
+import * as repl from './api/repl-v1';
 import _ = require('lodash');
 import { isInteger } from 'lodash';
+import { getNamespace } from './api/document';
 
 export class NotebookProvider implements vscode.NotebookSerializer {
   private readonly decoder = new TextDecoder();
@@ -181,6 +182,8 @@ async function doExecution(
   cell: vscode.NotebookCell,
   controller: vscode.NotebookController
 ): Promise<void> {
+  const firstCell = cell.notebook.getCells()[0];
+  const ns = cell !== firstCell ? getNamespace(firstCell.document) : undefined;
   const execution = controller.createNotebookCellExecution(cell);
   execution.start(Date.now());
 
@@ -189,6 +192,7 @@ async function doExecution(
       await repl.evaluateCode(
         undefined,
         cell.document.getText(),
+        ns,
         {
           stdout: (_) => {
             return;

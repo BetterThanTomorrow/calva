@@ -1,0 +1,35 @@
+!YS-v0:
+
+jobs:
+- checkout:
+    filters:
+      tags:
+        ignore: /^v\d+\.\d+\.\d+-?.*/
+
+- prettier-check: {requires: [checkout]}
+- test-grammar:   {requires: [checkout]}
+- build:          {requires: [checkout]}
+
+- eslint-check:          {requires: [build]}
+- test-cljslib:          {requires: [build]}
+- test-integration:      {requires: [build]}
+- test-e2e:              {requires: [build]}
+- test-e2e-sub-projects: {requires: [build]}
+- test-ts-unit:          {requires: [build]}
+
+- marketplace-preview-publish:
+    requires:
+    - prettier-check
+    - eslint-check
+    - test-grammar
+    - test-cljslib
+    - test-integration
+    - test-e2e
+    - test-e2e-sub-projects
+    - test-ts-unit
+    filters:
+      branches:
+        # dev (disabled for now because
+        # https://github.com/microsoft/vsmarketplace/issues/310)
+        only: disabled
+    context: Calva

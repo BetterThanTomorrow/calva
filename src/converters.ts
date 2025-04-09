@@ -4,7 +4,7 @@ import * as config from './config';
 
 function getText() {
   const editor = vscode.window.activeTextEditor;
-  const selection = editor.selection;
+  const selection = editor.selections[0];
   const doc = editor.document;
   return doc.getText(
     selection.active.isEqual(selection.anchor)
@@ -73,11 +73,15 @@ export async function dart2clj() {
 export type HiccupOptions = {
   'kebab-attrs?': boolean;
   'mapify-style?': boolean;
+  'add-classes-to-tag-keyword?': boolean;
 };
 
 function hasHiccupOptions(options: any): boolean {
   return (
-    options && (options['kebab-attrs?'] !== undefined || options['mapify-style?'] !== undefined)
+    options &&
+    (options['kebab-attrs?'] !== undefined ||
+      options['mapify-style?'] !== undefined ||
+      options['add-classes-to-tag-keyword?'] !== undefined)
   );
 }
 

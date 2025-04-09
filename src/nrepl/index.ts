@@ -3,17 +3,23 @@ import { BEncoderStream, BDecoderStream } from './bencode';
 import * as cider from './cider';
 import * as state from './../state';
 import * as util from '../utilities';
-import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from '../printer';
+import {
+  PrettyPrintingOptions,
+  disabledPrettyPrinter,
+  getServerSidePrinter,
+  prettyPrint,
+} from '../printer';
 import * as debug from '../debugger/calva-debug';
 import * as vscode from 'vscode';
 import debugDecorations from '../debugger/decorations';
-import * as outputWindow from '../results-output/results-doc';
+import * as outputWindow from '../repl-window/repl-doc';
 import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
-import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
+import { getStateValue } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
 import { log, Direction } from './logging';
 import * as string from '../util/string';
+import * as output from '../results-output/output';
 
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
@@ -289,12 +295,9 @@ export class NReplSession {
 
     if ((msgData.out || msgData.err) && this.replType) {
       if (msgData.out) {
-        outputWindow.append(msgData.out);
+        output.appendOtherOut(msgData.out);
       } else if (msgData.err) {
-        const err = formatAsLineComments(msgData.err);
-        outputWindow.appendLine(err, (_) => {
-          outputWindow.appendPrompt();
-        });
+        output.appendOtherErr(msgData.err);
       }
     }
   }
@@ -392,13 +395,6 @@ export class NReplSession {
     const debugResponse = getStateValue(debug.DEBUG_RESPONSE_KEY);
     const theNS = ns || opts['ns'] || 'user';
     if (debugResponse && vscode.debug.activeDebugSession && this.replType === 'clj') {
-      state
-        .analytics()
-        .logEvent(
-          debug.DEBUG_ANALYTICS.CATEGORY,
-          debug.DEBUG_ANALYTICS.EVENT_ACTIONS.EVALUATE_IN_DEBUG_CONTEXT
-        )
-        .send();
       return {
         id: debugResponse.id,
         ns: theNS,
@@ -536,16 +532,17 @@ export class NReplSession {
     opts['pprint'] = pprintOptions.enabled;
     delete opts.pprintOptions;
     const extraOpts = getServerSidePrinter(pprintOptions);
+    const { stderr, stdout, ...optsLessOut } = opts;
     const evaluation = new NReplEvaluation(
       id,
       this,
-      opts.stderr,
-      opts.stdout,
+      stderr,
+      stdout,
       null,
       new Promise((resolve, reject) => {
         const msg = {
           ...extraOpts,
-          ...opts,
+          ...optsLessOut,
           op: 'load-file',
           session: this.sessionId,
           file,
@@ -771,7 +768,7 @@ export class NReplSession {
     });
   }
 
-  private _refresh(cmd, opts: { dirs?: string[]; before?: string[]; after?: string[] } = {}) {
+  private _refresh(cmd, opts = {}) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
       const msg = {
@@ -801,6 +798,9 @@ export class NReplSession {
           if (msg.err) {
             err += msg.err;
           }
+          if (msg.out) {
+            output.appendOtherOut(msg.out);
+          }
           if (hasStatus(msg, 'done')) {
             const res = { reloaded, status } as any;
             if (error) {
@@ -824,11 +824,11 @@ export class NReplSession {
     });
   }
 
-  refresh(opts: { dirs?: string[]; before?: string[]; after?: string[] } = {}) {
+  refresh(opts = {}) {
     return this._refresh('refresh', opts);
   }
 
-  refreshAll(opts: { dirs?: string[]; before?: string[]; after?: string[] } = {}) {
+  refreshAll(opts = {}) {
     return this._refresh('refresh-all', opts);
   }
 

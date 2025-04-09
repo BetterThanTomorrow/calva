@@ -125,7 +125,7 @@ toplevel.terminal('kw', /(['`~^]\s*)*(:[^()[\]{},~@`^"\s;]*)/, (l, m) => ({
 }));
 
 // data readers
-toplevel.terminal('reader', /#[^()[\]{}'"_@~\s,;\\]+/, (_l, _m) => ({
+toplevel.terminal('reader', /#[^()[\]{}'"_@~\s,;\\][^()[\]{}'"@~\s,;\\]*/, (_l, _m) => ({
   type: 'reader',
 }));
 

@@ -4,7 +4,8 @@ import * as fmt from './calva-fmt/src/extension';
 import * as highlight from './highlight/src/extension';
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
-import * as replStart from './nrepl/repl-start';
+import * as replMenu from './nrepl/repl-menu';
+import * as drams from './nrepl/drams';
 import * as util from './utilities';
 import { NotebookKernel, NotebookProvider } from './NotebookProvider';
 import status from './status';
@@ -16,18 +17,17 @@ import * as definition from './providers/definition';
 import { CalvaSignatureHelpProvider } from './providers/signature';
 import testRunner from './testRunner';
 import annotations from './providers/annotations';
-import * as select from './select';
 import eval from './evaluate';
-import refresh from './refresh';
+import * as refresh from './refresh';
 import * as greetings from './greet';
 import Analytics from './analytics';
 import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import * as fileSwitcher from './file-switcher/file-switcher';
-import * as replHistory from './results-output/repl-history';
+import * as replHistory from './repl-window/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
@@ -43,10 +43,11 @@ import { capitalize } from './utilities';
 import * as overrides from './overrides';
 import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
+import * as output from './results-output/output';
+import * as inspector from './providers/inspector';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
-  whenContexts.setCursorContextIfChanged(editor);
 }
 
 function setKeybindingsEnabledContext() {
@@ -63,7 +64,9 @@ function setKeybindingsEnabledContext() {
 function initializeState() {
   setStateValue('connected', false);
   setStateValue('connecting', false);
-  setStateValue('outputChannel', vscode.window.createOutputChannel('Calva says'));
+  const outputChannel = vscode.window.createOutputChannel('Calva says', 'markdown');
+  setStateValue('outputChannel', outputChannel);
+  output.initOutputChannel(outputChannel);
   setStateValue('connectionLogChannel', vscode.window.createOutputChannel('Calva Connection Log'));
   setStateValue(
     'diagnosticCollection',
@@ -74,6 +77,29 @@ function initializeState() {
 async function activate(context: vscode.ExtensionContext) {
   console.info('Calva activate START');
 
+  initializeState();
+  state.setExtensionContext(context);
+  state.initDepsEdnJackInExecutable();
+  const isDramStart = await drams.dramStartConfigExists();
+  void drams.refreshDramConfigs();
+
+  const inspectorDataProvider = eval.initInspectorDataProvider();
+  const inspectorTreeView = vscode.window.createTreeView('calva.inspector', {
+    treeDataProvider: inspectorDataProvider,
+  });
+  inspectorDataProvider.treeView = inspectorTreeView;
+  vscode.window.registerFileDecorationProvider(new inspector.InspectorItemDecorationProvider());
+
+  overrides.activate();
+
+  if (isDramStart) {
+    overrides.addWarningExclusionRegexp(/classpath lookup failed/i);
+    overrides.addErrorExclusionRegexp(/classpath lookup failed/i);
+  }
+
+  await config.updateCalvaConfigFromUserConfigEdn(false);
+  await config.updateCalvaConfigFromEdn();
+
   const testController = vscode.tests.createTestController('calvaTestController', 'Calva');
   const clientProvider = lsp.createClientProvider({
     context,
@@ -81,21 +107,17 @@ async function activate(context: vscode.ExtensionContext) {
       testRunner.onTestTree(testController, tree);
     },
   });
-  await clientProvider.init();
+  try {
+    await clientProvider.init();
+  } catch (e) {
+    console.error('Failed initializing LSP client provider: ' + e.message);
+  }
 
   lsp.registerGlobally(clientProvider);
-
-  overrides.activate();
-
-  initializeState();
-  await config.updateCalvaConfigFromUserConfigEdn(false);
-  await config.updateCalvaConfigFromEdn();
-
   context.subscriptions.push(testController);
   testRunner.initialize(testController);
 
   setStateValue('analytics', new Analytics(context));
-  state.analytics().logPath('/start').logEvent('LifeCycle', 'Started').send();
   void state.analytics().logGA4Pageview('/start');
 
   model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
@@ -149,8 +171,6 @@ async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  state.setExtensionContext(context);
-  state.initDepsEdnJackInExecutable();
   void depsClj.downloadDepsClj(context.extensionPath);
 
   if (cljKondoExtension) {
@@ -185,10 +205,10 @@ async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  status.update(context);
+  status.update();
 
   // Initial set of the provided contexts
-  outputWindow.setContextForOutputWindowActive(false);
+  outputWindow.setContextForReplWindowActive(false);
   void vscode.commands.executeCommand('setContext', 'calva:launching', false);
   void vscode.commands.executeCommand('setContext', 'calva:connected', false);
   void vscode.commands.executeCommand('setContext', 'calva:jackedIn', false);
@@ -217,7 +237,7 @@ async function activate(context: vscode.ExtensionContext) {
     disconnect: jackIn.calvaDisconnect,
     evaluateCurrentTopLevelForm: eval.evaluateTopLevelForm,
     evaluateEnclosingForm: eval.evaluateEnclosingForm,
-    evaluateOutputWindowForm: eval.evaluateOutputWindowForm,
+    evaluateReplWindowForm: eval.evaluateReplWindowForm,
     evaluateSelection: eval.evaluateCurrentForm,
     evaluateSelectionAsComment: eval.evaluateSelectionAsComment,
     evaluateSelectionReplace: eval.evaluateSelectionReplace,
@@ -233,23 +253,19 @@ async function activate(context: vscode.ExtensionContext) {
     loadFile: eval.loadFileCommand,
     openCalvaDocs: async () => {
       await context.globalState.update(VIEWED_CALVA_DOCS, true);
-      return open(CALVA_DOCS_URL)
-        .then(() => {
-          state.analytics().logEvent('Calva', 'Docs opened');
-        })
-        .catch((e) => {
-          console.error(`Problems visiting calva docs: ${e}`);
-        });
+      return open(CALVA_DOCS_URL).catch((e) => {
+        console.error(`Problems visiting calva docs: ${e}`);
+      });
     },
     openUserConfigEdn: config.openCalvaConfigEdn,
     prettyPrintReplaceCurrentForm: edit.prettyPrintReplaceCurrentForm,
-    printClojureDocsToOutputWindow: clojureDocs.printClojureDocsToOutputWindow,
+    printClojureDocsToOutputWindow: clojureDocs.printClojureDocsToOutput,
     printClojureDocsToRichComment: clojureDocs.printClojureDocsToRichComment,
     printLastStacktrace: () => {
       outputWindow.printLastStacktrace();
-      outputWindow.appendPrompt();
+      output.replWindowAppendPrompt();
     },
-    printTextToOutputWindowCommand: clojureDocs.printTextToOutputWindowCommand,
+    printTextToOutputCommand: clojureDocs.printTextToOutputCommand,
     printTextToRichCommentCommand: clojureDocs.printTextToRichCommentCommand,
     refresh: refresh.refresh,
     refreshAll: refresh.refreshAll,
@@ -259,38 +275,42 @@ async function activate(context: vscode.ExtensionContext) {
     runAllTests: () => testRunner.runAllTestsCommand(testController),
     runCustomREPLCommand: snippets.evaluateCustomCodeSnippetCommand,
     runNamespaceTests: () => testRunner.runNamespaceTestsCommand(testController),
+    loadTestFileForCurrentNamespace: testRunner.loadTestNS,
     runTestUnderCursor: () => testRunner.runTestUnderCursorCommand(testController),
-    selectCurrentForm: select.selectCurrentForm,
     sendCurrentFormToOutputWindow: outputWindow.appendCurrentForm,
     openFiddleForSourceFile: fiddleFiles.openFiddleForSourceFile,
     evaluateFiddleForSourceFile: fiddleFiles.evaluateFiddleForSourceFile,
     openSourceFileForFiddle: fiddleFiles.openSourceFileForFiddle,
     sendCurrentTopLevelFormToOutputWindow: outputWindow.appendCurrentTopLevelForm,
     setOutputWindowNamespace: outputWindow.setNamespaceFromCurrentFile,
-    showFileForOutputWindowNS: () => {
-      return outputWindow.revealDocForCurrentNS(false);
-    },
+    showFileForOutputWindowNS: outputWindow.revealDocForCurrentNS,
     showNextReplHistoryEntry: replHistory.showNextReplHistoryEntry,
-    showOutputWindow: () => outputWindow.revealResultsDoc(false),
+    showReplWindow: outputWindow.revealResultsDoc,
+    showOutputWindow: outputWindow.revealResultsDoc, // backwards compatibility
+    showOutputChannel: output.showOutputChannel,
+    showOutputTerminal: output.showOutputTerminal,
+    showResultOutputDestination: output.showResultOutputDestination,
     showPreviousReplHistoryEntry: replHistory.showPreviousReplHistoryEntry,
     startJoyrideReplAndConnect: async () => {
-      const projectDir: string = await joyride.prepareForJackingOrConnect();
+      const projectDir: string = await joyride.prepareForJackInOrConnect();
       if (projectDir !== undefined) {
         return joyride.joyrideJackIn(projectDir);
       }
     },
-    startOrConnectRepl: replStart.startOrConnectRepl,
-    startStandaloneCljsBrowserRepl: () => {
-      return replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_BROWSER_TEMPLATE, false);
-    },
-    startStandaloneCljsNodeRepl: () => {
-      return replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_NODE_TEMPLATE, false);
-    },
+    startOrConnectRepl: replMenu.showReplMenu, // backwards compatibility
+    showReplMenu: replMenu.showReplMenu,
     startStandaloneHelloRepl: () => {
-      return replStart.startStandaloneRepl(context, replStart.HELLO_TEMPLATE, false);
+      return drams.createAndOpenDram(
+        context,
+        'cljs browse',
+        `${drams.dramUrl('calva_getting_started')}`
+      );
     },
-    startStandaloneRepl: () => {
-      return replStart.startStandaloneRepl(context, replStart.USER_TEMPLATE, true);
+    createMinimalProject: () => {
+      return drams.createAndOpenDram(context, 'mini proj', `${drams.dramUrl('mini')}`);
+    },
+    createAndOpenProjectFromDram: (title: string, src: string) => {
+      return drams.createAndOpenDram(context, title, src);
     },
     switchCljsBuild: connector.switchCljsBuild,
     tapCurrentTopLevelForm: () =>
@@ -319,6 +339,35 @@ async function activate(context: vscode.ExtensionContext) {
         resolve(true);
       });
     },
+    pasteAsInspectorItem: () => {
+      inspector.pasteFromClipboard.bind(inspectorDataProvider)();
+    },
+    addToInspector: (arg: any) => {
+      inspector.addToInspector.bind(inspectorDataProvider)(arg);
+    },
+    clearInspector: () => {
+      inspectorDataProvider.clearInspector.bind(inspectorDataProvider)();
+    },
+    clearInspectorItem: (item) => {
+      const selectedItem =
+        item || inspectorTreeView.selection[0] || inspectorDataProvider.getTopMostItem();
+      inspectorDataProvider.clearInspector.bind(inspectorDataProvider)(selectedItem);
+    },
+    copyInspectorItem: (item) => {
+      const selectedItem =
+        item || inspectorTreeView.selection[0] || inspectorDataProvider.getTopMostItem();
+      return inspector.copyItemValue(selectedItem);
+    },
+    inspectItem: (item) => {
+      const selectedItem =
+        item || inspectorTreeView.selection[0] || inspectorDataProvider.getTopMostItem();
+      inspector.createTreeStructure.bind(inspectorDataProvider)(selectedItem);
+    },
+    revealInspector: ({ select = true, focus = false, expand = false } = {}) => {
+      const selectedItem = inspectorTreeView.selection[0] || inspectorDataProvider.getTopMostItem();
+      return inspectorTreeView.reveal(selectedItem, { select, focus, expand });
+    },
+    revealJackInTerminal: jackIn.revealJackInTerminal,
   };
 
   function registerCalvaCommand([command, callback]) {
@@ -370,6 +419,54 @@ async function activate(context: vscode.ExtensionContext) {
 
   Object.entries(languageProviders).forEach(registerLangProvider);
 
+  // Coordinate event handling that may affect the 'when' cursor contexts.
+  // Update context upon editor change, selection change, or text change
+  // (e.g., upon deleting a comment-defining semicolon without moving the point)
+  // But try not to repeatedly update context in response to the same essential event
+  // (e.g., most text changes, which also move the point)
+  // without depending on the order of TextDocumentChangeEvent or TextEditorSelectionChangeEvent
+  let contextSettingEditor: vscode.TextEditor = undefined;
+  let contextSettingCircumstances = undefined;
+  function contextSettingOnChangeActiveTextEditor(editor: vscode.TextEditor) {
+    whenContexts.setCursorContextIfChanged(editor);
+    const circumstances = {
+      version: editor.document.version,
+      active: editor.selection.active,
+    };
+    contextSettingEditor = editor;
+    contextSettingCircumstances = circumstances;
+  }
+  function contextSettingOnTextDocumentChangeEvent(dce: vscode.TextDocumentChangeEvent) {
+    if (contextSettingEditor) {
+      const circumstances = {
+        version: dce.document.version,
+        active: contextSettingEditor.selection.active,
+      };
+      if (
+        !(
+          (contextSettingEditor && dce.document !== contextSettingEditor.document) ||
+          circumstances == contextSettingCircumstances
+        )
+      ) {
+        whenContexts.setCursorContextIfChanged(contextSettingEditor);
+        contextSettingCircumstances = circumstances;
+      }
+    }
+  }
+  function contextSettingOnChangeTextEditorSelection(tsce: vscode.TextEditorSelectionChangeEvent) {
+    const circumstances = {
+      version: tsce.textEditor.document.version,
+      active: tsce.selections[0].active,
+    };
+    if (
+      !(contextSettingEditor === tsce.textEditor && circumstances == contextSettingCircumstances)
+    ) {
+      whenContexts.setCursorContextIfChanged(tsce.textEditor);
+      contextSettingEditor = tsce.textEditor;
+      contextSettingCircumstances = circumstances;
+    }
+  }
+
   //EVENTS
   const onDidEvents = {
     workspace: {
@@ -382,21 +479,22 @@ async function activate(context: vscode.ExtensionContext) {
 
         if (evalOnSave) {
           if (!outputWindow.isResultsDoc(document)) {
-            await eval.loadDocument(document, config.getConfig().prettyPrintingOptions);
-            outputWindow.appendPrompt();
-            state.analytics().logEvent('Calva', 'OnSaveLoad').send();
+            await eval.loadDocument(document, config.getConfig().prettyPrintingOptions, false);
+            output.replWindowAppendPrompt();
           }
         }
 
         if (testOnSave && util.getConnectedState()) {
           void testRunner.runNamespaceTests(testController, document);
-          state.analytics().logEvent('Calva', 'OnSaveTest').send();
         }
       },
-      changeTextDocument: annotations.onDidChangeTextDocument,
+      changeTextDocument: (e: vscode.TextDocumentChangeEvent) => {
+        annotations.onDidChangeTextDocument(e);
+        contextSettingOnTextDocumentChangeEvent(e);
+      },
       closeTextDocument: (document) => {
         if (outputWindow.isResultsDoc(document)) {
-          outputWindow.setContextForOutputWindowActive(false);
+          outputWindow.setContextForReplWindowActive(false);
         }
       },
       changeConfiguration: (e: vscode.ConfigurationChangeEvent) => {
@@ -410,11 +508,15 @@ async function activate(context: vscode.ExtensionContext) {
       changeActiveTextEditor: (editor) => {
         status.update();
         onDidChangeEditorOrSelection(editor);
+        contextSettingOnChangeActiveTextEditor(editor);
       },
-      changeTextEditorSelection: (event) => onDidChangeEditorOrSelection(event.textEditor),
+      changeTextEditorSelection: (event) => {
+        onDidChangeEditorOrSelection(event.textEditor);
+        contextSettingOnChangeTextEditorSelection(event);
+      },
       changeVisibleTextEditors: (editors) => {
         if (!editors.some((editor) => outputWindow.isResultsDoc(editor.document))) {
-          outputWindow.setContextForOutputWindowActive(false);
+          outputWindow.setContextForReplWindowActive(false);
         }
       },
     },
@@ -490,8 +592,6 @@ async function activate(context: vscode.ExtensionContext) {
     }
   }
 
-  state.analytics().logPath('/activated').logEvent('LifeCycle', 'Activated').send();
-
   if (!cwExtension) {
     try {
       highlight.activate(context);
@@ -505,11 +605,15 @@ async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  if (await connector.shouldAutoConnect()) {
+  fiddleFiles.activate(context);
+
+  if (config.getConfig().autoStartRepl) {
+    void vscode.commands.executeCommand('calva.jackIn');
+  } else if (await connector.shouldAutoConnect()) {
     void vscode.commands.executeCommand('calva.connect');
   }
 
-  fiddleFiles.activate(context);
+  void drams.maybeStartDram();
 
   console.info('Calva activate END');
 
@@ -517,7 +621,6 @@ async function activate(context: vscode.ExtensionContext) {
 }
 
 async function deactivate(): Promise<void> | undefined {
-  state.analytics().logEvent('LifeCycle', 'Deactivated').send();
   jackIn.calvaJackout();
   paredit.deactivate();
   await lsp.getClientProvider().shutdown();

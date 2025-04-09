@@ -600,6 +600,11 @@ describe('Scanner', () => {
       expect(tokens[0].type).toBe('reader');
       expect(tokens[0].raw).toBe('#foo');
     });
+    it('tokenizes tag, with underscores', () => {
+      const tokens = scanner.processLine('#foo_bar');
+      expect(tokens[0].type).toBe('reader');
+      expect(tokens[0].raw).toBe('#foo_bar');
+    });
     it('does not treat var quote plus open token as reader tag plus open token', () => {
       const tokens = scanner.processLine("#'foo []");
       expect(tokens[0].type).toBe('id');

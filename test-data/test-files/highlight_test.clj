@@ -22,7 +22,7 @@
 ;; \
 "()"
 ;; \
-;; 
+;;
 (((#((())))))
 ([ #{ }()[]])
 
@@ -54,10 +54,10 @@
   (println "I ❤️Clojure")
   ([{} () []]))
 
-    
+
     (comment
       (+ (* 2 2)
-         2)      
+         2)
       (Math/abs -1)
       (defn hello [s]
         (str "Hello " s))
@@ -143,7 +143,7 @@ bar
   [:c {:d :e}]]
  [:b
   [:c {:d :e}]]]
-(comment 
+(comment
   (foo #_"bar" baz))
 #_{:foo "foo"
    :bar (comment [["bar"]])}

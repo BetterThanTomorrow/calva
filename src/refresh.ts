@@ -3,54 +3,49 @@ import * as util from './utilities';
 import * as state from './state';
 import { NReplSession } from './nrepl';
 import * as replSession from './nrepl/repl-session';
+import * as output from './results-output/output';
 
-function report(res, chan: vscode.OutputChannel) {
+function report(res) {
   if (res.status == 'ok') {
-    chan.appendLine('Reloaded: (' + res.reloaded.join(' ') + ')');
-    chan.appendLine(':ok');
+    output.appendLineEvalOut('Reloaded: (' + res.reloaded.join(' ') + ')');
+    output.appendLineEvalOut(':ok');
   } else {
     if (res.status == 'error') {
-      chan.appendLine('Error reloading: ' + res.errorNs);
+      output.appendLineEvalOut('Error reloading: ' + res.errorNs);
       //chan.appendLine(res.error); // TODO: Moar error reporting
     }
     if (res.err != undefined) {
-      chan.appendLine(res.err);
+      output.appendLineEvalOut(res.err);
     }
-    chan.appendLine(':error 😿');
+    output.appendLineEvalOut(':error 😿');
   }
+  return res;
 }
 
-function refresh(document = {}) {
-  const doc = util.tryToGetDocument(document),
-    client: NReplSession = replSession.getSession(util.getFileType(doc)),
-    chan: vscode.OutputChannel = state.outputChannel();
+export function refresh(opts?: Record<string, unknown>) {
+  const doc = util.tryToGetDocument({}),
+    client: NReplSession = replSession.getSession(util.getFileType(doc));
 
   if (client != undefined) {
-    chan.appendLine('Reloading...');
-    void client.refresh().then((res) => {
-      report(res, chan);
+    output.appendLineEvalOut('Reloading...');
+    return client.refresh(opts).then((res) => {
+      return report(res);
     });
   } else {
-    void vscode.window.showErrorMessage('Not connected to a REPL.');
+    return vscode.window.showErrorMessage('Not connected to a REPL.');
   }
 }
 
-function refreshAll(document = {}) {
-  const doc = util.tryToGetDocument(document),
-    client: NReplSession = replSession.getSession(util.getFileType(doc)),
-    chan: vscode.OutputChannel = state.outputChannel();
+export function refreshAll(opts?: Record<string, unknown>) {
+  const doc = util.tryToGetDocument({}),
+    client: NReplSession = replSession.getSession(util.getFileType(doc));
 
   if (client != undefined) {
-    chan.appendLine('Reloading all the things...');
-    void client.refreshAll().then((res) => {
-      report(res, chan);
+    output.appendLineEvalOut('Reloading all the things...');
+    return client.refreshAll(opts).then((res) => {
+      return report(res);
     });
   } else {
-    void vscode.window.showErrorMessage('Not connected to a REPL.');
+    return vscode.window.showErrorMessage('Not connected to a REPL.');
   }
 }
-
-export default {
-  refresh,
-  refreshAll,
-};

@@ -1,0 +1,55 @@
+!YS-v0:
+
+docker:
+- image: cimg/clojure:1.11-node
+
+working_directory: ~/calva
+
+steps:
+- !:attach-workspace /tmp
+
+- !:cmd
+  - Restore build
+  - rmdir ~/calva && cp -r /tmp/build ~/calva
+
+- !:cmd
+  - Install CLJS dependencies
+  - npx shadow-cljs classpath
+
+- !:cmd
+  - Create artifacts workspace
+  - mkdir /tmp/artifacts
+
+- !:bin*
+  - Tamper Calva version if not release versioned
+  - tamper-calva-version
+
+- !:bin Package vsix
+
+- !:cmd
+  - Copy vsix
+  - cp *.vsix /tmp/artifacts/
+
+- !:cmd
+  - Copy build
+  - cp -r out /tmp/build;
+    cp package.json /tmp/build
+
+- save_cache:
+    name: Save dependencies
+    key: ts-{{ checksum "package.json" }}-cljs-{{
+               checksum "shadow-cljs.edn" }}-grammar-{{
+               checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+    paths:
+    - ./node_modules
+    - ~/.m2
+
+- !:store
+    artifacts: /tmp/artifacts
+
+- persist_to_workspace:
+    root: /tmp
+    paths:
+    - artifacts
+    - build
+    - env

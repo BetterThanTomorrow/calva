@@ -254,7 +254,8 @@ export function isFiddleFile(
 ): boolean {
   return (
     path.extname(filePath) === `.${FIDDLE_FILE_EXTENSION}` ||
-    (fiddleFilePaths !== null &&
+    (fiddleFilePaths &&
+      projectRootPath &&
       _internal_getMapping(fiddleFilePaths, projectRootPath, filePath, 'fiddle') !== undefined)
   );
 }

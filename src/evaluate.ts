@@ -6,16 +6,27 @@ import * as util from './utilities';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
-import * as outputWindow from './results-output/results-doc';
-import { DEBUG_ANALYTICS } from './debugger/calva-debug';
+import * as outputWindow from './repl-window/repl-doc';
 import * as namespace from './namespace';
-import * as replHistory from './results-output/repl-history';
+import * as replHistory from './repl-window/repl-history';
 import { formatAsLineComments } from './results-output/util';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
 import * as customSnippets from './custom-snippets';
+import * as output from './results-output/output';
+import * as inspector from './providers/inspector';
+import { resultAsComment } from './util/string-result';
+import { highlight } from './highlight/src/extension';
+import * as flareHandler from './flare-handler';
+
+let inspectorDataProvider: inspector.InspectorDataProvider;
+
+function initInspectorDataProvider() {
+  inspectorDataProvider = new inspector.InspectorDataProvider();
+  return inspectorDataProvider;
+}
 
 function interruptAllEvaluations() {
   if (util.getConnectedState()) {
@@ -24,7 +35,7 @@ function interruptAllEvaluations() {
       msgs.push(msg);
     });
     if (msgs.length) {
-      outputWindow.appendLine(msgs.join('\n'));
+      output.appendLineOtherOut(msgs.join('\n'));
     }
     try {
       NReplSession.getInstances().forEach((session, _index) => {
@@ -46,22 +57,19 @@ function interruptAllEvaluations() {
 }
 
 async function addAsComment(
-  c: number,
   result: string,
   codeSelection: vscode.Selection,
   editor: vscode.TextEditor,
-  selection: vscode.Selection
+  selection: vscode.Selection,
+  commentStyle: string
 ) {
-  const indent = `${' '.repeat(c)}`,
-    output = result
-      .replace(/\n\r?$/, '')
-      .split(/\n\r?/)
-      .join(`\n${indent};;    `),
-    edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`),
-    wsEdit = new vscode.WorkspaceEdit();
-  wsEdit.set(editor.document.uri, [edit]);
-  await vscode.workspace.applyEdit(wsEdit);
-  editor.selection = selection;
+  const endOfLinePosition = editor.document.lineAt(codeSelection.end.line).range.end;
+  const commentText = resultAsComment(codeSelection.start.character, result, commentStyle);
+  await editor.edit((editBuilder) => {
+    editBuilder.insert(endOfLinePosition, commentText);
+  });
+  editor.selections = [selection];
+  highlight(editor);
 }
 
 // TODO: Clean up this mess
@@ -113,7 +121,7 @@ async function evaluateCodeUpdatingUI(
       line: line + 1,
       column: column + 1,
       stdout: (m) => {
-        outputWindow.append(m);
+        output.appendEvalOut(m);
       },
       stderr: (m) => err.push(m),
       pprintOptions: pprintOptions,
@@ -122,6 +130,9 @@ async function evaluateCodeUpdatingUI(
     try {
       if (evaluationSendCodeToOutputWindow) {
         outputWindow.appendLine(code);
+        if (output.getDestinationConfiguration().evalResults !== 'repl-window') {
+          output.appendClojureEval(code, { ns, replSessionType: session.replType });
+        }
       }
 
       let value = await context.value;
@@ -129,8 +140,11 @@ async function evaluateCodeUpdatingUI(
 
       result = value;
 
+      flareHandler.inspect(value, (code) => evaluateCodeUpdatingUI(code, options, selection));
+
       if (showResult) {
-        outputWindow.appendLine(value, async (resultLocation) => {
+        inspectorDataProvider.addItem(value, false, `[${session.replType}] ${ns}`);
+        output.appendClojureEval(value, { ns, replSessionType: session.replType }, async () => {
           if (selection) {
             const c = selection.start.character;
             if (editor && options.replace) {
@@ -141,15 +155,20 @@ async function evaluateCodeUpdatingUI(
               void vscode.workspace.applyEdit(wsEdit);
             } else {
               if (editor && options.comment) {
-                await addAsComment(c, value, selection, editor, editor.selection);
+                await addAsComment(
+                  value,
+                  selection,
+                  editor,
+                  editor.selections[0],
+                  options.commentStyle
+                );
               }
               if (editor && !outputWindow.isResultsDoc(editor.document)) {
                 annotations.decorateSelection(
                   value,
                   selection,
                   editor,
-                  editor.selection.active,
-                  resultLocation,
+                  editor.selections[0].active,
                   annotations.AnnotationStatus.SUCCESS
                 );
                 if (!options.comment) {
@@ -161,14 +180,17 @@ async function evaluateCodeUpdatingUI(
         });
         // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
         if (err.length > 0) {
-          const errMsg = formatAsLineComments(err.join('\n'));
+          const errMsg = err.join('\n');
           if (context.stacktrace) {
             outputWindow.saveStacktrace(context.stacktrace);
-            outputWindow.appendLine(errMsg, (_, afterResultLocation) => {
+            outputWindow.appendLine(formatAsLineComments(errMsg), (_, afterResultLocation) => {
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
+            if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
+              output.appendEvalErr(errMsg, { ns, replSessionType: session.replType });
+            }
           } else {
-            outputWindow.appendLine(errMsg);
+            output.appendEvalErr(errMsg, { ns, replSessionType: session.replType });
           }
         }
       }
@@ -180,14 +202,14 @@ async function evaluateCodeUpdatingUI(
         outputWindow.appendLine(outputWindowError, async (resultLocation, afterResultLocation) => {
           if (selection) {
             const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
-            const currentCursorPos = editor.selection.active;
+            const currentCursorPos = editor.selections[0].active;
             if (editor && options.comment) {
               await addAsComment(
-                selection.start.character,
                 editorError,
                 selection,
                 editor,
-                editor.selection
+                editor.selections[0],
+                options.commentStyle
               );
             }
             if (editor && !outputWindow.isResultsDoc(editor.document)) {
@@ -196,7 +218,6 @@ async function evaluateCodeUpdatingUI(
                 selection,
                 editor,
                 currentCursorPos,
-                resultLocation,
                 annotations.AnnotationStatus.ERROR
               );
               if (!options.comment) {
@@ -216,6 +237,12 @@ async function evaluateCodeUpdatingUI(
               console.error(`Failed fetching stacktrace: ${e.message}`);
             });
         });
+        if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
+          output.appendEvalErr(err.length ? err.join('\n') : e, {
+            ns,
+            replSessionType: session.replType,
+          });
+        }
       }
     }
     outputWindow.setSession(session, context.ns || ns);
@@ -233,14 +260,15 @@ async function evaluateSelection(document = {}, options) {
 
   if (getStateValue('connected')) {
     const editor = util.getActiveTextEditor();
-    state.analytics().logEvent('Evaluation', 'selectionFn').send();
     const selection = selectionFn(editor);
     const codeSelection: vscode.Selection = selection[0];
     let code = selection[1];
     [codeSelection, code]; //TODO: What's this doing here?
 
     const doc = util.getDocument(document);
-    void vscode.window.showTextDocument(doc, { preview: false });
+    if (vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
+      void vscode.window.showTextDocument(doc, { preview: false });
+    }
     const [ns, nsForm] = namespace.getNamespace(doc, codeSelection.end);
     const line = codeSelection.start.line;
     const column = codeSelection.start.character;
@@ -256,7 +284,6 @@ async function evaluateSelection(document = {}, options) {
         codeSelection,
         editor,
         undefined,
-        undefined,
         annotations.AnnotationStatus.PENDING
       );
       if (
@@ -270,7 +297,7 @@ async function evaluateSelection(document = {}, options) {
         { ...options, ns, nsForm, line, column, filePath, session },
         codeSelection
       );
-      outputWindow.appendPrompt();
+      output.replWindowAppendPrompt();
     }
   } else {
     void vscode.window.showErrorMessage('Not connected to a REPL');
@@ -282,19 +309,19 @@ function printWarningForError(e: any) {
 }
 
 function _currentSelectionElseCurrentForm(editor: vscode.TextEditor): getText.SelectionAndText {
-  if (editor.selection.isEmpty) {
-    return getText.currentFormText(editor?.document, editor.selection.active);
+  if (editor.selections[0].isEmpty) {
+    return getText.currentFormText(editor?.document, editor.selections[0].active);
   } else {
-    return [editor.selection, editor.document.getText(editor.selection)];
+    return [editor.selections[0], editor.document.getText(editor.selections[0])];
   }
 }
 
 function _currentTopLevelFormText(editor: vscode.TextEditor): getText.SelectionAndText {
-  return getText.currentTopLevelFormText(editor?.document, editor?.selection.active);
+  return getText.currentTopLevelFormText(editor?.document, editor?.selections[0].active);
 }
 
 function _currentEnclosingFormText(editor: vscode.TextEditor): getText.SelectionAndText {
-  return getText.currentEnclosingFormText(editor?.document, editor?.selection.active);
+  return getText.currentEnclosingFormText(editor?.document, editor?.selections[0].active);
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
@@ -312,7 +339,16 @@ function evaluateSelectionReplace(document = {}, options = {}) {
   }
 }
 
-function evaluateSelectionAsComment(document = {}, options = {}) {
+function validateCommentStyle(commentStyle: string) {
+  if (!['line', 'ignore', 'rcf'].includes(commentStyle)) {
+    throw new Error(
+      `Invalid comment style: ${commentStyle}. Must be one of "line", "ignore", or "rcf".`
+    );
+  }
+}
+
+function evaluateSelectionAsComment(options = { commentStyle: 'line' }, document = {}) {
+  validateCommentStyle(options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
       document,
@@ -327,7 +363,8 @@ function evaluateSelectionAsComment(document = {}, options = {}) {
   }
 }
 
-function evaluateTopLevelFormAsComment(document = {}, options = {}) {
+function evaluateTopLevelFormAsComment(options = { commentStyle: 'line' }, document = {}) {
+  validateCommentStyle(options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
       document,
@@ -348,7 +385,7 @@ function offerToConnect() {
     .then(
       (choice) => {
         if (choice === 'Connect') {
-          void vscode.commands.executeCommand('calva.startOrConnectRepl');
+          void vscode.commands.executeCommand('calva.showReplMenu');
         }
       },
       (reason) => {
@@ -371,7 +408,7 @@ function evaluateTopLevelForm(document = {}, options = {}) {
   }
 }
 
-function evaluateOutputWindowForm(document = {}, options = {}) {
+function evaluateReplWindowForm(document = {}, options = {}) {
   if (util.getConnectedState()) {
     evaluateSelection(
       document,
@@ -426,7 +463,7 @@ function evaluateUsingTextAndSelectionGetter(
     Object.assign({}, options, {
       pprintOptions: getConfig().prettyPrintingOptions,
       selectionFn: (editor: vscode.TextEditor) => {
-        const [selection, code] = getter(editor?.document, editor?.selection.active);
+        const [selection, code] = getter(editor?.document, editor?.selections[0].active);
         return [selection, formatter(code)];
       },
     })
@@ -436,7 +473,7 @@ function evaluateUsingTextAndSelectionGetter(
 function evaluateToCursor(document = {}, options = {}) {
   if (util.getConnectedState()) {
     evaluateUsingTextAndSelectionGetter(
-      vscode.window.activeTextEditor.selection.isEmpty
+      vscode.window.activeTextEditor.selections[0].isEmpty
         ? getText.currentEnclosingFormToCursor
         : getText.selectionAddingBrackets,
       (code) => `${code}`,
@@ -476,18 +513,20 @@ function evaluateStartOfFileToCursor(document = {}, options = {}) {
 
 async function loadDocument(
   document: vscode.TextDocument | Record<string, never> | undefined,
-  pprintOptions: PrettyPrintingOptions
+  pprintOptions: PrettyPrintingOptions,
+  shouldResetPreview: boolean = false
 ) {
   void state.analytics().logGA4Pageview('/load-file');
 
   const doc = util.tryToGetDocument(document);
-  void vscode.window.showTextDocument(doc, { preview: false });
+  if (shouldResetPreview && vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
+    void vscode.window.showTextDocument(doc, { preview: false });
+  }
   const fileType = util.getFileType(doc);
   const [ns, _] = namespace.getNamespace(doc, doc.positionAt(0));
   const session = replSession.getSession(util.getFileType(doc));
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
-    state.analytics().logEvent('Evaluation', 'LoadFile').send();
     const docUri = outputWindow.isResultsDoc(doc)
       ? await namespace.getUriForNamespace(session, ns)
       : doc.uri;
@@ -498,9 +537,9 @@ async function loadDocument(
 
 async function loadFileCommand() {
   if (util.getConnectedState()) {
-    await loadDocument({}, getConfig().prettyPrintingOptions);
+    await loadDocument({}, getConfig().prettyPrintingOptions, true);
     return new Promise((resolve) => {
-      outputWindow.appendPrompt(resolve);
+      output.replWindowAppendPrompt(resolve);
     });
   } else {
     offerToConnect();
@@ -517,15 +556,15 @@ async function loadFile(
   const fileContents = await util.getFileContents(filePath);
   const session = replSession.getSession(path.extname(fileName).replace(/^\./, ''));
 
-  outputWindow.appendLine(`; Evaluating file: ${fileName}`);
+  output.appendLineOtherOut(`Evaluating file: ${fileName}`);
 
   const errorMessages = [];
   const res = session.loadFile(fileContents, {
     fileName,
     filePath,
-    stdout: (m) => outputWindow.append(m),
+    stdout: (m) => output.appendEvalOut(m),
     stderr: (m) => {
-      outputWindow.appendLine(formatAsLineComments(m));
+      output.appendEvalErr(m, { ns, replSessionType: session.replType });
       errorMessages.push(m);
     },
     pprintOptions: pprintOptions,
@@ -533,9 +572,10 @@ async function loadFile(
   try {
     const value = await res.value;
     if (value) {
-      outputWindow.appendLine(value);
+      inspectorDataProvider.addItem(value, false, `[${session.replType}] ${ns}`);
+      output.appendClojureEval(value, { ns, replSessionType: session.replType });
     } else {
-      outputWindow.appendLine('; No results from file evaluation.');
+      output.appendLineEvalOut('No results from file evaluation.');
     }
   } catch (e) {
     outputWindow.appendLine(
@@ -547,6 +587,9 @@ async function loadFile(
         }
       }
     );
+    if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
+      output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`);
+    }
     if (
       !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
         outputWindow.isResultsDoc(editor.document)
@@ -559,7 +602,7 @@ async function loadFile(
         )
         .then((choice) => {
           if (choice === 'Show output') {
-            void vscode.commands.executeCommand('calva.showOutputWindow');
+            void output.showResultOutputDestination(true);
           }
         });
     }
@@ -567,7 +610,7 @@ async function loadFile(
     outputWindow.setSession(session, ns);
     replSession.updateReplSessionType();
     if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
-      outputWindow.appendLine(`; Evaluating 'autoEvaluateCode.onFileLoaded.${fileType}'`);
+      output.appendLineOtherOut(`Evaluating \`autoEvaluateCode.onFileLoaded.${fileType}\``);
       const context = customSnippets.makeContext(vscode.window.activeTextEditor, ns, ns, fileType);
       await customSnippets.evaluateSnippet(
         util.getActiveTextEditor(),
@@ -660,10 +703,6 @@ function instrumentTopLevelForm() {
         selectionFn: _currentTopLevelFormText,
       }
     ).catch(printWarningForError);
-    state
-      .analytics()
-      .logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM)
-      .send();
   } else {
     offerToConnect();
   }
@@ -678,7 +717,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
     if (outputWindow.getNs() !== ns) {
       outputWindow.setSession(session, ns);
       if (options.evaluationSendCodeToOutputWindow !== false) {
-        outputWindow.appendPrompt();
+        output.replWindowAppendPrompt();
       }
     }
 
@@ -692,7 +731,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
       column: evalPos.character,
     });
   } catch (e) {
-    outputWindow.appendLine('; Evaluation failed.');
+    output.appendLineOtherErr('Evaluation failed.');
   }
 }
 
@@ -717,5 +756,6 @@ export default {
   toggleEvaluationSendCodeToOutputWindow,
   instrumentTopLevelForm,
   evaluateInOutputWindow,
-  evaluateOutputWindowForm,
+  evaluateReplWindowForm,
+  initInspectorDataProvider,
 };

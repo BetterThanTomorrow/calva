@@ -1,5 +1,5 @@
 import * as expect from 'expect';
-import type { ResultsBuffer } from '../../../results-output/results-doc';
+import type { ResultsBuffer } from '../../../repl-window/repl-doc';
 import * as util from '../../../results-output/util';
 
 describe('addToHistory', () => {

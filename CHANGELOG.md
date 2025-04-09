@@ -4,7 +4,390 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.496] - 2025-04-06
+
+- Fix: [Broken characters in "Calva REPL Commands" menu](https://github.com/BetterThanTomorrow/calva/issues/2765)
+
+## [2.0.495] - 2025-03-24
+
+- [Find calva.exports that are not in a JAR file](https://github.com/BetterThanTomorrow/calva/issues/2762)
+
+## [2.0.494] - 2025-03-20
+
+- Fix: [Auto-connect/Jack-in sequences fail if projectRootPath is not set](https://github.com/BetterThanTomorrow/calva/issues/2759)
+
+## [2.0.493] - 2025-03-20
+
+- [Filter lsp semantic comment tokens](https://github.com/BetterThanTomorrow/calva/issues/2757)
+
+## [2.0.492] - 2025-03-19
+
+- [Add flare handler and webview](https://github.com/BetterThanTomorrow/calva/issues/2679)
+
+## [2.0.491] - 2025-03-15
+
+- [Add support for multiple default connect sequences based on different project roots](https://github.com/BetterThanTomorrow/calva/issues/2753)
+
+## [2.0.490] - 2025-03-09
+
+- [Use latest cljfmt (v0.13.0) ](https://github.com/BetterThanTomorrow/calva/issues/2743)
+
+## [2.0.489] - 2025-03-08
+
+- [Temporarily revert multi-cursor formatting, because regression](https://github.com/BetterThanTomorrow/calva/issues/2748)
+
+## [2.0.488] - 2025-03-08
+
+- [Use latest nrepl and cider-nrepl default jack-in dependencies](https://github.com/BetterThanTomorrow/calva/issues/2745)
+
+## [2.0.487] - 2025-03-08
+
+- Fix: [Reformat all edited locations after multicursor structural edit](https://github.com/BetterThanTomorrow/calva/issues/2738)
+- Fix: [splice-kill-forward or splice-kill-backward, then undo, undoes too much](https://github.com/BetterThanTomorrow/calva/issues/2737)
+- Bump deps.clj.jar to v1.12.0.1530
+- [Add unit tests for the reformatter's "healer" of incomplete forms](https://github.com/BetterThanTomorrow/calva/issues/2742)
+
+## [2.0.486] - 2025-02-16
+
+- Fix: [Rewrapping to or from a Set introduces imbalance](https://github.com/BetterThanTomorrow/calva/issues/2726)
+
+## [2.0.485] - 2025-01-27
+
+- Fix: [Stop considering a clj-kondo config as a valid project to start LSP processes](https://github.com/BetterThanTomorrow/calva/issues/2712)
+- Bump deps.clj to v1.12.0.1495-2
+
+## [2.0.484] - 2025-01-26
+
+- [Have test runner show diff between "actual" and "expected"](https://github.com/BetterThanTomorrow/calva/issues/1007)
+- Fix: [cursor-context calva:ns is less accurate than the *ns* used by calva.evaluateSelection](https://github.com/BetterThanTomorrow/calva/issues/2708)
+- Fix: [Computing cursor-context calva:ns slows down editing and moving the cursor](https://github.com/BetterThanTomorrow/calva/issues/2707)
+
+## [2.0.483] - 2025-01-08
+
+- Fix: [Paredit garbles while backspacing rapidly](https://github.com/BetterThanTomorrow/calva/issues/2611)
+- Fix: [Paredit garbles when deleteForward is repeated rapidly](https://github.com/BetterThanTomorrow/calva/issues/2691)
+- Fix: [Del key, after emptying a comment line, then imbalances the next form](https://github.com/BetterThanTomorrow/calva/issues/2686)
+
+## [2.0.482] - 2024-12-03
+
+- Fix: [Added 'replace-refer-all-with-alias' & 'replace-refer-all-with-refer' actions to calva.](https://github.com/BetterThanTomorrow/calva/issues/2667)
+
+## [2.0.481] - 2024-10-29
+
+- [Add extension when contexts for Calva states such as project root, session type, ns](https://github.com/BetterThanTomorrow/calva/issues/2652)
+- Fix: [Calva internals: The `backwardSexp` function can't handle skipping ignored forms, even though it says it can](https://github.com/BetterThanTomorrow/calva/issues/2657)
+- Fix: [Keep support for evaluating top level form in ignored forms when at top level](https://github.com/BetterThanTomorrow/calva/issues/2655)
+- [Enable separate styling for top level ignored forms](https://github.com/BetterThanTomorrow/calva/issues/2660)
+
+## [2.0.480] - 2024-10-21
+
+- Fix: [Custom command snippets use the wrong ns when repl sessions types do not match](https://github.com/BetterThanTomorrow/calva/issues/2653)
+- Fix: [ns inner blocks are kept on the same line by default when using the clean ns command](https://github.com/BetterThanTomorrow/calva/issues/2648)
+
+## [2.0.479] - 2024-10-01
+
+- [Autostart REPL in created projects, also when created in the current folder](https://github.com/BetterThanTomorrow/calva/issues/2644)
+
+## [2.0.478] - 2024-09-30
+
+- [Add `extraNReplMiddleware` to `connectSequence`](https://github.com/BetterThanTomorrow/calva/issues/1691)
+
+## [2.0.477] - 2024-09-29
+
+- Fix: [Global custom repl command keys override workspace dittos, should be the other way around](https://github.com/BetterThanTomorrow/calva/issues/2640)
+
+## [2.0.476] - 2024-09-28
+
+- Fix: [Formatting and some pretty printing croaks on new Clojure 1.12.0 syntax](https://github.com/BetterThanTomorrow/calva/issues/2637)
+
+## [2.0.475] - 2024-09-24
+
+- Fix: [Can't start REPL in lein projects with backtick on project.clj](https://github.com/BetterThanTomorrow/calva/issues/2633)
+
+## [2.0.474] - 2024-09-22
+
+- [Synchronize the file extensions for Calva and Calva Spritz](https://github.com/BetterThanTomorrow/calva/issues/2629)
+- Fix: [Terminal output pretty printing fails when using `printerFn` pretty print option](https://github.com/BetterThanTomorrow/calva/issues/2630)
+
+## [2.0.473] - 2024-09-21
+
+- [Add some different types of comment styles when evaluating to comment](https://github.com/BetterThanTomorrow/calva/issues/2626)
+
+## [2.0.472] - 2024-09-15
+
+- [Preserve whitespaces format of evaluation error in tooltip](https://github.com/BetterThanTomorrow/calva/issues/2623)
+
+## [2.0.471] - 2024-09-12
+
+- [Trim leading newlines from the result/error string before inline display](https://github.com/BetterThanTomorrow/calva/issues/2617)
+
+## [2.0.470] - 2024-09-11
+
+- Bump deps.clj to v1.12.0.1479
+
+## [2.0.469] - 2024-09-10
+
+- Fix: [Windows – Jack-in for shadow-cljs fails to start with "Error: spawn EINVAL" on the latest VS Code version](https://github.com/BetterThanTomorrow/calva/issues/2616)
+
+## [2.0.468] - 2024-09-03
+
+- Bump deps.clj to v1.11.4.1474
+- [Prioritize Workspace configured connect sequences over User configured dittos](https://github.com/BetterThanTomorrow/calva/issues/2606)
+
+## [2.0.467] - 2024-07-14
+
+- Fix: [Test explorer creates a test case each time a keystroke is registered](https://github.com/BetterThanTomorrow/calva/issues/2530)
+
+## [2.0.466] - 2024-07-13
+
+- Internal: Move drams-menu configuration to the Drams repository. Preparing for ways to contribute drams to Calva.
+
+## [2.0.465] - 2024-07-10
+
+- [Only alert if the Jack-in process is interrupted before the repl is started](https://github.com/BetterThanTomorrow/calva/issues/2600)
+
+## [2.0.464] - 2024-07-10
+
+- Internal: Change how drams (projects that Calva can create) are bing defined. Preparing for ways to contribute drams to Calva.
+- [Make the user aware about errors during jack-in](https://github.com/BetterThanTomorrow/calva/issues/2597)
+- [Report progress waiting for shadow-cljs runtimes without printing to output](https://github.com/BetterThanTomorrow/calva/issues/2599)
+
+## [2.0.463] - 2024-07-08
+
+- [Stop the test runner from loading the test namespace before running tests](https://github.com/BetterThanTomorrow/calva/issues/2594)
+
+## [2.0.462] - 2024-07-03
+
+- [Stop offering to use existing temp files when creating a project](https://github.com/BetterThanTomorrow/calva/issues/2589)
+- Fix: [Version 2.0.461 of Calva breaks deps.edn jack-in on some Windows machines](https://github.com/BetterThanTomorrow/calva/issues/2592)
+
+## [2.0.461] - 2024-07-01
+
+- Fix: [Powershell sometimes used for jack-in on windows, and it doesn't work](https://github.com/BetterThanTomorrow/calva/issues/2586)
+- [Remove remaining references to the Output Window](https://github.com/BetterThanTomorrow/calva/issues/2587)
+
+## [2.0.460] - 2024-06-28
+
+- [Add configuration for automatically starting and connecting the project REPL](https://github.com/BetterThanTomorrow/calva/issues/2583)
+
+## [2.0.459] - 2024-06-23
+
+- [Do not open auto open the jack-in terminal by default](https://github.com/BetterThanTomorrow/calva/issues/2578)
+- [Don't show Calva says output channel by default](https://github.com/BetterThanTomorrow/calva/issues/2580)
+- [Default to reveal the Calva inspector on repl connect](https://github.com/BetterThanTomorrow/calva/issues/2581)
+- [Send load/evaluate current file results to the inspector](https://github.com/BetterThanTomorrow/calva/issues/2579)
+
+## [2.0.458] - 2024-06-22
+
+- [Always include the project creation commands in the REPL menu](https://github.com/BetterThanTomorrow/calva/issues/2575)
+- [Automatically reveal the configured result output destination on REPL connect](https://github.com/BetterThanTomorrow/calva/issues/2576)
+
+## [2.0.457] - 2024-06-20
+
+- [Add Command for creating a minimal Clojure project](https://github.com/BetterThanTomorrow/calva/issues/2570)
+- [Improve error message when tutorial files are unreachable](https://github.com/BetterThanTomorrow/calva/issues/2572)
+
+## [2.0.456] - 2024-06-15
+
+- [Start Getting Started/Quick Start REPLs in a proper VS Code foldered window](https://github.com/BetterThanTomorrow/calva/issues/2566)
+
+## [2.0.455] - 2024-06-08
+
+- [Extend "Refresh Changed Namespaces" to accept optional parameters exposed by cider-nrepl](https://github.com/BetterThanTomorrow/calva/issues/2556)
+
+## [2.0.454] - 2024-06-03
+
+- Fix: [HTML->Hiccup fails on style attribute strings where the entries do not have whitespace](https://github.com/BetterThanTomorrow/calva/issues/2561)
+
+## [2.0.453] - 2024-06-03
+
+- Bump deps.clj to v1.11.3.1463
+- [jack-in support for the Basilisp Clojure compatible dialect impelmented in Python](https://github.com/BetterThanTomorrow/calva/issues/2559)
+
+## [2.0.452] - 2024-05-03
+
+- [Make the commands for opening output destinations accept arguments](https://github.com/BetterThanTomorrow/calva/issues/2547)
+
+## [2.0.451] - 2024-04-30
+
+- Fix: [REPL History commands do not work in a cleared window](https://github.com/BetterThanTomorrow/calva/issues/2545)
+
+## [2.0.450] - 2024-04-27
+
+- [Create jack-in subshell the unix way on non-Windows](https://github.com/BetterThanTomorrow/calva/issues/2543)
+
+## [2.0.449] - 2024-04-26
+
+- Fix: [The evaluated expression is printed twice to the REPL window with `evaluationSendCodeToOutputWindow` enabled](https://github.com/BetterThanTomorrow/calva/issues/2538)
+
+## [2.0.448] - 2024-04-25
+
+- Fix: [Replace Current Form with Pretty Printed Form also sorts map entries alphabetically by key](https://github.com/BetterThanTomorrow/calva/issues/2533)
+
+## [2.0.447] - 2024-04-24
+
+- [Make the inspector sort maps on the keys](https://github.com/BetterThanTomorrow/calva/issues/2534)
+- Fix: [The inspector fails to crate an inspectable tree on large results](https://github.com/BetterThanTomorrow/calva/issues/2535)
+
+## [2.0.446] - 2024-04-21
+
+- [Re-indent text when copied from the inspector as well as tooltips](https://github.com/BetterThanTomorrow/calva/issues/2524)
+
+## [2.0.445] - 2024-04-21
+
+- [Make list items in the inspector get a bit easier to read](https://github.com/BetterThanTomorrow/calva/issues/2521)
+- Fix: [Deleting the last form in document throws an error](https://github.com/BetterThanTomorrow/calva/issues/2523)
+- Workaround: [Default to `indentation` folding strategy to dodge clojure-lsp bug](https://github.com/BetterThanTomorrow/calva/issues/2486)
+- [Add opt-in setting to rainbow colorize the collection types in the inspector](https://github.com/BetterThanTomorrow/calva/issues/2527)
+
+## [2.0.444] - 2024-04-19
+
+- [Make the inspector item context commands work on the selected item when not invoked via the buttons](https://github.com/BetterThanTomorrow/calva/issues/2519)
+
+## [2.0.443] - 2024-04-18
+
+- Fix: [Replace Current Form seems to stop working from v2.0.428 onwards](https://github.com/BetterThanTomorrow/calva/issues/2512)
+
+## [2.0.442] - 2024-04-17
+
+- Fix: [Extra empty lines printed between lines of stderr from out-of-band nrepl messages](https://github.com/BetterThanTomorrow/calva/issues/2514)
+- [Add source info in tooltip of inspector items](https://github.com/BetterThanTomorrow/calva/issues/2516)
+
+## [2.0.441] - 2024-04-17
+
+- Refactor naming of inspector items (mostly internal, but also renames some command ids)
+
+## [2.0.440] - 2024-04-17
+
+- [Make exploring complex results convenient - inspiration: the CIDER Inspector](https://github.com/BetterThanTomorrow/calva/issues/1717)
+- [Support command binding args to toggle multicursor per command or toggle copy per kill command. Closes #2485](https://github.com/BetterThanTomorrow/calva/issues/2485)
+
+## [2.0.439] - 2024-04-11
+
+- Fix: [Refresh Changed Namespaces do not output to the selected output destination](https://github.com/BetterThanTomorrow/calva/issues/2506)
+
+## [2.0.438] - 2024-04-11
+
+- Fix regression: [Version `2.0.437` introduces a jarring, and wrongful, reindent when typing closing brackets](https://github.com/BetterThanTomorrow/calva/issues/2509)
+
+## [2.0.437] - 2024-04-11
+
+- Retire experimental setting for strict prevent unmatched closing bracket. Close: [Unexpected cursor movement when using 'Strict Prevent Unmatched Closing Brackets'](https://github.com/BetterThanTomorrow/calva/issues/2500)
+- [Update default Jack-in nrepl dependencies](https://github.com/BetterThanTomorrow/calva/issues/2503), nrepl 1.1.1, cider-nrepl 0.47.1
+- Fix: [Throws error when debugging atoms](https://github.com/BetterThanTomorrow/calva/issues/2501)
+
+## [2.0.436] - 2024-04-08
+
+- [Make the debugger present structural variables as traversable structures](https://github.com/BetterThanTomorrow/calva/issues/2494)
+- Fix: [The Clojure lexer fails on readertags with underscores in them](https://github.com/BetterThanTomorrow/calva/issues/2497)
+- Fix: [Regression caused by #2409 for notebooks with uninitialized namespaces](https://github.com/BetterThanTomorrow/calva/issues/2498)
+
+## [2.0.435] - 2024-04-03
+
+- [The strict `;` (semi-colon) command comments out while protecting balance](https://github.com/BetterThanTomorrow/calva/issues/2490)
+
+## [2.0.434] - 2024-04-03
+
+- [Add opt-in strict mode for `;` (semi-colon)](https://github.com/BetterThanTomorrow/calva/issues/2488)
+
+## [2.0.433] - 2024-04-01
+
+- [Implement experimental support for multicursor rewrap commands](https://github.com/BetterThanTomorrow/calva/issues/2448). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2473](https://github.com/BetterThanTomorrow/calva/issues/2473)
+- [Add a separator line between evaluation outputs to the Output terminal](https://github.com/BetterThanTomorrow/calva/issues/2483)
+- [Implement experimental support for multicursor selectCurrentForm command](https://github.com/BetterThanTomorrow/calva/issues/2476). Enable `calva.paredit.multicursor` in your settings to try it out. Closes [#2476](https://github.com/BetterThanTomorrow/calva/issues/2476)
+
+## [2.0.432] - 2024-03-26
+
+- Fix: [Extraneous newlines printed to terminal for some output](https://github.com/BetterThanTomorrow/calva/issues/2468)
+- [Add legacy opt-in for printing bare `stdout` to the REPL Window](https://github.com/BetterThanTomorrow/calva/issues/2470)
+
+## [2.0.431] - 2024-03-25
+
+- Fix: [Using a shortcut to focus on Calva output terminal gives an error](https://github.com/BetterThanTomorrow/calva/issues/2461)
+- Fix: [Re-create Repl Output Terminal after it has been closed.](https://github.com/BetterThanTomorrow/calva/issues/2463)
+
+## [2.0.430] - 2024-03-24
+
+- [Add opt-in setting for migrating the REPL Window file to the new project subpath](https://github.com/BetterThanTomorrow/calva/issues/2458)
+- [Honor existing ANSI escape sequences in messages for terminal output destination](https://github.com/BetterThanTomorrow/calva/issues/2459)
+
+## [2.0.429] - 2024-03-23
+
+- [Add command for opening the Terminal output destination](https://github.com/BetterThanTomorrow/calva/issues/2455)
+
+## [2.0.428] - 2024-03-23
+
+- [Add a Terminal output destination option](https://github.com/BetterThanTomorrow/calva/issues/2452)
+
+## [2.0.427] - 2024-03-23
+
+- Fix: [Printing non-list Clojure results with code fencing gets verbose](https://github.com/BetterThanTomorrow/calva/issues/2450)
+- Fix: [Changing outputDestinations to output-channel breaks **Load/Evaluate Current File and its Requires...**](https://github.com/BetterThanTomorrow/calva/issues/2444)
+
+## [2.0.426] - 2024-03-22
+
+- Fix: [Calva Load File Command Results in RangeError on certain machine](https://github.com/BetterThanTomorrow/calva/issues/2443)
+
+## [2.0.425] - 2024-03-21
+
+- [Add Paredit Kill Left equivalent to Kill Right](https://github.com/BetterThanTomorrow/calva/issues/2426)
+- Fix: Certain `paredit.killRight` edges cases on Windows.
+
+## [2.0.424] - 2024-03-17
+
+- [Add command for revealing the **Calva says** output channel](https://github.com/BetterThanTomorrow/calva/issues/2436)
+- Fix: [Results not shown inline when output-channel configured is configured as for results output](https://github.com/BetterThanTomorrow/calva/issues/2437)
+- [Make the results hover aware of where the results output goes](https://github.com/BetterThanTomorrow/calva/issues/2438)
+
+## [2.0.423] - 2024-03-17
+
+- [Add Output Destinations configuration](https://github.com/BetterThanTomorrow/calva/issues/1104)
+
+## [2.0.422] - 2024-03-11
+
+- Bump deps.clj to `v1.11.2.1446`
+- [Try to find namespace for notebook eval.](https://github.com/BetterThanTomorrow/calva/issues/2408)
+
+## [2.0.421] - 2024-03-11
+
+- Fix: [Slowness printing compiler errors and warnings to Output Window](https://github.com/BetterThanTomorrow/calva/issues/2291)
+
+## [2.0.420] - 2024-03-10
+
+- [Allow to use an array of strings for `afterCLJReplJackInCode` in a connect sequence](https://github.com/BetterThanTomorrow/calva/issues/2423)
+
+## [2.0.419] - 2024-03-08
+
+- [Automatically do Rename Symbol after refactors that add new names](https://github.com/BetterThanTomorrow/calva/issues/2388)
+
+## [2.0.418] - 2024-03-08
+
+- [Add selection to experimentally supported multicursor paredit commands](https://github.com/BetterThanTomorrow/calva/issues/2421). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+
+## [2.0.417] - 2024-03-08
+
+- [Implement experimental support for multicursor paredit movement commands](https://github.com/BetterThanTomorrow/calva/issues/2420). Enable `calva.paredit.multicursor` in your settings to try it out. Addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+
+## [2.0.416] - 2024-03-08
+
+- Internal textNotation testing system supports multiple selections, addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+- Add new Calva development utility commands to create textNotations from open buffers, and vice versa
+
+## [2.0.415] - 2024-03-08
+
+- Refactor some internal document and selection APIs in preparation for multiple selections, addressing [#610](https://github.com/BetterThanTomorrow/calva/issues/610)
+- [Add default Clojure associations for file extensions `.lpy`](https://github.com/BetterThanTomorrow/calva/issues/2415)
+- [Document telemetry collection](https://github.com/BetterThanTomorrow/calva/issues/2428)
+
+## [2.0.414] - 2024-02-24
+
+- [HTML->Hiccup: Add option to always keep classes as attributes if so desired](https://github.com/BetterThanTomorrow/calva/issues/2398)
+- [Support clojure-lsp Project Tree feature](https://github.com/BetterThanTomorrow/calva/issues/2406)
+
+## [2.0.413] - 2024-02-20
+
 - Fix: [Structure editor glitch - backspace is inhibited from removing `#`](https://github.com/BetterThanTomorrow/calva/issues/2327)
+- Fix: ["Eval on save" causes files to be opened incorrectly](https://github.com/BetterThanTomorrow/calva/issues/2402)
 
 ## [2.0.412] - 2024-02-11
 

@@ -72,6 +72,7 @@ export type ServerInfo = {
   'cljfmt-raw': string;
   'clj-kondo-version': string;
   'server-version': string;
+  'semantic-tokens': string[];
 };
 
 export const getServerInfo = async (client: LanguageClient) => {
@@ -101,6 +102,11 @@ export const getClojureDocs = async (client: LanguageClient, params: GetClojureD
 export async function getCljFmtConfig(client: LanguageClient) {
   const server_info = await getServerInfo(client);
   return server_info?.['cljfmt-raw'];
+}
+
+export async function getSemanticTokens(client: LanguageClient) {
+  const server_info = await getServerInfo(client);
+  return server_info?.['semantic-tokens'];
 }
 
 export function getReferences(

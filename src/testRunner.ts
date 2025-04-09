@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 import * as util from './utilities';
 import * as string from './util/string';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import { NReplSession } from './nrepl';
 import * as cider from './nrepl/cider';
 import * as lsp from './lsp/definitions';
 import * as namespace from './namespace';
 import { getSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
+import * as output from './results-output/output';
 
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -22,18 +23,15 @@ async function uriForFile(fileName: string): Promise<vscode.Uri> {
 }
 
 // Return a valid TestItem for the namespace.
-// Creates a new item if one does not exist, othrwise we find the existing entry.
+// Creates a new item and adds it to the controller, replacing any existing item for the namespace.
 // If a Range is supplied, that we set the range on the returned item.
-function upsertNamespace(
+function createCleanNamespaceItem(
   controller: vscode.TestController,
   uri: vscode.Uri,
   nsName: string,
   range?: vscode.Range
 ): vscode.TestItem {
-  let ns = controller.items.get(nsName);
-  if (!ns) {
-    ns = controller.createTestItem(nsName, nsName, uri);
-  }
+  const ns = controller.createTestItem(nsName, nsName, uri);
   if (range) {
     ns.range = range;
   }
@@ -42,7 +40,7 @@ function upsertNamespace(
 }
 
 // Return a valid TestItem for the test var.
-// Creates a new item if one does not exist, othrwise we find the existing entry.
+// Creates a new item if one does not exist, otherwise we find the existing entry.
 // If a Range is supplied, that we set the range on the returned item.
 function upsertTest(
   controller: vscode.TestController,
@@ -51,7 +49,7 @@ function upsertTest(
   varName: string,
   range?: vscode.Range
 ): vscode.TestItem {
-  const ns = upsertNamespace(controller, uri, nsName);
+  const ns = controller.items.get(nsName);
   const testId = nsName + '/' + varName;
   let test = ns.children.get(testId);
   if (!test) {
@@ -141,6 +139,8 @@ async function onTestResult(
         run.errored(assertion, new vscode.TestMessage(cider.shortMessage(result)));
         break;
       case 'fail':
+        run.failed(assertion, new vscode.TestMessage(cider.detailedMessage(result)));
+        break;
       default:
         run.failed(assertion, new vscode.TestMessage(cider.shortMessage(result)));
         break;
@@ -215,8 +215,11 @@ async function reportTests(
             outputWindow.appendLine(messages, (_, afterResultLocation) => {
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
+            if (output.getDestinationConfiguration().otherOutput !== 'repl-window') {
+              output.appendLineOtherOut(messages);
+            }
           } else if (messages) {
-            outputWindow.appendLine(messages);
+            output.appendLineOtherOut(messages);
           }
 
           if (a.type === 'fail') {
@@ -228,7 +231,7 @@ async function reportTests(
   }
 
   const summary = cider.totalSummary(results.map((r) => r.summary));
-  outputWindow.appendLine('; ' + cider.summaryMessage(summary));
+  output.appendLineOtherOut(cider.summaryMessage(summary));
 
   if (!useTestExplorer()) {
     for (const fileName in diagnostics) {
@@ -242,14 +245,14 @@ async function reportTests(
 // FIXME: use cljs session where necessary
 async function runAllTests(controller: vscode.TestController, document = {}) {
   const session = getSession(util.getFileType(document));
-  outputWindow.appendLine('; Running all project tests…');
+  output.appendLineOtherOut('Running all project tests…');
   try {
     await reportTests(controller, session, [await session.testAll()]);
   } catch (e) {
-    outputWindow.appendLine('; ' + e);
+    output.appendLineOtherErr(e);
   }
   updateReplSessionType();
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 function runAllTestsCommand(controller: vscode.TestController) {
@@ -264,14 +267,23 @@ function runAllTestsCommand(controller: vscode.TestController) {
   });
 }
 
-async function loadTestNS(ns: string, session: NReplSession) {
+async function loadTestNS() {
+  const document = util.getActiveTextEditor().document;
+  const session = getSession(util.getFileType(document));
+  const doc = util.tryToGetDocument(document);
+
+  const [ns, _] = namespace.getNamespace(
+    doc,
+    vscode.window.activeTextEditor?.selections[0]?.active
+  );
+
   const testNS = !ns.endsWith('-test') ? ns + '-test' : ns;
   const nsPath = await session.nsPath(testNS);
   const testFilePath = nsPath.path;
   if (testFilePath && testFilePath !== '') {
     const filePath = vscode.Uri.parse(testFilePath).path;
     const loadForms = `(load-file "${filePath}")`;
-    await session.eval(loadForms, testNS).value;
+    return session.eval(loadForms, testNS).value;
   }
 }
 
@@ -294,9 +306,9 @@ async function runNamespaceTestsImpl(
 
   const session = getSession(util.getFileType(document));
 
-  outputWindow.appendLine(
-    `; Running tests for the following namespaces:\n${
-      nss.map((item) => `;   ${item}`).join('\n') + '\n'
+  output.appendLineOtherOut(
+    `Running tests for the following namespaces:\n${
+      nss.map((item) => `  ${item}`).join('\n') + '\n'
     }`
   );
 
@@ -306,12 +318,12 @@ async function runNamespaceTestsImpl(
   try {
     await reportTests(controller, session, await Promise.all(resultPromises));
   } catch (e) {
-    outputWindow.appendLine('; ' + e);
+    output.appendLineOtherErr(e);
   }
 
   outputWindow.setSession(session, nss[0]);
   updateReplSessionType();
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 async function runNamespaceTests(controller: vscode.TestController, document: vscode.TextDocument) {
@@ -319,43 +331,44 @@ async function runNamespaceTests(controller: vscode.TestController, document: vs
   if (outputWindow.isResultsDoc(doc)) {
     return;
   }
-  const session = getSession(util.getFileType(document));
   const [currentDocNs, _] = namespace.getNamespace(
     doc,
-    vscode.window.activeTextEditor?.selection?.active
+    vscode.window.activeTextEditor?.selections[0]?.active
   );
-  await loadTestNS(currentDocNs, session);
   const namespacesToRunTestsFor = [
     currentDocNs,
     currentDocNs.endsWith('-test') ? currentDocNs.slice(0, -5) : currentDocNs + '-test',
   ];
-  void runNamespaceTestsImpl(controller, document, namespacesToRunTestsFor);
+  return runNamespaceTestsImpl(controller, document, namespacesToRunTestsFor);
 }
 
 function getTestUnderCursor() {
   const editor = util.tryToGetActiveTextEditor();
   if (editor) {
-    return getText.currentTopLevelDefined(editor?.document, editor?.selection.active)[1];
+    return getText.currentTopLevelDefined(editor?.document, editor?.selections[0].active)[1];
   }
 }
 
 async function runTestUnderCursor(controller: vscode.TestController) {
   const doc = util.tryToGetDocument({});
   const session = getSession(util.getFileType(doc));
-  const [ns, _] = namespace.getNamespace(doc, vscode.window.activeTextEditor?.selection?.active);
+  const [ns, _] = namespace.getNamespace(
+    doc,
+    vscode.window.activeTextEditor?.selections[0]?.active
+  );
   const test = getTestUnderCursor();
 
   if (test) {
-    outputWindow.appendLine(`; Running test: ${test}…`);
+    output.appendLineOtherOut(`Running test: ${test}…`);
     try {
       await reportTests(controller, session, [await session.test(ns, test)]);
     } catch (e) {
-      outputWindow.appendLine('; ' + e);
+      output.appendLineOtherErr(e);
     }
   } else {
-    outputWindow.appendLine('; No test found at cursor');
+    output.appendLineOtherOut('No test found at cursor');
   }
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 function runTestUnderCursorCommand(controller: vscode.TestController) {
@@ -384,14 +397,13 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
 
 async function rerunTests(controller: vscode.TestController, document = {}) {
   const session = getSession(util.getFileType(document));
-  outputWindow.appendLine('; Running previously failed tests…');
+  output.appendLineOtherOut('Running previously failed tests…');
   try {
     await reportTests(controller, session, [await session.retest()]);
   } catch (e) {
-    outputWindow.appendLine('; ' + e);
+    output.appendLineOtherErr(e);
   }
-
-  outputWindow.appendPrompt();
+  output.replWindowAppendPrompt();
 }
 
 function rerunTestsCommand(controller: vscode.TestController) {
@@ -470,7 +482,12 @@ function onTestTree(controller: vscode.TestController, testTree: lsp.TestTreePar
   }
   try {
     const uri = vscode.Uri.parse(testTree.uri);
-    const ns = upsertNamespace(controller, uri, testTree.tree.name, createRange(testTree.tree));
+    const ns = createCleanNamespaceItem(
+      controller,
+      uri,
+      testTree.tree.name,
+      createRange(testTree.tree)
+    );
     ns.canResolveChildren = true;
     testTree.tree.children.forEach((c) => {
       upsertTest(controller, uri, testTree.tree.name, c.name, createRange(c));
@@ -488,4 +505,5 @@ export default {
   rerunTestsCommand,
   runTestUnderCursorCommand,
   onTestTree,
+  loadTestNS,
 };

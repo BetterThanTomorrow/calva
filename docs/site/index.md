@@ -16,6 +16,7 @@ description: Learn how to use Calva, a rich IDE for enjoyable and productive Clo
 
 [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) is an integrated, REPL powered, development environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) programming in [Visual Studio Code](https://code.visualstudio.com). It is [feature rich](#features) and turnkey. A lot of effort has been put into making Calva a good choice if you are new to Clojure. [Calva is open source](https://github.com/BetterThanTomorrow/calva) and free to use.
 
+[![chat - #clojure](https://img.shields.io/badge/chat-%23calva-db9550?style=for-the-badge&logo=zulip)](https://clojurians.zulipchat.com/#narrow/channel/151858-calva)
 
 ## Getting Started
 
@@ -63,12 +64,16 @@ If your Company benefits from Calva's existence and you see it as an important i
 
 ## Features
 
-Calva includes inline [code evaluation](evaluation.md), [structural editing](paredit.md), code [formatting](formatting.md), code navigation, a [debugger](debugger.md), [linting](linting.md), syntax highlighting, Clojure aware rainbow brackets, a [test runner](test-runner.md), refactoring support, and more. 
+Calva includes inline [code evaluation](evaluation.md), [structural editing](paredit.md), code [formatting](formatting.md), code navigation, a [debugger](debugger.md), [linting](linting.md), syntax highlighting, Clojure aware rainbow brackets, a [test runner](test-runner.md), refactoring support, and more.
 
 ## Have Questions and Feedback? Need Help?
 
 Easiest way is to chat with us and other Calva users. Please join the [#calva channel](https://clojurians.slack.com/messages/calva) on the Clojurians Slack. If you haven't joined that slack workspace, you can [get an invite here](http://clojurians.net/).
 
 If you're a beginner to Clojure(Script), the [#beginners](https://clojurians.slack.com/messages/beginners) channel of the Clojurians Slack is very active and helpful.
+
+## Please star the Calva repo!
+
+[![Please star the Calva repo!](https://github.com/BetterThanTomorrow/calva/raw/published/assets/images/star-calva-repo.png)](https://github.com/BetterThanTomorrow/calva)
 
 Happy coding!

@@ -1,4 +1,4 @@
-{:customREPLHoverSnippets
+{#_#_:customREPLHoverSnippets
  [{:name "edn hover symbol"
    :snippet (str "**EDN edn hover symbol**: " $hover-text)}
   {:name "edn hover symbol quoted"

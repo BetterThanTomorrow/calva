@@ -167,4 +167,35 @@ orange`
 apple`
     );
   });
+
+  it('can produce detailed messages with diffs', () => {
+    expect(
+      cider.detailedMessage({
+        type: 'fail',
+        ns: 'core',
+        context: 'ctx',
+        index: 2,
+        expected: '{:key1 "value1", :key2 "value2"}',
+        actual: '{:key1 "wrongValue", :key2 "value2"}',
+        var: 'test',
+        file: 'core.clj',
+        line: 10,
+        message: 'Values do not match',
+        diffs: [
+          [
+            '{:key1 "wrongValue", :key2 "value2"}',
+            ['{:key1 "value1", :key2 "value2"}', '{:key1 "wrongValue"}'],
+          ],
+        ],
+      })
+    ).toBe(`; FAIL in core/test (core.clj:10):
+; ctx: Values do not match
+; expected:
+{:key1 "value1", :key2 "value2"}
+; actual:
+{:key1 "wrongValue", :key2 "value2"}
+; diff:
+- {:key1 "value1", :key2 "value2"}
++ {:key1 "wrongValue"}`);
+  });
 });

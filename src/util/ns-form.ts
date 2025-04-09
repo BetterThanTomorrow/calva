@@ -50,7 +50,7 @@ function nsSymbolOfCurrentForm(
 
 export function nsFromCursorDoc(
   cursorDoc: model.EditableDocument,
-  p: number = cursorDoc.selection.active,
+  p: number = cursorDoc.selections[0].active,
   _maxRecursionDepth: number = 100, // used internally for recursion
   _depth: number = 0 // used internally for recursion
 ): [string, string] | null {

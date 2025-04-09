@@ -1,0 +1,31 @@
+!YS-v0:
+
+docker:
+- image: cimg/python:3.8-node
+
+environment:
+  MKDOCS_ENV: production
+
+steps:
+- !:add-ssh: ssh-fingerprint-1
+
+- checkout
+
+- !:cmd
+  - Update system package lists
+  - sudo apt-get update
+
+- !:cmd
+  - Install mkdocs-materials dependencies
+  - sudo apt-get install libcairo2-dev libfreetype6-dev
+                 libffi-dev libjpeg-dev libpng-dev libz-dev
+
+- !:cmd
+  - Install mkdocs and mkdocs-materials
+  - pip install -r requirements.txt
+
+- !:cmd
+  - Deploy docs
+  - git checkout published;
+    mkdocs gh-deploy --config-file mkdocs.yml
+                     --message "[skip ci]" --clean

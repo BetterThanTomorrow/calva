@@ -70,6 +70,28 @@ Unlike with the ”real” Calva Formatter, which never breaks up lines, this on
 !!! Note "Applies to the other Current Form"
     Unlike the other Format commands, which applies to the current _enclosing_ form, this one applies to the [Current Form, same as with evaluations](evaluation.md#current-form). That is because this is not really part of the Calva formatter, but rather is a convenience command for tidying up code or data.
 
+#### Provide zprint config via keyboard shortcuts (or Joyride)
+
+The default options for the command are to not sort maps and to not insert commas between map entries. However, the command takes a map as an argument, expecting this map to be a [zprint configuration]((https://github.com/kkinnear/zprint/blob/main/doc/reference.md)) map. You can provide the argument map via keyboard shortcuts. In VS Code settings, you use JSON, but it will be converted to EDN before handed to zprint.
+
+Say you want to have maps sorted by their keys, and generally use community standard formating + justify maps and bindings. This keyboard shortcut does that.
+
+```json
+    {
+        "key": "ctrl+alt+p enter",
+        "command": "calva.prettyPrintReplaceCurrentForm",
+        "args": {
+            "style": ["community", "justified"],
+            "map": {
+                "comma?": false,
+                "sort?": true,
+            }
+        }
+    }
+```
+
+Note that we have to specify `"comma?": false` here, because this argument will replace the default options maps for the command.
+
 ## Configuration
 
 You can adjust the above mentioned defaults, and the default indents, by configuring the formatting using [cljfmt's configuration EDN](https://github.com/weavejester/cljfmt#configuration).

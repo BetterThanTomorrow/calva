@@ -4,6 +4,8 @@
 
 _Distilled from [CIDER](https://cider.mx/)*._
 
+[![chat - #clojure](https://img.shields.io/badge/chat-%23calva-db9550?style=for-the-badge&logo=zulip)](https://clojurians.zulipchat.com/#narrow/channel/151858-calva)
+
 Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an integrated, REPL powered, development environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) programming in [Visual Studio Code](https://code.visualstudio.com). It includes:
 
 * inline [code evaluation](https://calva.io/evaluation/)
@@ -21,6 +23,8 @@ Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=bettertha
 A lot of effort has been put into making Calva a good choice to start if you are new to Clojure. [Calva is open source](https://github.com/BetterThanTomorrow/calva) and free to use.
 
 (*) Calva is short for Calvados, a liquid gifted to humanity from God. Calvas's REPL power is harvested from the produce of [The Orchard](https://github.com/clojure-emacs/orchard).
+
+![Please give the Calva repository a star!](assets/images/star-calva-repo.png)
 
 ## Users Like it 😍
 
@@ -169,7 +173,7 @@ Patrons, Gold, and Silver sponsors are also displayed here: https://calva.io/#sp
 
 ### Calva Silver Sponsors
 
-[<img src="assets/images/pitch-logo.png" height="40px" alt="pitch.io"/>](https://pitch.io)
+😭
 
 ### Calva Pro Fans
 
@@ -230,6 +234,7 @@ We are Clojure and Visual Studio Code fans who care about the ergonomics of usin
 * [Brandon Ringe](https://github.com/bpringe)
 * [Cora Sutton](https://github.com/corasaurus-hex)
 * [Lukas Domagala](https://github.com/Cyrik)
+* [Rayat Rahman](https://github.com/riotrah)
 
 ### Alumni
 
@@ -242,6 +247,11 @@ We are Clojure and Visual Studio Code fans who care about the ergonomics of usin
 ### Code Contributors
 
 Calva is an open source project with surprisingly many code contributors. We take great care to keep it easy and fun to contribute. See the [Calva Development Wiki](https://github.com/BetterThanTomorrow/calva/wiki) for more on this.
+
+## Telemetry
+
+If the setting `telemetry.telemetryLevel` is set to `"all"`, Calva will collect some telemetry. It is basically some key events, like that Calva is started, a repl connected, something is evaluated. Currently it is 10 events.
+For an up-to-date, and full, list of events, see: https://github.com/BetterThanTomorrow/calva/blob/published/src/analytics.ts and the calls to that module.
 
 ## Happy Coding
 

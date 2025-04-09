@@ -36,9 +36,21 @@ Indicator | Paredit Mode
 
 Toggle between Strict and Cave Man using: `ctrl+alt+p ctrl+alt+m`
 
-### Prevent Unbalanced Closing Brackets
+### A keybinding for protecting the structure from semi-colon
 
-There is also a setting, `calva.paredit.strictPreventUnmatchedClosingBracket`, that will help you to not enter unbalanced closing brackets into the code.
+Semi-colons (`;`) in Clojure are non-structural because they comment out the rest of the line regardless of brackets. In a way they can _delete_ brackets. There is a somewhat secret command in Paredit that can be used to insert `;` in a safe way:
+
+`paredit.insertSemiColon`
+
+Bind it to the `;` key with a `when` clause that activates it together with the other Strict mode commands:
+
+```json
+{
+    "command": "paredit.insertSemiColon",
+    "key": ";",
+    "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
+ },
+```
 
 ## Commands
 
@@ -46,9 +58,37 @@ The Paredit commands are sorted into **Navigation**, **Selection**, and **Edit**
 
 To make the command descriptions a bit clearer, each entry is animated. When you try to figure out what is going on in the GIFs, focus on where the cursor is at the start of the animation loop.
 
+### Command Args
+
+Some Paredit commands accept arguments. You can utilize this in keybindings and from [Joyride](https://github.com/BetterThanTomorrow/joyride).
+
+#### **`copy` for all `kill*` commands**
+
+When specified, will control whether killed text will be copied to the clipboard.
+This is an alternative to, or supports binding-specific overrides for, `calva.paredit.killAlsoCutsToClipboard`.
+
+For example, here's 2 keybindings for `paredit.killRight` with different `copy` args, allowing you to choose when or if you want killed text copied at keypress-time, regardless of global `calva.paredit.killAlsoCutsToClipboard` setting:
+
+```json
+{
+  "key": "ctrl+k",
+  "command": "paredit.killRight",
+  "when": "... your when conditions ...",
+  "args": {"copy": false}
+},
+{
+  "key": "cmd+k ctrl+k",
+  "command": "paredit.killRight",
+  "when": "... your when conditions ...",
+  "args": {"copy": true}
+},
+```
+
+Or, you can even have both of them use the **same `key`**, but **separate `when` conditions** to taste, to allow context-conditional copying.
+
 ### Strings are not Lists, but Anyway...
 
-In Calva Paredit, strings are treated in much the same way as lists are. Here's an example showing **Slurp** and **Barf**, **Forward/Backward List**, and **Grow Selection**.
+In Calva Paredit, strings are treated in much the same way as lists are. Here's an example showing **Slurp** and **Barf**, **Forward/Backward List**, and **Expand Selection**.
 
 ![](images/paredit/string-as-list.gif)
 
@@ -76,7 +116,7 @@ Most of these commands are selecting ”versions” of the navigation commands a
 Default keybinding    | Action | Description
 ------------------    | ------ | -----------
  `shift+alt+right` (win/linux)<br>`ctrl+w` (mac)                | **Expand Selection** | Starts from the cursor and selects the current form. Then will keep expanding to enclosing forms.<br> ![](images/paredit/grow-selection.gif)
- `shift+alt+left` (win/linux)<br>`ctrl+shift+w` (mac)         | **Shrink Selection** | Contracts back from an expanded selection performed by any Paredit selection command.<br> ![](images/paredit/shrink-selection.gif)<br>(In the animation the selection is first grown using a combination of **Grow Selection** and some lateral selection commands, then shrunk all the way back down to no selection.)
+ `shift+alt+left` (win/linux)<br>`ctrl+shift+w` (mac)         | **Shrink Selection** | Contracts back from an expanded selection performed by any Paredit selection command.<br> ![](images/paredit/shrink-selection.gif)<br>(In the animation the selection is first grown using a combination of **Expand Selection** and some lateral selection commands, then shrunk all the way back down to no selection.)
  `ctrl+alt+w space`      | **Select Top Level Form** | Top level in a structural sense. Typically where your`(def ...)`/`(defn ...)` type forms. Please note that`(comment ...)` forms create a new top level. <br> ![](images/paredit/select-top-level-form.gif)
  `shift+ctrl+right` (win/linux)<br>`shift+alt+right` (mac)  | **Select Forward Sexp** | ![](images/paredit/select-forward-sexp.gif)
   `ctrl+shift+k`         | **Select Right**          | Select forward to the end of the current form or the first newline. See **Kill right** below. (The animation also shows **Shrink Selection**).<br> ![](images/paredit/select-right.gif)
@@ -108,7 +148,8 @@ Default keybinding                | Action | Description
  `ctrl+alt+shift` `k`<br>`ctrl+alt+shift` `j` | **Drag Sexp Forward Up**<br>**Drag Sexp Backward Down** | Moves the current form up/out of the current list, *forwards*, and down/in to the preceding list, *backwards*, keeping the cursor within the sexpr being dragged.<br> ![](images/paredit/drag-forward-up-backward-down.gif)
  `ctrl+shift+c`                      | **Convolute** | ¯\\\_(ツ)_/¯ <br> ![](images/paredit/convolute.gif)
  `ctrl+shift+delete`                   | **Kill Sexp Forward** | Deletes the next form in the same enclosing form as the cursor.<br> ![](images/paredit/kill-forward-sexp.gif)
- `ctrl+k`                            | **Kill Right**          | Delete forward to the end of the current form or the first newline.<br> ![](images/paredit/kill-right.gif)
+ `ctrl+k ctrl+k` (win/linux)<br>`ctrl+k` (mac)                     | **Kill Right**          | Delete forward to the end of the current form or the first newline.<br> ![](images/paredit/kill-right.gif)
+ `ctrl+k ctrl+h` (win/linux)<br>`cmd+backspace` (mac)                     | **Kill Left**          | Delete backward to the start of the current form or the start of the line.<br> ![](images/paredit/kill-left.gif)
  `ctrl+alt+backspace`                | **Kill Sexp Backward** | Deletes the previous form in the same enclosing form as the cursor.<br> ![](images/paredit/kill-backward-sexp.gif)
  `ctrl+delete`                       | **Kill List Forward** | Deletes everything from the cursor to the closing of the current enclosing form.<br> ![](images/paredit/kill-close-list.gif)
  `ctrl+backspace`                    | **Kill List Backward** | Deletes everything from the cursor to the opening of the current enclosing form.<br> ![](images/paredit/kill-open-list.gif)
@@ -124,7 +165,7 @@ Default keybinding                | Action | Description
     You can have the *kill* commands always copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToClipboard` to `true`.  If you want to do this more on-demand, you can kill text by using the [selection commands](#selecting) and then *Cut* once you have the selection.
 
 !!! Note "clojure-lsp drag fwd/back overlap"
-    As an experimental feature, the two commands for dragging forms forward and backward have clojure-lsp alternativs. See the [clojure-lsp](clojure-lsp.md#clojure-lsp-drag-fwdback) page.
+    As an experimental feature, the two commands for dragging forms forward and backward have clojure-lsp alternatives. See the [clojure-lsp](clojure-lsp.md#clojure-lsp-drag-fwdback) page.
 
 ### Drag bindings forward/backward
 
@@ -146,7 +187,53 @@ There are some context keys you can utilize to configure keyboard shortcuts with
 
 *The Nuclear Option*: You can choose to disable all default key bindings by configuring `calva.paredit.defaultKeyMap` to `none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
 
-In some instances built-in command defaults are the same as Paredit's defaults, and Paredit's functionality in a particular case is less than what the default is. This is true of *Expand Selection* and *Shrink Selection* for Windows/Linux when multiple lines are selected. In this particular case adding `!editorHasMultipleSelections` to the `when` clause of the binding makes for a better workflow. The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right `when` clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.
+### When Clauses and VSCode Default Bindings
 
+There are instances where VSCode's built-in command binding defaults are the same as Paredit's, where Paredit's version has less functionality. For example, Calva's _Expand Selection_ and _Shrink Selection_ doesn't support multiple selections (though this may change in the future - see Multicursor section below). In this particular case, adding `!editorHasMultipleSelections` to the `when` clause of the binding makes up for this gap by letting the binding fall back to VSCode's native grow/shrink selection.
+
+For example, here's the JSON version of the keybindings settings demonstrating the above. Note this can also specified in the Keyboard Shortcuts UI:
+
+```json
+{
+  "key": "shift+alt+right",
+  "command": "paredit.sexpRangeExpansion",
+  "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
+}
+```
+
+to
+
+```json
+{
+  "key": "shift+alt+right",
+  "command": "paredit.sexpRangeExpansion",
+  "when": "!editorHasMultipleSelections && calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
+}
+```
+
+The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right `when` clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.
 
 Happy Editing! ❤️
+
+## Experimental Feature: Multicursor support
+
+There is an ongoing effort to support simultaneous multicursor editing with Paredit. This is an experimental feature and is not enabled by default. To enable it, set `calva.paredit.multicursor` to `true`. This feature is still in development and may not work as expected in all cases. Currently, this supports the following categories:
+
+- Movement
+- Selection (except for `Select Current Form` - coming soon!)
+- Rewrap
+
+### Toggling Multicursor per command
+
+The experimental multicursor-supported commands support an optional command arg - like `copy` for the `kill*` commands [mentioned above](#command-args) - to control whether multicursor is enabled for that command. This is an alternative to, or supports binding-specific overrides for, `calva.paredit.multicursor`.
+
+For example:
+
+```json
+{
+  "key": "ctrl+k",
+  "command": "paredit.sexpRangeExpansion",
+  "when": "... your when conditions ...",
+  "args": {"multicursor": false}
+}
+```

@@ -1,0 +1,22 @@
+{:deps {medley/medley {:mvn/version "1.3.0"}}
+ :min-bb-version "0.4.0"
+ :tasks
+ {:requires ([babashka.fs :as fs])
+  :init
+  (do
+    (defn ? [x] (println "<<<\n" x "\n>>>") x)
+    (defn env [s] (System/getenv s))
+    (def PATH (str "/tmp/yamlscript/bin:" (env "PATH")))
+    (def YSPATH (str (fs/cwd) "/lib"))
+    (def ENV {:extra-env {"PATH" PATH
+                          "YSPATH" YSPATH}})
+    (defn sh [& xs]
+      (do
+        (apply println "+" xs)
+        (apply shell ENV xs)))
+    (defn make [target] (sh (str "make " target))))
+  ;; For now just call 'make' for the bb task:
+  build (make "build")
+  test  (make "test")
+  clean (make "clean")}}
+

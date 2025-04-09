@@ -10,7 +10,7 @@ export function backspaceOnWhitespace(
 ) {
   const origIndent = getIndent(doc.model, cursor.offsetStart, config);
   const onCloseToken = cursor.getToken().type === 'close';
-  let start = doc.selection.anchor;
+  let start = doc.selections[0].anchor;
   let token = cursor.getToken();
   if (token.type === 'ws') {
     start = cursor.offsetEnd;

@@ -12,6 +12,7 @@ import _ = require('lodash');
 import { isDefined } from './utilities';
 import * as converters from './converters';
 import * as nreplUtil from './nrepl/util';
+import * as output from './results-output/output';
 
 const REPL_FILE_EXT = 'calva-repl';
 const FIDDLE_FILE_EXT = 'fiddle';
@@ -179,7 +180,22 @@ function getConfig() {
   const autoEvaluateCode =
     configOptions.inspect<nreplUtil.AutoEvaluateCodeConfig>('autoEvaluateCode');
 
-  const replConnectSequences = configOptions.inspect<ReplConnectSequence[]>('replConnectSequences');
+  const replConnectSequencesConfig =
+    configOptions.inspect<ReplConnectSequence[]>('replConnectSequences');
+  const replConnectSequences = [
+    ...(replConnectSequencesConfig.workspaceFolderValue ?? []),
+    ...(replConnectSequencesConfig.workspaceValue ?? []),
+    ...(replConnectSequencesConfig.globalValue ?? []),
+  ].map((sequence) => {
+    if (Array.isArray(sequence.afterCLJReplJackInCode)) {
+      return {
+        ...sequence,
+        afterCLJReplJackInCode: sequence.afterCLJReplJackInCode.join('\n'),
+      };
+    } else {
+      return sequence;
+    }
+  });
 
   return {
     formatOnSave: configOptions.get('formatOnSave'),
@@ -194,11 +210,7 @@ function getConfig() {
     clojureLspPath: configOptions.get<string>('clojureLspPath'),
     openBrowserWhenFigwheelStarted: configOptions.get<boolean>('openBrowserWhenFigwheelStarted'),
     customCljsRepl: configOptions.get('customCljsRepl', null),
-    replConnectSequences: [
-      ...(replConnectSequences.globalValue ?? []),
-      ...(replConnectSequences.workspaceValue ?? []),
-      ...(replConnectSequences.workspaceFolderValue ?? []),
-    ],
+    replConnectSequences,
     myLeinProfiles: configOptions.get<string[]>('myLeinProfiles', []).map(_trimAliasName),
     myCljAliases: configOptions.get<string[]>('myCljAliases', []).map(_trimAliasName),
     asyncOutputDestination: configOptions.get<string>('sendAsyncOutputTo'),
@@ -221,10 +233,10 @@ function getConfig() {
     enableJSCompletions: configOptions.get<boolean>('enableJSCompletions'),
     autoOpenREPLWindow: configOptions.get<boolean>('autoOpenREPLWindow'),
     autoOpenJackInTerminal: configOptions.get('autoOpenJackInTerminal'),
+    autoOpenResultOutputDestination: configOptions.get('autoOpenResultOutputDestination'),
+    autoOpenInspector: configOptions.get<boolean>('autoOpenInspector'),
+    enableInspectorRainbow: configOptions.get<boolean>('enableInspectorRainbow'),
     referencesCodeLensEnabled: configOptions.get<boolean>('referencesCodeLens.enabled'),
-    strictPreventUnmatchedClosingBracket: pareditOptions.get<boolean>(
-      'strictPreventUnmatchedClosingBracket'
-    ),
     showCalvaSaysOnStart: configOptions.get<boolean>('showCalvaSaysOnStart'),
     enableClojureLspOnStart: configOptions.get<boolean>('enableClojureLspOnStart'),
     projectRootsSearchExclude: configOptions.get<string[]>('projectRootsSearchExclude', []),
@@ -234,6 +246,7 @@ function getConfig() {
     depsCljPath: configOptions.get<string>('depsCljPath'),
     autoSelectNReplPortFromPortFile: configOptions.get<boolean>('autoSelectNReplPortFromPortFile'),
     autoConnectRepl: configOptions.get<boolean>('autoConnectRepl'),
+    autoStartRepl: configOptions.get<boolean>('autoStartRepl'),
     html2HiccupOptions: configOptions.get<converters.HiccupOptions>('html2HiccupOptions'),
     autoEvaluateCode: nreplUtil.mergeAutoEvaluateConfigs(
       [
@@ -245,6 +258,11 @@ function getConfig() {
     ),
     redirectServerOutputToRepl: configOptions.get<boolean>('redirectServerOutputToRepl'),
     fiddleFilePaths: configOptions.get<fiddleFilesUtil.FiddleFilePaths>('fiddleFilePaths'),
+    outputDestinations:
+      configOptions.get<output.OutputDestinationConfiguration>('outputDestinations'),
+    useLegacyReplWindowPath: configOptions.get<boolean>('useLegacyReplWindowPath'),
+    legacyPrintBareReplWindowOutput: configOptions.get<boolean>('legacyPrintBareReplWindowOutput'),
+    basilispPath: configOptions.get<string>('basilispPath'),
   };
 }
 

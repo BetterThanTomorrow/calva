@@ -17,7 +17,7 @@ import {
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './repl-window/repl-doc';
 import { formatAsLineComments } from './results-output/util';
 import evaluate from './evaluate';
 import * as liveShareSupport from './live-share';
@@ -29,18 +29,8 @@ import * as jszip from 'jszip';
 import { addEdnConfig, getConfig } from './config';
 import { getJarContents } from './utilities';
 import { ConnectType } from './nrepl/connect-types';
-
-async function readJarContent(uri: string) {
-  try {
-    const rawData = await vscode.workspace.fs.readFile(vscode.Uri.parse(uri));
-    const zipData = await jszip.loadAsync(rawData);
-
-    const conf = await zipData.file('calva.exports/config.edn')?.async('string');
-    return [uri, conf];
-  } catch (error) {
-    return [uri, null];
-  }
-}
+import * as output from './results-output/output';
+import * as inspector from './providers/inspector';
 
 async function readRuntimeConfigs() {
   const classpath = await nClient.session.classpath().catch((e) => {
@@ -51,6 +41,16 @@ async function readRuntimeConfigs() {
       if (element.endsWith('.jar')) {
         const edn = await getJarContents(element.concat('!/calva.exports/config.edn'));
         return [element, edn];
+      } else if (element.endsWith('/resources')) {
+        const configUri = vscode.Uri.file(element.concat('/calva.exports/config.edn'));
+        try {
+          await vscode.workspace.fs.stat(configUri);
+          const ednBytes = await vscode.workspace.fs.readFile(configUri);
+          const edn = new TextDecoder('utf-8').decode(ednBytes);
+          return [element, edn];
+        } catch {
+          // no config found
+        }
       }
 
       return [element, null];
@@ -65,8 +65,6 @@ async function readRuntimeConfigs() {
 }
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
-  state.analytics().logEvent('REPL', 'Connecting').send();
-
   if (nClient) {
     nClient['silent'] = true;
     await nClient.close();
@@ -77,16 +75,16 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
   util.setConnectingState(true);
   status.update();
   try {
-    outputWindow.appendLine('; Hooking up nREPL sessions ...');
+    output.appendLineOtherOut('Hooking up nREPL sessions ...');
     // Create an nREPL client. waiting for the connection to be established.
     nClient = await NReplClient.create({
       host: hostname,
       port: +port,
       onError: (e) => {
-        outputWindow.appendLine(`; nREPL connection failed: ${e}`);
+        output.appendLineOtherErr(`nREPL connection failed: ${e}`);
         const scheme = state.getProjectRootUri().scheme;
         if (scheme === 'vsls') {
-          outputWindow.appendLine('; Did the host share the nREPL port?');
+          output.appendLineOtherOut('Did the host share the nREPL port?');
         }
         // TODO: Figure out why the program bails out after here.
         // For now, we just clean up the connection state (even if we fail to return)
@@ -100,7 +98,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       util.setConnectingState(false);
       if (!c['silent']) {
         // we didn't deliberately close this session, mention this fact.
-        outputWindow.appendLine('; nREPL Connection was closed');
+        output.appendLineOtherOut('nREPL Connection was closed');
       }
       status.update();
       calvaDebug.terminateDebugSession();
@@ -109,21 +107,18 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     cljSession.replType = 'clj';
     util.setConnectingState(false);
     util.setConnectedState(true);
-    state.analytics().logEvent('REPL', 'ConnectedCLJ').send();
     void state.analytics().logGA4Pageview('/connected-clj-repl');
     setStateValue('clj', cljSession);
     setStateValue('cljc', cljSession);
     status.update();
-    outputWindow.appendLine(
-      `; Connected session: clj\n${formatAsLineComments(outputWindow.CLJ_CONNECT_GREETINGS)}`
-    );
+    output.appendLineOtherOut(`Connected session: clj`);
     replSession.updateReplSessionType();
 
     outputWindow.setSession(cljSession, nClient.ns);
 
     if (getConfig().autoEvaluateCode.onConnect.clj) {
-      outputWindow.appendLine(
-        `; Evaluating code from settings: 'calva.autoEvaluateCode.onConnect.clj'`
+      output.appendLineOtherOut(
+        `Evaluating code from settings: 'calva.autoEvaluateCode.onConnect.clj'`
       );
       await evaluate.evaluateInOutputWindow(
         getConfig().autoEvaluateCode.onConnect.clj,
@@ -132,10 +127,10 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         {}
       );
     }
-    outputWindow.appendPrompt();
+    output.replWindowAppendPrompt();
 
     if (connectSequence.afterCLJReplJackInCode) {
-      outputWindow.appendLine(`; Evaluating 'afterCLJReplJackInCode'`);
+      output.appendLineOtherOut(`Evaluating 'afterCLJReplJackInCode'`);
       await evaluate.evaluateInOutputWindow(
         connectSequence.afterCLJReplJackInCode,
         'clj',
@@ -143,7 +138,10 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         {}
       );
     }
-    outputWindow.appendPrompt();
+    if (!connectSequence.cljsType || connectSequence.cljsType === 'none') {
+      output.maybePrintLegacyREPLWindowOutputMessage();
+    }
+    output.replWindowAppendPrompt();
 
     clojureDocs.init(cljSession);
 
@@ -166,21 +164,13 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
           translatedReplType,
           connectSequence.name
         );
-        state
-          .analytics()
-          .logEvent(
-            'REPL',
-            'ConnectCljsRepl',
-            isBuiltinType ? (connectSequence.cljsType as string) : 'Custom'
-          )
-          .send();
         void state.analytics().logGA4Pageview('/connected-cljs-repl');
       }
       if (cljsSession) {
         await setUpCljsRepl(cljsSession, cljsBuild);
       }
     } catch (e) {
-      outputWindow.appendLine('; Error while connecting cljs REPL: ' + e);
+      output.appendLineOtherErr('Error while connecting cljs REPL: ' + e);
     }
     status.update();
   } catch (e) {
@@ -197,8 +187,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
 function cleanUpAfterError(e: any) {
   util.setConnectingState(false);
   util.setConnectedState(false);
-  outputWindow.appendLine('; Failed connecting.');
-  state.analytics().logEvent('REPL', 'FailedConnectingCLJ').send();
+  output.appendLineOtherErr('Failed connecting.');
   console.error('Failed connecting:', e);
   status.update();
   return false;
@@ -208,18 +197,15 @@ async function setUpCljsRepl(session: NReplSession, build) {
   setStateValue('cljs', session);
   setStateValue('cljc', session);
   status.update();
-  outputWindow.appendLine(
-    `; Connected session: cljs${build ? ', repl: ' + build : ''}\n${formatAsLineComments(
-      outputWindow.CLJS_CONNECT_GREETINGS
-    )}`
-  );
+  output.appendLineOtherOut(`Connected session: cljs${build ? ', repl: ' + build : ''}`);
+  outputWindow.appendLine(formatAsLineComments(outputWindow.CLJS_CONNECT_GREETINGS));
   const description = await session.describe(true);
   const ns = description.aux?.['current-ns'] || 'user';
   await session.eval(`(in-ns '${ns})`, 'user').value;
   outputWindow.setSession(session, ns);
   if (getConfig().autoEvaluateCode.onConnect.cljs) {
-    outputWindow.appendLine(
-      `; Evaluating code from settings: 'calva.autoEvaluateCode.onConnect.cljs'`
+    output.appendLineOtherOut(
+      `Evaluating code from settings: 'calva.autoEvaluateCode.onConnect.cljs'`
     );
     await evaluate.evaluateInOutputWindow(
       getConfig().autoEvaluateCode.onConnect.cljs,
@@ -227,7 +213,8 @@ async function setUpCljsRepl(session: NReplSession, build) {
       ns,
       {}
     );
-    outputWindow.appendPrompt();
+    output.maybePrintLegacyREPLWindowOutputMessage();
+    output.replWindowAppendPrompt();
   }
   replSession.updateReplSessionType();
 }
@@ -241,10 +228,10 @@ async function getFigwheelMainBuilds() {
     void vscode.window.showErrorMessage(
       'There are no figwheel build files (.cljs.edn) in the project directory.'
     );
-    outputWindow.appendLine(
-      '; There are no figwheel build files (.cljs.edn) in the project directory.'
+    output.appendLineOtherErr(
+      'There are no figwheel build files (.cljs.edn) in the project directory.'
     );
-    outputWindow.appendLine('; Connection to Figwheel Main aborted.');
+    output.appendLineOtherOut('Connection to Figwheel Main aborted.');
     throw 'Aborted';
   }
   return builds;
@@ -297,7 +284,6 @@ async function evalConnectCode(
     console.error('Error evaluating connect form: ', reason);
   });
   if (await checkSuccess(valueResult, out, err)) {
-    state.analytics().logEvent('REPL', 'ConnectedCLJS', name).send();
     setStateValue('cljs', (cljsSession = newCljsSession));
     return true;
   } else {
@@ -360,7 +346,7 @@ function createCLJSReplType(
   const printThisPrinter: processOutputFn = (x) => {
       if (cljsType.printThisLineRegExp) {
         if (x.search(cljsType.printThisLineRegExp) >= 0) {
-          outputWindow.append('; ' + x.replace(/\s*$/, ''));
+          output.appendLineOtherOut(x.trimEnd());
         }
       }
     },
@@ -380,8 +366,8 @@ function createCLJSReplType(
       // When the app is ready to start, say so.
       if (!haveShownStartMessage && cljsType.isReadyToStartRegExp) {
         if (x.search(cljsType.isReadyToStartRegExp) >= 0) {
-          outputWindow.appendLine(
-            '; CLJS REPL ready to connect. Please, start your ClojureScript app.'
+          output.appendLineOtherOut(
+            'CLJS REPL ready to connect. Please, start your ClojureScript app.'
           );
           haveShownStartMessage = true;
         }
@@ -389,12 +375,12 @@ function createCLJSReplType(
       // If we have an appURL to go with the ”start now” message, say so
       if (appURL && haveShownStartMessage && !haveShownAppURL) {
         if (cljsType.shouldOpenUrl) {
-          outputWindow.appendLine(`; Opening ClojureScript app in the browser at: ${appURL} ...`);
+          output.appendLineOtherOut(`Opening ClojureScript app in the browser at: ${appURL} ...`);
           open(appURL).catch((reason) => {
-            outputWindow.appendLine('; Error opening ClojureScript app in the browser: ' + reason);
+            output.appendLineOtherErr('Error opening ClojureScript app in the browser: ' + reason);
           });
         } else {
-          outputWindow.appendLine(';   Open the app on this URL: ' + appURL);
+          output.appendLineOtherOut('  Open the app on this URL: ' + appURL);
         }
         haveShownAppURL = true;
       }
@@ -404,13 +390,13 @@ function createCLJSReplType(
         !haveShownStartSuffix &&
         (haveShownAppURL || (haveShownStartMessage && !cljsType.openUrlRegExp))
       ) {
-        outputWindow.appendLine(';   The CLJS REPL will connect when your app is running.');
+        output.appendLineOtherOut('  The CLJS REPL will connect when your app is running.');
         haveShownStartSuffix = true;
       }
     },
     // This processor prints everything. We use it for stderr below.
     allPrinter: processOutputFn = (x) => {
-      outputWindow.appendLine('; ' + util.stripAnsi(x).replace(/\s*$/, ''));
+      output.appendOtherOut(x);
     };
 
   const replType: ReplType = {
@@ -427,7 +413,7 @@ function createCLJSReplType(
         useDefaultBuild = false;
       } else {
         if (typeof initCode === 'object' || initCode.includes('%BUILD%')) {
-          build = await util.quickPickSingle({
+          const buildItem = await util.quickPickSingle({
             values: startedBuilds
               ? startedBuilds.map((a) => ({ label: a }))
               : (await figwheelOrShadowBuilds(cljsTypeName)).map((a) => ({ label: a })),
@@ -438,6 +424,7 @@ function createCLJSReplType(
             )}-build`,
             autoSelect: true,
           });
+          build = buildItem.label;
         }
       }
 
@@ -481,30 +468,32 @@ function createCLJSReplType(
       const runtimes = await cljSession.eval(getRuntimesCode, 'user').value;
       return runtimes && parseInt(runtimes) > 0;
     };
-    const hasRuntimes = await checkForRuntimes();
-    if (hasRuntimes) {
-      return true;
-    }
-    let tries = 600; // Wait for 1 minute at most
-    const waitForRuntimes = async () => {
-      while (!(await checkForRuntimes())) {
-        tries--;
-        if (tries <= 0) {
-          outputWindow.appendLine(
-            '; Timed out waiting for Shadow CLJS runtimes, pretending we are connected.'
-          );
-          return true;
-        } else if (tries % 50 == 0) {
-          outputWindow.appendLine('; Waiting for Shadow CLJS runtimes, start your CLJS app...');
+    return new Promise<boolean>((resolve, reject) => {
+      void vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: 'Waiting for shadow-cljs runtimes...',
+          cancellable: true,
+        },
+        async (progress, token) => {
+          token.onCancellationRequested(() => {
+            reject(new Error('User cancelled waiting for shadow-cljs runtimes.'));
+          });
+
+          while (!(await checkForRuntimes())) {
+            if (token.isCancellationRequested) {
+              break;
+            }
+            progress.report({ message: 'Please start your ClojureScript app...' });
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+
+          if (!token.isCancellationRequested) {
+            resolve(true);
+          }
         }
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-      return true;
-    };
-    outputWindow.appendLine(
-      '; Please start your ClojureScript app (load it in the browser, or whatever is appropriate) so that Calva can connect to its REPL...'
-    );
-    return await waitForRuntimes();
+      );
+    });
   }
 
   async function handleConnected(result, out, err): Promise<boolean> {
@@ -516,7 +505,7 @@ function createCLJSReplType(
       if (!isConnectCodeEvaluatedSuccessfully || !isShadowCljsReplType(cljsType)) {
         return isConnectCodeEvaluatedSuccessfully;
       }
-      return await waitForShadowCljsRuntimes();
+      return waitForShadowCljsRuntimes();
     } else {
       return true;
     }
@@ -534,20 +523,22 @@ function createCLJSReplType(
             const allBuilds = (await figwheelOrShadowBuilds(cljsTypeName)).filter(
               (build) => !['browser-repl', 'node-repl'].includes(build)
             );
-            builds =
-              allBuilds.length <= 1
-                ? allBuilds
-                : await util.quickPickMulti({
-                    values: allBuilds.map((a) => ({ label: a })),
-                    placeHolder: 'Please select which builds to start',
-                    saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
-                      ' ',
-                      '-'
-                    )}-builds`,
-                  });
+            if (allBuilds.length <= 1) {
+              builds = allBuilds;
+            } else {
+              const selectedBuilds = await util.quickPickMulti({
+                values: allBuilds.map((a) => ({ label: a })),
+                placeHolder: 'Please select which builds to start',
+                saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
+                  ' ',
+                  '-'
+                )}-builds`,
+              });
+              builds = selectedBuilds.map((build) => build.label);
+            }
           }
           if (builds) {
-            outputWindow.appendLine('; Starting cljs repl for: ' + projectTypeName + '...');
+            output.appendLineOtherOut('Starting cljs repl for: ' + projectTypeName + '...');
             void state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
             startCode = startCode.replace(
               '%BUILDS%',
@@ -570,11 +561,11 @@ function createCLJSReplType(
             }
             return result;
           } else {
-            outputWindow.appendLine('; Aborted starting cljs repl.');
+            output.appendLineOtherOut('Aborted starting cljs repl.');
             throw 'Aborted';
           }
         } else {
-          outputWindow.appendLine('; Starting cljs repl for: ' + projectTypeName + '...');
+          output.appendLineOtherOut('Starting cljs repl for: ' + projectTypeName + '...');
           return evalConnectCode(
             session,
             startCode,
@@ -620,40 +611,33 @@ function isShadowCljsReplType(cljsType: CljsTypeConfig) {
 }
 
 async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: string) {
-  outputWindow.appendLine('; Creating cljs repl session...');
+  output.appendLineOtherOut('Creating cljs repl session...');
   let newCljsSession = await session.clone();
   newCljsSession.replType = 'cljs';
   if (newCljsSession) {
-    outputWindow.appendLine('; Connecting cljs repl: ' + projectTypeName + '...');
-    outputWindow.appendLine(
-      ';   The Calva Connection Log might have more connection progress information.'
-    );
+    output.appendLineOtherOut('Connecting cljs repl: ' + projectTypeName + '...');
     if (repl.start != undefined) {
       if (await repl.start(newCljsSession, repl.name, repl.started)) {
-        state.analytics().logEvent('REPL', 'StartedCLJS', repl.name).send();
-        outputWindow.appendLine('; Cljs builds started');
+        output.appendLineOtherOut('Cljs builds started');
         newCljsSession = await session.clone();
         newCljsSession.replType = 'cljs';
       } else {
-        state.analytics().logEvent('REPL', 'FailedStartingCLJS', repl.name).send();
-        outputWindow.appendLine('; Failed starting cljs repl');
+        output.appendLineOtherErr('Failed starting cljs repl');
         setStateValue('cljsBuild', null);
         return [null, null];
       }
     }
     if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
-      state.analytics().logEvent('REPL', 'ConnectedCLJS', repl.name).send();
       setStateValue('cljs', (cljsSession = newCljsSession));
       return [cljsSession, getStateValue('cljsBuild')];
     } else {
       const build = getStateValue('cljsBuild');
-      state.analytics().logEvent('REPL', 'FailedConnectingCLJS', repl.name).send();
       const failed =
         'Failed starting cljs repl' +
         (build != null
           ? ` for build: ${build}. Is the build running and connected?\n   See the Output channel "Calva Connection Log" for any hints on what went wrong.`
           : '');
-      outputWindow.appendLine(`; ${failed}`);
+      output.appendLineOtherOut(failed);
       setStateValue('cljsBuild', null);
     }
   }
@@ -676,7 +660,7 @@ async function promptForNreplUrlAndConnect(port, connectSequence: ReplConnectSeq
       setStateValue('port', parsedPort);
       await connectToHost(hostname, parsedPort, connectSequence);
     } else {
-      outputWindow.appendLine('; Bad url: ' + url);
+      output.appendLineOtherErr('Bad url: ' + url);
       util.setConnectingState(false);
       status.update();
     }
@@ -699,8 +683,6 @@ export async function connect(
 ) {
   const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
 
-  state.analytics().logEvent('REPL', 'ConnectInitiated', isAutoConnect ? 'auto' : 'manual');
-  state.analytics().logEvent('REPL', 'ConnectInitiated', cljsTypeName).send();
   const portFile = projectTypes.nreplPortFileUri(connectSequence);
   void state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
   void state.extensionContext.workspaceState.update('selectedConnectSequence', connectSequence);
@@ -708,7 +690,7 @@ export async function connect(
   try {
     if (port === undefined) {
       try {
-        outputWindow.appendLine(`; Reading port file: ${portFile} ...`);
+        output.appendLineOtherOut(`Reading port file: ${portFile} ...`);
         await vscode.workspace.fs.stat(portFile);
         const bytes = await vscode.workspace.fs.readFile(portFile);
         port = new TextDecoder('utf-8').decode(bytes);
@@ -718,7 +700,7 @@ export async function connect(
     }
     if (port) {
       hostname = hostname !== undefined ? hostname : 'localhost';
-      outputWindow.appendLine(`; Using host:port ${hostname}:${port} ...`);
+      output.appendLineOtherOut(`Using host:port ${hostname}:${port} ...`);
       if (isAutoConnect) {
         setStateValue('hostname', hostname);
         setStateValue('port', port);
@@ -727,7 +709,7 @@ export async function connect(
         await promptForNreplUrlAndConnect(port, connectSequence);
       }
     } else {
-      outputWindow.appendLine('; No nrepl port file found.');
+      output.appendLineOtherOut('No nrepl port file found.');
       await promptForNreplUrlAndConnect(port, connectSequence);
     }
     status.update();
@@ -735,7 +717,9 @@ export async function connect(
     console.error(e);
   }
   initializeDebugger(nClient.session);
-  if (!['babashka', 'nbb', 'joyride', 'generic'].includes(connectSequence.projectType)) {
+  if (
+    !['babashka', 'nbb', 'joyride', 'basilisp', 'generic'].includes(connectSequence.projectType)
+  ) {
     if (!nClient.session.supports('info')) {
       void vscode.window
         .showWarningMessage(
@@ -762,21 +746,18 @@ async function standaloneConnect(
   port?: string
 ) {
   await outputWindow.initResultsDoc();
+  inspector.revealOnConnect();
   await outputWindow.openResultsDoc();
 
   if (connectSequence) {
     const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
-    outputWindow.appendLine(`; Connecting ...`);
-    state
-      .analytics()
-      .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
-      .send();
+    output.appendLineOtherOut(`Connecting ...`);
     void state.analytics().logGA4Pageview('/connect-initiated');
     void state.analytics().logGA4Pageview('/connect-initiated/standalone-connect');
 
     return connect(connectSequence, getConfig().autoSelectNReplPortFromPortFile, hostname, port);
   } else {
-    outputWindow.appendLine('; Aborting connect, error determining connect sequence.');
+    output.appendLineOtherErr('Aborting connect, error determining connect sequence.');
   }
 }
 
@@ -805,22 +786,19 @@ export default {
       ConnectType.Connect,
       undefined
     );
+    inspector.revealOnConnect();
     await outputWindow.initResultsDoc();
     await outputWindow.openResultsDoc();
 
     if (connectSequence) {
       const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
-      outputWindow.appendLine(`; Connecting ...`);
-      state
-        .analytics()
-        .logEvent('REPL', 'StandaloneConnect', `${connectSequence.name} + ${cljsTypeName}`)
-        .send();
+      output.appendLineOtherOut(`Connecting ...`);
       void state.analytics().logGA4Pageview('/connect-initiated');
       void state.analytics().logGA4Pageview('/connect-initiated/external-repl-connect');
 
       return connect(connectSequence, false);
     } else {
-      outputWindow.appendLine('; Aborting connect, error determining connect sequence.');
+      output.appendLineOtherErr('Aborting connect, error determining connect sequence.');
     }
   },
   connectCommand: async (options?: {
@@ -853,7 +831,7 @@ export default {
           options?.disableAutoSelect
         );
       } catch (e) {
-        outputWindow.appendLine(`; ${e}\n; Aborting connect.`);
+        output.appendLineOtherErr(`${e}\nAborting connect.`);
         void vscode.window.showErrorMessage(`${e}`, 'OK');
         return;
       }
@@ -908,7 +886,7 @@ export default {
       if (outputWindow.isResultsDoc(util.getActiveTextEditor().document)) {
         outputWindow.setSession(newSession, undefined);
         replSession.updateReplSessionType();
-        outputWindow.appendPrompt();
+        output.replWindowAppendPrompt();
       }
       status.update();
     }
@@ -917,7 +895,6 @@ export default {
     const cljSession = replSession.getSession('clj');
     const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName'),
       cljTypeName: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
-    state.analytics().logEvent('REPL', 'switchCljsBuild', cljsTypeName).send();
     const [session, build] = await makeCljsSessionClone(
       cljSession,
       translatedReplType,

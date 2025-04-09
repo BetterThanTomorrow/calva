@@ -31,7 +31,7 @@ Then:
     * You should see the whole form `(+ (* 2 2) 2)` getting highlighted and the result of that expression being displayed inline.
 1. Evaluate each form inside the comment form using the **Top Level** command.
     * You should see each one of them evaluated.
-    * Evaluating the `(hello "Calva REPL")` form before the `(defn hello...` form should result in an error/exception. A stacktrace is then printed in the [output window](output.md)
+    * Evaluating the `(hello "Calva REPL")` form before the `(defn hello...` form should result in an error/exception. A stacktrace is then printed in the [repl window](output.md)
     * Try it again after having evaluated the `defn`form.
 
 Demo:

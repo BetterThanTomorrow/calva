@@ -35,7 +35,7 @@
         "priority": "option",
         "selector": [
           {
-            "filenamePattern": "*.{clj,cljc,cljs,cljd,cljx,bb,lingy,calva-repl}"
+            "filenamePattern": "*.{clj,cljc,cljs,cljd,cljx,clojure,joke,bb,lingy,calva-repl,ly,lpy,fiddle}"
           }
         ]
       }
