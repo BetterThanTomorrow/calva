@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- [Add client info to nrepl clone request](https://github.com/BetterThanTomorrow/calva/pull/2774)
+- [Add client info to nrepl clone request](https://github.com/BetterThanTomorrow/calva/issues/2776)
 
 ## [2.0.496] - 2025-04-06
 
