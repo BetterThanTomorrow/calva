@@ -160,7 +160,13 @@ export class NReplClient {
               client.ns = data['ns'];
             }
             if (hasStatus(data, 'done')) {
-              const msg = { op: 'clone', id: cloneId };
+              const msg = {
+                op: 'clone',
+                clientName: 'Calva',
+                clientVersion: vscode.extensions.getExtension('betterthantomorrow.calva')
+                  .packageJSON.version,
+                id: cloneId,
+              };
               log(msg, Direction.ClientToServer);
               client.encoder.write(msg);
             }
@@ -269,7 +275,14 @@ export class NReplSession {
         resolve(sess);
         return true;
       };
-      const msg = { op: 'clone', session: this.sessionId, id };
+      const msg = {
+        op: 'clone',
+        session: this.sessionId,
+        clientName: 'Calva',
+        clientVersion: vscode.extensions.getExtension('betterthantomorrow.calva').packageJSON
+          .version,
+        id,
+      };
       if (this.supports(msg.op)) {
         this.client.write(msg);
       } else {

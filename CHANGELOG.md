@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add client info to nrepl clone request](https://github.com/BetterThanTomorrow/calva/pull/2774)
+
 ## [2.0.496] - 2025-04-06
 
 - Fix: [Broken characters in "Calva REPL Commands" menu](https://github.com/BetterThanTomorrow/calva/issues/2765)
