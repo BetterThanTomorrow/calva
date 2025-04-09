@@ -162,8 +162,8 @@ export class NReplClient {
             if (hasStatus(data, 'done')) {
               const msg = {
                 op: 'clone',
-                clientName: 'Calva',
-                clientVersion: vscode.extensions.getExtension('betterthantomorrow.calva')
+                'client-name': 'Calva',
+                'client-version': vscode.extensions.getExtension('betterthantomorrow.calva')
                   .packageJSON.version,
                 id: cloneId,
               };
@@ -219,7 +219,10 @@ export class NReplSession {
     }
   }
 
-  constructor(public sessionId: string, public client: NReplClient) {
+  constructor(
+    public sessionId: string,
+    public client: NReplClient
+  ) {
     client.sessions[sessionId] = this;
     NReplSession.Instances.push(this);
   }
@@ -278,8 +281,8 @@ export class NReplSession {
       const msg = {
         op: 'clone',
         session: this.sessionId,
-        clientName: 'Calva',
-        clientVersion: vscode.extensions.getExtension('betterthantomorrow.calva').packageJSON
+        'client-name': 'Calva',
+        'client-version': vscode.extensions.getExtension('betterthantomorrow.calva').packageJSON
           .version,
         id,
       };
