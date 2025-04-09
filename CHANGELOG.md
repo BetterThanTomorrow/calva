@@ -6,6 +6,15 @@ Changes to Calva.
 
 - Fix: [Reformat all edited locations after multicursor structural edit](https://github.com/BetterThanTomorrow/calva/issues/2738), [Wrong cursor position when using **Calva Format: Format Current Form**](https://github.com/BetterThanTomorrow/calva/issues/2748)
 
+## [2.0.497] - 2025-04-09
+
+- [Replace deprecated cider-nrepl 'stacktrace' op with 'analyze-last-stacktrace'](https://github.com/BetterThanTomorrow/calva/pull/2775)
+- [Add client info to nrepl clone request](https://github.com/BetterThanTomorrow/calva/issues/2776)
+
+## [2.0.496] - 2025-04-06
+
+- Fix: [Broken characters in "Calva REPL Commands" menu](https://github.com/BetterThanTomorrow/calva/issues/2765)
+
 ## [2.0.495] - 2025-03-24
 
 - [Find calva.exports that are not in a JAR file](https://github.com/BetterThanTomorrow/calva/issues/2762)

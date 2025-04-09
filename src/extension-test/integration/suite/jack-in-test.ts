@@ -33,6 +33,8 @@ suite('Jack-in suite', () => {
   before(async () => {
     testUtil.showMessage(suite, `suite starting!`);
     await vscode.workspace.fs.copy(settingsUri, settingsBackupUri, { overwrite: true });
+    // Add this line to ensure output directory exists
+    await testUtil.ensureOutputDir(testUtil.testDataDir);
   });
 
   after(async () => {
