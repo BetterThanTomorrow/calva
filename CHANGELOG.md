@@ -9,6 +9,11 @@ Changes to Calva.
 - [Add `$ns-form` custom command variable](https://github.com/BetterThanTomorrow/calva/issues/2771)
 - Fix: [Custom REPL Commands are evaluated with REPL Window context](https://github.com/BetterThanTomorrow/calva/issues/2773)
 
+## [2.0.497] - 2025-04-09
+
+- [Replace deprecated cider-nrepl 'stacktrace' op with 'analyze-last-stacktrace'](https://github.com/BetterThanTomorrow/calva/pull/2775)
+- [Add client info to nrepl clone request](https://github.com/BetterThanTomorrow/calva/issues/2776)
+
 ## [2.0.496] - 2025-04-06
 
 - Fix: [Broken characters in "Calva REPL" menu](https://github.com/BetterThanTomorrow/calva/issues/2765)
