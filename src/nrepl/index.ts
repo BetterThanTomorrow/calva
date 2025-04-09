@@ -358,11 +358,11 @@ export class NReplSession {
   }
 
   stacktrace() {
-    // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#stacktrace
+    // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#analyze-last-stacktrace
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
       const msg = {
-        op: 'stacktrace',
+        op: 'analyze-last-stacktrace',
         id,
         session: this.sessionId,
       };
