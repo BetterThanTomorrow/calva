@@ -6,6 +6,13 @@ Changes to Calva.
 
 - Fix: [Reformat all edited locations after multicursor structural edit](https://github.com/BetterThanTomorrow/calva/issues/2738), [Wrong cursor position when using **Calva Format: Format Current Form**](https://github.com/BetterThanTomorrow/calva/issues/2748)
 
+## [2.0.498] - 2025-04-10
+
+- [Add modifiers `pr-str`, `replace`, and `replace-first` to command snippet variables](https://github.com/BetterThanTomorrow/calva/issues/2282)
+- Fix: [Custom REPL Command/Snippet: `repl` setting not honored](https://github.com/BetterThanTomorrow/calva/issues/2770)
+- [Add `$ns-form` custom command variable](https://github.com/BetterThanTomorrow/calva/issues/2771)
+- Fix: [Custom REPL Commands are evaluated with REPL Window context](https://github.com/BetterThanTomorrow/calva/issues/2773)
+
 ## [2.0.497] - 2025-04-09
 
 - [Replace deprecated cider-nrepl 'stacktrace' op with 'analyze-last-stacktrace'](https://github.com/BetterThanTomorrow/calva/pull/2775)
@@ -13,7 +20,7 @@ Changes to Calva.
 
 ## [2.0.496] - 2025-04-06
 
-- Fix: [Broken characters in "Calva REPL Commands" menu](https://github.com/BetterThanTomorrow/calva/issues/2765)
+- Fix: [Broken characters in "Calva REPL" menu](https://github.com/BetterThanTomorrow/calva/issues/2765)
 
 ## [2.0.495] - 2025-03-24
 
