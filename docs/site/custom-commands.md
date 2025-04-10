@@ -32,6 +32,7 @@ There are also substitutions available, which will take elements from the curren
 * `$file-text`: The text of the current file edited
 * `$ns`: The namespace used for evaluating the command
 * `$editor-ns`: The namespace of the editor from which the command was run
+* `$ns-form`: The `ns` form which would be used if evaluating something from the current cursor position (often the `ns` form of the current file)
 * `$selection`: The currently selected text
 * `$current-form`: The text of the [current form](evaluation.md#current-form)
 * `$current-pair`: The text of the current pair if in a binding, otherwise empty string
@@ -42,6 +43,43 @@ There are also substitutions available, which will take elements from the curren
 * `$head`: The text between the start of the current list to the cursor
 * `$tail`: The text between the cursor and the end of the current list
 
+The substitution variables can also be referenced using a `${variable}` syntax. This is to facilitate modifiers. Speaking of which...
+
+## Interpolation/substitution Modifiers
+
+You can transform substitution values using modifiers. The syntax is: `${variable|modifier|arg1|arg2...}`. Multiple modifiers can be chained, separated by `|`.
+
+Available modifiers:
+
+* `pr-str`: Stringify the value
+* `replace`: Replace text using regex pattern and replacement string. Takes two arguments: pattern and replacement
+* `replace-first`: Replace first occurrence of pattern. Takes two arguments: pattern and replacement
+
+ClojureScript semantics apply. The modifications will happen client side, in Calva, and the modifiers will in fact be using the corresponding ClojureScript functions to perform the modification.
+
+The interpolation special characters (`|`, `{`, and `}`) in replacement strings need to be escaped with a backslash.
+
+Examples:
+
+```jsonc
+// Stringify, then replace spaces
+"${selection|pr-str|replace|\\s+|_}"    // "hello world" -> "\"hello_world\""
+
+// Replace spaces with underscores
+"${selection|replace|\\s+|_}"           // "hello world" -> "hello_world"
+
+// Multiple replacements
+"${selection|replace|hello|HELLO|replace|\\s+|_}"  // "hello world" -> "HELLO_world"
+
+// Some characters need to be escaped if used in the replacement arg
+"${selection|replace|\\s+|\\|}"         // "hello world" -> "hello|world"
+"${selection|replace|\\s+|\\{}"         // "hello world" -> "hello{world"
+"${selection|replace|\\(|\\{}"          // "(foo)" -> "{foo)"
+
+// Replace with capture groups
+"${selection|replace|(hello) (world)|$2 $1}"  // "hello world" -> "world hello"
+```
+
 ## User and Workspace Settings
 
 Settings from your User (global) level and the workspace are concatenated. Except for the `key` field, are merged.
@@ -50,7 +88,7 @@ With these **User** settings:
 
 ```json
     "calva.customREPLCommandSnippets": [
-        {
+        {s
             "name": "Call Current Form",
             "key": "c",
             "snippet": "($current-form)"
@@ -70,6 +108,16 @@ With these **User** settings:
             "repl": "cljs",
             "snippet": "(cljs.test/test-var #'$top-level-defined-symbol)",
             "key": "tab"
+        },
+        {
+            "name": "qol: Add Snitch dependency",
+            "repl": "clj",
+            "snippet": "(require '[clojure.repl.deps :refer [add-libs]])\n\n\n(add-libs '{org.clojars.abhinav/snitch {:mvn/version \"0.1.16\"}})"
+        },
+        {
+            "name": "qol: Evaluate as Snitch defn* ",
+            "repl": "clj",
+            "snippet": "(require '[snitch.core :refer [defn* defmethod* *fn *let]])\n${top-level-form|replace|^\\(defn-?|(defn*}"
         }
     ],
 ```
