@@ -17,7 +17,7 @@ export async function provideHover(
 ) {
   if (util.getConnectedState()) {
     const text = util.getWordAtPosition(document, position);
-    const [ns, _] = namespace.getNamespace(document, position);
+    const [ns, nsForm] = namespace.getNamespace(document, position);
     const client = replSession.getSession(util.getFileType(document));
     if (client && client.supports('info')) {
       await namespace.createNamespaceFromDocumentIfNotExists(document);
@@ -43,6 +43,7 @@ export async function provideHover(
       const context = {
         ns,
         editorNs: ns,
+        nsForm,
         repl: document.languageId === 'clojure' ? replSession.getReplSessionTypeFromState() : 'clj',
         hoverText: text,
         hoverLine: position.line + 1,
@@ -77,7 +78,7 @@ export async function provideHover(
               hovers.push(hover);
             }
           } catch (error) {
-            console.log('custom hover exploded');
+            console.log('custom hover exploded', error);
           }
         })
       );
