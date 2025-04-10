@@ -782,6 +782,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#interpolationsubstitution-modifiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interpolation/substitution Modifiers
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#user-and-workspace-settings" class="md-nav__link">
     <span class="md-ellipsis">
       User and Workspace Settings
@@ -2111,6 +2120,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#interpolationsubstitution-modifiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interpolation/substitution Modifiers
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#user-and-workspace-settings" class="md-nav__link">
     <span class="md-ellipsis">
       User and Workspace Settings
@@ -2200,6 +2218,7 @@
 <li><code>$file-text</code>: The text of the current file edited</li>
 <li><code>$ns</code>: The namespace used for evaluating the command</li>
 <li><code>$editor-ns</code>: The namespace of the editor from which the command was run</li>
+<li><code>$ns-form</code>: The <code>ns</code> form which would be used if evaluating something from the current cursor position (often the <code>ns</code> form of the current file)</li>
 <li><code>$selection</code>: The currently selected text</li>
 <li><code>$current-form</code>: The text of the <a href="../evaluation/#current-form">current form</a></li>
 <li><code>$current-pair</code>: The text of the current pair if in a binding, otherwise empty string</li>
@@ -2210,11 +2229,40 @@
 <li><code>$head</code>: The text between the start of the current list to the cursor</li>
 <li><code>$tail</code>: The text between the cursor and the end of the current list</li>
 </ul>
+<p>The substitution variables can also be referenced using a <code>${variable}</code> syntax. This is to facilitate modifiers. Speaking of which...</p>
+<h2 id="interpolationsubstitution-modifiers">Interpolation/substitution Modifiers<a class="headerlink" href="#interpolationsubstitution-modifiers" title="Permanent link">#</a></h2>
+<p>You can transform substitution values using modifiers. The syntax is: <code>${variable|modifier|arg1|arg2...}</code>. Multiple modifiers can be chained, separated by <code>|</code>.</p>
+<p>Available modifiers:</p>
+<ul>
+<li><code>pr-str</code>: Stringify the value</li>
+<li><code>replace</code>: Replace text using regex pattern and replacement string. Takes two arguments: pattern and replacement</li>
+<li><code>replace-first</code>: Replace first occurrence of pattern. Takes two arguments: pattern and replacement</li>
+</ul>
+<p>ClojureScript semantics apply. The modifications will happen client side, in Calva, and the modifiers will in fact be using the corresponding ClojureScript functions to perform the modification.</p>
+<p>The interpolation special characters (<code>|</code>, <code>{</code>, and <code>}</code>) in replacement strings need to be escaped with a backslash.</p>
+<p>Examples:</p>
+<div class="highlight"><pre><span></span><code>// Stringify, then replace spaces
+&quot;${selection|pr-str|replace|\\s+|_}&quot;    // &quot;hello world&quot; -&gt; &quot;\&quot;hello_world\&quot;&quot;
+
+// Replace spaces with underscores
+&quot;${selection|replace|\\s+|_}&quot;           // &quot;hello world&quot; -&gt; &quot;hello_world&quot;
+
+// Multiple replacements
+&quot;${selection|replace|hello|HELLO|replace|\\s+|_}&quot;  // &quot;hello world&quot; -&gt; &quot;HELLO_world&quot;
+
+// Some characters need to be escaped if used in the replacement arg
+&quot;${selection|replace|\\s+|\\|}&quot;         // &quot;hello world&quot; -&gt; &quot;hello|world&quot;
+&quot;${selection|replace|\\s+|\\{}&quot;         // &quot;hello world&quot; -&gt; &quot;hello{world&quot;
+&quot;${selection|replace|\\(|\\{}&quot;          // &quot;(foo)&quot; -&gt; &quot;{foo)&quot;
+
+// Replace with capture groups
+&quot;${selection|replace|(hello) (world)|$2 $1}&quot;  // &quot;hello world&quot; -&gt; &quot;world hello&quot;
+</code></pre></div>
 <h2 id="user-and-workspace-settings">User and Workspace Settings<a class="headerlink" href="#user-and-workspace-settings" title="Permanent link">#</a></h2>
 <p>Settings from your User (global) level and the workspace are concatenated. Except for the <code>key</code> field, are merged.</p>
 <p>With these <strong>User</strong> settings:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">        </span><span class="p">{</span>
+<span class="w">        </span><span class="p">{</span><span class="err">s</span>
 <span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Call Current Form&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;c&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;($current-form)&quot;</span>
@@ -2234,6 +2282,16 @@
 <span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cljs&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(cljs.test/test-var #&#39;$top-level-defined-symbol)&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tab&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;qol: Add Snitch dependency&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;clj&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[clojure.repl.deps :refer [add-libs]])\n\n\n(add-libs &#39;{org.clojars.abhinav/snitch {:mvn/version \&quot;0.1.16\&quot;}})&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;qol: Evaluate as Snitch defn* &quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;clj&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[snitch.core :refer [defn* defmethod* *fn *let]])\n${top-level-form|replace|^\\(defn-?|(defn*}&quot;</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">    </span><span class="p">],</span>
 </code></pre></div>
