@@ -27,13 +27,7 @@
     },
     {
       "name": "qol: Evaluate as Snitch defn* (ctrl+alt+c s)",
-      "repl": "clj",
-      "snippet": "(require '[snitch.core :refer [defn* defmethod* *fn *let]])\n${top-level-form|replace|^\\(defn-?|(defn*}"
-    },
-    {
-      "name": "qol cljs: Evaluate as Snitch defn* ctrl+alt+c ctrl+alt+s",
-      "repl": "cljs",
-      "snippet": "(require '[snitch.core :refer-macros [defn*]])\n${top-level-form|replace|^\\(defn-?|(defn*}"
+      "snippet": "${top-level-form|replace|^\\(defn-?|(defn*}"
     }
   ],
   "calva.customREPLHoverSnippets": [
