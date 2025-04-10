@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.498] - 2025-04-10
+
 - [Add modifiers `pr-str`, `replace`, and `replace-first` to command snippet variables](https://github.com/BetterThanTomorrow/calva/issues/2282)
 - Fix: [Custom REPL Command/Snippet: `repl` setting not honored](https://github.com/BetterThanTomorrow/calva/issues/2770)
 - [Add `$ns-form` custom command variable](https://github.com/BetterThanTomorrow/calva/issues/2771)
