@@ -1,5 +1,5 @@
 import * as expect from 'expect';
-import { formatIndex } from '../../calva-fmt/src/format-index';
+import { formatIndexes } from '../../calva-fmt/src/format-index';
 import { backspaceOnWhitespace } from '../../cursor-doc/backspace-on-whitespace';
 import * as indent from '../../cursor-doc/indent';
 import { docFromTextNotation, textAndSelection } from './common/text-notation';
@@ -52,8 +52,34 @@ function getFormatterIndent(notation: string, config: ReturnType<typeof mkConfig
   const doc = docFromTextNotation(notation);
   const form = textAndSelection(doc)[0];
   const p = textAndSelection(doc)[1][0];
-  const formatterResult = formatIndex(form, [0, notation.length], p, '\n', false, config);
-  return formatterResult['new-index'] - formatterResult.idx;
+  const docText = doc.model.getText(0, 999, false);
+
+  const formatterResult = formatIndexes(form, [0, notation.length], [p], '\n', false, config);
+  const formattedText =
+    docText.substring(0, formatterResult.range[0]) +
+    formatterResult['range-text'] +
+    docText.substring(formatterResult.range[1]);
+
+  // Indentation:
+  // (1) Find point p in the formatted result by counting nonspace chars to the left.
+  //     Overshoot to the next substantive character because the tests all
+  //     concern a cursor at the end of a run of spaces.
+  // (2) Count spaces to its left.
+
+  // Non-space chars before p:
+  const docTextBeforeP = docText.substring(0, p);
+  const rxSpace = new RegExp(/[\s,]/, 'g');
+  const nSolidsBeforeP = docTextBeforeP.replace(rxSpace, '').length;
+  let pFormatted = 0;
+  while (nSolidsBeforeP >= formattedText.substring(0, pFormatted).replace(rxSpace, '').length) {
+    pFormatted++;
+    if (pFormatted > 999) {
+      throw 'Terrible';
+    }
+  }
+  pFormatted--; // point to the substantive character at the cursor
+  const pSpacesLeft = formattedText.substring(0, pFormatted).match(/ +$/)[0].length;
+  return pSpacesLeft;
 }
 
 function getPareditIndent(notation: string, config: ReturnType<typeof mkConfig>) {
