@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.499] - 2025-04-12
+
+- Fix: [Can't add new lines at the end of files](https://github.com/BetterThanTomorrow/calva/issues/2778)
+
 ## [2.0.499] - 2025-04-11
 
 - Fix: [Reformat all edited locations after multicursor structural edit](https://github.com/BetterThanTomorrow/calva/issues/2738)
