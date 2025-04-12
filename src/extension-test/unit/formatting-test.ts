@@ -49,17 +49,29 @@ describe('formatter, indenter and paredit comparison', () => {
 });
 
 describe('formatter trimming', () => {
-  const config = mkConfig({
-    'remove-surrounding-whitespace?': false,
-    'remove-trailing-whitespace?': false,
-    indents: {
-      '#"\\S+"': [['inner', 0]],
-    },
-  });
-
-  it('formatter does not trim surrounding space when config disables that', () => {
-    const formattedText = getFormattedText(' |(and x\ny) ', config);
+  it('formatter does not trim trailing space when config disables that', () => {
+    const formattedText = getFormattedText(
+      ' |(and x\ny) ',
+      mkConfig({
+        'remove-trailing-whitespace?': false,
+        indents: {
+          '#"\\S+"': [['inner', 0]],
+        },
+      })
+    );
     expect(formattedText).toEqual(' (and x\n   y) ');
+  });
+  it('formatter trims trailing space when config enables that', () => {
+    const formattedText = getFormattedText(
+      ' |(and x\ny) ',
+      mkConfig({
+        'remove-trailing-whitespace?': true,
+        indents: {
+          '#"\\S+"': [['inner', 0]],
+        },
+      })
+    );
+    expect(formattedText).toEqual(' (and x\n   y)');
   });
 });
 
