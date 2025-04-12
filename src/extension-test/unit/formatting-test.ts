@@ -7,13 +7,19 @@ import { docFromTextNotation, textAndSelection } from './common/text-notation';
 describe('formatter, indenter and paredit comparison', () => {
   const configs = [
     mkConfig({
-      '#"\\S+"': [['inner', 0]],
+      indents: {
+        '#"\\S+"': [['inner', 0]],
+      },
     }),
     mkConfig({
-      '#"\\S+"': [['block', 0]],
+      indents: {
+        '#"\\S+"': [['block', 0]],
+      },
     }),
     mkConfig({
-      '#"\\S+"': [['inner', 1]],
+      indents: {
+        '#"\\S+"': [['inner', 1]],
+      },
     }),
   ];
 
@@ -42,34 +48,56 @@ describe('formatter, indenter and paredit comparison', () => {
   });
 });
 
+describe('formatter trimming', () => {
+  const config = mkConfig({
+    'remove-surrounding-whitespace?': false,
+    'remove-trailing-whitespace?': false,
+    indents: {
+      '#"\\S+"': [['inner', 0]],
+    },
+  });
+
+  it('formatter does not trim surrounding space when config disables that', () => {
+    const formattedText = getFormattedText(' |(and x\ny) ', config);
+    expect(formattedText).toEqual(' (and x\n   y) ');
+  });
+});
+
 function getIndenterIndent(form: string, config: ReturnType<typeof mkConfig>) {
   const doc = docFromTextNotation(form);
   const p = textAndSelection(doc)[1][0];
   return indent.getIndent(doc.model, p, config);
 }
 
-function getFormatterIndent(notation: string, config: ReturnType<typeof mkConfig>) {
+function getFormattedText(notation: string, config: ReturnType<typeof mkConfig>) {
   const doc = docFromTextNotation(notation);
   const form = textAndSelection(doc)[0];
   const p = textAndSelection(doc)[1][0];
   const docText = doc.model.getText(0, 999, false);
 
   const formatterResult = formatIndexes(form, [0, notation.length], [p], '\n', false, config);
-  const formattedText =
+  return (
     docText.substring(0, formatterResult.range[0]) +
     formatterResult['range-text'] +
-    docText.substring(formatterResult.range[1]);
+    docText.substring(formatterResult.range[1])
+  );
+}
 
-  // Indentation:
+function getFormatterIndent(notation: string, config: ReturnType<typeof mkConfig>) {
+  const formattedText = getFormattedText(notation, config);
+
   // (1) Find point p in the formatted result by counting nonspace chars to the left.
   //     Overshoot to the next substantive character because the tests all
   //     concern a cursor at the end of a run of spaces.
   // (2) Count spaces to its left.
 
   // Non-space chars before p:
-  const docTextBeforeP = docText.substring(0, p);
+  const doc = docFromTextNotation(notation);
+  const p = textAndSelection(doc)[1][0];
+  const docTextBeforeP = doc.model.getText(0, p, false);
   const rxSpace = new RegExp(/[\s,]/, 'g');
   const nSolidsBeforeP = docTextBeforeP.replace(rxSpace, '').length;
+
   let pFormatted = 0;
   while (nSolidsBeforeP >= formattedText.substring(0, pFormatted).replace(rxSpace, '').length) {
     pFormatted++;
@@ -88,12 +116,23 @@ function getPareditIndent(notation: string, config: ReturnType<typeof mkConfig>)
   return backspaceOnWhitespace(doc, doc.getTokenCursor(p), config).indent;
 }
 
-function mkConfig(rules: indent.IndentRules) {
-  const cljRules = jsRulesToCljsRulesString(rules);
+function mkConfig(options: { indents?: indent.IndentRules } & Record<string, any>) {
+  const indentRules = options.indents || {};
+  const cljRules = jsRulesToCljsRulesString(indentRules);
+  const fullOptions = {
+    ...options,
+    ...(options.indents && { indents: undefined }),
+  };
+  const optionsString = `{:indents {${cljRules}} ${Object.entries(fullOptions)
+    .filter(([key, value]) => key !== 'indents' && value !== undefined)
+    .map(([key, value]) => `:${key} ${JSON.stringify(value)}`)
+    .join(' ')}}`;
+
   return {
-    'cljfmt-options-string': `{:indents {${cljRules}}}`,
+    'cljfmt-options-string': optionsString.trim(),
     'cljfmt-options': {
-      indents: rules,
+      ...fullOptions,
+      indents: indentRules,
     },
   };
 }
