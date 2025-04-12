@@ -54,7 +54,8 @@ export async function indentPosition(position: vscode.Position, document: vscode
 /** undefined if range starts in a string or comment */
 function rangeReformatChanges(
   document: vscode.TextDocument,
-  originalRange: vscode.Range
+  originalRange: vscode.Range,
+  onType: boolean
 ): respacer.WhitespaceChange[] | undefined {
   const mirrorDoc = getDocument(document);
   const startIndex = document.offsetAt(originalRange.start);
@@ -69,7 +70,8 @@ function rangeReformatChanges(
     const newTextDraft = healer.unbandage(healing, formattedHealedText);
     // unbandage aligned top-level forms flush-left, except the first one.
     // When formatting the whole document, align the first form flush-left.
-    const newText = startIndex == 0 ? newTextDraft.trim() : newTextDraft;
+    // However, onType, one must be able to add a newline to a document, so don't trim.
+    const newText = onType ? newTextDraft : startIndex == 0 ? newTextDraft.trim() : newTextDraft;
     return originalText == newText
       ? []
       : respacer.whitespaceEdits(eol, startIndex, originalText, newText);
@@ -83,7 +85,7 @@ export function formatRangeEdits(
   document: vscode.TextDocument,
   originalRange: vscode.Range
 ): vscode.TextEdit[] | undefined {
-  return rangeReformatChanges(document, originalRange).map((chg) =>
+  return rangeReformatChanges(document, originalRange, false).map((chg) =>
     vscode.TextEdit.replace(
       new vscode.Range(document.positionAt(chg.start), document.positionAt(chg.end)),
       chg.text
@@ -238,7 +240,8 @@ export async function formatPosition(
   if (isWholeDoc) {
     orderedChanges = rangeReformatChanges(
       doc,
-      new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length))
+      new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)),
+      onType
     );
   } else {
     const dedupedRanges = nonOverlappingRanges(ranges);
