@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Formatting top level trims empty lines at the start and end of the document](https://github.com/BetterThanTomorrow/calva/issues/2780)
+
 ## [2.0.500] - 2025-04-12
 
 - Fix: [Can't add new lines at the end of files](https://github.com/BetterThanTomorrow/calva/issues/2778)
