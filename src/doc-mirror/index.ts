@@ -101,6 +101,7 @@ export class DocumentModel implements EditableModel {
   constructor(private document: MirroredDocument) {
     this.lineEndingLength = document.document.eol == vscode.EndOfLine.CRLF ? 2 : 1;
     this.lineInputModel = new LineInputModel(this.lineEndingLength);
+    this.documentVersion = document.document.version;
   }
 
   get lineEnding() {

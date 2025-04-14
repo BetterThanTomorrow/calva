@@ -69,12 +69,9 @@ function rangeReformatChanges(
     const formattedHealedText = formatCode(healing.healedText, document.eol);
     const newTextDraft = healer.unbandage(healing, formattedHealedText);
     // unbandage aligned top-level forms flush-left, except the first one.
-    // When formatting the whole document, align the first form flush-left.
-    // However, onType, one must be able to add a newline to a document, so don't trim.
-    const newText = onType ? newTextDraft : startIndex == 0 ? newTextDraft.trim() : newTextDraft;
-    return originalText == newText
+    return originalText == newTextDraft
       ? []
-      : respacer.whitespaceEdits(eol, startIndex, originalText, newText);
+      : respacer.whitespaceEdits(eol, startIndex, originalText, newTextDraft);
   } else {
     console.warn('Range starting in comment or string is not being formatted');
     return [];
