@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.501] - 2025-04-15
+
 - Fix: [Formatting top level trims empty lines at the start and end of the document](https://github.com/BetterThanTomorrow/calva/issues/2780)
 - Fix: [Indent ;; comments as in Clojure Style Guide](https://github.com/BetterThanTomorrow/calva/issues/2785)
 
