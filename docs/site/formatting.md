@@ -109,6 +109,7 @@ Wherever the config file is, a suggested path for providing your configuration i
  :remove-trailing-whitespace? true
  :remove-consecutive-blank-lines? false
  :insert-missing-whitespace? true
+ :indent-line-comments? true
  :remove-multiple-non-indenting-spaces? false}
 ```
 
@@ -148,6 +149,7 @@ Calva is an extra good tool for experimenting with these settings. `cljfmt` does
  :remove-trailing-whitespace? true
  :remove-consecutive-blank-lines? false
  :insert-missing-whitespace? false
+ :indent-line-comments? true
  :indents {#re "^\w" [[:inner 0]]}
  :test-code
  (concat [2]

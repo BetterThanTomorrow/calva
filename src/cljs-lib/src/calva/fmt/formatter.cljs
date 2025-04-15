@@ -12,6 +12,7 @@
    :remove-trailing-whitespace? true
    :remove-consecutive-blank-lines? false
    :insert-missing-whitespace? true
+   :indent-line-comments? true
    :align-associative? false})
 
 (defn merge-default-config
