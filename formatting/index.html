@@ -2424,6 +2424,7 @@
 <span class="w"> </span><span class="ss">:remove-trailing-whitespace?</span><span class="w"> </span><span class="nv">true</span>
 <span class="w"> </span><span class="ss">:remove-consecutive-blank-lines?</span><span class="w"> </span><span class="nv">false</span>
 <span class="w"> </span><span class="ss">:insert-missing-whitespace?</span><span class="w"> </span><span class="nv">true</span>
+<span class="w"> </span><span class="ss">:indent-line-comments?</span><span class="w"> </span><span class="nv">true</span>
 <span class="w"> </span><span class="ss">:remove-multiple-non-indenting-spaces?</span><span class="w"> </span><span class="nv">false</span><span class="p">}</span>
 </code></pre></div>
 <p>If the file is in the workspace, you can quickly test how different settings affect the formatting. Try:</p>
@@ -2458,6 +2459,7 @@
 <span class="w"> </span><span class="ss">:remove-trailing-whitespace?</span><span class="w"> </span><span class="nv">true</span>
 <span class="w"> </span><span class="ss">:remove-consecutive-blank-lines?</span><span class="w"> </span><span class="nv">false</span>
 <span class="w"> </span><span class="ss">:insert-missing-whitespace?</span><span class="w"> </span><span class="nv">false</span>
+<span class="w"> </span><span class="ss">:indent-line-comments?</span><span class="w"> </span><span class="nv">true</span>
 <span class="w"> </span><span class="ss">:indents</span><span class="w"> </span><span class="p">{</span><span class="o">#</span><span class="nv">re</span><span class="w"> </span><span class="s">&quot;^\w&quot;</span><span class="w"> </span><span class="p">[[</span><span class="ss">:inner</span><span class="w"> </span><span class="mi">0</span><span class="p">]]}</span>
 <span class="w"> </span><span class="ss">:test-code</span>
 <span class="w"> </span><span class="p">(</span><span class="nb">concat </span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
