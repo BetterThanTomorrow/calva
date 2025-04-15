@@ -143,6 +143,9 @@ baz))"
 (deftest format-text-at-idx-on-type
   (is (= "(bar \n\n )"
          (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :range [0 8] :idxs [7]}))))
+  (is (= "(bar \n\n ;;comment\n )"
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n;;comment\n)" :range [0 18] :idxs [7]
+                                                       :config {:cljfmt-options {:indent-line-comments? true}}}))))
   (is (= "(bar \n \n )"
          (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n \n)" :range [0 9] :idxs [8]}))))
   (is (= "(bar \n \n )"
