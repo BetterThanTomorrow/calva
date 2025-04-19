@@ -82,6 +82,10 @@ export function formatRangeEdits(
   document: vscode.TextDocument,
   originalRange: vscode.Range
 ): vscode.TextEdit[] | undefined {
+  // Output/REPL window holds prompts etc. The formatter cannot format it. Do not try.
+  if (outputWindow.isResultsDoc(document)) {
+    return [];
+  }
   return rangeReformatChanges(document, originalRange, false).map((chg) =>
     vscode.TextEdit.replace(
       new vscode.Range(document.positionAt(chg.start), document.positionAt(chg.end)),
@@ -227,6 +231,10 @@ export async function formatPosition(
   onType: boolean = false,
   extraConfig: CljFmtConfig = {}
 ): Promise<boolean> {
+  // Output/REPL window holds prompts etc. The formatter cannot format it. Do not try.
+  if (outputWindow.isResultsDoc(editor.document)) {
+    return Promise.resolve(false);
+  }
   const doc: vscode.TextDocument = editor.document;
   const ranges = editor.selections
     .map((sel) => doc.offsetAt(sel.active))

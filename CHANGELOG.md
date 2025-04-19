@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [formatCode throws an error when output output is printed in the output window](https://github.com/BetterThanTomorrow/calva/issues/2791)
+
 ## [2.0.501] - 2025-04-15
 
 - Fix: [Formatting top level trims empty lines at the start and end of the document](https://github.com/BetterThanTomorrow/calva/issues/2780)
