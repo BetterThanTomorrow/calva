@@ -231,10 +231,6 @@ export async function formatPosition(
   onType: boolean = false,
   extraConfig: CljFmtConfig = {}
 ): Promise<boolean> {
-  // Output/REPL window holds prompts etc. The formatter cannot format it. Do not try.
-  if (outputWindow.isResultsDoc(editor.document)) {
-    return Promise.resolve(false);
-  }
   const doc: vscode.TextDocument = editor.document;
   const ranges = editor.selections
     .map((sel) => doc.offsetAt(sel.active))
@@ -243,6 +239,10 @@ export async function formatPosition(
   const isWholeDoc = ranges.filter((r) => r[0] == -1 && r[1] == -1).length > 0;
   let orderedChanges = undefined;
   if (isWholeDoc) {
+    // Output/REPL window holds prompts etc. The formatter cannot format it. Do not try.
+    if (outputWindow.isResultsDoc(editor.document)) {
+      return Promise.resolve(false);
+    }
     orderedChanges = rangeReformatChanges(
       doc,
       new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)),
