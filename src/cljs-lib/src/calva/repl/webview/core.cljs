@@ -137,8 +137,7 @@
                                    :webview-panel webview-panel})))))
 
 (defn add-subscriptions!
-  [{:keys [vscode/vscode]
-    vscode-context :vscode/context
+  [{vscode-context :vscode/context
     :as context}
    {:keys [webview-panel]}]
   (let [subscriptions [(create-color-theme-change-listener context {:webview-panel webview-panel})]]
@@ -147,13 +146,13 @@
           subscriptions)))
 
 (defn create-repl-output-webview-panel
-  [context]
-  (let [webview-panel (.. ^js @util/vscode -window
+  [{:keys [vscode/vscode] :as context}]
+  (let [webview-panel (.. ^js vscode -window
                           (createWebviewPanel
                            "calva:repl-output"
                            "REPL Output"
                            #js {:preserveFocus true
-                                :viewColumn (.. ^js @util/vscode -ViewColumn -Beside)}
+                                :viewColumn (.. ^js vscode -ViewColumn -Beside)}
                            #js {:enableScripts true
                                 ;; If performance or memory consumption becomes a problem, we can use the setState
                                 ;; and getState to manually retain the context of the webview when it's hidden.
@@ -162,7 +161,6 @@
                                 :enableFindWidget true}))]
     (.. ^js webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel))))
     (set-webview-html! context {:webview-panel webview-panel})
-    (reset! repl-output-webview-panel webview-panel)
     (add-subscriptions! context {:webview-panel webview-panel})
     webview-panel))
 
@@ -171,7 +169,8 @@
   (let [context {:env/is-debug (if (= js/process.env.IS_DEBUG "true") true false)
                  :vscode/vscode @util/vscode
                  :vscode/context @util/vscode-context}
-        ^js webview-panel (or @repl-output-webview-panel (create-repl-output-webview-panel context))
+        ^js webview-panel (or @repl-output-webview-panel
+                              (reset! repl-output-webview-panel (create-repl-output-webview-panel context)))
         active-code-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)]
     (.. webview-panel (reveal nil true))
     (set-code-theme! context {:color-theme-kind active-code-theme-kind
