@@ -4,7 +4,7 @@
    [calva.util :as util]
    [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest testing is run-tests]]
-   [snitch.core :refer-macros [*let]]
+   [matcher-combinators.test]
    [spy.core :as spy]))
 
 (defn wrap-spy
@@ -171,30 +171,33 @@
 
 (deftest create-repl-output-webview-panel-test
   (testing "Given a context,"
-    (*let [on-did-dispose-spy (spy/spy)
-           stub-webview-panel (clj->js {:onDidDispose (wrap-spy on-did-dispose-spy)})
-           create-webview-panel-spy (spy/stub stub-webview-panel)
-           context {:vscode/vscode (clj->js {:window {:createWebviewPanel
-                                                      (wrap-spy create-webview-panel-spy)}
-                                             :ViewColumn {:Beside 1}})}
-           set-webview-html-spy (spy/spy)
-           add-subscriptions-spy (spy/spy)]
-          (with-redefs [sut/set-webview-html! (wrap-spy set-webview-html-spy)
-                        sut/add-subscriptions! (wrap-spy add-subscriptions-spy)]
-            (let [result (sut/create-repl-output-webview-panel context)]
-              (testing "should call createWebviewPanel with expacted args"
-                (let [calls (spy/calls create-webview-panel-spy)]
-                  (is (= 1 (count calls)))
-                  (is (= '[("calva:repl-output"
-                            "REPL Output"
-                            {:preserveFocus true, :viewColumn 1}
-                            {:enableScripts true, :retainContextWhenHidden true, :enableFindWidget true})]
-                         (js->clj calls :keywordize-keys true)))))
-              ;; TODO: Finish these tests
-              (testing "should call onDidDispose with expected args")
-              (testing "should call set-webview-html! with expected args")
-              (testing "should call add-subscriptions! with expected args")
-              (testing "should return the webview panel"
-                (is (= stub-webview-panel result))))))))
+    (let [on-did-dispose-spy (spy/spy)
+          stub-webview-panel (clj->js {:onDidDispose (wrap-spy on-did-dispose-spy)})
+          create-webview-panel-spy (spy/stub stub-webview-panel)
+          context {:vscode/vscode (clj->js {:window {:createWebviewPanel
+                                                     (wrap-spy create-webview-panel-spy)}
+                                            :ViewColumn {:Beside 1}})}
+          set-webview-html-spy (spy/spy)
+          add-subscriptions-spy (spy/spy)]
+      (with-redefs [sut/set-webview-html! (wrap-spy set-webview-html-spy)
+                    sut/add-subscriptions! (wrap-spy add-subscriptions-spy)]
+        (let [result (sut/create-repl-output-webview-panel context)]
+          (testing "should call createWebviewPanel with expacted args"
+            (let [calls (spy/calls create-webview-panel-spy)]
+              (is (= 1 (count calls)))
+              (is (= '[("calva:repl-output"
+                        "REPL Output"
+                        {:preserveFocus true, :viewColumn 1}
+                        {:enableScripts true, :retainContextWhenHidden true, :enableFindWidget true})]
+                     (js->clj calls :keywordize-keys true)))))
+          ;; TODO: Finish these tests
+          (testing "should call onDidDispose with expected args"
+            (let [calls (spy/calls on-did-dispose-spy)]
+              (is (= 1 (count calls)))
+              (is (match? [(list fn?)] calls))))
+          (testing "should call set-webview-html! with expected args")
+          (testing "should call add-subscriptions! with expected args")
+          (testing "should return the webview panel"
+            (is (= stub-webview-panel result))))))))
 
 (run-tests)

@@ -74,7 +74,8 @@ report.*
 
 # clojure-lsp
 .lsp
-.clj-kondo
+.clj-kondo/*
+!.clj-kondo/config.edn
 /clojure-lsp*
 
 #Calva
