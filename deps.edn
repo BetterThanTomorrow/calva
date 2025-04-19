@@ -10,11 +10,9 @@
         camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.3"}
         no.cjohansen/replicant {:git/url "https://github.com/cjohansen/replicant.git"
                                 :git/sha "ef2fecbe301cafa8449b74a1e2cbe4fc3ddc18ac"}
-        ;; TODO: Move this to a test alias? Make sure it works in CI afterward.
-        nubank/matcher-combinators {:mvn/version "3.9.1"}
         #_#_org.clojars.liverm0r/dartclojure {:local/root "../DartClojure"}}
- ;; TODO: Will tests pass in CI with spy in dev deps?
- :aliases {:dev {:extra-deps {org.clojars.abhinav/snitch {:mvn/version "0.1.14"}
-                              tortue/spy {:mvn/version "2.15.0"}}}}
+ :aliases {:dev {:extra-deps {org.clojars.abhinav/snitch {:mvn/version "0.1.14"}}}
+           :test {:extra-deps {tortue/spy {:mvn/version "2.15.0"}
+                               nubank/matcher-combinators {:mvn/version "3.9.1"}}}}
  :paths ["src/cljs-lib/src"
          "src/cljs-lib/test"]}
