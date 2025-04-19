@@ -50,7 +50,7 @@ export function bandage(originalText: string, originalIndent: number, eol: strin
 export function unbandage(context: BandageContext, formattedHealedText: string) {
   const d = context.details;
   const leadingWs = d.originalText.match(/^\s*/)[0];
-  const trailingWs = d.originalText.match(/\s*$/)[0];
+  const trailingWs = leadingWs == d.originalText ? '' : d.originalText.match(/\s*$/)[0];
   const leadingEolPos = leadingWs.lastIndexOf(d.eol);
   const startIndent =
     leadingEolPos === -1 ? d.originalIndent : leadingWs.length - leadingEolPos - d.eol.length;

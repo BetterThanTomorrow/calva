@@ -454,12 +454,9 @@ function sortByPresetOrder(arr: any[], presetOrder: any[]) {
 }
 
 function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
-  const ab = new ArrayBuffer(text.length);
-  const ui8a = new Uint8Array(ab);
-  for (let i = 0, strLen = text.length; i < strLen; i++) {
-    ui8a[i] = text.charCodeAt(i);
-  }
-  return vscode.workspace.fs.writeFile(uri, ui8a);
+  const encoder = new TextEncoder();
+  const uint8Array = encoder.encode(text);
+  return vscode.workspace.fs.writeFile(uri, uint8Array);
 }
 
 async function downloadFromUrl(fileUrl: string, savePath: string) {

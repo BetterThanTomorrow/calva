@@ -160,7 +160,13 @@ export class NReplClient {
               client.ns = data['ns'];
             }
             if (hasStatus(data, 'done')) {
-              const msg = { op: 'clone', id: cloneId };
+              const msg = {
+                op: 'clone',
+                'client-name': 'Calva',
+                'client-version': vscode.extensions.getExtension('betterthantomorrow.calva')
+                  .packageJSON.version,
+                id: cloneId,
+              };
               log(msg, Direction.ClientToServer);
               client.encoder.write(msg);
             }
@@ -269,7 +275,14 @@ export class NReplSession {
         resolve(sess);
         return true;
       };
-      const msg = { op: 'clone', session: this.sessionId, id };
+      const msg = {
+        op: 'clone',
+        session: this.sessionId,
+        'client-name': 'Calva',
+        'client-version': vscode.extensions.getExtension('betterthantomorrow.calva').packageJSON
+          .version,
+        id,
+      };
       if (this.supports(msg.op)) {
         this.client.write(msg);
       } else {
@@ -358,11 +371,11 @@ export class NReplSession {
   }
 
   stacktrace() {
-    // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#stacktrace
+    // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#analyze-last-stacktrace
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
       const msg = {
-        op: 'stacktrace',
+        op: 'analyze-last-stacktrace',
         id,
         session: this.sessionId,
       };

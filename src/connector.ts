@@ -32,18 +32,6 @@ import { ConnectType } from './nrepl/connect-types';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
 
-async function readJarContent(uri: string) {
-  try {
-    const rawData = await vscode.workspace.fs.readFile(vscode.Uri.parse(uri));
-    const zipData = await jszip.loadAsync(rawData);
-
-    const conf = await zipData.file('calva.exports/config.edn')?.async('string');
-    return [uri, conf];
-  } catch (error) {
-    return [uri, null];
-  }
-}
-
 async function readRuntimeConfigs() {
   const classpath = await nClient.session.classpath().catch((e) => {
     console.error('readRuntimeConfigs:', e);
@@ -53,6 +41,16 @@ async function readRuntimeConfigs() {
       if (element.endsWith('.jar')) {
         const edn = await getJarContents(element.concat('!/calva.exports/config.edn'));
         return [element, edn];
+      } else if (element.endsWith('/resources')) {
+        const configUri = vscode.Uri.file(element.concat('/calva.exports/config.edn'));
+        try {
+          await vscode.workspace.fs.stat(configUri);
+          const ednBytes = await vscode.workspace.fs.readFile(configUri);
+          const edn = new TextDecoder('utf-8').decode(ednBytes);
+          return [element, edn];
+        } catch {
+          // no config found
+        }
       }
 
       return [element, null];

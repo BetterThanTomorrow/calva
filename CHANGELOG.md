@@ -4,6 +4,56 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.501] - 2025-04-15
+
+- Fix: [Formatting top level trims empty lines at the start and end of the document](https://github.com/BetterThanTomorrow/calva/issues/2780)
+- Fix: [Indent ;; comments as in Clojure Style Guide](https://github.com/BetterThanTomorrow/calva/issues/2785)
+
+## [2.0.500] - 2025-04-12
+
+- Fix: [Can't add new lines at the end of files](https://github.com/BetterThanTomorrow/calva/issues/2778)
+
+## [2.0.499] - 2025-04-11
+
+- Fix: [Reformat all edited locations after multicursor structural edit](https://github.com/BetterThanTomorrow/calva/issues/2738)
+- Fix: [Wrong cursor position when using **Calva Format: Format Current Form**](https://github.com/BetterThanTomorrow/calva/issues/2748)
+
+## [2.0.498] - 2025-04-10
+
+- [Add modifiers `pr-str`, `replace`, and `replace-first` to command snippet variables](https://github.com/BetterThanTomorrow/calva/issues/2282)
+- Fix: [Custom REPL Command/Snippet: `repl` setting not honored](https://github.com/BetterThanTomorrow/calva/issues/2770)
+- [Add `$ns-form` custom command variable](https://github.com/BetterThanTomorrow/calva/issues/2771)
+- Fix: [Custom REPL Commands are evaluated with REPL Window context](https://github.com/BetterThanTomorrow/calva/issues/2773)
+
+## [2.0.497] - 2025-04-09
+
+- [Replace deprecated cider-nrepl 'stacktrace' op with 'analyze-last-stacktrace'](https://github.com/BetterThanTomorrow/calva/pull/2775)
+- [Add client info to nrepl clone request](https://github.com/BetterThanTomorrow/calva/issues/2776)
+
+## [2.0.496] - 2025-04-06
+
+- Fix: [Broken characters in "Calva REPL" menu](https://github.com/BetterThanTomorrow/calva/issues/2765)
+
+## [2.0.495] - 2025-03-24
+
+- [Find calva.exports that are not in a JAR file](https://github.com/BetterThanTomorrow/calva/issues/2762)
+
+## [2.0.494] - 2025-03-20
+
+- Fix: [Auto-connect/Jack-in sequences fail if projectRootPath is not set](https://github.com/BetterThanTomorrow/calva/issues/2759)
+
+## [2.0.493] - 2025-03-20
+
+- [Filter lsp semantic comment tokens](https://github.com/BetterThanTomorrow/calva/issues/2757)
+
+## [2.0.492] - 2025-03-19
+
+- [Add flare handler and webview](https://github.com/BetterThanTomorrow/calva/issues/2679)
+
+## [2.0.491] - 2025-03-15
+
+- [Add support for multiple default connect sequences based on different project roots](https://github.com/BetterThanTomorrow/calva/issues/2753)
+
 ## [2.0.490] - 2025-03-09
 
 - [Use latest cljfmt (v0.13.0) ](https://github.com/BetterThanTomorrow/calva/issues/2743)

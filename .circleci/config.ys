@@ -11,11 +11,11 @@
 # Note: These definitions could be kept in a seaparate file, but probably
 # better to define them here to better see the intents.
 
-::
-  # Import the 'lib/helpers.ys' library:
-  use: helpers
+# Import the 'lib/helpers.ys' library:
 
-  # Define a binding used in other files (def):
+# Define a binding used in other files (def):
+::
+  use helpers: :all
   ssh-fingerprint-1 =: 'd1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14'
 
 # Define local file bindings (let):

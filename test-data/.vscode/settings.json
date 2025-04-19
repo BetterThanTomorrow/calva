@@ -19,6 +19,15 @@
     {
       "name": "Selection, closing brackets",
       "snippet": "$selection-closing-brackets"
+    },
+    {
+      "name": "qol: Add Snitch dependency",
+      "repl": "clj",
+      "snippet": "(require '[clojure.repl.deps :refer [add-libs]])\n\n(add-libs '{ org.clojars.abhinav/snitch {:mvn/version \"0.1.16\"}})\n\n(require '[snitch.core :refer [defn* defmethod* *fn *let]])"
+    },
+    {
+      "name": "qol: Evaluate as Snitch defn* (ctrl+alt+c s)",
+      "snippet": "${top-level-form|replace|^\\(defn-?|(defn*}"
     }
   ],
   "calva.customREPLHoverSnippets": [
@@ -75,7 +84,8 @@
       "projectType": "deps.edn",
       "projectRootPath": ["projects/pirate-lang"],
       "afterCLJReplJackInCode": ["(require 'repl)", "(println 1)", "(println 2)"],
-      // "autoSelectForJackIn": true,
+      //"autoSelectForJackIn": true,
+      "autoSelectForConnect": true,
       "cljsType": "none",
       "menuSelections": {
         "cljAliases": ["dev", "test"]
@@ -106,7 +116,8 @@
       "projectType": "deps.edn",
       "projectRootPath": ["projects/deps-main-opts"],
       "afterCLJReplJackInCode": "(require 'repl)",
-      //"autoSelectForJackIn": true,
+      "autoSelectForConnect": true,
+      // "autoSelectForJackIn": true,
       "cljsType": "none",
       "menuSelections": {
         "cljAliases": ["dev", "has-main-opts-starting-nrepl"]

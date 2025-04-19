@@ -18,8 +18,8 @@ $ bb build
 
 * `Makefile` - for building `config.yml` and running tests.
   * Auto installs deps
-* `config.ys` - The main YAMLScript file that evaluates to the correct CircleCI
-  `config.yml` file.
+* `config.ys` - The main [YS](https://yamlscript.org) file that evaluates to
+  the correct CircleCI `config.yml` file.
 * `bin/` - All the longer bash sections refactored to testable .bash files.
 * `jobs/` - Each `job` yaml section refactored to its own file.
 * `workflows/` - Each `workflow` yaml section refactored to its own file.

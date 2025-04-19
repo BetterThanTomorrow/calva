@@ -4,11 +4,10 @@
 
 (deftest format-text-at-range
   (is (= "(foo)\n(defn bar\n  [x]\n  baz)"
-         (:range-text (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]}))))
-  (is (not (contains? (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]}) :new-index))))
+         (:range-text (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]})))))
 
 (deftest clojure-1-12-syntax
-  (is (= {:all-text "^Long/1 a", :range [1 10], :range-tail "Long/1 a", :range-text "Long/1 a"}
+  (is (= {:range [1 10], :range-text "Long/1 a"}
          (sut/format-text-at-range {:all-text "^Long/1 a" :range [1 10]})))
   (is (nil? (:error (sut/format-text-at-range {:all-text "^Long/1 a" :range [1 10]})))))
 
@@ -26,20 +25,18 @@ baz)")
     [x]
 
     baz)"
-         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11}))))
-  (is (= 1
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11}))))
+         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idxs [11]})))) 
   (is (= [10 38]
-         (:range (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11}))))
+         (:range (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idxs [11]}))))
   (is (= [0 5]
-         (:range (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 5] :idx 2}))))
+         (:range (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 5] :idxs [2]}))))
   (is (= "()"
-         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 5] :idx 2}))))
+         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 5] :idxs [2]}))))
   (is (= "(deftype MyType [arg1 arg2]\n  IMyProto\n  (method1 [this]\n    (smth)))"
-         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text deftype-all-text :range [0 76] :idx 68}))))
+         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text deftype-all-text :range [0 76] :idxs [68]}))))
   ;; TODO: Figure out why the extra space is not removed
   #_(is (= "a c"
-           (:range-text (sut/format-text-at-idx {:eol "\n" :all-text "a  c" :range [0 4] :idx 2})))))
+           (:range-text (sut/format-text-at-idx {:eol "\n" :all-text "a  c" :range [0 4] :idxs [2]})))))
 
 (def misaligned-text "(def foo
 (let[a   b
@@ -59,7 +56,7 @@ ccc {:a b :aa bb :ccc ccc}]
                                                  :all-text misaligned-text
                                                  :config {:align-associative? true}
                                                  :range    [0 56]
-                                                 :idx      0})))))
+                                                 :idxs     [0]})))))
 
   (testing "Does not align associative structures when `:align-associative` is not `true`"
     (is (= "(def foo
@@ -69,7 +66,7 @@ ccc {:a b :aa bb :ccc ccc}]
            (:range-text (sut/format-text-at-idx {:eol      "\n"
                                                  :all-text misaligned-text
                                                  :range    [0 56]
-                                                 :idx      1}))))))
+                                                 :idxs     [1]}))))))
 
 (deftest format-trim-text-at-idx
   (testing "Trims space between forms when `:remove-multiple-non-indenting-spaces?` is `true`"
@@ -81,7 +78,7 @@ ccc {:a b :aa bb :ccc ccc}]
                                                  :all-text misaligned-text
                                                  :config {:remove-multiple-non-indenting-spaces? true}
                                                  :range    [0 56]
-                                                 :idx      0})))))
+                                                 :idxs     [0]})))))
 
   (testing "Does not trim space between forms when `:remove-multiple-non-indenting-spaces?` is missing"
     (is (= "(def foo
@@ -91,7 +88,7 @@ ccc {:a b :aa bb :ccc ccc}]
            (:range-text (sut/format-text-at-idx {:eol      "\n"
                                                  :all-text misaligned-text
                                                  :range    [0 56]
-                                                 :idx      1}))))))
+                                                 :idxs     [1]}))))))
 
 (def a-comment
   {:eol "\n"
@@ -102,88 +99,29 @@ ccc {:a b :aa bb :ccc ccc}]
 
 baz))"
    :range [8 48]
-   :idx 47
+   :idxs [47]
    :config {:keep-comment-forms-trail-paren-on-own-line? true
             :comment-form? true}})
 
 (deftest format-text-w-comments-at-idx
-  (is (= {:new-index 38
-          :range-text "(comment
+  (is (= {:range-text "(comment
   (defn bar
     [x]
 
     baz))"}
          (select-keys (sut/format-text-at-idx
                        (assoc-in a-comment [:config :comment-form?] false))
-                      [:range-text :new-index])))
+                      [:range-text])))
 
-  (is (= {:new-index 41
-          :range-text "(comment
+  (is (= {:range-text "(comment
   (defn bar
     [x]
 
     baz)
   )"}
          (select-keys (sut/format-text-at-idx
-                       (assoc a-comment :idx 47))
-                      [:range-text :new-index]))))
-
-(deftest new-index
-  (is (= 1
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11}))))
-  (is (= 13
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 28}))))
-  (is (= 10
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 22}))))
-  (is (= 12
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 27}))))
-  (is (= 22
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 33}))))
-  (is (= 5
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(defn \n  \nfoo)" :range [0 14] :idx 6}))))
-  (is (= 11
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(foo\n (bar)\n )" :range [0 14] :idx 11}))))
-  (is (= 1
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 14] :idx 2}))))
-  (is (= 3
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "[a b c]" :range [0 7] :idx 3}))))
-  (is (= 2
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "a b c" :range [0 5] :idx 2}))))
-  (is (= 2
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "a  c" :range [0 4] :idx 2})))))
-
-(def head-and-tail-text "(def a 1)
-
-
-(defn foo [x] (let [bar 1]
-
-bar))")
-
-(deftest add-head-and-tail
-  (is (= {:head "" :tail head-and-tail-text
-          :all-text head-and-tail-text
-          :idx 0}
-         (sut/add-head-and-tail {:all-text head-and-tail-text :idx 0})))
-  (is (= {:head head-and-tail-text :tail ""
-          :all-text head-and-tail-text
-          :idx (count head-and-tail-text)}
-         (sut/add-head-and-tail {:all-text head-and-tail-text :idx (count head-and-tail-text)})))
-  (is (= {:head "(def a 1)\n\n\n(defn foo "
-          :tail "[x] (let [bar 1]\n\nbar))"
-          :all-text head-and-tail-text
-          :idx 22}
-         (sut/add-head-and-tail {:all-text head-and-tail-text :idx 22})))
-  (is (= {:head head-and-tail-text :tail ""
-          :all-text head-and-tail-text
-          :idx (inc (count head-and-tail-text))}
-         (sut/add-head-and-tail {:all-text head-and-tail-text :idx (inc (count head-and-tail-text))}))))
-
-(deftest normalize-indents
-  (is (= "(foo)\n  (defn bar\n    [x]\n    baz)"
-         (:range-text (sut/normalize-indents {:eol "\n"
-                                              :all-text "  (foo)\n(defn bar\n[x]\nbaz)"
-                                              :range [2 26]
-                                              :range-text "(foo)\n(defn bar\n  [x]\n  baz)"})))))
+                       (assoc a-comment :idxs [47]))
+                      [:range-text]))))
 
 (def first-top-level-text "
 ;; foo
@@ -204,93 +142,35 @@ bar))")
 
 (deftest format-text-at-idx-on-type
   (is (= "(bar \n\n )"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :range [0 8] :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :range [0 8] :idxs [7]}))))
+  (is (= "(bar \n\n ;;comment\n )"
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n;;comment\n)" :range [0 18] :idxs [7]
+                                                       :config {:cljfmt-options {:indent-line-comments? true}}}))))
   (is (= "(bar \n \n )"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n \n)" :range [0 9] :idx 8}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n \n)" :range [0 9] :idxs [8]}))))
   (is (= "(bar \n \n )"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :range [0 8] :idx 6}))))
-  (is (= "\"bar \n \n \""
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :range [0 10] :idx 7}))))
-  (is (= "\"bar \n \n \""
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :range [0 10] :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :range [0 8] :idxs [6]}))))
+  (testing "strings"
+    (is (= "\"bar \n \n \""
+           (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :range [0 10] :idxs [6]}))))
+    (is (= "\"bar \n \n \""
+           (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :range [0 10] :idxs [7]})))))
   (is (= "'([]\n    [])"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "  '([]\n[])" :range [2 10] :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "  '([]\n[])" :range [2 10] :idxs [7]}))))
   (is (= "[:foo\n \n (foo) (bar)]"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :range [0 18] :idx 6})))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :range [0 18] :idxs [6]})))))
 
-(deftest new-index-on-type
-  (is (= 6
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :range [0 8] :idx 6}))))
-  (is (= 8
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n)" :range [0 8] :idx 6}))))
-  #_(is (= 8 ;; Fails due to a bug in rewrite-cljs
-           (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n#_)" :range [0 10] :idx 6}))))
-  (is (= 9
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :range [0 8] :idx 7}))))
-  (is (= 7
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  )" :range [0 10] :idx 7}))))
-  (is (= 9
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  \n  )" :range [0 13] :idx 9}))))
-  (is (= 9
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n)" :range [0 9] :idx 7}))))
-  (is (= 10
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n)" :range [0 9] :idx 8}))))
-  (is (= 13
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(foo\n (bar)\n)" :range [0 13] :idx 12}))))
-  (is (= 7
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :range [0 18] :idx 6})))))
-
-(deftest new-index-on-type-crlf
-  (is (= 6
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n)" :range [0 9] :idx 6}))))
-  (is (= 10
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n)" :range [0 9] :idx 8}))))
-  (is (= 8
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n  )" :range [0 11] :idx 8}))))
-  (is (= 10
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n  \r\n  )" :range [0 15] :idx 10}))))
-  (is (= 10
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n\r\n)" :range [0 11] :idx 8}))))
-  (is (= 12
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n\r\n)" :range [0 11] :idx 10}))))
-  (is (= 15
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(foo\r\n (bar)\r\n)" :range [0 15] :idx 14})))))
-
-(deftest index-for-tail-in-range
-  (is (= 7
-         (:new-index (sut/index-for-tail-in-range
-                      {:range-text "foo te    x t"
-                       :range-tail "   x t"}))))
-  (is (= 169
-         (:new-index (sut/index-for-tail-in-range
-                      {:range-text "(create-state \"\"
-                                \"###  \"
-                                \"  ###\"
-                                \" ### \"
-                                \"  #  \")"
-                       :range-tail "\"  #  \")"})))))
-
-(deftest remove-indent-token-if-empty-current-line
+(deftest remove-indent-tokens
   (is (= {:range-text "foo\n\nbar"
-          :range [4 4]
-          :current-line ""
-          :new-index 4}
-         (sut/remove-indent-token-if-empty-current-line {:range-text "foo\n0\nbar"
-                                                         :range [4 5]
-                                                         :new-index 4
-                                                         :current-line ""})))
-  (is (= {:range-text "foo\n0\nbar"
-          :range [4 5]
-          :current-line "0"
-          :new-index 4}
-         (sut/remove-indent-token-if-empty-current-line {:range-text "foo\n0\nbar"
-                                                         :range [4 5]
-                                                         :new-index 4
-                                                         :current-line "0"}))))
+         }
+         (sut/remove-indent-tokens {:range-text "foo\n0\nbar"
+                                    :indent-token "0"
+                                    }))))
 
-(deftest current-line-empty?
-  (is (= true (sut/current-line-empty? {:current-line "       "})))
-  (is (= false (sut/current-line-empty? {:current-line "  foo  "}))))
+(deftest string-clojure-blank?
+  (is (= true (sut/string-clojure-blank? "       ")))
+  (is (= true (sut/string-clojure-blank? " , ")))
+  (is (= false (sut/string-clojure-blank? "  foo  "))))
 
 (deftest indent-before-range
   (is (= 10

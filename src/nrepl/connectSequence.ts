@@ -7,6 +7,7 @@ import * as outputWindow from '../repl-window/repl-doc';
 import { formatAsLineComments } from '../results-output/util';
 import { ConnectType } from './connect-types';
 import * as output from '../results-output/output';
+import * as projectRoot from '../project-root';
 
 enum ProjectTypes {
   'Leiningen' = 'Leiningen',
@@ -377,16 +378,28 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
   return defaultCljsTypes[cljsType];
 }
 
-function getUserSpecifiedSequence(
+async function getUserSpecifiedSequence(
   sequences: ReplConnectSequence[],
   connectType: ConnectType,
   disableAutoSelect: boolean
-): ReplConnectSequence | undefined {
-  const autoSelectedSequence = disableAutoSelect
-    ? undefined
-    : sequences.find((s) =>
+): Promise<ReplConnectSequence | undefined> {
+  const autoSelectedSequences = disableAutoSelect
+    ? []
+    : sequences.filter((s) =>
         connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn
       );
+  const candidatePaths = await projectRoot.findProjectRoots();
+  const active_uri = vscode.window.activeTextEditor?.document.uri;
+  const closestRootPath: vscode.Uri = active_uri
+    ? projectRoot.findClosestParent(active_uri, candidatePaths)
+    : undefined;
+  const autoSelectedSequence =
+    autoSelectedSequences.find(
+      (s) =>
+        s.projectRootPath &&
+        vscode.workspace.asRelativePath(path.join(...s.projectRootPath)) ===
+          vscode.workspace.asRelativePath(closestRootPath)
+    ) || autoSelectedSequences.shift();
   const userSpecifiedProjectType = autoSelectedSequence?.name;
 
   if (userSpecifiedProjectType) {
@@ -428,7 +441,7 @@ async function askForConnectSequence(
   const projectRootUri = state.getProjectRootUri();
   const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
 
-  const defaultSequence = getUserSpecifiedSequence(sequences, connectType, disableAutoSelect);
+  const defaultSequence = await getUserSpecifiedSequence(sequences, connectType, disableAutoSelect);
 
   let projectConnectSequenceName = defaultSequence?.name;
 

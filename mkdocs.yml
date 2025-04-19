@@ -64,6 +64,7 @@ nav:
       - fiddle-files.md
       - connect-sequences.md
       - custom-commands.md
+      - flares.md
     - refactoring.md
     - notebooks.md
     - clojuredocs.md

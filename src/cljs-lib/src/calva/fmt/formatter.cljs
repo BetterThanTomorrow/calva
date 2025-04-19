@@ -5,14 +5,14 @@
             [calva.js-utils :refer [jsify cljify]]
             [calva.fmt.util :as util]
             [calva.parse :refer [parse-clj-edn]]
-            [clojure.string]
-            [clojure.core :as c]))
+            [clojure.string]))
 
 (def ^:private default-fmt
   {:remove-surrounding-whitespace? true
    :remove-trailing-whitespace? true
    :remove-consecutive-blank-lines? false
    :insert-missing-whitespace? true
+   :indent-line-comments? true
    :align-associative? false})
 
 (defn merge-default-config
@@ -95,10 +95,10 @@
   [{:keys [all-text range]}]
   (subs all-text (first range) (last range)))
 
-(defn current-line-empty?
-  "Figure out if `:current-line` is empty"
-  [{:keys [current-line]}]
-  (some? (re-find #"^[\s,]*$" current-line)))
+(defn string-clojure-blank?
+  "Whether s contains nothing other than Clojure whitespace (including commas)"
+  [s]
+  (some? (re-find #"^[\s,]*$" s)))
 
 (defn indent-before-range
   "Figures out how much extra indentation to add based on the length of the line before the range"
@@ -112,59 +112,94 @@
           (last)
           (count)))))
 
-(defn add-head-and-tail
-  "Splits `:all-text` at `:idx` in `:head` and `:tail`"
-  [{:keys [all-text idx] :as m}]
-  (-> m
-      (assoc :head (subs all-text 0 idx)
-             :tail (subs all-text idx))))
+(defn generate-marker!
+  "Lexically plausible, space-free s-expr that does not appear in s"
+  [s]
+  (first
+   (drop-while
+    #(clojure.string/includes? s %)
+    (repeatedly #(str (gensym "@MARKER"))))))
 
-(defn add-current-line
-  "Finds the text of the current line in `text` from cursor position `index`"
-  [{:keys [head tail] :as m}]
-  (-> m
-      (assoc :current-line
-             (str (second (re-find #"\n?(.*)$" head))
-                  (second (re-find #"^(.*)\n?" tail))))))
+(defn line-about-idx
+  "[start index inclusive, end index exclusive] of the line of text
+   whose first character is at-or-before idx."
+  [s idx]
+  (let [a (if (zero? idx)
+            0
+            (let [i (.lastIndexOf s "\n" (dec idx))]
+              (if (= -1 i)
+                0
+                (inc i))))
+        b (let [i (.indexOf s "\n" idx)]
+            (if (= -1 i)
+              (.-length s)
+              i))]
+    [a b]))
 
-(defn- normalize-indents
-  "Normalizes indents based on where the text starts on the first line"
-  [{:keys [range-text eol] :as m}]
-  (let [indent-before (apply str (repeat (indent-before-range m) " "))
-        lines (clojure.string/split range-text #"\r?\n(?!\s*;)" -1)]
-    (assoc m :range-text (clojure.string/join (str eol indent-before) lines))))
+;; insert tokens end-to-start to avoid the need to update idxs.
+;; idxs are relative to all-text, not range-text.
+;; work with the range in a loop, then substitute modified range back into all-text.
+(defn add-indent-token-to-blank-idx-lines
+  "m unmodified unless it needed tokens inserted, in which case
+ with additional key :indent-token, and updated :all-text and :range
+ reflecting growth or shrinkage due to indent-tokens replacing blanks.
+ (Indent-tokens are placed AFTER the blanks on a blank line
+ because those blanks, if inside a string, are significant
+ and we must not delete them. However, if the blank line isn't in a string,
+ this may prevent the formatter from curing excessive indentation.)
+ DOES NOT update :idxs to reflect insertion of indent tokens."
+  [{[a b :as _range] :range :keys [all-text idxs] :as m}]
+  (let [range-text (subs all-text a b)
+        marker (delay (generate-marker! range-text))
+        idxs-in-range (into []
+                            (comp
+                             (remove #(< % a))
+                             (remove #(>= % b)))
+                            idxs)
+        range-text' (reduce
+                     (fn [erg idx]
+                       (let [range-idx (- idx a)
+                             [line-start line-end] (line-about-idx erg range-idx)
+                             line (subs erg line-start line-end)]
+                         (if (string-clojure-blank? line)
+                           (str (subs erg 0 line-end) @marker (subs erg line-end))
+                           erg)))
+                     range-text
+                     (sort > idxs-in-range))
+        range' [a (+ a (.-length range-text'))]]
+    (if (= range-text range-text')
+      m
+      (let [all-text' (str (subs all-text 0 a) range-text' (subs all-text b))]
+        (-> m
+            (assoc :indent-token @marker
+                   :all-text all-text'
+                   :range range'))))))
 
-(defn index-for-tail-in-range
-  "Find index for the `tail` in `text` disregarding whitespace"
-  [{:keys [range-text range-tail on-type] :as m}]
-  (let [leading-space-length (count (re-find #"^[ \t,]*" range-tail))
-        space-sym (str "@" (gensym "ESPACEIALLY") "@")
-        tail-pattern (-> range-tail
-                         (clojure.string/replace #"[\]\)\}\"]" (str "$&" space-sym))
-                         (util/escape-regexp)
-                         (clojure.string/replace #"^[ \t,]+" "")
-                         (clojure.string/replace #"[\s,]+" "[\\s,]*")
-                         (clojure.string/replace space-sym " ?"))
-        tail-pattern (if (and on-type (re-find #"^\r?\n" range-tail))
-                       (str "(\\r?\\n)+" tail-pattern)
-                       tail-pattern)
-        pos (util/re-pos-first (str "[ \\t]{0," leading-space-length "}" tail-pattern "$") range-text)]
-    (assoc m :new-index pos)))
+(defn remove-indent-tokens
+  "m unmodified if there is no indent-token, otherwise with
+ range-text and range adjusted by removal of
+ indent-tokens"
+  [{:keys [range-text indent-token] :as m}]
+  (if-not indent-token
+    m
+    (let [range-text' (clojure.string/replace range-text indent-token "")]
+      (-> m
+          (assoc :range-text range-text')
+          (dissoc :indent-token
+          :range)))))
 
 (defn format-text-at-range
-  "Formats text from all-text at the range"
-  [{:keys [range idx] :as m}]
+  "m with formatted :range-text, and :all-text removed"
+  [m]
   (let [indent-before (indent-before-range m)
         padding (apply str (repeat indent-before " "))
         range-text (extract-range-text m)
         padded-text (str padding range-text)
-        range-index (- idx (first range))
-        tail (subs range-text range-index)
         formatted-m (format-text (assoc m :range-text padded-text))
         formatted-text (subs (:range-text formatted-m) indent-before)]
     (-> (assoc formatted-m
-               :range-text formatted-text
-               :range-tail tail))))
+               :range-text formatted-text)
+        (dissoc :all-text))))
 
 (comment
   (format-text-at-range {:all-text "  '([]\n[])"
@@ -178,26 +213,6 @@
                          :all-text "[:foo\n\n(foo)(bar)]"
                          :idx 6
                          :range [0 18]}))
-
-(defn add-indent-token-if-empty-current-line
-  "If `:current-line` is empty add an indent token at `:idx`"
-  [{:keys [head tail range] :as m}]
-  (let [indent-token "0"
-        new-range [(first range) (inc (last range))]]
-    (if (current-line-empty? m)
-      (let [m1 (assoc m
-                      :all-text (str head indent-token tail)
-                      :range new-range)]
-        (assoc m1 :range-text (extract-range-text m1)))
-      m)))
-
-(defn remove-indent-token-if-empty-current-line
-  "If an indent token was added, lets remove it. Not forgetting to shrink `:range`"
-  [{:keys [range-text range new-index] :as m}]
-  (if (current-line-empty? m)
-    (assoc m :range-text (str (subs range-text 0 new-index) (subs range-text (inc new-index)))
-           :range [(first range) (dec (second range))])
-    m))
 
 (def trailing-bracket_symbol "_calva-fmt-trail-symbol_")
 (def trailing-bracket_pattern (re-pattern (str "_calva-fmt-trail-symbol_\\)$")))
@@ -234,8 +249,8 @@
       m)))
 
 (defn remove-trail-symbol-if-comment
-  "If the `range-text` is a comment, remove the symbol at the end"
-  [{:keys [range range-text new-index idx config] :as m} original-range]
+  "m with updated :range and :range-text reflecting removal of comment prop"
+  [{:keys [range-text config] :as m}]
   (let [keep-trailing-bracket-on-own-line?
         (and (:keep-comment-forms-trail-paren-on-own-line? config)
              (:comment-form? config))]
@@ -245,26 +260,21 @@
                             trailing-bracket_pattern
                             ")")]
         (-> m
-            (assoc :range-text new-range-text
-                   :new-index (if (>= idx (- (second range) 1))
-                                (- (count new-range-text)
-                                   (- (second range) idx))
-                                new-index)
-                   :range original-range)))
+            (assoc :range-text new-range-text)))
       m)))
 
 (defn format-text-at-idx
-  "Formats the enclosing range of text surrounding idx"
+  "Formats the range, preserving and creating indentation
+  for blank lines at cursor offsets in :idxs"
   [{:keys [range] :as m}]
   (-> m
       (add-trail-symbol-if-comment)
-      (add-head-and-tail)
-      (add-current-line)
-      (add-indent-token-if-empty-current-line)
+      (add-indent-token-to-blank-idx-lines)
       (format-text-at-range)
-      (index-for-tail-in-range)
-      (remove-indent-token-if-empty-current-line)
-      (remove-trail-symbol-if-comment range)))
+      (remove-indent-tokens)
+      (remove-trail-symbol-if-comment)
+      (assoc :range range)))
+
 (comment
 
   :rcf)

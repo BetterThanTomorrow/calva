@@ -174,15 +174,18 @@ export async function initProjectDir(
 
   const sequences: ReplConnectSequence[] = getCustomConnectSequences();
 
-  const defaultSequence = connectSequence
-    ? connectSequence
-    : disableAutoSelect
-    ? undefined
-    : sequences.find(
-        (s) =>
-          (connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn) &&
-          !!s.projectRootPath
+  const defaultSequences = disableAutoSelect
+    ? [connectSequence]
+    : sequences.filter((s) =>
+        connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn
       );
+  const defaultSequence =
+    defaultSequences.find(
+      (s) =>
+        s.projectRootPath &&
+        vscode.workspace.asRelativePath(path.join(...s.projectRootPath)) ===
+          vscode.workspace.asRelativePath(closestRootPath)
+    ) || defaultSequences.shift();
 
   let projectRootPath: vscode.Uri;
   if (defaultSequence?.projectRootPath?.length > 0) {

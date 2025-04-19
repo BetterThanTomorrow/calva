@@ -1,5 +1,5 @@
 {:paths ["resources" "src"]
- :deps {org.clojure/clojure {:mvn/version "1.10.1"}}
+ :deps {org.clojure/clojure {:mvn/version "1.12.0"}}
  :aliases
  {:socket {:jvm-opts ["-Dclojure.server.repl={:port 5555 :accept clojure.core.server/repl}"]}
   :test {:extra-paths ["test"]

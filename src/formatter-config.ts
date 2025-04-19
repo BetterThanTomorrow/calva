@@ -9,6 +9,7 @@ const defaultCljfmtContent =
  :remove-trailing-whitespace? true\n\
  :remove-consecutive-blank-lines? false\n\
  :insert-missing-whitespace? true\n\
+ :indent-line-comments? true\n\
  :align-associative? false}';
 
 const LSP_CONFIG_KEY = 'CLOJURE-LSP';
