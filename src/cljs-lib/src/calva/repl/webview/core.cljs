@@ -136,11 +136,14 @@
          (set-code-theme! context {:color-theme-kind (.. e -kind)
                                    :webview-panel webview-panel})))))
 
-(defn add-subscriptions []
-  (let [context {:vscode/vscode @util/vscode}
-        subscriptions [(create-color-theme-change-listener context {:webview-panel @repl-output-webview-panel})]]
+(defn add-subscriptions!
+  [{:keys [vscode/vscode]
+    vscode-context :vscode/context
+    :as context}
+   {:keys [webview-panel]}]
+  (let [subscriptions [(create-color-theme-change-listener context {:webview-panel webview-panel})]]
     (run! (fn [subscription]
-            (.. ^js @util/vscode-context -subscriptions (push subscription)))
+            (.. ^js vscode-context -subscriptions (push subscription)))
           subscriptions)))
 
 (defn create-repl-output-webview-panel
@@ -160,7 +163,7 @@
     (.. ^js webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel))))
     (set-webview-html! context {:webview-panel webview-panel})
     (reset! repl-output-webview-panel webview-panel)
-    (add-subscriptions)
+    (add-subscriptions! context {:webview-panel webview-panel})
     webview-panel))
 
 ;; TODO: Write spec/schema for context
