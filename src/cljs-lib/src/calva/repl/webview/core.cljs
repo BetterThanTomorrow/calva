@@ -176,25 +176,21 @@
     (set-code-theme! context {:color-theme-kind active-code-theme-kind
                               :webview-panel webview-panel})))
 
-;; TODO: Add tests
-;; TODO: Refactor this to use a mapping of output category -> command name
+(def output-category->command-name
+  {"otherOut" "show-stdout"
+   "evalOut" "show-stdout"
+   "evalResults" "show-result"
+   "evalErr" "show-stdout"
+   "otherErr" "show-stdout"
+   "clojure" "show-result"})
+
 (defn ^:export append
   [^js options message]
-  (let [output-category (.-outputCategory options)]
-    (case output-category
-      "otherOut" (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
-                                                                      :content message})
-      "evalOut" (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
-                                                                     :content message})
-      "evalResults" (post-message-to-webview @repl-output-webview-panel {:command/name "show-result"
-                                                                         :content message})
-      ;; TODO: Make this show differently?
-      "evalErr" (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
-                                                                     :content message})
-      "otherErr" (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
-                                                                      :content message})
-      "clojure" (post-message-to-webview @repl-output-webview-panel {:command/name "show-result"
-                                                                     :content message})
+  (let [output-category (.-outputCategory options)
+        command-name (get output-category->command-name output-category)]
+    (if command-name
+      (post-message-to-webview @repl-output-webview-panel {:command/name command-name
+                                                           :content message})
       (util/log-to-console
        :error
        (str "Cannot append content to output webview. No outputCategory matches \"" output-category "\"")))))
