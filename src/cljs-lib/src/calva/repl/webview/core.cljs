@@ -166,7 +166,7 @@
 
 ;; TODO: Write spec/schema for context
 (defn ^:export show-repl-output-webview-panel []
-  (let [context {:env/is-debug (if (= js/process.env.IS_DEBUG "true") true false)
+  (let [context {:env/is-debug (:is-debug util/env)
                  :vscode/vscode @util/vscode
                  :vscode/context @util/vscode-context}
         ^js webview-panel (or @repl-output-webview-panel

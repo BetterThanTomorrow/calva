@@ -46,3 +46,6 @@
                  :error js/console.error
                  :warn js/console.warn)]
     (apply log-fn (rest args))))
+
+(def env
+  {:is-debug (= js/process.env.IS_DEBUG "true")})

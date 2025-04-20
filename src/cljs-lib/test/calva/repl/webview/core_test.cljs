@@ -1,18 +1,12 @@
 (ns calva.repl.webview.core-test
   (:require
    [calva.repl.webview.core :as sut]
-   [calva.util :as util]
    [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest testing is run-tests]]
    [matcher-combinators.test]
-   [spy.core :as spy]))
-
-(defn wrap-spy
-  "This is a helper that returns a function that calls the spy, so that the shadow-cljs doesn't complain,
-   which is does if a spy is used and called directly in a test - it will say the thing is not a function"
-  [spy]
-  (fn [& args]
-    (apply spy args)))
+   [spy.core :as spy]
+   [test-util :as test-util]
+   [calva.util :as util]))
 
 (deftest dispose-repl-output-webview-panel-test
   (testing "Given an atom holding some value, should set the value to nil"
@@ -23,10 +17,7 @@
 (deftest post-message-to-webview-test
   (testing "Given a webview panel and a message, should post the message to the webview panel with an :id attribute added to it"
     (let [post-message-spy (spy/spy)
-          ;; Using spy this way is a workaround to avoid an error mentioned in this issue:
-          ;; https://github.com/alexanderjamesking/spy/issues/29
-          ;; I tried setting static-fns to false in the build config's compiler-options, but that didn't fix the issue
-          webview-panel-mock (clj->js {:webview {:postMessage (fn [& args] (apply post-message-spy args))}})
+          webview-panel-mock (clj->js {:webview {:postMessage (test-util/wrap-spy post-message-spy)}})
           message {:hello "world"}]
       (sut/post-message-to-webview webview-panel-mock message)
       (let [calls (spy/calls post-message-spy)
@@ -62,9 +53,9 @@
     (let [join-path-spy (spy/stub "some-path")
           extension-uri "extension-uri"
           context {:vscode/context (clj->js {:extensionUri extension-uri})
-                   :vscode/vscode (clj->js {:Uri {:joinPath (wrap-spy join-path-spy)}})}
+                   :vscode/vscode (clj->js {:Uri {:joinPath (test-util/wrap-spy join-path-spy)}})}
           as-webview-uri-spy (spy/stub "some-webview-uri")
-          webview-panel (clj->js {:webview {:asWebviewUri (wrap-spy as-webview-uri-spy)}})
+          webview-panel (clj->js {:webview {:asWebviewUri (test-util/wrap-spy as-webview-uri-spy)}})
           result (sut/get-js-source context {:webview-panel webview-panel})]
       (testing "should call joinPath with expected args"
         (is (spy/called-once-with? join-path-spy extension-uri "repl-output-ui" "js" "main.js")))
@@ -78,7 +69,7 @@
     (let [join-path-spy (spy/stub "some-path")
           extension-uri "extension-uri"
           context {:vscode/context (clj->js {:extensionUri extension-uri})
-                   :vscode/vscode (clj->js {:Uri {:joinPath (wrap-spy join-path-spy)}})}
+                   :vscode/vscode (clj->js {:Uri {:joinPath (test-util/wrap-spy join-path-spy)}})}
           result (sut/get-css-path context)]
       (testing "should call joinPath with expected args"
         (is (spy/called-once-with? join-path-spy extension-uri "repl-output-ui" "css" "main.css")))
@@ -91,12 +82,12 @@
           get-js-source-spy (spy/stub "some-js-source")
           get-css-path-spy (spy/stub "some-css-path")
           as-webview-uri-spy (spy/stub "some-css-href")
-          ^js webview-panel (clj->js {:webview {:asWebviewUri (wrap-spy as-webview-uri-spy)
+          ^js webview-panel (clj->js {:webview {:asWebviewUri (test-util/wrap-spy as-webview-uri-spy)
                                                 :cspSource "some-csp-source"}})
           get-webview-html-spy (spy/stub "some-html")]
-      (with-redefs [sut/get-js-source (wrap-spy get-js-source-spy)
-                    sut/get-css-path (wrap-spy get-css-path-spy)
-                    sut/get-webview-html (wrap-spy get-webview-html-spy)]
+      (with-redefs [sut/get-js-source (test-util/wrap-spy get-js-source-spy)
+                    sut/get-css-path (test-util/wrap-spy get-css-path-spy)
+                    sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
         (sut/set-webview-html! context {:webview-panel webview-panel})
         (testing "should call get-js-source with expected args"
           (is (spy/called-once-with? get-js-source-spy context {:webview-panel webview-panel})))
@@ -121,28 +112,28 @@
           webview-panel {:some "mock-webview-panel"}]
       (testing "when the ColorThemeKind is Dark, should set the code theme to dark"
         (let [post-message-to-webview-spy (spy/spy)]
-          (with-redefs [sut/post-message-to-webview (wrap-spy post-message-to-webview-spy)]
+          (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:Dark color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
                                                                                   :content "dark"})))))
       (testing "when the ColorThemeKind is Light, should set the code theme to light"
         (let [post-message-to-webview-spy (spy/spy)]
-          (with-redefs [sut/post-message-to-webview (wrap-spy post-message-to-webview-spy)]
+          (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:Light color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
                                                                                   :content "light"})))))
       (testing "when the ColorThemeKind is HighContrast, should set the code theme to high-contrast"
         (let [post-message-to-webview-spy (spy/spy)]
-          (with-redefs [sut/post-message-to-webview (wrap-spy post-message-to-webview-spy)]
+          (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:HighContrast color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
                                                                                   :content "high-contrast"})))))
       (testing "when the ColorThemeKind is HighContrastLight, should set the code theme to high-contrast-light"
         (let [post-message-to-webview-spy (spy/spy)]
-          (with-redefs [sut/post-message-to-webview (wrap-spy post-message-to-webview-spy)]
+          (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:HighContrastLight color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
@@ -150,7 +141,7 @@
       (testing "when there is no configured code theme for the ColorThemeKind, should log the expected error"
         (let [log-to-console-spy (spy/spy)
               color-theme-kind 99]
-          (with-redefs [util/log-to-console (wrap-spy log-to-console-spy)]
+          (with-redefs [util/log-to-console (test-util/wrap-spy log-to-console-spy)]
             (sut/set-code-theme! context {:color-theme-kind color-theme-kind
                                           :webview-panel webview-panel})
             (is (spy/called-once-with?
@@ -163,7 +154,7 @@
   (testing "Given a context and a webview panel, should call onDidChangeActiveColorTheme and pass it a function"
     (let [on-did-change-active-color-theme-spy (spy/spy)
           context {:vscode/vscode (clj->js {:window {:onDidChangeActiveColorTheme
-                                                     (wrap-spy on-did-change-active-color-theme-spy)}})}]
+                                                     (test-util/wrap-spy on-did-change-active-color-theme-spy)}})}]
       (sut/create-color-theme-change-listener context {:webview-panel {:some "webview-panel"}})
       (let [calls (spy/calls on-did-change-active-color-theme-spy)]
         (is (= 1 (count calls)))
@@ -172,15 +163,15 @@
 (deftest create-repl-output-webview-panel-test
   (testing "Given a context,"
     (let [on-did-dispose-spy (spy/spy)
-          stub-webview-panel (clj->js {:onDidDispose (wrap-spy on-did-dispose-spy)})
+          stub-webview-panel (clj->js {:onDidDispose (test-util/wrap-spy on-did-dispose-spy)})
           create-webview-panel-spy (spy/stub stub-webview-panel)
           context {:vscode/vscode (clj->js {:window {:createWebviewPanel
-                                                     (wrap-spy create-webview-panel-spy)}
+                                                     (test-util/wrap-spy create-webview-panel-spy)}
                                             :ViewColumn {:Beside 1}})}
           set-webview-html-spy (spy/spy)
           add-subscriptions-spy (spy/spy)]
-      (with-redefs [sut/set-webview-html! (wrap-spy set-webview-html-spy)
-                    sut/add-subscriptions! (wrap-spy add-subscriptions-spy)]
+      (with-redefs [sut/set-webview-html! (test-util/wrap-spy set-webview-html-spy)
+                    sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)]
         (let [result (sut/create-repl-output-webview-panel context)]
           (testing "should call createWebviewPanel with expacted args"
             (let [calls (spy/calls create-webview-panel-spy)]
@@ -190,14 +181,31 @@
                         {:preserveFocus true, :viewColumn 1}
                         {:enableScripts true, :retainContextWhenHidden true, :enableFindWidget true})]
                      (js->clj calls :keywordize-keys true)))))
-          ;; TODO: Finish these tests
           (testing "should call onDidDispose with expected args"
             (let [calls (spy/calls on-did-dispose-spy)]
               (is (= 1 (count calls)))
               (is (match? [(list fn?)] calls))))
-          (testing "should call set-webview-html! with expected args")
-          (testing "should call add-subscriptions! with expected args")
+          (testing "should call set-webview-html! with expected args"
+            (is (spy/called-once-with? set-webview-html-spy context {:webview-panel stub-webview-panel})))
+          (testing "should call add-subscriptions! with expected args"
+            (is (spy/called-once-with? add-subscriptions-spy context {:webview-panel stub-webview-panel})))
           (testing "should return the webview panel"
             (is (= stub-webview-panel result))))))))
+
+(deftest show-repl-output-webview-panel-test
+  (let [reveal-spy (spy/spy)
+        set-code-theme!-spy (spy/spy)
+        create-repl-output-webview-panel-spy (spy/stub (clj->js {:reveal (test-util/wrap-spy reveal-spy)}))]
+    (with-redefs [util/env {:is-debug false}
+                  util/vscode (atom (clj->js {:window {:activeColorTheme {:kind 1}}}))
+                  util/vscode-context (atom "stub-vscode-context")
+                  sut/repl-output-webview-panel (atom nil)
+                  sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
+                  sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)]
+      (sut/show-repl-output-webview-panel)
+      ;; TODO: Finish these tests
+      (testing "Should call create-repl-output-webview-panel with expected args")
+      (testing "Should call reveal on webview panel with expected args")
+      (testing "Should call set-code-theme! with expected args"))))
 
 (run-tests)
