@@ -193,19 +193,57 @@
             (is (= stub-webview-panel result))))))))
 
 (deftest show-repl-output-webview-panel-test
-  (let [reveal-spy (spy/spy)
-        set-code-theme!-spy (spy/spy)
-        create-repl-output-webview-panel-spy (spy/stub (clj->js {:reveal (test-util/wrap-spy reveal-spy)}))]
-    (with-redefs [util/env {:is-debug false}
-                  util/vscode (atom (clj->js {:window {:activeColorTheme {:kind 1}}}))
-                  util/vscode-context (atom "stub-vscode-context")
-                  sut/repl-output-webview-panel (atom nil)
-                  sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
-                  sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)]
-      (sut/show-repl-output-webview-panel)
-      ;; TODO: Finish these tests
-      (testing "Should call create-repl-output-webview-panel with expected args")
-      (testing "Should call reveal on webview panel with expected args")
-      (testing "Should call set-code-theme! with expected args"))))
+  (testing "When the webview panel does not exist,"
+    (let [reveal-spy (spy/spy)
+          set-code-theme!-spy (spy/spy)
+          webview-panel-stub (clj->js {:reveal (test-util/wrap-spy reveal-spy)})
+          create-repl-output-webview-panel-spy (spy/stub webview-panel-stub)
+          color-theme-kind 1
+          vscode-stub (clj->js {:window {:activeColorTheme {:kind color-theme-kind}}})
+          vscode-context-stub "stub-vscode-context"
+          expected-context {:env/is-debug false
+                            :vscode/vscode vscode-stub
+                            :vscode/context vscode-context-stub}]
+      (with-redefs [util/env {:is-debug false}
+                    util/vscode (atom vscode-stub)
+                    util/vscode-context (atom vscode-context-stub)
+                    sut/repl-output-webview-panel (atom nil)
+                    sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
+                    sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)]
+        (sut/show-repl-output-webview-panel)
+        (testing "Should call create-repl-output-webview-panel with expected args"
+          (is (spy/called-once-with? create-repl-output-webview-panel-spy expected-context)))
+        (testing "Should set repl-output-webview-panel to the result of create-repl-output-webview-panel"
+          (is (= webview-panel-stub @sut/repl-output-webview-panel)))
+        (testing "Should call reveal on webview panel with expected args"
+          (is (spy/called-once-with? reveal-spy nil true)))
+        (testing "Should call set-code-theme! with expected args"
+          (is (spy/called-once-with? set-code-theme!-spy expected-context {:color-theme-kind color-theme-kind
+                                                                           :webview-panel webview-panel-stub}))))))
+  (testing "When the webview panel already exists,"
+    (let [reveal-spy (spy/spy)
+          set-code-theme!-spy (spy/spy)
+          webview-panel-stub (clj->js {:reveal (test-util/wrap-spy reveal-spy)})
+          create-repl-output-webview-panel-spy (spy/spy)
+          color-theme-kind 1
+          vscode-stub (clj->js {:window {:activeColorTheme {:kind color-theme-kind}}})
+          vscode-context-stub "stub-vscode-context"
+          expected-context {:env/is-debug false
+                            :vscode/vscode vscode-stub
+                            :vscode/context vscode-context-stub}]
+      (with-redefs [util/env {:is-debug false}
+                    util/vscode (atom vscode-stub)
+                    util/vscode-context (atom vscode-context-stub)
+                    sut/repl-output-webview-panel (atom webview-panel-stub)
+                    sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
+                    sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)]
+        (sut/show-repl-output-webview-panel)
+        (testing "should not call create-repl-output-webview-panel"
+          (is (spy/not-called? create-repl-output-webview-panel-spy)))
+        (testing "should call reveal on webview panel with expected args"
+          (is (spy/called-once-with? reveal-spy nil true)))
+        (testing "should call set-code-theme! with expected args"
+          (is (spy/called-once-with? set-code-theme!-spy expected-context {:color-theme-kind color-theme-kind
+                                                                           :webview-panel webview-panel-stub})))))))
 
 (run-tests)
