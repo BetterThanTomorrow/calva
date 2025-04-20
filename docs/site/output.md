@@ -31,7 +31,7 @@ These are the commands and their default keyboard shortcuts for revealing output
 * **Calva: Show/Open the REPL output webview**, without focusing it - `ctrl+alt+o w`
 
 !!! Note "Focusing the output destination"
-    The commands for opening the result destination all take a boolean argument for wether they should preserve focus or not. You can register keybindings that behave differently than the default ones. E.g.:
+    The commands for opening the result destination all take a boolean argument for whether they should preserve focus or not. You can register keybindings that behave differently than the default ones. E.g.:
 
     ```json
     {
