@@ -246,4 +246,36 @@
           (is (spy/called-once-with? set-code-theme!-spy expected-context {:color-theme-kind color-theme-kind
                                                                            :webview-panel webview-panel-stub})))))))
 
+(deftest append-test
+  (testing "Given options and a message,"
+    (testing "when command exists for output category, should call post-message-to-webview with expected args"
+      (let [options (clj->js {:outputCategory "evalOut"})
+            message "some-message"
+            post-message-to-webview-spy (spy/spy)]
+        (with-redefs [sut/output-category->command-name {"evalOut" "show-stdout"}
+                      sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                      sut/repl-output-webview-panel (atom "webview-panel-stub")]
+          (sut/append options message)
+          (is (spy/called-once-with? post-message-to-webview-spy
+                                     "webview-panel-stub"
+                                     {:command/name "show-stdout"
+                                      :content message})))))
+    (testing "when command does not exist for output category,"
+      (let [options (clj->js {:outputCategory "nonexistent-category"})
+            message "some-message"
+            post-message-to-webview-spy (spy/spy)
+            log-to-console-spy (spy/spy)]
+        (with-redefs [sut/output-category->command-name {"evalOut" "show-stdout"}
+                      sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                      sut/repl-output-webview-panel (atom "webview-panel-stub")
+                      util/log-to-console (test-util/wrap-spy log-to-console-spy)]
+          (sut/append options message)
+          (testing "should not call post-message-to-webview"
+            (is (spy/not-called? post-message-to-webview-spy)))
+          (testing "should log expected error"
+            (is (spy/called-once-with?
+                 log-to-console-spy
+                 :error
+                 "Cannot append content to output webview. No outputCategory matches \"nonexistent-category\""))))))))
+
 (run-tests)
