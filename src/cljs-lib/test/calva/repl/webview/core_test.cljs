@@ -340,4 +340,25 @@
              ;; matter here, aside from the number of entries.
              (sut/stacktrace->message ["entry1" "entry2" "entry3"]))))))
 
+(deftest append-stacktrace-test
+  (testing "Given a JS stacktrace,"
+    (let [stacktrace->message-spy (spy/stub "some-message")
+          post-message-to-webview-spy (spy/spy)
+          clj-stacktrace [{:class "clojure.lang.Numbers",
+                           :file "Numbers.java"}
+                          {:file "NO_SOURCE_FILE",
+                           :class "core$eval12684"}]
+          js-stacktrace (clj->js clj-stacktrace)]
+      (with-redefs [sut/stacktrace->message (test-util/wrap-spy stacktrace->message-spy)
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                    sut/repl-output-webview-panel (atom "webview-panel-stub")]
+        (sut/append-stacktrace js-stacktrace)
+        (testing "should call stacktrace->message with clj stacktrace"
+          (is (spy/called-once-with? stacktrace->message-spy clj-stacktrace)))
+        (testing "should call post-message-to-webview with expected args"
+          (is (spy/called-once-with? post-message-to-webview-spy
+                                     "webview-panel-stub"
+                                     {:command/name "show-stdout"
+                                      :content "some-message"})))))))
+
 #_(run-tests)
