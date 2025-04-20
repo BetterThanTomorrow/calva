@@ -361,4 +361,14 @@
                                      {:command/name "show-stdout"
                                       :content "some-message"})))))))
 
+(deftest clear-webview-test
+  (testing "Should call post-message-to-webview with expected args"
+    (let [post-message-to-webview-spy (spy/spy)]
+      (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                    sut/repl-output-webview-panel (atom "webview-panel-stub")]
+        (sut/clear-webview)
+        (is (spy/called-once-with? post-message-to-webview-spy
+                                   "webview-panel-stub"
+                                   {:command/name "clear-webview"}))))))
+
 #_(run-tests)
