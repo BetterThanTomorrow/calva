@@ -14,6 +14,7 @@ Calva categorizes output into three types:
 With the setting `calva.outputDestinations`, you can configure where each category of output should go to:
 
 * the [REPL Window](repl-window.md)
+* the output webview (a read-only output view that is much more performant than the REPL Window)
 * the _Calva Says_ Output Channel
 * the _Calva Output_ (pseudo) Terminal
 
@@ -27,6 +28,7 @@ These are the commands and their default keyboard shortcuts for revealing output
 * **Calva: Show/Open the Calva says Output Channel**, without focusing it - `ctrl+alt+o c`
 * **Calva: Show/Open the Calva Output Terminal**, without focusing it - `ctrl+alt+o t`
 * **Calva: Show/Open REPL Window**, also focuses it - `ctrl+alt+o r`
+* **Calva: Show/Open the REPL output webview**, without focusing it - `ctrl+alt+o w`
 
 !!! Note "Focusing the output destination"
     The commands for opening the result destination all take a boolean argument for wether they should preserve focus or not. You can register keybindings that behave differently than the default ones. E.g.:
