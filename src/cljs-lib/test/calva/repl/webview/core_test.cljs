@@ -278,4 +278,66 @@
                  :error
                  "Cannot append content to output webview. No outputCategory matches \"nonexistent-category\""))))))))
 
-(run-tests)
+(deftest stacktrace->message-test
+  (testing "Given a stacktrace with no duplicate flags and no classes to ignore, should return the expected message"
+    (let [stacktrace [{:class "clojure.lang.Numbers",
+                       :file "Numbers.java",
+                       :file-url [],
+                       :flags ["java"],
+                       :line 190,
+                       :method "divide",
+                       :name "clojure.lang.Numbers/divide",
+                       :type "java"}
+                      {:fn "eval12684",
+                       :method "invokeStatic",
+                       :ns "core",
+                       :name "core$eval12684/invokeStatic",
+                       :file "NO_SOURCE_FILE",
+                       :type "clj",
+                       :file-url "",
+                       :line 99,
+                       :var "core/eval12684",
+                       :class "core$eval12684",
+                       :flags ["project" "repl" "clj"]}]]
+      (with-redefs [sut/stacktrace-classes-to-ignore #{}]
+        (is (= "clojure.lang.Numbers/divide (Numbers.java:190)\ncore/eval12684 (NO_SOURCE_FILE:99)"
+               (sut/stacktrace->message stacktrace))))))
+  (testing "Given a stacktrace with duplicate flags and classes to ignore,"
+    (let [stacktrace [{:class "some-class-to-ignore",
+                       :file "Numbers.java",
+                       :file-url [],
+                       :flags ["java"],
+                       :line 190,
+                       :method "divide",
+                       :name "frame-with-class-to-ignore",
+                       :type "java"}
+                      {:class "clojure.lang.Numbers",
+                       :file "Numbers.java",
+                       :file-url [],
+                       :flags ["dup" "java"],
+                       :line 3915,
+                       :method "divide",
+                       :name "duplicate-frame",
+                       :type "java"}
+                      {:fn "eval12684",
+                       :method "invokeStatic",
+                       :ns "core",
+                       :name "core$eval12684/invokeStatic",
+                       :file "NO_SOURCE_FILE",
+                       :type "clj",
+                       :file-url "",
+                       :line 99,
+                       :var "core/eval12684",
+                       :class "core$eval12684",
+                       :flags ["project" "repl" "clj"]}]]
+      (with-redefs [sut/stacktrace-classes-to-ignore #{"some-class-to-ignore"}]
+        (testing "should return a message with no stacktrace frames that include duplicate flags or classes to ignore"
+          (is (= "core/eval12684 (NO_SOURCE_FILE:99)" (sut/stacktrace->message stacktrace)))))))
+  (testing "Given a stacktrace, should return entries separated by newline characters"
+    (with-redefs [sut/stacktrace-entry->string (constantly "some-entry")]
+      (is (= "some-entry\nsome-entry\nsome-entry"
+             ;; We redefed stacktrace-entry->string to always return "some-entry", so the stacktrace data doesn't
+             ;; matter here, aside from the number of entries.
+             (sut/stacktrace->message ["entry1" "entry2" "entry3"]))))))
+
+#_(run-tests)

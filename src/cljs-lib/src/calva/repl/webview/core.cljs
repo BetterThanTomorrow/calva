@@ -204,15 +204,20 @@
   (let [name (or var name)]
     (str name " (" file ":" line ")")))
 
+(defn stacktrace->message
+  "Takes a clojurefied stacktrace and returns a string representation of it for printing."
+  [stacktrace]
+  (->> stacktrace
+       (filter (fn [{:keys [flags class]}]
+                 (and (not (some #{"dup"} flags))
+                      (not (contains? stacktrace-classes-to-ignore class)))))
+       (map stacktrace-entry->string)
+       (str/join "\n")))
+
 (defn ^:export append-stacktrace
   [^js stacktrace]
   (let [stacktrace (js->clj stacktrace :keywordize-keys true)
-        stacktrace-message (->> stacktrace
-                                (filter (fn [{:keys [flags class]}]
-                                          (and (not (some #{"dup"} flags))
-                                               (not (contains? stacktrace-classes-to-ignore class)))))
-                                (map stacktrace-entry->string)
-                                (str/join "\n"))]
+        stacktrace-message (stacktrace->message stacktrace)]
     (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
                                                          :content stacktrace-message})))
 
