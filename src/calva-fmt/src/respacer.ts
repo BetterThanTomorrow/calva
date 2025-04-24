@@ -147,14 +147,9 @@ export function whitespaceEdits(
   const [a2, b2] = alignSpacedUnits(eol, a, b);
   // The result should be an equal number of words in a and b:
   if (!a2 || !b2 || a2.length != b2.length) {
-    console.error(
-      'Formatting encountered a mix-up. Only spaces should have changed',
-      'pre',
-      a2,
-      'post',
-      b2
-    );
-    return [];
+    // happens when cljfmt changes more than whitespace:
+    // e.g., {:sort-ns-references? true}
+    return [{ start: 0, end: previousText.length, text: formattedText }];
   }
   const ret: WhitespaceChange[] = [];
   let aPos = offset;
