@@ -5,6 +5,7 @@ import * as calvaVsCode from './vscode';
 import * as editor from './editor';
 import * as document from './document';
 import * as pprint from './pprint';
+import * as info from './info';
 
 export function getApi() {
   return {
@@ -23,6 +24,7 @@ export function getApi() {
       editor,
       document,
       pprint,
+      info,
     },
   };
 }
