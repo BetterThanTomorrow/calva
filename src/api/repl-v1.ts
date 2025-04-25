@@ -7,6 +7,8 @@ type Result = {
   ns: string;
   output: string;
   errorOutput: string;
+  sessionKey: string;
+  error?: string;
 };
 
 export const evaluateCode = async (
@@ -19,9 +21,12 @@ export const evaluateCode = async (
   },
   nReplEvalOptions = {}
 ): Promise<Result> => {
-  const session = replSession.getSession(sessionKey || undefined);
+  const sessionKeyToUse = replSession.getSessionKey(sessionKey);
+  const session = replSession.getSession(sessionKeyToUse || undefined);
   if (!session) {
-    throw new Error(`Can't retrieve REPL session for session key: ${sessionKey}.`);
+    throw new Error(
+      `Can't retrieve REPL session for session key: ${sessionKey} (used ${sessionKeyToUse}).`
+    );
   }
   const stdout = output
     ? output.stdout
@@ -39,12 +44,35 @@ export const evaluateCode = async (
     pprintOptions: printer.disabledPrettyPrinter,
     ...nReplEvalOptions,
   });
-  return {
-    result: await evaluation.value,
-    ns: evaluation.ns,
-    output: evaluation.outPut,
-    errorOutput: evaluation.errorOutput,
-  };
+  let result: Result;
+  try {
+    result = {
+      result: await evaluation.value,
+      ns: evaluation.ns,
+      output: evaluation.outPut,
+      errorOutput: evaluation.errorOutput,
+      sessionKey: sessionKeyToUse,
+    };
+  } catch (evalError) {
+    let error = `${evalError}`;
+    try {
+      const stacktrace = await session.stacktrace();
+      const printableStacktrace = JSON.stringify(stacktrace);
+      error += `\n\n${printableStacktrace}`;
+    } catch (fetchStacktraceError) {
+      console.error(`Calva API eval: failed to output stacktrace. ${fetchStacktraceError}`);
+    } finally {
+      result = {
+        result: 'nil',
+        ns: evaluation.ns,
+        output: evaluation.outPut,
+        errorOutput: evaluation.errorOutput,
+        sessionKey: sessionKeyToUse,
+        error,
+      };
+    }
+  }
+  return result;
 };
 
 export const currentSessionKey = () => {
