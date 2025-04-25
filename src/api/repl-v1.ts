@@ -9,6 +9,7 @@ type Result = {
   errorOutput: string;
   sessionKey: string;
   error?: string;
+  stacktrace?: any;
 };
 
 export const evaluateCode = async (
@@ -54,11 +55,9 @@ export const evaluateCode = async (
       sessionKey: sessionKeyToUse,
     };
   } catch (evalError) {
-    let error = `${evalError}`;
+    let stacktrace;
     try {
-      const stacktrace = await session.stacktrace();
-      const printableStacktrace = JSON.stringify(stacktrace);
-      error += `\n\n${printableStacktrace}`;
+      stacktrace = await session.stacktrace();
     } catch (fetchStacktraceError) {
       console.error(`Calva API eval: failed to output stacktrace. ${fetchStacktraceError}`);
     } finally {
@@ -68,7 +67,8 @@ export const evaluateCode = async (
         output: evaluation.outPut,
         errorOutput: evaluation.errorOutput,
         sessionKey: sessionKeyToUse,
-        error,
+        error: `${evalError}`,
+        stacktrace,
       };
     }
   }

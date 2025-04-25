@@ -101,7 +101,7 @@ type Result = {
   output: string;
   errorOutput: string;
   sessionKey: string;  // Actual session key used
-  error?: string;      // If present, will include raw nrepl stacktrace object
+  error?: any;      // If present, will include raw nrepl stacktrace object
 };
 ```
 
