@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.502] - 2025-04-26
+
 - Experimental: [Add `info` namespace to Calva API](https://github.com/BetterThanTomorrow/calva/issues/2795)
 
 ## [2.0.502] - 2025-04-21
