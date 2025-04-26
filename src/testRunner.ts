@@ -136,13 +136,22 @@ async function onTestResult(
 
     switch (result.type) {
       case 'error':
-        run.errored(assertion, vscode.TestMessage.diff(cider.shortMessage(result), result.expected, result.actual));
+        run.errored(
+          assertion,
+          vscode.TestMessage.diff(cider.shortMessage(result), result.expected, result.actual)
+        );
         break;
       case 'fail':
-        run.failed(assertion, vscode.TestMessage.diff(cider.detailedMessage(result), result.expected, result.actual));
+        run.failed(
+          assertion,
+          vscode.TestMessage.diff(cider.detailedMessage(result), result.expected, result.actual)
+        );
         break;
       default:
-        run.failed(assertion, vscode.TestMessage.diff(cider.shortMessage(result), result.expected, result.actual));
+        run.failed(
+          assertion,
+          vscode.TestMessage.diff(cider.shortMessage(result), result.expected, result.actual)
+        );
         break;
     }
   });
