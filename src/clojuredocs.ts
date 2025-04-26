@@ -191,7 +191,7 @@ async function clojureDocsLookup(
   }
 }
 
-async function clojureDocsCiderNReplLookup(
+export async function clojureDocsCiderNReplLookup(
   session: nrepl.NReplSession,
   symbol: string,
   ns: string
