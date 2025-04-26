@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Experimental: [Add `info` namespace to Calva API](https://github.com/BetterThanTomorrow/calva/issues/2795)
+
 ## [2.0.502] - 2025-04-21
 
 - Fix: [formatCode throws an error when output output is printed in the output window](https://github.com/BetterThanTomorrow/calva/issues/2791)
