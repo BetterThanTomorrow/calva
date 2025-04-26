@@ -2654,6 +2654,8 @@
 <span class="w">  </span><span class="nx">ns</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">output</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">errorOutput</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">sessionKey</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w">  </span><span class="c1">// Actual session key used</span>
+<span class="w">  </span><span class="nx">error?</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">;</span><span class="w">      </span><span class="c1">// If present, will include raw nrepl stacktrace object</span>
 <span class="p">};</span>
 </code></pre></div>
 <p>As you can see, the required arguments to the function are <code>sessionKey</code> and <code>code</code>. <code>sessionKey</code> should be <code>"clj"</code>, <code>"cljs"</code>, <code>"cljc"</code>, or <code>undefined</code> depending on which of Calva's REPL sessions/connections that should be used. It will depend on your project, and how you connect to it, which session keys are valid. Use <code>cljc</code> to request whatever REPL session <code>"cljc"</code> files are connected to. Use <code>undefined</code> to use the current REPL connection Calva would use (depends on which file is active).</p>
@@ -2687,8 +2689,8 @@
 </div>
 </div>
 <h4 id="handling-output">Handling Output<a class="headerlink" href="#handling-output" title="Permanent link">#</a></h4>
-<p>The <code>output</code> member on the <code>Result</code> object will have any output produced during evaluation. (The <code>errorOutput</code> member should contain error output produced, but currently some Calva bug makes this not work.) By default the stdout and stderr output is not printed anywhere.</p>
-<p>If you want to do something with either regular output or error output during, or after, evaluation, you'll need to provide the <code>output</code> argument to <code>evaluateCode()</code>. (The <code>stderr</code> callback function works, so this is the only way to get at any error output, until the above mentioned Calva bug is fixed.)</p>
+<p>The <code>output</code> member on the <code>Result</code> object will have any output produced during evaluation. By default the stdout and stderr output is not printed anywhere.</p>
+<p>If you want to do something with either regular output or error output during, or after, evaluation, you'll need to provide the <code>output</code> argument to <code>evaluateCode()</code>.</p>
 <p>An example:</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="4:3"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><input id="__tabbed_4_3" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Joyride</label><label for="__tabbed_4_2">ClojureScript</label><label for="__tabbed_4_3">JavaScript</label></div>
 <div class="tabbed-content">
