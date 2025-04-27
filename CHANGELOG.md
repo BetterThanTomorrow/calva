@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Reformat may do nothing if cljfmt's :sort-ns-references? is true](https://github.com/BetterThanTomorrow/calva/issues/2789)
+
 ## [2.0.502] - 2025-04-26
 
 - Fix: [formatCode throws an error when output output is printed in the output window](https://github.com/BetterThanTomorrow/calva/issues/2791)
