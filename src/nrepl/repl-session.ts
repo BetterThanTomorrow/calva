@@ -36,7 +36,8 @@ function getSession(fileType?: string): NReplSession {
   ) {
     return outputWindow.getSession();
   } else {
-    return cljsLib.getStateValue(sessionKey);
+    const session = cljsLib.getStateValue(sessionKey);
+    return session || null; // Return null instead of undefined when session doesn't exist
   }
 }
 
