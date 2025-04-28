@@ -6,6 +6,7 @@ import * as editor from './editor';
 import * as document from './document';
 import * as pprint from './pprint';
 import * as info from './info';
+import * as output from './output';
 
 export function getApi() {
   return {
@@ -25,6 +26,7 @@ export function getApi() {
       document,
       pprint,
       info,
+      output,
     },
   };
 }

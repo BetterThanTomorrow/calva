@@ -1,5 +1,6 @@
 import * as printer from '../printer';
 import * as replSession from '../nrepl/repl-session';
+import * as resultOutput from '../results-output/output';
 import { cljsLib } from '../utilities';
 
 type Result = {
@@ -31,13 +32,13 @@ export const evaluateCode = async (
   }
   const stdout = output
     ? output.stdout
-    : (_m: string) => {
-        // Do nothing
+    : (m: string) => {
+        resultOutput.appendOtherOut(m);
       };
   const stderr = output
-    ? output.stdout
-    : (_m: string) => {
-        // Do nothing
+    ? output.stderr
+    : (m: string) => {
+        resultOutput.appendOtherErr(m);
       };
   const evaluation = session.eval(code, ns, {
     stdout: stdout,
