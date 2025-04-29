@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import * as printer from '../printer';
 import * as replSession from '../nrepl/repl-session';
 import * as resultOutput from '../results-output/output';
@@ -79,3 +80,39 @@ export const evaluateCode = async (
 export const currentSessionKey = () => {
   return replSession.getReplSessionType(cljsLib.getStateValue('connected'));
 };
+
+//// OUTPUT ////
+
+export type OutputCategory =
+  | 'evaluationResults'
+  | 'clojureCode'
+  | 'evaluationOutput'
+  | 'evaluationErrorOutput'
+  | 'otherOutput'
+  | 'otherErrorOutput';
+
+export interface OutputMessage {
+  category: OutputCategory;
+  text: string;
+}
+
+const outputCategoryToApiCategory: Record<string, OutputCategory> = {
+  evalResults: 'evaluationResults',
+  clojure: 'clojureCode',
+  evalOut: 'evaluationOutput',
+  evalErr: 'evaluationErrorOutput',
+  otherOut: 'otherOutput',
+  otherErr: 'otherErrorOutput',
+};
+
+export function onOutputLogged(callback: (msg: OutputMessage) => void): vscode.Disposable {
+  const unsubscribe = resultOutput.subscribe((m: resultOutput.SubscriberOutputMessage) => {
+    const cat = outputCategoryToApiCategory[m.category] || 'otherOutput';
+    try {
+      callback({ category: cat, text: m.text });
+    } catch (error) {
+      console.log('API onOutputLogged callback failed', error.message);
+    }
+  });
+  return new vscode.Disposable(unsubscribe);
+}
