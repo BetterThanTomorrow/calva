@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Give API access to REPL output log](https://github.com/BetterThanTomorrow/calva/issues/2802)
+
 ## [2.0.503] - 2025-04-27
 
 - Fix: [Release 2.0.502 repl connection fails, breaking Jack-In](https://github.com/BetterThanTomorrow/calva/issues/2799) (Hopefully)
