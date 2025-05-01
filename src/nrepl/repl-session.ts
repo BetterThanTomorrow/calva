@@ -13,31 +13,27 @@ function getSessionKey(fileType?: string): string {
     fileType = getFileType(doc);
   }
 
-  // If we're in the REPL window, use its session type
-  if (outputWindow.isResultsDoc(doc)) {
-    return outputWindow.getSessionType();
-  }
-
-  // Return the detected file type if valid
   if (fileType.match(/^clj[sc]?/) && cljsLib.getStateValue(fileType)) {
     return fileType;
   }
 
-  // Default to cljc for all other cases
+  if (outputWindow.isResultsDoc(doc)) {
+    return outputWindow.getSessionType();
+  }
+
   return 'cljc';
 }
 
 function getSession(fileType?: string): NReplSession {
   const sessionKey = getSessionKey(fileType);
+  const session = cljsLib.getStateValue(sessionKey);
 
-  if (
-    sessionKey === outputWindow.getSessionType() &&
-    outputWindow.isResultsDoc(tryToGetDocument({}))
-  ) {
+  if (session) {
+    return session;
+  } else if (outputWindow.isResultsDoc(tryToGetDocument({}))) {
     return outputWindow.getSession();
   } else {
-    const session = cljsLib.getStateValue(sessionKey);
-    return session || cljsLib.getStateValue('cljc') || null;
+    return cljsLib.getStateValue('cljc') || null;
   }
 }
 
