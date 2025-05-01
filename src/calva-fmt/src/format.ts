@@ -130,9 +130,9 @@ export function formatRangeEdits(
   originalRange: vscode.Range
 ): vscode.TextEdit[] | undefined {
   // Output/REPL window holds prompts etc. The formatter cannot format it. Do not try.
-  if (outputWindow.isResultsDoc(document)) {
-    return [];
-  }
+  // if (outputWindow.isResultsDoc(document)) {
+  //   return [];
+  // }
   return rangeReformatChanges(document, originalRange, false).map((chg) =>
     vscode.TextEdit.replace(
       new vscode.Range(document.positionAt(chg.start), document.positionAt(chg.end)),
@@ -282,9 +282,9 @@ export async function formatPosition(
   let orderedChanges = undefined;
   if (isWholeDoc) {
     // Output/REPL window holds prompts etc. The formatter cannot format it. Do not try.
-    // if (outputWindow.isResultsDoc(editor.document)) {
-    //   return Promise.resolve(false);
-    // }
+    if (outputWindow.isResultsDoc(editor.document)) {
+      return Promise.resolve(false);
+    }
     orderedChanges = rangeReformatChanges(
       doc,
       new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)),
