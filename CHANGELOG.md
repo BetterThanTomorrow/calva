@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [REPL fails to connet in v2.0.503](https://github.com/BetterThanTomorrow/calva/issues/2806) (Hopefully)
+- Fix: [Runtime status error reported](https://github.com/BetterThanTomorrow/calva/issues/2808)
 
 ## [2.0.504] - 2025-05-01
 
