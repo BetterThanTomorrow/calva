@@ -103,4 +103,15 @@ describe('respacer', () => {
     );
     expect(textNotationFromDoc(actual)).toEqual(textNotationFromDoc(expected));
   });
+  it('Reformats but may lose cursors if document text changes', () => {
+    const actual = docFromTextNotation(';;a•(foo••:a)');
+    const expected = docFromTextNotation(';;bbb•(foo•  •:a)');
+    const eol = actual.model.lineEnding;
+    const spaceEdits = respacer.whitespaceEdits(eol, 0, getText(actual), getText(expected));
+    actual.model.editNow(
+      spaceEdits.map((se) => new model.ModelEdit('changeRange', [se.start, se.end, se.text])),
+      { skipFormat: true }
+    );
+    expect(textNotationFromDoc(actual)).toEqual(textNotationFromDoc(expected));
+  });
 });
