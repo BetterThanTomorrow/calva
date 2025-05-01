@@ -48,14 +48,15 @@ function nsSymbolOfCurrentForm(
   }
 }
 
-export function nsFromCursorDoc(
+/** [Namespace name, [start, end offset of range of the ns form]] or null */
+export function nsRangeFromCursorDoc(
   cursorDoc: model.EditableDocument,
   p: number = cursorDoc.selections[0].active,
   _maxRecursionDepth: number = 100, // used internally for recursion
   _depth: number = 0 // used internally for recursion
-): [string, string] | null {
+): [string, [number, number]] | null {
   if (_depth > _maxRecursionDepth) {
-    console.error(`nsFromCursorDoc: recursion depth, ${_maxRecursionDepth} , exceeded`);
+    console.error(`nsRangeFromCursorDoc: recursion depth, ${_maxRecursionDepth} , exceeded`);
     return null;
   }
   const cursor: tokenCursor.LispTokenCursor = cursorDoc.getTokenCursor(p);
@@ -65,7 +66,7 @@ export function nsFromCursorDoc(
     const topLevelRangeCursor = cursorDoc.getTokenCursor(topLevelRange[0]);
     const ns = nsSymbolOfCurrentForm(topLevelRangeCursor, 'downList');
     if (ns) {
-      return [ns, cursorDoc.model.getText(...topLevelRange)];
+      return [ns, topLevelRange];
     }
   }
   // Special case 2, find ns form from start of document
@@ -76,7 +77,7 @@ export function nsFromCursorDoc(
     while (cursor.forwardSexp(true, true, true)) {
       const ns = nsSymbolOfCurrentForm(cursor, 'backwardDownList');
       if (ns) {
-        return [ns, cursorDoc.model.getText(...cursor.rangeForCurrentForm(cursor.offsetEnd))];
+        return [ns, cursor.rangeForCurrentForm(cursor.offsetEnd)];
       }
     }
     return null;
@@ -87,7 +88,7 @@ export function nsFromCursorDoc(
     while (cursor.backwardSexp()) {
       const ns = nsSymbolOfCurrentForm(cursor, 'downList');
       if (ns) {
-        return [ns, cursorDoc.model.getText(...cursor.rangeForCurrentForm(cursor.offsetStart))];
+        return [ns, cursor.rangeForCurrentForm(cursor.offsetStart)];
       }
     }
   }
@@ -100,12 +101,33 @@ export function nsFromCursorDoc(
   // Special case 3, the structure of the document is unbalanced
   // We try to find the ns from the start of the document
   if (!cursor.docIsBalanced()) {
-    return nsFromCursorDoc(cursorDoc, 0, _maxRecursionDepth, _depth + 1);
+    return nsRangeFromCursorDoc(cursorDoc, 0, _maxRecursionDepth, _depth + 1);
   }
   // General case, continue look for ns form closest before p
-  return nsFromCursorDoc(cursorDoc, cursor.offsetStart, _maxRecursionDepth, _depth + 1);
+  return nsRangeFromCursorDoc(cursorDoc, cursor.offsetStart, _maxRecursionDepth, _depth + 1);
 }
 
+/** [Namespace name, text of the ns form] or null */
+export function nsFromCursorDoc(
+  cursorDoc: model.EditableDocument,
+  p: number = cursorDoc.selections[0].active
+): [string, string] | null {
+  const a = nsRangeFromCursorDoc(cursorDoc, p);
+  if (a === null) {
+    return null;
+  } else {
+    const [nsName, nsRange] = a;
+    return [nsName, cursorDoc.model.getText(...nsRange)];
+  }
+}
+
+/** [Namespace name, [start, end offset of range of the ns form]] or null */
+export function nsRangeFromText(text: string, p = text.length): [string, [number, number]] | null {
+  const stringDoc: model.StringDocument = new model.StringDocument(text);
+  return nsRangeFromCursorDoc(stringDoc, p);
+}
+
+/** [Namespace name, text of the ns form] or null */
 export function nsFromText(text: string, p = text.length): [string, string] | null {
   const stringDoc: model.StringDocument = new model.StringDocument(text);
   return nsFromCursorDoc(stringDoc, p);

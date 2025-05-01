@@ -59,6 +59,10 @@ function spacedUnits(s: string): SpacedUnit[] {
  * multiple words in the other (eg at punctuation).
  * Adjust a and b to the finest granularity of words
  * in either of them.
+ * If the strings diverge by text substance, not just whitespace,
+ * the final member of each array of SpacedUnits contains
+ * the entire irreconcilable remainder of the respective string
+ * in the 'space' member, and empty for the text.
  */
 function alignSpacedUnits(
   eol: string,
@@ -103,8 +107,10 @@ function alignSpacedUnits(
         b2.push([b[0][0], bPart, false]);
         b[0] = ['', b[0][1].slice(aWhole.length), false];
       } else {
-        console.error('alignSpacedUnits: a/b mismatch wherein a is shorter');
-        return [undefined, undefined];
+        // mismatched text. Stuff entire remainder in the next 'space' item:
+        a2.push([a.map((a_item) => a_item[0] + a_item[1]).join(''), '', false]);
+        b2.push([b.map((b_item) => b_item[0] + b_item[1]).join(''), '', false]);
+        break;
       }
     } else {
       // b's substance is a prefix of a's
@@ -116,8 +122,10 @@ function alignSpacedUnits(
         a2.push([a[0][0], aPart, false]);
         a[0] = ['', a[0][1].slice(bWhole.length), false];
       } else {
-        console.error('alignSpacedUnits: a/b mismatch wherein b is shorter');
-        return [undefined, undefined];
+        // mismatched text. Stuff entire remainder in the next 'space' item:
+        a2.push([a.map((a_item) => a_item[0] + a_item[1]).join(''), '', false]);
+        b2.push([b.map((b_item) => b_item[0] + b_item[1]).join(''), '', false]);
+        break;
       }
     }
   }
@@ -147,13 +155,6 @@ export function whitespaceEdits(
   const [a2, b2] = alignSpacedUnits(eol, a, b);
   // The result should be an equal number of words in a and b:
   if (!a2 || !b2 || a2.length != b2.length) {
-    console.error(
-      'Formatting encountered a mix-up. Only spaces should have changed',
-      'pre',
-      a2,
-      'post',
-      b2
-    );
     return [];
   }
   const ret: WhitespaceChange[] = [];
