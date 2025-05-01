@@ -428,13 +428,16 @@ async function activate(context: vscode.ExtensionContext) {
   let contextSettingEditor: vscode.TextEditor = undefined;
   let contextSettingCircumstances = undefined;
   function contextSettingOnChangeActiveTextEditor(editor: vscode.TextEditor) {
-    whenContexts.setCursorContextIfChanged(editor);
-    const circumstances = {
-      version: editor.document.version,
-      active: editor.selection.active,
-    };
-    contextSettingEditor = editor;
-    contextSettingCircumstances = circumstances;
+    if (whenContexts.setCursorContextIfChanged(editor)) {
+      if (editor?.document) {
+        const circumstances = {
+          version: editor.document.version,
+          active: editor.selection.active,
+        };
+        contextSettingEditor = editor;
+        contextSettingCircumstances = circumstances;
+      }
+    }
   }
   function contextSettingOnTextDocumentChangeEvent(dce: vscode.TextDocumentChangeEvent) {
     if (contextSettingEditor) {
