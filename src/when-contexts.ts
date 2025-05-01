@@ -14,10 +14,10 @@ const nsCursorContextDelayMs = 800;
 
 /*
 Quiet means no changes to document content or cursor position.
-So whenever either of those changes: 
-- Set a new timer for x milliseconds and cancel any outstanding timer. 
-- When the timer expires, 
--- if the relevant document is still active, 
+So whenever either of those changes:
+- Set a new timer for x milliseconds and cancel any outstanding timer.
+- When the timer expires,
+-- if the relevant document is still active,
 --- Calculate calva:ns
 --- Put it in effect with setContext
 One timer is sufficient to cover all documents.
@@ -53,20 +53,21 @@ const setNsCursorContextSoon = (function () {
 export let lastContexts: context.CursorContext[] = [];
 export let currentContexts: context.CursorContext[] = [];
 
-export function setCursorContextIfChanged(editor: vscode.TextEditor) {
+export function setCursorContextIfChanged(editor: vscode.TextEditor): boolean {
   if (
     !editor ||
     !editor.document ||
     editor.document.languageId !== 'clojure' ||
     editor !== util.tryToGetActiveTextEditor()
   ) {
-    return;
+    return false;
   }
   const contexts = determineCursorContexts(editor.document, editor.selections[0].active);
   setCursorContexts(contexts);
   setNsCursorContextSoon(editor, editor.document, editor.selections[0].active);
   const sessionType = session.getReplSessionType(cljsLib.getStateValue('connected'));
   void vscode.commands.executeCommand('setContext', 'calva:replSessionType', sessionType);
+  return true;
 }
 
 function determineCursorContexts(
