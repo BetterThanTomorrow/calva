@@ -241,7 +241,7 @@ function appendClojure(
       text: `${didLastTerminateLine ? '' : '\n'}${message}`,
     });
   } catch (e) {
-    console.error('Calva output-sink record error', e);
+    console.error('Calva output-sink listener error', e.message);
   }
   if (destination === 'repl-window') {
     outputWindow.appendLine(`${didLastTerminateLine ? '' : '\n'}${message}`, after);
@@ -304,7 +304,7 @@ function append(options: AppendOptions, message: string, after?: AfterAppendCall
       text: util.stripAnsi(message),
     });
   } catch (e) {
-    console.error('Calva output-sink record error', e);
+    console.error('Calva output-sink listener error', e.message);
   }
   const destination = options.destination;
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
