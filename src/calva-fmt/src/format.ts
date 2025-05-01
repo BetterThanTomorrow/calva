@@ -282,9 +282,9 @@ export async function formatPosition(
   let orderedChanges = undefined;
   if (isWholeDoc) {
     // Output/REPL window holds prompts etc. The formatter cannot format it. Do not try.
-    if (outputWindow.isResultsDoc(editor.document)) {
-      return Promise.resolve(false);
-    }
+    // if (outputWindow.isResultsDoc(editor.document)) {
+    //   return Promise.resolve(false);
+    // }
     orderedChanges = rangeReformatChanges(
       doc,
       new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)),
