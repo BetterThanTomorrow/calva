@@ -5,7 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Runtime status error reported](https://github.com/BetterThanTomorrow/calva/issues/2808)
-
+- Fix: Rich Comment Forms in [Reformat all edited locations after multicursor structural edit](https://github.com/BetterThanTomorrow/calva/issues/2738)
 
 ## [2.0.504] - 2025-05-01
 
