@@ -130,9 +130,9 @@ export function formatRangeEdits(
   originalRange: vscode.Range
 ): vscode.TextEdit[] | undefined {
   // Output/REPL window holds prompts etc. The formatter cannot format it. Do not try.
-  // if (outputWindow.isResultsDoc(document)) {
-  //   return [];
-  // }
+  if (outputWindow.isResultsDoc(document)) {
+    return [];
+  }
   return rangeReformatChanges(document, originalRange, false).map((chg) =>
     vscode.TextEdit.replace(
       new vscode.Range(document.positionAt(chg.start), document.positionAt(chg.end)),
