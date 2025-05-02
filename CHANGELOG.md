@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.506] - 2025-05-02
+
 - [Give API access to REPL output log](https://github.com/BetterThanTomorrow/calva/issues/2802)
 
 ## [2.0.505] - 2025-05-02
