@@ -16,6 +16,7 @@ import { LispTokenCursor } from '../../cursor-doc/token-cursor';
 import { formatIndexes } from './format-index';
 import * as state from '../../state';
 import * as healer from './healer';
+import { nsRangeFromText } from '../../util/ns-form';
 
 export async function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
   const editor = util.getActiveTextEditor();
@@ -51,6 +52,54 @@ export async function indentPosition(position: vscode.Position, document: vscode
   }
 }
 
+/** Micro-edits to change previousText to formattedText.
+ * The formatter usually changes only whitespace.
+ * However, its :sort-ns-references? may change text too.
+ * Computation of micro-edits is more efficient for whitespace-only changes.
+ * Therefore, if a ns form is found,
+ * we compute one set of edits for the ns form
+ * (which is 1 large, degenerate edit if more than whitespace changed)
+ * plus another set of edits for the rest of the document.
+ * In the worst case, there are multiple ns forms
+ * and the "rest-of-document" changes also degenerate
+ * to a single large edit.
+ * Micro-edits are preferable because they nudge all cursors
+ * and they seem to avoid re-syntax-highlighting,
+ * compared with replacing swaths of substantive text.
+ */
+function whitespaceAndNsEdits(
+  eol: string,
+  startIndex: number,
+  previousText: string,
+  formattedText: string
+): respacer.WhitespaceChange[] {
+  if (previousText == formattedText) {
+    return [];
+  } else {
+    const previousNsInfo = nsRangeFromText(previousText);
+    const formattedNsInfo = nsRangeFromText(formattedText);
+    if (previousNsInfo && formattedNsInfo) {
+      const [previousNsName, previousNsRange] = previousNsInfo;
+      const [formattedNsName, formattedNsRange] = formattedNsInfo;
+      const nsEdits = respacer.whitespaceEdits(
+        eol,
+        startIndex,
+        previousText.substring(0, previousNsRange[1]),
+        formattedText.substring(0, formattedNsRange[1])
+      );
+      const otherEdits = respacer.whitespaceEdits(
+        eol,
+        startIndex + previousNsRange[1],
+        previousText.substring(previousNsRange[1]),
+        formattedText.substring(formattedNsRange[1])
+      );
+      return [...otherEdits, ...nsEdits];
+    } else {
+      return respacer.whitespaceEdits(eol, startIndex, previousText, formattedText);
+    }
+  }
+}
+
 /** undefined if range starts in a string or comment */
 function rangeReformatChanges(
   document: vscode.TextDocument,
@@ -69,9 +118,7 @@ function rangeReformatChanges(
     const formattedHealedText = formatCode(healing.healedText, document.eol);
     const newTextDraft = healer.unbandage(healing, formattedHealedText);
     // unbandage aligned top-level forms flush-left, except the first one.
-    return originalText == newTextDraft
-      ? []
-      : respacer.whitespaceEdits(eol, startIndex, originalText, newTextDraft);
+    return whitespaceAndNsEdits(eol, startIndex, originalText, newTextDraft);
   } else {
     console.warn('Range starting in comment or string is not being formatted');
     return [];
@@ -156,12 +203,7 @@ export function formatDocIndexesInfo(
     new vscode.Range(doc.positionAt(formatRange[0]), doc.positionAt(formatRange[1]))
   );
   const formattedText = formatted['range-text'];
-  const changes = respacer.whitespaceEdits(
-    eol,
-    doc.offsetAt(range.start),
-    previousText,
-    formattedText
-  );
+  const changes = whitespaceAndNsEdits(eol, doc.offsetAt(range.start), previousText, formattedText);
   return {
     formattedText: formattedText,
     range: range,

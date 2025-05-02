@@ -6,6 +6,15 @@ Changes to Calva.
 
 - [Use VSCode test message diff view to see side-by-side test results](https://github.com/BetterThanTomorrow/calva/issues/2797)
 
+## [2.0.505] - 2025-05-02
+
+- Fix: [REPL fails to connet in v2.0.503](https://github.com/BetterThanTomorrow/calva/issues/2806) (Hopefully)
+- Fix: [Runtime status error reported](https://github.com/BetterThanTomorrow/calva/issues/2808)
+
+## [2.0.504] - 2025-05-01
+
+- Fix: [Reformat may do nothing if cljfmt's :sort-ns-references? is true](https://github.com/BetterThanTomorrow/calva/issues/2789)
+
 ## [2.0.503] - 2025-04-27
 
 - Fix: [Release 2.0.502 repl connection fails, breaking Jack-In](https://github.com/BetterThanTomorrow/calva/issues/2799) (Hopefully)
