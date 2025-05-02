@@ -1888,6 +1888,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#replonoutputlogged" class="md-nav__link">
+    <span class="md-ellipsis">
+      repl.onOutputLogged()
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2364,6 +2373,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#replonoutputlogged" class="md-nav__link">
+    <span class="md-ellipsis">
+      repl.onOutputLogged()
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2747,6 +2765,26 @@
 </div>
 </div>
 </div>
+<h3 id="replonoutputlogged"><code>repl.onOutputLogged()</code><a class="headerlink" href="#replonoutputlogged" title="Permanent link">#</a></h3>
+<p>Subscribe to Calva REPL output messages. Returns a <code>vscode.Disposable</code> that you should dispose when you no longer need updates. (For fire-and-forget convenience, push it onto your extension’s <code>context.subscriptions</code>).</p>
+<p>The signature in TypeScript:</p>
+<div class="highlight"><pre><span></span><code><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">onOutputLogged</span><span class="p">(</span>
+<span class="w">  </span><span class="nx">callback</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">msg</span><span class="o">:</span><span class="w"> </span><span class="kt">OutputMessage</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span>
+<span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nx">vscode</span><span class="p">.</span><span class="nx">Disposable</span><span class="p">;</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nx">OutputCategory</span><span class="w"> </span><span class="o">=</span>
+<span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;evaluationResults&#39;</span>
+<span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;clojureCode&#39;</span>
+<span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;evaluationOutput&#39;</span>
+<span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;evaluationErrorOutput&#39;</span>
+<span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;otherOutput&#39;</span>
+<span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;otherErrorOutput&#39;</span><span class="p">;</span>
+
+<span class="k">export</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nx">OutputMessage</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">category</span><span class="o">:</span><span class="w"> </span><span class="kt">OutputCategory</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
 <h2 id="ranges"><code>ranges</code><a class="headerlink" href="#ranges" title="Permanent link">#</a></h2>
 <p>The <code>ranges</code> module contains functions for retreiving <a href="https://code.visualstudio.com/api/references/vscode-api#Range">vscode.Range</a>s and text for pieces of interest in a Clojure document.</p>
 <p>All functions in this module have the following TypeScript signature:</p>
