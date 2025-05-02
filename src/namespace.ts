@@ -18,6 +18,7 @@ export function getNamespace(
     if (outputWindowNs) {
       return [outputWindowNs, `(in-ns '${outputWindowNs})`];
     }
+  }
   if (doc && doc.languageId == 'clojure') {
     try {
       const cursorDoc = docMirror.getDocument(doc);
