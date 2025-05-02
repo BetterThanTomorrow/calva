@@ -10,7 +10,35 @@ import * as printer from '../printer';
 
 const customChalk = new chalk.Instance({ level: 3 });
 
-type OutputCategory = 'evalResults' | 'clojure' | 'evalOut' | 'evalErr' | 'otherOut' | 'otherErr';
+export interface SubscriberOutputMessage {
+  category: OutputCategory;
+  text: string;
+}
+
+type Listener = (msg: SubscriberOutputMessage) => void;
+const listeners = new Set<Listener>();
+
+/**
+ * Subscribe to every emitted output message. Returns an unsubscribe fn.
+ */
+export function subscribe(listener: Listener): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function emit(msg: SubscriberOutputMessage) {
+  for (const listener of listeners) {
+    listener(msg);
+  }
+}
+
+export type OutputCategory =
+  | 'evalResults'
+  | 'clojure'
+  | 'evalOut'
+  | 'evalErr'
+  | 'otherOut'
+  | 'otherErr';
 
 type AppendOptions = {
   destination: OutputDestination;
@@ -207,6 +235,14 @@ function appendClojure(
   const destination = options.destination;
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = true;
+  try {
+    emit({
+      category: options.outputCategory,
+      text: `${didLastTerminateLine ? '' : '\n'}${message}`,
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
   if (destination === 'repl-window') {
     outputWindow.appendLine(`${didLastTerminateLine ? '' : '\n'}${message}`, after);
   } else if (destination === 'output-channel') {
@@ -262,6 +298,14 @@ export function appendClojureOther(message: string, after?: AfterAppendCallback)
 }
 
 function append(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+  try {
+    emit({
+      category: options.outputCategory,
+      text: util.stripAnsi(message),
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
   const destination = options.destination;
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = util.stripAnsi(message).endsWith('\n');
@@ -343,7 +387,7 @@ export function appendOtherOut(message: string, after?: AfterAppendCallback) {
 }
 
 /**
- * Appends output without adding a newline at the end.
+ * Appends error output without adding a newline at the end.
  * Use for stderr and other error messages not related to an evaluation
  * (e.g. out of band messages)
  * @param message The message to append
