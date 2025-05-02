@@ -5,6 +5,10 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Give API access to REPL output log](https://github.com/BetterThanTomorrow/calva/issues/2802)
+
+## [2.0.505] - 2025-05-02
+
+- Fix: [REPL fails to connet in v2.0.503](https://github.com/BetterThanTomorrow/calva/issues/2806) (Hopefully)
 - Fix: [Runtime status error reported](https://github.com/BetterThanTomorrow/calva/issues/2808)
 
 ## [2.0.504] - 2025-05-01
