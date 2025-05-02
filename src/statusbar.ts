@@ -91,7 +91,7 @@ function update() {
       typeStatus.text = ['cljc', config.REPL_FILE_EXT, config.FIDDLE_FILE_EXT].includes(fileType)
         ? `cljc/${replType}`
         : replType;
-      if (cljSession.replType !== cljsSession?.replType) {
+      if (cljSession?.replType !== cljsSession?.replType) {
         typeStatus.command = 'calva.toggleCLJCSession';
         typeStatus.tooltip = `Click to use ${replType === 'clj' ? 'cljs' : 'clj'} REPL for cljc`;
       } else {
