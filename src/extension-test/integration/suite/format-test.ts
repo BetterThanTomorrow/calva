@@ -52,7 +52,9 @@ async function reformat(editor: vscode.TextEditor, textAndSelections: string) {
   );
   await new Promise((resolve) => setTimeout(resolve, pauseMs));
   const emptiedText = getText(editor.document);
-  if (emptiedText != '') { console.error("Supposedly emptied document contains", emptiedText) };
+  if (emptiedText != '') {
+    console.error('Supposedly emptied document contains', emptiedText);
+  }
   await editor.edit((ed) => {
     ed.insert(new vscode.Position(0, 0), text);
   });
