@@ -15,8 +15,9 @@ export function getNamespace(
 ): NsAndNsForm {
   if (outputWindow.isResultsDoc(doc)) {
     const outputWindowNs = outputWindow.getNs();
-    utilities.assertIsDefined(outputWindowNs, 'Expected repl window to have a namespace!');
-    return [outputWindowNs, `(in-ns '${outputWindowNs})`];
+    if (outputWindowNs) {
+      return [outputWindowNs, `(in-ns '${outputWindowNs})`];
+    }
   }
   if (doc && doc.languageId == 'clojure') {
     try {
