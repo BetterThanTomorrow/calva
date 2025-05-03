@@ -1966,7 +1966,8 @@
       {
         "category": "Calva",
         "command": "calva.showReplOutputWebview",
-        "title": "Show/Open the REPL output webview"
+        "title": "Show/Open the REPL output webview",
+        "enablement": "calva:connected"
       },
       {
         "category": "Calva",
