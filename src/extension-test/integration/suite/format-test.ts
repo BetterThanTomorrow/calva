@@ -92,6 +92,7 @@ suite(suiteName, () => {
   });
 
   it('should add indenting spaces on lines where cursors are', async () => {
+    await new Promise((resolve) => setTimeout(resolve, 5 * pauseMs));
     assert.equal(await reformatUsingActiveEditor('(foo•|•|1 :a)'), '(foo•  |•|1  :a)');
   });
 
