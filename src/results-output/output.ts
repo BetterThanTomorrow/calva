@@ -169,7 +169,7 @@ export function showResultOutputDestination(preserveFocus = true) {
     return showOutputTerminal(preserveFocus);
   }
   if (getDestinationConfiguration().evalResults === 'webview') {
-    return showReplOutputWebviewPanel();
+    return showReplOutputWebviewPanel(preserveFocus);
   }
   return outputWindow.revealResultsDoc(preserveFocus);
 }

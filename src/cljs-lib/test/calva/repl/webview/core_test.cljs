@@ -210,7 +210,7 @@
                     sut/repl-output-webview-panel (atom nil)
                     sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
                     sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)]
-        (sut/show-repl-output-webview-panel)
+        (sut/show-repl-output-webview-panel true)
         (testing "Should call create-repl-output-webview-panel with expected args"
           (is (spy/called-once-with? create-repl-output-webview-panel-spy expected-context)))
         (testing "Should set repl-output-webview-panel to the result of create-repl-output-webview-panel"
@@ -237,11 +237,11 @@
                     sut/repl-output-webview-panel (atom webview-panel-stub)
                     sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
                     sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)]
-        (sut/show-repl-output-webview-panel)
+        (sut/show-repl-output-webview-panel false)
         (testing "should not call create-repl-output-webview-panel"
           (is (spy/not-called? create-repl-output-webview-panel-spy)))
-        (testing "should call reveal on webview panel with expected args"
-          (is (spy/called-once-with? reveal-spy nil true)))
+        (testing "and false is passed for preserve-focus? arg, should call reveal on webview panel with expected args"
+          (is (spy/called-once-with? reveal-spy nil false)))
         (testing "should call set-code-theme! with expected args"
           (is (spy/called-once-with? set-code-theme!-spy expected-context {:color-theme-kind color-theme-kind
                                                                            :webview-panel webview-panel-stub})))))))

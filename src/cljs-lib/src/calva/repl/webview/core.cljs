@@ -165,14 +165,15 @@
     webview-panel))
 
 ;; TODO: Write spec/schema for context
-(defn ^:export show-repl-output-webview-panel []
+(defn ^:export show-repl-output-webview-panel
+  [preserve-focus?]
   (let [context {:env/is-debug (:is-debug util/env)
                  :vscode/vscode @util/vscode
                  :vscode/context @util/vscode-context}
         ^js webview-panel (or @repl-output-webview-panel
                               (reset! repl-output-webview-panel (create-repl-output-webview-panel context)))
         active-code-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)]
-    (.. webview-panel (reveal nil true))
+    (.. webview-panel (reveal nil preserve-focus?))
     (set-code-theme! context {:color-theme-kind active-code-theme-kind
                               :webview-panel webview-panel})))
 
