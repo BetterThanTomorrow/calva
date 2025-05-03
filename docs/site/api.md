@@ -204,6 +204,31 @@ An example:
     }
     ```
 
+### `repl.onOutputLogged()`
+
+Subscribe to Calva REPL output messages. Returns a `vscode.Disposable` that you should dispose when you no longer need updates. (For fire-and-forget convenience, push it onto your extension’s `context.subscriptions`).
+
+The signature in TypeScript:
+
+```typescript
+export function onOutputLogged(
+  callback: (msg: OutputMessage) => void
+): vscode.Disposable;
+
+export type OutputCategory =
+  | 'evaluationResults'
+  | 'clojureCode'
+  | 'evaluationOutput'
+  | 'evaluationErrorOutput'
+  | 'otherOutput'
+  | 'otherErrorOutput';
+
+export interface OutputMessage {
+  category: OutputCategory;
+  text: string;
+}
+```
+
 ## `ranges`
 
 The `ranges` module contains functions for retreiving [vscode.Range](https://code.visualstudio.com/api/references/vscode-api#Range)s and text for pieces of interest in a Clojure document.

@@ -5,6 +5,11 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Use VSCode test message diff view to see side-by-side test results](https://github.com/BetterThanTomorrow/calva/issues/2797)
+- Bump default `cider-nrepl` Jack-in dependency to `0.55.4`
+
+## [2.0.506] - 2025-05-02
+
+- [Give API access to REPL output log](https://github.com/BetterThanTomorrow/calva/issues/2802)
 
 ## [2.0.505] - 2025-05-02
 
