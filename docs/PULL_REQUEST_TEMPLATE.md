@@ -45,4 +45,4 @@ I have:
 
 <!-- This is a nice book to read about the power of checklists: https://www.samuelthomasdavies.com/book-summaries/health-fitness/the-checklist-manifesto/ -->
 
-Ping @pez, @bpringe, @corasaurus-hex, @Cyrik
+Ping @pez, @corasaurus-hex, @Cyrik
