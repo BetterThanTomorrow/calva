@@ -39,18 +39,24 @@ function textNotationFromDocAndSelections(
   return textNotation.textNotationFromTextAndSelections(text, ranges, prettyPrint);
 }
 
+const pauseMs = 1000;
+
 /** Cursor positions indicated in textAndSelections by |, |1, |2, etc. */
 async function reformat(editor: vscode.TextEditor, textAndSelections: string) {
   const [text, selectionsAsOffsets] =
     textNotation.textNotationToTextAndSelection(textAndSelections);
   await vscode.commands.executeCommand('editor.action.selectAll');
-  await new Promise((resolve) => setTimeout(resolve, 125));
-  await vscode.commands.executeCommand('editor.action.clipboardCutAction');
-  await new Promise((resolve) => setTimeout(resolve, 125));
+  await new Promise((resolve) => setTimeout(resolve, pauseMs));
+  await vscode.commands.executeCommand(
+    'paredit.deleteForward' /*'editor.action.clipboardCutAction'*/
+  );
+  await new Promise((resolve) => setTimeout(resolve, pauseMs));
+  const emptiedText = getText(editor.document);
+  if (emptiedText != '') { console.error("Supposedly emptied document contains", emptiedText) };
   await editor.edit((ed) => {
     ed.insert(new vscode.Position(0, 0), text);
   });
-  await new Promise((resolve) => setTimeout(resolve, 125));
+  await new Promise((resolve) => setTimeout(resolve, pauseMs));
   editor.selections = selectionsAsOffsets.map(
     ([anchorOffset, activeOffset]) =>
       new vscode.Selection(
@@ -58,9 +64,9 @@ async function reformat(editor: vscode.TextEditor, textAndSelections: string) {
         editor.document.positionAt(activeOffset)
       )
   );
-  await new Promise((resolve) => setTimeout(resolve, 125));
+  await new Promise((resolve) => setTimeout(resolve, pauseMs));
   await vscode.commands.executeCommand('calva-fmt.formatCurrentForm');
-  await new Promise((resolve) => setTimeout(resolve, 125));
+  await new Promise((resolve) => setTimeout(resolve, pauseMs));
   return textNotationFromDocAndSelections(editor.document, editor.selections);
 }
 
