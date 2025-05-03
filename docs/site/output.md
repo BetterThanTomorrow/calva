@@ -32,7 +32,6 @@ These are the commands and their default keyboard shortcuts for revealing output
 
 !!! Note "Focusing the output destination"
     The commands for opening the result destination all take a boolean argument for whether they should preserve focus or not. You can register keybindings that behave differently than the default ones. E.g.:
-
     ```json
     {
       "key": "ctrl+alt+o ctrl+alt+o",
@@ -63,6 +62,15 @@ When Calva is connected to the REPL, the Output destination will by default prin
 3. Anything printed to `stdout` and `stderr` by the REPL process
 
 You can control the default via the `calva.redirectServerOutputToRepl` setting. It defaults to `true`. Setting it to `false` before connecting the REPL will result in that **2.** and **3.** will not get printed in the Output destination. It will then instead be printed wherever the REPL process is printing its messages, usually the terminal from where it was started (the **Jack-in terminal** if Calva started the REPL).
+
+Examples:
+
+```clojure
+;; With redirectServerOutputToRepl set to true, these will print in the REPL output destination
+;; With redirectServerOutputToRepl set to false, these will print wherever the REPL process is printing its messages
+(.start (Thread. (fn [] (/ 1 0))))
+(.start (Thread. (fn [] (println "hello world"))))
+```
 
 ## See also
 
