@@ -30,12 +30,12 @@ When using Joyride you can use its unique `require` API, for which one of the be
 
     ```clojure
     (def calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
-    
+
     (def calva (-> calvaExt
                  .-exports
                  .-v1
                  (js->clj :keywordize-keys true)))
-    
+
     ((get-in calva [:repl :currentSessionKey])) => "cljs" ; or "clj", depending
     ```
 
@@ -100,6 +100,8 @@ type Result = {
   ns: string;
   output: string;
   errorOutput: string;
+  sessionKey: string;  // Actual session key used
+  error?: any;      // If present, will include raw nrepl stacktrace object
 };
 ```
 
@@ -139,9 +141,9 @@ An example:
 
 #### Handling Output
 
-The `output` member on the `Result` object will have any output produced during evaluation. (The `errorOutput` member should contain error output produced, but currently some Calva bug makes this not work.) By default the stdout and stderr output is not printed anywhere.
+The `output` member on the `Result` object will have any output produced during evaluation. By default the stdout and stderr output is not printed anywhere.
 
-If you want to do something with either regular output or error output during, or after, evaluation, you'll need to provide the `output` argument to `evaluateCode()`. (The `stderr` callback function works, so this is the only way to get at any error output, until the above mentioned Calva bug is fixed.)
+If you want to do something with either regular output or error output during, or after, evaluation, you'll need to provide the `output` argument to `evaluateCode()`.
 
 An example:
 
@@ -201,6 +203,31 @@ An example:
       console.error("Evaluation error:", e);
     }
     ```
+
+### `repl.onOutputLogged()`
+
+Subscribe to Calva REPL output messages. Returns a `vscode.Disposable` that you should dispose when you no longer need updates. (For fire-and-forget convenience, push it onto your extension’s `context.subscriptions`).
+
+The signature in TypeScript:
+
+```typescript
+export function onOutputLogged(
+  callback: (msg: OutputMessage) => void
+): vscode.Disposable;
+
+export type OutputCategory =
+  | 'evaluationResults'
+  | 'clojureCode'
+  | 'evaluationOutput'
+  | 'evaluationErrorOutput'
+  | 'otherOutput'
+  | 'otherErrorOutput';
+
+export interface OutputMessage {
+  category: OutputCategory;
+  text: string;
+}
+```
 
 ## `ranges`
 

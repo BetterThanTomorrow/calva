@@ -3,20 +3,37 @@ import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
 import * as outputWindow from '../repl-window/repl-doc';
 import { isUndefined } from 'lodash';
 
-function getSession(fileType?: string): NReplSession {
+/**
+ * Determines the appropriate session key based on file type and context
+ */
+function getSessionKey(fileType?: string): string {
   const doc = tryToGetDocument({});
 
   if (isUndefined(fileType)) {
     fileType = getFileType(doc);
   }
+
   if (fileType.match(/^clj[sc]?/) && cljsLib.getStateValue(fileType)) {
-    return cljsLib.getStateValue(fileType);
+    return fileType;
+  }
+
+  if (outputWindow.isResultsDoc(doc)) {
+    return outputWindow.getSessionType();
+  }
+
+  return 'cljc';
+}
+
+function getSession(fileType?: string): NReplSession {
+  const sessionKey = getSessionKey(fileType);
+  const session = cljsLib.getStateValue(sessionKey);
+
+  if (session) {
+    return session;
+  } else if (outputWindow.isResultsDoc(tryToGetDocument({}))) {
+    return outputWindow.getSession();
   } else {
-    if (outputWindow.isResultsDoc(doc)) {
-      return outputWindow.getSession();
-    } else {
-      return cljsLib.getStateValue('cljc');
-    }
+    return cljsLib.getStateValue('cljc') || null;
   }
 }
 
@@ -53,4 +70,10 @@ function getReplSessionTypeFromState() {
   return cljsLib.getStateValue('current-session-type');
 }
 
-export { getSession, getReplSessionType, updateReplSessionType, getReplSessionTypeFromState };
+export {
+  getSession,
+  getReplSessionType,
+  updateReplSessionType,
+  getReplSessionTypeFromState,
+  getSessionKey,
+};

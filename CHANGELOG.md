@@ -4,6 +4,33 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.507] - 2025-05-03
+
+- [Use VSCode test message diff view to see side-by-side test results](https://github.com/BetterThanTomorrow/calva/issues/2797)
+- Bump default `cider-nrepl` Jack-in dependency to `0.55.4`
+
+## [2.0.506] - 2025-05-02
+
+- [Give API access to REPL output log](https://github.com/BetterThanTomorrow/calva/issues/2802)
+
+## [2.0.505] - 2025-05-02
+
+- Fix: [REPL fails to connet in v2.0.503](https://github.com/BetterThanTomorrow/calva/issues/2806) (Hopefully)
+- Fix: [Runtime status error reported](https://github.com/BetterThanTomorrow/calva/issues/2808)
+
+## [2.0.504] - 2025-05-01
+
+- Fix: [Reformat may do nothing if cljfmt's :sort-ns-references? is true](https://github.com/BetterThanTomorrow/calva/issues/2789)
+
+## [2.0.503] - 2025-04-27
+
+- Fix: [Release 2.0.502 repl connection fails, breaking Jack-In](https://github.com/BetterThanTomorrow/calva/issues/2799) (Hopefully)
+
+## [2.0.502] - 2025-04-26
+
+- Fix: [formatCode throws an error when output output is printed in the output window](https://github.com/BetterThanTomorrow/calva/issues/2791)
+- Experimental: [Add `info` namespace to Calva API](https://github.com/BetterThanTomorrow/calva/issues/2795)
+
 ## [2.0.501] - 2025-04-15
 
 - Fix: [Formatting top level trims empty lines at the start and end of the document](https://github.com/BetterThanTomorrow/calva/issues/2780)
