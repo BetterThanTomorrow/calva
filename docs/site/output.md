@@ -11,12 +11,12 @@ Calva categorizes output into three types:
 * **evaluation output**: stdout/stderr from an evaluation
 * **other output**: Other messages, logs, etc
 
-With the setting `calva.outputDestinations`, you can configure where each category of output should go to:
+With the setting `calva.outputDestinations`, you can configure where each category of output should go to. These are the allowed values and their descriptions:
 
-* the [REPL Window](repl-window.md)
-* the output webview (a read-only output view that is much more performant than the REPL Window)
-* the _Calva Says_ Output Channel
-* the _Calva Output_ (pseudo) Terminal
+* `"repl-window"` - The [REPL Window](repl-window.md) (an editor-based read/write output view). This is the default value.
+* `"webview"` - The [output webview](output-webview.md) (a read-only webview that is much more performant than the REPL Window)
+* `"output-channel"` - The _Calva Says_ Output Channel
+* `"terminal"` - The _Calva Output_ (pseudo) Terminal
 
 The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of different views in different ways. We hope you will find a combination of output destinations that suits you.
 
@@ -76,3 +76,4 @@ Examples:
 
 * [The Calva Results Inspector](inspector.md)
 * [The REPL Window](repl-window.md)
+* [The Output Webview](output-webview.md)

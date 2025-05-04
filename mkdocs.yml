@@ -24,12 +24,12 @@ edit_uri: edit/published/docs/site
 #strict: true
 plugins:
   - search:
-     separator: '[\s\-\._]'
+      separator: '[\s\-\._]'
   - social:
       cards: true
       cards_color:
-        fill: "#db9550"
-        text: "#fafafa"
+        fill: '#db9550'
+        text: '#fafafa'
 markdown_extensions:
   - meta
   - attr_list
@@ -45,74 +45,75 @@ markdown_extensions:
 nav:
   - index.md
   - Start Here:
-    - getting-started.md
-    - connect.md
-    - try-first.md
-    - finding-commands.md
-    - eval-tips.md
+      - getting-started.md
+      - connect.md
+      - try-first.md
+      - finding-commands.md
+      - eval-tips.md
   - why-calva.md
   - Features:
-    - commands-top10.md
-    - evaluation.md
-    - formatting.md
-    - syntax-highlighting.md
-    - paredit.md
-    - REPL:
-      - repl-window.md
-      - output.md
-      - inspector.md
-      - fiddle-files.md
-      - connect-sequences.md
-      - custom-commands.md
-      - flares.md
-    - refactoring.md
-    - notebooks.md
-    - clojuredocs.md
-    - debugger.md
-    - pprint.md
-    - test-runner.md
-    - rich-comments.md
-    - hiccup.md
+      - commands-top10.md
+      - evaluation.md
+      - formatting.md
+      - syntax-highlighting.md
+      - paredit.md
+      - REPL:
+          - repl-window.md
+          - output-webview.md
+          - output.md
+          - inspector.md
+          - fiddle-files.md
+          - connect-sequences.md
+          - custom-commands.md
+          - flares.md
+      - refactoring.md
+      - notebooks.md
+      - clojuredocs.md
+      - debugger.md
+      - pprint.md
+      - test-runner.md
+      - rich-comments.md
+      - hiccup.md
   - Via clojure-lsp:
-    - clojure-lsp.md
-    - linting.md
-    - namespace-form-auto-creation.md
+      - clojure-lsp.md
+      - linting.md
+      - namespace-form-auto-creation.md
   - Customizing Calva:
-    - customizing.md
-    - customizing-jack-in-and-connect.md
-    - when-clauses.md
+      - customizing.md
+      - customizing-jack-in-and-connect.md
+      - when-clauses.md
   - nrepl_and_cider-nrepl.md
   - Using Calva with ...:
-    - shadow-cljs.md
-    - wsl.md
-    - remote-development.md
-    - live-share.md
-    - vim.md
-    - reveal.md
-    - babashka.md
-    - nbb.md
-    - basilisp.md
-    - joyride.md
-    - clojuredart.md
-    - luminus.md
-    - re-frame-template.md
-    - polylith.md
-    - krell.md
-    - rebl.md
-    - parinfer.md
+      - shadow-cljs.md
+      - wsl.md
+      - remote-development.md
+      - live-share.md
+      - vim.md
+      - reveal.md
+      - babashka.md
+      - nbb.md
+      - basilisp.md
+      - joyride.md
+      - clojuredart.md
+      - luminus.md
+      - re-frame-template.md
+      - polylith.md
+      - krell.md
+      - rebl.md
+      - parinfer.md
   - Tips and Tricks:
-    - emacs-keybindings.md
-    - workspace-layouts.md
-    - quirks.md
-    - async-out.md
-    - clj-java-decompiler.md
-    - virgil.md
+      - emacs-keybindings.md
+      - workspace-layouts.md
+      - quirks.md
+      - async-out.md
+      - clj-java-decompiler.md
+      - virgil.md
   - API:
-    - api.md
-    - commands.md
+      - api.md
+      - commands.md
   - Guides:
-    - get-started-with-clojure.md
-    - jack-in-guide.md
+      - get-started-with-clojure.md
+      - jack-in-guide.md
   - tao.md
   - contribute.md
   - sponsors.md
