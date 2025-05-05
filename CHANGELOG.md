@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add webview for REPL output](https://github.com/BetterThanTomorrow/calva/issues/2480)
+
 ## [2.0.507] - 2025-05-03
 
 - [Use VSCode test message diff view to see side-by-side test results](https://github.com/BetterThanTomorrow/calva/issues/2797)
