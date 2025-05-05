@@ -34,12 +34,7 @@
          {:output-element/id (random-uuid)}))
 
 (defonce state
-  (atom {:repl-output/elements
-         ;; TODO: Create schemas for these elements
-         [#_(repl-output-element {:output-element/type :output-element.type/eval-result
-                                  :output-element/content "{:a 1}"})
-          #_(repl-output-element {:output-element/type :output-element.type/stdout
-                                  :output-element/content "hello world"})]}))
+  (atom {:repl-output/elements []}))
 
 (defn clojure-code-hiccup
   "Accepts a string of Clojure code and returns hiccup for rendering it in the output view."
