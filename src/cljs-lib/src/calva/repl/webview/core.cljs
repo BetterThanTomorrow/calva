@@ -157,6 +157,9 @@
                                 ;; If performance or memory consumption becomes a problem, we can use the setState
                                 ;; and getState to manually retain the context of the webview when it's hidden.
                                 ;; See https://code.visualstudio.com/api/extension-guides/webview#persistence
+                                ;; See also: https://code.visualstudio.com/api/references/vscode-api#WebviewPanelOptions
+                                ;; "retainContextWhenHidden has a high memory overhead and should only be used if your
+                                ;; panel's context cannot be quickly saved and restored."
                                 :retainContextWhenHidden true
                                 :enableFindWidget true}))]
     (.. ^js webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel))))
