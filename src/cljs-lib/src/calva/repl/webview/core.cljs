@@ -226,7 +226,3 @@
 
 (defn ^:export clear-webview []
   (post-message-to-webview @repl-output-webview-panel {:command/name "clear-webview"}))
-
-;; TODO: See if can send repl output to webview when it's hidden and see it once unhidden
-;; "You cannot send messages to a hidden webview, even when retainContextWhenHidden is enabled."
-;; https://code.visualstudio.com/api/extension-guides/webview#theming-webview-content
