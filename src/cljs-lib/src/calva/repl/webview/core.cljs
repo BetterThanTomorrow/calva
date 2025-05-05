@@ -164,7 +164,6 @@
     (add-subscriptions! context {:webview-panel webview-panel})
     webview-panel))
 
-;; TODO: Write spec/schema for context
 (defn ^:export show-repl-output-webview-panel
   [preserve-focus?]
   (let [context {:env/is-debug (:is-debug util/env)
