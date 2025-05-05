@@ -537,7 +537,6 @@ function formatStacktrace(stacktrace: any[]) {
 function printStackTrace(stacktrace: any[]) {
   const evalResultsOutputDestination = getDestinationConfiguration().evalResults;
   switch (evalResultsOutputDestination) {
-    // TODO: Make these strings an enum
     case 'repl-window':
       outputWindow.printLastStacktrace();
       replWindowAppendPrompt();
