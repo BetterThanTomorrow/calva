@@ -180,13 +180,13 @@ export function formatDocIndexesInfo(
   extraConfig: CljFmtConfig = {}
 ) {
   const mDoc = getDocument(doc);
-  const cursor = mDoc.getTokenCursor(indexOfRange);
   const formatRange = formatDocIndexRange(doc, indexOfRange, extraConfig);
   if (!formatRange || (formatRange[0] == -1 && formatRange[1] == -1)) {
     return;
   }
   const eol = _convertEolNumToStringNotation(doc.eol);
 
+  const cursor = mDoc.getTokenCursor(1 + formatRange[0]);
   const formatted: {
     'range-text': string;
     range: number[];
