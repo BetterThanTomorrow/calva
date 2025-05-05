@@ -349,7 +349,6 @@ function append(options: AppendOptions, message: string, after?: AfterAppendCall
   }
   if (destination === 'webview') {
     appendToReplOutputWebview(options, message);
-    return;
   }
 }
 
