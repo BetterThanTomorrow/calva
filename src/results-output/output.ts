@@ -440,7 +440,6 @@ function appendLine(options: AppendOptions, message: string, after?: AfterAppend
   if (destination === 'terminal') {
     append(options, message + '\r\n', after);
   }
-  // TODO: Assign these destination strings to variables and use the variables
   if (destination === 'webview') {
     appendToReplOutputWebview(options, message);
   }
