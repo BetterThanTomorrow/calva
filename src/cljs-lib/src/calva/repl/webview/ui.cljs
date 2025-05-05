@@ -73,14 +73,8 @@
   [_key _atom _old-state _new-state]
   (.. output-dom-element (scrollIntoView #js {:behavior "instant" :block "end"})))
 
-(defn save-state
-  [_key _atom _old-state new-state]
-  (.. vs-code-api (saveState new-state)))
-
-;; TODO: Use this map to add watches to the state atom
 (def state-watchers
-  {#_#_:save-state save-state
-   :render-repl-output render-repl-output
+  {:render-repl-output render-repl-output
    :scroll-to-bottom scroll-to-bottom})
 
 (run! (fn [[key f]]
@@ -130,18 +124,4 @@
 
 (defn ^:export main []
   (add-event-listeners)
-  ;; TODO: Persist state and reload it when webview is created so that the webview content persists
-  ;; in the UI when the webview is hidden then focused again
-  ;; https://code.visualstudio.com/api/extension-guides/webview#persistence
   (render @state))
-
-(comment
-  (def code-theme-links (js/document.querySelectorAll "[data-code-theme]"))
-  (.. code-theme-links (forEach (fn [node]
-                                  (prn node))))
-  (time (dotimes [_ 1000000] (clojure.string/capitalize "aBcDeF")))
-  (simple-benchmark [] (clojure.string/capitalize "aBcDeF") 1000000)
-  (.. vs-code-api (setState @state))
-  (.. vs-code-api (getState))
-  (js/acquireVsCodeApi)
-  :rcf)
