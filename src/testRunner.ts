@@ -216,7 +216,7 @@ async function reportTests(
       const resultSet = result.results[ns];
       for (const test in resultSet) {
         for (const resultsForTest of resultSet[test]) {
-          // TODO: The logic below should be refactored in the future so that output is handled in a separate place
+          // The logic below should be refactored in the future so that output is handled in a separate place
           // for each type of destination that's configured. That logic should be encapsulated per output destination.
           const message = cider.detailedMessage(resultsForTest);
 
