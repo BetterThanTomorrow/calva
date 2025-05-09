@@ -116,6 +116,8 @@ async function evaluateCodeUpdatingUI(
       await session.evaluateInNs(options.nsForm, outputWindow.getNs());
     }
 
+    console.log('evaluateCodeUpdatingUI CODE', code);
+
     const context: NReplEvaluation = session.eval(code, ns, {
       file: filePath,
       line: line + 1,
@@ -139,6 +141,7 @@ async function evaluateCodeUpdatingUI(
       value = util.stripAnsi(context.pprintOut || value);
 
       result = value;
+      console.log('evaluateCodeUpdatingUI RESULT', result);
 
       flareHandler.inspect(value, (code) => evaluateCodeUpdatingUI(code, options, selection));
 
