@@ -196,7 +196,7 @@ const didLastOutputTerminateLine: Record<OutputDestination, boolean> = {
   'repl-window': true,
   'output-channel': true,
   terminal: true,
-  webview: true,
+  'output-view': true,
 };
 
 let havePrintedLegacyReplWindowOutputMessage = false;
@@ -218,7 +218,7 @@ const lastInfoLineData: Record<OutputDestination, AppendClojureOptions> = {
   'repl-window': {},
   'output-channel': {},
   terminal: {},
-  webview: {},
+  'output-view': {},
 };
 
 function saveLastInfoLineData(destination: OutputDestination, options: AppendClojureOptions) {
