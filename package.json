@@ -2745,7 +2745,7 @@
       },
       {
         "command": "calva.showReplOutputView",
-        "key": "ctrl+alt+o w",
+        "key": "ctrl+alt+o v",
         "args": false,
         "when": "calva:keybindingsEnabled"
       },
