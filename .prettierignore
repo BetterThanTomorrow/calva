@@ -9,4 +9,5 @@
 **/.shadow-cljs/
 **/out/
 clojure.tmLanguage.json
+/repl-output-ui
 *.md

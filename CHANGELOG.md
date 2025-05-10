@@ -6,6 +6,10 @@ Changes to Calva.
 
 - Fix: [Reformat may do nothing if cljfmt's :sort-ns-references? is true](https://github.com/BetterThanTomorrow/calva/issues/2789) when formatting only a (ns ...) form
 
+## [2.0.509] - 2025-05-10
+
+- [Add webview for REPL output](https://github.com/BetterThanTomorrow/calva/issues/2480)
+
 ## [2.0.508] - 2025-05-05
 
 - Fix: Rich Comment Forms in [Reformat all edited locations after multicursor structural edit](https://github.com/BetterThanTomorrow/calva/issues/2738)
@@ -34,7 +38,7 @@ Changes to Calva.
 
 ## [2.0.502] - 2025-04-26
 
-- Fix: [formatCode throws an error when output output is printed in the output window](https://github.com/BetterThanTomorrow/calva/issues/2791)
+- Fix: [formatCode throws an error when output is printed in the output window](https://github.com/BetterThanTomorrow/calva/issues/2791)
 - Experimental: [Add `info` namespace to Calva API](https://github.com/BetterThanTomorrow/calva/issues/2795)
 
 ## [2.0.501] - 2025-04-15
