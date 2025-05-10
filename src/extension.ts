@@ -31,7 +31,12 @@ import * as replHistory from './repl-window/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
-import { setStateValue } from '../out/cljs-lib/cljs-lib';
+import {
+  setStateValue,
+  initializeCljs,
+  clearReplOutputWebview,
+  showReplOutputWebviewPanel,
+} from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
@@ -76,6 +81,11 @@ function initializeState() {
 
 async function activate(context: vscode.ExtensionContext) {
   console.info('Calva activate START');
+
+  // Store a reference to the vscode API in the cljs so it can call the API using that reference,
+  // because requiring the vscode API poses issues with being able to test the cljs lib.
+  // We cannot run unit tests on code that imports the vscode API, because it's only available at runtime.
+  initializeCljs(vscode, context);
 
   initializeState();
   state.setExtensionContext(context);
@@ -218,6 +228,7 @@ async function activate(context: vscode.ExtensionContext) {
   // COMMANDS
   const commands = {
     clearInlineResults: annotations.clearAllEvaluationDecorations,
+    clearReplOutputView: clearReplOutputWebview,
     clearReplHistory: replHistory.clearHistory,
     connect: connector.connectCommand,
     connectNonProjectREPL: () => {
@@ -261,10 +272,7 @@ async function activate(context: vscode.ExtensionContext) {
     prettyPrintReplaceCurrentForm: edit.prettyPrintReplaceCurrentForm,
     printClojureDocsToOutputWindow: clojureDocs.printClojureDocsToOutput,
     printClojureDocsToRichComment: clojureDocs.printClojureDocsToRichComment,
-    printLastStacktrace: () => {
-      outputWindow.printLastStacktrace();
-      output.replWindowAppendPrompt();
-    },
+    printLastStacktrace: output.printLastStacktrace,
     printTextToOutputCommand: clojureDocs.printTextToOutputCommand,
     printTextToRichCommentCommand: clojureDocs.printTextToRichCommentCommand,
     refresh: refresh.refresh,
@@ -289,6 +297,7 @@ async function activate(context: vscode.ExtensionContext) {
     showOutputWindow: outputWindow.revealResultsDoc, // backwards compatibility
     showOutputChannel: output.showOutputChannel,
     showOutputTerminal: output.showOutputTerminal,
+    showReplOutputView: showReplOutputWebviewPanel,
     showResultOutputDestination: output.showResultOutputDestination,
     showPreviousReplHistoryEntry: replHistory.showPreviousReplHistoryEntry,
     startJoyrideReplAndConnect: async () => {

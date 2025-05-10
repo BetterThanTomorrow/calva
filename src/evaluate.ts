@@ -10,7 +10,7 @@ import * as outputWindow from './repl-window/repl-doc';
 import * as namespace from './namespace';
 import * as replHistory from './repl-window/repl-history';
 import { formatAsLineComments } from './results-output/util';
-import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import { getStateValue, appendStackTraceToReplOutputWebview } from '../out/cljs-lib/cljs-lib';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
@@ -242,6 +242,18 @@ async function evaluateCodeUpdatingUI(
             ns,
             replSessionType: session.replType,
           });
+          if (output.getDestinationConfiguration().evalOutput === 'output-view') {
+            session
+              .stacktrace()
+              .then((stacktrace) => {
+                if (stacktrace && stacktrace.stacktrace) {
+                  appendStackTraceToReplOutputWebview(stacktrace.stacktrace);
+                }
+              })
+              .catch((e) => {
+                console.error(`Failed fetching stacktrace: ${e.message}`);
+              });
+          }
         }
       }
     }

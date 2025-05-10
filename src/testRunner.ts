@@ -9,6 +9,7 @@ import * as namespace from './namespace';
 import { getSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
 import * as output from './results-output/output';
+import { appendStackTraceToReplOutputWebview } from '../out/cljs-lib/cljs-lib';
 
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -214,25 +215,33 @@ async function reportTests(
     for (const ns in result.results) {
       const resultSet = result.results[ns];
       for (const test in resultSet) {
-        for (const a of resultSet[test]) {
-          const messages = cider.detailedMessage(a);
+        for (const resultsForTest of resultSet[test]) {
+          // The logic below should be refactored in the future so that output is handled in a separate place
+          // for each type of destination that's configured. That logic should be encapsulated per output destination.
+          const message = cider.detailedMessage(resultsForTest);
 
-          if (a.type == 'error') {
-            const stackTrace = await session.testStacktrace(ns, test, a.index);
+          if (resultsForTest.type === 'error') {
+            const stacktrace = await session.testStacktrace(ns, test, resultsForTest.index);
 
-            outputWindow.saveStacktrace(stackTrace.stacktrace);
-            outputWindow.appendLine(messages, (_, afterResultLocation) => {
+            outputWindow.saveStacktrace(stacktrace.stacktrace);
+            outputWindow.appendLine(message, (_, afterResultLocation) => {
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
-            if (output.getDestinationConfiguration().otherOutput !== 'repl-window') {
-              output.appendLineOtherOut(messages);
+            const otherOutputDestination = output.getDestinationConfiguration().otherOutput;
+            if (otherOutputDestination !== 'repl-window') {
+              // We don't want to prepend lines with `; ` in output destinations other than the repl-window.
+              // This is just a quick fix to avoid refactoring for now.
+              output.appendLineOtherOut(message.replace(/; /gi, ''));
+              if (otherOutputDestination === 'output-view') {
+                appendStackTraceToReplOutputWebview(stacktrace.stacktrace);
+              }
             }
-          } else if (messages) {
-            output.appendLineOtherOut(messages);
+          } else if (message) {
+            output.appendClojureOther(message);
           }
 
-          if (a.type === 'fail') {
-            recordDiagnostic(a);
+          if (resultsForTest.type === 'fail') {
+            recordDiagnostic(resultsForTest);
           }
         }
       }

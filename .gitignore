@@ -50,6 +50,7 @@ jspm_packages
 lib/
 cljs-out/
 test-out/
+repl-output-ui/js
 
 # This and that
 .nrepl-port
@@ -73,7 +74,8 @@ report.*
 
 # clojure-lsp
 .lsp
-.clj-kondo
+.clj-kondo/*
+!.clj-kondo/config.edn
 /clojure-lsp*
 
 #Calva

@@ -23,7 +23,7 @@ Fixes #
 
 I have:
 
-- [ ] Read [Editing Documentation](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Hack-on-Calva#editing-documentation)
+- [ ] Read [Editing Documentation](https://github.com/BetterThanTomorrow/calva/wiki/Run-Calva-in-Development-Mode#editing-documentation)
 - [ ] Directed this pull request at the `published` branch.
 - [ ] Built the site locally (if the changes were more involved than simple typo fixes), and verified that the site is presented as expected.
 - [ ] Referenced the issue I am fixing/addressing _in a commit message for the pull request_ (if there was is an issue for the documentation change)
@@ -31,4 +31,3 @@ I have:
   - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
 
 Ping @pez, @bpringe, @corasaurus-hex, @Cyrik
-

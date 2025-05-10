@@ -1,0 +1,3 @@
+{:linters
+ {:unresolved-symbol
+  {:exclude [(clojure.test/is [match?])]}}}
