@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Reformat may do nothing if cljfmt's :sort-ns-references? is true](https://github.com/BetterThanTomorrow/calva/issues/2789) when formatting only a (ns ...) form
+
 ## [2.0.508] - 2025-05-05
 
 - Fix: Rich Comment Forms in [Reformat all edited locations after multicursor structural edit](https://github.com/BetterThanTomorrow/calva/issues/2738)
