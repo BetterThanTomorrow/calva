@@ -26,6 +26,8 @@ The table below lists the features of the different output destinations.
 | Feature | REPL Window | Output View | Output Channel | Terminal |
 | :------ | :---------: | :---------: | :------------: | :------: |
 | Rich stack traces | ✅ | ❌ * | ❌ | ❌ |
+| Paredit navigation and selection | ✅ | ❌ | ❌ | ❌ |
+| Button to copy specific output | ❌ | ❌ * | ❌ | ❌ |
 | Syntax highlighting | ✅ | ✅ | ✅ | ✅ |
 | Syntax highlighting matches editor | ✅ | ❌ ** | ❌ | ❌ |
 | Supports input | ✅ | ❌ | ❌ | ❌ |
