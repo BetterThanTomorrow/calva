@@ -42,7 +42,7 @@ function textNotationFromDocAndSelections(
 const pauseMs = 1000;
 
 /** Cursor positions indicated in textAndSelections by |, |1, |2, etc. */
-async function reformat(editor: vscode.TextEditor, textAndSelections: string) {
+async function reformat(editor: vscode.TextEditor, textAndSelections: string, command: string) {
   const [text, selectionsAsOffsets] =
     textNotation.textNotationToTextAndSelection(textAndSelections);
   await vscode.commands.executeCommand('editor.action.selectAll');
@@ -67,14 +67,14 @@ async function reformat(editor: vscode.TextEditor, textAndSelections: string) {
       )
   );
   await new Promise((resolve) => setTimeout(resolve, pauseMs));
-  await vscode.commands.executeCommand('calva-fmt.formatCurrentForm');
+  await vscode.commands.executeCommand(command);
   await new Promise((resolve) => setTimeout(resolve, pauseMs));
   return textNotationFromDocAndSelections(editor.document, editor.selections);
 }
 
 /** Cursor positions indicated in textAndSelections by |, |1, |2, etc. */
 async function reformatUsingActiveEditor(textAndSelections: string) {
-  return reformat(vscode.window.activeTextEditor, textAndSelections);
+  return reformat(vscode.window.activeTextEditor, textAndSelections, 'calva-fmt.formatCurrentForm');
 }
 
 suite(suiteName, () => {
@@ -138,6 +138,17 @@ suite(suiteName, () => {
     assert.equal(
       await reformatUsingActiveEditor('(comment•  |(def foo•:foo))'),
       '(comment•  |(def foo•    :foo)•  )'
+    );
+  });
+
+  it('should automatically reformat all paredited forms', async () => {
+    assert.equal(
+      await reformat(
+        vscode.window.activeTextEditor,
+        '(defn foo [x|]•42)••(defn bar [y]•62)••(defn baz [z|1]•82)',
+        'paredit.slurpSexpForward'
+      ),
+      '(defn foo [x|•           42])••(defn bar [y]•62)••(defn baz [z|1•           82])'
     );
   });
 });

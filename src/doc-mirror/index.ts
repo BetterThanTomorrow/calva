@@ -156,7 +156,7 @@ export class DocumentModel implements EditableModel {
 
   private postEditReformat(editor: vscode.TextEditor, offsets: number[]): Thenable<boolean> {
     // Now that the document has been edited, calculate the reformatting:
-    const reformatChange: respacer.WhitespaceChange[] = sortedUniq(offsets.sort((a, b) => a - b))
+    const reformatChange: respacer.WhitespaceChange[] = sortedUniq(offsets.sort((a, b) => b - a))
       .flatMap((p) => {
         const doc = this.document.document;
         const formattedInfo = formatter.formatDocIndexesInfo(
