@@ -5,9 +5,13 @@ description: A read-only webview for REPL output.
 
 The output view is a read-only view for REPL output. It's more performant than [the editor-based REPL window](repl-window.md). To see a feature comparison of all output destinations, see [Output Destinations Feature Comparison](output.md#output-destinations-feature-comparison).
 
+!!! Note
+    This output view is a work in progress. Please create GitHub issues for any bugs you see, features you'd like added,
+    or behavior you think should be changed.
+
 ## Show the Output View
 
-Run the Calva command "Show/Open the REPL Output View," which is enabled when a REPL is connected to Calva.
+Run the Calva command "Show/Open the REPL Output View."
 
 ## Clear the Output View
 
