@@ -85,7 +85,7 @@ export interface AfterAppendCallback {
   (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
 }
 
-export type OutputDestination = 'repl-window' | 'output-channel' | 'terminal' | 'webview';
+export type OutputDestination = 'repl-window' | 'output-channel' | 'terminal' | 'output-view';
 
 export type OutputDestinationConfiguration = {
   evalResults: OutputDestination;
@@ -168,7 +168,7 @@ export function showResultOutputDestination(preserveFocus = true) {
   if (getDestinationConfiguration().evalResults === 'terminal') {
     return showOutputTerminal(preserveFocus);
   }
-  if (getDestinationConfiguration().evalResults === 'webview') {
+  if (getDestinationConfiguration().evalResults === 'output-view') {
     return showReplOutputWebviewPanel(preserveFocus);
   }
   return outputWindow.revealResultsDoc(preserveFocus);
@@ -276,7 +276,7 @@ function appendClojure(
     if (after) {
       after(undefined, undefined);
     }
-  } else if (destination === 'webview') {
+  } else if (destination === 'output-view') {
     appendToReplOutputWebview(options, message);
     if (after) {
       after(undefined, undefined);
@@ -347,7 +347,7 @@ function append(options: AppendOptions, message: string, after?: AfterAppendCall
     }
     return;
   }
-  if (destination === 'webview') {
+  if (destination === 'output-view') {
     appendToReplOutputWebview(options, message);
   }
 }
@@ -440,7 +440,7 @@ function appendLine(options: AppendOptions, message: string, after?: AfterAppend
   if (destination === 'terminal') {
     append(options, message + '\r\n', after);
   }
-  if (destination === 'webview') {
+  if (destination === 'output-view') {
     appendToReplOutputWebview(options, message);
   }
 }
@@ -541,7 +541,7 @@ function printStackTrace(stacktrace: any[]) {
       outputWindow.printLastStacktrace();
       replWindowAppendPrompt();
       break;
-    case 'webview':
+    case 'output-view':
       appendStackTraceToReplOutputWebview(stacktrace);
       break;
     case 'output-channel':

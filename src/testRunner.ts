@@ -232,7 +232,7 @@ async function reportTests(
               // We don't want to prepend lines with `; ` in output destinations other than the repl-window.
               // This is just a quick fix to avoid refactoring for now.
               output.appendLineOtherOut(message.replace(/; /gi, ''));
-              if (otherOutputDestination === 'webview') {
+              if (otherOutputDestination === 'output-view') {
                 appendStackTraceToReplOutputWebview(stacktrace.stacktrace);
               }
             }

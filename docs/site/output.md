@@ -14,7 +14,7 @@ Calva categorizes output into three types:
 With the setting `calva.outputDestinations`, you can configure where each category of output should go to. These are the allowed values and their descriptions:
 
 * `"repl-window"` - The [REPL Window](repl-window.md) (an editor-based read/write output view). This is the default value.
-* `"webview"` - The [output webview](output-webview.md) (a read-only webview that is much more performant than the REPL Window)
+* `"output-view"` - The [output webview](output-webview.md) (a read-only webview that is much more performant than the REPL Window)
 * `"output-channel"` - The _Calva Says_ Output Channel
 * `"terminal"` - The _Calva Output_ (pseudo) Terminal
 

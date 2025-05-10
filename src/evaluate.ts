@@ -242,7 +242,7 @@ async function evaluateCodeUpdatingUI(
             ns,
             replSessionType: session.replType,
           });
-          if (output.getDestinationConfiguration().evalOutput === 'webview') {
+          if (output.getDestinationConfiguration().evalOutput === 'output-view') {
             session
               .stacktrace()
               .then((stacktrace) => {
