@@ -9,6 +9,7 @@
 !clojure.tmLanguage.json
 !assets/**
 !out/**
+!repl-output-ui/**
 !package.json
 !README.md
 !CHANGELOG.md

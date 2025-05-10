@@ -1,9 +1,9 @@
 ---
-title: Evaluation results and other output
+title: Output Overview
 description: Calva displays the first line of the evaluation results inline, and also prints results, other REPL output and more to the configured Output Destination.
 ---
 
-# Output Destinations
+## Output Destinations
 
 Calva categorizes output into three types:
 
@@ -11,13 +11,35 @@ Calva categorizes output into three types:
 * **evaluation output**: stdout/stderr from an evaluation
 * **other output**: Other messages, logs, etc
 
-With the setting `calva.outputDestinations`, you can configure where each category of output should go to:
+With the setting `calva.outputDestinations`, you can configure where each category of output should go to. These are the allowed values and their descriptions:
 
-* the [REPL Window](repl-window.md)
-* the _Calva Says_ Output Channel
-* the _Calva Output_ (pseudo) Terminal
+* `"repl-window"` - The [REPL Window](repl-window.md) (an editor-based read/write output view). This is the default value.
+* `"output-view"` - The [output view](output-view.md) (a read-only view that is much more performant than the REPL Window)
+* `"output-channel"` - The _Calva Says_ Output Channel
+* `"terminal"` - The _Calva Output_ (pseudo) Terminal
 
-The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of different views in different ways. We hope you will find a combination of output destinations that suits you.
+The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of
+different views in different ways. We hope you will find a combination of output destinations that suits you.
+
+### Output Destinations Feature Comparison
+
+The table below lists the features of the different output destinations.
+
+| Feature | REPL Window | Output View | Output Channel | Terminal |
+| :------ | :---------: | :---------: | :------------: | :------: |
+| Rich stack traces | ✅ | ❌ * | ❌ | ❌ |
+| Paredit navigation and selection | ✅ | ❌ | ❌ | ❌ |
+| Button to copy specific output | ❌ | ❌ * | ❌ | ❌ |
+| Syntax highlighting | ✅ | ✅ | ✅ | ✅ |
+| Syntax highlighting matches editor | ✅ | ❌ ** | ❌ | ❌ |
+| Supports input | ✅ | ❌ | ❌ | ❌ |
+| Handles high volume output well | ❌ | ✅ | ✅ | ✅ |
+| Handles large data structures well | ❌ | ✅ | ✅ | ✅ |
+| Command for clearing output | ❌ | ✅ | ✅ | ✅ |
+
+\* Support will be added
+
+\*\* Support might be added. Needs further investigation.
 
 ## Commands for showing output destinations
 
@@ -27,10 +49,10 @@ These are the commands and their default keyboard shortcuts for revealing output
 * **Calva: Show/Open the Calva says Output Channel**, without focusing it - `ctrl+alt+o c`
 * **Calva: Show/Open the Calva Output Terminal**, without focusing it - `ctrl+alt+o t`
 * **Calva: Show/Open REPL Window**, also focuses it - `ctrl+alt+o r`
+* **Calva: Show/Open the REPL output view**, without focusing it - `ctrl+alt+o w`
 
 !!! Note "Focusing the output destination"
-    The commands for opening the result destination all take a boolean argument for wether they should preserve focus or not. You can register keybindings that behave differently than the default ones. E.g.:
-
+    The commands for opening the result destination all take a boolean argument for whether they should preserve focus or not. You can register keybindings that behave differently than the default ones. E.g.:
     ```json
     {
       "key": "ctrl+alt+o ctrl+alt+o",
@@ -62,7 +84,17 @@ When Calva is connected to the REPL, the Output destination will by default prin
 
 You can control the default via the `calva.redirectServerOutputToRepl` setting. It defaults to `true`. Setting it to `false` before connecting the REPL will result in that **2.** and **3.** will not get printed in the Output destination. It will then instead be printed wherever the REPL process is printing its messages, usually the terminal from where it was started (the **Jack-in terminal** if Calva started the REPL).
 
+Examples:
+
+```clojure
+;; With redirectServerOutputToRepl set to true, these will print in the REPL output destination
+;; With redirectServerOutputToRepl set to false, these will print wherever the REPL process is printing its messages
+(.start (Thread. (fn [] (/ 1 0))))
+(.start (Thread. (fn [] (println "hello world"))))
+```
+
 ## See also
 
 * [The Calva Results Inspector](inspector.md)
 * [The REPL Window](repl-window.md)
+* [The Output View](output-view.md)

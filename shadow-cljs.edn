@@ -23,10 +23,22 @@
                              :dart2clj calva.dartclojure/convert-bridge
                              :readConfigEdn calva.read-config/config-edn->js-bridge
                              :html2hiccup calva.html2hiccup/html->hiccup-convert-bridge
-                             :interpolateVariables calva.interpolate/interpolate-variables}
+                             :interpolateVariables calva.interpolate/interpolate-variables
+                             :initializeCljs calva.util/initialize-cljs
+                             :showReplOutputWebviewPanel calva.repl.webview.core/show-repl-output-webview-panel
+                             :appendToReplOutputWebview calva.repl.webview.core/append
+                             :appendStackTraceToReplOutputWebview calva.repl.webview.core/append-stacktrace
+                             :clearReplOutputWebview calva.repl.webview.core/clear-webview}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test
                  :output-to "out/cljs-lib/test/cljs-lib-tests.js"
                  :ns-regexp "-test$"
-                 :autorun   true}}}
+                 :autorun   true}
+                :repl-output-ui
+                {:target :browser
+                 :asset-path "js"
+                 :output-dir "repl-output-ui/js"
+                 :modules {:main {:init-fn calva.repl.webview.ui/main}}
+                 :devtools {:loader-mode :eval
+                            :devtools-url "http://localhost:9630"}}}}
