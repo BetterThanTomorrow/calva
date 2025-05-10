@@ -1,9 +1,9 @@
 ---
-title: Evaluation results and other output
+title: Output Overview
 description: Calva displays the first line of the evaluation results inline, and also prints results, other REPL output and more to the configured Output Destination.
 ---
 
-# Output Destinations
+## Output Destinations
 
 Calva categorizes output into three types:
 
@@ -18,7 +18,24 @@ With the setting `calva.outputDestinations`, you can configure where each catego
 * `"output-channel"` - The _Calva Says_ Output Channel
 * `"terminal"` - The _Calva Output_ (pseudo) Terminal
 
-The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of different views in different ways. We hope you will find a combination of output destinations that suits you.
+The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of
+different views in different ways. We hope you will find a combination of output destinations that suits you.
+
+The table below lists the features of the different output destinations.
+
+| Feature | REPL Window | Output View | Output Channel | Terminal |
+| :------ | :---------: | :---------: | :------------: | :------: |
+| Rich stack traces | ✅ | ❌ * | ❌ | ❌ |
+| Syntax highlighting | ✅ | ✅ | ✅ | ✅ |
+| Syntax highlighting matches editor | ✅ | ❌ ** | ❌ | ❌ |
+| Supports input | ✅ | ❌ | ❌ | ❌ |
+| Handles high volume output well | ❌ | ✅ | ✅ | ✅ |
+| Handles large data structures well | ❌ | ✅ | ✅ | ✅ |
+| Command for clearing output | ❌ | ✅ | ✅ | ✅ |
+
+\* Support will be added
+
+\*\* Support might be added. Needs further investigation.
 
 ## Commands for showing output destinations
 

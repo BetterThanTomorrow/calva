@@ -58,9 +58,9 @@ nav:
       - syntax-highlighting.md
       - paredit.md
       - REPL:
+          - output.md
           - repl-window.md
           - output-view.md
-          - output.md
           - inspector.md
           - fiddle-files.md
           - connect-sequences.md
