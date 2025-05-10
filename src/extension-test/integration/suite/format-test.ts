@@ -140,4 +140,8 @@ suite(suiteName, () => {
       '(comment•  |(def foo•    :foo)•  )'
     );
   });
+
+  it('should format a ns form alone', async () => {
+    assert.equal(await reformatUsingActiveEditor('(ns •       |foo)'), '(ns• |foo)');
+  });
 });
