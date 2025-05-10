@@ -13,10 +13,10 @@
         <link rel="canonical" href="https://calva.io/output/">
       
       
-        <link rel="prev" href="../repl-window/">
+        <link rel="prev" href="../paredit/">
       
       
-        <link rel="next" href="../inspector/">
+        <link rel="next" href="../repl-window/">
       
       
       <link rel="icon" href="../img/favicon.ico">
@@ -24,7 +24,7 @@
     
     
       
-        <title>Evaluation results and other output - Calva User Guide</title>
+        <title>Output Overview - Calva User Guide</title>
       
     
     
@@ -73,7 +73,7 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Evaluation results and other output - Calva User Guide" >
+        <meta  property="og:title"  content="Output Overview - Calva User Guide" >
       
         <meta  property="og:description"  content="Calva displays the first line of the evaluation results inline, and also prints results, other REPL output and more to the configured Output Destination." >
       
@@ -89,7 +89,7 @@
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Evaluation results and other output - Calva User Guide" >
+        <meta  name="twitter:title"  content="Output Overview - Calva User Guide" >
       
         <meta  name="twitter:description"  content="Calva displays the first line of the evaluation results inline, and also prints results, other REPL output and more to the configured Output Destination." >
       
@@ -144,7 +144,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Evaluation results and other output
+              Output Overview
             
           </span>
         </div>
@@ -628,27 +628,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../repl-window/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    The REPL Window
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -658,14 +637,12 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
-        
-      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
   
   <span class="md-ellipsis">
-    Evaluation results and other output
+    Output Overview
   </span>
   
 
@@ -676,7 +653,7 @@
         
   
   <span class="md-ellipsis">
-    Evaluation results and other output
+    Output Overview
   </span>
   
 
@@ -688,14 +665,36 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#output-destinations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Destinations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output Destinations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-destinations-feature-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Destinations Feature Comparison
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#commands-for-showing-output-destinations" class="md-nav__link">
@@ -737,6 +736,48 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../repl-window/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    The REPL Window
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../output-view/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    The Output View
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -2092,14 +2133,36 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#output-destinations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Destinations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output Destinations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#output-destinations-feature-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Destinations Feature Comparison
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#commands-for-showing-output-destinations" class="md-nav__link">
@@ -2155,20 +2218,104 @@
   
 
 
-<h1 id="output-destinations">Output Destinations<a class="headerlink" href="#output-destinations" title="Permanent link">#</a></h1>
+  <h1>Output Overview</h1>
+
+<h2 id="output-destinations">Output Destinations<a class="headerlink" href="#output-destinations" title="Permanent link">#</a></h2>
 <p>Calva categorizes output into three types:</p>
 <ul>
 <li><strong>evaluation results</strong>: Clojure data returned from an evaluation.</li>
 <li><strong>evaluation output</strong>: stdout/stderr from an evaluation</li>
 <li><strong>other output</strong>: Other messages, logs, etc</li>
 </ul>
-<p>With the setting <code>calva.outputDestinations</code>, you can configure where each category of output should go to:</p>
+<p>With the setting <code>calva.outputDestinations</code>, you can configure where each category of output should go to. These are the allowed values and their descriptions:</p>
 <ul>
-<li>the <a href="../repl-window/">REPL Window</a></li>
-<li>the <em>Calva Says</em> Output Channel</li>
-<li>the <em>Calva Output</em> (pseudo) Terminal</li>
+<li><code>"repl-window"</code> - The <a href="../repl-window/">REPL Window</a> (an editor-based read/write output view). This is the default value.</li>
+<li><code>"output-view"</code> - The <a href="../output-view/">output view</a> (a read-only view that is much more performant than the REPL Window)</li>
+<li><code>"output-channel"</code> - The <em>Calva Says</em> Output Channel</li>
+<li><code>"terminal"</code> - The <em>Calva Output</em> (pseudo) Terminal</li>
 </ul>
-<p>The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of different views in different ways. We hope you will find a combination of output destinations that suits you.</p>
+<p>The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of
+different views in different ways. We hope you will find a combination of output destinations that suits you.</p>
+<h3 id="output-destinations-feature-comparison">Output Destinations Feature Comparison<a class="headerlink" href="#output-destinations-feature-comparison" title="Permanent link">#</a></h3>
+<p>The table below lists the features of the different output destinations.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: center;">REPL Window</th>
+<th style="text-align: center;">Output View</th>
+<th style="text-align: center;">Output Channel</th>
+<th style="text-align: center;">Terminal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Rich stack traces</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">❌ *</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td style="text-align: left;">Paredit navigation and selection</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td style="text-align: left;">Button to copy specific output</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">❌ *</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td style="text-align: left;">Syntax highlighting</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+</tr>
+<tr>
+<td style="text-align: left;">Syntax highlighting matches editor</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">❌ **</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td style="text-align: left;">Supports input</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td style="text-align: left;">Handles high volume output well</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+</tr>
+<tr>
+<td style="text-align: left;">Handles large data structures well</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+</tr>
+<tr>
+<td style="text-align: left;">Command for clearing output</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+</tr>
+</tbody>
+</table>
+<p>* Support will be added</p>
+<p>** Support might be added. Needs further investigation.</p>
 <h2 id="commands-for-showing-output-destinations">Commands for showing output destinations<a class="headerlink" href="#commands-for-showing-output-destinations" title="Permanent link">#</a></h2>
 <p>These are the commands and their default keyboard shortcuts for revealing output destinations</p>
 <ul>
@@ -2176,10 +2323,11 @@
 <li><strong>Calva: Show/Open the Calva says Output Channel</strong>, without focusing it - <code>ctrl+alt+o c</code></li>
 <li><strong>Calva: Show/Open the Calva Output Terminal</strong>, without focusing it - <code>ctrl+alt+o t</code></li>
 <li><strong>Calva: Show/Open REPL Window</strong>, also focuses it - <code>ctrl+alt+o r</code></li>
+<li><strong>Calva: Show/Open the REPL output view</strong>, without focusing it - <code>ctrl+alt+o w</code></li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Focusing the output destination</p>
-<p>The commands for opening the result destination all take a boolean argument for wether they should preserve focus or not. You can register keybindings that behave differently than the default ones. E.g.:</p>
+<p>The commands for opening the result destination all take a boolean argument for whether they should preserve focus or not. You can register keybindings that behave differently than the default ones. E.g.:
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+o ctrl+alt+o&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.showResultOutputDestination&quot;</span><span class="p">,</span>
@@ -2190,7 +2338,7 @@
 <span class="w">  </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.showReplWindow&quot;</span><span class="p">,</span><span class="w"> </span><span class="c1">// Show/Open REPL Window</span>
 <span class="w">  </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
 <span class="p">},</span>
-</code></pre></div>
+</code></pre></div></p>
 </div>
 <h2 id="about-stdout-in-the-repl-window">About stdout in the REPL Window<a class="headerlink" href="#about-stdout-in-the-repl-window" title="Permanent link">#</a></h2>
 <p>Since Calva v2.0.423 the REPL Window prints <code>stdout</code> prepended with <code>;</code> to make it into line comments. This is because stdout output easily breaks the Clojure structure of the REPL Window, making it misbehave in various ways. We made this change because as maintainers of Calva we have seen all too often how this hits users, and it is also taking too much of our Calva time to try mitigate the problem, which is fundamentally not fixable.</p>
@@ -2204,10 +2352,17 @@
 <li>Anything printed to <code>stdout</code> and <code>stderr</code> by the REPL process</li>
 </ol>
 <p>You can control the default via the <code>calva.redirectServerOutputToRepl</code> setting. It defaults to <code>true</code>. Setting it to <code>false</code> before connecting the REPL will result in that <strong>2.</strong> and <strong>3.</strong> will not get printed in the Output destination. It will then instead be printed wherever the REPL process is printing its messages, usually the terminal from where it was started (the <strong>Jack-in terminal</strong> if Calva started the REPL).</p>
+<p>Examples:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">;; With redirectServerOutputToRepl set to true, these will print in the REPL output destination</span>
+<span class="c1">;; With redirectServerOutputToRepl set to false, these will print wherever the REPL process is printing its messages</span>
+<span class="p">(</span><span class="nf">.start</span><span class="w"> </span><span class="p">(</span><span class="nf">Thread.</span><span class="w"> </span><span class="p">(</span><span class="k">fn </span><span class="p">[]</span><span class="w"> </span><span class="p">(</span><span class="nb">/ </span><span class="mi">1</span><span class="w"> </span><span class="mi">0</span><span class="p">))))</span>
+<span class="p">(</span><span class="nf">.start</span><span class="w"> </span><span class="p">(</span><span class="nf">Thread.</span><span class="w"> </span><span class="p">(</span><span class="k">fn </span><span class="p">[]</span><span class="w"> </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;hello world&quot;</span><span class="p">))))</span>
+</code></pre></div>
 <h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>
 <ul>
 <li><a href="../inspector/">The Calva Results Inspector</a></li>
 <li><a href="../repl-window/">The REPL Window</a></li>
+<li><a href="../output-view/">The Output View</a></li>
 </ul>
 
 
