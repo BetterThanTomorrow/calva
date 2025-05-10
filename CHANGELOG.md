@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.509] - 2025-05-10
+
 - [Add webview for REPL output](https://github.com/BetterThanTomorrow/calva/issues/2480)
 
 ## [2.0.508] - 2025-05-05
