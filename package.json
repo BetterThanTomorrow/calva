@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.509",
+  "version": "2.0.510",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -178,7 +178,8 @@
                 "enum": [
                   "repl-window",
                   "output-channel",
-                  "terminal"
+                  "terminal",
+                  "output-view"
                 ],
                 "default": "repl-window",
                 "markdownDescription": "Destination for evaluation results. (Clojure data returned from an evaluation)."
@@ -188,7 +189,8 @@
                 "enum": [
                   "repl-window",
                   "output-channel",
-                  "terminal"
+                  "terminal",
+                  "output-view"
                 ],
                 "default": "repl-window",
                 "markdownDescription": "Destination for evaluation output (stdout/stderr from an evaluation)."
@@ -198,7 +200,8 @@
                 "enum": [
                   "repl-window",
                   "output-channel",
-                  "terminal"
+                  "terminal",
+                  "output-view"
                 ],
                 "default": "repl-window",
                 "markdownDescription": "Destination for other output (Calva messages, out-of-band stdout/stderr, etcetera)."
@@ -1357,6 +1360,11 @@
         "enablement": "editorLangId == clojure"
       },
       {
+        "command": "calva.clearReplOutputView",
+        "title": "Clear REPL Output View",
+        "category": "Calva"
+      },
+      {
         "command": "calva.interruptAllEvaluations",
         "title": "Interrupt Running Evaluations",
         "enablement": "calva:connected",
@@ -1428,7 +1436,7 @@
       },
       {
         "command": "calva.printLastStacktrace",
-        "title": "Print Last Stacktrace to REPL Window",
+        "title": "Print last stacktrace to result output destination",
         "enablement": "calva:connected",
         "category": "Calva"
       },
@@ -1954,6 +1962,11 @@
         "category": "Calva",
         "command": "calva.showResultOutputDestination",
         "title": "Show/Open the result output destination"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.showReplOutputView",
+        "title": "Show/Open the REPL output view"
       },
       {
         "category": "Calva",
@@ -2731,6 +2744,12 @@
         "when": "calva:keybindingsEnabled && !calva:outputWindowActive"
       },
       {
+        "command": "calva.showReplOutputView",
+        "key": "ctrl+alt+o v",
+        "args": false,
+        "when": "calva:keybindingsEnabled"
+      },
+      {
         "command": "calva.showFileForOutputWindowNS",
         "key": "ctrl+alt+o r",
         "args": false,
@@ -3311,16 +3330,16 @@
   },
   "scripts": {
     "watch-docs": "mkdocs serve",
-    "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
+    "clean": "rimraf ./out ./tsconfig.tsbuildinfo ./cljs-out ./repl-output-ui/js",
     "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
     "precompile": "npm i && npm run clean && npm run update-grammar",
-    "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
+    "compile-cljs": "npx shadow-cljs -A:dev:test compile :calva-lib :test :repl-output-ui",
     "compile-ts": "npx tsc --project ./tsconfig.json",
     "compile": "npm run compile-cljs && npm run compile-ts",
     "watch-ts": "npx tsc --watch --project ./tsconfig.json",
-    "watch-cljs": "npx shadow-cljs -d cider/cider-nrepl:0.28.5 watch :calva-lib :test",
+    "watch-cljs": "npx shadow-cljs -d cider/cider-nrepl:0.28.5 -A:dev:test watch :calva-lib :test :repl-output-ui",
     "watch-ts-with-strict-nulls": "npx tsc --watch --project ./tsconfig.json --strictNullChecks",
-    "release-cljs": "npx shadow-cljs release :calva-lib :test",
+    "release-cljs": "npx shadow-cljs release -A:test :calva-lib :test :repl-output-ui",
     "release": "webpack --mode production",
     "prerelease": "npm run precompile && npm run release-cljs",
     "compile-test": "tsc -p ./",
