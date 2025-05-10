@@ -1360,8 +1360,8 @@
         "enablement": "editorLangId == clojure"
       },
       {
-        "command": "calva.clearReplOutputWebview",
-        "title": "Clear REPL Output Webview",
+        "command": "calva.clearReplOutputView",
+        "title": "Clear REPL Output View",
         "category": "Calva"
       },
       {
@@ -1965,8 +1965,8 @@
       },
       {
         "category": "Calva",
-        "command": "calva.showReplOutputWebview",
-        "title": "Show/Open the REPL output webview",
+        "command": "calva.showReplOutputView",
+        "title": "Show/Open the REPL output view",
         "enablement": "calva:connected"
       },
       {
@@ -2745,7 +2745,7 @@
         "when": "calva:keybindingsEnabled && !calva:outputWindowActive"
       },
       {
-        "command": "calva.showReplOutputWebview",
+        "command": "calva.showReplOutputView",
         "key": "ctrl+alt+o w",
         "args": false,
         "when": "calva:keybindingsEnabled"

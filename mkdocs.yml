@@ -59,7 +59,7 @@ nav:
       - paredit.md
       - REPL:
           - repl-window.md
-          - output-webview.md
+          - output-view.md
           - output.md
           - inspector.md
           - fiddle-files.md

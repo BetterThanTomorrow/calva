@@ -228,7 +228,7 @@ async function activate(context: vscode.ExtensionContext) {
   // COMMANDS
   const commands = {
     clearInlineResults: annotations.clearAllEvaluationDecorations,
-    clearReplOutputWebview: clearReplOutputWebview,
+    clearReplOutputView: clearReplOutputWebview,
     clearReplHistory: replHistory.clearHistory,
     connect: connector.connectCommand,
     connectNonProjectREPL: () => {
@@ -297,7 +297,7 @@ async function activate(context: vscode.ExtensionContext) {
     showOutputWindow: outputWindow.revealResultsDoc, // backwards compatibility
     showOutputChannel: output.showOutputChannel,
     showOutputTerminal: output.showOutputTerminal,
-    showReplOutputWebview: showReplOutputWebviewPanel,
+    showReplOutputView: showReplOutputWebviewPanel,
     showResultOutputDestination: output.showResultOutputDestination,
     showPreviousReplHistoryEntry: replHistory.showPreviousReplHistoryEntry,
     startJoyrideReplAndConnect: async () => {

@@ -1,21 +1,21 @@
 ---
-title: The Output Webview
+title: The Output View
 description: A read-only webview for REPL output.
 ---
 
-The output webview is a read-only webview for REPL output. It's more performant than [the editor-based REPL window](repl-window.md).
+The output view is a read-only view for REPL output. It's more performant than [the editor-based REPL window](repl-window.md).
 
-## Show the Output Webview
+## Show the Output View
 
-Run the Calva command "Show/Open the REPL Output Webview," which is enabled when a REPL is connected to Calva.
+Run the Calva command "Show/Open the REPL Output View," which is enabled when a REPL is connected to Calva.
 
-## Clear the Output Webview
+## Clear the Output View
 
-Run the Calva command "Clear REPL Output Webview."
+Run the Calva command "Clear REPL Output View."
 
 ## Theming
 
-The output webview uses [highlight.js](https://highlightjs.org/) for syntax highlighting of code blocks. The theming of other output is controlled by VS Code. As you change the VS Code theme, the syntax hightlighting of code blocks will change to one of four different themes, one for each VS Code [ColorThemeKind](https://code.visualstudio.com/api/references/vscode-api#ColorThemeKind):
+The output view uses [highlight.js](https://highlightjs.org/) for syntax highlighting of code blocks. The theming of other output is controlled by VS Code. As you change the VS Code theme, the syntax hightlighting of code blocks will change to one of four different themes, one for each VS Code [ColorThemeKind](https://code.visualstudio.com/api/references/vscode-api#ColorThemeKind):
 
 | ColorThemeKind | hightlight.js theme |
 | -------------- | ------------------- |
