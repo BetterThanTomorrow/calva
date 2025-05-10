@@ -21,6 +21,8 @@ With the setting `calva.outputDestinations`, you can configure where each catego
 The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of
 different views in different ways. We hope you will find a combination of output destinations that suits you.
 
+### Output Destinations Feature Comparison
+
 The table below lists the features of the different output destinations.
 
 | Feature | REPL Window | Output View | Output Channel | Terminal |

@@ -3,7 +3,7 @@ title: The Output View
 description: A read-only webview for REPL output.
 ---
 
-The output view is a read-only view for REPL output. It's more performant than [the editor-based REPL window](repl-window.md).
+The output view is a read-only view for REPL output. It's more performant than [the editor-based REPL window](repl-window.md). To see a feature comparison of all output destinations, see [Output Destinations Feature Comparison](output.md#output-destinations-feature-comparison).
 
 ## Show the Output View
 
