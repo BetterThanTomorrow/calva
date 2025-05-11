@@ -150,7 +150,8 @@ suite(suiteName, () => {
       ),
       '(defn foo [x|•           42])••(defn bar [y]•62)••(defn baz [z|1•           82])'
     );
-    
+  });
+
   it('should format a ns form alone', async () => {
     assert.equal(await reformatUsingActiveEditor('(ns •       |foo)'), '(ns• |foo)');
   });
