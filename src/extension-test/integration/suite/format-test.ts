@@ -39,7 +39,7 @@ function textNotationFromDocAndSelections(
   return textNotation.textNotationFromTextAndSelections(text, ranges, prettyPrint);
 }
 
-const pauseMs = 1000;
+const pauseMs = 500;
 
 /** Cursor positions indicated in textAndSelections by |, |1, |2, etc. */
 async function reformat(editor: vscode.TextEditor, textAndSelections: string) {
@@ -92,7 +92,7 @@ suite(suiteName, () => {
   });
 
   it('should add indenting spaces on lines where cursors are', async () => {
-    await new Promise((resolve) => setTimeout(resolve, 5 * pauseMs));
+    await new Promise((resolve) => setTimeout(resolve, 10 * pauseMs));
     assert.equal(await reformatUsingActiveEditor('(foo•|•|1 :a)'), '(foo•  |•|1  :a)');
   });
 
@@ -139,5 +139,9 @@ suite(suiteName, () => {
       await reformatUsingActiveEditor('(comment•  |(def foo•:foo))'),
       '(comment•  |(def foo•    :foo)•  )'
     );
+  });
+
+  it('should format a ns form alone', async () => {
+    assert.equal(await reformatUsingActiveEditor('(ns •       |foo)'), '(ns• |foo)');
   });
 });
