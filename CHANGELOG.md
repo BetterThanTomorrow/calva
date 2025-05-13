@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Allow newlines in flares](https://github.com/BetterThanTomorrow/calva/issues/2820)
+- [Paredit slurp and barf for multiple cursors](https://github.com/BetterThanTomorrow/calva/issues/2732)
 - Fix: [Reformat may do nothing if cljfmt's :sort-ns-references? is true](https://github.com/BetterThanTomorrow/calva/issues/2789) when formatting only a (ns ...) form
 
 ## [2.0.509] - 2025-05-10
