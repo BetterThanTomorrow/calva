@@ -222,6 +222,8 @@ There is an ongoing effort to support simultaneous multicursor editing with Pare
 - Movement
 - Selection (except for `Select Current Form` - coming soon!)
 - Rewrap
+- Slurp
+- Barf
 
 ### Toggling Multicursor per command
 
