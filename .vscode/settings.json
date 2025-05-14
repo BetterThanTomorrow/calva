@@ -233,12 +233,13 @@
   "calva.replConnectSequences": [
     {
       "name": "Calva",
-      "projectType": "shadow-cljs",
+      "projectType": "deps.edn",
       "cljsType": "shadow-cljs",
       "menuSelections": {
         "cljsDefaultBuild": ":calva-lib",
-        "cljsLaunchBuilds": [":calva-lib", ":test"]
-      }
+        "cljsLaunchBuilds": [":calva-lib", ":repl-output-ui", ":test"]
+      },
+      "projectRootPath": ["."]
     }
   ],
   "workbench.colorCustomizations": {
