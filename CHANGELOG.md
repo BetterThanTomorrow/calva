@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.511] - 2025-05-15
+
 - Fix: [The command for evaluating the Fiddle for the current file doesn't use the file's repl session](https://github.com/BetterThanTomorrow/calva/issues/2828)
 
 ## [2.0.510] - 2025-05-13
