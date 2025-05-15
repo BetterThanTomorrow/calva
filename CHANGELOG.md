@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [The command for evaluating the Fiddle for the current file doesn't use the file's repl session](https://github.com/BetterThanTomorrow/calva/issues/2828)
+
 ## [2.0.510] - 2025-05-13
 
 - Fix: [Allow newlines in flares](https://github.com/BetterThanTomorrow/calva/issues/2820)
