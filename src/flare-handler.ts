@@ -50,6 +50,7 @@ export function inspect(edn: string, evaluate: EvaluateFunction): any {
 
 const defaultWebviewOptions = {
   enableScripts: true,
+  retainContextWhenHidden: true,
 };
 
 interface CalvaWebPanel extends vscode.WebviewPanel {
