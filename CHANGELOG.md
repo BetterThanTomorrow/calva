@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add padding to bottom of output view](https://github.com/BetterThanTomorrow/calva/issues/2824)
+
 ## [2.0.512] - 2025-05-17
 
 - Fix: [Flare webviews lose their state when they are not visible or moved](https://github.com/BetterThanTomorrow/calva/issues/2832)
