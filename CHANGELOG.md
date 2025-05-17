@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.512] - 2025-05-17
+
 - Fix: [Flare webviews lose their state when they are not visible or moved](https://github.com/BetterThanTomorrow/calva/issues/2832)
 
 ## [2.0.511] - 2025-05-15
