@@ -51,9 +51,8 @@
 
 (defmethod repl-output-element-hiccup :output-element.type/stdout
   [element]
-  (let [content (:output-element/content element)
-        lines (str/split-lines content)]
-    (into [:p] (map (fn [line] [:span line [:br]]) lines))))
+  (let [content (:output-element/content element)]
+    [:pre content]))
 
 (defn repl-output-hiccup
   [state]
