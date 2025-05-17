@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Whitespace is not preserved in stdout in output view](https://github.com/BetterThanTomorrow/calva/issues/2825)
+- Fix: [Whitespace is not preserved in non-code output in output view](https://github.com/BetterThanTomorrow/calva/issues/2825)
 
 ## [2.0.509] - 2025-05-10
 
