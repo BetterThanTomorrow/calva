@@ -56,7 +56,7 @@
 
 (defn repl-output-hiccup
   [state]
-  (into [:div]
+  (into [:div {:class "output-element-container"}]
         (map repl-output-element-hiccup (:repl-output/elements state))))
 
 (defn render [state]
