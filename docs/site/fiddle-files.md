@@ -149,4 +149,4 @@ If you primarily evaluate the fiddle file using the provided command for it, fro
 
 * [Rich Comments](rich-comments.md)
 * **Functional Design in Clojure** [Episode 014: Fiddle with the REPL](https://clojuredesign.club/episode/014-fiddle-with-the-repl/)
-* The [Polylith Development](https://polylith.gitbook.io/poly/architecture/development) page mentions good practice for where to put your fiddle files (not called fiddle files there, but it is the same concept).
+* The [Polylith Development](https://cljdoc.org/d/polylith/clj-poly/0.2.21/doc/development) page mentions good practice for where to put your fiddle files (not called fiddle files there, but it is the same concept).

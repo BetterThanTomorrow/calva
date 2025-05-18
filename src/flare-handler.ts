@@ -29,7 +29,7 @@ export function inspect(edn: string, evaluate: EvaluateFunction): any {
   ) {
     try {
       // decompose the flare into the tag and the literal
-      const match = edn.match(/^#(?:flare|cursive)\/(\w+)\s*(\{.*}$)/);
+      const match = edn.match(/^#(?:flare|cursive)\/(\w+)\s*(\{.*})\s*$/s);
       if (match) {
         const tag = match[1];
         const flare = parseEdn(match[2]);
@@ -50,6 +50,7 @@ export function inspect(edn: string, evaluate: EvaluateFunction): any {
 
 const defaultWebviewOptions = {
   enableScripts: true,
+  retainContextWhenHidden: true,
 };
 
 interface CalvaWebPanel extends vscode.WebviewPanel {

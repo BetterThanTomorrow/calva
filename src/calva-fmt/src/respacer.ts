@@ -36,6 +36,10 @@ function spacedUnits(s: string): SpacedUnit[] {
   // Array of whitespace, text, whitespace, text, ..., text:
   // Start with array of alternating space & text starting with either:
   const frags = s.match(/[\s,]+|[^\s,]+/g);
+  // Null means s was empty
+  if (!frags) {
+    return [];
+  }
   // Ensure 1st item is of whitespace:
   if (frags[0].match(/[^\s,]/)) {
     frags.unshift('');
