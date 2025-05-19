@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Label evaluated code in output view so it's easy to differentiate it from results](https://github.com/BetterThanTomorrow/calva/issues/2839)
+
 ## [2.0.513] - 2025-05-19
 
 - Fix: [Whitespace is not preserved in non-code output in output view](https://github.com/BetterThanTomorrow/calva/issues/2825)
