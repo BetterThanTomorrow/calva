@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.513] - 2025-05-19
+
+- Fix: [Whitespace is not preserved in non-code output in output view](https://github.com/BetterThanTomorrow/calva/issues/2825)
+- [Add padding to bottom of output view](https://github.com/BetterThanTomorrow/calva/issues/2824)
+- [Strip ANSI encoding in output view](https://github.com/BetterThanTomorrow/calva/issues/2837)
+
 ## [2.0.512] - 2025-05-17
 
 - Fix: [Flare webviews lose their state when they are not visible or moved](https://github.com/BetterThanTomorrow/calva/issues/2832)
