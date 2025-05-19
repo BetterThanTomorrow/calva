@@ -1,8 +1,8 @@
 (ns calva.repl.webview.ui
   (:require
    [replicant.dom :as replicant]
-   [clojure.string :as str]
-   [cljs.reader :as reader]))
+   [cljs.reader :as reader]
+   ["strip-ansi" :default strip-ansi]))
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
@@ -92,7 +92,7 @@
 (defn add-stdout
   [content]
   (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/stdout
-                                                 :output-element/content content})))
+                                                 :output-element/content (strip-ansi content)})))
 
 (defn ^:export clear-webview []
   (swap! state assoc :repl-output/elements []))
