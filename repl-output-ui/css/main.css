@@ -11,9 +11,9 @@
    display: block;
    float: left;
    clear: left;
-   padding: 5px;
-   margin-top: -15px;
+   padding-left: 10px;
+   padding-right: 10px;
+   margin-top: -10px;
    margin-left: 10px;
-   /* TODO: Use variable for VS Code editor / webview background color so it matches */
-   background-color: #000;
+   background-color: var(--vscode-editor-background);
 }
