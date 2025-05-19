@@ -51,8 +51,8 @@
 
 (defmethod repl-output-element-hiccup :output-element.type/evaluated-code
   [element]
-  [:div
-   "Evaluated code"
+  [:div {:class "evaluated-code-container"}
+   [:span {:class "border-text"} "Evaluated code"]
    (clojure-code-hiccup (:output-element/content element))])
 
 (defmethod repl-output-element-hiccup :output-element.type/stdout
