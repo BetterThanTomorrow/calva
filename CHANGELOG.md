@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.514] - 2025-05-23
+
+- Fix: [The API repl evaluation doesn't detect non-connected state](https://github.com/BetterThanTomorrow/calva/issues/2848)
+
 ## [2.0.513] - 2025-05-19
 
 - Fix: [Whitespace is not preserved in non-code output in output view](https://github.com/BetterThanTomorrow/calva/issues/2825)
