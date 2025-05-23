@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as printer from '../printer';
 import * as replSession from '../nrepl/repl-session';
 import * as resultOutput from '../results-output/output';
-import { cljsLib } from '../utilities';
+import * as util from '../utilities';
 
 type Result = {
   result: string;
@@ -27,9 +27,13 @@ export const evaluateCode = async (
   const sessionKeyToUse = replSession.getSessionKey(sessionKey);
   const session = replSession.getSession(sessionKeyToUse || undefined);
   if (!session) {
-    throw new Error(
-      `Can't retrieve REPL session for session key: ${sessionKey} (used ${sessionKeyToUse}).`
-    );
+    if (!util.getConnectedState()) {
+      throw new Error(`The REPL is not connected.`);
+    } else {
+      throw new Error(
+        `Can't retrieve REPL session for session key: ${sessionKey}. (used ${sessionKeyToUse}).`
+      );
+    }
   }
   const stdout = output
     ? output.stdout
@@ -78,7 +82,7 @@ export const evaluateCode = async (
 };
 
 export const currentSessionKey = () => {
-  return replSession.getReplSessionType(cljsLib.getStateValue('connected'));
+  return replSession.getReplSessionType(util.getConnectedState());
 };
 
 //// OUTPUT ////
