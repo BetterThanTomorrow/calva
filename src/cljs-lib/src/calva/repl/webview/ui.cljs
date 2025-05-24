@@ -63,7 +63,7 @@
 (defn repl-output-hiccup
   [state]
   (into [:div {:class "output-element-container"}]
-        (map repl-output-element-hiccup (:repl-output/elements state))))
+        (mapv repl-output-element-hiccup (:repl-output/elements state))))
 
 (defn render [state]
   (replicant/render output-dom-element (repl-output-hiccup state)))
@@ -102,8 +102,14 @@
 
 (defn add-stdout
   [content]
-  (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/stdout
-                                                 :output-element/content (strip-ansi content)})))
+  (let [repl-output-elements (:repl-output/elements @state)
+        last-output-element-type (-> repl-output-elements last :output-element/type)]
+    ;; If the last output element is also stdout, append to it instead of creating a new one
+    (if (= last-output-element-type :output-element.type/stdout)
+      (swap! state update-in [:repl-output/elements (dec (count repl-output-elements)) :output-element/content]
+             str (strip-ansi content))
+      (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/stdout
+                                                     :output-element/content (strip-ansi content)})))))
 
 (defn ^:export clear-webview []
   (swap! state assoc :repl-output/elements []))
