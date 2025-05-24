@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Label evaluated code in output view so it's easy to differentiate it from results](https://github.com/BetterThanTomorrow/calva/issues/2839)
+
 ## [2.0.514] - 2025-05-23
 
 - Fix: [The API repl evaluation doesn't detect non-connected state](https://github.com/BetterThanTomorrow/calva/issues/2848)

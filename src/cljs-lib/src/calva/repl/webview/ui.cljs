@@ -49,6 +49,12 @@
   [element]
   (clojure-code-hiccup (:output-element/content element)))
 
+(defmethod repl-output-element-hiccup :output-element.type/evaluated-code
+  [element]
+  [:div {:class "evaluated-code-container"}
+   [:span {:class "border-text"} "Evaluated code"]
+   (clojure-code-hiccup (:output-element/content element))])
+
 (defmethod repl-output-element-hiccup :output-element.type/stdout
   [element]
   (let [content (:output-element/content element)]
@@ -89,6 +95,11 @@
   (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/eval-result
                                                  :output-element/content content})))
 
+(defn add-evaluated-code
+  [content]
+  (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/evaluated-code
+                                                 :output-element/content content})))
+
 (defn add-stdout
   [content]
   (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/stdout
@@ -113,6 +124,7 @@
         content (:content message-data)]
     (case command-name
       "show-result" (add-eval-result content)
+      "show-evaluated-code" (add-evaluated-code content)
       "show-stdout" (add-stdout content)
       "clear-webview" (clear-webview)
       "set-code-theme" (set-code-theme! content))))

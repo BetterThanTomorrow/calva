@@ -183,6 +183,7 @@
   {"otherOut" "show-stdout"
    "evalOut" "show-stdout"
    "evalResults" "show-result"
+   "evaluatedCode" "show-evaluated-code"
    "evalErr" "show-stdout"
    "otherErr" "show-stdout"
    "clojure" "show-result"})
