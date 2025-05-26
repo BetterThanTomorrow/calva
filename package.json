@@ -3361,7 +3361,8 @@
     "preprettier-format-watch": "npm run prettier-format",
     "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
     "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch",
-    "install-ys": "curl -sS https://yamlscript.org/install | PREFIX=/tmp/yamlscript VERSION=0.1.56 bash"
+    "install-ys": "curl -sS https://yamlscript.org/install | PREFIX=/tmp/yamlscript VERSION=0.1.56 bash",
+    "publish": "bb scripts/publish.clj"
   },
   "dependencies": {
     "@vscode/debugadapter": "^1.64.0",
