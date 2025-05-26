@@ -1,14 +1,10 @@
 (ns calva.repl.webview.ui
   (:require
-   [replicant.dom :as replicant]
    [cljs.reader :as reader]
    ["strip-ansi" :default strip-ansi]))
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
-
-;; See here for a description of this function: https://code.visualstudio.com/api/extension-guides/webview#passing-messages-from-a-webview-to-an-extension
-(defonce vs-code-api (js/acquireVsCodeApi))
 
 (defmulti run-command
   "Runs a given command with the given args."
@@ -24,8 +20,6 @@
   [replicant-data hook-data]
   (doseq [[command-name & args] hook-data]
     (apply run-command replicant-data command-name args)))
-
-(replicant/set-dispatch! dispatch)
 
 (defn repl-output-element
   "Creates a repl output element - adding a unique ID to the :output-element/id attribute."
@@ -61,40 +55,10 @@
   (into [:div {:class "output-element-container"}]
         (mapv repl-output-element-hiccup (:repl-output/elements state))))
 
-(defn render [state]
-  (with-out-str (time (replicant/render output-dom-element (repl-output-hiccup state)))))
-
-(comment
-  (-> @state
-      :repl-output/elements
-      count)
-  ;;=> 5002
-
-  (with-out-str (time (repl-output-hiccup @state)))
-  ;; Multimethod time for 5002 elements
-  ;;=> "\"Elapsed time: 5.900000 msecs\"\n"
-  (with-out-str (time (replicant/render output-dom-element (repl-output-hiccup @state))))
-  ;; Multimethod time for 5002 elements
-  ;;=> "\"Elapsed time: 8.200000 msecs\"\n"
-  :rcf)
-
-(defn render-repl-output
-  "The watch function for the output elements that renders the output elements."
-  [_key _atom _old-state new-state]
-  (render new-state))
-
 (defn scroll-to-bottom
   "Scrolls to the bottom of the output view."
-  [_key _atom _old-state _new-state]
+  []
   (.. output-dom-element (scrollIntoView #js {:behavior "instant" :block "end"})))
-
-(def state-watchers
-  {:render-repl-output render-repl-output
-   :scroll-to-bottom scroll-to-bottom})
-
-(run! (fn [[key f]]
-        (add-watch state key f))
-      state-watchers)
 
 (defn add-repl-output-element
   [element]
@@ -121,6 +85,18 @@
       (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/stdout
                                                      :output-element/content (strip-ansi content)})))))
 
+(defn append-stdout
+  "Appends stdout content to the given DOM element."
+  [dom-element content]
+  ;; TODO: Check if last element is a pre element, and if so, append to its text node
+  (let [pre-element (js/document.createElement "pre")
+        text-node (js/document.createTextNode content)]
+    (.. pre-element (appendChild text-node))
+    (.. dom-element (appendChild pre-element))
+    ;; TODO: Move this call to an event listener on the output DOM element. Only scroll if an element is added to the
+    ;; _bottom_ of the output, and also debounce the scroll to avoid performance issues.
+    (scroll-to-bottom)))
+
 (defn ^:export clear-webview []
   (swap! state assoc :repl-output/elements []))
 
@@ -134,24 +110,24 @@
                                              (.. node (setAttribute "disabled" "disabled")))))))))
 
 (defn handle-message
-  [^js message]
+  [^js output-dom-element ^js message]
   (let [message-data (reader/read-string (.-data message))
         command-name (:command/name message-data)
         content (:content message-data)]
     (case command-name
       "show-result" (add-eval-result content)
       "show-evaluated-code" (add-evaluated-code content)
-      "show-stdout" (add-stdout content)
+      "show-stdout" (append-stdout output-dom-element content)
       "clear-webview" (clear-webview)
       "set-code-theme" (set-code-theme! content))))
 
-(defn add-event-listeners []
+(defn add-event-listeners
+  [^js output-dom-element]
   (.. js/window
-      (addEventListener "message" handle-message)))
+      (addEventListener "message" (partial handle-message output-dom-element))))
 
 (defn ^:export main []
-  (add-event-listeners)
-  (render @state))
+  (add-event-listeners output-dom-element))
 
 (comment
   (with-out-str
@@ -160,7 +136,7 @@
             (.. output-dom-element (appendChild pre-element))
             (doseq [x (range 5000)]
               (.. pre-element (appendChild (js/document.createTextNode (str "\n" x))))
-              (scroll-to-bottom nil nil nil nil)))))
+              (scroll-to-bottom)))))
   ;;=> "\"Elapsed time: 12031.800000 msecs\"\n"
 
   :rcf)
