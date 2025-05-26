@@ -55,10 +55,33 @@
   (into [:div {:class "output-element-container"}]
         (mapv repl-output-element-hiccup (:repl-output/elements state))))
 
+(defn throttle-no-arg-fn
+  "Returns a throttled version of the given no argument function, which will only be called at most once every `wait`
+   milliseconds.
+
+   If the throttled function is called again during the wait period, it will not execute until the wait period has
+   passed, after which it will only be called once, no matter how many times it was called during the wait.
+   If the throttled function is called again after the wait period, it will execute immediately."
+  [f wait]
+  (let [timeout (atom nil)
+        called-during-timeout? (atom false)]
+    (fn []
+      (if-not @timeout
+        (do (f)
+            (reset! timeout (js/setTimeout (fn []
+                                             (reset! timeout nil)
+                                             (when @called-during-timeout?
+                                               (reset! called-during-timeout? false)
+                                               (f)))
+                                           wait)))
+        (reset! called-during-timeout? true)))))
+
 (defn scroll-to-bottom
   "Scrolls to the bottom of the output view."
   []
   (.. output-dom-element (scrollIntoView #js {:behavior "instant" :block "end"})))
+
+(def throttled-scroll-to-bottom (throttle-no-arg-fn scroll-to-bottom 100))
 
 (defn add-repl-output-element
   [element]
@@ -94,8 +117,8 @@
     (.. pre-element (appendChild text-node))
     (.. dom-element (appendChild pre-element))
     ;; TODO: Move this call to an event listener on the output DOM element. Only scroll if an element is added to the
-    ;; _bottom_ of the output, and also debounce the scroll to avoid performance issues.
-    (scroll-to-bottom)))
+    ;; _bottom_ of the output, and also throttle the scroll to avoid performance issues.
+    (throttled-scroll-to-bottom)))
 
 (defn ^:export clear-webview []
   (swap! state assoc :repl-output/elements []))
