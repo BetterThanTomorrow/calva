@@ -41,24 +41,20 @@
   [clojure-code]
   [:pre [:code {:class "language-clojure" :replicant/on-render [[:repl-output/highlight-code]]} clojure-code]])
 
-(defmulti repl-output-element-hiccup
-  "Returns hiccup for rendering a given output element."
-  :output-element/type)
-
-(defmethod repl-output-element-hiccup :output-element.type/eval-result
-  [element]
-  (clojure-code-hiccup (:output-element/content element)))
-
-(defmethod repl-output-element-hiccup :output-element.type/evaluated-code
+(defn evaluated-code-hiccup
   [element]
   [:div {:class "evaluated-code-container"}
    [:span {:class "border-text"} "Evaluated code"]
    (clojure-code-hiccup (:output-element/content element))])
 
-(defmethod repl-output-element-hiccup :output-element.type/stdout
+(defn repl-output-element-hiccup
+  "Returns hiccup for rendering a given output element, or nil if the type is unknown."
   [element]
-  (let [content (:output-element/content element)]
-    [:pre content]))
+  (condp = (:output-element/type element)
+    :output-element.type/eval-result (clojure-code-hiccup (:output-element/content element))
+    :output-element.type/evaluated-code (evaluated-code-hiccup element)
+    :output-element.type/stdout [:pre (:output-element/content element)]
+    nil)) ;; Return nil for unknown types
 
 (defn repl-output-hiccup
   [state]
@@ -66,7 +62,21 @@
         (map repl-output-element-hiccup (:repl-output/elements state))))
 
 (defn render [state]
-  (replicant/render output-dom-element (repl-output-hiccup state)))
+  (with-out-str (time (replicant/render output-dom-element (repl-output-hiccup state)))))
+
+(comment
+  (-> @state
+      :repl-output/elements
+      count)
+  ;;=> 5002
+
+  (with-out-str (time (repl-output-hiccup @state)))
+  ;; Multimethod time for 5002 elements
+  ;;=> "\"Elapsed time: 5.900000 msecs\"\n"
+  (with-out-str (time (replicant/render output-dom-element (repl-output-hiccup @state))))
+  ;; Multimethod time for 5002 elements
+  ;;=> "\"Elapsed time: 8.200000 msecs\"\n"
+  :rcf)
 
 (defn render-repl-output
   "The watch function for the output elements that renders the output elements."
@@ -136,3 +146,15 @@
 (defn ^:export main []
   (add-event-listeners)
   (render @state))
+
+(comment
+  (with-out-str
+    (time (do
+            (def pre-element (js/document.createElement "pre"))
+            (.. output-dom-element (appendChild pre-element))
+            (doseq [x (range 5000)]
+              (.. pre-element (appendChild (js/document.createTextNode (str "\n" x))))
+              (scroll-to-bottom nil nil nil nil)))))
+  ;;=> "\"Elapsed time: 12031.800000 msecs\"\n"
+
+  :rcf)
