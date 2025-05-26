@@ -103,15 +103,15 @@ COPY --chown=atom --from=step-install-deps /home/circleci/calva/node_modules /ho
 COPY --chown=atom --from=step-build /home/circleci/calva/out/ /home/circleci/calva/out
 
 CMD bash -c " \
-/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1024x768x16 +extension RANDR &\
-cd src/calva-fmt/atom-language-clojure; \
-./run-grammar-tests.sh"
+  /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1024x768x16 +extension RANDR &\
+  cd src/calva-fmt/atom-language-clojure; \
+  ./run-grammar-tests.sh"
 
 
 ################################################################################
 # Prettier check step
 ################################################################################
-FROM circleci/node:latest as step-prettier-check
+FROM cimg/node:22.16.0 as step-prettier-check
 
 USER circleci
 WORKDIR /home/circleci/calva
@@ -129,7 +129,7 @@ CMD npm run prettier-check
 ################################################################################
 # Eslint check step
 ################################################################################
-FROM circleci/node:latest as step-eslint-check
+FROM cimg/node:22.16.0 as step-eslint-check
 
 USER circleci
 WORKDIR /home/circleci/calva
@@ -147,7 +147,7 @@ CMD npm run eslint
 ################################################################################
 # CLJSlib test step
 ################################################################################
-FROM circleci/node:latest as step-test-cljslib
+FROM cimg/node:22.16.0 as step-test-cljslib
 
 USER circleci
 WORKDIR /home/circleci/calva
@@ -165,7 +165,7 @@ CMD npm run calva-lib-test
 ################################################################################
 # TS unit test step
 ################################################################################
-FROM circleci/node:latest as step-test-ts-unit
+FROM cimg/node:22.16.0 as step-test-ts-unit
 
 USER circleci
 WORKDIR /home/circleci/calva
