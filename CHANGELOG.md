@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Calva development: [Upgrade deprecated docker convenience image used for CI](https://github.com/BetterThanTomorrow/calva/issues/2854)
+
 ## [2.0.515] - 2025-05-26
 
 - [Label evaluated code in output view so it's easy to differentiate it from results](https://github.com/BetterThanTomorrow/calva/issues/2839)
