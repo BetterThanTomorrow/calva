@@ -49,6 +49,12 @@
   [element]
   (clojure-code-hiccup (:output-element/content element)))
 
+(defmethod repl-output-element-hiccup :output-element.type/evaluated-code
+  [element]
+  [:div {:class "evaluated-code-container"}
+   [:span {:class "border-text"} "Evaluated code"]
+   (clojure-code-hiccup (:output-element/content element))])
+
 (defmethod repl-output-element-hiccup :output-element.type/stdout
   [element]
   (let [content (:output-element/content element)]
@@ -57,7 +63,7 @@
 (defn repl-output-hiccup
   [state]
   (into [:div {:class "output-element-container"}]
-        (map repl-output-element-hiccup (:repl-output/elements state))))
+        (mapv repl-output-element-hiccup (:repl-output/elements state))))
 
 (defn render [state]
   (replicant/render output-dom-element (repl-output-hiccup state)))
@@ -89,10 +95,21 @@
   (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/eval-result
                                                  :output-element/content content})))
 
+(defn add-evaluated-code
+  [content]
+  (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/evaluated-code
+                                                 :output-element/content content})))
+
 (defn add-stdout
   [content]
-  (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/stdout
-                                                 :output-element/content (strip-ansi content)})))
+  (let [repl-output-elements (:repl-output/elements @state)
+        last-output-element-type (-> repl-output-elements last :output-element/type)]
+    ;; If the last output element is also stdout, append to it instead of creating a new one
+    (if (= last-output-element-type :output-element.type/stdout)
+      (swap! state update-in [:repl-output/elements (dec (count repl-output-elements)) :output-element/content]
+             str (strip-ansi content))
+      (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/stdout
+                                                     :output-element/content (strip-ansi content)})))))
 
 (defn ^:export clear-webview []
   (swap! state assoc :repl-output/elements []))
@@ -113,6 +130,7 @@
         content (:content message-data)]
     (case command-name
       "show-result" (add-eval-result content)
+      "show-evaluated-code" (add-evaluated-code content)
       "show-stdout" (add-stdout content)
       "clear-webview" (clear-webview)
       "set-code-theme" (set-code-theme! content))))

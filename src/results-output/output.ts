@@ -40,6 +40,7 @@ function emit(msg: SubscriberOutputMessage) {
 
 export type OutputCategory =
   | 'evalResults'
+  | 'evaluatedCode'
   | 'clojure'
   | 'evalOut'
   | 'evalErr'
@@ -55,6 +56,7 @@ type AppendOptions = {
 type AppendClojureOptions = {
   ns?: string;
   replSessionType?: string;
+  outputCategory?: OutputCategory;
 };
 
 const lightTheme = {

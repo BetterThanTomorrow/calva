@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.515] - 2025-05-26
+
+- [Label evaluated code in output view so it's easy to differentiate it from results](https://github.com/BetterThanTomorrow/calva/issues/2839)
+- Fix: [Some output from stderr and/or stdout is being broken up in the output view](https://github.com/BetterThanTomorrow/calva/issues/2847)
+- Fix: [Extra newline is printed before error output in output view](https://github.com/BetterThanTomorrow/calva/issues/2846)
+
 ## [2.0.514] - 2025-05-23
 
 - Fix: [The API repl evaluation doesn't detect non-connected state](https://github.com/BetterThanTomorrow/calva/issues/2848)
