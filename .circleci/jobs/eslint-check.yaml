@@ -1,17 +1,16 @@
 !YS-v0:
-
 docker:
-- image: circleci/node:latest
+  - image: cimg/node:22.16.0
 
 working_directory: ~/calva
 
 steps:
-- !:attach-workspace /tmp
+  - !:attach-workspace /tmp
 
-- !:cmd
-  - Restore build
-  - rmdir ~/calva && cp -r /tmp/build ~/calva
+  - !:cmd
+    - Restore build
+    - rmdir ~/calva && cp -r /tmp/build ~/calva
 
-- !:cmd
-  - Run eslint check
-  - npm run eslint
+  - !:cmd
+    - Run eslint check
+    - npm run eslint
