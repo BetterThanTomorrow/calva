@@ -1,20 +1,19 @@
 !YS-v0:
-
 docker:
-- image: circleci/node:latest
+  - image: cimg/node:22.16.0
 
 working_directory: ~/calva
 
 steps:
-- !:attach-workspace /tmp
+  - !:attach-workspace /tmp
 
-- !:cmd
-  - Restore build
-  - rmdir ~/calva && cp -r /tmp/build ~/calva
+  - !:cmd
+    - Restore build
+    - rmdir ~/calva && cp -r /tmp/build ~/calva
 
-- !:cmd
-  - Run TS Unit Tests
-  - npm run unit-test
+  - !:cmd
+    - Run TS Unit Tests
+    - npm run unit-test
 
-- !:store
+  - !:store
     test_results: ~/calva/junit
