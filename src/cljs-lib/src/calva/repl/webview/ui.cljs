@@ -41,9 +41,6 @@
   [container-element]
   (js/CustomEvent. "output-appended" #js {:detail {:container-element container-element}}))
 
-(defonce state
-  (atom {:repl-output/elements []}))
-
 (defn clojure-code-element
   "Creates a code element for Clojure code, with the necessary classes and attributes for syntax highlighting,
    and appends it to a pre element. Returns a map with the `:container-element` and the `:code-element`."
