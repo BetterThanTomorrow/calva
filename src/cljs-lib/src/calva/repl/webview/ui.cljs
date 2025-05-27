@@ -6,55 +6,6 @@
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
 
-(defmulti run-command
-  "Runs a given command with the given args."
-  (fn [_replicant-data command & _args]
-    command))
-
-(defmethod run-command :repl-output/highlight-code
-  [{:replicant/keys [node]} _command _args]
-  (.. js/window -hljs (highlightElement node)))
-
-(defn dispatch
-  "Dispatches commands in hook-data"
-  [replicant-data hook-data]
-  (doseq [[command-name & args] hook-data]
-    (apply run-command replicant-data command-name args)))
-
-(defn repl-output-element
-  "Creates a repl output element - adding a unique ID to the :output-element/id attribute."
-  [element-data]
-  (merge element-data
-         {:output-element/id (random-uuid)}))
-
-(defonce state
-  (atom {:repl-output/elements []}))
-
-(defn clojure-code-hiccup
-  "Accepts a string of Clojure code and returns hiccup for rendering it in the output view."
-  [clojure-code]
-  [:pre [:code {:class "language-clojure" :replicant/on-render [[:repl-output/highlight-code]]} clojure-code]])
-
-(defn evaluated-code-hiccup
-  [element]
-  [:div {:class "evaluated-code-container"}
-   [:span {:class "border-text"} "Evaluated code"]
-   (clojure-code-hiccup (:output-element/content element))])
-
-(defn repl-output-element-hiccup
-  "Returns hiccup for rendering a given output element, or nil if the type is unknown."
-  [element]
-  (condp = (:output-element/type element)
-    :output-element.type/eval-result (clojure-code-hiccup (:output-element/content element))
-    :output-element.type/evaluated-code (evaluated-code-hiccup element)
-    :output-element.type/stdout [:pre (:output-element/content element)]
-    nil)) ;; Return nil for unknown types
-
-(defn repl-output-hiccup
-  [state]
-  (into [:div {:class "output-element-container"}]
-        (mapv repl-output-element-hiccup (:repl-output/elements state))))
-
 (defn throttle-no-arg-fn
   "Returns a throttled version of the given no argument function, which will only be called at most once every `wait`
    milliseconds.
@@ -84,26 +35,44 @@
 ;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.
 (def throttled-scroll-to-bottom (throttle-no-arg-fn scroll-to-bottom 0))
 
-(defn add-repl-output-element
-  [element]
-  (swap! state update :repl-output/elements conj element))
+(defonce state
+  (atom {:repl-output/elements []}))
 
-(defn append-eval-result
-  [content]
+(defn clojure-code-element
+  "Creates a code element for Clojure code, with the necessary classes and attributes for syntax highlighting,
+   and appends it to a pre element. Returns a map with the `:container-element` and the `:code-element`."
+  [clojure-code]
   (let [pre-element (js/document.createElement "pre")
         code-element (js/document.createElement "code")
-        text-node (js/document.createTextNode content)]
+        text-node (js/document.createTextNode clojure-code)]
     (.. code-element -classList (add "language-clojure"))
     (.. code-element (appendChild text-node))
     (.. pre-element (appendChild code-element))
-    (.. output-dom-element (appendChild pre-element))
+    {:container-element pre-element
+     :code-element code-element}))
+
+(defn append-evaluated-code
+  "Appends evaluated code to the given dom element."
+  [^js dom-element content]
+  (let [div (js/document.createElement "div")
+        span (js/document.createElement "span")
+        span-text-node (js/document.createTextNode "Evaluated code")
+        {:keys [container-element code-element]} (clojure-code-element content)]
+    (.. span -classList (add "border-text"))
+    (.. span (appendChild span-text-node))
+    (.. div -classList (add "evaluated-code-container"))
+    (.. div (appendChild span))
+    (.. div (appendChild container-element))
+    (.. dom-element (appendChild div))
     (.. js/window -hljs (highlightElement code-element))
     (throttled-scroll-to-bottom)))
 
-(defn add-evaluated-code
-  [content]
-  (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/evaluated-code
-                                                 :output-element/content content})))
+(defn append-eval-result
+  [^js dom-element content]
+  (let [{:keys [code-element container-element]} (clojure-code-element content)]
+    (.. dom-element (appendChild container-element))
+    (.. js/window -hljs (highlightElement code-element))
+    (throttled-scroll-to-bottom)))
 
 (defn create-and-append-stdout-element
   "Creates a new stdout element and appends it to the given DOM element."
@@ -149,8 +118,10 @@
         command-name (:command/name message-data)
         content (:content message-data)]
     (case command-name
-      "show-result" (append-eval-result content)
-      "show-evaluated-code" (add-evaluated-code content)
+      ;; TODO: Separate appending and creation of elements. Then we can just call scroll or emit an output-appended
+      ;; event in one place.
+      "show-result" (append-eval-result output-dom-element content)
+      "show-evaluated-code" (append-evaluated-code output-dom-element content)
       "show-stdout" (append-stdout output-dom-element content)
       "clear-webview" (clear-webview)
       "set-code-theme" (set-code-theme! content))))
@@ -162,15 +133,3 @@
 
 (defn ^:export main []
   (add-event-listeners output-dom-element))
-
-(comment
-  (with-out-str
-    (time (do
-            (def pre-element (js/document.createElement "pre"))
-            (.. output-dom-element (appendChild pre-element))
-            (doseq [x (range 5000)]
-              (.. pre-element (appendChild (js/document.createTextNode (str "\n" x))))
-              (scroll-to-bottom)))))
-  ;;=> "\"Elapsed time: 12031.800000 msecs\"\n"
-
-  :rcf)
