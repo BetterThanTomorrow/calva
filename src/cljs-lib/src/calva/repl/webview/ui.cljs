@@ -122,7 +122,6 @@
       "show-evaluated-code" (append-evaluated-code output-dom-element content)
       "show-stdout" (append-stdout output-dom-element content)
       "clear-output-view" (clear-output-view output-dom-element)
-      ;; TODO: Test that this still works
       "set-code-theme" (set-code-theme! content))))
 
 (defn handle-output-appended
