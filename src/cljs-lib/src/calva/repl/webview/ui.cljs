@@ -35,6 +35,12 @@
 ;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.
 (def throttled-scroll-to-bottom (throttle-no-arg-fn scroll-to-bottom 0))
 
+(defn output-appended-event
+  "Creates a custom event to signal that output has been appended to the output DOM element.
+   The event contains the `:container-element` in its detail."
+  [container-element]
+  (js/CustomEvent. "output-appended" #js {:detail {:container-element container-element}}))
+
 (defonce state
   (atom {:repl-output/elements []}))
 
@@ -65,14 +71,14 @@
     (.. div (appendChild container-element))
     (.. dom-element (appendChild div))
     (.. js/window -hljs (highlightElement code-element))
-    (throttled-scroll-to-bottom)))
+    (.. dom-element (dispatchEvent (output-appended-event div)))))
 
 (defn append-eval-result
   [^js dom-element content]
   (let [{:keys [code-element container-element]} (clojure-code-element content)]
     (.. dom-element (appendChild container-element))
     (.. js/window -hljs (highlightElement code-element))
-    (throttled-scroll-to-bottom)))
+    (.. dom-element (dispatchEvent (output-appended-event container-element)))))
 
 (defn create-and-append-stdout-element
   "Creates a new stdout element and appends it to the given DOM element."
@@ -81,11 +87,7 @@
     (.. pre-element (appendChild text-node))
     (.. pre-element (setAttribute "data-output-element-type" "stdout"))
     (.. dom-element (appendChild pre-element))
-    ;; TODO: Move this call to an event listener on the output DOM element. Only scroll if an element is added to the
-    ;; _bottom_ of the output, and also throttle the scroll to avoid performance issues.
-    ;; OR emit a custom event here like "output-appended"?
-    ;; See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
-    (throttled-scroll-to-bottom)))
+    (.. dom-element (dispatchEvent (output-appended-event pre-element)))))
 
 (defn append-stdout
   "Appends stdout content to the given DOM element, unless the last element is already a stdout element,
@@ -96,7 +98,7 @@
       (if (= "stdout" (.. last-output-element -dataset -outputElementType))
         (do
           (.. last-output-element (appendChild text-node))
-          (throttled-scroll-to-bottom))
+          (.. dom-element (dispatchEvent (output-appended-event last-output-element))))
         (create-and-append-stdout-element dom-element text-node))
       (create-and-append-stdout-element dom-element text-node))))
 
@@ -118,18 +120,20 @@
         command-name (:command/name message-data)
         content (:content message-data)]
     (case command-name
-      ;; TODO: Separate appending and creation of elements. Then we can just call scroll or emit an output-appended
-      ;; event in one place.
       "show-result" (append-eval-result output-dom-element content)
       "show-evaluated-code" (append-evaluated-code output-dom-element content)
       "show-stdout" (append-stdout output-dom-element content)
       "clear-webview" (clear-webview)
       "set-code-theme" (set-code-theme! content))))
 
+(defn handle-output-appended
+  [^js _output-dom-element ^js _event]
+  (throttled-scroll-to-bottom))
+
 (defn add-event-listeners
   [^js output-dom-element]
-  (.. js/window
-      (addEventListener "message" (partial handle-message output-dom-element))))
+  (.. js/window (addEventListener "message" (partial handle-message output-dom-element)))
+  (.. output-dom-element (addEventListener "output-appended" (partial handle-output-appended output-dom-element))))
 
 (defn ^:export main []
   (add-event-listeners output-dom-element))
