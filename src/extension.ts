@@ -34,7 +34,7 @@ import * as whenContexts from './when-contexts';
 import {
   setStateValue,
   initializeCljs,
-  clearReplOutputWebview,
+  clearReplOutputView,
   showReplOutputWebviewPanel,
 } from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
@@ -228,7 +228,7 @@ async function activate(context: vscode.ExtensionContext) {
   // COMMANDS
   const commands = {
     clearInlineResults: annotations.clearAllEvaluationDecorations,
-    clearReplOutputView: clearReplOutputWebview,
+    clearReplOutputView: clearReplOutputView,
     clearReplHistory: replHistory.clearHistory,
     connect: connector.connectCommand,
     connectNonProjectREPL: () => {

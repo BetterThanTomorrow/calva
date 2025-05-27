@@ -102,8 +102,9 @@
         (create-and-append-stdout-element dom-element text-node))
       (create-and-append-stdout-element dom-element text-node))))
 
-(defn ^:export clear-webview []
-  (swap! state assoc :repl-output/elements []))
+(defn ^:export clear-output-view
+  [^js output-dom-element]
+  (set! (.-innerHTML output-dom-element) ""))
 
 (defn set-code-theme!
   [theme]
@@ -123,7 +124,7 @@
       "show-result" (append-eval-result output-dom-element content)
       "show-evaluated-code" (append-evaluated-code output-dom-element content)
       "show-stdout" (append-stdout output-dom-element content)
-      "clear-webview" (clear-webview)
+      "clear-output-view" (clear-output-view output-dom-element)
       "set-code-theme" (set-code-theme! content))))
 
 (defn handle-output-appended

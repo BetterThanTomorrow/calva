@@ -225,5 +225,5 @@
     (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
                                                          :content stacktrace-message})))
 
-(defn ^:export clear-webview []
-  (post-message-to-webview @repl-output-webview-panel {:command/name "clear-webview"}))
+(defn ^:export clear-output-view []
+  (post-message-to-webview @repl-output-webview-panel {:command/name "clear-output-view"}))
