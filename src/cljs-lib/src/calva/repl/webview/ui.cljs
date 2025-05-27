@@ -92,6 +92,18 @@
   (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/eval-result
                                                  :output-element/content content})))
 
+(defn append-eval-result
+  [content]
+  (let [pre-element (js/document.createElement "pre")
+        code-element (js/document.createElement "code")
+        text-node (js/document.createTextNode content)]
+    (.. code-element -classList (add "language-clojure"))
+    (.. code-element (appendChild text-node))
+    (.. pre-element (appendChild code-element))
+    (.. output-dom-element (appendChild pre-element))
+    (.. js/window -hljs (highlightElement code-element))
+    (throttled-scroll-to-bottom)))
+
 (defn add-evaluated-code
   [content]
   (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/evaluated-code
@@ -118,6 +130,7 @@
     (.. dom-element (appendChild pre-element))
     ;; TODO: Move this call to an event listener on the output DOM element. Only scroll if an element is added to the
     ;; _bottom_ of the output, and also throttle the scroll to avoid performance issues.
+    ;; OR emit a custom event here like "output-appended"?
     (throttled-scroll-to-bottom)))
 
 (defn ^:export clear-webview []
@@ -138,7 +151,7 @@
         command-name (:command/name message-data)
         content (:content message-data)]
     (case command-name
-      "show-result" (add-eval-result content)
+      "show-result" (append-eval-result content)
       "show-evaluated-code" (add-evaluated-code content)
       "show-stdout" (append-stdout output-dom-element content)
       "clear-webview" (clear-webview)
