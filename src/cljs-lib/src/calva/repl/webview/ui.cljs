@@ -81,16 +81,12 @@
   []
   (.. output-dom-element (scrollIntoView #js {:behavior "instant" :block "end"})))
 
-(def throttled-scroll-to-bottom (throttle-no-arg-fn scroll-to-bottom 100))
+;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.
+(def throttled-scroll-to-bottom (throttle-no-arg-fn scroll-to-bottom 0))
 
 (defn add-repl-output-element
   [element]
   (swap! state update :repl-output/elements conj element))
-
-(defn add-eval-result
-  [content]
-  (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/eval-result
-                                                 :output-element/content content})))
 
 (defn append-eval-result
   [content]
@@ -109,29 +105,31 @@
   (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/evaluated-code
                                                  :output-element/content content})))
 
-(defn add-stdout
-  [content]
-  (let [repl-output-elements (:repl-output/elements @state)
-        last-output-element-type (-> repl-output-elements last :output-element/type)]
-    ;; If the last output element is also stdout, append to it instead of creating a new one
-    (if (= last-output-element-type :output-element.type/stdout)
-      (swap! state update-in [:repl-output/elements (dec (count repl-output-elements)) :output-element/content]
-             str (strip-ansi content))
-      (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/stdout
-                                                     :output-element/content (strip-ansi content)})))))
-
-(defn append-stdout
-  "Appends stdout content to the given DOM element."
-  [dom-element content]
-  ;; TODO: Check if last element is a pre element, and if so, append to its text node
-  (let [pre-element (js/document.createElement "pre")
-        text-node (js/document.createTextNode content)]
+(defn create-and-append-stdout-element
+  "Creates a new stdout element and appends it to the given DOM element."
+  [dom-element text-node]
+  (let [pre-element (js/document.createElement "pre")]
     (.. pre-element (appendChild text-node))
+    (.. pre-element (setAttribute "data-output-element-type" "stdout"))
     (.. dom-element (appendChild pre-element))
     ;; TODO: Move this call to an event listener on the output DOM element. Only scroll if an element is added to the
     ;; _bottom_ of the output, and also throttle the scroll to avoid performance issues.
     ;; OR emit a custom event here like "output-appended"?
+    ;; See https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
     (throttled-scroll-to-bottom)))
+
+(defn append-stdout
+  "Appends stdout content to the given DOM element, unless the last element is already a stdout element,
+   in which case it appends the content to that element instead."
+  [^js dom-element content]
+  (let [text-node (js/document.createTextNode (strip-ansi content))]
+    (if-let [last-output-element (.. dom-element -lastElementChild)]
+      (if (= "stdout" (.. last-output-element -dataset -outputElementType))
+        (do
+          (.. last-output-element (appendChild text-node))
+          (throttled-scroll-to-bottom))
+        (create-and-append-stdout-element dom-element text-node))
+      (create-and-append-stdout-element dom-element text-node))))
 
 (defn ^:export clear-webview []
   (swap! state assoc :repl-output/elements []))
