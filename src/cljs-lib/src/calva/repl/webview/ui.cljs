@@ -1,118 +1,107 @@
 (ns calva.repl.webview.ui
   (:require
-   [replicant.dom :as replicant]
    [cljs.reader :as reader]
    ["strip-ansi" :default strip-ansi]))
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
 
-;; See here for a description of this function: https://code.visualstudio.com/api/extension-guides/webview#passing-messages-from-a-webview-to-an-extension
-(defonce vs-code-api (js/acquireVsCodeApi))
+(defn throttle-fn
+  "Returns a throttled version of the function, which will only be called at most once every `wait`
+   milliseconds with the arguments passed in the latest call.
 
-(defmulti run-command
-  "Runs a given command with the given args."
-  (fn [_replicant-data command & _args]
-    command))
-
-(defmethod run-command :repl-output/highlight-code
-  [{:replicant/keys [node]} _command _args]
-  (.. js/window -hljs (highlightElement node)))
-
-(defn dispatch
-  "Dispatches commands in hook-data"
-  [replicant-data hook-data]
-  (doseq [[command-name & args] hook-data]
-    (apply run-command replicant-data command-name args)))
-
-(replicant/set-dispatch! dispatch)
-
-(defn repl-output-element
-  "Creates a repl output element - adding a unique ID to the :output-element/id attribute."
-  [element-data]
-  (merge element-data
-         {:output-element/id (random-uuid)}))
-
-(defonce state
-  (atom {:repl-output/elements []}))
-
-(defn clojure-code-hiccup
-  "Accepts a string of Clojure code and returns hiccup for rendering it in the output view."
-  [clojure-code]
-  [:pre [:code {:class "language-clojure" :replicant/on-render [[:repl-output/highlight-code]]} clojure-code]])
-
-(defmulti repl-output-element-hiccup
-  "Returns hiccup for rendering a given output element."
-  :output-element/type)
-
-(defmethod repl-output-element-hiccup :output-element.type/eval-result
-  [element]
-  (clojure-code-hiccup (:output-element/content element)))
-
-(defmethod repl-output-element-hiccup :output-element.type/evaluated-code
-  [element]
-  [:div {:class "evaluated-code-container"}
-   [:span {:class "border-text"} "Evaluated code"]
-   (clojure-code-hiccup (:output-element/content element))])
-
-(defmethod repl-output-element-hiccup :output-element.type/stdout
-  [element]
-  (let [content (:output-element/content element)]
-    [:pre content]))
-
-(defn repl-output-hiccup
-  [state]
-  (into [:div {:class "output-element-container"}]
-        (mapv repl-output-element-hiccup (:repl-output/elements state))))
-
-(defn render [state]
-  (replicant/render output-dom-element (repl-output-hiccup state)))
-
-(defn render-repl-output
-  "The watch function for the output elements that renders the output elements."
-  [_key _atom _old-state new-state]
-  (render new-state))
+   If the throttled function is called again during the wait period, it will not execute until the wait period has
+   passed, after which it will only be called once, no matter how many times it was called during the wait.
+   If the throttled function is called again after the wait period, it will execute immediately."
+  [f wait]
+  (let [timeout (atom nil)
+        called-during-timeout? (atom false)]
+    (fn [& args]
+      (if-not @timeout
+        (do (apply f args)
+            (reset! timeout (js/setTimeout (fn []
+                                             (reset! timeout nil)
+                                             (when @called-during-timeout?
+                                               (reset! called-during-timeout? false)
+                                               (apply f args)))
+                                           wait)))
+        (reset! called-during-timeout? true)))))
 
 (defn scroll-to-bottom
-  "Scrolls to the bottom of the output view."
-  [_key _atom _old-state _new-state]
-  (.. output-dom-element (scrollIntoView #js {:behavior "instant" :block "end"})))
+  "Scrolls to the bottom of the the given dom element."
+  [^js dom-element]
+  (.. dom-element (scrollIntoView #js {:behavior "instant" :block "end"})))
 
-(def state-watchers
-  {:render-repl-output render-repl-output
-   :scroll-to-bottom scroll-to-bottom})
+;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.
+(def throttled-scroll-to-bottom (throttle-fn scroll-to-bottom 0))
 
-(run! (fn [[key f]]
-        (add-watch state key f))
-      state-watchers)
+(defn output-appended-event
+  "Creates a custom event to signal that output has been appended to the output DOM element.
+   The event contains the `:container-element` in its detail."
+  [container-element]
+  (js/CustomEvent. "output-appended" #js {:detail {:container-element container-element}}))
 
-(defn add-repl-output-element
-  [element]
-  (swap! state update :repl-output/elements conj element))
+(defn clojure-code-element
+  "Creates a code element for Clojure code, with the necessary classes and attributes for syntax highlighting,
+   and appends it to a pre element. Returns a map with the `:container-element` and the `:code-element`."
+  [clojure-code]
+  (let [pre-element (js/document.createElement "pre")
+        code-element (js/document.createElement "code")
+        text-node (js/document.createTextNode clojure-code)]
+    (.. code-element -classList (add "language-clojure"))
+    (.. code-element (appendChild text-node))
+    (.. pre-element (appendChild code-element))
+    {:container-element pre-element
+     :code-element code-element}))
 
-(defn add-eval-result
-  [content]
-  (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/eval-result
-                                                 :output-element/content content})))
+(defn append-evaluated-code
+  "Appends evaluated code to the given dom element."
+  [^js dom-element content]
+  (let [div (js/document.createElement "div")
+        span (js/document.createElement "span")
+        span-text-node (js/document.createTextNode "Evaluated code")
+        {:keys [container-element code-element]} (clojure-code-element content)]
+    (.. span -classList (add "border-text"))
+    (.. span (appendChild span-text-node))
+    (.. div -classList (add "evaluated-code-container"))
+    (.. div (appendChild span))
+    (.. div (appendChild container-element))
+    (.. dom-element (appendChild div))
+    (.. js/window -hljs (highlightElement code-element))
+    (.. dom-element (dispatchEvent (output-appended-event div)))))
 
-(defn add-evaluated-code
-  [content]
-  (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/evaluated-code
-                                                 :output-element/content content})))
+(defn append-eval-result
+  [^js dom-element content]
+  (let [{:keys [code-element container-element]} (clojure-code-element content)]
+    (.. dom-element (appendChild container-element))
+    (.. js/window -hljs (highlightElement code-element))
+    (.. dom-element (dispatchEvent (output-appended-event container-element)))))
 
-(defn add-stdout
-  [content]
-  (let [repl-output-elements (:repl-output/elements @state)
-        last-output-element-type (-> repl-output-elements last :output-element/type)]
-    ;; If the last output element is also stdout, append to it instead of creating a new one
-    (if (= last-output-element-type :output-element.type/stdout)
-      (swap! state update-in [:repl-output/elements (dec (count repl-output-elements)) :output-element/content]
-             str (strip-ansi content))
-      (add-repl-output-element (repl-output-element {:output-element/type :output-element.type/stdout
-                                                     :output-element/content (strip-ansi content)})))))
+(defn create-and-append-stdout-element
+  "Creates a new stdout element and appends it to the given DOM element."
+  [dom-element text-node]
+  (let [pre-element (js/document.createElement "pre")]
+    (.. pre-element (appendChild text-node))
+    (.. pre-element (setAttribute "data-output-element-type" "stdout"))
+    (.. dom-element (appendChild pre-element))
+    (.. dom-element (dispatchEvent (output-appended-event pre-element)))))
 
-(defn ^:export clear-webview []
-  (swap! state assoc :repl-output/elements []))
+(defn append-stdout
+  "Appends stdout content to the given DOM element, unless the last element is already a stdout element,
+   in which case it appends the content to that element instead."
+  [^js dom-element content]
+  (let [text-node (js/document.createTextNode (strip-ansi content))]
+    (if-let [last-output-element (.. dom-element -lastElementChild)]
+      (if (= "stdout" (.. last-output-element -dataset -outputElementType))
+        (do
+          (.. last-output-element (appendChild text-node))
+          (.. dom-element (dispatchEvent (output-appended-event last-output-element))))
+        (create-and-append-stdout-element dom-element text-node))
+      (create-and-append-stdout-element dom-element text-node))))
+
+(defn ^:export clear-output-view
+  [^js output-dom-element]
+  (set! (.-innerHTML output-dom-element) ""))
 
 (defn set-code-theme!
   [theme]
@@ -124,21 +113,25 @@
                                              (.. node (setAttribute "disabled" "disabled")))))))))
 
 (defn handle-message
-  [^js message]
+  [^js output-dom-element ^js message]
   (let [message-data (reader/read-string (.-data message))
         command-name (:command/name message-data)
         content (:content message-data)]
     (case command-name
-      "show-result" (add-eval-result content)
-      "show-evaluated-code" (add-evaluated-code content)
-      "show-stdout" (add-stdout content)
-      "clear-webview" (clear-webview)
+      "show-result" (append-eval-result output-dom-element content)
+      "show-evaluated-code" (append-evaluated-code output-dom-element content)
+      "show-stdout" (append-stdout output-dom-element content)
+      "clear-output-view" (clear-output-view output-dom-element)
       "set-code-theme" (set-code-theme! content))))
 
-(defn add-event-listeners []
-  (.. js/window
-      (addEventListener "message" handle-message)))
+(defn handle-output-appended
+  [^js output-dom-element ^js _event]
+  (throttled-scroll-to-bottom output-dom-element))
+
+(defn add-event-listeners
+  [^js output-dom-element]
+  (.. js/window (addEventListener "message" (partial handle-message output-dom-element)))
+  (.. output-dom-element (addEventListener "output-appended" (partial handle-output-appended output-dom-element))))
 
 (defn ^:export main []
-  (add-event-listeners)
-  (render @state))
+  (add-event-listeners output-dom-element))

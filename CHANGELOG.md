@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Performance of output view degrades as content grows](https://github.com/BetterThanTomorrow/calva/issues/2852)
+
 ## [2.0.516] - 2025-05-26
 
 - Calva development: [Upgrade deprecated docker convenience image used for CI](https://github.com/BetterThanTomorrow/calva/issues/2854)
