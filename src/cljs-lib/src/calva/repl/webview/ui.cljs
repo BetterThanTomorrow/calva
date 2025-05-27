@@ -1,7 +1,8 @@
 (ns calva.repl.webview.ui
   (:require
    [cljs.reader :as reader]
-   ["strip-ansi" :default strip-ansi]))
+   ["strip-ansi" :default strip-ansi]
+   ["highlightjs-copy" :as CopyButtonPlugin]))
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
@@ -134,4 +135,5 @@
   (.. output-dom-element (addEventListener "output-appended" (partial handle-output-appended output-dom-element))))
 
 (defn ^:export main []
-  (add-event-listeners output-dom-element))
+  (add-event-listeners output-dom-element)
+  (.. js/window -hljs (addPlugin (CopyButtonPlugin.))))
