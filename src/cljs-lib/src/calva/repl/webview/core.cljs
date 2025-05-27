@@ -78,7 +78,7 @@
 
   </head>
   <body>
-    <div id=\"output\"></div>
+    <div id=\"output\" class=\"output-element-container\"></div>
 
     <script src=\"" js-source "\"></script>
   </body>

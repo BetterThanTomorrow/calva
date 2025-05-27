@@ -6,9 +6,9 @@
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
 
-(defn throttle-no-arg-fn
-  "Returns a throttled version of the given no argument function, which will only be called at most once every `wait`
-   milliseconds.
+(defn throttle-fn
+  "Returns a throttled version of the function, which will only be called at most once every `wait`
+   milliseconds with the arguments passed in the latest call.
 
    If the throttled function is called again during the wait period, it will not execute until the wait period has
    passed, after which it will only be called once, no matter how many times it was called during the wait.
@@ -16,24 +16,24 @@
   [f wait]
   (let [timeout (atom nil)
         called-during-timeout? (atom false)]
-    (fn []
+    (fn [& args]
       (if-not @timeout
-        (do (f)
+        (do (apply f args)
             (reset! timeout (js/setTimeout (fn []
                                              (reset! timeout nil)
                                              (when @called-during-timeout?
                                                (reset! called-during-timeout? false)
-                                               (f)))
+                                               (apply f args)))
                                            wait)))
         (reset! called-during-timeout? true)))))
 
 (defn scroll-to-bottom
-  "Scrolls to the bottom of the output view."
-  []
-  (.. output-dom-element (scrollIntoView #js {:behavior "instant" :block "end"})))
+  "Scrolls to the bottom of the the given dom element."
+  [^js dom-element]
+  (.. dom-element (scrollIntoView #js {:behavior "instant" :block "end"})))
 
 ;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.
-(def throttled-scroll-to-bottom (throttle-no-arg-fn scroll-to-bottom 0))
+(def throttled-scroll-to-bottom (throttle-fn scroll-to-bottom 0))
 
 (defn output-appended-event
   "Creates a custom event to signal that output has been appended to the output DOM element.
@@ -125,11 +125,12 @@
       "show-evaluated-code" (append-evaluated-code output-dom-element content)
       "show-stdout" (append-stdout output-dom-element content)
       "clear-output-view" (clear-output-view output-dom-element)
+      ;; TODO: Test that this still works
       "set-code-theme" (set-code-theme! content))))
 
 (defn handle-output-appended
-  [^js _output-dom-element ^js _event]
-  (throttled-scroll-to-bottom))
+  [^js output-dom-element ^js _event]
+  (throttled-scroll-to-bottom output-dom-element))
 
 (defn add-event-listeners
   [^js output-dom-element]
