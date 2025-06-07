@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.517] - 2025-06-07
+
 - Fix: [Performance of output view degrades as content grows](https://github.com/BetterThanTomorrow/calva/issues/2852)
 
 ## [2.0.516] - 2025-05-26
