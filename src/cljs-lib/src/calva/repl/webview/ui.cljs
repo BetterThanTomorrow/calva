@@ -104,6 +104,20 @@
   [^js output-dom-element]
   (set! (.-innerHTML output-dom-element) ""))
 
+(defn update-theme-of-copy-buttons
+  []
+  (.. (js/document.querySelectorAll "div.hljs-copy-container")
+      (forEach (fn [^js copy-container-node]
+                 (let [parent-node (.. copy-container-node -parentNode)
+                       hljs-code-node (.. parent-node (querySelector "code.hljs"))
+                       code-computed-style (js/getComputedStyle hljs-code-node)
+                       code-background-color (.-backgroundColor code-computed-style)
+                       code-foreground-color (.-color code-computed-style)
+                       code-padding (.-padding code-computed-style)]
+                   (.. copy-container-node -style (setProperty "--hljs-theme-background" code-background-color))
+                   (.. copy-container-node -style (setProperty "--hljs-theme-color" code-foreground-color))
+                   (.. copy-container-node -style (setProperty "--hljs-theme-padding" code-padding)))))))
+
 (defn set-code-theme!
   [theme]
   (let [code-theme-link-nodes (js/document.querySelectorAll "[data-code-theme]")]
@@ -111,7 +125,8 @@
                                          (let [code-theme (.. node -dataset -codeTheme)]
                                            (if (= code-theme theme)
                                              (.. node (removeAttribute "disabled"))
-                                             (.. node (setAttribute "disabled" "disabled")))))))))
+                                             (.. node (setAttribute "disabled" "disabled")))))))
+    (update-theme-of-copy-buttons)))
 
 (defn handle-message
   [^js output-dom-element ^js message]
@@ -136,4 +151,4 @@
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)
-  (.. js/window -hljs (addPlugin (CopyButtonPlugin.))))
+  (.. js/window -hljs (addPlugin (CopyButtonPlugin. #js {:autohide false}))))
