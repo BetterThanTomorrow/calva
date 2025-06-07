@@ -126,7 +126,8 @@
                                            (if (= code-theme theme)
                                              (.. node (removeAttribute "disabled"))
                                              (.. node (setAttribute "disabled" "disabled")))))))
-    (update-theme-of-copy-buttons)))
+    ;; The timeout seems to prevent an issue where the copy buttons lose some of their styles on theme change.
+    (js/setTimeout update-theme-of-copy-buttons 100)))
 
 (defn handle-message
   [^js output-dom-element ^js message]
