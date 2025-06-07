@@ -151,4 +151,4 @@
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)
-  (.. js/window -hljs (addPlugin (CopyButtonPlugin. #js {:autohide false}))))
+  (.. js/window -hljs (addPlugin (CopyButtonPlugin. #js {:autohide true}))))
