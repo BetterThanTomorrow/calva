@@ -17,6 +17,10 @@ Run the Calva command "Show/Open the REPL Output View."
 
 Run the Calva command "Clear REPL Output View."
 
+## Copy Code Snippets
+
+To copy code in the output view, hover your cursor over the code snippet you want to copy. A "copy" button will appear in the top right corner of the code snippet. Click this button to copy the code to your clipboard.
+
 ## Theming
 
 The output view uses [highlight.js](https://highlightjs.org/) for syntax highlighting of code blocks. The theming of other output is controlled by VS Code. As you change the VS Code theme, the syntax hightlighting of code blocks will change to one of four different themes, one for each VS Code [ColorThemeKind](https://code.visualstudio.com/api/references/vscode-api#ColorThemeKind):
