@@ -31,10 +31,12 @@
 
     <meta http-equiv=\"Content-Security-Policy\"
           content=\"default-src 'none';
+                    img-src data:;
                     style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css
+                              https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css
                               " csp-source ";
                     script-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js
                                https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/clojure.min.js
@@ -71,6 +73,11 @@
       href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css\"
       data-code-theme=\"high-contrast-light\"
       disabled
+    />
+
+    <link
+      rel=\"stylesheet\"
+      href=\"https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css\"
     />
 
     <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js\"></script>

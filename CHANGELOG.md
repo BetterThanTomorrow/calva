@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add copy button to code snippets in output view](https://github.com/BetterThanTomorrow/calva/issues/2836)
+- Bump deps.clj.jar to v1.12.1.1550
+
 ## [2.0.517] - 2025-06-07
 
 - Fix: [Performance of output view degrades as content grows](https://github.com/BetterThanTomorrow/calva/issues/2852)

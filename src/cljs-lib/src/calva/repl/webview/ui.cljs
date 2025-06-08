@@ -1,7 +1,8 @@
 (ns calva.repl.webview.ui
   (:require
    [cljs.reader :as reader]
-   ["strip-ansi" :default strip-ansi]))
+   ["strip-ansi" :default strip-ansi]
+   ["highlightjs-copy" :as CopyButtonPlugin]))
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
@@ -103,6 +104,20 @@
   [^js output-dom-element]
   (set! (.-innerHTML output-dom-element) ""))
 
+(defn update-theme-of-copy-buttons
+  []
+  (.. (js/document.querySelectorAll "div.hljs-copy-container")
+      (forEach (fn [^js copy-container-node]
+                 (let [parent-node (.. copy-container-node -parentNode)
+                       hljs-code-node (.. parent-node (querySelector "code.hljs"))
+                       code-computed-style (js/getComputedStyle hljs-code-node)
+                       code-background-color (.-backgroundColor code-computed-style)
+                       code-foreground-color (.-color code-computed-style)
+                       code-padding (.-padding code-computed-style)]
+                   (.. copy-container-node -style (setProperty "--hljs-theme-background" code-background-color))
+                   (.. copy-container-node -style (setProperty "--hljs-theme-color" code-foreground-color))
+                   (.. copy-container-node -style (setProperty "--hljs-theme-padding" code-padding)))))))
+
 (defn set-code-theme!
   [theme]
   (let [code-theme-link-nodes (js/document.querySelectorAll "[data-code-theme]")]
@@ -110,7 +125,9 @@
                                          (let [code-theme (.. node -dataset -codeTheme)]
                                            (if (= code-theme theme)
                                              (.. node (removeAttribute "disabled"))
-                                             (.. node (setAttribute "disabled" "disabled")))))))))
+                                             (.. node (setAttribute "disabled" "disabled")))))))
+    ;; The timeout seems to prevent an issue where the copy buttons lose some of their styles on theme change.
+    (js/setTimeout update-theme-of-copy-buttons 100)))
 
 (defn handle-message
   [^js output-dom-element ^js message]
@@ -134,4 +151,5 @@
   (.. output-dom-element (addEventListener "output-appended" (partial handle-output-appended output-dom-element))))
 
 (defn ^:export main []
-  (add-event-listeners output-dom-element))
+  (add-event-listeners output-dom-element)
+  (.. js/window -hljs (addPlugin (CopyButtonPlugin. #js {:autohide true}))))
