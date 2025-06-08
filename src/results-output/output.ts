@@ -443,7 +443,7 @@ function appendLine(options: AppendOptions, message: string, after?: AfterAppend
     append(options, message + '\r\n', after);
   }
   if (destination === 'output-view') {
-    appendToReplOutputWebview(options, message);
+    appendToReplOutputWebview(options, '\n\n' + message);
   }
 }
 
