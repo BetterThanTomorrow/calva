@@ -156,7 +156,7 @@
   [{:keys [vscode/vscode] :as context}]
   (let [webview-panel (.. ^js vscode -window
                           (createWebviewPanel
-                           "calva:repl-output"
+                           "calva.output-view"
                            "REPL Output"
                            #js {:preserveFocus true
                                 :viewColumn (.. ^js vscode -ViewColumn -Beside)}
@@ -173,6 +173,19 @@
     (set-webview-html! context {:webview-panel webview-panel})
     (add-subscriptions! context {:webview-panel webview-panel})
     webview-panel))
+
+(comment
+  (.. @util/vscode -window (registerWebviewPanelSerializer
+                            "calva.output-view"
+                            (clj->js {:deserializeWebviewPanel
+                                      (fn [webview-panel state]
+                                        (set! (.. webview-panel -webview -html) "<html><body>Hello world</body></html>")
+                                        (js/console.log "hello from outside the promise callback")
+                                        (js/Promise. (fn [resolve]
+                                                       (js/console.log "Hello from inside the promise callback")
+                                                       (js/console.log "Deserializing webview panel with state:" state)
+                                                       (resolve nil))))})))
+  :rcf)
 
 (defn ^:export show-repl-output-webview-panel
   [preserve-focus?]
