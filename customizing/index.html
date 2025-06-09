@@ -1166,6 +1166,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#refresh-namespaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      Refresh namespaces
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clojure-defaults" class="md-nav__link">
     <span class="md-ellipsis">
       Clojure Defaults
@@ -2199,6 +2208,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#refresh-namespaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      Refresh namespaces
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clojure-defaults" class="md-nav__link">
     <span class="md-ellipsis">
       Clojure Defaults
@@ -2331,7 +2349,6 @@
 
 
 <h1 id="customizing-calva">Customizing Calva<a class="headerlink" href="#customizing-calva" title="Permanent link">#</a></h1>
-<p>Don't like the defaults? On this page we can collect some of the customizations that people have done, and maybe write a thing or two about it some day.</p>
 <p>Tip for VS Code newcomers: The search box in <strong>Settings</strong> is your friend. Also, some Calva settings are more complex than the Settings UI can handle. VS Code will then show you a link to <code>settings.json</code>. And VS Code's built-in <code>json</code> extension is awesome. To add settings for Calva's Pretty Printing, for example, search for ”prettyprint” in VS Code Settings and follow the link to <code>settings.json</code>. Start typing ”calvapretty” until auto-complete suggests <code>calva.prettyPrintingOptions</code>. Press ENTER and VS Code will fill in these defaults:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.prettyPrintingOptions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
@@ -2339,6 +2356,8 @@
 <span class="w">        </span><span class="nt">&quot;width&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">40</span>
 <span class="w">    </span><span class="p">},</span>
 </code></pre></div>
+<h2 id="refresh-namespaces">Refresh namespaces<a class="headerlink" href="#refresh-namespaces" title="Permanent link">#</a></h2>
+<p>You can add <code>before</code> and <code>after</code> functions to the commands for refreshing the namespace. Goof for e.g. in the <a href="https://cognitect.com/blog/2013/06/04/clojure-workflow-reloaded">reloaded workflow</a>. The settings are <code>calva.refreshNssBeforeFn</code> and <code>calva.refreshNssAfterFn</code>. Both are strings respresenting a fully qualified function. They correspond to the <code>:before</code> and <code>:after</code> parameters to the cider-nrepl <strong>refresh</strong> ops: https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#refresh</p>
 <h2 id="clojure-defaults">Clojure Defaults<a class="headerlink" href="#clojure-defaults" title="Permanent link">#</a></h2>
 <p>Calva sets some VS Code settings for all Clojure files. Some of these are needed for Calva to function correctly, which should not be tampered with unless you really know what you are doing, and some of them are convenient defaults. If you add a setting to your <code>settings.json</code> and accept the snippet help you get when you type <code>"[clojure]"</code>, you will get the Calva defaults pasted:</p>
 <div class="highlight"><pre><span></span><code><span class="w">      </span><span class="nt">&quot;[clojure]&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
