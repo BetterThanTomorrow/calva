@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add copy button to code snippets in output view](https://github.com/BetterThanTomorrow/calva/issues/2836)
+
 ## [2.0.518] - 2025-06-08
 
 - [Add copy button to code snippets in output view](https://github.com/BetterThanTomorrow/calva/issues/2836)
