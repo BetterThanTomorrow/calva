@@ -4,6 +4,7 @@ import * as state from './state';
 import { NReplSession } from './nrepl';
 import * as replSession from './nrepl/repl-session';
 import * as output from './results-output/output';
+import * as config from './config';
 
 function report(res) {
   if (res.status == 'ok') {
@@ -36,7 +37,16 @@ export function refresh(opts?: Record<string, unknown>) {
   }
 }
 
-export function refreshAll(opts?: Record<string, unknown>) {
+export function refreshAll(opts: Record<string, unknown> = {}) {
+  const configuredBeforeFn = config.getConfig().refreshNssBeforeFn;
+  const configuredAfterFn = config.getConfig().refreshNssAfterFn;
+  if (!opts['before'] && configuredBeforeFn) {
+    opts['before'] = configuredBeforeFn;
+  }
+  if (!opts['after'] && configuredAfterFn) {
+    opts['after'] = configuredAfterFn;
+  }
+
   const doc = util.tryToGetDocument({}),
     client: NReplSession = replSession.getSession(util.getFileType(doc));
 
