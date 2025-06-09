@@ -6,7 +6,7 @@ Changes to Calva.
 
 ## [2.0.519] - 2025-06-09
 
-- [Support `before` and `after` functions for refresh namespaces commands](https://github.com/BetterThanTomorrow/calva/issues/2836)
+- [Support `before` and `after` functions for refresh namespaces commands](https://github.com/BetterThanTomorrow/calva/issues/2862)
 
 ## [2.0.518] - 2025-06-08
 
