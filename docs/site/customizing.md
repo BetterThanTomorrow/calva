@@ -5,8 +5,6 @@ description: Calva comes with batteries included and preconfigured, and if you d
 
 # Customizing Calva
 
-Don't like the defaults? On this page we can collect some of the customizations that people have done, and maybe write a thing or two about it some day.
-
 Tip for VS Code newcomers: The search box in **Settings** is your friend. Also, some Calva settings are more complex than the Settings UI can handle. VS Code will then show you a link to `settings.json`. And VS Code's built-in `json` extension is awesome. To add settings for Calva's Pretty Printing, for example, search for ”prettyprint” in VS Code Settings and follow the link to `settings.json`. Start typing ”calvapretty” until auto-complete suggests `calva.prettyPrintingOptions`. Press ENTER and VS Code will fill in these defaults:
 
 ```json
@@ -16,6 +14,10 @@ Tip for VS Code newcomers: The search box in **Settings** is your friend. Also, 
         "width": 40
     },
 ```
+
+## Refresh namespaces
+
+You can add `before` and `after` functions to the commands for refreshing the namespace. Goof for e.g. in the [reloaded workflow](https://cognitect.com/blog/2013/06/04/clojure-workflow-reloaded). The settings are `calva.refreshNssBeforeFn` and `calva.refreshNssAfterFn`. Both are strings respresenting a fully qualified function. They correspond to the `:before` and `:after` parameters to the cider-nrepl **refresh** ops: https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#refresh
 
 ## Clojure Defaults
 
