@@ -175,12 +175,15 @@
     webview-panel))
 
 (comment
+  ;; TODO: Try defining a class that implements the vscode.WebviewPanelSerializer interface
+  ;; since the serializer works when it's registered with TypeScript.
+  ;; https://search.brave.com/search?q=clojurescript+how+to+create+a+javascript+class&source=web&summary=1&conversation=09004192282d3a04e1a76b
   (.. @util/vscode -window (registerWebviewPanelSerializer
                             "calva.output-view"
                             (clj->js {:deserializeWebviewPanel
                                       (fn [webview-panel state]
-                                        (set! (.. webview-panel -webview -html) "<html><body>Hello world</body></html>")
                                         (js/console.log "hello from outside the promise callback")
+                                        (set! (.. webview-panel -webview -html) "<html><body>Hello world</body></html>")
                                         (js/Promise. (fn [resolve]
                                                        (js/console.log "Hello from inside the promise callback")
                                                        (js/console.log "Deserializing webview panel with state:" state)

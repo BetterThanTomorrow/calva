@@ -79,6 +79,34 @@ function initializeState() {
   );
 }
 
+class CalvaOutputViewSerializer implements vscode.WebviewPanelSerializer {
+  async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
+    console.log('hello from the webview serializer');
+    console.log(`Got state: ${state}`);
+    webviewPanel.webview.html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Coding</title>
+</head>
+<body>
+    <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
+    <h1 id="lines-of-code-counter">0</h1>
+
+    <script>
+        const counter = document.getElementById('lines-of-code-counter');
+
+        let count = 0;
+        setInterval(() => {
+            counter.textContent = count++;
+        }, 100);
+    </script>
+</body>
+</html>`;
+  }
+}
+
 async function activate(context: vscode.ExtensionContext) {
   console.info('Calva activate START');
 
@@ -86,6 +114,11 @@ async function activate(context: vscode.ExtensionContext) {
   // because requiring the vscode API poses issues with being able to test the cljs lib.
   // We cannot run unit tests on code that imports the vscode API, because it's only available at runtime.
   initializeCljs(vscode, context);
+
+  // vscode.window.registerWebviewPanelSerializer(
+  //   'calva.output-view',
+  //   new CalvaOutputViewSerializer()
+  // );
 
   initializeState();
   state.setExtensionContext(context);
