@@ -174,21 +174,27 @@
     (add-subscriptions! context {:webview-panel webview-panel})
     webview-panel))
 
-(comment
-  ;; TODO: Try defining a class that implements the vscode.WebviewPanelSerializer interface
-  ;; since the serializer works when it's registered with TypeScript.
-  ;; https://search.brave.com/search?q=clojurescript+how+to+create+a+javascript+class&source=web&summary=1&conversation=09004192282d3a04e1a76b
-  (.. @util/vscode -window (registerWebviewPanelSerializer
-                            "calva.output-view"
-                            (clj->js {:deserializeWebviewPanel
-                                      (fn [webview-panel state]
-                                        (js/console.log "hello from outside the promise callback")
-                                        (set! (.. webview-panel -webview -html) "<html><body>Hello world</body></html>")
-                                        (js/Promise. (fn [resolve]
-                                                       (js/console.log "Hello from inside the promise callback")
-                                                       (js/console.log "Deserializing webview panel with state:" state)
-                                                       (resolve nil))))})))
-  :rcf)
+(defn register-output-view-webview-serializer!
+  [context]
+  (js/console.log "registering output view webview serializer")
+  (let [vscode (:vscode/vscode context)]
+    (.. vscode -window
+        (registerWebviewPanelSerializer
+         "calva.output-view"
+         #js {:deserializeWebviewPanel
+              (fn [^js webview-panel ^js state]
+                (js/console.log "Deserializing webview panel with state:" state)
+                (.. ^js webview-panel (onDidDispose
+                                       (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel))))
+                ;; Set up the panel as you would for a new one:
+                #_(set-webview-html! context {:webview-panel webview-panel})
+                (set! (.. webview-panel -webview -html) (str "<html><body>" (.. state -message) "</body></html>"))
+                (add-subscriptions! context {:webview-panel webview-panel})
+                ;; If you need to restore state, do it here.
+                (js/Promise.
+                 (fn [resolve _reject]
+                   (js/console.log "Webview panel deserialized and ready.")
+                   (resolve nil))))}))))
 
 (defn ^:export show-repl-output-webview-panel
   [preserve-focus?]
@@ -250,3 +256,9 @@
 
 (defn ^:export clear-output-view []
   (post-message-to-webview @repl-output-webview-panel {:command/name "clear-output-view"}))
+
+(defn ^:export register-output-view-webview-serializer
+  []
+  (register-output-view-webview-serializer! {:vscode/vscode @util/vscode
+                                             :vscode/context @util/vscode-context
+                                             :env/is-debug (:is-debug util/env)}))
