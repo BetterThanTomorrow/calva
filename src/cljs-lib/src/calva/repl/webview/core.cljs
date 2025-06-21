@@ -152,6 +152,10 @@
             (.. ^js vscode-context -subscriptions (push subscription)))
           subscriptions)))
 
+(defn add-listeners!
+  [^js webview-panel]
+  (.. webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel)))))
+
 (defn create-repl-output-webview-panel
   [{:keys [vscode/vscode] :as context}]
   (let [webview-panel (.. ^js vscode -window
@@ -169,14 +173,13 @@
                                 ;; panel's context cannot be quickly saved and restored."
                                 :retainContextWhenHidden true
                                 :enableFindWidget true}))]
-    (.. ^js webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel))))
+    (add-listeners! webview-panel)
     (set-webview-html! context {:webview-panel webview-panel})
     (add-subscriptions! context {:webview-panel webview-panel})
     webview-panel))
 
 (defn register-output-view-webview-serializer!
   [context]
-  (js/console.log "registering output view webview serializer")
   (let [vscode (:vscode/vscode context)]
     (.. vscode -window
         (registerWebviewPanelSerializer
@@ -184,16 +187,14 @@
          #js {:deserializeWebviewPanel
               (fn [^js webview-panel ^js state]
                 (js/console.log "Deserializing webview panel with state:" state)
-                (.. ^js webview-panel (onDidDispose
-                                       (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel))))
-                ;; Set up the panel as you would for a new one:
-                #_(set-webview-html! context {:webview-panel webview-panel})
-                (set! (.. webview-panel -webview -html) (str "<html><body>" (.. state -message) "</body></html>"))
+                (add-listeners! webview-panel)
+                (if (and state (.. state -html))
+                  (set! (.. webview-panel -webview -html) (.. state -html))
+                  (set-webview-html! context {:webview-panel webview-panel}))
                 (add-subscriptions! context {:webview-panel webview-panel})
-                ;; If you need to restore state, do it here.
+                (reset! repl-output-webview-panel webview-panel)
                 (js/Promise.
                  (fn [resolve _reject]
-                   (js/console.log "Webview panel deserialized and ready.")
                    (resolve nil))))}))))
 
 (defn ^:export show-repl-output-webview-panel

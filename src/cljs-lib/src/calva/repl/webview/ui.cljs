@@ -7,6 +7,8 @@
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
 
+(defonce vscode (js/acquireVsCodeApi))
+
 (defn throttle-fn
   "Returns a throttled version of the function, which will only be called at most once every `wait`
    milliseconds with the arguments passed in the latest call.
@@ -145,6 +147,18 @@
   [^js output-dom-element ^js _event]
   (throttled-scroll-to-bottom output-dom-element))
 
+(defn handle-document-mutations
+  [_mutation-list, _observer]
+  (.. vscode (setState #js {:html (.. js/document.documentElement -outerHTML)})))
+
+(defn observe-document-mutations
+  []
+  (doto (js/MutationObserver. handle-document-mutations)
+    (.observe js/document.documentElement #js {:childList true
+                                               :subtree true
+                                               :attributes true
+                                               :characterData true})))
+
 (defn add-event-listeners
   [^js output-dom-element]
   (.. js/window (addEventListener "message" (partial handle-message output-dom-element)))
@@ -152,4 +166,5 @@
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)
+  (observe-document-mutations)
   (.. js/window -hljs (addPlugin (CopyButtonPlugin. #js {:autohide true}))))
