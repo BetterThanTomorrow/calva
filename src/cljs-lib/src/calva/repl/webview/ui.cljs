@@ -139,6 +139,11 @@
     ;; The timeout seems to prevent an issue where the copy buttons lose some of their styles on theme change.
     (js/setTimeout update-theme-of-copy-buttons 100)))
 
+(defn scroll-to
+  [{:keys [x y]}]
+  (js/console.log "scrolling to:" x y)
+  (js/scrollTo x y))
+
 (defn handle-message
   [^js output-dom-element ^js message]
   (let [message-data (reader/read-string (.-data message))
@@ -149,7 +154,8 @@
       "show-evaluated-code" (append-evaluated-code output-dom-element content)
       "show-stdout" (append-stdout output-dom-element content)
       "clear-output-view" (clear-output-view output-dom-element)
-      "set-code-theme" (set-code-theme! content))))
+      "set-code-theme" (set-code-theme! content)
+      "scroll-to" (scroll-to content))))
 
 (defn handle-output-appended
   [^js _event]
@@ -158,11 +164,21 @@
 (defn set-state
   []
   (js/console.log "saving state")
-  (.. vscode (setState #js {:html (.. js/document.documentElement -outerHTML)
-                            :scrollLeft js/document.documentElement.scrollLeft
-                            :scrollTop js/document.documentElement.scrollTop})))
+  (.. vscode (setState #js {:html (.. js/document.documentElement -outerHTML)})))
 
 (def throttled-set-state (throttle-fn set-state 1000))
+
+(defn merge-state
+  [new-state]
+  (let [current-state (.. vscode (getState))]
+    (.. vscode (setState (merge current-state new-state)))))
+
+(comment
+  (.. vscode (setState {:a 1}))
+  (.. vscode (getState))
+
+  (merge-state {:b 2})
+  :rcf)
 
 (defn handle-document-mutations
   [_mutation-list, _observer]
