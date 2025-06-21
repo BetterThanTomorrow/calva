@@ -32,8 +32,16 @@
 
 (defn scroll-to-bottom
   "Scrolls to the bottom of the the given dom element."
-  [^js dom-element]
-  (.. dom-element (scrollIntoView #js {:behavior "instant" :block "end"})))
+  []
+  (js/scrollTo 0 js/document.documentElement.scrollHeight))
+
+(comment
+  js/document.documentElement.scrollTop
+  js/document.documentElement.scrollLeft
+  js/document.documentElement.scrollHeight
+
+  (js/scrollTo 0)
+  :rcf)
 
 ;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.
 (def throttled-scroll-to-bottom (throttle-fn scroll-to-bottom 0))
@@ -144,12 +152,22 @@
       "set-code-theme" (set-code-theme! content))))
 
 (defn handle-output-appended
-  [^js output-dom-element ^js _event]
-  (throttled-scroll-to-bottom output-dom-element))
+  [^js _event]
+  (throttled-scroll-to-bottom))
+
+(defn set-state
+  []
+  (js/console.log "saving state")
+  (.. vscode (setState #js {:html (.. js/document.documentElement -outerHTML)
+                            :scrollLeft js/document.documentElement.scrollLeft
+                            :scrollTop js/document.documentElement.scrollTop})))
+
+(def throttled-set-state (throttle-fn set-state 1000))
 
 (defn handle-document-mutations
   [_mutation-list, _observer]
-  (.. vscode (setState #js {:html (.. js/document.documentElement -outerHTML)})))
+  ;; Throttle to avoid performance issues with high volume output.
+  (throttled-set-state))
 
 (defn observe-document-mutations
   []
@@ -162,7 +180,7 @@
 (defn add-event-listeners
   [^js output-dom-element]
   (.. js/window (addEventListener "message" (partial handle-message output-dom-element)))
-  (.. output-dom-element (addEventListener "output-appended" (partial handle-output-appended output-dom-element))))
+  (.. output-dom-element (addEventListener "output-appended" handle-output-appended)))
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)
