@@ -189,7 +189,6 @@
     (initialize-webview-panel context webview-panel nil)
     (reset! repl-output-webview-panel webview-panel)))
 
-;; TODO: Add tests
 (defn deserialize-webview-panel
   [context ^js webview-panel ^js state]
   (js/Promise.
