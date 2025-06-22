@@ -128,7 +128,7 @@
                      nil)]
     (if code-theme
       (post-message-to-webview webview-panel {:command/name "set-code-theme"
-                                              :content code-theme})
+                                              :code-theme code-theme})
       (util/log-to-console
        :error
        "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
@@ -196,8 +196,8 @@
                 (reset! repl-output-webview-panel webview-panel)
                 (let [[scroll-left scroll-top] (when state [(.-scrollLeft state) (.-scrollTop state)])]
                   (post-message-to-webview webview-panel {:command/name "scroll-to"
-                                                          :content {:x scroll-left
-                                                                    :y scroll-top}}))
+                                                          :x scroll-left
+                                                          :y scroll-top}))
                 (js/Promise.
                  (fn [resolve _reject]
                    (resolve nil))))}))))
@@ -229,10 +229,10 @@
         command-name (get output-category->command-name output-category)]
     (if command-name
       (post-message-to-webview @repl-output-webview-panel {:command/name command-name
-                                                           :content message})
+                                                           :output message})
       (util/log-to-console
        :error
-       (str "Cannot append content to output webview. No outputCategory matches \"" output-category "\"")))))
+       (str "Cannot append output to output webview. No outputCategory matches \"" output-category "\"")))))
 
 (def stacktrace-classes-to-ignore
   #{"clojure.lang.RestFn"
@@ -258,7 +258,7 @@
   (let [stacktrace (js->clj stacktrace :keywordize-keys true)
         stacktrace-message (stacktrace->message stacktrace)]
     (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
-                                                         :content stacktrace-message})))
+                                                         :output stacktrace-message})))
 
 (defn ^:export clear-output-view []
   (post-message-to-webview @repl-output-webview-panel {:command/name "clear-output-view"}))

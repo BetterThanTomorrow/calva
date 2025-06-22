@@ -67,11 +67,11 @@
 
 (defn append-evaluated-code
   "Appends evaluated code to the given dom element."
-  [^js dom-element content]
+  [^js dom-element {:keys [output]}]
   (let [div (js/document.createElement "div")
         span (js/document.createElement "span")
         span-text-node (js/document.createTextNode "Evaluated code")
-        {:keys [container-element code-element]} (clojure-code-element content)]
+        {:keys [container-element code-element]} (clojure-code-element output)]
     (.. span -classList (add "border-text"))
     (.. span (appendChild span-text-node))
     (.. div -classList (add "evaluated-code-container"))
@@ -82,8 +82,8 @@
     (.. dom-element (dispatchEvent (output-appended-event div)))))
 
 (defn append-eval-result
-  [^js dom-element content]
-  (let [{:keys [code-element container-element]} (clojure-code-element content)]
+  [^js dom-element {:keys [output]}]
+  (let [{:keys [code-element container-element]} (clojure-code-element output)]
     (.. dom-element (appendChild container-element))
     (.. js/window -hljs (highlightElement code-element))
     (.. dom-element (dispatchEvent (output-appended-event container-element)))))
@@ -100,8 +100,8 @@
 (defn append-stdout
   "Appends stdout content to the given DOM element, unless the last element is already a stdout element,
    in which case it appends the content to that element instead."
-  [^js dom-element content]
-  (let [text-node (js/document.createTextNode (strip-ansi content))]
+  [^js dom-element {:keys [output]}]
+  (let [text-node (js/document.createTextNode (strip-ansi output))]
     (if-let [last-output-element (.. dom-element -lastElementChild)]
       (if (= "stdout" (.. last-output-element -dataset -outputElementType))
         (do
@@ -129,11 +129,11 @@
                    (.. copy-container-node -style (setProperty "--hljs-theme-padding" code-padding)))))))
 
 (defn set-code-theme!
-  [theme]
+  [{:keys [code-theme]}]
   (let [code-theme-link-nodes (js/document.querySelectorAll "[data-code-theme]")]
     (.. code-theme-link-nodes (forEach (fn [^js node]
-                                         (let [code-theme (.. node -dataset -codeTheme)]
-                                           (if (= code-theme theme)
+                                         (let [current-code-theme (.. node -dataset -codeTheme)]
+                                           (if (= current-code-theme code-theme)
                                              (.. node (removeAttribute "disabled"))
                                              (.. node (setAttribute "disabled" "disabled")))))))
     ;; The timeout seems to prevent an issue where the copy buttons lose some of their styles on theme change.
@@ -147,15 +147,14 @@
 (defn handle-message
   [^js output-dom-element ^js message]
   (let [message-data (reader/read-string (.-data message))
-        command-name (:command/name message-data)
-        content (:content message-data)]
+        command-name (:command/name message-data)]
     (case command-name
-      "show-result" (append-eval-result output-dom-element content)
-      "show-evaluated-code" (append-evaluated-code output-dom-element content)
-      "show-stdout" (append-stdout output-dom-element content)
+      "show-result" (append-eval-result output-dom-element message-data)
+      "show-evaluated-code" (append-evaluated-code output-dom-element message-data)
+      "show-stdout" (append-stdout output-dom-element message-data)
       "clear-output-view" (clear-output-view output-dom-element)
-      "set-code-theme" (set-code-theme! content)
-      "scroll-to" (scroll-to content))))
+      "set-code-theme" (set-code-theme! message-data)
+      "scroll-to" (scroll-to message-data))))
 
 (defn handle-output-appended
   [^js _event]
