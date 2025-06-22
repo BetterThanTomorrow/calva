@@ -199,6 +199,7 @@
                      (post-message-to-webview webview-panel {:command/name "scroll-to"
                                                              :x scroll-left
                                                              :y scroll-top}))
+                   (post-message-to-webview webview-panel {:command/name "restore-copy-buttons"})
                    (resolve nil))))}))))
 
 (defn ^:export show-repl-output-webview-panel

@@ -135,6 +135,17 @@
   [{:keys [x y]}]
   (js/scrollTo x y))
 
+(defn restore-copy-buttons
+  "Re-initializes copy buttons from CopyButtonPlugin (highlightjs-copy - highlight.js plugin) so they they look
+   correct and function correctly after the webview HTML is restored from state."
+  []
+  (.. js/document (querySelectorAll "pre code")
+      (forEach (fn [^js element]
+                 (js-delete (.. element -dataset) "highlighted")
+                 (when-let [copy-container (.. element -parentElement (querySelector ".hljs-copy-container"))]
+                   (.. copy-container (remove)))
+                 (.. js/window -hljs (highlightElement element))))))
+
 (defn handle-message
   [^js output-dom-element ^js message]
   (let [message-data (reader/read-string (.-data message))
@@ -145,7 +156,8 @@
       "show-stdout" (append-stdout output-dom-element message-data)
       "clear-output-view" (clear-output-view output-dom-element)
       "set-code-theme" (set-code-theme! message-data)
-      "scroll-to" (scroll-to message-data))))
+      "scroll-to" (scroll-to message-data)
+      "restore-copy-buttons" (restore-copy-buttons))))
 
 (defn handle-output-appended
   [^js _event]
