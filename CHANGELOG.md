@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Reload contents of output view when VS Code window is reloaded](https://github.com/BetterThanTomorrow/calva/issues/2827)
+
 ## [2.0.519] - 2025-06-09
 
 - [Support `before` and `after` functions for refresh namespaces commands](https://github.com/BetterThanTomorrow/calva/issues/2862)
