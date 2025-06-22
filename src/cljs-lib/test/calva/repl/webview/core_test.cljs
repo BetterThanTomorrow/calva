@@ -116,28 +116,28 @@
             (sut/set-code-theme! context {:color-theme-kind (:Dark color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :content "dark"})))))
+                                                                                  :code-theme "dark"})))))
       (testing "when the ColorThemeKind is Light, should set the code theme to light"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:Light color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :content "light"})))))
+                                                                                  :code-theme "light"})))))
       (testing "when the ColorThemeKind is HighContrast, should set the code theme to high-contrast"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:HighContrast color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :content "high-contrast"})))))
+                                                                                  :code-theme "high-contrast"})))))
       (testing "when the ColorThemeKind is HighContrastLight, should set the code theme to high-contrast-light"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:HighContrastLight color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :content "high-contrast-light"})))))
+                                                                                  :code-theme "high-contrast-light"})))))
       (testing "when there is no configured code theme for the ColorThemeKind, should log the expected error"
         (let [log-to-console-spy (spy/spy)
               color-theme-kind 99]
@@ -176,7 +176,7 @@
           (testing "should call createWebviewPanel with expacted args"
             (let [calls (spy/calls create-webview-panel-spy)]
               (is (= 1 (count calls)))
-              (is (= '[("calva:repl-output"
+              (is (= '[("calva.output-view"
                         "REPL Output"
                         {:preserveFocus true, :viewColumn 1}
                         {:enableScripts true, :retainContextWhenHidden true, :enableFindWidget true})]
@@ -259,7 +259,7 @@
           (is (spy/called-once-with? post-message-to-webview-spy
                                      "webview-panel-stub"
                                      {:command/name "show-stdout"
-                                      :content message})))))
+                                      :output message})))))
     (testing "when command does not exist for output category,"
       (let [options (clj->js {:outputCategory "nonexistent-category"})
             message "some-message"
@@ -276,7 +276,7 @@
             (is (spy/called-once-with?
                  log-to-console-spy
                  :error
-                 "Cannot append content to output webview. No outputCategory matches \"nonexistent-category\""))))))))
+                 "Cannot append output to output webview. No outputCategory matches \"nonexistent-category\""))))))))
 
 (deftest stacktrace->message-test
   (testing "Given a stacktrace with no duplicate flags and no classes to ignore, should return the expected message"
@@ -359,7 +359,7 @@
           (is (spy/called-once-with? post-message-to-webview-spy
                                      "webview-panel-stub"
                                      {:command/name "show-stdout"
-                                      :content "some-message"})))))))
+                                      :output "some-message"})))))))
 
 (deftest clear-output-view-test
   (testing "Should call post-message-to-webview with expected args"

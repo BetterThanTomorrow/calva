@@ -181,24 +181,24 @@
 ;; TODO: Add tests
 (defn register-output-view-webview-serializer!
   [context]
-  (let [vscode (:vscode/vscode context)]
+  (let [^js vscode (:vscode/vscode context)]
     (.. vscode -window
         (registerWebviewPanelSerializer
          "calva.output-view"
          #js {:deserializeWebviewPanel
               (fn [^js webview-panel ^js state]
-                (add-listeners! webview-panel)
-                (if (and state (.-html state))
-                  (set! (.. webview-panel -webview -html) (.-html state))
-                  (set-webview-html! context {:webview-panel webview-panel}))
-                (add-subscriptions! context {:webview-panel webview-panel})
-                (reset! repl-output-webview-panel webview-panel)
-                (let [[scroll-left scroll-top] (when state [(.-scrollLeft state) (.-scrollTop state)])]
-                  (post-message-to-webview webview-panel {:command/name "scroll-to"
-                                                          :x scroll-left
-                                                          :y scroll-top}))
                 (js/Promise.
                  (fn [resolve _reject]
+                   (add-listeners! webview-panel)
+                   (if (and state (.-html state))
+                     (set! (.. webview-panel -webview -html) (.-html state))
+                     (set-webview-html! context {:webview-panel webview-panel}))
+                   (add-subscriptions! context {:webview-panel webview-panel})
+                   (reset! repl-output-webview-panel webview-panel)
+                   (let [[scroll-left scroll-top] (when state [(.-scrollLeft state) (.-scrollTop state)])]
+                     (post-message-to-webview webview-panel {:command/name "scroll-to"
+                                                             :x scroll-left
+                                                             :y scroll-top}))
                    (resolve nil))))}))))
 
 (defn ^:export show-repl-output-webview-panel
