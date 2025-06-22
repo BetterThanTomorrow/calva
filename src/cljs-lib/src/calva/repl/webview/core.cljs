@@ -179,28 +179,30 @@
     webview-panel))
 
 ;; TODO: Add tests
+(defn deserialize-webview-panel
+  [context ^js webview-panel ^js state]
+  (js/Promise.
+   (fn [resolve _reject]
+     (add-listeners! webview-panel)
+     (if (and state (.-html state))
+       (set! (.. webview-panel -webview -html) (.-html state))
+       (set-webview-html! context {:webview-panel webview-panel}))
+     (add-subscriptions! context {:webview-panel webview-panel})
+     (reset! repl-output-webview-panel webview-panel)
+     (let [[scroll-left scroll-top] (when state [(.-scrollLeft state) (.-scrollTop state)])]
+       (post-message-to-webview webview-panel {:command/name "scroll-to"
+                                               :x scroll-left
+                                               :y scroll-top}))
+     (post-message-to-webview webview-panel {:command/name "restore-copy-buttons"})
+     (resolve nil))))
+
 (defn register-output-view-webview-serializer!
   [context]
   (let [^js vscode (:vscode/vscode context)]
     (.. vscode -window
         (registerWebviewPanelSerializer
          "calva.output-view"
-         #js {:deserializeWebviewPanel
-              (fn [^js webview-panel ^js state]
-                (js/Promise.
-                 (fn [resolve _reject]
-                   (add-listeners! webview-panel)
-                   (if (and state (.-html state))
-                     (set! (.. webview-panel -webview -html) (.-html state))
-                     (set-webview-html! context {:webview-panel webview-panel}))
-                   (add-subscriptions! context {:webview-panel webview-panel})
-                   (reset! repl-output-webview-panel webview-panel)
-                   (let [[scroll-left scroll-top] (when state [(.-scrollLeft state) (.-scrollTop state)])]
-                     (post-message-to-webview webview-panel {:command/name "scroll-to"
-                                                             :x scroll-left
-                                                             :y scroll-top}))
-                   (post-message-to-webview webview-panel {:command/name "restore-copy-buttons"})
-                   (resolve nil))))}))))
+         #js {:deserializeWebviewPanel (partial deserialize-webview-panel context)}))))
 
 (defn ^:export show-repl-output-webview-panel
   [preserve-focus?]

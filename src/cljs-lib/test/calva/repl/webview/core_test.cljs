@@ -371,4 +371,16 @@
                                    "webview-panel-stub"
                                    {:command/name "clear-output-view"}))))))
 
+(deftest register-output-view-webview-serializer!-test
+  (testing "Given a context, should call registerWebviewPanelSerializer with expected args"
+    (let [register-webview-panel-serializer-spy (spy/spy)
+          context {:vscode/vscode (clj->js {:window {:registerWebviewPanelSerializer
+                                                     (test-util/wrap-spy register-webview-panel-serializer-spy)}})}]
+      (sut/register-output-view-webview-serializer! context)
+      (let [calls (spy/calls register-webview-panel-serializer-spy)]
+        (is (= 1 (count calls)))
+        (is (= "calva.output-view" (ffirst calls)))
+        (is (some? (-> calls first second .-deserializeWebviewPanel type)))))))
+
+(deftest deserialize-webview-panel-test)
 #_(run-tests)
