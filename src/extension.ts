@@ -90,11 +90,6 @@ async function activate(context: vscode.ExtensionContext) {
 
   registerOutputViewWebviewSerializer();
 
-  // vscode.window.registerWebviewPanelSerializer(
-  //   'calva.output-view',
-  //   new CalvaOutputViewSerializer()
-  // );
-
   initializeState();
   state.setExtensionContext(context);
   state.initDepsEdnJackInExecutable();
