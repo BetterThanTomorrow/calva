@@ -407,5 +407,17 @@
         (is (= "calva.output-view" (ffirst calls)))
         (is (some? (-> calls first second .-deserializeWebviewPanel type)))))))
 
-(deftest deserialize-webview-panel-test)
+(deftest deserialize-webview-panel-test
+  (testing "Given a context, a webview panel, and a state, should return a promise that resolves after calling
+            initialize-webview-panel with expected args"
+    (let [initialize-webview-panel-spy (spy/spy)
+          context {:some "context"}
+          webview-panel {:some "webview-panel"}
+          state {:some "state"}]
+      (with-redefs [sut/initialize-webview-panel (test-util/wrap-spy initialize-webview-panel-spy)]
+        (let [result (sut/deserialize-webview-panel context webview-panel state)]
+          (.. result
+              (then (fn [_]
+                      (is (spy/called-once-with? initialize-webview-panel-spy context webview-panel state))))))))))
+
 #_(run-tests)
