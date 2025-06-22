@@ -56,31 +56,6 @@ If you have these things installed, and just want to get going, jump to [Start t
 
        If installing `clojure` proves to be a problem on your machine, you can skip it for now. The guide will work without it.
 
-
-??? Note "I don't want to install anything"
-
-    OK. There is actually a zero-install option, at least until April 1 2025, using only the the browser (utilizing [https://gitpod.io](Gitpod)).
-
-    **NB: This Zero install option will stop working on April 1, 2025, when Gitpod is sunsetting what they now call Gitpod Classic. Enjoy it while it lasts! And uncountable thanks to Gitpod for having made this option possible for three years! 🙏❤️**
-
-    Click this button to start the guide.
-
-    <div style="display: flex; flex-direction: column; align-items: center;">
-
-    <a title="Open Getting Started with Clojure in Gitpod" alt="Open in Gitpod button" href="https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure" target="_blank"><img src="https://img.shields.io/badge/Gitpod-Start the Clojure Guide-908a85?logo=gitpod" width="550"/></a>
-
-    <a href="https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure">https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure</a>
-
-    </div>
-
-    You will need a GitHub account to access the workspace.
-
-    ![Open the Gitpod Workspace with your GitHub account](/images/getting-started-with-clojure/gitpod-sign-in.png)
-
-    The defaults for the new workspace are fine. Click **Continue**.
-
-    ![](/images/getting-started-with-clojure/gitpod-new-workspace.png)
-
 ## Start the Guide
 
 To start the guide, begin with starting VS Code, with Calva installed (as per [instructions above](#install))

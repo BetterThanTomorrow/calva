@@ -263,6 +263,8 @@ function getConfig() {
     useLegacyReplWindowPath: configOptions.get<boolean>('useLegacyReplWindowPath'),
     legacyPrintBareReplWindowOutput: configOptions.get<boolean>('legacyPrintBareReplWindowOutput'),
     basilispPath: configOptions.get<string>('basilispPath'),
+    refreshNssBeforeFn: configOptions.get<string>('refreshNssBeforeFn'),
+    refreshNssAfterFn: configOptions.get<string>('refreshNssAfterFn'),
   };
 }
 

@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.519] - 2025-06-09
+
+- [Support `before` and `after` functions for refresh namespaces commands](https://github.com/BetterThanTomorrow/calva/issues/2862)
+
 ## [2.0.518] - 2025-06-08
 
 - [Add copy button to code snippets in output view](https://github.com/BetterThanTomorrow/calva/issues/2836)

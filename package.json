@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.519",
+  "version": "2.0.520",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -1006,6 +1006,16 @@
             "type": "string",
             "default": "basilisp",
             "markdownDescription": "The path to the `basilisp` executable. If Basilisp is installed in a virtual environment, update this to the full path of the `basilisp` executable within that virtual environment."
+          },
+          "calva.refreshNssBeforeFn": {
+            "type": "string",
+            "default": null,
+            "markdownDescription": "A fully qualified function to call *before* namespaces are refreshed by the **Refresh Namespaces** commands."
+          },
+          "calva.refreshNssAfterFn": {
+            "type": "string",
+            "default": null,
+            "markdownDescription": "A fully qualified function to call *after* namespaces are refreshed by the **Refresh Namespaces** commands."
           }
         }
       },

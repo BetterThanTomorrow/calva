@@ -29,7 +29,7 @@ The table below lists the features of the different output destinations.
 | :------ | :---------: | :---------: | :------------: | :------: |
 | Rich stack traces | ✅ | ❌ * | ❌ | ❌ |
 | Paredit navigation and selection | ✅ | ❌ | ❌ | ❌ |
-| Button to copy specific output | ❌ | ❌ * | ❌ | ❌ |
+| Button to copy specific output | ❌ | ✅ | ❌ | ❌ |
 | Syntax highlighting | ✅ | ✅ | ✅ | ✅ |
 | Syntax highlighting matches editor | ✅ | ❌ ** | ❌ | ❌ |
 | Supports input | ✅ | ❌ | ❌ | ❌ |
