@@ -35,14 +35,6 @@
   []
   (js/scrollTo 0 js/document.documentElement.scrollHeight))
 
-(comment
-  js/document.documentElement.scrollTop
-  js/document.documentElement.scrollLeft
-  js/document.documentElement.scrollHeight
-
-  (js/scrollTo 0)
-  :rcf)
-
 ;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.
 (def throttled-scroll-to-bottom (throttle-fn scroll-to-bottom 0))
 
@@ -141,7 +133,6 @@
 
 (defn scroll-to
   [{:keys [x y]}]
-  (js/console.log "scrolling to:" x y)
   (js/scrollTo x y))
 
 (defn handle-message
@@ -160,29 +151,21 @@
   [^js _event]
   (throttled-scroll-to-bottom))
 
-(defn set-state
-  []
-  (js/console.log "saving state")
-  (.. vscode (setState #js {:html (.. js/document.documentElement -outerHTML)})))
-
-(def throttled-set-state (throttle-fn set-state 1000))
-
 (defn merge-state
-  [new-state]
-  (let [current-state (.. vscode (getState))]
-    (.. vscode (setState (merge current-state new-state)))))
+  [state]
+  (.. vscode (setState (js/Object.assign (or (.. vscode (getState)) #js {})
+                                         (clj->js state)))))
 
-(comment
-  (.. vscode (setState {:a 1}))
-  (.. vscode (getState))
+(defn save-html
+  []
+  (merge-state {:html (.. js/document.documentElement -outerHTML)}))
 
-  (merge-state {:b 2})
-  :rcf)
+(def throttled-save-html (throttle-fn save-html 1000))
 
 (defn handle-document-mutations
   [_mutation-list, _observer]
   ;; Throttle to avoid performance issues with high volume output.
-  (throttled-set-state))
+  (throttled-save-html))
 
 (defn observe-document-mutations
   []
@@ -192,10 +175,18 @@
                                                :attributes true
                                                :characterData true})))
 
+(defn save-scroll-state
+  []
+  (merge-state {:scrollLeft js/document.documentElement.scrollLeft
+                :scrollTop js/document.documentElement.scrollTop}))
+
+(def throttled-save-scroll-state (throttle-fn save-scroll-state 200))
+
 (defn add-event-listeners
   [^js output-dom-element]
   (.. js/window (addEventListener "message" (partial handle-message output-dom-element)))
-  (.. output-dom-element (addEventListener "output-appended" handle-output-appended)))
+  (.. output-dom-element (addEventListener "output-appended" handle-output-appended))
+  (.. js/document (addEventListener "scroll" throttled-save-scroll-state)))
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)

@@ -187,7 +187,6 @@
          "calva.output-view"
          #js {:deserializeWebviewPanel
               (fn [^js webview-panel ^js state]
-                (js/console.log "Deserializing webview panel with state:" state)
                 (add-listeners! webview-panel)
                 (if (and state (.-html state))
                   (set! (.. webview-panel -webview -html) (.-html state))
