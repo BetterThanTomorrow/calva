@@ -156,6 +156,19 @@
   [^js webview-panel]
   (.. webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel)))))
 
+(defn initialize-webview-panel
+  [context ^js webview-panel ^js state]
+  (add-listeners! webview-panel)
+  (add-subscriptions! context {:webview-panel webview-panel})
+  (if (and state (.-html state))
+    (set! (.. webview-panel -webview -html) (.-html state))
+    (set-webview-html! context {:webview-panel webview-panel}))
+  (let [[scroll-left scroll-top] (when state [(.-scrollLeft state) (.-scrollTop state)])]
+    (post-message-to-webview webview-panel {:command/name "scroll-to"
+                                            :x scroll-left
+                                            :y scroll-top}))
+  (post-message-to-webview webview-panel {:command/name "restore-copy-buttons"}))
+
 (defn create-repl-output-webview-panel
   [{:keys [vscode/vscode] :as context}]
   (let [webview-panel (.. ^js vscode -window
@@ -173,27 +186,15 @@
                                 ;; panel's context cannot be quickly saved and restored."
                                 :retainContextWhenHidden true
                                 :enableFindWidget true}))]
-    (add-listeners! webview-panel)
-    (set-webview-html! context {:webview-panel webview-panel})
-    (add-subscriptions! context {:webview-panel webview-panel})
-    webview-panel))
+    (initialize-webview-panel context webview-panel nil)
+    (reset! repl-output-webview-panel webview-panel)))
 
 ;; TODO: Add tests
 (defn deserialize-webview-panel
   [context ^js webview-panel ^js state]
   (js/Promise.
    (fn [resolve _reject]
-     (add-listeners! webview-panel)
-     (if (and state (.-html state))
-       (set! (.. webview-panel -webview -html) (.-html state))
-       (set-webview-html! context {:webview-panel webview-panel}))
-     (add-subscriptions! context {:webview-panel webview-panel})
-     (reset! repl-output-webview-panel webview-panel)
-     (let [[scroll-left scroll-top] (when state [(.-scrollLeft state) (.-scrollTop state)])]
-       (post-message-to-webview webview-panel {:command/name "scroll-to"
-                                               :x scroll-left
-                                               :y scroll-top}))
-     (post-message-to-webview webview-panel {:command/name "restore-copy-buttons"})
+     (initialize-webview-panel context webview-panel state)
      (resolve nil))))
 
 (defn register-output-view-webview-serializer!

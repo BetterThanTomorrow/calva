@@ -160,6 +160,35 @@
         (is (= 1 (count calls)))
         (is (fn? (type (ffirst calls))))))))
 
+(deftest initialize-webview-panel-test
+  (testing "Given a context, a webview panel, and an nil state,"
+    (let [on-did-dispose-spy (spy/spy)
+          stub-webview-panel (clj->js {:onDidDispose (test-util/wrap-spy on-did-dispose-spy)})
+          set-webview-html-spy (spy/spy)
+          add-subscriptions-spy (spy/spy)
+          post-message-to-webview-spy (spy/spy)
+          context {:some "context"}]
+      (with-redefs [sut/set-webview-html! (test-util/wrap-spy set-webview-html-spy)
+                    sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/initialize-webview-panel context stub-webview-panel nil)
+        (testing "should call onDidDispose with expected args"
+          (let [calls (spy/calls on-did-dispose-spy)]
+            (is (= 1 (count calls)))
+            (is (match? [(list fn?)] calls))))
+        (testing "should call set-webview-html! with expected args"
+          (is (spy/called-once-with? set-webview-html-spy context {:webview-panel stub-webview-panel})))
+        (testing "should call add-subscriptions! with expected args"
+          (is (spy/called-once-with? add-subscriptions-spy context {:webview-panel stub-webview-panel})))
+        (testing "should call post-message-to-webview twice with expected args"
+          (is (= 2 (spy/call-count post-message-to-webview-spy)))
+          (is (spy/called-with? post-message-to-webview-spy stub-webview-panel
+                                {:command/name "scroll-to"
+                                 :x nil
+                                 :y nil}))
+          (is (spy/called-with? post-message-to-webview-spy stub-webview-panel
+                                {:command/name "restore-copy-buttons"})))))))
+
 (deftest create-repl-output-webview-panel-test
   (testing "Given a context,"
     (let [on-did-dispose-spy (spy/spy)
@@ -169,9 +198,11 @@
                                                      (test-util/wrap-spy create-webview-panel-spy)}
                                             :ViewColumn {:Beside 1}})}
           set-webview-html-spy (spy/spy)
-          add-subscriptions-spy (spy/spy)]
+          add-subscriptions-spy (spy/spy)
+          initialize-webview-panel-spy (spy/spy)]
       (with-redefs [sut/set-webview-html! (test-util/wrap-spy set-webview-html-spy)
-                    sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)]
+                    sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)
+                    sut/initialize-webview-panel (test-util/wrap-spy initialize-webview-panel-spy)]
         (let [result (sut/create-repl-output-webview-panel context)]
           (testing "should call createWebviewPanel with expacted args"
             (let [calls (spy/calls create-webview-panel-spy)]
@@ -181,14 +212,8 @@
                         {:preserveFocus true, :viewColumn 1}
                         {:enableScripts true, :retainContextWhenHidden true, :enableFindWidget true})]
                      (js->clj calls :keywordize-keys true)))))
-          (testing "should call onDidDispose with expected args"
-            (let [calls (spy/calls on-did-dispose-spy)]
-              (is (= 1 (count calls)))
-              (is (match? [(list fn?)] calls))))
-          (testing "should call set-webview-html! with expected args"
-            (is (spy/called-once-with? set-webview-html-spy context {:webview-panel stub-webview-panel})))
-          (testing "should call add-subscriptions! with expected args"
-            (is (spy/called-once-with? add-subscriptions-spy context {:webview-panel stub-webview-panel})))
+          (testing "should call initialize-webview-panel with expected args"
+            (is (spy/called-once-with? initialize-webview-panel-spy context stub-webview-panel nil)))
           (testing "should return the webview panel"
             (is (= stub-webview-panel result))))))))
 
