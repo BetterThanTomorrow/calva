@@ -890,6 +890,11 @@
             "markdownDescription": "Show the Calva Says output panel on start?",
             "default": false
           },
+          "calva.telemetryEnabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable or disable Calva usage telemetry. No user data is sent."
+          },
           "calva.definitionProviderPriority": {
             "markdownDescription": "Calva can provide definitions using both the REPL connection and via clojure-lsp. Which provider should Calva prioritize when both are available?",
             "enum": [
