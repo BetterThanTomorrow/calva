@@ -435,7 +435,8 @@
       (let [calls (spy/calls register-webview-panel-serializer-spy)]
         (is (= 1 (count calls)))
         (is (= "calva.output-view" (ffirst calls)))
-        (is (some? (-> calls first second .-deserializeWebviewPanel type)))))))
+        (let [webview-panel-serializer (-> calls first second)]
+          (is (some? ^js (.-deserializeWebviewPanel webview-panel-serializer))))))))
 
 (deftest deserialize-webview-panel-test
   (testing "Given a context, a webview panel, and a state, should return a promise that resolves after calling
