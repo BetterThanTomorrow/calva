@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.520] - 2025-06-28
+
+- [Add option for opening flares in side panel view](https://github.com/BetterThanTomorrow/calva/issues/2873)
+
 ## [2.0.519] - 2025-06-09
 
 - [Support `before` and `after` functions for refresh namespaces commands](https://github.com/BetterThanTomorrow/calva/issues/2862)

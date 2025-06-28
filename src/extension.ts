@@ -48,6 +48,7 @@ import { capitalize } from './utilities';
 import * as overrides from './overrides';
 import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
+import * as flareHandler from './flare-handler';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
 
@@ -99,6 +100,9 @@ async function activate(context: vscode.ExtensionContext) {
   });
   inspectorDataProvider.treeView = inspectorTreeView;
   vscode.window.registerFileDecorationProvider(new inspector.InspectorItemDecorationProvider());
+
+  // Initialize flare webview provider for sidebar
+  flareHandler.registerFlareWebviewProvider(context);
 
   overrides.activate();
 
