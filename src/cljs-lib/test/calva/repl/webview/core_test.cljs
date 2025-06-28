@@ -116,28 +116,28 @@
             (sut/set-code-theme! context {:color-theme-kind (:Dark color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :content "dark"})))))
+                                                                                  :code-theme "dark"})))))
       (testing "when the ColorThemeKind is Light, should set the code theme to light"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:Light color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :content "light"})))))
+                                                                                  :code-theme "light"})))))
       (testing "when the ColorThemeKind is HighContrast, should set the code theme to high-contrast"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:HighContrast color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :content "high-contrast"})))))
+                                                                                  :code-theme "high-contrast"})))))
       (testing "when the ColorThemeKind is HighContrastLight, should set the code theme to high-contrast-light"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:HighContrastLight color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :content "high-contrast-light"})))))
+                                                                                  :code-theme "high-contrast-light"})))))
       (testing "when there is no configured code theme for the ColorThemeKind, should log the expected error"
         (let [log-to-console-spy (spy/spy)
               color-theme-kind 99]
@@ -160,6 +160,65 @@
         (is (= 1 (count calls)))
         (is (fn? (type (ffirst calls))))))))
 
+(deftest initialize-webview-panel-test
+  (testing "Given a context, a webview panel, and an nil state,"
+    (let [on-did-dispose-spy (spy/spy)
+          stub-webview-panel (clj->js {:onDidDispose (test-util/wrap-spy on-did-dispose-spy)})
+          set-webview-html-spy (spy/spy)
+          add-subscriptions-spy (spy/spy)
+          post-message-to-webview-spy (spy/spy)
+          context {:some "context"}]
+      (with-redefs [sut/set-webview-html! (test-util/wrap-spy set-webview-html-spy)
+                    sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/initialize-webview-panel context stub-webview-panel nil)
+        (testing "should call onDidDispose with expected args"
+          (let [calls (spy/calls on-did-dispose-spy)]
+            (is (= 1 (count calls)))
+            (is (match? [(list fn?)] calls))))
+        (testing "should call set-webview-html! with expected args"
+          (is (spy/called-once-with? set-webview-html-spy context {:webview-panel stub-webview-panel})))
+        (testing "should call add-subscriptions! with expected args"
+          (is (spy/called-once-with? add-subscriptions-spy context {:webview-panel stub-webview-panel})))
+        (testing "should call post-message-to-webview twice with expected args"
+          (is (= 2 (spy/call-count post-message-to-webview-spy)))
+          (is (spy/called-with? post-message-to-webview-spy stub-webview-panel
+                                {:command/name "scroll-to"
+                                 :x nil
+                                 :y nil}))
+          (is (spy/called-with? post-message-to-webview-spy stub-webview-panel
+                                {:command/name "restore-copy-buttons"}))))))
+  (testing "Given a context, a webview panel, and a non-nil state,"
+    (let [on-did-dispose-spy (spy/spy)
+          stub-webview-panel (clj->js {:onDidDispose (test-util/wrap-spy on-did-dispose-spy)
+                                       :webview {}})
+          set-webview-html-spy (spy/spy)
+          add-subscriptions-spy (spy/spy)
+          post-message-to-webview-spy (spy/spy)
+          context {:some "context"}]
+      (with-redefs [sut/set-webview-html! (test-util/wrap-spy set-webview-html-spy)
+                    sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/initialize-webview-panel context stub-webview-panel #js {:html "some-html"
+                                                                      :scrollLeft 77
+                                                                      :scrollTop 88})
+        (testing "should call onDidDispose with expected args"
+          (let [calls (spy/calls on-did-dispose-spy)]
+            (is (= 1 (count calls)))
+            (is (match? [(list fn?)] calls))))
+        (testing "should not call set-webview-html!"
+          (is (spy/not-called? set-webview-html-spy)))
+        (testing "should call add-subscriptions! with expected args"
+          (is (spy/called-once-with? add-subscriptions-spy context {:webview-panel stub-webview-panel})))
+        (testing "should call post-message-to-webview twice with expected args"
+          (is (= 2 (spy/call-count post-message-to-webview-spy)))
+          (is (spy/called-with? post-message-to-webview-spy stub-webview-panel
+                                {:command/name "scroll-to"
+                                 :x 77
+                                 :y 88}))
+          (is (spy/called-with? post-message-to-webview-spy stub-webview-panel
+                                {:command/name "restore-copy-buttons"})))))))
+
 (deftest create-repl-output-webview-panel-test
   (testing "Given a context,"
     (let [on-did-dispose-spy (spy/spy)
@@ -169,26 +228,22 @@
                                                      (test-util/wrap-spy create-webview-panel-spy)}
                                             :ViewColumn {:Beside 1}})}
           set-webview-html-spy (spy/spy)
-          add-subscriptions-spy (spy/spy)]
+          add-subscriptions-spy (spy/spy)
+          initialize-webview-panel-spy (spy/spy)]
       (with-redefs [sut/set-webview-html! (test-util/wrap-spy set-webview-html-spy)
-                    sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)]
+                    sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)
+                    sut/initialize-webview-panel (test-util/wrap-spy initialize-webview-panel-spy)]
         (let [result (sut/create-repl-output-webview-panel context)]
           (testing "should call createWebviewPanel with expacted args"
             (let [calls (spy/calls create-webview-panel-spy)]
               (is (= 1 (count calls)))
-              (is (= '[("calva:repl-output"
+              (is (= '[("calva.output-view"
                         "REPL Output"
                         {:preserveFocus true, :viewColumn 1}
                         {:enableScripts true, :retainContextWhenHidden true, :enableFindWidget true})]
                      (js->clj calls :keywordize-keys true)))))
-          (testing "should call onDidDispose with expected args"
-            (let [calls (spy/calls on-did-dispose-spy)]
-              (is (= 1 (count calls)))
-              (is (match? [(list fn?)] calls))))
-          (testing "should call set-webview-html! with expected args"
-            (is (spy/called-once-with? set-webview-html-spy context {:webview-panel stub-webview-panel})))
-          (testing "should call add-subscriptions! with expected args"
-            (is (spy/called-once-with? add-subscriptions-spy context {:webview-panel stub-webview-panel})))
+          (testing "should call initialize-webview-panel with expected args"
+            (is (spy/called-once-with? initialize-webview-panel-spy context stub-webview-panel nil)))
           (testing "should return the webview panel"
             (is (= stub-webview-panel result))))))))
 
@@ -259,7 +314,7 @@
           (is (spy/called-once-with? post-message-to-webview-spy
                                      "webview-panel-stub"
                                      {:command/name "show-stdout"
-                                      :content message})))))
+                                      :output message})))))
     (testing "when command does not exist for output category,"
       (let [options (clj->js {:outputCategory "nonexistent-category"})
             message "some-message"
@@ -276,7 +331,7 @@
             (is (spy/called-once-with?
                  log-to-console-spy
                  :error
-                 "Cannot append content to output webview. No outputCategory matches \"nonexistent-category\""))))))))
+                 "Cannot append output to output webview. No outputCategory matches \"nonexistent-category\""))))))))
 
 (deftest stacktrace->message-test
   (testing "Given a stacktrace with no duplicate flags and no classes to ignore, should return the expected message"
@@ -359,7 +414,7 @@
           (is (spy/called-once-with? post-message-to-webview-spy
                                      "webview-panel-stub"
                                      {:command/name "show-stdout"
-                                      :content "some-message"})))))))
+                                      :output "some-message"})))))))
 
 (deftest clear-output-view-test
   (testing "Should call post-message-to-webview with expected args"
@@ -370,5 +425,30 @@
         (is (spy/called-once-with? post-message-to-webview-spy
                                    "webview-panel-stub"
                                    {:command/name "clear-output-view"}))))))
+
+(deftest register-output-view-webview-serializer!-test
+  (testing "Given a context, should call registerWebviewPanelSerializer with expected args"
+    (let [register-webview-panel-serializer-spy (spy/spy)
+          context {:vscode/vscode (clj->js {:window {:registerWebviewPanelSerializer
+                                                     (test-util/wrap-spy register-webview-panel-serializer-spy)}})}]
+      (sut/register-output-view-webview-serializer! context)
+      (let [calls (spy/calls register-webview-panel-serializer-spy)]
+        (is (= 1 (count calls)))
+        (is (= "calva.output-view" (ffirst calls)))
+        (let [webview-panel-serializer (-> calls first second)]
+          (is (some? ^js (.-deserializeWebviewPanel webview-panel-serializer))))))))
+
+(deftest deserialize-webview-panel-test
+  (testing "Given a context, a webview panel, and a state, should return a promise that resolves after calling
+            initialize-webview-panel with expected args"
+    (let [initialize-webview-panel-spy (spy/spy)
+          context {:some "context"}
+          webview-panel {:some "webview-panel"}
+          state {:some "state"}]
+      (with-redefs [sut/initialize-webview-panel (test-util/wrap-spy initialize-webview-panel-spy)]
+        (let [result (sut/deserialize-webview-panel context webview-panel state)]
+          (.. result
+              (then (fn [_]
+                      (is (spy/called-once-with? initialize-webview-panel-spy context webview-panel state))))))))))
 
 #_(run-tests)

@@ -7,6 +7,8 @@
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
 
+(defonce vscode (js/acquireVsCodeApi))
+
 (defn throttle-fn
   "Returns a throttled version of the function, which will only be called at most once every `wait`
    milliseconds with the arguments passed in the latest call.
@@ -30,8 +32,8 @@
 
 (defn scroll-to-bottom
   "Scrolls to the bottom of the the given dom element."
-  [^js dom-element]
-  (.. dom-element (scrollIntoView #js {:behavior "instant" :block "end"})))
+  []
+  (js/scrollTo 0 js/document.documentElement.scrollHeight))
 
 ;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.
 (def throttled-scroll-to-bottom (throttle-fn scroll-to-bottom 0))
@@ -57,11 +59,11 @@
 
 (defn append-evaluated-code
   "Appends evaluated code to the given dom element."
-  [^js dom-element content]
+  [^js dom-element {:keys [output]}]
   (let [div (js/document.createElement "div")
         span (js/document.createElement "span")
         span-text-node (js/document.createTextNode "Evaluated code")
-        {:keys [container-element code-element]} (clojure-code-element content)]
+        {:keys [container-element code-element]} (clojure-code-element output)]
     (.. span -classList (add "border-text"))
     (.. span (appendChild span-text-node))
     (.. div -classList (add "evaluated-code-container"))
@@ -72,8 +74,8 @@
     (.. dom-element (dispatchEvent (output-appended-event div)))))
 
 (defn append-eval-result
-  [^js dom-element content]
-  (let [{:keys [code-element container-element]} (clojure-code-element content)]
+  [^js dom-element {:keys [output]}]
+  (let [{:keys [code-element container-element]} (clojure-code-element output)]
     (.. dom-element (appendChild container-element))
     (.. js/window -hljs (highlightElement code-element))
     (.. dom-element (dispatchEvent (output-appended-event container-element)))))
@@ -90,8 +92,8 @@
 (defn append-stdout
   "Appends stdout content to the given DOM element, unless the last element is already a stdout element,
    in which case it appends the content to that element instead."
-  [^js dom-element content]
-  (let [text-node (js/document.createTextNode (strip-ansi content))]
+  [^js dom-element {:keys [output]}]
+  (let [text-node (js/document.createTextNode (strip-ansi output))]
     (if-let [last-output-element (.. dom-element -lastElementChild)]
       (if (= "stdout" (.. last-output-element -dataset -outputElementType))
         (do
@@ -119,37 +121,86 @@
                    (.. copy-container-node -style (setProperty "--hljs-theme-padding" code-padding)))))))
 
 (defn set-code-theme!
-  [theme]
+  [{:keys [code-theme]}]
   (let [code-theme-link-nodes (js/document.querySelectorAll "[data-code-theme]")]
     (.. code-theme-link-nodes (forEach (fn [^js node]
-                                         (let [code-theme (.. node -dataset -codeTheme)]
-                                           (if (= code-theme theme)
+                                         (let [current-code-theme (.. node -dataset -codeTheme)]
+                                           (if (= current-code-theme code-theme)
                                              (.. node (removeAttribute "disabled"))
                                              (.. node (setAttribute "disabled" "disabled")))))))
     ;; The timeout seems to prevent an issue where the copy buttons lose some of their styles on theme change.
     (js/setTimeout update-theme-of-copy-buttons 100)))
 
+(defn scroll-to
+  [{:keys [x y]}]
+  (js/scrollTo x y))
+
+(defn restore-copy-buttons
+  "Re-initializes copy buttons from CopyButtonPlugin (highlightjs-copy - highlight.js plugin) so they look
+   correct and function correctly after the webview HTML is restored from state."
+  []
+  (.. js/document (querySelectorAll "pre code")
+      (forEach (fn [^js element]
+                 (js-delete (.. element -dataset) "highlighted")
+                 (when-let [copy-container (.. element -parentElement (querySelector ".hljs-copy-container"))]
+                   (.. copy-container (remove)))
+                 (.. js/window -hljs (highlightElement element))))))
+
 (defn handle-message
   [^js output-dom-element ^js message]
   (let [message-data (reader/read-string (.-data message))
-        command-name (:command/name message-data)
-        content (:content message-data)]
+        command-name (:command/name message-data)]
     (case command-name
-      "show-result" (append-eval-result output-dom-element content)
-      "show-evaluated-code" (append-evaluated-code output-dom-element content)
-      "show-stdout" (append-stdout output-dom-element content)
+      "show-result" (append-eval-result output-dom-element message-data)
+      "show-evaluated-code" (append-evaluated-code output-dom-element message-data)
+      "show-stdout" (append-stdout output-dom-element message-data)
       "clear-output-view" (clear-output-view output-dom-element)
-      "set-code-theme" (set-code-theme! content))))
+      "set-code-theme" (set-code-theme! message-data)
+      "scroll-to" (scroll-to message-data)
+      "restore-copy-buttons" (restore-copy-buttons))))
 
 (defn handle-output-appended
-  [^js output-dom-element ^js _event]
-  (throttled-scroll-to-bottom output-dom-element))
+  [^js _event]
+  (throttled-scroll-to-bottom))
+
+(defn merge-state
+  [state]
+  (.. vscode (setState (js/Object.assign (or (.. vscode (getState)) #js {})
+                                         (clj->js state)))))
+
+(defn save-html
+  []
+  (merge-state {:html (.. js/document.documentElement -outerHTML)}))
+
+(def throttled-save-html (throttle-fn save-html 1000))
+
+(defn handle-document-mutations
+  [_mutation-list, _observer]
+  ;; Throttle to avoid performance issues with high volume output.
+  (throttled-save-html))
+
+(defn observe-document-mutations
+  []
+  (doto (js/MutationObserver. handle-document-mutations)
+    (.observe js/document.documentElement #js {:childList true
+                                               :subtree true
+                                               :attributes true
+                                               :characterData true})))
+
+(defn save-scroll-state
+  []
+  (merge-state {:scrollLeft js/document.documentElement.scrollLeft
+                :scrollTop js/document.documentElement.scrollTop}))
+
+(def throttled-save-scroll-state (throttle-fn save-scroll-state 200))
 
 (defn add-event-listeners
   [^js output-dom-element]
   (.. js/window (addEventListener "message" (partial handle-message output-dom-element)))
-  (.. output-dom-element (addEventListener "output-appended" (partial handle-output-appended output-dom-element))))
+  (.. output-dom-element (addEventListener "output-appended" handle-output-appended))
+  (.. js/document (addEventListener "scroll" throttled-save-scroll-state)))
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)
+  (observe-document-mutations)
   (.. js/window -hljs (addPlugin (CopyButtonPlugin. #js {:autohide true}))))

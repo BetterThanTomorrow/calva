@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Reload contents of output view when VS Code window is reloaded](https://github.com/BetterThanTomorrow/calva/issues/2827)
+
 ## [2.0.520] - 2025-06-28
 
 - [Add option for opening flares in side panel view](https://github.com/BetterThanTomorrow/calva/issues/2873)
