@@ -833,6 +833,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#sidebar-vs-panel-display" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sidebar vs Panel Display
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#try-a-more-interesting-example" class="md-nav__link">
     <span class="md-ellipsis">
       Try a more interesting example
@@ -2165,6 +2174,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#sidebar-vs-panel-display" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sidebar vs Panel Display
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#try-a-more-interesting-example" class="md-nav__link">
     <span class="md-ellipsis">
       Try a more interesting example
@@ -2269,6 +2287,19 @@ Clojure prints tagged literals as <code>#tag{...}</code>, so when you create the
 </code></pre></div>
 <p>The <code>:key</code> parameter is optional and can be used to reuse the same WebView panel.
 If omitted, a new WebView panel will be created per request.</p>
+<h2 id="sidebar-vs-panel-display">Sidebar vs Panel Display<a class="headerlink" href="#sidebar-vs-panel-display" title="Permanent link">#</a></h2>
+<p>By default, flares open in a separate WebView panel alongside your code.
+You can also display flares in the Calva sidebar using the <code>:sidebar-panel?</code> option:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">;; Display in a separate panel (default)</span>
+<span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">&#39;flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="s">&quot;&lt;h1&gt;Hello, Panel!&lt;/h1&gt;&quot;</span>,
+<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">&quot;Panel Display&quot;</span><span class="p">})</span>
+
+<span class="c1">;; Display in the Calva sidebar</span>
+<span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">&#39;flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="s">&quot;&lt;h1&gt;Hello, Sidebar!&lt;/h1&gt;&quot;</span>,
+<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">&quot;Sidebar Display&quot;</span>
+<span class="w">                             </span><span class="ss">:sidebar-panel?</span><span class="w"> </span><span class="nv">true</span><span class="p">})</span>
+</code></pre></div>
+<p>The sidebar Flare view is located in the Calva activity bar section.</p>
 <h2 id="try-a-more-interesting-example">Try a more interesting example<a class="headerlink" href="#try-a-more-interesting-example" title="Permanent link">#</a></h2>
 <p>Let's create an SVG containing circles of varying radii and colors:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">&#39;</span><span class="p">[</span><span class="nv">clojure.string</span><span class="w"> </span><span class="ss">:as</span><span class="w"> </span><span class="nv">str</span><span class="p">])</span>
@@ -2362,6 +2393,12 @@ so you can do anything you can do in a browser, there's really no limit.</p>
 <td>map</td>
 <td>{:enableScripts true}</td>
 <td>See <a href="https://code.visualstudio.com/api/references/vscode-api#WebviewOptions">WebviewOptions</a></td>
+</tr>
+<tr>
+<td><code>:sidebar-panel</code></td>
+<td>boolean</td>
+<td>false</td>
+<td>If true, displays the content in the sidebar Flare view instead of a separate panel.</td>
 </tr>
 </tbody>
 </table>
