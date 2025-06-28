@@ -3318,6 +3318,12 @@
         {
           "id": "calva.inspector",
           "name": "Inspector"
+        },
+        {
+          "id": "calva.flare",
+          "name": "Flare",
+          "type": "webview",
+          "icon": "$(globe)"
         }
       ]
     },
