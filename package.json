@@ -3322,8 +3322,7 @@
         {
           "id": "calva.flare",
           "name": "Flare",
-          "type": "webview",
-          "icon": "$(globe)"
+          "type": "webview"
         }
       ]
     },
