@@ -72,6 +72,11 @@ class CalvaFlareWebviewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'calva.flare';
   private _view?: vscode.WebviewView;
   private _context: vscode.ExtensionContext;
+  private _lastContent?: {
+    html: string;
+    title?: string;
+    key?: string;
+  };
 
   constructor(private readonly context: vscode.ExtensionContext) {
     this._context = context;
@@ -85,15 +90,27 @@ class CalvaFlareWebviewProvider implements vscode.WebviewViewProvider {
     this._view = webviewView;
 
     webviewView.webview.options = {
-      // Allow scripts in the webview
       enableScripts: true,
       localResourceRoots: [this._context.extensionUri],
     };
 
-    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+    if (this._lastContent) {
+      webviewView.webview.html = this._lastContent.html;
+      if (this._lastContent.title) {
+        webviewView.title = this._lastContent.title;
+      }
+      if (this._lastContent.key) {
+        (webviewView as CalvaWebView).url = this._lastContent.key;
+        calvaSidebarWebViews[this._lastContent.key] = webviewView as CalvaWebView;
+      }
+    } else {
+      webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+    }
   }
 
   public updateContent(html: string, title?: string, key?: string) {
+    this._lastContent = { html, title, key };
+
     if (this._view) {
       this._view.webview.html = html;
       if (title) {
@@ -107,8 +124,11 @@ class CalvaFlareWebviewProvider implements vscode.WebviewViewProvider {
   }
 
   public updateUrl(url: string, title?: string, key?: string) {
+    const iframeHtml = urlInIframe(url);
+    this._lastContent = { html: iframeHtml, title, key };
+
     if (this._view) {
-      this._view.webview.html = urlInIframe(url);
+      this._view.webview.html = iframeHtml;
       if (title) {
         this._view.title = title;
       }
@@ -168,7 +188,6 @@ function showWebView({
   'sidebar-panel?'?: boolean;
 }): void {
   if (sidebarPanel) {
-    // Handle sidebar webview
     if (flareWebviewProvider) {
       if (html) {
         flareWebviewProvider.updateContent(html, title, key);
@@ -188,7 +207,6 @@ function showWebView({
     return;
   }
 
-  // Handle regular webview panel (existing logic)
   let panel: CalvaWebPanel;
   if (key) {
     panel = calvaWebPanels[key];
