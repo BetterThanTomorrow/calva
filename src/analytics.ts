@@ -4,8 +4,14 @@ import * as uuid from 'uuidv4';
 import { isUndefined } from 'lodash';
 
 function userAllowsTelemetry(): boolean {
+  const calvaConfig = vscode.workspace.getConfiguration('calva');
+  const calvaTelemetryEnabled = calvaConfig.get<boolean>('telemetryEnabled', true);
   const config = vscode.workspace.getConfiguration('telemetry');
-  return config.get<string>('telemetryLevel', 'off') === 'all';
+  const level = config.get<string>('telemetryLevel');
+  if (level !== undefined) {
+    return level === 'all' && calvaTelemetryEnabled;
+  }
+  return calvaTelemetryEnabled;
 }
 
 export default class Analytics {

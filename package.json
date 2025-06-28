@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.520",
+  "version": "2.0.521",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -890,6 +890,11 @@
             "type": "boolean",
             "markdownDescription": "Show the Calva Says output panel on start?",
             "default": false
+          },
+          "calva.telemetryEnabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable or disable Calva usage telemetry. No user data is sent."
           },
           "calva.definitionProviderPriority": {
             "markdownDescription": "Calva can provide definitions using both the REPL connection and via clojure-lsp. Which provider should Calva prioritize when both are available?",
@@ -3313,7 +3318,14 @@
       "calva": [
         {
           "id": "calva.inspector",
-          "name": "Inspector"
+          "name": "Inspector",
+          "icon": "assets/images/calva-symbol-white.svg"
+        },
+        {
+          "id": "calva.flare",
+          "name": "Flare",
+          "type": "webview",
+          "icon": "assets/images/calva-symbol-white.svg"
         }
       ]
     },
