@@ -41,6 +41,24 @@ To show a webpage, pass a `:url` instead of `:html` in the request:
 The `:key` parameter is optional and can be used to reuse the same WebView panel.
 If omitted, a new WebView panel will be created per request.
 
+## Sidebar vs Panel Display
+
+By default, flares open in a separate WebView panel alongside your code.
+You can also display flares in the Calva sidebar using the `:sidebar-panel?` option:
+
+```clojure
+;; Display in a separate panel (default)
+(tagged-literal 'flare/html {:html "<h1>Hello, Panel!</h1>",
+                             :title "Panel Display"})
+
+;; Display in the Calva sidebar
+(tagged-literal 'flare/html {:html "<h1>Hello, Sidebar!</h1>",
+                             :title "Sidebar Display"
+                             :sidebar-panel? true})
+```
+
+The sidebar Flare view is located in the Calva activity bar section.
+
 ## Try a more interesting example
 
 Let's create an SVG containing circles of varying radii and colors:
@@ -102,6 +120,7 @@ so you can do anything you can do in a browser, there's really no limit.
 | `:reveal` | boolean | true | If true, reveals the panel if it is not visible. |
 | `:column` | integer | vscode.ViewColumn.Beside | See [ViewColumn](https://code.visualstudio.com/api/references/vscode-api#ViewColumn) |
 | `:opts` | map | {:enableScripts true} | See [WebviewOptions](https://code.visualstudio.com/api/references/vscode-api#WebviewOptions) |
+| `:sidebar-panel` | boolean | false | If true, displays the content in the sidebar Flare view instead of a separate panel. |
 
 ### Suggestions welcome
 
