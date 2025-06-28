@@ -3317,12 +3317,14 @@
       "calva": [
         {
           "id": "calva.inspector",
-          "name": "Inspector"
+          "name": "Inspector",
+          "icon": "assets/images/calva-symbol-white.svg"
         },
         {
           "id": "calva.flare",
           "name": "Flare",
-          "type": "webview"
+          "type": "webview",
+          "icon": "assets/images/calva-symbol-white.svg"
         }
       ]
     },
