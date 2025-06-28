@@ -165,8 +165,12 @@
 
 (defn merge-state
   [state]
-  (.. vscode (setState (js/Object.assign (or (.. vscode (getState)) #js {})
-                                         (clj->js state)))))
+  (let [current-state (js->clj (.. vscode (getState)) :keywordize-keys true)
+        new-state (merge current-state state)]
+    (.. vscode (setState (clj->js new-state)))
+    ;; Send a command to the extension to save the state, so we can restore it when the webview is closed and reopened.
+    (.. vscode (postMessage (pr-str {:command/name "save-state"
+                                     :state new-state})))))
 
 (defn save-html
   []

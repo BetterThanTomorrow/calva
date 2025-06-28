@@ -1,9 +1,16 @@
 (ns calva.repl.webview.core
   (:require
    [calva.util :as util]
+   [cljs.reader :as reader]
    [clojure.string :as str]))
 
 (defonce repl-output-webview-panel (atom nil))
+
+(defonce output-view-state (atom nil))
+
+(defn save-state
+  [{:keys [state]}]
+  (reset! output-view-state state))
 
 (defn dispose-repl-output-webview-panel
   [webview-panel-atom]
@@ -156,8 +163,17 @@
   [^js webview-panel]
   (.. webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel)))))
 
+(defn handle-message
+  [^js message]
+  (let [message-data (reader/read-string message)
+        command-name (:command/name message-data)]
+    (case command-name
+      "save-state" (save-state message-data))))
+
 (defn initialize-webview-panel
   [context ^js webview-panel ^js state]
+  ;; TODO: Add test for this call
+  (.. webview-panel -webview (onDidReceiveMessage handle-message))
   (add-listeners! webview-panel)
   (add-subscriptions! context {:webview-panel webview-panel})
   (if (and state (.-html state))
