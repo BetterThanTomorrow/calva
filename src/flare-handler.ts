@@ -29,13 +29,11 @@ export function inspect(edn: string, evaluate: EvaluateFunction): any {
     (edn.startsWith('#flare/') || edn.startsWith('#cursive/'))
   ) {
     try {
-      console.log('Inspecting EDN:', edn);
       // decompose the flare into the tag and the literal
       const match = edn.match(/^#(?:flare|cursive)\/(\w+)\s*(\{.*})\s*$/s);
       if (match) {
         const tag = match[1];
         const flare = parseEdn(match[2]);
-        console.log('Parsed flare:', { tag, flare });
         const handler = actHandlers[tag];
         if (handler) {
           handler(flare, evaluate);
@@ -96,12 +94,6 @@ class CalvaFlareWebviewProvider implements vscode.WebviewViewProvider {
   }
 
   public updateContent(html: string, title?: string, key?: string) {
-    console.log('updateContent called with:', {
-      html: html?.substring(0, 100),
-      title,
-      key,
-      hasView: !!this._view,
-    });
     if (this._view) {
       this._view.webview.html = html;
       if (title) {
@@ -111,9 +103,6 @@ class CalvaFlareWebviewProvider implements vscode.WebviewViewProvider {
         (this._view as CalvaWebView).url = key; // Store key in url field for tracking
         calvaSidebarWebViews[key] = this._view as CalvaWebView;
       }
-      console.log('Content updated successfully');
-    } else {
-      console.log('ERROR: No webview available for content update');
     }
   }
 
@@ -178,24 +167,12 @@ function showWebView({
   opts?: typeof defaultWebviewOptions;
   'sidebar-panel?'?: boolean;
 }): void {
-  // Debug logging
-  console.log('showWebView called with:', {
-    title,
-    key,
-    html: html?.substring(0, 100),
-    url,
-    sidebarPanel,
-  });
-
   if (sidebarPanel) {
-    console.log('Using sidebar panel, flareWebviewProvider:', !!flareWebviewProvider);
     // Handle sidebar webview
     if (flareWebviewProvider) {
       if (html) {
-        console.log('Updating sidebar content with HTML:', html.substring(0, 100));
         flareWebviewProvider.updateContent(html, title, key);
       } else if (url) {
-        console.log('Updating sidebar content with URL:', url);
         flareWebviewProvider.updateUrl(url, title, key);
       }
 
@@ -204,7 +181,6 @@ function showWebView({
         void vscode.commands.executeCommand('calva.flare.focus');
       }
     } else {
-      console.log('ERROR: flareWebviewProvider is null');
       void vscode.window.showErrorMessage(
         'Sidebar flare webview not available. Please restart VS Code.'
       );
@@ -212,7 +188,6 @@ function showWebView({
     return;
   }
 
-  console.log('Using regular panel');
   // Handle regular webview panel (existing logic)
   let panel: CalvaWebPanel;
   if (key) {
