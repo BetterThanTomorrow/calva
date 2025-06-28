@@ -136,7 +136,7 @@
   (js/scrollTo x y))
 
 (defn restore-copy-buttons
-  "Re-initializes copy buttons from CopyButtonPlugin (highlightjs-copy - highlight.js plugin) so they they look
+  "Re-initializes copy buttons from CopyButtonPlugin (highlightjs-copy - highlight.js plugin) so they look
    correct and function correctly after the webview HTML is restored from state."
   []
   (.. js/document (querySelectorAll "pre code")
