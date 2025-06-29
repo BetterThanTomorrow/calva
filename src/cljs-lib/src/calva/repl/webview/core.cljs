@@ -164,7 +164,7 @@
   (.. webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel)))))
 
 (defn handle-message
-  [^js message]
+  [message]
   (let [message-data (reader/read-string message)
         command-name (:command/name message-data)]
     (case command-name
