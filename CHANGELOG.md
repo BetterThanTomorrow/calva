@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Reload contents of output view when VS Code window is reloaded](https://github.com/BetterThanTomorrow/calva/issues/2827)
+- [Reload contents of output view when it's closed and reopened (without closing VS Code)](https://github.com/BetterThanTomorrow/calva/issues/2867)
 
 ## [2.0.520] - 2025-06-28
 

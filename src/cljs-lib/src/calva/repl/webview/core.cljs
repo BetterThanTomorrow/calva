@@ -1,9 +1,16 @@
 (ns calva.repl.webview.core
   (:require
    [calva.util :as util]
+   [cljs.reader :as reader]
    [clojure.string :as str]))
 
 (defonce repl-output-webview-panel (atom nil))
+
+(defonce output-view-state (atom nil))
+
+(defn save-state
+  [{:keys [state]}]
+  (reset! output-view-state state))
 
 (defn dispose-repl-output-webview-panel
   [webview-panel-atom]
@@ -156,18 +163,28 @@
   [^js webview-panel]
   (.. webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel)))))
 
+(defn handle-message
+  [message]
+  (let [message-data (reader/read-string message)
+        command-name (:command/name message-data)]
+    (case command-name
+      "save-state" (save-state message-data))))
+
 (defn initialize-webview-panel
-  [context ^js webview-panel ^js state]
+  [context ^js webview-panel state]
+  (.. webview-panel -webview (onDidReceiveMessage handle-message))
   (add-listeners! webview-panel)
   (add-subscriptions! context {:webview-panel webview-panel})
-  (if (and state (.-html state))
-    (set! (.. webview-panel -webview -html) (.-html state))
+  (if (and state (:html state))
+    ;; TODO: Address console warnings and errors when this code is run
+    (set! (.. webview-panel -webview -html) (:html state))
     (set-webview-html! context {:webview-panel webview-panel}))
-  (let [[scroll-left scroll-top] (when state [(.-scrollLeft state) (.-scrollTop state)])]
+  (let [[scroll-left scroll-top] (when state [(:scrollLeft state) (:scrollTop state)])]
     (post-message-to-webview webview-panel {:command/name "scroll-to"
                                             :x scroll-left
                                             :y scroll-top}))
-  (post-message-to-webview webview-panel {:command/name "restore-copy-buttons"}))
+  (post-message-to-webview webview-panel {:command/name "restore-copy-buttons"})
+  webview-panel)
 
 (defn create-repl-output-webview-panel
   [{:keys [vscode/vscode] :as context}]
@@ -186,14 +203,14 @@
                                 ;; panel's context cannot be quickly saved and restored."
                                 :retainContextWhenHidden true
                                 :enableFindWidget true}))]
-    (initialize-webview-panel context webview-panel nil)
+    (initialize-webview-panel context webview-panel @output-view-state)
     (reset! repl-output-webview-panel webview-panel)))
 
 (defn deserialize-webview-panel
   [context ^js webview-panel ^js state]
   (js/Promise.
    (fn [resolve _reject]
-     (initialize-webview-panel context webview-panel state)
+     (initialize-webview-panel context webview-panel (js->clj state :keywordize-keys true))
      (resolve nil))))
 
 (defn register-output-view-webview-serializer!

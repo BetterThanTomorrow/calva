@@ -163,7 +163,9 @@
 (deftest initialize-webview-panel-test
   (testing "Given a context, a webview panel, and an nil state,"
     (let [on-did-dispose-spy (spy/spy)
-          stub-webview-panel (clj->js {:onDidDispose (test-util/wrap-spy on-did-dispose-spy)})
+          on-did-receive-message-spy (spy/spy)
+          stub-webview-panel (clj->js {:onDidDispose (test-util/wrap-spy on-did-dispose-spy)
+                                       :webview {:onDidReceiveMessage (test-util/wrap-spy on-did-receive-message-spy)}})
           set-webview-html-spy (spy/spy)
           add-subscriptions-spy (spy/spy)
           post-message-to-webview-spy (spy/spy)
@@ -172,9 +174,11 @@
                     sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)
                     sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
         (sut/initialize-webview-panel context stub-webview-panel nil)
+        (testing "should call onDidReceiveMessage with expected args"
+          (let [calls (spy/calls on-did-receive-message-spy)]
+            (is (match? [(list fn?)] calls))))
         (testing "should call onDidDispose with expected args"
           (let [calls (spy/calls on-did-dispose-spy)]
-            (is (= 1 (count calls)))
             (is (match? [(list fn?)] calls))))
         (testing "should call set-webview-html! with expected args"
           (is (spy/called-once-with? set-webview-html-spy context {:webview-panel stub-webview-panel})))
@@ -190,8 +194,9 @@
                                 {:command/name "restore-copy-buttons"}))))))
   (testing "Given a context, a webview panel, and a non-nil state,"
     (let [on-did-dispose-spy (spy/spy)
+          on-did-receive-message-spy (spy/spy)
           stub-webview-panel (clj->js {:onDidDispose (test-util/wrap-spy on-did-dispose-spy)
-                                       :webview {}})
+                                       :webview {:onDidReceiveMessage (test-util/wrap-spy on-did-receive-message-spy)}})
           set-webview-html-spy (spy/spy)
           add-subscriptions-spy (spy/spy)
           post-message-to-webview-spy (spy/spy)
@@ -199,12 +204,14 @@
       (with-redefs [sut/set-webview-html! (test-util/wrap-spy set-webview-html-spy)
                     sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)
                     sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-        (sut/initialize-webview-panel context stub-webview-panel #js {:html "some-html"
-                                                                      :scrollLeft 77
-                                                                      :scrollTop 88})
+        (sut/initialize-webview-panel context stub-webview-panel {:html "some-html"
+                                                                  :scrollLeft 77
+                                                                  :scrollTop 88})
+        (testing "should call onDidReceiveMessage with expected args"
+          (let [calls (spy/calls on-did-receive-message-spy)]
+            (is (match? [(list fn?)] calls))))
         (testing "should call onDidDispose with expected args"
           (let [calls (spy/calls on-did-dispose-spy)]
-            (is (= 1 (count calls)))
             (is (match? [(list fn?)] calls))))
         (testing "should not call set-webview-html!"
           (is (spy/not-called? set-webview-html-spy)))
