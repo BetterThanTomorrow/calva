@@ -230,7 +230,6 @@
                               (reset! repl-output-webview-panel (create-repl-output-webview-panel context)))
         active-code-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)]
     (.. webview-panel (reveal nil preserve-focus?))
-    ;; TODO: Test closing the webview panel, then changing the VS Code theme, then reopening the webview panel.
     (set-code-theme! context {:color-theme-kind active-code-theme-kind
                               :webview-panel webview-panel})))
 
