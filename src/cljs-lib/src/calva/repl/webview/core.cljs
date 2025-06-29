@@ -172,7 +172,6 @@
 
 (defn initialize-webview-panel
   [context ^js webview-panel state]
-  ;; TODO: Add test for this call
   (.. webview-panel -webview (onDidReceiveMessage handle-message))
   (add-listeners! webview-panel)
   (add-subscriptions! context {:webview-panel webview-panel})
