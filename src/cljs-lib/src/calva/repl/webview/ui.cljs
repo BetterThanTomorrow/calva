@@ -169,6 +169,11 @@
         new-state (merge current-state state)]
     (.. vscode (setState (clj->js new-state)))
     ;; Send a command to the extension to save the state, so we can restore it when the webview is closed and reopened.
+    ;; TODO: Figure out why we're getting the console error `Cannot read properties of undefined (reading '__vscode_post_message__')`
+    ;; after the webview is closed and reopened.
+    ;; Every time it's closed an reopened, an additional duplicate error is added to the console.
+    ;; Note: I looked into this for a while and I'm not sure if it's worth continuing to investigate.
+    ;; It may actually be an issue with the VS Code API, but in any case, it's not causing a real problem.
     (.. vscode (postMessage (pr-str {:command/name "save-state"
                                      :state new-state})))))
 

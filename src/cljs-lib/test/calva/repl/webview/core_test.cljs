@@ -202,9 +202,9 @@
       (with-redefs [sut/set-webview-html! (test-util/wrap-spy set-webview-html-spy)
                     sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)
                     sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-        (sut/initialize-webview-panel context stub-webview-panel #js {:html "some-html"
-                                                                      :scrollLeft 77
-                                                                      :scrollTop 88})
+        (sut/initialize-webview-panel context stub-webview-panel {:html "some-html"
+                                                                  :scrollLeft 77
+                                                                  :scrollTop 88})
         (testing "should call onDidDispose with expected args"
           (let [calls (spy/calls on-did-dispose-spy)]
             (is (= 1 (count calls)))
