@@ -29,9 +29,7 @@ The demo tells you about the command (and some about the Clojure Beginner's mate
     Three clicks will have you running Calva in your browser with the REPL ready to serve.
 
 ??? Note "I don't have Java installed"
-    If you like, you can defer installing anything at all and still get started with Calva (not kidding).
-
-    See [Get Started with Clojure](get-started-with-clojure.md).
+    It's the one thing besides VS Code that you will need to install. How you install it depends on your OS and preferences.
 
 ### There's a ”Getting Started” REPL
 
