@@ -640,8 +640,14 @@
                     "deps.edn",
                     "shadow-cljs",
                     "lein-shadow",
+                    "Gradle",
+                    "babashka",
+                    "nbb",
+                    "basilisp",
+                    "joyride",
                     "generic",
-                    "custom"
+                    "custom",
+                    "cljs-only"
                   ]
                 },
                 "autoSelectForJackIn": {
