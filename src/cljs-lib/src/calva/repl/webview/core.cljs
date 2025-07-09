@@ -1,9 +1,16 @@
 (ns calva.repl.webview.core
   (:require
    [calva.util :as util]
+   [cljs.reader :as reader]
    [clojure.string :as str]))
 
 (defonce repl-output-webview-panel (atom nil))
+
+(defonce output-view-state (atom nil))
+
+(defn save-state
+  [{:keys [state]}]
+  (reset! output-view-state state))
 
 (defn dispose-repl-output-webview-panel
   [webview-panel-atom]
@@ -128,7 +135,7 @@
                      nil)]
     (if code-theme
       (post-message-to-webview webview-panel {:command/name "set-code-theme"
-                                              :content code-theme})
+                                              :code-theme code-theme})
       (util/log-to-console
        :error
        "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
@@ -152,11 +159,38 @@
             (.. ^js vscode-context -subscriptions (push subscription)))
           subscriptions)))
 
+(defn add-listeners!
+  [^js webview-panel]
+  (.. webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel)))))
+
+(defn handle-message
+  [message]
+  (let [message-data (reader/read-string message)
+        command-name (:command/name message-data)]
+    (case command-name
+      "save-state" (save-state message-data))))
+
+(defn initialize-webview-panel
+  [context ^js webview-panel state]
+  (.. webview-panel -webview (onDidReceiveMessage handle-message))
+  (add-listeners! webview-panel)
+  (add-subscriptions! context {:webview-panel webview-panel})
+  (if (and state (:html state))
+    ;; TODO: Address console warnings and errors when this code is run
+    (set! (.. webview-panel -webview -html) (:html state))
+    (set-webview-html! context {:webview-panel webview-panel}))
+  (let [[scroll-left scroll-top] (when state [(:scrollLeft state) (:scrollTop state)])]
+    (post-message-to-webview webview-panel {:command/name "scroll-to"
+                                            :x scroll-left
+                                            :y scroll-top}))
+  (post-message-to-webview webview-panel {:command/name "restore-copy-buttons"})
+  webview-panel)
+
 (defn create-repl-output-webview-panel
   [{:keys [vscode/vscode] :as context}]
   (let [webview-panel (.. ^js vscode -window
                           (createWebviewPanel
-                           "calva:repl-output"
+                           "calva.output-view"
                            "REPL Output"
                            #js {:preserveFocus true
                                 :viewColumn (.. ^js vscode -ViewColumn -Beside)}
@@ -169,10 +203,23 @@
                                 ;; panel's context cannot be quickly saved and restored."
                                 :retainContextWhenHidden true
                                 :enableFindWidget true}))]
-    (.. ^js webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel))))
-    (set-webview-html! context {:webview-panel webview-panel})
-    (add-subscriptions! context {:webview-panel webview-panel})
-    webview-panel))
+    (initialize-webview-panel context webview-panel @output-view-state)
+    (reset! repl-output-webview-panel webview-panel)))
+
+(defn deserialize-webview-panel
+  [context ^js webview-panel ^js state]
+  (js/Promise.
+   (fn [resolve _reject]
+     (initialize-webview-panel context webview-panel (js->clj state :keywordize-keys true))
+     (resolve nil))))
+
+(defn register-output-view-webview-serializer!
+  [context]
+  (let [^js vscode (:vscode/vscode context)]
+    (.. vscode -window
+        (registerWebviewPanelSerializer
+         "calva.output-view"
+         #js {:deserializeWebviewPanel (partial deserialize-webview-panel context)}))))
 
 (defn ^:export show-repl-output-webview-panel
   [preserve-focus?]
@@ -201,10 +248,10 @@
         command-name (get output-category->command-name output-category)]
     (if command-name
       (post-message-to-webview @repl-output-webview-panel {:command/name command-name
-                                                           :content message})
+                                                           :output message})
       (util/log-to-console
        :error
-       (str "Cannot append content to output webview. No outputCategory matches \"" output-category "\"")))))
+       (str "Cannot append output to output webview. No outputCategory matches \"" output-category "\"")))))
 
 (def stacktrace-classes-to-ignore
   #{"clojure.lang.RestFn"
@@ -230,7 +277,13 @@
   (let [stacktrace (js->clj stacktrace :keywordize-keys true)
         stacktrace-message (stacktrace->message stacktrace)]
     (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
-                                                         :content stacktrace-message})))
+                                                         :output stacktrace-message})))
 
 (defn ^:export clear-output-view []
   (post-message-to-webview @repl-output-webview-panel {:command/name "clear-output-view"}))
+
+(defn ^:export register-output-view-webview-serializer
+  []
+  (register-output-view-webview-serializer! {:vscode/vscode @util/vscode
+                                             :vscode/context @util/vscode-context
+                                             :env/is-debug (:is-debug util/env)}))

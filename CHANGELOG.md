@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.521] - 2025-07-09
+
+- [Reload contents of output view when VS Code window is reloaded](https://github.com/BetterThanTomorrow/calva/issues/2827)
+- [Reload contents of output view when it's closed and reopened (without closing VS Code)](https://github.com/BetterThanTomorrow/calva/issues/2867)
+- Fix: [projectType: "babashka", "nbb", etc. are not accepted in "calva.replConnectSequences" in `settings.json`](https://github.com/BetterThanTomorrow/calva/issues/2881)
+
 ## [2.0.520] - 2025-06-28
 
 - [Add option for opening flares in side panel view](https://github.com/BetterThanTomorrow/calva/issues/2873)
