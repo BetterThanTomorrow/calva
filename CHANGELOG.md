@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.522] - 2025-07-12
+
 - Fix: [After VS Code reload a new separate output view is opened on connect when one is already open](https://github.com/BetterThanTomorrow/calva/issues/2883)
 - Fix: [Output view sometimes opens with broken code highlighting](https://github.com/BetterThanTomorrow/calva/issues/2870)
 
