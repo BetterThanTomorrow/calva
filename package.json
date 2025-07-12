@@ -3402,6 +3402,7 @@
     "find": "0.2.9",
     "follow-redirects": "^1.15.4",
     "get-port": "^5.1.1",
+    "highlight.js": "^11.11.1",
     "highlightjs-copy": "^1.0.6",
     "immutable": "3.8.1",
     "immutable-cursor": "2.0.1",
