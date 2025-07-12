@@ -9,8 +9,7 @@
 
 (defonce vscode (js/acquireVsCodeApi))
 
-;; TODO: Add test
-(defn ensure-dom-ready
+(defn ensure-dom-content-loaded
   "Ensures the DOM is ready before executing the callback"
   [callback]
   (if (= "complete" js/document.readyState)
@@ -156,7 +155,7 @@
 
 (defn handle-message
   [^js output-dom-element ^js message]
-  (ensure-dom-ready
+  (ensure-dom-content-loaded
    (fn []
      (let [message-data (reader/read-string (.-data message))
            command-name (:command/name message-data)]
@@ -223,4 +222,5 @@
 (defn ^:export main []
   (add-event-listeners output-dom-element)
   (observe-document-mutations)
-  (.. js/window -hljs (addPlugin (CopyButtonPlugin. #js {:autohide true}))))
+  (ensure-dom-content-loaded (fn []
+                               (.. js/window -hljs (addPlugin (CopyButtonPlugin. #js {:autohide true}))))))
