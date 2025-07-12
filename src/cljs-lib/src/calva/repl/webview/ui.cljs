@@ -2,7 +2,9 @@
   (:require
    [cljs.reader :as reader]
    ["strip-ansi" :default strip-ansi]
-   ["highlightjs-copy" :as CopyButtonPlugin]))
+   ["highlightjs-copy" :as CopyButtonPlugin]
+   ["highlight.js/lib/core" :as hljs]
+   ["highlight.js/lib/languages/clojure" :as clojure]))
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
@@ -77,14 +79,14 @@
     (.. div (appendChild span))
     (.. div (appendChild container-element))
     (.. dom-element (appendChild div))
-    (.. js/window -hljs (highlightElement code-element))
+    (.. hljs (highlightElement code-element))
     (.. dom-element (dispatchEvent (output-appended-event div)))))
 
 (defn append-eval-result
   [^js dom-element {:keys [output]}]
   (let [{:keys [code-element container-element]} (clojure-code-element output)]
     (.. dom-element (appendChild container-element))
-    (.. js/window -hljs (highlightElement code-element))
+    (.. hljs (highlightElement code-element))
     (.. dom-element (dispatchEvent (output-appended-event container-element)))))
 
 (defn create-and-append-stdout-element
@@ -151,7 +153,7 @@
                  (js-delete (.. element -dataset) "highlighted")
                  (when-let [copy-container (.. element -parentElement (querySelector ".hljs-copy-container"))]
                    (.. copy-container (remove)))
-                 (.. js/window -hljs (highlightElement element))))))
+                 (.. hljs (highlightElement element))))))
 
 (defn handle-message
   [^js output-dom-element ^js message]
@@ -222,5 +224,6 @@
 (defn ^:export main []
   (add-event-listeners output-dom-element)
   (observe-document-mutations)
+  (.. hljs (registerLanguage "clojure" clojure))
   (ensure-dom-content-loaded (fn []
-                               (.. js/window -hljs (addPlugin (CopyButtonPlugin. #js {:autohide true}))))))
+                               (.. hljs (addPlugin (CopyButtonPlugin. #js {:autohide true}))))))
