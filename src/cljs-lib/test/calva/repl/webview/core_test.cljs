@@ -269,14 +269,14 @@
       (with-redefs [util/env {:is-debug false}
                     util/vscode (atom vscode-stub)
                     util/vscode-context (atom vscode-context-stub)
-                    sut/repl-output-webview-panel (atom nil)
+                    sut/output-view-webview-panel (atom nil)
                     sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
                     sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)]
         (sut/show-repl-output-webview-panel true)
         (testing "Should call create-repl-output-webview-panel with expected args"
           (is (spy/called-once-with? create-repl-output-webview-panel-spy expected-context)))
         (testing "Should set repl-output-webview-panel to the result of create-repl-output-webview-panel"
-          (is (= webview-panel-stub @sut/repl-output-webview-panel)))
+          (is (= webview-panel-stub @sut/output-view-webview-panel)))
         (testing "Should call reveal on webview panel with expected args"
           (is (spy/called-once-with? reveal-spy nil true)))
         (testing "Should call set-code-theme! with expected args"
@@ -296,7 +296,7 @@
       (with-redefs [util/env {:is-debug false}
                     util/vscode (atom vscode-stub)
                     util/vscode-context (atom vscode-context-stub)
-                    sut/repl-output-webview-panel (atom webview-panel-stub)
+                    sut/output-view-webview-panel (atom webview-panel-stub)
                     sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
                     sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)]
         (sut/show-repl-output-webview-panel false)
@@ -316,7 +316,7 @@
             post-message-to-webview-spy (spy/spy)]
         (with-redefs [sut/output-category->command-name {"evalOut" "show-stdout"}
                       sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
-                      sut/repl-output-webview-panel (atom "webview-panel-stub")]
+                      sut/output-view-webview-panel (atom "webview-panel-stub")]
           (sut/append options message)
           (is (spy/called-once-with? post-message-to-webview-spy
                                      "webview-panel-stub"
@@ -329,7 +329,7 @@
             log-to-console-spy (spy/spy)]
         (with-redefs [sut/output-category->command-name {"evalOut" "show-stdout"}
                       sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
-                      sut/repl-output-webview-panel (atom "webview-panel-stub")
+                      sut/output-view-webview-panel (atom "webview-panel-stub")
                       util/log-to-console (test-util/wrap-spy log-to-console-spy)]
           (sut/append options message)
           (testing "should not call post-message-to-webview"
@@ -413,7 +413,7 @@
           js-stacktrace (clj->js clj-stacktrace)]
       (with-redefs [sut/stacktrace->message (test-util/wrap-spy stacktrace->message-spy)
                     sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
-                    sut/repl-output-webview-panel (atom "webview-panel-stub")]
+                    sut/output-view-webview-panel (atom "webview-panel-stub")]
         (sut/append-stacktrace js-stacktrace)
         (testing "should call stacktrace->message with clj stacktrace"
           (is (spy/called-once-with? stacktrace->message-spy clj-stacktrace)))
@@ -427,7 +427,7 @@
   (testing "Should call post-message-to-webview with expected args"
     (let [post-message-to-webview-spy (spy/spy)]
       (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
-                    sut/repl-output-webview-panel (atom "webview-panel-stub")]
+                    sut/output-view-webview-panel (atom "webview-panel-stub")]
         (sut/clear-output-view)
         (is (spy/called-once-with? post-message-to-webview-spy
                                    "webview-panel-stub"
@@ -447,15 +447,17 @@
 
 (deftest deserialize-webview-panel-test
   (testing "Given a context, a webview panel, and a state, should return a promise that resolves after calling
-            initialize-webview-panel with expected args"
+            initialize-webview-panel with expected args and storing the webview in the webview panel atom"
     (let [initialize-webview-panel-spy (spy/spy)
+          webview-panel-atom (atom nil)
           context {:some "context"}
           webview-panel {:some "webview-panel"}
           state {:some "state"}]
       (with-redefs [sut/initialize-webview-panel (test-util/wrap-spy initialize-webview-panel-spy)]
-        (let [result (sut/deserialize-webview-panel context webview-panel state)]
+        (let [result (sut/deserialize-webview-panel context webview-panel-atom webview-panel state)]
           (.. result
               (then (fn [_]
-                      (is (spy/called-once-with? initialize-webview-panel-spy context webview-panel state))))))))))
+                      (is (spy/called-once-with? initialize-webview-panel-spy context webview-panel state))
+                      (is (= webview-panel @webview-panel-atom))))))))))
 
 #_(run-tests)
