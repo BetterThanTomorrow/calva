@@ -45,9 +45,7 @@
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css
                               https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css
                               " csp-source ";
-                    script-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js
-                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/clojure.min.js
-                               " (when is-debug " 'unsafe-eval' ") csp-source ";
+                    script-src " (when is-debug " 'unsafe-eval' ") csp-source ";
                     " (when is-debug "connect-src ws://localhost:9630/api/remote-relay;") "
                     base-uri 'none';
                     form-action 'none';\">
@@ -86,9 +84,6 @@
       rel=\"stylesheet\"
       href=\"https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css\"
     />
-
-    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js\"></script>
-    <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/clojure.min.js\"></script>
 
   </head>
   <body>
