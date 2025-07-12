@@ -4,7 +4,7 @@
    [cljs.reader :as reader]
    [clojure.string :as str]))
 
-(defonce repl-output-webview-panel (atom nil))
+(defonce output-view-webview-panel (atom nil))
 
 (defonce output-view-state (atom nil))
 
@@ -161,7 +161,7 @@
 
 (defn add-listeners!
   [^js webview-panel]
-  (.. webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel repl-output-webview-panel)))))
+  (.. webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel output-view-webview-panel)))))
 
 (defn handle-message
   [message]
@@ -204,13 +204,13 @@
                                 :retainContextWhenHidden true
                                 :enableFindWidget true}))]
     (initialize-webview-panel context webview-panel @output-view-state)
-    (reset! repl-output-webview-panel webview-panel)))
+    (reset! output-view-webview-panel webview-panel)))
 
 (defn deserialize-webview-panel
-  [context ^js webview-panel ^js state]
+  [context webview-panel-atom ^js webview-panel ^js state]
   (js/Promise.
    (fn [resolve _reject]
-     (reset! repl-output-webview-panel webview-panel)
+     (reset! webview-panel-atom webview-panel)
      (initialize-webview-panel context webview-panel (js->clj state :keywordize-keys true))
      (resolve nil))))
 
@@ -220,15 +220,15 @@
     (.. vscode -window
         (registerWebviewPanelSerializer
          "calva.output-view"
-         #js {:deserializeWebviewPanel (partial deserialize-webview-panel context)}))))
+         #js {:deserializeWebviewPanel (partial deserialize-webview-panel context output-view-webview-panel)}))))
 
 (defn ^:export show-repl-output-webview-panel
   [preserve-focus?]
   (let [context {:env/is-debug (:is-debug util/env)
                  :vscode/vscode @util/vscode
                  :vscode/context @util/vscode-context}
-        ^js webview-panel (or @repl-output-webview-panel
-                              (reset! repl-output-webview-panel (create-repl-output-webview-panel context)))
+        ^js webview-panel (or @output-view-webview-panel
+                              (reset! output-view-webview-panel (create-repl-output-webview-panel context)))
         active-code-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)]
     (.. webview-panel (reveal nil preserve-focus?))
     (set-code-theme! context {:color-theme-kind active-code-theme-kind
@@ -248,7 +248,7 @@
   (let [output-category (.-outputCategory options)
         command-name (get output-category->command-name output-category)]
     (if command-name
-      (post-message-to-webview @repl-output-webview-panel {:command/name command-name
+      (post-message-to-webview @output-view-webview-panel {:command/name command-name
                                                            :output message})
       (util/log-to-console
        :error
@@ -277,11 +277,11 @@
   [^js stacktrace]
   (let [stacktrace (js->clj stacktrace :keywordize-keys true)
         stacktrace-message (stacktrace->message stacktrace)]
-    (post-message-to-webview @repl-output-webview-panel {:command/name "show-stdout"
+    (post-message-to-webview @output-view-webview-panel {:command/name "show-stdout"
                                                          :output stacktrace-message})))
 
 (defn ^:export clear-output-view []
-  (post-message-to-webview @repl-output-webview-panel {:command/name "clear-output-view"}))
+  (post-message-to-webview @output-view-webview-panel {:command/name "clear-output-view"}))
 
 (defn ^:export register-output-view-webview-serializer
   []
