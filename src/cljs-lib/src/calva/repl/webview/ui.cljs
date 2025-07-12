@@ -9,6 +9,13 @@
 
 (defonce vscode (js/acquireVsCodeApi))
 
+(defn ensure-dom-ready
+  "Ensures the DOM is ready before executing the callback"
+  [callback]
+  (if (= "complete" js/document.readyState)
+    (callback)
+    (js/document.addEventListener "DOMContentLoaded" callback)))
+
 (defn throttle-fn
   "Returns a throttled version of the function, which will only be called at most once every `wait`
    milliseconds with the arguments passed in the latest call.
@@ -148,16 +155,18 @@
 
 (defn handle-message
   [^js output-dom-element ^js message]
-  (let [message-data (reader/read-string (.-data message))
-        command-name (:command/name message-data)]
-    (case command-name
-      "show-result" (append-eval-result output-dom-element message-data)
-      "show-evaluated-code" (append-evaluated-code output-dom-element message-data)
-      "show-stdout" (append-stdout output-dom-element message-data)
-      "clear-output-view" (clear-output-view output-dom-element)
-      "set-code-theme" (set-code-theme! message-data)
-      "scroll-to" (scroll-to message-data)
-      "restore-copy-buttons" (restore-copy-buttons))))
+  (ensure-dom-ready
+   (fn []
+     (let [message-data (reader/read-string (.-data message))
+           command-name (:command/name message-data)]
+       (case command-name
+         "show-result" (append-eval-result output-dom-element message-data)
+         "show-evaluated-code" (append-evaluated-code output-dom-element message-data)
+         "show-stdout" (append-stdout output-dom-element message-data)
+         "clear-output-view" (clear-output-view output-dom-element)
+         "set-code-theme" (set-code-theme! message-data)
+         "scroll-to" (scroll-to message-data)
+         "restore-copy-buttons" (restore-copy-buttons))))))
 
 (defn handle-output-appended
   [^js _event]
@@ -171,6 +180,7 @@
     ;; Send a command to the extension to save the state, so we can restore it when the webview is closed and reopened.
     ;; TODO: Figure out why we're getting the console error `Cannot read properties of undefined (reading '__vscode_post_message__')`
     ;; after the webview is closed and reopened.
+    ;; I tried adding a check to see if vscode exists before calling postMessage, and that did not fix the issue.
     ;; Every time it's closed an reopened, an additional duplicate error is added to the console.
     ;; Note: I looked into this for a while and I'm not sure if it's worth continuing to investigate.
     ;; It may actually be an issue with the VS Code API, but in any case, it's not causing a real problem.
