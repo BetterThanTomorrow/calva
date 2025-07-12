@@ -210,6 +210,7 @@
   [context ^js webview-panel ^js state]
   (js/Promise.
    (fn [resolve _reject]
+     (reset! repl-output-webview-panel webview-panel)
      (initialize-webview-panel context webview-panel (js->clj state :keywordize-keys true))
      (resolve nil))))
 
