@@ -9,12 +9,13 @@
 
 (defonce vscode (js/acquireVsCodeApi))
 
+;; TODO: Add test
 (defn ensure-dom-ready
   "Ensures the DOM is ready before executing the callback"
   [callback]
   (if (= "complete" js/document.readyState)
     (callback)
-    (js/document.addEventListener "DOMContentLoaded" callback)))
+    (js/document.addEventListener "DOMContentLoaded" callback #js {:once true})))
 
 (defn throttle-fn
   "Returns a throttled version of the function, which will only be called at most once every `wait`
