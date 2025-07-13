@@ -6,6 +6,7 @@ Changes to Calva.
 
 - Fix: [[doc] Unneeded send-off function call in sample code](https://github.com/BetterThanTomorrow/calva/issues/2888)
 - Fix: [Ctrl+Home shortcut has no title](https://github.com/BetterThanTomorrow/calva/issues/2890)
+- [Add paredit squeeze command to remove parentheses from current form](https://github.com/BetterThanTomorrow/calva/issues/2892)
 
 ## [2.0.522] - 2025-07-12
 

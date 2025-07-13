@@ -1923,6 +1923,12 @@
         "enablement": "editorLangId == clojure"
       },
       {
+        "category": "Calva Paredit",
+        "command": "paredit.squeeze",
+        "title": "Squeeze - Cut sibling S-exps and delete paren",
+        "enablement": "editorLangId == clojure"
+      },
+      {
         "command": "calva-fmt.formatCurrentForm",
         "title": "Format Current Form",
         "category": "Calva Format",
@@ -2688,6 +2694,11 @@
       {
         "command": "paredit.rewrapQuote",
         "key": "ctrl+alt+r ctrl+alt+q",
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+      },
+      {
+        "command": "paredit.squeeze",
+        "key": "ctrl+alt+r ctrl+alt+r",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
       },
       {
