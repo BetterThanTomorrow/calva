@@ -754,6 +754,35 @@ export function rewrapSexpr(
   return doc.model.edit(editsToApply, {});
 }
 
+export async function squeezeSexpr(
+  doc: EditableDocument,
+  onRange: (doc: EditableDocument, range: [number, number]) => Promise<void>,
+  start = doc.selections[0].active
+) {
+  const startC = doc.getTokenCursor(start);
+
+  startC.backwardList();
+  if(startC.backwardUpList()) {
+    const outerStart = startC.offsetStart;
+
+    const endC = doc.getTokenCursor(startC.offsetStart);
+    endC.forwardSexp();
+    const outerEnd = endC.offsetStart;
+    endC.previous();
+    const innerEnd = endC.offsetStart;
+
+    startC.downList();
+    const innerStart = startC.offsetStart;
+
+    await onRange(doc, [innerStart, innerEnd]);
+
+    return doc.model.edit(
+      [new ModelEdit('changeRange', [outerStart, outerEnd, ''])],
+      {}
+    );
+  }
+}
+
 export async function splitSexp(doc: EditableDocument, start: number = doc.selections[0].active) {
   const cursor = doc.getTokenCursor(start);
   if (!cursor.withinString() && !(cursor.isWhiteSpace() || cursor.previousIsWhiteSpace())) {
