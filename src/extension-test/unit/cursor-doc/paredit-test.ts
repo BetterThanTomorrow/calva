@@ -1678,8 +1678,9 @@ describe('paredit', () => {
 
     describe('Squeeze', () => {
       let clipboardContent = '';
-      const onRange = async (doc, range) => {
+      const onRange = (doc, range) => {
         clipboardContent = doc.model.getText(range[0], range[1]);
+        return Promise.resolve();
       };
 
       it('Squeezes content and deletes entire sexp with ()', async () => {
