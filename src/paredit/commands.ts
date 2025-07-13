@@ -152,3 +152,12 @@ export function rewrapSquare(doc: model.EditableDocument, isMulti: boolean) {
 export function rewrapParens(doc: model.EditableDocument, isMulti: boolean) {
   return paredit.rewrapSexpr(doc, '(', ')', isMulti ? doc.selections : [doc.selections[0]]);
 }
+
+export async function squeeze(
+  doc: EditableDocument,
+  isMulti: boolean,
+  onRange: (doc: EditableDocument, range: [number, number]) => Promise<void> = async () => {}
+) {
+  // TODO: support multi-cursor
+  return paredit.squeezeSexpr(doc, onRange, doc.selections[0].active);
+}

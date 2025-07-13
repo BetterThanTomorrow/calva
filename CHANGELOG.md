@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add paredit squeeze command to remove parentheses from current form](https://github.com/BetterThanTomorrow/calva/issues/2892)
+
 ## [2.0.605] - 2026-10-27
 
 - Fix: [Exceptions abbreviated in REPL output view with `cider-nrepl` >= 0.61](https://github.com/BetterThanTomorrow/calva/issues/3265)
