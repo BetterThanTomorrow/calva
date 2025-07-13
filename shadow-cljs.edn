@@ -28,8 +28,7 @@
                              :showReplOutputWebviewPanel calva.repl.webview.core/show-repl-output-webview-panel
                              :appendToReplOutputWebview calva.repl.webview.core/append
                              :appendStackTraceToReplOutputWebview calva.repl.webview.core/append-stacktrace
-                             :clearReplOutputView calva.repl.webview.core/clear-output-view
-                             :registerOutputViewWebviewSerializer calva.repl.webview.core/register-output-view-webview-serializer}
+                             :clearReplOutputView calva.repl.webview.core/clear-output-view}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test
