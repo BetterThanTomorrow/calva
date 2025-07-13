@@ -163,9 +163,7 @@
 (deftest initialize-webview-panel-test
   (testing "Given a context and a webview panel,"
     (let [on-did-dispose-spy (spy/spy)
-          on-did-receive-message-spy (spy/spy)
-          stub-webview-panel (clj->js {:onDidDispose (test-util/wrap-spy on-did-dispose-spy)
-                                       :webview {:onDidReceiveMessage (test-util/wrap-spy on-did-receive-message-spy)}})
+          stub-webview-panel (clj->js {:onDidDispose (test-util/wrap-spy on-did-dispose-spy)})
           set-webview-html-spy (spy/spy)
           add-subscriptions-spy (spy/spy)
           post-message-to-webview-spy (spy/spy)
