@@ -150,7 +150,6 @@ This is the most versatile of the ”evaluation, closing brackets” commands. I
   (let [thirty 30]
     (-> thirty
         inc            ;1
-        (send-off)
         (+ 1 2 3)
         (->>
          (+ 2 2)       ;2
