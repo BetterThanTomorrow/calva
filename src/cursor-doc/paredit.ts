@@ -793,7 +793,7 @@ export async function squeezeSexpr(
   const startC = doc.getTokenCursor(start);
 
   startC.backwardList();
-  if(startC.backwardUpList()) {
+  if (startC.backwardUpList()) {
     const outerStart = startC.offsetStart;
 
     const endC = doc.getTokenCursor(startC.offsetStart);
@@ -807,10 +807,7 @@ export async function squeezeSexpr(
 
     await onRange(doc, [innerStart, innerEnd]);
 
-    return doc.model.edit(
-      [new ModelEdit('changeRange', [outerStart, outerEnd, ''])],
-      {}
-    );
+    return doc.model.edit([new ModelEdit('changeRange', [outerStart, outerEnd, ''])], {});
   }
 }
 
