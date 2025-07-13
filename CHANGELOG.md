@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Ctrl+Home shortcut has no title](https://github.com/BetterThanTomorrow/calva/issues/2890)
+
 ## [2.0.522] - 2025-07-12
 
 - Fix: [After VS Code reload a new separate output view is opened on connect when one is already open](https://github.com/BetterThanTomorrow/calva/issues/2883)
