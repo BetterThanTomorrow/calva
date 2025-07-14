@@ -9,8 +9,6 @@
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
 
-(defonce vscode (js/acquireVsCodeApi))
-
 (defn ensure-dom-content-loaded
   "Ensures the DOM is ready before executing the callback"
   [callback]
@@ -144,17 +142,6 @@
   [{:keys [x y]}]
   (js/scrollTo x y))
 
-(defn restore-copy-buttons
-  "Re-initializes copy buttons from CopyButtonPlugin (highlightjs-copy - highlight.js plugin) so they look
-   correct and function correctly after the webview HTML is restored from state."
-  []
-  (.. js/document (querySelectorAll "pre code")
-      (forEach (fn [^js element]
-                 (js-delete (.. element -dataset) "highlighted")
-                 (when-let [copy-container (.. element -parentElement (querySelector ".hljs-copy-container"))]
-                   (.. copy-container (remove)))
-                 (.. hljs (highlightElement element))))))
-
 (defn handle-message
   [^js output-dom-element ^js message]
   (ensure-dom-content-loaded
@@ -167,63 +154,19 @@
          "show-stdout" (append-stdout output-dom-element message-data)
          "clear-output-view" (clear-output-view output-dom-element)
          "set-code-theme" (set-code-theme! message-data)
-         "scroll-to" (scroll-to message-data)
-         "restore-copy-buttons" (restore-copy-buttons))))))
+         "scroll-to" (scroll-to message-data))))))
 
 (defn handle-output-appended
   [^js _event]
   (throttled-scroll-to-bottom))
 
-(defn merge-state
-  [state]
-  (let [current-state (js->clj (.. vscode (getState)) :keywordize-keys true)
-        new-state (merge current-state state)]
-    (.. vscode (setState (clj->js new-state)))
-    ;; Send a command to the extension to save the state, so we can restore it when the webview is closed and reopened.
-    ;; TODO: Figure out why we're getting the console error `Cannot read properties of undefined (reading '__vscode_post_message__')`
-    ;; after the webview is closed and reopened.
-    ;; I tried adding a check to see if vscode exists before calling postMessage, and that did not fix the issue.
-    ;; Every time it's closed an reopened, an additional duplicate error is added to the console.
-    ;; Note: I looked into this for a while and I'm not sure if it's worth continuing to investigate.
-    ;; It may actually be an issue with the VS Code API, but in any case, it's not causing a real problem.
-    (.. vscode (postMessage (pr-str {:command/name "save-state"
-                                     :state new-state})))))
-
-(defn save-html
-  []
-  (merge-state {:html (.. js/document.documentElement -outerHTML)}))
-
-(def throttled-save-html (throttle-fn save-html 1000))
-
-(defn handle-document-mutations
-  [_mutation-list, _observer]
-  ;; Throttle to avoid performance issues with high volume output.
-  (throttled-save-html))
-
-(defn observe-document-mutations
-  []
-  (doto (js/MutationObserver. handle-document-mutations)
-    (.observe js/document.documentElement #js {:childList true
-                                               :subtree true
-                                               :attributes true
-                                               :characterData true})))
-
-(defn save-scroll-state
-  []
-  (merge-state {:scrollLeft js/document.documentElement.scrollLeft
-                :scrollTop js/document.documentElement.scrollTop}))
-
-(def throttled-save-scroll-state (throttle-fn save-scroll-state 200))
-
 (defn add-event-listeners
   [^js output-dom-element]
   (.. js/window (addEventListener "message" (partial handle-message output-dom-element)))
-  (.. output-dom-element (addEventListener "output-appended" handle-output-appended))
-  (.. js/document (addEventListener "scroll" throttled-save-scroll-state)))
+  (.. output-dom-element (addEventListener "output-appended" handle-output-appended)))
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)
-  (observe-document-mutations)
   (.. hljs (registerLanguage "clojure" clojure))
   (ensure-dom-content-loaded (fn []
                                (.. hljs (addPlugin (CopyButtonPlugin. #js {:autohide true}))))))

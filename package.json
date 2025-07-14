@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.522",
+  "version": "2.0.523",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -61,8 +61,7 @@
     "workspaceContains:**/project.clj",
     "workspaceContains:**/shadow-cljs.edn",
     "workspaceContains:**/deps.edn",
-    "onDebugResolve:type",
-    "onWebviewPanel:calva.output-view"
+    "onDebugResolve:type"
   ],
   "main": "./out/extension",
   "capabilities": {
@@ -1602,6 +1601,12 @@
         "category": "Calva Paredit",
         "command": "paredit.closeList",
         "title": "Move Cursor Forward to List End/Close",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva Paredit",
+        "command": "paredit.openList",
+        "title": "Calva Paredit: Backward to List Start/Open",
         "enablement": "editorLangId == clojure"
       },
       {
