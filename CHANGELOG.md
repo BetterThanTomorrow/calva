@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.523] - 2025-07-14
+
 - Fix: [[doc] Unneeded send-off function call in sample code](https://github.com/BetterThanTomorrow/calva/issues/2888)
 - Fix: [Ctrl+Home shortcut has no title](https://github.com/BetterThanTomorrow/calva/issues/2890)
 - [Remove content reloading from output view](https://github.com/BetterThanTomorrow/calva/issues/2894)
