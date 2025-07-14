@@ -1,16 +1,9 @@
 (ns calva.repl.webview.core
   (:require
    [calva.util :as util]
-   [cljs.reader :as reader]
    [clojure.string :as str]))
 
 (defonce output-view-webview-panel (atom nil))
-
-(defonce output-view-state (atom nil))
-
-(defn save-state
-  [{:keys [state]}]
-  (reset! output-view-state state))
 
 (defn dispose-repl-output-webview-panel
   [webview-panel-atom]
@@ -174,27 +167,11 @@
   [^js webview-panel]
   (.. webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel output-view-webview-panel)))))
 
-(defn handle-message
-  [message]
-  (let [message-data (reader/read-string message)
-        command-name (:command/name message-data)]
-    (case command-name
-      "save-state" (save-state message-data))))
-
 (defn initialize-webview-panel
-  [context ^js webview-panel state]
-  (.. webview-panel -webview (onDidReceiveMessage handle-message))
+  [context ^js webview-panel]
   (add-listeners! webview-panel)
   (add-subscriptions! context {:webview-panel webview-panel})
-  (if (and state (:html state))
-    ;; TODO: Address console warnings and errors when this code is run
-    (set! (.. webview-panel -webview -html) (:html state))
-    (set-webview-html! context {:webview-panel webview-panel}))
-  (let [[scroll-left scroll-top] (when state [(:scrollLeft state) (:scrollTop state)])]
-    (post-message-to-webview webview-panel {:command/name "scroll-to"
-                                            :x scroll-left
-                                            :y scroll-top}))
-  (post-message-to-webview webview-panel {:command/name "restore-copy-buttons"})
+  (set-webview-html! context {:webview-panel webview-panel})
   webview-panel)
 
 (defn create-repl-output-webview-panel
@@ -214,24 +191,8 @@
                                 ;; panel's context cannot be quickly saved and restored."
                                 :retainContextWhenHidden true
                                 :enableFindWidget true}))]
-    (initialize-webview-panel context webview-panel @output-view-state)
+    (initialize-webview-panel context webview-panel)
     (reset! output-view-webview-panel webview-panel)))
-
-(defn deserialize-webview-panel
-  [context webview-panel-atom ^js webview-panel ^js state]
-  (js/Promise.
-   (fn [resolve _reject]
-     (reset! webview-panel-atom webview-panel)
-     (initialize-webview-panel context webview-panel (js->clj state :keywordize-keys true))
-     (resolve nil))))
-
-(defn register-output-view-webview-serializer!
-  [context]
-  (let [^js vscode (:vscode/vscode context)]
-    (.. vscode -window
-        (registerWebviewPanelSerializer
-         "calva.output-view"
-         #js {:deserializeWebviewPanel (partial deserialize-webview-panel context output-view-webview-panel)}))))
 
 (defn ^:export show-repl-output-webview-panel
   [preserve-focus?]
@@ -240,9 +201,9 @@
                  :vscode/context @util/vscode-context}
         ^js webview-panel (or @output-view-webview-panel
                               (reset! output-view-webview-panel (create-repl-output-webview-panel context)))
-        active-code-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)]
+        active-color-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)]
     (.. webview-panel (reveal nil preserve-focus?))
-    (set-code-theme! context {:color-theme-kind active-code-theme-kind
+    (set-code-theme! context {:color-theme-kind active-color-theme-kind
                               :webview-panel webview-panel})))
 
 (def output-category->command-name
@@ -293,9 +254,3 @@
 
 (defn ^:export clear-output-view []
   (post-message-to-webview @output-view-webview-panel {:command/name "clear-output-view"}))
-
-(defn ^:export register-output-view-webview-serializer
-  []
-  (register-output-view-webview-serializer! {:vscode/vscode @util/vscode
-                                             :vscode/context @util/vscode-context
-                                             :env/is-debug (:is-debug util/env)}))
