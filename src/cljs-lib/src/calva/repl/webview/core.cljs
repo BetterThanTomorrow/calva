@@ -189,6 +189,10 @@
                                 ;; See also: https://code.visualstudio.com/api/references/vscode-api#WebviewPanelOptions
                                 ;; "retainContextWhenHidden has a high memory overhead and should only be used if your
                                 ;; panel's context cannot be quickly saved and restored."
+                                ;; Content reloading using setState and getState and message passing between the webview
+                                ;; and the extension was attempted, but it proved to be troublesome, so it was removed.
+                                ;; If someone wants to attempt to add it again, here's the PR for the removal:
+                                ;; https://github.com/BetterThanTomorrow/calva/pull/2896
                                 :retainContextWhenHidden true
                                 :enableFindWidget true}))]
     (initialize-webview-panel context webview-panel)
