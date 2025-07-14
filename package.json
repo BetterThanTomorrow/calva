@@ -61,8 +61,7 @@
     "workspaceContains:**/project.clj",
     "workspaceContains:**/shadow-cljs.edn",
     "workspaceContains:**/deps.edn",
-    "onDebugResolve:type",
-    "onWebviewPanel:calva.output-view"
+    "onDebugResolve:type"
   ],
   "main": "./out/extension",
   "capabilities": {
