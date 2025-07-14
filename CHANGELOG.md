@@ -6,6 +6,7 @@ Changes to Calva.
 
 - Fix: [[doc] Unneeded send-off function call in sample code](https://github.com/BetterThanTomorrow/calva/issues/2888)
 - Fix: [Ctrl+Home shortcut has no title](https://github.com/BetterThanTomorrow/calva/issues/2890)
+- Fix: [Output view syntax highlighting breaks when it's dragged into or out of main VS Code window](https://github.com/BetterThanTomorrow/calva/issues/2895)
 
 ## [2.0.522] - 2025-07-12
 

@@ -160,6 +160,15 @@
         (is (= 1 (count calls)))
         (is (fn? (type (ffirst calls))))))))
 
+(deftest create-view-state-change-listener-test
+  (testing "Given a context and a webview panel, should call onDidChangeViewState and pass it a function"
+    (let [on-did-change-view-state-spy (spy/spy)
+          webview-panel-stub #js {:onDidChangeViewState (test-util/wrap-spy on-did-change-view-state-spy)}]
+      (sut/create-view-state-change-listener {} {:webview-panel webview-panel-stub})
+      (let [calls (spy/calls on-did-change-view-state-spy)]
+        (is (= 1 (count calls)))
+        (is (fn? (type (ffirst calls))))))))
+
 (deftest initialize-webview-panel-test
   (testing "Given a context, a webview panel, and an nil state,"
     (let [on-did-dispose-spy (spy/spy)
