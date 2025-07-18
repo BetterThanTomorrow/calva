@@ -106,7 +106,7 @@ export function selectForwardSexp(doc: EditableDocument, selections = doc.select
   const ranges = selections.map((selection) =>
     selection.active >= selection.anchor
       ? forwardSexpRange(doc, selection.end)
-      : forwardSexpRange(doc, selection.active, true)
+      : forwardSexpRange(doc, selection.active, false)
   );
   selectRangeForward(doc, ranges, selections);
 }

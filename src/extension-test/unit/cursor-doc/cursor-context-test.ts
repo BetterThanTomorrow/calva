@@ -77,6 +77,102 @@ describe('Cursor Contexts', () => {
       expect(contexts.includes('calva:cursorInComment')).toBe(false);
     });
   });
+  describe('cursorSeesCommentPrev', () => {
+    it('sees a comment upstream', () => {
+      const contexts = context.determineContexts(docFromTextNotation(';; my comment |'));
+      expect(contexts.includes('calva:cursorSeesCommentPrev')).toBe(true);
+    });
+    it('sees an sexp upstream', () => {
+      const contexts = context.determineContexts(docFromTextNotation('(+ 1 1)|'));
+      expect(contexts.includes('calva:cursorSeesCommentPrev')).toBe(false);
+    });
+    it('sees an sexp upstream and a comment downstream, cursor on the comment offset', () => {
+      const contexts = context.determineContexts(docFromTextNotation('(+ 1 1) |; my comment'));
+      expect(contexts.includes('calva:cursorSeesCommentPrev')).toBe(false);
+    });
+    it('sees a comment followed by an sexp upstream', () => {
+      const contexts = context.determineContexts(docFromTextNotation('(+ 1 1)  ;| my comment \n'));
+      expect(contexts.includes('calva:cursorSeesCommentPrev')).toBe(true);
+    });
+    it('inside an sexp, no comment seen', () => {
+      const contexts = context.determineContexts(docFromTextNotation('(+ 1 1|)  ; my comment \n'));
+      expect(contexts.includes('calva:cursorSeesCommentPrev')).toBe(false);
+    });
+    it('beginning of document is treated as comment', () => {
+      const contexts = context.determineContexts(
+        docFromTextNotation('\n  | (+ 1 1)  ; my comment \n')
+      );
+      expect(contexts.includes('calva:cursorSeesCommentPrev')).toBe(true);
+    });
+    it('sees a comment prev when cursor is after a comment', () => {
+      const contexts = context.determineContexts(
+        docFromTextNotation('(do-something) ; a comment|')
+      );
+      expect(contexts.includes('calva:cursorSeesCommentPrev')).toBe(true);
+    });
+    it('sees a comment upstream when cursor is on an empty line', () => {
+      const contexts = context.determineContexts(docFromTextNotation(';; a comment\n|\n(def a 1)'));
+      expect(contexts.includes('calva:cursorSeesCommentPrev')).toBe(true);
+    });
+    it('does not see a comment upstream when cursor is on an empty line with code after', () => {
+      const contexts = context.determineContexts(docFromTextNotation('(def a 1)\n|\n(def b 2)'));
+      expect(contexts.includes('calva:cursorSeesCommentPrev')).toBe(false);
+    });
+    it('should see a comment upstream when there are multiple breaks', () => {
+      const contexts = context.determineContexts(
+        docFromTextNotation('{}\n    ;; More comments go |here\n\n#{}\n')
+      );
+      expect(contexts.includes('calva:cursorSeesCommentPrev')).toBe(true);
+    });
+    it('should see a comment upstream when the previous token is a close', () => {
+      const contexts = context.determineContexts(
+        docFromTextNotation('{}\n    {};; More comments go |here\n\n#{}\n')
+      );
+      expect(contexts.includes('calva:cursorSeesCommentPrev')).toBe(true);
+    });
+    it('should see a comment upstream when the previous token is an sexp', () => {
+      const contexts = context.determineContexts(
+        docFromTextNotation('{}\n    {};|; More comments go here\n\n#{}\n')
+      );
+      expect(contexts.includes('calva:cursorSeesCommentPrev')).toBe(true);
+    });
+  });
+  describe('cursorSeesCommentNext', () => {
+    it('sees a comment downstream', () => {
+      const contexts = context.determineContexts(docFromTextNotation('| ;; my comment'));
+      expect(contexts.includes('calva:cursorSeesCommentNext')).toBe(true);
+    });
+    it('sees an sexp downstream', () => {
+      const contexts = context.determineContexts(docFromTextNotation('| (+ 1 1)'));
+      expect(contexts.includes('calva:cursorSeesCommentNext')).toBe(false);
+    });
+    it('sees an sexp followed by a comment downstream', () => {
+      const contexts = context.determineContexts(docFromTextNotation('| (+ 1 1) ; my comment'));
+      expect(contexts.includes('calva:cursorSeesCommentNext')).toBe(false);
+    });
+    it('sees a comment followed by an sexp downstream', () => {
+      const contexts = context.determineContexts(docFromTextNotation('| ; my comment \n (+ 1 1) '));
+      expect(contexts.includes('calva:cursorSeesCommentNext')).toBe(true);
+    });
+    it('sees a comment downstream with sexp upstream', () => {
+      const contexts = context.determineContexts(docFromTextNotation('(+ 1 1) | ; my comment \n'));
+      expect(contexts.includes('calva:cursorSeesCommentNext')).toBe(true);
+    });
+    it('end of document is treated as comment', () => {
+      const contexts = context.determineContexts(
+        docFromTextNotation(' (+ 1 1)  ; my comment \n|\n')
+      );
+      expect(contexts.includes('calva:cursorSeesCommentNext')).toBe(true);
+    });
+    it('sees a comment downstream when cursor is on an empty line', () => {
+      const contexts = context.determineContexts(docFromTextNotation('(def a 1)\n|\n;; a comment'));
+      expect(contexts.includes('calva:cursorSeesCommentNext')).toBe(true);
+    });
+    it('does not see a comment downstream when cursor is on an empty line with code after', () => {
+      const contexts = context.determineContexts(docFromTextNotation('(def a 1)\n|\n(def b 2)'));
+      expect(contexts.includes('calva:cursorSeesCommentNext')).toBe(false);
+    });
+  });
   describe('cursorBeforeComment', () => {
     it('is false in comment', () => {
       const contexts = context.determineContexts(

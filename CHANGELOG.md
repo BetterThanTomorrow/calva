@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Make sexp cursor movement (and selection) in comments consistently act like VSCode's default. The changes apply to SelectForwardSexp, SelectBackwardSexp,
+     ForwardSexp, and BackwardSexp](https://github.com/BetterThanTomorrow/calva/issues/2878)
+
 ## [2.0.523] - 2025-07-14
 
 - Fix: [[doc] Unneeded send-off function call in sample code](https://github.com/BetterThanTomorrow/calva/issues/2888)

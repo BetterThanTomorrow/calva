@@ -17,6 +17,10 @@ description: Calva comes with batteries included and preconfigured, and if you d
 * `calva:cursorInComment`: `true` when the cursor is in, or adjacent to a line comment
 * `calva:cursorBeforeComment`: `true` when the cursor is adjacent before a line comment
 * `calva:cursorAfterComment`: `true` when the cursor is adjacent after a line comment
+* `calva:cursorSeesCommentPrev`: `true` when the the previous character, excluding whitespace, is a comment character.  
+                                   It is true even if the cursor is inside a comment, but not if it is before the comment character.
+* `calva:cursorSeesCommentNext`: `true` when the next character, excluding whitespace, is part of a comment.  
+                                    It is true even if inside a comment, but not if at the newline that ends a comment.
 * `calva:cursorAtStartOfLine`: `true` when the cursor is at the start of a line including any leading whitespace
 * `calva:cursorAtEndOfLine`: `true` when the cursor is at the end of a line including any trailing whitespace
 * `calva:projectRoot`: A string with the absolute path to the repl project root, _without trailing slash_
