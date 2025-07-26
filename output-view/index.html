@@ -2191,17 +2191,14 @@
   <h1>The Output View</h1>
 
 <p>The output view is a read-only view for REPL output. It's more performant than <a href="../repl-window/">the editor-based REPL window</a>. To see a feature comparison of all output destinations, see <a href="../output/#output-destinations-feature-comparison">Output Destinations Feature Comparison</a>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This output view is a work in progress. Please create GitHub issues for any bugs you see, features you'd like added,
-or behavior you think should be changed.</p>
-</div>
+<p><img alt="The output view, post jack-in" src="../images/output-view/post-jack-in.png" /></p>
 <h2 id="show-the-output-view">Show the Output View<a class="headerlink" href="#show-the-output-view" title="Permanent link">#</a></h2>
 <p>Run the Calva command "Show/Open the REPL Output View."</p>
 <h2 id="clear-the-output-view">Clear the Output View<a class="headerlink" href="#clear-the-output-view" title="Permanent link">#</a></h2>
 <p>Run the Calva command "Clear REPL Output View."</p>
 <h2 id="copy-code-snippets">Copy Code Snippets<a class="headerlink" href="#copy-code-snippets" title="Permanent link">#</a></h2>
 <p>To copy code in the output view, hover your cursor over the code snippet you want to copy. A "copy" button will appear in the top right corner of the code snippet. Click this button to copy the code to your clipboard.</p>
+<p><img alt="Copy button appearing and being clicked, then changing to Copied" src="../images/output-view/copy-button.gif" /></p>
 <h2 id="theming">Theming<a class="headerlink" href="#theming" title="Permanent link">#</a></h2>
 <p>The output view uses <a href="https://highlightjs.org/">highlight.js</a> for syntax highlighting of code blocks. The theming of other output is controlled by VS Code. As you change the VS Code theme, the syntax hightlighting of code blocks will change to one of four different themes, one for each VS Code <a href="https://code.visualstudio.com/api/references/vscode-api#ColorThemeKind">ColorThemeKind</a>:</p>
 <table>
@@ -2230,6 +2227,7 @@ or behavior you think should be changed.</p>
 </tr>
 </tbody>
 </table>
+<p><img alt="The output view code highlight theme changes as the VS Code theme changes" src="../images/output-view/theme-changing.gif" /></p>
 <h2 id="why-is-it-read-only">Why is it read-only?<a class="headerlink" href="#why-is-it-read-only" title="Permanent link">#</a></h2>
 <p>Calva actually had a read+write webview for REPL output in the past, but trying to emulate a terminal REPL that allowed input in a webview was a pain to maintain. Removing the input features and making the view just about <em>seeing the output</em> makes development maintenance much simpler.</p>
 <p>You may be used to typing "into the REPL," meaning typing into a terminal REPL or the <a href="../repl-window/">the editor-based REPL window</a>, but it's really not necessary or even really a great workflow. With Clojure and Calva, we can evaluate code directly from code files. This is the preferred method for some Clojurians. Using <code>comment</code> forms (Rich Comments) to evaluate code, we not only don't have to leave the file our cursor is currently in, but we have all the history of code we've evaluated right in a file, which we can save and commit, or remove later if we want.</p>
