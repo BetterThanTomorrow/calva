@@ -29,5 +29,3 @@ I have:
 - [ ] Referenced the issue I am fixing/addressing _in a commit message for the pull request_ (if there was is an issue for the documentation change)
   - [ ] If I am fixing the issue, I have used [GitHub's fixes/closes syntax](https://help.github.com/en/articles/closing-issues-using-keywords)
   - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
-
-Ping @pez, @bpringe, @corasaurus-hex, @Cyrik
