@@ -530,7 +530,7 @@ describe('paredit commands', () => {
         );
         const aSelections = a.selections;
         const b = docFromTextNotation(
-          '(defn|1 |1[a b]•(let [^js |2aa #p (+ a)|2•b b]•{:a aa•:b b}))•(:|a|)'
+          '(defn|1 [a b]•(let [^js |2aa #p (+ a)|2•b b]•{:a aa•:b b}))•(:|a|)'
         );
         handlers.selectForwardSexp(a, true);
         expect(a.selectionsStack).toEqual([aSelections, b.selections]);

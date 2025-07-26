@@ -7,6 +7,8 @@ export const allCursorContexts = [
   'calva:cursorAtEndOfLine',
   'calva:cursorBeforeComment',
   'calva:cursorAfterComment',
+  'calva:cursorSeesCommentNext',
+  'calva:cursorSeesCommentPrev',
 ] as const;
 
 export type CursorContext = typeof allCursorContexts[number];
@@ -56,6 +58,54 @@ export function isAtLineEndInclWS(doc: EditableDocument, offset = doc.selections
   return false;
 }
 
+/**
+ * when true, a comment is visible upstream from the cursor.  Because this is
+ * used to govern SelectBackwardSexp, eol (actually beginning of line) is considered a
+ * comment so selection reverts back to VSCode's selection
+ */
+function hasPrevComment(doc: EditableDocument, offset: number) {
+  const findCursorLineOffset = (doc: EditableDocument, cursorOffset: number): number => {
+    const documentText = doc.model.getText(0, cursorOffset);
+    const startOfLineOffset = documentText.lastIndexOf('\n') + 1;
+    return cursorOffset - startOfLineOffset;
+  };
+
+  const backCursor = doc.getTokenCursor(offset);
+
+  while (!backCursor.atStart()) {
+    const tokenType = backCursor.getPrevToken().type;
+    if (tokenType === 'comment' || tokenType === 'prompt') {
+      return true;
+    } else if (tokenType === 'eol' || tokenType === 'ws') {
+      backCursor.previous();
+      if (['comment', 'prompt', 'eol'].includes(backCursor.getPrevToken().type)) {
+        return true;
+      } else {
+        // non-comment token, check forward beyond any whitespace for a comment
+        // that starts before the cursor position
+        backCursor.forwardWhitespace(false);
+        const cursorLineOffset = findCursorLineOffset(doc, offset);
+        const currToken = backCursor.getToken();
+        return currToken.type === 'comment' && currToken.offset < cursorLineOffset;
+      }
+    } else {
+      return backCursor.getToken().type === 'comment';
+    }
+  }
+  return false;
+}
+
+/**
+ * when true, a comment is visible downstream from the cursor.  Because this is
+ * used to govern SelectForwardSexp, eol is considered a comment so selection reverts
+ * back to VSCode's selection
+ */
+function hasNextComment(doc: EditableDocument, offset: number) {
+  const nextCursor = doc.getTokenCursor(offset);
+  nextCursor.forwardWhitespace(false);
+  return nextCursor.getToken().type === 'comment' || nextCursor.getToken().type === 'eol';
+}
+
 export function determineContexts(
   doc: EditableDocument,
   offset = doc.selections[0].active
@@ -88,6 +138,14 @@ export function determineContexts(
         contexts.push('calva:cursorBeforeComment');
       }
     }
+  }
+
+  if (hasNextComment(doc, offset)) {
+    contexts.push('calva:cursorSeesCommentNext');
+  }
+
+  if (hasPrevComment(doc, offset)) {
+    contexts.push('calva:cursorSeesCommentPrev');
   }
 
   return contexts;
