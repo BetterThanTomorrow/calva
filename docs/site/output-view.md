@@ -5,9 +5,7 @@ description: A read-only webview for REPL output.
 
 The output view is a read-only view for REPL output. It's more performant than [the editor-based REPL window](repl-window.md). To see a feature comparison of all output destinations, see [Output Destinations Feature Comparison](output.md#output-destinations-feature-comparison).
 
-!!! Note
-    This output view is a work in progress. Please create GitHub issues for any bugs you see, features you'd like added,
-    or behavior you think should be changed.
+![The output view, post jack-in](images/output-view/post-jack-in.png)
 
 ## Show the Output View
 
@@ -21,6 +19,8 @@ Run the Calva command "Clear REPL Output View."
 
 To copy code in the output view, hover your cursor over the code snippet you want to copy. A "copy" button will appear in the top right corner of the code snippet. Click this button to copy the code to your clipboard.
 
+![Copy button appearing and being clicked, then changing to Copied](images/output-view/copy-button.gif)
+
 ## Theming
 
 The output view uses [highlight.js](https://highlightjs.org/) for syntax highlighting of code blocks. The theming of other output is controlled by VS Code. As you change the VS Code theme, the syntax hightlighting of code blocks will change to one of four different themes, one for each VS Code [ColorThemeKind](https://code.visualstudio.com/api/references/vscode-api#ColorThemeKind):
@@ -31,6 +31,8 @@ The output view uses [highlight.js](https://highlightjs.org/) for syntax highlig
 | Light | github |
 | HighContrast | windows-high-contrast |
 | HighContrastLight | windows-high-contrast-light |
+
+![The output view code highlight theme changes as the VS Code theme changes](images/output-view/theme-changing.gif)
 
 ## Why is it read-only?
 
