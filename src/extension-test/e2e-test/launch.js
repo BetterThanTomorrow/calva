@@ -22,6 +22,16 @@ function init() {
         process.env[USER_CONFIG_PATH_KEY] = tmpConfigPath;
         console.info(`USER_CONFIG_PATH: ${process.env[USER_CONFIG_PATH_KEY]}`);
       }
+
+      // Set up VS Code user data directory for container compatibility
+      const tmpUserDataDir = path.join(os.tmpdir(), 'vscode-test-runner-calva', 'user-data');
+      if (fs.existsSync(tmpUserDataDir)) {
+        fs.rmSync(tmpUserDataDir, { recursive: true });
+      }
+      fs.mkdirSync(tmpUserDataDir, { recursive: true });
+      process.env.VSCODE_USER_DATA_DIR = tmpUserDataDir;
+      console.info(`VSCODE_USER_DATA_DIR: ${process.env[VSCODE_USER_DATA_DIR]}`);
+
       resolve();
     } catch (error) {
       reject(error);
@@ -39,6 +49,8 @@ async function main(calvaVSIXPathOrLabel, testWorkspace) {
       testWorkspace,
       '--verbose',
       '--disable-workspace-trust',
+      '--no-sandbox',
+      '--user-data-dir', process.env.VSCODE_USER_DATA_DIR,
       // When debugging tests, it can be good to use the development version of Joyride
       // If you do, comment out the install of the Joyride extension here
       // And set the `extensionDevelopmentPath` in the `runTests` call below
@@ -65,7 +77,7 @@ async function main(calvaVSIXPathOrLabel, testWorkspace) {
       launchArgs: [testWorkspace],
     };
     if (calvaVSIXPathOrLabel === 'extension-development') {
-      runOptions.extensionDevelopmentPath = path.resolve(__dirname, '..');
+      runOptions.extensionDevelopmentPath = path.resolve(__dirname, '../../..');
     }
     await runTests(runOptions)
       .then((_result) => {
