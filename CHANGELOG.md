@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.525] - 2025-08-30
+
+- Bump deps.clj.jar to v1.12.2.1565
+- Fix: [delete previous word incongruence between Calva and plain text in comments](https://github.com/BetterThanTomorrow/calva/issues/2912)
+
 ## [2.0.524] - 2025-08-16
 
 - Bump deps.clj.jar to v1.12.1.1561

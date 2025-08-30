@@ -10,6 +10,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "minimist": "^1.2.7"
+    "minimist": "^1.2.8"
   }
 }
