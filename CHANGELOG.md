@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump deps.clj.jar to v1.12.2.1565
+
 ## [2.0.524] - 2025-08-16
 
 - Bump deps.clj.jar to v1.12.1.1561
