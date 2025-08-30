@@ -30,7 +30,7 @@ function init() {
       }
       fs.mkdirSync(tmpUserDataDir, { recursive: true });
       process.env.VSCODE_USER_DATA_DIR = tmpUserDataDir;
-      console.info(`VSCODE_USER_DATA_DIR: ${process.env[VSCODE_USER_DATA_DIR]}`);
+      console.info(`VSCODE_USER_DATA_DIR: ${process.env.VSCODE_USER_DATA_DIR}`);
 
       resolve();
     } catch (error) {
