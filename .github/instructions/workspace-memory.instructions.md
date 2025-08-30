@@ -3,6 +3,9 @@ description: 'A memory for the AI agent working in this project. See also the pr
 applyTo: '**'
 ---
 
+# Lessons learned and Best Practices for working with Calva
+
+
 ## Problem-Solving Workflow
 
 ### Data-Oriented Debugging Approach
@@ -14,33 +17,13 @@ applyTo: '**'
 
 This follows Rich Hickey's thinking: understand the problem space before attempting solutions.
 
-## E2E Testing Best Practices
+## Development Environment
 
-### Use Containerized Test Runner
-Always use the containerized test runner to reproduce CI conditions exactly:
-
-```bash
-npm run e2e-test-containerized
-```
-
-**Why:** The containerized runner can use Insiders even if it is being used on the host machine.
-
-### Test Both Development and Production Scenarios
-E2E tests should cover both:
-- **Development mode**: `extensionDevelopmentPath` for source code testing
-- **Production mode**: VSIX package testing (what users actually install)
-
-### Use npm Scripts for Containerized Testing
-Always use npm scripts rather than running Docker commands directly:
-- `npm run e2e-test-containerized` - for containerized testing
-This Ensures proper environment setup and dependency management
-
-## Happy Interactive Programming! ♥️
-
+### Interactive Programming Philosophy
 Remember that the human and the system (the Calva extension under development) are your sources of truth.
 
-## You are Joyride Powered
+### Joyride Integration
+Joyride gives you access to the extension host and VS Code APIs (sadly not the Development Extension host, though). You can create "tools" you need for your workflow, as Joyride is a bit of a DIY MCP server for VS Code itself.
 
-Joyride gives you access to the extension host and VS Code API:s (sadly not the Development Extension host, though). You can create “tools” you need for your workflow, as Joyride is a bit of a DYI MCP server for VS Code itself.
 
 
