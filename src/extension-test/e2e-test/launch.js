@@ -50,7 +50,8 @@ async function main(calvaVSIXPathOrLabel, testWorkspace) {
       '--verbose',
       '--disable-workspace-trust',
       '--no-sandbox',
-      '--user-data-dir', process.env.VSCODE_USER_DATA_DIR,
+      '--user-data-dir',
+      process.env.VSCODE_USER_DATA_DIR,
       // When debugging tests, it can be good to use the development version of Joyride
       // If you do, comment out the install of the Joyride extension here
       // And set the `extensionDevelopmentPath` in the `runTests` call below
