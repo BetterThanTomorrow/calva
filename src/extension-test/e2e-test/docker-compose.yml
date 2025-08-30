@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  vscode-testing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /workspace
+    environment:
+      - DISPLAY=:99
+      - VSCODE_JOYRIDE_USER_CONFIG_PATH=/tmp/vscode-test-runner-joyride/user-config
+    volumes:
+      - ../../../:/workspace
+      - vscode-cache:/tmp/vscode-test
+      - vscode-extensions:/tmp/vscode-extensions
+    entrypoint: ["bash", "-c", "exec \"$@\"", "--"]
+    init: true
+
+volumes:
+  vscode-cache:
+  vscode-extensions:
