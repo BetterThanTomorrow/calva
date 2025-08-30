@@ -2632,7 +2632,7 @@
       {
         "command": "paredit.killListBackward",
         "key": "ctrl+backspace",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+        "when": "!calva:cursorInComment && calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.spliceSexpKillForward",
