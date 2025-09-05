@@ -12,11 +12,14 @@ This guide provides custom keybindings for Calva in VS Code, making its paredit 
 
 * **Delete S-Expressions**: Aligns with Gnome's word deletion shortcuts.  Ctrl+Backspace now deletes an sexp backward and Ctrl+Delete deletes an sexp forward. This is similar to deleting word in Gnome's text editors.
 
+* **Beginning & End Movement**: Aligns with Gnome's line navigation shortcuts.  Home moves the cursor to the beginning of a list and End moves to the end of the list.  Control+Home and Control+End revert to their defaults, moving the cursor to the beginning and end of the document.
+
 * **Select S-Expressions**: Aligns with Gnome's line selection shortcuts.  Shift+Home selects backward to the start of an expression, just like Shift+Home selects to the beginning of a line in Gnome. Shift+End does the same for the end of an expression.
 
 * **Transpose**: Changes the shortcut to avoid conflicts with Gnome's terminal shortcut.  Calva's default Ctrl+Alt+T conflicts with Gnome's shortcut for opening a new terminal window.  The new shortcut is Ctrl+Alt+Shift+T.
 
 * **Slurp & Barf**: Modifies the shortcuts to avoid conflicts with Gnome's workspace management.  The default Ctrl+Shift+Alt+Left / Right conflicts with Gnome's shortcuts for moving windows between workspaces.  The new shortcuts are Ctrl+Alt+H (for barf backward) and Ctrl+Alt+L (for slurp backward). This follows the H (left) and L (right) vi conventions.
+
 
 Tested on Ubuntu 24.04.3.
 
@@ -114,7 +117,30 @@ Add the JSON below to your VS Code keybindings.json file.
         "key": "ctrl+alt+h",
         "command": "paredit.slurpSexpBackward",
         "when": "calva:keybindingsEnabled && editorTextFocus && !calva:cursorInComment && editorLangId == 'clojure' && paredit:keyMap =~ /original|strict/"
+    },
+
+    // home and end keys go to beginning and end of the current list, ctrl+home and ctrl+end go to beginning and end of file
+    {
+        "key": "home",
+        "command": "paredit.openList",
+        "when": "calva:keybindingsEnabled && editorTextFocus && !calva:cursorInComment && editorLangId == 'clojure' && paredit:keyMap =~ /original|strict/"
+    },
+    {
+        "key": "ctrl+home",
+        "command": "-paredit.openList",
+        "when": "calva:keybindingsEnabled && editorTextFocus && editorLangId == 'clojure' && paredit:keyMap =~ /original|strict/"
+    },
+    {
+        "key": "end",
+        "command": "paredit.closeList",
+        "when": "calva:keybindingsEnabled && editorTextFocus && !calva:cursorInComment && editorLangId == 'clojure' && paredit:keyMap =~ /original|strict/"
+    },
+    {
+        "key": "ctrl+end",
+        "command": "-paredit.closeList",
+        "when": "calva:keybindingsEnabled && editorTextFocus && editorLangId == 'clojure' && paredit:keyMap =~ /original|strict/"
     }
+
 ]
 ```
 
