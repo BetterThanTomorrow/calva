@@ -103,6 +103,7 @@ nav:
       - parinfer.md
   - Tips and Tricks:
       - emacs-keybindings.md
+      - gnome-linux-keybindings.md
       - workspace-layouts.md
       - quirks.md
       - async-out.md
