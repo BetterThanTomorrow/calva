@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- add gnome-linux-keybindings.md for Gnome Linux users to use Gnome editing keybindings
+
 ## [2.0.525] - 2025-08-30
 
 - Bump deps.clj.jar to v1.12.2.1565
