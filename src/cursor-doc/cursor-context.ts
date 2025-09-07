@@ -7,6 +7,7 @@ export const allCursorContexts = [
   'calva:cursorAtEndOfLine',
   'calva:cursorBeforeComment',
   'calva:cursorAfterComment',
+  'calva:cursorInWhitespaceAfterComment',
 ] as const;
 
 export type CursorContext = typeof allCursorContexts[number];
@@ -87,6 +88,22 @@ export function determineContexts(
       if (tokenCursor.getPrevToken().type != 'comment') {
         contexts.push('calva:cursorBeforeComment');
       }
+    }
+  }
+
+  // Is the cursor in the whitespace (after a newline) after a comment?  For example:
+  // (+ 1 1)   ;; my comment
+  //  |
+  // If so, we mark this as whitespace after a comment so keybinding's when clauses can
+  // choose to use non-paredit text editing.  The calva:cursorInComment context ends at
+  // a newline so calva:cursorInWhitespaceAfterComment implicitly starts after a newline
+  // after a comment.
+  if (!contexts.includes('calva:cursorInComment') && tokenCursor.isWhiteSpace()) {
+    const cursor = tokenCursor.clone();
+    cursor.backwardWhitespace(false);
+
+    if (cursor.getPrevToken().type === 'comment') {
+      contexts.push('calva:cursorInWhitespaceAfterComment');
     }
   }
 

@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- add gnome-linux-keybindings.md for Gnome Linux users to use Gnome editing keybindings
+- Fix: [set calva:cursorInWhitespaceAfterComment if the cursor is in whitespace after a comment's newline](https://github.com/BetterThanTomorrow/calva/issues/2917)
 
 ## [2.0.525] - 2025-08-30
 

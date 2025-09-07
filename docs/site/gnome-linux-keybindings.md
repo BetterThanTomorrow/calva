@@ -36,7 +36,7 @@ Add the JSON below to your VS Code keybindings.json file.
     {
         "key": "ctrl+backspace",
         "command": "paredit.killSexpBackward",
-        "when": "calva:keybindingsEnabled && editorTextFocus && !calva:cursorInComment && editorLangId == 'clojure' && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && editorTextFocus && !calva:cursorInWhitespaceAfterComment && !calva:cursorInComment && editorLangId == 'clojure' && paredit:keyMap =~ /original|strict/"
     },
     {
         "key": "ctrl+shift+delete",
