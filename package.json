@@ -1606,7 +1606,7 @@
       {
         "category": "Calva Paredit",
         "command": "paredit.openList",
-        "title": "Calva Paredit: Backward to List Start/Open",
+        "title": "Backward to List Start/Open",
         "enablement": "editorLangId == clojure"
       },
       {
