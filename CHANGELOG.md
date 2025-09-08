@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- add gnome-linux-keybindings.md for Gnome Linux users to use Gnome editing keybindings
+- [remove duplicate paredit definition in Backward to List Start keybinding](https://github.com/BetterThanTomorrow/calva/issues/2916)
 
 ## [2.0.525] - 2025-08-30
 
