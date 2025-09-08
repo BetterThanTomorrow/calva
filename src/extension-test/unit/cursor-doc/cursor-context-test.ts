@@ -359,4 +359,36 @@ describe('Cursor Contexts', () => {
       ).toBe(false);
     });
   });
+  describe('cursorInWhitespaceAfterComment', () => {
+    it('is false in whitespace directly after comment; the parser considers this part of a comment', () => {
+      const contexts = context.determineContexts(docFromTextNotation(';; comment line | '));
+      expect(contexts.includes('calva:cursorInWhitespaceAfterComment')).toBe(false);
+    });
+    it('is true after newline after comment', () => {
+      const contexts = context.determineContexts(docFromTextNotation(';; comment line•| '));
+      expect(contexts.includes('calva:cursorInWhitespaceAfterComment')).toBe(true);
+    });
+    it('is true in whitespace after newlines after comment', () => {
+      const contexts = context.determineContexts(
+        docFromTextNotation(':foo ;; comment line•• •  | ')
+      );
+      expect(contexts.includes('calva:cursorInWhitespaceAfterComment')).toBe(true);
+    });
+    it('is false after a symbol', () => {
+      const contexts = context.determineContexts(docFromTextNotation(':foo | '));
+      expect(contexts.includes('calva:cursorInWhitespaceAfterComment')).toBe(false);
+    });
+    it('is false after symbol, newlines, and whitespace', () => {
+      const contexts = context.determineContexts(docFromTextNotation('{:foo :bar}•• •  | '));
+      expect(contexts.includes('calva:cursorInWhitespaceAfterComment')).toBe(false);
+    });
+    it('is false inside a comment', () => {
+      const contexts = context.determineContexts(docFromTextNotation(';; comment| line'));
+      expect(contexts.includes('calva:cursorInWhitespaceAfterComment')).toBe(false);
+    });
+    it('is false at the beginning of a document', () => {
+      const contexts = context.determineContexts(docFromTextNotation('| '));
+      expect(contexts.includes('calva:cursorInWhitespaceAfterComment')).toBe(false);
+    });
+  });
 });
