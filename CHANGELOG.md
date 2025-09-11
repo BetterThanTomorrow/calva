@@ -4,7 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- add gnome-linux-keybindings.md for Gnome Linux users to use Gnome editing keybindings
+## [2.0.526] - 2025-09-11
+
+- [Make delete word backwards more precise and intuitive when the cursor is in the whitespace after a line comment](https://github.com/BetterThanTomorrow/calva/issues/2917)
+- [remove duplicate paredit definition in Backward to List Start keybinding](https://github.com/BetterThanTomorrow/calva/issues/2916)
 
 ## [2.0.525] - 2025-08-30
 

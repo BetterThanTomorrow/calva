@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.525",
+  "version": "2.0.526",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -1606,7 +1606,7 @@
       {
         "category": "Calva Paredit",
         "command": "paredit.openList",
-        "title": "Calva Paredit: Backward to List Start/Open",
+        "title": "Backward to List Start/Open",
         "enablement": "editorLangId == clojure"
       },
       {
