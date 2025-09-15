@@ -120,7 +120,7 @@ so you can do anything you can do in a browser, there's really no limit.
 | `:reveal` | boolean | true | If true, reveals the panel if it is not visible. |
 | `:column` | integer | vscode.ViewColumn.Beside | See [ViewColumn](https://code.visualstudio.com/api/references/vscode-api#ViewColumn) |
 | `:opts` | map | {:enableScripts true} | See [WebviewOptions](https://code.visualstudio.com/api/references/vscode-api#WebviewOptions) |
-| `:sidebar-panel` | boolean | false | If true, displays the content in the sidebar Flare view instead of a separate panel. |
+| `:sidebar-panel?` | boolean | false | If true, displays the content in the sidebar Flare view instead of a separate panel. |
 
 ### Suggestions welcome
 
