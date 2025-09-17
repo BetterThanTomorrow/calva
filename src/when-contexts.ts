@@ -98,10 +98,4 @@ export function setCljsTypeContext() {
     'calva:cljsType',
     isConnected ? cljsTypeName : null
   );
-
-  console.log(
-    `Debug: Setting calva:cljsType context - connected=${isConnected}, cljsType=${
-      isConnected ? cljsTypeName : null
-    }`
-  );
 }
