@@ -218,9 +218,6 @@ async function setUpCljsRepl(session: NReplSession, build) {
     output.replWindowAppendPrompt();
   }
   replSession.updateReplSessionType();
-
-  // Detect initial shadow-cljs runtime if applicable
-  await detectInitialRuntime();
 }
 
 async function getFigwheelMainBuilds() {
@@ -509,7 +506,11 @@ function createCLJSReplType(
       if (!isConnectCodeEvaluatedSuccessfully || !isShadowCljsReplType(cljsType)) {
         return isConnectCodeEvaluatedSuccessfully;
       }
-      return waitForShadowCljsRuntimes();
+      const runtimesConnected = await waitForShadowCljsRuntimes();
+      if (runtimesConnected) {
+        await detectInitialRuntime();
+      }
+      return runtimesConnected;
     } else {
       return true;
     }

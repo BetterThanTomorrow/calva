@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as replSession from './nrepl/repl-session';
 import { cljsLib } from './utilities';
+import * as util from './utilities';
 import { getStateValue, parseEdn } from '../out/cljs-lib/cljs-lib';
 import * as output from './results-output/output';
 import * as state from './state';
@@ -111,15 +112,25 @@ async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null> {
 
   const items = runtimes.map(formatRuntimeForDisplay);
 
-  const selected = await vscode.window.showQuickPick(items, {
+  // Get currently selected runtime from state to pre-select it in QuickPick
+  const currentRuntimeId = getStateValue('shadowCljs:selectedRuntime');
+  const currentItem = currentRuntimeId
+    ? items.find((item) => item.runtimeInfo['client-id'] === currentRuntimeId)
+    : undefined;
+
+  const selected = await util.quickPickSingle({
     title: 'shadow-cljs runtimes',
+    values: items,
     placeHolder: `${runtimes.length} runtime${runtimes.length > 1 ? 's' : ''} detected`,
-    matchOnDescription: true,
-    matchOnDetail: true,
-    ignoreFocusOut: true,
+    saveAs: 'shadow-cljs-runtime-selection',
+    default: currentItem,
+    autoSelect: false,
   });
 
-  return selected || null;
+  return (selected as RuntimeQuickPickItem) || null;
+}
+
+/**
 }
 
 /**
@@ -194,30 +205,26 @@ async function detectInitialRuntime(): Promise<void> {
 
     const runtimes = await getShadowRuntimes();
     if (!runtimes || runtimes.length === 0) {
+      output.appendLineOtherOut(`No runtimes detected.`);
       return; // No runtimes available
     }
 
-    // If there's exactly one runtime, it's probably the one we're connected to
-    // If there are multiple, we can't be sure which one is active without more info
-    if (runtimes.length === 1) {
-      const runtime = runtimes[0];
-      const clientId = runtime['client-id'];
+    const runtime = runtimes[0];
+    const clientId = runtime['client-id'];
 
-      // Store the detected runtime
-      cljsLib.setStateValue('shadowCljs:selectedRuntime', clientId);
-      cljsLib.setStateValue('shadowCljs:runtimeInfo', runtime);
+    // Store the detected runtime
+    cljsLib.setStateValue('shadowCljs:selectedRuntime', clientId);
+    cljsLib.setStateValue('shadowCljs:runtimeInfo', runtime);
 
-      output.appendLineOtherOut(`Detected connected runtime: ${clientId}`);
+    output.appendLineOtherOut(`Detected connected runtime: ${clientId}`);
 
-      // Update status bar
-      status.update();
-    } else {
+    status.update();
+    if (runtimes.length > 1) {
       output.appendLineOtherOut(
-        `Multiple runtimes detected (${runtimes.length}). Use 'Calva: Select Shadow CLJS Runtime' to choose one.`
+        `Multiple runtimes detected (${runtimes.length}). Assuming the first one is connected.`
       );
     }
   } catch (error) {
-    // Don't throw errors for detection failures, just log them
     output.appendLineOtherOut(`Note: Could not detect initial shadow-cljs runtime: ${error}`);
   }
 }
