@@ -120,14 +120,6 @@ function update() {
       const selectedRuntime = getStateValue('shadowCljs:selectedRuntime');
       const runtimeInfo = getStateValue('shadowCljs:runtimeInfo');
 
-      // Debug logging to help troubleshoot
-      console.log('Shadow runtime debug:', {
-        selectedRuntime,
-        runtimeInfo,
-        replType,
-        cljsTypeName,
-      });
-
       if (selectedRuntime && runtimeInfo) {
         shadowRuntimeStatus.text = `rt: ${selectedRuntime}`;
         const userAgent = runtimeInfo['user-agent'] || 'Unknown runtime';

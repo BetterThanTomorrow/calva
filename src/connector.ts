@@ -7,6 +7,7 @@ import * as open from 'open';
 import status from './status';
 import * as projectTypes from './nrepl/project-types';
 import { NReplClient, NReplSession } from './nrepl';
+import { detectInitialRuntime } from './shadow-cljs-runtime';
 import {
   CljsTypeConfig,
   ReplConnectSequence,
@@ -217,6 +218,9 @@ async function setUpCljsRepl(session: NReplSession, build) {
     output.replWindowAppendPrompt();
   }
   replSession.updateReplSessionType();
+
+  // Detect initial shadow-cljs runtime if applicable
+  await detectInitialRuntime();
 }
 
 async function getFigwheelMainBuilds() {

@@ -181,11 +181,53 @@ async function selectShadowCljsRuntimeCommand(): Promise<void> {
   }
 }
 
+/**
+ * Detect and store the initially connected runtime after CLJS REPL setup
+ * This handles the case where shadow-cljs automatically connects to a runtime
+ */
+async function detectInitialRuntime(): Promise<void> {
+  try {
+    const cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
+    if (cljsTypeName !== 'shadow-cljs') {
+      return; // Only run for shadow-cljs projects
+    }
+
+    const runtimes = await getShadowRuntimes();
+    if (!runtimes || runtimes.length === 0) {
+      return; // No runtimes available
+    }
+
+    // If there's exactly one runtime, it's probably the one we're connected to
+    // If there are multiple, we can't be sure which one is active without more info
+    if (runtimes.length === 1) {
+      const runtime = runtimes[0];
+      const clientId = runtime['client-id'];
+
+      // Store the detected runtime
+      cljsLib.setStateValue('shadowCljs:selectedRuntime', clientId);
+      cljsLib.setStateValue('shadowCljs:runtimeInfo', runtime);
+
+      output.appendLineOtherOut(`Detected connected runtime: ${clientId}`);
+
+      // Update status bar
+      status.update();
+    } else {
+      output.appendLineOtherOut(
+        `Multiple runtimes detected (${runtimes.length}). Use 'Calva: Select Shadow CLJS Runtime' to choose one.`
+      );
+    }
+  } catch (error) {
+    // Don't throw errors for detection failures, just log them
+    output.appendLineOtherOut(`Note: Could not detect initial shadow-cljs runtime: ${error}`);
+  }
+}
+
 export {
   getShadowRuntimes,
   selectShadowRuntime,
   switchToRuntime,
   selectShadowCljsRuntimeCommand,
+  detectInitialRuntime,
   ShadowRuntimeInfo,
   RuntimeQuickPickItem,
 };
