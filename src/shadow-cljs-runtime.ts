@@ -1,0 +1,187 @@
+import * as vscode from 'vscode';
+import * as replSession from './nrepl/repl-session';
+import { cljsLib } from './utilities';
+import { getStateValue, parseEdn } from '../out/cljs-lib/cljs-lib';
+import * as output from './results-output/output';
+import * as state from './state';
+
+interface ShadowRuntimeInfo {
+  'client-id': number;
+  'user-agent'?: string;
+  type: string;
+  lang: string;
+  'build-id': string;
+  host: string;
+  'worker-id': number;
+  dom?: boolean;
+  since?: string;
+  'proc-id'?: string;
+  'connection-info'?: {
+    remote: boolean;
+    websocket: boolean;
+  };
+}
+
+interface RuntimeQuickPickItem extends vscode.QuickPickItem {
+  runtimeInfo: ShadowRuntimeInfo;
+}
+
+/**
+ * Get available shadow-cljs runtimes for the current build
+ */
+async function getShadowRuntimes(): Promise<ShadowRuntimeInfo[] | null> {
+  try {
+    const cljSession = replSession.getSession('clj');
+    if (!cljSession) {
+      output.appendLineOtherErr('No Clojure session available for runtime detection');
+      return null;
+    }
+
+    const currentBuild = getStateValue('cljsBuild');
+    if (!currentBuild) {
+      output.appendLineOtherErr('No shadow-cljs build currently connected');
+      return null;
+    }
+
+    const getRuntimesCode = `(shadow.cljs.devtools.api/repl-runtimes ${currentBuild})`;
+    output.appendLineOtherOut(`Querying shadow-cljs runtimes for build ${currentBuild}...`);
+
+    const result = await cljSession.eval(getRuntimesCode, 'user').value;
+
+    if (!result || result === '()' || result === '[]') {
+      output.appendLineOtherOut('No runtimes currently connected to shadow-cljs');
+      return [];
+    }
+
+    // Parse the EDN data structure returned by shadow-cljs
+    try {
+      const runtimes: ShadowRuntimeInfo[] = parseEdn(result);
+      output.appendLineOtherOut(`Found ${runtimes.length} runtime(s)`);
+      return runtimes;
+    } catch (parseError) {
+      output.appendLineOtherErr(`Error parsing runtime information: ${parseError}`);
+      output.appendLineOtherOut(`Raw result: ${result}`);
+      return null;
+    }
+  } catch (error) {
+    output.appendLineOtherErr(`Error querying shadow-cljs runtimes: ${error}`);
+    return null;
+  }
+}
+
+/**
+ * Format runtime information for display in QuickPick
+ */
+function formatRuntimeForDisplay(runtime: ShadowRuntimeInfo): RuntimeQuickPickItem {
+  const detailParts = [
+    `build: ${runtime['build-id']}`,
+    `id: ${runtime['client-id']}`,
+    `host: ${runtime.host}`,
+    `dom: ${runtime.dom}`,
+    `since: ${runtime.since}`,
+    `worker: ${runtime['worker-id']}`,
+  ];
+
+  return {
+    label: `Runtime: ${runtime['client-id']}`,
+    description: runtime['user-agent'],
+    detail: detailParts.join(', '),
+    runtimeInfo: runtime,
+  };
+}
+
+/**
+ * Select a shadow-cljs runtime using VS Code QuickPick
+ */
+async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null> {
+  const runtimes = await getShadowRuntimes();
+
+  if (!runtimes) {
+    void vscode.window.showErrorMessage('Failed to query shadow-cljs runtimes');
+    return null;
+  }
+
+  if (runtimes.length === 0) {
+    void vscode.window.showInformationMessage(
+      'No runtimes currently connected. Please start your ClojureScript application.'
+    );
+    return null;
+  }
+
+  const items = runtimes.map(formatRuntimeForDisplay);
+
+  const selected = await vscode.window.showQuickPick(items, {
+    title: 'shadow-cljs runtimes',
+    placeHolder: `${runtimes.length} runtime${runtimes.length > 1 ? 's' : ''} detected`,
+    matchOnDescription: true,
+    matchOnDetail: true,
+    ignoreFocusOut: true,
+  });
+
+  return selected || null;
+}
+
+/**
+ * Switch to a specific shadow-cljs runtime
+ */
+async function switchToRuntime(runtimeInfo: ShadowRuntimeInfo): Promise<boolean> {
+  try {
+    const cljSession = replSession.getSession('clj');
+    if (!cljSession) {
+      output.appendLineOtherErr('No Clojure session available for runtime selection');
+      return false;
+    }
+
+    const currentBuild = getStateValue('cljsBuild');
+    const clientId = runtimeInfo['client-id'];
+
+    const selectRuntimeCode = `(shadow.cljs.devtools.api/repl-runtime-select ${currentBuild} ${clientId})`;
+    output.appendLineOtherOut(`Switching to runtime ${clientId}...`);
+
+    await cljSession.eval(selectRuntimeCode, 'user').value;
+
+    // Store runtime selection in state
+    cljsLib.setStateValue('shadowCljs:selectedRuntime', clientId);
+    cljsLib.setStateValue('shadowCljs:runtimeInfo', runtimeInfo);
+
+    output.appendLineOtherOut(`Successfully switched to runtime ${clientId}`);
+    return true;
+  } catch (error) {
+    output.appendLineOtherErr(`Error switching to runtime: ${error}`);
+    return false;
+  }
+}
+
+/**
+ * Main command: Select Shadow CLJS Runtime
+ * Combines runtime detection, QuickPick UI, and runtime switching
+ */
+async function selectShadowCljsRuntimeCommand(): Promise<void> {
+  try {
+    const selectedRuntime = await selectShadowRuntime();
+
+    if (selectedRuntime) {
+      const success = await switchToRuntime(selectedRuntime.runtimeInfo);
+
+      if (success) {
+        void vscode.window.showInformationMessage(
+          `Switched to runtime ${selectedRuntime.runtimeInfo['client-id']}: ${selectedRuntime.description}`
+        );
+      } else {
+        void vscode.window.showErrorMessage('Failed to switch runtime');
+      }
+    }
+  } catch (error) {
+    output.appendLineOtherErr(`Error in selectShadowCljsRuntimeCommand: ${error}`);
+    void vscode.window.showErrorMessage(`Failed to select runtime: ${error}`);
+  }
+}
+
+export {
+  getShadowRuntimes,
+  selectShadowRuntime,
+  switchToRuntime,
+  selectShadowCljsRuntimeCommand,
+  ShadowRuntimeInfo,
+  RuntimeQuickPickItem,
+};

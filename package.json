@@ -1526,6 +1526,12 @@
         "category": "Calva"
       },
       {
+        "command": "calva.selectShadowCljsRuntime",
+        "title": "Select Shadow CLJS Runtime",
+        "enablement": "calva:connected && calva:cljsType == 'shadow-cljs'",
+        "category": "Calva"
+      },
+      {
         "command": "calva.refresh",
         "title": "Refresh Changed Namespaces",
         "enablement": "calva:connected",
