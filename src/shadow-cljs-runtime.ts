@@ -4,6 +4,7 @@ import { cljsLib } from './utilities';
 import { getStateValue, parseEdn } from '../out/cljs-lib/cljs-lib';
 import * as output from './results-output/output';
 import * as state from './state';
+import status from './status';
 
 interface ShadowRuntimeInfo {
   'client-id': number;
@@ -143,6 +144,9 @@ async function switchToRuntime(runtimeInfo: ShadowRuntimeInfo): Promise<boolean>
     // Store runtime selection in state
     cljsLib.setStateValue('shadowCljs:selectedRuntime', clientId);
     cljsLib.setStateValue('shadowCljs:runtimeInfo', runtimeInfo);
+
+    // Update status bar to show the new runtime
+    status.update();
 
     output.appendLineOtherOut(`Successfully switched to runtime ${clientId}`);
     return true;

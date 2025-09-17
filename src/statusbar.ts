@@ -120,11 +120,19 @@ function update() {
       const selectedRuntime = getStateValue('shadowCljs:selectedRuntime');
       const runtimeInfo = getStateValue('shadowCljs:runtimeInfo');
 
+      // Debug logging to help troubleshoot
+      console.log('Shadow runtime debug:', {
+        selectedRuntime,
+        runtimeInfo,
+        replType,
+        cljsTypeName,
+      });
+
       if (selectedRuntime && runtimeInfo) {
-        shadowRuntimeStatus.text = `RT:${selectedRuntime}`;
-        shadowRuntimeStatus.tooltip = `Runtime: ${
-          runtimeInfo['user-agent'] || selectedRuntime
-        } - Click to switch`;
+        shadowRuntimeStatus.text = `rt: ${selectedRuntime}`;
+        const userAgent = runtimeInfo['user-agent'] || 'Unknown runtime';
+        const since = runtimeInfo.since || 'Unknown time';
+        shadowRuntimeStatus.tooltip = `Connected to ${userAgent}, ${since}`;
         shadowRuntimeStatus.command = 'calva.selectShadowCljsRuntime';
       } else {
         shadowRuntimeStatus.text = 'No Runtime';
