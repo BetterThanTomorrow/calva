@@ -31,7 +31,7 @@ interface RuntimeQuickPickItem extends vscode.QuickPickItem {
 /**
  * Get available shadow-cljs runtimes for the current build
  */
-async function getShadowRuntimes(): Promise<ShadowRuntimeInfo[] | null> {
+export async function getShadowRuntimes(): Promise<ShadowRuntimeInfo[] | null> {
   try {
     const cljSession = replSession.getSession('clj');
     if (!cljSession) {
@@ -95,7 +95,7 @@ function formatRuntimeForDisplay(runtime: ShadowRuntimeInfo): RuntimeQuickPickIt
 /**
  * Select a shadow-cljs runtime using VS Code QuickPick
  */
-async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null> {
+export async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null> {
   const runtimes = await getShadowRuntimes();
 
   if (!runtimes) {
@@ -136,7 +136,7 @@ async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null> {
 /**
  * Switch to a specific shadow-cljs runtime
  */
-async function switchToRuntime(runtimeInfo: ShadowRuntimeInfo): Promise<boolean> {
+export async function switchToRuntime(runtimeInfo: ShadowRuntimeInfo): Promise<boolean> {
   try {
     const cljSession = replSession.getSession('clj');
     if (!cljSession) {
@@ -171,7 +171,7 @@ async function switchToRuntime(runtimeInfo: ShadowRuntimeInfo): Promise<boolean>
  * Main command: Select Shadow CLJS Runtime
  * Combines runtime detection, QuickPick UI, and runtime switching
  */
-async function selectShadowCljsRuntimeCommand(): Promise<void> {
+export async function selectShadowCljsRuntimeCommand(): Promise<void> {
   try {
     const selectedRuntime = await selectShadowRuntime();
 
@@ -196,7 +196,7 @@ async function selectShadowCljsRuntimeCommand(): Promise<void> {
  * Detect and store the initially connected runtime after CLJS REPL setup
  * This handles the case where shadow-cljs automatically connects to a runtime
  */
-async function detectInitialRuntime(): Promise<void> {
+export async function detectInitialRuntime(): Promise<void> {
   try {
     const cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
     if (cljsTypeName !== 'shadow-cljs') {
@@ -229,12 +229,4 @@ async function detectInitialRuntime(): Promise<void> {
   }
 }
 
-export {
-  getShadowRuntimes,
-  selectShadowRuntime,
-  switchToRuntime,
-  selectShadowCljsRuntimeCommand,
-  detectInitialRuntime,
-  ShadowRuntimeInfo,
-  RuntimeQuickPickItem,
-};
+export type { ShadowRuntimeInfo, RuntimeQuickPickItem };
