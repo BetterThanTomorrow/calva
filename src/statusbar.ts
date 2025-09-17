@@ -78,6 +78,8 @@ function update() {
   shadowRuntimeStatus.command = 'calva.selectShadowCljsRuntime';
   shadowRuntimeStatus.tooltip = undefined;
 
+  const cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
+
   if (!getStateValue('connected')) {
     typeStatus.hide();
   }
@@ -114,8 +116,6 @@ function update() {
       }
     }
 
-    // Shadow runtime status - only show for shadow-cljs projects
-    const cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
     if (replType === 'cljs' && cljsTypeName === 'shadow-cljs') {
       const selectedRuntime = getStateValue('shadowCljs:selectedRuntime');
       const runtimeInfo = getStateValue('shadowCljs:runtimeInfo');
@@ -156,8 +156,6 @@ function update() {
     cljsBuildStatus.hide();
   }
 
-  // Show/hide shadow runtime status
-  const cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
   const replType = getReplSessionTypeFromState();
   if (
     getStateValue('connected') &&

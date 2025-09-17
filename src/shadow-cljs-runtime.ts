@@ -129,7 +129,6 @@ export async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null
 }
 
 /**
-}
 
 /**
  * Switch to a specific shadow-cljs runtime
@@ -179,7 +178,9 @@ export async function selectShadowCljsRuntimeCommand(): Promise<void> {
           `Switched to runtime ${selectedRuntime.runtimeInfo['client-id']}: ${selectedRuntime.description}`
         );
       } else {
-        void vscode.window.showErrorMessage('Failed to switch runtime');
+        void vscode.window.showErrorMessage(
+          `Failed to switch runtime (ID: ${selectedRuntime.runtimeInfo['client-id']}). See Calva output for details.`
+        );
       }
     }
   } catch (error) {
