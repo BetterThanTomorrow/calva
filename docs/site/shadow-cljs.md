@@ -36,6 +36,20 @@ Now you can should be able to evaluate forms, e.g.:
 
 (See [Code Evaluation](evaluation.md))
 
+# Runtime Selection
+
+When working with shadow-cljs projects you often have multiple runtimes running in different browser tabs, browsers, and phones, simultaneously. Calva will automatically connect to one of these (whichever runtime shadow-cljs connects when selecting a build). And you can then also switch between different JavaScript runtimes without reconnecting the REPL.
+
+## Available Runtimes
+
+Use the command **Calva: Select Shadow CLJS Runtime** to see all currently connected runtimes, presented in a VS Code quick-pick menu. The status bar will also display the active runtime when connected to a shadow-cljs project, and clicking this indicator will open the runtimes menu.
+
+## Switching Runtimes
+
+The **Calva: Select Shadow CLJS Runtime** menu will also let you select which runtime the `cljs` repl is connected to.
+
+![shadow-cljs-runtimes-menu](/images/shadow-cljs/runtimes-menu.png)
+
 # shadow-cljs in full stack projects
 
 **shadow-cljs** is a bit special in regards to Calva REPL connection. Mainly because you can start **shadow-cljs** and it's nREPL server in two ways:

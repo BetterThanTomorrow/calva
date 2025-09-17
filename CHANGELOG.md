@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.527] - 2025-09-17
+
+- [Add command for selecting shadow-cljs runtime to connect to](https://github.com/BetterThanTomorrow/calva/issues/2923)
+
 ## [2.0.526] - 2025-09-11
 
 - [Make delete word backwards more precise and intuitive when the cursor is in the whitespace after a line comment](https://github.com/BetterThanTomorrow/calva/issues/2917)

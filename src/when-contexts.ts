@@ -5,6 +5,7 @@ import * as context from './cursor-doc/cursor-context';
 import * as util from './utilities';
 import * as namespace from './namespace';
 import * as session from './nrepl/repl-session';
+import * as state from './state';
 import { cljsLib } from './utilities';
 
 /* Determining the "calva:ns" cursor context takes time,
@@ -67,6 +68,7 @@ export function setCursorContextIfChanged(editor: vscode.TextEditor): boolean {
   setNsCursorContextSoon(editor, editor.document, editor.selections[0].active);
   const sessionType = session.getReplSessionType(cljsLib.getStateValue('connected'));
   void vscode.commands.executeCommand('setContext', 'calva:replSessionType', sessionType);
+  setCljsTypeContext();
   return true;
 }
 
@@ -84,4 +86,16 @@ function setCursorContexts(contexts: context.CursorContext[]) {
   context.allCursorContexts.forEach((context) => {
     void vscode.commands.executeCommand('setContext', context, contexts.indexOf(context) > -1);
   });
+}
+
+export function setCljsTypeContext() {
+  const isConnected = util.getConnectedState();
+  const cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
+
+  // Set the actual CLJS type as context value
+  void vscode.commands.executeCommand(
+    'setContext',
+    'calva:cljsType',
+    isConnected ? cljsTypeName : null
+  );
 }

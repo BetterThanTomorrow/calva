@@ -7,6 +7,7 @@ import * as open from 'open';
 import status from './status';
 import * as projectTypes from './nrepl/project-types';
 import { NReplClient, NReplSession } from './nrepl';
+import { detectInitialRuntime } from './shadow-cljs-runtime';
 import {
   CljsTypeConfig,
   ReplConnectSequence,
@@ -505,7 +506,11 @@ function createCLJSReplType(
       if (!isConnectCodeEvaluatedSuccessfully || !isShadowCljsReplType(cljsType)) {
         return isConnectCodeEvaluatedSuccessfully;
       }
-      return waitForShadowCljsRuntimes();
+      const runtimesConnected = await waitForShadowCljsRuntimes();
+      if (runtimesConnected) {
+        await detectInitialRuntime();
+      }
+      return runtimesConnected;
     } else {
       return true;
     }

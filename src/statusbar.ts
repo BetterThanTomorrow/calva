@@ -8,6 +8,7 @@ import { getSession, getReplSessionTypeFromState } from './nrepl/repl-session';
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const cljsBuildStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
+const shadowRuntimeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const prettyPrintToggle = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1);
 const color = {
   active: 'white',
@@ -73,6 +74,12 @@ function update() {
   cljsBuildStatus.command = 'calva.switchCljsBuild';
   cljsBuildStatus.tooltip = undefined;
 
+  shadowRuntimeStatus.text = '';
+  shadowRuntimeStatus.command = 'calva.selectShadowCljsRuntime';
+  shadowRuntimeStatus.tooltip = undefined;
+
+  const cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
+
   if (!getStateValue('connected')) {
     typeStatus.hide();
   }
@@ -108,6 +115,23 @@ function update() {
         cljsBuildStatus.tooltip = 'Click to connect to a CLJS build REPL';
       }
     }
+
+    if (replType === 'cljs' && cljsTypeName === 'shadow-cljs') {
+      const selectedRuntime = getStateValue('shadowCljs:selectedRuntime');
+      const runtimeInfo = getStateValue('shadowCljs:runtimeInfo');
+
+      if (selectedRuntime && runtimeInfo) {
+        shadowRuntimeStatus.text = `rt: ${selectedRuntime}`;
+        const userAgent = runtimeInfo['user-agent'] || 'Unknown runtime';
+        const since = runtimeInfo.since || 'Unknown time';
+        shadowRuntimeStatus.tooltip = `Connected to ${userAgent}, ${since}`;
+        shadowRuntimeStatus.command = 'calva.selectShadowCljsRuntime';
+      } else {
+        shadowRuntimeStatus.text = 'No Runtime';
+        shadowRuntimeStatus.tooltip = 'Click to select shadow-cljs runtime';
+        shadowRuntimeStatus.command = 'calva.selectShadowCljsRuntime';
+      }
+    }
     typeStatus.show();
   } else if (util.getLaunchingState()) {
     connectionStatus.color = colorValue('launchingColor', currentConf);
@@ -131,6 +155,19 @@ function update() {
   } else {
     cljsBuildStatus.hide();
   }
+
+  const replType = getReplSessionTypeFromState();
+  if (
+    getStateValue('connected') &&
+    replType === 'cljs' &&
+    cljsTypeName === 'shadow-cljs' &&
+    shadowRuntimeStatus.text
+  ) {
+    shadowRuntimeStatus.show();
+  } else {
+    shadowRuntimeStatus.hide();
+  }
+
   prettyPrintToggle.show();
 }
 

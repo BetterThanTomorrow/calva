@@ -51,6 +51,7 @@ import * as fiddleFiles from './fiddle-files';
 import * as flareHandler from './flare-handler';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
+import * as shadowRuntime from './shadow-cljs-runtime';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -326,6 +327,7 @@ async function activate(context: vscode.ExtensionContext) {
       return drams.createAndOpenDram(context, title, src);
     },
     switchCljsBuild: connector.switchCljsBuild,
+    selectShadowCljsRuntime: shadowRuntime.selectShadowCljsRuntimeCommand,
     tapCurrentTopLevelForm: () =>
       snippets.evaluateCustomCodeSnippetCommand('(tap> $top-level-form)'),
     tapSelection: () => snippets.evaluateCustomCodeSnippetCommand('(tap> $current-form)'),
