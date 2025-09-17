@@ -2110,6 +2110,13 @@
 <li>Top-level forms with <kbd>alt/option</kbd>+<kbd>enter</kbd>.</li>
 </ul>
 <p>(See <a href="../evaluation/">Code Evaluation</a>)</p>
+<h1 id="runtime-selection">Runtime Selection<a class="headerlink" href="#runtime-selection" title="Permanent link">#</a></h1>
+<p>When working with shadow-cljs projects you often have multiple runtimes running in different browser tabs, browsers, and phones, simultaneously. Calva will automatically connect to one of these (whichever runtime shadow-cljs connects when selecting a build). And you can then also switch between different JavaScript runtimes without reconnecting the REPL.</p>
+<h2 id="available-runtimes">Available Runtimes<a class="headerlink" href="#available-runtimes" title="Permanent link">#</a></h2>
+<p>Use the command <strong>Calva: Select Shadow CLJS Runtime</strong> to see all currently connected runtimes, presented in a VS Code quick-pick menu. The status bar will also display the active runtime when connected to a shadow-cljs project, and clicking this indicator will open the runtimes menu.</p>
+<h2 id="switching-runtimes">Switching Runtimes<a class="headerlink" href="#switching-runtimes" title="Permanent link">#</a></h2>
+<p>The <strong>Calva: Select Shadow CLJS Runtime</strong> menu will also let you select which runtime the <code>cljs</code> repl is connected to.</p>
+<p><img alt="shadow-cljs-runtimes-menu" src="/images/shadow-cljs/runtimes-menu.png" /></p>
 <h1 id="shadow-cljs-in-full-stack-projects">shadow-cljs in full stack projects<a class="headerlink" href="#shadow-cljs-in-full-stack-projects" title="Permanent link">#</a></h1>
 <p><strong>shadow-cljs</strong> is a bit special in regards to Calva REPL connection. Mainly because you can start <strong>shadow-cljs</strong> and it's nREPL server in two ways:</p>
 <ol>
