@@ -3,7 +3,7 @@
 ################################################################################
 # Install deps step
 ################################################################################
-FROM cimg/clojure:1.11-node as step-install-deps
+FROM cimg/clojure:1.12.0-openjdk-21.0-node as step-install-deps
 
 USER circleci
 RUN mkdir /home/circleci/calva
@@ -23,7 +23,7 @@ CMD echo "Nothing to do here" # All actions run at image build time
 ################################################################################
 # Build step
 ################################################################################
-FROM cimg/clojure:1.11-node as step-build
+FROM cimg/clojure:1.12.0-openjdk-21.0-node as step-build
 USER circleci
 
 # copy shadow deps
