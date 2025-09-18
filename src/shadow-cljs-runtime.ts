@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as replSession from './nrepl/repl-session';
 import { cljsLib } from './utilities';
 import * as util from './utilities';
-import { getStateValue, parseEdn } from '../out/cljs-lib/cljs-lib';
+import { getStateValue, parseEdn, parseEdnWithInst } from '../out/cljs-lib/cljs-lib';
 import * as output from './results-output/output';
 import * as state from './state';
 import status from './status';
@@ -17,7 +17,9 @@ interface ShadowApiRuntimeInfo {
   host: string;
   'worker-id': number;
   dom?: boolean;
-  since?: string;
+  since?: Date;
+  sinceInst?: number;
+  sinceDescription?: string;
   'proc-id'?: string;
   'connection-info'?: {
     remote: boolean;
@@ -31,17 +33,38 @@ interface RuntimeInfo {
   buildId: string;
   host: string;
   workerId: number;
-  since: string;
+  sinceInst: number;
+  sinceDescription: string;
+}
+
+/**
+ * Format a timestamp to a human-readable local time string
+ */
+function formatSinceDescription(since: Date | undefined): string {
+  if (!since) {
+    return 'Unknown time';
+  }
+
+  return since.toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'medium',
+    hour12: false,
+  });
 }
 
 function normalizeRuntimeInfo(apiInfo: ShadowApiRuntimeInfo): RuntimeInfo {
+  const sinceDate = apiInfo.since;
+  const sinceInst = sinceDate ? sinceDate.getTime() : 0;
+  const sinceDescription = formatSinceDescription(sinceDate);
+
   return {
     clientId: apiInfo['client-id'],
     description: apiInfo.desc || apiInfo['user-agent'] || 'No description',
     buildId: apiInfo['build-id'],
     host: apiInfo.host,
     workerId: apiInfo['worker-id'],
-    since: apiInfo.since || 'Unknown time',
+    sinceInst,
+    sinceDescription,
   };
 }
 
@@ -85,7 +108,7 @@ export async function getShadowRuntimes(): Promise<RuntimeInfo[] | null> {
 
     // Parse the EDN data structure returned by shadow-cljs
     try {
-      const apiRuntimes: ShadowApiRuntimeInfo[] = parseEdn(result);
+      const apiRuntimes: ShadowApiRuntimeInfo[] = parseEdnWithInst(result);
       return apiRuntimes.map(normalizeRuntimeInfo);
     } catch (parseError) {
       output.appendLineOtherErr(`Error parsing runtime information: ${parseError}`);
@@ -106,7 +129,7 @@ function makeRuntimeMenuItem(runtime: RuntimeInfo): RuntimeQuickPickItem {
     `build: ${runtime.buildId}`,
     `id: ${runtime.clientId}`,
     `host: ${runtime.host}`,
-    `since: ${runtime.since}`,
+    `since: ${runtime.sinceDescription}`,
     `worker: ${runtime.workerId}`,
   ];
 

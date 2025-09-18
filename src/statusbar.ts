@@ -123,7 +123,7 @@ function update() {
 
       if (selectedRuntime && runtimeInfo) {
         shadowRuntimeStatus.text = `rt: ${selectedRuntime}`;
-        shadowRuntimeStatus.tooltip = `Connected to ${runtimeInfo.description}, ${runtimeInfo.since}`;
+        shadowRuntimeStatus.tooltip = `Connected to ${runtimeInfo.description}, ${runtimeInfo.sinceDescription}`;
         shadowRuntimeStatus.command = 'calva.selectShadowCljsRuntime';
       } else {
         shadowRuntimeStatus.text = 'No Runtime';
