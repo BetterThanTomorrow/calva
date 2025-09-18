@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as state from './state';
 import * as util from './utilities';
 import * as config from './config';
+import * as shadowRuntimes from './shadow-cljs-runtime';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getSession, getReplSessionTypeFromState } from './nrepl/repl-session';
 
@@ -117,14 +118,12 @@ function update() {
     }
 
     if (replType === 'cljs' && cljsTypeName === 'shadow-cljs') {
-      const selectedRuntime = getStateValue('shadowCljs:selectedRuntime');
-      const runtimeInfo = getStateValue('shadowCljs:runtimeInfo');
+      const selectedRuntime = shadowRuntimes.getSelectedRuntimeId();
+      const runtimeInfo = shadowRuntimes.getSelectedRuntimeInfo();
 
       if (selectedRuntime && runtimeInfo) {
         shadowRuntimeStatus.text = `rt: ${selectedRuntime}`;
-        const userAgent = runtimeInfo['user-agent'] || 'Unknown runtime';
-        const since = runtimeInfo.since || 'Unknown time';
-        shadowRuntimeStatus.tooltip = `Connected to ${userAgent}, ${since}`;
+        shadowRuntimeStatus.tooltip = `Connected to ${runtimeInfo.description}, ${runtimeInfo.sinceDescription}`;
         shadowRuntimeStatus.command = 'calva.selectShadowCljsRuntime';
       } else {
         shadowRuntimeStatus.text = 'No Runtime';

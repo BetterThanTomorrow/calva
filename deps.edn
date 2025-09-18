@@ -1,10 +1,11 @@
 {:deps {org.clojure/clojure {:mvn/version "1.12.0"}
+        org.clojure/clojurescript {:mvn/version "1.12.42"}
         rewrite-clj/rewrite-clj {:mvn/version "1.1.49"} ;; Temporary, while waiting for zprint to bump their deps
         zprint/zprint {:mvn/version "1.2.9"
                        :exclusions [rewrite-clj/rewrite-clj]}
         dev.weavejester/cljfmt {:mvn/version "0.13.1"
                                 :exclusions [rewrite-clj/rewrite-clj]}
-        thheller/shadow-cljs {:mvn/version "2.28.15"}
+        thheller/shadow-cljs {:mvn/version "3.2.0"}
         org.clojars.liverm0r/dartclojure {:mvn/version "0.2.23-SNAPSHOT"}
         vvvvalvalval/supdate {:mvn/version "0.2.3"}
         camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.3"}
