@@ -14,6 +14,7 @@
                              :cljify calva.js-utils/cljify
                              :prettyPrint calva.pprint.printer/pretty-print-js-bridge
                              :parseEdn calva.parse/parse-edn-js-bridge
+                             :parseEdnWithInst calva.parse/parse-edn-with-inst-js-bridge
                              :parseForms calva.parse/parse-forms-js-bridge
                              :setStateValue calva.state/set-state-value!
                              :getStateValue calva.state/get-state-value

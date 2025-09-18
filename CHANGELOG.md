@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [shadow-cljs runtimes for Node get not description at all](https://github.com/BetterThanTomorrow/calva/issues/2926)
+
 ## [2.0.527] - 2025-09-17
 
 - [Add command for selecting shadow-cljs runtime to connect to](https://github.com/BetterThanTomorrow/calva/issues/2923)

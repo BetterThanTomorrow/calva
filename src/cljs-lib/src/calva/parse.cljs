@@ -73,3 +73,15 @@
                   (:require [clojure.java.io :as io])
                   (:import (java.io RandomAccessFile)))
 (defn foo [] (println \"whee\"))"))
+
+(defn parse-edn-with-inst
+  "Parses EDN with support for #inst tags, converting them to JS Date objects.
+   Returns the parsed form."
+  [s]
+  (edn/read-string {:readers {'inst #(js/Date. %)}} s))
+
+(defn parse-edn-with-inst-js [s]
+  (jsify (parse-edn-with-inst s)))
+
+(defn parse-edn-with-inst-js-bridge [s]
+  (parse-edn-with-inst-js s))
