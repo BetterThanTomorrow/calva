@@ -7,9 +7,10 @@ import * as output from './results-output/output';
 import * as state from './state';
 import status from './status';
 
-interface ShadowRuntimeInfo {
+interface ShadowApiRuntimeInfo {
   'client-id': number;
   'user-agent'?: string;
+  desc?: string;
   type: string;
   lang: string;
   'build-id': string;
@@ -24,14 +25,42 @@ interface ShadowRuntimeInfo {
   };
 }
 
+interface RuntimeInfo {
+  clientId: number;
+  description: string;
+  buildId: string;
+  host: string;
+  workerId: number;
+  since: string;
+}
+
+function normalizeRuntimeInfo(apiInfo: ShadowApiRuntimeInfo): RuntimeInfo {
+  return {
+    clientId: apiInfo['client-id'],
+    description: apiInfo.desc || apiInfo['user-agent'] || 'No description',
+    buildId: apiInfo['build-id'],
+    host: apiInfo.host,
+    workerId: apiInfo['worker-id'],
+    since: apiInfo.since || 'Unknown time',
+  };
+}
+
 interface RuntimeQuickPickItem extends vscode.QuickPickItem {
-  runtimeInfo: ShadowRuntimeInfo;
+  runtimeInfo: RuntimeInfo;
+}
+
+export function getSelectedRuntimeInfo(): RuntimeInfo {
+  return getStateValue('shadow-cljs:getSelectedRuntimeInfo');
+}
+
+export function getSelectedRuntimeId(): number {
+  return getStateValue('shadow-cljs:getSelectedRuntimeId');
 }
 
 /**
  * Get available shadow-cljs runtimes for the current build
  */
-export async function getShadowRuntimes(): Promise<ShadowRuntimeInfo[] | null> {
+export async function getShadowRuntimes(): Promise<RuntimeInfo[] | null> {
   try {
     const cljSession = replSession.getSession('clj');
     if (!cljSession) {
@@ -56,8 +85,8 @@ export async function getShadowRuntimes(): Promise<ShadowRuntimeInfo[] | null> {
 
     // Parse the EDN data structure returned by shadow-cljs
     try {
-      const runtimes: ShadowRuntimeInfo[] = parseEdn(result);
-      return runtimes;
+      const apiRuntimes: ShadowApiRuntimeInfo[] = parseEdn(result);
+      return apiRuntimes.map(normalizeRuntimeInfo);
     } catch (parseError) {
       output.appendLineOtherErr(`Error parsing runtime information: ${parseError}`);
       output.appendLineOtherOut(`Raw result: ${result}`);
@@ -72,19 +101,18 @@ export async function getShadowRuntimes(): Promise<ShadowRuntimeInfo[] | null> {
 /**
  * Format runtime information for display in QuickPick
  */
-function makeRuntimeMenuItem(runtime: ShadowRuntimeInfo): RuntimeQuickPickItem {
+function makeRuntimeMenuItem(runtime: RuntimeInfo): RuntimeQuickPickItem {
   const detailParts = [
-    `build: ${runtime['build-id']}`,
-    `id: ${runtime['client-id']}`,
+    `build: ${runtime.buildId}`,
+    `id: ${runtime.clientId}`,
     `host: ${runtime.host}`,
-    `dom: ${runtime.dom}`,
     `since: ${runtime.since}`,
-    `worker: ${runtime['worker-id']}`,
+    `worker: ${runtime.workerId}`,
   ];
 
   return {
-    label: `Runtime: ${runtime['client-id']}`,
-    description: runtime['user-agent'],
+    label: `Runtime: ${runtime.clientId}`,
+    description: runtime.description,
     detail: detailParts.join(', '),
     runtimeInfo: runtime,
   };
@@ -111,9 +139,9 @@ export async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null
   const items = runtimes.map(makeRuntimeMenuItem);
 
   // Get currently selected runtime from state to pre-select it in QuickPick
-  const currentRuntimeId = getStateValue('shadowCljs:selectedRuntime');
+  const currentRuntimeId = getSelectedRuntimeId();
   const currentItem = currentRuntimeId
-    ? items.find((item) => item.runtimeInfo['client-id'] === currentRuntimeId)
+    ? items.find((item) => item.runtimeInfo.clientId === currentRuntimeId)
     : undefined;
 
   const selected = await util.quickPickSingle({
@@ -133,7 +161,7 @@ export async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null
 /**
  * Switch to a specific shadow-cljs runtime
  */
-export async function switchToRuntime(runtimeInfo: ShadowRuntimeInfo): Promise<boolean> {
+export async function switchToRuntime(runtimeInfo: RuntimeInfo): Promise<boolean> {
   try {
     const cljSession = replSession.getSession('clj');
     if (!cljSession) {
@@ -142,15 +170,15 @@ export async function switchToRuntime(runtimeInfo: ShadowRuntimeInfo): Promise<b
     }
 
     const currentBuild = getStateValue('cljsBuild');
-    const clientId = runtimeInfo['client-id'];
+    const clientId = runtimeInfo.clientId;
 
     const selectRuntimeCode = `(shadow.cljs.devtools.api/repl-runtime-select ${currentBuild} ${clientId})`;
 
     await cljSession.eval(selectRuntimeCode, 'user').value;
 
     // Store runtime selection in state
-    cljsLib.setStateValue('shadowCljs:selectedRuntime', clientId);
-    cljsLib.setStateValue('shadowCljs:runtimeInfo', runtimeInfo);
+    cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeId', clientId);
+    cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeInfo', runtimeInfo);
 
     // Update status bar to show the new runtime
     status.update();
@@ -175,11 +203,11 @@ export async function selectShadowCljsRuntimeCommand(): Promise<void> {
 
       if (success) {
         void output.appendLineOtherOut(
-          `Switched to runtime ${selectedRuntime.runtimeInfo['client-id']}: ${selectedRuntime.description}`
+          `Switched to runtime ${selectedRuntime.runtimeInfo.clientId}: ${selectedRuntime.description}`
         );
       } else {
         void vscode.window.showErrorMessage(
-          `Failed to switch runtime (ID: ${selectedRuntime.runtimeInfo['client-id']}). See Calva output for details.`
+          `Failed to switch runtime (ID: ${selectedRuntime.runtimeInfo.clientId}). See Calva output for details.`
         );
       }
     }
@@ -207,11 +235,11 @@ export async function detectInitialRuntime(): Promise<void> {
     }
 
     const runtime = runtimes[0];
-    const clientId = runtime['client-id'];
+    const clientId = runtime.clientId;
 
     // Store the detected runtime
-    cljsLib.setStateValue('shadowCljs:selectedRuntime', clientId);
-    cljsLib.setStateValue('shadowCljs:runtimeInfo', runtime);
+    cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeId', clientId);
+    cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeInfo', runtime);
 
     status.update();
     if (runtimes.length > 1) {
@@ -220,11 +248,11 @@ export async function detectInitialRuntime(): Promise<void> {
       );
     }
     output.appendLineOtherOut(
-      `Connected runtime: ${clientId}, ${runtime['user-agent']}, host: ${runtime.host}, dom: ${runtime.dom}`
+      `Connected runtime: ${clientId}, ${runtime.description}, host: ${runtime.host}`
     );
   } catch (error) {
     output.appendLineOtherOut(`Note: Could not detect initial shadow-cljs runtime: ${error}`);
   }
 }
 
-export type { ShadowRuntimeInfo, RuntimeQuickPickItem };
+export type { ShadowApiRuntimeInfo as ShadowRuntimeInfo, RuntimeQuickPickItem };
