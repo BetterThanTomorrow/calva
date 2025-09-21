@@ -85,7 +85,7 @@
       "projectRootPath": ["projects/pirate-lang"],
       "afterCLJReplJackInCode": ["(require 'repl)", "(println 1)", "(println 2)"],
       //"autoSelectForJackIn": true,
-      "autoSelectForConnect": true,
+      // "autoSelectForConnect": true,
       "cljsType": "none",
       "menuSelections": {
         "cljAliases": ["dev", "test"]
@@ -116,7 +116,7 @@
       "projectType": "deps.edn",
       "projectRootPath": ["projects/deps-main-opts"],
       "afterCLJReplJackInCode": "(require 'repl)",
-      "autoSelectForConnect": true,
+      // "autoSelectForConnect": true,
       // "autoSelectForJackIn": true,
       "cljsType": "none",
       "menuSelections": {
