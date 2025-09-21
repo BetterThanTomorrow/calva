@@ -20,6 +20,7 @@ import { getConfig } from '../config';
 import { log, Direction } from './logging';
 import * as string from '../util/string';
 import * as output from '../results-output/output';
+import { handleShadowRemoteMessage } from '../shadow-cljs-runtime';
 
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
@@ -293,6 +294,11 @@ export class NReplSession {
   }
 
   _defaultMessageHandler(msgData: any) {
+    if (msgData.op === 'shadow-remote-msg') {
+      handleShadowRemoteMessage(msgData);
+      return;
+    }
+
     if (msgData['repl-type']) {
       this.replType = msgData['repl-type'];
     }
@@ -970,6 +976,38 @@ export class NReplSession {
       } else {
         resolve(undefined);
       }
+    });
+  }
+
+  shadowCljsRemoteInit() {
+    return new Promise<any>((resolve, reject) => {
+      const id = this.client.nextId;
+      const msg = {
+        op: 'shadow-remote-init',
+        id: id,
+        session: this.sessionId,
+        'data-type': 'edn',
+      };
+      // shadow-cljs remote messages do not respond with an acknowledging response
+      // so we can't bind a messagehandler the usual way. Fire-and-forget!
+      this.client.write(msg);
+      resolve(null);
+    });
+  }
+
+  shadowCljsRemoteRegisterNotify() {
+    return new Promise<any>((resolve, reject) => {
+      const id = this.client.nextId;
+      const msg = {
+        op: 'shadow-remote-msg',
+        id: id,
+        session: this.sessionId,
+        data: '{:op :request-clients :notify true :query [:eq :type :runtime]}',
+      };
+      // shadow-cljs remote messages do not respond with an acknowledging response
+      // so we can't bind a messagehandler the usual way. Fire-and-forget!
+      this.client.write(msg);
+      resolve(null);
     });
   }
 }
