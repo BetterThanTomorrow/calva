@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make shadow-cljs runtimes status update with connection status](https://github.com/BetterThanTomorrow/calva/issues/2928)
+
 ## [2.0.529] - 2025-09-21
 
 - Fix: [No `node-repl` and `browser-repl` builds available with **deps.edn + shadow-cljs** project types](https://github.com/BetterThanTomorrow/calva/issues/2929)
