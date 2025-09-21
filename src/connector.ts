@@ -417,10 +417,8 @@ function createCLJSReplType(
           const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
           const availableBuilds = startedBuilds
             ? [
-                ...new Set([
-                  ...startedBuilds,
-                  ...allBuilds.filter((b) => ['node-repl', 'browser-repl'].includes(b)),
-                ]),
+                ...startedBuilds,
+                ...allBuilds.filter((b) => ['node-repl', 'browser-repl'].includes(b)),
               ]
             : allBuilds;
           const buildItem = await util.quickPickSingle({
