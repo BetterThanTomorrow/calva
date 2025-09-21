@@ -25,6 +25,12 @@ Remember that the human and the system (the Calva extension under development) a
 ### Joyride Integration
 Joyride gives you access to the extension host and VS Code APIs (sadly not the Development Extension host, though). You can create "tools" you need for your workflow, as Joyride is a bit of a DIY MCP server for VS Code itself.
 
+### Extension Development and Testing Workflow
+The extension uses TypeScript watchers for automatic recompilation during development. Key patterns:
+
+- **Watch tasks handle compilation**: Watchers automatically recompile TypeScript and ClojureScript as files change
+- **Human testing required**: Changes to extension logic TypeScript code require manual testing in the Development Extension Host since automated testing cannot access that environment
+
 ## Issue Workflow
 
 ### Starting Work on an Issue
