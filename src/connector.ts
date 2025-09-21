@@ -414,10 +414,17 @@ function createCLJSReplType(
         useDefaultBuild = false;
       } else {
         if (typeof initCode === 'object' || initCode.includes('%BUILD%')) {
+          const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
+          const availableBuilds = startedBuilds
+            ? [
+                ...new Set([
+                  ...startedBuilds,
+                  ...allBuilds.filter((b) => ['node-repl', 'browser-repl'].includes(b)),
+                ]),
+              ]
+            : allBuilds;
           const buildItem = await util.quickPickSingle({
-            values: startedBuilds
-              ? startedBuilds.map((a) => ({ label: a }))
-              : (await figwheelOrShadowBuilds(cljsTypeName)).map((a) => ({ label: a })),
+            values: availableBuilds.map((a) => ({ label: a })),
             placeHolder: 'Select which build to connect to',
             saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
               ' ',
