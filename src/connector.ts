@@ -7,7 +7,7 @@ import * as open from 'open';
 import status from './status';
 import * as projectTypes from './nrepl/project-types';
 import { NReplClient, NReplSession } from './nrepl';
-import { detectInitialRuntime } from './shadow-cljs-runtime';
+import * as shadowCljsRuntime from './shadow-cljs-runtime';
 import {
   CljsTypeConfig,
   ReplConnectSequence,
@@ -154,6 +154,12 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         const cljsType: CljsTypeConfig = isBuiltinType
           ? getDefaultCljsType(connectSequence.cljsType as string)
           : (connectSequence.cljsType as CljsTypeConfig);
+
+        // Initialize shadow-cljs remote notifications if we're connecting to shadow-cljs
+        if (isShadowCljsReplType(cljsType)) {
+          await shadowCljsRuntime.initializeShadowRemoteNotifications();
+        }
+
         translatedReplType = createCLJSReplType(
           cljsType,
           projectTypes.getCljsTypeName(connectSequence),
@@ -513,7 +519,7 @@ function createCLJSReplType(
       }
       const runtimesConnected = await waitForShadowCljsRuntimes();
       if (runtimesConnected) {
-        await detectInitialRuntime();
+        await shadowCljsRuntime.detectInitialRuntime();
       }
       return runtimesConnected;
     } else {

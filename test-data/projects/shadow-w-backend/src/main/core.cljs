@@ -20,3 +20,8 @@
 
 (defn ^:dev/before-load stop []
   (js/console.log "stop"))
+
+(comment
+  (js/alert)
+  :rcf)
+

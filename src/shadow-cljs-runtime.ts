@@ -188,7 +188,7 @@ export async function switchToRuntime(runtimeInfo: RuntimeInfo): Promise<boolean
   try {
     const cljSession = replSession.getSession('clj');
     if (!cljSession) {
-      output.appendLineOtherErr('No Clojure session available for runtime selection');
+      output.appendLineOtherErr('No Clojure session available for shadow-cljs runtime selection');
       return false;
     }
 
@@ -199,16 +199,14 @@ export async function switchToRuntime(runtimeInfo: RuntimeInfo): Promise<boolean
 
     await cljSession.eval(selectRuntimeCode, 'user').value;
 
-    // Store runtime selection in state
-    cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeId', clientId);
-    cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeInfo', runtimeInfo);
+    updateRuntimeState(clientId, runtimeInfo);
 
     // Update status bar to show the new runtime
     status.update();
 
     return true;
   } catch (error) {
-    output.appendLineOtherErr(`Error switching to runtime: ${error}`);
+    output.appendLineOtherErr(`Error switching to shadow-cljs runtime: ${error}`);
     return false;
   }
 }
@@ -226,17 +224,17 @@ export async function selectShadowCljsRuntimeCommand(): Promise<void> {
 
       if (success) {
         void output.appendLineOtherOut(
-          `Switched to runtime ${selectedRuntime.runtimeInfo.clientId}: ${selectedRuntime.description}`
+          `Switched to shadow-cljs runtime ${selectedRuntime.runtimeInfo.clientId}: ${selectedRuntime.description}`
         );
       } else {
         void vscode.window.showErrorMessage(
-          `Failed to switch runtime (ID: ${selectedRuntime.runtimeInfo.clientId}). See Calva output for details.`
+          `Failed to switch shadow-cljs runtime (ID: ${selectedRuntime.runtimeInfo.clientId}). See Calva output for details.`
         );
       }
     }
   } catch (error) {
     output.appendLineOtherErr(`Error in selectShadowCljsRuntimeCommand: ${error}`);
-    void vscode.window.showErrorMessage(`Failed to select runtime: ${error}`);
+    void vscode.window.showErrorMessage(`Failed to select shadow-cljs runtime: ${error}`);
   }
 }
 
@@ -253,25 +251,23 @@ export async function detectInitialRuntime(): Promise<void> {
 
     const runtimes = await getShadowRuntimes();
     if (!runtimes || runtimes.length === 0) {
-      output.appendLineOtherOut(`No runtimes detected.`);
+      output.appendLineOtherOut(`No shadow-cljs runtimes detected.`);
       return; // No runtimes available
     }
 
     const runtime = runtimes[0];
     const clientId = runtime.clientId;
 
-    // Store the detected runtime
-    cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeId', clientId);
-    cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeInfo', runtime);
+    updateRuntimeState(clientId, runtime);
 
     status.update();
     if (runtimes.length > 1) {
       output.appendLineOtherOut(
-        `Multiple runtimes detected (${runtimes.length}). Assuming the first one, ${clientId}, is connected.`
+        `Multiple shadow-cljs runtimes detected (${runtimes.length}). Assuming the first one, ${clientId}, is connected.`
       );
     }
     output.appendLineOtherOut(
-      `Connected runtime: ${clientId}, ${runtime.description}, host: ${runtime.host}`
+      `Connected shadow-cljs runtime: ${clientId}, ${runtime.description}, host: ${runtime.host}`
     );
   } catch (error) {
     output.appendLineOtherOut(`Note: Could not detect initial shadow-cljs runtime: ${error}`);
@@ -279,3 +275,92 @@ export async function detectInitialRuntime(): Promise<void> {
 }
 
 export type { ShadowApiRuntimeInfo as ShadowRuntimeInfo, RuntimeQuickPickItem };
+
+export function updateRuntimeState(clientId: number, runtimeInfo: RuntimeInfo): void {
+  cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeId', clientId);
+  cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeInfo', runtimeInfo);
+  status.update();
+}
+
+export function clearRuntimeState(): void {
+  cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeId', null);
+  cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeInfo', null);
+  status.update();
+}
+
+/**
+ * Handle shadow-remote messages for runtime status updates
+ * We only care about notifications, for now
+ * If the current runtime discconnects, we do not connect a new runtime automatically,
+ * except if a new runtime presents itself while we are disconnected,
+ * if so, we connect to it.
+ * This supports the case where we the user is connected to a client and reloads the page,
+ * expecting to remain connected to the reloaded page.
+ */
+export async function handleShadowRemoteMessage(msgData: any): Promise<void> {
+  try {
+    if (msgData.data) {
+      const data = parseEdn(msgData.data);
+      if (data && data.op === 'notify' && data['client-id']) {
+        const clientId = data['client-id'];
+        const currentRuntimeId = getSelectedRuntimeId();
+        const currentRuntimeInfo = getSelectedRuntimeInfo() || { description: 'No description' };
+        const eventOp = data['event-op'];
+        if (eventOp === 'client-disconnect' && clientId === currentRuntimeId) {
+          // The connected runtime was disconnected
+          clearRuntimeState();
+          output.appendLineOtherOut(
+            `shadow-cljs runtime disconnected: ${clientId} ${currentRuntimeInfo.description}`
+          );
+        } else if (eventOp === 'client-connect' && !currentRuntimeId) {
+          // We are disconnected, and a new runtime appears => we connect to it
+          const runtimeInfo = data['client-info']
+            ? normalizeRuntimeInfo(data['client-info'])
+            : null;
+          if (runtimeInfo) {
+            runtimeInfo.clientId = clientId; // Notification infos lack client id
+            const success = await switchToRuntime(runtimeInfo);
+            if (success) {
+              output.appendLineOtherOut(
+                `shadow-cljs runtime connected: ${clientId}, ${runtimeInfo.description}`
+              );
+            } else {
+              output.appendLineOtherErr(
+                `Failed to connect shadow-cljs runtime: ${clientId}, ${runtimeInfo.description}`
+              );
+            }
+          }
+        }
+      }
+    }
+  } catch (error) {
+    output.appendLineOtherErr(`Error handling shadow-remote message: ${error}`);
+  }
+}
+
+/**
+ * Initialize shadow-remote notifications for real-time runtime status updates
+ */
+export async function initializeShadowRemoteNotifications(): Promise<void> {
+  try {
+    const cljSession = replSession.getSession('clj');
+    if (!cljSession) {
+      output.appendLineOtherErr('No Clojure session available for shadow-remote initialization');
+      return;
+    }
+
+    // shadow-remote does not provide regular RPC-style nrepl ops
+    // Nothing interesting in these promises,
+    await cljSession.shadowCljsRemoteInit();
+    // According to docs we should get a `welcome` message. Ideally we would
+    // use that to signal that we can register the notify.
+    // But it doesn't seem to happen, so we wait a few ms instead,
+    // lest the notify won't register.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    await cljSession.shadowCljsRemoteRegisterNotify();
+
+    output.appendLineOtherOut('Initialized shadow-cljs runtime status notifications');
+  } catch (error) {
+    output.appendLineOtherOut(`Note: Could not initialize shadow-remote notifications: ${error}`);
+  }
+}
