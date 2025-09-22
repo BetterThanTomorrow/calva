@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.530] - 2025-09-22
+
 - [Make shadow-cljs runtimes status update with connection status](https://github.com/BetterThanTomorrow/calva/issues/2928)
 
 ## [2.0.529] - 2025-09-21
