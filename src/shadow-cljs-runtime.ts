@@ -346,10 +346,10 @@ export async function initializeShadowRemoteNotifications(): Promise<void> {
       return;
     }
 
-    const initResult = await cljSession.shadowCljsRemoteInit();
-    console.debug('initesult', initResult);
-    const remoteClients = await cljSession.shadowCljsRemoteRegisterNotify();
-    console.debug('remoteClients', remoteClients);
+    // shadow-remote does not provide regular RPC-style nrepl ops
+    // Nothing interesting in these promises,
+    await cljSession.shadowCljsRemoteInit();
+    await cljSession.shadowCljsRemoteRegisterNotify();
 
     output.appendLineOtherOut('Initialized shadow-cljs runtime status notifications');
   } catch (error) {
