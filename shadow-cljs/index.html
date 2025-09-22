@@ -2085,8 +2085,8 @@
   
 
 
-<p>Calva supports most any JVM hosted ClojureScript environment (and some others, including SCI based, too), but shadow-cljs gets some special treatment to try make it extra convenient to use.</p>
-<p>With many shadow-cljs projects, Calva's <em>connect project type</em> <strong>shadow-cljs</strong>, is the right choice. Projects that use Leiningen or deps.edn can be used both with the <strong>Leiningen/deps.edn</strong> <em>and</em> <strong>shadow-cljs</strong> type, depending on configuration see <a href="#shadow-cljs-in-full-stack-projects">below</a> for more on this.</p>
+<p>Calva supports most any JVM hosted ClojureScript environment (and some others, including SCI based, too), but <a href="https://github.com/thheller/shadow-cljs">shadow-cljs</a> gets some special treatment to try to make it extra convenient to use.</p>
+<p>With many shadow-cljs projects, Calva's <em>connect project type</em> <strong>shadow-cljs</strong>, is the right choice. Projects that use Leiningen or deps.edn can be used both with the <strong>Leiningen/deps.edn</strong> <em>and</em> <strong>shadow-cljs</strong> type, depending on configuration, see <a href="#shadow-cljs-in-full-stack-projects">below</a> for more on this.</p>
 <h1 id="shadow-cljs-browser-quickstart">shadow-cljs - browser quickstart<a class="headerlink" href="#shadow-cljs-browser-quickstart" title="Permanent link">#</a></h1>
 <p>Here's how you start a shadow-cljs ClojureScript REPL and connect Calva with the <a href="https://github.com/shadow-cljs/quickstart-browser">shadow-cljs - browser quickstart</a> example project:</p>
 <p><strong>Prep</strong>:</p>
@@ -2104,21 +2104,54 @@
 <li>Open http://localhost:8020/ in the browser</li>
 <li>Open browser.cljs file and load it in the REPL: <strong>Calva: Load/Evaluate Current File and Dependencies</strong></li>
 </ol>
-<p>Now you can should be able to evaluate forms, e.g.:</p>
+<p>Now you should be able to evaluate forms, e.g.:</p>
 <ul>
 <li>The current form or selection with <kbd>ctrl</kbd>+<kbd>enter</kbd>, or</li>
 <li>Top-level forms with <kbd>alt/option</kbd>+<kbd>enter</kbd>.</li>
 </ul>
 <p>(See <a href="../evaluation/">Code Evaluation</a>)</p>
-<h1 id="runtime-selection">Runtime Selection<a class="headerlink" href="#runtime-selection" title="Permanent link">#</a></h1>
-<p>When working with shadow-cljs projects you often have multiple runtimes running in different browser tabs, browsers, and phones, simultaneously. Calva will automatically connect to one of these (whichever runtime shadow-cljs connects when selecting a build). And you can then also switch between different JavaScript runtimes without reconnecting the REPL.</p>
-<h2 id="available-runtimes">Available Runtimes<a class="headerlink" href="#available-runtimes" title="Permanent link">#</a></h2>
-<p>Use the command <strong>Calva: Select Shadow CLJS Runtime</strong> to see all currently connected runtimes, presented in a VS Code quick-pick menu. The status bar will also display the active runtime when connected to a shadow-cljs project, and clicking this indicator will open the runtimes menu.</p>
-<h2 id="switching-runtimes">Switching Runtimes<a class="headerlink" href="#switching-runtimes" title="Permanent link">#</a></h2>
+<h1 id="shadow-cljs-runtimes">shadow-cljs Runtimes<a class="headerlink" href="#shadow-cljs-runtimes" title="Permanent link">#</a></h1>
+<p>A shadow-cljs Runtime is an instance of your app that connects to shadow-cljs. When Calva connects to a runtime, that's where your ClojureScript REPL evaluations run.</p>
+<div class="highlight"><pre><span></span><code>Calva &lt;-talks to-&gt; shadow-cljs server &lt;-talks-to-&gt; App (Runtime)
+</code></pre></div>
+<p>We call the <strong>App (Runtime)</strong> in this diagram <em>the currently connected runtime</em>, and sometimes <em>the active runtime</em>.</p>
+<p>When working with shadow-cljs projects you often have multiple runtimes running simultaneously across different browsers, tabs, and devices. Calva automatically connects to one runtime initially and lets you switch between them. It also detects when runtimes connect or disconnect.</p>
+<h2 id="available-runtimes">Available runtimes<a class="headerlink" href="#available-runtimes" title="Permanent link">#</a></h2>
+<p>Use the command <strong>Calva: Select Shadow CLJS Runtime</strong> to see all runtimes that are currently connected to shadow-cljs. The runtimes will be presented in a VS Code quick-pick menu. The status bar will also display the active runtime, and clicking this indicator will open the runtimes menu.</p>
+<h2 id="switching-runtimes">Switching runtimes<a class="headerlink" href="#switching-runtimes" title="Permanent link">#</a></h2>
 <p>The <strong>Calva: Select Shadow CLJS Runtime</strong> menu will also let you select which runtime the <code>cljs</code> repl is connected to.</p>
 <p><img alt="shadow-cljs-runtimes-menu" src="/images/shadow-cljs/runtimes-menu.png" /></p>
+<h2 id="automatic-tracking-of-current-runtime">Automatic tracking of current runtime<a class="headerlink" href="#automatic-tracking-of-current-runtime" title="Permanent link">#</a></h2>
+<p>Calva reacts to notifications from shadow-cljs about runtimes that connect to the server:</p>
+<p>If no runtime is connected to Calva and a new runtime connects to shadow-cljs:</p>
+<ul>
+<li><em>Calva will connect to this new runtime</em></li>
+</ul>
+<p>If Calva is connected to a runtime that disconnects from shadow-cljs:</p>
+<ul>
+<li><em>Calva will have no connected runtime</em>. Even if there are more runtimes connected to shadow-cljs, you'll need to initiate a connection and select a new runtime manually.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Reload scenarios supported</p>
+<p>Note that this means that if you have the app running in browser tabs <strong>A</strong>, <strong>B</strong>, and <strong>C</strong>, with Calva connected to <strong>A</strong>, and you reload browser tab <strong>A</strong>:</p>
+<ul>
+<li><em>Calva will “reconnect” to </em><em>A</em>**</li>
+</ul>
+<p>But if you just close <strong>A</strong>:</p>
+<ul>
+<li><em>Calva will not automatically connect to </em><em>B</em><em>, nor </em><em>C</em>**</li>
+</ul>
+<p>And if you, while disconnected, start the app on the iPhone <strong>D</strong>:</p>
+<ul>
+<li><em>Calva will connect </em><em>D</em>**</li>
+</ul>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Code hot reload</p>
+<p>Also note that the connection we're talking about here is Calva's connection to the app's REPL. shadow-cljs hot reloading of code when a file is saved always happens in all runtimes for all apps that are built from the code of that file. Calva is not involved in this mechanism.</p>
+</div>
 <h1 id="shadow-cljs-in-full-stack-projects">shadow-cljs in full stack projects<a class="headerlink" href="#shadow-cljs-in-full-stack-projects" title="Permanent link">#</a></h1>
-<p><strong>shadow-cljs</strong> is a bit special in regards to Calva REPL connection. Mainly because you can start <strong>shadow-cljs</strong> and it's nREPL server in two ways:</p>
+<p><strong>shadow-cljs</strong> is a bit special in regards to Calva REPL connection. Mainly because you can start <strong>shadow-cljs</strong> and its nREPL server in two ways:</p>
 <ol>
 <li>Using the <strong>shadow-cljs</strong> npm executable</li>
 <li>Via the Clojure REPL in your Leiningen or <strong>deps.edn</strong> project</li>
@@ -2128,7 +2161,7 @@
 <li>Project type: <strong>shadow-cljs</strong></li>
 <li>Project type: <strong>deps.edn + shadow-cljs</strong> or <strong>Leiningen + shadow-cljs</strong></li>
 </ol>
-<p>The technical difference here is wether you let <strong>shadow-cljs</strong> start <strong>clojure</strong>/<strong>Leiningen</strong> (the first option) or if you let Calva do it (the second option). If you let Calva do it, Calva will then start the <strong>shadow-cljs</strong> watcher from the Clojure process. From a usage perspective the two approaches will result in different channeling of <strong>shadow-cljs</strong> output, e.g. test runner results. With the first option (the <strong>shadow-cljs</strong> project type), <strong>shadow-cljs</strong> output will be channeled to the <strong>Jack-in</strong> terminal. With the <strong>deps.edn</strong>/<strong>Leiningen</strong> option, that output will be channeled to the Output/REPL window.</p>
+<p>The technical difference here is whether you let <strong>shadow-cljs</strong> start <strong>clojure</strong>/<strong>Leiningen</strong> (the first option) or if you let Calva do it (the second option). If you let Calva do it, Calva will then start the <strong>shadow-cljs</strong> watcher from the Clojure process. From a usage perspective the two approaches will result in different channeling of <strong>shadow-cljs</strong> output, e.g. test runner results. With the first option (the <strong>shadow-cljs</strong> project type), <strong>shadow-cljs</strong> output will be channeled to the <strong>Jack-in</strong> terminal. With the <strong>deps.edn</strong>/<strong>Leiningen</strong> option, that output will be channeled to the Output/REPL window.</p>
 <p>See <a href="https://blog.agical.se/en/posts/shadow-cljs-clojure-cljurescript-calva-nrepl-basics/">shadow-cljs + Clojure with Calva: The basics</a> for some more discussion on how the REPL connection works.</p>
 <div class="admonition note">
 <p class="admonition-title">shadow-cljs and <code>clojure</code> aliases</p>
