@@ -188,7 +188,7 @@ export async function switchToRuntime(runtimeInfo: RuntimeInfo): Promise<boolean
   try {
     const cljSession = replSession.getSession('clj');
     if (!cljSession) {
-      output.appendLineOtherErr('No Clojure session available for runtime selection');
+      output.appendLineOtherErr('No Clojure session available for shadow-cljs runtime selection');
       return false;
     }
 
@@ -206,7 +206,7 @@ export async function switchToRuntime(runtimeInfo: RuntimeInfo): Promise<boolean
 
     return true;
   } catch (error) {
-    output.appendLineOtherErr(`Error switching to runtime: ${error}`);
+    output.appendLineOtherErr(`Error switching to shadow-cljs runtime: ${error}`);
     return false;
   }
 }
@@ -224,17 +224,17 @@ export async function selectShadowCljsRuntimeCommand(): Promise<void> {
 
       if (success) {
         void output.appendLineOtherOut(
-          `Switched to runtime ${selectedRuntime.runtimeInfo.clientId}: ${selectedRuntime.description}`
+          `Switched to shadow-cljs runtime ${selectedRuntime.runtimeInfo.clientId}: ${selectedRuntime.description}`
         );
       } else {
         void vscode.window.showErrorMessage(
-          `Failed to switch runtime (ID: ${selectedRuntime.runtimeInfo.clientId}). See Calva output for details.`
+          `Failed to switch shadow-cljs runtime (ID: ${selectedRuntime.runtimeInfo.clientId}). See Calva output for details.`
         );
       }
     }
   } catch (error) {
     output.appendLineOtherErr(`Error in selectShadowCljsRuntimeCommand: ${error}`);
-    void vscode.window.showErrorMessage(`Failed to select runtime: ${error}`);
+    void vscode.window.showErrorMessage(`Failed to select shadow-cljs runtime: ${error}`);
   }
 }
 
@@ -251,7 +251,7 @@ export async function detectInitialRuntime(): Promise<void> {
 
     const runtimes = await getShadowRuntimes();
     if (!runtimes || runtimes.length === 0) {
-      output.appendLineOtherOut(`No runtimes detected.`);
+      output.appendLineOtherOut(`No shadow-cljs runtimes detected.`);
       return; // No runtimes available
     }
 
@@ -263,11 +263,11 @@ export async function detectInitialRuntime(): Promise<void> {
     status.update();
     if (runtimes.length > 1) {
       output.appendLineOtherOut(
-        `Multiple runtimes detected (${runtimes.length}). Assuming the first one, ${clientId}, is connected.`
+        `Multiple shadow-cljs runtimes detected (${runtimes.length}). Assuming the first one, ${clientId}, is connected.`
       );
     }
     output.appendLineOtherOut(
-      `Connected runtime: ${clientId}, ${runtime.description}, host: ${runtime.host}`
+      `Connected shadow-cljs runtime: ${clientId}, ${runtime.description}, host: ${runtime.host}`
     );
   } catch (error) {
     output.appendLineOtherOut(`Note: Could not detect initial shadow-cljs runtime: ${error}`);
@@ -304,11 +304,14 @@ export async function handleShadowRemoteMessage(msgData: any): Promise<void> {
       if (data && data.op === 'notify' && data['client-id']) {
         const clientId = data['client-id'];
         const currentRuntimeId = getSelectedRuntimeId();
+        const currentRuntimeInfo = getSelectedRuntimeInfo() || { description: 'No description' };
         const eventOp = data['event-op'];
         if (eventOp === 'client-disconnect' && clientId === currentRuntimeId) {
           // The connected runtime was disconnected
           clearRuntimeState();
-          output.appendLineOtherOut(`Runtime disconnected: ${clientId}`);
+          output.appendLineOtherOut(
+            `shadow-cljs runtime disconnected: ${clientId} ${currentRuntimeInfo.description}`
+          );
         } else if (eventOp === 'client-connect' && !currentRuntimeId) {
           // We are disconnected, and a new runtime appears => we connect to it
           const runtimeInfo = data['client-info']
@@ -319,11 +322,11 @@ export async function handleShadowRemoteMessage(msgData: any): Promise<void> {
             const success = await switchToRuntime(runtimeInfo);
             if (success) {
               output.appendLineOtherOut(
-                `Runtime connected: ${clientId}, ${runtimeInfo.description}`
+                `shadow-cljs runtime connected: ${clientId}, ${runtimeInfo.description}`
               );
             } else {
               output.appendLineOtherErr(
-                `Failed to connect runtime: ${clientId}, ${runtimeInfo.description}`
+                `Failed to connect shadow-cljs runtime: ${clientId}, ${runtimeInfo.description}`
               );
             }
           }
