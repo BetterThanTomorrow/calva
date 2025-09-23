@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Make shadow-remote notifications register more reliably](https://github.com/BetterThanTomorrow/calva/issues/2932)
+- Bump deps.clj.jar to v1.12.2.1571
 
 ## [2.0.530] - 2025-09-22
 
