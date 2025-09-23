@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.531] - 2025-09-23
+
+- [Make shadow-remote notifications register more reliably](https://github.com/BetterThanTomorrow/calva/issues/2932)
+- Bump deps.clj.jar to v1.12.2.1571
+
 ## [2.0.530] - 2025-09-22
 
 - [Make shadow-cljs runtimes status update with connection status](https://github.com/BetterThanTomorrow/calva/issues/2928)

@@ -155,11 +155,6 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
           ? getDefaultCljsType(connectSequence.cljsType as string)
           : (connectSequence.cljsType as CljsTypeConfig);
 
-        // Initialize shadow-cljs remote notifications if we're connecting to shadow-cljs
-        if (isShadowCljsReplType(cljsType)) {
-          await shadowCljsRuntime.initializeShadowRemoteNotifications();
-        }
-
         translatedReplType = createCLJSReplType(
           cljsType,
           projectTypes.getCljsTypeName(connectSequence),
@@ -520,6 +515,7 @@ function createCLJSReplType(
       const runtimesConnected = await waitForShadowCljsRuntimes();
       if (runtimesConnected) {
         await shadowCljsRuntime.detectInitialRuntime();
+        await shadowCljsRuntime.initializeShadowRemoteNotifications();
       }
       return runtimesConnected;
     } else {
