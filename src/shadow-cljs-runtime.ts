@@ -348,17 +348,13 @@ export async function initializeShadowRemoteNotifications(): Promise<void> {
       output.appendLineOtherErr('No Clojure session available for shadow-remote initialization');
       return;
     }
-
-    // shadow-remote does not provide regular RPC-style nrepl ops
-    // Nothing interesting in these promises,
-    await cljSession.shadowCljsRemoteInit();
-    // According to docs we should get a `welcome` message. Ideally we would
-    // use that to signal that we can register the notify.
-    // But it doesn't seem to happen, so we wait a few ms instead,
-    // lest the notify won't register.
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    const initResult = await cljSession.shadowCljsRemoteInit();
+    if (initResult?.timeout) {
+      console.info('shadow-cljs remote init timed out, continuing anyway...');
+    } else {
+      console.info('shadow-cljs remote init succeeded:', initResult);
+    }
     await cljSession.shadowCljsRemoteRegisterNotify();
-
     output.appendLineOtherOut('Initialized shadow-cljs runtime status notifications');
   } catch (error) {
     output.appendLineOtherOut(`Note: Could not initialize shadow-remote notifications: ${error}`);

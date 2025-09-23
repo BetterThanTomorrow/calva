@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make shadow-remote notifications register more reliably](https://github.com/BetterThanTomorrow/calva/issues/2932)
+
 ## [2.0.530] - 2025-09-22
 
 - [Make shadow-cljs runtimes status update with connection status](https://github.com/BetterThanTomorrow/calva/issues/2928)

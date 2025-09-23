@@ -988,10 +988,17 @@ export class NReplSession {
         session: this.sessionId,
         'data-type': 'edn',
       };
-      // shadow-cljs remote messages do not respond with an acknowledging response
-      // so we can't bind a messagehandler the usual way. Fire-and-forget!
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = (msg) => {
+          resolve(msg);
+          return true;
+        };
+      } else {
+        // shadow-cljs versions that do not `describe` `shadow-remote-init` will not send a
+        // response signaling it is processed, we wait a bit instead
+        setTimeout(() => resolve({ timeout: true }), 200);
+      }
       this.client.write(msg);
-      resolve(null);
     });
   }
 
