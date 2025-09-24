@@ -172,9 +172,13 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       if (cljsSession) {
         await setUpCljsRepl(cljsSession, cljsBuild);
       }
+      if (isShadowCljsReplType(connectSequence.cljsType)) {
+        await shadowCljsRuntime.initializeShadowRemoteNotifications();
+      }
     } catch (e) {
       output.appendLineOtherErr('Error while connecting cljs REPL: ' + e);
     }
+
     status.update();
   } catch (e) {
     return cleanUpAfterError(e);

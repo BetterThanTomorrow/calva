@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Re-enable shadow-cljs runtimes connection updates...
+
 ## [2.0.533] - 2025-09-24
 
 - Fix: [Calva registers for shadow-cljs runtime connects more than once per server connection](https://github.com/BetterThanTomorrow/calva/pull/2937)
