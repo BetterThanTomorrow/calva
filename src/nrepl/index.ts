@@ -993,12 +993,12 @@ export class NReplSession {
           resolve(msg);
           return true;
         };
+        this.client.write(msg);
       } else {
         // shadow-cljs versions that do not `describe` `shadow-remote-init` will not send a
-        // response signaling it is processed, we wait a bit instead
-        setTimeout(() => resolve({ timeout: true }), 200);
+        // response signaling it is processed, we skip initializing
+        resolve(null);
       }
-      this.client.write(msg);
     });
   }
 
@@ -1011,10 +1011,17 @@ export class NReplSession {
         session: this.sessionId,
         data: '{:op :request-clients :notify true :query [:eq :type :runtime]}',
       };
-      // shadow-cljs remote messages do not respond with an acknowledging response
-      // so we can't bind a messagehandler the usual way. Fire-and-forget!
-      this.client.write(msg);
-      resolve(null);
+      if (this.supports(msg.op)) {
+        this.messageHandlers[id] = (msg) => {
+          resolve(msg);
+          return true;
+        };
+        this.client.write(msg);
+      } else {
+        // shadow-cljs versions that do not `describe` `shadow-remote-init` will not send a
+        // response signaling it is processed, we skip subscribing
+        resolve(null);
+      }
     });
   }
 }

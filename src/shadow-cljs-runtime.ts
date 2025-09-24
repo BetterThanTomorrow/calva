@@ -349,13 +349,14 @@ export async function initializeShadowRemoteNotifications(): Promise<void> {
       return;
     }
     const initResult = await cljSession.shadowCljsRemoteInit();
-    if (initResult?.timeout) {
-      console.info('shadow-cljs remote init timed out, continuing anyway...');
+    if (initResult) {
+      await cljSession.shadowCljsRemoteRegisterNotify();
+      output.appendLineOtherOut('Initialized shadow-cljs runtime status notifications');
     } else {
-      console.info('shadow-cljs remote init succeeded:', initResult);
+      output.appendLineOtherOut(
+        'shadow-cljs remote notificatuons not supported with shadow-cljs version < 3.2.1'
+      );
     }
-    await cljSession.shadowCljsRemoteRegisterNotify();
-    output.appendLineOtherOut('Initialized shadow-cljs runtime status notifications');
   } catch (error) {
     output.appendLineOtherOut(`Note: Could not initialize shadow-remote notifications: ${error}`);
   }
