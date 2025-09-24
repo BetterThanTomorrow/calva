@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.534] - 2025-09-24
+
 - Re-enable shadow-cljs runtimes connection updates...
 
 ## [2.0.533] - 2025-09-24
