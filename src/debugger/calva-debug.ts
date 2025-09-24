@@ -505,6 +505,10 @@ function handleNeedDebugInput(response: any): void {
 }
 
 debug.onDidStartDebugSession((session) => {
+  if (session.type != CALVA_DEBUG_CONFIGURATION.type) {
+    return;
+  }
+
   // We only start debugger sessions when a breakpoint is hit
   void session.customRequest(REQUESTS.SEND_STOPPED_EVENT, {
     reason: 'breakpoint',
