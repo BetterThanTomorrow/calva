@@ -10,6 +10,7 @@ import { NReplClient, NReplSession } from './nrepl';
 import * as shadowCljsRuntime from './shadow-cljs-runtime';
 import {
   CljsTypeConfig,
+  CljsTypes,
   ReplConnectSequence,
   getDefaultCljsType,
   askForConnectSequence,
@@ -515,7 +516,6 @@ function createCLJSReplType(
       const runtimesConnected = await waitForShadowCljsRuntimes();
       if (runtimesConnected) {
         await shadowCljsRuntime.detectInitialRuntime();
-        await shadowCljsRuntime.initializeShadowRemoteNotifications();
       }
       return runtimesConnected;
     } else {
@@ -614,12 +614,16 @@ function createCLJSReplType(
   return replType;
 }
 
-function isShadowCljsReplType(cljsType: CljsTypeConfig) {
-  return (
-    (typeof cljsType === 'string' && cljsType === 'shadow-cljs') ||
-    cljsType.name === 'shadow-cljs' ||
-    cljsType.dependsOn === 'shadow-cljs'
-  );
+function isShadowCljsReplType(cljsType: CljsTypeConfig | CljsTypes): boolean {
+  if (typeof cljsType === 'string') {
+    return cljsType === 'shadow-cljs';
+  }
+
+  if (typeof cljsType === 'object' && cljsType !== null) {
+    return cljsType.name === 'shadow-cljs' || cljsType.dependsOn === 'shadow-cljs';
+  }
+
+  return false;
 }
 
 async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: string) {
