@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Prevent calva from breaking other debugging session
+- [Prevent calva from breaking other debugging session](https://github.com/BetterThanTomorrow/calva/pull/2934)
 
 ## [2.0.531] - 2025-09-23
 
