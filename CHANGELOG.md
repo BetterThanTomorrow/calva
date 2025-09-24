@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Prevent calva from breaking other debugging session
+
 ## [2.0.531] - 2025-09-23
 
 - [Make shadow-remote notifications register more reliably](https://github.com/BetterThanTomorrow/calva/issues/2932)
