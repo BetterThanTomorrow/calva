@@ -59,7 +59,7 @@ The **Calva: Select Shadow CLJS Runtime** menu will also let you select which ru
 
 ## Automatic tracking of current runtime
 
-Calva reacts to notifications from shadow-cljs about runtimes that connect to the server:
+If you are using shadow-cljs version `3.2.1` or newer, Calva will react to notifications from shadow-cljs about runtimes that connect to the server:
 
 If no runtime is connected to Calva and a new runtime connects to shadow-cljs:
 
