@@ -3,6 +3,7 @@ import * as printer from '../printer';
 import * as replSession from '../nrepl/repl-session';
 import * as resultOutput from '../results-output/output';
 import * as util from '../utilities';
+import { getConfig } from '../config';
 
 type Result = {
   result: string;
@@ -35,31 +36,58 @@ export const evaluateCode = async (
       );
     }
   }
-  const stdout = output
-    ? output.stdout
-    : (m: string) => {
-        resultOutput.appendOtherOut(m);
-      };
-  const stderr = output
-    ? output.stderr
-    : (m: string) => {
-        resultOutput.appendOtherErr(m);
-      };
+  // Always send to Calva destinations AND call custom handlers if provided
+  const stdout = (m: string) => {
+    resultOutput.appendEvalOut(m);
+
+    if (output?.stdout) {
+      output.stdout(m);
+    }
+  };
+
+  const stderr = (m: string) => {
+    resultOutput.appendEvalErr(m, {
+      ns: ns,
+      replSessionType: sessionKeyToUse,
+    });
+
+    if (output?.stderr) {
+      output.stderr(m);
+    }
+  };
   const evaluation = session.eval(code, ns, {
     stdout: stdout,
     stderr: stderr,
     pprintOptions: printer.disabledPrettyPrinter,
     ...nReplEvalOptions,
   });
+  // Honor the evaluationSendCodeToOutputWindow setting like manual evaluations do
+  if (getConfig().evaluationSendCodeToOutputWindow) {
+    if (resultOutput.getDestinationConfiguration().evalResults !== 'repl-window') {
+      resultOutput.appendClojureEval(code, {
+        ns,
+        replSessionType: sessionKeyToUse,
+        outputCategory: 'evaluatedCode',
+      });
+    }
+  }
+
   let result: Result;
   try {
+    const evaluationResult = await evaluation.value;
     result = {
-      result: await evaluation.value,
+      result: evaluationResult,
       ns: evaluation.ns,
       output: evaluation.outPut,
       errorOutput: evaluation.errorOutput,
       sessionKey: sessionKeyToUse,
     };
+
+    // Always display results in Calva destination
+    resultOutput.appendClojureEval(evaluationResult, {
+      ns: evaluation.ns,
+      replSessionType: sessionKeyToUse,
+    });
   } catch (evalError) {
     let stacktrace;
     try {
@@ -76,6 +104,11 @@ export const evaluateCode = async (
         error: `${evalError}`,
         stacktrace,
       };
+
+      resultOutput.appendClojureEval('nil', {
+        ns: evaluation.ns,
+        replSessionType: sessionKeyToUse,
+      });
     }
   }
   return result;

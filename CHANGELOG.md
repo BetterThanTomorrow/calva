@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make API evaluations show in the Calva output destination](https://github.com/BetterThanTomorrow/calva/issues/2942)
+
 ## [2.0.534] - 2025-09-24
 
 - Re-enable shadow-cljs runtimes connection updates...
