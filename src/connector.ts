@@ -75,6 +75,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
   let cljSession: NReplSession;
 
   util.setConnectingState(true);
+  void vscode.commands.executeCommand('setContext', 'calva:connectSequence', connectSequence.name);
   status.update();
   try {
     output.appendLineOtherOut('Hooking up nREPL sessions ...');
@@ -98,6 +99,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       //       or, only here...
       util.setConnectedState(false);
       util.setConnectingState(false);
+      util.setConnectingState(true);
       if (!c['silent']) {
         // we didn't deliberately close this session, mention this fact.
         output.appendLineOtherOut('nREPL Connection was closed');

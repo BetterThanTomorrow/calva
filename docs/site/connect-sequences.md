@@ -18,7 +18,7 @@ NB: _Connect sequence configuration affects Calva's Jack-in menu in the followin
 
 A connect sequence configures the following:
 
-* `name`: (required) This will show up in the Jack-in quick-pick menu when you start Jack-in (see above).
+* `name`: (required) This will show up in the Jack-in quick-pick menu when you start Jack-in (see above). This will be set the [When Clause context](when-clauses.md) `calva:connectSequence`, so you can e.g. bind keyboard shortcuts depending on which sequence is selected.
 * `projectType`: (required) This is either "Leiningen”, "deps.edn", "shadow-cljs", "lein-shadow", "Gradle", "babashka", "nbb", "basilisp", "joyride", ”generic”, "custom", or "cljs-only".
 * `autoSelectForJackIn`: A boolean. If true, this sequence will be automatically selected at **Jack-in**, suppressing the Project Type. Use together with `projectRootPath` to also suppress the Project Root menu. Add usage of `menuSelections` to go for a prompt-less REPL Jack-in. If you have more than one sequence with `autoSelectForJackIn` set to true, Calva will use the sequence with its `projectRootPath` closest to the currently active editor file. And if there is no such closest file, the first sequence will be used.
 * `autoSelectForConnect`: A boolean. If true, this sequence will be automatically selected at **Connect**, suppressing the Project Type menu. Use together with `projectRootPath` to also suppress the Project Root menu. If you have more than one sequence with `autoSelectForConnect` set to true, Calva will use the sequence with its `projectRootPath` closest to the currently active editor file. And if there is no such closest file, the first sequence will be used.
