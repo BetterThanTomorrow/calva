@@ -2104,7 +2104,23 @@
 <li><code>calva:projectRoot</code>: A string with the absolute path to the repl project root, <em>without trailing slash</em></li>
 <li><code>calva:ns</code>: A string with the current namespace</li>
 <li><code>calva:replSessionType</code>: <code>clj</code>, or <code>cljs</code> depending on the file type of the current file</li>
+<li><code>calva:connectSequence</code>: The name of the currently selected <a href="../connect-sequences/">Connect Sequence</a></li>
 </ul>
+<p>Here's an example using the <code>calva:connectSequence</code> context for binding keyboard shortcuts depending on it. (Requires <a href="https://marketplace.visualstudio.com/items?itemName=BetterThanTomorrow.joyride">Joyride</a>, which you really should have installed!)</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cmd+ctrl+r&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;joyride.runCode&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[\&quot;vscode\&quot; :as vscode]) (vscode/window.showInformationMessage \&quot;deps.edn + shadow-cljs\&quot;)&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:connectSequence == &#39;deps.edn + shadow-cljs&#39;&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cmd+ctrl+r&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;joyride.runCode&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[\&quot;vscode\&quot; :as vscode]) (vscode/window.showInformationMessage \&quot;deps.edn\&quot;)&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:connectSequence == &#39;deps.edn&#39;&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+</code></pre></div>
+<p>See also the <a href="https://github.com/BetterThanTomorrow/calva/blob/dev/package.json">Calva extension manifest</a> for how the built in keybindings use these contexts. (Search for <code>keybindings</code> on that page).</p>
 
 
 
