@@ -23,7 +23,7 @@ description: Calva comes with batteries included and preconfigured, and if you d
 * `calva:projectRoot`: A string with the absolute path to the repl project root, _without trailing slash_
 * `calva:ns`: A string with the current namespace
 * `calva:replSessionType`: `clj`, or `cljs` depending on the file type of the current file
-* `calva:connectSequence`: The name of the currently seleected [Connect Sequence](connect-sequences.md)
+* `calva:connectSequence`: The name of the currently selected [Connect Sequence](connect-sequences.md)
 
 
 Here's an example using the `calva:connectSequence` context for binging keyboard shortcuts depending on it. (Require's [Joyride](https://marketplace.visualstudio.com/items?itemName=BetterThanTomorrow.joyride), which you really should have installed!)
