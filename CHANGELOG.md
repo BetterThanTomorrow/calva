@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.536] - 2025-09-28
+
 - Fix: [Terminal output destination normalizes `\r` to `\r\n`, breaking TUI output using `\r` for cursor return only](https://github.com/BetterThanTomorrow/calva/issues/2945)
 
 ## [2.0.535] - 2025-09-28
