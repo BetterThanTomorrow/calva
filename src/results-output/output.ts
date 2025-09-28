@@ -125,7 +125,7 @@ See also the Calva Inspector: https://calva.io/inspector
     );
   }
   write(message: string) {
-    this.writeEmitter.fire(message.replace(/\r(?!\n)|(?<!\r)\n/g, '\r\n'));
+    this.writeEmitter.fire(message.replace(/\r?\n/g, '\r\n'));
   }
   close(): void {
     outputPTY = undefined;
