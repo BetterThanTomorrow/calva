@@ -33,6 +33,7 @@ The table below lists the features of the different output destinations.
 | Syntax highlighting | ✅ | ✅ | ✅ | ✅ |
 | Syntax highlighting matches editor | ✅ | ❌ ** | ❌ | ❌ |
 | Supports input | ✅ | ❌ | ❌ | ❌ |
+| TUI applications (progress bars, cursor positioning) | ❌ | ❌ | ❌ | ✅ |
 | Handles high volume output well | ❌ | ✅ | ✅ | ✅ |
 | Handles large data structures well | ❌ | ✅ | ✅ | ✅ |
 | Command for clearing output | ❌ | ✅ | ✅ | ✅ |
