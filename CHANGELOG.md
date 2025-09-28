@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Make API evaluations show in the Calva output destination](https://github.com/BetterThanTomorrow/calva/issues/2942)
+- Bump deps.clj.jar to v1.12.3.1577
 
 ## [2.0.534] - 2025-09-24
 
