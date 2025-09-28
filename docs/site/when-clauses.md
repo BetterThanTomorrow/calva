@@ -23,3 +23,24 @@ description: Calva comes with batteries included and preconfigured, and if you d
 * `calva:projectRoot`: A string with the absolute path to the repl project root, _without trailing slash_
 * `calva:ns`: A string with the current namespace
 * `calva:replSessionType`: `clj`, or `cljs` depending on the file type of the current file
+* `calva:connectSequence`: The name of the currently selected [Connect Sequence](connect-sequences.md)
+
+
+Here's an example using the `calva:connectSequence` context for binding keyboard shortcuts depending on it. (Requires [Joyride](https://marketplace.visualstudio.com/items?itemName=BetterThanTomorrow.joyride), which you really should have installed!)
+
+```json
+  {
+    "key": "cmd+ctrl+r",
+    "command": "joyride.runCode",
+    "args": "(require '[\"vscode\" :as vscode]) (vscode/window.showInformationMessage \"deps.edn + shadow-cljs\")",
+    "when": "calva:connectSequence == 'deps.edn + shadow-cljs'"
+  },
+  {
+    "key": "cmd+ctrl+r",
+    "command": "joyride.runCode",
+    "args": "(require '[\"vscode\" :as vscode]) (vscode/window.showInformationMessage \"deps.edn\")",
+    "when": "calva:connectSequence == 'deps.edn'"
+  },
+```
+
+See also the [Calva extension manifest](https://github.com/BetterThanTomorrow/calva/blob/dev/package.json) for how the built in keybindings use these contexts. (Search for `keybindings` on that page).
