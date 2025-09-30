@@ -1893,6 +1893,12 @@
       },
       {
         "category": "Calva Paredit",
+        "command": "paredit.wrapAroundSet",
+        "title": "Wrap Around #{}",
+        "enablement": "editorLangId == clojure"
+      },
+      {
+        "category": "Calva Paredit",
         "command": "paredit.wrapAroundQuote",
         "title": "Wrap Around \"\"",
         "enablement": "editorLangId == clojure"
@@ -2663,6 +2669,11 @@
       {
         "command": "paredit.wrapAroundCurly",
         "key": "ctrl+alt+shift+c",
+        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+      },
+      {
+        "command": "paredit.wrapAroundSet",
+        "key": "ctrl+alt+shift+e",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
       },
       {
