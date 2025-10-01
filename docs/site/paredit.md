@@ -158,6 +158,7 @@ Default keybinding                | Action | Description
  `ctrl+alt+shift+p`                        | **Wrap Around ()** | Wraps the current form, or selection, with parens. <br> ![](images/paredit/wrap-around-parens.gif)
  `ctrl+alt+shift+s`                        | **Wrap Around []** | Wraps the current form, or selection, with square brackets. <br> ![](images/paredit/wrap-around-brackets.gif)
  `ctrl+alt+shift+c`                        | **Wrap Around {}** | Wraps the current form, or selection, with curlies. <br> ![](images/paredit/wrap-around-curlies.gif)
+ `ctrl+alt+shift+e`                        | **Wrap Around #{}** | Wraps the current form, or selection, with set. <br>
  `ctrl+alt+shift+q`                        | **Wrap Around ""** | Wraps the current form, or selection, with double quotes. Inside strings it will quote the quotes. <br> ![](images/paredit/wrap-around-quotes.gif)
  `ctrl+alt+r`<br>`ctrl+alt+p`/`s`/`c`/`q`/`h`                        | **Rewrap** | Changes enclosing brackets of the current form to parens/square brackets/curlies/double quotes and set (`#{}`) <br> ![](images/paredit/rewrap.gif)
 

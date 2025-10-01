@@ -409,6 +409,13 @@ const pareditCommands = [
     },
   },
   {
+    command: 'paredit.wrapAroundSet',
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
+      return paredit.wrapSexpr(doc, '#{', '}');
+    },
+  },
+  {
     command: 'paredit.wrapAroundQuote',
     handler: (doc: EditableDocument) => {
       return paredit.wrapSexpr(doc, '"', '"');
