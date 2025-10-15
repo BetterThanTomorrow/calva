@@ -233,9 +233,10 @@ class CalvaDebugSession extends LoggingDebugSession {
     request?: DebugProtocol.Request
   ): Promise<void> {
     const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
-    const uri = debugResponse.file.startsWith('jar:')
-      ? vscode.Uri.parse(debugResponse.file)
-      : vscode.Uri.file(debugResponse.file);
+    const uri =
+      debugResponse.file.startsWith('jar:') || debugResponse.file.startsWith('file:')
+        ? vscode.Uri.parse(debugResponse.file)
+        : vscode.Uri.file(debugResponse.file);
     const document = await vscode.workspace.openTextDocument(uri);
     const positionLine = convertOneBasedToZeroBased(debugResponse.line);
     const positionColumn = convertOneBasedToZeroBased(debugResponse.column);
