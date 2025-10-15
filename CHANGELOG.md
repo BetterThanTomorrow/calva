@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.537] - 2025-10-15
+
 - [Add "Wrap Around #{}" paredit command](https://github.com/BetterThanTomorrow/calva/issues/2949)
 - Fix: [Debug freezes when using Step Into](https://github.com/BetterThanTomorrow/calva/issues/2924)
 
