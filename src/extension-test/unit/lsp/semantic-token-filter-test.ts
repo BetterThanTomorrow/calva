@@ -392,4 +392,28 @@ describe('Semantic token filtering', () => {
       0, // [foo] preserved relative
     ]);
   });
+  it('handles comment as first token with delta accumulation', () => {
+    // Two tokens: first is a comment (type 10), second is not (type 0)
+    // Should remove the comment and accumulate its deltaLine (3) into token 2's deltaLine (2)
+    const input = [
+      3, // Token 1: deltaLine
+      0, // Token 1: deltaStart
+      4, // Token 1: length
+      10, // Token 1: tokenType (comment)
+      0, // Token 1: modifiers
+      2, // Token 2: deltaLine
+      4, // Token 2: deltaStart
+      3, // Token 2: length
+      0, // Token 2: tokenType (namespace)
+      0, // Token 2: modifiers
+    ];
+    const expected = [
+      5, // deltaLine (3 + 2, accumulated from removed comment)
+      4, // deltaStart
+      3, // length
+      0, // tokenType
+      0, // modifiers
+    ];
+    expect(filterCommentTokens(new Uint32Array(input), 10)).toEqual(expected);
+  });
 });

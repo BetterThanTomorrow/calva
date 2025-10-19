@@ -17,7 +17,7 @@ export function filterCommentTokens(data: Uint32Array, remove: number) {
     }
 
     filteredData.push(
-      filteredData.length === 0 ? deltaLine : deltaLine + accumulatedDeltaLine,
+      accumulatedDeltaLine === 0 ? deltaLine : deltaLine + accumulatedDeltaLine,
       deltaStart,
       length,
       tokenType,
