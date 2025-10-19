@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.538] - 2025-10-19
+
 - Fix: [Semantic tokens fail on some input with ignored forms](https://github.com/BetterThanTomorrow/calva/issues/2956)
 
 ## [2.0.537] - 2025-10-15
