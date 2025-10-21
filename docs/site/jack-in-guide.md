@@ -12,7 +12,7 @@ search:
 Like with [CIDER Jack-in](https://metaredux.com/posts/2019/11/02/hard-cider-understanding-the-jack-in-process.html), Calva's let-me-help-you-start-your-project-and-connect feature might seem a bit mysterious. It really is helpful, but also really isn't mysterious. Here are a few things about it that is good to know about.
 
 !!! Note
-    If you came here to find out how to configure the versions of the dependencies that Calva Jack-in injects, see [Customizing Calva - Jack-in Dependency Versions](customizing.md#jack-in-dependency-versions).
+    If you came here to find out how to configure the versions of the dependencies that Calva Jack-in injects, see [Customizing Calva - Jack-in Dependency Versions](customizing-jack-in-and-connect.md#jack-in-dependency-versions).
 
 ## What it Solves
 

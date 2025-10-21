@@ -138,7 +138,10 @@ Here the breakpoint is exactly in front of a form that contains as its last expr
 
 ### Loading the File and "Eval On Save"
 
-When you load a file, any breakpoints that were previously set in functions will be unset. If you have the "Eval On Save" setting enabled, your file is also loaded with each save, therefore saving the file will remove breakpoints previously set.
+When you load a file, any breakpoints that were previously set in functions will be unset if you are using `nREPL` versions older than 1.5.0 or `cider-nrepl` versions older than 0.58.0. Starting with `nREPL` 1.5.0 together with `cider-nrepl` 0.58.0, breakpoints persist when the file is reloaded. If you have the "Eval On Save" setting enabled, saving the file will reload it; this only removes breakpoints when you're on older versions of these dependencies.
+
+!!! Note
+    If you want to know how to configure the versions of the dependencies that Calva Jack-in injects, see [Customizing Calva - Jack-in Dependency Versions](customizing-jack-in-and-connect.md#jack-in-dependency-versions).
 
 ## Clashes with Emacs/CIDER debugger
 
@@ -167,7 +170,7 @@ It's likely that your breakpoint is in a place that cider-nrepl does not see as 
   (+ 1 #break 1)) ;; This breakpoint will not be hit
 ```
 
-Another possible issue is that you're loading the file again after setting breakpoints, which unsets them. See [Loading the File and "Eval On Save"](#loading-the-file-and-eval-on-save) under Caveats.
+Another possible issue is that you're loading the file again after setting breakpoints, which unsets them when you're using `nREPL` versions older than 1.5.0 or `cider-nrepl` versions older than 0.58.0. See [Loading the File and "Eval On Save"](#loading-the-file-and-eval-on-save) under Caveats for more details and how newer versions preserve breakpoints.
 
 ### My breakpoint in a test isn't being hit
 
