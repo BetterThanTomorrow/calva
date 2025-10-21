@@ -2685,7 +2685,11 @@
 </code></pre></div>
 <p>Here the breakpoint is exactly in front of a form that contains as its last expression a <code>recur</code> which is wrapped in a loop. This breakpoint has no effect. This does not mean you cannot use the debugger with <code>loop</code>, it just means you have to set your debug statements more carefully.</p>
 <h3 id="loading-the-file-and-eval-on-save">Loading the File and "Eval On Save"<a class="headerlink" href="#loading-the-file-and-eval-on-save" title="Permanent link">#</a></h3>
-<p>When you load a file, any breakpoints that were previously set in functions will be unset. If you have the "Eval On Save" setting enabled, your file is also loaded with each save, therefore saving the file will remove breakpoints previously set.</p>
+<p>When you load a file, any breakpoints that were previously set in functions will be unset if you are using <code>nREPL</code> versions older than 1.5.0 or <code>cider-nrepl</code> versions older than 0.58.0. Starting with <code>nREPL</code> 1.5.0 together with <code>cider-nrepl</code> 0.58.0, breakpoints persist when the file is reloaded. If you have the "Eval On Save" setting enabled, saving the file will reload it; this only removes breakpoints when you're on older versions of these dependencies.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you want to know how to configure the versions of the dependencies that Calva Jack-in injects, see <a href="../customizing-jack-in-and-connect/#jack-in-dependency-versions">Customizing Calva - Jack-in Dependency Versions</a>.</p>
+</div>
 <h2 id="clashes-with-emacscider-debugger">Clashes with Emacs/CIDER debugger<a class="headerlink" href="#clashes-with-emacscider-debugger" title="Permanent link">#</a></h2>
 <p>When both CIDER and Calva is connected to the same REPL, stepping the debugger in one editor may have it stop on the breakpoint in the other one. Reported here: https://github.com/BetterThanTomorrow/calva/issues/2496</p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
@@ -2701,7 +2705,7 @@
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">simple</span><span class="w"> </span><span class="p">[</span><span class="nv">x</span><span class="p">]</span>
 <span class="w">  </span><span class="p">(</span><span class="nb">+ </span><span class="mi">1</span><span class="w"> </span><span class="o">#</span><span class="nv">break</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="c1">;; This breakpoint will not be hit</span>
 </code></pre></div>
-<p>Another possible issue is that you're loading the file again after setting breakpoints, which unsets them. See <a href="#loading-the-file-and-eval-on-save">Loading the File and "Eval On Save"</a> under Caveats.</p>
+<p>Another possible issue is that you're loading the file again after setting breakpoints, which unsets them when you're using <code>nREPL</code> versions older than 1.5.0 or <code>cider-nrepl</code> versions older than 0.58.0. See <a href="#loading-the-file-and-eval-on-save">Loading the File and "Eval On Save"</a> under Caveats for more details and how newer versions preserve breakpoints.</p>
 <h3 id="my-breakpoint-in-a-test-isnt-being-hit">My breakpoint in a test isn't being hit<a class="headerlink" href="#my-breakpoint-in-a-test-isnt-being-hit" title="Permanent link">#</a></h3>
 <p>If you're using the test commands like "Run current test" to run your tests, breakpoints will not be hit. This is because Calva loads the file before running the tests to make sure the latest version of test code is being run, and when the file is loaded, breakpoints are unset.</p>
 <p>If you want a breakpoint to work within the test, evaluate the test form with a breakpoint tag in it, then call the test directly.</p>
