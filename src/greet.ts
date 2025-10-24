@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 import * as config from './config';
+import { getEffectiveJackInDependencyVersions } from './nrepl/jack-in-dependency-versions';
 
 export function activationGreetings(chan: vscode.OutputChannel) {
   const conf = config.getConfig();
-  const jackInDependencyVersions = conf.jackInDependencyVersions;
+  const jackInDependencyVersions = getEffectiveJackInDependencyVersions();
   const clojureLspVersion = conf.clojureLspVersion;
   const clojureLspPath = conf.clojureLspPath;
 

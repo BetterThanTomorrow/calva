@@ -6,6 +6,10 @@ import * as utilities from '../utilities';
 import * as pprint from '../printer';
 import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
+import {
+  getEffectiveJackInDependencyVersions,
+  type JackInDependencyKey,
+} from './jack-in-dependency-versions';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
 import { getStateValue, parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
 import * as joyride from '../joyride';
@@ -236,9 +240,11 @@ export enum JackInDependency {
   'cider/piggieback' = 'cider/piggieback',
 }
 
-const NREPL_VERSION = () => getConfig().jackInDependencyVersions['nrepl'],
-  CIDER_NREPL_VERSION = () => getConfig().jackInDependencyVersions['cider-nrepl'],
-  PIGGIEBACK_VERSION = () => getConfig().jackInDependencyVersions['cider/piggieback'];
+const jackInVersionFor = (key: JackInDependencyKey) => getEffectiveJackInDependencyVersions()[key];
+
+const NREPL_VERSION = () => jackInVersionFor('nrepl'),
+  CIDER_NREPL_VERSION = () => jackInVersionFor('cider-nrepl'),
+  PIGGIEBACK_VERSION = () => jackInVersionFor('cider/piggieback');
 
 const cliDependencies = () => {
   return {

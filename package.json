@@ -475,7 +475,7 @@
           },
           "calva.jackInDependencyVersions": {
             "type": "object",
-            "description": "Versions of the dependencies injected by Calva Jack-in",
+            "description": "Versions of the dependencies injected by Calva Jack-in. Calva caches the latest releases on first startup and uses them unless you override them here. If fetching fails, the built-in defaults below are used.",
             "properties": {
               "nrepl": {
                 "type": "string",
