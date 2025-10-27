@@ -187,11 +187,9 @@ async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  void depsClj
-    .downloadDepsClj(context.extensionPath)
-    .finally(() => {
-      void refreshJackInDependencyVersions();
-    });
+  void depsClj.downloadDepsClj(context.extensionPath).finally(() => {
+    void refreshJackInDependencyVersions();
+  });
 
   if (cljKondoExtension) {
     void vscode.window.showWarningMessage(

@@ -15,9 +15,7 @@ const JACK_IN_DEPENDENCY_LIBRARIES: Record<JackInDependencyKey, string> = {
   'cider/piggieback': 'cider/piggieback',
 };
 
-const JACK_IN_DEPENDENCY_KEYS = Object.keys(
-  JACK_IN_DEPENDENCY_LIBRARIES
-) as JackInDependencyKey[];
+const JACK_IN_DEPENDENCY_KEYS = Object.keys(JACK_IN_DEPENDENCY_LIBRARIES) as JackInDependencyKey[];
 
 const GLOBAL_STATE_KEY = 'calva.jackIn.latestDependencyVersions';
 
@@ -149,7 +147,9 @@ function getDefaultJackInDependencyVersions(): JackInDependencyVersions {
   return inspected?.defaultValue;
 }
 
-function isFullyPopulated(versions: JackInDependencyVersions): versions is Record<JackInDependencyKey, string> {
+function isFullyPopulated(
+  versions: JackInDependencyVersions
+): versions is Record<JackInDependencyKey, string> {
   return JACK_IN_DEPENDENCY_KEYS.every((key) => {
     const value = versions[key];
     return typeof value === 'string' && value.trim().length > 0;
@@ -216,10 +216,9 @@ export async function refreshJackInDependencyVersions(): Promise<void> {
     if (Object.keys(fetched).length > 0) {
       await storeJackInDependencyVersions(fetched);
     }
-  })()
-    .finally(() => {
-      refreshPromise = null;
-    });
+  })().finally(() => {
+    refreshPromise = null;
+  });
 
   refreshPromise = promise;
   return promise;
