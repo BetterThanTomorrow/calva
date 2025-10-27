@@ -19,12 +19,6 @@ const JACK_IN_DEPENDENCY_KEYS = Object.keys(
   JACK_IN_DEPENDENCY_LIBRARIES
 ) as JackInDependencyKey[];
 
-const JACK_IN_DEPENDENCY_DEFAULTS: Record<JackInDependencyKey, string> = {
-  'nrepl': '1.3.1',
-  'cider-nrepl': '0.55.4',
-  'cider/piggieback': '0.6.0',
-};
-
 const GLOBAL_STATE_KEY = 'calva.jackIn.latestDependencyVersions';
 
 let refreshPromise: Promise<void> | null = null;
@@ -149,6 +143,12 @@ function getConfiguredJackInDependencyVersions(): JackInDependencyVersions {
   return sources.reduce((acc, value) => ({ ...acc, ...value }), {} as JackInDependencyVersions);
 }
 
+function getDefaultJackInDependencyVersions(): JackInDependencyVersions {
+  const config = vscode.workspace.getConfiguration('calva');
+  const inspected = config.inspect<JackInDependencyVersions>('jackInDependencyVersions');
+  return inspected?.defaultValue;
+}
+
 function isFullyPopulated(versions: JackInDependencyVersions): versions is Record<JackInDependencyKey, string> {
   return JACK_IN_DEPENDENCY_KEYS.every((key) => {
     const value = versions[key];
@@ -159,11 +159,12 @@ function isFullyPopulated(versions: JackInDependencyVersions): versions is Recor
 export function getEffectiveJackInDependencyVersions(): Record<JackInDependencyKey, string> {
   const stored = getStoredJackInDependencyVersions();
   const configured = getConfiguredJackInDependencyVersions();
+  const defaults = getDefaultJackInDependencyVersions();
 
   return JACK_IN_DEPENDENCY_KEYS.reduce((acc, key) => {
     const configuredValue = configured[key];
     const storedValue = stored[key];
-    const defaultValue = JACK_IN_DEPENDENCY_DEFAULTS[key];
+    const defaultValue = defaults[key] ?? '';
 
     const chosen =
       typeof configuredValue === 'string' && configuredValue.trim().length > 0
