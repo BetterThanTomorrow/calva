@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump default `nREPL`, `cider-nrepl`, and `cider/piggieback` Jack-in dependency to `1.5.1`, `0.58.0`, and `0.6.1`
+- [Get latest version of libs to inject in jack-in if no specific version was set by the user](https://github.com/BetterThanTomorrow/calva/issues/2959)
+
 ## [2.0.538] - 2025-10-19
 
 - Fix: [Semantic tokens fail on some input with ignored forms](https://github.com/BetterThanTomorrow/calva/issues/2956)
