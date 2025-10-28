@@ -5,6 +5,7 @@ import * as state from '../../../state';
 import {
   getEffectiveJackInDependencyVersions,
   JackInDependencyKey,
+  refreshJackInDependencyVersions,
 } from '../../../nrepl/jack-in-dependency-versions';
 
 const SUITE = 'Jack-in dependency versions';
@@ -15,10 +16,12 @@ type Versions = Partial<Record<JackInDependencyKey, string>>;
 let prevWorkspaceValue: Versions | undefined;
 let prevStoredValue: Versions | undefined;
 
-suite.only(SUITE, () => {
+suite(SUITE, () => {
   before(async () => {
     const ext = vscode.extensions.getExtension('betterthantomorrow.calva');
     await ext?.activate();
+
+    await refreshJackInDependencyVersions();
 
     const inspected = vscode.workspace
       .getConfiguration('calva')
