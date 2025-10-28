@@ -171,10 +171,7 @@ export function getJackInVersionsDetail(): JackInVersionsDetail {
   const configured = getConfiguredJackInDependencyVersions();
   const defaults = getDefaultJackInDependencyVersions();
 
-  const effective: Record<JackInDependencyKey, string> = {} as Record<
-    JackInDependencyKey,
-    string
-  >;
+  const effective: Record<JackInDependencyKey, string> = {} as Record<JackInDependencyKey, string>;
   const sources: Record<JackInDependencyKey, VersionSource> = {} as Record<
     JackInDependencyKey,
     VersionSource
@@ -216,7 +213,10 @@ export async function refreshJackInDependencyVersions(): Promise<void> {
 
   const stored = getStoredJackInDependencyVersions();
   if (isFullyPopulated(stored)) {
-    console.info('[Calva] Jack-in dependency versions already populated in global storage:', stored);
+    console.info(
+      '[Calva] Jack-in dependency versions already populated in global storage:',
+      stored
+    );
     return;
   }
 
