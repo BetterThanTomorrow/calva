@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import * as config from './config';
-import { getEffectiveJackInDependencyVersions } from './nrepl/jack-in-dependency-versions';
+import { getJackInVersionsDetail } from './nrepl/jack-in-dependency-versions';
 
 export function activationGreetings(chan: vscode.OutputChannel) {
   const conf = config.getConfig();
-  const jackInDependencyVersions = getEffectiveJackInDependencyVersions();
+  const detail = getJackInVersionsDetail();
   const clojureLspVersion = conf.clojureLspVersion;
   const clojureLspPath = conf.clojureLspPath;
 
@@ -26,10 +26,26 @@ export function activationGreetings(chan: vscode.OutputChannel) {
   chan.appendLine(
     'Calva is utilizing cider-nrepl and clojure-lsp to create this VS Code experience.'
   );
-  chan.appendLine('  nREPL dependencies configured:');
-  for (const dep in jackInDependencyVersions) {
-    chan.appendLine(`    ${dep}: ${jackInDependencyVersions[dep]}`);
-  }
+
+  chan.appendLine('  Latest available nREPL dependency versions known by Calva:');
+  Object.keys(detail.effective).forEach((dep) => {
+    const latest = detail.storedLatest[dep] ?? 'unknown';
+    chan.appendLine(`    ${dep}: ${latest}`);
+  });
+  chan.appendLine('');
+
+  chan.appendLine('  nREPL dependency versions:');
+  Object.keys(detail.effective).forEach((dep) => {
+    const source = detail.sources[dep];
+    const sourceLabel =
+      source === 'configured'
+        ? 'user configured override'
+        : source === 'stored'
+        ? 'latest known by Calva'
+        : 'Calva defaults fallback';
+    chan.appendLine(`    ${dep}: effective ${detail.effective[dep]} (${sourceLabel})`);
+  });
+
   if (clojureLspPath) {
     chan.appendLine(`  clojure-lsp path configured: ${clojureLspPath}`);
   } else {

@@ -156,26 +156,52 @@ function isFullyPopulated(
   });
 }
 
-export function getEffectiveJackInDependencyVersions(): Record<JackInDependencyKey, string> {
+export type VersionSource = 'configured' | 'stored' | 'default';
+
+export type JackInVersionsDetail = {
+  effective: Record<JackInDependencyKey, string>;
+  sources: Record<JackInDependencyKey, VersionSource>;
+  storedLatest: JackInDependencyVersions;
+  configured: JackInDependencyVersions;
+  defaults: JackInDependencyVersions;
+};
+
+export function getJackInVersionsDetail(): JackInVersionsDetail {
   const stored = getStoredJackInDependencyVersions();
   const configured = getConfiguredJackInDependencyVersions();
   const defaults = getDefaultJackInDependencyVersions();
 
-  return JACK_IN_DEPENDENCY_KEYS.reduce((acc, key) => {
+  const effective: Record<JackInDependencyKey, string> = {} as Record<
+    JackInDependencyKey,
+    string
+  >;
+  const sources: Record<JackInDependencyKey, VersionSource> = {} as Record<
+    JackInDependencyKey,
+    VersionSource
+  >;
+
+  for (const key of JACK_IN_DEPENDENCY_KEYS) {
     const configuredValue = configured[key];
     const storedValue = stored[key];
     const defaultValue = defaults[key] ?? '';
 
-    const chosen =
-      typeof configuredValue === 'string' && configuredValue.trim().length > 0
-        ? configuredValue
-        : typeof storedValue === 'string' && storedValue.trim().length > 0
-        ? storedValue
-        : defaultValue;
+    if (typeof configuredValue === 'string' && configuredValue.trim().length > 0) {
+      effective[key] = configuredValue;
+      sources[key] = 'configured';
+    } else if (typeof storedValue === 'string' && storedValue.trim().length > 0) {
+      effective[key] = storedValue;
+      sources[key] = 'stored';
+    } else {
+      effective[key] = defaultValue;
+      sources[key] = 'default';
+    }
+  }
 
-    acc[key] = chosen;
-    return acc;
-  }, {} as Record<JackInDependencyKey, string>);
+  return { effective, sources, storedLatest: stored, configured, defaults };
+}
+
+export function getEffectiveJackInDependencyVersions(): Record<JackInDependencyKey, string> {
+  return getJackInVersionsDetail().effective;
 }
 
 export async function refreshJackInDependencyVersions(): Promise<void> {
@@ -190,6 +216,7 @@ export async function refreshJackInDependencyVersions(): Promise<void> {
 
   const stored = getStoredJackInDependencyVersions();
   if (isFullyPopulated(stored)) {
+    console.info('[Calva] Jack-in dependency versions already populated in global storage:', stored);
     return;
   }
 
@@ -197,6 +224,8 @@ export async function refreshJackInDependencyVersions(): Promise<void> {
     const value = stored[key];
     return !(typeof value === 'string' && value.trim().length > 0);
   });
+
+  console.info('[Calva] Refreshing jack-in dependency versions. Missing keys:', missingKeys);
 
   const promise = (async () => {
     const fetched: JackInDependencyVersions = {};
@@ -206,6 +235,7 @@ export async function refreshJackInDependencyVersions(): Promise<void> {
       try {
         const version = await fetchLatestVersion(lib);
         fetched[key] = version;
+        console.info(`[Calva] Latest version for ${lib} resolved to ${version}`);
       } catch (error) {
         console.warn(
           `[Calva] Failed to fetch latest version for ${lib}: ${(error as Error).message}`
@@ -215,6 +245,9 @@ export async function refreshJackInDependencyVersions(): Promise<void> {
 
     if (Object.keys(fetched).length > 0) {
       await storeJackInDependencyVersions(fetched);
+      console.info('[Calva] Updated latest jack-in versions in global storage:', fetched);
+    } else {
+      console.info('[Calva] No new jack-in versions fetched.');
     }
   })().finally(() => {
     refreshPromise = null;
