@@ -13,6 +13,7 @@ import { isDefined } from './utilities';
 import * as converters from './converters';
 import * as nreplUtil from './nrepl/util';
 import * as output from './results-output/output';
+import { getEffectiveJackInDependencyVersions } from './nrepl/jack-in-dependency-versions';
 
 const REPL_FILE_EXT = 'calva-repl';
 const FIDDLE_FILE_EXT = 'fiddle';
@@ -203,9 +204,7 @@ function getConfig() {
     testOnSave: configOptions.get('testOnSave'),
     showDocstringInParameterHelp: configOptions.get<boolean>('showDocstringInParameterHelp'),
     jackInEnv: configOptions.get('jackInEnv'),
-    jackInDependencyVersions: configOptions.get<{
-      JackInDependency: string;
-    }>('jackInDependencyVersions'),
+    jackInDependencyVersions: getEffectiveJackInDependencyVersions(),
     clojureLspVersion: configOptions.get<string>('clojureLspVersion'),
     clojureLspPath: configOptions.get<string>('clojureLspPath'),
     openBrowserWhenFigwheelStarted: configOptions.get<boolean>('openBrowserWhenFigwheelStarted'),

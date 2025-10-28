@@ -43,6 +43,7 @@ import * as converters from './converters';
 import * as joyride from './joyride';
 import * as api from './api/index';
 import * as depsClj from './nrepl/deps-clj';
+import { refreshJackInDependencyVersions } from './nrepl/jack-in-dependency-versions';
 import * as clojureDocs from './clojuredocs';
 import { capitalize } from './utilities';
 import * as overrides from './overrides';
@@ -186,7 +187,9 @@ async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  void depsClj.downloadDepsClj(context.extensionPath);
+  void depsClj.downloadDepsClj(context.extensionPath).finally(() => {
+    void refreshJackInDependencyVersions();
+  });
 
   if (cljKondoExtension) {
     void vscode.window.showWarningMessage(

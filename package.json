@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.538",
+  "version": "2.0.539",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -475,7 +475,7 @@
           },
           "calva.jackInDependencyVersions": {
             "type": "object",
-            "description": "Versions of the dependencies injected by Calva Jack-in",
+            "description": "By default Calva Jack-in will inject the latest `nrepl`, etcetera versions when starting the repl. Override this default behaviour by declaring which versions to use here.",
             "properties": {
               "nrepl": {
                 "type": "string",
@@ -491,9 +491,9 @@
               }
             },
             "default": {
-              "nrepl": "1.3.1",
-              "cider-nrepl": "0.55.4",
-              "cider/piggieback": "0.6.0"
+              "nrepl": "1.5.1",
+              "cider-nrepl": "0.58.0",
+              "cider/piggieback": "0.6.1"
             }
           },
           "calva.clojureLspVersion": {
