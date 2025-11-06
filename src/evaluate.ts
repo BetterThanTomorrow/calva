@@ -28,9 +28,32 @@ function initInspectorDataProvider() {
   return inspectorDataProvider;
 }
 
-function interruptAllEvaluations() {
+async function checkJvmAttachSelfSupport(session: NReplSession): Promise<boolean> {
+  try {
+    const result = await session.eval('(System/getProperty "jdk.attach.allowAttachSelf")', 'user')
+      .value;
+    // Property is enabled if it's set to any value (including empty string)
+    // nil means not set, any other value means enabled
+    return result !== 'nil';
+  } catch (error) {
+    console.error('Failed to check jdk.attach.allowAttachSelf:', error);
+    return false;
+  }
+}
+
+async function interruptAllEvaluations() {
   if (util.getConnectedState()) {
-    if (NReplSession.getInstances()?.[0]?.supports('interrupt')) {
+    const firstSession = NReplSession.getInstances()?.[0];
+    if (firstSession?.supports('interrupt')) {
+      // Check if JVM supports attach self
+      const attachSelfEnabled = await checkJvmAttachSelfSupport(firstSession);
+      if (!attachSelfEnabled) {
+        void vscode.window.showWarningMessage(
+          'Interrupt may not work: JVM property jdk.attach.allowAttachSelf is not set to true. ' +
+            'Add `-Djdk.attach.allowAttachSelf` to your JVM options.'
+        );
+      }
+
       const msgs: string[] = [];
       const nums = NReplEvaluation.interruptAll((msg) => {
         msgs.push(msg);
