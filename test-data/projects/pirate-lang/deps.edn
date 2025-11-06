@@ -5,6 +5,7 @@
   :test {:extra-paths ["test"]
          :extra-deps {org.clojure/test.check {:mvn/version "0.10.0"}}}
   :dev {:extra-paths ["env/dev"]}
+  :allow-attach-self {:jvm-opts ["-Djdk.attach.allowAttachSelf"]}
   :runner
   {:extra-deps {com.cognitect/test-runner
                 {:git/url "https://github.com/cognitect-labs/test-runner"
