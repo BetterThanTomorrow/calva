@@ -28,12 +28,23 @@ function initInspectorDataProvider() {
   return inspectorDataProvider;
 }
 
+async function getJavaVersion(session: NReplSession): Promise<number | null> {
+  try {
+    const result = await session.eval('(System/getProperty "java.version")', 'user').value;
+    // Parse version like "21.0.1", "17.0.2", "1.8.0_292"
+    const match = result.match(/^"(\d+)/);
+    return match ? parseInt(match[1], 10) : null;
+  } catch (error) {
+    console.error('Failed to get Java version:', error);
+    return null;
+  }
+}
+
 async function checkJvmAttachSelfSupport(session: NReplSession): Promise<boolean> {
   try {
     const result = await session.eval('(System/getProperty "jdk.attach.allowAttachSelf")', 'user')
       .value;
-    // Property is enabled if it's set to any value (including empty string)
-    // nil means not set, any other value means enabled
+    // 'nil' means not set, any other value means enabled
     return result !== 'nil';
   } catch (error) {
     console.error('Failed to check jdk.attach.allowAttachSelf:', error);
@@ -42,50 +53,51 @@ async function checkJvmAttachSelfSupport(session: NReplSession): Promise<boolean
 }
 
 async function interruptAllEvaluations() {
-  if (util.getConnectedState()) {
-    const firstSession = NReplSession.getInstances()?.[0];
-    if (firstSession?.supports('interrupt')) {
-      // Check if JVM supports attach self
-      const attachSelfEnabled = await checkJvmAttachSelfSupport(firstSession);
-      if (!attachSelfEnabled) {
-        void vscode.window.showWarningMessage(
-          'Interrupt may not work: JVM property jdk.attach.allowAttachSelf is not set to true. ' +
-            'Add `-Djdk.attach.allowAttachSelf` to your JVM options.'
-        );
-      }
+  if (!util.getConnectedState()) {
+    void vscode.window.showInformationMessage('Not connected to a REPL server');
+    return;
+  }
 
-      const msgs: string[] = [];
-      const nums = NReplEvaluation.interruptAll((msg) => {
-        msgs.push(msg);
-      });
-      if (msgs.length) {
-        output.appendLineOtherOut(msgs.join('\n'));
-      }
-      try {
-        NReplSession.getInstances().forEach((session, _index) => {
-          session.interruptAll();
-        });
-      } catch (error) {
-        // TODO: Figure out why we never get here.
-        console.error(error);
-      }
-      if (nums > 0) {
-        void vscode.window.showInformationMessage(`Interrupted ${nums} running evaluation(s).`);
-      } else {
-        void vscode.window.showInformationMessage(
-          'Interruption command finished (unknown results)'
-        );
-      }
-      outputWindow.discardPendingPrints();
-      return;
-    } else {
-      void vscode.window.showInformationMessage(
-        'The nREPL server does not support interruption of evaluations.'
+  const firstSession = NReplSession.getInstances()?.[0];
+  if (!firstSession?.supports('interrupt')) {
+    void vscode.window.showInformationMessage(
+      'The nREPL server does not support interruption of evaluations.'
+    );
+    return;
+  }
+
+  const javaVersion = await getJavaVersion(firstSession);
+  if (javaVersion !== null && javaVersion >= 21) {
+    const attachSelfEnabled = await checkJvmAttachSelfSupport(firstSession);
+    if (!attachSelfEnabled) {
+      void vscode.window.showWarningMessage(
+        'Interrupt may not work: JVM property jdk.attach.allowAttachSelf is not set. ' +
+          'Add `-Djdk.attach.allowAttachSelf` to your JVM options.'
       );
-      return;
     }
   }
-  void vscode.window.showInformationMessage('Not connected to a REPL server');
+
+  const msgs: string[] = [];
+  const nums = NReplEvaluation.interruptAll((msg) => {
+    msgs.push(msg);
+  });
+  if (msgs.length) {
+    output.appendLineOtherOut(msgs.join('\n'));
+  }
+  try {
+    NReplSession.getInstances().forEach((session, _index) => {
+      session.interruptAll();
+    });
+  } catch (error) {
+    // TODO: Figure out why we never get here.
+    console.error(error);
+  }
+  if (nums > 0) {
+    void vscode.window.showInformationMessage(`Interrupted ${nums} running evaluation(s).`);
+  } else {
+    void vscode.window.showInformationMessage('Interruption command finished (unknown results)');
+  }
+  outputWindow.discardPendingPrints();
 }
 
 async function addAsComment(
