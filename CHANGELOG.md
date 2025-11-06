@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.540] - 2025-11-06
+
 - Fix: [Interrupting evaluations looks like it succeeds even when it is not supported by the host platform](https://github.com/BetterThanTomorrow/calva/issues/2961)
 
 ## [2.0.539] - 2025-10-28
