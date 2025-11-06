@@ -30,28 +30,37 @@ function initInspectorDataProvider() {
 
 function interruptAllEvaluations() {
   if (util.getConnectedState()) {
-    const msgs: string[] = [];
-    const nums = NReplEvaluation.interruptAll((msg) => {
-      msgs.push(msg);
-    });
-    if (msgs.length) {
-      output.appendLineOtherOut(msgs.join('\n'));
-    }
-    try {
-      NReplSession.getInstances().forEach((session, _index) => {
-        session.interruptAll();
+    if (NReplSession.getInstances()?.[0]?.supports('interrupt')) {
+      const msgs: string[] = [];
+      const nums = NReplEvaluation.interruptAll((msg) => {
+        msgs.push(msg);
       });
-    } catch (error) {
-      // TODO: Figure out why we never get here.
-      console.error(error);
-    }
-    if (nums > 0) {
-      void vscode.window.showInformationMessage(`Interrupted ${nums} running evaluation(s).`);
+      if (msgs.length) {
+        output.appendLineOtherOut(msgs.join('\n'));
+      }
+      try {
+        NReplSession.getInstances().forEach((session, _index) => {
+          session.interruptAll();
+        });
+      } catch (error) {
+        // TODO: Figure out why we never get here.
+        console.error(error);
+      }
+      if (nums > 0) {
+        void vscode.window.showInformationMessage(`Interrupted ${nums} running evaluation(s).`);
+      } else {
+        void vscode.window.showInformationMessage(
+          'Interruption command finished (unknown results)'
+        );
+      }
+      outputWindow.discardPendingPrints();
+      return;
     } else {
-      void vscode.window.showInformationMessage('Interruption command finished (unknown results)');
+      void vscode.window.showInformationMessage(
+        'The nREPL server does not support interruption of evaluations.'
+      );
+      return;
     }
-    outputWindow.discardPendingPrints();
-    return;
   }
   void vscode.window.showInformationMessage('Not connected to a REPL server');
 }
