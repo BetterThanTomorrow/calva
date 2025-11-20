@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Ten (or so) Calva commands you should master. They will take you far.">
+        <meta name="description" content="Overview of Calva's REPL user interface components and how they work together for interactive development">
       
       
       
-        <link rel="canonical" href="https://calva.io/commands-top10/">
+        <link rel="canonical" href="https://calva.io/repl-ui/">
       
       
-        <link rel="prev" href="../why-calva/">
+        <link rel="prev" href="../paredit/">
       
       
-        <link rel="next" href="../evaluation/">
+        <link rel="next" href="../output/">
       
       
       <link rel="icon" href="../img/favicon.ico">
@@ -24,7 +24,7 @@
     
     
       
-        <title>The Top 10 Commands - Calva User Guide</title>
+        <title>The Calva REPL UI - Calva User Guide</title>
       
     
     
@@ -73,11 +73,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="The Top 10 Commands - Calva User Guide" >
+        <meta  property="og:title"  content="The Calva REPL UI - Calva User Guide" >
       
-        <meta  property="og:description"  content="Ten (or so) Calva commands you should master. They will take you far." >
+        <meta  property="og:description"  content="Overview of Calva's REPL user interface components and how they work together for interactive development" >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/commands-top10.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/repl-ui.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -85,15 +85,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/commands-top10/" >
+        <meta  property="og:url"  content="https://calva.io/repl-ui/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="The Top 10 Commands - Calva User Guide" >
+        <meta  name="twitter:title"  content="The Calva REPL UI - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Ten (or so) Calva commands you should master. They will take you far." >
+        <meta  name="twitter:description"  content="Overview of Calva's REPL user interface components and how they work together for interactive development" >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/commands-top10.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/repl-ui.png" >
       
     
     
@@ -109,7 +109,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#the-top-10-calva-commands" class="md-skip">
+        <a href="#the-calva-repl-ui" class="md-skip">
           Skip to content
         </a>
       
@@ -144,7 +144,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              The Top 10 Commands
+              The Calva REPL UI
             
           </span>
         </div>
@@ -486,30 +486,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    The Top 10 Commands
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../commands-top10/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -518,35 +498,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#some-more-commands-to-try" class="md-nav__link">
-    <span class="md-ellipsis">
-      Some More Commands to Try
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -640,10 +591,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../repl-ui/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    The Calva REPL UI
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -652,6 +623,170 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#components-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Components Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Components Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-editors" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Editors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-destinations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Destinations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repl-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      REPL Window
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inspector" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inspector
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-palette" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command Palette
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-status-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      The Status Bar
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Status Bar">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#connection-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connection Status
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Connection Status">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#repl-status-colors" class="md-nav__link">
+    <span class="md-ellipsis">
+      REPL Status Colors
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#session-type-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Session Type Status
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cljs-build-selector" class="md-nav__link">
+    <span class="md-ellipsis">
+      CLJS Build Selector
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shadow-cljs-runtime-selector" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shadow-CLJS Runtime Selector
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pretty-print-toggle" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pretty Print Toggle
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      See Also
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2136,9 +2271,144 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#some-more-commands-to-try" class="md-nav__link">
+  <a href="#components-overview" class="md-nav__link">
     <span class="md-ellipsis">
-      Some More Commands to Try
+      Components Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Components Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-editors" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Editors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-destinations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Destinations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repl-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      REPL Window
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inspector" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inspector
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-palette" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command Palette
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-status-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      The Status Bar
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Status Bar">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#connection-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connection Status
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Connection Status">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#repl-status-colors" class="md-nav__link">
+    <span class="md-ellipsis">
+      REPL Status Colors
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#session-type-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      Session Type Status
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cljs-build-selector" class="md-nav__link">
+    <span class="md-ellipsis">
+      CLJS Build Selector
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shadow-cljs-runtime-selector" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shadow-CLJS Runtime Selector
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pretty-print-toggle" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pretty Print Toggle
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      See Also
     </span>
   </a>
   
@@ -2162,51 +2432,95 @@
   
 
 
-<h1 id="the-top-10-calva-commands">The Top 10 Calva Commands<a class="headerlink" href="#the-top-10-calva-commands" title="Permanent link">#</a></h1>
-<p>There are not all that many Calva commands. You can learn them all if you like, but here are the most important ones to know about for effective Clojure/ClojureScript coding:</p>
+<h1 id="the-calva-repl-ui">The Calva REPL UI<a class="headerlink" href="#the-calva-repl-ui" title="Permanent link">#</a></h1>
+<p>When you connect Calva to a REPL, you gain access to a complete interactive development environment. The REPL UI consists of several components that work together to provide a seamless evaluation and feedback experience.</p>
+<h2 id="components-overview">Components Overview<a class="headerlink" href="#components-overview" title="Permanent link">#</a></h2>
+<h3 id="file-editors">File Editors<a class="headerlink" href="#file-editors" title="Permanent link">#</a></h3>
+<p>Every Clojure/ClojureScript file you have open becomes a REPL-connected environment. You can evaluate code directly in your editor and see results displayed inline. The first line of evaluation results appears as an inline decoration, while complete output goes to your configured output destination.</p>
+<h3 id="output-destinations">Output Destinations<a class="headerlink" href="#output-destinations" title="Permanent link">#</a></h3>
+<p>Calva provides several output destinations where evaluation results, stdout/stderr, and other REPL messages can be displayed. Each destination has different capabilities suited for different use cases. See <a href="../output/">Output Overview</a> for details on all available destinations, their feature comparison, and how to configure which output goes where.</p>
+<h3 id="repl-window">REPL Window<a class="headerlink" href="#repl-window" title="Permanent link">#</a></h3>
+<p>The <a href="../repl-window/">REPL Window</a> is a special Clojure file that provides an interactive prompt for experimental code. It automatically tracks the namespace of whatever file you're evaluating code in, making it easy to explore your code interactively. The window supports full Paredit, history recall, and can be used with the <a href="../debugger/">debugger</a>.</p>
+<h3 id="inspector">Inspector<a class="headerlink" href="#inspector" title="Permanent link">#</a></h3>
+<p>The <a href="../inspector/">Inspector</a> is a tree view that lets you explore evaluation results as expandable data structures. All REPL evaluation results are automatically added to the inspector, allowing you to drill down into nested collections and examine your data in detail.</p>
+<h3 id="command-palette">Command Palette<a class="headerlink" href="#command-palette" title="Permanent link">#</a></h3>
+<p>All REPL commands are available through VS Code's Command Palette (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> / <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>). Here are the most essential commands for interactive development:</p>
 <ul>
-<li><strong>Grow/expand selection</strong>: <code>ctrl+w</code> (<code>shift+alt+right</code> on Windows and Linux)</li>
-<li><strong>Load/Evaluate Current File and its Requires/Dependencies</strong>: <code>alt+ctrl+c enter</code>, evaluates the namespace code in the active editor tab. This also loads any required namespaces, and generally gives Calva what it needs to work.</li>
-<li><strong>Evaluate current form</strong>:  <code>ctrl+enter</code> finds the form from the cursor position, evaluates it and displays the result inline. Hit <code>esc</code> to dismiss the results display.</li>
-<li><strong>Evaluate current top-level form</strong>: <code>alt+enter</code>: inline evaluate the current top-level form. This also works inside <code>(comment)</code> forms. Use it to (re)define vars and then inside comment forms you can verify that they do what you want them to do.</li>
-<li><strong>Dismiss the display of results</strong>: <code>escape</code>: (VIM Extension users should read <a href="../vim/">Using Calva with the VIM Extension</a>).</li>
+<li><strong>Load/Evaluate Current File</strong>: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> <kbd>Enter</kbd> - Load the current file and its dependencies</li>
+<li><strong>Evaluate Current Form</strong>: <kbd>Ctrl</kbd>+<kbd>Enter</kbd> - Evaluate the form at cursor and show result inline</li>
+<li><strong>Evaluate Top-Level Form</strong>: <kbd>Alt</kbd>+<kbd>Enter</kbd> - Evaluate the enclosing top-level form (works inside <code>comment</code> blocks)</li>
+<li><strong>Show REPL Window</strong>: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>O</kbd> <kbd>R</kbd> - Open and focus the REPL Window</li>
+<li><strong>Send Form to REPL Window</strong>: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd> - Copy current form to REPL Window</li>
+<li><strong>Run Namespace Tests</strong>: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> <kbd>T</kbd> - Run all tests in the current namespace</li>
+<li><strong>Run Current Test</strong>: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd> - Run the test at cursor</li>
+<li><strong>Toggle Pretty Printing</strong>: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> <kbd>P</kbd> - Enable/disable pretty printing (also available via status bar)</li>
+<li><strong>Interrupt Running Evaluation</strong>: Available in REPL status bar menu when connected</li>
+<li><strong>Show Output Destination</strong>: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>O</kbd> <kbd>O</kbd> - Open the configured output destination</li>
 </ul>
-<p>There are also two commands for bringing over the current form and the current top level form over to the repl window:</p>
+<p>Search the command palette for <code>Calva evaluate</code> to find some more commands related to code evaluation at the REPL.</p>
+<h2 id="the-status-bar">The Status Bar<a class="headerlink" href="#the-status-bar" title="Permanent link">#</a></h2>
+<p>The status bar displays REPL connection status and provides quick access to common REPL operations.</p>
+<h3 id="connection-status">Connection Status<a class="headerlink" href="#connection-status" title="Permanent link">#</a></h3>
+<p>The main REPL connection indicator shows the current state of your REPL connection:</p>
+<p><img alt="Status Bar Disconnected" src="../images/howto/status_not_connected.png" /></p>
+<p><strong>States:</strong></p>
 <ul>
-<li><code>ctrl+alt+c ctrl+alt+e</code> (<code>ctrl+alt+c ctrl+alt+v</code> on Windows): to paste the current form in the REPL window.</li>
-<li><code>ctrl+alt+c ctrl+alt+space</code>: to paste the current top-level form in this window</li>
+<li><strong>Disconnected</strong> - <code>REPL $(zap)</code> (gray) - Click to open the REPL menu and start Jack-in or Connect</li>
+<li><strong>Launching</strong> - <code>Launching REPL using &lt;method&gt;</code> (orange/yellow) - Click to interrupt the launch process</li>
+<li><strong>Connecting</strong> - <code>REPL - trying to connect</code> - Click to interrupt the connection attempt</li>
+<li><strong>Connected</strong> - <code>REPL $(zap)</code> (green) - Click to open the REPL menu with commands for managing your connection</li>
 </ul>
-<p>You can also switch the name space of the output/repl window to that of the current file: <code>alt+ctrl+c alt+n</code></p>
+<p>When connected, the tooltip displays the connection details: <code>nrepl://hostname:port</code></p>
+<h4 id="repl-status-colors">REPL Status Colors<a class="headerlink" href="#repl-status-colors" title="Permanent link">#</a></h4>
+<p>You can customize the REPL indicator colors for different connection states using these settings:</p>
+<p><strong>For dark themes:</strong>
+* <code>calva.statusColor.dark.connectedStatusColor</code> - Color when connected (default: green)
+* <code>calva.statusColor.dark.disconnectedColor</code> - Color when disconnected (default: gray)
+* <code>calva.statusColor.dark.launchingColor</code> - Color during launch (default: orange)
+* <code>calva.statusColor.dark.typeStatusColor</code> - Color for session type indicator</p>
+<p><strong>For light themes:</strong>
+* <code>calva.statusColor.light.connectedStatusColor</code>
+* <code>calva.statusColor.light.disconnectedColor</code>
+* <code>calva.statusColor.light.launchingColor</code>
+* <code>calva.statusColor.light.typeStatusColor</code></p>
+<h3 id="session-type-status">Session Type Status<a class="headerlink" href="#session-type-status" title="Permanent link">#</a></h3>
+<p>Once connected, the session type indicator shows which REPL you're currently working with:</p>
+<p><img alt="Status Bar CLJ" src="../images/howto/status_clj.png" /></p>
+<p><img alt="Status Bar CLJS" src="../images/howto/status_cljs.png" /></p>
+<p>For <code>.cljc</code> files (Clojure Common files that can run on both CLJ and CLJS), the indicator shows <code>cljc/clj</code> or <code>cljc/cljs</code> depending on which REPL is active for that file.</p>
+<p><strong>When both CLJ and CLJS REPLs are connected</strong>, this indicator becomes clickable, allowing you to toggle which REPL is used for evaluating <code>.cljc</code> files:</p>
+<p><img alt="CLJC Toggle Button" src="../images/howto/cljc-toggle-button.png" /></p>
+<p>Click the indicator to switch between <code>clj</code> and <code>cljs</code> for your <code>.cljc</code> files. See <a href="../repl-window/#choose-clj-or-cljs-repl-connection">The REPL Window</a> for more details.</p>
+<h3 id="cljs-build-selector">CLJS Build Selector<a class="headerlink" href="#cljs-build-selector" title="Permanent link">#</a></h3>
+<p>When connected to a ClojureScript REPL that supports builds (Figwheel or shadow-cljs), this indicator shows the currently connected build:</p>
 <ul>
-<li><strong>Toggle pretty printing</strong> of results on and off: <code>ctrl+alt+c p</code>. It's on by default. There is a status bar button showing the status and that also can be used to toggle the setting.</li>
+<li><strong>Build connected</strong> - Shows the build name (e.g., <code>:app</code>)</li>
+<li><strong>No build</strong> - Shows <code>No build connected</code></li>
 </ul>
-<h2 id="some-more-commands-to-try">Some More Commands to Try<a class="headerlink" href="#some-more-commands-to-try" title="Permanent link">#</a></h2>
+<p>Click the indicator to switch to a different build or connect to a build if none is selected.</p>
+<h3 id="shadow-cljs-runtime-selector">Shadow-CLJS Runtime Selector<a class="headerlink" href="#shadow-cljs-runtime-selector" title="Permanent link">#</a></h3>
+<p>When using shadow-cljs, this indicator shows the currently selected runtime:</p>
 <ul>
-<li>Code evaluation<ul>
-<li>Evaluate code and add as comment: <code>ctrl+alt+c c</code> (current form), <code>ctrl+alt+c ctrl+space</code> (current <em>top level</em> form)</li>
-<li>Evaluate code and replace it in the editor, inline: <code>ctrl+alt+c r</code></li>
+<li><strong>Runtime selected</strong> - Shows <code>rt: &lt;runtime-id&gt;</code> (e.g., <code>rt: 3</code>)</li>
+<li><strong>No runtime</strong> - Shows <code>No Runtime</code></li>
 </ul>
-</li>
-<li>Integrated REPLs<ul>
-<li>Send current editor form to the REPL window: <code>ctrl+alt+c ctrl+alt+e</code> (<code>ctrl+alt+c ctrl+alt+v</code> on Windows)</li>
-<li>Send current editor <em>top level</em> form to the REPL window: <code>ctrl+alt+c ctrl+alt+space</code></li>
-</ul>
-</li>
-<li>Run tests and mark failures and errors in the Problems pane<ul>
-<li>Run namespace tests: <code>ctrl+alt+c t</code></li>
-<li>Run all tests: <code>ctrl+alt+c shift+t</code></li>
-<li>Run current test: <code>ctrl+alt+c ctrl+alt+t</code></li>
-<li>Rerun previously failing tests: <code>ctrl+alt+c ctrl+t</code></li>
-<li><strong>Caveat</strong>: Right now the tests are reported only when all are run, making it painful to run all tests in larger projects. I'll fix it. Promise!</li>
-</ul>
-</li>
-<li>Select current form: <code>ctrl+alt+c s</code>.</li>
-<li>Run custom commands, i.e. code snippets, at will: <code>ctrl+alt+c .</code></li>
-</ul>
-<p>See also:</p>
+<p>Click the indicator to open the runtime selection menu. The tooltip displays additional details like the runtime description and how long it has been connected. See <a href="../connect-sequences/">shadow-cljs</a> for more about runtime selection.</p>
+<p>See also: <a href="../shadow-cljs/">shadow-cljs</a>.</p>
+<h3 id="pretty-print-toggle">Pretty Print Toggle<a class="headerlink" href="#pretty-print-toggle" title="Permanent link">#</a></h3>
+<p>The <code>pprint</code> indicator shows whether pretty printing is enabled for evaluation results:</p>
 <ul>
-<li><a href="../evaluation/">Code Evaluation Tips</a></li>
-<li><a href="../finding-commands/">Finding Calva Commands and Shortcuts</a></li>
+<li><strong>Enabled</strong> (default) - Shows in normal color, click to turn off</li>
+<li><strong>Disabled</strong> - Shows in gray, click to turn on</li>
+</ul>
+<p>Pretty printing formats evaluation results for better readability. See <a href="../pprint/">Pretty Printing</a> for detailed configuration options including <code>maxLength</code>, <code>maxDepth</code>, and print engine selection.</p>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">#</a></h2>
+<ul>
+<li><a href="../output/">Output Overview</a> - Detailed comparison of output destinations</li>
+<li><a href="../repl-window/">The REPL Window</a> - Using the interactive REPL file</li>
+<li><a href="../output-view/">Output View</a> - The read-only output view</li>
+<li><a href="../inspector/">Inspector</a> - Exploring data structures</li>
+<li><a href="../pprint/">Pretty Printing</a> - Configuring result formatting</li>
+<li><a href="../evaluation/">Evaluation</a> - How to evaluate code</li>
 </ul>
 
 
