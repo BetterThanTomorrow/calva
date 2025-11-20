@@ -57,6 +57,7 @@ nav:
       - formatting.md
       - syntax-highlighting.md
       - paredit.md
+      - repl-ui.md
       - REPL:
           - output.md
           - repl-window.md
