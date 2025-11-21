@@ -75,6 +75,36 @@ Use `repl.currentSessionKey()` find out which REPL/session Calva's REPL is curre
     const sessionKey = calva.repl.currentSessionKey()
     ```
 
+### `repl.listSessions()`
+
+Use `repl.listSessions()` to inspect every registered Calva REPL session, including promoted or custom session roles. It returns a collection/array of metadata objects with the following shape:
+
+* `key` (`string`, required): The session key you can pass to other Calva APIs such as `evaluateCode`.
+* `name` (`string`, optional): A human friendly label for the session, if Calva can determine one.
+* `projectRoot` (`string`, optional): A URI string describing the project/workspace that owns the session.
+* `lastActivity` (`number`, optional): Milliseconds since Unix epoch for the latest known activity on the session.
+
+=== "Joyride"
+
+  ```clojure
+  (def sessions (calva/repl.listSessions))
+  (println "Session keys:" (map :key sessions))
+  ```
+
+=== "ClojureScript"
+
+  ```clojure
+  (def list-sessions (get-in [:repl :listSessions] calvaApi))
+  (def session-names (map :name (list-sessions)))
+  ```
+
+=== "JavaScript"
+
+  ```javascript
+  const sessions = calva.repl.listSessions();
+  const promoted = sessions.find((s) => s.key === 'promoted');
+  ```
+
 ### `repl.evaluateCode()`
 
 This function lets you evaluate Clojure code through Calva's nREPL connection. Calling it returns a promise that resolves to a `Result` object. It's signature looks like so (TypeScript):
