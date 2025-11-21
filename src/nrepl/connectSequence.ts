@@ -70,6 +70,10 @@ interface ReplConnectSequence {
   nReplPortFile?: string[];
   extraNReplMiddleware?: string[];
   jackInEnv?: Record<string, string>;
+  sessionKeys?: {
+    clj?: string;
+    cljs?: string;
+  };
 }
 
 const leiningenDefaults: ReplConnectSequence[] = [
@@ -341,6 +345,20 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
     }
     if ((sequence.projectType as string) === 'Clojure CLI') {
       sequence.projectType = ProjectTypes['deps.edn'];
+    }
+
+    if (sequence.sessionKeys) {
+      const keys = Object.values(sequence.sessionKeys);
+      const validKeyRegExp = /^[A-Za-z0-9_\-åäöÅÄÖ]+$/;
+      for (const key of keys) {
+        if (!validKeyRegExp.test(key)) {
+          void vscode.window.showWarningMessage(
+            `Invalid session key "${key}" in connect sequence "${sequence.name}". Session keys must only contain letters, numbers, underscores, and dashes.`,
+            ...['Roger That!']
+          );
+          return [];
+        }
+      }
     }
   }
 

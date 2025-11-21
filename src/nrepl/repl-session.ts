@@ -2,39 +2,55 @@ import { NReplSession } from '.';
 import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
 import * as outputWindow from '../repl-window/repl-doc';
 import { isUndefined } from 'lodash';
+import * as sessionRegistry from './session-registry';
 
 /**
  * Determines the appropriate session key based on file type and context
  */
-function getSessionKey(fileType?: string): string {
-  const doc = tryToGetDocument({});
-
-  if (isUndefined(fileType)) {
-    fileType = getFileType(doc);
-  }
-
-  if (fileType.match(/^clj[sc]?/) && cljsLib.getStateValue(fileType)) {
+function getSessionKey(fileType?: string): string | undefined {
+  if (!isUndefined(fileType) && sessionRegistry.getSession(fileType)) {
     return fileType;
   }
 
+  const doc = tryToGetDocument({});
+  const inferredType = getFileType(doc);
+
   if (outputWindow.isResultsDoc(doc)) {
-    return outputWindow.getSessionType();
+    const resultsDocType = outputWindow.getSessionType();
+    if (resultsDocType && sessionRegistry.getSession(resultsDocType)) {
+      return resultsDocType;
+    }
   }
 
-  return 'cljc';
+  if (inferredType && sessionRegistry.getSession(inferredType)) {
+    return inferredType;
+  }
+
+  const storedType = cljsLib.getStateValue('current-session-type');
+  if (storedType && sessionRegistry.getSession(storedType)) {
+    return storedType;
+  }
+
+  const sessions = sessionRegistry.listSessions();
+  return sessions[0]?.key;
 }
 
 function getSession(fileType?: string): NReplSession {
   const sessionKey = getSessionKey(fileType);
-  const session = cljsLib.getStateValue(sessionKey);
 
-  if (session) {
-    return session;
-  } else if (outputWindow.isResultsDoc(tryToGetDocument({}))) {
-    return outputWindow.getSession();
-  } else {
-    return cljsLib.getStateValue('cljc') || null;
+  // Try getting from registry first
+  if (sessionKey) {
+    const session = sessionRegistry.getSession(sessionKey);
+    if (session) {
+      return session;
+    }
   }
+
+  if (outputWindow.isResultsDoc(tryToGetDocument({}))) {
+    return outputWindow.getSession();
+  }
+
+  return null;
 }
 
 function getReplSessionType(connected: boolean): string | undefined {
@@ -45,14 +61,16 @@ function getReplSessionType(connected: boolean): string | undefined {
   if (connected) {
     if (outputWindow.isResultsDoc(doc)) {
       sessionType = outputWindow.getSessionType();
-    } else if (fileType == 'cljs' && getSession('cljs') !== null) {
-      sessionType = 'cljs';
-    } else if (fileType == 'clj' && getSession('clj') !== null) {
-      sessionType = 'clj';
-    } else if (getSession('cljc') !== null) {
-      sessionType = getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
+    } else if (fileType && sessionRegistry.getSession(fileType)) {
+      sessionType = fileType;
     } else {
-      sessionType = 'clj';
+      const storedType = cljsLib.getStateValue('current-session-type');
+      if (storedType && sessionRegistry.getSession(storedType)) {
+        sessionType = storedType;
+      } else {
+        const defaultSession = sessionRegistry.listSessions()[0];
+        sessionType = defaultSession?.key;
+      }
     }
   }
 

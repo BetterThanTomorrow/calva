@@ -4,7 +4,9 @@ import * as util from './utilities';
 import * as config from './config';
 import * as shadowRuntimes from './shadow-cljs-runtime';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
-import { getSession, getReplSessionTypeFromState } from './nrepl/repl-session';
+import { getReplSessionTypeFromState } from './nrepl/repl-session';
+
+import * as sessionRegistry from './nrepl/session-registry';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
@@ -93,18 +95,24 @@ function update() {
     connectionStatus.command = 'calva.showReplMenu';
     typeStatus.color = colorValue('typeStatusColor', currentConf);
     const replType = getReplSessionTypeFromState();
-    if (replType !== null) {
-      const cljSession = getSession('clj');
-      const cljsSession = getSession('cljs');
+    if (replType) {
+      const sessions = sessionRegistry.listSessions();
+      const currentSession = sessionRegistry.getSession(replType);
+      const currentSessionMeta = (currentSession as any)?._calvaSessionMetadata;
+
       typeStatus.text = ['cljc', config.REPL_FILE_EXT, config.FIDDLE_FILE_EXT].includes(fileType)
         ? `cljc/${replType}`
         : replType;
-      if (cljSession?.replType !== cljsSession?.replType) {
+
+      if (sessions.length > 1) {
         typeStatus.command = 'calva.toggleCLJCSession';
-        typeStatus.tooltip = `Click to use ${replType === 'clj' ? 'cljs' : 'clj'} REPL for cljc`;
+        const nextSession = sessions.find((s) => s.key !== replType) || sessions[0];
+        typeStatus.tooltip = `Click to switch to ${nextSession.key} REPL`;
       } else {
         typeStatus.command = undefined;
-        typeStatus.tooltip = `Connected to ${replTypeNames[replType]} REPL`;
+        typeStatus.tooltip = `Connected to ${
+          currentSessionMeta?.name || replTypeNames[replType] || replType
+        } REPL`;
       }
     }
     if (replType === 'cljs' && state.extensionContext.workspaceState.get('cljsReplTypeHasBuilds')) {

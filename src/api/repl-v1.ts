@@ -4,6 +4,7 @@ import * as replSession from '../nrepl/repl-session';
 import * as resultOutput from '../results-output/output';
 import * as util from '../utilities';
 import { getConfig } from '../config';
+import * as sessionRegistry from '../nrepl/session-registry';
 
 type Result = {
   result: string;
@@ -16,7 +17,7 @@ type Result = {
 };
 
 export const evaluateCode = async (
-  sessionKey: 'clj' | 'cljs' | 'cljc' | undefined,
+  sessionKey: 'clj' | 'cljs' | 'cljc' | string | undefined,
   code: string,
   ns = 'user',
   output?: {
@@ -36,6 +37,10 @@ export const evaluateCode = async (
       );
     }
   }
+  const effectiveSessionKey =
+    sessionKeyToUse ||
+    ((session as any)?._calvaSessionMetadata?.key as string | undefined) ||
+    'unknown';
   // Always send to Calva destinations AND call custom handlers if provided
   const stdout = (m: string) => {
     resultOutput.appendEvalOut(m);
@@ -48,7 +53,7 @@ export const evaluateCode = async (
   const stderr = (m: string) => {
     resultOutput.appendEvalErr(m, {
       ns: ns,
-      replSessionType: sessionKeyToUse,
+      replSessionType: effectiveSessionKey,
     });
 
     if (output?.stderr) {
@@ -66,7 +71,7 @@ export const evaluateCode = async (
     if (resultOutput.getDestinationConfiguration().evalResults !== 'repl-window') {
       resultOutput.appendClojureEval(code, {
         ns,
-        replSessionType: sessionKeyToUse,
+        replSessionType: effectiveSessionKey,
         outputCategory: 'evaluatedCode',
       });
     }
@@ -80,13 +85,13 @@ export const evaluateCode = async (
       ns: evaluation.ns,
       output: evaluation.outPut,
       errorOutput: evaluation.errorOutput,
-      sessionKey: sessionKeyToUse,
+      sessionKey: effectiveSessionKey,
     };
 
     // Always display results in Calva destination
     resultOutput.appendClojureEval(evaluationResult, {
       ns: evaluation.ns,
-      replSessionType: sessionKeyToUse,
+      replSessionType: effectiveSessionKey,
     });
   } catch (evalError) {
     let stacktrace;
@@ -100,14 +105,14 @@ export const evaluateCode = async (
         ns: evaluation.ns,
         output: evaluation.outPut,
         errorOutput: evaluation.errorOutput,
-        sessionKey: sessionKeyToUse,
+        sessionKey: effectiveSessionKey,
         error: `${evalError}`,
         stacktrace,
       };
 
       resultOutput.appendClojureEval('nil', {
         ns: evaluation.ns,
-        replSessionType: sessionKeyToUse,
+        replSessionType: effectiveSessionKey,
       });
     }
   }
@@ -116,6 +121,10 @@ export const evaluateCode = async (
 
 export const currentSessionKey = () => {
   return replSession.getReplSessionType(util.getConnectedState());
+};
+
+export const listSessions = () => {
+  return sessionRegistry.listSessions();
 };
 
 //// OUTPUT ////

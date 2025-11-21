@@ -33,6 +33,7 @@ import { getJarContents } from './utilities';
 import { ConnectType } from './nrepl/connect-types';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
+import * as sessionRegistry from './nrepl/session-registry';
 
 async function readRuntimeConfigs() {
   const classpath = await nClient.session.classpath().catch((e) => {
@@ -111,10 +112,15 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     util.setConnectingState(false);
     util.setConnectedState(true);
     void state.analytics().logGA4Pageview('/connected-clj-repl');
-    setStateValue('clj', cljSession);
-    setStateValue('cljc', cljSession);
+
+    const cljKey = connectSequence.sessionKeys?.clj || 'clj';
+    sessionRegistry.registerSession(cljKey, cljSession, {
+      name: 'Clojure REPL',
+      projectRoot: state.getProjectRootUri().toString(),
+    });
+
     status.update();
-    output.appendLineOtherOut(`Connected session: clj`);
+    output.appendLineOtherOut(`Connected session: ${cljKey}`);
     replSession.updateReplSessionType();
 
     outputWindow.setSession(cljSession, nClient.ns);
@@ -125,7 +131,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       );
       await evaluate.evaluateInOutputWindow(
         getConfig().autoEvaluateCode.onConnect.clj,
-        'clj',
+        cljKey,
         outputWindow.getNs(),
         {}
       );
@@ -136,7 +142,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       output.appendLineOtherOut(`Evaluating 'afterCLJReplJackInCode'`);
       await evaluate.evaluateInOutputWindow(
         connectSequence.afterCLJReplJackInCode,
-        'clj',
+        cljKey,
         outputWindow.getNs(),
         {}
       );
@@ -202,10 +208,17 @@ function cleanUpAfterError(e: any) {
 }
 
 async function setUpCljsRepl(session: NReplSession, build) {
-  setStateValue('cljs', session);
-  setStateValue('cljc', session);
+  const connectSequence =
+    state.extensionContext.workspaceState.get<ReplConnectSequence>('selectedConnectSequence');
+  const cljsKey = connectSequence?.sessionKeys?.cljs || 'cljs';
+
+  sessionRegistry.registerSession(cljsKey, session, {
+    name: `ClojureScript REPL${build ? ' (' + build + ')' : ''}`,
+    projectRoot: state.getProjectRootUri().toString(),
+  });
+
   status.update();
-  output.appendLineOtherOut(`Connected session: cljs${build ? ', repl: ' + build : ''}`);
+  output.appendLineOtherOut(`Connected session: ${cljsKey}${build ? ', repl: ' + build : ''}`);
   outputWindow.appendLine(formatAsLineComments(outputWindow.CLJS_CONNECT_GREETINGS));
   const description = await session.describe(true);
   const ns = description.aux?.['current-ns'] || 'user';
@@ -217,7 +230,7 @@ async function setUpCljsRepl(session: NReplSession, build) {
     );
     await evaluate.evaluateInOutputWindow(
       getConfig().autoEvaluateCode.onConnect.cljs,
-      'cljs',
+      cljsKey,
       ns,
       {}
     );
@@ -292,7 +305,17 @@ async function evalConnectCode(
     console.error('Error evaluating connect form: ', reason);
   });
   if (await checkSuccess(valueResult, out, err)) {
-    setStateValue('cljs', (cljsSession = newCljsSession));
+    const connectSequence =
+      state.extensionContext.workspaceState.get<ReplConnectSequence>('selectedConnectSequence');
+    const cljsKey = connectSequence?.sessionKeys?.cljs || 'cljs';
+
+    // Update the session in the registry
+    sessionRegistry.registerSession(cljsKey, newCljsSession, {
+      name: 'ClojureScript REPL',
+      projectRoot: state.getProjectRootUri().toString(),
+    });
+
+    cljsSession = newCljsSession;
     return true;
   } else {
     return false;
@@ -649,7 +672,19 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
       }
     }
     if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
-      setStateValue('cljs', (cljsSession = newCljsSession));
+      const connectSequence =
+        state.extensionContext.workspaceState.get<ReplConnectSequence>('selectedConnectSequence');
+      const cljsKey = connectSequence?.sessionKeys?.cljs || 'cljs';
+
+      // Update registry
+      sessionRegistry.registerSession(cljsKey, newCljsSession, {
+        name: `ClojureScript REPL${
+          getStateValue('cljsBuild') ? ' (' + getStateValue('cljsBuild') + ')' : ''
+        }`,
+        projectRoot: state.getProjectRootUri().toString(),
+      });
+
+      cljsSession = newCljsSession;
       return [cljsSession, getStateValue('cljsBuild')];
     } else {
       const build = getStateValue('cljsBuild');
@@ -873,11 +908,9 @@ export default {
       // do nothing
     }
   ) => {
-    ['clj', 'cljs'].forEach((sessionType) => {
-      setStateValue(sessionType, null);
-    });
+    sessionRegistry.clearAllSessions();
     util.setConnectedState(false);
-    setStateValue('cljc', null);
+    setStateValue('current-session-type', null);
     status.update();
 
     if (nClient) {
@@ -898,18 +931,24 @@ export default {
     let newSession: NReplSession;
 
     if (getStateValue('connected')) {
-      if (replSession.getSession('cljc') == replSession.getSession('cljs')) {
-        newSession = replSession.getSession('clj');
-      } else if (replSession.getSession('cljc') == replSession.getSession('clj')) {
-        newSession = replSession.getSession('cljs');
+      const sessions = sessionRegistry.listSessions();
+      if (sessions.length > 1) {
+        const currentType = replSession.getReplSessionTypeFromState();
+        const currentIndex = sessions.findIndex((s) => s.key === currentType);
+        const nextIndex = (currentIndex + 1) % sessions.length;
+        const nextSessionMeta = sessions[nextIndex];
+
+        newSession = sessionRegistry.getSession(nextSessionMeta.key);
+
+        setStateValue('current-session-type', nextSessionMeta.key);
+
+        if (outputWindow.isResultsDoc(util.getActiveTextEditor().document)) {
+          outputWindow.setSession(newSession, undefined);
+          replSession.updateReplSessionType();
+          output.replWindowAppendPrompt();
+        }
+        status.update();
       }
-      setStateValue('cljc', newSession);
-      if (outputWindow.isResultsDoc(util.getActiveTextEditor().document)) {
-        outputWindow.setSession(newSession, undefined);
-        replSession.updateReplSessionType();
-        output.replWindowAppendPrompt();
-      }
-      status.update();
     }
   },
   switchCljsBuild: async () => {
