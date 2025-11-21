@@ -543,10 +543,7 @@
                 "repl": {
                   "type": "string",
                   "markDownDescription": "Choose which REPL should the code should be evaluated in. If omitted, the same REPL as for the current file will be used.",
-                  "enum": [
-                    "clj",
-                    "cljs"
-                  ]
+                  "pattern": "^[\\p{L}\\d_-]+$"
                 },
                 "evaluationSendCodeToOutputWindow": {
                   "type": "boolean",
@@ -591,10 +588,7 @@
                 "repl": {
                   "type": "string",
                   "description": "Choose which REPL should the code should be evaluated in. If omitted, the same REPL as for the current file will be used.",
-                  "enum": [
-                    "clj",
-                    "cljs"
-                  ]
+                  "pattern": "^[\\p{L}\\d_-]+$"
                 }
               },
               "required": [
