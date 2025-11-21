@@ -34,6 +34,7 @@ import { ConnectType } from './nrepl/connect-types';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
 import * as sessionRegistry from './nrepl/session-registry';
+import * as sessionRoles from './nrepl/session-roles';
 
 async function readRuntimeConfigs() {
   const classpath = await nClient.session.classpath().catch((e) => {
@@ -74,6 +75,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
   }
 
   let cljSession: NReplSession;
+  const sessionRoleKeys = sessionRoles.initializeSessionRoleKeys(connectSequence);
 
   util.setConnectingState(true);
   void vscode.commands.executeCommand('setContext', 'calva:connectSequence', connectSequence.name);
@@ -113,7 +115,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     util.setConnectedState(true);
     void state.analytics().logGA4Pageview('/connected-clj-repl');
 
-    const cljKey = connectSequence.sessionKeys?.clj || 'clj';
+    const cljKey = sessionRoleKeys.primary;
     sessionRegistry.registerSession(cljKey, cljSession, {
       name: 'Clojure REPL',
       projectRoot: state.getProjectRootUri().toString(),
@@ -208,9 +210,7 @@ function cleanUpAfterError(e: any) {
 }
 
 async function setUpCljsRepl(session: NReplSession, build) {
-  const connectSequence =
-    state.extensionContext.workspaceState.get<ReplConnectSequence>('selectedConnectSequence');
-  const cljsKey = connectSequence?.sessionKeys?.cljs || 'cljs';
+  const cljsKey = sessionRoles.getSessionKeyForRole('promoted');
 
   sessionRegistry.registerSession(cljsKey, session, {
     name: `ClojureScript REPL${build ? ' (' + build + ')' : ''}`,
@@ -305,9 +305,7 @@ async function evalConnectCode(
     console.error('Error evaluating connect form: ', reason);
   });
   if (await checkSuccess(valueResult, out, err)) {
-    const connectSequence =
-      state.extensionContext.workspaceState.get<ReplConnectSequence>('selectedConnectSequence');
-    const cljsKey = connectSequence?.sessionKeys?.cljs || 'cljs';
+    const cljsKey = sessionRoles.getSessionKeyForRole('promoted');
 
     // Update the session in the registry
     sessionRegistry.registerSession(cljsKey, newCljsSession, {
@@ -498,7 +496,7 @@ function createCLJSReplType(
   };
 
   async function waitForShadowCljsRuntimes() {
-    const cljSession = replSession.getSession('clj');
+    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('primary'));
     const getRuntimesCode = `(count (shadow.cljs.devtools.api/repl-runtimes ${connectToBuild}))`;
     const checkForRuntimes = async () => {
       const runtimes = await cljSession.eval(getRuntimesCode, 'user').value;
@@ -674,7 +672,7 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
     if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
       const connectSequence =
         state.extensionContext.workspaceState.get<ReplConnectSequence>('selectedConnectSequence');
-      const cljsKey = connectSequence?.sessionKeys?.cljs || 'cljs';
+      const cljsKey = sessionRoles.getSessionKeyForRole('promoted');
 
       // Update registry
       sessionRegistry.registerSession(cljsKey, newCljsSession, {
@@ -952,7 +950,7 @@ export default {
     }
   },
   switchCljsBuild: async () => {
-    const cljSession = replSession.getSession('clj');
+    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('primary'));
     const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName'),
       cljTypeName: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
     const [session, build] = await makeCljsSessionClone(
