@@ -17,8 +17,8 @@ const DEFAULT_SESSION_ROLE_KEYS: SessionRoleKeys = {
 
 function fromSequenceConfig(config?: SessionKeyConfig): SessionRoleKeys {
   return {
-    primary: config?.primary || config?.clj || DEFAULT_SESSION_ROLE_KEYS.primary,
-    promoted: config?.promoted || config?.cljs || DEFAULT_SESSION_ROLE_KEYS.promoted,
+    primary: config?.primary || DEFAULT_SESSION_ROLE_KEYS.primary,
+    promoted: config?.promoted || DEFAULT_SESSION_ROLE_KEYS.promoted,
   };
 }
 

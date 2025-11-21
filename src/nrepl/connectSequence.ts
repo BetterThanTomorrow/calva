@@ -60,8 +60,6 @@ interface MenuSelections {
 export interface SessionKeyConfig {
   primary?: string;
   promoted?: string;
-  clj?: string;
-  cljs?: string;
 }
 
 interface ReplConnectSequence {
@@ -355,7 +353,7 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
       const keys = Object.values(sequence.sessionKeys).filter(
         (key): key is string => typeof key === 'string'
       );
-      const validKeyRegExp = /^[A-Za-z0-9_\-åäöÅÄÖ]+$/;
+      const validKeyRegExp = /^[\p{L}\d_-]+$/u;
       for (const key of keys) {
         if (!validKeyRegExp.test(key)) {
           void vscode.window.showWarningMessage(
