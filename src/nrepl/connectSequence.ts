@@ -57,7 +57,7 @@ interface MenuSelections {
   cljsDefaultBuild?: string;
 }
 
-export interface SessionKeyConfig {
+export interface SessionNamesConfig {
   primary?: string;
   promoted?: string;
 }
@@ -75,7 +75,7 @@ interface ReplConnectSequence {
   nReplPortFile?: string[];
   extraNReplMiddleware?: string[];
   jackInEnv?: Record<string, string>;
-  sessionKeys?: SessionKeyConfig;
+  replSessionNames?: SessionNamesConfig;
 }
 
 const leiningenDefaults: ReplConnectSequence[] = [
@@ -349,8 +349,8 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
       sequence.projectType = ProjectTypes['deps.edn'];
     }
 
-    if (sequence.sessionKeys) {
-      const keys = Object.values(sequence.sessionKeys).filter(
+    if (sequence.replSessionNames) {
+      const keys = Object.values(sequence.replSessionNames).filter(
         (key): key is string => typeof key === 'string'
       );
       const validKeyRegExp = /^[\p{L}\d_-]+$/u;

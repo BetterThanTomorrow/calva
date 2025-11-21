@@ -1,5 +1,5 @@
 import { getStateValue, setStateValue } from '../../out/cljs-lib/cljs-lib';
-import { ReplConnectSequence, SessionKeyConfig } from './connectSequence';
+import { ReplConnectSequence, SessionNamesConfig } from './connectSequence';
 
 export type SessionRole = 'primary' | 'promoted';
 
@@ -15,7 +15,7 @@ const DEFAULT_SESSION_ROLE_KEYS: SessionRoleKeys = {
   promoted: 'cljs',
 };
 
-function fromSequenceConfig(config?: SessionKeyConfig): SessionRoleKeys {
+function fromSequenceConfig(config?: SessionNamesConfig): SessionRoleKeys {
   return {
     primary: config?.primary || DEFAULT_SESSION_ROLE_KEYS.primary,
     promoted: config?.promoted || DEFAULT_SESSION_ROLE_KEYS.promoted,
@@ -28,7 +28,7 @@ function readStoredKeys(): Partial<SessionRoleKeys> | undefined {
 }
 
 export function deriveSessionRoleKeys(sequence?: ReplConnectSequence): SessionRoleKeys {
-  return fromSequenceConfig(sequence?.sessionKeys);
+  return fromSequenceConfig(sequence?.replSessionNames);
 }
 
 export function setSessionRoleKeys(keys: SessionRoleKeys): void {

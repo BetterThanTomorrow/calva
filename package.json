@@ -810,7 +810,7 @@
                     }
                   ]
                 },
-                "sessionKeys": {
+                "replSessionNames": {
                   "type": "object",
                   "markdownDescription": "Override the default repl session names that Calva registers for the primary and the promoted (if any) REPL sessions. Defaults are: primary: `clj`, promoted: `cljs`.",
                   "properties": {
