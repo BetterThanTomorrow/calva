@@ -67,4 +67,32 @@ describe('session role glob derivation', () => {
 
     expect(result.extra).toEqual(['lambda/**/*.clj']);
   });
+
+  it('trims whitespace and filters empty glob entries', () => {
+    const sequence = baseSequence();
+    sequence.replSessionNames = { primary: 'alpha', promoted: 'beta' };
+    sequence.replSessionGlobs = {
+      alpha: ['  src/**/*.clj  ', '   '],
+      beta: ' ui/**/*.cljs ',
+    };
+
+    const result = deriveSessionGlobMap(sequence);
+
+    expect(result.alpha).toEqual(['src/**/*.clj']);
+    expect(result.beta).toEqual(['ui/**/*.cljs']);
+  });
+
+  it('falls back to defaults when overrides resolve to empty globs', () => {
+    const sequence = baseSequence();
+    sequence.replSessionNames = { primary: 'alpha', promoted: 'beta' };
+    sequence.replSessionGlobs = {
+      alpha: ['   ', '\t'],
+      beta: [],
+    };
+
+    const result = deriveSessionGlobMap(sequence);
+
+    expect(result.alpha).toEqual(['**/*.clj']);
+    expect(result.beta).toEqual(['**/*.cljs']);
+  });
 });

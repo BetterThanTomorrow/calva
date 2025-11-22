@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import * as path from 'path';
-import { buildGlobCandidatePaths } from '../../../nrepl/glob-paths';
+import { buildGlobCandidatePaths, toPosixPath } from '../../../nrepl/glob-paths';
 
 describe('glob path candidates', () => {
   const workspaceRoot = path.join(process.cwd(), 'tmp-workspace-tests');
@@ -25,5 +25,17 @@ describe('glob path candidates', () => {
     const candidates = buildGlobCandidatePaths(filePath, [fooFolder, barFolder]);
     expect(candidates).to.include('foo/src/core.clj');
     expect(candidates).to.not.include('bar/src/core.clj');
+  });
+
+  it('omits workspace-relative entries when the file is outside the folders', () => {
+    const externalPath = path.join(workspaceRoot, 'external', 'src', 'core.clj');
+    const candidates = buildGlobCandidatePaths(externalPath, [fooFolder]);
+    expect(candidates).to.include(toPosixPath(externalPath));
+    expect(candidates).to.include('core.clj');
+    expect(candidates).to.not.include('src/core.clj');
+  });
+
+  it('normalizes path separators to posix style', () => {
+    expect(toPosixPath('C:\\foo\\bar\\src\\core.clj')).to.equal('C:/foo/bar/src/core.clj');
   });
 });

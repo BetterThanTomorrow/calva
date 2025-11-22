@@ -72,7 +72,7 @@ suite(`${suiteName} suite`, () => {
     await outputWindow.initResultsDoc();
   });
 
-  after(async () => {
+  after(() => {
     testUtil.showMessage(suiteName, 'suite done!');
   });
 
@@ -81,7 +81,7 @@ suite(`${suiteName} suite`, () => {
     replHistory.resetState();
   });
 
-  test('stores history per session key', async () => {
+  test('stores history per session key', () => {
     replHistory.addToReplHistory(serverSessionKey, '(println :srv1)');
     replHistory.addToReplHistory(serverSessionKey, '(println :srv2)');
     replHistory.addToReplHistory(uiSessionKey, '(println :ui1)');
