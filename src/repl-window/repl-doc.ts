@@ -143,8 +143,8 @@ function resolveSessionType(session?: NReplSession, override?: string): ReplSess
 }
 
 export function getPrompt(): string {
-  // eslint-disable-next-line no-irregular-whitespace
   ensureSessionEntries(_sessionType);
+  // eslint-disable-next-line no-irregular-whitespace
   let prompt = `${_sessionType}꞉${getNs()}꞉> `;
   if (showPrompt[_sessionType]) {
     showPrompt[_sessionType] = false;

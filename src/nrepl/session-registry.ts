@@ -68,6 +68,10 @@ export function getSessionMetadata(key: string): SessionMetadata | undefined {
   return (session as any)?._calvaSessionMetadata;
 }
 
+export function getSessionKeyFromSession(session?: NReplSession): string | undefined {
+  return (session as any)?._calvaSessionMetadata?.key || session?.replType;
+}
+
 export function updateSessionActivity(key: string): void {
   const session = getSession(key);
   if (session && (session as any)._calvaSessionMetadata) {

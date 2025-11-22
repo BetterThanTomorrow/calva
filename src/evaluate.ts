@@ -13,6 +13,7 @@ import { formatAsLineComments } from './results-output/util';
 import { getStateValue, appendStackTraceToReplOutputWebview } from '../out/cljs-lib/cljs-lib';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
+import * as sessionRegistry from './nrepl/session-registry';
 import * as getText from './util/get-text';
 import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
@@ -139,6 +140,8 @@ async function evaluateCodeUpdatingUI(
   const column = options.column;
   const filePath = options.filePath;
   const session: NReplSession = options.session;
+  const sessionKey =
+    sessionRegistry.getSessionKeyFromSession(session) || session?.replType || 'clj';
   const ns = options.ns;
   let editor: vscode.TextEditor;
   try {
@@ -150,7 +153,7 @@ async function evaluateCodeUpdatingUI(
 
   if (code.length > 0) {
     if (addToHistory) {
-      replHistory.addToReplHistory(session.replType, code);
+      replHistory.addToReplHistory(sessionKey, code);
       replHistory.resetState();
     }
 
@@ -177,7 +180,7 @@ async function evaluateCodeUpdatingUI(
         if (output.getDestinationConfiguration().evalResults !== 'repl-window') {
           output.appendClojureEval(code, {
             ns,
-            replSessionType: session.replType,
+            replSessionType: sessionKey,
             outputCategory: 'evaluatedCode',
           });
         }
@@ -191,8 +194,8 @@ async function evaluateCodeUpdatingUI(
       flareHandler.inspect(value, (code) => evaluateCodeUpdatingUI(code, options, selection));
 
       if (showResult) {
-        inspectorDataProvider.addItem(value, false, `[${session.replType}] ${ns}`);
-        output.appendClojureEval(value, { ns, replSessionType: session.replType }, async () => {
+        inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
+        output.appendClojureEval(value, { ns, replSessionType: sessionKey }, async () => {
           if (selection) {
             const c = selection.start.character;
             if (editor && options.replace) {
@@ -235,10 +238,10 @@ async function evaluateCodeUpdatingUI(
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
             if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
-              output.appendEvalErr(errMsg, { ns, replSessionType: session.replType });
+              output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey });
             }
           } else {
-            output.appendEvalErr(errMsg, { ns, replSessionType: session.replType });
+            output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey });
           }
         }
       }
@@ -288,7 +291,7 @@ async function evaluateCodeUpdatingUI(
         if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
           output.appendEvalErr(err.length ? err.join('\n') : e, {
             ns,
-            replSessionType: session.replType,
+            replSessionType: sessionKey,
           });
           if (output.getDestinationConfiguration().evalOutput === 'output-view') {
             session
