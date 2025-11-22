@@ -45,9 +45,10 @@ A connect sequence configures the following:
     * `cljsDefaultBuild`: Which cljs build to attach to at the initial connect.
 * `jackInEnv`: An object with environment variables that will be merged with the global `calva.jackInEnv` and then applied to the Jack-in process. The merge is very similar to how Clojure's `merge` works. So for any common keys between the global setting and this one, the ones from this setting will win.
 * `extraNReplMiddleware`: Array of strings of the fully qualified names of extra middleware that should be applied to the nREPL server when started.
-* `sessionKeys`: Override the default repl session names that Calva registers for the primary and the promoted (if any) REPL sessions.
-   * `primary`: the name of the primary repl session. Defaults to `clj`
-   *  `promoted`: the name of the secondary/promoted repl session in the sequence. Defaults to `cljs`.
+* `replSessionNames`: Override the default repl session names that Calva registers for the primary and the promoted (if any) REPL sessions.
+    * `primary`: the name of the primary repl session. Defaults to `clj`
+    * `promoted`: the name of the secondary/promoted repl session in the sequence. Defaults to `cljs`.
+* `replSessionGlobs`: Map each repl session name to the file globs it should handle. Keys should match the values configured in `replSessionNames` (or the defaults). Values can be a single glob string or an array of globs. Globs are evaluated relative to every workspace folder, so multi-root workspaces are supported. Defaults are `**/*.clj` for the primary session and `**/*.cljs` for the promoted session.
 
 The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts) also use this format, check them out to get a clearer picture of how these settings work.
 

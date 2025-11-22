@@ -1,0 +1,219 @@
+{
+	"folders": [
+		{
+			"path": "projects/pirate-lang",
+			"name": "pirate-lang"
+		},
+		{
+			"path": "projects/deps-main-opts",
+			"name": "deps-main-opts"
+		},
+		{
+			"path": "projects/custom-jack-in",
+			"name": "custom-jack-in"
+		},
+		{
+			"path": "projects/shadow-w-backend",
+			"name": "shadow-w-backend"
+		},
+		{
+			"path": "projects/minimal-basilisp"
+		},
+		{
+			"path": "projects/minimal-shadow-only"
+		}
+	],
+	"settings": {
+		"calva.customREPLCommandSnippets": [
+			{
+				"name": "Double current",
+				"snippet": "(tap> [$current-form $current-form])"
+			},
+			{
+				"name": "JSON selection",
+				"snippet": "$selection"
+			},
+			{
+				"name": "Current pair",
+				"snippet": "'($current-pair)"
+			},
+			{
+				"name": "Current file text",
+				"snippet": "'($file-text)"
+			},
+			{
+				"name": "Selection, closing brackets",
+				"snippet": "$selection-closing-brackets"
+			},
+			{
+				"name": "qol: Add Snitch dependency",
+				"repl": "clj",
+				"snippet": "(require '[clojure.repl.deps :refer [add-libs]])\n\n(add-libs '{ org.clojars.abhinav/snitch {:mvn/version \"0.1.16\"}})\n\n(require '[snitch.core :refer [defn* defmethod* *fn *let]])"
+			},
+			{
+				"name": "qol: Evaluate as Snitch defn* (ctrl+alt+c s)",
+				"snippet": "${top-level-form|replace|^\\(defn-?|(defn*}"
+			}
+		],
+		"calva.customREPLHoverSnippets": [],
+		"calva.fiddleFilePaths": [
+			{
+				"source": [
+					"src"
+				],
+				"fiddle": [
+					"env",
+					"dev",
+					"fiddles"
+				]
+			},
+			{
+				"source": [
+					"src2"
+				],
+				"fiddle": [
+					"env",
+					"dev",
+					"fiddles",
+					"pez_cljs.cljs"
+				]
+			},
+			{
+				"source": [
+					"src2"
+				],
+				"fiddle": [
+					"env",
+					"dev",
+					"fiddles",
+					"pez_clj.clj"
+				]
+			},
+			{
+				"source": [
+					"src2"
+				],
+				"fiddle": [
+					"env",
+					"dev",
+					"fiddles",
+					"pez_cljc.cljc"
+				]
+			}
+		],
+		"workbench.colorCustomizations": {
+			"sash.hoverBorder": "#DB9550",
+			"titleBar.activeBackground": "#90B4FE",
+			"titleBar.activeForeground": "#131722",
+			"titleBar.inactiveBackground": "#90B4FEd5",
+			"titleBar.inactiveForeground": "#13172299"
+		},
+		"calva.replConnectSequences": [
+			{
+				"name": "pirate-lang",
+				"projectType": "deps.edn",
+				"projectRootPath": [
+					"projects/pirate-lang"
+				],
+				"afterCLJReplJackInCode": [
+					"(require 'repl)",
+					"(println 1)",
+					"(println 2)"
+				],
+				"cljsType": "none",
+				"menuSelections": {
+					"cljAliases": [
+						"dev",
+						"test",
+						"allow-attach-self"
+					]
+				}
+			},
+			{
+				"name": "Shadow-cljs + deps.edn",
+				"projectType": "shadow-cljs",
+				"cljsType": "shadow-cljs",
+				"menuSelections": {
+					"cljAliases": [
+						"dev",
+						"dev-too"
+					],
+					"cljsLaunchBuilds": [
+						"app",
+						"app-too"
+					],
+					"cljsDefaultBuild": "app"
+				}
+			},
+			{
+				"name": "Deps.edn + shadow-cljs",
+				"projectType": "deps.edn",
+				"cljsType": "shadow-cljs",
+				"replSessionNames": {
+					"primary": "clj2",
+					"promoted": "cljs2"
+				},
+				"menuSelections": {
+					"cljAliases": [
+						"dev",
+						"dev-too"
+					],
+					"cljsLaunchBuilds": [
+						"app",
+						"app-too"
+					],
+					"cljsDefaultBuild": "app"
+				}
+			},
+			{
+				"name": "Connect Sequence deps-main-opts",
+				"projectType": "deps.edn",
+				"projectRootPath": [
+					"projects/deps-main-opts"
+				],
+				"afterCLJReplJackInCode": "(require 'repl)",
+				"cljsType": "none",
+				"menuSelections": {
+					"cljAliases": [
+						"dev",
+						"has-main-opts-starting-nrepl"
+					]
+				}
+			},
+			{
+				"name": "custom command line shadow",
+				"projectType": "shadow-cljs",
+				"afterCLJReplJackInCode": "(println \"Hello custom command line\")",
+				"customJackInCommandLine": "echo PROJECT-ROOT-PATH: JACK-IN-PROJECT-ROOT-PATH, NREPL-PORT-FILE: JACK-IN-NREPL-PORT-FILE; /Users/pez/Projects/calva/test-data/custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION",
+				"cljsType": "shadow-cljs"
+			},
+			{
+				"name": "custom command line deps windows",
+				"projectType": "deps.edn",
+				"afterCLJReplJackInCode": "(println \"Hello custom command line\")",
+				"customJackInCommandLine": "bb ..\\..\\custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION"
+			},
+			{
+				"name": "custom command line Leiningen",
+				"projectType": "Leiningen",
+				"afterCLJReplJackInCode": "(println \"Hello custom command line\")",
+				"nReplPortFile": [
+					"foo",
+					"bar",
+					".nrepl-port"
+				],
+				"customJackInCommandLine": "echo PROJECT-ROOT-PATH: 'JACK-IN-PROJECT-ROOT-PATH', NREPL-PORT-FILE: 'JACK-IN-NREPL-PORT-FILE', NREPL-PORT: 'JACK-IN-NREPL-PORT', LEIN-PROFILES: 'JACK-IN-LEIN-PROFILES', LEIN-LAUNCH-ALIAS 'JACK-IN-LEIN-LAUNCH-ALIAS', CLJ-MIDDLEWARE: 'JACK-IN-CLJ-MIDDLEWARE', CLJS-MIDDLEWARE: 'JACK-IN-CLJS-MIDDLEWARE' ; ../../custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION",
+				"cljsType": "shadow-cljs"
+			},
+			{
+				"name": "Array jack-in code",
+				"projectType": "deps.edn",
+				"afterCL]ReplJackInCode": [
+					"(println :hello)",
+					"(println :world!)"
+				],
+				"cljsType": "none"
+			}
+		]
+	}
+}

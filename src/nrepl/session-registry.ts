@@ -6,6 +6,7 @@ export interface SessionMetadata {
   name?: string;
   projectRoot?: string;
   lastActivity?: number;
+  globs?: string[];
 }
 
 const SESSION_PREFIX = 'repl-session-';
@@ -60,6 +61,11 @@ export function listSessions(): SessionMetadata[] {
       return (session as any)?._calvaSessionMetadata;
     })
     .filter((meta: SessionMetadata | undefined) => meta !== undefined);
+}
+
+export function getSessionMetadata(key: string): SessionMetadata | undefined {
+  const session = getSession(key);
+  return (session as any)?._calvaSessionMetadata;
 }
 
 export function updateSessionActivity(key: string): void {

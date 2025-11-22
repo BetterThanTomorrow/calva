@@ -119,6 +119,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     sessionRegistry.registerSession(cljKey, cljSession, {
       name: 'Clojure REPL',
       projectRoot: state.getProjectRootUri().toString(),
+      globs: sessionRoles.getGlobsForSessionKey(cljKey),
     });
 
     status.update();
@@ -215,6 +216,7 @@ async function setUpCljsRepl(session: NReplSession, build) {
   sessionRegistry.registerSession(cljsKey, session, {
     name: `ClojureScript REPL${build ? ' (' + build + ')' : ''}`,
     projectRoot: state.getProjectRootUri().toString(),
+    globs: sessionRoles.getGlobsForSessionKey(cljsKey),
   });
 
   status.update();
@@ -311,6 +313,7 @@ async function evalConnectCode(
     sessionRegistry.registerSession(cljsKey, newCljsSession, {
       name: 'ClojureScript REPL',
       projectRoot: state.getProjectRootUri().toString(),
+      globs: sessionRoles.getGlobsForSessionKey(cljsKey),
     });
 
     cljsSession = newCljsSession;
@@ -680,6 +683,7 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
           getStateValue('cljsBuild') ? ' (' + getStateValue('cljsBuild') + ')' : ''
         }`,
         projectRoot: state.getProjectRootUri().toString(),
+        globs: sessionRoles.getGlobsForSessionKey(cljsKey),
       });
 
       cljsSession = newCljsSession;

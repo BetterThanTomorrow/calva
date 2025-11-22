@@ -1,1 +1,3 @@
 (js/console.log "projects/shadow-w-backend/src/main/core.fiddle")
+
+(System/getProperty  "user.dir")

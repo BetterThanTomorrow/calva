@@ -825,6 +825,31 @@
                     "promoted": "cljs"
                   }
                 },
+                "replSessionGlobs": {
+                  "type": "object",
+                  "markdownDescription": "Map REPL session names to the file globs they should handle. Keys should match the names configured in `replSessionNames` (or their defaults). Values can be a single glob string or an array of glob strings. Globs are evaluated per workspace folder, so multi-root workspaces are supported.",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "default": {
+                    "clj": [
+                      "**/*.clj"
+                    ],
+                    "cljs": [
+                      "**/*.cljs"
+                    ]
+                  }
+                },
                 "jackInEnv": {
                   "type": "object",
                   "default": {},
@@ -3448,6 +3473,7 @@
     "jszip": "3.8.0",
     "lodash": "^4.17.19",
     "lodash.isequal": "4.5.0",
+    "minimatch": "^10.1.1",
     "net": "1.0.2",
     "open": "^6.3.0",
     "parinfer": "^3.12.0",

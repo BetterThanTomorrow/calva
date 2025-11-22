@@ -83,6 +83,7 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
 * `name` (`string`, optional): A human friendly label for the session, if Calva can determine one.
 * `projectRoot` (`string`, optional): A URI string describing the project/workspace that owns the session.
 * `lastActivity` (`number`, optional): Milliseconds since Unix epoch for the latest known activity on the session.
+* `globs` (`string[]`, optional): The set of file globs that the session declared it can handle. Calva iterates sessions in connection order and picks the first one whose globs match the active file.
 
 === "Joyride"
 

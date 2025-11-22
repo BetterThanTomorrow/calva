@@ -62,6 +62,8 @@ export interface SessionNamesConfig {
   promoted?: string;
 }
 
+export type SessionGlobsConfig = Record<string, string | string[]>;
+
 interface ReplConnectSequence {
   name: string;
   projectType: ProjectTypes;
@@ -76,6 +78,7 @@ interface ReplConnectSequence {
   extraNReplMiddleware?: string[];
   jackInEnv?: Record<string, string>;
   replSessionNames?: SessionNamesConfig;
+  replSessionGlobs?: SessionGlobsConfig;
 }
 
 const leiningenDefaults: ReplConnectSequence[] = [
@@ -358,6 +361,31 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
         if (!validKeyRegExp.test(key)) {
           void vscode.window.showWarningMessage(
             `Invalid session key "${key}" in connect sequence "${sequence.name}". Session keys must only contain letters, numbers, underscores, and dashes.`,
+            ...['Roger That!']
+          );
+          return [];
+        }
+      }
+    }
+
+    if (sequence.replSessionGlobs) {
+      const isValidGlobValue = (value: string | string[]): boolean => {
+        if (typeof value === 'string') {
+          return value.trim().length > 0;
+        }
+        if (Array.isArray(value)) {
+          return (
+            value.length > 0 &&
+            value.every((glob) => typeof glob === 'string' && glob.trim().length > 0)
+          );
+        }
+        return false;
+      };
+
+      for (const [name, value] of Object.entries(sequence.replSessionGlobs)) {
+        if (!isValidGlobValue(value)) {
+          void vscode.window.showWarningMessage(
+            `Invalid glob configuration for session "${name}" in connect sequence "${sequence.name}". Provide a glob string or an array of glob strings.`,
             ...['Roger That!']
           );
           return [];

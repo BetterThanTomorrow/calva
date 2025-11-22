@@ -7,6 +7,7 @@ import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getReplSessionTypeFromState } from './nrepl/repl-session';
 
 import * as sessionRegistry from './nrepl/session-registry';
+import * as sessionRoles from './nrepl/session-roles';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
@@ -51,6 +52,7 @@ function update() {
   const doc = util.tryToGetDocument({}),
     fileType = util.getFileType(doc),
     cljsBuild = getStateValue('cljsBuild');
+  const promotedSessionKey = sessionRoles.getSessionKeyForRole('promoted');
 
   const replTypeNames = {
     clj: 'Clojure',
@@ -115,8 +117,11 @@ function update() {
         } REPL`;
       }
     }
-    if (replType === 'cljs' && state.extensionContext.workspaceState.get('cljsReplTypeHasBuilds')) {
-      if (cljsBuild !== null && replType === 'cljs') {
+    if (
+      replType === promotedSessionKey &&
+      state.extensionContext.workspaceState.get('cljsReplTypeHasBuilds')
+    ) {
+      if (cljsBuild !== null && replType === promotedSessionKey) {
         cljsBuildStatus.text = cljsBuild;
         cljsBuildStatus.tooltip = 'Click to switch CLJS build REPL';
       } else if (cljsBuild === null) {
@@ -125,7 +130,7 @@ function update() {
       }
     }
 
-    if (replType === 'cljs' && cljsTypeName === 'shadow-cljs') {
+    if (replType === promotedSessionKey && cljsTypeName === 'shadow-cljs') {
       const selectedRuntime = shadowRuntimes.getSelectedRuntimeId();
       const runtimeInfo = shadowRuntimes.getSelectedRuntimeInfo();
 
@@ -166,7 +171,7 @@ function update() {
   const replType = getReplSessionTypeFromState();
   if (
     getStateValue('connected') &&
-    replType === 'cljs' &&
+    replType === promotedSessionKey &&
     cljsTypeName === 'shadow-cljs' &&
     shadowRuntimeStatus.text
   ) {
