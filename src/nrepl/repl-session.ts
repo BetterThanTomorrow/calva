@@ -1,15 +1,11 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import minimatch = require('minimatch');
+import { minimatch } from 'minimatch';
 import { NReplSession } from '.';
 import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
 import * as outputWindow from '../repl-window/repl-doc';
 import { isUndefined } from 'lodash';
 import * as sessionRegistry from './session-registry';
-
-function toPosixPath(value: string): string {
-  return value.replace(/\\/g, '/');
-}
+import { buildGlobCandidatePaths, toPosixPath, WorkspaceFolderInfo } from './glob-paths';
 
 function buildCandidatePaths(doc: vscode.TextDocument): string[] {
   const uri = doc.uri;
@@ -18,29 +14,21 @@ function buildCandidatePaths(doc: vscode.TextDocument): string[] {
     return [];
   }
 
-  const candidates = new Set<string>();
-  const absolute = toPosixPath(fsPath);
-  candidates.add(absolute);
-  candidates.add(toPosixPath(path.basename(fsPath)));
-
-  const addRelative = (folder?: vscode.WorkspaceFolder) => {
-    if (!folder) {
-      return;
-    }
-    const relative = path.relative(folder.uri.fsPath, fsPath);
-    if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
-      candidates.add(toPosixPath(relative));
-    }
-  };
-
   const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+  const folders: WorkspaceFolderInfo[] = [];
+
   if (workspaceFolder) {
-    addRelative(workspaceFolder);
-  } else {
-    vscode.workspace.workspaceFolders?.forEach((folder) => addRelative(folder));
+    folders.push({ fsPath: workspaceFolder.uri.fsPath, name: workspaceFolder.name });
+  } else if (vscode.workspace.workspaceFolders) {
+    folders.push(
+      ...vscode.workspace.workspaceFolders.map((folder) => ({
+        fsPath: folder.uri.fsPath,
+        name: folder.name,
+      }))
+    );
   }
 
-  return Array.from(candidates).filter(Boolean);
+  return buildGlobCandidatePaths(fsPath, folders);
 }
 
 function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefined {

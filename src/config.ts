@@ -20,7 +20,7 @@ const FIDDLE_FILE_EXT = 'fiddle';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
 const KEYBINDINGS_ENABLED_CONTEXT_KEY = 'calva:keybindingsEnabled';
 
-type ReplSessionType = 'clj' | 'cljs';
+type ReplSessionType = string;
 
 // include the 'file' and 'untitled' to the
 // document selector. All other schemes are

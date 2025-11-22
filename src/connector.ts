@@ -74,7 +74,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     await nClient.close();
   }
 
-  let cljSession: NReplSession;
+  let primarySession: NReplSession;
   const sessionRoleKeys = sessionRoles.initializeSessionRoleKeys(connectSequence);
 
   util.setConnectingState(true);
@@ -109,24 +109,24 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       status.update();
       calvaDebug.terminateDebugSession();
     });
-    cljSession = nClient.session;
-    cljSession.replType = 'clj';
+    primarySession = nClient.session;
+    primarySession.replType = 'clj';
     util.setConnectingState(false);
     util.setConnectedState(true);
     void state.analytics().logGA4Pageview('/connected-clj-repl');
 
-    const cljKey = sessionRoleKeys.primary;
-    sessionRegistry.registerSession(cljKey, cljSession, {
+    const primaryKey = sessionRoleKeys.primary;
+    sessionRegistry.registerSession(primaryKey, primarySession, {
       name: 'Clojure REPL',
       projectRoot: state.getProjectRootUri().toString(),
-      globs: sessionRoles.getGlobsForSessionKey(cljKey),
+      globs: sessionRoles.getGlobsForSessionKey(primaryKey),
     });
 
     status.update();
-    output.appendLineOtherOut(`Connected session: ${cljKey}`);
+    output.appendLineOtherOut(`Connected session: ${primaryKey}`);
     replSession.updateReplSessionType();
 
-    outputWindow.setSession(cljSession, nClient.ns);
+    outputWindow.setSession(primarySession, nClient.ns, primaryKey);
 
     if (getConfig().autoEvaluateCode.onConnect.clj) {
       output.appendLineOtherOut(
@@ -134,7 +134,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       );
       await evaluate.evaluateInOutputWindow(
         getConfig().autoEvaluateCode.onConnect.clj,
-        cljKey,
+        primaryKey,
         outputWindow.getNs(),
         {}
       );
@@ -145,7 +145,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       output.appendLineOtherOut(`Evaluating 'afterCLJReplJackInCode'`);
       await evaluate.evaluateInOutputWindow(
         connectSequence.afterCLJReplJackInCode,
-        cljKey,
+        primaryKey,
         outputWindow.getNs(),
         {}
       );
@@ -155,7 +155,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     }
     output.replWindowAppendPrompt();
 
-    clojureDocs.init(cljSession);
+    clojureDocs.init(primarySession);
 
     let cljsSession = null,
       cljsBuild = null;
@@ -173,7 +173,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         );
 
         [cljsSession, cljsBuild] = await makeCljsSessionClone(
-          cljSession,
+          primarySession,
           translatedReplType,
           connectSequence.name
         );
@@ -225,7 +225,7 @@ async function setUpCljsRepl(session: NReplSession, build) {
   const description = await session.describe(true);
   const ns = description.aux?.['current-ns'] || 'user';
   await session.eval(`(in-ns '${ns})`, 'user').value;
-  outputWindow.setSession(session, ns);
+  outputWindow.setSession(session, ns, cljsKey);
   if (getConfig().autoEvaluateCode.onConnect.cljs) {
     output.appendLineOtherOut(
       `Evaluating code from settings: 'calva.autoEvaluateCode.onConnect.cljs'`
@@ -911,6 +911,7 @@ export default {
     }
   ) => {
     sessionRegistry.clearAllSessions();
+    sessionRoles.resetSessionRoleKeys();
     util.setConnectedState(false);
     setStateValue('current-session-type', null);
     status.update();
@@ -945,7 +946,7 @@ export default {
         setStateValue('current-session-type', nextSessionMeta.key);
 
         if (outputWindow.isResultsDoc(util.getActiveTextEditor().document)) {
-          outputWindow.setSession(newSession, undefined);
+          outputWindow.setSession(newSession, undefined, nextSessionMeta.key);
           replSession.updateReplSessionType();
           output.replWindowAppendPrompt();
         }

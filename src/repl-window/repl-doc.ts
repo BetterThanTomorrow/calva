@@ -104,18 +104,47 @@ const DOC_URI = () => {
   return vscode.Uri.joinPath(outputFileDir(), getReplDocName());
 };
 
+type SessionInfo = {
+  ns?: string;
+  session?: NReplSession;
+};
+
 let _sessionType: ReplSessionType = 'clj';
-const _sessionInfo: { [id: string]: { ns?: string; session?: NReplSession } } = {
+const _sessionInfo: Record<string, SessionInfo> = {
   clj: {},
   cljs: {},
 };
-const showPrompt: { [id: string]: boolean } = {
+const showPrompt: Record<string, boolean> = {
   clj: true,
   cljs: true,
 };
 
+function ensureSessionEntries(sessionType: string) {
+  if (!_sessionInfo[sessionType]) {
+    _sessionInfo[sessionType] = {};
+  }
+  if (!Object.prototype.hasOwnProperty.call(showPrompt, sessionType)) {
+    showPrompt[sessionType] = true;
+  }
+}
+
+function resolveSessionType(session?: NReplSession, override?: string): ReplSessionType {
+  if (override) {
+    return override;
+  }
+  const metadataKey = (session as any)?._calvaSessionMetadata?.key;
+  if (metadataKey) {
+    return metadataKey;
+  }
+  if (session?.replType) {
+    return session.replType;
+  }
+  return _sessionType;
+}
+
 export function getPrompt(): string {
   // eslint-disable-next-line no-irregular-whitespace
+  ensureSessionEntries(_sessionType);
   let prompt = `${_sessionType}꞉${getNs()}꞉> `;
   if (showPrompt[_sessionType]) {
     showPrompt[_sessionType] = false;
@@ -125,6 +154,7 @@ export function getPrompt(): string {
 }
 
 export function getNs(): string | undefined {
+  ensureSessionEntries(_sessionType);
   return _sessionInfo[_sessionType].ns;
 }
 
@@ -133,18 +163,20 @@ export function getSessionType(): ReplSessionType {
 }
 
 export function getSession(): NReplSession | undefined {
+  ensureSessionEntries(_sessionType);
   return _sessionInfo[_sessionType].session;
 }
 
-export function setSession(session: NReplSession, newNs?: string): void {
+export function setSession(session: NReplSession, newNs?: string, sessionKey?: string): void {
+  const resolvedType = resolveSessionType(session, sessionKey);
+  ensureSessionEntries(resolvedType);
+  _sessionType = resolvedType;
+
   if (session) {
-    if (session.replType) {
-      _sessionType = session.replType;
-    }
-    _sessionInfo[_sessionType].session = session;
+    _sessionInfo[resolvedType].session = session;
   }
   if (newNs) {
-    _sessionInfo[_sessionType].ns = newNs;
+    _sessionInfo[resolvedType].ns = newNs;
   }
 }
 

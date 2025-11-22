@@ -48,7 +48,7 @@ A connect sequence configures the following:
 * `replSessionNames`: Override the default repl session names that Calva registers for the primary and the promoted (if any) REPL sessions.
     * `primary`: the name of the primary repl session. Defaults to `clj`
     * `promoted`: the name of the secondary/promoted repl session in the sequence. Defaults to `cljs`.
-* `replSessionGlobs`: Map each repl session name to the file globs it should handle. Keys should match the values configured in `replSessionNames` (or the defaults). Values can be a single glob string or an array of globs. Globs are evaluated relative to every workspace folder, so multi-root workspaces are supported. Defaults are `**/*.clj` for the primary session and `**/*.cljs` for the promoted session.
+* `replSessionGlobs`: Map each repl session name to the file globs it should handle. Keys should match the values configured in `replSessionNames` (or the defaults). Values can be a single glob string or an array of globs. Globs are evaluated relative to every workspace folder, so multi-root workspaces are supported, and you can prefix the relative path with the workspace folder name to scope matches (e.g. `"app/**/*.clj"` will only match files inside the `app` folder). Defaults are `**/*.clj` for the primary session and `**/*.cljs` for the promoted session.
 
 The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts) also use this format, check them out to get a clearer picture of how these settings work.
 
