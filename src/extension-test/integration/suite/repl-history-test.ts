@@ -53,6 +53,19 @@ async function appendPromptForSession(sessionKey: string, editor: vscode.TextEdi
   await waitForCondition(() => editor.document.getText().length > beforeLength);
 }
 
+async function typeAtPrompt(editor: vscode.TextEditor, text: string) {
+  const doc = editor.document;
+  const insertPosition = doc.positionAt(doc.getText().length);
+  editor.selection = new vscode.Selection(insertPosition, insertPosition);
+  await editor.edit((builder) => {
+    builder.insert(insertPosition, text);
+  });
+}
+
+function documentEndsWith(editor: vscode.TextEditor, text: string): boolean {
+  return editor.document.getText().trimEnd().endsWith(text);
+}
+
 suite(`${suiteName} suite`, () => {
   before(async () => {
     testUtil.showMessage(suiteName, 'suite starting!');
@@ -96,12 +109,54 @@ suite(`${suiteName} suite`, () => {
     replHistory.resetState();
     replHistory.showPreviousReplHistoryEntry();
 
-    await waitForCondition(() => editor.document.getText().trimEnd().endsWith('(println :srv2)'));
+    await waitForCondition(() => documentEndsWith(editor, '(println :srv2)'));
 
     await appendPromptForSession(uiSessionKey, editor);
     replHistory.resetState();
     replHistory.showPreviousReplHistoryEntry();
 
-    await waitForCondition(() => editor.document.getText().trimEnd().endsWith('(println :ui1)'));
+    await waitForCondition(() => documentEndsWith(editor, '(println :ui1)'));
+  });
+
+  test('navigates forward through history and restores prompt text', async () => {
+    const promptText = '(+ 2 3)';
+    replHistory.addToReplHistory(serverSessionKey, '(inc 0)');
+    replHistory.addToReplHistory(serverSessionKey, '(dec 2)');
+
+    const editor = await focusReplWindow();
+    await appendPromptForSession(serverSessionKey, editor);
+    await typeAtPrompt(editor, promptText);
+
+    replHistory.resetState();
+    replHistory.showPreviousReplHistoryEntry();
+    await waitForCondition(() => documentEndsWith(editor, '(dec 2)'));
+
+    replHistory.showPreviousReplHistoryEntry();
+    await waitForCondition(() => documentEndsWith(editor, '(inc 0)'));
+
+    replHistory.showNextReplHistoryEntry();
+    await waitForCondition(() => documentEndsWith(editor, '(dec 2)'));
+
+    replHistory.showNextReplHistoryEntry();
+    await waitForCondition(() => documentEndsWith(editor, promptText));
+  });
+
+  test('clears history only for the active session', async () => {
+    replHistory.addToReplHistory(serverSessionKey, '(println :srv1)');
+    replHistory.addToReplHistory(uiSessionKey, '(println :ui1)');
+
+    setSessionKey(serverSessionKey);
+    assert.strictEqual(outputWindow.getSessionType(), serverSessionKey);
+    replHistory.clearHistory();
+
+    await waitForCondition(() => {
+      const serverHistory = state.extensionContext.workspaceState.get<string[]>(
+        historyKeyFor(serverSessionKey)
+      );
+      return Array.isArray(serverHistory) && serverHistory.length === 0;
+    });
+    const uiHistory =
+      state.extensionContext.workspaceState.get<string[]>(historyKeyFor(uiSessionKey)) ?? [];
+    assert.deepStrictEqual(uiHistory, ['(println :ui1)']);
   });
 });
