@@ -64,6 +64,15 @@ function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefine
   return undefined;
 }
 
+function getCljcFallbackSessionKey(): string | undefined {
+  const cljcSessionKey = sessionRouting.getCljcSessionKey();
+  if (cljcSessionKey && sessionRegistry.getSession(cljcSessionKey)) {
+    return cljcSessionKey;
+  }
+
+  return undefined;
+}
+
 /**
  * Determines the appropriate session key based on file type and context
  */
@@ -90,6 +99,11 @@ function getSessionKey(fileType?: string): string | undefined {
   const globMatchedSession = findSessionKeyForDocument(doc);
   if (globMatchedSession && sessionRegistry.getSession(globMatchedSession)) {
     return globMatchedSession;
+  }
+
+  const cljcFallback = getCljcFallbackSessionKey();
+  if (cljcFallback) {
+    return cljcFallback;
   }
 
   if (inferredType && sessionRegistry.getSession(inferredType)) {
@@ -139,15 +153,20 @@ function getReplSessionType(connected: boolean): string | undefined {
         const globMatched = findSessionKeyForDocument(doc);
         if (globMatched && sessionRegistry.getSession(globMatched)) {
           sessionType = globMatched;
-        } else if (fileType && sessionRegistry.getSession(fileType)) {
-          sessionType = fileType;
         } else {
-          const storedType = cljsLib.getStateValue('current-session-type');
-          if (storedType && sessionRegistry.getSession(storedType)) {
-            sessionType = storedType;
+          const cljcFallback = getCljcFallbackSessionKey();
+          if (cljcFallback) {
+            sessionType = cljcFallback;
+          } else if (fileType && sessionRegistry.getSession(fileType)) {
+            sessionType = fileType;
           } else {
-            const defaultSession = sessionRegistry.listSessions()[0];
-            sessionType = defaultSession?.key;
+            const storedType = cljsLib.getStateValue('current-session-type');
+            if (storedType && sessionRegistry.getSession(storedType)) {
+              sessionType = storedType;
+            } else {
+              const defaultSession = sessionRegistry.listSessions()[0];
+              sessionType = defaultSession?.key;
+            }
           }
         }
       }

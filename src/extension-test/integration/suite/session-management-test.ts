@@ -193,4 +193,31 @@ describe(`${suiteName} suite`, () => {
     const resolvedPinned = replSession.getSession();
     assert.strictEqual(resolvedPinned, cljsSession);
   });
+
+  it('treats files without glob matches as cljc selections', async () => {
+    const cljSession = createSession('clj');
+    const cljsSession = createSession('cljs');
+    sessionRegistry.registerSession(serverSessionKey, cljSession, {
+      name: 'Server',
+      globs: ['**/*.clj'],
+    });
+    sessionRegistry.registerSession(uiSessionKey, cljsSession, {
+      name: 'UI',
+      globs: ['**/*.cljs'],
+    });
+
+    sessionRouting.setCljcSessionKey(serverSessionKey);
+
+    const unmatchedFilePath = path.join(testUtil.testDataDir, 'test-files', 'javascript-code.js');
+    await testUtil.openFile(unmatchedFilePath);
+
+    const resolvedUnmatched = replSession.getSession();
+    assert.strictEqual(resolvedUnmatched, cljSession);
+
+    sessionRouting.setCljcSessionKey(uiSessionKey);
+    await testUtil.openFile(unmatchedFilePath);
+
+    const rerouted = replSession.getSession();
+    assert.strictEqual(rerouted, cljsSession);
+  });
 });
