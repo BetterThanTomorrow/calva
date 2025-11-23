@@ -166,7 +166,7 @@ const nbbDefaults: ReplConnectSequence[] = [
     projectType: ProjectTypes['nbb'],
     cljsType: CljsTypes['ClojureScript nREPL'],
     nReplPortFile: ['.nrepl-port'],
-    replSessionNames: { primary: 'nbb', promoted: 'nbb' },
+    replSessionNames: { primary: 'nbb' },
     replSessionGlobs: { nbb: ['**/*.nbb', '**/*.cljs', '**/*.cljc'] },
   },
 ];
@@ -176,7 +176,7 @@ const joyrideDefaults: ReplConnectSequence[] = [
     name: 'joyride',
     projectType: ProjectTypes['joyride'],
     cljsType: CljsTypes['ClojureScript nREPL'],
-    replSessionNames: { primary: 'joyride', promoted: 'joyride' },
+    replSessionNames: { primary: 'joyride' },
     replSessionGlobs: { joyride: ['**/.joyride/**/*.clj{s,c}'] },
   },
 ];
