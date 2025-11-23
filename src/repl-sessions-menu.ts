@@ -1,10 +1,14 @@
 import * as vscode from 'vscode';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as sessionRouting from './nrepl/session-routing';
+import { getReplSessionTypeFromState } from './nrepl/repl-session';
 import status from './status';
 import { getPathRelativeToWorkspace } from './project-root';
+import * as utilities from './utilities';
 
 const DEFAULT_SESSION_NAMES = new Set(['Clojure REPL', 'ClojureScript REPL']);
+const MENU_SAVE_KEY = 'repl-sessions-menu';
+const CLJC_MENU_SAVE_KEY = 'repl-sessions-menu-cljc';
 
 interface SessionQuickPickItem extends vscode.QuickPickItem {
   action: 'session' | 'auto' | 'cljc' | 'cljc-clear';
@@ -77,11 +81,32 @@ function getSessionLabel(session: sessionRegistry.SessionMetadata): string {
   return session.key;
 }
 
-function buildSessionPickItems(): SessionQuickPickItem[] {
+function getDisplayNameForSessionKey(sessionKey?: string): string | undefined {
+  if (!sessionKey) {
+    return undefined;
+  }
+  const metadata = sessionRegistry.getSessionMetadata(sessionKey);
+  if (metadata) {
+    return getSessionLabel(metadata);
+  }
+  return sessionKey;
+}
+
+function buildSessionPickItems(options?: {
+  isAutoRouting: boolean;
+  autoSessionKey?: string;
+}): SessionQuickPickItem[] {
+  const { isAutoRouting = false, autoSessionKey } = options || {};
   const pinnedKey = sessionRouting.getPinnedSessionKey();
   return sessionRegistry.listSessions().map((session) => {
     const baseLabel = getSessionLabel(session);
-    const label = session.key === pinnedKey ? `$(pin) ${baseLabel}` : baseLabel;
+    const prefixes: string[] = [];
+    if (session.key === pinnedKey) {
+      prefixes.push('$(pin)');
+    } else if (isAutoRouting && autoSessionKey && session.key === autoSessionKey) {
+      prefixes.push('$(check)');
+    }
+    const label = prefixes.length > 0 ? `${prefixes.join(' ')} ${baseLabel}` : baseLabel;
     const description = formatRelativeProjectRoot(session.projectRoot);
 
     return {
@@ -107,7 +132,7 @@ async function promptForCljcSession(): Promise<void> {
   }
 
   const cljcItems: SessionQuickPickItem[] = [
-    ...buildSessionPickItems(),
+    ...buildSessionPickItems({ isAutoRouting: false }),
     {
       label: 'Use default routing for cljc files',
       description: 'Apply auto-routing rules for cljc files',
@@ -117,14 +142,16 @@ async function promptForCljcSession(): Promise<void> {
   ];
 
   const currentCljcSession = sessionRouting.getCljcSessionKey();
+  const currentCljcDisplay = getDisplayNameForSessionKey(currentCljcSession);
 
-  const cljcSelection = await vscode.window.showQuickPick(cljcItems, {
+  const cljcSelection = (await utilities.quickPickSingle({
     title: 'Route cljc files',
-    placeHolder: currentCljcSession
-      ? `Currently routing cljc files to ${currentCljcSession}`
+    placeHolder: currentCljcDisplay
+      ? `Currently routing cljc files to ${currentCljcDisplay}`
       : 'Select a session for cljc files',
-    canPickMany: false,
-  });
+    values: cljcItems,
+    saveAs: CLJC_MENU_SAVE_KEY,
+  })) as SessionQuickPickItem | undefined;
 
   if (!cljcSelection) {
     return;
@@ -143,21 +170,29 @@ async function promptForCljcSession(): Promise<void> {
 }
 
 function buildMenuItems(): SessionQuickPickItem[] {
-  const items: SessionQuickPickItem[] = buildSessionPickItems();
   const pinnedSession = sessionRouting.getPinnedSessionKey();
   const routingMode = sessionRouting.getRoutingMode();
   const cljcSession = sessionRouting.getCljcSessionKey();
+  const isAutoRouting = routingMode === 'auto' && !pinnedSession;
+  const autoSessionKey = isAutoRouting ? getReplSessionTypeFromState() : undefined;
+  const autoSessionDisplay = getDisplayNameForSessionKey(autoSessionKey);
+  const cljcDisplay = getDisplayNameForSessionKey(cljcSession);
+
+  const items: SessionQuickPickItem[] = buildSessionPickItems({
+    isAutoRouting,
+    autoSessionKey,
+  });
 
   items.push({
-    label: 'Auto-route',
-    description: routingMode === 'auto' && !pinnedSession ? 'Currently active' : undefined,
+    label: `${isAutoRouting ? '$(check) ' : ''}Auto-route`,
+    description: autoSessionDisplay ? `Current: ${autoSessionDisplay}` : undefined,
     detail: 'Use connect sequence globs and default routing for files not matched by globs.',
     action: 'auto',
   });
 
   items.push({
     label: 'Select session for cljc files',
-    description: cljcSession ? `Current: ${cljcSession}` : 'No override set',
+    description: cljcDisplay ? `Current: ${cljcDisplay}` : 'No override set',
     detail: 'Route only cljc files to a specific session when auto-routing is enabled.',
     action: 'cljc',
   });
@@ -172,11 +207,13 @@ export async function showReplSessionsMenu(): Promise<void> {
     return;
   }
 
-  const selection = await vscode.window.showQuickPick(buildMenuItems(), {
+  const menuItems = buildMenuItems();
+  const selection = (await utilities.quickPickSingle({
     title: 'REPL Sessions',
     placeHolder: 'Select a session to pin it',
-    canPickMany: false,
-  });
+    values: menuItems,
+    saveAs: MENU_SAVE_KEY,
+  })) as SessionQuickPickItem | undefined;
 
   if (!selection) {
     return;

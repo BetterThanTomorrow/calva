@@ -8,4 +8,5 @@
 
 (comment
   (-main)
+  (System/getProperty  "user.dir")
   )

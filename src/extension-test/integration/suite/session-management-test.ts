@@ -1,7 +1,6 @@
 import * as assert from 'assert';
 import * as Mocha from 'mocha';
 import * as path from 'path';
-import * as vscode from 'vscode';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as outputWindow from '../../../repl-window/repl-doc';
 import connector from '../../../connector';
@@ -81,34 +80,25 @@ describe(`${suiteName} suite`, () => {
   });
 
   it('toggle command cycles through registered session keys', async () => {
-    const serverSession = createSession('clj');
-    const uiSession = createSession('cljs');
-    sessionRegistry.registerSession(serverSessionKey, serverSession, {
+    sessionRegistry.registerSession(serverSessionKey, createSession('clj'), {
       name: 'Server',
       globs: ['**/*.clj'],
     });
-    sessionRegistry.registerSession(uiSessionKey, uiSession, {
+    sessionRegistry.registerSession(uiSessionKey, createSession('cljs'), {
       name: 'UI',
       globs: ['**/*.cljs'],
     });
 
-    const replEditor = await outputWindow.revealResultsDoc(false);
-    outputWindow.setSession(serverSession, 'user', serverSessionKey);
     cljsLib.setStateValue('current-session-type', serverSessionKey);
+    assert.strictEqual(sessionRouting.getCljcSessionKey(), undefined);
 
     connector.toggleCLJCSession();
 
-    assert.strictEqual(cljsLib.getStateValue('current-session-type'), uiSessionKey);
-    assert.strictEqual(outputWindow.getSessionType(), uiSessionKey);
+    assert.strictEqual(sessionRouting.getCljcSessionKey(), uiSessionKey);
 
     connector.toggleCLJCSession();
 
-    assert.strictEqual(cljsLib.getStateValue('current-session-type'), serverSessionKey);
-    assert.strictEqual(outputWindow.getSessionType(), serverSessionKey);
-
-    if (vscode.window.activeTextEditor?.document === replEditor.document) {
-      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-    }
+    assert.strictEqual(sessionRouting.getCljcSessionKey(), serverSessionKey);
   });
 
   it('honors session glob mappings when resolving active files', async () => {

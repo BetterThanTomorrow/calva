@@ -108,18 +108,20 @@ function update() {
     typeStatus.color = colorValue('typeStatusColor', currentConf);
     const replType = getReplSessionTypeFromState();
     if (replType) {
-      const sessions = sessionRegistry.listSessions();
-      const currentSession = sessionRegistry.getSession(replType);
-      const currentSessionMeta = (currentSession as any)?._calvaSessionMetadata;
+      const pinnedSessionKey = sessionRouting.getPinnedSessionKey();
+      const isPinned = sessionRouting.isPinned() && Boolean(pinnedSessionKey);
+      const displaySessionKey = isPinned && pinnedSessionKey ? pinnedSessionKey : replType;
+      const displayMeta = sessionRegistry.getSessionMetadata(displaySessionKey);
 
-      typeStatus.text = ['cljc', config.REPL_FILE_EXT, config.FIDDLE_FILE_EXT].includes(fileType)
-        ? `cljc/${replType}`
-        : replType;
-      const isPinned = sessionRouting.isPinned();
+      const baseStatusText = ['cljc', config.REPL_FILE_EXT, config.FIDDLE_FILE_EXT].includes(
+        fileType
+      )
+        ? `cljc/${displaySessionKey}`
+        : displaySessionKey;
       const pinIndicator = isPinned ? '$(pin) ' : '';
-      typeStatus.text = `${pinIndicator}${typeStatus.text}`;
+      typeStatus.text = `${pinIndicator}${baseStatusText}`;
       typeStatus.command = 'calva.showReplSessionsMenu';
-      const sessionDisplayName = getSessionDisplayName(currentSessionMeta, replType);
+      const sessionDisplayName = getSessionDisplayName(displayMeta, displaySessionKey);
       const tooltipParts = [
         isPinned
           ? `Pinned session: ${sessionDisplayName}`

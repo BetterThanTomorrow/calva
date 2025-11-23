@@ -946,28 +946,23 @@ export default {
     callback();
   },
   toggleCLJCSession: () => {
-    let newSession: NReplSession;
-
-    if (getStateValue('connected')) {
-      const sessions = sessionRegistry.listSessions();
-      if (sessions.length > 1) {
-        const currentType = replSession.getReplSessionTypeFromState();
-        const currentIndex = sessions.findIndex((s) => s.key === currentType);
-        const nextIndex = (currentIndex + 1) % sessions.length;
-        const nextSessionMeta = sessions[nextIndex];
-
-        newSession = sessionRegistry.getSession(nextSessionMeta.key);
-
-        setStateValue('current-session-type', nextSessionMeta.key);
-
-        if (outputWindow.isResultsDoc(util.getActiveTextEditor().document)) {
-          outputWindow.setSession(newSession, undefined, nextSessionMeta.key);
-          replSession.updateReplSessionType();
-          output.replWindowAppendPrompt();
-        }
-        status.update();
-      }
+    if (!getStateValue('connected')) {
+      return;
     }
+
+    const sessions = sessionRegistry.listSessions();
+    if (sessions.length === 0) {
+      return;
+    }
+
+    const currentOverride = sessionRouting.getCljcSessionKey();
+    const referenceKey = currentOverride ?? replSession.getReplSessionTypeFromState();
+    const currentIndex = referenceKey ? sessions.findIndex((s) => s.key === referenceKey) : -1;
+    const nextIndex = (currentIndex + 1) % sessions.length;
+    const nextSessionMeta = sessions[nextIndex];
+
+    sessionRouting.setCljcSessionKey(nextSessionMeta.key);
+    status.update();
   },
   switchCljsBuild: async () => {
     const connectSequence =
