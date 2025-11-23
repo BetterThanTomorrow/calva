@@ -83,7 +83,7 @@ suite('Jack-in suite', () => {
         '../projects/minimal-basilisp/src/test.lpy'
       );
 
-      await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
+      await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'basilisp꞉test꞉> ']);
 
       await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
       testUtil.log(suite, 'test.lpy closed for Basilisp');

@@ -53,6 +53,7 @@ function update() {
     fileType = util.getFileType(doc),
     cljsBuild = getStateValue('cljsBuild');
   const promotedSessionKey = sessionRoles.getSessionKeyForRole('promoted');
+  const hasPromotedSession = Boolean(promotedSessionKey);
 
   const replTypeNames = {
     clj: 'Clojure',
@@ -76,7 +77,7 @@ function update() {
   connectionStatus.tooltip = 'REPL connection status';
 
   cljsBuildStatus.text = '';
-  cljsBuildStatus.command = 'calva.switchCljsBuild';
+  cljsBuildStatus.command = hasPromotedSession ? 'calva.switchCljsBuild' : undefined;
   cljsBuildStatus.tooltip = undefined;
 
   shadowRuntimeStatus.text = '';
@@ -118,6 +119,7 @@ function update() {
       }
     }
     if (
+      hasPromotedSession &&
       replType === promotedSessionKey &&
       state.extensionContext.workspaceState.get('cljsReplTypeHasBuilds')
     ) {
@@ -130,7 +132,7 @@ function update() {
       }
     }
 
-    if (replType === promotedSessionKey && cljsTypeName === 'shadow-cljs') {
+    if (hasPromotedSession && replType === promotedSessionKey && cljsTypeName === 'shadow-cljs') {
       const selectedRuntime = shadowRuntimes.getSelectedRuntimeId();
       const runtimeInfo = shadowRuntimes.getSelectedRuntimeInfo();
 
@@ -171,6 +173,7 @@ function update() {
   const replType = getReplSessionTypeFromState();
   if (
     getStateValue('connected') &&
+    hasPromotedSession &&
     replType === promotedSessionKey &&
     cljsTypeName === 'shadow-cljs' &&
     shadowRuntimeStatus.text

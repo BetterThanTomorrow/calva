@@ -16,6 +16,7 @@ import {
   askForConnectSequence,
   getConnectSequences,
 } from './nrepl/connectSequence';
+import { shouldUsePromotedSession } from './nrepl/promoted-session';
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
@@ -76,6 +77,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
 
   let primarySession: NReplSession;
   const sessionRoleKeys = sessionRoles.initializeSessionRoleKeys(connectSequence);
+  const usePromotedSession = shouldUsePromotedSession(connectSequence);
 
   util.setConnectingState(true);
   void vscode.commands.executeCommand('setContext', 'calva:connectSequence', connectSequence.name);
@@ -162,7 +164,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     let cljsSession = null,
       cljsBuild = null;
     try {
-      if (connectSequence.cljsType && connectSequence.cljsType != 'none') {
+      if (usePromotedSession && connectSequence.cljsType && connectSequence.cljsType != 'none') {
         const isBuiltinType: boolean = typeof connectSequence.cljsType == 'string';
         const cljsType: CljsTypeConfig = isBuiltinType
           ? getDefaultCljsType(connectSequence.cljsType as string)
@@ -184,7 +186,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       if (cljsSession) {
         await setUpCljsRepl(cljsSession, cljsBuild);
       }
-      if (isShadowCljsReplType(connectSequence.cljsType)) {
+      if (usePromotedSession && isShadowCljsReplType(connectSequence.cljsType)) {
         await shadowCljsRuntime.initializeShadowRemoteNotifications();
       }
     } catch (e) {
@@ -214,6 +216,9 @@ function cleanUpAfterError(e: any) {
 
 async function setUpCljsRepl(session: NReplSession, build) {
   const cljsKey = sessionRoles.getSessionKeyForRole('promoted');
+  if (!cljsKey) {
+    return;
+  }
 
   sessionRegistry.registerSession(cljsKey, session, {
     name: `ClojureScript REPL${build ? ' (' + build + ')' : ''}`,
@@ -310,6 +315,9 @@ async function evalConnectCode(
   });
   if (await checkSuccess(valueResult, out, err)) {
     const cljsKey = sessionRoles.getSessionKeyForRole('promoted');
+    if (!cljsKey) {
+      return false;
+    }
 
     // Update the session in the registry
     sessionRegistry.registerSession(cljsKey, newCljsSession, {
@@ -678,6 +686,9 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
       const connectSequence =
         state.extensionContext.workspaceState.get<ReplConnectSequence>('selectedConnectSequence');
       const cljsKey = sessionRoles.getSessionKeyForRole('promoted');
+      if (!cljsKey) {
+        return [null, null];
+      }
 
       // Update registry
       sessionRegistry.registerSession(cljsKey, newCljsSession, {
@@ -957,6 +968,11 @@ export default {
     }
   },
   switchCljsBuild: async () => {
+    const connectSequence =
+      state.extensionContext.workspaceState.get<ReplConnectSequence>('selectedConnectSequence');
+    if (!connectSequence || !shouldUsePromotedSession(connectSequence)) {
+      return;
+    }
     const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('primary'));
     const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName'),
       cljTypeName: string = state.extensionContext.workspaceState.get('selectedCljTypeName');

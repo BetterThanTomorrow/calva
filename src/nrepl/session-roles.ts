@@ -1,11 +1,16 @@
 import { getStateValue, setStateValue } from '../../out/cljs-lib/cljs-lib';
-import { ReplConnectSequence, SessionGlobsConfig, SessionNamesConfig } from './connectSequence';
+import {
+  ReplConnectSequence,
+  SessionGlobsConfig,
+  SessionNamesConfig,
+} from './connect-sequence-types';
+import { shouldUsePromotedSession } from './promoted-session';
 
 export type SessionRole = 'primary' | 'promoted';
 
 export interface SessionRoleKeys {
   primary: string;
-  promoted: string;
+  promoted?: string;
 }
 
 export type SessionGlobMap = Record<string, string[]>;
@@ -40,11 +45,15 @@ function normalizeGlobValue(value: string | string[]): string[] {
     .filter((glob) => glob.length > 0);
 }
 
-function fromSequenceConfig(config?: SessionNamesConfig): SessionRoleKeys {
-  return {
+function fromSequenceConfig(sequence?: ReplConnectSequence): SessionRoleKeys {
+  const config = sequence?.replSessionNames;
+  const keys: SessionRoleKeys = {
     primary: config?.primary || DEFAULT_SESSION_ROLE_KEYS.primary,
-    promoted: config?.promoted || DEFAULT_SESSION_ROLE_KEYS.promoted,
   };
+  if (shouldUsePromotedSession(sequence)) {
+    keys.promoted = config?.promoted || DEFAULT_SESSION_ROLE_KEYS.promoted;
+  }
+  return keys;
 }
 
 function readStoredKeys(): Partial<SessionRoleKeys> | undefined {
@@ -98,7 +107,7 @@ function deriveSessionRoleGlobs(
 }
 
 export function deriveSessionRoleKeys(sequence?: ReplConnectSequence): SessionRoleKeys {
-  return fromSequenceConfig(sequence?.replSessionNames);
+  return fromSequenceConfig(sequence);
 }
 
 export function deriveSessionGlobMap(sequence?: ReplConnectSequence): SessionGlobMap {
@@ -120,10 +129,13 @@ export function initializeSessionRoleKeys(sequence?: ReplConnectSequence): Sessi
 
 export function getSessionRoleKeys(): SessionRoleKeys {
   const stored = readStoredKeys();
-  return {
+  const keys: SessionRoleKeys = {
     primary: stored?.primary || DEFAULT_SESSION_ROLE_KEYS.primary,
-    promoted: stored?.promoted || DEFAULT_SESSION_ROLE_KEYS.promoted,
   };
+  if (stored?.promoted) {
+    keys.promoted = stored.promoted;
+  }
+  return keys;
 }
 
 export function getSessionRoleGlobs(): SessionGlobMap {
@@ -139,7 +151,7 @@ export function getGlobsForSessionKey(key: string): string[] {
   return globs[key] ? [...globs[key]] : [];
 }
 
-export function getSessionKeyForRole(role: SessionRole): string {
+export function getSessionKeyForRole(role: SessionRole): string | undefined {
   const keys = getSessionRoleKeys();
   return keys[role];
 }
