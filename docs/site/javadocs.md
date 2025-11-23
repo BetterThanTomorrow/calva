@@ -1,6 +1,6 @@
 ---
 title: Javadoc support in Calva
-description: 
+description: The current javadoc support in Calva.
 ---
 Calva's javadoc support is inherited from nrepl, so similar to the support for javadoc in Cider.
 
