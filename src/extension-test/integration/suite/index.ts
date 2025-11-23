@@ -17,11 +17,22 @@ export async function run(): Promise<void> {
   });
 
   const testsRoot = path.resolve(__dirname, '..');
+  const filtersRaw = process.env.CALVA_INTEGRATION_SUITE_FILTER ?? '';
+  const filters = filtersRaw
+    .split(',')
+    .map((token) => token.trim())
+    .filter((token) => token.length > 0);
   const files = await glob('**/**-test.js', { cwd: testsRoot });
+  const filteredFiles =
+    filters.length === 0
+      ? files
+      : files.filter((filePath) =>
+          filters.some((filterToken) => filePath.toLowerCase().includes(filterToken.toLowerCase()))
+        );
 
-  files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
+  filteredFiles.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
 
-  console.log(files);
+  console.log('Integration suites selected:', filteredFiles);
 
   return new Promise((resolve, reject) => {
     try {

@@ -12,6 +12,13 @@ async function main() {
     // Passed to --extensionTestsPath
     const extensionTestsPath = path.resolve(__dirname, 'suite', 'index');
     const testWorkspace = path.resolve(__dirname, '../../../test-data');
+    const testFilters = process.argv.slice(2).filter((arg) => arg.trim().length > 0);
+    const extensionTestsEnv =
+      testFilters.length > 0
+        ? {
+            CALVA_INTEGRATION_SUITE_FILTER: testFilters.join(','),
+          }
+        : undefined;
 
     const launchArgs = [testWorkspace, '--disable-extensions', '--disable-workspace-trust'];
 
@@ -21,6 +28,7 @@ async function main() {
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs,
+      extensionTestsEnv,
     });
   } catch (err) {
     console.error('Failed to run tests');
