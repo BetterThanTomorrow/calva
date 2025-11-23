@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { before, beforeEach, afterEach, describe, it } from 'mocha';
+import * as Mocha from 'mocha';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as sessionRegistry from '../../../nrepl/session-registry';
@@ -7,9 +7,11 @@ import * as outputWindow from '../../../repl-window/repl-doc';
 import connector from '../../../connector';
 import * as replApi from '../../../api/repl-v1';
 import * as replSession from '../../../nrepl/repl-session';
-import { getStateValue, setStateValue } from '../../../../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../../../../out/cljs-lib/cljs-lib';
 import type { NReplSession } from '../../../nrepl';
 import * as testUtil from './util';
+
+const { describe, before, beforeEach, afterEach, it } = Mocha;
 
 const suiteName = 'Session management';
 const serverSessionKey = 'session-management/server';
@@ -31,8 +33,8 @@ describe(`${suiteName} suite`, () => {
   let initialOutputNamespace: string | undefined;
 
   before(async () => {
-    initialConnectionState = getStateValue('connected');
-    initialCurrentSessionType = getStateValue('current-session-type');
+    initialConnectionState = cljsLib.getStateValue('connected');
+    initialCurrentSessionType = cljsLib.getStateValue('current-session-type');
     initialOutputSessionType = outputWindow.getSessionType();
     initialOutputNamespace = outputWindow.getNs();
     await outputWindow.initResultsDoc();
@@ -40,15 +42,15 @@ describe(`${suiteName} suite`, () => {
 
   beforeEach(() => {
     sessionRegistry.clearAllSessions();
-    setStateValue('connected', true);
-    setStateValue('current-session-type', undefined);
+    cljsLib.setStateValue('connected', true);
+    cljsLib.setStateValue('current-session-type', undefined);
     resetOutputWindowSession('clj', 'user');
   });
 
   afterEach(() => {
     sessionRegistry.clearAllSessions();
-    setStateValue('connected', initialConnectionState);
-    setStateValue('current-session-type', initialCurrentSessionType);
+    cljsLib.setStateValue('connected', initialConnectionState);
+    cljsLib.setStateValue('current-session-type', initialCurrentSessionType);
     const fallbackSessionType = initialOutputSessionType ?? 'clj';
     const fallbackNamespace = initialOutputNamespace ?? 'user';
     resetOutputWindowSession(fallbackSessionType, fallbackNamespace);
@@ -89,16 +91,16 @@ describe(`${suiteName} suite`, () => {
 
     const replEditor = await outputWindow.revealResultsDoc(false);
     outputWindow.setSession(serverSession, 'user', serverSessionKey);
-    setStateValue('current-session-type', serverSessionKey);
+    cljsLib.setStateValue('current-session-type', serverSessionKey);
 
     connector.toggleCLJCSession();
 
-    assert.strictEqual(getStateValue('current-session-type'), uiSessionKey);
+    assert.strictEqual(cljsLib.getStateValue('current-session-type'), uiSessionKey);
     assert.strictEqual(outputWindow.getSessionType(), uiSessionKey);
 
     connector.toggleCLJCSession();
 
-    assert.strictEqual(getStateValue('current-session-type'), serverSessionKey);
+    assert.strictEqual(cljsLib.getStateValue('current-session-type'), serverSessionKey);
     assert.strictEqual(outputWindow.getSessionType(), serverSessionKey);
 
     if (vscode.window.activeTextEditor?.document === replEditor.document) {

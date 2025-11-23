@@ -1,6 +1,6 @@
 import * as expect from 'expect';
 import type { NReplSession } from '../../../../src/nrepl';
-import { resolveSessionKey } from '../../../../src/nrepl/session-registry';
+import * as sessionRegistry from '../../../../src/nrepl/session-registry';
 
 describe('session registry', () => {
   describe('resolveSessionKey', () => {
@@ -8,17 +8,17 @@ describe('session registry', () => {
       const session = { replType: 'clj' } as unknown as NReplSession;
       (session as any)._calvaSessionMetadata = { key: 'bb' };
 
-      expect(resolveSessionKey(session)).toBe('bb');
+      expect(sessionRegistry.resolveSessionKey(session)).toBe('bb');
     });
 
     it('falls back to the session replType when metadata key is missing', () => {
       const session = { replType: 'cljs' } as unknown as NReplSession;
 
-      expect(resolveSessionKey(session)).toBe('cljs');
+      expect(sessionRegistry.resolveSessionKey(session)).toBe('cljs');
     });
 
     it('uses the provided fallback when there is no session', () => {
-      expect(resolveSessionKey(undefined, 'custom')).toBe('custom');
+      expect(sessionRegistry.resolveSessionKey(undefined, 'custom')).toBe('custom');
     });
   });
 });

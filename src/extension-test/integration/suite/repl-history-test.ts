@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { before, after, beforeEach } from 'mocha';
+import * as Mocha from 'mocha';
 import * as vscode from 'vscode';
 import * as testUtil from './util';
 import * as state from '../../../state';
@@ -52,6 +52,8 @@ async function typeAtPrompt(editor: vscode.TextEditor, text: string) {
 function documentEndsWith(editor: vscode.TextEditor, text: string): boolean {
   return editor.document.getText().trimEnd().endsWith(text);
 }
+
+const { before, after, beforeEach } = Mocha;
 
 suite(`${suiteName} suite`, () => {
   before(async () => {

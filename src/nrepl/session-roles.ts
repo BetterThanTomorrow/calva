@@ -4,7 +4,7 @@ import {
   SessionGlobsConfig,
   SessionNamesConfig,
 } from './connect-sequence-types';
-import { shouldUsePromotedSession } from './promoted-session';
+import * as promotedSession from './promoted-session';
 
 export type SessionRole = 'primary' | 'promoted';
 
@@ -50,7 +50,7 @@ function fromSequenceConfig(sequence?: ReplConnectSequence): SessionRoleKeys {
   const keys: SessionRoleKeys = {
     primary: config?.primary || DEFAULT_SESSION_ROLE_KEYS.primary,
   };
-  if (shouldUsePromotedSession(sequence)) {
+  if (promotedSession.shouldUsePromotedSession(sequence)) {
     keys.promoted = config?.promoted || DEFAULT_SESSION_ROLE_KEYS.promoted;
   }
   return keys;

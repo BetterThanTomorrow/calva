@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
-import { minimatch } from 'minimatch';
+import * as minimatchLib from 'minimatch';
 import { NReplSession } from '.';
 import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
 import * as outputWindow from '../repl-window/repl-doc';
 import { isUndefined } from 'lodash';
 import * as sessionRegistry from './session-registry';
-import { buildGlobCandidatePaths, toPosixPath, WorkspaceFolderInfo } from './glob-paths';
+import type { WorkspaceFolderInfo } from './glob-paths';
+import * as globPaths from './glob-paths';
 
 function buildCandidatePaths(doc: vscode.TextDocument): string[] {
   const uri = doc.uri;
@@ -28,7 +29,7 @@ function buildCandidatePaths(doc: vscode.TextDocument): string[] {
     );
   }
 
-  return buildGlobCandidatePaths(fsPath, folders);
+  return globPaths.buildGlobCandidatePaths(fsPath, folders);
 }
 
 function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefined {
@@ -48,9 +49,11 @@ function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefine
     }
 
     for (const pattern of session.globs) {
-      const normalizedPattern = toPosixPath(pattern);
+      const normalizedPattern = globPaths.toPosixPath(pattern);
       if (
-        candidatePaths.some((candidate) => minimatch(candidate, normalizedPattern, { dot: true }))
+        candidatePaths.some((candidate) =>
+          minimatchLib.minimatch(candidate, normalizedPattern, { dot: true })
+        )
       ) {
         return session.key;
       }

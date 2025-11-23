@@ -1,6 +1,6 @@
 import * as expect from 'expect';
-import { ReplConnectSequence } from '../../../../src/nrepl/connect-sequence-types';
-import { deriveSessionGlobMap } from '../../../../src/nrepl/session-roles';
+import type { ReplConnectSequence } from '../../../../src/nrepl/connect-sequence-types';
+import * as sessionRoles from '../../../../src/nrepl/session-roles';
 
 const baseSequence = (): ReplConnectSequence => ({
   name: 'Custom',
@@ -10,7 +10,7 @@ const baseSequence = (): ReplConnectSequence => ({
 
 describe('session role glob derivation', () => {
   it('provides default globs for default session names', () => {
-    expect(deriveSessionGlobMap()).toEqual({
+    expect(sessionRoles.deriveSessionGlobMap()).toEqual({
       clj: ['**/*.clj'],
     });
   });
@@ -19,7 +19,7 @@ describe('session role glob derivation', () => {
     const sequence = baseSequence();
     sequence.cljsType = 'shadow-cljs' as unknown as ReplConnectSequence['cljsType'];
 
-    expect(deriveSessionGlobMap(sequence)).toEqual({
+    expect(sessionRoles.deriveSessionGlobMap(sequence)).toEqual({
       clj: ['**/*.clj'],
       cljs: ['**/*.cljs'],
     });
@@ -34,7 +34,7 @@ describe('session role glob derivation', () => {
       connectCode: '',
     } as unknown as ReplConnectSequence['cljsType'];
 
-    const result = deriveSessionGlobMap(sequence);
+    const result = sessionRoles.deriveSessionGlobMap(sequence);
 
     expect(result.clj).toEqual(['**/*.clj']);
     expect(result.cljs).toEqual(['**/*.cljs']);
@@ -45,7 +45,7 @@ describe('session role glob derivation', () => {
     sequence.cljsType = 'shadow-cljs' as unknown as ReplConnectSequence['cljsType'];
     sequence.replSessionNames = { primary: 'clj2', promoted: 'cljs2' };
 
-    const result = deriveSessionGlobMap(sequence);
+    const result = sessionRoles.deriveSessionGlobMap(sequence);
 
     expect(result.clj2).toEqual(['**/*.clj']);
     expect(result.cljs2).toEqual(['**/*.cljs']);
@@ -60,7 +60,7 @@ describe('session role glob derivation', () => {
       beta: ['ui/**/*.cljs'],
     };
 
-    const result = deriveSessionGlobMap(sequence);
+    const result = sessionRoles.deriveSessionGlobMap(sequence);
 
     expect(result.alpha).toEqual(['apps/**/server.clj']);
     expect(result.beta).toEqual(['ui/**/*.cljs']);
@@ -75,7 +75,7 @@ describe('session role glob derivation', () => {
       promoted: ['clients/**/*.cljs'],
     };
 
-    const result = deriveSessionGlobMap(sequence);
+    const result = sessionRoles.deriveSessionGlobMap(sequence);
 
     expect(result.gamma).toEqual(['services/**/*.clj']);
     expect(result.delta).toEqual(['clients/**/*.cljs']);
@@ -91,7 +91,7 @@ describe('session role glob derivation', () => {
       extra: ['lambda/**/*.clj'],
     };
 
-    const result = deriveSessionGlobMap(sequence);
+    const result = sessionRoles.deriveSessionGlobMap(sequence);
 
     expect(result.extra).toEqual(['lambda/**/*.clj']);
   });
@@ -105,7 +105,7 @@ describe('session role glob derivation', () => {
       beta: ' ui/**/*.cljs ',
     };
 
-    const result = deriveSessionGlobMap(sequence);
+    const result = sessionRoles.deriveSessionGlobMap(sequence);
 
     expect(result.alpha).toEqual(['src/**/*.clj']);
     expect(result.beta).toEqual(['ui/**/*.cljs']);
@@ -120,7 +120,7 @@ describe('session role glob derivation', () => {
       beta: [],
     };
 
-    const result = deriveSessionGlobMap(sequence);
+    const result = sessionRoles.deriveSessionGlobMap(sequence);
 
     expect(result.alpha).toEqual(['**/*.clj']);
     expect(result.beta).toEqual(['**/*.cljs']);

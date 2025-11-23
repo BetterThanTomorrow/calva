@@ -16,7 +16,7 @@ import {
   askForConnectSequence,
   getConnectSequences,
 } from './nrepl/connectSequence';
-import { shouldUsePromotedSession } from './nrepl/promoted-session';
+import * as promotedSession from './nrepl/promoted-session';
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
@@ -77,7 +77,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
 
   let primarySession: NReplSession;
   const sessionRoleKeys = sessionRoles.initializeSessionRoleKeys(connectSequence);
-  const usePromotedSession = shouldUsePromotedSession(connectSequence);
+  const usePromotedSession = promotedSession.shouldUsePromotedSession(connectSequence);
 
   util.setConnectingState(true);
   void vscode.commands.executeCommand('setContext', 'calva:connectSequence', connectSequence.name);
@@ -970,7 +970,7 @@ export default {
   switchCljsBuild: async () => {
     const connectSequence =
       state.extensionContext.workspaceState.get<ReplConnectSequence>('selectedConnectSequence');
-    if (!connectSequence || !shouldUsePromotedSession(connectSequence)) {
+    if (!connectSequence || !promotedSession.shouldUsePromotedSession(connectSequence)) {
       return;
     }
     const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('primary'));
