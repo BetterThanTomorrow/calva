@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Calva and the VIM Extension">
+        <meta name="description" content="The current javadoc support in Calva.">
       
       
       
-        <link rel="canonical" href="https://calva.io/vim/">
+        <link rel="canonical" href="https://calva.io/javadocs/">
       
       
-        <link rel="prev" href="../live-share/">
+        <link rel="prev" href="../virgil/">
       
       
-        <link rel="next" href="../reveal/">
+        <link rel="next" href="../api/">
       
       
       <link rel="icon" href="../img/favicon.ico">
@@ -24,7 +24,7 @@
     
     
       
-        <title>VIM - Calva User Guide</title>
+        <title>Javadoc support in Calva - Calva User Guide</title>
       
     
     
@@ -73,11 +73,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="VIM - Calva User Guide" >
+        <meta  property="og:title"  content="Javadoc support in Calva - Calva User Guide" >
       
-        <meta  property="og:description"  content="Calva and the VIM Extension" >
+        <meta  property="og:description"  content="The current javadoc support in Calva." >
       
-        <meta  property="og:image"  content="https://calva.io/assets/images/social/vim.png" >
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/javadocs.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -85,15 +85,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://calva.io/vim/" >
+        <meta  property="og:url"  content="https://calva.io/javadocs/" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="VIM - Calva User Guide" >
+        <meta  name="twitter:title"  content="Javadoc support in Calva - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Calva and the VIM Extension" >
+        <meta  name="twitter:description"  content="The current javadoc support in Calva." >
       
-        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/vim.png" >
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/javadocs.png" >
       
     
     
@@ -109,7 +109,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#calva-and-the-vim-extension" class="md-skip">
+        <a href="#prerequisites" class="md-skip">
           Skip to content
         </a>
       
@@ -144,7 +144,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              VIM
+              Javadoc support in Calva
             
           </span>
         </div>
@@ -1226,19 +1226,17 @@
       
   
   
-    
   
   
-  
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
         
           
           <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
@@ -1252,7 +1250,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             Using Calva with ...
@@ -1347,30 +1345,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    VIM
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../vim/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1379,92 +1357,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#key-bindings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Key bindings
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Key bindings">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#expand-selection-on-mac" class="md-nav__link">
-    <span class="md-ellipsis">
-      Expand selection on Mac
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#the-esc-key" class="md-nav__link">
-    <span class="md-ellipsis">
-      The esc key
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="The esc key">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#remap-calvas-clearinlineresults" class="md-nav__link">
-    <span class="md-ellipsis">
-      Remap Calva's clearInlineResults
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#remap-vims-insert-mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      Remap Vim's Insert Mode
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#vim-fireplace-ish-keybindings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Vim Fireplace-ish keybindings
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1733,17 +1625,19 @@
       
   
   
+    
   
   
+  
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
         
           
           <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
@@ -1757,7 +1651,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             Tips and Tricks
@@ -1915,10 +1809,19 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../javadocs/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -1927,6 +1830,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -2207,80 +2111,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#key-bindings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Key bindings
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Key bindings">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#expand-selection-on-mac" class="md-nav__link">
-    <span class="md-ellipsis">
-      Expand selection on Mac
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#the-esc-key" class="md-nav__link">
-    <span class="md-ellipsis">
-      The esc key
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="The esc key">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#remap-calvas-clearinlineresults" class="md-nav__link">
-    <span class="md-ellipsis">
-      Remap Calva's clearInlineResults
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#remap-vims-insert-mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      Remap Vim's Insert Mode
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#vim-fireplace-ish-keybindings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Vim Fireplace-ish keybindings
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -2297,53 +2127,44 @@
   
 
 
-<h1 id="calva-and-the-vim-extension">Calva and the VIM Extension<a class="headerlink" href="#calva-and-the-vim-extension" title="Permanent link">#</a></h1>
-<p>First thing first. The <a href="https://github.com/VSCodeVim/Vim">VIM Extension</a> and Calva has a history of friction between them. Less so these days, but you might still encounter some rough edges. Please don't hesitate to reach out to the Calva team, as we might be able to fix things if only we are aware of them.</p>
-<h2 id="key-bindings">Key bindings<a class="headerlink" href="#key-bindings" title="Permanent link">#</a></h2>
-<p>In general Calva's default key bindings are not very VI-ish.</p>
-<h3 id="expand-selection-on-mac">Expand selection on Mac<a class="headerlink" href="#expand-selection-on-mac" title="Permanent link">#</a></h3>
-<p>On Mac, Calva binds <strong>expand selection</strong> to <code>ctrl+w</code>. This conflicts with the VIM Extension's default mapping of window splitting shortcuts. You'll need to remap it either with Calva or with the VIM Extension.</p>
-<h3 id="the-esc-key">The <code>esc</code> key<a class="headerlink" href="#the-esc-key" title="Permanent link">#</a></h3>
-<p>While showing inline evaluation results, Calva binds the <code>esc</code> key to dismiss the display of inline results. If you want to be able to use the <code>esc</code> key to enter command mode while inline results are showing, you'll need to rebind Calva's command for dismissing the inline results.</p>
-<h4 id="remap-calvas-clearinlineresults">Remap Calva's <code>clearInlineResults</code><a class="headerlink" href="#remap-calvas-clearinlineresults" title="Permanent link">#</a></h4>
-<ul>
-<li>Open the Keyboard Shortcuts JSON file from the Command Palette</li>
-<li>Disable <code>clearInlineResults</code> and remap the command e.g.</li>
-</ul>
-<div class="highlight"><pre><span></span><code><span class="c1">// Place your key bindings in this file to override the defaults</span>
-<span class="p">[</span>
-<span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-calva.clearInlineResults&quot;</span>
-<span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shift+escape&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.clearInlineResults&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;editorTextFocus &amp;&amp; !editorHasMultipleSelections &amp;&amp; !editorReadOnly &amp;&amp; !hasOtherSuggestions &amp;&amp; !suggestWidgetVisible &amp;&amp; editorLangId == &#39;clojure&#39;&quot;</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">]</span>
+<p>Calva's javadoc support is inherited from nrepl, so similar to the support for javadoc in Cider.</p>
+<p>In principle javadoc is shown full automatically via popups when
+hovering over java functions and classes.</p>
+<h1 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h1>
+<p>In order to have this work best, four conditions need to be fulfilled.</p>
+<ol>
+<li>
+<p>The java library we want to see javadoc for need to be referred to in <code>deps.edn</code></p>
+</li>
+<li>
+<p>The Java classes we want javadoc for, need to be made available in the repl via <code>import</code> </p>
+</li>
+<li>
+<p>In lots of situation the dynamic nature of Clojure does not allow to statically discover what runtime class a symbol has, which often prevents the showing of javadocs. If <strong>type hints</strong> are specified, it works in most cases. Note: Adding type hints improves as well the precision of code completion proposals on Java instances</p>
+</li>
+<li>
+<p>Important: nrepl/Calva extracts the javadoc information from local disk, specifically looking for "source jars" in the folder <code>.m2/repository</code>. These are not downloaded by Clojure automatically. (it only downloads the code jars for referred java libraries)
+For the JDK itself, very often the source files are installed locally with the JDK. So in a lot of cases the javadocs for JDK classes works out-of-the box. (but it depends on the precise JDK/JRE installation)</p>
+</li>
+</ol>
+<p>The easiest way to make sure, that the "source jars" are available locally for non JDK classes, is to use "maven" to download them. For all java libraries referred by the current <code>deps.edn</code> this can be achieved with a single command:</p>
+<div class="highlight"><pre><span></span><code>clojure -X:deps mvn-pom &amp;&amp; mvn dependency:sources&#39;
 </code></pre></div>
-<p>If you run into issues, refer to the commands in the default Keyboard Shortcuts JSON file.</p>
-<h4 id="remap-vims-insert-mode">Remap Vim's Insert Mode<a class="headerlink" href="#remap-vims-insert-mode" title="Permanent link">#</a></h4>
-<p>Remap vim's insert mode keybinding to go into command mode by adding the following to your user settings:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;vim.insertModeKeyBindings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;before&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;j&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;k&quot;</span><span class="p">],</span>
-<span class="w">        </span><span class="nt">&quot;after&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;&lt;esc&gt;&quot;</span><span class="p">]</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="p">]</span>
-</code></pre></div>
-<p>(Change <code>before</code> to whatever keybinding you are comfortable with!)</p>
-<h3 id="vim-fireplace-ish-keybindings">Vim Fireplace-ish keybindings<a class="headerlink" href="#vim-fireplace-ish-keybindings" title="Permanent link">#</a></h3>
-<p>You can add these keybindings to your <code>init.vim</code> if you are using the VSCode Neovim extension. It is inspired by and tries to emulate the keybindings found in <a href="https://github.com/tpope/vim-fireplace">vim-fireplace</a> which is the most popular vim plugin for Clojure.</p>
-<div class="highlight"><pre><span></span><code>nmap cqp :call VSCodeNotify(&#39;calva.jackIn&#39;)&lt;CR&gt;
-nmap cqq :call VSCodeNotify(&#39;calva.disconnect&#39;)&lt;CR&gt;
-nmap cpr :call VSCodeNotify(&#39;calva.loadFile&#39;)&lt;CR&gt;
-nmap cpR :call VSCodeNotify(&#39;calva.loadNamespace&#39;)&lt;CR&gt;
-nmap cpp :call VSCodeNotify(&#39;calva.evaluateSelection&#39;)&lt;CR&gt;
-nmap cqc :call VSCodeNotify(&#39;calva.evalCurrentFormInREPLWindow&#39;)&lt;CR&gt;
-</code></pre></div>
-<p>Unfortunately these key combinations will not work in the normal VIM extension as <code>c</code> is an <a href="https://github.com/VSCodeVim/Vim/issues/4464">operator key</a> and cannot be remapped. <strong>This is a call for someone to share their VIM re-mappings</strong>.</p>
+<p>This will download all available source jars of the current java libraries of <code>deps.edn</code> and store them in <code>.m2</code> where nrepl / Calva will find them.</p>
+<p>Most Java open source libraries publish "source jars" in maven central, and the command above will usually find and download them all.
+After repl restart, javadocs should now popup in lots of situations when using Clojure Java Interop code (it works far more often, when type hints are added)</p>
+<p>In case new Java libraries get added to <code>deps.edn</code>, the command need to be repeated.</p>
+<h1 id="alternative-for-type-hints-since-clojure-112">Alternative for type hints since Clojure 1.12<a class="headerlink" href="#alternative-for-type-hints-since-clojure-112" title="Permanent link">#</a></h1>
+<p>Clojure has two ways of calling a Java method on a given instance:</p>
+<p>Since the beginning:
+<div class="highlight"><pre><span></span><code>(def text &quot;hello world&quot;)
+(.charAt text 0)
+</code></pre></div></p>
+<p>Since Clojure 1.12 additionally:
+<div class="highlight"><pre><span></span><code>(def text &quot;hello world&quot;)
+(String/.charAt text 0)
+</code></pre></div></p>
+<p>nrepl / Calva does understand already the new syntax, and if used, the javadoc support will work even without type hints, in all situations.</p>
 
 
 
