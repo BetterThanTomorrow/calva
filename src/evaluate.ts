@@ -140,8 +140,7 @@ async function evaluateCodeUpdatingUI(
   const column = options.column;
   const filePath = options.filePath;
   const session: NReplSession = options.session;
-  const sessionKey =
-    sessionRegistry.getSessionKeyFromSession(session) || session?.replType || 'clj';
+  const sessionKey = sessionRegistry.resolveSessionKey(session);
   const ns = options.ns;
   let editor: vscode.TextEditor;
   try {
@@ -619,6 +618,7 @@ async function loadFile(
   const fileName = path.basename(filePath);
   const fileContents = await util.getFileContents(filePath);
   const session = replSession.getSession(path.extname(fileName).replace(/^\./, ''));
+  const sessionKey = sessionRegistry.resolveSessionKey(session);
 
   output.appendLineOtherOut(`Evaluating file: ${fileName}`);
 
@@ -628,7 +628,7 @@ async function loadFile(
     filePath,
     stdout: (m) => output.appendEvalOut(m),
     stderr: (m) => {
-      output.appendEvalErr(m, { ns, replSessionType: session.replType });
+      output.appendEvalErr(m, { ns, replSessionType: sessionKey });
       errorMessages.push(m);
     },
     pprintOptions: pprintOptions,
@@ -636,8 +636,8 @@ async function loadFile(
   try {
     const value = await res.value;
     if (value) {
-      inspectorDataProvider.addItem(value, false, `[${session.replType}] ${ns}`);
-      output.appendClojureEval(value, { ns, replSessionType: session.replType });
+      inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
+      output.appendClojureEval(value, { ns, replSessionType: sessionKey });
     } else {
       output.appendLineEvalOut('No results from file evaluation.');
     }
