@@ -34,6 +34,17 @@ describe('session routing preferences', () => {
     expect(sessionRouting.resolvePreferredSession('clj')).toBeUndefined();
   });
 
+  it('ignores cljc overrides when a session is pinned', () => {
+    sessionRegistry.registerSession('alpha', createSession('clj'), { name: 'Alpha' });
+    sessionRegistry.registerSession('beta', createSession('cljs'), { name: 'Beta' });
+
+    sessionRouting.setCljcSessionKey('beta');
+    sessionRouting.pinSession('alpha');
+
+    expect(sessionRouting.isPinned()).toBe(true);
+    expect(sessionRouting.resolvePreferredSession('cljc')).toBe('alpha');
+  });
+
   it('falls back to auto routing when the pinned session disappears', () => {
     sessionRegistry.registerSession('alpha', createSession('clj'), { name: 'Alpha' });
     sessionRouting.pinSession('alpha');

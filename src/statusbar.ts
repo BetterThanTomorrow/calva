@@ -8,7 +8,10 @@ import { getReplSessionTypeFromState } from './nrepl/repl-session';
 import * as sessionRouting from './nrepl/session-routing';
 
 import * as sessionRegistry from './nrepl/session-registry';
+import type { SessionMetadata } from './nrepl/session-registry';
 import * as sessionRoles from './nrepl/session-roles';
+
+const DEFAULT_SESSION_NAMES = new Set(['Clojure REPL', 'ClojureScript REPL']);
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
@@ -19,6 +22,16 @@ const color = {
   active: 'white',
   inactive: '#b3b3b3',
 };
+
+function getSessionDisplayName(
+  metadata: SessionMetadata | undefined,
+  fallbackKey?: string
+): string {
+  if (metadata?.name && !DEFAULT_SESSION_NAMES.has(metadata.name)) {
+    return metadata.name;
+  }
+  return metadata?.key || fallbackKey || 'REPL session';
+}
 
 // get theme kind once
 //console.log(vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light ? 'light' : 'dark/hc');
@@ -55,11 +68,6 @@ function update() {
     cljsBuild = getStateValue('cljsBuild');
   const promotedSessionKey = sessionRoles.getSessionKeyForRole('promoted');
   const hasPromotedSession = Boolean(promotedSessionKey);
-
-  const replTypeNames = {
-    clj: 'Clojure',
-    cljs: 'ClojureScript',
-  };
 
   //let disconnectedColor = "rgb(192,192,192)";
 
@@ -111,18 +119,19 @@ function update() {
       const pinIndicator = isPinned ? '$(pin) ' : '';
       typeStatus.text = `${pinIndicator}${typeStatus.text}`;
       typeStatus.command = 'calva.showReplSessionsMenu';
-      const sessionDisplayName = currentSessionMeta?.name || replTypeNames[replType] || replType;
+      const sessionDisplayName = getSessionDisplayName(currentSessionMeta, replType);
       const tooltipParts = [
-        isPinned ? `Pinned to ${sessionDisplayName}` : `Auto-routing to ${sessionDisplayName}`,
+        isPinned
+          ? `Pinned session: ${sessionDisplayName}`
+          : `Auto-route session: ${sessionDisplayName}`,
       ];
 
       if (!isPinned && sessionRouting.hasCljcOverride()) {
         const cljcSessionKey = sessionRouting.getCljcSessionKey();
         if (cljcSessionKey) {
           const cljcMeta = sessionRegistry.getSessionMetadata(cljcSessionKey);
-          tooltipParts.push(
-            `cljc files use ${cljcMeta?.name || cljcSessionKey || 'the selected session'}`
-          );
+          const cljcDisplayName = getSessionDisplayName(cljcMeta, cljcSessionKey);
+          tooltipParts.push(`cljc files use ${cljcDisplayName}`);
         }
       }
 

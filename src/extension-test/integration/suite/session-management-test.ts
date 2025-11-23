@@ -181,4 +181,26 @@ describe(`${suiteName} suite`, () => {
     const resolvedCljc = replSession.getSession();
     assert.strictEqual(resolvedCljc, cljsSession);
   });
+
+  it('keeps pinned sessions active even when a cljc override is set', async () => {
+    const cljSession = createSession('clj');
+    const cljsSession = createSession('cljs');
+    sessionRegistry.registerSession(serverSessionKey, cljSession, {
+      name: 'Server',
+      globs: ['**/*.clj'],
+    });
+    sessionRegistry.registerSession(uiSessionKey, cljsSession, {
+      name: 'UI',
+      globs: ['**/*.cljs'],
+    });
+
+    sessionRouting.setCljcSessionKey(serverSessionKey);
+    sessionRouting.pinSession(uiSessionKey);
+
+    const cljcFilePath = path.join(testUtil.testDataDir, 'test.cljc');
+    await testUtil.openFile(cljcFilePath);
+
+    const resolvedPinned = replSession.getSession();
+    assert.strictEqual(resolvedPinned, cljsSession);
+  });
 });

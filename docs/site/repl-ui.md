@@ -89,9 +89,11 @@ For `.cljc` files (Clojure Common files that can run on both CLJ and CLJS), the 
 
 The indicator is always clickable when the REPL is connected. Clicking it opens the **REPL Sessions** menu, which provides:
 
-* A list of connected sessions – select one to pin it (the indicator will show `$(pin)` while pinned).
+* A list of connected sessions – select one to pin it (the indicator will show `$(pin)` while pinned). Each entry shows when it was last used plus the project root, matching the formatting in the project-root picker.
 * **Auto-route** – return to Calva's default routing based on connect sequence globs.
-* **Select session for cljc files** – override routing for `.cljc` files without affecting other file types.
+* **Select session for cljc files** – override routing for `.cljc` files when auto-routing is active, without affecting other file types.
+
+Calva only applies the `.cljc` override when auto-routing is enabled. If you pin a session, that pin takes precedence for all files until you return to auto-route.
 
 These options make it easy to temporarily lock the routing, quickly inspect available sessions, or ensure `.cljc` files go exactly where you want. See [The REPL Window](repl-window.md#choose-clj-or-cljs-repl-connection) for more details.
 

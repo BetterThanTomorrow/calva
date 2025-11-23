@@ -2,37 +2,101 @@ import * as vscode from 'vscode';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as sessionRouting from './nrepl/session-routing';
 import status from './status';
+import { getPathRelativeToWorkspace } from './project-root';
+
+const DEFAULT_SESSION_NAMES = new Set(['Clojure REPL', 'ClojureScript REPL']);
 
 interface SessionQuickPickItem extends vscode.QuickPickItem {
   action: 'session' | 'auto' | 'cljc' | 'cljc-clear';
   sessionKey?: string;
 }
 
+function formatRelativeProjectRoot(projectRoot?: string): string | undefined {
+  if (!projectRoot) {
+    return undefined;
+  }
+  try {
+    const uri = vscode.Uri.parse(projectRoot);
+    return getPathRelativeToWorkspace(uri);
+  } catch {
+    return projectRoot;
+  }
+}
+
+function formatLastUsed(lastActivity?: number): string | undefined {
+  if (!lastActivity) {
+    return 'Last used: never';
+  }
+  const diffMs = Date.now() - lastActivity;
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) {
+    return `Last used: ${days} day${days === 1 ? '' : 's'} ago`;
+  }
+  if (hours > 0) {
+    return `Last used: ${hours} hour${hours === 1 ? '' : 's'} ago`;
+  }
+  if (minutes > 0) {
+    return `Last used: ${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+  }
+  return `Last used: ${seconds} second${seconds === 1 ? '' : 's'} ago`;
+}
+
 function formatSessionDetail({
-  projectRoot,
   globs,
+  lastActivity,
+  key,
+  includeSessionKey,
 }: {
-  projectRoot?: string;
   globs?: string[];
+  lastActivity?: number;
+  key: string;
+  includeSessionKey: boolean;
 }): string | undefined {
   const detailParts: string[] = [];
-  if (projectRoot) {
-    detailParts.push(`Root: ${projectRoot}`);
+  const lastUsed = formatLastUsed(lastActivity);
+  if (lastUsed) {
+    detailParts.push(lastUsed);
   }
   if (globs && globs.length > 0) {
     detailParts.push(`Globs: ${globs.join(', ')}`);
   }
-  return detailParts.length > 0 ? detailParts.join(' — ') : undefined;
+  if (includeSessionKey || detailParts.length === 0) {
+    detailParts.push(`Session key: ${key}`);
+  }
+  return detailParts.join(' — ');
+}
+
+function getSessionLabel(session: sessionRegistry.SessionMetadata): string {
+  if (session.name && !DEFAULT_SESSION_NAMES.has(session.name)) {
+    return session.name;
+  }
+  return session.key;
 }
 
 function buildSessionPickItems(): SessionQuickPickItem[] {
-  return sessionRegistry.listSessions().map((session) => ({
-    label: session.name ? `${session.name} (${session.key})` : session.key,
-    description: session.projectRoot,
-    detail: formatSessionDetail(session),
-    action: 'session',
-    sessionKey: session.key,
-  }));
+  const pinnedKey = sessionRouting.getPinnedSessionKey();
+  return sessionRegistry.listSessions().map((session) => {
+    const baseLabel = getSessionLabel(session);
+    const label = session.key === pinnedKey ? `$(pin) ${baseLabel}` : baseLabel;
+    const description = formatRelativeProjectRoot(session.projectRoot);
+
+    return {
+      label,
+      description,
+      detail: formatSessionDetail({
+        globs: session.globs,
+        lastActivity: session.lastActivity,
+        key: session.key,
+        includeSessionKey: baseLabel !== session.key,
+      }),
+      action: 'session',
+      sessionKey: session.key,
+    };
+  });
 }
 
 async function promptForCljcSession(): Promise<void> {
@@ -45,9 +109,9 @@ async function promptForCljcSession(): Promise<void> {
   const cljcItems: SessionQuickPickItem[] = [
     ...buildSessionPickItems(),
     {
-      label: '$(sync) Auto-route cljc files',
-      description: 'Use automatic routing for cljc files',
-      detail: 'Removes the cljc-specific session pin',
+      label: 'Use default routing for cljc files',
+      description: 'Apply auto-routing rules for cljc files',
+      detail: 'Removes the cljc-specific session override',
       action: 'cljc-clear',
     },
   ];
@@ -55,7 +119,7 @@ async function promptForCljcSession(): Promise<void> {
   const currentCljcSession = sessionRouting.getCljcSessionKey();
 
   const cljcSelection = await vscode.window.showQuickPick(cljcItems, {
-    title: 'Pin cljc files',
+    title: 'Route cljc files',
     placeHolder: currentCljcSession
       ? `Currently routing cljc files to ${currentCljcSession}`
       : 'Select a session for cljc files',
@@ -85,17 +149,16 @@ function buildMenuItems(): SessionQuickPickItem[] {
   const cljcSession = sessionRouting.getCljcSessionKey();
 
   items.push({
-    label: '$(sync) Auto-route',
+    label: 'Auto-route',
     description: routingMode === 'auto' && !pinnedSession ? 'Currently active' : undefined,
-    detail:
-      'Use connect sequence glob mappings and default routing for files not matched by globs.',
+    detail: 'Use connect sequence globs and default routing for files not matched by globs.',
     action: 'auto',
   });
 
   items.push({
-    label: '$(symbol-namespace) Select session for cljc files',
+    label: 'Select session for cljc files',
     description: cljcSession ? `Current: ${cljcSession}` : 'No override set',
-    detail: 'Pin only cljc files to a specific session.',
+    detail: 'Route only cljc files to a specific session when auto-routing is enabled.',
     action: 'cljc',
   });
 
