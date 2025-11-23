@@ -71,6 +71,8 @@ interface ReplConnectSequence {
   autoSelectForConnect?: boolean;
   autoSelectForJackIn?: boolean;
   projectRootPath?: string[];
+  afterPrimaryReplConnectedCode?: string;
+  /** @deprecated Use afterPrimaryReplConnectedCode instead. */
   afterCLJReplJackInCode?: string;
   cljsType: CljsTypes | CljsTypeConfig;
   menuSelections?: MenuSelections;

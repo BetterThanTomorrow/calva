@@ -63,7 +63,7 @@ Add rebl profiles to your [user-wide profiles](https://github.com/technomancy/le
 
 ```clojure
 {:user {:plugins [[lein-ancient "0.6.15"]]}
- 
+
  ;; REBL Base
  :rebl {:resource-paths ["/Users/ozimos/REBL/latest/REBL.jar"]
         :dependencies [[org.clojure/core.async "0.4.490"]
@@ -80,7 +80,7 @@ Add rebl profiles to your [user-wide profiles](https://github.com/technomancy/le
                           [org.openjfx/javafx-swing "12.0.1"]
                           [org.openjfx/javafx-base  "12.0.1"]
                           [org.openjfx/javafx-web "12.0.1"]]}
- 
+
 ;; NREBL https://github.com/RickMoynihan/nrebl.middleware
  :nrebl {:repl-options {:nrepl-middleware [nrebl.middleware/wrap-nrebl]}
         :dependencies [[rickmoynihan/nrebl.middleware "0.3.1"]]}}
@@ -98,7 +98,7 @@ Create a Calva custom connect sequence for your VSCode editor. (Read [Custom REP
             "menuSelections": {
                 "leinProfiles": ["rebl", "rebl-12", ":nrebl"]
             },
-            "afterCLJReplJackInCode": "((requiring-resolve 'cognitect.rebl/ui))"
+            "afterPrimaryReplConnectedCode": "((requiring-resolve 'cognitect.rebl/ui))"
         }
     ]
 }

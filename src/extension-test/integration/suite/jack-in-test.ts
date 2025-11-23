@@ -90,16 +90,16 @@ suite('Jack-in suite', () => {
     }
   });
 
-  test('Jack-in afterCLJReplJackInCode can be a string', async () => {
-    testUtil.log(suite, 'Jack-in afterCLJReplJackInCode can be a string');
+  test('Jack-in afterPrimaryReplConnectedCode can be a string', async () => {
+    testUtil.log(suite, 'Jack-in afterPrimaryReplConnectedCode can be a string');
     const settings = {
       'calva.replConnectSequences': [
         {
           projectType: 'deps.edn',
-          name: 'string-afterCLJReplJackInCode',
+          name: 'string-afterPrimaryReplConnectedCode',
           autoSelectForJackIn: true,
           projectRootPath: ['.'],
-          afterCLJReplJackInCode: '(println :hello :world!)',
+          afterPrimaryReplConnectedCode: '(println :hello :world!)',
         },
       ],
     };
@@ -110,16 +110,16 @@ suite('Jack-in suite', () => {
     testUtil.log(suite, 'test.clj closed');
   });
 
-  test('Jack-in afterCLJReplJackInCode can be an array', async () => {
-    testUtil.log(suite, 'Jack-in afterCLJReplJackInCode can be an array');
+  test('Jack-in afterPrimaryReplConnectedCode can be an array', async () => {
+    testUtil.log(suite, 'Jack-in afterPrimaryReplConnectedCode can be an array');
     const settings = {
       'calva.replConnectSequences': [
         {
           projectType: 'deps.edn',
-          name: 'array-afterCLJReplJackInCode',
+          name: 'array-afterPrimaryReplConnectedCode',
           autoSelectForJackIn: true,
           projectRootPath: ['.'],
-          afterCLJReplJackInCode: ['(println :hello)', '(println :world!)'],
+          afterPrimaryReplConnectedCode: ['(println :hello)', '(println :world!)'],
         },
       ],
     };
@@ -132,6 +132,26 @@ suite('Jack-in suite', () => {
       'nil',
       'clj꞉test꞉> ',
     ]);
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    testUtil.log(suite, 'test.clj closed');
+  });
+
+  test('Jack-in still accepts afterCLJReplJackInCode', async () => {
+    testUtil.log(suite, 'Jack-in still accepts afterCLJReplJackInCode');
+    const settings = {
+      'calva.replConnectSequences': [
+        {
+          projectType: 'deps.edn',
+          name: 'legacy-afterCLJReplJackInCode',
+          autoSelectForJackIn: true,
+          projectRootPath: ['.'],
+          afterCLJReplJackInCode: '(println :legacy :hook!)',
+        },
+      ],
+    };
+    await writeSettings(settings);
+    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn', 'test.clj');
+    await loadAndAssert(suite, testFilePath, ['; :legacy :hook!', '; bar', 'nil', 'clj꞉test꞉> ']);
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
   });

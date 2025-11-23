@@ -672,6 +672,21 @@
                     "type": "string"
                   }
                 },
+                "afterPrimaryReplConnectedCode": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ],
+                  "markdownDescription": "Code to evaluate in the primary REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.",
+                  "required": false
+                },
                 "afterCLJReplJackInCode": {
                   "anyOf": [
                     {
@@ -684,8 +699,8 @@
                       }
                     }
                   ],
-                  "markdownDescription": "Code to evaluate in the CLJ REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.",
-                  "required": false
+                  "required": false,
+                  "deprecationMessage": "Deprecated. Renamed to `afterPrimaryReplConnectedCode`, which you should be using instead."
                 },
                 "menuSelections": {
                   "type": "object",
@@ -1013,7 +1028,7 @@
                 "properties": {
                   "clj": {
                     "type": "string",
-                    "markdownDescription": "Code to evaluate when the **Clojure** REPL has been connected. The default is code that refer in the `repl-requires`/REPL utilities (like `source`, `doc`, etcetera). (Note that there is also a command to do this on demand.). The code will be evaluated *before* the `afterCLJReplJackInCode` in any [connect sequence](https://calva.io/connect-sequences/) used. Set to `null` to disable this feature."
+                    "markdownDescription": "Code to evaluate when the **Clojure** REPL has been connected. The default is code that refer in the `repl-requires`/REPL utilities (like `source`, `doc`, etcetera). (Note that there is also a command to do this on demand.). The code will be evaluated *before* the `afterPrimaryReplConnectedCode` in any [connect sequence](https://calva.io/connect-sequences/) used. Set to `null` to disable this feature."
                   },
                   "cljs": {
                     "type": "string",

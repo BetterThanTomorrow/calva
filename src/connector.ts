@@ -141,10 +141,12 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     }
     output.replWindowAppendPrompt();
 
-    if (connectSequence.afterCLJReplJackInCode) {
-      output.appendLineOtherOut(`Evaluating 'afterCLJReplJackInCode'`);
+    const afterPrimaryReplCode =
+      connectSequence.afterPrimaryReplConnectedCode ?? connectSequence.afterCLJReplJackInCode;
+    if (afterPrimaryReplCode) {
+      output.appendLineOtherOut(`Evaluating 'afterPrimaryReplConnectedCode'`);
       await evaluate.evaluateInOutputWindow(
-        connectSequence.afterCLJReplJackInCode,
+        afterPrimaryReplCode,
         primaryKey,
         outputWindow.getNs(),
         {}

@@ -183,19 +183,36 @@ function getConfig() {
 
   const replConnectSequencesConfig =
     configOptions.inspect<ReplConnectSequence[]>('replConnectSequences');
+  const normalizeAfterPrimaryReplCode = (
+    code: string | string[] | undefined
+  ): string | undefined => {
+    if (Array.isArray(code)) {
+      return code.join('\n');
+    }
+    return code;
+  };
+
   const replConnectSequences = [
     ...(replConnectSequencesConfig.workspaceFolderValue ?? []),
     ...(replConnectSequencesConfig.workspaceValue ?? []),
     ...(replConnectSequencesConfig.globalValue ?? []),
   ].map((sequence) => {
-    if (Array.isArray(sequence.afterCLJReplJackInCode)) {
+    const normalizedCode =
+      normalizeAfterPrimaryReplCode(
+        sequence.afterPrimaryReplConnectedCode as string | string[] | undefined
+      ) ??
+      normalizeAfterPrimaryReplCode(
+        sequence.afterCLJReplJackInCode as string | string[] | undefined
+      );
+
+    if (normalizedCode !== undefined) {
       return {
         ...sequence,
-        afterCLJReplJackInCode: sequence.afterCLJReplJackInCode.join('\n'),
+        afterPrimaryReplConnectedCode: normalizedCode,
       };
-    } else {
-      return sequence;
     }
+
+    return sequence;
   });
 
   return {
