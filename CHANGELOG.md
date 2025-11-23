@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Allow connect sequences to rename repl sessions, maintaining defaults to `clj`/`cljs`.
+
 ## [2.0.540] - 2025-11-06
 
 - Fix: [Interrupting evaluations looks like it succeeds even when it is not supported by the host platform](https://github.com/BetterThanTomorrow/calva/issues/2961)
