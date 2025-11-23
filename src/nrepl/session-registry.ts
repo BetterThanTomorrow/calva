@@ -1,5 +1,5 @@
 import { NReplSession } from './index';
-import { getStateValue, setStateValue } from '../../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 
 export interface SessionMetadata {
   key: string;
@@ -27,7 +27,7 @@ export function registerSession(
   };
 
   // Store the session object itself
-  setStateValue(getStorageKey(key), session);
+  cljsLib.setStateValue(getStorageKey(key), session);
 
   // Store metadata on the session object for easy retrieval
   // We cast to any here because we're dynamically adding properties to the session object
@@ -35,26 +35,26 @@ export function registerSession(
   (session as any)._calvaSessionMetadata = fullMetadata;
 
   // Maintain a list of registered session keys
-  const registeredKeys = getStateValue('registered-session-keys') || [];
+  const registeredKeys = cljsLib.getStateValue('registered-session-keys') || [];
   if (!registeredKeys.includes(key)) {
-    setStateValue('registered-session-keys', [...registeredKeys, key]);
+    cljsLib.setStateValue('registered-session-keys', [...registeredKeys, key]);
   }
 }
 
 export function getSession(key: string): NReplSession | undefined {
-  return getStateValue(getStorageKey(key));
+  return cljsLib.getStateValue(getStorageKey(key));
 }
 
 export function unregisterSession(key: string): void {
-  setStateValue(getStorageKey(key), null);
+  cljsLib.setStateValue(getStorageKey(key), null);
 
-  const registeredKeys = getStateValue('registered-session-keys') || [];
+  const registeredKeys = cljsLib.getStateValue('registered-session-keys') || [];
   const newKeys = registeredKeys.filter((k: string) => k !== key);
-  setStateValue('registered-session-keys', newKeys);
+  cljsLib.setStateValue('registered-session-keys', newKeys);
 }
 
 export function listSessions(): SessionMetadata[] {
-  const keys = getStateValue('registered-session-keys') || [];
+  const keys = cljsLib.getStateValue('registered-session-keys') || [];
   return keys
     .map((key: string) => {
       const session = getSession(key);
@@ -84,9 +84,9 @@ export function updateSessionActivity(key: string): void {
 }
 
 export function clearAllSessions(): void {
-  const keys = getStateValue('registered-session-keys') || [];
+  const keys = cljsLib.getStateValue('registered-session-keys') || [];
   keys.forEach((key: string) => {
-    setStateValue(getStorageKey(key), null);
+    cljsLib.setStateValue(getStorageKey(key), null);
   });
-  setStateValue('registered-session-keys', []);
+  cljsLib.setStateValue('registered-session-keys', []);
 }
