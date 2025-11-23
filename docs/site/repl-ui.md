@@ -87,11 +87,13 @@ Once connected, the session type indicator shows which REPL you're currently wor
 
 For `.cljc` files (Clojure Common files that can run on both CLJ and CLJS), the indicator shows `cljc/clj` or `cljc/cljs` depending on which REPL is active for that file.
 
-**When both CLJ and CLJS REPLs are connected**, this indicator becomes clickable, allowing you to toggle which REPL is used for evaluating `.cljc` files:
+The indicator is always clickable when the REPL is connected. Clicking it opens the **REPL Sessions** menu, which provides:
 
-![CLJC Toggle Button](images/howto/cljc-toggle-button.png)
+* A list of connected sessions – select one to pin it (the indicator will show `$(pin)` while pinned).
+* **Auto-route** – return to Calva's default routing based on connect sequence globs.
+* **Select session for cljc files** – override routing for `.cljc` files without affecting other file types.
 
-Click the indicator to switch between `clj` and `cljs` for your `.cljc` files. See [The REPL Window](repl-window.md#choose-clj-or-cljs-repl-connection) for more details.
+These options make it easy to temporarily lock the routing, quickly inspect available sessions, or ensure `.cljc` files go exactly where you want. See [The REPL Window](repl-window.md#choose-clj-or-cljs-repl-connection) for more details.
 
 ### CLJS Build Selector
 

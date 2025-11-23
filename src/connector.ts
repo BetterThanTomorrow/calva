@@ -36,6 +36,7 @@ import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as sessionRoles from './nrepl/session-roles';
+import * as sessionRouting from './nrepl/session-routing';
 
 async function readRuntimeConfigs() {
   const classpath = await nClient.session.classpath().catch((e) => {
@@ -925,6 +926,7 @@ export default {
   ) => {
     sessionRegistry.clearAllSessions();
     sessionRoles.resetSessionRoleKeys();
+    sessionRouting.resetRouting();
     util.setConnectedState(false);
     setStateValue('current-session-type', null);
     status.update();

@@ -80,8 +80,8 @@ export const CLJ_CONNECT_GREETINGS = [
 
 export const CLJS_CONNECT_GREETINGS = [
   'TIPS: You can choose which REPL to use (clj or cljs):',
-  '   *Calva: Toggle REPL connection*',
-  '   (There is a button in the status bar for this)',
+  '   *Calva: REPL Sessions*',
+  '   (Click the session indicator in the status bar to open it)',
 ].join(`\n`);
 
 function outputFileDir() {

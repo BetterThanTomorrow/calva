@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Allow connect sequences to rename repl sessions, maintaining defaults to `clj`/`cljs`.
+- Add a REPL Sessions menu for pinning routing and setting `.cljc`-only overrides from the status bar.
 
 ## [2.0.540] - 2025-11-06
 

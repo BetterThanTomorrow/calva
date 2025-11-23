@@ -1414,6 +1414,12 @@
         "category": "Calva"
       },
       {
+        "command": "calva.showReplSessionsMenu",
+        "title": "REPL Sessions",
+        "category": "Calva",
+        "enablement": "calva:connected"
+      },
+      {
         "command": "calva.startStandaloneHelloRepl",
         "title": "Create a Getting Started REPL project",
         "category": "Calva"

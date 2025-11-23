@@ -5,6 +5,7 @@ import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
 import * as outputWindow from '../repl-window/repl-doc';
 import { isUndefined } from 'lodash';
 import * as sessionRegistry from './session-registry';
+import * as sessionRouting from './session-routing';
 import type { WorkspaceFolderInfo } from './glob-paths';
 import * as globPaths from './glob-paths';
 
@@ -72,6 +73,12 @@ function getSessionKey(fileType?: string): string | undefined {
   }
 
   const doc = tryToGetDocument({});
+  const inferredType = getFileType(doc);
+
+  const routedSession = sessionRouting.resolvePreferredSession(inferredType);
+  if (routedSession && sessionRegistry.getSession(routedSession)) {
+    return routedSession;
+  }
 
   if (outputWindow.isResultsDoc(doc)) {
     const resultsDocType = outputWindow.getSessionType();
@@ -85,7 +92,6 @@ function getSessionKey(fileType?: string): string | undefined {
     return globMatchedSession;
   }
 
-  const inferredType = getFileType(doc);
   if (inferredType && sessionRegistry.getSession(inferredType)) {
     return inferredType;
   }

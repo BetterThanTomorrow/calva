@@ -5,6 +5,7 @@ import * as config from './config';
 import * as shadowRuntimes from './shadow-cljs-runtime';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getReplSessionTypeFromState } from './nrepl/repl-session';
+import * as sessionRouting from './nrepl/session-routing';
 
 import * as sessionRegistry from './nrepl/session-registry';
 import * as sessionRoles from './nrepl/session-roles';
@@ -106,17 +107,27 @@ function update() {
       typeStatus.text = ['cljc', config.REPL_FILE_EXT, config.FIDDLE_FILE_EXT].includes(fileType)
         ? `cljc/${replType}`
         : replType;
+      const isPinned = sessionRouting.isPinned();
+      const pinIndicator = isPinned ? '$(pin) ' : '';
+      typeStatus.text = `${pinIndicator}${typeStatus.text}`;
+      typeStatus.command = 'calva.showReplSessionsMenu';
+      const sessionDisplayName = currentSessionMeta?.name || replTypeNames[replType] || replType;
+      const tooltipParts = [
+        isPinned ? `Pinned to ${sessionDisplayName}` : `Auto-routing to ${sessionDisplayName}`,
+      ];
 
-      if (sessions.length > 1) {
-        typeStatus.command = 'calva.toggleCLJCSession';
-        const nextSession = sessions.find((s) => s.key !== replType) || sessions[0];
-        typeStatus.tooltip = `Click to switch to ${nextSession.key} REPL`;
-      } else {
-        typeStatus.command = undefined;
-        typeStatus.tooltip = `Connected to ${
-          currentSessionMeta?.name || replTypeNames[replType] || replType
-        } REPL`;
+      if (!isPinned && sessionRouting.hasCljcOverride()) {
+        const cljcSessionKey = sessionRouting.getCljcSessionKey();
+        if (cljcSessionKey) {
+          const cljcMeta = sessionRegistry.getSessionMetadata(cljcSessionKey);
+          tooltipParts.push(
+            `cljc files use ${cljcMeta?.name || cljcSessionKey || 'the selected session'}`
+          );
+        }
       }
+
+      tooltipParts.push('Click to show the REPL Sessions menu');
+      typeStatus.tooltip = tooltipParts.join('. ');
     }
     if (
       hasPromotedSession &&

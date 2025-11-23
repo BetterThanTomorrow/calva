@@ -5,6 +5,7 @@ import * as highlight from './highlight/src/extension';
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
 import * as replMenu from './nrepl/repl-menu';
+import * as replSessionsMenu from './repl-sessions-menu';
 import * as drams from './nrepl/drams';
 import * as util from './utilities';
 import { NotebookKernel, NotebookProvider } from './NotebookProvider';
@@ -316,6 +317,7 @@ async function activate(context: vscode.ExtensionContext) {
     },
     startOrConnectRepl: replMenu.showReplMenu, // backwards compatibility
     showReplMenu: replMenu.showReplMenu,
+    showReplSessionsMenu: replSessionsMenu.showReplSessionsMenu,
     startStandaloneHelloRepl: () => {
       return drams.createAndOpenDram(
         context,

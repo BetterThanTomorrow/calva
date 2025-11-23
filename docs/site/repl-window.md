@@ -139,9 +139,7 @@ You probably want to add `.calva/output-window/` to your `.<something>ignore` fi
 
 ## Choose CLJ or CLJS REPL Connection
 
-In full-stack projects, you will probably use the window as a REPL for both `clj` and `cljs`. You can toggle which REPL the window is connected to by using the command **Calva: Toggle REPL Connection for CLJC files**. There is also a button for this in the status bar:
-
-![Toggle CLJC](images/howto/cljc-toggle-button.png)
+In full-stack projects, you will probably use the window as a REPL for both `clj` and `cljs`. Use **Calva: REPL Sessions** (also available by clicking the session indicator in the status bar) to control which REPL the window is connected to. The menu lets you pin any connected session, fall back to auto-routing, or specify which session `.cljc` files should use. When a session is pinned the indicator shows `$(pin)` so it is easy to see when routing is locked in.
 
 
 ## Known Quirks and Caveats

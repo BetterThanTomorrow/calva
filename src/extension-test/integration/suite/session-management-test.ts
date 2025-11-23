@@ -10,6 +10,7 @@ import * as replSession from '../../../nrepl/repl-session';
 import * as cljsLib from '../../../../out/cljs-lib/cljs-lib';
 import type { NReplSession } from '../../../nrepl';
 import * as testUtil from './util';
+import * as sessionRouting from '../../../nrepl/session-routing';
 
 const { describe, before, beforeEach, afterEach, it } = Mocha;
 
@@ -44,6 +45,7 @@ describe(`${suiteName} suite`, () => {
     sessionRegistry.clearAllSessions();
     cljsLib.setStateValue('connected', true);
     cljsLib.setStateValue('current-session-type', undefined);
+    sessionRouting.resetRouting();
     resetOutputWindowSession('clj', 'user');
   });
 
@@ -51,6 +53,7 @@ describe(`${suiteName} suite`, () => {
     sessionRegistry.clearAllSessions();
     cljsLib.setStateValue('connected', initialConnectionState);
     cljsLib.setStateValue('current-session-type', initialCurrentSessionType);
+    sessionRouting.resetRouting();
     const fallbackSessionType = initialOutputSessionType ?? 'clj';
     const fallbackNamespace = initialOutputNamespace ?? 'user';
     resetOutputWindowSession(fallbackSessionType, fallbackNamespace);
@@ -125,5 +128,57 @@ describe(`${suiteName} suite`, () => {
 
     const resolved = replSession.getSession();
     assert.strictEqual(resolved, cljSession);
+  });
+
+  it('prefers pinned sessions over glob routing', async () => {
+    const cljSession = createSession('clj');
+    const cljsSession = createSession('cljs');
+    sessionRegistry.registerSession(serverSessionKey, cljSession, {
+      name: 'Server',
+      globs: ['**/*.clj'],
+    });
+    sessionRegistry.registerSession(uiSessionKey, cljsSession, {
+      name: 'UI',
+      globs: ['**/*.cljs'],
+    });
+
+    sessionRouting.pinSession(uiSessionKey);
+
+    const testFilePath = path.join(testUtil.testDataDir, 'test.clj');
+    await testUtil.openFile(testFilePath);
+
+    const resolved = replSession.getSession();
+    assert.strictEqual(resolved, cljsSession);
+  });
+
+  it('routes cljc files using the cljc-specific override', async () => {
+    const cljSession = createSession('clj');
+    const cljsSession = createSession('cljs');
+    sessionRegistry.registerSession(serverSessionKey, cljSession, {
+      name: 'Server',
+      globs: ['**/*.clj'],
+    });
+    sessionRegistry.registerSession(uiSessionKey, cljsSession, {
+      name: 'UI',
+      globs: ['**/*.cljs'],
+    });
+
+    sessionRouting.setCljcSessionKey(serverSessionKey);
+
+    const cljcFilePath = path.join(testUtil.testDataDir, 'test.cljc');
+    await testUtil.openFile(cljcFilePath);
+
+    const resolved = replSession.getSession();
+    assert.strictEqual(resolved, cljSession);
+
+    const cljFilePath = path.join(testUtil.testDataDir, 'test.clj');
+    await testUtil.openFile(cljFilePath);
+    const resolvedClj = replSession.getSession();
+    assert.strictEqual(resolvedClj, cljSession);
+
+    sessionRouting.setCljcSessionKey(uiSessionKey);
+    await testUtil.openFile(cljcFilePath);
+    const resolvedCljc = replSession.getSession();
+    assert.strictEqual(resolvedCljc, cljsSession);
   });
 });
