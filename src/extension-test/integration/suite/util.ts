@@ -113,3 +113,20 @@ export async function ensureOutputDir(projectPath: string): Promise<void> {
     console.log(`Error creating output directory: ${err}`);
   }
 }
+
+export async function waitForCondition(
+  predicate: () => boolean,
+  timeoutMs = 4000,
+  intervalMs = 50
+) {
+  const start = Date.now();
+  while (true) {
+    if (predicate()) {
+      return;
+    }
+    if (Date.now() - start > timeoutMs) {
+      throw new Error('Timed out waiting for condition');
+    }
+    await sleep(intervalMs);
+  }
+}

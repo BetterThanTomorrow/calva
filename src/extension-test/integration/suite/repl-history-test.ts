@@ -12,19 +12,6 @@ const serverSessionKey = 'app.server';
 const uiSessionKey = 'app.ui';
 const sessionKeys = [serverSessionKey, uiSessionKey];
 
-async function waitForCondition(predicate: () => boolean, timeoutMs = 4000, intervalMs = 50) {
-  const start = Date.now();
-  while (true) {
-    if (predicate()) {
-      return;
-    }
-    if (Date.now() - start > timeoutMs) {
-      throw new Error('Timed out waiting for condition');
-    }
-    await testUtil.sleep(intervalMs);
-  }
-}
-
 function historyKeyFor(sessionKey: string): string {
   return `calva-repl-${sessionKey}-history`;
 }
@@ -50,7 +37,7 @@ async function appendPromptForSession(sessionKey: string, editor: vscode.TextEdi
   setSessionKey(sessionKey);
   const beforeLength = editor.document.getText().length;
   outputWindow.appendPrompt();
-  await waitForCondition(() => editor.document.getText().length > beforeLength);
+  await testUtil.waitForCondition(() => editor.document.getText().length > beforeLength);
 }
 
 async function typeAtPrompt(editor: vscode.TextEditor, text: string) {
@@ -109,13 +96,13 @@ suite(`${suiteName} suite`, () => {
     replHistory.resetState();
     replHistory.showPreviousReplHistoryEntry();
 
-    await waitForCondition(() => documentEndsWith(editor, '(println :srv2)'));
+    await testUtil.waitForCondition(() => documentEndsWith(editor, '(println :srv2)'));
 
     await appendPromptForSession(uiSessionKey, editor);
     replHistory.resetState();
     replHistory.showPreviousReplHistoryEntry();
 
-    await waitForCondition(() => documentEndsWith(editor, '(println :ui1)'));
+    await testUtil.waitForCondition(() => documentEndsWith(editor, '(println :ui1)'));
   });
 
   test('navigates forward through history and restores prompt text', async () => {
@@ -129,16 +116,16 @@ suite(`${suiteName} suite`, () => {
 
     replHistory.resetState();
     replHistory.showPreviousReplHistoryEntry();
-    await waitForCondition(() => documentEndsWith(editor, '(dec 2)'));
+    await testUtil.waitForCondition(() => documentEndsWith(editor, '(dec 2)'));
 
     replHistory.showPreviousReplHistoryEntry();
-    await waitForCondition(() => documentEndsWith(editor, '(inc 0)'));
+    await testUtil.waitForCondition(() => documentEndsWith(editor, '(inc 0)'));
 
     replHistory.showNextReplHistoryEntry();
-    await waitForCondition(() => documentEndsWith(editor, '(dec 2)'));
+    await testUtil.waitForCondition(() => documentEndsWith(editor, '(dec 2)'));
 
     replHistory.showNextReplHistoryEntry();
-    await waitForCondition(() => documentEndsWith(editor, promptText));
+    await testUtil.waitForCondition(() => documentEndsWith(editor, promptText));
   });
 
   test('clears history only for the active session', async () => {
@@ -149,7 +136,7 @@ suite(`${suiteName} suite`, () => {
     assert.strictEqual(outputWindow.getSessionType(), serverSessionKey);
     replHistory.clearHistory();
 
-    await waitForCondition(() => {
+    await testUtil.waitForCondition(() => {
       const serverHistory = state.extensionContext.workspaceState.get<string[]>(
         historyKeyFor(serverSessionKey)
       );

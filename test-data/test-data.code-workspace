@@ -1,26 +1,32 @@
 {
 	"folders": [
 		{
-			"path": "projects/pirate-lang",
-			"name": "pirate-lang"
+			"name": "shadow-w-backend",
+			"path": "projects/shadow-w-backend"
 		},
 		{
-			"path": "projects/deps-main-opts",
-			"name": "deps-main-opts"
+			"name": "pirate-lang",
+			"path": "projects/pirate-lang"
 		},
 		{
-			"path": "projects/custom-jack-in",
-			"name": "custom-jack-in"
+			"name": "deps-main-opts",
+			"path": "projects/deps-main-opts"
 		},
 		{
-			"path": "projects/shadow-w-backend",
-			"name": "shadow-w-backend"
+			"name": "custom-jack-in",
+			"path": "projects/custom-jack-in"
 		},
 		{
+			"name": "minimal-basilisp",
 			"path": "projects/minimal-basilisp"
 		},
 		{
+			"name": "minimal-shadow-only",
 			"path": "projects/minimal-shadow-only"
+		},
+		{
+			"name": "test-data",
+			"path": "."
 		}
 	],
 	"settings": {
@@ -113,7 +119,7 @@
 				"name": "pirate-lang",
 				"projectType": "deps.edn",
 				"projectRootPath": [
-					"projects/pirate-lang"
+					"pirate-lang"
 				],
 				"afterCLJReplJackInCode": [
 					"(require 'repl)",
@@ -150,8 +156,8 @@
 				"projectType": "deps.edn",
 				"cljsType": "shadow-cljs",
 				"replSessionNames": {
-					"primary": "clj2",
-					"promoted": "cljs2"
+					"primary": "clj",
+					"promoted": "cljs"
 				},
 				"menuSelections": {
 					"cljAliases": [
@@ -166,10 +172,28 @@
 				}
 			},
 			{
+				"name": "Renamed sessions deps.edn + shadow-cljs",
+				"projectType": "deps.edn",
+				"cljsType": "shadow-cljs",
+				"replSessionNames": {
+					"primary": "backend",
+					"promoted": "frontend"
+				},
+				"menuSelections": {
+					"cljAliases": [
+						"dev",
+					],
+					"cljsLaunchBuilds": [
+						"app",
+					],
+					"cljsDefaultBuild": "app"
+				}
+			},
+			{
 				"name": "Connect Sequence deps-main-opts",
 				"projectType": "deps.edn",
 				"projectRootPath": [
-					"projects/deps-main-opts"
+					"deps-main-opts"
 				],
 				"afterCLJReplJackInCode": "(require 'repl)",
 				"cljsType": "none",
