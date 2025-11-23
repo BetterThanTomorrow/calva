@@ -34,6 +34,23 @@ describe('session routing preferences', () => {
     expect(sessionRouting.resolvePreferredSession('clj')).toBeUndefined();
   });
 
+  it('selects a default cljc session when none is configured', () => {
+    sessionRegistry.registerSession('alpha', createSession('clj'), { name: 'Alpha' });
+    sessionRegistry.registerSession('beta', createSession('cljs'), { name: 'Beta' });
+
+    expect(sessionRouting.getCljcSessionKey()).toBe('alpha');
+  });
+
+  it('falls back to the next available session when clearing the cljc selection', () => {
+    sessionRegistry.registerSession('alpha', createSession('clj'), { name: 'Alpha' });
+    sessionRegistry.registerSession('beta', createSession('cljs'), { name: 'Beta' });
+
+    sessionRouting.setCljcSessionKey('beta');
+    sessionRouting.setCljcSessionKey(undefined);
+
+    expect(sessionRouting.getCljcSessionKey()).toBe('alpha');
+  });
+
   it('ignores cljc overrides when a session is pinned', () => {
     sessionRegistry.registerSession('alpha', createSession('clj'), { name: 'Alpha' });
     sessionRegistry.registerSession('beta', createSession('cljs'), { name: 'Beta' });

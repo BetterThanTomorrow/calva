@@ -110,7 +110,14 @@ function update() {
     if (replType) {
       const pinnedSessionKey = sessionRouting.getPinnedSessionKey();
       const isPinned = sessionRouting.isPinned() && Boolean(pinnedSessionKey);
-      const displaySessionKey = isPinned && pinnedSessionKey ? pinnedSessionKey : replType;
+      const cljcSessionKey = sessionRouting.getCljcSessionKey();
+      const shouldShowCljcSession = !isPinned && fileType === 'cljc' && cljcSessionKey;
+      const displaySessionKey =
+        isPinned && pinnedSessionKey
+          ? pinnedSessionKey
+          : shouldShowCljcSession && cljcSessionKey
+          ? cljcSessionKey
+          : replType;
       const displayMeta = sessionRegistry.getSessionMetadata(displaySessionKey);
 
       const baseStatusText = ['cljc', config.REPL_FILE_EXT, config.FIDDLE_FILE_EXT].includes(
@@ -128,13 +135,10 @@ function update() {
           : `Auto-route session: ${sessionDisplayName}`,
       ];
 
-      if (!isPinned && sessionRouting.hasCljcOverride()) {
-        const cljcSessionKey = sessionRouting.getCljcSessionKey();
-        if (cljcSessionKey) {
-          const cljcMeta = sessionRegistry.getSessionMetadata(cljcSessionKey);
-          const cljcDisplayName = getSessionDisplayName(cljcMeta, cljcSessionKey);
-          tooltipParts.push(`cljc files use ${cljcDisplayName}`);
-        }
+      if (!isPinned && cljcSessionKey) {
+        const cljcMeta = sessionRegistry.getSessionMetadata(cljcSessionKey);
+        const cljcDisplayName = getSessionDisplayName(cljcMeta, cljcSessionKey);
+        tooltipParts.push(`cljc files use ${cljcDisplayName}`);
       }
 
       tooltipParts.push('Click to show the REPL Sessions menu');

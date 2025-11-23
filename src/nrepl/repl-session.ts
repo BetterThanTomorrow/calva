@@ -132,18 +132,23 @@ function getReplSessionType(connected: boolean): string | undefined {
     if (outputWindow.isResultsDoc(doc)) {
       sessionType = outputWindow.getSessionType();
     } else {
-      const globMatched = findSessionKeyForDocument(doc);
-      if (globMatched && sessionRegistry.getSession(globMatched)) {
-        sessionType = globMatched;
-      } else if (fileType && sessionRegistry.getSession(fileType)) {
-        sessionType = fileType;
+      const routedSession = sessionRouting.resolvePreferredSession(fileType);
+      if (routedSession && sessionRegistry.getSession(routedSession)) {
+        sessionType = routedSession;
       } else {
-        const storedType = cljsLib.getStateValue('current-session-type');
-        if (storedType && sessionRegistry.getSession(storedType)) {
-          sessionType = storedType;
+        const globMatched = findSessionKeyForDocument(doc);
+        if (globMatched && sessionRegistry.getSession(globMatched)) {
+          sessionType = globMatched;
+        } else if (fileType && sessionRegistry.getSession(fileType)) {
+          sessionType = fileType;
         } else {
-          const defaultSession = sessionRegistry.listSessions()[0];
-          sessionType = defaultSession?.key;
+          const storedType = cljsLib.getStateValue('current-session-type');
+          if (storedType && sessionRegistry.getSession(storedType)) {
+            sessionType = storedType;
+          } else {
+            const defaultSession = sessionRegistry.listSessions()[0];
+            sessionType = defaultSession?.key;
+          }
         }
       }
     }

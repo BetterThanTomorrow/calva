@@ -11,7 +11,7 @@ const MENU_SAVE_KEY = 'repl-sessions-menu';
 const CLJC_MENU_SAVE_KEY = 'repl-sessions-menu-cljc';
 
 interface SessionQuickPickItem extends vscode.QuickPickItem {
-  action: 'session' | 'auto' | 'cljc' | 'cljc-clear';
+  action: 'session' | 'auto' | 'cljc';
   sessionKey?: string;
 }
 
@@ -93,10 +93,11 @@ function getDisplayNameForSessionKey(sessionKey?: string): string | undefined {
 }
 
 function buildSessionPickItems(options?: {
-  isAutoRouting: boolean;
+  isAutoRouting?: boolean;
   autoSessionKey?: string;
+  highlightedSessionKey?: string;
 }): SessionQuickPickItem[] {
-  const { isAutoRouting = false, autoSessionKey } = options || {};
+  const { isAutoRouting = false, autoSessionKey, highlightedSessionKey } = options || {};
   const pinnedKey = sessionRouting.getPinnedSessionKey();
   return sessionRegistry.listSessions().map((session) => {
     const baseLabel = getSessionLabel(session);
@@ -104,6 +105,8 @@ function buildSessionPickItems(options?: {
     if (session.key === pinnedKey) {
       prefixes.push('$(pin)');
     } else if (isAutoRouting && autoSessionKey && session.key === autoSessionKey) {
+      prefixes.push('$(check)');
+    } else if (highlightedSessionKey && session.key === highlightedSessionKey) {
       prefixes.push('$(check)');
     }
     const label = prefixes.length > 0 ? `${prefixes.join(' ')} ${baseLabel}` : baseLabel;
@@ -131,17 +134,10 @@ async function promptForCljcSession(): Promise<void> {
     return;
   }
 
-  const cljcItems: SessionQuickPickItem[] = [
-    ...buildSessionPickItems({ isAutoRouting: false }),
-    {
-      label: 'Use default routing for cljc files',
-      description: 'Apply auto-routing rules for cljc files',
-      detail: 'Removes the cljc-specific session override',
-      action: 'cljc-clear',
-    },
-  ];
-
   const currentCljcSession = sessionRouting.getCljcSessionKey();
+  const cljcItems: SessionQuickPickItem[] = buildSessionPickItems({
+    highlightedSessionKey: currentCljcSession,
+  });
   const currentCljcDisplay = getDisplayNameForSessionKey(currentCljcSession);
 
   const cljcSelection = (await utilities.quickPickSingle({
@@ -154,12 +150,6 @@ async function promptForCljcSession(): Promise<void> {
   })) as SessionQuickPickItem | undefined;
 
   if (!cljcSelection) {
-    return;
-  }
-
-  if (cljcSelection.action === 'cljc-clear') {
-    sessionRouting.setCljcSessionKey(undefined);
-    status.update();
     return;
   }
 

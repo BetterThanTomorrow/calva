@@ -7,6 +7,11 @@ const ROUTING_MODE_STATE_KEY = 'session-routing-mode';
 const PINNED_SESSION_STATE_KEY = 'session-routing-pinned-session-key';
 const CLJC_SESSION_STATE_KEY = 'session-routing-cljc-session-key';
 
+function selectFallbackSessionKey(): string | undefined {
+  const sessions = sessionRegistry.listSessions();
+  return sessions[0]?.key;
+}
+
 function readStoredKey(stateKey: string): string | undefined {
   const value = getStateValue(stateKey);
   return typeof value === 'string' && value.length > 0 ? value : undefined;
@@ -68,26 +73,34 @@ export function isPinned(): boolean {
   return getRoutingMode() === 'pinned' && Boolean(getPinnedSessionKey());
 }
 
-function readCljcSessionKey(): string | undefined {
-  return ensureActiveSession(readStoredKey(CLJC_SESSION_STATE_KEY));
+function ensureCljcSessionKey(): string | undefined {
+  const activeKey = ensureActiveSession(readStoredKey(CLJC_SESSION_STATE_KEY));
+  if (activeKey) {
+    return activeKey;
+  }
+
+  const fallback = selectFallbackSessionKey();
+  if (fallback) {
+    setStateValue(CLJC_SESSION_STATE_KEY, fallback);
+    return fallback;
+  }
+
+  clearStateKey(CLJC_SESSION_STATE_KEY);
+  return undefined;
 }
 
 export function getCljcSessionKey(): string | undefined {
-  const activeKey = readCljcSessionKey();
-  if (!activeKey) {
-    clearStateKey(CLJC_SESSION_STATE_KEY);
-  }
-  return activeKey;
+  return ensureCljcSessionKey();
 }
 
 export function setCljcSessionKey(sessionKey?: string): void {
-  if (!sessionKey) {
-    clearStateKey(CLJC_SESSION_STATE_KEY);
-    return;
-  }
-
-  if (!ensureActiveSession(sessionKey)) {
-    clearStateKey(CLJC_SESSION_STATE_KEY);
+  if (!sessionKey || !ensureActiveSession(sessionKey)) {
+    const fallback = selectFallbackSessionKey();
+    if (fallback) {
+      setStateValue(CLJC_SESSION_STATE_KEY, fallback);
+    } else {
+      clearStateKey(CLJC_SESSION_STATE_KEY);
+    }
     return;
   }
 
