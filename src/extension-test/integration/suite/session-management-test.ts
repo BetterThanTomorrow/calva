@@ -90,7 +90,7 @@ describe(`${suiteName} suite`, () => {
     });
 
     cljsLib.setStateValue('current-session-type', serverSessionKey);
-    assert.strictEqual(sessionRouting.getCljcSessionKey(), undefined);
+    assert.strictEqual(sessionRouting.getCljcSessionKey(), serverSessionKey);
 
     connector.toggleCLJCSession();
 
