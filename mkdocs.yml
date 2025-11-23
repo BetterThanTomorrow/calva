@@ -110,6 +110,7 @@ nav:
       - async-out.md
       - clj-java-decompiler.md
       - virgil.md
+      - javadocs.md
   - API:
       - api.md
       - commands.md
