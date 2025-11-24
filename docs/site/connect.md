@@ -75,6 +75,22 @@ If the workspace is a monorepo, Polylith repo or just a repository with more tha
 
 ![The project roots menu](images/calva-monorepo-project-roots-menu.png)
 
+## Multiple REPL Connections
+
+Calva can keep several REPL connections alive at the same time. This is useful when you want to run a backend and frontend REPL concurrently, keep an nREPL connected to a remote server while also working locally, or maintain a scratch REPL that should not be restarted when another project reconnects.
+
+### How concurrent connections are organized
+
+Every connection registers one or two session names (for example the default `clj`/`cljs` pair or the custom names you define in a [connect sequence](connect-sequences.md#settings-for-adding-custom-sequences)). Calva routes evaluations to the session whose glob matches the active file so you can keep coding without rewiring buffers manually. You can jack-in or connect again at any point to add another client—the running clients and their sessions stay intact.
+
+### Picking which connection to keep
+
+Use **Calva: Disconnect from the REPL** whenever you need to tear down one connection without touching the others. The command opens a quick pick that lists every client along with its session names, host/port, and project root so you can see exactly which REPL you're about to remove. When more than one client is active the picker also offers **Disconnect all sessions** as a fast way to clean the slate.
+
+### Avoiding session-name conflicts
+
+Because sessions act as routing keys, Calva prevents you from starting another connection that reuses a session name owned by a different client. If you hit a **Conflicting sessions** error you can either disconnect the other client via the command above or assign unique `replSessionNames` in your custom connect sequences. Pair each name with matching `replSessionGlobs` when you want Calva to auto-route different folders to specific sessions.
+
 ## shadow-cljs
 
 Please see the [shadow-cljs](shadow-cljs.md) page.

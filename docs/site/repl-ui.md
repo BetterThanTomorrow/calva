@@ -39,6 +39,7 @@ All REPL commands are available through VS Code's Command Palette (<kbd>Ctrl</kb
 * **Toggle Pretty Printing**: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> <kbd>P</kbd> - Enable/disable pretty printing (also available via status bar)
 * **Interrupt Running Evaluation**: Available in REPL status bar menu when connected
 * **Show Output Destination**: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>O</kbd> <kbd>O</kbd> - Open the configured output destination
+* **Disconnect from the REPL**: Opens a quick pick listing every active connection so you can drop a single client or select **Disconnect all sessions** when you need a fresh slate
 
 Search the command palette for `Calva evaluate` to find some more commands related to code evaluation at the REPL.
 
@@ -57,7 +58,7 @@ The main REPL connection indicator shows the current state of your REPL connecti
 * **Disconnected** - `REPL $(zap)` (gray) - Click to open the REPL menu and start Jack-in or Connect
 * **Launching** - `Launching REPL using <method>` (orange/yellow) - Click to interrupt the launch process
 * **Connecting** - `REPL - trying to connect` - Click to interrupt the connection attempt
-* **Connected** - `REPL $(zap)` (green) - Click to open the REPL menu with commands for managing your connection
+* **Connected** - `REPL $(zap)` (green) - Click to open the REPL menu with commands for managing your connection. Calva keeps existing clients alive when you start another REPL, so the menu is the fastest way to jump between commands without tearing down the other sessions.
 
 When connected, the tooltip displays the connection details: `nrepl://hostname:port`
 
@@ -96,6 +97,16 @@ The indicator is always clickable when the REPL is connected. Clicking it opens 
 Calva only applies the `.cljc` override when auto-routing is enabled. If you pin a session, that pin takes precedence for all files until you return to auto-route.
 
 These options make it easy to temporarily lock the routing, quickly inspect available sessions, or ensure `.cljc` files go exactly where you want. See [The REPL Window](repl-window.md#choose-clj-or-cljs-repl-connection) for more details.
+
+## Managing Multiple Connections
+
+Calva keeps every connected nREPL client alive until you explicitly disconnect it. This makes it easy to work with several apps (or the same app in multiple environments) at once. When more than one client is running:
+
+- The REPL Sessions menu lists every registered session name so you can pin the one that should receive evaluations from the current buffer.
+- The command palette entry **Calva: Disconnect from the REPL** (also available from the REPL menu) opens a quick pick that shows each client’s session names, host/port, and project root. Pick a single client to disconnect only that REPL or choose **Disconnect all sessions** to stop every client at once.
+- Custom session names defined via connect sequences show up throughout the UI, making it easy to tell which client you are routing to before you disconnect or pin it.
+
+Because each session name is treated as a routing key, Calva warns you if a new connection tries to reuse a name that is already owned by another client. Update the connect sequence to use unique `replSessionNames` or disconnect the conflicting client via the quick pick described above.
 
 ### CLJS Build Selector
 
