@@ -121,7 +121,7 @@
 				"projectRootPath": [
 					"pirate-lang"
 				],
-				"afterPrimaryReplConnectedCode": [
+				"afterMainReplConnectedCode": [
 					"(require 'repl)",
 					"(println 1)",
 					"(println 2)"
@@ -156,10 +156,10 @@
 				"projectType": "deps.edn",
 				"cljsType": "shadow-cljs",
 				"replSessionNames": {
-					"primary": "clj",
+					"main": "clj",
 					"promoted": "cljs"
 				},
-				"afterPrimaryReplConnectedCode": [
+				"afterMainReplConnectedCode": [
 					"(require 'repl)",
 					"(println 1)",
 					"(println 2)"
@@ -181,11 +181,11 @@
 				"projectType": "deps.edn",
 				"cljsType": "shadow-cljs",
 				"replSessionNames": {
-					"primary": "backend",
+					"main": "backend",
 					"promoted": "frontend"
 				},
-				"afterPrimaryReplConnectedCode": [
-					"(println :renamed-primary-to-backend)",
+				"afterMainReplConnectedCode": [
+					"(println :renamed-main-to-backend)",
 					"(println :renamed-promoted-to-frontend)"
 				],
 				"menuSelections": {
@@ -203,11 +203,11 @@
 				"projectType": "deps.edn",
 				"cljsType": "shadow-cljs",
 				"replSessionNames": {
-					"primary": "backend",
+					"main": "backend",
 					"promoted": "frontend"
 				},
 				"afterCLJReplJackInCode": [
-					"(println :renamed-primary-to-backend)",
+					"(println :renamed-main-to-backend)",
 					"(println :renamed-promoted-to-frontend)"
 				],
 				"menuSelections": {
@@ -226,7 +226,7 @@
 				"projectRootPath": [
 					"deps-main-opts"
 				],
-				"afterPrimaryReplConnectedCode": "(require 'repl)",
+				"afterMainReplConnectedCode": "(require 'repl)",
 				"cljsType": "none",
 				"menuSelections": {
 					"cljAliases": [
@@ -238,20 +238,20 @@
 			{
 				"name": "custom command line shadow",
 				"projectType": "shadow-cljs",
-				"afterPrimaryReplConnectedCode": "(println \"Hello custom command line\")",
+				"afterMainReplConnectedCode": "(println \"Hello custom command line\")",
 				"customJackInCommandLine": "echo PROJECT-ROOT-PATH: JACK-IN-PROJECT-ROOT-PATH, NREPL-PORT-FILE: JACK-IN-NREPL-PORT-FILE; /Users/pez/Projects/calva/test-data/custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION",
 				"cljsType": "shadow-cljs"
 			},
 			{
 				"name": "custom command line deps windows",
 				"projectType": "deps.edn",
-				"afterPrimaryReplConnectedCode": "(println \"Hello custom command line\")",
+				"afterMainReplConnectedCode": "(println \"Hello custom command line\")",
 				"customJackInCommandLine": "bb ..\\..\\custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION"
 			},
 			{
 				"name": "custom command line Leiningen",
 				"projectType": "Leiningen",
-				"afterPrimaryReplConnectedCode": "(println \"Hello custom command line\")",
+				"afterMainReplConnectedCode": "(println \"Hello custom command line\")",
 				"nReplPortFile": [
 					"foo",
 					"bar",

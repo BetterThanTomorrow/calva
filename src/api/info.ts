@@ -5,7 +5,7 @@ import * as sessionRoles from '../nrepl/session-roles';
 // TODO: Only nRepl lookups for now. Figure out how to enable clojure-lsp.
 
 export const getClojureDocsDotOrg = async (symbol: string, ns = 'user') => {
-  const session = replSession.getSession(sessionRoles.getSessionKeyForRole('primary'));
+  const session = replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
   if (!session) {
     return { error: "Can't retrieve REPL session for session key. Is the REPL connected?" };
   }

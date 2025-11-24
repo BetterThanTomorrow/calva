@@ -24,7 +24,7 @@ A connect sequence configures the following:
 * `autoSelectForConnect`: A boolean. If true, this sequence will be automatically selected at **Connect**, suppressing the Project Type menu. Use together with `projectRootPath` to also suppress the Project Root menu. If you have more than one sequence with `autoSelectForConnect` set to true, Calva will use the sequence with its `projectRootPath` closest to the currently active editor file. And if there is no such closest file, the first sequence will be used.
 * `projectRootPath`: An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with `autoSelectForJackIn`/`autoSelectForConnect` to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder.
 * `nReplPortFile`: An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be `[".shadow-cljs", "nrepl.port"]`.
-* `afterPrimaryReplConnectedCode`: Code to evaluate in the primary REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.
+* `afterMainReplConnectedCode`: Code to evaluate in the main REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.
 * `customJackInCommandLine`: A string with a command line that should be used to launch the REPL. See [Custom Command Line](#custom-command-line), below.
 * `cljsType`: This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", "none", or a dictionary configuring a custom type. If set to "none", Calva will skip connecting a ClojureScript repl. A custom type has the following fields:
     * `dependsOn`: (required) Calva will use this to determine which dependencies it will add when starting the project (Jacking in). This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", or ”User provided”. If it is "User provided", then you need to provide the dependencies in the project or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed.
@@ -45,10 +45,10 @@ A connect sequence configures the following:
     * `cljsDefaultBuild`: Which cljs build to attach to at the initial connect.
 * `jackInEnv`: An object with environment variables that will be merged with the global `calva.jackInEnv` and then applied to the Jack-in process. The merge is very similar to how Clojure's `merge` works. So for any common keys between the global setting and this one, the ones from this setting will win.
 * `extraNReplMiddleware`: Array of strings of the fully qualified names of extra middleware that should be applied to the nREPL server when started.
-* `replSessionNames`: Override the default repl session names that Calva registers for the primary and the promoted (if any) REPL sessions.
-    * `primary`: the name of the primary repl session. Defaults to `clj`
+* `replSessionNames`: Override the default repl session names that Calva registers for the main and the promoted (if any) REPL sessions.
+    * `main`: the name of the main repl session. Defaults to `clj`
     * `promoted`: the name of the secondary/promoted repl session in the sequence. Defaults to `cljs`.
-* `replSessionGlobs`: Map each repl session name to the file globs it should handle. Keys should match the values configured in `replSessionNames` (or the defaults). Values can be a single glob string or an array of globs. Globs are evaluated relative to every workspace folder, so multi-root workspaces are supported, and you can prefix the relative path with the workspace folder name to scope matches (e.g. `"app/**/*.clj"` will only match files inside the `app` folder). Defaults are `**/*.clj` for the primary session and `**/*.cljs` for the promoted session.
+* `replSessionGlobs`: Map each repl session name to the file globs it should handle. Keys should match the values configured in `replSessionNames` (or the defaults). Values can be a single glob string or an array of globs. Globs are evaluated relative to every workspace folder, so multi-root workspaces are supported, and you can prefix the relative path with the workspace folder name to scope matches (e.g. `"app/**/*.clj"` will only match files inside the `app` folder). Defaults are `**/*.clj` for the main session and `**/*.cljs` for the promoted session.
 
 The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts) also use this format, check them out to get a clearer picture of how these settings work.
 
@@ -202,7 +202,7 @@ This is the connect sequences used in the [Polylith Real World App](https://gith
     "calva.replConnectSequences": [
         {
             "projectType": "deps.edn",
-            "afterPrimaryReplConnectedCode": "(require '[dev.server] :reload) (in-ns 'dev.server) (start! 6003)",
+            "afterMainReplConnectedCode": "(require '[dev.server] :reload) (in-ns 'dev.server) (start! 6003)",
             "name": "Polylith RealWorld Server REPL (start)",
             "autoSelectForJackIn": true,
             "projectRootPath": ["."],
@@ -234,7 +234,7 @@ Setting for a full-stack application. It starts the backend server when the CLJ 
         {
             "name": "Example Sequence",
             "projectType": "Clojure-CLI",
-            "afterPrimaryReplConnectedCode": "(go)",
+            "afterMainReplConnectedCode": "(go)",
             "cljsType": {
                 "startCode": "(do (require '[cljs-test.main :refer :all])(start-nrepl+fig))",
                 "isReadyToStartRegExp": "Prompt will show",

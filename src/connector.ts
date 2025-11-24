@@ -51,7 +51,7 @@ export function deriveRequestedSessionKeys(
   connectSequence: ReplConnectSequence,
   usePromotedSession: boolean
 ): string[] {
-  const keys = [sessionRoleKeys.primary];
+  const keys = [sessionRoleKeys.main];
   if (
     usePromotedSession &&
     sessionRoleKeys.promoted &&
@@ -159,7 +159,7 @@ async function readRuntimeConfigs() {
 }
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
-  let primarySession: NReplSession;
+  let mainSession: NReplSession;
   const sessionRoleKeys = sessionRoles.initializeSessionRoleKeys(connectSequence);
   const usePromotedSession = promotedSession.shouldUsePromotedSession(connectSequence);
 
@@ -212,24 +212,24 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       status.update();
       calvaDebug.terminateDebugSession();
     });
-    primarySession = nClient.session;
-    primarySession.replType = 'clj';
+    mainSession = nClient.session;
+    mainSession.replType = 'clj';
     util.setConnectingState(false);
     util.setConnectedState(true);
     void state.analytics().logGA4Pageview('/connected-clj-repl');
 
-    const primaryKey = sessionRoleKeys.primary;
-    sessionRegistry.registerSession(primaryKey, primarySession, {
+    const mainKey = sessionRoleKeys.main;
+    sessionRegistry.registerSession(mainKey, mainSession, {
       name: 'Clojure REPL',
       projectRoot: state.getProjectRootUri().toString(),
-      globs: sessionRoles.getGlobsForSessionKey(primaryKey),
+      globs: sessionRoles.getGlobsForSessionKey(mainKey),
     });
 
     status.update();
-    output.appendLineOtherOut(`Connected session: ${primaryKey}`);
+    output.appendLineOtherOut(`Connected session: ${mainKey}`);
     replSession.updateReplSessionType();
 
-    outputWindow.setSession(primarySession, nClient.ns, primaryKey);
+    outputWindow.setSession(mainSession, nClient.ns, mainKey);
 
     if (getConfig().autoEvaluateCode.onConnect.clj) {
       output.appendLineOtherOut(
@@ -237,30 +237,25 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       );
       await evaluate.evaluateInOutputWindow(
         getConfig().autoEvaluateCode.onConnect.clj,
-        primaryKey,
+        mainKey,
         outputWindow.getNs(),
         {}
       );
     }
     output.replWindowAppendPrompt();
 
-    const afterPrimaryReplCode =
-      connectSequence.afterPrimaryReplConnectedCode ?? connectSequence.afterCLJReplJackInCode;
-    if (afterPrimaryReplCode) {
-      output.appendLineOtherOut(`Evaluating 'afterPrimaryReplConnectedCode'`);
-      await evaluate.evaluateInOutputWindow(
-        afterPrimaryReplCode,
-        primaryKey,
-        outputWindow.getNs(),
-        {}
-      );
+    const afterMainReplCode =
+      connectSequence.afterMainReplConnectedCode ?? connectSequence.afterCLJReplJackInCode;
+    if (afterMainReplCode) {
+      output.appendLineOtherOut(`Evaluating 'afterMainReplConnectedCode'`);
+      await evaluate.evaluateInOutputWindow(afterMainReplCode, mainKey, outputWindow.getNs(), {});
     }
     if (!connectSequence.cljsType || connectSequence.cljsType === 'none') {
       output.maybePrintLegacyREPLWindowOutputMessage();
     }
     output.replWindowAppendPrompt();
 
-    clojureDocs.init(primarySession);
+    clojureDocs.init(mainSession);
 
     let cljsSession = null,
       cljsBuild = null;
@@ -278,7 +273,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         );
 
         [cljsSession, cljsBuild] = await makeCljsSessionClone(
-          primarySession,
+          mainSession,
           translatedReplType,
           connectSequence.name
         );
@@ -636,7 +631,7 @@ function createCLJSReplType(
   };
 
   async function waitForShadowCljsRuntimes() {
-    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('primary'));
+    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
     const getRuntimesCode = `(count (shadow.cljs.devtools.api/repl-runtimes ${connectToBuild}))`;
     const checkForRuntimes = async () => {
       const runtimes = await cljSession.eval(getRuntimesCode, 'user').value;
@@ -1246,7 +1241,7 @@ export default {
     if (!connectSequence || !promotedSession.shouldUsePromotedSession(connectSequence)) {
       return;
     }
-    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('primary'));
+    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
     const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName'),
       cljTypeName: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
     const [session, build] = await makeCljsSessionClone(

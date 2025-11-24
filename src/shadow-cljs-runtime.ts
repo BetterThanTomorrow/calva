@@ -86,7 +86,7 @@ export function getSelectedRuntimeId(): number {
  */
 export async function getShadowRuntimes(): Promise<RuntimeInfo[] | null> {
   try {
-    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('primary'));
+    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
     if (!cljSession) {
       output.appendLineOtherErr('No Clojure session available for runtime detection');
       return null;
@@ -187,7 +187,7 @@ export async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null
  */
 export async function switchToRuntime(runtimeInfo: RuntimeInfo): Promise<boolean> {
   try {
-    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('primary'));
+    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
     if (!cljSession) {
       output.appendLineOtherErr('No Clojure session available for shadow-cljs runtime selection');
       return false;
@@ -344,7 +344,7 @@ export async function handleShadowRemoteMessage(msgData: any): Promise<void> {
  */
 export async function initializeShadowRemoteNotifications(): Promise<void> {
   try {
-    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('primary'));
+    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
     if (!cljSession) {
       output.appendLineOtherErr('No Clojure session available for shadow-remote initialization');
       return;

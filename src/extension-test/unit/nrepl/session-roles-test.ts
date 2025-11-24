@@ -43,7 +43,7 @@ describe('session role glob derivation', () => {
   it('applies default globs to renamed sessions', () => {
     const sequence = baseSequence();
     sequence.cljsType = 'shadow-cljs' as unknown as ReplConnectSequence['cljsType'];
-    sequence.replSessionNames = { primary: 'clj2', promoted: 'cljs2' };
+    sequence.replSessionNames = { main: 'clj2', promoted: 'cljs2' };
 
     const result = sessionRoles.deriveSessionGlobMap(sequence);
 
@@ -54,7 +54,7 @@ describe('session role glob derivation', () => {
   it('prefers custom globs keyed by the session name', () => {
     const sequence = baseSequence();
     sequence.cljsType = 'shadow-cljs' as unknown as ReplConnectSequence['cljsType'];
-    sequence.replSessionNames = { primary: 'alpha', promoted: 'beta' };
+    sequence.replSessionNames = { main: 'alpha', promoted: 'beta' };
     sequence.replSessionGlobs = {
       alpha: ['apps/**/server.clj'],
       beta: ['ui/**/*.cljs'],
@@ -69,9 +69,9 @@ describe('session role glob derivation', () => {
   it('supports glob overrides keyed by role names', () => {
     const sequence = baseSequence();
     sequence.cljsType = 'shadow-cljs' as unknown as ReplConnectSequence['cljsType'];
-    sequence.replSessionNames = { primary: 'gamma', promoted: 'delta' };
+    sequence.replSessionNames = { main: 'gamma', promoted: 'delta' };
     sequence.replSessionGlobs = {
-      primary: ['services/**/*.clj'],
+      main: ['services/**/*.clj'],
       promoted: ['clients/**/*.cljs'],
     };
 
@@ -84,7 +84,7 @@ describe('session role glob derivation', () => {
   it('retains additional session glob mappings for future sessions', () => {
     const sequence = baseSequence();
     sequence.cljsType = 'shadow-cljs' as unknown as ReplConnectSequence['cljsType'];
-    sequence.replSessionNames = { primary: 'core', promoted: 'ui' };
+    sequence.replSessionNames = { main: 'core', promoted: 'ui' };
     sequence.replSessionGlobs = {
       core: '**/*.clj',
       ui: ['**/*.cljs'],
@@ -99,7 +99,7 @@ describe('session role glob derivation', () => {
   it('trims whitespace and filters empty glob entries', () => {
     const sequence = baseSequence();
     sequence.cljsType = 'shadow-cljs' as unknown as ReplConnectSequence['cljsType'];
-    sequence.replSessionNames = { primary: 'alpha', promoted: 'beta' };
+    sequence.replSessionNames = { main: 'alpha', promoted: 'beta' };
     sequence.replSessionGlobs = {
       alpha: ['  src/**/*.clj  ', '   '],
       beta: ' ui/**/*.cljs ',
@@ -114,7 +114,7 @@ describe('session role glob derivation', () => {
   it('falls back to defaults when overrides resolve to empty globs', () => {
     const sequence = baseSequence();
     sequence.cljsType = 'shadow-cljs' as unknown as ReplConnectSequence['cljsType'];
-    sequence.replSessionNames = { primary: 'alpha', promoted: 'beta' };
+    sequence.replSessionNames = { main: 'alpha', promoted: 'beta' };
     sequence.replSessionGlobs = {
       alpha: ['   ', '\t'],
       beta: [],

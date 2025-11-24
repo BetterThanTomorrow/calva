@@ -41,7 +41,7 @@ describe('session registry', () => {
     });
 
     it('recognizes when keys are already attached to the requesting client', () => {
-      sessionRegistry.registerSession('alpha', createSession('client-a'), { name: 'Primary' });
+      sessionRegistry.registerSession('alpha', createSession('client-a'), { name: 'Main' });
       const analysis = sessionRegistry.analyzeSessionAssignments(['alpha'], 'client-a');
 
       expect(analysis.summary).toBe('existing-client');
@@ -50,7 +50,7 @@ describe('session registry', () => {
     });
 
     it('flags conflicts for sessions owned by another client', () => {
-      sessionRegistry.registerSession('alpha', createSession('client-other'), { name: 'Primary' });
+      sessionRegistry.registerSession('alpha', createSession('client-other'), { name: 'Main' });
       const analysis = sessionRegistry.analyzeSessionAssignments(['alpha'], 'client-a');
 
       expect(analysis.summary).toBe('conflict');

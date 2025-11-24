@@ -120,9 +120,9 @@ function triggerUpdateAndRenderDecorations() {
     if (editor) {
       timeout = setTimeout(() => {
         const clientProvider = lsp.getClientProvider();
-        const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('primary'));
+        const mainSession = replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
         const lspClient = clientProvider.getClientForDocumentUri(editor.document.uri);
-        void update(editor, cljSession, lspClient).then(renderInAllVisibleEditors);
+        void update(editor, mainSession, lspClient).then(renderInAllVisibleEditors);
       }, 50);
     }
   }

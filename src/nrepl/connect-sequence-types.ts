@@ -47,7 +47,7 @@ interface MenuSelections {
 }
 
 interface SessionNamesConfig {
-  primary?: string;
+  main?: string;
   promoted?: string;
 }
 
@@ -60,8 +60,8 @@ interface ReplConnectSequence {
   autoSelectForConnect?: boolean;
   autoSelectForJackIn?: boolean;
   projectRootPath?: string[];
-  afterPrimaryReplConnectedCode?: string;
-  /** @deprecated Use afterPrimaryReplConnectedCode instead. */
+  afterMainReplConnectedCode?: string;
+  /** @deprecated Use afterMainReplConnectedCode instead. */
   afterCLJReplJackInCode?: string;
   cljsType: CljsTypes | CljsTypeConfig;
   menuSelections?: MenuSelections;

@@ -6,10 +6,10 @@ import {
 } from './connect-sequence-types';
 import * as promotedSession from './promoted-session';
 
-export type SessionRole = 'primary' | 'promoted';
+export type SessionRole = 'main' | 'promoted';
 
 export interface SessionRoleKeys {
-  primary: string;
+  main: string;
   promoted?: string;
 }
 
@@ -19,17 +19,17 @@ const SESSION_ROLE_STATE_KEY = 'session-role-keys';
 const SESSION_ROLE_GLOBS_STATE_KEY = 'session-role-globs';
 
 const DEFAULT_SESSION_ROLE_KEYS: SessionRoleKeys = {
-  primary: 'clj',
+  main: 'clj',
   promoted: 'cljs',
 };
 
 const DEFAULT_SESSION_ROLE_GLOBS: Record<SessionRole, string[]> = {
-  primary: ['**/*.clj'],
+  main: ['**/*.clj'],
   promoted: ['**/*.cljs'],
 };
 
 const DEFAULT_SESSION_GLOB_MAP: SessionGlobMap = {
-  [DEFAULT_SESSION_ROLE_KEYS.primary]: [...DEFAULT_SESSION_ROLE_GLOBS.primary],
+  [DEFAULT_SESSION_ROLE_KEYS.main]: [...DEFAULT_SESSION_ROLE_GLOBS.main],
   [DEFAULT_SESSION_ROLE_KEYS.promoted]: [...DEFAULT_SESSION_ROLE_GLOBS.promoted],
 };
 
@@ -48,7 +48,7 @@ function normalizeGlobValue(value: string | string[]): string[] {
 function fromSequenceConfig(sequence?: ReplConnectSequence): SessionRoleKeys {
   const config = sequence?.replSessionNames;
   const keys: SessionRoleKeys = {
-    primary: config?.primary || DEFAULT_SESSION_ROLE_KEYS.primary,
+    main: config?.main || DEFAULT_SESSION_ROLE_KEYS.main,
   };
   if (promotedSession.shouldUsePromotedSession(sequence)) {
     keys.promoted = config?.promoted || DEFAULT_SESSION_ROLE_KEYS.promoted;
@@ -83,7 +83,7 @@ function deriveSessionRoleGlobs(
     }
   }
 
-  (['primary', 'promoted'] as SessionRole[]).forEach((role) => {
+  (['main', 'promoted'] as SessionRole[]).forEach((role) => {
     const key = keys[role];
     if (!key) {
       return;
@@ -130,7 +130,7 @@ export function initializeSessionRoleKeys(sequence?: ReplConnectSequence): Sessi
 export function getSessionRoleKeys(): SessionRoleKeys {
   const stored = readStoredKeys();
   const keys: SessionRoleKeys = {
-    primary: stored?.primary || DEFAULT_SESSION_ROLE_KEYS.primary,
+    main: stored?.main || DEFAULT_SESSION_ROLE_KEYS.main,
   };
   if (stored?.promoted) {
     keys.promoted = stored.promoted;

@@ -672,7 +672,7 @@
                     "type": "string"
                   }
                 },
-                "afterPrimaryReplConnectedCode": {
+                "afterMainReplConnectedCode": {
                   "anyOf": [
                     {
                       "type": "string"
@@ -684,7 +684,7 @@
                       }
                     }
                   ],
-                  "markdownDescription": "Code to evaluate in the primary REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.",
+                  "markdownDescription": "Code to evaluate in the main REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.",
                   "required": false
                 },
                 "afterCLJReplJackInCode": {
@@ -700,7 +700,7 @@
                     }
                   ],
                   "required": false,
-                  "deprecationMessage": "Deprecated. Renamed to `afterPrimaryReplConnectedCode`, which you should be using instead."
+                  "deprecationMessage": "Deprecated. Renamed to `afterMainReplConnectedCode`, which you should be using instead."
                 },
                 "menuSelections": {
                   "type": "object",
@@ -821,11 +821,11 @@
                 },
                 "replSessionNames": {
                   "type": "object",
-                  "markdownDescription": "Override the default repl session names that Calva registers for the primary and the promoted (if any) REPL sessions. Defaults are: primary: `clj`, promoted: `cljs`.",
+                  "markdownDescription": "Override the default repl session names that Calva registers for the main and the promoted (if any) REPL sessions. Defaults are: main: `clj`, promoted: `cljs`.",
                   "properties": {
-                    "primary": {
+                    "main": {
                       "type": "string",
-                      "markdownDescription": "Session name for the primary REPL. Must only contain letters, digits, underscores, or hyphens.",
+                      "markdownDescription": "Session name for the main REPL. Must only contain letters, digits, underscores, or hyphens.",
                       "pattern": "^[\\p{L}\\d_-]+$"
                     },
                     "promoted": {
@@ -836,7 +836,7 @@
                   },
                   "additionalProperties": false,
                   "default": {
-                    "primary": "clj",
+                    "main": "clj",
                     "promoted": "cljs"
                   }
                 },
@@ -1028,7 +1028,7 @@
                 "properties": {
                   "clj": {
                     "type": "string",
-                    "markdownDescription": "Code to evaluate when the **Clojure** REPL has been connected. The default is code that refer in the `repl-requires`/REPL utilities (like `source`, `doc`, etcetera). (Note that there is also a command to do this on demand.). The code will be evaluated *before* the `afterPrimaryReplConnectedCode` in any [connect sequence](https://calva.io/connect-sequences/) used. Set to `null` to disable this feature."
+                    "markdownDescription": "Code to evaluate when the **Clojure** REPL has been connected. The default is code that refer in the `repl-requires`/REPL utilities (like `source`, `doc`, etcetera). (Note that there is also a command to do this on demand.). The code will be evaluated *before* the `afterMainReplConnectedCode` in any [connect sequence](https://calva.io/connect-sequences/) used. Set to `null` to disable this feature."
                   },
                   "cljs": {
                     "type": "string",

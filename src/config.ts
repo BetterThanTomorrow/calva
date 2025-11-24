@@ -183,9 +183,7 @@ function getConfig() {
 
   const replConnectSequencesConfig =
     configOptions.inspect<ReplConnectSequence[]>('replConnectSequences');
-  const normalizeAfterPrimaryReplCode = (
-    code: string | string[] | undefined
-  ): string | undefined => {
+  const normalizeAfterMainReplCode = (code: string | string[] | undefined): string | undefined => {
     if (Array.isArray(code)) {
       return code.join('\n');
     }
@@ -198,17 +196,15 @@ function getConfig() {
     ...(replConnectSequencesConfig.globalValue ?? []),
   ].map((sequence) => {
     const normalizedCode =
-      normalizeAfterPrimaryReplCode(
-        sequence.afterPrimaryReplConnectedCode as string | string[] | undefined
+      normalizeAfterMainReplCode(
+        sequence.afterMainReplConnectedCode as string | string[] | undefined
       ) ??
-      normalizeAfterPrimaryReplCode(
-        sequence.afterCLJReplJackInCode as string | string[] | undefined
-      );
+      normalizeAfterMainReplCode(sequence.afterCLJReplJackInCode as string | string[] | undefined);
 
     if (normalizedCode !== undefined) {
       return {
         ...sequence,
-        afterPrimaryReplConnectedCode: normalizedCode,
+        afterMainReplConnectedCode: normalizedCode,
       };
     }
 
