@@ -24,6 +24,8 @@ export class JackInPTY implements vscode.Pseudoterminal {
   onDidWrite: vscode.Event<string> = this.writeEmitter.event;
   private closeEmitter = new vscode.EventEmitter<void>();
   onDidClose: vscode.Event<void> = this.closeEmitter.event;
+  private exitEmitter = new vscode.EventEmitter<number | undefined>();
+  onDidExit: vscode.Event<number | undefined> = this.exitEmitter.event;
 
   private process: child.ChildProcess;
 
@@ -83,6 +85,7 @@ export class JackInPTY implements vscode.Pseudoterminal {
       });
       this.process.on('exit', (status) => {
         this.writeEmitter.fire(`Jack-in process exited. Exit code: ${status}\r\n`);
+        this.exitEmitter.fire(status ?? undefined);
         if (!hasReplStarted) {
           whenJackInInterrupted(status);
         }
