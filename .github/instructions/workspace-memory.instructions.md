@@ -67,7 +67,7 @@ This workflow ensures:
 
 ### Watcher Gate for Clean Edits
 
-Before modifying any files in the Calva project, use a subagent inspect all VS Code watchers (TypeScript build, ClojureScript, lint, unit tests, formatter). If any report errors, halt and resolve them together with the user instead of building on a broken state. For unit test watchers, use a subagent to run the full test suite to confirm status. This ensures edits start and end with passing tooling, maintaining honest change sets and preventing compounded fixes.
+Before modifying any code files (including the extension manifest) in the Calva project, use a subagent inspect all VS Code watchers (TypeScript build, ClojureScript, lint, unit tests, formatter). If any report errors, halt and resolve them together with the user instead of building on a broken state. For unit test watchers, use a subagent to run the full test suite to confirm status. This ensures edits start and end with passing tooling, maintaining honest change sets and preventing compounded fixes.
 
 - **Proactive check**: Treat watchers as gates to avoid coding on failures.
 - **Unit test focus**: Immediate full suite run, using a subagent if watcher dies or fails.
