@@ -6,12 +6,7 @@ import * as shadowRuntimes from './shadow-cljs-runtime';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getReplSessionTypeFromState } from './nrepl/repl-session';
 import * as sessionRouting from './nrepl/session-routing';
-
-import * as sessionRegistry from './nrepl/session-registry';
-import type { SessionMetadata } from './nrepl/session-registry';
 import * as sessionRoles from './nrepl/session-roles';
-
-const DEFAULT_SESSION_NAMES = new Set(['Clojure REPL', 'ClojureScript REPL']);
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
@@ -133,7 +128,7 @@ function update() {
       replType === promotedSessionKey &&
       state.extensionContext.workspaceState.get('cljsReplTypeHasBuilds')
     ) {
-      if (cljsBuild !== null && replType === promotedSessionKey) {
+      if (cljsBuild !== null) {
         cljsBuildStatus.text = cljsBuild;
         cljsBuildStatus.tooltip = 'Click to switch CLJS build REPL';
       } else if (cljsBuild === null) {
