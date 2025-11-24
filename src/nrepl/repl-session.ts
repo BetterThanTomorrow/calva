@@ -111,10 +111,6 @@ function getCljcFallbackSessionKey(): string | undefined {
  * Determines the appropriate session key based on file type and context
  */
 function getSessionKey(fileType?: string): string | undefined {
-  if (!isUndefined(fileType) && sessionRegistry.getSession(fileType)) {
-    return fileType;
-  }
-
   const doc = tryToGetDocument({});
   const inferredType = getFileType(doc);
 
@@ -138,6 +134,11 @@ function getSessionKey(fileType?: string): string | undefined {
   const cljcFallback = getCljcFallbackSessionKey();
   if (cljcFallback) {
     return cljcFallback;
+  }
+
+  // Use provided fileType parameter as fallback
+  if (!isUndefined(fileType) && sessionRegistry.getSession(fileType)) {
+    return fileType;
   }
 
   if (inferredType && sessionRegistry.getSession(inferredType)) {
