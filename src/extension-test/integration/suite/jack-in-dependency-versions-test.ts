@@ -100,7 +100,7 @@ suite(SUITE, () => {
     };
     await state.extensionContext?.globalState.update(GLOBAL_STATE_KEY, stored);
 
-    testUtil.sleep(20);
+    await testUtil.sleep(20);
     await vscode.workspace
       .getConfiguration('calva')
       .update('jackInDependencyVersions', undefined, vscode.ConfigurationTarget.Workspace);
@@ -129,7 +129,7 @@ suite(SUITE, () => {
       .getConfiguration('calva')
       .update('jackInDependencyVersions', configured, vscode.ConfigurationTarget.Workspace);
 
-    testUtil.sleep(20);
+    await testUtil.sleep(20);
 
     const effective = getEffectiveJackInDependencyVersions();
     assert.strictEqual(effective.nrepl, 'CONFIG-NREPL-1', 'configured should override stored');
@@ -156,7 +156,7 @@ suite(SUITE, () => {
       .getConfiguration('calva')
       .update('jackInDependencyVersions', undefined, vscode.ConfigurationTarget.Workspace);
 
-    testUtil.sleep(20);
+    await testUtil.sleep(20);
 
     const effective = getEffectiveJackInDependencyVersions();
 
