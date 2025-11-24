@@ -389,47 +389,25 @@ function registerResultDocSubscriptions() {
   state.extensionContext.subscriptions.push(subOpen);
 }
 
-async function writeToResultsDoc(
-  { text, onAppended }: ResultsBufferEntry,
-  attempt = 1
-): Promise<void> {
-  const MAX_ATTEMPTS = 5;
+async function writeToResultsDoc({ text, onAppended }: ResultsBufferEntry): Promise<void> {
   const docUri = DOC_URI();
+  const doc = await vscode.workspace.openTextDocument(docUri);
+  const insertPosition = doc.positionAt(Infinity);
+  const edit = new vscode.WorkspaceEdit();
   const editText = util.stripAnsi(text);
-
-  try {
-    const doc = await vscode.workspace.openTextDocument(docUri);
-    const insertPosition = doc.positionAt(Infinity);
-    const edit = new vscode.WorkspaceEdit();
-    edit.insert(docUri, insertPosition, editText);
-
-    const applied = await vscode.workspace.applyEdit(edit);
-    if (!applied) {
-      throw new Error('Failed applying edit to results document');
-    }
-
-    const saved = await doc.save();
-    if (!saved) {
-      throw new Error('Failed saving results document');
-    }
-
-    onAppended?.(
-      new vscode.Location(docUri, insertPosition),
-      new vscode.Location(docUri, doc.positionAt(Infinity))
-    );
-    const editors = visibleResultsEditors();
-    editors.forEach((editor) => {
-      util.scrollToBottom(editor);
-      highlight(editor);
-    });
-  } catch (error) {
-    if (attempt >= MAX_ATTEMPTS) {
-      console.error('Failed writing to results document after retries', error);
-      return;
-    }
-    await new Promise((resolve) => setTimeout(resolve, attempt * 100));
-    await writeToResultsDoc({ text, onAppended }, attempt + 1);
+  edit.insert(docUri, insertPosition, editText);
+  if (!((await vscode.workspace.applyEdit(edit)) && (await doc.save()))) {
+    return;
   }
+  onAppended?.(
+    new vscode.Location(docUri, insertPosition),
+    new vscode.Location(docUri, doc.positionAt(Infinity))
+  );
+  const editors = visibleResultsEditors();
+  editors.forEach((editor) => {
+    util.scrollToBottom(editor);
+    highlight(editor);
+  });
 }
 
 export type ResultsBuffer = ResultsBufferEntry[];
