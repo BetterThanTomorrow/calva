@@ -162,7 +162,7 @@ function buildMenuItems(): SessionQuickPickItem[] {
   items.push({
     label: 'Select session for cljc files',
     description: cljcSessionKey ? `Current: ${cljcSessionKey}` : 'No override set',
-    detail: 'Route only cljc files to a specific session when auto-routing is enabled.',
+    detail: 'Specify how to route cljc files (when auto-routing is enabled).',
     action: 'cljc',
   });
 
