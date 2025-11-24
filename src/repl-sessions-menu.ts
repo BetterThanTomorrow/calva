@@ -6,7 +6,6 @@ import status from './status';
 import { getPathRelativeToWorkspace } from './project-root';
 import * as utilities from './utilities';
 
-const DEFAULT_SESSION_NAMES = new Set(['Clojure REPL', 'ClojureScript REPL']);
 const MENU_SAVE_KEY = 'repl-sessions-menu';
 const CLJC_MENU_SAVE_KEY = 'repl-sessions-menu-cljc';
 
@@ -74,24 +73,6 @@ function formatSessionDetail({
   return detailParts.join(' — ');
 }
 
-function getSessionLabel(session: sessionRegistry.SessionMetadata): string {
-  if (session.name && !DEFAULT_SESSION_NAMES.has(session.name)) {
-    return session.name;
-  }
-  return session.key;
-}
-
-function getDisplayNameForSessionKey(sessionKey?: string): string | undefined {
-  if (!sessionKey) {
-    return undefined;
-  }
-  const metadata = sessionRegistry.getSessionMetadata(sessionKey);
-  if (metadata) {
-    return getSessionLabel(metadata);
-  }
-  return sessionKey;
-}
-
 function buildSessionPickItems(options?: {
   isAutoRouting?: boolean;
   autoSessionKey?: string;
@@ -100,7 +81,7 @@ function buildSessionPickItems(options?: {
   const { isAutoRouting = false, autoSessionKey, highlightedSessionKey } = options || {};
   const pinnedKey = sessionRouting.getPinnedSessionKey();
   return sessionRegistry.listSessions().map((session) => {
-    const baseLabel = getSessionLabel(session);
+    const baseLabel = session.key;
     const prefixes: string[] = [];
     if (session.key === pinnedKey) {
       prefixes.push('$(pin)');
@@ -138,12 +119,11 @@ async function promptForCljcSession(): Promise<void> {
   const cljcItems: SessionQuickPickItem[] = buildSessionPickItems({
     highlightedSessionKey: currentCljcSession,
   });
-  const currentCljcDisplay = getDisplayNameForSessionKey(currentCljcSession);
 
   const cljcSelection = (await utilities.quickPickSingle({
     title: 'Route cljc files',
-    placeHolder: currentCljcDisplay
-      ? `Currently routing cljc files to ${currentCljcDisplay}`
+    placeHolder: currentCljcSession
+      ? `Currently routing cljc files to ${currentCljcSession}`
       : 'Select a session for cljc files',
     values: cljcItems,
     saveAs: CLJC_MENU_SAVE_KEY,
@@ -162,11 +142,9 @@ async function promptForCljcSession(): Promise<void> {
 function buildMenuItems(): SessionQuickPickItem[] {
   const pinnedSession = sessionRouting.getPinnedSessionKey();
   const routingMode = sessionRouting.getRoutingMode();
-  const cljcSession = sessionRouting.getCljcSessionKey();
+  const cljcSessionKey = sessionRouting.getCljcSessionKey();
   const isAutoRouting = routingMode === 'auto' && !pinnedSession;
   const autoSessionKey = isAutoRouting ? getReplSessionTypeFromState() : undefined;
-  const autoSessionDisplay = getDisplayNameForSessionKey(autoSessionKey);
-  const cljcDisplay = getDisplayNameForSessionKey(cljcSession);
 
   const items: SessionQuickPickItem[] = buildSessionPickItems({
     isAutoRouting,
@@ -175,14 +153,14 @@ function buildMenuItems(): SessionQuickPickItem[] {
 
   items.push({
     label: `${isAutoRouting ? '$(check) ' : ''}Auto-route`,
-    description: autoSessionDisplay ? `Current: ${autoSessionDisplay}` : undefined,
+    description: autoSessionKey ? `Current: ${autoSessionKey}` : undefined,
     detail: 'Use connect sequence globs and default routing for files not matched by globs.',
     action: 'auto',
   });
 
   items.push({
     label: 'Select session for cljc files',
-    description: cljcDisplay ? `Current: ${cljcDisplay}` : 'No override set',
+    description: cljcSessionKey ? `Current: ${cljcSessionKey}` : 'No override set',
     detail: 'Route only cljc files to a specific session when auto-routing is enabled.',
     action: 'cljc',
   });

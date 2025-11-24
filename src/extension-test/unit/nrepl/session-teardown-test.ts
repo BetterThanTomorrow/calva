@@ -7,7 +7,7 @@ import * as teardown from '../../../../src/nrepl/session-teardown-core';
 const createSession = (clientKey: string): NReplSession =>
   ({
     client: { clientKey },
-  } as unknown as NReplSession);
+  } as NReplSession);
 
 describe('session teardown', () => {
   beforeEach(() => {
@@ -21,9 +21,9 @@ describe('session teardown', () => {
   });
 
   it('removes all sessions registered to a client', () => {
-    sessionRegistry.registerSession('alpha', createSession('client'), { name: 'Alpha' });
-    sessionRegistry.registerSession('beta', createSession('client'), { name: 'Beta' });
-    sessionRegistry.registerSession('gamma', createSession('other'), { name: 'Gamma' });
+    sessionRegistry.registerSession('alpha', createSession('client'), {});
+    sessionRegistry.registerSession('beta', createSession('client'), {});
+    sessionRegistry.registerSession('gamma', createSession('other'), {});
 
     const removed = teardown.teardownSessionsForClient('client');
 
@@ -33,8 +33,8 @@ describe('session teardown', () => {
   });
 
   it('clears routing references to removed session keys', () => {
-    sessionRegistry.registerSession('alpha', createSession('client'), { name: 'Alpha' });
-    sessionRegistry.registerSession('beta', createSession('client'), { name: 'Beta' });
+    sessionRegistry.registerSession('alpha', createSession('client'), {});
+    sessionRegistry.registerSession('beta', createSession('client'), {});
 
     sessionRouting.pinSession('alpha');
     sessionRouting.setCljcSessionKey('beta');

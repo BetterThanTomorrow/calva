@@ -71,7 +71,7 @@ function formatConflictDetails(conflicts: SessionKeyStatus[]): string {
 
   return conflicts
     .map((conflict) => {
-      const label = conflict.metadata?.name || conflict.key;
+      const label = conflict.key;
       const project = conflict.metadata?.projectRoot ? ` – ${conflict.metadata.projectRoot}` : '';
       const globInfo = conflict.metadata?.globs?.length
         ? ` [globs: ${conflict.metadata.globs.join(', ')}]`
@@ -125,8 +125,8 @@ export function findClientsForSessionReuse(requestedKeys: string[], clientKey: s
   const statuses = analysis.statuses.filter((status) => status.occupancy === 'same-client');
   const associatedClients = new Set<string>();
   statuses.forEach((status) => {
-    if (status.metadata?.clientKey) {
-      associatedClients.add(status.metadata.clientKey);
+    if (status.metadata?.connectionOwnerId) {
+      associatedClients.add(status.metadata.connectionOwnerId);
     }
   });
   return Array.from(associatedClients.values());
@@ -227,7 +227,6 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     const mainKey = sessionRoleKeys.main;
     const mainGlobMetadata = getSessionGlobMetadata(mainKey);
     sessionRegistry.registerSession(mainKey, mainSession, {
-      name: 'Clojure REPL',
       projectRoot: state.getProjectRootUri().toString(),
       globs: mainGlobMetadata.globs,
       globSpecs: mainGlobMetadata.globSpecs,
@@ -352,7 +351,6 @@ async function setUpCljsRepl(session: NReplSession, build) {
 
   const globMetadata = getSessionGlobMetadata(cljsKey);
   sessionRegistry.registerSession(cljsKey, session, {
-    name: `ClojureScript REPL${build ? ' (' + build + ')' : ''}`,
     projectRoot: state.getProjectRootUri().toString(),
     globs: globMetadata.globs,
     globSpecs: globMetadata.globSpecs,
@@ -454,7 +452,6 @@ async function evalConnectCode(
     // Update the session in the registry
     const globMetadata = getSessionGlobMetadata(cljsKey);
     sessionRegistry.registerSession(cljsKey, newCljsSession, {
-      name: 'ClojureScript REPL',
       projectRoot: state.getProjectRootUri().toString(),
       globs: globMetadata.globs,
       globSpecs: globMetadata.globSpecs,
@@ -827,9 +824,6 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
       // Update registry
       const globMetadata = getSessionGlobMetadata(cljsKey);
       sessionRegistry.registerSession(cljsKey, newCljsSession, {
-        name: `ClojureScript REPL${
-          getStateValue('cljsBuild') ? ' (' + getStateValue('cljsBuild') + ')' : ''
-        }`,
         projectRoot: state.getProjectRootUri().toString(),
         globs: globMetadata.globs,
         globSpecs: globMetadata.globSpecs,
@@ -1039,7 +1033,7 @@ async function promptForClientDisconnect(
   const items: DisconnectQuickPickItem[] = clients.map((client) => {
     const sessions = sessionRegistry.listSessionsByClient(client.key);
     const sessionSummary = sessions.length
-      ? sessions.map((s) => s.name || s.key).join(', ')
+      ? sessions.map((s) => s.key).join(', ')
       : 'No sessions registered';
     const detailSegments = [];
     if (client.host) {

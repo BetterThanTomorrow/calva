@@ -15,8 +15,8 @@ describe('session routing preferences', () => {
   });
 
   it('pins a session and overrides resolution', () => {
-    sessionRegistry.registerSession('alpha', createSession('clj'), { name: 'Alpha' });
-    sessionRegistry.registerSession('beta', createSession('cljs'), { name: 'Beta' });
+    sessionRegistry.registerSession('alpha', createSession('clj'), {});
+    sessionRegistry.registerSession('beta', createSession('cljs'), {});
 
     sessionRouting.pinSession('beta');
 
@@ -25,8 +25,8 @@ describe('session routing preferences', () => {
   });
 
   it('routes cljc files using the override when not pinned', () => {
-    sessionRegistry.registerSession('alpha', createSession('clj'), { name: 'Alpha' });
-    sessionRegistry.registerSession('beta', createSession('cljs'), { name: 'Beta' });
+    sessionRegistry.registerSession('alpha', createSession('clj'), {});
+    sessionRegistry.registerSession('beta', createSession('cljs'), {});
 
     sessionRouting.setCljcSessionKey('beta');
 
@@ -35,15 +35,15 @@ describe('session routing preferences', () => {
   });
 
   it('selects a default cljc session when none is configured', () => {
-    sessionRegistry.registerSession('alpha', createSession('clj'), { name: 'Alpha' });
-    sessionRegistry.registerSession('beta', createSession('cljs'), { name: 'Beta' });
+    sessionRegistry.registerSession('alpha', createSession('clj'), {});
+    sessionRegistry.registerSession('beta', createSession('cljs'), {});
 
     expect(sessionRouting.getCljcSessionKey()).toBe('alpha');
   });
 
   it('falls back to the next available session when clearing the cljc selection', () => {
-    sessionRegistry.registerSession('alpha', createSession('clj'), { name: 'Alpha' });
-    sessionRegistry.registerSession('beta', createSession('cljs'), { name: 'Beta' });
+    sessionRegistry.registerSession('alpha', createSession('clj'), {});
+    sessionRegistry.registerSession('beta', createSession('cljs'), {});
 
     sessionRouting.setCljcSessionKey('beta');
     sessionRouting.setCljcSessionKey(undefined);
@@ -52,8 +52,8 @@ describe('session routing preferences', () => {
   });
 
   it('ignores cljc overrides when a session is pinned', () => {
-    sessionRegistry.registerSession('alpha', createSession('clj'), { name: 'Alpha' });
-    sessionRegistry.registerSession('beta', createSession('cljs'), { name: 'Beta' });
+    sessionRegistry.registerSession('alpha', createSession('clj'), {});
+    sessionRegistry.registerSession('beta', createSession('cljs'), {});
 
     sessionRouting.setCljcSessionKey('beta');
     sessionRouting.pinSession('alpha');
@@ -63,7 +63,7 @@ describe('session routing preferences', () => {
   });
 
   it('falls back to auto routing when the pinned session disappears', () => {
-    sessionRegistry.registerSession('alpha', createSession('clj'), { name: 'Alpha' });
+    sessionRegistry.registerSession('alpha', createSession('clj'), {});
     sessionRouting.pinSession('alpha');
 
     sessionRegistry.unregisterSession('alpha');

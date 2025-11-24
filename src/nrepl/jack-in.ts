@@ -186,7 +186,7 @@ function findClientsWithSessionConflicts(connectSequence: ReplConnectSequence): 
   const conflictingClientKeys = new Set<string>();
   analysis.statuses.forEach((status) => {
     if (status.occupancy === 'conflict') {
-      const clientKey = status.metadata?.clientKey;
+      const clientKey = status.metadata?.connectionOwnerId;
       if (clientKey) {
         conflictingClientKeys.add(clientKey);
       }

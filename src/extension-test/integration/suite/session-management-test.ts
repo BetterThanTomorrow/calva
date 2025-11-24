@@ -64,12 +64,10 @@ describe(`${suiteName} suite`, () => {
 
   it('exposes registered sessions through the public API', () => {
     sessionRegistry.registerSession(serverSessionKey, createSession('clj'), {
-      name: 'Server',
       projectRoot: 'file:///server',
       globs: ['apps/server/**'],
     });
     sessionRegistry.registerSession(uiSessionKey, createSession('cljs'), {
-      name: 'UI',
       projectRoot: 'file:///ui',
       globs: ['apps/ui/**'],
     });
@@ -79,17 +77,14 @@ describe(`${suiteName} suite`, () => {
     const keys = sessions.map((s) => s.key).sort();
     assert.deepStrictEqual(keys, [serverSessionKey, uiSessionKey]);
     const serverMeta = sessions.find((s) => s.key === serverSessionKey);
-    assert.strictEqual(serverMeta.name, 'Server');
     assert.deepStrictEqual(serverMeta.globs, ['apps/server/**']);
   });
 
   it('toggle command cycles through registered session keys', () => {
     sessionRegistry.registerSession(serverSessionKey, createSession('clj'), {
-      name: 'Server',
       globs: ['**/*.clj'],
     });
     sessionRegistry.registerSession(uiSessionKey, createSession('cljs'), {
-      name: 'UI',
       globs: ['**/*.cljs'],
     });
 
@@ -109,11 +104,9 @@ describe(`${suiteName} suite`, () => {
     const cljSession = createSession('clj');
     const cljsSession = createSession('cljs');
     sessionRegistry.registerSession(serverSessionKey, cljSession, {
-      name: 'Server',
       globs: ['**/*.clj'],
     });
     sessionRegistry.registerSession(uiSessionKey, cljsSession, {
-      name: 'UI',
       globs: ['**/*.cljs'],
     });
 
@@ -128,11 +121,9 @@ describe(`${suiteName} suite`, () => {
     const cljSession = createSession('clj');
     const cljsSession = createSession('cljs');
     sessionRegistry.registerSession(serverSessionKey, cljSession, {
-      name: 'Server',
       globs: ['**/*.clj'],
     });
     sessionRegistry.registerSession(uiSessionKey, cljsSession, {
-      name: 'UI',
       globs: ['**/*.cljs'],
     });
 
@@ -149,11 +140,9 @@ describe(`${suiteName} suite`, () => {
     const cljSession = createSession('clj');
     const cljsSession = createSession('cljs');
     sessionRegistry.registerSession(serverSessionKey, cljSession, {
-      name: 'Server',
       globs: ['**/*.clj'],
     });
     sessionRegistry.registerSession(uiSessionKey, cljsSession, {
-      name: 'UI',
       globs: ['**/*.cljs'],
     });
 
@@ -180,11 +169,9 @@ describe(`${suiteName} suite`, () => {
     const cljSession = createSession('clj');
     const cljsSession = createSession('cljs');
     sessionRegistry.registerSession(serverSessionKey, cljSession, {
-      name: 'Server',
       globs: ['**/*.clj'],
     });
     sessionRegistry.registerSession(uiSessionKey, cljsSession, {
-      name: 'UI',
       globs: ['**/*.cljs'],
     });
 
@@ -202,11 +189,9 @@ describe(`${suiteName} suite`, () => {
     const cljSession = createSession('clj');
     const cljsSession = createSession('cljs');
     sessionRegistry.registerSession(serverSessionKey, cljSession, {
-      name: 'Server',
       globs: ['**/*.clj'],
     });
     sessionRegistry.registerSession(uiSessionKey, cljsSession, {
-      name: 'UI',
       globs: ['**/*.cljs'],
     });
 
@@ -239,8 +224,7 @@ describe(`${suiteName} suite`, () => {
     });
 
     sessionRegistry.registerSession(serverSessionKey, createSession('clj'), {
-      name: 'Server',
-      clientKey: stubClient.clientKey,
+      connectionOwnerId: stubClient.clientKey,
     });
 
     await connector.disconnect({ clientKey: 'session-management/client' });
@@ -254,13 +238,11 @@ describe(`${suiteName} suite`, () => {
     const joyrideCljs = createSession('cljs');
 
     sessionRegistry.registerSession('general-cljs', generalCljs, {
-      name: 'CLJS Frontend',
       globs: ['**/*.cljs'],
       globSpecs: buildGlobSpecsFromTiers({ primary: ['**/*.cljs'], secondary: [] }),
     });
 
     sessionRegistry.registerSession('joyride', joyrideCljs, {
-      name: 'Joyride',
       globs: ['**/.joyride/**/*.cljs'],
       globSpecs: buildGlobSpecsFromTiers({ primary: ['**/.joyride/**/*.cljs'], secondary: [] }),
     });
@@ -277,7 +259,6 @@ describe(`${suiteName} suite`, () => {
     const cljSession = createSession('clj');
 
     sessionRegistry.registerSession('bb', bbSession, {
-      name: 'Babashka',
       globs: ['**/*.bb', '**/*.clj', '**/*.cljc'],
       globSpecs: buildGlobSpecsFromTiers({
         primary: ['**/*.bb'],
@@ -286,7 +267,6 @@ describe(`${suiteName} suite`, () => {
     });
 
     sessionRegistry.registerSession('clj', cljSession, {
-      name: 'Clojure',
       globs: ['**/*.clj'],
       globSpecs: buildGlobSpecsFromTiers({ primary: ['**/*.clj'], secondary: [] }),
     });

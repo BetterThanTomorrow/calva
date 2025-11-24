@@ -4,12 +4,11 @@ import type { SessionGlobSpec, SessionGlobTier } from './globs';
 
 export interface SessionMetadata {
   key: string;
-  name?: string;
   projectRoot?: string;
   lastActivity?: number;
   globs?: string[];
   globSpecs?: SessionGlobSpec[];
-  clientKey?: string;
+  connectionOwnerId?: string;
 }
 
 const SESSION_PREFIX = 'repl-session-';
@@ -23,12 +22,12 @@ export function registerSession(
   session: NReplSession,
   metadata: Omit<SessionMetadata, 'key' | 'lastActivity'> = {}
 ): void {
-  const computedClientKey = metadata.clientKey ?? session?.client?.clientKey;
+  const computedOwnerId = metadata.connectionOwnerId ?? session?.client?.clientKey;
   const fullMetadata: SessionMetadata = {
     key,
     lastActivity: Date.now(),
     ...metadata,
-    clientKey: computedClientKey,
+    connectionOwnerId: computedOwnerId,
   };
 
   // Store the session object itself
@@ -122,7 +121,7 @@ export function analyzeSessionAssignments(
       return { key, occupancy: 'available' };
     }
 
-    if (metadata.clientKey && clientKey && metadata.clientKey === clientKey) {
+    if (metadata.connectionOwnerId && clientKey && metadata.connectionOwnerId === clientKey) {
       return { key, occupancy: 'same-client', metadata };
     }
 
@@ -143,5 +142,5 @@ export function listSessionsByClient(targetClientKey: string): SessionMetadata[]
   if (!targetClientKey) {
     return [];
   }
-  return listSessions().filter((meta) => meta.clientKey === targetClientKey);
+  return listSessions().filter((meta) => meta.connectionOwnerId === targetClientKey);
 }

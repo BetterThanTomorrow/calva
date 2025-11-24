@@ -41,21 +41,21 @@ describe('session registry', () => {
     });
 
     it('recognizes when keys are already attached to the requesting client', () => {
-      sessionRegistry.registerSession('alpha', createSession('client-a'), { name: 'Main' });
+      sessionRegistry.registerSession('alpha', createSession('client-a'), {});
       const analysis = sessionRegistry.analyzeSessionAssignments(['alpha'], 'client-a');
 
       expect(analysis.summary).toBe('existing-client');
       expect(analysis.statuses[0].occupancy).toBe('same-client');
-      expect(analysis.statuses[0].metadata?.clientKey).toBe('client-a');
+      expect(analysis.statuses[0].metadata?.connectionOwnerId).toBe('client-a');
     });
 
     it('flags conflicts for sessions owned by another client', () => {
-      sessionRegistry.registerSession('alpha', createSession('client-other'), { name: 'Main' });
+      sessionRegistry.registerSession('alpha', createSession('client-other'), {});
       const analysis = sessionRegistry.analyzeSessionAssignments(['alpha'], 'client-a');
 
       expect(analysis.summary).toBe('conflict');
       expect(analysis.statuses[0].occupancy).toBe('conflict');
-      expect(analysis.statuses[0].metadata?.clientKey).toBe('client-other');
+      expect(analysis.statuses[0].metadata?.connectionOwnerId).toBe('client-other');
     });
   });
 });

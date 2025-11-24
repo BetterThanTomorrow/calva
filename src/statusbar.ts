@@ -27,9 +27,6 @@ function getSessionDisplayName(
   metadata: SessionMetadata | undefined,
   fallbackKey?: string
 ): string {
-  if (metadata?.name && !DEFAULT_SESSION_NAMES.has(metadata.name)) {
-    return metadata.name;
-  }
   return metadata?.key || fallbackKey || 'REPL session';
 }
 
