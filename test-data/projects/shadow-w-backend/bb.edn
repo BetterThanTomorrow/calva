@@ -1,16 +1,17 @@
 {:paths ["scripts"]
  :tasks
- {clean {:doc "Remove build artifacts for both CLJ and CLJS targets"
-     :task (exec 'scripts.tasks/clean)}
+ {:requires ([scripts.tasks :as tasks])
+  clean {:doc "Remove build artifacts for both CLJ and CLJS targets"
+       :task (tasks/clean)}
   npm-install {:doc "Install frontend dependencies via npm"
-       :task (exec 'scripts.tasks/npm-install)}
+           :task (tasks/npm-install)}
   shadow-dev {:doc "Start a combined backend/frontend shadow-cljs watch"
-      :depends [npm-install]
-      :task (exec 'scripts.tasks/shadow-dev)}
+          :depends [npm-install]
+          :task (tasks/shadow-dev)}
   backend-repl {:doc "Launch the deps.edn REPL configured for the backend"
-        :task (exec 'scripts.tasks/backend-repl)}
+            :task (tasks/backend-repl)}
   release {:doc "Build an optimized release after cleaning and installing"
-       :depends [clean npm-install]
-       :task (exec 'scripts.tasks/release)}
+         :depends [clean npm-install]
+         :task (tasks/release)}
   test {:doc "Run the CI build through shadow-cljs"
-    :task (exec 'scripts.tasks/test-ci)}}}
+      :task (tasks/test-ci)}}}

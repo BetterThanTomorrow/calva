@@ -159,7 +159,9 @@ const babashkaDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes.none,
     nReplPortFile: ['.bb-nrepl.port'],
     replSessionNames: { main: 'bb' },
-    replSessionGlobs: { bb: { primary: ['**/*.bb'], secondary: ['**/*.clj'] } },
+    replSessionGlobs: {
+      bb: { primary: ['bb.edn', '**/*.bb', 'scripts/*.clj'], secondary: ['**/*.clj'] },
+    },
   },
 ];
 
