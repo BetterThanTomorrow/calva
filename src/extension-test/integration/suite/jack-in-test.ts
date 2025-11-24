@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as testUtil from './util';
 import * as state from '../../../state';
 import * as util from '../../../utilities';
+import * as clientRegistry from '../../../nrepl/client-registry';
 
 import * as vscode from 'vscode';
 // import * as myExtension from '../extension';
@@ -46,6 +47,7 @@ suite('Jack-in suite', () => {
   beforeEach(async () => {
     await vscode.workspace.fs.copy(settingsBackupUri, settingsUri, { overwrite: true });
     await outputWindow.clearResultsDoc();
+    lastJackInDoneCount = 0;
   });
 
   test('start repl and connect (jack-in)', async function () {
@@ -214,6 +216,9 @@ function appearInOrder(needle: string[], haystack: string[]) {
   });
 }
 
+let lastSeenClientConnectedAt = 0;
+let lastJackInDoneCount = 0;
+
 async function loadAndAssert(suite: string, testFilePath: string, needle: string[]) {
   const resultsDoc = await waitForResult(suite);
 
@@ -237,20 +242,58 @@ async function loadAndAssert(suite: string, testFilePath: string, needle: string
 
 function writeSettings(settings: any): Thenable<void> {
   const settingsData = JSON.stringify(settings, null, 2);
-  const p = vscode.workspace.fs.writeFile(settingsUri, Buffer.from(settingsData));
+  const p = vscode.workspace.fs.writeFile(settingsUri, new TextEncoder().encode(settingsData));
   console.log(`Settings written to ${settingsUri.fsPath}`);
   return p;
 }
 
 async function waitForResult(suite: string) {
-  while (!util.getConnectedState()) {
-    testUtil.log(suite, 'waiting for connect...');
-    await testUtil.sleep(1000);
-  }
-  await testUtil.sleep(500); // wait a little longer for repl output to be done
+  await waitForNextClient(suite);
+  await waitForJackInCompletion(suite);
+  await testUtil.sleep(500);
   testUtil.log(suite, 'connected to repl');
 
   return getDocument(await outputWindow.openResultsDoc());
+}
+
+async function waitForNextClient(suite: string) {
+  const timeoutMs = 60_000;
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const clients = clientRegistry.listClients();
+    const newest = clients[clients.length - 1];
+    if (newest && newest.connectedAt > lastSeenClientConnectedAt) {
+      lastSeenClientConnectedAt = newest.connectedAt;
+      testUtil.log(
+        suite,
+        `detected new client ${newest.connectSequenceName ?? newest.key} (${
+          newest.projectRoot ?? 'no-root'
+        })`
+      );
+      return;
+    }
+    testUtil.log(suite, 'waiting for new jack-in client...');
+    await testUtil.sleep(250);
+  }
+  throw new Error('Timed out waiting for new jack-in client');
+}
+
+async function waitForJackInCompletion(suite: string) {
+  const timeoutMs = 60_000;
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const resultsEditor = await outputWindow.openResultsDoc();
+    const text = getDocument(resultsEditor).document.getText();
+    const currentCount = (text.match(/Jack-in done\./g) || []).length;
+    if (currentCount > lastJackInDoneCount) {
+      lastJackInDoneCount = currentCount;
+      testUtil.log(suite, 'jack-in completion detected');
+      return;
+    }
+    testUtil.log(suite, 'waiting for jack-in completion output...');
+    await testUtil.sleep(250);
+  }
+  throw new Error('Timed out waiting for jack-in completion output');
 }
 
 async function startJackInProcedure(

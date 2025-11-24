@@ -26,6 +26,9 @@ import * as output from '../results-output/output';
 import * as inspector from '../providers/inspector';
 import * as clientRegistry from './client-registry';
 import type { RegisteredClient } from './client-registry';
+import * as sessionRoles from './session-roles';
+import * as promotedSession from './promoted-session';
+import * as sessionRegistry from './session-registry';
 
 function resolveEnvVariables(entry: any): any {
   if (typeof entry === 'string') {
@@ -147,7 +150,7 @@ async function stopProcessesForSequence(connectSequence: ReplConnectSequence): P
 
 function findClientsForSequence(connectSequence: ReplConnectSequence): RegisteredClient[] {
   const targetRootUri = getProjectRootUriString();
-  return clientRegistry.listClients().filter((client) => {
+  const sequenceMatches = clientRegistry.listClients().filter((client) => {
     if (client.connectSequenceName !== connectSequence.name) {
       return false;
     }
@@ -159,6 +162,44 @@ function findClientsForSequence(connectSequence: ReplConnectSequence): Registere
     }
     return client.projectRoot === targetRootUri;
   });
+
+  const conflictMatches = findClientsWithSessionConflicts(connectSequence);
+  const byKey = new Map<string, RegisteredClient>();
+  [...sequenceMatches, ...conflictMatches].forEach((client) => byKey.set(client.key, client));
+  return Array.from(byKey.values());
+}
+
+function findClientsWithSessionConflicts(connectSequence: ReplConnectSequence): RegisteredClient[] {
+  const sessionRoleKeys = sessionRoles.initializeSessionRoleKeys(connectSequence);
+  const usePromotedSession = promotedSession.shouldUsePromotedSession(connectSequence);
+  const requestedKeys = connector.deriveRequestedSessionKeys(
+    sessionRoleKeys,
+    connectSequence,
+    usePromotedSession
+  );
+
+  if (!requestedKeys.length) {
+    return [];
+  }
+
+  const analysis = sessionRegistry.analyzeSessionAssignments(requestedKeys);
+  const conflictingClientKeys = new Set<string>();
+  analysis.statuses.forEach((status) => {
+    if (status.occupancy === 'conflict') {
+      const clientKey = status.metadata?.clientKey;
+      if (clientKey) {
+        conflictingClientKeys.add(clientKey);
+      }
+    }
+  });
+
+  if (conflictingClientKeys.size === 0) {
+    return [];
+  }
+
+  return clientRegistry
+    .listClients()
+    .filter((client) => client.key && conflictingClientKeys.has(client.key));
 }
 
 async function stopClientsForSequence(connectSequence: ReplConnectSequence): Promise<void> {
