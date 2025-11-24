@@ -7,6 +7,7 @@ export interface SessionMetadata {
   projectRoot?: string;
   lastActivity?: number;
   globs?: string[];
+  clientKey?: string;
 }
 
 const SESSION_PREFIX = 'repl-session-';
@@ -20,10 +21,12 @@ export function registerSession(
   session: NReplSession,
   metadata: Omit<SessionMetadata, 'key' | 'lastActivity'> = {}
 ): void {
+  const computedClientKey = metadata.clientKey ?? session?.client?.clientKey;
   const fullMetadata: SessionMetadata = {
     key,
     lastActivity: Date.now(),
     ...metadata,
+    clientKey: computedClientKey,
   };
 
   // Store the session object itself
@@ -89,4 +92,54 @@ export function clearAllSessions(): void {
     cljsLib.setStateValue(getStorageKey(key), null);
   });
   cljsLib.setStateValue('registered-session-keys', []);
+}
+
+export type SessionKeyOccupancy = 'available' | 'same-client' | 'conflict';
+
+export interface SessionKeyStatus {
+  key: string;
+  occupancy: SessionKeyOccupancy;
+  metadata?: SessionMetadata;
+}
+
+export type SessionAssignmentSummary = 'available' | 'existing-client' | 'conflict';
+
+export interface SessionAssignmentAnalysis {
+  summary: SessionAssignmentSummary;
+  statuses: SessionKeyStatus[];
+}
+
+export function analyzeSessionAssignments(
+  requestedKeys: Array<string | undefined>,
+  clientKey?: string
+): SessionAssignmentAnalysis {
+  const uniqueKeys = Array.from(new Set(requestedKeys.filter(Boolean)));
+  const statuses: SessionKeyStatus[] = uniqueKeys.map((key) => {
+    const metadata = getSessionMetadata(key);
+    if (!metadata) {
+      return { key, occupancy: 'available' };
+    }
+
+    if (metadata.clientKey && clientKey && metadata.clientKey === clientKey) {
+      return { key, occupancy: 'same-client', metadata };
+    }
+
+    return { key, occupancy: 'conflict', metadata };
+  });
+
+  let summary: SessionAssignmentSummary = 'available';
+  if (statuses.some((status) => status.occupancy === 'conflict')) {
+    summary = 'conflict';
+  } else if (statuses.some((status) => status.occupancy === 'same-client')) {
+    summary = 'existing-client';
+  }
+
+  return { summary, statuses };
+}
+
+export function listSessionsByClient(targetClientKey: string): SessionMetadata[] {
+  if (!targetClientKey) {
+    return [];
+  }
+  return listSessions().filter((meta) => meta.clientKey === targetClientKey);
 }

@@ -143,7 +143,7 @@ async function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     new vscode.Disposable(() => {
-      connector.disconnect();
+      void connector.disconnect();
       chan.dispose();
     })
   );

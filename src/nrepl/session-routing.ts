@@ -69,6 +69,11 @@ export function enableAutoRouting(): void {
   setRoutingMode('auto');
 }
 
+export function clearPinnedSession(): void {
+  clearStateKey(PINNED_SESSION_STATE_KEY);
+  setRoutingMode('auto');
+}
+
 export function isPinned(): boolean {
   return getRoutingMode() === 'pinned' && Boolean(getPinnedSessionKey());
 }
@@ -107,6 +112,10 @@ export function setCljcSessionKey(sessionKey?: string): void {
   setStateValue(CLJC_SESSION_STATE_KEY, sessionKey);
 }
 
+export function clearCljcSessionKey(): void {
+  clearStateKey(CLJC_SESSION_STATE_KEY);
+}
+
 export function hasCljcOverride(): boolean {
   return Boolean(getCljcSessionKey());
 }
@@ -127,4 +136,24 @@ export function resolvePreferredSession(fileType?: string): string | undefined {
 export function resetRouting(): void {
   enableAutoRouting();
   clearStateKey(CLJC_SESSION_STATE_KEY);
+}
+
+export function removeSessionKeyFromRouting(sessionKey: string): void {
+  if (!sessionKey) {
+    return;
+  }
+
+  const pinnedKey = readStoredKey(PINNED_SESSION_STATE_KEY);
+  if (pinnedKey === sessionKey) {
+    clearPinnedSession();
+  }
+
+  const cljcKey = readStoredKey(CLJC_SESSION_STATE_KEY);
+  if (cljcKey === sessionKey) {
+    clearCljcSessionKey();
+  }
+}
+
+export function removeSessionKeysFromRouting(sessionKeys: string[]): void {
+  sessionKeys.forEach((key) => removeSessionKeyFromRouting(key));
 }

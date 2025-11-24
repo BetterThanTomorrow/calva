@@ -35,8 +35,73 @@ import { ConnectType } from './nrepl/connect-types';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
 import * as sessionRegistry from './nrepl/session-registry';
+import type { SessionKeyStatus } from './nrepl/session-registry';
 import * as sessionRoles from './nrepl/session-roles';
+import type { SessionRoleKeys } from './nrepl/session-roles';
 import * as sessionRouting from './nrepl/session-routing';
+import * as clientRegistry from './nrepl/client-registry';
+import type { RegisteredClient } from './nrepl/client-registry';
+import * as sessionTeardown from './nrepl/session-teardown';
+import { ConflictingSessionsError } from './errors/conflicting-sessions';
+
+const CALVA_DOCS_BASE_URL = 'https://calva.io/';
+
+function deriveRequestedSessionKeys(
+  sessionRoleKeys: SessionRoleKeys,
+  connectSequence: ReplConnectSequence,
+  usePromotedSession: boolean
+): string[] {
+  const keys = [sessionRoleKeys.primary];
+  if (
+    usePromotedSession &&
+    sessionRoleKeys.promoted &&
+    connectSequence.cljsType &&
+    connectSequence.cljsType !== 'none'
+  ) {
+    keys.push(sessionRoleKeys.promoted);
+  }
+  return keys.filter((key): key is string => Boolean(key));
+}
+
+function formatConflictDetails(conflicts: SessionKeyStatus[]): string {
+  if (conflicts.length === 0) {
+    return '';
+  }
+
+  return conflicts
+    .map((conflict) => {
+      const label = conflict.metadata?.name || conflict.key;
+      const project = conflict.metadata?.projectRoot ? ` – ${conflict.metadata.projectRoot}` : '';
+      const globInfo = conflict.metadata?.globs?.length
+        ? ` [globs: ${conflict.metadata.globs.join(', ')}]`
+        : '';
+      return `${label} (${conflict.key})${project}${globInfo}`;
+    })
+    .join('\n');
+}
+
+function ensureSessionAssignmentsAvailable(requestedKeys: string[], clientKey: string): void {
+  if (!clientKey || requestedKeys.length === 0) {
+    return;
+  }
+
+  const analysis = sessionRegistry.analyzeSessionAssignments(requestedKeys, clientKey);
+  if (analysis.summary !== 'conflict') {
+    return;
+  }
+
+  const conflicts = analysis.statuses.filter((status) => status.occupancy === 'conflict');
+  const detailText = formatConflictDetails(conflicts);
+  const message = [
+    'Cannot connect because these session names are already in use by another Calva connection.',
+    detailText,
+    'Update the connect sequence to use unique session names or disconnect the other REPL first.',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  throw new ConflictingSessionsError(message, conflicts);
+}
 
 async function readRuntimeConfigs() {
   const classpath = await nClient.session.classpath().catch((e) => {
@@ -71,11 +136,6 @@ async function readRuntimeConfigs() {
 }
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
-  if (nClient) {
-    nClient['silent'] = true;
-    await nClient.close();
-  }
-
   let primarySession: NReplSession;
   const sessionRoleKeys = sessionRoles.initializeSessionRoleKeys(connectSequence);
   const usePromotedSession = promotedSession.shouldUsePromotedSession(connectSequence);
@@ -100,15 +160,32 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         return cleanUpAfterError(e);
       },
     });
+    const requestedSessionKeys = deriveRequestedSessionKeys(
+      sessionRoleKeys,
+      connectSequence,
+      usePromotedSession
+    );
+    ensureSessionAssignmentsAvailable(requestedSessionKeys, nClient.clientKey);
+    clientRegistry.registerClient(nClient, {
+      connectSequenceName: connectSequence.name,
+      projectRoot: state.getProjectRootUri()?.toString(),
+      host: hostname,
+      port,
+    });
+    clientRegistry.setActiveClientKey(nClient.clientKey);
     nClient.addOnCloseHandler((c) => {
-      // TODO: We probably should not do the connect state changes here,
-      //       or, only here...
-      util.setConnectedState(false);
+      const wasRegistered = clientRegistry.unregisterClient(c.clientKey);
+      if (wasRegistered) {
+        sessionTeardown.teardownSessionsForClient(c.clientKey);
+      }
+
+      const remainingSessions = sessionRegistry.listSessions().length;
+      util.setConnectedState(remainingSessions > 0);
       util.setConnectingState(false);
       if (!c['silent']) {
-        // we didn't deliberately close this session, mention this fact.
         output.appendLineOtherOut('nREPL Connection was closed');
       }
+      nClient = clientRegistry.getActiveClient();
       status.update();
       calvaDebug.terminateDebugSession();
     });
@@ -196,7 +273,26 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
 
     status.update();
   } catch (e) {
-    return cleanUpAfterError(e);
+    if (e instanceof ConflictingSessionsError) {
+      util.setConnectingState(false);
+      util.setConnectedState(false);
+      status.update();
+      if (nClient) {
+        clientRegistry.unregisterClient(nClient.clientKey);
+      }
+      if (nClient) {
+        try {
+          await nClient.close();
+        } catch (closeError) {
+          console.warn('Failed closing nREPL client after conflict:', closeError);
+          nClient.disconnect();
+        } finally {
+          nClient = clientRegistry.getActiveClient();
+        }
+      }
+      throw e;
+    }
+    return cleanUpAfterError(e, nClient?.clientKey);
   }
 
   void liveShareSupport.didConnectRepl(port);
@@ -206,9 +302,16 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
   return true;
 }
 
-function cleanUpAfterError(e: any) {
+function cleanUpAfterError(e: any, clientKeyToRemove?: string) {
+  if (clientKeyToRemove) {
+    clientRegistry.unregisterClient(clientKeyToRemove);
+    sessionTeardown.teardownSessionsForClient(clientKeyToRemove);
+    if (nClient && nClient.clientKey === clientKeyToRemove) {
+      nClient = clientRegistry.getActiveClient();
+    }
+  }
   util.setConnectingState(false);
-  util.setConnectedState(false);
+  util.setConnectedState(sessionRegistry.listSessions().length > 0);
   output.appendLineOtherErr('Failed connecting.');
   console.error('Failed connecting:', e);
   status.update();
@@ -786,7 +889,10 @@ export async function connect(
     }
     status.update();
   } catch (e) {
-    console.error(e);
+    if (!handleConnectError(e)) {
+      console.error(e);
+    }
+    return false;
   }
   initializeDebugger(nClient.session);
   if (
@@ -848,6 +954,140 @@ async function nReplPortFileExists() {
     })
   );
   return fileExists;
+}
+
+function buildDocsUrl(slug?: string): string {
+  if (!slug) {
+    return CALVA_DOCS_BASE_URL;
+  }
+  const normalizedSlug = slug.startsWith('/') ? slug.slice(1) : slug;
+  return `${CALVA_DOCS_BASE_URL}${normalizedSlug}`;
+}
+
+function handleConnectError(error: unknown): boolean {
+  if (!(error instanceof ConflictingSessionsError)) {
+    return false;
+  }
+
+  const docUrl = buildDocsUrl(error.docSlug);
+  const openDocsLabel = 'Open multi-session docs';
+  output.appendLineOtherErr(error.message);
+  void vscode.window.showErrorMessage(error.message, openDocsLabel).then((choice) => {
+    if (choice === openDocsLabel) {
+      void vscode.commands.executeCommand('simpleBrowser.show', docUrl);
+    }
+  });
+  return true;
+}
+
+interface DisconnectSelectionAll {
+  kind: 'all';
+}
+
+interface DisconnectSelectionSingle {
+  kind: 'single';
+  clientKey: string;
+}
+
+type DisconnectSelection = DisconnectSelectionAll | DisconnectSelectionSingle;
+
+interface DisconnectQuickPickItem extends vscode.QuickPickItem {
+  clientKey?: string;
+  disconnectAll?: boolean;
+}
+
+function buildDisconnectItemLabel(client: RegisteredClient): string {
+  const label = client.connectSequenceName || client.key;
+  return label;
+}
+
+async function promptForClientDisconnect(
+  clients: RegisteredClient[]
+): Promise<DisconnectSelection | undefined> {
+  const items: DisconnectQuickPickItem[] = clients.map((client) => {
+    const sessions = sessionRegistry.listSessionsByClient(client.key);
+    const sessionSummary = sessions.length
+      ? sessions.map((s) => s.name || s.key).join(', ')
+      : 'No sessions registered';
+    const detailSegments = [];
+    if (client.host) {
+      detailSegments.push(`${client.host}${client.port ? ':' + client.port : ''}`);
+    }
+    if (client.projectRoot) {
+      detailSegments.push(client.projectRoot);
+    }
+    return {
+      label: buildDisconnectItemLabel(client),
+      description: sessionSummary,
+      detail: detailSegments.join(' · ') || undefined,
+      clientKey: client.key,
+    };
+  });
+
+  if (clients.length > 1) {
+    items.push({
+      label: 'Disconnect all sessions',
+      description: 'Tear down every connected REPL client',
+      disconnectAll: true,
+    });
+  }
+
+  const selection = await vscode.window.showQuickPick(items, {
+    placeHolder: 'Select the REPL connection to disconnect',
+    canPickMany: false,
+  });
+
+  if (!selection) {
+    return undefined;
+  }
+
+  if (selection.disconnectAll) {
+    return { kind: 'all' };
+  }
+
+  if (selection.clientKey) {
+    return { kind: 'single', clientKey: selection.clientKey };
+  }
+
+  return undefined;
+}
+
+async function disconnectClientByKey(clientKey: string): Promise<void> {
+  if (!clientKey) {
+    return;
+  }
+
+  const client = clientRegistry.getClient(clientKey);
+  clientRegistry.unregisterClient(clientKey);
+  sessionTeardown.teardownSessionsForClient(clientKey);
+
+  if (client) {
+    client['silent'] = true;
+    try {
+      if (state.getProjectRootUri().scheme === 'vsls') {
+        client.disconnect();
+      } else {
+        await client.close();
+      }
+    } catch (e) {
+      console.warn('Failed to close nREPL client cleanly, forcing disconnect.', e);
+      client.disconnect();
+    }
+  }
+
+  const remainingSessions = sessionRegistry.listSessions().length;
+  if (remainingSessions === 0) {
+    sessionRoles.resetSessionRoleKeys();
+    sessionRouting.resetRouting();
+    util.setConnectedState(false);
+    setStateValue('current-session-type', null);
+  } else {
+    util.setConnectedState(true);
+  }
+
+  nClient = clientRegistry.getActiveClient();
+  liveShareSupport.didDisconnectRepl();
+  status.update();
 }
 
 export default {
@@ -919,31 +1159,44 @@ export default {
     return getConfig().autoConnectRepl && nReplPortFileExists();
   },
   disconnect: (
-    options = null,
+    options: { clientKey?: string; disconnectAll?: boolean } | null = null,
     callback = () => {
       // do nothing
     }
   ) => {
-    sessionRegistry.clearAllSessions();
-    sessionRoles.resetSessionRoleKeys();
-    sessionRouting.resetRouting();
-    util.setConnectedState(false);
-    setStateValue('current-session-type', null);
-    status.update();
-
-    if (nClient) {
-      if (state.getProjectRootUri().scheme === 'vsls') {
-        nClient.disconnect();
-      } else {
-        // the connection may be ended before
-        // the REPL client was connected.
-        void nClient.close();
+    return (async () => {
+      const clients = clientRegistry.listClients();
+      if (clients.length === 0) {
+        callback();
+        return;
       }
-      liveShareSupport.didDisconnectRepl();
-      nClient = undefined;
-    }
 
-    callback();
+      let disconnectAll = options?.disconnectAll === true;
+      let targetClientKey = options?.clientKey;
+
+      if (!disconnectAll && !targetClientKey && clients.length > 1) {
+        const selection = await promptForClientDisconnect(clients);
+        if (!selection) {
+          return;
+        }
+        if (selection.kind === 'all') {
+          disconnectAll = true;
+        } else {
+          targetClientKey = selection.clientKey;
+        }
+      }
+
+      if (disconnectAll) {
+        for (const client of [...clients]) {
+          await disconnectClientByKey(client.key);
+        }
+      } else {
+        const keyToDisconnect = targetClientKey || clients[0].key;
+        await disconnectClientByKey(keyToDisconnect);
+      }
+
+      callback();
+    })();
   },
   toggleCLJCSession: () => {
     if (!getStateValue('connected')) {

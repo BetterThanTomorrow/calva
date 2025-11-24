@@ -81,6 +81,12 @@ Please see the [shadow-cljs](shadow-cljs.md) page.
 
 ## Troubleshooting
 
+### Multi-session conflicts
+
+Calva can keep several REPL connections alive at the same time. Each connection owns a pair of session names (for example `clj`/`cljs` or the custom names you configure in your connect sequence). If you try to start another connection that reuses a session name already claimed by a different connection, Calva stops the connect flow and shows a **Conflicting sessions** error. Pick unique session names (via custom connect sequences) _or_ disconnect the other connection before trying again.
+
+Use **Calva: Disconnect from the REPL** to pick the connections that should be torn down. When more than one connection is active the command shows a quick pick that lists every client. Calva removes the selected connection only, keeping the others intact.
+
 ### Jack-in and `:main-opts`
 
 When Calva starts the project REPL and connects to it (a.k.a. Jack-in), this is done by starting an nREPL server. For deps.edn projects this by default means that Calva will add `-m ...` with options that starts the server.

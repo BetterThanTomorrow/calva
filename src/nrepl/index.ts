@@ -46,7 +46,10 @@ function resultHandler(resolve: any, reject: any) {
 
 /** An nREPL client */
 export class NReplClient {
+  private static ClientSequence = 0;
   private _nextId = 0;
+
+  public readonly clientKey: string = `nrepl-client-${++NReplClient.ClientSequence}`;
 
   /** Returns a new id unique to this client */
   get nextId() {

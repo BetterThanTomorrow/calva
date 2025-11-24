@@ -7,9 +7,10 @@ import connector from '../../../connector';
 import * as replApi from '../../../api/repl-v1';
 import * as replSession from '../../../nrepl/repl-session';
 import * as cljsLib from '../../../../out/cljs-lib/cljs-lib';
-import type { NReplSession } from '../../../nrepl';
+import type { NReplSession, NReplClient } from '../../../nrepl';
 import * as testUtil from './util';
 import * as sessionRouting from '../../../nrepl/session-routing';
+import * as clientRegistry from '../../../nrepl/client-registry';
 
 const { describe, before, beforeEach, afterEach, it } = Mocha;
 
@@ -45,6 +46,7 @@ describe(`${suiteName} suite`, () => {
     cljsLib.setStateValue('connected', true);
     cljsLib.setStateValue('current-session-type', undefined);
     sessionRouting.resetRouting();
+    clientRegistry.clearAllClients();
     resetOutputWindowSession('clj', 'user');
   });
 
@@ -53,6 +55,7 @@ describe(`${suiteName} suite`, () => {
     cljsLib.setStateValue('connected', initialConnectionState);
     cljsLib.setStateValue('current-session-type', initialCurrentSessionType);
     sessionRouting.resetRouting();
+    clientRegistry.clearAllClients();
     const fallbackSessionType = initialOutputSessionType ?? 'clj';
     const fallbackNamespace = initialOutputNamespace ?? 'user';
     resetOutputWindowSession(fallbackSessionType, fallbackNamespace);
@@ -79,7 +82,7 @@ describe(`${suiteName} suite`, () => {
     assert.deepStrictEqual(serverMeta.globs, ['apps/server/**']);
   });
 
-  it('toggle command cycles through registered session keys', async () => {
+  it('toggle command cycles through registered session keys', () => {
     sessionRegistry.registerSession(serverSessionKey, createSession('clj'), {
       name: 'Server',
       globs: ['**/*.clj'],
@@ -219,5 +222,29 @@ describe(`${suiteName} suite`, () => {
 
     const rerouted = replSession.getSession();
     assert.strictEqual(rerouted, cljsSession);
+  });
+
+  it('disconnect command tears down targeted clients without affecting others', async () => {
+    const stubClient = {
+      clientKey: 'session-management/client',
+      close: () => Promise.resolve(undefined),
+      disconnect: () => undefined,
+      addOnCloseHandler: () => undefined,
+      removeOnCloseHandler: () => undefined,
+    } as unknown as NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection',
+    });
+
+    sessionRegistry.registerSession(serverSessionKey, createSession('clj'), {
+      name: 'Server',
+      clientKey: stubClient.clientKey,
+    });
+
+    await connector.disconnect({ clientKey: 'session-management/client' });
+
+    assert.strictEqual(sessionRegistry.listSessions().length, 0);
+    assert.strictEqual(clientRegistry.listClients().length, 0);
   });
 });

@@ -152,7 +152,7 @@ export function calvaJackout() {
         );
       }
     }
-    connector.default.disconnect();
+    void connector.default.disconnect();
     jackInPTY.killProcess();
     setJackedOutStatus();
   }
@@ -409,7 +409,7 @@ export async function jackInCommand(options: {
 
 export function calvaDisconnect() {
   if (utilities.getConnectedState()) {
-    connector.default.disconnect();
+    void connector.default.disconnect();
     return;
   } else if (utilities.getConnectingState() || utilities.getLaunchingState()) {
     void vscode.window
@@ -421,7 +421,7 @@ export function calvaDisconnect() {
       .then((value) => {
         if (value == 'Ok') {
           calvaJackout();
-          connector.default.disconnect();
+          void connector.default.disconnect();
           utilities.setLaunchingState(null);
           utilities.setConnectingState(false);
           statusbar.update();
