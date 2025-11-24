@@ -16,6 +16,13 @@ type Result = {
   stacktrace?: any;
 };
 
+export interface ReplSessionInfo {
+  replSessionKey: string;
+  projectRoot?: string;
+  lastActivity?: number;
+  globs?: string[];
+}
+
 export const evaluateCode = async (
   sessionKey: 'clj' | 'cljs' | 'cljc' | string | undefined,
   code: string,
@@ -123,8 +130,13 @@ export const currentSessionKey = () => {
   return replSession.getReplSessionType(util.getConnectedState());
 };
 
-export const listSessions = () => {
-  return sessionRegistry.listSessions();
+export const listSessions = (): ReplSessionInfo[] => {
+  return sessionRegistry.listSessions().map((session) => ({
+    replSessionKey: session.key,
+    projectRoot: session.projectRoot,
+    lastActivity: session.lastActivity,
+    globs: session.globs,
+  }));
 };
 
 //// OUTPUT ////

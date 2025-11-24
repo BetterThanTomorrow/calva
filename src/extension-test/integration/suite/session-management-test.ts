@@ -74,9 +74,9 @@ describe(`${suiteName} suite`, () => {
 
     const sessions = replApi.listSessions();
     assert.strictEqual(sessions.length, 2);
-    const keys = sessions.map((s) => s.key).sort();
+    const keys = sessions.map((s) => s.replSessionKey).sort();
     assert.deepStrictEqual(keys, [serverSessionKey, uiSessionKey]);
-    const serverMeta = sessions.find((s) => s.key === serverSessionKey);
+    const serverMeta = sessions.find((s) => s.replSessionKey === serverSessionKey);
     assert.deepStrictEqual(serverMeta.globs, ['apps/server/**']);
   });
 
