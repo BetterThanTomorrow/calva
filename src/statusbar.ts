@@ -23,13 +23,6 @@ const color = {
   inactive: '#b3b3b3',
 };
 
-function getSessionDisplayName(
-  metadata: SessionMetadata | undefined,
-  fallbackKey?: string
-): string {
-  return metadata?.key || fallbackKey || 'REPL session';
-}
-
 // get theme kind once
 //console.log(vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light ? 'light' : 'dark/hc');
 // event
@@ -115,7 +108,6 @@ function update() {
           : shouldShowCljcSession && cljcSessionKey
           ? cljcSessionKey
           : replType;
-      const displayMeta = sessionRegistry.getSessionMetadata(displaySessionKey);
 
       const shouldShowCljcPrefix =
         !isPinned && ['cljc', config.REPL_FILE_EXT, config.FIDDLE_FILE_EXT].includes(fileType);
@@ -123,17 +115,14 @@ function update() {
       const pinIndicator = isPinned ? '$(pin) ' : '';
       typeStatus.text = `${pinIndicator}${baseStatusText}`;
       typeStatus.command = 'calva.showReplSessionsMenu';
-      const sessionDisplayName = getSessionDisplayName(displayMeta, displaySessionKey);
       const tooltipParts = [
         isPinned
-          ? `Pinned session: ${sessionDisplayName}`
-          : `Auto-route session: ${sessionDisplayName}`,
+          ? `Pinned session: ${displaySessionKey}`
+          : `Auto-route session: ${displaySessionKey}`,
       ];
 
       if (!isPinned && cljcSessionKey) {
-        const cljcMeta = sessionRegistry.getSessionMetadata(cljcSessionKey);
-        const cljcDisplayName = getSessionDisplayName(cljcMeta, cljcSessionKey);
-        tooltipParts.push(`cljc files use ${cljcDisplayName}`);
+        tooltipParts.push(`cljc files use ${cljcSessionKey}`);
       }
 
       tooltipParts.push('Click to show the REPL Sessions menu');
