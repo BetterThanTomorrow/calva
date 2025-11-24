@@ -20,7 +20,6 @@ suite('Highlight suite', () => {
   test('activeEditor', async function () {
     testUtil.log(suite, 'activeEditor');
 
-    const initialEditor = highlight.activeEditor;
     const testFilePath = path.join(testUtil.testDataDir, 'test.clj');
 
     await testUtil.openFile(testFilePath);
