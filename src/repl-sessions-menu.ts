@@ -154,7 +154,8 @@ function buildMenuItems(): SessionQuickPickItem[] {
   items.push({
     label: `${isAutoRouting ? '$(check) ' : ''}Auto-route`,
     description: autoSessionKey ? `Current: ${autoSessionKey}` : undefined,
-    detail: 'Use connect sequence globs and default routing for files not matched by globs.',
+    detail:
+      'Auto-selects repl session based on file path, using connect sequence globs, and CLJC overrides.',
     action: 'auto',
   });
 
