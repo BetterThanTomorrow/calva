@@ -46,7 +46,7 @@ import { ConflictingSessionsError } from './errors/conflicting-sessions';
 
 const CALVA_DOCS_BASE_URL = 'https://calva.io/';
 
-function deriveRequestedSessionKeys(
+export function deriveRequestedSessionKeys(
   sessionRoleKeys: SessionRoleKeys,
   connectSequence: ReplConnectSequence,
   usePromotedSession: boolean
@@ -80,7 +80,10 @@ function formatConflictDetails(conflicts: SessionKeyStatus[]): string {
     .join('\n');
 }
 
-function ensureSessionAssignmentsAvailable(requestedKeys: string[], clientKey: string): void {
+export function ensureSessionAssignmentsAvailable(
+  requestedKeys: string[],
+  clientKey: string
+): void {
   if (!clientKey || requestedKeys.length === 0) {
     return;
   }
@@ -101,6 +104,26 @@ function ensureSessionAssignmentsAvailable(requestedKeys: string[], clientKey: s
     .join('\n');
 
   throw new ConflictingSessionsError(message, conflicts);
+}
+
+export function findClientsForSessionReuse(requestedKeys: string[], clientKey: string): string[] {
+  if (!clientKey || requestedKeys.length === 0) {
+    return [];
+  }
+
+  const analysis = sessionRegistry.analyzeSessionAssignments(requestedKeys, clientKey);
+  if (analysis.summary !== 'existing-client') {
+    return [];
+  }
+
+  const statuses = analysis.statuses.filter((status) => status.occupancy === 'same-client');
+  const associatedClients = new Set<string>();
+  statuses.forEach((status) => {
+    if (status.metadata?.clientKey) {
+      associatedClients.add(status.metadata.clientKey);
+    }
+  });
+  return Array.from(associatedClients.values());
 }
 
 async function readRuntimeConfigs() {

@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import * as utilities from '../utilities';
 import * as _ from 'lodash';
 import * as state from '../state';
@@ -26,6 +25,7 @@ import { ConnectType } from './connect-types';
 import * as output from '../results-output/output';
 import * as inspector from '../providers/inspector';
 import * as clientRegistry from './client-registry';
+import type { RegisteredClient } from './client-registry';
 
 function resolveEnvVariables(entry: any): any {
   if (typeof entry === 'string') {
@@ -56,6 +56,7 @@ type JackInProcessEntry = {
   connected: boolean;
   clientKey?: string;
   projectRootUri?: string;
+  connectSequenceName?: string;
 };
 
 const activeJackInProcesses = new Map<number, JackInProcessEntry>();
@@ -120,6 +121,11 @@ async function stopJackInProcess(entry: JackInProcessEntry): Promise<void> {
   } catch (err) {
     console.warn('Failed killing Jack-in process', err);
   } finally {
+    try {
+      entry.terminal.dispose();
+    } catch (err) {
+      console.warn('Failed disposing Jack-in terminal', err);
+    }
     handleJackInProcessExit(entry.id);
   }
 }
@@ -139,6 +145,29 @@ async function stopProcessesForSequence(connectSequence: ReplConnectSequence): P
   await stopJackInProcesses(matching);
 }
 
+function findClientsForSequence(connectSequence: ReplConnectSequence): RegisteredClient[] {
+  const targetRootUri = getProjectRootUriString();
+  return clientRegistry.listClients().filter((client) => {
+    if (client.connectSequenceName !== connectSequence.name) {
+      return false;
+    }
+    if (!targetRootUri) {
+      return true;
+    }
+    if (!client.projectRoot) {
+      return false;
+    }
+    return client.projectRoot === targetRootUri;
+  });
+}
+
+async function stopClientsForSequence(connectSequence: ReplConnectSequence): Promise<void> {
+  const clients = findClientsForSequence(connectSequence);
+  for (const client of clients) {
+    await connector.default.disconnect({ clientKey: client.key });
+  }
+}
+
 function refreshJackedInState() {
   const hasConnectedProcess = Array.from(activeJackInProcesses.values()).some(
     (entry) => entry.connected
@@ -153,6 +182,8 @@ function registerJackInProcess(connectSequence: ReplConnectSequence): JackInProc
     name: `Calva Jack-in: ${connectSequence.name}`,
     pty,
   });
+  const selectedSequenceName =
+    state.extensionContext.workspaceState.get<ReplConnectSequence>('selectedConnectSequence')?.name;
   const entry: JackInProcessEntry = {
     id: nextJackInProcessId++,
     pty,
@@ -161,6 +192,7 @@ function registerJackInProcess(connectSequence: ReplConnectSequence): JackInProc
     disposables: [],
     connected: false,
     projectRootUri: getProjectRootUriString(),
+    connectSequenceName: selectedSequenceName ?? connectSequence.name,
   };
   let cleanedUp = false;
   const handleExit = () => {
@@ -465,6 +497,7 @@ async function executeJackIn(
   if (projectConnectSequence) {
     const projectType = projectTypes.getProjectTypeForName(projectConnectSequence.projectType);
     await stopProcessesForSequence(projectConnectSequence);
+    await stopClientsForSequence(projectConnectSequence);
 
     if (projectType.startFunction) {
       void projectType.startFunction();
