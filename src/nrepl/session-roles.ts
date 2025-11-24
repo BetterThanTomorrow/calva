@@ -3,7 +3,6 @@ import {
   ReplConnectSequence,
   SessionGlobsConfig,
   SessionGlobTierConfig,
-  SessionNamesConfig,
 } from './connect-sequence-types';
 import * as promotedSession from './promoted-session';
 
