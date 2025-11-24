@@ -14,6 +14,7 @@ Changes to Calva.
   - Allows **Session pinning**—lock all evaluations to a specific session and override glob-based routing.
   - New command: **Calva: Repl Sessions**, listing sessions, enabling pinning, toggling auto-route, and selecting the CLJC evaluation session (also available from the status bar session indicator).
   - Adds a REPL Sessions status bar menu for pinning sessions, toggling auto-route, and setting `.cljc` overrides.
+  - Adds API function `repl.listSessions()`
 
 ## [2.0.540] - 2025-11-06
 
