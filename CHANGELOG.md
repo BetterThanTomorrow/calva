@@ -15,6 +15,7 @@ Changes to Calva.
   - New command: **Calva: Repl Sessions**, listing sessions, enabling pinning, toggling auto-route, and selecting the CLJC evaluation session (also available from the status bar session indicator).
   - Adds a REPL Sessions status bar menu for pinning sessions, toggling auto-route, and setting `.cljc` overrides.
   - Adds API function `repl.listSessions()`
+  - Updated default connect sequences for *Joyride*, *Babashka*, *nbb*, and *Basilisp*, to use custom `replSessionNames`, and configured default routings with `replSessionGlobs`.
 
 ## [2.0.540] - 2025-11-06
 
