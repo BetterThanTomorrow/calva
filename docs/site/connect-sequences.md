@@ -45,26 +45,39 @@ A connect sequence configures the following:
     * `cljsDefaultBuild`: Which cljs build to attach to at the initial connect.
 * `jackInEnv`: An object with environment variables that will be merged with the global `calva.jackInEnv` and then applied to the Jack-in process. The merge is very similar to how Clojure's `merge` works. So for any common keys between the global setting and this one, the ones from this setting will win.
 * `extraNReplMiddleware`: Array of strings of the fully qualified names of extra middleware that should be applied to the nREPL server when started.
-* `replSessionNames`: Override the default repl session names that Calva registers for the main and the promoted (if any) REPL sessions.
+* `replSessionNames`: Override the default repl session names that Calva registers for the main and the promoted (if any) REPL sessions. Use this to enable connecting more than one connect sequence in the same VS Code window.
     * `main`: the name of the main repl session. Defaults to `clj`
     * `promoted`: the name of the secondary/promoted repl session in the sequence. Defaults to `cljs`.
-* `replSessionGlobs`: Map each repl session name to the file globs it should handle. Keys should match the values configured in `replSessionNames` (or the defaults). Values can be a single glob string or an array of globs. Globs are evaluated relative to every workspace folder, so multi-root workspaces are supported, and you can prefix the relative path with the workspace folder name to scope matches (e.g. `"app/**/*.clj"` will only match files inside the `app` folder). Defaults are `**/*.clj` for the main session and `**/*.cljs` for the promoted session.
-        * For most setups you can keep using plain strings/arrays; Calva treats them as **primary** globs for that session.
-        * When a session should backstop another one, provide an object with `primary` and/or `secondary` arrays:
+* `replSessionGlobs`: Map each repl session name to the files it should handle using globs. The keys in the object should match the names configured in `replSessionNames` (or the defaults). Values can be a single glob string, an array of globs, or a map specifying `primary` and `secondary` globs. Globs are evaluated relative to every workspace folder, so multi-root workspaces are supported, and you can prefix the relative path with the workspace folder name to scope matches (e.g. `"app/**/*.clj"` will only match files inside the `app` Workspace folder). Defaults are `**/*.clj` for the main session and `**/*.cljs` for the promoted session.
 
-            ```json
-            {
-                "replSessionGlobs": {
-                    "bb": {
-                        "primary": ["**/*.bb"],
-                        "secondary": ["**/*.clj"]
-                    }
-                }
+??? note "Session routing globs competition resolution"
+    When there are many repls connected at once, Calva lets you pin a repl to be used for evaluations. We've tried to make the auto-routing flexible so that you shouldn't need to resort to session pinning too often; this is why the `replSessionGlobs` setting is a bit elaborate.
+
+    Your first line of defence is glob “specificity”. The routing will take a simple specificity into account in cases of routing conflict. More specific globs will take precedence over less specific ones.
+
+    When you want to stay unspecific with the glob targeting, you can signal that a particular session is secondary (or fallback) using the map/object form for `replSessionGlobs`. Specifying that some of the globs are `secondary` gives other repl sessions the chance to handle the evaluation with their `primary` globs. The built-in **Babashka** connect sequence uses this like so:
+
+    ```jsonc
+    {
+        ...
+        "replSessionNames": { "primary": "bb" },
+        "replSessionGlobs": {
+            "bb": {
+                "primary": ["**/*.bb", "bb.edn"],
+                "secondary": ["**/*.clj"]
             }
-            ```
+        }
+        ...
+    }
+    ```
 
-            Calva always resolves routing among `primary` globs first. Only if no primary pattern matches will it try the configured `secondary` globs, which makes fallback sessions reliable without stealing files from the primary owner.
-        * Inside each tier, Calva scores globs by specificity: literal path segments earn more points than wildcard-heavy ones, and `**` incurs a penalty. This keeps patterns such as `src/app/**/*.cljs` ahead of a broad `**/*.cljs` even if both live in the same tier.
+    This will make the Babashka repl (if connected) get all evaluations from `.bb` files, and if no other repl session is handling `.clj` files, the Babashka repl will handle those too. But if some other connected repl is specifying `**/*.clj` as a primary glob, the Babashka repl will not compete for those files.
+
+    NB: When a sequence is not using the map/object form of the specification all globs are considered primary.
+
+    Inside each tier, Calva scores globs by specificity: literal path segments earn more points than wildcard-heavy ones, and `**` incurs a penalty. This keeps patterns such as `src/app/**/*.cljs` ahead of a broad `**/*.cljs` even if both live in the same tier.
+
+    If tiering and specificity still leave more than one repl session competing, Calva falls back to connection order, so the first connected session wins. The same fallback applies when no session matches.
 
 The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts) also use this format, check them out to get a clearer picture of how these settings work.
 
