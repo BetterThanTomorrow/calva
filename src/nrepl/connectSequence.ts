@@ -15,6 +15,7 @@ import {
   MenuSelections,
   SessionNamesConfig,
   SessionGlobsConfig,
+  SessionGlobTierConfig,
   ReplConnectSequence,
 } from './connect-sequence-types';
 
@@ -146,6 +147,8 @@ const cljsOnlyDefaults: ReplConnectSequence[] = [
     projectType: ProjectTypes['cljs-only'],
     cljsType: CljsTypes['ClojureScript nREPL'],
     nReplPortFile: ['.nrepl-port'],
+    replSessionNames: { main: 'cljs' },
+    replSessionGlobs: { cljs: ['**/*.cljs'] },
   },
 ];
 
@@ -156,7 +159,7 @@ const babashkaDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes.none,
     nReplPortFile: ['.bb-nrepl.port'],
     replSessionNames: { main: 'bb' },
-    replSessionGlobs: { bb: ['**/*.bb', '**/*.clj', '**/*.cljc'] },
+    replSessionGlobs: { bb: { primary: ['**/*.bb'], secondary: ['**/*.clj'] } },
   },
 ];
 
@@ -167,7 +170,7 @@ const nbbDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes['ClojureScript nREPL'],
     nReplPortFile: ['.nrepl-port'],
     replSessionNames: { main: 'nbb' },
-    replSessionGlobs: { nbb: ['**/*.nbb', '**/*.cljs', '**/*.cljc'] },
+    replSessionGlobs: { nbb: { primary: ['**/*.nbb'], secondary: ['**/*.cljs'] } },
   },
 ];
 
@@ -177,7 +180,7 @@ const joyrideDefaults: ReplConnectSequence[] = [
     projectType: ProjectTypes['joyride'],
     cljsType: CljsTypes['ClojureScript nREPL'],
     replSessionNames: { main: 'joyride' },
-    replSessionGlobs: { joyride: ['**/.joyride/**/*.clj{s,c}'] },
+    replSessionGlobs: { joyride: ['.joyride/**/*.clj{s,c}'] },
   },
 ];
 
@@ -314,7 +317,7 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
     }
 
     if (sequence.replSessionGlobs) {
-      const isValidGlobValue = (value: string | string[]): boolean => {
+      const isGlobValue = (value: unknown): value is string | string[] => {
         if (typeof value === 'string') {
           return value.trim().length > 0;
         }
@@ -327,10 +330,26 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
         return false;
       };
 
+      const isTierConfig = (value: unknown): value is SessionGlobTierConfig =>
+        typeof value === 'object' && value !== null && !Array.isArray(value);
+
+      const isValidTierEntry = (tierValue?: string | string[]): boolean =>
+        tierValue ? isGlobValue(tierValue) : false;
+
+      const isValidGlobEntry = (value: string | string[] | SessionGlobTierConfig): boolean => {
+        if (isGlobValue(value)) {
+          return true;
+        }
+        if (isTierConfig(value)) {
+          return isValidTierEntry(value.primary) || isValidTierEntry(value.secondary);
+        }
+        return false;
+      };
+
       for (const [name, value] of Object.entries(sequence.replSessionGlobs)) {
-        if (!isValidGlobValue(value)) {
+        if (!isValidGlobEntry(value)) {
           void vscode.window.showWarningMessage(
-            `Invalid glob configuration for session "${name}" in connect sequence "${sequence.name}". Provide a glob string or an array of glob strings.`,
+            `Invalid glob configuration for session "${name}" in connect sequence "${sequence.name}". Provide a glob string/array or an object with primary/secondary glob arrays.`,
             ...['Roger That!']
           );
           return [];

@@ -11,7 +11,7 @@ const baseSequence = (): ReplConnectSequence => ({
 describe('session role glob derivation', () => {
   it('provides default globs for default session names', () => {
     expect(sessionRoles.deriveSessionGlobMap()).toEqual({
-      clj: ['**/*.clj'],
+      clj: { primary: ['**/*.clj'], secondary: [] },
     });
   });
 
@@ -20,8 +20,8 @@ describe('session role glob derivation', () => {
     sequence.cljsType = 'shadow-cljs' as unknown as ReplConnectSequence['cljsType'];
 
     expect(sessionRoles.deriveSessionGlobMap(sequence)).toEqual({
-      clj: ['**/*.clj'],
-      cljs: ['**/*.cljs'],
+      clj: { primary: ['**/*.clj'], secondary: [] },
+      cljs: { primary: ['**/*.cljs'], secondary: [] },
     });
   });
 
@@ -36,8 +36,8 @@ describe('session role glob derivation', () => {
 
     const result = sessionRoles.deriveSessionGlobMap(sequence);
 
-    expect(result.clj).toEqual(['**/*.clj']);
-    expect(result.cljs).toEqual(['**/*.cljs']);
+    expect(result.clj).toEqual({ primary: ['**/*.clj'], secondary: [] });
+    expect(result.cljs).toEqual({ primary: ['**/*.cljs'], secondary: [] });
   });
 
   it('applies default globs to renamed sessions', () => {
@@ -47,8 +47,8 @@ describe('session role glob derivation', () => {
 
     const result = sessionRoles.deriveSessionGlobMap(sequence);
 
-    expect(result.clj2).toEqual(['**/*.clj']);
-    expect(result.cljs2).toEqual(['**/*.cljs']);
+    expect(result.clj2).toEqual({ primary: ['**/*.clj'], secondary: [] });
+    expect(result.cljs2).toEqual({ primary: ['**/*.cljs'], secondary: [] });
   });
 
   it('prefers custom globs keyed by the session name', () => {
@@ -62,8 +62,8 @@ describe('session role glob derivation', () => {
 
     const result = sessionRoles.deriveSessionGlobMap(sequence);
 
-    expect(result.alpha).toEqual(['apps/**/server.clj']);
-    expect(result.beta).toEqual(['ui/**/*.cljs']);
+    expect(result.alpha).toEqual({ primary: ['apps/**/server.clj'], secondary: [] });
+    expect(result.beta).toEqual({ primary: ['ui/**/*.cljs'], secondary: [] });
   });
 
   it('supports glob overrides keyed by role names', () => {
@@ -77,8 +77,8 @@ describe('session role glob derivation', () => {
 
     const result = sessionRoles.deriveSessionGlobMap(sequence);
 
-    expect(result.gamma).toEqual(['services/**/*.clj']);
-    expect(result.delta).toEqual(['clients/**/*.cljs']);
+    expect(result.gamma).toEqual({ primary: ['services/**/*.clj'], secondary: [] });
+    expect(result.delta).toEqual({ primary: ['clients/**/*.cljs'], secondary: [] });
   });
 
   it('retains additional session glob mappings for future sessions', () => {
@@ -93,7 +93,7 @@ describe('session role glob derivation', () => {
 
     const result = sessionRoles.deriveSessionGlobMap(sequence);
 
-    expect(result.extra).toEqual(['lambda/**/*.clj']);
+    expect(result.extra).toEqual({ primary: ['lambda/**/*.clj'], secondary: [] });
   });
 
   it('trims whitespace and filters empty glob entries', () => {
@@ -107,8 +107,8 @@ describe('session role glob derivation', () => {
 
     const result = sessionRoles.deriveSessionGlobMap(sequence);
 
-    expect(result.alpha).toEqual(['src/**/*.clj']);
-    expect(result.beta).toEqual(['ui/**/*.cljs']);
+    expect(result.alpha).toEqual({ primary: ['src/**/*.clj'], secondary: [] });
+    expect(result.beta).toEqual({ primary: ['ui/**/*.cljs'], secondary: [] });
   });
 
   it('falls back to defaults when overrides resolve to empty globs', () => {
@@ -122,7 +122,25 @@ describe('session role glob derivation', () => {
 
     const result = sessionRoles.deriveSessionGlobMap(sequence);
 
-    expect(result.alpha).toEqual(['**/*.clj']);
-    expect(result.beta).toEqual(['**/*.cljs']);
+    expect(result.alpha).toEqual({ primary: ['**/*.clj'], secondary: [] });
+    expect(result.beta).toEqual({ primary: ['**/*.cljs'], secondary: [] });
+  });
+
+  it('supports tiered primary/secondary configurations', () => {
+    const sequence = baseSequence();
+    sequence.replSessionNames = { main: 'bb' };
+    sequence.replSessionGlobs = {
+      bb: {
+        primary: ['**/*.bb'],
+        secondary: ['**/*.clj', '**/*.cljc'],
+      },
+    };
+
+    const result = sessionRoles.deriveSessionGlobMap(sequence);
+
+    expect(result.bb).toEqual({
+      primary: ['**/*.bb'],
+      secondary: ['**/*.clj', '**/*.cljc'],
+    });
   });
 });

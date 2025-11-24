@@ -49,6 +49,22 @@ A connect sequence configures the following:
     * `main`: the name of the main repl session. Defaults to `clj`
     * `promoted`: the name of the secondary/promoted repl session in the sequence. Defaults to `cljs`.
 * `replSessionGlobs`: Map each repl session name to the file globs it should handle. Keys should match the values configured in `replSessionNames` (or the defaults). Values can be a single glob string or an array of globs. Globs are evaluated relative to every workspace folder, so multi-root workspaces are supported, and you can prefix the relative path with the workspace folder name to scope matches (e.g. `"app/**/*.clj"` will only match files inside the `app` folder). Defaults are `**/*.clj` for the main session and `**/*.cljs` for the promoted session.
+        * For most setups you can keep using plain strings/arrays; Calva treats them as **primary** globs for that session.
+        * When a session should backstop another one, provide an object with `primary` and/or `secondary` arrays:
+
+            ```json
+            {
+                "replSessionGlobs": {
+                    "bb": {
+                        "primary": ["**/*.bb"],
+                        "secondary": ["**/*.clj"]
+                    }
+                }
+            }
+            ```
+
+            Calva always resolves routing among `primary` globs first. Only if no primary pattern matches will it try the configured `secondary` globs, which makes fallback sessions reliable without stealing files from the primary owner.
+        * Inside each tier, Calva scores globs by specificity: literal path segments earn more points than wildcard-heavy ones, and `**` incurs a penalty. This keeps patterns such as `src/app/**/*.cljs` ahead of a broad `**/*.cljs` even if both live in the same tier.
 
 The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts) also use this format, check them out to get a clearer picture of how these settings work.
 

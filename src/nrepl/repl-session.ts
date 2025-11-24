@@ -44,21 +44,55 @@ function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefine
   }
 
   const sessions = sessionRegistry.listSessions();
-  for (const session of sessions) {
-    if (!session.globs || session.globs.length === 0) {
-      continue;
+  const isBetterMatch = (
+    current: { score: number; order: number } | undefined,
+    candidate: { score: number; order: number }
+  ) => {
+    if (!current) {
+      return true;
+    }
+    if (candidate.score !== current.score) {
+      return candidate.score > current.score;
+    }
+    return candidate.order < current.order;
+  };
+
+  let bestPrimary: { sessionKey: string; score: number; order: number } | undefined;
+  let bestSecondary: { sessionKey: string; score: number; order: number } | undefined;
+
+  sessions.forEach((session, index) => {
+    const specs = session.globSpecs ?? [];
+    if (specs.length === 0) {
+      return;
     }
 
-    for (const pattern of session.globs) {
-      const normalizedPattern = globPaths.toPosixPath(pattern);
-      if (
-        candidatePaths.some((candidate) =>
-          minimatchLib.minimatch(candidate, normalizedPattern, { dot: true })
-        )
-      ) {
-        return session.key;
+    for (const spec of specs) {
+      const normalizedPattern = spec.normalizedPattern || globPaths.toPosixPath(spec.pattern);
+      const matched = candidatePaths.some((candidate) =>
+        minimatchLib.minimatch(candidate, normalizedPattern, { dot: true })
+      );
+      if (!matched) {
+        continue;
+      }
+      const candidate = { sessionKey: session.key, score: spec.score, order: index };
+      if (spec.tier === 'primary') {
+        if (isBetterMatch(bestPrimary, candidate)) {
+          bestPrimary = candidate;
+        }
+      } else {
+        if (isBetterMatch(bestSecondary, candidate)) {
+          bestSecondary = candidate;
+        }
       }
     }
+  });
+
+  if (bestPrimary) {
+    return bestPrimary.sessionKey;
+  }
+
+  if (bestSecondary) {
+    return bestSecondary.sessionKey;
   }
 
   return undefined;

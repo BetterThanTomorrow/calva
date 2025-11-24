@@ -51,7 +51,16 @@ interface SessionNamesConfig {
   promoted?: string;
 }
 
-type SessionGlobsConfig = Record<string, string | string[]>;
+type GlobValue = string | string[];
+
+interface SessionGlobTierConfig {
+  primary?: GlobValue;
+  secondary?: GlobValue;
+}
+
+type SessionGlobsConfigValue = GlobValue | SessionGlobTierConfig;
+
+type SessionGlobsConfig = Record<string, SessionGlobsConfigValue>;
 
 interface ReplConnectSequence {
   name: string;
@@ -78,6 +87,7 @@ export {
   CljsTypeConfig,
   MenuSelections,
   SessionNamesConfig,
+  SessionGlobTierConfig,
   SessionGlobsConfig,
   ReplConnectSequence,
 };

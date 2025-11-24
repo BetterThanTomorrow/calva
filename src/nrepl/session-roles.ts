@@ -2,6 +2,7 @@ import { getStateValue, setStateValue } from '../../out/cljs-lib/cljs-lib';
 import {
   ReplConnectSequence,
   SessionGlobsConfig,
+  SessionGlobTierConfig,
   SessionNamesConfig,
 } from './connect-sequence-types';
 import * as promotedSession from './promoted-session';
@@ -13,7 +14,12 @@ export interface SessionRoleKeys {
   promoted?: string;
 }
 
-export type SessionGlobMap = Record<string, string[]>;
+export interface SessionGlobTiers {
+  primary: string[];
+  secondary: string[];
+}
+
+export type SessionGlobMap = Record<string, SessionGlobTiers>;
 
 const SESSION_ROLE_STATE_KEY = 'session-role-keys';
 const SESSION_ROLE_GLOBS_STATE_KEY = 'session-role-globs';
@@ -23,19 +29,31 @@ const DEFAULT_SESSION_ROLE_KEYS: SessionRoleKeys = {
   promoted: 'cljs',
 };
 
-const DEFAULT_SESSION_ROLE_GLOBS: Record<SessionRole, string[]> = {
-  main: ['**/*.clj'],
-  promoted: ['**/*.cljs'],
+const DEFAULT_SESSION_ROLE_GLOBS: Record<SessionRole, SessionGlobTiers> = {
+  main: { primary: ['**/*.clj'], secondary: [] },
+  promoted: { primary: ['**/*.cljs'], secondary: [] },
 };
 
 const DEFAULT_SESSION_GLOB_MAP: SessionGlobMap = {
-  [DEFAULT_SESSION_ROLE_KEYS.main]: [...DEFAULT_SESSION_ROLE_GLOBS.main],
-  [DEFAULT_SESSION_ROLE_KEYS.promoted]: [...DEFAULT_SESSION_ROLE_GLOBS.promoted],
+  [DEFAULT_SESSION_ROLE_KEYS.main]: {
+    primary: [...DEFAULT_SESSION_ROLE_GLOBS.main.primary],
+    secondary: [...DEFAULT_SESSION_ROLE_GLOBS.main.secondary],
+  },
+  [DEFAULT_SESSION_ROLE_KEYS.promoted]: {
+    primary: [...DEFAULT_SESSION_ROLE_GLOBS.promoted.primary],
+    secondary: [...DEFAULT_SESSION_ROLE_GLOBS.promoted.secondary],
+  },
 };
 
 function cloneDefaultGlobMap(): SessionGlobMap {
   return Object.fromEntries(
-    Object.entries(DEFAULT_SESSION_GLOB_MAP).map(([key, patterns]) => [key, [...patterns]])
+    Object.entries(DEFAULT_SESSION_GLOB_MAP).map(([key, tiers]) => [
+      key,
+      {
+        primary: [...tiers.primary],
+        secondary: [...tiers.secondary],
+      },
+    ])
   );
 }
 
@@ -43,6 +61,25 @@ function normalizeGlobValue(value: string | string[]): string[] {
   return (Array.isArray(value) ? value : [value])
     .map((glob) => glob.trim())
     .filter((glob) => glob.length > 0);
+}
+
+function normalizeTierConfig(value?: string | string[]): string[] {
+  return value ? normalizeGlobValue(value) : [];
+}
+
+function normalizeGlobEntry(
+  value: string | string[] | SessionGlobTierConfig | undefined
+): SessionGlobTiers {
+  if (value === undefined) {
+    return { primary: [], secondary: [] };
+  }
+  if (typeof value === 'string' || Array.isArray(value)) {
+    return { primary: normalizeGlobValue(value), secondary: [] };
+  }
+  return {
+    primary: normalizeTierConfig(value.primary),
+    secondary: normalizeTierConfig(value.secondary),
+  };
 }
 
 function fromSequenceConfig(sequence?: ReplConnectSequence): SessionRoleKeys {
@@ -79,7 +116,7 @@ function deriveSessionRoleGlobs(
   const configuredGlobs: SessionGlobsConfig | undefined = sequence?.replSessionGlobs;
   if (configuredGlobs) {
     for (const [name, value] of Object.entries(configuredGlobs)) {
-      globs[name] = normalizeGlobValue(value);
+      globs[name] = normalizeGlobEntry(value);
     }
   }
 
@@ -91,14 +128,20 @@ function deriveSessionRoleGlobs(
 
     const overrideFromRole = configuredGlobs?.[role];
     if (overrideFromRole) {
-      globs[key] = normalizeGlobValue(overrideFromRole);
+      globs[key] = normalizeGlobEntry(overrideFromRole);
       return;
     }
 
-    if (!globs[key] || globs[key].length === 0) {
+    const existing = globs[key];
+    if (!existing || (existing.primary.length === 0 && existing.secondary.length === 0)) {
       const defaults = DEFAULT_SESSION_ROLE_GLOBS[role];
       if (defaults) {
-        globs[key] = [...defaults];
+        globs[key] = {
+          primary: [...defaults.primary],
+          secondary: [...defaults.secondary],
+        };
+      } else {
+        globs[key] = { primary: [], secondary: [] };
       }
     }
   });
@@ -147,8 +190,20 @@ export function getSessionRoleGlobs(): SessionGlobMap {
 }
 
 export function getGlobsForSessionKey(key: string): string[] {
+  const tiers = getGlobTiersForSessionKey(key);
+  return [...tiers.primary, ...tiers.secondary];
+}
+
+export function getGlobTiersForSessionKey(key: string): SessionGlobTiers {
   const globs = getSessionRoleGlobs();
-  return globs[key] ? [...globs[key]] : [];
+  const tiers = globs[key];
+  if (!tiers) {
+    return { primary: [], secondary: [] };
+  }
+  return {
+    primary: [...tiers.primary],
+    secondary: [...tiers.secondary],
+  };
 }
 
 export function getSessionKeyForRole(role: SessionRole): string | undefined {

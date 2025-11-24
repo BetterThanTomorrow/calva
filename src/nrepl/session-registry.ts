@@ -1,5 +1,6 @@
 import { NReplSession } from './index';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
+import type { SessionGlobSpec, SessionGlobTier } from './globs';
 
 export interface SessionMetadata {
   key: string;
@@ -7,6 +8,7 @@ export interface SessionMetadata {
   projectRoot?: string;
   lastActivity?: number;
   globs?: string[];
+  globSpecs?: SessionGlobSpec[];
   clientKey?: string;
 }
 

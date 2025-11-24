@@ -11,6 +11,7 @@ import type { NReplSession, NReplClient } from '../../../nrepl';
 import * as testUtil from './util';
 import * as sessionRouting from '../../../nrepl/session-routing';
 import * as clientRegistry from '../../../nrepl/client-registry';
+import { buildGlobSpecsFromTiers } from '../../../nrepl/globs';
 
 const { describe, before, beforeEach, afterEach, it } = Mocha;
 
@@ -246,5 +247,54 @@ describe(`${suiteName} suite`, () => {
 
     assert.strictEqual(sessionRegistry.listSessions().length, 0);
     assert.strictEqual(clientRegistry.listClients().length, 0);
+  });
+
+  it('prefers more specific primary globs even when registered earlier', async () => {
+    const generalCljs = createSession('cljs');
+    const joyrideCljs = createSession('cljs');
+
+    sessionRegistry.registerSession('general-cljs', generalCljs, {
+      name: 'CLJS Frontend',
+      globs: ['**/*.cljs'],
+      globSpecs: buildGlobSpecsFromTiers({ primary: ['**/*.cljs'], secondary: [] }),
+    });
+
+    sessionRegistry.registerSession('joyride', joyrideCljs, {
+      name: 'Joyride',
+      globs: ['**/.joyride/**/*.cljs'],
+      globSpecs: buildGlobSpecsFromTiers({ primary: ['**/.joyride/**/*.cljs'], secondary: [] }),
+    });
+
+    const joyrideFile = path.join(testUtil.testDataDir, '.joyride', 'example.cljs');
+    await testUtil.openFile(joyrideFile);
+
+    const resolved = replSession.getSession();
+    assert.strictEqual(resolved, joyrideCljs);
+  });
+
+  it('uses secondary globs only when no primary match exists', async () => {
+    const bbSession = createSession('bb');
+    const cljSession = createSession('clj');
+
+    sessionRegistry.registerSession('bb', bbSession, {
+      name: 'Babashka',
+      globs: ['**/*.bb', '**/*.clj', '**/*.cljc'],
+      globSpecs: buildGlobSpecsFromTiers({
+        primary: ['**/*.bb'],
+        secondary: ['**/*.clj', '**/*.cljc'],
+      }),
+    });
+
+    sessionRegistry.registerSession('clj', cljSession, {
+      name: 'Clojure',
+      globs: ['**/*.clj'],
+      globSpecs: buildGlobSpecsFromTiers({ primary: ['**/*.clj'], secondary: [] }),
+    });
+
+    const cljFilePath = path.join(testUtil.testDataDir, 'test.clj');
+    await testUtil.openFile(cljFilePath);
+
+    const resolved = replSession.getSession();
+    assert.strictEqual(resolved, cljSession);
   });
 });

@@ -6,6 +6,7 @@ Changes to Calva.
 
 - Allow connect sequences to rename main/promoted REPL sessions while defaulting to `clj`/`cljs`.
 - Route files via new `replSessionGlobs`, so custom sessions can own their globs (multi-root aware).
+- Teach `replSessionGlobs` to separate primary vs secondary tiers and rank globs by specificity, keeping Joyride/CLJS/bb routing sticky even when fallbacks are present.
 - Add a REPL Sessions status-bar menu for pinning sessions, toggling auto-route, and setting `.cljc` overrides.
 - Let evaluation settings target any named session (regex validation replaces the fixed `clj|cljs` enum).
 - Rename `afterMainReplConnectedCode` (deprecating `afterCLJReplJackInCode`) to match the main session” wording.

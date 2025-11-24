@@ -240,11 +240,21 @@ async function loadAndAssert(suite: string, testFilePath: string, needle: string
   );
 }
 
-function writeSettings(settings: any): Thenable<void> {
+async function writeSettings(settings: Record<string, unknown>): Promise<void> {
   const settingsData = JSON.stringify(settings, null, 2);
-  const p = vscode.workspace.fs.writeFile(settingsUri, new TextEncoder().encode(settingsData));
+  await vscode.workspace.fs.writeFile(settingsUri, new TextEncoder().encode(settingsData));
   console.log(`Settings written to ${settingsUri.fsPath}`);
-  return p;
+
+  const config = vscode.workspace.getConfiguration();
+  const sections: Array<[string, unknown]> = Object.entries(settings);
+
+  if (!('calva.replConnectSequences' in settings)) {
+    sections.push(['calva.replConnectSequences', undefined]);
+  }
+
+  for (const [section, value] of sections) {
+    await config.update(section, value, vscode.ConfigurationTarget.Workspace);
+  }
 }
 
 async function waitForResult(suite: string) {
