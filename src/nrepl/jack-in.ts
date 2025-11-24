@@ -55,6 +55,7 @@ type JackInProcessEntry = {
   disposables: vscode.Disposable[];
   connected: boolean;
   clientKey?: string;
+  projectRootUri?: string;
 };
 
 const activeJackInProcesses = new Map<number, JackInProcessEntry>();
@@ -62,6 +63,80 @@ let nextJackInProcessId = 1;
 
 function listJackInProcesses(): JackInProcessEntry[] {
   return Array.from(activeJackInProcesses.values()).sort((a, b) => a.id - b.id);
+}
+
+function getProjectRootUriString(): string | undefined {
+  return state.getProjectRootUri()?.toString();
+}
+
+function matchesProjectRoot(entry: JackInProcessEntry, targetRootUri: string | undefined): boolean {
+  if (!targetRootUri || !entry.projectRootUri) {
+    return true;
+  }
+
+  return entry.projectRootUri === targetRootUri;
+}
+
+function matchesConnectSequence(
+  entry: JackInProcessEntry,
+  connectSequence: ReplConnectSequence,
+  targetRootUri: string | undefined
+): boolean {
+  if (!connectSequence) {
+    return false;
+  }
+
+  if (entry.connectSequence.name !== connectSequence.name) {
+    return false;
+  }
+
+  if (entry.connectSequence.projectType !== connectSequence.projectType) {
+    return false;
+  }
+
+  return matchesProjectRoot(entry, targetRootUri);
+}
+
+function findProcessesForSequence(connectSequence: ReplConnectSequence): JackInProcessEntry[] {
+  const targetRootUri = getProjectRootUriString();
+  return listJackInProcesses().filter((entry) =>
+    matchesConnectSequence(entry, connectSequence, targetRootUri)
+  );
+}
+
+async function stopJackInProcess(entry: JackInProcessEntry): Promise<void> {
+  requestWindowsJackOut(entry);
+
+  if (entry.clientKey) {
+    try {
+      await connector.default.disconnect({ clientKey: entry.clientKey });
+    } catch (err) {
+      console.warn('Failed disconnecting jack-in client cleanly', err);
+    }
+  }
+
+  try {
+    entry.pty.killProcess();
+  } catch (err) {
+    console.warn('Failed killing Jack-in process', err);
+  } finally {
+    handleJackInProcessExit(entry.id);
+  }
+}
+
+async function stopJackInProcesses(entries: JackInProcessEntry[]): Promise<void> {
+  for (const entry of entries) {
+    await stopJackInProcess(entry);
+  }
+}
+
+async function stopProcessesForSequence(connectSequence: ReplConnectSequence): Promise<void> {
+  const matching = findProcessesForSequence(connectSequence);
+  if (matching.length === 0) {
+    return;
+  }
+
+  await stopJackInProcesses(matching);
 }
 
 function refreshJackedInState() {
@@ -85,6 +160,7 @@ function registerJackInProcess(connectSequence: ReplConnectSequence): JackInProc
     connectSequence,
     disposables: [],
     connected: false,
+    projectRootUri: getProjectRootUriString(),
   };
   let cleanedUp = false;
   const handleExit = () => {
@@ -194,19 +270,13 @@ function requestWindowsJackOut(entry: JackInProcessEntry) {
   );
 }
 
-export function calvaJackout() {
+export async function calvaJackout() {
   const processes = listJackInProcesses();
   if (processes.length === 0) {
     return;
   }
 
-  for (const process of processes) {
-    requestWindowsJackOut(process);
-    if (process.clientKey) {
-      void connector.default.disconnect({ clientKey: process.clientKey });
-    }
-    process.pty.killProcess();
-  }
+  await stopJackInProcesses(processes);
 }
 
 export function revealJackInTerminal() {
@@ -394,6 +464,8 @@ async function executeJackIn(
   }
   if (projectConnectSequence) {
     const projectType = projectTypes.getProjectTypeForName(projectConnectSequence.projectType);
+    await stopProcessesForSequence(projectConnectSequence);
+
     if (projectType.startFunction) {
       void projectType.startFunction();
     } else {
@@ -425,7 +497,7 @@ export function jackIn(
 }
 
 export function jackOutCommand() {
-  calvaJackout();
+  return calvaJackout();
 }
 
 export async function jackInCommand(options: {
@@ -462,7 +534,7 @@ export function calvaDisconnect() {
       )
       .then((value) => {
         if (value == 'Ok') {
-          calvaJackout();
+          void calvaJackout();
           void connector.default.disconnect();
           utilities.setLaunchingState(null);
           utilities.setConnectingState(false);

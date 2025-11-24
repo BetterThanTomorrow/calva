@@ -644,7 +644,7 @@ async function activate(context: vscode.ExtensionContext) {
 }
 
 async function deactivate(): Promise<void> | undefined {
-  jackIn.calvaJackout();
+  await jackIn.calvaJackout();
   paredit.deactivate();
   await lsp.getClientProvider().shutdown();
 }
