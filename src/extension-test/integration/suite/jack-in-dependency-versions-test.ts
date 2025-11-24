@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import { before, after, suite, test } from 'mocha';
 import * as vscode from 'vscode';
 import * as state from '../../../state';
+import * as testUtil from './util';
 import {
   getEffectiveJackInDependencyVersions,
   JackInDependencyKey,
@@ -99,6 +100,7 @@ suite(SUITE, () => {
     };
     await state.extensionContext?.globalState.update(GLOBAL_STATE_KEY, stored);
 
+    testUtil.sleep(20);
     await vscode.workspace
       .getConfiguration('calva')
       .update('jackInDependencyVersions', undefined, vscode.ConfigurationTarget.Workspace);
@@ -127,6 +129,8 @@ suite(SUITE, () => {
       .getConfiguration('calva')
       .update('jackInDependencyVersions', configured, vscode.ConfigurationTarget.Workspace);
 
+    testUtil.sleep(20);
+
     const effective = getEffectiveJackInDependencyVersions();
     assert.strictEqual(effective.nrepl, 'CONFIG-NREPL-1', 'configured should override stored');
     assert.strictEqual(
@@ -151,6 +155,8 @@ suite(SUITE, () => {
     await vscode.workspace
       .getConfiguration('calva')
       .update('jackInDependencyVersions', undefined, vscode.ConfigurationTarget.Workspace);
+
+    testUtil.sleep(20);
 
     const effective = getEffectiveJackInDependencyVersions();
 
