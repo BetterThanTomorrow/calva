@@ -81,11 +81,11 @@ Calva can keep several REPL connections alive at the same time. This is useful w
 
 ### How concurrent connections are organized
 
-Every connection registers one or two session names (for example the default `clj`/`cljs` pair or the custom names you define in a [connect sequence](connect-sequences.md#settings-for-adding-custom-sequences)). Calva routes evaluations to the session whose glob matches the active file so you can keep coding without rewiring buffers manually. You can jack-in or connect again at any point to add another client—the running clients and their sessions stay intact.
+Every connection registers one or two session names (for example the default `clj`/`cljs` pair or the custom names you define in a [connect sequence](connect-sequences.md#settings-for-adding-custom-sequences)). Calva routes evaluations to the session whose glob matches the active file so you can keep coding without rewiring buffers manually. Run jack-in or connect again at any point to add another repl session.
 
 ### Picking which connection to keep
 
-Use **Calva: Disconnect from the REPL** whenever you need to tear down one connection without touching the others. The command opens a quick pick that lists every client along with its session names, host/port, and project root so you can see exactly which REPL you're about to remove. When more than one client is active the picker also offers **Disconnect all sessions** as a fast way to clean the slate.
+Use **Calva: Disconnect from the REPL** whenever you need to tear down one connection without touching the others. The command opens a quick pick that lists every client along with its session names, host/port, and project root. When more than one client is active the picker also offers **Disconnect all sessions** as a fast way to clean the slate.
 
 ### Avoiding session-name conflicts
 
@@ -96,12 +96,6 @@ Because sessions act as routing keys, Calva prevents you from starting another c
 Please see the [shadow-cljs](shadow-cljs.md) page.
 
 ## Troubleshooting
-
-### Multi-session conflicts
-
-Calva can keep several REPL connections alive at the same time. Each connection owns a pair of session names (for example `clj`/`cljs` or the custom names you configure in your connect sequence). If you try to start another connection that reuses a session name already claimed by a different connection, Calva stops the connect flow and shows a **Conflicting sessions** error. Pick unique session names (via custom connect sequences) _or_ disconnect the other connection before trying again.
-
-Use **Calva: Disconnect from the REPL** to pick the connections that should be torn down. When more than one connection is active the command shows a quick pick that lists every client. Calva removes the selected connection only, keeping the others intact.
 
 ### Jack-in and `:main-opts`
 
