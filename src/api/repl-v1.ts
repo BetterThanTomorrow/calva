@@ -33,21 +33,23 @@ export const evaluateCode = async (
   },
   nReplEvalOptions = {}
 ): Promise<Result> => {
-  const sessionKeyToUse = replSession.getSessionKey(sessionKey);
-  const session = replSession.getSession(sessionKeyToUse || undefined);
+  // When sessionKey is explicitly provided, use it directly without routing
+  // Otherwise, use the routing logic to determine the session
+  const session = sessionKey
+    ? sessionRegistry.getSession(sessionKey)
+    : replSession.getSession(undefined);
+
   if (!session) {
     if (!util.getConnectedState()) {
       throw new Error(`The REPL is not connected.`);
     } else {
       throw new Error(
-        `Can't retrieve REPL session for session key: ${sessionKey}. (used ${sessionKeyToUse}).`
+        `Can't retrieve REPL session for session key: ${sessionKey || 'auto-routed'}.`
       );
     }
   }
   const effectiveSessionKey =
-    sessionKeyToUse ||
-    ((session as any)?._calvaSessionMetadata?.key as string | undefined) ||
-    'unknown';
+    sessionKey || ((session as any)?._calvaSessionMetadata?.key as string | undefined) || 'unknown';
   // Always send to Calva destinations AND call custom handlers if provided
   const stdout = (m: string) => {
     resultOutput.appendEvalOut(m);
