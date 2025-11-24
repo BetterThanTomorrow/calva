@@ -4,13 +4,16 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Allow connect sequences to rename main/promoted REPL sessions while defaulting to `clj`/`cljs`.
-- Route files via new `replSessionGlobs`, so custom sessions can own their globs (multi-root aware).
-- Teach `replSessionGlobs` to separate primary vs secondary tiers and rank globs by specificity, keeping Joyride/CLJS/bb routing sticky even when fallbacks are present.
-- Add a REPL Sessions status-bar menu for pinning sessions, toggling auto-route, and setting `.cljc` overrides.
-- Let evaluation settings target any named session (regex validation replaces the fixed `clj|cljs` enum).
-- Rename `afterMainReplConnectedCode` (deprecating `afterCLJReplJackInCode`) to match the main session” wording.
-- Expand integration/unit coverage around session registries, routing, and the new menu workflows.
+- [Add support for multiple concurrent nrepl connections](https://github.com/BetterThanTomorrow/calva/issues/76)
+  - Updates to [Connect Sequences](https://calva.io/connect-sequences/):
+    - Custom REPL session names via `replSessionNames`: `main` (defaults to `clj`) and `promoted` (defaults to `cljs`).
+    - Route files to sessions with `replSessionGlobs`, a multi-root-aware replacement for the old extension-based routing.
+    - Rename `afterCLJReplJackInCode` → `afterMainReplConnectedCode` (the old name still works).
+  - Connecting an additional sequence no longer disconnects earlier ones unless they reuse the same `replSessionNames` (treated as a re-connect).
+  - Jacking in to another connect sequence no longer closes the previous REPL; each jack-in keeps its own pseudo terminal unless the sessions share `replSessionNames`, in which case it becomes a restart.
+  - Allows **Session pinning**—lock all evaluations to a specific session and override glob-based routing.
+  - New command: **Calva: Repl Sessions**, listing sessions, enabling pinning, toggling auto-route, and selecting the CLJC evaluation session (also available from the status bar session indicator).
+  - Adds a REPL Sessions status bar menu for pinning sessions, toggling auto-route, and setting `.cljc` overrides.
 
 ## [2.0.540] - 2025-11-06
 
