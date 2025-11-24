@@ -117,11 +117,9 @@ function update() {
           : replType;
       const displayMeta = sessionRegistry.getSessionMetadata(displaySessionKey);
 
-      const baseStatusText = ['cljc', config.REPL_FILE_EXT, config.FIDDLE_FILE_EXT].includes(
-        fileType
-      )
-        ? `cljc/${displaySessionKey}`
-        : displaySessionKey;
+      const shouldShowCljcPrefix =
+        !isPinned && ['cljc', config.REPL_FILE_EXT, config.FIDDLE_FILE_EXT].includes(fileType);
+      const baseStatusText = shouldShowCljcPrefix ? `cljc/${displaySessionKey}` : displaySessionKey;
       const pinIndicator = isPinned ? '$(pin) ' : '';
       typeStatus.text = `${pinIndicator}${baseStatusText}`;
       typeStatus.command = 'calva.showReplSessionsMenu';

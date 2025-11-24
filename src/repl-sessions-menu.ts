@@ -50,11 +50,13 @@ function formatLastUsed(lastActivity?: number): string | undefined {
 
 function formatSessionDetail({
   globs,
+  globSpecs,
   lastActivity,
   key,
   includeSessionKey,
 }: {
   globs?: string[];
+  globSpecs?: Array<{ pattern: string; tier: 'primary' | 'secondary' }>;
   lastActivity?: number;
   key: string;
   includeSessionKey: boolean;
@@ -64,8 +66,20 @@ function formatSessionDetail({
   if (lastUsed) {
     detailParts.push(lastUsed);
   }
-  if (globs && globs.length > 0) {
-    detailParts.push(`Globs: ${globs.join(', ')}`);
+  if (globSpecs && globSpecs.length > 0) {
+    const byTier = (tier: string) => globSpecs.filter((s) => s.tier === tier).map((s) => s.pattern);
+    const primary = byTier('primary');
+    const secondary = byTier('secondary');
+    const parts = [
+      'Used for:',
+      ...(primary.length ? [`${primary.join(', ')}`] : []),
+      ...(secondary.length ? [`(secondary: ${secondary.join(', ')})`] : []),
+    ];
+    if (parts.length > 0) {
+      detailParts.push(parts.join(' '));
+    }
+  } else if (globs && globs.length > 0) {
+    detailParts.push(`Used for: ${globs.join(', ')}`);
   }
   if (includeSessionKey || detailParts.length === 0) {
     detailParts.push(`Session key: ${key}`);
@@ -98,6 +112,7 @@ function buildSessionPickItems(options?: {
       description,
       detail: formatSessionDetail({
         globs: session.globs,
+        globSpecs: session.globSpecs,
         lastActivity: session.lastActivity,
         key: session.key,
         includeSessionKey: baseLabel !== session.key,
@@ -150,6 +165,12 @@ function buildMenuItems(): SessionQuickPickItem[] {
     isAutoRouting,
     autoSessionKey,
   });
+
+  items.push({
+    label: '',
+    kind: vscode.QuickPickItemKind.Separator,
+    action: 'session',
+  } as SessionQuickPickItem);
 
   items.push({
     label: `${isAutoRouting ? '$(check) ' : ''}Auto-route`,
