@@ -28,11 +28,17 @@ export class JackInPTY implements vscode.Pseudoterminal {
   onDidExit: vscode.Event<number | undefined> = this.exitEmitter.event;
 
   private process: child.ChildProcess;
+  private isOpen = false;
+  private pendingWrites: string[] = [];
 
   open(initialDimensions: vscode.TerminalDimensions | undefined): void {
+    this.isOpen = true;
     this.writeEmitter.fire(
       'This is a pseudo terminal, only used for hosting the Jack-in REPL process. It takes no input.\r\nPressing ctrl+c with this terminal focused, killing this terminal, or closing/reloading the VS Code window will all stop/kill the Jack-in REPL process.\r\n\r\n'
     );
+    // Flush any pending writes that happened before open()
+    this.pendingWrites.forEach((msg) => this.writeEmitter.fire(msg));
+    this.pendingWrites = [];
   }
 
   close(): void {
@@ -42,6 +48,14 @@ export class JackInPTY implements vscode.Pseudoterminal {
 
   public clearTerminal() {
     this.writeEmitter.fire('\x1b[2J\x1b[H');
+  }
+
+  private safeWrite(message: string) {
+    if (this.isOpen) {
+      this.writeEmitter.fire(message);
+    } else {
+      this.pendingWrites.push(message);
+    }
   }
 
   handleInput(data: string) {
@@ -74,10 +88,10 @@ export class JackInPTY implements vscode.Pseudoterminal {
     output.appendLineOtherOut(`Starting Jack-in: ${createCommandLine(options)}`);
     return new Promise<child.ChildProcess>(() => {
       let hasReplStarted = false;
-      const data = `${createCommandLine(options)}\r\n`;
-      this.writeEmitter.fire(`Process shell is: ${options.useShell}\r\n`);
-      this.writeEmitter.fire('⚡️ Starting the REPL ⚡️ using the below command line:\r\n');
-      this.writeEmitter.fire(data);
+      const data = `${createCommandLine(options)}\r\n\r\n`;
+      this.safeWrite(`Process shell is: ${options.useShell}\r\n`);
+      this.safeWrite('⚡️ Starting the REPL ⚡️ using the below command line:\r\n');
+      this.safeWrite(data);
       this.process = child.spawn(options.executable, options.args, {
         env: options.env,
         cwd: options.cwd,
