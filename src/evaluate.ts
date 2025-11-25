@@ -782,7 +782,11 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
   const outputDocument = await outputWindow.openResultsDoc();
   const evalPos = outputDocument.positionAt(outputDocument.getText().length);
   try {
-    const session = replSession.getSession(sessionType);
+    // When sessionType is explicitly provided, use it directly without routing
+    // Otherwise, use the routing logic to determine the session
+    const session = sessionType
+      ? sessionRegistry.getSession(sessionType)
+      : replSession.getSession(undefined);
     replSession.updateReplSessionType();
     if (outputWindow.getNs() !== ns) {
       outputWindow.setSession(session, ns);
@@ -816,7 +820,11 @@ async function evaluateInCurrentEditor(
   if (document) {
     const evalPos = editor.selection.active;
     try {
-      const session = replSession.getSession(sessionType);
+      // When sessionType is explicitly provided, use it directly without routing
+      // Otherwise, use the routing logic to determine the session
+      const session = sessionType
+        ? sessionRegistry.getSession(sessionType)
+        : replSession.getSession(undefined);
       return await evaluateCodeUpdatingUI(code, {
         ...options,
         filePath: document.fileName,
