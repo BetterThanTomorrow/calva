@@ -6,7 +6,7 @@ import * as shadowRuntimes from './shadow-cljs-runtime';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getReplSessionTypeFromState } from './nrepl/repl-session';
 import * as sessionRouting from './nrepl/session-routing';
-import * as sessionRoles from './nrepl/session-roles';
+import * as sessionRegistry from './nrepl/session-registry';
 import * as replWindow from './repl-window/repl-doc';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
@@ -52,8 +52,6 @@ function update() {
   const doc = util.tryToGetDocument({}),
     fileType = util.getFileType(doc),
     cljsBuild = getStateValue('cljsBuild');
-  const promotedSessionKey = sessionRoles.getSessionKeyForRole('promoted');
-  const hasPromotedSession = Boolean(promotedSessionKey);
 
   //let disconnectedColor = "rgb(192,192,192)";
 
@@ -72,7 +70,7 @@ function update() {
   connectionStatus.tooltip = 'REPL connection status';
 
   cljsBuildStatus.text = '';
-  cljsBuildStatus.command = hasPromotedSession ? 'calva.switchCljsBuild' : undefined;
+  cljsBuildStatus.command = undefined;
   cljsBuildStatus.tooltip = undefined;
 
   shadowRuntimeStatus.text = '';
@@ -136,12 +134,13 @@ function update() {
       tooltipParts.push('Click to show the REPL Sessions menu');
       typeStatus.tooltip = tooltipParts.join('. ');
     }
-    // Show build status when the current routed session is the promoted session
+    // Show build status when the current routed session is a promoted session
+    const isCurrentSessionPromoted = replType && sessionRegistry.isSessionPromoted(replType);
     if (
-      hasPromotedSession &&
-      replType === promotedSessionKey &&
+      isCurrentSessionPromoted &&
       state.extensionContext.workspaceState.get('cljsReplTypeHasBuilds')
     ) {
+      cljsBuildStatus.command = 'calva.switchCljsBuild';
       if (cljsBuild !== null) {
         cljsBuildStatus.text = cljsBuild;
         cljsBuildStatus.tooltip = 'Click to switch CLJS build REPL';
@@ -151,8 +150,8 @@ function update() {
       }
     }
 
-    // Show shadow runtime status when the current routed session is the promoted session
-    if (hasPromotedSession && replType === promotedSessionKey && cljsTypeName === 'shadow-cljs') {
+    // Show shadow runtime status when the current routed session is a promoted session
+    if (isCurrentSessionPromoted && cljsTypeName === 'shadow-cljs') {
       const selectedRuntime = shadowRuntimes.getSelectedRuntimeId();
       const runtimeInfo = shadowRuntimes.getSelectedRuntimeInfo();
 
@@ -190,12 +189,12 @@ function update() {
     cljsBuildStatus.hide();
   }
 
-  // Show shadow runtime status when the current routed session is the promoted session
+  // Show shadow runtime status when the current routed session is a promoted session
   const replType = getReplSessionTypeFromState();
+  const isRoutedSessionPromoted = replType && sessionRegistry.isSessionPromoted(replType);
   if (
     getStateValue('connected') &&
-    hasPromotedSession &&
-    replType === promotedSessionKey &&
+    isRoutedSessionPromoted &&
     cljsTypeName === 'shadow-cljs' &&
     shadowRuntimeStatus.text
   ) {

@@ -344,6 +344,7 @@ async function setUpCljsRepl(session: NReplSession, build) {
     projectRoot: state.getProjectRootUri().toString(),
     globs: globMetadata.globs,
     globSpecs: globMetadata.globSpecs,
+    isPromoted: true,
   });
 
   status.update();
@@ -445,6 +446,7 @@ async function evalConnectCode(
       projectRoot: state.getProjectRootUri().toString(),
       globs: globMetadata.globs,
       globSpecs: globMetadata.globSpecs,
+      isPromoted: true,
     });
 
     cljsSession = newCljsSession;
@@ -817,6 +819,7 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
         projectRoot: state.getProjectRootUri().toString(),
         globs: globMetadata.globs,
         globSpecs: globMetadata.globSpecs,
+        isPromoted: true,
       });
 
       cljsSession = newCljsSession;

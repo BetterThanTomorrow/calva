@@ -9,6 +9,7 @@ export interface SessionMetadata {
   globs?: string[];
   globSpecs?: SessionGlobSpec[];
   connectionOwnerId?: string;
+  isPromoted?: boolean;
 }
 
 const SESSION_PREFIX = 'repl-session-';
@@ -70,6 +71,11 @@ export function listSessions(): SessionMetadata[] {
 export function getSessionMetadata(key: string): SessionMetadata | undefined {
   const session = getSession(key);
   return (session as any)?._calvaSessionMetadata;
+}
+
+export function isSessionPromoted(key: string): boolean {
+  const metadata = getSessionMetadata(key);
+  return Boolean(metadata?.isPromoted);
 }
 
 export function getSessionKeyFromSession(session?: NReplSession): string | undefined {
