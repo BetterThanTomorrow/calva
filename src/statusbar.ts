@@ -136,6 +136,7 @@ function update() {
       tooltipParts.push('Click to show the REPL Sessions menu');
       typeStatus.tooltip = tooltipParts.join('. ');
     }
+    // Show build status when the current routed session is the promoted session
     if (
       hasPromotedSession &&
       replType === promotedSessionKey &&
@@ -150,6 +151,7 @@ function update() {
       }
     }
 
+    // Show shadow runtime status when the current routed session is the promoted session
     if (hasPromotedSession && replType === promotedSessionKey && cljsTypeName === 'shadow-cljs') {
       const selectedRuntime = shadowRuntimes.getSelectedRuntimeId();
       const runtimeInfo = shadowRuntimes.getSelectedRuntimeInfo();
@@ -188,6 +190,7 @@ function update() {
     cljsBuildStatus.hide();
   }
 
+  // Show shadow runtime status when the current routed session is the promoted session
   const replType = getReplSessionTypeFromState();
   if (
     getStateValue('connected') &&

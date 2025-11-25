@@ -144,3 +144,34 @@ export function listSessionsByClient(targetClientKey: string): SessionMetadata[]
   }
   return listSessions().filter((meta) => meta.connectionOwnerId === targetClientKey);
 }
+
+/**
+ * Checks if all the requested session keys are either available or owned by a single client.
+ * This is used to determine if a reconnection scenario is valid - where we can disconnect
+ * the existing client and replace its sessions with new ones.
+ *
+ * Returns the clientKey that owns all the occupied sessions, or undefined if:
+ * - All sessions are available (no existing owner)
+ * - Sessions are owned by multiple different clients (true conflict)
+ */
+export function findSingleOwnerForSessions(
+  requestedKeys: Array<string | undefined>
+): string | undefined {
+  const uniqueKeys = Array.from(new Set(requestedKeys.filter(Boolean)));
+  const ownerIds = new Set<string>();
+
+  for (const key of uniqueKeys) {
+    const metadata = getSessionMetadata(key);
+    if (metadata?.connectionOwnerId) {
+      ownerIds.add(metadata.connectionOwnerId);
+    }
+  }
+
+  // If all sessions have a single owner, return that owner's clientKey
+  if (ownerIds.size === 1) {
+    return Array.from(ownerIds)[0];
+  }
+
+  // Multiple owners or no owners
+  return undefined;
+}

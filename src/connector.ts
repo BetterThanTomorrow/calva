@@ -169,6 +169,21 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
   const sessionRoleKeys = sessionRoles.initializeSessionRoleKeys(connectSequence);
   const usePromotedSession = promotedSession.shouldUsePromotedSession(connectSequence);
 
+  // Check if all requested sessions are owned by a single existing client
+  // If so, this is a reconnection scenario - disconnect the old client first
+  const requestedSessionKeys = deriveRequestedSessionKeys(
+    sessionRoleKeys,
+    connectSequence,
+    usePromotedSession
+  );
+  const existingOwner = sessionRegistry.findSingleOwnerForSessions(requestedSessionKeys);
+  if (existingOwner) {
+    output.appendLineOtherOut(
+      `Reconnecting: disconnecting existing client for sessions: ${requestedSessionKeys.join(', ')}`
+    );
+    await disconnectClientByKey(existingOwner);
+  }
+
   util.setConnectingState(true);
   void vscode.commands.executeCommand('setContext', 'calva:connectSequence', connectSequence.name);
   status.update();
@@ -189,11 +204,6 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         return cleanUpAfterError(e);
       },
     });
-    const requestedSessionKeys = deriveRequestedSessionKeys(
-      sessionRoleKeys,
-      connectSequence,
-      usePromotedSession
-    );
     ensureSessionAssignmentsAvailable(requestedSessionKeys, nClient.clientKey);
     clientRegistry.registerClient(nClient, {
       connectSequenceName: connectSequence.name,
