@@ -6,6 +6,7 @@
 
 (comment
   (hello "foo")
-  (System/getProperty  "user.dir")
+  (System/getProperty "user.dir")
+  (js/console.log "foo")
   :rcf)
 

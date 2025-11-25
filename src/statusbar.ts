@@ -7,6 +7,7 @@ import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getReplSessionTypeFromState } from './nrepl/repl-session';
 import * as sessionRouting from './nrepl/session-routing';
 import * as sessionRoles from './nrepl/session-roles';
+import * as replWindow from './repl-window/repl-doc';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
@@ -104,9 +105,21 @@ function update() {
           ? cljcSessionKey
           : replType;
 
-      const shouldShowCljcPrefix =
-        !isPinned && ['cljc', config.REPL_FILE_EXT, config.FIDDLE_FILE_EXT].includes(fileType);
-      const baseStatusText = shouldShowCljcPrefix ? `cljc/${displaySessionKey}` : displaySessionKey;
+      const isInReplWindow = replWindow.isResultsDoc(doc);
+      const shouldShowReplWindowPrefix = !isPinned && isInReplWindow;
+      const shouldShowCljcPrefix = !isPinned && !isInReplWindow && fileType === 'cljc';
+      const shouldShowFiddlePrefix =
+        !isPinned && !isInReplWindow && fileType === config.FIDDLE_FILE_EXT;
+
+      let baseStatusText = displaySessionKey;
+      if (shouldShowReplWindowPrefix) {
+        baseStatusText = `repl-w/${displaySessionKey}`;
+      } else if (shouldShowCljcPrefix) {
+        baseStatusText = `cljc/${displaySessionKey}`;
+      } else if (shouldShowFiddlePrefix) {
+        baseStatusText = `fiddle/${displaySessionKey}`;
+      }
+
       const pinIndicator = isPinned ? '$(pin) ' : '';
       typeStatus.text = `${pinIndicator}${baseStatusText}`;
       typeStatus.command = 'calva.showReplSessionsMenu';
