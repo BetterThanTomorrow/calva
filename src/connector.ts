@@ -112,26 +112,6 @@ export function ensureSessionAssignmentsAvailable(
   throw new ConflictingSessionsError(message, conflicts);
 }
 
-export function findClientsForSessionReuse(requestedKeys: string[], clientKey: string): string[] {
-  if (!clientKey || requestedKeys.length === 0) {
-    return [];
-  }
-
-  const analysis = sessionRegistry.analyzeSessionAssignments(requestedKeys, clientKey);
-  if (analysis.summary !== 'existing-client') {
-    return [];
-  }
-
-  const statuses = analysis.statuses.filter((status) => status.occupancy === 'same-client');
-  const associatedClients = new Set<string>();
-  statuses.forEach((status) => {
-    if (status.metadata?.connectionOwnerId) {
-      associatedClients.add(status.metadata.connectionOwnerId);
-    }
-  });
-  return Array.from(associatedClients.values());
-}
-
 async function readRuntimeConfigs() {
   const classpath = await nClient.session.classpath().catch((e) => {
     console.error('readRuntimeConfigs:', e);
