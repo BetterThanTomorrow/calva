@@ -201,6 +201,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       hasBuilds: false,
       sessionRoleKeys,
       sessionGlobMap,
+      connectSequence,
     });
     nClient.addOnCloseHandler((c) => {
       const wasRegistered = clientRegistry.unregisterClient(c.clientKey);
@@ -279,7 +280,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
           ? getDefaultCljsType(connectSequence.cljsType as string)
           : (connectSequence.cljsType as CljsTypeConfig);
 
-        translatedReplType = createCLJSReplType(
+        const translatedReplType = createCLJSReplType(
           cljsType,
           projectTypes.getCljsTypeName(connectSequence),
           connectSequence,
@@ -483,8 +484,6 @@ export interface ReplType {
   connected: (valueResult: string, out: string[], err: string[]) => Promise<boolean>;
 }
 
-let translatedReplType: ReplType;
-
 async function figwheelOrShadowBuilds(cljsTypeName: string): Promise<string[] | undefined> {
   if (cljsTypeName.includes('Figwheel Main')) {
     return await getFigwheelMainBuilds();
@@ -512,7 +511,8 @@ function createCLJSReplType(
   connectSequence: ReplConnectSequence,
   clientKey: string,
   roleKeys: SessionRoleKeys,
-  globMap: SessionGlobMap
+  globMap: SessionGlobMap,
+  options: { useDefaultBuild?: boolean } = {}
 ): ReplType {
   // This function is only called when a promoted session is expected
   const promotedKey = roleKeys.promoted;
@@ -526,7 +526,7 @@ function createCLJSReplType(
   let haveShownStartMessage = false;
   let haveShownAppURL = false;
   let haveShownStartSuffix = false;
-  let useDefaultBuild = true;
+  let useDefaultBuild = options.useDefaultBuild ?? true;
   let startedBuilds: string[];
   let connectToBuild: string;
   const shouldRunStartCode =
@@ -1276,15 +1276,26 @@ export default {
     status.update();
   },
   switchCljsBuild: async () => {
-    const connectSequence =
-      state.extensionContext.workspaceState.get<ReplConnectSequence>('selectedConnectSequence');
-    if (!connectSequence || !promotedSession.shouldUsePromotedSession(connectSequence)) {
-      return;
+    let activeClientKey = clientRegistry.getActiveClientKey();
+    const currentSessionKey = replSession.getSessionKey();
+    if (currentSessionKey) {
+      const owner = sessionRegistry.getClientKeyForSession(currentSessionKey);
+      if (owner) {
+        activeClientKey = owner;
+      }
     }
-    const activeClientKey = clientRegistry.getActiveClientKey();
+
     if (!activeClientKey) {
       return;
     }
+
+    const connectionStateData = connectionState.getConnectionState(activeClientKey);
+    const connectSequence = connectionStateData?.connectSequence;
+
+    if (!connectSequence || !promotedSession.shouldUsePromotedSession(connectSequence)) {
+      return;
+    }
+
     // Get the main session for the active client
     const clientSessions = sessionRegistry.listSessionsByClient(activeClientKey);
     const mainSessionMeta = clientSessions.find((m) => !m.isPromoted);
@@ -1293,7 +1304,6 @@ export default {
     }
     const cljSession = sessionRegistry.getSession(mainSessionMeta.key);
     // Get connection state for this client
-    const connectionStateData = connectionState.getConnectionState(activeClientKey);
     const cljsTypeName = connectionStateData?.cljsTypeName;
     const roleKeys = connectionStateData?.sessionRoleKeys;
     const globMap = connectionStateData?.sessionGlobMap;
@@ -1303,9 +1313,25 @@ export default {
       );
       return;
     }
+
+    const isBuiltinType: boolean = typeof connectSequence.cljsType == 'string';
+    const cljsType: CljsTypeConfig = isBuiltinType
+      ? getDefaultCljsType(connectSequence.cljsType as string)
+      : (connectSequence.cljsType as CljsTypeConfig);
+
+    const replType = createCLJSReplType(
+      cljsType,
+      projectTypes.getCljsTypeName(connectSequence),
+      connectSequence,
+      activeClientKey,
+      roleKeys,
+      globMap,
+      { useDefaultBuild: false }
+    );
+
     const [cljsSession, build] = await makeCljsSessionClone(
       cljSession,
-      translatedReplType,
+      replType,
       cljsTypeName,
       activeClientKey,
       roleKeys.promoted,

@@ -10,6 +10,7 @@
  */
 
 import type { SessionRoleKeys, SessionGlobMap } from './session-role-utils';
+import type { ReplConnectSequence } from './connectSequence';
 
 export interface ConnectionState {
   clientKey: string;
@@ -18,6 +19,7 @@ export interface ConnectionState {
   hasBuilds: boolean;
   sessionRoleKeys?: SessionRoleKeys;
   sessionGlobMap?: SessionGlobMap;
+  connectSequence?: ReplConnectSequence;
 }
 
 const connectionStates = new Map<string, ConnectionState>();
