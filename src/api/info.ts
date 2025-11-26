@@ -1,11 +1,13 @@
 import { clojureDocsCiderNReplLookup } from '../clojuredocs';
 import * as replSession from '../nrepl/repl-session';
-import * as sessionRoles from '../nrepl/session-roles';
+import * as sessionRegistry from '../nrepl/session-registry';
+import * as clientRegistry from '../nrepl/client-registry';
 
 // TODO: Only nRepl lookups for now. Figure out how to enable clojure-lsp.
 
 export const getClojureDocsDotOrg = async (symbol: string, ns = 'user') => {
-  const session = replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
+  const activeClientKey = clientRegistry.getActiveClientKey();
+  const session = activeClientKey ? sessionRegistry.getMainSessionForClient(activeClientKey) : null;
   if (!session) {
     return { error: "Can't retrieve REPL session for session key. Is the REPL connected?" };
   }

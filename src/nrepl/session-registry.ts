@@ -261,3 +261,45 @@ export function getClientKeyForSession(sessionKey: string): string | undefined {
   const metadata = getSessionMetadata(sessionKey);
   return metadata?.connectionOwnerId;
 }
+
+/**
+ * Get the main (non-promoted) session for a given client.
+ */
+export function getMainSessionForClient(clientKey: string): NReplSession | undefined {
+  const sessions = listSessionsByClient(clientKey);
+  const mainMeta = sessions.find((m) => !m.isPromoted);
+  if (!mainMeta) {
+    return undefined;
+  }
+  return getSession(mainMeta.key);
+}
+
+/**
+ * Get the main (non-promoted) session key for a given client.
+ */
+export function getMainSessionKeyForClient(clientKey: string): string | undefined {
+  const sessions = listSessionsByClient(clientKey);
+  const mainMeta = sessions.find((m) => !m.isPromoted);
+  return mainMeta?.key;
+}
+
+/**
+ * Get the promoted session for a given client.
+ */
+export function getPromotedSessionForClient(clientKey: string): NReplSession | undefined {
+  const sessions = listSessionsByClient(clientKey);
+  const promotedMeta = sessions.find((m) => m.isPromoted);
+  if (!promotedMeta) {
+    return undefined;
+  }
+  return getSession(promotedMeta.key);
+}
+
+/**
+ * Get the promoted session key for a given client.
+ */
+export function getPromotedSessionKeyForClient(clientKey: string): string | undefined {
+  const sessions = listSessionsByClient(clientKey);
+  const promotedMeta = sessions.find((m) => m.isPromoted);
+  return promotedMeta?.key;
+}

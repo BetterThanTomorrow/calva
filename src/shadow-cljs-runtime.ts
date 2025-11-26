@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as replSession from './nrepl/repl-session';
-import * as sessionRoles from './nrepl/session-roles';
 import * as sessionRegistry from './nrepl/session-registry';
 import { cljsLib } from './utilities';
 import * as util from './utilities';

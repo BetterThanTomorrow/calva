@@ -3,17 +3,21 @@
  *
  * Manages per-connection state for multiple concurrent nREPL connections.
  * Each connection (identified by clientKey) has its own state for things like
- * CLJS build, runtime type, etc.
+ * CLJS build, runtime type, session role keys, etc.
  *
  * This replaces global state that was previously overwritten when connecting
  * additional sequences.
  */
+
+import type { SessionRoleKeys, SessionGlobMap } from './session-role-utils';
 
 export interface ConnectionState {
   clientKey: string;
   cljsBuild: string | null;
   cljsTypeName: string | null;
   hasBuilds: boolean;
+  sessionRoleKeys?: SessionRoleKeys;
+  sessionGlobMap?: SessionGlobMap;
 }
 
 const connectionStates = new Map<string, ConnectionState>();

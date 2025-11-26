@@ -1,6 +1,9 @@
 import * as expect from 'expect';
-import { computeGlobScore, toGlobMetadata } from '../../../../src/nrepl/globs';
-import type { SessionGlobTiers } from '../../../../src/nrepl/session-roles';
+import {
+  computeGlobScore,
+  toGlobMetadata,
+  type SessionGlobTiers,
+} from '../../../../src/nrepl/globs';
 
 describe('glob scoring utilities', () => {
   it('penalizes broader globs compared to specific ones', () => {

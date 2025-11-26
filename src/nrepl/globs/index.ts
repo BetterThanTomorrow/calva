@@ -1,7 +1,11 @@
 import * as globPaths from '../glob-paths';
-import type { SessionGlobTiers } from '../session-roles';
 
 export type SessionGlobTier = 'primary' | 'secondary';
+
+export interface SessionGlobTiers {
+  primary: string[];
+  secondary: string[];
+}
 
 export interface SessionGlobSpec {
   pattern: string;
