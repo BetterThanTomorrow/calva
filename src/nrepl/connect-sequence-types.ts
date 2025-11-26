@@ -54,8 +54,8 @@ interface SessionNamesConfig {
 type GlobValue = string | string[];
 
 interface SessionGlobTierConfig {
-  primary?: GlobValue;
-  secondary?: GlobValue;
+  'always-claim'?: GlobValue;
+  'is-fallback-for'?: GlobValue;
 }
 
 type SessionGlobsConfigValue = GlobValue | SessionGlobTierConfig;

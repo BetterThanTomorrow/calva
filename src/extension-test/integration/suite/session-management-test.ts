@@ -233,18 +233,21 @@ describe(`${suiteName} suite`, () => {
     assert.strictEqual(clientRegistry.listClients().length, 0);
   });
 
-  it('prefers more specific primary globs even when registered earlier', async () => {
+  it('prefers more specific always-claim globs even when registered earlier', async () => {
     const generalCljs = createSession('cljs');
     const joyrideCljs = createSession('cljs');
 
     sessionRegistry.registerSession('general-cljs', generalCljs, {
       globs: ['**/*.cljs'],
-      globSpecs: buildGlobSpecsFromTiers({ primary: ['**/*.cljs'], secondary: [] }),
+      globSpecs: buildGlobSpecsFromTiers({ 'always-claim': ['**/*.cljs'], 'is-fallback-for': [] }),
     });
 
     sessionRegistry.registerSession('joyride', joyrideCljs, {
       globs: ['**/.joyride/**/*.cljs'],
-      globSpecs: buildGlobSpecsFromTiers({ primary: ['**/.joyride/**/*.cljs'], secondary: [] }),
+      globSpecs: buildGlobSpecsFromTiers({
+        'always-claim': ['**/.joyride/**/*.cljs'],
+        'is-fallback-for': [],
+      }),
     });
 
     const joyrideFile = path.join(testUtil.testDataDir, '.joyride', 'example.cljs');
@@ -254,21 +257,21 @@ describe(`${suiteName} suite`, () => {
     assert.strictEqual(resolved, joyrideCljs);
   });
 
-  it('uses secondary globs only when no primary match exists', async () => {
+  it('uses is-fallback-for globs only when no always-claim match exists', async () => {
     const bbSession = createSession('bb');
     const cljSession = createSession('clj');
 
     sessionRegistry.registerSession('bb', bbSession, {
       globs: ['**/*.bb', '**/*.clj', '**/*.cljc'],
       globSpecs: buildGlobSpecsFromTiers({
-        primary: ['**/*.bb'],
-        secondary: ['**/*.clj', '**/*.cljc'],
+        'always-claim': ['**/*.bb'],
+        'is-fallback-for': ['**/*.clj', '**/*.cljc'],
       }),
     });
 
     sessionRegistry.registerSession('clj', cljSession, {
       globs: ['**/*.clj'],
-      globSpecs: buildGlobSpecsFromTiers({ primary: ['**/*.clj'], secondary: [] }),
+      globSpecs: buildGlobSpecsFromTiers({ 'always-claim': ['**/*.clj'], 'is-fallback-for': [] }),
     });
 
     const cljFilePath = path.join(testUtil.testDataDir, 'test.clj');

@@ -15,8 +15,8 @@ describe('glob scoring utilities', () => {
 
   it('produces glob specs with tier and normalized metadata', () => {
     const tiers: SessionGlobTiers = {
-      primary: ['src/.joyride/**/*.cljs'],
-      secondary: ['**/*.clj'],
+      'always-claim': ['src/.joyride/**/*.cljs'],
+      'is-fallback-for': ['**/*.clj'],
     };
 
     const metadata = toGlobMetadata(tiers);
@@ -25,13 +25,13 @@ describe('glob scoring utilities', () => {
       {
         pattern: 'src/.joyride/**/*.cljs',
         normalizedPattern: 'src/.joyride/**/*.cljs',
-        tier: 'primary',
+        tier: 'always-claim',
         score: computeGlobScore('src/.joyride/**/*.cljs'),
       },
       {
         pattern: '**/*.clj',
         normalizedPattern: '**/*.clj',
-        tier: 'secondary',
+        tier: 'is-fallback-for',
         score: computeGlobScore('**/*.clj'),
       },
     ]);

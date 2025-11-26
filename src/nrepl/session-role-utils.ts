@@ -21,8 +21,8 @@ const DEFAULT_SESSION_ROLE_KEYS: SessionRoleKeys = {
 };
 
 const DEFAULT_SESSION_ROLE_GLOBS: Record<SessionRole, SessionGlobTiers> = {
-  main: { primary: ['**/*.clj'], secondary: [] },
-  promoted: { primary: ['**/*.cljs'], secondary: [] },
+  main: { 'always-claim': ['**/*.clj'], 'is-fallback-for': [] },
+  promoted: { 'always-claim': ['**/*.cljs'], 'is-fallback-for': [] },
 };
 
 function normalizeGlobValue(value: string | string[]): string[] {
@@ -39,14 +39,14 @@ function normalizeGlobEntry(
   value: string | string[] | SessionGlobTierConfig | undefined
 ): SessionGlobTiers {
   if (value === undefined) {
-    return { primary: [], secondary: [] };
+    return { 'always-claim': [], 'is-fallback-for': [] };
   }
   if (typeof value === 'string' || Array.isArray(value)) {
-    return { primary: normalizeGlobValue(value), secondary: [] };
+    return { 'always-claim': normalizeGlobValue(value), 'is-fallback-for': [] };
   }
   return {
-    primary: normalizeTierConfig(value.primary),
-    secondary: normalizeTierConfig(value.secondary),
+    'always-claim': normalizeTierConfig(value['always-claim']),
+    'is-fallback-for': normalizeTierConfig(value['is-fallback-for']),
   };
 }
 
@@ -74,13 +74,7 @@ export function deriveSessionGlobMap(
   keys: SessionRoleKeys
 ): SessionGlobMap {
   const globs: SessionGlobMap = {};
-
   const configuredGlobs: SessionGlobsConfig | undefined = sequence?.replSessionGlobs;
-  if (configuredGlobs) {
-    for (const [name, value] of Object.entries(configuredGlobs)) {
-      globs[name] = normalizeGlobEntry(value);
-    }
-  }
 
   (['main', 'promoted'] as SessionRole[]).forEach((role) => {
     const key = keys[role];
@@ -88,23 +82,20 @@ export function deriveSessionGlobMap(
       return;
     }
 
-    const overrideFromRole = configuredGlobs?.[role];
-    if (overrideFromRole) {
-      globs[key] = normalizeGlobEntry(overrideFromRole);
+    const configuredForRole = configuredGlobs?.[role];
+    if (configuredForRole) {
+      globs[key] = normalizeGlobEntry(configuredForRole);
       return;
     }
 
-    const existing = globs[key];
-    if (!existing || (existing.primary.length === 0 && existing.secondary.length === 0)) {
-      const defaults = DEFAULT_SESSION_ROLE_GLOBS[role];
-      if (defaults) {
-        globs[key] = {
-          primary: [...defaults.primary],
-          secondary: [...defaults.secondary],
-        };
-      } else {
-        globs[key] = { primary: [], secondary: [] };
-      }
+    const defaults = DEFAULT_SESSION_ROLE_GLOBS[role];
+    if (defaults) {
+      globs[key] = {
+        'always-claim': [...defaults['always-claim']],
+        'is-fallback-for': [...defaults['is-fallback-for']],
+      };
+    } else {
+      globs[key] = { 'always-claim': [], 'is-fallback-for': [] };
     }
   });
 
@@ -117,10 +108,10 @@ export function deriveSessionGlobMap(
 export function getGlobTiersFromMap(globMap: SessionGlobMap, key: string): SessionGlobTiers {
   const tiers = globMap[key];
   if (!tiers) {
-    return { primary: [], secondary: [] };
+    return { 'always-claim': [], 'is-fallback-for': [] };
   }
   return {
-    primary: [...tiers.primary],
-    secondary: [...tiers.secondary],
+    'always-claim': [...tiers['always-claim']],
+    'is-fallback-for': [...tiers['is-fallback-for']],
   };
 }

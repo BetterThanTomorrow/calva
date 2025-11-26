@@ -148,7 +148,7 @@ const cljsOnlyDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes['ClojureScript nREPL'],
     nReplPortFile: ['.nrepl-port'],
     replSessionNames: { main: 'cljs' },
-    replSessionGlobs: { cljs: ['**/*.cljs'] },
+    replSessionGlobs: { main: ['**/*.cljs'] },
   },
 ];
 
@@ -160,7 +160,10 @@ const babashkaDefaults: ReplConnectSequence[] = [
     nReplPortFile: ['.bb-nrepl.port'],
     replSessionNames: { main: 'bb' },
     replSessionGlobs: {
-      bb: { primary: ['bb.edn', '**/*.bb', 'scripts/*.clj'], secondary: ['**/*.clj'] },
+      main: {
+        'always-claim': ['bb.edn', '**/*.bb', 'scripts/*.clj'],
+        'is-fallback-for': ['**/*.clj'],
+      },
     },
   },
 ];
@@ -172,7 +175,9 @@ const nbbDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes['ClojureScript nREPL'],
     nReplPortFile: ['.nrepl-port'],
     replSessionNames: { main: 'nbb' },
-    replSessionGlobs: { nbb: { primary: ['**/*.nbb'], secondary: ['**/*.cljs'] } },
+    replSessionGlobs: {
+      main: { 'always-claim': ['**/*.nbb'], 'is-fallback-for': ['**/*.cljs'] },
+    },
   },
 ];
 
@@ -182,7 +187,7 @@ const joyrideDefaults: ReplConnectSequence[] = [
     projectType: ProjectTypes['joyride'],
     cljsType: CljsTypes['ClojureScript nREPL'],
     replSessionNames: { main: 'joyride' },
-    replSessionGlobs: { joyride: ['.joyride/**/*.clj{s,c}'] },
+    replSessionGlobs: { main: ['.joyride/**/*.clj{s,c}'] },
   },
 ];
 
@@ -193,7 +198,7 @@ const basilispDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes.none,
     nReplPortFile: ['.nrepl-port'],
     replSessionNames: { main: 'basilisp' },
-    replSessionGlobs: { basilisp: ['**/*.lpy'] },
+    replSessionGlobs: { main: ['**/*.lpy'] },
   },
 ];
 
@@ -343,7 +348,9 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
           return true;
         }
         if (isTierConfig(value)) {
-          return isValidTierEntry(value.primary) || isValidTierEntry(value.secondary);
+          return (
+            isValidTierEntry(value['always-claim']) || isValidTierEntry(value['is-fallback-for'])
+          );
         }
         return false;
       };
@@ -351,7 +358,7 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
       for (const [name, value] of Object.entries(sequence.replSessionGlobs)) {
         if (!isValidGlobEntry(value)) {
           void vscode.window.showWarningMessage(
-            `Invalid glob configuration for session "${name}" in connect sequence "${sequence.name}". Provide a glob string/array or an object with primary/secondary glob arrays.`,
+            `Invalid glob configuration for session "${name}" in connect sequence "${sequence.name}". Provide a glob string/array or an object with always-claim/is-fallback-for glob arrays.`,
             ...['Roger That!']
           );
           return [];

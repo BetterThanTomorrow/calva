@@ -21,6 +21,25 @@
       "outFiles": ["${workspaceFolder}/out/**/*.js"]
     },
     {
+      "name": "Launch w/ test workspace file",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}",
+        "${workspaceFolder}/test-data/test-data.code-workspace"
+      ],
+      "sourceMaps": true,
+      "env": {
+        "IS_DEBUG": "true",
+        "CALVA_DEV_GA": "FUBAR-69796730-4",
+        "CALVA_DEV_GA4_ID": "G-FTNZ1YC3ND",
+        "CALVA_DEV_GA4_TOKEN": "_es8QHFXQP2jf7FwUYa_cg",
+        "DEBUG": "no-debug-universal-analytics"
+      },
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
+    },
+    {
       "name": "Launch Extension",
       "type": "extensionHost",
       "request": "launch",

@@ -1,10 +1,10 @@
 import * as globPaths from '../glob-paths';
 
-export type SessionGlobTier = 'primary' | 'secondary';
+export type SessionGlobTier = 'always-claim' | 'is-fallback-for';
 
 export interface SessionGlobTiers {
-  primary: string[];
-  secondary: string[];
+  'always-claim': string[];
+  'is-fallback-for': string[];
 }
 
 export interface SessionGlobSpec {
@@ -51,7 +51,10 @@ export function buildGlobSpecsFromTiers(tiers: SessionGlobTiers): SessionGlobSpe
       score: computeGlobScore(pattern),
     }));
 
-  return [...toSpecs(tiers.primary, 'primary'), ...toSpecs(tiers.secondary, 'secondary')];
+  return [
+    ...toSpecs(tiers['always-claim'], 'always-claim'),
+    ...toSpecs(tiers['is-fallback-for'], 'is-fallback-for'),
+  ];
 }
 
 export function toGlobMetadata(tiers: SessionGlobTiers) {

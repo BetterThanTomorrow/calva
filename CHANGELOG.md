@@ -7,7 +7,8 @@ Changes to Calva.
 - [Add support for multiple concurrent nrepl connections](https://github.com/BetterThanTomorrow/calva/issues/76)
   - Updates to [Connect Sequences](https://calva.io/connect-sequences/):
     - Custom REPL session names via `replSessionNames`: `main` (defaults to `clj`) and `promoted` (defaults to `cljs`).
-    - Route files to sessions with `replSessionGlobs`, a multi-root-aware replacement for the old extension-based routing.
+    - Route files to sessions with `replSessionGlobs` using `main`/`promoted` keys, a multi-root-aware replacement for the old extension-based routing.
+    - Glob tier properties `always-claim`/`is-fallback-for` control routing priority. The `always-claim` tier takes precedence in file routing.
     - Rename `afterCLJReplJackInCode` → `afterMainReplConnectedCode` (the old name still works).
   - Connecting an additional sequence no longer disconnects earlier ones unless they reuse the same `replSessionNames` (treated as a re-connect).
   - Jacking in to another connect sequence no longer closes the previous REPL; each jack-in keeps its own pseudo terminal unless the sessions share `replSessionNames`, in which case it becomes a restart.

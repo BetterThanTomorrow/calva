@@ -56,7 +56,7 @@ function formatSessionDetail({
   includeSessionKey,
 }: {
   globs?: string[];
-  globSpecs?: Array<{ pattern: string; tier: 'primary' | 'secondary' }>;
+  globSpecs?: Array<{ pattern: string; tier: 'always-claim' | 'is-fallback-for' }>;
   lastActivity?: number;
   key: string;
   includeSessionKey: boolean;
@@ -68,12 +68,12 @@ function formatSessionDetail({
   }
   if (globSpecs && globSpecs.length > 0) {
     const byTier = (tier: string) => globSpecs.filter((s) => s.tier === tier).map((s) => s.pattern);
-    const primary = byTier('primary');
-    const secondary = byTier('secondary');
+    const alwaysClaim = byTier('always-claim');
+    const isFallbackFor = byTier('is-fallback-for');
     const parts = [
       'Used for:',
-      ...(primary.length ? [`${primary.join(', ')}`] : []),
-      ...(secondary.length ? [`(secondary: ${secondary.join(', ')})`] : []),
+      ...(alwaysClaim.length ? [`${alwaysClaim.join(', ')}`] : []),
+      ...(isFallbackFor.length ? [`(Is fallback for: ${isFallbackFor.join(', ')})`] : []),
     ];
     if (parts.length > 0) {
       detailParts.push(parts.join(' '));

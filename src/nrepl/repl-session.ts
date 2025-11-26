@@ -57,8 +57,8 @@ function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefine
     return candidate.order < current.order;
   };
 
-  let bestPrimary: { sessionKey: string; score: number; order: number } | undefined;
-  let bestSecondary: { sessionKey: string; score: number; order: number } | undefined;
+  let bestAlwaysClaim: { sessionKey: string; score: number; order: number } | undefined;
+  let bestFallback: { sessionKey: string; score: number; order: number } | undefined;
 
   sessions.forEach((session, index) => {
     const specs = session.globSpecs ?? [];
@@ -75,24 +75,24 @@ function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefine
         continue;
       }
       const candidate = { sessionKey: session.key, score: spec.score, order: index };
-      if (spec.tier === 'primary') {
-        if (isBetterMatch(bestPrimary, candidate)) {
-          bestPrimary = candidate;
+      if (spec.tier === 'always-claim') {
+        if (isBetterMatch(bestAlwaysClaim, candidate)) {
+          bestAlwaysClaim = candidate;
         }
       } else {
-        if (isBetterMatch(bestSecondary, candidate)) {
-          bestSecondary = candidate;
+        if (isBetterMatch(bestFallback, candidate)) {
+          bestFallback = candidate;
         }
       }
     }
   });
 
-  if (bestPrimary) {
-    return bestPrimary.sessionKey;
+  if (bestAlwaysClaim) {
+    return bestAlwaysClaim.sessionKey;
   }
 
-  if (bestSecondary) {
-    return bestSecondary.sessionKey;
+  if (bestFallback) {
+    return bestFallback.sessionKey;
   }
 
   return undefined;

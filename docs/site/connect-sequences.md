@@ -48,32 +48,32 @@ A connect sequence configures the following:
 * `replSessionNames`: Override the default repl session names that Calva registers for the main and the promoted (if any) REPL sessions. Use this to enable connecting more than one connect sequence in the same VS Code window.
     * `main`: the name of the main repl session. Defaults to `clj`
     * `promoted`: the name of the secondary/promoted repl session in the sequence. Defaults to `cljs`.
-* `replSessionGlobs`: Map each repl session name to the files it should handle using globs. The keys in the object should match the names configured in `replSessionNames` (or the defaults). Values can be a single glob string, an array of globs, or a map specifying `primary` and `secondary` globs. Globs are evaluated relative to every workspace folder, so multi-root workspaces are supported, and you can prefix the relative path with the workspace folder name to scope matches (e.g. `"app/**/*.clj"` will only match files inside the `app` Workspace folder). Defaults are `**/*.clj` for the main session and `**/*.cljs` for the promoted session.
+* `replSessionGlobs`: Map REPL session roles to the file globs they should handle. Use `main` and `promoted` as keys. Values can be a single glob string, an array of globs, or an object specifying `always-claim` and/or `is-fallback-for` globs. Globs are evaluated relative to every workspace folder, so multi-root workspaces are supported, and you can prefix the relative path with the workspace folder name to scope matches (e.g. `"app/**/*.clj"` will only match files inside the `app` Workspace folder). Defaults are `**/*.clj` for the main session and `**/*.cljs` for the promoted session.
 
 ??? note "Session routing globs competition resolution"
     When there are many repls connected at once, Calva lets you pin a repl to be used for evaluations. We've tried to make the auto-routing flexible so that you shouldn't need to resort to session pinning too often; this is why the `replSessionGlobs` setting is a bit elaborate.
 
     Your first line of defence is glob “specificity”. The routing will take a simple specificity into account in cases of routing conflict. More specific globs will take precedence over less specific ones.
 
-    When you want to stay unspecific with the glob targeting, you can signal that a particular session is secondary (or fallback) using the map/object form for `replSessionGlobs`. Specifying that some of the globs are `secondary` gives other repl sessions the chance to handle the evaluation with their `primary` globs. The built-in **Babashka** connect sequence uses this like so:
+    When you want to stay unspecific with the glob targeting, you can signal that a particular session is fallback using the object form for `replSessionGlobs`. Specifying that some globs are `is-fallback-for` gives other repl sessions the chance to handle the evaluation with their `always-claim` globs. The built-in **Babashka** connect sequence uses this like so:
 
     ```jsonc
     {
         ...
-        "replSessionNames": { "primary": "bb" },
+        "replSessionNames": { "main": "bb" },
         "replSessionGlobs": {
-            "bb": {
-                "primary": ["**/*.bb", "bb.edn"],
-                "secondary": ["**/*.clj"]
+            "main": {
+                "always-claim": ["**/*.bb", "bb.edn"],
+                "is-fallback-for": ["**/*.clj"]
             }
         }
         ...
     }
     ```
 
-    This will make the Babashka repl (if connected) get all evaluations from `.bb` files, and if no other repl session is handling `.clj` files, the Babashka repl will handle those too. But if some other connected repl is specifying `**/*.clj` as a primary glob, the Babashka repl will not compete for those files.
+    This will make the Babashka repl (if connected) get all evaluations from `.bb` files, and if no other repl session is handling `.clj` files, the Babashka repl will handle those too. But if some other connected repl is specifying `**/*.clj` as an `always-claim` glob, the Babashka repl will not compete for those files.
 
-    NB: When a sequence is not using the map/object form of the specification all globs are considered primary.
+    NB: When a sequence is not using the object form of the specification all globs are considered `always-claim`.
 
     Inside each tier, Calva scores globs by specificity: literal path segments earn more points than wildcard-heavy ones, and `**` incurs a penalty. This keeps patterns such as `src/app/**/*.cljs` ahead of a broad `**/*.cljs` even if both live in the same tier.
 
