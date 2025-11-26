@@ -666,8 +666,8 @@ function createCLJSReplType(
     const clientSessions = sessionRegistry.listSessionsByClient(clientKey);
     const mainSessionMeta = clientSessions.find((m) => !m.isPromoted);
     const cljSession = mainSessionMeta
-      ? replSession.getSession(mainSessionMeta.key)
-      : replSession.getSession(roleKeys.main);
+      ? sessionRegistry.getSession(mainSessionMeta.key)
+      : sessionRegistry.getSession(roleKeys.main);
     const getRuntimesCode = `(count (shadow.cljs.devtools.api/repl-runtimes ${connectToBuild}))`;
     const checkForRuntimes = async () => {
       const runtimes = await cljSession.eval(getRuntimesCode, 'user').value;
@@ -1291,7 +1291,7 @@ export default {
     if (!mainSessionMeta) {
       return;
     }
-    const cljSession = replSession.getSession(mainSessionMeta.key);
+    const cljSession = sessionRegistry.getSession(mainSessionMeta.key);
     // Get connection state for this client
     const connectionStateData = connectionState.getConnectionState(activeClientKey);
     const cljsTypeName = connectionStateData?.cljsTypeName;
