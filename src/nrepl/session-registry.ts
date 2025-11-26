@@ -1,6 +1,8 @@
 import { NReplSession } from './index';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import type { SessionGlobSpec, SessionGlobTier } from './globs';
+import * as connectionState from './connection-state';
+import type { ConnectionState } from './connection-state';
 
 export interface SessionMetadata {
   key: string;
@@ -180,4 +182,82 @@ export function findSingleOwnerForSessions(
 
   // Multiple owners or no owners
   return undefined;
+}
+
+/**
+ * Find the main (non-promoted) session for the same connection as the given session.
+ * Used when we need to evaluate CLJ code for a feature related to a CLJS session.
+ */
+export function findMainSessionForConnection(sessionKey: string): NReplSession | undefined {
+  const metadata = getSessionMetadata(sessionKey);
+  if (!metadata?.connectionOwnerId) {
+    return undefined;
+  }
+
+  const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
+  const mainMeta = siblingMetas.find((m) => !m.isPromoted);
+  return mainMeta ? getSession(mainMeta.key) : undefined;
+}
+
+/**
+ * Find the main session key for the same connection as the given session.
+ */
+export function findMainSessionKeyForConnection(sessionKey: string): string | undefined {
+  const metadata = getSessionMetadata(sessionKey);
+  if (!metadata?.connectionOwnerId) {
+    return undefined;
+  }
+
+  const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
+  const mainMeta = siblingMetas.find((m) => !m.isPromoted);
+  return mainMeta?.key;
+}
+
+/**
+ * Find the promoted session for the same connection as the given session.
+ */
+export function findPromotedSessionForConnection(sessionKey: string): NReplSession | undefined {
+  const metadata = getSessionMetadata(sessionKey);
+  if (!metadata?.connectionOwnerId) {
+    return undefined;
+  }
+
+  const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
+  const promotedMeta = siblingMetas.find((m) => m.isPromoted);
+  return promotedMeta ? getSession(promotedMeta.key) : undefined;
+}
+
+/**
+ * Find the promoted session key for the same connection as the given session.
+ */
+export function findPromotedSessionKeyForConnection(sessionKey: string): string | undefined {
+  const metadata = getSessionMetadata(sessionKey);
+  if (!metadata?.connectionOwnerId) {
+    return undefined;
+  }
+
+  const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
+  const promotedMeta = siblingMetas.find((m) => m.isPromoted);
+  return promotedMeta?.key;
+}
+
+/**
+ * Get connection state for the connection that owns the given session.
+ * This is the primary way to access per-connection state (cljsBuild, cljsTypeName, etc.)
+ * from code that knows a session key.
+ */
+export function getConnectionStateForSession(sessionKey: string): ConnectionState | undefined {
+  const metadata = getSessionMetadata(sessionKey);
+  if (!metadata?.connectionOwnerId) {
+    return undefined;
+  }
+  return connectionState.getConnectionState(metadata.connectionOwnerId);
+}
+
+/**
+ * Get the client key (connection owner ID) for a given session.
+ */
+export function getClientKeyForSession(sessionKey: string): string | undefined {
+  const metadata = getSessionMetadata(sessionKey);
+  return metadata?.connectionOwnerId;
 }

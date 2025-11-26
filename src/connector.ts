@@ -42,6 +42,7 @@ import * as sessionRouting from './nrepl/session-routing';
 import * as clientRegistry from './nrepl/client-registry';
 import type { RegisteredClient } from './nrepl/client-registry';
 import * as sessionTeardown from './nrepl/session-teardown';
+import * as connectionState from './nrepl/connection-state';
 import { ConflictingSessionsError } from './errors/conflicting-sessions';
 import { toGlobMetadata } from './nrepl/globs';
 
@@ -192,10 +193,17 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       port,
     });
     clientRegistry.setActiveClientKey(nClient.clientKey);
+    // Initialize connection state for this client
+    connectionState.setConnectionState(nClient.clientKey, {
+      cljsBuild: null,
+      cljsTypeName: projectTypes.getCljsTypeName(connectSequence),
+      hasBuilds: false,
+    });
     nClient.addOnCloseHandler((c) => {
       const wasRegistered = clientRegistry.unregisterClient(c.clientKey);
       if (wasRegistered) {
         sessionTeardown.teardownSessionsForClient(c.clientKey);
+        connectionState.clearConnectionState(c.clientKey);
       }
 
       const remainingSessions = sessionRegistry.listSessions().length;
@@ -266,13 +274,15 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         translatedReplType = createCLJSReplType(
           cljsType,
           projectTypes.getCljsTypeName(connectSequence),
-          connectSequence
+          connectSequence,
+          nClient.clientKey
         );
 
         [cljsSession, cljsBuild] = await makeCljsSessionClone(
           mainSession,
           translatedReplType,
-          connectSequence.name
+          connectSequence.name,
+          nClient.clientKey
         );
         void state.analytics().logGA4Pageview('/connected-cljs-repl');
       }
@@ -490,7 +500,8 @@ function updateInitCode(build: string, initCode): string | undefined {
 function createCLJSReplType(
   cljsType: CljsTypeConfig,
   cljsTypeName: string,
-  connectSequence: ReplConnectSequence
+  connectSequence: ReplConnectSequence,
+  clientKey: string
 ): ReplType {
   const projectTypeName: string = connectSequence.name,
     menuSelections = connectSequence.menuSelections;
@@ -567,10 +578,10 @@ function createCLJSReplType(
   const replType: ReplType = {
     name: cljsTypeName,
     connect: async (session, name, checkFn) => {
-      void state.extensionContext.workspaceState.update(
-        'cljsReplTypeHasBuilds',
-        cljsType.buildsRequired
-      );
+      // Store hasBuilds in per-connection state
+      connectionState.setConnectionState(clientKey, {
+        hasBuilds: cljsType.buildsRequired,
+      });
       let initCode = cljsType.connectCode;
       let build: string = null;
       if (menuSelections && menuSelections.cljsDefaultBuild && useDefaultBuild) {
@@ -615,7 +626,7 @@ function createCLJSReplType(
         build = build.startsWith(':') ? build : `:${build}`;
       }
       connectToBuild = build;
-      setStateValue('cljsBuild', build);
+      connectionState.setConnectionState(clientKey, { cljsBuild: build });
 
       return evalConnectCode(
         session,
@@ -632,7 +643,12 @@ function createCLJSReplType(
   };
 
   async function waitForShadowCljsRuntimes() {
-    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
+    // Get the main session for this connection (identified by clientKey)
+    const clientSessions = sessionRegistry.listSessionsByClient(clientKey);
+    const mainSessionMeta = clientSessions.find((m) => !m.isPromoted);
+    const cljSession = mainSessionMeta
+      ? replSession.getSession(mainSessionMeta.key)
+      : replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
     const getRuntimesCode = `(count (shadow.cljs.devtools.api/repl-runtimes ${connectToBuild}))`;
     const checkForRuntimes = async () => {
       const runtimes = await cljSession.eval(getRuntimesCode, 'user').value;
@@ -713,7 +729,7 @@ function createCLJSReplType(
           }
           if (builds) {
             output.appendLineOtherOut('Starting cljs repl for: ' + projectTypeName + '...');
-            void state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
+            connectionState.setConnectionState(clientKey, { hasBuilds: true });
             startCode = startCode.replace(
               '%BUILDS%',
               builds
@@ -788,7 +804,12 @@ function isShadowCljsReplType(cljsType: CljsTypeConfig | CljsTypes): boolean {
   return false;
 }
 
-async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: string) {
+async function makeCljsSessionClone(
+  session,
+  repl: ReplType,
+  projectTypeName: string,
+  clientKey: string
+): Promise<[NReplSession | null, string | null]> {
   output.appendLineOtherOut('Creating cljs repl session...');
   let newCljsSession = await session.clone();
   newCljsSession.replType = 'cljs';
@@ -801,7 +822,7 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
         newCljsSession.replType = 'cljs';
       } else {
         output.appendLineOtherErr('Failed starting cljs repl');
-        setStateValue('cljsBuild', null);
+        connectionState.setConnectionState(clientKey, { cljsBuild: null });
         return [null, null];
       }
     }
@@ -823,16 +844,16 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
       });
 
       cljsSession = newCljsSession;
-      return [cljsSession, getStateValue('cljsBuild')];
+      return [cljsSession, connectionState.getConnectionState(clientKey)?.cljsBuild ?? null];
     } else {
-      const build = getStateValue('cljsBuild');
+      const build = connectionState.getConnectionState(clientKey)?.cljsBuild ?? null;
       const failed =
         'Failed starting cljs repl' +
         (build != null
           ? ` for build: ${build}. Is the build running and connected?\n   See the Output channel "Calva Connection Log" for any hints on what went wrong.`
           : '');
       output.appendLineOtherOut(failed);
-      setStateValue('cljsBuild', null);
+      connectionState.setConnectionState(clientKey, { cljsBuild: null });
     }
   }
   return [null, null];
@@ -1242,16 +1263,28 @@ export default {
     if (!connectSequence || !promotedSession.shouldUsePromotedSession(connectSequence)) {
       return;
     }
-    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
-    const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName'),
-      cljTypeName: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
-    const [session, build] = await makeCljsSessionClone(
+    const activeClientKey = clientRegistry.getActiveClientKey();
+    if (!activeClientKey) {
+      return;
+    }
+    // Get the main session for the active client
+    const clientSessions = sessionRegistry.listSessionsByClient(activeClientKey);
+    const mainSessionMeta = clientSessions.find((m) => !m.isPromoted);
+    if (!mainSessionMeta) {
+      return;
+    }
+    const cljSession = replSession.getSession(mainSessionMeta.key);
+    // Get cljsTypeName from connection state
+    const connectionStateData = connectionState.getConnectionState(activeClientKey);
+    const cljsTypeName = connectionStateData?.cljsTypeName;
+    const [cljsSession, build] = await makeCljsSessionClone(
       cljSession,
       translatedReplType,
-      cljTypeName
+      cljsTypeName,
+      activeClientKey
     );
-    if (session) {
-      await setUpCljsRepl(session, build);
+    if (cljsSession) {
+      await setUpCljsRepl(cljsSession, build);
     }
     status.update();
   },

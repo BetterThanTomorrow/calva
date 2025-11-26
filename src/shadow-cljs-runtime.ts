@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as replSession from './nrepl/repl-session';
 import * as sessionRoles from './nrepl/session-roles';
+import * as sessionRegistry from './nrepl/session-registry';
 import { cljsLib } from './utilities';
 import * as util from './utilities';
 import { getStateValue, parseEdn, parseEdnWithInst } from '../out/cljs-lib/cljs-lib';
@@ -82,17 +83,45 @@ export function getSelectedRuntimeId(): number {
 }
 
 /**
+ * Get the main session for the currently routed session's connection.
+ * Shadow-cljs operations need to be performed on the main (CLJ) session
+ * that belongs to the same connection as the currently routed CLJS session.
+ */
+function getMainSessionForCurrentConnection() {
+  // Get the currently routed session key
+  const routedSessionKey = replSession.getReplSessionTypeFromState();
+  if (!routedSessionKey) {
+    return null;
+  }
+
+  // Get the main session for the connection owning the routed session
+  return sessionRegistry.findMainSessionForConnection(routedSessionKey);
+}
+
+/**
+ * Get the cljsBuild for the currently routed session's connection.
+ */
+function getCurrentBuild() {
+  const routedSessionKey = replSession.getReplSessionTypeFromState();
+  if (!routedSessionKey) {
+    return null;
+  }
+  const connectionState = sessionRegistry.getConnectionStateForSession(routedSessionKey);
+  return connectionState?.cljsBuild ?? null;
+}
+
+/**
  * Get available shadow-cljs runtimes for the current build
  */
 export async function getShadowRuntimes(): Promise<RuntimeInfo[] | null> {
   try {
-    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
+    const cljSession = getMainSessionForCurrentConnection();
     if (!cljSession) {
       output.appendLineOtherErr('No Clojure session available for runtime detection');
       return null;
     }
 
-    const currentBuild = getStateValue('cljsBuild');
+    const currentBuild = getCurrentBuild();
     if (!currentBuild) {
       output.appendLineOtherErr('No shadow-cljs build currently connected');
       return null;
@@ -187,13 +216,13 @@ export async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null
  */
 export async function switchToRuntime(runtimeInfo: RuntimeInfo): Promise<boolean> {
   try {
-    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
+    const cljSession = getMainSessionForCurrentConnection();
     if (!cljSession) {
       output.appendLineOtherErr('No Clojure session available for shadow-cljs runtime selection');
       return false;
     }
 
-    const currentBuild = getStateValue('cljsBuild');
+    const currentBuild = getCurrentBuild();
     const clientId = runtimeInfo.clientId;
 
     const selectRuntimeCode = `(shadow.cljs.devtools.api/repl-runtime-select ${currentBuild} ${clientId})`;
@@ -245,8 +274,13 @@ export async function selectShadowCljsRuntimeCommand(): Promise<void> {
  */
 export async function detectInitialRuntime(): Promise<void> {
   try {
-    const cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
-    if (cljsTypeName !== 'shadow-cljs') {
+    // Get connection state for the currently routed session
+    const routedSessionKey = replSession.getReplSessionTypeFromState();
+    if (!routedSessionKey) {
+      return;
+    }
+    const connectionState = sessionRegistry.getConnectionStateForSession(routedSessionKey);
+    if (connectionState?.cljsTypeName !== 'shadow-cljs') {
       return; // Only run for shadow-cljs projects
     }
 
@@ -344,7 +378,7 @@ export async function handleShadowRemoteMessage(msgData: any): Promise<void> {
  */
 export async function initializeShadowRemoteNotifications(): Promise<void> {
   try {
-    const cljSession = replSession.getSession(sessionRoles.getSessionKeyForRole('main'));
+    const cljSession = getMainSessionForCurrentConnection();
     if (!cljSession) {
       output.appendLineOtherErr('No Clojure session available for shadow-remote initialization');
       return;
