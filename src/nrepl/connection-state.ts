@@ -20,6 +20,8 @@ export interface ConnectionState {
   sessionRoleKeys?: SessionRoleKeys;
   sessionGlobMap?: SessionGlobMap;
   connectSequence?: ReplConnectSequence;
+  shadowCljsRuntimeId?: number;
+  shadowCljsRuntimeInfo?: any;
 }
 
 const connectionStates = new Map<string, ConnectionState>();

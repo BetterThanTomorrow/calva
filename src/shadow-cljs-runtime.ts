@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as replSession from './nrepl/repl-session';
 import * as sessionRegistry from './nrepl/session-registry';
+import * as connectionState from './nrepl/connection-state';
 import { cljsLib } from './utilities';
 import * as util from './utilities';
 import { getStateValue, parseEdn, parseEdnWithInst } from '../out/cljs-lib/cljs-lib';
@@ -73,12 +74,28 @@ interface RuntimeQuickPickItem extends vscode.QuickPickItem {
   runtimeInfo: RuntimeInfo;
 }
 
-export function getSelectedRuntimeInfo(): RuntimeInfo {
-  return getStateValue('shadow-cljs:getSelectedRuntimeInfo');
+function getConnectionStateForCurrentContext() {
+  const routedSessionKey = replSession.getReplSessionTypeFromState();
+  if (!routedSessionKey) {
+    return null;
+  }
+  return sessionRegistry.getConnectionStateForSession(routedSessionKey);
 }
 
-export function getSelectedRuntimeId(): number {
-  return getStateValue('shadow-cljs:getSelectedRuntimeId');
+export function getSelectedRuntimeInfo(clientKey?: string): RuntimeInfo {
+  if (clientKey) {
+    return connectionState.getConnectionState(clientKey)?.shadowCljsRuntimeInfo;
+  }
+  const state = getConnectionStateForCurrentContext();
+  return state?.shadowCljsRuntimeInfo;
+}
+
+export function getSelectedRuntimeId(clientKey?: string): number {
+  if (clientKey) {
+    return connectionState.getConnectionState(clientKey)?.shadowCljsRuntimeId;
+  }
+  const state = getConnectionStateForCurrentContext();
+  return state?.shadowCljsRuntimeId;
 }
 
 /**
@@ -213,22 +230,36 @@ export async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null
 /**
  * Switch to a specific shadow-cljs runtime
  */
-export async function switchToRuntime(runtimeInfo: RuntimeInfo): Promise<boolean> {
+export async function switchToRuntime(
+  runtimeInfo: RuntimeInfo,
+  clientKey?: string
+): Promise<boolean> {
   try {
-    const cljSession = getMainSessionForCurrentConnection();
+    let cljSession;
+    if (clientKey) {
+      cljSession = sessionRegistry.getMainSessionForClient(clientKey);
+    } else {
+      cljSession = getMainSessionForCurrentConnection();
+    }
+
     if (!cljSession) {
       output.appendLineOtherErr('No Clojure session available for shadow-cljs runtime selection');
       return false;
     }
 
-    const currentBuild = getCurrentBuild();
+    let currentBuild;
+    if (clientKey) {
+      currentBuild = connectionState.getConnectionState(clientKey)?.cljsBuild;
+    } else {
+      currentBuild = getCurrentBuild();
+    }
     const clientId = runtimeInfo.clientId;
 
     const selectRuntimeCode = `(shadow.cljs.devtools.api/repl-runtime-select ${currentBuild} ${clientId})`;
 
     await cljSession.eval(selectRuntimeCode, 'user').value;
 
-    updateRuntimeState(clientId, runtimeInfo);
+    updateRuntimeState(clientId, runtimeInfo, clientKey);
 
     // Update status bar to show the new runtime
     status.update();
@@ -292,7 +323,7 @@ export async function detectInitialRuntime(): Promise<void> {
     const runtime = runtimes[0];
     const clientId = runtime.clientId;
 
-    updateRuntimeState(clientId, runtime);
+    updateRuntimeState(clientId, runtime, connectionState.clientKey);
 
     status.update();
     if (runtimes.length > 1) {
@@ -310,15 +341,43 @@ export async function detectInitialRuntime(): Promise<void> {
 
 export type { ShadowApiRuntimeInfo as ShadowRuntimeInfo, RuntimeQuickPickItem };
 
-export function updateRuntimeState(clientId: number, runtimeInfo: RuntimeInfo): void {
-  cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeId', clientId);
-  cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeInfo', runtimeInfo);
+export function updateRuntimeState(
+  clientId: number,
+  runtimeInfo: RuntimeInfo,
+  clientKey?: string
+): void {
+  if (clientKey) {
+    connectionState.setConnectionState(clientKey, {
+      shadowCljsRuntimeId: clientId,
+      shadowCljsRuntimeInfo: runtimeInfo,
+    });
+  } else {
+    const state = getConnectionStateForCurrentContext();
+    if (state) {
+      connectionState.setConnectionState(state.clientKey, {
+        shadowCljsRuntimeId: clientId,
+        shadowCljsRuntimeInfo: runtimeInfo,
+      });
+    }
+  }
   status.update();
 }
 
-export function clearRuntimeState(): void {
-  cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeId', null);
-  cljsLib.setStateValue('shadow-cljs:getSelectedRuntimeInfo', null);
+export function clearRuntimeState(clientKey?: string): void {
+  if (clientKey) {
+    connectionState.setConnectionState(clientKey, {
+      shadowCljsRuntimeId: undefined,
+      shadowCljsRuntimeInfo: undefined,
+    });
+  } else {
+    const state = getConnectionStateForCurrentContext();
+    if (state) {
+      connectionState.setConnectionState(state.clientKey, {
+        shadowCljsRuntimeId: undefined,
+        shadowCljsRuntimeInfo: undefined,
+      });
+    }
+  }
   status.update();
 }
 
@@ -331,18 +390,20 @@ export function clearRuntimeState(): void {
  * This supports the case where we the user is connected to a client and reloads the page,
  * expecting to remain connected to the reloaded page.
  */
-export async function handleShadowRemoteMessage(msgData: any): Promise<void> {
+export async function handleShadowRemoteMessage(msgData: any, clientKey: string): Promise<void> {
   try {
     if (msgData.data) {
       const data = parseEdn(msgData.data);
       if (data && data.op === 'notify' && data['client-id']) {
         const clientId = data['client-id'];
-        const currentRuntimeId = getSelectedRuntimeId();
-        const currentRuntimeInfo = getSelectedRuntimeInfo() || { description: 'No description' };
+        const currentRuntimeId = getSelectedRuntimeId(clientKey);
+        const currentRuntimeInfo = getSelectedRuntimeInfo(clientKey) || {
+          description: 'No description',
+        };
         const eventOp = data['event-op'];
         if (eventOp === 'client-disconnect' && clientId === currentRuntimeId) {
           // The connected runtime was disconnected
-          clearRuntimeState();
+          clearRuntimeState(clientKey);
           output.appendLineOtherOut(
             `shadow-cljs runtime disconnected: ${clientId} ${currentRuntimeInfo.description}`
           );
@@ -353,7 +414,7 @@ export async function handleShadowRemoteMessage(msgData: any): Promise<void> {
             : null;
           if (runtimeInfo) {
             runtimeInfo.clientId = clientId; // Notification infos lack client id
-            const success = await switchToRuntime(runtimeInfo);
+            const success = await switchToRuntime(runtimeInfo, clientKey);
             if (success) {
               output.appendLineOtherOut(
                 `shadow-cljs runtime connected: ${clientId}, ${runtimeInfo.description}`

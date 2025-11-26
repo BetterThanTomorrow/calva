@@ -298,7 +298,7 @@ export class NReplSession {
 
   _defaultMessageHandler(msgData: any) {
     if (msgData.op === 'shadow-remote-msg') {
-      void handleShadowRemoteMessage(msgData);
+      void handleShadowRemoteMessage(msgData, this.client.clientKey);
       return;
     }
 
