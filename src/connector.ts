@@ -148,7 +148,12 @@ async function readRuntimeConfigs() {
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
   let mainSession: NReplSession;
   const sessionRoleKeys = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
-  const sessionGlobMap = sessionRoleUtils.deriveSessionGlobMap(connectSequence, sessionRoleKeys);
+  const projectRootPath = state.getProjectRootUri().fsPath;
+  const sessionGlobMap = sessionRoleUtils.deriveSessionGlobMap(
+    connectSequence,
+    sessionRoleKeys,
+    projectRootPath
+  );
   const usePromotedSession = promotedSession.shouldUsePromotedSession(connectSequence);
 
   // Check if all requested sessions are owned by a single existing client

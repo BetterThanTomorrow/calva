@@ -14,8 +14,8 @@ import {
   CljsTypeConfig,
   MenuSelections,
   SessionNamesConfig,
-  SessionGlobsConfig,
-  SessionGlobTierConfig,
+  SessionFilePatternsConfig,
+  SessionFilePatternsRulesConfig,
   ReplConnectSequence,
 } from './connect-sequence-types';
 
@@ -148,7 +148,7 @@ const cljsOnlyDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes['ClojureScript nREPL'],
     nReplPortFile: ['.nrepl-port'],
     replSessionNames: { main: 'cljs' },
-    replSessionGlobs: { main: ['**/*.cljs'] },
+    replSessionFilePatterns: { main: ['*.cljs'] },
   },
 ];
 
@@ -159,10 +159,10 @@ const babashkaDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes.none,
     nReplPortFile: ['.bb-nrepl.port'],
     replSessionNames: { main: 'bb' },
-    replSessionGlobs: {
+    replSessionFilePatterns: {
       main: {
-        'always-claim': ['bb.edn', '**/*.bb', 'scripts/*.clj'],
-        'is-fallback-for': ['**/*.clj'],
+        'always-claim': ['bb.edn', '*.bb', 'scripts/*.clj'],
+        'is-fallback-for': ['*.clj'],
       },
     },
   },
@@ -175,8 +175,8 @@ const nbbDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes['ClojureScript nREPL'],
     nReplPortFile: ['.nrepl-port'],
     replSessionNames: { main: 'nbb' },
-    replSessionGlobs: {
-      main: { 'always-claim': ['**/*.nbb'], 'is-fallback-for': ['**/*.cljs'] },
+    replSessionFilePatterns: {
+      main: { 'always-claim': ['*.nbb'], 'is-fallback-for': ['*.cljs'] },
     },
   },
 ];
@@ -187,7 +187,7 @@ const joyrideDefaults: ReplConnectSequence[] = [
     projectType: ProjectTypes['joyride'],
     cljsType: CljsTypes['ClojureScript nREPL'],
     replSessionNames: { main: 'joyride' },
-    replSessionGlobs: { main: ['.joyride/**/*.clj{s,c}'] },
+    replSessionFilePatterns: { main: ['*.clj{s,c}'] },
   },
 ];
 
@@ -198,7 +198,7 @@ const basilispDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes.none,
     nReplPortFile: ['.nrepl-port'],
     replSessionNames: { main: 'basilisp' },
-    replSessionGlobs: { main: ['**/*.lpy'] },
+    replSessionFilePatterns: { main: ['*.lpy'] },
   },
 ];
 
@@ -323,28 +323,30 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
       }
     }
 
-    if (sequence.replSessionGlobs) {
-      const isGlobValue = (value: unknown): value is string | string[] => {
+    if (sequence.replSessionFilePatterns) {
+      const isPatternValue = (value: unknown): value is string | string[] => {
         if (typeof value === 'string') {
           return value.trim().length > 0;
         }
         if (Array.isArray(value)) {
           return (
             value.length > 0 &&
-            value.every((glob) => typeof glob === 'string' && glob.trim().length > 0)
+            value.every((pattern) => typeof pattern === 'string' && pattern.trim().length > 0)
           );
         }
         return false;
       };
 
-      const isTierConfig = (value: unknown): value is SessionGlobTierConfig =>
+      const isTierConfig = (value: unknown): value is SessionFilePatternsRulesConfig =>
         typeof value === 'object' && value !== null && !Array.isArray(value);
 
       const isValidTierEntry = (tierValue?: string | string[]): boolean =>
-        tierValue ? isGlobValue(tierValue) : false;
+        tierValue ? isPatternValue(tierValue) : false;
 
-      const isValidGlobEntry = (value: string | string[] | SessionGlobTierConfig): boolean => {
-        if (isGlobValue(value)) {
+      const isValidPatternEntry = (
+        value: string | string[] | SessionFilePatternsRulesConfig
+      ): boolean => {
+        if (isPatternValue(value)) {
           return true;
         }
         if (isTierConfig(value)) {
@@ -355,10 +357,10 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
         return false;
       };
 
-      for (const [name, value] of Object.entries(sequence.replSessionGlobs)) {
-        if (!isValidGlobEntry(value)) {
+      for (const [name, value] of Object.entries(sequence.replSessionFilePatterns)) {
+        if (!isValidPatternEntry(value)) {
           void vscode.window.showWarningMessage(
-            `Invalid glob configuration for session "${name}" in connect sequence "${sequence.name}". Provide a glob string/array or an object with always-claim/is-fallback-for glob arrays.`,
+            `Invalid file pattern configuration for session "${name}" in connect sequence "${sequence.name}". Provide a pattern string/array or an object with always-claim/is-fallback-for pattern arrays.`,
             ...['Roger That!']
           );
           return [];

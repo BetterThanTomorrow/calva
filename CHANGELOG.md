@@ -7,16 +7,16 @@ Changes to Calva.
 - [Add support for multiple concurrent nrepl connections](https://github.com/BetterThanTomorrow/calva/issues/76)
   - Updates to [Connect Sequences](https://calva.io/connect-sequences/):
     - Custom REPL session names via `replSessionNames`: `main` (defaults to `clj`) and `promoted` (defaults to `cljs`).
-    - Route files to sessions with `replSessionGlobs` using `main`/`promoted` keys, a multi-root-aware replacement for the old extension-based routing.
-    - Glob tier properties `always-claim`/`is-fallback-for` control routing priority. The `always-claim` tier takes precedence in file routing.
+    - Route files to sessions with `replSessionFilePatterns` using `main`/`promoted` keys. Patterns like `*.clj` are automatically scoped to the sequence's project root.
+    - Pattern tier properties `always-claim`/`is-fallback-for` control routing priority. The `always-claim` tier takes precedence in file routing.
     - Rename `afterCLJReplJackInCode` → `afterMainReplConnectedCode` (the old name still works).
   - Connecting an additional sequence no longer disconnects earlier ones unless they reuse the same `replSessionNames` (treated as a re-connect).
   - Jacking in to another connect sequence no longer closes the previous REPL; each jack-in keeps its own pseudo terminal unless the sessions share `replSessionNames`, in which case it becomes a restart.
-  - Allows **Session pinning**—lock all evaluations to a specific session and override glob-based routing.
+  - Allows **Session pinning**—lock all evaluations to a specific session and override pattern-based routing.
   - New command: **Calva: Repl Sessions**, listing sessions, enabling pinning, toggling auto-route, and selecting the CLJC evaluation session (also available from the status bar session indicator).
   - Adds a REPL Sessions status bar menu for pinning sessions, toggling auto-route, and setting `.cljc` overrides.
   - Adds API function `repl.listSessions()`
-  - Updates default connect sequences for *Joyride*, *Babashka*, *nbb*, and *Basilisp*, to use custom `replSessionNames`, and configured default routings with `replSessionGlobs`.
+  - Updates default connect sequences for *Joyride*, *Babashka*, *nbb*, and *Basilisp*, to use custom `replSessionNames`, and configured default routings with `replSessionFilePatterns`.
   - Removed deprecated `calva.useLegacyReplWindowPath` setting. The REPL window is now always located at `.calva/repl.calva-repl`.
 
 ## [2.0.540] - 2025-11-06

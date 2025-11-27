@@ -1,9 +1,10 @@
 import {
   ReplConnectSequence,
-  SessionGlobsConfig,
-  SessionGlobTierConfig,
+  SessionFilePatternsConfig,
+  SessionFilePatternsRulesConfig,
 } from './connect-sequence-types';
 import type { SessionGlobTiers } from './globs';
+import * as globs from './globs';
 import * as promotedSession from './promoted-session';
 
 export type SessionRole = 'main' | 'promoted';
@@ -20,29 +21,34 @@ const DEFAULT_SESSION_ROLE_KEYS: SessionRoleKeys = {
   promoted: 'cljs',
 };
 
-const DEFAULT_SESSION_ROLE_GLOBS: Record<SessionRole, SessionGlobTiers> = {
-  main: { 'always-claim': ['**/*.clj'], 'is-fallback-for': [] },
-  promoted: { 'always-claim': ['**/*.cljs'], 'is-fallback-for': [] },
+/**
+ * Default file patterns for session roles.
+ * These are simple patterns like `*.clj` that get combined with the project root
+ * to form full globs like `/path/to/project/**\/*.clj`.
+ */
+const DEFAULT_SESSION_ROLE_FILE_PATTERNS: Record<SessionRole, SessionGlobTiers> = {
+  main: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': [] },
+  promoted: { 'always-claim': ['*.cljs'], 'is-fallback-for': [] },
 };
 
-function normalizeGlobValue(value: string | string[]): string[] {
+function normalizePatternValue(value: string | string[]): string[] {
   return (Array.isArray(value) ? value : [value])
-    .map((glob) => glob.trim())
-    .filter((glob) => glob.length > 0);
+    .map((pattern) => pattern.trim())
+    .filter((pattern) => pattern.length > 0);
 }
 
 function normalizeTierConfig(value?: string | string[]): string[] {
-  return value ? normalizeGlobValue(value) : [];
+  return value ? normalizePatternValue(value) : [];
 }
 
-function normalizeGlobEntry(
-  value: string | string[] | SessionGlobTierConfig | undefined
+function normalizePatternEntry(
+  value: string | string[] | SessionFilePatternsRulesConfig | undefined
 ): SessionGlobTiers {
   if (value === undefined) {
     return { 'always-claim': [], 'is-fallback-for': [] };
   }
   if (typeof value === 'string' || Array.isArray(value)) {
-    return { 'always-claim': normalizeGlobValue(value), 'is-fallback-for': [] };
+    return { 'always-claim': normalizePatternValue(value), 'is-fallback-for': [] };
   }
   return {
     'always-claim': normalizeTierConfig(value['always-claim']),
@@ -66,15 +72,40 @@ export function deriveSessionRoleKeys(sequence?: ReplConnectSequence): SessionRo
 }
 
 /**
+ * Converts file pattern tiers to full glob tiers by prepending project root.
+ */
+function buildGlobTiersFromPatterns(
+  projectRootPath: string,
+  patternTiers: SessionGlobTiers
+): SessionGlobTiers {
+  const buildFullGlobs = (patterns: string[]): string[] => {
+    const specs = globs.constructGlobsFromFilePatterns(projectRootPath, patterns, 'always-claim');
+    return specs.map((spec) => spec.pattern);
+  };
+
+  return {
+    'always-claim': buildFullGlobs(patternTiers['always-claim']),
+    'is-fallback-for': buildFullGlobs(patternTiers['is-fallback-for']),
+  };
+}
+
+/**
  * Derive glob configuration for session keys from a connect sequence.
+ * File patterns from config are combined with projectRootPath to create full globs.
  * This is a pure function that does NOT set any global state.
+ *
+ * @param sequence - The connect sequence containing file pattern configuration
+ * @param keys - The session role keys (e.g., { main: 'clj', promoted: 'cljs' })
+ * @param projectRootPath - The project root as an fsPath, used to construct full globs
  */
 export function deriveSessionGlobMap(
   sequence: ReplConnectSequence | undefined,
-  keys: SessionRoleKeys
+  keys: SessionRoleKeys,
+  projectRootPath: string
 ): SessionGlobMap {
-  const globs: SessionGlobMap = {};
-  const configuredGlobs: SessionGlobsConfig | undefined = sequence?.replSessionGlobs;
+  const globMap: SessionGlobMap = {};
+  const configuredPatterns: SessionFilePatternsConfig | undefined =
+    sequence?.replSessionFilePatterns;
 
   (['main', 'promoted'] as SessionRole[]).forEach((role) => {
     const key = keys[role];
@@ -82,24 +113,32 @@ export function deriveSessionGlobMap(
       return;
     }
 
-    const configuredForRole = configuredGlobs?.[role];
+    const configuredForRole = configuredPatterns?.[role];
+    let patternTiers: SessionGlobTiers;
+
     if (configuredForRole) {
-      globs[key] = normalizeGlobEntry(configuredForRole);
-      return;
+      patternTiers = normalizePatternEntry(configuredForRole);
+    } else {
+      const defaults = DEFAULT_SESSION_ROLE_FILE_PATTERNS[role];
+      patternTiers = defaults
+        ? {
+            'always-claim': [...defaults['always-claim']],
+            'is-fallback-for': [...defaults['is-fallback-for']],
+          }
+        : { 'always-claim': [], 'is-fallback-for': [] };
     }
 
-    const defaults = DEFAULT_SESSION_ROLE_GLOBS[role];
-    if (defaults) {
-      globs[key] = {
-        'always-claim': [...defaults['always-claim']],
-        'is-fallback-for': [...defaults['is-fallback-for']],
-      };
-    } else {
-      globs[key] = { 'always-claim': [], 'is-fallback-for': [] };
-    }
+    // Convert file patterns to full globs using project root
+    const fullGlobTiers = buildGlobTiersFromPatterns(projectRootPath, patternTiers);
+
+    // Add catch-all glob to is-fallback-for tier for cljc routing
+    const catchAllSpec = globs.createCatchAllGlobSpec(projectRootPath);
+    fullGlobTiers['is-fallback-for'].push(catchAllSpec.pattern);
+
+    globMap[key] = fullGlobTiers;
   });
 
-  return globs;
+  return globMap;
 }
 
 /**

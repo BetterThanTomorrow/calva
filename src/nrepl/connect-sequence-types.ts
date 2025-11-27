@@ -51,16 +51,16 @@ interface SessionNamesConfig {
   promoted?: string;
 }
 
-type GlobValue = string | string[];
+type FilePatternsValue = string | string[];
 
-interface SessionGlobTierConfig {
-  'always-claim'?: GlobValue;
-  'is-fallback-for'?: GlobValue;
+interface SessionFilePatternsRulesConfig {
+  'always-claim'?: FilePatternsValue;
+  'is-fallback-for'?: FilePatternsValue;
 }
 
-type SessionGlobsConfigValue = GlobValue | SessionGlobTierConfig;
+type SessionFilePatternsConfigValue = FilePatternsValue | SessionFilePatternsRulesConfig;
 
-type SessionGlobsConfig = Record<string, SessionGlobsConfigValue>;
+type SessionFilePatternsConfig = Record<string, SessionFilePatternsConfigValue>;
 
 interface ReplConnectSequence {
   name: string;
@@ -78,7 +78,7 @@ interface ReplConnectSequence {
   extraNReplMiddleware?: string[];
   jackInEnv?: Record<string, string>;
   replSessionNames?: SessionNamesConfig;
-  replSessionGlobs?: SessionGlobsConfig;
+  replSessionFilePatterns?: SessionFilePatternsConfig;
 }
 
 export {
@@ -87,7 +87,7 @@ export {
   CljsTypeConfig,
   MenuSelections,
   SessionNamesConfig,
-  SessionGlobTierConfig,
-  SessionGlobsConfig,
+  SessionFilePatternsRulesConfig,
+  SessionFilePatternsConfig,
   ReplConnectSequence,
 };

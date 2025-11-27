@@ -835,9 +835,9 @@
                     "promoted": "cljs"
                   }
                 },
-                "replSessionGlobs": {
+                "replSessionFilePatterns": {
                   "type": "object",
-                  "markdownDescription": "Map REPL session roles to the file globs they should handle. Use `main` and `promoted` keys to refer to the session roles. Values can be: a glob string, an array of globs, or an object with `always-claim` and/or `is-fallback-for` properties (arrays of globs) to control routing priority. The `always-claim` tier takes precedence over `is-fallback-for`. Globs are evaluated per workspace folder.",
+                  "markdownDescription": "Map REPL session roles to file patterns they should handle. Use `main` and `promoted` keys to refer to the session roles. Values can be: a pattern string like `*.clj`, an array of patterns, or an object with `always-claim` and/or `is-fallback-for` properties (arrays of patterns) to control routing priority. Patterns are automatically scoped to the sequence's project root (e.g., `*.clj` becomes `/path/to/project/**/*.clj`). The `always-claim` tier takes precedence over `is-fallback-for`.",
                   "properties": {
                     "main": {
                       "anyOf": [
@@ -865,7 +865,7 @@
                                   }
                                 }
                               ],
-                              "markdownDescription": "High-priority globs for this session. Files matching these patterns will always route to this session, even if another session has a more specific pattern."
+                              "markdownDescription": "High-priority file patterns for this session. Files matching these patterns will always route to this session, even if another session has a more specific pattern."
                             },
                             "is-fallback-for": {
                               "anyOf": [
@@ -879,13 +879,13 @@
                                   }
                                 }
                               ],
-                              "markdownDescription": "Lower-priority globs for this session. Files matching these patterns will route to this session only if no other session has a matching `always-claim` pattern."
+                              "markdownDescription": "Lower-priority file patterns for this session. Files matching these patterns will route to this session only if no other session has a matching `always-claim` pattern."
                             }
                           },
                           "additionalProperties": false
                         }
                       ],
-                      "markdownDescription": "Globs for the main REPL session."
+                      "markdownDescription": "File patterns for the main REPL session (e.g., `*.clj`, `*.edn`)."
                     },
                     "promoted": {
                       "anyOf": [
@@ -913,7 +913,7 @@
                                   }
                                 }
                               ],
-                              "markdownDescription": "High-priority globs for this session. Files matching these patterns will always route to this session, even if another session has a more specific pattern."
+                              "markdownDescription": "High-priority file patterns for this session. Files matching these patterns will always route to this session, even if another session has a more specific pattern."
                             },
                             "is-fallback-for": {
                               "anyOf": [
@@ -927,22 +927,23 @@
                                   }
                                 }
                               ],
-                              "markdownDescription": "Lower-priority globs for this session. Files matching these patterns will route to this session only if no other session has a matching `always-claim` pattern."
+                              "markdownDescription": "Lower-priority file patterns for this session. Files matching these patterns will route to this session only if no other session has a matching `always-claim` pattern."
                             }
                           },
                           "additionalProperties": false
                         }
                       ],
-                      "markdownDescription": "Globs for the promoted REPL session."
+                      "markdownDescription": "File patterns for the promoted REPL session (e.g., `*.cljs`)."
                     }
                   },
                   "additionalProperties": false,
                   "default": {
                     "main": [
-                      "**/*.clj"
+                      "*.clj",
+                      "*.edn"
                     ],
                     "promoted": [
-                      "**/*.cljs"
+                      "*.cljs"
                     ]
                   }
                 },

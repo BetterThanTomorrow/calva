@@ -64,3 +64,70 @@ export function toGlobMetadata(tiers: SessionGlobTiers) {
     globs: globSpecs.map((spec) => spec.pattern),
   };
 }
+
+/**
+ * Normalizes a project root path to a POSIX file path suitable for glob matching.
+ *
+ * @param projectRootPath - The project root as an fsPath (e.g., "/Users/pez/..." or "C:\\Users\\...")
+ * @returns A POSIX-normalized path without trailing slash (e.g., "/Users/pez/...")
+ */
+export function normalizeProjectRoot(projectRootPath: string): string {
+  const posixPath = globPaths.toPosixPath(projectRootPath);
+  return posixPath.endsWith('/') ? posixPath.slice(0, -1) : posixPath;
+}
+
+/**
+ * Constructs full glob patterns from file patterns and a project root.
+ *
+ * File patterns like `*.clj` are transformed into full globs like `/path/to/project/**\/*.clj`.
+ * Each sequence also receives an implicit catch-all glob `<projectRoot>/**\/*` in the
+ * `is-fallback-for` tier to enable cljc routing and ensure all files in a project root
+ * can be routed to the sequence.
+ *
+ * @param projectRootPath - The project root as an fsPath (e.g., "/Users/pez/..." or "C:\\Users\\...")
+ * @param filePatterns - File patterns like `["*.clj", "*.edn"]` or path patterns like `["scripts/*.clj"]`
+ * @param tier - The glob tier ('always-claim' or 'is-fallback-for')
+ * @returns Full glob specs with patterns like `/path/to/project/**\/*.clj`
+ */
+export function constructGlobsFromFilePatterns(
+  projectRootPath: string,
+  filePatterns: string[],
+  tier: SessionGlobTier
+): SessionGlobSpec[] {
+  if (!projectRootPath || filePatterns.length === 0) {
+    return [];
+  }
+
+  const normalizedRoot = normalizeProjectRoot(projectRootPath);
+
+  return filePatterns.map((pattern) => {
+    const normalizedPattern = globPaths.toPosixPath(pattern);
+    const fullPattern = `${normalizedRoot}/**/${normalizedPattern}`;
+    return {
+      pattern: fullPattern,
+      normalizedPattern: fullPattern,
+      tier,
+      score: computeGlobScore(fullPattern),
+    };
+  });
+}
+
+/**
+ * Creates a catch-all glob spec for a project root.
+ *
+ * This is used as a fallback tier to ensure all files in a project root can be
+ * routed to a sequence, enabling per-sequence cljc routing.
+ *
+ * @param projectRootPath - The project root as an fsPath
+ * @returns A glob spec matching all files under the project root
+ */
+export function createCatchAllGlobSpec(projectRootPath: string): SessionGlobSpec {
+  const normalizedRoot = normalizeProjectRoot(projectRootPath);
+  const fullPattern = `${normalizedRoot}/**/*`;
+  return {
+    pattern: fullPattern,
+    normalizedPattern: fullPattern,
+    tier: 'is-fallback-for',
+    score: computeGlobScore(fullPattern),
+  };
+}
