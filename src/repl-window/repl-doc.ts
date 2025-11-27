@@ -16,11 +16,7 @@ import * as replSession from '../nrepl/repl-session';
 import { formatAsLineComments, splitEditQueueForTextBatching } from '../results-output/util';
 import * as output from '../results-output/output';
 
-function getReplDocName() {
-  return `${config.getConfig().useLegacyReplWindowPath ? 'output' : 'repl'}.${
-    config.REPL_FILE_EXT
-  }`;
-}
+const REPL_DOC_NAME = `repl.${config.REPL_FILE_EXT}`;
 
 const PROMPT_HINT = 'Use `alt+enter` to evaluate';
 
@@ -32,23 +28,6 @@ const START_GREETINGS = [
   'Please see https://calva.io/repl-window/ for more info.',
   'Happy coding! ♥️',
 ].join(`\n`);
-
-const REPL_WINDOW_PATH_CHANGE_MESSAGE = `
-
-PLEASE NOTE
-We will update the default location of this file.
-The new default location will be
-  "<projectRootPath>/.calva/repl.calva-repl"
-For now the legacy path is used by default.
-To give yourself a smooth transition, you can opt in
-to the change, by configuring this setting as false:
-  "calva.useLegacyReplWindowPath"
-and then add "**/.calva/repl.calva-repl" to your ".gitignore" file.
-`;
-
-function replFilePathChangeMessage() {
-  return config.getConfig().useLegacyReplWindowPath ? REPL_WINDOW_PATH_CHANGE_MESSAGE : '';
-}
 
 const OUTPUT_DESTINATION_SETTINGS_MESSAGE = `
 
@@ -84,25 +63,28 @@ export const CLJS_CONNECT_GREETINGS = [
   '   (Click the session indicator in the status bar to open it)',
 ].join(`\n`);
 
-function outputFileDir() {
+function computeDocUri(): vscode.Uri {
   const projectRoot = state.getProjectRootUri();
   util.assertIsDefined(projectRoot, 'Expected there to be a project root!');
   try {
-    return config.getConfig().useLegacyReplWindowPath
-      ? vscode.Uri.joinPath(projectRoot, '.calva', 'output-window')
-      : vscode.Uri.joinPath(projectRoot, '.calva');
+    return vscode.Uri.joinPath(projectRoot, '.calva', REPL_DOC_NAME);
   } catch {
-    return config.getConfig().useLegacyReplWindowPath
-      ? vscode.Uri.file(path.join(projectRoot.fsPath, '.calva', 'output-window'))
-      : vscode.Uri.file(path.join(projectRoot.fsPath, '.calva'));
+    return vscode.Uri.file(path.join(projectRoot.fsPath, '.calva', REPL_DOC_NAME));
   }
 }
 
-let isInitialized = false;
+let _docUri: vscode.Uri | undefined;
 
-const DOC_URI = () => {
-  return vscode.Uri.joinPath(outputFileDir(), getReplDocName());
-};
+function getDocUri(): vscode.Uri {
+  if (!_docUri) {
+    _docUri = computeDocUri();
+  }
+  return _docUri;
+}
+
+function getDocDir(): vscode.Uri {
+  return vscode.Uri.joinPath(getDocUri(), '..');
+}
 
 type SessionInfo = {
   ns?: string;
@@ -181,7 +163,10 @@ export function setSession(session: NReplSession, newNs?: string, sessionKey?: s
 }
 
 export function isResultsDoc(doc?: vscode.TextDocument): boolean {
-  return !!doc && path.basename(doc.fileName) === getReplDocName();
+  if (!doc || !_docUri) {
+    return false;
+  }
+  return doc.uri.toString() === _docUri.toString();
 }
 
 function getViewColumn(): vscode.ViewColumn {
@@ -252,12 +237,12 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
 }
 
 export async function clearResultsDoc() {
-  await util.writeTextToFile(DOC_URI(), '');
+  await util.writeTextToFile(getDocUri(), '');
 }
 
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
-  const docUri = DOC_URI();
-  await vscode.workspace.fs.createDirectory(outputFileDir());
+  const docUri = getDocUri();
+  await vscode.workspace.fs.createDirectory(getDocDir());
   let resultsDoc: vscode.TextDocument;
   try {
     resultsDoc = await vscode.workspace.openTextDocument(docUri);
@@ -275,13 +260,13 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
   if (config.getConfig().autoOpenResultOutputDestination) {
     void output.showResultOutputDestination(true);
   }
-  if (isInitialized) {
+  if (_docUri) {
     return resultsDoc;
   }
 
   const greetings = `${formatAsLineComments(START_GREETINGS)}\n\n${formatAsLineComments(
     CLJ_CONNECT_GREETINGS
-  )}${replFilePathChangeMessage()}${outputDestinationSettingMessage()}\n\n`;
+  )}${outputDestinationSettingMessage()}\n\n`;
   const edit = new vscode.WorkspaceEdit();
   const fullRange = new vscode.Range(resultsDoc.positionAt(0), resultsDoc.positionAt(Infinity));
   edit.replace(docUri, fullRange, greetings);
@@ -296,12 +281,11 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
   );
 
   replHistory.resetState();
-  isInitialized = true;
   return resultsDoc;
 }
 
 export async function openResultsDoc(): Promise<vscode.TextDocument> {
-  const resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
+  const resultsDoc = await vscode.workspace.openTextDocument(getDocUri());
   return resultsDoc;
 }
 
@@ -363,7 +347,7 @@ export function appendCurrentTopLevelForm() {
 
 export async function lastLineIsEmpty(): Promise<boolean> {
   try {
-    const doc = await vscode.workspace.openTextDocument(DOC_URI());
+    const doc = await vscode.workspace.openTextDocument(getDocUri());
     return util.lastLineIsEmpty(doc);
   } catch (error) {
     console.error('Failed opening results doc', error);
@@ -390,7 +374,7 @@ function registerResultDocSubscriptions() {
 }
 
 async function writeToResultsDoc({ text, onAppended }: ResultsBufferEntry): Promise<void> {
-  const docUri = DOC_URI();
+  const docUri = getDocUri();
   const doc = await vscode.workspace.openTextDocument(docUri);
   const insertPosition = doc.positionAt(Infinity);
   const edit = new vscode.WorkspaceEdit();
