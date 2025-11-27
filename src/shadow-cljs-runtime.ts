@@ -2,76 +2,14 @@ import * as vscode from 'vscode';
 import * as replSession from './nrepl/repl-session';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as connectionState from './nrepl/connection-state';
-import { cljsLib } from './utilities';
 import * as util from './utilities';
-import { getStateValue, parseEdn, parseEdnWithInst } from '../out/cljs-lib/cljs-lib';
+import { parseEdn, parseEdnWithInst } from '../out/cljs-lib/cljs-lib';
 import * as output from './results-output/output';
-import * as state from './state';
 import status from './status';
-
-interface ShadowApiRuntimeInfo {
-  'client-id': number;
-  'user-agent'?: string;
-  desc?: string;
-  type: string;
-  lang: string;
-  'build-id': string;
-  host: string;
-  'worker-id': number;
-  dom?: boolean;
-  since?: Date;
-  sinceInst?: number;
-  sinceDescription?: string;
-  'proc-id'?: string;
-  'connection-info'?: {
-    remote: boolean;
-    websocket: boolean;
-  };
-}
-
-interface RuntimeInfo {
-  clientId: number;
-  description: string;
-  buildId: string;
-  host: string;
-  workerId: number;
-  sinceInst: number;
-  sinceDescription: string;
-}
-
-/**
- * Format a timestamp to a human-readable local time string
- */
-function formatSinceDescription(since: Date | undefined): string {
-  if (!since) {
-    return 'Unknown time';
-  }
-
-  return since.toLocaleString(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'medium',
-    hour12: false,
-  });
-}
-
-function normalizeRuntimeInfo(apiInfo: ShadowApiRuntimeInfo): RuntimeInfo {
-  const sinceDate = apiInfo.since;
-  const sinceInst = sinceDate ? sinceDate.getTime() : 0;
-  const sinceDescription = formatSinceDescription(sinceDate);
-
-  return {
-    clientId: apiInfo['client-id'],
-    description: apiInfo.desc || apiInfo['user-agent'] || 'No description',
-    buildId: apiInfo['build-id'],
-    host: apiInfo.host,
-    workerId: apiInfo['worker-id'],
-    sinceInst,
-    sinceDescription,
-  };
-}
+import * as shadowRuntimeCore from './shadow-cljs-runtime-core';
 
 interface RuntimeQuickPickItem extends vscode.QuickPickItem {
-  runtimeInfo: RuntimeInfo;
+  runtimeInfo: shadowRuntimeCore.RuntimeInfo;
 }
 
 function getConnectionStateForCurrentContext() {
@@ -82,7 +20,7 @@ function getConnectionStateForCurrentContext() {
   return sessionRegistry.getConnectionStateForSession(routedSessionKey);
 }
 
-export function getSelectedRuntimeInfo(clientKey?: string): RuntimeInfo {
+export function getSelectedRuntimeInfo(clientKey?: string): shadowRuntimeCore.RuntimeInfo {
   if (clientKey) {
     return connectionState.getConnectionState(clientKey)?.shadowCljsRuntimeInfo;
   }
@@ -129,7 +67,7 @@ function getCurrentBuild() {
 /**
  * Get available shadow-cljs runtimes for the current build
  */
-export async function getShadowRuntimes(): Promise<RuntimeInfo[] | null> {
+export async function getShadowRuntimes(): Promise<shadowRuntimeCore.RuntimeInfo[] | null> {
   try {
     const cljSession = getMainSessionForCurrentConnection();
     if (!cljSession) {
@@ -154,8 +92,8 @@ export async function getShadowRuntimes(): Promise<RuntimeInfo[] | null> {
 
     // Parse the EDN data structure returned by shadow-cljs
     try {
-      const apiRuntimes: ShadowApiRuntimeInfo[] = parseEdnWithInst(result);
-      return apiRuntimes.map(normalizeRuntimeInfo);
+      const apiRuntimes: shadowRuntimeCore.ShadowApiRuntimeInfo[] = parseEdnWithInst(result);
+      return apiRuntimes.map(shadowRuntimeCore.normalizeRuntimeInfo);
     } catch (parseError) {
       output.appendLineOtherErr(`Error parsing runtime information: ${parseError}`);
       output.appendLineOtherOut(`Raw result: ${result}`);
@@ -170,7 +108,7 @@ export async function getShadowRuntimes(): Promise<RuntimeInfo[] | null> {
 /**
  * Format runtime information for display in QuickPick
  */
-function makeRuntimeMenuItem(runtime: RuntimeInfo): RuntimeQuickPickItem {
+function makeRuntimeMenuItem(runtime: shadowRuntimeCore.RuntimeInfo): RuntimeQuickPickItem {
   const detailParts = [
     `build: ${runtime.buildId}`,
     `id: ${runtime.clientId}`,
@@ -231,7 +169,7 @@ export async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null
  * Switch to a specific shadow-cljs runtime
  */
 export async function switchToRuntime(
-  runtimeInfo: RuntimeInfo,
+  runtimeInfo: shadowRuntimeCore.RuntimeInfo,
   clientKey?: string
 ): Promise<boolean> {
   try {
@@ -339,11 +277,12 @@ export async function detectInitialRuntime(): Promise<void> {
   }
 }
 
-export type { ShadowApiRuntimeInfo as ShadowRuntimeInfo, RuntimeQuickPickItem };
+export type { shadowRuntimeCore as ShadowRuntimeTypes };
+export type { RuntimeQuickPickItem };
 
 export function updateRuntimeState(
   clientId: number,
-  runtimeInfo: RuntimeInfo,
+  runtimeInfo: shadowRuntimeCore.RuntimeInfo,
   clientKey?: string
 ): void {
   if (clientKey) {
@@ -394,38 +333,34 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
   try {
     if (msgData.data) {
       const data = parseEdn(msgData.data);
-      if (data && data.op === 'notify' && data['client-id']) {
-        const clientId = data['client-id'];
-        const currentRuntimeId = getSelectedRuntimeId(clientKey);
-        const currentRuntimeInfo = getSelectedRuntimeInfo(clientKey) || {
-          description: 'No description',
-        };
-        const eventOp = data['event-op'];
-        if (eventOp === 'client-disconnect' && clientId === currentRuntimeId) {
-          // The connected runtime was disconnected
+      const currentRuntimeId = getSelectedRuntimeId(clientKey);
+      const action = shadowRuntimeCore.decideMessageAction(data, currentRuntimeId);
+
+      switch (action.type) {
+        case 'runtime-disconnected': {
+          const currentRuntimeInfo = getSelectedRuntimeInfo(clientKey) || {
+            description: 'No description',
+          };
           clearRuntimeState(clientKey);
           output.appendLineOtherOut(
-            `shadow-cljs runtime disconnected: ${clientId} ${currentRuntimeInfo.description}`
+            `shadow-cljs runtime disconnected: ${action.clientId} ${currentRuntimeInfo.description}`
           );
-        } else if (eventOp === 'client-connect' && !currentRuntimeId) {
-          // We are disconnected, and a new runtime appears => we connect to it
-          const runtimeInfo = data['client-info']
-            ? normalizeRuntimeInfo(data['client-info'])
-            : null;
-          if (runtimeInfo) {
-            runtimeInfo.clientId = clientId; // Notification infos lack client id
-            const success = await switchToRuntime(runtimeInfo, clientKey);
-            if (success) {
-              output.appendLineOtherOut(
-                `shadow-cljs runtime connected: ${clientId}, ${runtimeInfo.description}`
-              );
-            } else {
-              output.appendLineOtherErr(
-                `Failed to connect shadow-cljs runtime: ${clientId}, ${runtimeInfo.description}`
-              );
-            }
-          }
+          break;
         }
+        case 'runtime-connected': {
+          const success = await switchToRuntime(action.runtimeInfo, clientKey);
+          if (success) {
+            output.appendLineOtherOut(
+              `shadow-cljs runtime connected: ${action.clientId}, ${action.runtimeInfo.description}`
+            );
+          } else {
+            output.appendLineOtherErr(
+              `Failed to connect shadow-cljs runtime: ${action.clientId}, ${action.runtimeInfo.description}`
+            );
+          }
+          break;
+        }
+        // 'no-action' - do nothing
       }
     }
   } catch (error) {
