@@ -5,12 +5,16 @@ import { getReplSessionTypeFromState } from './nrepl/repl-session';
 import status from './status';
 import { getPathRelativeToWorkspace } from './project-root';
 import * as utilities from './utilities';
+import * as outputWindow from './repl-window/repl-doc';
+import * as output from './results-output/output';
+import * as state from './state';
 
 const MENU_SAVE_KEY = 'repl-sessions-menu';
 const CLJC_MENU_SAVE_KEY = 'repl-sessions-menu-cljc';
+const OUTPUT_SESSION_MENU_SAVE_KEY = 'repl-sessions-menu-output';
 
 interface SessionQuickPickItem extends vscode.QuickPickItem {
-  action: 'session' | 'auto' | 'cljc';
+  action: 'session' | 'auto' | 'cljc' | 'output-session';
   sessionKey?: string;
 }
 
@@ -154,6 +158,44 @@ async function promptForCljcSession(): Promise<void> {
   }
 }
 
+async function promptForOutputWindowSession(): Promise<void> {
+  const sessions = sessionRegistry.listSessions();
+  if (sessions.length === 0) {
+    void vscode.window.showInformationMessage('No REPL sessions available.');
+    return;
+  }
+
+  const currentOutputSession = outputWindow.getSessionType();
+  const outputItems: SessionQuickPickItem[] = buildSessionPickItems({
+    highlightedSessionKey: currentOutputSession,
+  });
+
+  const outputSelection = (await utilities.quickPickSingle({
+    title: 'REPL Window Session',
+    placeHolder: currentOutputSession
+      ? `Currently using ${currentOutputSession}`
+      : 'Select a session for the REPL window',
+    values: outputItems,
+    saveAs: OUTPUT_SESSION_MENU_SAVE_KEY,
+  })) as SessionQuickPickItem | undefined;
+
+  if (!outputSelection) {
+    return;
+  }
+
+  if (outputSelection.action === 'session' && outputSelection.sessionKey) {
+    const session = sessionRegistry.getSession(outputSelection.sessionKey);
+    if (session) {
+      outputWindow.setSession(session, undefined, outputSelection.sessionKey);
+      output.replWindowAppendPrompt();
+    }
+  }
+}
+
+function isOutputWindowActive(): boolean {
+  return !!state.extensionContext?.workspaceState.get('outputWindowActive');
+}
+
 function buildMenuItems(): SessionQuickPickItem[] {
   const pinnedSession = sessionRouting.getPinnedSessionKey();
   const routingMode = sessionRouting.getRoutingMode();
@@ -186,6 +228,16 @@ function buildMenuItems(): SessionQuickPickItem[] {
     detail: 'Specify how to route cljc files (when auto-routing is enabled).',
     action: 'cljc',
   });
+
+  if (isOutputWindowActive()) {
+    const currentOutputSession = outputWindow.getSessionType();
+    items.push({
+      label: 'Select session for REPL window',
+      description: currentOutputSession ? `Current: ${currentOutputSession}` : undefined,
+      detail: 'Override which session the REPL window uses for evaluations.',
+      action: 'output-session',
+    });
+  }
 
   return items;
 }
@@ -222,6 +274,9 @@ export async function showReplSessionsMenu(): Promise<void> {
       break;
     case 'cljc':
       await promptForCljcSession();
+      break;
+    case 'output-session':
+      await promptForOutputWindowSession();
       break;
     default:
       break;
