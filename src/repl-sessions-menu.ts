@@ -184,11 +184,35 @@ async function promptForOutputWindowSession(): Promise<void> {
   }
 
   if (outputSelection.action === 'session' && outputSelection.sessionKey) {
-    const session = sessionRegistry.getSession(outputSelection.sessionKey);
-    if (session) {
-      outputWindow.setSession(session, undefined, outputSelection.sessionKey);
-      output.replWindowAppendPrompt();
+    setReplWindowSession(outputSelection.sessionKey);
+  }
+}
+
+/**
+ * Sets the REPL window to use a specific session.
+ * Updates the session, appends a new prompt, and updates the status bar.
+ * @param sessionKey The session key to set for the REPL window
+ * @returns true if the session was set successfully, false otherwise
+ */
+export function setReplWindowSession(sessionKey: string): boolean {
+  const session = sessionRegistry.getSession(sessionKey);
+  if (!session) {
+    return false;
+  }
+  outputWindow.setSession(session, undefined, sessionKey);
+  output.replWindowForceAppendPrompt();
+  status.update();
+  return true;
+}
+
+export async function selectReplWindowSession(sessionKey?: string): Promise<void> {
+  if (sessionKey) {
+    const success = setReplWindowSession(sessionKey);
+    if (!success) {
+      void vscode.window.showErrorMessage(`Session '${sessionKey}' not found.`);
     }
+  } else {
+    await promptForOutputWindowSession();
   }
 }
 

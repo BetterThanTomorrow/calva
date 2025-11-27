@@ -93,10 +93,24 @@ The indicator is always clickable when the REPL is connected. Clicking it opens 
 * A list of connected sessions – select one to pin it (the indicator will show `$(pin)` while pinned). When auto-routing is active, the currently selected session is marked with `$(check)` so you can see which REPL is in use at a glance.
 * **Auto-route** – return to Calva's default routing based on connect sequence globs.
 * **Select session for cljc files** – Set routing for `.cljc` files when auto-routing is active.
-
+* **Select session for REPL window** – (Only shown when the REPL window is focused) Override which session the REPL window uses for evaluations.
 Calva only applies the `.cljc` override when auto-routing is enabled. If you pin a session, that pin takes precedence for all files until you return to auto-route.
 
 These options make it easy to temporarily lock the routing, quickly inspect available sessions, or ensure `.cljc` files go exactly where you want. See [The REPL Window](repl-window.md#choose-clj-or-cljs-repl-connection) for more details.
+
+### REPL Window Session Command
+
+The command **Calva: Select REPL Window Session** is also available from the command palette. It can be invoked programmatically with a session key argument to bypass the picker:
+
+```javascript
+// Via VS Code API
+vscode.commands.executeCommand('calva.selectReplWindowSession', 'cljs');
+
+// Or without argument to show the picker
+vscode.commands.executeCommand('calva.selectReplWindowSession');
+```
+
+This is useful for keyboard shortcuts or automation scripts that need to quickly switch the REPL window's session.
 
 ## Managing Multiple Connections
 

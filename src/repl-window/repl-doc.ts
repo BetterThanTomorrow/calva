@@ -536,6 +536,10 @@ export function appendPrompt(onAppended?: OnAppendedCallback) {
   }
 }
 
+export function forceAppendPrompt(onAppended?: OnAppendedCallback) {
+  appendLine(getPrompt(), onAppended);
+}
+
 function getUriForCurrentNamespace(): Promise<vscode.Uri> {
   return namespace.getUriForNamespace(getSession(), getNs());
 }
