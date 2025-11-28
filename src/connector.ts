@@ -497,6 +497,26 @@ async function figwheelOrShadowBuilds(cljsTypeName: string): Promise<string[] | 
   }
 }
 
+/**
+ * Prompt the user to select a CLJS build without performing any REPL operations.
+ * This is used when switching builds to show the menu first, before session operations.
+ */
+async function selectCljsBuild(cljsTypeName: string): Promise<string | null> {
+  const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
+  if (!allBuilds || allBuilds.length === 0) {
+    return null;
+  }
+
+  const buildItem = await util.quickPickSingle({
+    values: allBuilds.map((a) => ({ label: a })),
+    placeHolder: 'Select which build to connect to',
+    saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(' ', '-')}-build`,
+    autoSelect: true,
+  });
+
+  return buildItem?.label ?? null;
+}
+
 function updateInitCode(build: string, initCode): string | undefined {
   if (build && typeof initCode === 'object') {
     if (['node-repl', 'browser-repl'].includes(build)) {
@@ -517,7 +537,7 @@ function createCLJSReplType(
   clientKey: string,
   roleKeys: SessionRoleKeys,
   globMap: SessionGlobMap,
-  options: { useDefaultBuild?: boolean } = {}
+  options: { useDefaultBuild?: boolean; preSelectedBuild?: string } = {}
 ): ReplType {
   // This function is only called when a promoted session is expected
   const promotedKey = roleKeys.promoted;
@@ -532,6 +552,7 @@ function createCLJSReplType(
   let haveShownAppURL = false;
   let haveShownStartSuffix = false;
   let useDefaultBuild = options.useDefaultBuild ?? true;
+  const preSelectedBuild = options.preSelectedBuild;
   let startedBuilds: string[];
   let connectToBuild: string;
   const shouldRunStartCode =
@@ -606,7 +627,11 @@ function createCLJSReplType(
       });
       let initCode = cljsType.connectCode;
       let build: string = null;
-      if (menuSelections && menuSelections.cljsDefaultBuild && useDefaultBuild) {
+
+      // Use pre-selected build if provided (from switchCljsBuild command)
+      if (preSelectedBuild) {
+        build = preSelectedBuild;
+      } else if (menuSelections && menuSelections.cljsDefaultBuild && useDefaultBuild) {
         build = menuSelections.cljsDefaultBuild;
         useDefaultBuild = false;
       } else {
@@ -1301,13 +1326,6 @@ export default {
       return;
     }
 
-    // Get the main session for the active client
-    const clientSessions = sessionRegistry.listSessionsByClient(activeClientKey);
-    const mainSessionMeta = clientSessions.find((m) => !m.isPromoted);
-    if (!mainSessionMeta) {
-      return;
-    }
-    const cljSession = sessionRegistry.getSession(mainSessionMeta.key);
     // Get connection state for this client
     const cljsTypeName = connectionStateData?.cljsTypeName;
     const roleKeys = connectionStateData?.sessionRoleKeys;
@@ -1318,6 +1336,20 @@ export default {
       );
       return;
     }
+
+    // First, show build selection menu BEFORE any REPL operations
+    const selectedBuild = await selectCljsBuild(cljsTypeName);
+    if (!selectedBuild) {
+      return; // User cancelled or no builds available
+    }
+
+    // Get the main session for the active client
+    const clientSessions = sessionRegistry.listSessionsByClient(activeClientKey);
+    const mainSessionMeta = clientSessions.find((m) => !m.isPromoted);
+    if (!mainSessionMeta) {
+      return;
+    }
+    const cljSession = sessionRegistry.getSession(mainSessionMeta.key);
 
     const isBuiltinType: boolean = typeof connectSequence.cljsType == 'string';
     const cljsType: CljsTypeConfig = isBuiltinType
@@ -1331,7 +1363,7 @@ export default {
       activeClientKey,
       roleKeys,
       globMap,
-      { useDefaultBuild: false }
+      { useDefaultBuild: false, preSelectedBuild: selectedBuild }
     );
 
     const [cljsSession, build] = await makeCljsSessionClone(
