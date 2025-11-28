@@ -12,22 +12,22 @@ interface CljsTypeLike {
   cljsType?: CljsTypeValue;
 }
 
-function matchesPromoted(name?: string | null): boolean {
+function matchesSecondary(name?: string | null): boolean {
   return !!name && promotedCljsTypes.has(name);
 }
 
-export function shouldUsePromotedSession(sequence?: CljsTypeLike): boolean {
+export function shouldUseSecondarySession(sequence?: CljsTypeLike): boolean {
   if (!sequence || !sequence.cljsType) {
     return false;
   }
   const cljsType = sequence.cljsType;
   if (typeof cljsType === 'string') {
-    return matchesPromoted(cljsType);
+    return matchesSecondary(cljsType);
   }
-  if (matchesPromoted(cljsType.name)) {
+  if (matchesSecondary(cljsType.name)) {
     return true;
   }
-  if (matchesPromoted(cljsType.dependsOn)) {
+  if (matchesSecondary(cljsType.dependsOn)) {
     return true;
   }
   return false;

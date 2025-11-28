@@ -11,7 +11,7 @@ export interface SessionMetadata {
   globs?: string[];
   globSpecs?: SessionGlobSpec[];
   connectionOwnerId?: string;
-  isPromoted?: boolean;
+  isSecondary?: boolean;
 }
 
 const SESSION_PREFIX = 'repl-session-';
@@ -75,9 +75,9 @@ export function getSessionMetadata(key: string): SessionMetadata | undefined {
   return (session as any)?._calvaSessionMetadata;
 }
 
-export function isSessionPromoted(key: string): boolean {
+export function isSessionSecondary(key: string): boolean {
   const metadata = getSessionMetadata(key);
-  return Boolean(metadata?.isPromoted);
+  return Boolean(metadata?.isSecondary);
 }
 
 export function getSessionKeyFromSession(session?: NReplSession): string | undefined {
@@ -185,17 +185,17 @@ export function findSingleOwnerForSessions(
 }
 
 /**
- * Find the main (non-promoted) session for the same connection as the given session.
+ * Find the primary (non-secondary) session for the same connection as the given session.
  * Used when we need to evaluate CLJ code for a feature related to a CLJS session.
  */
-export function findMainSessionForConnection(sessionKey: string): NReplSession | undefined {
+export function findPrimarySessionForConnection(sessionKey: string): NReplSession | undefined {
   const metadata = getSessionMetadata(sessionKey);
   if (!metadata?.connectionOwnerId) {
     return undefined;
   }
 
   const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
-  const mainMeta = siblingMetas.find((m) => !m.isPromoted);
+  const mainMeta = siblingMetas.find((m) => !m.isSecondary);
   return mainMeta ? getSession(mainMeta.key) : undefined;
 }
 
@@ -209,36 +209,36 @@ export function findMainSessionKeyForConnection(sessionKey: string): string | un
   }
 
   const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
-  const mainMeta = siblingMetas.find((m) => !m.isPromoted);
+  const mainMeta = siblingMetas.find((m) => !m.isSecondary);
   return mainMeta?.key;
 }
 
 /**
- * Find the promoted session for the same connection as the given session.
+ * Find the secondary session for the same connection as the given session.
  */
-export function findPromotedSessionForConnection(sessionKey: string): NReplSession | undefined {
+export function findSecondarySessionForConnection(sessionKey: string): NReplSession | undefined {
   const metadata = getSessionMetadata(sessionKey);
   if (!metadata?.connectionOwnerId) {
     return undefined;
   }
 
   const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
-  const promotedMeta = siblingMetas.find((m) => m.isPromoted);
-  return promotedMeta ? getSession(promotedMeta.key) : undefined;
+  const secondaryMeta = siblingMetas.find((m) => m.isSecondary);
+  return secondaryMeta ? getSession(secondaryMeta.key) : undefined;
 }
 
 /**
- * Find the promoted session key for the same connection as the given session.
+ * Find the secondary session key for the same connection as the given session.
  */
-export function findPromotedSessionKeyForConnection(sessionKey: string): string | undefined {
+export function findSecondarySessionKeyForConnection(sessionKey: string): string | undefined {
   const metadata = getSessionMetadata(sessionKey);
   if (!metadata?.connectionOwnerId) {
     return undefined;
   }
 
   const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
-  const promotedMeta = siblingMetas.find((m) => m.isPromoted);
-  return promotedMeta?.key;
+  const secondaryMeta = siblingMetas.find((m) => m.isSecondary);
+  return secondaryMeta?.key;
 }
 
 /**
@@ -263,43 +263,43 @@ export function getClientKeyForSession(sessionKey: string): string | undefined {
 }
 
 /**
- * Get the main (non-promoted) session for a given client.
+ * Get the primary (non-secondary) session for a given client.
  */
-export function getMainSessionForClient(clientKey: string): NReplSession | undefined {
+export function getPrimarySessionForClient(clientKey: string): NReplSession | undefined {
   const sessions = listSessionsByClient(clientKey);
-  const mainMeta = sessions.find((m) => !m.isPromoted);
-  if (!mainMeta) {
+  const primaryMeta = sessions.find((m) => !m.isSecondary);
+  if (!primaryMeta) {
     return undefined;
   }
-  return getSession(mainMeta.key);
+  return getSession(primaryMeta.key);
 }
 
 /**
- * Get the main (non-promoted) session key for a given client.
+ * Get the primary (non-secondary) session key for a given client.
  */
-export function getMainSessionKeyForClient(clientKey: string): string | undefined {
+export function getPrimarySessionKeyForClient(clientKey: string): string | undefined {
   const sessions = listSessionsByClient(clientKey);
-  const mainMeta = sessions.find((m) => !m.isPromoted);
-  return mainMeta?.key;
+  const primaryMeta = sessions.find((m) => !m.isSecondary);
+  return primaryMeta?.key;
 }
 
 /**
- * Get the promoted session for a given client.
+ * Get the secondary session for a given client.
  */
-export function getPromotedSessionForClient(clientKey: string): NReplSession | undefined {
+export function getSecondarySessionForClient(clientKey: string): NReplSession | undefined {
   const sessions = listSessionsByClient(clientKey);
-  const promotedMeta = sessions.find((m) => m.isPromoted);
-  if (!promotedMeta) {
+  const secondaryMeta = sessions.find((m) => m.isSecondary);
+  if (!secondaryMeta) {
     return undefined;
   }
-  return getSession(promotedMeta.key);
+  return getSession(secondaryMeta.key);
 }
 
 /**
- * Get the promoted session key for a given client.
+ * Get the secondary session key for a given client.
  */
-export function getPromotedSessionKeyForClient(clientKey: string): string | undefined {
+export function getSecondarySessionKeyForClient(clientKey: string): string | undefined {
   const sessions = listSessionsByClient(clientKey);
-  const promotedMeta = sessions.find((m) => m.isPromoted);
-  return promotedMeta?.key;
+  const secondaryMeta = sessions.find((m) => m.isSecondary);
+  return secondaryMeta?.key;
 }

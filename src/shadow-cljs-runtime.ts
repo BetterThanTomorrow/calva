@@ -41,7 +41,7 @@ export function getSelectedRuntimeId(clientKey?: string): number {
  * Shadow-cljs operations need to be performed on the main (CLJ) session
  * that belongs to the same connection as the currently routed CLJS session.
  */
-function getMainSessionForCurrentConnection() {
+function getPrimarySessionForCurrentConnection() {
   // Get the currently routed session key
   const routedSessionKey = replSession.getReplSessionTypeFromState();
   if (!routedSessionKey) {
@@ -49,7 +49,7 @@ function getMainSessionForCurrentConnection() {
   }
 
   // Get the main session for the connection owning the routed session
-  return sessionRegistry.findMainSessionForConnection(routedSessionKey);
+  return sessionRegistry.findPrimarySessionForConnection(routedSessionKey);
 }
 
 /**
@@ -69,7 +69,7 @@ function getCurrentBuild() {
  */
 export async function getShadowRuntimes(): Promise<shadowRuntimeCore.RuntimeInfo[] | null> {
   try {
-    const cljSession = getMainSessionForCurrentConnection();
+    const cljSession = getPrimarySessionForCurrentConnection();
     if (!cljSession) {
       output.appendLineOtherErr('No Clojure session available for runtime detection');
       return null;
@@ -175,9 +175,9 @@ export async function switchToRuntime(
   try {
     let cljSession;
     if (clientKey) {
-      cljSession = sessionRegistry.getMainSessionForClient(clientKey);
+      cljSession = sessionRegistry.getPrimarySessionForClient(clientKey);
     } else {
-      cljSession = getMainSessionForCurrentConnection();
+      cljSession = getPrimarySessionForCurrentConnection();
     }
 
     if (!cljSession) {
@@ -373,7 +373,7 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
  */
 export async function initializeShadowRemoteNotifications(): Promise<void> {
   try {
-    const cljSession = getMainSessionForCurrentConnection();
+    const cljSession = getPrimarySessionForCurrentConnection();
     if (!cljSession) {
       output.appendLineOtherErr('No Clojure session available for shadow-remote initialization');
       return;

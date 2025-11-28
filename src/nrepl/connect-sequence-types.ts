@@ -48,8 +48,8 @@ interface MenuSelections {
 }
 
 interface SessionNamesConfig {
-  main?: string;
-  promoted?: string;
+  primary?: string;
+  secondary?: string;
 }
 
 type FilePatternsValue = string | string[];

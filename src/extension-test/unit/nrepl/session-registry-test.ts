@@ -215,10 +215,10 @@ describe('session registry', () => {
       ({ client: { clientKey } } as unknown as NReplSession);
 
     it('finds main (non-promoted) session for same connection', () => {
-      sessionRegistry.registerSession('clj', createSession('client-a'), { isPromoted: false });
-      sessionRegistry.registerSession('cljs', createSession('client-a'), { isPromoted: true });
+      sessionRegistry.registerSession('clj', createSession('client-a'), { isSecondary: false });
+      sessionRegistry.registerSession('cljs', createSession('client-a'), { isSecondary: true });
 
-      const mainSession = sessionRegistry.findMainSessionForConnection('cljs');
+      const mainSession = sessionRegistry.findPrimarySessionForConnection('cljs');
 
       expect(mainSession).toBeDefined();
       expect((mainSession as any)._calvaSessionMetadata?.key).toBe('clj');
@@ -228,27 +228,27 @@ describe('session registry', () => {
       const session = { replType: 'clj' } as unknown as NReplSession;
       (session as any)._calvaSessionMetadata = { key: 'orphan' };
 
-      const mainSession = sessionRegistry.findMainSessionForConnection('orphan');
+      const mainSession = sessionRegistry.findPrimarySessionForConnection('orphan');
 
       expect(mainSession).toBeUndefined();
     });
 
     it('returns undefined when no main session exists', () => {
-      sessionRegistry.registerSession('cljs', createSession('client-a'), { isPromoted: true });
+      sessionRegistry.registerSession('cljs', createSession('client-a'), { isSecondary: true });
 
-      const mainSession = sessionRegistry.findMainSessionForConnection('cljs');
+      const mainSession = sessionRegistry.findPrimarySessionForConnection('cljs');
 
       expect(mainSession).toBeUndefined();
     });
 
     it('finds main session across multiple connections', () => {
-      sessionRegistry.registerSession('clj-a', createSession('client-a'), { isPromoted: false });
-      sessionRegistry.registerSession('cljs-a', createSession('client-a'), { isPromoted: true });
-      sessionRegistry.registerSession('clj-b', createSession('client-b'), { isPromoted: false });
-      sessionRegistry.registerSession('cljs-b', createSession('client-b'), { isPromoted: true });
+      sessionRegistry.registerSession('clj-a', createSession('client-a'), { isSecondary: false });
+      sessionRegistry.registerSession('cljs-a', createSession('client-a'), { isSecondary: true });
+      sessionRegistry.registerSession('clj-b', createSession('client-b'), { isSecondary: false });
+      sessionRegistry.registerSession('cljs-b', createSession('client-b'), { isSecondary: true });
 
-      const mainForA = sessionRegistry.findMainSessionForConnection('cljs-a');
-      const mainForB = sessionRegistry.findMainSessionForConnection('cljs-b');
+      const mainForA = sessionRegistry.findPrimarySessionForConnection('cljs-a');
+      const mainForB = sessionRegistry.findPrimarySessionForConnection('cljs-b');
 
       expect((mainForA as any)?._calvaSessionMetadata?.key).toBe('clj-a');
       expect((mainForB as any)?._calvaSessionMetadata?.key).toBe('clj-b');

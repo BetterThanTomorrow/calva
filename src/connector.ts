@@ -16,7 +16,7 @@ import {
   askForConnectSequence,
   getConnectSequences,
 } from './nrepl/connectSequence';
-import * as promotedSession from './nrepl/promoted-session';
+import * as promotedSession from './nrepl/secondary-session';
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
@@ -53,14 +53,14 @@ export function deriveRequestedSessionKeys(
   connectSequence: ReplConnectSequence,
   usePromotedSession: boolean
 ): string[] {
-  const keys = [sessionRoleKeys.main];
+  const keys = [sessionRoleKeys.primary];
   if (
     usePromotedSession &&
-    sessionRoleKeys.promoted &&
+    sessionRoleKeys.secondary &&
     connectSequence.cljsType &&
     connectSequence.cljsType !== 'none'
   ) {
-    keys.push(sessionRoleKeys.promoted);
+    keys.push(sessionRoleKeys.secondary);
   }
   return keys.filter((key): key is string => Boolean(key));
 }
@@ -154,7 +154,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     sessionRoleKeys,
     projectRootPath
   );
-  const usePromotedSession = promotedSession.shouldUsePromotedSession(connectSequence);
+  const usePromotedSession = promotedSession.shouldUseSecondarySession(connectSequence);
 
   // Check if all requested sessions are owned by a single existing client
   // If so, this is a reconnection scenario - disconnect the old client first
@@ -232,7 +232,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     util.setConnectedState(true);
     void state.analytics().logGA4Pageview('/connected-clj-repl');
 
-    const mainKey = sessionRoleKeys.main;
+    const mainKey = sessionRoleKeys.primary;
     const mainGlobMetadata = getSessionGlobMetadata(mainKey, sessionGlobMap);
     sessionRegistry.registerSession(mainKey, mainSession, {
       projectRoot: state.getProjectRootUri().toString(),
@@ -277,7 +277,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     try {
       if (
         usePromotedSession &&
-        sessionRoleKeys.promoted &&
+        sessionRoleKeys.secondary &&
         connectSequence.cljsType &&
         connectSequence.cljsType != 'none'
       ) {
@@ -300,13 +300,13 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
           translatedReplType,
           connectSequence.name,
           nClient.clientKey,
-          sessionRoleKeys.promoted,
+          sessionRoleKeys.secondary,
           sessionGlobMap
         );
         void state.analytics().logGA4Pageview('/connected-cljs-repl');
       }
-      if (cljsSession && sessionRoleKeys.promoted) {
-        await setUpCljsRepl(cljsSession, cljsBuild, sessionRoleKeys.promoted, sessionGlobMap);
+      if (cljsSession && sessionRoleKeys.secondary) {
+        await setUpCljsRepl(cljsSession, cljsBuild, sessionRoleKeys.secondary, sessionGlobMap);
       }
       if (usePromotedSession && isShadowCljsReplType(connectSequence.cljsType)) {
         await shadowCljsRuntime.initializeShadowRemoteNotifications();
@@ -373,7 +373,7 @@ async function setUpCljsRepl(
     projectRoot: state.getProjectRootUri().toString(),
     globs: globMetadata.globs,
     globSpecs: globMetadata.globSpecs,
-    isPromoted: true,
+    isSecondary: true,
   });
 
   status.update();
@@ -472,7 +472,7 @@ async function evalConnectCode(
       projectRoot: state.getProjectRootUri().toString(),
       globs: globMetadata.globs,
       globSpecs: globMetadata.globSpecs,
-      isPromoted: true,
+      isSecondary: true,
     });
 
     cljsSession = newCljsSession;
@@ -548,7 +548,7 @@ function createCLJSReplType(
   options: { useDefaultBuild?: boolean; preSelectedBuild?: string } = {}
 ): ReplType {
   // This function is only called when a promoted session is expected
-  const promotedKey = roleKeys.promoted;
+  const promotedKey = roleKeys.secondary;
   if (!promotedKey) {
     throw new Error('createCLJSReplType called without promoted session key');
   }
@@ -702,10 +702,10 @@ function createCLJSReplType(
   async function waitForShadowCljsRuntimes() {
     // Get the main session for this connection (identified by clientKey)
     const clientSessions = sessionRegistry.listSessionsByClient(clientKey);
-    const mainSessionMeta = clientSessions.find((m) => !m.isPromoted);
+    const mainSessionMeta = clientSessions.find((m) => !m.isSecondary);
     const cljSession = mainSessionMeta
       ? sessionRegistry.getSession(mainSessionMeta.key)
-      : sessionRegistry.getSession(roleKeys.main);
+      : sessionRegistry.getSession(roleKeys.primary);
     const getRuntimesCode = `(count (shadow.cljs.devtools.api/repl-runtimes ${connectToBuild}))`;
     const checkForRuntimes = async () => {
       const runtimes = await cljSession.eval(getRuntimesCode, 'user').value;
@@ -896,7 +896,7 @@ async function makeCljsSessionClone(
         projectRoot: state.getProjectRootUri().toString(),
         globs: globMetadata.globs,
         globSpecs: globMetadata.globSpecs,
-        isPromoted: true,
+        isSecondary: true,
       });
 
       cljsSession = newCljsSession;
@@ -1326,7 +1326,7 @@ export default {
     }
 
     const connectSequence = connectionStateData.connectSequence;
-    if (!connectSequence || !promotedSession.shouldUsePromotedSession(connectSequence)) {
+    if (!connectSequence || !promotedSession.shouldUseSecondarySession(connectSequence)) {
       return;
     }
 
@@ -1340,7 +1340,7 @@ export default {
     } = connectionStateData;
     const projectRootUri = projectRoot ? vscode.Uri.parse(projectRoot) : state.getProjectRootUri();
 
-    if (!roleKeys?.promoted || !globMap) {
+    if (!roleKeys?.secondary || !globMap) {
       output.appendLineOtherErr(
         'Cannot switch build: connection state missing role keys or glob map'
       );
@@ -1354,7 +1354,7 @@ export default {
     }
 
     // Get the main session for this connection
-    const cljSession = sessionRegistry.getMainSessionForClient(clientKey);
+    const cljSession = sessionRegistry.getPrimarySessionForClient(clientKey);
     if (!cljSession) {
       return;
     }
@@ -1379,11 +1379,11 @@ export default {
       replType,
       cljsTypeName,
       clientKey,
-      roleKeys.promoted,
+      roleKeys.secondary,
       globMap
     );
     if (cljsSession) {
-      await setUpCljsRepl(cljsSession, build, roleKeys.promoted, globMap);
+      await setUpCljsRepl(cljsSession, build, roleKeys.secondary, globMap);
     }
     status.update();
   },

@@ -141,7 +141,7 @@ function update() {
       typeStatus.tooltip = tooltipParts.join('. ');
     }
     // Show build status when the current routed session is a promoted session
-    const isCurrentSessionPromoted = replType && sessionRegistry.isSessionPromoted(replType);
+    const isCurrentSessionPromoted = replType && sessionRegistry.isSessionSecondary(replType);
     // Get connection state for the current routed session
     const connectionState = replType
       ? sessionRegistry.getConnectionStateForSession(replType)
@@ -202,7 +202,7 @@ function update() {
 
   // Show shadow runtime status when the current routed session is a promoted session
   const replType = getReplSessionTypeFromState();
-  const isRoutedSessionPromoted = replType && sessionRegistry.isSessionPromoted(replType);
+  const isRoutedSessionPromoted = replType && sessionRegistry.isSessionSecondary(replType);
   const routedConnectionState = replType
     ? sessionRegistry.getConnectionStateForSession(replType)
     : undefined;

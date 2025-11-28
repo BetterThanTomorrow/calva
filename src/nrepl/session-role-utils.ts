@@ -5,20 +5,20 @@ import {
 } from './connect-sequence-types';
 import type { SessionGlobTiers } from './globs';
 import * as globs from './globs';
-import * as promotedSession from './promoted-session';
+import * as promotedSession from './secondary-session';
 
-export type SessionRole = 'main' | 'promoted';
+export type SessionRole = 'primary' | 'secondary';
 
 export interface SessionRoleKeys {
-  main: string;
-  promoted?: string;
+  primary: string;
+  secondary?: string;
 }
 
 export type SessionGlobMap = Record<string, SessionGlobTiers>;
 
 const DEFAULT_SESSION_ROLE_KEYS: SessionRoleKeys = {
-  main: 'clj',
-  promoted: 'cljs',
+  primary: 'clj',
+  secondary: 'cljs',
 };
 
 /**
@@ -27,8 +27,8 @@ const DEFAULT_SESSION_ROLE_KEYS: SessionRoleKeys = {
  * to form full globs like `/path/to/project/**\/*.clj`.
  */
 const DEFAULT_SESSION_ROLE_FILE_PATTERNS: Record<SessionRole, SessionGlobTiers> = {
-  main: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': [] },
-  promoted: { 'always-claim': ['*.cljs'], 'is-fallback-for': [] },
+  primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': [] },
+  secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': [] },
 };
 
 function normalizePatternValue(value: string | string[]): string[] {
@@ -63,10 +63,10 @@ function normalizePatternEntry(
 export function deriveSessionRoleKeys(sequence?: ReplConnectSequence): SessionRoleKeys {
   const config = sequence?.replSessionNames;
   const keys: SessionRoleKeys = {
-    main: config?.main || DEFAULT_SESSION_ROLE_KEYS.main,
+    primary: config?.primary || DEFAULT_SESSION_ROLE_KEYS.primary,
   };
-  if (promotedSession.shouldUsePromotedSession(sequence)) {
-    keys.promoted = config?.promoted || DEFAULT_SESSION_ROLE_KEYS.promoted;
+  if (promotedSession.shouldUseSecondarySession(sequence)) {
+    keys.secondary = config?.secondary || DEFAULT_SESSION_ROLE_KEYS.secondary;
   }
   return keys;
 }
@@ -107,7 +107,7 @@ export function deriveSessionGlobMap(
   const configuredPatterns: SessionFilePatternsConfig | undefined =
     sequence?.replSessionFilePatterns;
 
-  (['main', 'promoted'] as SessionRole[]).forEach((role) => {
+  (['primary', 'secondary'] as SessionRole[]).forEach((role) => {
     const key = keys[role];
     if (!key) {
       return;

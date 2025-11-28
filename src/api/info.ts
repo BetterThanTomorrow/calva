@@ -7,7 +7,9 @@ import * as clientRegistry from '../nrepl/client-registry';
 
 export const getClojureDocsDotOrg = async (symbol: string, ns = 'user') => {
   const activeClientKey = clientRegistry.getActiveClientKey();
-  const session = activeClientKey ? sessionRegistry.getMainSessionForClient(activeClientKey) : null;
+  const session = activeClientKey
+    ? sessionRegistry.getPrimarySessionForClient(activeClientKey)
+    : null;
   if (!session) {
     return { error: "Can't retrieve REPL session for session key. Is the REPL connected?" };
   }
