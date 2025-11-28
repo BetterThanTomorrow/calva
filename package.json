@@ -980,7 +980,6 @@
               ".git",
               ".hg",
               ".idea",
-              ".joyride",
               "node_modules",
               ".pijul",
               ".project",
