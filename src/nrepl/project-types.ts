@@ -516,7 +516,21 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: false,
     useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
-    commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
+    commandLine: async (connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+      return cljCommandLine(connectSequence, CljsTypes.none);
+    },
+  },
+  'clj-projectless': {
+    name: 'clj-projectless',
+    cljsTypes: [],
+    cmd: clojureCmdFn,
+    winCmd: clojureCmdWinFn,
+    resolveBundledPathWin: depsCljWindowsPath,
+    processShellUnix: true,
+    processShellWin: 'cmd.exe',
+    useWhenExists: [],
+    nReplPortFile: ['.nrepl-port'],
+    commandLine: async (connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
       return cljCommandLine(connectSequence, CljsTypes.none);
     },
   },
@@ -838,7 +852,15 @@ export function getProjectTypeForName(name: string) {
 
 export async function detectProjectTypes(): Promise<string[]> {
   const rootUri = state.getProjectRootUri();
-  const cljProjTypes = ['custom', 'generic', 'cljs-only', 'babashka', 'nbb', 'joyride'];
+  const cljProjTypes = [
+    'custom',
+    'generic',
+    'clj-projectless',
+    'cljs-only',
+    'babashka',
+    'nbb',
+    'joyride',
+  ];
   for (const clj in projectTypes) {
     for (const projectFileName of projectTypes[clj].useWhenExists) {
       try {
@@ -857,8 +879,11 @@ export async function detectProjectTypes(): Promise<string[]> {
 export function getAllProjectTypes(): string[] {
   return [
     'generic',
+    'clj-projectless',
     'cljs-only',
-    ...Object.keys(projectTypes).filter((pt) => !['generic', 'cljs-only'].includes(pt)),
+    ...Object.keys(projectTypes).filter(
+      (pt) => !['generic', 'clj-projectless', 'cljs-only'].includes(pt)
+    ),
   ];
 }
 

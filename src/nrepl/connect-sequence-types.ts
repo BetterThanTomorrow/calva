@@ -9,6 +9,7 @@ enum ProjectTypes {
   'basilisp' = 'basilisp',
   'joyride' = 'joyride',
   'generic' = 'generic',
+  'clj-projectless' = 'clj-projectless',
   'custom' = 'custom',
   'cljs-only' = 'cljs-only',
 }

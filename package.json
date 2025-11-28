@@ -634,6 +634,7 @@
                     "basilisp",
                     "joyride",
                     "generic",
+                    "clj-projectless",
                     "custom",
                     "cljs-only"
                   ]

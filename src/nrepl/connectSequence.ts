@@ -132,6 +132,15 @@ const genericDefaults: ReplConnectSequence[] = [
   },
 ];
 
+const cljProjectlessDefaults: ReplConnectSequence[] = [
+  {
+    name: 'Clojure (projectless)',
+    projectType: ProjectTypes['clj-projectless'],
+    cljsType: CljsTypes.none,
+    nReplPortFile: ['.nrepl-port'],
+  },
+];
+
 const customDefaults: ReplConnectSequence[] = [
   {
     name: 'Custom',
@@ -209,6 +218,7 @@ const defaultSequences = {
   'lein-shadow': leinShadowDefaults,
   gradle: gradleDefaults,
   generic: genericDefaults,
+  'clj-projectless': cljProjectlessDefaults,
   custom: customDefaults,
   babashka: babashkaDefaults,
   nbb: nbbDefaults,
