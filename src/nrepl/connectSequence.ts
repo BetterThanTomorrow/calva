@@ -161,7 +161,7 @@ const babashkaDefaults: ReplConnectSequence[] = [
     replSessionNames: { main: 'bb' },
     replSessionFilePatterns: {
       main: {
-        'always-claim': ['bb.edn', '*.bb', 'scripts/*.clj'],
+        'always-claim': ['bb.edn', '*.bb'],
         'is-fallback-for': ['*.clj'],
       },
     },
@@ -187,7 +187,7 @@ const joyrideDefaults: ReplConnectSequence[] = [
     projectType: ProjectTypes['joyride'],
     cljsType: CljsTypes['ClojureScript nREPL'],
     replSessionNames: { main: 'joyride' },
-    replSessionFilePatterns: { main: ['*.clj{s,c}'] },
+    replSessionFilePatterns: { main: ['*.cljs'] },
   },
 ];
 
