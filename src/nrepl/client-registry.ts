@@ -60,6 +60,10 @@ export function getClient(clientKey: string): NReplClient | undefined {
   return registeredClients.get(clientKey)?.client;
 }
 
+export function getRegisteredClient(clientKey: string): RegisteredClient | undefined {
+  return registeredClients.get(clientKey);
+}
+
 export function setActiveClientKey(clientKey: string | undefined): void {
   if (!clientKey) {
     selectFallbackActiveClient();

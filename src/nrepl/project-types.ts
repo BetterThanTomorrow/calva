@@ -86,12 +86,13 @@ export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.U
   return vscode.Uri.file(relativePath);
 }
 
-export function shadowConfigFile(): vscode.Uri {
-  return vscode.Uri.joinPath(state.getProjectRootUri(), 'shadow-cljs.edn');
+export function shadowConfigFile(projectRootUri?: vscode.Uri): vscode.Uri {
+  const root = projectRootUri ?? state.getProjectRootUri();
+  return vscode.Uri.joinPath(root, 'shadow-cljs.edn');
 }
 
-export async function shadowBuilds(): Promise<string[]> {
-  const data = await vscode.workspace.fs.readFile(shadowConfigFile());
+export async function shadowBuilds(projectRootUri?: vscode.Uri): Promise<string[]> {
+  const data = await vscode.workspace.fs.readFile(shadowConfigFile(projectRootUri));
   const parsed = parseEdn(new TextDecoder('utf-8').decode(data));
   return [
     ...(parsed.builds

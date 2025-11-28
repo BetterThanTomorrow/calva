@@ -201,6 +201,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     clientRegistry.setActiveClientKey(nClient.clientKey);
     // Initialize connection state for this client
     connectionState.setConnectionState(nClient.clientKey, {
+      projectRoot: state.getProjectRootUri()?.toString(),
       cljsBuild: null,
       cljsTypeName: projectTypes.getCljsTypeName(connectSequence),
       hasBuilds: false,
@@ -489,11 +490,14 @@ export interface ReplType {
   connected: (valueResult: string, out: string[], err: string[]) => Promise<boolean>;
 }
 
-async function figwheelOrShadowBuilds(cljsTypeName: string): Promise<string[] | undefined> {
+async function figwheelOrShadowBuilds(
+  cljsTypeName: string,
+  projectRootUri?: vscode.Uri
+): Promise<string[] | undefined> {
   if (cljsTypeName.includes('Figwheel Main')) {
     return await getFigwheelMainBuilds();
   } else if (cljsTypeName.includes('shadow-cljs')) {
-    return await projectTypes.shadowBuilds();
+    return await projectTypes.shadowBuilds(projectRootUri);
   }
 }
 
@@ -501,8 +505,12 @@ async function figwheelOrShadowBuilds(cljsTypeName: string): Promise<string[] | 
  * Prompt the user to select a CLJS build without performing any REPL operations.
  * This is used when switching builds to show the menu first, before session operations.
  */
-async function selectCljsBuild(cljsTypeName: string): Promise<string | null> {
-  const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
+async function selectCljsBuild(
+  cljsTypeName: string,
+  projectRootUri?: vscode.Uri
+): Promise<string | null> {
+  const effectiveProjectRoot = projectRootUri ?? state.getProjectRootUri();
+  const allBuilds = await figwheelOrShadowBuilds(cljsTypeName, effectiveProjectRoot);
   if (!allBuilds || allBuilds.length === 0) {
     return null;
   }
@@ -510,7 +518,7 @@ async function selectCljsBuild(cljsTypeName: string): Promise<string | null> {
   const buildItem = await util.quickPickSingle({
     values: allBuilds.map((a) => ({ label: a })),
     placeHolder: 'Select which build to connect to',
-    saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(' ', '-')}-build`,
+    saveAs: `${effectiveProjectRoot.toString()}/${cljsTypeName.replace(' ', '-')}-build`,
     autoSelect: true,
   });
 
@@ -1306,30 +1314,32 @@ export default {
     status.update();
   },
   switchCljsBuild: async () => {
-    let activeClientKey = clientRegistry.getActiveClientKey();
-    const currentSessionKey = replSession.getSessionKey();
-    if (currentSessionKey) {
-      const owner = sessionRegistry.getClientKeyForSession(currentSessionKey);
-      if (owner) {
-        activeClientKey = owner;
-      }
-    }
-
-    if (!activeClientKey) {
+    // Follow the same pattern as shadow-runtime: routed session → connection state → everything
+    const routedSessionKey = replSession.getReplSessionTypeFromState();
+    if (!routedSessionKey) {
       return;
     }
 
-    const connectionStateData = connectionState.getConnectionState(activeClientKey);
-    const connectSequence = connectionStateData?.connectSequence;
+    const connectionStateData = sessionRegistry.getConnectionStateForSession(routedSessionKey);
+    if (!connectionStateData) {
+      return;
+    }
 
+    const connectSequence = connectionStateData.connectSequence;
     if (!connectSequence || !promotedSession.shouldUsePromotedSession(connectSequence)) {
       return;
     }
 
-    // Get connection state for this client
-    const cljsTypeName = connectionStateData?.cljsTypeName;
-    const roleKeys = connectionStateData?.sessionRoleKeys;
-    const globMap = connectionStateData?.sessionGlobMap;
+    // Get everything from connection state
+    const {
+      clientKey,
+      projectRoot,
+      cljsTypeName,
+      sessionRoleKeys: roleKeys,
+      sessionGlobMap: globMap,
+    } = connectionStateData;
+    const projectRootUri = projectRoot ? vscode.Uri.parse(projectRoot) : state.getProjectRootUri();
+
     if (!roleKeys?.promoted || !globMap) {
       output.appendLineOtherErr(
         'Cannot switch build: connection state missing role keys or glob map'
@@ -1338,18 +1348,16 @@ export default {
     }
 
     // First, show build selection menu BEFORE any REPL operations
-    const selectedBuild = await selectCljsBuild(cljsTypeName);
+    const selectedBuild = await selectCljsBuild(cljsTypeName, projectRootUri);
     if (!selectedBuild) {
       return; // User cancelled or no builds available
     }
 
-    // Get the main session for the active client
-    const clientSessions = sessionRegistry.listSessionsByClient(activeClientKey);
-    const mainSessionMeta = clientSessions.find((m) => !m.isPromoted);
-    if (!mainSessionMeta) {
+    // Get the main session for this connection
+    const cljSession = sessionRegistry.getMainSessionForClient(clientKey);
+    if (!cljSession) {
       return;
     }
-    const cljSession = sessionRegistry.getSession(mainSessionMeta.key);
 
     const isBuiltinType: boolean = typeof connectSequence.cljsType == 'string';
     const cljsType: CljsTypeConfig = isBuiltinType
@@ -1360,7 +1368,7 @@ export default {
       cljsType,
       projectTypes.getCljsTypeName(connectSequence),
       connectSequence,
-      activeClientKey,
+      clientKey,
       roleKeys,
       globMap,
       { useDefaultBuild: false, preSelectedBuild: selectedBuild }
@@ -1370,7 +1378,7 @@ export default {
       cljSession,
       replType,
       cljsTypeName,
-      activeClientKey,
+      clientKey,
       roleKeys.promoted,
       globMap
     );

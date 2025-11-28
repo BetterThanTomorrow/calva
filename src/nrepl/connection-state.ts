@@ -14,6 +14,7 @@ import type { ReplConnectSequence } from './connectSequence';
 
 export interface ConnectionState {
   clientKey: string;
+  projectRoot?: string;
   cljsBuild: string | null;
   cljsTypeName: string | null;
   hasBuilds: boolean;
