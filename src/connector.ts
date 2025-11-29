@@ -44,6 +44,8 @@ import type { RegisteredClient } from './nrepl/client-registry';
 import * as sessionTeardown from './nrepl/session-teardown';
 import { ConflictingSessionsError } from './errors/conflicting-sessions';
 import { toGlobMetadata } from './nrepl/globs';
+import * as sessionNameResolver from './nrepl/session-name-resolver';
+import * as fruitSuffix from './nrepl/fruit-suffix';
 
 const CALVA_DOCS_BASE_URL = 'https://calva.io/';
 
@@ -146,29 +148,28 @@ async function readRuntimeConfigs() {
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
   let mainSession: NReplSession;
-  const sessionRoleKeys = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
+  const baseSessionNames = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
   const projectRootPath = state.getProjectRootUri().fsPath;
+  const projectRoot = state.getProjectRootUri().toString();
+  const useSecondarySession = secondarySession.shouldUseSecondarySession(connectSequence);
+
+  const resolution = sessionNameResolver.resolveSessionNames(baseSessionNames, projectRoot);
+  const sessionRoleKeys = resolution.finalNames;
+
+  if (resolution.reconnectClientKey) {
+    output.appendLineOtherOut(
+      `Reconnecting: disconnecting existing client for sessions: ${Object.values(sessionRoleKeys)
+        .filter(Boolean)
+        .join(', ')}`
+    );
+    await disconnectClientByKey(resolution.reconnectClientKey);
+  }
+
   const sessionGlobMap = sessionRoleUtils.deriveSessionGlobMap(
     connectSequence,
     sessionRoleKeys,
     projectRootPath
   );
-  const useSecondarySession = secondarySession.shouldUseSecondarySession(connectSequence);
-
-  // Check if all requested sessions are owned by a single existing client
-  // If so, this is a reconnection scenario - disconnect the old client first
-  const requestedSessionKeys = deriveRequestedSessionKeys(
-    sessionRoleKeys,
-    connectSequence,
-    useSecondarySession
-  );
-  const existingOwner = sessionRegistry.findSingleOwnerForSessions(requestedSessionKeys);
-  if (existingOwner) {
-    output.appendLineOtherOut(
-      `Reconnecting: disconnecting existing client for sessions: ${requestedSessionKeys.join(', ')}`
-    );
-    await disconnectClientByKey(existingOwner);
-  }
 
   util.setConnectingState(true);
   void vscode.commands.executeCommand('setContext', 'calva:connectSequence', connectSequence.name);
@@ -190,10 +191,9 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         return cleanUpAfterError(e);
       },
     });
-    ensureSessionAssignmentsAvailable(requestedSessionKeys, nClient.clientKey);
     clientRegistry.registerClient(nClient, {
       connectSequenceName: connectSequence.name,
-      projectRoot: state.getProjectRootUri()?.toString(),
+      projectRoot,
       host: hostname,
       port,
       connectionState: {
@@ -203,6 +203,8 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         sessionRoleKeys,
         sessionGlobMap,
         connectSequence,
+        baseSessionNames,
+        fruitSuffix: resolution.fruitSuffix,
       },
     });
     clientRegistry.setActiveClientKey(nClient.clientKey);
@@ -1162,19 +1164,26 @@ function buildDocsUrl(slug?: string): string {
 }
 
 function handleConnectError(error: unknown): boolean {
-  if (!(error instanceof ConflictingSessionsError)) {
-    return false;
+  if (error instanceof ConflictingSessionsError) {
+    const docUrl = buildDocsUrl(error.docSlug);
+    const openDocsLabel = 'Open multi-session docs';
+    output.appendLineOtherErr(error.message);
+    void vscode.window.showErrorMessage(error.message, openDocsLabel).then((choice) => {
+      if (choice === openDocsLabel) {
+        void vscode.commands.executeCommand('simpleBrowser.show', docUrl);
+      }
+    });
+    return true;
   }
 
-  const docUrl = buildDocsUrl(error.docSlug);
-  const openDocsLabel = 'Open multi-session docs';
-  output.appendLineOtherErr(error.message);
-  void vscode.window.showErrorMessage(error.message, openDocsLabel).then((choice) => {
-    if (choice === openDocsLabel) {
-      void vscode.commands.executeCommand('simpleBrowser.show', docUrl);
-    }
-  });
-  return true;
+  // Handle fruit pool exhaustion error
+  if (error instanceof Error && error.message.includes('too many REPLs')) {
+    output.appendLineOtherErr(error.message);
+    void vscode.window.showErrorMessage(error.message);
+    return true;
+  }
+
+  return false;
 }
 
 interface DisconnectSelectionAll {
@@ -1252,6 +1261,11 @@ async function promptForClientDisconnect(
 async function disconnectClientByKey(clientKey: string): Promise<void> {
   if (!clientKey) {
     return;
+  }
+
+  const connectionState = clientRegistry.getConnectionState(clientKey);
+  if (connectionState?.fruitSuffix) {
+    fruitSuffix.releaseFruit(connectionState.fruitSuffix);
   }
 
   const client = clientRegistry.getClient(clientKey);

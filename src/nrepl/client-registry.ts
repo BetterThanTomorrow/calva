@@ -16,6 +16,10 @@ export interface ConnectionState {
   connectSequence?: ReplConnectSequence;
   shadowCljsRuntimeId?: number;
   shadowCljsRuntimeInfo?: any;
+  /** Base session names before any fruit suffix was applied */
+  baseSessionNames?: SessionRoleKeys;
+  /** The fruit suffix applied to this connection, if any */
+  fruitSuffix?: string;
 }
 
 export interface RegisteredClient {

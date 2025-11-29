@@ -150,7 +150,12 @@ async function stopProcessesForSequence(connectSequence: ReplConnectSequence): P
 
 function findClientsForSequence(connectSequence: ReplConnectSequence): RegisteredClient[] {
   const targetRootUri = getProjectRootUriString();
-  const sequenceMatches = clientRegistry.listClients().filter((client) => {
+
+  // Only match clients with the same sequence name AND project root.
+  // This handles the reconnection case (jacking in to the same project again).
+  // Session name conflicts with *different* project roots are now handled
+  // via fruit suffixes in connector.connectToHost().
+  return clientRegistry.listClients().filter((client) => {
     if (client.connectSequenceName !== connectSequence.name) {
       return false;
     }
@@ -162,44 +167,6 @@ function findClientsForSequence(connectSequence: ReplConnectSequence): Registere
     }
     return client.projectRoot === targetRootUri;
   });
-
-  const conflictMatches = findClientsWithSessionConflicts(connectSequence);
-  const byKey = new Map<string, RegisteredClient>();
-  [...sequenceMatches, ...conflictMatches].forEach((client) => byKey.set(client.key, client));
-  return Array.from(byKey.values());
-}
-
-function findClientsWithSessionConflicts(connectSequence: ReplConnectSequence): RegisteredClient[] {
-  const sessionRoleKeys = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
-  const useSecondarySession = secondarySession.shouldUseSecondarySession(connectSequence);
-  const requestedKeys = connector.deriveRequestedSessionKeys(
-    sessionRoleKeys,
-    connectSequence,
-    useSecondarySession
-  );
-
-  if (!requestedKeys.length) {
-    return [];
-  }
-
-  const analysis = sessionRegistry.analyzeSessionAssignments(requestedKeys);
-  const conflictingClientKeys = new Set<string>();
-  analysis.statuses.forEach((status) => {
-    if (status.occupancy === 'conflict') {
-      const clientKey = status.metadata?.connectionOwnerId;
-      if (clientKey) {
-        conflictingClientKeys.add(clientKey);
-      }
-    }
-  });
-
-  if (conflictingClientKeys.size === 0) {
-    return [];
-  }
-
-  return clientRegistry
-    .listClients()
-    .filter((client) => client.key && conflictingClientKeys.has(client.key));
 }
 
 async function stopClientsForSequence(connectSequence: ReplConnectSequence): Promise<void> {
