@@ -119,6 +119,33 @@ describe('file pattern to glob construction', () => {
       // Score should be computed based on the full pattern
       expect(specs[0].score).toEqual(computeGlobScore('/workspace/my-app/**/*.clj'));
     });
+
+    it('preserves workspace-wide patterns without project root prefixing', () => {
+      const specs = constructGlobsFromFilePatterns(
+        '/workspace/my-app',
+        ['**/*.bb', '**/bb.edn'],
+        'is-fallback-for'
+      );
+
+      expect(specs).toHaveLength(2);
+      // Patterns starting with **/ should NOT be prefixed with project root
+      expect(specs[0].pattern).toEqual('**/*.bb');
+      expect(specs[1].pattern).toEqual('**/bb.edn');
+    });
+
+    it('mixes project-scoped and workspace-wide patterns correctly', () => {
+      const specs = constructGlobsFromFilePatterns(
+        '/workspace/my-app',
+        ['*.clj', '**/*.bb'],
+        'always-claim'
+      );
+
+      expect(specs).toHaveLength(2);
+      // Regular pattern gets project root prefix
+      expect(specs[0].pattern).toEqual('/workspace/my-app/**/*.clj');
+      // Workspace-wide pattern stays as-is
+      expect(specs[1].pattern).toEqual('**/*.bb');
+    });
   });
 
   describe('createCatchAllGlobSpec', () => {

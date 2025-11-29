@@ -401,8 +401,8 @@ const projectTypes: { [id: string]: ProjectType } = {
     useWhenExists: ['project.clj'],
     nReplPortFile: ['.nrepl-port'],
     defaultFilePatterns: {
-      primary: ['*.clj', '*.edn'],
-      secondary: ['*.cljs'],
+      primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': ['**/*.clj', '**/*.edn'] },
+      secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': ['**/*.cljs'] },
     },
     /** Build the command line args for a lein-project.
      * 1. Parsing the project.clj
@@ -432,8 +432,8 @@ const projectTypes: { [id: string]: ProjectType } = {
     useWhenExists: ['deps.edn'],
     nReplPortFile: ['.nrepl-port'],
     defaultFilePatterns: {
-      primary: ['*.clj', '*.edn'],
-      secondary: ['*.cljs'],
+      primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': ['**/*.clj', '**/*.edn'] },
+      secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': ['**/*.cljs'] },
     },
     /** Build the command line args for a clj-project.
      * 1. Read the deps.edn and parsed it
@@ -457,8 +457,8 @@ const projectTypes: { [id: string]: ProjectType } = {
     useWhenExists: ['shadow-cljs.edn'],
     nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
     defaultFilePatterns: {
-      primary: ['*.clj', '*.edn'],
-      secondary: ['*.cljs'],
+      primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': ['**/*.clj', '**/*.edn'] },
+      secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': ['**/*.cljs'] },
     },
     /**
      *  Build the command line args for a shadow-project.
@@ -505,8 +505,8 @@ const projectTypes: { [id: string]: ProjectType } = {
     useWhenExists: ['project.clj'],
     nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
     defaultFilePatterns: {
-      primary: ['*.clj', '*.edn'],
-      secondary: ['*.cljs'],
+      primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': ['**/*.clj', '**/*.edn'] },
+      secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': ['**/*.cljs'] },
     },
     /**
      *  Build the command line args for a lein-shadow project.
@@ -627,7 +627,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     defaultFilePatterns: {
       primary: {
         'always-claim': ['bb.edn', '*.bb'],
-        'is-fallback-for': ['*.clj'],
+        'is-fallback-for': ['**/*.clj', '**/bb.edn', '**/*.bb'],
       },
     },
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
@@ -650,7 +650,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     defaultFilePatterns: {
       primary: {
         'always-claim': ['*.nbb'],
-        'is-fallback-for': ['*.cljs'],
+        'is-fallback-for': ['**/*.cljs', '**/*.nbb'],
       },
     },
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
@@ -697,7 +697,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     defaultFilePatterns: {
       primary: {
         'always-claim': ['.joyride/**/*.cljs'],
-        'is-fallback-for': ['*.cljs'],
+        'is-fallback-for': ['**/*.cljs'],
       },
     },
     commandLine: undefined,

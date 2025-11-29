@@ -48,14 +48,14 @@ A connect sequence configures the following:
 * `replSessionNames`: Override the default repl session names that Calva registers for the primary and the secondary (if any) REPL sessions. Use this to enable connecting more than one connect sequence in the same VS Code window.
     * `primary`: the name of the primary repl session. Defaults to `clj`
     * `secondary`: the name of the secondary repl session in the sequence. Defaults to `cljs`.
-* `replSessionFilePatterns`: Map REPL session roles to the file patterns they should handle. Use `primary` and `secondary` as keys. Values can be a single pattern string, an array of patterns, or an object specifying `always-claim` and/or `is-fallback-for` patterns. Patterns are automatically scoped to the connect sequence's project root. Multi-root workspaces are supported. Defaults are `*.clj` for the primary session and `*.cljs` for the secondary session.
+* `replSessionFilePatterns`: Map REPL session roles to the file patterns they should handle. Use `primary` and `secondary` as keys. Values can be a single pattern string, an array of patterns, or an object specifying `always-claim` and/or `is-fallback-for` patterns. Patterns are automatically scoped to the connect sequence's project root unless they start with `**/`, which makes them workspace-wide. Multi-root workspaces are supported. Defaults are `*.clj` for the primary session and `*.cljs` for the secondary session.
 
 ??? note "Session routing pattern competition resolution"
     When there are many repls connected at once, Calva lets you pin a repl to be used for evaluations. We've tried to make the auto-routing flexible so that you shouldn't need to resort to session pinning too often; this is why the `replSessionFilePatterns` setting is a bit elaborate.
 
     Your first line of defence is pattern "specificity". The routing will take a simple specificity into account in cases of routing conflict. More specific patterns will take precedence over less specific ones.
 
-    When you want to stay unspecific with the pattern targeting, you can signal that a particular session is fallback using the object form for `replSessionFilePatterns`. Specifying that some patterns are `is-fallback-for` gives other repl sessions the chance to handle the evaluation with their `always-claim` patterns. The built-in **Babashka** connect sequence uses this like so:
+    When you want to stay unspecific with the pattern targeting, you can signal that a particular session is fallback using the object form for `replSessionFilePatterns`. Specifying that some patterns are `is-fallback-for` gives other repl sessions the chance to handle the evaluation with their `always-claim` patterns. The built-in **Babashka** project type uses patterns like so:
 
     ```jsonc
     {
@@ -64,16 +64,18 @@ A connect sequence configures the following:
         "replSessionFilePatterns": {
             "primary": {
                 "always-claim": ["*.bb", "bb.edn"],
-                "is-fallback-for": ["*.clj"]
+                "is-fallback-for": ["**/*.clj", "**/*.bb", "**/bb.edn"]
             }
         }
         ...
     }
     ```
 
-    This will make the Babashka repl (if connected) get all evaluations from `.bb` files, and if no other repl session is handling `.clj` files, the Babashka repl will handle those too. But if some other connected repl is specifying `*.clj` as an `always-claim` pattern, the Babashka repl will not compete for those files.
+    This will make the Babashka repl (if connected) get all evaluations from `.bb` files in its project, and if no other repl session is handling `.clj` files, the Babashka repl will handle those too. But if some other connected repl is specifying `*.clj` as an `always-claim` pattern, the Babashka repl will not compete for those files. Additionally, the `**/*.clj`, `**/*.bb`. and `**/bb.edn` patterns in the fallback tier will match `.bb` files *anywhere* in the workspace (not just within the project root), making the Babashka repl a workspace-wide fallback for orphan Babashka files (and Clojure files, to make another repl fallback for Clojure files, connect it before connecting the Babashka repl).
 
     NB: When a sequence is not using the object form of the specification all patterns are considered `always-claim`.
+
+    **Workspace-wide patterns**: By default, patterns are scoped to the connect sequence's project root. To match files anywhere in the workspace, prefix patterns with `**/`.
 
     Inside each tier, Calva scores patterns by specificity: literal path segments earn more points than wildcard-heavy ones, and `**` incurs a penalty. This keeps patterns such as `src/app/*.cljs` ahead of a broad `*.cljs` even if both live in the same tier.
 

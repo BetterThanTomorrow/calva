@@ -84,10 +84,15 @@ export function normalizeProjectRoot(projectRootPath: string): string {
  * `is-fallback-for` tier to enable cljc routing and ensure all files in a project root
  * can be routed to the sequence.
  *
+ * Patterns starting with `**\/` are treated as workspace-wide patterns and are NOT scoped
+ * to the project root. This allows patterns like `**\/*.bb` to match files anywhere in the
+ * workspace, not just within the sequence's project directory.
+ *
  * @param projectRootPath - The project root as an fsPath (e.g., "/Users/pez/..." or "C:\\Users\\...")
  * @param filePatterns - File patterns like `["*.clj", "*.edn"]` or path patterns like `["scripts/*.clj"]`
+ *                       or workspace-wide patterns like `["**\/*.bb"]`
  * @param tier - The glob tier ('always-claim' or 'is-fallback-for')
- * @returns Full glob specs with patterns like `/path/to/project/**\/*.clj`
+ * @returns Full glob specs with patterns like `/path/to/project/**\/*.clj` or workspace-wide patterns
  */
 export function constructGlobsFromFilePatterns(
   projectRootPath: string,
@@ -102,7 +107,13 @@ export function constructGlobsFromFilePatterns(
 
   return filePatterns.map((pattern) => {
     const normalizedPattern = globPaths.toPosixPath(pattern);
-    const fullPattern = `${normalizedRoot}/**/${normalizedPattern}`;
+
+    // Patterns starting with **/ are workspace-wide and skip project root scoping
+    const isWorkspaceWide = normalizedPattern.startsWith('**/');
+    const fullPattern = isWorkspaceWide
+      ? normalizedPattern
+      : `${normalizedRoot}/**/${normalizedPattern}`;
+
     return {
       pattern: fullPattern,
       normalizedPattern: fullPattern,
