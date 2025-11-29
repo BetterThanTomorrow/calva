@@ -131,8 +131,41 @@ async function selectShadowBuilds(
 ): Promise<{ selectedBuilds: string[]; args: string[] }> {
   const menuSelections = connectSequence.menuSelections;
   let selectedBuilds: string[];
+
+  // Helper to normalize build keys for comparison (handles : prefix)
+  const normalizeBuildKey = (build: string) => (build.startsWith(':') ? build.substring(1) : build);
+  const normalizedFoundBuilds = new Set(foundBuilds.map(normalizeBuildKey));
+
   if (menuSelections && menuSelections.cljsLaunchBuilds) {
     selectedBuilds = menuSelections.cljsLaunchBuilds;
+
+    // Validate that all specified builds exist in config
+    const invalidBuilds = selectedBuilds.filter(
+      (build) => !normalizedFoundBuilds.has(normalizeBuildKey(build))
+    );
+    if (invalidBuilds.length > 0) {
+      const invalidList = invalidBuilds.map((b) => `"${b}"`).join(', ');
+      const availableList = foundBuilds.filter((b) => b.startsWith(':')).join(', ');
+      throw new Error(
+        `Invalid cljsLaunchBuilds: ${invalidList} not found in shadow-cljs.edn. ` +
+          `Available builds: ${availableList}`
+      );
+    }
+
+    // Validate cljsDefaultBuild if specified
+    if (menuSelections.cljsDefaultBuild) {
+      const defaultBuild = menuSelections.cljsDefaultBuild;
+      const normalizedDefault = normalizeBuildKey(defaultBuild);
+      const normalizedSelected = new Set(selectedBuilds.map(normalizeBuildKey));
+
+      if (!normalizedSelected.has(normalizedDefault)) {
+        const selectedList = selectedBuilds.map((b) => `"${b}"`).join(', ');
+        throw new Error(
+          `Invalid cljsDefaultBuild: "${defaultBuild}" is not in cljsLaunchBuilds [${selectedList}]. ` +
+            `The default build must be one of the launched builds.`
+        );
+      }
+    }
   } else {
     const selectedBuildItems = await utilities.quickPickMulti({
       values: foundBuilds.filter((x) => x[0] == ':').map((a) => ({ label: a })),

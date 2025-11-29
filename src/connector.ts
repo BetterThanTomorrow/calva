@@ -498,12 +498,52 @@ async function figwheelOrShadowBuilds(
 }
 
 /**
- * Prompt the user to select a CLJS build without performing any REPL operations.
- * This is used when switching builds to show the menu first, before session operations.
+ * Query the REPL for currently active (watched) builds.
+ * For shadow-cljs: uses shadow.cljs.devtools.api/active-builds
+ * For Figwheel Main: uses figwheel.main/build-registry
+ * Returns undefined if the query fails or cljsType is not supported.
+ */
+async function getActiveBuilds(
+  cljsTypeName: string,
+  session: NReplSession
+): Promise<string[] | undefined> {
+  try {
+    let code: string;
+    if (cljsTypeName.includes('shadow-cljs')) {
+      code = '(mapv str (shadow.cljs.devtools.api/active-builds))';
+    } else if (cljsTypeName.includes('Figwheel Main')) {
+      code = '(vec (keys @figwheel.main/build-registry))';
+    } else {
+      return undefined;
+    }
+
+    const result = await session.eval(code, 'user').value;
+    if (result) {
+      // Parse the Clojure vector result, e.g. '[:app :app-too]' or '[":app" ":app-too"]'
+      const parsed = result
+        .replace(/^\[/, '')
+        .replace(/\]$/, '')
+        .split(/\s+/)
+        .map((s) => s.trim())
+        .map((s) => s.replace(/^"|"$/g, '')) // Strip quotes from string results
+        .filter((s) => s.length > 0);
+      return parsed;
+    }
+  } catch (e) {
+    console.error('Error querying active builds:', e);
+  }
+  return undefined;
+}
+
+/**
+ * Prompt the user to select a CLJS build, showing watcher status for each build.
+ * Builds without active watchers are shown as disabled and cannot be selected.
+ * browser-repl and node-repl don't require watchers and are always available.
  */
 async function selectCljsBuild(
   cljsTypeName: string,
-  projectRootUri?: vscode.Uri
+  projectRootUri?: vscode.Uri,
+  session?: NReplSession
 ): Promise<string | null> {
   const effectiveProjectRoot = projectRootUri ?? state.getProjectRootUri();
   const allBuilds = await figwheelOrShadowBuilds(cljsTypeName, effectiveProjectRoot);
@@ -511,8 +551,37 @@ async function selectCljsBuild(
     return null;
   }
 
+  // Query active builds if we have a session
+  let activeBuilds: string[] | undefined;
+  if (session) {
+    activeBuilds = await getActiveBuilds(cljsTypeName, session);
+  }
+
+  // Builds that don't require watchers (always available)
+  const noWatcherRequired = ['node-repl', 'browser-repl'];
+
+  // Helper to normalize build keys for comparison
+  const normalizeBuildKey = (build: string) => (build.startsWith(':') ? build.substring(1) : build);
+
+  // Create picker items with status information
+  const pickerItems: util.CalvaQuickPickItem[] = allBuilds.map((build) => {
+    const buildKey = normalizeBuildKey(build);
+    const isNoWatcherBuild = noWatcherRequired.includes(buildKey);
+    const isActive =
+      isNoWatcherBuild ||
+      !activeBuilds ||
+      activeBuilds.some((ab) => normalizeBuildKey(ab) === buildKey);
+
+    return {
+      label: build,
+      description: !isActive ? 'Watcher not running' : undefined,
+      disabled: !isActive,
+    };
+  });
+
   const buildItem = await util.quickPickSingle({
-    values: allBuilds.map((a) => ({ label: a })),
+    title: 'ClojureScript Builds',
+    values: pickerItems,
     placeHolder: 'Select which build to connect to',
     saveAs: `${effectiveProjectRoot.toString()}/${cljsTypeName.replace(' ', '-')}-build`,
     autoSelect: true,
@@ -560,7 +629,7 @@ function createCLJSReplType(
   let startedBuilds: string[];
   let connectToBuild: string;
   const shouldRunStartCode =
-    !cljsType.isStarted && !(connectSequence.projectType === 'shadow-cljs');
+    !cljsType.isStarted && !(connectSequence.projectType === 'shadow-cljs') && !preSelectedBuild;
 
   let hasStarted = cljsType.isStarted || !shouldRunStartCode;
 
@@ -760,12 +829,48 @@ function createCLJSReplType(
       if (!hasStarted) {
         if (startCode.includes('%BUILDS')) {
           let builds: string[];
+          const allBuilds = (await figwheelOrShadowBuilds(cljsTypeName)).filter(
+            (build) => !['browser-repl', 'node-repl'].includes(build)
+          );
+
+          // Helper to normalize build keys for comparison
+          const normalizeBuildKey = (build: string) =>
+            build.startsWith(':') ? build.substring(1) : build;
+          const normalizedAllBuilds = new Set(allBuilds.map(normalizeBuildKey));
+
           if (menuSelections && menuSelections.cljsLaunchBuilds) {
             builds = menuSelections.cljsLaunchBuilds;
-          } else {
-            const allBuilds = (await figwheelOrShadowBuilds(cljsTypeName)).filter(
-              (build) => !['browser-repl', 'node-repl'].includes(build)
+
+            // Validate that all specified builds exist in config
+            const invalidBuilds = builds.filter(
+              (build) => !normalizedAllBuilds.has(normalizeBuildKey(build))
             );
+            if (invalidBuilds.length > 0) {
+              const invalidList = invalidBuilds.map((b) => `"${b}"`).join(', ');
+              const availableList = allBuilds.join(', ');
+              output.appendLineOtherErr(
+                `Invalid cljsLaunchBuilds: ${invalidList} not found in project config. ` +
+                  `Available builds: ${availableList}`
+              );
+              throw new Error(`Invalid cljsLaunchBuilds configuration`);
+            }
+
+            // Validate cljsDefaultBuild if specified
+            if (menuSelections.cljsDefaultBuild) {
+              const defaultBuild = menuSelections.cljsDefaultBuild;
+              const normalizedDefault = normalizeBuildKey(defaultBuild);
+              const normalizedSelected = new Set(builds.map(normalizeBuildKey));
+
+              if (!normalizedSelected.has(normalizedDefault)) {
+                const selectedList = builds.map((b) => `"${b}"`).join(', ');
+                output.appendLineOtherErr(
+                  `Invalid cljsDefaultBuild: "${defaultBuild}" is not in cljsLaunchBuilds [${selectedList}]. ` +
+                    `The default build must be one of the launched builds.`
+                );
+                throw new Error(`Invalid cljsDefaultBuild configuration`);
+              }
+            }
+          } else {
             if (allBuilds.length <= 1) {
               builds = allBuilds;
             } else {
@@ -1342,16 +1447,16 @@ export default {
       return;
     }
 
-    // First, show build selection menu BEFORE any REPL operations
-    const selectedBuild = await selectCljsBuild(cljsTypeName, projectRootUri);
-    if (!selectedBuild) {
-      return; // User cancelled or no builds available
-    }
-
-    // Get the main session for this connection
+    // Get the main session for this connection early so we can query active builds
     const cljSession = sessionRegistry.getPrimarySessionForClient(clientKey);
     if (!cljSession) {
       return;
+    }
+
+    // Show build selection menu with active build status
+    const selectedBuild = await selectCljsBuild(cljsTypeName, projectRootUri, cljSession);
+    if (!selectedBuild) {
+      return; // User cancelled or no builds available
     }
 
     const isBuiltinType: boolean = typeof connectSequence.cljsType == 'string';

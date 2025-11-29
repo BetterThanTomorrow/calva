@@ -19,6 +19,7 @@ Changes to Calva.
   - Updates default connect sequences for *Joyride*, *Babashka*, *nbb*, and *Basilisp*, to use custom `replSessionNames`, and configured default routings with `replSessionFilePatterns`.
   - Removed deprecated `calva.useLegacyReplWindowPath` setting. The REPL window is now always located at `.calva/repl.calva-repl`.
 - Adds a new connect sequence: **Clojure projectless**, for jack-in and connect without a `deps.edn`, etcetera needed.
+- Improve ClojureScript build selector UX: query REPL for active watchers, show status, and disable builds without running watchers
 
 ## [2.0.540] - 2025-11-06
 

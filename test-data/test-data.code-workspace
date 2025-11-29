@@ -156,8 +156,8 @@
 				"projectType": "deps.edn",
 				"cljsType": "shadow-cljs",
 				"replSessionNames": {
-					"main": "clj",
-					"promoted": "cljs"
+					"primary": "clj",
+					"secondary": "cljs"
 				},
 				"afterMainReplConnectedCode": [
 					"(require 'repl)",
@@ -170,8 +170,8 @@
 						"dev-too"
 					],
 					"cljsLaunchBuilds": [
-						"app",
-						"app-too"
+						":app",
+						":app-too"
 					],
 					"cljsDefaultBuild": "app"
 				}
