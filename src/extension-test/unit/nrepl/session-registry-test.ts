@@ -1,12 +1,12 @@
 import * as expect from 'expect';
 import type { NReplSession } from '../../../../src/nrepl';
 import * as sessionRegistry from '../../../../src/nrepl/session-registry';
-import * as connectionState from '../../../../src/nrepl/connection-state';
+import * as clientRegistry from '../../../../src/nrepl/client-registry';
 
 describe('session registry', () => {
   afterEach(() => {
     sessionRegistry.clearAllSessions();
-    connectionState.clearAllConnectionStates();
+    clientRegistry.clearAllClients();
   });
 
   describe('resolveSessionKey', () => {
@@ -181,12 +181,17 @@ describe('session registry', () => {
     const createSession = (clientKey: string): NReplSession =>
       ({ client: { clientKey } } as unknown as NReplSession);
 
+    const createMockClient = (clientKey: string) =>
+      ({ clientKey } as unknown as Parameters<typeof clientRegistry.registerClient>[0]);
+
     it('returns connection state for the session owner', () => {
-      sessionRegistry.registerSession('alpha', createSession('client-a'), {});
-      connectionState.setConnectionState('client-a', {
-        cljsBuild: ':app',
-        cljsTypeName: 'shadow-cljs',
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        connectionState: {
+          cljsBuild: ':app',
+          cljsTypeName: 'shadow-cljs',
+        },
       });
+      sessionRegistry.registerSession('alpha', createSession('client-a'), {});
 
       const state = sessionRegistry.getConnectionStateForSession('alpha');
 
@@ -200,10 +205,14 @@ describe('session registry', () => {
     });
 
     it('returns correct state when multiple clients exist', () => {
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        connectionState: { cljsBuild: ':app' },
+      });
+      clientRegistry.registerClient(createMockClient('client-b'), {
+        connectionState: { cljsBuild: ':admin' },
+      });
       sessionRegistry.registerSession('alpha', createSession('client-a'), {});
       sessionRegistry.registerSession('beta', createSession('client-b'), {});
-      connectionState.setConnectionState('client-a', { cljsBuild: ':app' });
-      connectionState.setConnectionState('client-b', { cljsBuild: ':admin' });
 
       expect(sessionRegistry.getConnectionStateForSession('alpha')?.cljsBuild).toBe(':app');
       expect(sessionRegistry.getConnectionStateForSession('beta')?.cljsBuild).toBe(':admin');

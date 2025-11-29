@@ -1,6 +1,6 @@
 import * as expect from 'expect';
 import * as shadowRuntimeCore from '../../../src/shadow-cljs-runtime-core';
-import type { ConnectionState } from '../../../src/nrepl/connection-state';
+import type { ConnectionState } from '../../../src/nrepl/client-registry';
 
 describe('shadow-cljs-runtime-core', () => {
   describe('normalizeRuntimeInfo', () => {
@@ -73,7 +73,6 @@ describe('shadow-cljs-runtime-core', () => {
   describe('getRuntimeIdFromState / getRuntimeInfoFromState', () => {
     it('extracts runtime ID from connection state', () => {
       const state: ConnectionState = {
-        clientKey: 'test',
         cljsBuild: ':app',
         cljsTypeName: 'shadow-cljs',
         hasBuilds: true,
@@ -98,7 +97,6 @@ describe('shadow-cljs-runtime-core', () => {
         sinceDescription: 'Unknown time',
       };
       const state: ConnectionState = {
-        clientKey: 'test',
         cljsBuild: ':app',
         cljsTypeName: 'shadow-cljs',
         hasBuilds: true,

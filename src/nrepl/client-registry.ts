@@ -1,5 +1,22 @@
 import type { NReplClient } from './index';
 import * as sessionRegistry from './session-registry';
+import type { SessionRoleKeys, SessionGlobMap } from './session-role-utils';
+import type { ReplConnectSequence } from './connectSequence';
+
+/**
+ * Connection state for CLJS-specific information.
+ * Previously in a separate connection-state.ts module, now unified with client registry.
+ */
+export interface ConnectionState {
+  cljsBuild: string | null;
+  cljsTypeName: string | null;
+  hasBuilds: boolean;
+  sessionRoleKeys?: SessionRoleKeys;
+  sessionGlobMap?: SessionGlobMap;
+  connectSequence?: ReplConnectSequence;
+  shadowCljsRuntimeId?: number;
+  shadowCljsRuntimeInfo?: any;
+}
 
 export interface RegisteredClient {
   key: string;
@@ -9,6 +26,7 @@ export interface RegisteredClient {
   host?: string;
   port?: number;
   connectedAt: number;
+  connectionState: ConnectionState;
 }
 
 let activeClientKey: string | undefined;
@@ -19,15 +37,25 @@ function selectFallbackActiveClient(): void {
   activeClientKey = fallback ?? undefined;
 }
 
+const defaultConnectionState: ConnectionState = {
+  cljsBuild: null,
+  cljsTypeName: null,
+  hasBuilds: false,
+};
+
 export function registerClient(
   client: NReplClient,
-  metadata: Omit<RegisteredClient, 'key' | 'client' | 'connectedAt'> = {}
+  metadata: Omit<RegisteredClient, 'key' | 'client' | 'connectedAt' | 'connectionState'> & {
+    connectionState?: Partial<ConnectionState>;
+  } = {}
 ): RegisteredClient {
+  const { connectionState: partialConnState, ...rest } = metadata;
   const entry: RegisteredClient = {
     key: client.clientKey,
     client,
     connectedAt: Date.now(),
-    ...metadata,
+    connectionState: { ...defaultConnectionState, ...partialConnState },
+    ...rest,
   };
 
   registeredClients.set(entry.key, entry);
@@ -87,6 +115,35 @@ export function getActiveClientKey(): string | undefined {
 
 export function getClientSessions(clientKey: string) {
   return sessionRegistry.listSessionsByClient(clientKey);
+}
+
+/**
+ * Get the connection state for a given client key.
+ */
+export function getConnectionState(clientKey: string): ConnectionState | undefined {
+  return registeredClients.get(clientKey)?.connectionState;
+}
+
+/**
+ * Update connection state for a given client key.
+ * Merges with existing connection state.
+ */
+export function setConnectionState(clientKey: string, state: Partial<ConnectionState>): void {
+  const entry = registeredClients.get(clientKey);
+  if (entry) {
+    entry.connectionState = { ...entry.connectionState, ...state };
+  }
+}
+
+/**
+ * List all connection states.
+ * Useful for debugging and testing.
+ */
+export function listConnectionStates(): (ConnectionState & { clientKey: string })[] {
+  return Array.from(registeredClients.values()).map((entry) => ({
+    ...entry.connectionState,
+    clientKey: entry.key,
+  }));
 }
 
 export function clearAllClients(): void {

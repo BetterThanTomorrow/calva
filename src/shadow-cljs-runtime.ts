@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as replSession from './nrepl/repl-session';
 import * as sessionRegistry from './nrepl/session-registry';
-import * as connectionState from './nrepl/connection-state';
+import * as clientRegistry from './nrepl/client-registry';
 import * as util from './utilities';
 import { parseEdn, parseEdnWithInst } from '../out/cljs-lib/cljs-lib';
 import * as output from './results-output/output';
@@ -12,28 +12,40 @@ interface RuntimeQuickPickItem extends vscode.QuickPickItem {
   runtimeInfo: shadowRuntimeCore.RuntimeInfo;
 }
 
-function getConnectionStateForCurrentContext() {
+/**
+ * Get clientKey and connectionState for the currently routed session's connection.
+ * Returns null if no session is routed.
+ */
+function getConnectionContextForCurrentSession() {
   const routedSessionKey = replSession.getReplSessionTypeFromState();
   if (!routedSessionKey) {
     return null;
   }
-  return sessionRegistry.getConnectionStateForSession(routedSessionKey);
+  const clientKey = sessionRegistry.getClientKeyForSession(routedSessionKey);
+  if (!clientKey) {
+    return null;
+  }
+  const connectionState = clientRegistry.getConnectionState(clientKey);
+  if (!connectionState) {
+    return null;
+  }
+  return { clientKey, connectionState };
 }
 
 export function getSelectedRuntimeInfo(clientKey?: string): shadowRuntimeCore.RuntimeInfo {
   if (clientKey) {
-    return connectionState.getConnectionState(clientKey)?.shadowCljsRuntimeInfo;
+    return clientRegistry.getConnectionState(clientKey)?.shadowCljsRuntimeInfo;
   }
-  const state = getConnectionStateForCurrentContext();
-  return state?.shadowCljsRuntimeInfo;
+  const ctx = getConnectionContextForCurrentSession();
+  return ctx?.connectionState.shadowCljsRuntimeInfo;
 }
 
 export function getSelectedRuntimeId(clientKey?: string): number {
   if (clientKey) {
-    return connectionState.getConnectionState(clientKey)?.shadowCljsRuntimeId;
+    return clientRegistry.getConnectionState(clientKey)?.shadowCljsRuntimeId;
   }
-  const state = getConnectionStateForCurrentContext();
-  return state?.shadowCljsRuntimeId;
+  const ctx = getConnectionContextForCurrentSession();
+  return ctx?.connectionState.shadowCljsRuntimeId;
 }
 
 /**
@@ -56,12 +68,8 @@ function getPrimarySessionForCurrentConnection() {
  * Get the cljsBuild for the currently routed session's connection.
  */
 function getCurrentBuild() {
-  const routedSessionKey = replSession.getReplSessionTypeFromState();
-  if (!routedSessionKey) {
-    return null;
-  }
-  const connectionState = sessionRegistry.getConnectionStateForSession(routedSessionKey);
-  return connectionState?.cljsBuild ?? null;
+  const ctx = getConnectionContextForCurrentSession();
+  return ctx?.connectionState.cljsBuild ?? null;
 }
 
 /**
@@ -187,7 +195,7 @@ export async function switchToRuntime(
 
     let currentBuild;
     if (clientKey) {
-      currentBuild = connectionState.getConnectionState(clientKey)?.cljsBuild;
+      currentBuild = clientRegistry.getConnectionState(clientKey)?.cljsBuild;
     } else {
       currentBuild = getCurrentBuild();
     }
@@ -242,13 +250,12 @@ export async function selectShadowCljsRuntimeCommand(): Promise<void> {
  */
 export async function detectInitialRuntime(): Promise<void> {
   try {
-    // Get connection state for the currently routed session
-    const routedSessionKey = replSession.getReplSessionTypeFromState();
-    if (!routedSessionKey) {
+    // Get connection context for the currently routed session
+    const ctx = getConnectionContextForCurrentSession();
+    if (!ctx) {
       return;
     }
-    const connectionState = sessionRegistry.getConnectionStateForSession(routedSessionKey);
-    if (connectionState?.cljsTypeName !== 'shadow-cljs') {
+    if (ctx.connectionState.cljsTypeName !== 'shadow-cljs') {
       return; // Only run for shadow-cljs projects
     }
 
@@ -261,7 +268,7 @@ export async function detectInitialRuntime(): Promise<void> {
     const runtime = runtimes[0];
     const clientId = runtime.clientId;
 
-    updateRuntimeState(clientId, runtime, connectionState.clientKey);
+    updateRuntimeState(clientId, runtime, ctx.clientKey);
 
     status.update();
     if (runtimes.length > 1) {
@@ -286,14 +293,14 @@ export function updateRuntimeState(
   clientKey?: string
 ): void {
   if (clientKey) {
-    connectionState.setConnectionState(clientKey, {
+    clientRegistry.setConnectionState(clientKey, {
       shadowCljsRuntimeId: clientId,
       shadowCljsRuntimeInfo: runtimeInfo,
     });
   } else {
-    const state = getConnectionStateForCurrentContext();
-    if (state) {
-      connectionState.setConnectionState(state.clientKey, {
+    const ctx = getConnectionContextForCurrentSession();
+    if (ctx) {
+      clientRegistry.setConnectionState(ctx.clientKey, {
         shadowCljsRuntimeId: clientId,
         shadowCljsRuntimeInfo: runtimeInfo,
       });
@@ -304,14 +311,14 @@ export function updateRuntimeState(
 
 export function clearRuntimeState(clientKey?: string): void {
   if (clientKey) {
-    connectionState.setConnectionState(clientKey, {
+    clientRegistry.setConnectionState(clientKey, {
       shadowCljsRuntimeId: undefined,
       shadowCljsRuntimeInfo: undefined,
     });
   } else {
-    const state = getConnectionStateForCurrentContext();
-    if (state) {
-      connectionState.setConnectionState(state.clientKey, {
+    const ctx = getConnectionContextForCurrentSession();
+    if (ctx) {
+      clientRegistry.setConnectionState(ctx.clientKey, {
         shadowCljsRuntimeId: undefined,
         shadowCljsRuntimeInfo: undefined,
       });

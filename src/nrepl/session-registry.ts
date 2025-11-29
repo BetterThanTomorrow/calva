@@ -1,8 +1,8 @@
 import { NReplSession } from './index';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import type { SessionGlobSpec, SessionGlobTier } from './globs';
-import * as connectionState from './connection-state';
-import type { ConnectionState } from './connection-state';
+import * as clientRegistry from './client-registry';
+import type { ConnectionState } from './client-registry';
 
 export interface SessionMetadata {
   key: string;
@@ -242,16 +242,37 @@ export function findSecondarySessionKeyForConnection(sessionKey: string): string
 }
 
 /**
+ * Extended connection state that includes client info.
+ * Used by code that needs both connection state AND client-level info.
+ */
+export interface ConnectionContext extends ConnectionState {
+  clientKey: string;
+  projectRoot?: string;
+}
+
+/**
  * Get connection state for the connection that owns the given session.
  * This is the primary way to access per-connection state (cljsBuild, cljsTypeName, etc.)
  * from code that knows a session key.
+ *
+ * Returns a ConnectionContext that includes clientKey and projectRoot for convenience.
  */
-export function getConnectionStateForSession(sessionKey: string): ConnectionState | undefined {
+export function getConnectionStateForSession(sessionKey: string): ConnectionContext | undefined {
   const metadata = getSessionMetadata(sessionKey);
   if (!metadata?.connectionOwnerId) {
     return undefined;
   }
-  return connectionState.getConnectionState(metadata.connectionOwnerId);
+  const clientKey = metadata.connectionOwnerId;
+  const connectionState = clientRegistry.getConnectionState(clientKey);
+  if (!connectionState) {
+    return undefined;
+  }
+  const registeredClient = clientRegistry.getRegisteredClient(clientKey);
+  return {
+    ...connectionState,
+    clientKey,
+    projectRoot: registeredClient?.projectRoot,
+  };
 }
 
 /**

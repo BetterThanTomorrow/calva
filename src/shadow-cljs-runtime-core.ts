@@ -5,7 +5,7 @@
  * This module is VS Code-free and operates solely on data structures.
  */
 
-import type { ConnectionState } from './nrepl/connection-state';
+import type { ConnectionState } from './nrepl/client-registry';
 
 export interface RuntimeInfo {
   clientId: number;

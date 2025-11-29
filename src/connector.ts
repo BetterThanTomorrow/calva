@@ -42,7 +42,6 @@ import * as sessionRouting from './nrepl/session-routing';
 import * as clientRegistry from './nrepl/client-registry';
 import type { RegisteredClient } from './nrepl/client-registry';
 import * as sessionTeardown from './nrepl/session-teardown';
-import * as connectionState from './nrepl/connection-state';
 import { ConflictingSessionsError } from './errors/conflicting-sessions';
 import { toGlobMetadata } from './nrepl/globs';
 
@@ -197,23 +196,20 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       projectRoot: state.getProjectRootUri()?.toString(),
       host: hostname,
       port,
+      connectionState: {
+        cljsBuild: null,
+        cljsTypeName: projectTypes.getCljsTypeName(connectSequence),
+        hasBuilds: false,
+        sessionRoleKeys,
+        sessionGlobMap,
+        connectSequence,
+      },
     });
     clientRegistry.setActiveClientKey(nClient.clientKey);
-    // Initialize connection state for this client
-    connectionState.setConnectionState(nClient.clientKey, {
-      projectRoot: state.getProjectRootUri()?.toString(),
-      cljsBuild: null,
-      cljsTypeName: projectTypes.getCljsTypeName(connectSequence),
-      hasBuilds: false,
-      sessionRoleKeys,
-      sessionGlobMap,
-      connectSequence,
-    });
     nClient.addOnCloseHandler((c) => {
       const wasRegistered = clientRegistry.unregisterClient(c.clientKey);
       if (wasRegistered) {
         sessionTeardown.teardownSessionsForClient(c.clientKey);
-        connectionState.clearConnectionState(c.clientKey);
       }
 
       const remainingSessions = sessionRegistry.listSessions().length;
@@ -630,7 +626,7 @@ function createCLJSReplType(
     name: cljsTypeName,
     connect: async (session, name, checkFn) => {
       // Store hasBuilds in per-connection state
-      connectionState.setConnectionState(clientKey, {
+      clientRegistry.setConnectionState(clientKey, {
         hasBuilds: cljsType.buildsRequired,
       });
       let initCode = cljsType.connectCode;
@@ -681,7 +677,7 @@ function createCLJSReplType(
         build = build.startsWith(':') ? build : `:${build}`;
       }
       connectToBuild = build;
-      connectionState.setConnectionState(clientKey, { cljsBuild: build });
+      clientRegistry.setConnectionState(clientKey, { cljsBuild: build });
 
       return evalConnectCode(
         session,
@@ -786,7 +782,7 @@ function createCLJSReplType(
           }
           if (builds) {
             output.appendLineOtherOut('Starting cljs repl for: ' + projectTypeName + '...');
-            connectionState.setConnectionState(clientKey, { hasBuilds: true });
+            clientRegistry.setConnectionState(clientKey, { hasBuilds: true });
             startCode = startCode.replace(
               '%BUILDS%',
               builds
@@ -885,7 +881,7 @@ async function makeCljsSessionClone(
         newCljsSession.replType = 'cljs';
       } else {
         output.appendLineOtherErr('Failed starting cljs repl');
-        connectionState.setConnectionState(clientKey, { cljsBuild: null });
+        clientRegistry.setConnectionState(clientKey, { cljsBuild: null });
         return [null, null];
       }
     }
@@ -900,16 +896,16 @@ async function makeCljsSessionClone(
       });
 
       cljsSession = newCljsSession;
-      return [cljsSession, connectionState.getConnectionState(clientKey)?.cljsBuild ?? null];
+      return [cljsSession, clientRegistry.getConnectionState(clientKey)?.cljsBuild ?? null];
     } else {
-      const build = connectionState.getConnectionState(clientKey)?.cljsBuild ?? null;
+      const build = clientRegistry.getConnectionState(clientKey)?.cljsBuild ?? null;
       const failed =
         'Failed starting cljs repl' +
         (build != null
           ? ` for build: ${build}. Is the build running and connected?\n   See the Output channel "Calva Connection Log" for any hints on what went wrong.`
           : '');
       output.appendLineOtherOut(failed);
-      connectionState.setConnectionState(clientKey, { cljsBuild: null });
+      clientRegistry.setConnectionState(clientKey, { cljsBuild: null });
     }
   }
   return [null, null];
@@ -1156,7 +1152,6 @@ async function disconnectClientByKey(clientKey: string): Promise<void> {
   const client = clientRegistry.getClient(clientKey);
   clientRegistry.unregisterClient(clientKey);
   sessionTeardown.teardownSessionsForClient(clientKey);
-  connectionState.clearConnectionState(clientKey);
 
   if (client) {
     client['silent'] = true;
