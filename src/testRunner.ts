@@ -262,7 +262,7 @@ async function reportTests(
 
 // FIXME: use cljs session where necessary
 async function runAllTests(controller: vscode.TestController, document = {}) {
-  const session = getSession(util.getFileType(document));
+  const session = getSession();
   output.appendLineOtherOut('Running all project tests…');
   try {
     await reportTests(controller, session, [await session.testAll()]);
@@ -287,7 +287,7 @@ function runAllTestsCommand(controller: vscode.TestController) {
 
 async function loadTestNS() {
   const document = util.getActiveTextEditor().document;
-  const session = getSession(util.getFileType(document));
+  const session = getSession();
   const doc = util.tryToGetDocument(document);
 
   const [ns, _] = namespace.getNamespace(
@@ -322,7 +322,7 @@ async function runNamespaceTestsImpl(
     return;
   }
 
-  const session = getSession(util.getFileType(document));
+  const session = getSession();
 
   output.appendLineOtherOut(
     `Running tests for the following namespaces:\n${
@@ -369,7 +369,7 @@ function getTestUnderCursor() {
 
 async function runTestUnderCursor(controller: vscode.TestController) {
   const doc = util.tryToGetDocument({});
-  const session = getSession(util.getFileType(doc));
+  const session = getSession();
   const [ns, _] = namespace.getNamespace(
     doc,
     vscode.window.activeTextEditor?.selections[0]?.active
@@ -414,7 +414,7 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
 }
 
 async function rerunTests(controller: vscode.TestController, document = {}) {
-  const session = getSession(util.getFileType(document));
+  const session = getSession();
   output.appendLineOtherOut('Running previously failed tests…');
   try {
     await reportTests(controller, session, [await session.retest()]);

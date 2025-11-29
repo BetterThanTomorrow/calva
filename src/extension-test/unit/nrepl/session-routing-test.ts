@@ -22,17 +22,18 @@ describe('session routing preferences', () => {
     sessionRouting.pinSession('beta');
 
     expect(sessionRouting.isPinned()).toBe(true);
-    expect(sessionRouting.resolvePreferredSession('clj')).toBe('beta');
+    expect(sessionRouting.resolvePinnedSession()).toBe('beta');
   });
 
-  it('routes cljc files using the override when not pinned', () => {
+  it('stores cljc session preference', () => {
     sessionRegistry.registerSession('alpha', createSession('clj'), {});
     sessionRegistry.registerSession('beta', createSession('cljs'), {});
 
     sessionRouting.setCljcSessionKey('beta');
 
-    expect(sessionRouting.resolvePreferredSession('cljc')).toBe('beta');
-    expect(sessionRouting.resolvePreferredSession('clj')).toBeUndefined();
+    expect(sessionRouting.getCljcSessionKey()).toBe('beta');
+    // resolvePinnedSession returns undefined when not pinned
+    expect(sessionRouting.resolvePinnedSession()).toBeUndefined();
   });
 
   it('selects a default cljc session when none is configured', () => {
@@ -52,7 +53,7 @@ describe('session routing preferences', () => {
     expect(sessionRouting.getCljcSessionKey()).toBe('alpha');
   });
 
-  it('ignores cljc overrides when a session is pinned', () => {
+  it('pinned session takes precedence over cljc preference', () => {
     sessionRegistry.registerSession('alpha', createSession('clj'), {});
     sessionRegistry.registerSession('beta', createSession('cljs'), {});
 
@@ -60,7 +61,8 @@ describe('session routing preferences', () => {
     sessionRouting.pinSession('alpha');
 
     expect(sessionRouting.isPinned()).toBe(true);
-    expect(sessionRouting.resolvePreferredSession('cljc')).toBe('alpha');
+    // When pinned, resolvePinnedSession returns the pinned session
+    expect(sessionRouting.resolvePinnedSession()).toBe('alpha');
   });
 
   it('falls back to auto routing when the pinned session disappears', () => {
@@ -89,38 +91,35 @@ describe('multi-client session routing', () => {
     sessionRouting.pinSession('cljs-b');
 
     expect(sessionRouting.isPinned()).toBe(true);
-    expect(sessionRouting.resolvePreferredSession('clj')).toBe('cljs-b');
-    expect(sessionRouting.resolvePreferredSession('cljs')).toBe('cljs-b');
+    expect(sessionRouting.resolvePinnedSession()).toBe('cljs-b');
   });
 
-  it('pinning overrides all file types regardless of session ownership', () => {
+  it('pinning overrides regardless of session type', () => {
     sessionRegistry.registerSession('clj-a', createSession('clj', 'client-a'), {});
     sessionRegistry.registerSession('cljs-b', createSession('cljs', 'client-b'), {});
 
     sessionRouting.pinSession('clj-a');
 
-    expect(sessionRouting.resolvePreferredSession('cljs')).toBe('clj-a');
-    expect(sessionRouting.resolvePreferredSession('cljc')).toBe('clj-a');
+    // When pinned, the pinned session is always returned
+    expect(sessionRouting.resolvePinnedSession()).toBe('clj-a');
   });
 
-  it('cljc override can target any registered session', () => {
+  it('cljc preference can target any registered session', () => {
     sessionRegistry.registerSession('clj-a', createSession('clj', 'client-a'), {});
     sessionRegistry.registerSession('cljs-b', createSession('cljs', 'client-b'), {});
 
     sessionRouting.setCljcSessionKey('cljs-b');
 
     expect(sessionRouting.getCljcSessionKey()).toBe('cljs-b');
-    expect(sessionRouting.resolvePreferredSession('cljc')).toBe('cljs-b');
   });
 
-  it('returns undefined for non-cljc files when not pinned', () => {
+  it('resolvePinnedSession returns undefined when not pinned', () => {
     sessionRegistry.registerSession('clj-a', createSession('clj', 'client-a'), {});
     sessionRegistry.registerSession('cljs-b', createSession('cljs', 'client-b'), {});
 
     sessionRouting.setCljcSessionKey('cljs-b');
 
-    expect(sessionRouting.resolvePreferredSession('clj')).toBeUndefined();
-    expect(sessionRouting.resolvePreferredSession('cljs')).toBeUndefined();
+    expect(sessionRouting.resolvePinnedSession()).toBeUndefined();
   });
 
   it('clears pin when pinned session is unregistered even with multiple clients', () => {
@@ -139,9 +138,9 @@ describe('multi-client session routing', () => {
     sessionRegistry.registerSession('cljs-b', createSession('cljs', 'client-b'), {});
 
     sessionRouting.pinSession('clj-a');
-    expect(sessionRouting.resolvePreferredSession('cljs')).toBe('clj-a');
+    expect(sessionRouting.resolvePinnedSession()).toBe('clj-a');
 
     sessionRouting.pinSession('cljs-b');
-    expect(sessionRouting.resolvePreferredSession('clj')).toBe('cljs-b');
+    expect(sessionRouting.resolvePinnedSession()).toBe('cljs-b');
   });
 });

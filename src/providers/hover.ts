@@ -18,7 +18,7 @@ export async function provideHover(
   if (util.getConnectedState()) {
     const text = util.getWordAtPosition(document, position);
     const [ns, nsForm] = namespace.getNamespace(document, position);
-    const client = replSession.getSession(util.getFileType(document));
+    const client = replSession.getSession();
     if (client && client.supports('info')) {
       await namespace.createNamespaceFromDocumentIfNotExists(document);
       const res = await client.info(ns, text);

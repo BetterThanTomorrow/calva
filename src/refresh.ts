@@ -38,7 +38,7 @@ export function refresh(opts: Record<string, unknown> = {}) {
   initRefreshOptions(opts);
 
   const doc = util.tryToGetDocument({}),
-    client: NReplSession = replSession.getSession(util.getFileType(doc));
+    client: NReplSession = replSession.getSession();
 
   if (client != undefined) {
     output.appendLineEvalOut('Reloading...');
@@ -54,7 +54,7 @@ export function refreshAll(opts: Record<string, unknown> = {}) {
   initRefreshOptions(opts);
 
   const doc = util.tryToGetDocument({}),
-    client: NReplSession = replSession.getSession(util.getFileType(doc));
+    client: NReplSession = replSession.getSession();
 
   if (client != undefined) {
     output.appendLineEvalOut('Reloading all the things...');

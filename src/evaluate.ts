@@ -335,7 +335,7 @@ async function evaluateSelection(document = {}, options) {
     const line = codeSelection.start.line;
     const column = codeSelection.start.character;
     const filePath = doc.fileName;
-    const session = replSession.getSession(util.getFileType(doc));
+    const session = replSession.getSession();
 
     if (code.length > 0) {
       if (options.debug) {
@@ -586,7 +586,7 @@ async function loadDocument(
   }
   const fileType = util.getFileType(doc);
   const [ns, nsForm] = namespace.getNamespace(doc, doc.positionAt(0));
-  const session = replSession.getSession(util.getFileType(doc));
+  const session = replSession.getSession();
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
     const docUri = outputWindow.isResultsDoc(doc)
@@ -617,7 +617,7 @@ async function loadFile(
 ) {
   const fileName = path.basename(filePath);
   const fileContents = await util.getFileContents(filePath);
-  const session = replSession.getSession(path.extname(fileName).replace(/^\./, ''));
+  const session = replSession.getSession();
   const sessionKey = sessionRegistry.resolveSessionKey(session);
 
   output.appendLineOtherOut(`Evaluating file: ${fileName}`);
@@ -693,8 +693,7 @@ async function loadFile(
 }
 
 async function evaluateUser(code: string) {
-  const fileType = util.getFileType(util.tryToGetDocument({})),
-    session = replSession.getSession(fileType);
+  const session = replSession.getSession();
   if (session) {
     try {
       await session.eval(code, session.client.ns).value;
@@ -711,8 +710,7 @@ async function requireREPLUtilitiesCommand() {
   if (util.getConnectedState()) {
     const chan = state.outputChannel(),
       [ns, _nsForm] = namespace.getDocumentNamespace(util.tryToGetDocument({})),
-      fileType = util.getFileType(util.tryToGetDocument({})),
-      session = replSession.getSession(fileType);
+      session = replSession.getSession();
 
     if (session) {
       try {
@@ -730,7 +728,7 @@ async function requireREPLUtilitiesCommand() {
 
 async function copyLastResultCommand() {
   const chan = state.outputChannel();
-  const session = replSession.getSession(util.getFileType(util.tryToGetDocument({})));
+  const session = replSession.getSession();
 
   const value = await session.eval('*1', session.client.ns).value;
   if (value !== null) {
@@ -786,7 +784,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
     // Otherwise, use the routing logic to determine the session
     const session = sessionType
       ? sessionRegistry.getSession(sessionType)
-      : replSession.getSession(undefined);
+      : replSession.getSession();
     replSession.updateReplSessionType();
     if (outputWindow.getNs() !== ns) {
       outputWindow.setSession(session, ns);
@@ -824,7 +822,7 @@ async function evaluateInCurrentEditor(
       // Otherwise, use the routing logic to determine the session
       const session = sessionType
         ? sessionRegistry.getSession(sessionType)
-        : replSession.getSession(undefined);
+        : replSession.getSession();
       return await evaluateCodeUpdatingUI(code, {
         ...options,
         filePath: document.fileName,

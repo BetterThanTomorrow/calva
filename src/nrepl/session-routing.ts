@@ -120,14 +120,14 @@ export function hasCljcOverride(): boolean {
   return Boolean(getCljcSessionKey());
 }
 
-export function resolvePreferredSession(fileType?: string): string | undefined {
+/**
+ * Returns the pinned session key if routing mode is 'pinned'.
+ * Returns undefined for auto-routing mode (let caller handle glob matching and fallbacks).
+ */
+export function resolvePinnedSession(): string | undefined {
   const pinnedKey = getPinnedSessionKey();
   if (getRoutingMode() === 'pinned' && pinnedKey) {
     return pinnedKey;
-  }
-
-  if (fileType === 'cljc') {
-    return getCljcSessionKey();
   }
 
   return undefined;

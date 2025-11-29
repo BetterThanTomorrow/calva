@@ -35,9 +35,7 @@ export const evaluateCode = async (
 ): Promise<Result> => {
   // When sessionKey is explicitly provided, use it directly without routing
   // Otherwise, use the routing logic to determine the session
-  const session = sessionKey
-    ? sessionRegistry.getSession(sessionKey)
-    : replSession.getSession(undefined);
+  const session = sessionKey ? sessionRegistry.getSession(sessionKey) : replSession.getSession();
 
   if (!session) {
     if (!util.getConnectedState()) {

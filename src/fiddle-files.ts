@@ -146,7 +146,7 @@ export async function evaluateFiddleForSourceFile() {
     const p = fiddleSelection ? doc.offsetAt(fiddleSelection.active) : 0;
     const [ns, nsForm] = nsUtil.nsFromText(code, p) || namespace.getDocumentNamespace();
     output.appendLineOtherOut(`Evaluating fiddle: ${relativeFiddleFilePath}`);
-    const session = replSession.getSession(util.getFileType({}));
+    const session = replSession.getSession();
     const sessionKey = sessionRegistry.resolveSessionKey(session);
     await eval.evaluateInOutputWindow(code, sessionKey, ns, {
       nsForm,
