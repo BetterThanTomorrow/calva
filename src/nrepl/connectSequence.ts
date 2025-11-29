@@ -157,7 +157,7 @@ const cljsOnlyDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes['ClojureScript nREPL'],
     nReplPortFile: ['.nrepl-port'],
     replSessionNames: { primary: 'cljs' },
-    replSessionFilePatterns: { main: ['*.cljs'] },
+    replSessionFilePatterns: { primary: ['*.cljs'] },
   },
 ];
 
@@ -168,12 +168,6 @@ const babashkaDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes.none,
     nReplPortFile: ['.bb-nrepl.port'],
     replSessionNames: { primary: 'bb' },
-    replSessionFilePatterns: {
-      main: {
-        'always-claim': ['bb.edn', '*.bb'],
-        'is-fallback-for': ['*.clj'],
-      },
-    },
   },
 ];
 
@@ -184,9 +178,6 @@ const nbbDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes['ClojureScript nREPL'],
     nReplPortFile: ['.nrepl-port'],
     replSessionNames: { primary: 'nbb' },
-    replSessionFilePatterns: {
-      main: { 'always-claim': ['*.nbb'], 'is-fallback-for': ['*.cljs'] },
-    },
   },
 ];
 
@@ -196,7 +187,6 @@ const joyrideDefaults: ReplConnectSequence[] = [
     projectType: ProjectTypes['joyride'],
     cljsType: CljsTypes['ClojureScript nREPL'],
     replSessionNames: { primary: 'joyride' },
-    replSessionFilePatterns: { main: ['*.cljs'] },
   },
 ];
 
@@ -207,7 +197,6 @@ const basilispDefaults: ReplConnectSequence[] = [
     cljsType: CljsTypes.none,
     nReplPortFile: ['.nrepl-port'],
     replSessionNames: { primary: 'basilisp' },
-    replSessionFilePatterns: { main: ['*.lpy'] },
   },
 ];
 

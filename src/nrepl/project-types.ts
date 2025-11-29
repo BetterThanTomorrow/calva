@@ -10,7 +10,7 @@ import {
   getEffectiveJackInDependencyVersions,
   type JackInDependencyKey,
 } from './jack-in-dependency-versions';
-import { CljsTypes, ReplConnectSequence } from './connectSequence';
+import { CljsTypes, ReplConnectSequence, SessionFilePatternsConfig } from './connectSequence';
 import { getStateValue, parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
 import * as joyride from '../joyride';
 
@@ -41,6 +41,7 @@ export type ProjectType = {
   useWhenExists: string[];
   nReplPortFile: string[];
   startFunction?: () => Thenable<boolean | void>;
+  defaultFilePatterns?: SessionFilePatternsConfig;
 };
 
 function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string {
@@ -399,6 +400,10 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: false,
     useWhenExists: ['project.clj'],
     nReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: ['*.clj', '*.edn'],
+      secondary: ['*.cljs'],
+    },
     /** Build the command line args for a lein-project.
      * 1. Parsing the project.clj
      * 2. Let the user choose a alias
@@ -426,6 +431,10 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: 'cmd.exe',
     useWhenExists: ['deps.edn'],
     nReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: ['*.clj', '*.edn'],
+      secondary: ['*.cljs'],
+    },
     /** Build the command line args for a clj-project.
      * 1. Read the deps.edn and parsed it
      * 2. Present the user all found aliases
@@ -447,6 +456,10 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: true,
     useWhenExists: ['shadow-cljs.edn'],
     nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
+    defaultFilePatterns: {
+      primary: ['*.clj', '*.edn'],
+      secondary: ['*.cljs'],
+    },
     /**
      *  Build the command line args for a shadow-project.
      */
@@ -491,6 +504,10 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: false,
     useWhenExists: ['project.clj'],
     nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
+    defaultFilePatterns: {
+      primary: ['*.clj', '*.edn'],
+      secondary: ['*.cljs'],
+    },
     /**
      *  Build the command line args for a lein-shadow project.
      */
@@ -529,6 +546,10 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: false,
     useWhenExists: ['settings.gradle', 'settings.gradle.kts'],
     nReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: ['*.clj', '*.edn'],
+      secondary: ['*.cljs'],
+    },
     /**
      * Build the command line args for a gradle.
      * Add needed middleware deps to args
@@ -550,6 +571,10 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: false,
     useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: ['*.clj', '*.edn'],
+      secondary: ['*.cljs'],
+    },
     commandLine: async (connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
       return cljCommandLine(connectSequence, CljsTypes.none);
     },
@@ -564,6 +589,10 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: 'cmd.exe',
     useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: ['*.clj', '*.edn'],
+      secondary: ['*.cljs'],
+    },
     commandLine: async (connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
       return cljCommandLine(connectSequence, CljsTypes.none);
     },
@@ -574,6 +603,10 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: true,
     useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: ['*.clj', '*.edn'],
+      secondary: ['*.cljs'],
+    },
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
       const port = await getPort();
       return {
@@ -591,6 +624,12 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: true,
     useWhenExists: [],
     nReplPortFile: ['.bb-nrepl-port'],
+    defaultFilePatterns: {
+      primary: {
+        'always-claim': ['bb.edn', '*.bb'],
+        'is-fallback-for': ['*.clj'],
+      },
+    },
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
       const port = await getPort();
       return {
@@ -608,6 +647,12 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: true,
     useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: {
+        'always-claim': ['*.nbb'],
+        'is-fallback-for': ['*.cljs'],
+      },
+    },
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
       const port = await getPort();
       return {
@@ -629,6 +674,9 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: false,
     useWhenExists: ['basilisp.edn'],
     nReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: ['*.lpy'],
+    },
     commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
       const port = await getPort();
       return {
@@ -646,6 +694,12 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: false,
     useWhenExists: [],
     nReplPortFile: ['.joyride', '.nrepl-port'],
+    defaultFilePatterns: {
+      primary: {
+        'always-claim': ['.joyride/**/*.cljs'],
+        'is-fallback-for': ['*.cljs'],
+      },
+    },
     commandLine: undefined,
     startFunction: () => void joyride.joyrideJackIn(state.getProjectRootLocal()),
   },

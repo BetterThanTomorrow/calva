@@ -6,6 +6,7 @@ import {
 import type { SessionGlobTiers } from './globs';
 import * as globs from './globs';
 import * as secondarySession from './secondary-session';
+import { getProjectTypeForName } from './project-types';
 
 export type SessionRole = 'primary' | 'secondary';
 
@@ -90,9 +91,49 @@ function buildGlobTiersFromPatterns(
 }
 
 /**
+ * Get file patterns for a role, checking sources in priority order:
+ * 1. Connect sequence's replSessionFilePatterns
+ * 2. Project type's defaultFilePatterns
+ * 3. Generic role-based defaults
+ */
+function getFilePatternsForRole(
+  role: SessionRole,
+  sequence: ReplConnectSequence | undefined
+): SessionGlobTiers {
+  // 1. Check sequence's explicit replSessionFilePatterns
+  const sequencePatterns = sequence?.replSessionFilePatterns?.[role];
+  if (sequencePatterns) {
+    return normalizePatternEntry(sequencePatterns);
+  }
+
+  // 2. Check project type's defaultFilePatterns
+  if (sequence?.projectType) {
+    const projectType = getProjectTypeForName(sequence.projectType);
+    const projectTypePatterns = projectType?.defaultFilePatterns?.[role];
+    if (projectTypePatterns) {
+      return normalizePatternEntry(projectTypePatterns);
+    }
+  }
+
+  // 3. Fall back to generic role-based defaults
+  const defaults = DEFAULT_SESSION_ROLE_FILE_PATTERNS[role];
+  return defaults
+    ? {
+        'always-claim': [...defaults['always-claim']],
+        'is-fallback-for': [...defaults['is-fallback-for']],
+      }
+    : { 'always-claim': [], 'is-fallback-for': [] };
+}
+
+/**
  * Derive glob configuration for session keys from a connect sequence.
  * File patterns from config are combined with projectRootPath to create full globs.
  * This is a pure function that does NOT set any global state.
+ *
+ * Pattern resolution priority:
+ * 1. Connect sequence's replSessionFilePatterns (explicit user/sequence config)
+ * 2. Project type's defaultFilePatterns (project type sensible defaults)
+ * 3. Generic role-based defaults (*.clj/*.edn for primary, *.cljs for secondary)
  *
  * @param sequence - The connect sequence containing file pattern configuration
  * @param keys - The session role keys (e.g., { primary: 'clj', secondary: 'cljs' })
@@ -104,8 +145,6 @@ export function deriveSessionGlobMap(
   projectRootPath: string
 ): SessionGlobMap {
   const globMap: SessionGlobMap = {};
-  const configuredPatterns: SessionFilePatternsConfig | undefined =
-    sequence?.replSessionFilePatterns;
 
   (['primary', 'secondary'] as SessionRole[]).forEach((role) => {
     const key = keys[role];
@@ -113,20 +152,7 @@ export function deriveSessionGlobMap(
       return;
     }
 
-    const configuredForRole = configuredPatterns?.[role];
-    let patternTiers: SessionGlobTiers;
-
-    if (configuredForRole) {
-      patternTiers = normalizePatternEntry(configuredForRole);
-    } else {
-      const defaults = DEFAULT_SESSION_ROLE_FILE_PATTERNS[role];
-      patternTiers = defaults
-        ? {
-            'always-claim': [...defaults['always-claim']],
-            'is-fallback-for': [...defaults['is-fallback-for']],
-          }
-        : { 'always-claim': [], 'is-fallback-for': [] };
-    }
+    const patternTiers = getFilePatternsForRole(role, sequence);
 
     // Convert file patterns to full globs using project root
     const fullGlobTiers = buildGlobTiersFromPatterns(projectRootPath, patternTiers);
