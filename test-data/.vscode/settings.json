@@ -83,7 +83,7 @@
       "name": "pirate-lang",
       "projectType": "deps.edn",
       "projectRootPath": ["projects/pirate-lang"],
-      "afterMainReplConnectedCode": ["(require 'repl)", "(println 1)", "(println 2)"],
+      "afterPrimaryReplConnectedCode": ["(require 'repl)", "(println 1)", "(println 2)"],
       //"autoSelectForJackIn": true,
       // "autoSelectForConnect": true,
       "cljsType": "none",
@@ -115,7 +115,7 @@
       "name": "Connect Sequence deps-main-opts",
       "projectType": "deps.edn",
       "projectRootPath": ["projects/deps-main-opts"],
-      "afterMainReplConnectedCode": "(require 'repl)",
+      "afterPrimaryReplConnectedCode": "(require 'repl)",
       // "autoSelectForConnect": true,
       // "autoSelectForJackIn": true,
       "cljsType": "none",
@@ -126,20 +126,20 @@
     {
       "name": "custom command line shadow",
       "projectType": "shadow-cljs",
-      "afterMainReplConnectedCode": "(println \"Hello custom command line\")",
+      "afterPrimaryReplConnectedCode": "(println \"Hello custom command line\")",
       "customJackInCommandLine": "echo PROJECT-ROOT-PATH: JACK-IN-PROJECT-ROOT-PATH, NREPL-PORT-FILE: JACK-IN-NREPL-PORT-FILE; /Users/pez/Projects/calva/test-data/custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION",
       "cljsType": "shadow-cljs"
     },
     {
       "name": "custom command line deps windows",
       "projectType": "deps.edn",
-      "afterMainReplConnectedCode": "(println \"Hello custom command line\")",
+      "afterPrimaryReplConnectedCode": "(println \"Hello custom command line\")",
       "customJackInCommandLine": "bb ..\\..\\custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION"
     },
     {
       "name": "custom command line Leiningen",
       "projectType": "Leiningen",
-      "afterMainReplConnectedCode": "(println \"Hello custom command line\")",
+      "afterPrimaryReplConnectedCode": "(println \"Hello custom command line\")",
       "nReplPortFile": ["foo", "bar", ".nrepl-port"],
       "customJackInCommandLine": "echo PROJECT-ROOT-PATH: 'JACK-IN-PROJECT-ROOT-PATH', NREPL-PORT-FILE: 'JACK-IN-NREPL-PORT-FILE', NREPL-PORT: 'JACK-IN-NREPL-PORT', LEIN-PROFILES: 'JACK-IN-LEIN-PROFILES', LEIN-LAUNCH-ALIAS 'JACK-IN-LEIN-LAUNCH-ALIAS', CLJ-MIDDLEWARE: 'JACK-IN-CLJ-MIDDLEWARE', CLJS-MIDDLEWARE: 'JACK-IN-CLJS-MIDDLEWARE' ; ../../custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION",
       "cljsType": "shadow-cljs"
@@ -147,7 +147,7 @@
     {
       "name": "Array jack-in code",
       "projectType": "deps.edn",
-      "afterMainReplConnectedCode": ["(println :hello)", "(println :world!)"],
+      "afterPrimaryReplConnectedCode": ["(println :hello)", "(println :world!)"],
       "cljsType": "none"
     }
   ],

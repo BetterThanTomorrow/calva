@@ -256,9 +256,9 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     output.replWindowAppendPrompt();
 
     const afterMainReplCode =
-      connectSequence.afterMainReplConnectedCode ?? connectSequence.afterCLJReplJackInCode;
+      connectSequence.afterPrimaryReplConnectedCode ?? connectSequence.afterCLJReplJackInCode;
     if (afterMainReplCode) {
-      output.appendLineOtherOut(`Evaluating 'afterMainReplConnectedCode'`);
+      output.appendLineOtherOut(`Evaluating 'afterPrimaryReplConnectedCode'`);
       await evaluate.evaluateInOutputWindow(afterMainReplCode, mainKey, outputWindow.getNs(), {});
     }
     if (!connectSequence.cljsType || connectSequence.cljsType === 'none') {

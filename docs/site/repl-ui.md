@@ -49,7 +49,7 @@ The status bar displays REPL connection status and provides quick access to comm
 
 ### Connection Status
 
-The main REPL connection indicator shows the current state of your REPL connection:
+The "REPL" connection indicator shows the current state of your REPL connection:
 
 ![Status Bar Disconnected](images/howto/status_not_connected.png)
 

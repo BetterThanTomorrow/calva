@@ -35,7 +35,7 @@
 				//"projectRootPath": "/Users/pez/Projects/calva/test-data/projects/pirate-lang",
 				//"projectRootPath": "/Users/pez/Projects/calva/test-data/workspaces/ws-b/pirate-lang",
 				"projectRootPath": ["."],
-				"afterMainReplConnectedCode": "(require 'repl)",
+				"afterPrimaryReplConnectedCode": "(require 'repl)",
 				"cljsType": "none",
 				"menuSelections": {
 					"cljAliases": [

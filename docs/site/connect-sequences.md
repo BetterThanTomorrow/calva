@@ -24,7 +24,7 @@ A connect sequence configures the following:
 * `autoSelectForConnect`: A boolean. If true, this sequence will be automatically selected at **Connect**, suppressing the Project Type menu. Use together with `projectRootPath` to also suppress the Project Root menu. If you have more than one sequence with `autoSelectForConnect` set to true, Calva will use the sequence with its `projectRootPath` closest to the currently active editor file. And if there is no such closest file, the first sequence will be used.
 * `projectRootPath`: An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with `autoSelectForJackIn`/`autoSelectForConnect` to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder.
 * `nReplPortFile`: An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be `[".shadow-cljs", "nrepl.port"]`.
-* `afterMainReplConnectedCode`: Code to evaluate in the main REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.
+* `afterPrimaryReplConnectedCode`: Code to evaluate in the primary REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.
 * `customJackInCommandLine`: A string with a command line that should be used to launch the REPL. See [Custom Command Line](#custom-command-line), below.
 * `cljsType`: This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", "none", or a dictionary configuring a custom type. If set to "none", Calva will skip connecting a ClojureScript repl. A custom type has the following fields:
     * `dependsOn`: (required) Calva will use this to determine which dependencies it will add when starting the project (Jacking in). This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", or ”User provided”. If it is "User provided", then you need to provide the dependencies in the project or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed.
@@ -231,7 +231,7 @@ This is the connect sequences used in the [Polylith Real World App](https://gith
     "calva.replConnectSequences": [
         {
             "projectType": "deps.edn",
-            "afterMainReplConnectedCode": "(require '[dev.server] :reload) (in-ns 'dev.server) (start! 6003)",
+            "afterPrimaryReplConnectedCode": "(require '[dev.server] :reload) (in-ns 'dev.server) (start! 6003)",
             "name": "Polylith RealWorld Server REPL (start)",
             "autoSelectForJackIn": true,
             "projectRootPath": ["."],
@@ -263,7 +263,7 @@ Setting for a full-stack application. It starts the backend server when the CLJ 
         {
             "name": "Example Sequence",
             "projectType": "Clojure-CLI",
-            "afterMainReplConnectedCode": "(go)",
+            "afterPrimaryReplConnectedCode": "(go)",
             "cljsType": {
                 "startCode": "(do (require '[cljs-test.main :refer :all])(start-nrepl+fig))",
                 "isReadyToStartRegExp": "Prompt will show",

@@ -98,7 +98,7 @@ Create a Calva custom connect sequence for your VSCode editor. (Read [Custom REP
             "menuSelections": {
                 "leinProfiles": ["rebl", "rebl-12", ":nrebl"]
             },
-            "afterMainReplConnectedCode": "((requiring-resolve 'cognitect.rebl/ui))"
+            "afterPrimaryReplConnectedCode": "((requiring-resolve 'cognitect.rebl/ui))"
         }
     ]
 }

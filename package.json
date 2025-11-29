@@ -668,7 +668,7 @@
                     "type": "string"
                   }
                 },
-                "afterMainReplConnectedCode": {
+                "afterPrimaryReplConnectedCode": {
                   "anyOf": [
                     {
                       "type": "string"
@@ -696,7 +696,7 @@
                     }
                   ],
                   "required": false,
-                  "deprecationMessage": "Deprecated. Renamed to `afterMainReplConnectedCode`, which you should be using instead."
+                  "deprecationMessage": "Deprecated. Renamed to `afterPrimaryReplConnectedCode`, which you should be using instead."
                 },
                 "menuSelections": {
                   "type": "object",
@@ -1110,7 +1110,7 @@
                 "properties": {
                   "clj": {
                     "type": "string",
-                    "markdownDescription": "Code to evaluate when the **Clojure** REPL has been connected. The default is code that refer in the `repl-requires`/REPL utilities (like `source`, `doc`, etcetera). (Note that there is also a command to do this on demand.). The code will be evaluated *before* the `afterMainReplConnectedCode` in any [connect sequence](https://calva.io/connect-sequences/) used. Set to `null` to disable this feature."
+                    "markdownDescription": "Code to evaluate when the **Clojure** REPL has been connected. The default is code that refer in the `repl-requires`/REPL utilities (like `source`, `doc`, etcetera). (Note that there is also a command to do this on demand.). The code will be evaluated *before* the `afterPrimaryReplConnectedCode` in any [connect sequence](https://calva.io/connect-sequences/) used. Set to `null` to disable this feature."
                   },
                   "cljs": {
                     "type": "string",

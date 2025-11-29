@@ -197,14 +197,14 @@ function getConfig() {
   ].map((sequence) => {
     const normalizedCode =
       normalizeAfterMainReplCode(
-        sequence.afterMainReplConnectedCode as string | string[] | undefined
+        sequence.afterPrimaryReplConnectedCode as string | string[] | undefined
       ) ??
       normalizeAfterMainReplCode(sequence.afterCLJReplJackInCode as string | string[] | undefined);
 
     if (normalizedCode !== undefined) {
       return {
         ...sequence,
-        afterMainReplConnectedCode: normalizedCode,
+        afterPrimaryReplConnectedCode: normalizedCode,
       };
     }
 

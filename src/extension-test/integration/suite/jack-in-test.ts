@@ -92,16 +92,16 @@ suite('Jack-in suite', () => {
     }
   });
 
-  test('Jack-in afterMainReplConnectedCode can be a string', async () => {
-    testUtil.log(suite, 'Jack-in afterMainReplConnectedCode can be a string');
+  test('Jack-in afterPrimaryReplConnectedCode can be a string', async () => {
+    testUtil.log(suite, 'Jack-in afterPrimaryReplConnectedCode can be a string');
     const settings = {
       'calva.replConnectSequences': [
         {
           projectType: 'deps.edn',
-          name: 'string-afterMainReplConnectedCode',
+          name: 'string-afterPrimaryReplConnectedCode',
           autoSelectForJackIn: true,
           projectRootPath: ['.'],
-          afterMainReplConnectedCode: '(println :hello :world!)',
+          afterPrimaryReplConnectedCode: '(println :hello :world!)',
         },
       ],
     };
@@ -112,16 +112,16 @@ suite('Jack-in suite', () => {
     testUtil.log(suite, 'test.clj closed');
   });
 
-  test('Jack-in afterMainReplConnectedCode can be an array', async () => {
-    testUtil.log(suite, 'Jack-in afterMainReplConnectedCode can be an array');
+  test('Jack-in afterPrimaryReplConnectedCode can be an array', async () => {
+    testUtil.log(suite, 'Jack-in afterPrimaryReplConnectedCode can be an array');
     const settings = {
       'calva.replConnectSequences': [
         {
           projectType: 'deps.edn',
-          name: 'array-afterMainReplConnectedCode',
+          name: 'array-afterPrimaryReplConnectedCode',
           autoSelectForJackIn: true,
           projectRootPath: ['.'],
-          afterMainReplConnectedCode: ['(println :hello)', '(println :world!)'],
+          afterPrimaryReplConnectedCode: ['(println :hello)', '(println :world!)'],
         },
       ],
     };
