@@ -45,10 +45,10 @@ A connect sequence configures the following:
     * `cljsDefaultBuild`: Which cljs build to attach to at the initial connect.
 * `jackInEnv`: An object with environment variables that will be merged with the global `calva.jackInEnv` and then applied to the Jack-in process. The merge is very similar to how Clojure's `merge` works. So for any common keys between the global setting and this one, the ones from this setting will win.
 * `extraNReplMiddleware`: Array of strings of the fully qualified names of extra middleware that should be applied to the nREPL server when started.
-* `replSessionNames`: Override the default repl session names that Calva registers for the main and the promoted (if any) REPL sessions. Use this to enable connecting more than one connect sequence in the same VS Code window.
-    * `main`: the name of the main repl session. Defaults to `clj`
-    * `promoted`: the name of the secondary/promoted repl session in the sequence. Defaults to `cljs`.
-* `replSessionFilePatterns`: Map REPL session roles to the file patterns they should handle. Use `main` and `promoted` as keys. Values can be a single pattern string, an array of patterns, or an object specifying `always-claim` and/or `is-fallback-for` patterns. Patterns are automatically scoped to the connect sequence's project root. Multi-root workspaces are supported. Defaults are `*.clj` for the main session and `*.cljs` for the promoted session.
+* `replSessionNames`: Override the default repl session names that Calva registers for the primary and the secondary (if any) REPL sessions. Use this to enable connecting more than one connect sequence in the same VS Code window.
+    * `primary`: the name of the primary repl session. Defaults to `clj`
+    * `secondary`: the name of the secondary repl session in the sequence. Defaults to `cljs`.
+* `replSessionFilePatterns`: Map REPL session roles to the file patterns they should handle. Use `primary` and `secondary` as keys. Values can be a single pattern string, an array of patterns, or an object specifying `always-claim` and/or `is-fallback-for` patterns. Patterns are automatically scoped to the connect sequence's project root. Multi-root workspaces are supported. Defaults are `*.clj` for the primary session and `*.cljs` for the secondary session.
 
 ??? note "Session routing pattern competition resolution"
     When there are many repls connected at once, Calva lets you pin a repl to be used for evaluations. We've tried to make the auto-routing flexible so that you shouldn't need to resort to session pinning too often; this is why the `replSessionFilePatterns` setting is a bit elaborate.
@@ -60,9 +60,9 @@ A connect sequence configures the following:
     ```jsonc
     {
         ...
-        "replSessionNames": { "main": "bb" },
+        "replSessionNames": { "primary": "bb" },
         "replSessionFilePatterns": {
-            "main": {
+            "primary": {
                 "always-claim": ["*.bb", "bb.edn"],
                 "is-fallback-for": ["*.clj"]
             }

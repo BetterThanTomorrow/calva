@@ -16,7 +16,7 @@ import {
   askForConnectSequence,
   getConnectSequences,
 } from './nrepl/connectSequence';
-import * as promotedSession from './nrepl/secondary-session';
+import * as secondarySession from './nrepl/secondary-session';
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
@@ -51,11 +51,11 @@ const CALVA_DOCS_BASE_URL = 'https://calva.io/';
 export function deriveRequestedSessionKeys(
   sessionRoleKeys: SessionRoleKeys,
   connectSequence: ReplConnectSequence,
-  usePromotedSession: boolean
+  useSecondarySession: boolean
 ): string[] {
   const keys = [sessionRoleKeys.primary];
   if (
-    usePromotedSession &&
+    useSecondarySession &&
     sessionRoleKeys.secondary &&
     connectSequence.cljsType &&
     connectSequence.cljsType !== 'none'
@@ -154,14 +154,14 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     sessionRoleKeys,
     projectRootPath
   );
-  const usePromotedSession = promotedSession.shouldUseSecondarySession(connectSequence);
+  const useSecondarySession = secondarySession.shouldUseSecondarySession(connectSequence);
 
   // Check if all requested sessions are owned by a single existing client
   // If so, this is a reconnection scenario - disconnect the old client first
   const requestedSessionKeys = deriveRequestedSessionKeys(
     sessionRoleKeys,
     connectSequence,
-    usePromotedSession
+    useSecondarySession
   );
   const existingOwner = sessionRegistry.findSingleOwnerForSessions(requestedSessionKeys);
   if (existingOwner) {
@@ -276,7 +276,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       cljsBuild = null;
     try {
       if (
-        usePromotedSession &&
+        useSecondarySession &&
         sessionRoleKeys.secondary &&
         connectSequence.cljsType &&
         connectSequence.cljsType != 'none'
@@ -308,7 +308,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       if (cljsSession && sessionRoleKeys.secondary) {
         await setUpCljsRepl(cljsSession, cljsBuild, sessionRoleKeys.secondary, sessionGlobMap);
       }
-      if (usePromotedSession && isShadowCljsReplType(connectSequence.cljsType)) {
+      if (useSecondarySession && isShadowCljsReplType(connectSequence.cljsType)) {
         await shadowCljsRuntime.initializeShadowRemoteNotifications();
       }
     } catch (e) {
@@ -437,7 +437,7 @@ async function evalConnectCode(
   code: string,
   name: string,
   checkSuccess: checkConnectedFn,
-  promotedKey: string,
+  secondaryKey: string,
   globMap: SessionGlobMap,
   outputProcessors: processOutputFn[] = [],
   errorProcessors: processOutputFn[] = []
@@ -467,8 +467,8 @@ async function evalConnectCode(
   });
   if (await checkSuccess(valueResult, out, err)) {
     // Update the session in the registry
-    const globMetadata = getSessionGlobMetadata(promotedKey, globMap);
-    sessionRegistry.registerSession(promotedKey, newCljsSession, {
+    const globMetadata = getSessionGlobMetadata(secondaryKey, globMap);
+    sessionRegistry.registerSession(secondaryKey, newCljsSession, {
       projectRoot: state.getProjectRootUri().toString(),
       globs: globMetadata.globs,
       globSpecs: globMetadata.globSpecs,
@@ -547,10 +547,10 @@ function createCLJSReplType(
   globMap: SessionGlobMap,
   options: { useDefaultBuild?: boolean; preSelectedBuild?: string } = {}
 ): ReplType {
-  // This function is only called when a promoted session is expected
-  const promotedKey = roleKeys.secondary;
-  if (!promotedKey) {
-    throw new Error('createCLJSReplType called without promoted session key');
+  // This function is only called when a secondary session is expected
+  const secondaryKey = roleKeys.secondary;
+  if (!secondaryKey) {
+    throw new Error('createCLJSReplType called without secondary session key');
   }
 
   const projectTypeName: string = connectSequence.name,
@@ -688,7 +688,7 @@ function createCLJSReplType(
         initCode,
         name,
         checkFn,
-        promotedKey,
+        secondaryKey,
         globMap,
         [startAppNowProcessor, printThisPrinter],
         [allPrinter]
@@ -800,7 +800,7 @@ function createCLJSReplType(
               startCode,
               name,
               checkFn,
-              promotedKey,
+              secondaryKey,
               globMap,
               [startAppNowProcessor, printThisPrinter],
               [allPrinter]
@@ -820,7 +820,7 @@ function createCLJSReplType(
             startCode,
             name,
             checkFn,
-            promotedKey,
+            secondaryKey,
             globMap,
             [startAppNowProcessor, printThisPrinter],
             [allPrinter]
@@ -870,7 +870,7 @@ async function makeCljsSessionClone(
   repl: ReplType,
   projectTypeName: string,
   clientKey: string,
-  promotedKey: string,
+  secondaryKey: string,
   globMap: SessionGlobMap
 ): Promise<[NReplSession | null, string | null]> {
   output.appendLineOtherOut('Creating cljs repl session...');
@@ -891,8 +891,8 @@ async function makeCljsSessionClone(
     }
     if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
       // Update registry
-      const globMetadata = getSessionGlobMetadata(promotedKey, globMap);
-      sessionRegistry.registerSession(promotedKey, newCljsSession, {
+      const globMetadata = getSessionGlobMetadata(secondaryKey, globMap);
+      sessionRegistry.registerSession(secondaryKey, newCljsSession, {
         projectRoot: state.getProjectRootUri().toString(),
         globs: globMetadata.globs,
         globSpecs: globMetadata.globSpecs,
@@ -1326,7 +1326,7 @@ export default {
     }
 
     const connectSequence = connectionStateData.connectSequence;
-    if (!connectSequence || !promotedSession.shouldUseSecondarySession(connectSequence)) {
+    if (!connectSequence || !secondarySession.shouldUseSecondarySession(connectSequence)) {
       return;
     }
 

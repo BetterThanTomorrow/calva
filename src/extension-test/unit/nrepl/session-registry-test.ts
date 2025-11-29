@@ -210,11 +210,11 @@ describe('session registry', () => {
     });
   });
 
-  describe('findMainSessionForConnection', () => {
+  describe('findPrimarySessionForConnection', () => {
     const createSession = (clientKey: string): NReplSession =>
       ({ client: { clientKey } } as unknown as NReplSession);
 
-    it('finds main (non-promoted) session for same connection', () => {
+    it('finds primary session for same connection', () => {
       sessionRegistry.registerSession('clj', createSession('client-a'), { isSecondary: false });
       sessionRegistry.registerSession('cljs', createSession('client-a'), { isSecondary: true });
 

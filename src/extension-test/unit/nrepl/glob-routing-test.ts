@@ -83,7 +83,7 @@ describe('glob-based session routing', () => {
       expect(findSessionKeyByGlob('test/app_test.clj', sessions)).toBe('clj');
     });
 
-    it('routes .cljs files to promoted session', () => {
+    it('routes .cljs files to secondary session', () => {
       const sessions = [
         {
           key: 'clj',

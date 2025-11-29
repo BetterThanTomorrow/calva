@@ -1,4 +1,4 @@
-const promotedCljsTypes: Set<string> = new Set([
+const secondaryCljsTypes: Set<string> = new Set([
   'shadow-cljs',
   'lein-figwheel',
   'Figwheel Main',
@@ -13,7 +13,7 @@ interface CljsTypeLike {
 }
 
 function matchesSecondary(name?: string | null): boolean {
-  return !!name && promotedCljsTypes.has(name);
+  return !!name && secondaryCljsTypes.has(name);
 }
 
 export function shouldUseSecondarySession(sequence?: CljsTypeLike): boolean {

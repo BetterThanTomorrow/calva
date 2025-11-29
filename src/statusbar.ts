@@ -140,8 +140,8 @@ function update() {
       tooltipParts.push('Click to show the REPL Sessions menu');
       typeStatus.tooltip = tooltipParts.join('. ');
     }
-    // Show build status when the current routed session is a promoted session
-    const isCurrentSessionPromoted = replType && sessionRegistry.isSessionSecondary(replType);
+    // Show build status when the current routed session is a secondary session
+    const isCurrentSessionSecondary = replType && sessionRegistry.isSessionSecondary(replType);
     // Get connection state for the current routed session
     const connectionState = replType
       ? sessionRegistry.getConnectionStateForSession(replType)
@@ -150,7 +150,7 @@ function update() {
     const cljsTypeName = connectionState?.cljsTypeName;
     const hasBuilds = connectionState?.hasBuilds ?? false;
 
-    if (isCurrentSessionPromoted && hasBuilds) {
+    if (isCurrentSessionSecondary && hasBuilds) {
       cljsBuildStatus.command = 'calva.switchCljsBuild';
       if (cljsBuild !== null) {
         cljsBuildStatus.text = cljsBuild;
@@ -161,8 +161,8 @@ function update() {
       }
     }
 
-    // Show shadow runtime status when the current routed session is a promoted session
-    if (isCurrentSessionPromoted && cljsTypeName === 'shadow-cljs') {
+    // Show shadow runtime status when the current routed session is a secondary session
+    if (isCurrentSessionSecondary && cljsTypeName === 'shadow-cljs') {
       const selectedRuntime = shadowRuntimes.getSelectedRuntimeId();
       const runtimeInfo = shadowRuntimes.getSelectedRuntimeInfo();
 
@@ -200,15 +200,15 @@ function update() {
     cljsBuildStatus.hide();
   }
 
-  // Show shadow runtime status when the current routed session is a promoted session
+  // Show shadow runtime status when the current routed session is a secondary session
   const replType = getReplSessionTypeFromState();
-  const isRoutedSessionPromoted = replType && sessionRegistry.isSessionSecondary(replType);
+  const isRoutedSessionSecondary = replType && sessionRegistry.isSessionSecondary(replType);
   const routedConnectionState = replType
     ? sessionRegistry.getConnectionStateForSession(replType)
     : undefined;
   if (
     getStateValue('connected') &&
-    isRoutedSessionPromoted &&
+    isRoutedSessionSecondary &&
     routedConnectionState?.cljsTypeName === 'shadow-cljs' &&
     shadowRuntimeStatus.text
   ) {

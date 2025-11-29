@@ -6,10 +6,10 @@ Changes to Calva.
 
 - [Add support for multiple concurrent nrepl connections](https://github.com/BetterThanTomorrow/calva/issues/76)
   - Updates to [Connect Sequences](https://calva.io/connect-sequences/):
-    - Custom REPL session names via `replSessionNames`: `main` (defaults to `clj`) and `promoted` (defaults to `cljs`).
-    - Route files to sessions with `replSessionFilePatterns` using `main`/`promoted` keys. Patterns like `*.clj` are automatically scoped to the sequence's project root.
+    - Custom REPL session names via `replSessionNames`: `primary` (defaults to `clj`) and `secondary` (defaults to `cljs`).
+    - Route files to sessions with `replSessionFilePatterns` using `primary`/`secondary` keys. Patterns like `*.clj` are automatically scoped to the sequence's project root.
     - Pattern tier properties `always-claim`/`is-fallback-for` control routing priority. The `always-claim` tier takes precedence in file routing.
-    - Rename `afterCLJReplJackInCode` → `afterMainReplConnectedCode` (the old name still works).
+    - Rename `afterCLJReplJackInCode` → `afterPrimaryReplConnectedCode` (the old name still works).
   - Connecting an additional sequence no longer disconnects earlier ones unless they reuse the same `replSessionNames` (treated as a re-connect).
   - Jacking in to another connect sequence no longer closes the previous REPL; each jack-in keeps its own pseudo terminal unless the sessions share `replSessionNames`, in which case it becomes a restart.
   - Allows **Session pinning**—lock all evaluations to a specific session and override pattern-based routing.

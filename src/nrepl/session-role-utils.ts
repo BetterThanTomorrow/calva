@@ -5,7 +5,7 @@ import {
 } from './connect-sequence-types';
 import type { SessionGlobTiers } from './globs';
 import * as globs from './globs';
-import * as promotedSession from './secondary-session';
+import * as secondarySession from './secondary-session';
 
 export type SessionRole = 'primary' | 'secondary';
 
@@ -65,7 +65,7 @@ export function deriveSessionRoleKeys(sequence?: ReplConnectSequence): SessionRo
   const keys: SessionRoleKeys = {
     primary: config?.primary || DEFAULT_SESSION_ROLE_KEYS.primary,
   };
-  if (promotedSession.shouldUseSecondarySession(sequence)) {
+  if (secondarySession.shouldUseSecondarySession(sequence)) {
     keys.secondary = config?.secondary || DEFAULT_SESSION_ROLE_KEYS.secondary;
   }
   return keys;
@@ -95,7 +95,7 @@ function buildGlobTiersFromPatterns(
  * This is a pure function that does NOT set any global state.
  *
  * @param sequence - The connect sequence containing file pattern configuration
- * @param keys - The session role keys (e.g., { main: 'clj', promoted: 'cljs' })
+ * @param keys - The session role keys (e.g., { primary: 'clj', secondary: 'cljs' })
  * @param projectRootPath - The project root as an fsPath, used to construct full globs
  */
 export function deriveSessionGlobMap(

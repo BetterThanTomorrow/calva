@@ -195,22 +195,22 @@ export function findPrimarySessionForConnection(sessionKey: string): NReplSessio
   }
 
   const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
-  const mainMeta = siblingMetas.find((m) => !m.isSecondary);
-  return mainMeta ? getSession(mainMeta.key) : undefined;
+  const primaryMeta = siblingMetas.find((m) => !m.isSecondary);
+  return primaryMeta ? getSession(primaryMeta.key) : undefined;
 }
 
 /**
- * Find the main session key for the same connection as the given session.
+ * Find the primary session key for the same connection as the given session.
  */
-export function findMainSessionKeyForConnection(sessionKey: string): string | undefined {
+export function findPrimarySessionKeyForConnection(sessionKey: string): string | undefined {
   const metadata = getSessionMetadata(sessionKey);
   if (!metadata?.connectionOwnerId) {
     return undefined;
   }
 
   const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
-  const mainMeta = siblingMetas.find((m) => !m.isSecondary);
-  return mainMeta?.key;
+  const primaryMeta = siblingMetas.find((m) => !m.isSecondary);
+  return primaryMeta?.key;
 }
 
 /**

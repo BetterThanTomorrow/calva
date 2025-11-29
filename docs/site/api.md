@@ -77,7 +77,7 @@ Use `repl.currentSessionKey()` find out which REPL/session Calva's REPL is curre
 
 ### `repl.listSessions()`
 
-Use `repl.listSessions()` to inspect every registered Calva REPL session, including promoted or custom session roles. It returns a collection/array of metadata objects with the following shape:
+Use `repl.listSessions()` to inspect every registered Calva REPL session, including secondary or custom session roles. It returns a collection/array of metadata objects with the following shape:
 
 * `replSessionKey` (`string`, required): The session key you can pass to other Calva APIs such as `evaluateCode`.
 * `projectRoot` (`string`, optional): A URI string describing the project/workspace that owns the session.
@@ -102,7 +102,7 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
 
   ```javascript
   const sessions = calva.repl.listSessions();
-  const promoted = sessions.find((s) => s.replSessionKey === 'promoted');
+  const secondary = sessions.find((s) => s.replSessionKey === 'cljs');
   ```
 
 ### `repl.evaluateCode()`

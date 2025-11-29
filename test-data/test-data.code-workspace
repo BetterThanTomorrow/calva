@@ -181,8 +181,8 @@
 				"projectType": "deps.edn",
 				"cljsType": "shadow-cljs",
 				"replSessionNames": {
-					"main": "backend",
-					"promoted": "frontend"
+					"primary": "backend",
+					"secondary": "frontend"
 				},
 				"afterMainReplConnectedCode": [
 					"(println :renamed-main-to-backend)",
@@ -203,8 +203,8 @@
 				"projectType": "deps.edn",
 				"cljsType": "shadow-cljs",
 				"replSessionNames": {
-					"main": "backend",
-					"promoted": "frontend"
+					"primary": "backend",
+					"secondary": "frontend"
 				},
 				"afterCLJReplJackInCode": [
 					"(println :renamed-main-to-backend)",

@@ -817,30 +817,30 @@
                 },
                 "replSessionNames": {
                   "type": "object",
-                  "markdownDescription": "Override the default repl session names that Calva registers for the main and the promoted (if any) REPL sessions. Defaults are: main: `clj`, promoted: `cljs`.",
+                  "markdownDescription": "Override the default repl session names that Calva registers for the primary and the secondary (if any) REPL sessions. Defaults are: primary: `clj`, secondary: `cljs`.",
                   "properties": {
-                    "main": {
+                    "primary": {
                       "type": "string",
-                      "markdownDescription": "Session name for the main REPL. Must only contain letters, digits, underscores, or hyphens.",
+                      "markdownDescription": "Session name for the primary REPL. Must only contain letters, digits, underscores, or hyphens.",
                       "pattern": "^[\\p{L}\\d_-]+$"
                     },
-                    "promoted": {
+                    "secondary": {
                       "type": "string",
-                      "markdownDescription": "Session name for the promoted REPL. Must only contain letters, digits, underscores, or hyphens.",
+                      "markdownDescription": "Session name for the secondary REPL. Must only contain letters, digits, underscores, or hyphens.",
                       "pattern": "^[\\p{L}\\d_-]+$"
                     }
                   },
                   "additionalProperties": false,
                   "default": {
-                    "main": "clj",
-                    "promoted": "cljs"
+                    "primary": "clj",
+                    "secondary": "cljs"
                   }
                 },
                 "replSessionFilePatterns": {
                   "type": "object",
-                  "markdownDescription": "Map REPL session roles to file patterns they should handle. Use `main` and `promoted` keys to refer to the session roles. Values can be: a pattern string like `*.clj`, an array of patterns, or an object with `always-claim` and/or `is-fallback-for` properties (arrays of patterns) to control routing priority. Patterns are automatically scoped to the sequence's project root (e.g., `*.clj` becomes `/path/to/project/**/*.clj`). The `always-claim` tier takes precedence over `is-fallback-for`.",
+                  "markdownDescription": "Map REPL session roles to file patterns they should handle. Use `primary` and `secondary` keys to refer to the session roles. Values can be: a pattern string like `*.clj`, an array of patterns, or an object with `always-claim` and/or `is-fallback-for` properties (arrays of patterns) to control routing priority. Patterns are automatically scoped to the sequence's project root (e.g., `*.clj` becomes `/path/to/project/**/*.clj`). The `always-claim` tier takes precedence over `is-fallback-for`.",
                   "properties": {
-                    "main": {
+                    "primary": {
                       "anyOf": [
                         {
                           "type": "string"
@@ -886,9 +886,9 @@
                           "additionalProperties": false
                         }
                       ],
-                      "markdownDescription": "File patterns for the main REPL session (e.g., `*.clj`, `*.edn`)."
+                      "markdownDescription": "File patterns for the primary REPL session (e.g., `*.clj`, `*.edn`)."
                     },
-                    "promoted": {
+                    "secondary": {
                       "anyOf": [
                         {
                           "type": "string"
@@ -934,16 +934,16 @@
                           "additionalProperties": false
                         }
                       ],
-                      "markdownDescription": "File patterns for the promoted REPL session (e.g., `*.cljs`)."
+                      "markdownDescription": "File patterns for the secondary REPL session (e.g., `*.cljs`)."
                     }
                   },
                   "additionalProperties": false,
                   "default": {
-                    "main": [
+                    "primary": [
                       "*.clj",
                       "*.edn"
                     ],
-                    "promoted": [
+                    "secondary": [
                       "*.cljs"
                     ]
                   }

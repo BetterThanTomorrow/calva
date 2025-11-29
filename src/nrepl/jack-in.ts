@@ -27,7 +27,7 @@ import * as inspector from '../providers/inspector';
 import * as clientRegistry from './client-registry';
 import type { RegisteredClient } from './client-registry';
 import * as sessionRoleUtils from './session-role-utils';
-import * as promotedSession from './secondary-session';
+import * as secondarySession from './secondary-session';
 import * as sessionRegistry from './session-registry';
 
 function resolveEnvVariables(entry: any): any {
@@ -171,11 +171,11 @@ function findClientsForSequence(connectSequence: ReplConnectSequence): Registere
 
 function findClientsWithSessionConflicts(connectSequence: ReplConnectSequence): RegisteredClient[] {
   const sessionRoleKeys = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
-  const usePromotedSession = promotedSession.shouldUseSecondarySession(connectSequence);
+  const useSecondarySession = secondarySession.shouldUseSecondarySession(connectSequence);
   const requestedKeys = connector.deriveRequestedSessionKeys(
     sessionRoleKeys,
     connectSequence,
-    usePromotedSession
+    useSecondarySession
   );
 
   if (!requestedKeys.length) {
