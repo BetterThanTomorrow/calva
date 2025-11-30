@@ -7,22 +7,9 @@ import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as replSession from '../../../nrepl/repl-session';
 import * as vscode from 'vscode';
 import { commands } from 'vscode';
-import * as outputWindow from '../../../repl-window/repl-doc';
-import { getDocument } from '../../../doc-mirror';
 import connector from '../../../connector';
 
 const suiteName = 'CLJC Routing';
-
-const settingsUri: vscode.Uri = vscode.Uri.joinPath(
-  vscode.workspace.workspaceFolders[0].uri,
-  '.vscode',
-  'settings.json'
-);
-const settingsBackupUri: vscode.Uri = vscode.Uri.joinPath(
-  vscode.workspace.workspaceFolders[0].uri,
-  '.vscode',
-  'settings.json.bak'
-);
 
 // Project paths - computed once
 const projectDir = path.join(testUtil.testDataDir, '..', 'projects', 'cljs-only');
@@ -43,7 +30,6 @@ suite('CLJC Routing suite', function () {
 
   before(async () => {
     testUtil.showMessage(suiteName, `suite starting!`);
-    await vscode.workspace.fs.copy(settingsUri, settingsBackupUri, { overwrite: true });
     await testUtil.ensureOutputDir(testUtil.testDataDir);
 
     // Clean up any stale clients
@@ -84,11 +70,9 @@ suite('CLJC Routing suite', function () {
         // Ignore errors during cleanup
       }
     }
-
-    await vscode.workspace.fs.delete(settingsBackupUri);
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // Reset cljc target to primary before each test
     clientRegistry.setCljcTargetForConnection(clientKey, 'primary');
   });
@@ -345,50 +329,23 @@ suite('CLJC Routing suite', function () {
 
   // Helper functions
 
-  async function writeSettings(settings: Record<string, unknown>): Promise<void> {
-    const settingsData = JSON.stringify(settings, null, 2);
-    await vscode.workspace.fs.writeFile(settingsUri, new TextEncoder().encode(settingsData));
-
-    const config = vscode.workspace.getConfiguration();
-    const sections: Array<[string, unknown]> = Object.entries(settings);
-
-    if (!('calva.replConnectSequences' in settings)) {
-      sections.push(['calva.replConnectSequences', undefined]);
-    }
-
-    for (const [section, value] of sections) {
-      await config.update(section, value, vscode.ConfigurationTarget.Workspace);
-    }
-  }
-
   let lastSeenClientConnectedAt = 0;
-  let lastJackInDoneCount = 0;
 
   async function jackInToClojureScriptProject(): Promise<void> {
-    // Use a custom connect sequence with autoSelectForJackIn and projectRootPath
-    // to bypass all QuickPicks and speed up test execution
-    const connectSequenceName = 'cljc-routing-test-cljs-node';
-    const settings = {
-      'calva.replConnectSequences': [
-        {
-          name: connectSequenceName,
-          projectType: 'deps.edn',
-          cljsType: 'ClojureScript built-in for node',
-          autoSelectForJackIn: true,
-          // Path relative to workspace folder (test-data)
-          projectRootPath: ['projects', 'cljs-only'],
-        },
-      ],
-    };
-    await writeSettings(settings);
-
     // Open a file in the project so VS Code has context
     await testUtil.openFile(cljsFile);
     testUtil.log(suiteName, `Opened file for jack-in: ${cljsFile}`);
 
-    // Pass the connect sequence name directly to bypass QuickPicks
+    // Pass the full connect sequence object directly to bypass QuickPicks
+    // and avoid modifying workspace settings
     await commands.executeCommand('calva.jackIn', {
-      connectSequence: connectSequenceName,
+      connectSequence: {
+        name: 'cljc-routing-test-cljs-node',
+        projectType: 'deps.edn',
+        cljsType: 'ClojureScript built-in for node',
+        // Absolute path to project root
+        projectRootPath: [projectDir],
+      },
       disableAutoSelect: true,
     });
 
@@ -440,28 +397,5 @@ suite('CLJC Routing suite', function () {
       await testUtil.sleep(500);
     }
     throw new Error('Timeout waiting for jack-in client');
-  }
-
-  async function waitForJackInCompletion(): Promise<void> {
-    const timeoutMs = 90_000;
-    const start = Date.now();
-
-    while (Date.now() - start < timeoutMs) {
-      const resultsEditor = await outputWindow.openResultsDoc();
-      const text = getDocument(resultsEditor).document.getText();
-
-      const jackInDoneMatches = text.match(/Jack-in done\./g);
-      const jackInDoneCount = jackInDoneMatches?.length ?? 0;
-
-      if (jackInDoneCount > lastJackInDoneCount) {
-        lastJackInDoneCount = jackInDoneCount;
-        testUtil.log(suiteName, 'Jack-in completed (detected "Jack-in done.")');
-        return;
-      }
-
-      testUtil.log(suiteName, 'Waiting for jack-in completion...');
-      await testUtil.sleep(1000);
-    }
-    throw new Error('Timeout waiting for jack-in completion');
   }
 });
