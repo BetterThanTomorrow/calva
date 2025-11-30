@@ -7,6 +7,22 @@ import * as sessionRegistry from './session-registry';
 import * as sessionRouting from './session-routing';
 import type { WorkspaceFolderInfo } from './glob-paths';
 import * as globPaths from './glob-paths';
+import type { SessionGlobTier } from './globs';
+
+/**
+ * Describes why a particular session was selected by the routing algorithm.
+ */
+export type RoutingReason =
+  | { type: 'pinned' }
+  | { type: 'repl-window' }
+  | { type: 'glob-match'; tier: SessionGlobTier; matchingPattern?: string }
+  | { type: 'cljc-preference' }
+  | { type: 'first-available' };
+
+export interface RoutingResult {
+  sessionKey: string;
+  reason: RoutingReason;
+}
 
 function buildCandidatePaths(doc: vscode.TextDocument): string[] {
   const uri = doc.uri;
@@ -32,7 +48,17 @@ function buildCandidatePaths(doc: vscode.TextDocument): string[] {
   return globPaths.buildGlobCandidatePaths(fsPath, folders);
 }
 
-function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefined {
+interface GlobMatchResult {
+  sessionKey: string;
+  tier: SessionGlobTier;
+  matchingPattern: string;
+  score: number;
+  order: number;
+}
+
+function findSessionKeyForDocument(
+  doc?: vscode.TextDocument
+): { sessionKey: string; tier: SessionGlobTier; matchingPattern: string } | undefined {
   if (!doc) {
     return undefined;
   }
@@ -44,9 +70,9 @@ function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefine
 
   const sessions = sessionRegistry.listSessions();
   const isBetterMatch = (
-    current: { score: number; order: number } | undefined,
-    candidate: { score: number; order: number }
-  ) => {
+    current: GlobMatchResult | undefined,
+    candidate: GlobMatchResult
+  ): boolean => {
     if (!current) {
       return true;
     }
@@ -56,9 +82,9 @@ function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefine
     return candidate.order < current.order;
   };
 
-  let bestAlwaysClaim: { sessionKey: string; score: number; order: number } | undefined;
-  let bestFallback: { sessionKey: string; score: number; order: number } | undefined;
-  let bestProjectFallback: { sessionKey: string; score: number; order: number } | undefined;
+  let bestAlwaysClaim: GlobMatchResult | undefined;
+  let bestFallback: GlobMatchResult | undefined;
+  let bestProjectFallback: GlobMatchResult | undefined;
 
   sessions.forEach((session, index) => {
     const specs = session.globSpecs ?? [];
@@ -74,7 +100,13 @@ function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefine
       if (!matched) {
         continue;
       }
-      const candidate = { sessionKey: session.key, score: spec.score, order: index };
+      const candidate: GlobMatchResult = {
+        sessionKey: session.key,
+        tier: spec.tier,
+        matchingPattern: spec.displayPattern || spec.pattern,
+        score: spec.score,
+        order: index,
+      };
       if (spec.tier === 'always-claim') {
         if (isBetterMatch(bestAlwaysClaim, candidate)) {
           bestAlwaysClaim = candidate;
@@ -93,15 +125,76 @@ function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefine
 
   // Priority: always-claim > is-fallback-for > project-fallback
   if (bestAlwaysClaim) {
-    return bestAlwaysClaim.sessionKey;
+    return {
+      sessionKey: bestAlwaysClaim.sessionKey,
+      tier: bestAlwaysClaim.tier,
+      matchingPattern: bestAlwaysClaim.matchingPattern,
+    };
   }
 
   if (bestFallback) {
-    return bestFallback.sessionKey;
+    return {
+      sessionKey: bestFallback.sessionKey,
+      tier: bestFallback.tier,
+      matchingPattern: bestFallback.matchingPattern,
+    };
   }
 
   if (bestProjectFallback) {
-    return bestProjectFallback.sessionKey;
+    return {
+      sessionKey: bestProjectFallback.sessionKey,
+      tier: bestProjectFallback.tier,
+      matchingPattern: bestProjectFallback.matchingPattern,
+    };
+  }
+
+  return undefined;
+}
+
+/**
+ * Determines the appropriate session key and why it was selected.
+ * Returns detailed routing information for UI display.
+ */
+function getRoutingInfo(): RoutingResult | undefined {
+  const doc = tryToGetDocument({});
+
+  // 1. Pinned session takes priority
+  const pinnedSession = sessionRouting.resolvePinnedSession();
+  if (pinnedSession && sessionRegistry.getSession(pinnedSession)) {
+    return { sessionKey: pinnedSession, reason: { type: 'pinned' } };
+  }
+
+  // 2. Results doc has its own session setting
+  if (outputWindow.isResultsDoc(doc)) {
+    const resultsDocType = outputWindow.getSessionType();
+    if (resultsDocType && sessionRegistry.getSession(resultsDocType)) {
+      return { sessionKey: resultsDocType, reason: { type: 'repl-window' } };
+    }
+  }
+
+  // 3. Glob pattern matching
+  const globMatch = findSessionKeyForDocument(doc);
+  if (globMatch && sessionRegistry.getSession(globMatch.sessionKey)) {
+    return {
+      sessionKey: globMatch.sessionKey,
+      reason: {
+        type: 'glob-match',
+        tier: globMatch.tier,
+        matchingPattern: globMatch.matchingPattern,
+      },
+    };
+  }
+
+  // 4. CLJC session preference (fallback for unclaimed files)
+  const cljcPreference = sessionRouting.getCljcSessionKey();
+  if (cljcPreference && sessionRegistry.getSession(cljcPreference)) {
+    return { sessionKey: cljcPreference, reason: { type: 'cljc-preference' } };
+  }
+
+  // 5. First available session (defensive fallback, should rarely be reached)
+  const sessions = sessionRegistry.listSessions();
+  if (sessions[0]?.key) {
+    return { sessionKey: sessions[0].key, reason: { type: 'first-available' } };
   }
 
   return undefined;
@@ -116,37 +209,7 @@ function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefine
  * 5. First available session (defensive fallback)
  */
 function getSessionKey(): string | undefined {
-  const doc = tryToGetDocument({});
-
-  // 1. Pinned session takes priority
-  const pinnedSession = sessionRouting.resolvePinnedSession();
-  if (pinnedSession && sessionRegistry.getSession(pinnedSession)) {
-    return pinnedSession;
-  }
-
-  // 2. Results doc has its own session setting
-  if (outputWindow.isResultsDoc(doc)) {
-    const resultsDocType = outputWindow.getSessionType();
-    if (resultsDocType && sessionRegistry.getSession(resultsDocType)) {
-      return resultsDocType;
-    }
-  }
-
-  // 3. Glob pattern matching
-  const globMatchedSession = findSessionKeyForDocument(doc);
-  if (globMatchedSession && sessionRegistry.getSession(globMatchedSession)) {
-    return globMatchedSession;
-  }
-
-  // 4. CLJC session preference (fallback for unclaimed files)
-  const cljcPreference = sessionRouting.getCljcSessionKey();
-  if (cljcPreference && sessionRegistry.getSession(cljcPreference)) {
-    return cljcPreference;
-  }
-
-  // 5. First available session (defensive fallback, should rarely be reached)
-  const sessions = sessionRegistry.listSessions();
-  return sessions[0]?.key;
+  return getRoutingInfo()?.sessionKey;
 }
 
 function getSession(): NReplSession {
@@ -196,4 +259,5 @@ export {
   updateReplSessionType,
   getReplSessionTypeFromState,
   getSessionKey,
+  getRoutingInfo,
 };

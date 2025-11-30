@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as sessionRouting from './nrepl/session-routing';
-import { getReplSessionTypeFromState } from './nrepl/repl-session';
+import { getRoutingInfo, type RoutingReason, type RoutingResult } from './nrepl/repl-session';
+import type { SessionGlobTier } from './nrepl/globs';
 import status from './status';
 import { getPathRelativeToWorkspace } from './project-root';
 import * as utilities from './utilities';
@@ -55,6 +56,7 @@ function formatLastUsed(lastActivity?: number): string | undefined {
 function formatSessionDescription({
   projectRoot,
   globSpecs,
+  routingInfo,
 }: {
   projectRoot?: string;
   globSpecs?: Array<{
@@ -62,6 +64,7 @@ function formatSessionDescription({
     pattern: string;
     tier: 'always-claim' | 'is-fallback-for' | 'project-fallback';
   }>;
+  routingInfo?: RoutingResult;
 }): string | undefined {
   const parts: string[] = [];
 
@@ -73,7 +76,15 @@ function formatSessionDescription({
   if (globSpecs && globSpecs.length > 0) {
     const alwaysClaim = globSpecs
       .filter((s) => s.tier === 'always-claim')
-      .map((s) => s.displayPattern ?? s.pattern);
+      .map((s) => {
+        const pattern = s.displayPattern ?? s.pattern;
+        // Mark the winning pattern with a checkmark if this is the routed session
+        const isWinningPattern =
+          routingInfo?.reason.type === 'glob-match' &&
+          routingInfo.reason.tier === 'always-claim' &&
+          routingInfo.reason.matchingPattern === pattern;
+        return isWinningPattern ? `$(check) ${pattern}` : pattern;
+      });
     if (alwaysClaim.length > 0) {
       parts.push(alwaysClaim.join(', '));
     }
@@ -88,6 +99,7 @@ function formatSessionDetail({
   lastActivity,
   key,
   includeSessionKey,
+  routingInfo,
 }: {
   globs?: string[];
   globSpecs?: Array<{
@@ -98,14 +110,23 @@ function formatSessionDetail({
   lastActivity?: number;
   key: string;
   includeSessionKey: boolean;
+  routingInfo?: RoutingResult;
 }): string | undefined {
   const detailParts: string[] = [];
 
-  // Fallback patterns
+  // Fallback patterns - mark winning pattern if applicable
   if (globSpecs && globSpecs.length > 0) {
     const isFallbackFor = globSpecs
       .filter((s) => s.tier === 'is-fallback-for')
-      .map((s) => s.displayPattern ?? s.pattern);
+      .map((s) => {
+        const pattern = s.displayPattern ?? s.pattern;
+        // Mark the winning pattern with a checkmark
+        const isWinningPattern =
+          routingInfo?.reason.type === 'glob-match' &&
+          routingInfo.reason.tier === 'is-fallback-for' &&
+          routingInfo.reason.matchingPattern === pattern;
+        return isWinningPattern ? `$(check) ${pattern}` : pattern;
+      });
     if (isFallbackFor.length > 0) {
       detailParts.push(`Fallback for: ${isFallbackFor.join(', ')}`);
     }
@@ -127,27 +148,68 @@ function formatSessionDetail({
   return detailParts.length > 0 ? detailParts.join(' — ') : undefined;
 }
 
+/**
+ * Formats the routing reason as a human-readable description for the menu.
+ */
+function formatRoutingReasonDescription(reason: RoutingReason): string {
+  switch (reason.type) {
+    case 'pinned':
+      return '$(pin) Pinned';
+    case 'repl-window':
+      return '$(terminal) REPL window';
+    case 'glob-match':
+      return formatGlobMatchReason(reason.tier, reason.matchingPattern);
+    case 'cljc-preference':
+      return '$(file-code) cljc preference';
+    case 'first-available':
+      return 'First available';
+  }
+}
+
+function formatGlobMatchReason(tier: SessionGlobTier, matchingPattern?: string): string {
+  const pattern = matchingPattern || '**/*';
+  switch (tier) {
+    case 'always-claim':
+      return `$(check) ${pattern}`;
+    case 'is-fallback-for':
+      return `$(check) Fallback: ${pattern}`;
+    case 'project-fallback':
+      return `$(check) Project root`;
+  }
+}
+
 function buildSessionPickItems(options?: {
-  isAutoRouting?: boolean;
-  autoSessionKey?: string;
+  routingInfo?: RoutingResult;
   highlightedSessionKey?: string;
 }): SessionQuickPickItem[] {
-  const { isAutoRouting = false, autoSessionKey, highlightedSessionKey } = options || {};
+  const { routingInfo, highlightedSessionKey } = options || {};
   const pinnedKey = sessionRouting.getPinnedSessionKey();
+  const isAutoRouting = !pinnedKey;
+
   return sessionRegistry.listSessions().map((session) => {
     const baseLabel = session.key;
     const prefixes: string[] = [];
-    if (session.key === pinnedKey) {
+
+    // Determine if this session is the currently routed one and why
+    const isRoutedSession = routingInfo?.sessionKey === session.key;
+    const isPinned = session.key === pinnedKey;
+
+    if (isPinned) {
       prefixes.push('$(pin)');
-    } else if (isAutoRouting && autoSessionKey && session.key === autoSessionKey) {
-      prefixes.push('$(check)');
+    } else if (isAutoRouting && isRoutedSession && routingInfo) {
+      // Show why this session is selected
+      prefixes.push(formatRoutingReasonDescription(routingInfo.reason));
     } else if (highlightedSessionKey && session.key === highlightedSessionKey) {
       prefixes.push('$(check)');
     }
+
     const label = prefixes.length > 0 ? `${prefixes.join(' ')} ${baseLabel}` : baseLabel;
+
+    // Build description with always-claim patterns marked with check if they matched
     const description = formatSessionDescription({
       projectRoot: session.projectRoot,
       globSpecs: session.globSpecs,
+      routingInfo: isRoutedSession ? routingInfo : undefined,
     });
 
     return {
@@ -159,6 +221,7 @@ function buildSessionPickItems(options?: {
         lastActivity: session.lastActivity,
         key: session.key,
         includeSessionKey: baseLabel !== session.key,
+        routingInfo: isRoutedSession ? routingInfo : undefined,
       }),
       action: 'session',
       sessionKey: session.key,
@@ -261,10 +324,9 @@ function isOutputWindowActive(): boolean {
 
 function buildMenuItems(): SessionQuickPickItem[] {
   const pinnedSession = sessionRouting.getPinnedSessionKey();
-  const routingMode = sessionRouting.getRoutingMode();
   const cljcSessionKey = sessionRouting.getCljcSessionKey();
-  const isAutoRouting = routingMode === 'auto' && !pinnedSession;
-  const autoSessionKey = isAutoRouting ? getReplSessionTypeFromState() : undefined;
+  const isAutoRouting = !pinnedSession;
+  const routingInfo = getRoutingInfo();
 
   const items: SessionQuickPickItem[] = [];
 
@@ -272,7 +334,7 @@ function buildMenuItems(): SessionQuickPickItem[] {
     const currentOutputSession = outputWindow.getSessionType();
     items.push({
       label: 'Select session for REPL window',
-      description: currentOutputSession ? `Current: ${currentOutputSession}` : undefined,
+      description: currentOutputSession ? `$(arrow-right) ${currentOutputSession}` : undefined,
       detail: 'Override which session the REPL window uses for evaluations.',
       action: 'output-session',
     });
@@ -280,14 +342,16 @@ function buildMenuItems(): SessionQuickPickItem[] {
 
   items.push({
     label: 'Select session for cljc files',
-    description: cljcSessionKey ? `Current: ${cljcSessionKey}` : 'No override set',
+    description: cljcSessionKey ? `$(arrow-right) ${cljcSessionKey}` : 'No override set',
     detail: 'Specify how to route cljc files (when auto-routing is enabled).',
     action: 'cljc',
   });
 
+  // Show auto-route status with filled/outline circle
+  const autoRouteIcon = isAutoRouting ? '$(circle-filled)' : '$(circle-outline)';
   items.push({
-    label: `${isAutoRouting ? '$(check) ' : ''}Auto-route`,
-    description: autoSessionKey ? `Current: ${autoSessionKey}` : undefined,
+    label: `${autoRouteIcon} Auto-route`,
+    description: routingInfo ? `$(arrow-right) ${routingInfo.sessionKey}` : undefined,
     detail:
       'Auto-selects repl session based on file path, using connect sequence globs, and CLJC overrides.',
     action: 'auto',
@@ -301,8 +365,7 @@ function buildMenuItems(): SessionQuickPickItem[] {
 
   items.push(
     ...buildSessionPickItems({
-      isAutoRouting,
-      autoSessionKey,
+      routingInfo,
     })
   );
 
