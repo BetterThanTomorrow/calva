@@ -77,7 +77,7 @@ A **Client** (`NReplClient`) represents a TCP connection to an nREPL server. Key
 
 | Mode | Description |
 |------|-------------|
-| **Auto-routing** | Calva selects session based on: 1) Results doc session, 2) Glob patterns (from sequence config, project type defaults, or generic role defaults), 3) CLJC session preference as fallback for unclaimed files. |
+| **Auto-routing** | Calva selects session based on: 1) Results doc session, 2) Glob patterns (from sequence config, project type defaults, or generic role defaults), 3) Per-connection CLJC target preference for project-fallback files and files outside any project. |
 | **Pinned Session** | User forces a specific session for all evaluations, bypassing auto-routing. |
 
 ### Session Name Resolution
@@ -116,7 +116,7 @@ flowchart TB
     subgraph SessionResolution["Session Resolution Layer"]
         RS["repl-session.ts<br/>• getSession()<br/>• getSessionKey()<br/>• findSessionKeyForDocument()"]
 
-        SR["session-routing<br/>• pinnedSession<br/>• cljcOverride<br/>• routingMode"]
+        SR["session-routing<br/>• pinnedSession<br/>• routingMode"]
         SRU["session-role-utils<br/>• deriveSessionKeys<br/>• deriveGlobMap"]
         GLOBS["globs/index.ts<br/>• buildGlobSpecs<br/>• scorePatterns"]
 
@@ -313,6 +313,7 @@ interface ConnectionState {
   shadowCljsRuntimeInfo?: any;    // Runtime metadata
   baseSessionNames?: SessionRoleKeys;  // Names before fruit suffix
   fruitSuffix?: string;                // Applied fruit suffix, if any
+  cljcTarget?: 'primary' | 'secondary'; // Per-connection CLJC target preference
 }
 ```
 
@@ -587,24 +588,25 @@ The `getSessionKey()` function checks in this order:
 2. Results Doc Session (REPL output window)
    └─► outputWindow.getSessionType() - guaranteed to be set when connected
 
-3. Glob Pattern Matching
+3. Glob Pattern Matching + CLJC Within Connection
    └─► findSessionKeyForDocument(doc)
        • Build candidate paths from document URI
        • Match against session globSpecs
        • Priority: 'always-claim' > 'is-fallback-for' > 'project-fallback'
        • Higher score wins within same tier
+       • For 'project-fallback' matches: apply per-connection CLJC target preference
+         └─► resolveCljcWithinConnection() - redirects to primary/secondary based on cljcTarget
 
-4. CLJC Session Preference (fallback for unclaimed files)
-   └─► sessionRouting.getCljcSessionKey() - guaranteed to be set when connected
-
-5. First Available Session (defensive fallback, should never be reached)
-   └─► sessionRegistry.listSessions()[0]
+4. First Available Session + CLJC Within Connection
+   └─► sessionRegistry.listSessions()[0] with cljc preference applied
+       • Even files outside any project respect the CLJC target preference
+       • resolveCljcWithinConnection() applied to first available session
 ```
 
 **System Guarantees:**
-- CLJC Session Preference is always initialized to the primary session key on connect
+- CLJC target is set to 'secondary' when CLJS session connects (most recently connected session)
 - Results Doc Session is always set when connected
-- This means steps 4 and 5 provide robust fallbacks, but in practice step 3 (glob matching) handles most files
+- CLJC preference is per-connection, stored in ConnectionState
 
 ### Glob Matching Algorithm
 
@@ -659,7 +661,9 @@ function findSessionKeyForDocument(doc: TextDocument): string | undefined {
 // State keys in session-routing.ts
 'session-routing-mode'               // 'auto' | 'pinned'
 'session-routing-pinned-session-key' // e.g., 'cljs'
-'session-routing-cljc-session-key'   // e.g., 'clj'
+
+// Per-connection CLJC target is stored in ConnectionState (client-registry.ts)
+// connectionState.cljcTarget: 'primary' | 'secondary'
 ```
 
 ### Session Access Patterns
@@ -673,7 +677,7 @@ Use `replSession.getSession()` when you want the session appropriate for the cur
 ```typescript
 import * as replSession from './nrepl/repl-session';
 
-// Gets session based on: pinned > results doc > glob match > cljc preference
+// Gets session based on: pinned > results doc > glob match (with cljc-within-connection)
 const session = replSession.getSession();
 await session.eval(code, ns);
 ```
@@ -719,7 +723,7 @@ The system supports lookups in both directions, which is intentional:
 |------|---------|
 | `src/nrepl/session-registry.ts` | Central session storage, metadata, lookups by client/role, explicit session access |
 | `src/nrepl/client-registry.ts` | Client lifecycle, active client tracking, per-connection state (CLJS build, runtime, role keys) |
-| `src/nrepl/session-routing.ts` | Pinned session state, CLJC preference, routing mode queries |
+| `src/nrepl/session-routing.ts` | Pinned session state, routing mode queries |
 | `src/nrepl/repl-session.ts` | **Primary entry point for session access**, routing logic, glob matching |
 
 ### Connection & Jack-in
@@ -913,7 +917,11 @@ flowchart TD
     G -- Yes --> H[Return Best always-claim]
     G -- No --> I{Found 'is-fallback-for' match?}
     I -- Yes --> J[Return Best fallback]
-    I -- No --> K[Return CLJC Session Preference]
+    I -- No --> K{Found 'project-fallback' match?}
+    K -- Yes --> L[Apply CLJC Within Connection]
+    K -- No --> M[First Available + CLJC Within Connection]
+    L --> N[Return Session per cljcTarget]
+    M --> N
 ```
 
 ### Disconnect Flow
@@ -962,7 +970,7 @@ graph TB
         F1[src/app.clj] --> S1A
         F2[src/app.cljs] --> S1B
         F3[scripts/build.bb] --> S2A
-        F4[src/shared.cljc] -->|cljc preference| S1A
+        F4[src/shared.cljc] -->|cljc-within-connection| S1A
     end
 ```
 
