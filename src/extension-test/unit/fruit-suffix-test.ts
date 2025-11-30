@@ -80,9 +80,9 @@ describe('fruit-suffix', () => {
 
   describe('extractFruitSuffix', () => {
     it('extracts fruit suffix from suffixed name', () => {
-      expect(fruitSuffix.extractFruitSuffix('clj-apple')).toBe('apple');
-      expect(fruitSuffix.extractFruitSuffix('cljs-banana')).toBe('banana');
-      expect(fruitSuffix.extractFruitSuffix('my-session-cherry')).toBe('cherry');
+      expect(fruitSuffix.extractFruitSuffix('clj:apple')).toBe('apple');
+      expect(fruitSuffix.extractFruitSuffix('cljs:banana')).toBe('banana');
+      expect(fruitSuffix.extractFruitSuffix('my-session:cherry')).toBe('cherry');
     });
 
     it('returns undefined for names without fruit suffix', () => {
@@ -92,29 +92,29 @@ describe('fruit-suffix', () => {
     });
 
     it('returns undefined for names with fruit-like but non-fruit suffix', () => {
-      expect(fruitSuffix.extractFruitSuffix('clj-pineapple')).toBeUndefined();
-      expect(fruitSuffix.extractFruitSuffix('clj-apples')).toBeUndefined();
+      expect(fruitSuffix.extractFruitSuffix('clj:pineapple')).toBeUndefined();
+      expect(fruitSuffix.extractFruitSuffix('clj:apples')).toBeUndefined();
     });
 
     it('only matches suffix, not prefix or middle', () => {
-      expect(fruitSuffix.extractFruitSuffix('apple-clj')).toBeUndefined();
+      expect(fruitSuffix.extractFruitSuffix('apple:clj')).toBeUndefined();
       expect(fruitSuffix.extractFruitSuffix('apple')).toBeUndefined();
     });
   });
 
   describe('applyFruitSuffix', () => {
     it('applies fruit suffix to base name', () => {
-      expect(fruitSuffix.applyFruitSuffix('clj', 'apple')).toBe('clj-apple');
-      expect(fruitSuffix.applyFruitSuffix('cljs', 'banana')).toBe('cljs-banana');
-      expect(fruitSuffix.applyFruitSuffix('my-session', 'cherry')).toBe('my-session-cherry');
+      expect(fruitSuffix.applyFruitSuffix('clj', 'apple')).toBe('clj:apple');
+      expect(fruitSuffix.applyFruitSuffix('cljs', 'banana')).toBe('cljs:banana');
+      expect(fruitSuffix.applyFruitSuffix('my-session', 'cherry')).toBe('my-session:cherry');
     });
   });
 
   describe('stripFruitSuffix', () => {
     it('strips fruit suffix from suffixed name', () => {
-      expect(fruitSuffix.stripFruitSuffix('clj-apple')).toBe('clj');
-      expect(fruitSuffix.stripFruitSuffix('cljs-banana')).toBe('cljs');
-      expect(fruitSuffix.stripFruitSuffix('my-session-cherry')).toBe('my-session');
+      expect(fruitSuffix.stripFruitSuffix('clj:apple')).toBe('clj');
+      expect(fruitSuffix.stripFruitSuffix('cljs:banana')).toBe('cljs');
+      expect(fruitSuffix.stripFruitSuffix('my-session:cherry')).toBe('my-session');
     });
 
     it('returns name unchanged when no fruit suffix', () => {
@@ -124,7 +124,7 @@ describe('fruit-suffix', () => {
     });
 
     it('returns name unchanged for non-fruit suffixes', () => {
-      expect(fruitSuffix.stripFruitSuffix('clj-pineapple')).toBe('clj-pineapple');
+      expect(fruitSuffix.stripFruitSuffix('clj:pineapple')).toBe('clj:pineapple');
     });
   });
 

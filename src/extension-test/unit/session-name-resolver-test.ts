@@ -56,8 +56,8 @@ describe('session-name-resolver', () => {
         const baseNames = { primary: 'clj', secondary: 'cljs' };
         const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-b');
 
-        expect(resolution.finalNames.primary).toMatch(/^clj-\w+$/);
-        expect(resolution.finalNames.secondary).toMatch(/^cljs-\w+$/);
+        expect(resolution.finalNames.primary).toMatch(/^clj:\w+$/);
+        expect(resolution.finalNames.secondary).toMatch(/^cljs:\w+$/);
         expect(resolution.fruitSuffix).toBeDefined();
       });
 
@@ -67,8 +67,8 @@ describe('session-name-resolver', () => {
         const baseNames = { primary: 'clj', secondary: 'cljs' };
         const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-b');
 
-        expect(resolution.finalNames.primary).toMatch(/^clj-\w+$/);
-        expect(resolution.finalNames.secondary).toMatch(/^cljs-\w+$/);
+        expect(resolution.finalNames.primary).toMatch(/^clj:\w+$/);
+        expect(resolution.finalNames.secondary).toMatch(/^cljs:\w+$/);
         expect(resolution.fruitSuffix).toBeDefined();
       });
 
@@ -79,8 +79,8 @@ describe('session-name-resolver', () => {
         const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-b');
 
         const fruit = resolution.fruitSuffix;
-        expect(resolution.finalNames.primary).toBe(`clj-${fruit}`);
-        expect(resolution.finalNames.secondary).toBe(`cljs-${fruit}`);
+        expect(resolution.finalNames.primary).toBe(`clj:${fruit}`);
+        expect(resolution.finalNames.secondary).toBe(`cljs:${fruit}`);
       });
 
       it('acquires different fruits for successive conflicts', () => {
@@ -138,7 +138,7 @@ describe('session-name-resolver', () => {
         const resolution = sessionNameResolver.resolveSessionNames(baseNames, projectRoot);
 
         expect(resolution.reconnectClientKey).toBe('client-a');
-        expect(resolution.finalNames).toEqual({ primary: 'clj-apple', secondary: 'cljs-apple' });
+        expect(resolution.finalNames).toEqual({ primary: 'clj:apple', secondary: 'cljs:apple' });
         expect(resolution.fruitSuffix).toBe('apple');
       });
 

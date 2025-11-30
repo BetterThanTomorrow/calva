@@ -3,7 +3,7 @@
  *
  * When multiple REPLs would have the same session names (e.g., two deps.edn projects
  * both wanting `clj`/`cljs`), this module provides fruit suffixes to distinguish them
- * (e.g., `clj-apple`, `cljs-apple`).
+ * (e.g., `clj:apple`, `cljs:apple`).
  */
 
 const FRUIT_POOL: readonly string[] = [
@@ -64,14 +64,14 @@ export function isPoolExhausted(): boolean {
  * Returns undefined if no fruit suffix is found.
  *
  * Examples:
- * - `clj-apple` → `apple`
- * - `cljs-banana` → `banana`
+ * - `clj:apple` → `apple`
+ * - `cljs:banana` → `banana`
  * - `clj` → undefined
  * - `my-session` → undefined (no fruit suffix)
  */
 export function extractFruitSuffix(sessionName: string): string | undefined {
   for (const fruit of FRUIT_POOL) {
-    if (sessionName.endsWith(`-${fruit}`)) {
+    if (sessionName.endsWith(`:${fruit}`)) {
       return fruit;
     }
   }
@@ -82,11 +82,11 @@ export function extractFruitSuffix(sessionName: string): string | undefined {
  * Apply a fruit suffix to a base session name.
  *
  * Examples:
- * - `clj`, `apple` → `clj-apple`
- * - `cljs`, `banana` → `cljs-banana`
+ * - `clj`, `apple` → `clj:apple`
+ * - `cljs`, `banana` → `cljs:banana`
  */
 export function applyFruitSuffix(baseName: string, fruit: string): string {
-  return `${baseName}-${fruit}`;
+  return `${baseName}:${fruit}`;
 }
 
 /**
@@ -94,14 +94,14 @@ export function applyFruitSuffix(baseName: string, fruit: string): string {
  * If no fruit suffix is present, returns the name unchanged.
  *
  * Examples:
- * - `clj-apple` → `clj`
- * - `cljs-banana` → `cljs`
+ * - `clj:apple` → `clj`
+ * - `cljs:banana` → `cljs`
  * - `clj` → `clj`
  */
 export function stripFruitSuffix(sessionName: string): string {
   const fruit = extractFruitSuffix(sessionName);
   if (fruit) {
-    return sessionName.slice(0, -(fruit.length + 1)); // +1 for the hyphen
+    return sessionName.slice(0, -(fruit.length + 1)); // +1 for the colon
   }
   return sessionName;
 }
