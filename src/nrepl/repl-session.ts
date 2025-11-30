@@ -240,9 +240,14 @@ function getRoutingInfo(): RoutingResult | undefined {
     };
   }
 
-  // 4. First available session (defensive fallback, should rarely be reached)
+  // 4. First available session with cljc preference applied
+  // Even when no globs match, respect the user's cljc target preference
   const sessions = sessionRegistry.listSessions();
   if (sessions[0]?.key) {
+    const cljcResolved = resolveCljcWithinConnection(sessions[0].key, doc);
+    if (cljcResolved) {
+      return { sessionKey: cljcResolved, reason: { type: 'cljc-within-connection' } };
+    }
     return { sessionKey: sessions[0].key, reason: { type: 'first-available' } };
   }
 

@@ -31,6 +31,10 @@ const cljcFile = path.join(projectDir, 'src', 'hello_world', 'core.cljc');
 const ednFile = path.join(projectDir, 'deps.edn');
 const fiddleFile = path.join(projectDir, 'hello.fiddle');
 
+// Files outside the connected project (in test-data/integration-test)
+const outsideCljcFile = path.join(testUtil.testDataDir, 'test.cljc');
+const outsideFiddleFile = path.join(testUtil.testDataDir, 'test.fiddle');
+
 suite('CLJC Routing suite', function () {
   // Increase timeout for the entire suite since we jack-in once
   this.timeout(180_000);
@@ -270,6 +274,72 @@ suite('CLJC Routing suite', function () {
       ednRouting?.reason.type,
       'glob-match',
       '.edn should route via glob-match, not cljc preference'
+    );
+  });
+
+  test('Files outside project root still respect cljc target (.cljc)', async function () {
+    testUtil.log(suiteName, 'Testing: .cljc file outside project respects cljc target');
+
+    await testUtil.openFile(outsideCljcFile);
+
+    const routingInfo = replSession.getRoutingInfo();
+    testUtil.log(suiteName, 'Routing for outside .cljc file:', routingInfo);
+
+    // Files outside the connected project don't match any globs,
+    // but cljc target preference is still applied
+    assert.strictEqual(
+      routingInfo?.reason.type,
+      'cljc-within-connection',
+      '.cljc file outside project should use cljc-within-connection routing'
+    );
+    assert.strictEqual(
+      routingInfo?.sessionKey,
+      'clj',
+      '.cljc file outside project should route to clj (primary)'
+    );
+
+    // Toggle and verify it changes
+    await commands.executeCommand('calva.toggleCLJCSession');
+    await testUtil.sleep(50);
+
+    const afterToggleRouting = replSession.getRoutingInfo();
+    assert.strictEqual(
+      afterToggleRouting?.sessionKey,
+      'cljs',
+      'After toggle, outside .cljc should route to cljs'
+    );
+  });
+
+  test('Files outside project root still respect cljc target (.fiddle)', async function () {
+    testUtil.log(suiteName, 'Testing: .fiddle file outside project respects cljc target');
+
+    await testUtil.openFile(outsideFiddleFile);
+
+    const routingInfo = replSession.getRoutingInfo();
+    testUtil.log(suiteName, 'Routing for outside .fiddle file:', routingInfo);
+
+    // Files outside the connected project don't match any globs,
+    // but cljc target preference is still applied
+    assert.strictEqual(
+      routingInfo?.reason.type,
+      'cljc-within-connection',
+      '.fiddle file outside project should use cljc-within-connection routing'
+    );
+    assert.strictEqual(
+      routingInfo?.sessionKey,
+      'clj',
+      '.fiddle file outside project should route to clj (primary)'
+    );
+
+    // Toggle and verify it changes
+    await commands.executeCommand('calva.toggleCLJCSession');
+    await testUtil.sleep(50);
+
+    const afterToggleRouting = replSession.getRoutingInfo();
+    assert.strictEqual(
+      afterToggleRouting?.sessionKey,
+      'cljs',
+      'After toggle, outside .fiddle should route to cljs'
     );
   });
 
