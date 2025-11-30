@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as sessionRouting from './nrepl/session-routing';
-import { getRoutingInfo, type RoutingReason, type RoutingResult } from './nrepl/repl-session';
+import * as replSession from './nrepl/repl-session';
+import * as sessionLabel from './nrepl/session-label';
 import status from './status';
 import { getPathRelativeToWorkspace } from './project-root';
 import * as utilities from './utilities';
@@ -63,7 +64,7 @@ function formatSessionDescription({
     pattern: string;
     tier: 'always-claim' | 'is-fallback-for' | 'project-fallback';
   }>;
-  routingInfo?: RoutingResult;
+  routingInfo?: replSession.RoutingResult;
 }): string | undefined {
   const parts: string[] = [];
 
@@ -102,7 +103,6 @@ function formatSessionDetail({
   key,
   includeSessionKey,
   routingInfo,
-  isReplWindow,
 }: {
   globs?: string[];
   globSpecs?: Array<{
@@ -113,8 +113,7 @@ function formatSessionDetail({
   lastActivity?: number;
   key: string;
   includeSessionKey: boolean;
-  routingInfo?: RoutingResult;
-  isReplWindow?: boolean;
+  routingInfo?: replSession.RoutingResult;
 }): string | undefined {
   const detailParts: string[] = [];
 
@@ -149,11 +148,6 @@ function formatSessionDetail({
     detailParts.push(lastUsed);
   }
 
-  // REPL window indicator last
-  if (isReplWindow) {
-    detailParts.push('$(check) REPL window');
-  }
-
   return detailParts.length > 0 ? detailParts.join(' — ') : undefined;
 }
 
@@ -161,7 +155,7 @@ function formatSessionDetail({
  * Formats the routing reason as a label prefix for the menu.
  * All auto-routed sessions use $(circle-filled) for visual consistency.
  */
-function formatRoutingReasonPrefix(reason: RoutingReason): string {
+function formatRoutingReasonPrefix(reason: replSession.RoutingReason): string {
   switch (reason.type) {
     case 'pinned':
       return '$(pin)';
@@ -174,21 +168,28 @@ function formatRoutingReasonPrefix(reason: RoutingReason): string {
 }
 
 function buildSessionPickItems(options?: {
-  routingInfo?: RoutingResult;
+  routingInfo?: replSession.RoutingResult;
   highlightedSessionKey?: string;
 }): SessionQuickPickItem[] {
   const { routingInfo, highlightedSessionKey } = options || {};
   const pinnedKey = sessionRouting.getPinnedSessionKey();
   const isAutoRouting = !pinnedKey;
 
-  return sessionRegistry.listSessions().map((session) => {
-    const baseLabel = session.key;
-    let prefix = '';
+  // Get label context for the routed session (e.g., 'repl-window', 'cljc', 'fiddle')
+  const labelContext = replSession.getSessionLabelContext({ isPinned: !!pinnedKey });
 
+  return sessionRegistry.listSessions().map((session) => {
     // Determine if this session is the currently routed one and why
     const isRoutedSession = routingInfo?.sessionKey === session.key;
     const isPinned = session.key === pinnedKey;
 
+    // Format the session label - only the routed session gets the context prefix
+    const baseLabel =
+      isRoutedSession && isAutoRouting
+        ? sessionLabel.formatSessionLabel(session.key, labelContext)
+        : session.key;
+
+    let prefix = '';
     if (isPinned) {
       prefix = '$(pin) ';
     } else if (isAutoRouting && isRoutedSession && routingInfo) {
@@ -207,7 +208,7 @@ function buildSessionPickItems(options?: {
       routingInfo: isRoutedSession ? routingInfo : undefined,
     });
 
-    // Build detail, adding REPL window indicator if applicable
+    // Build detail - REPL window indicator is already shown in label prefix (repl-w/)
     const detail = formatSessionDetail({
       globs: session.globs,
       globSpecs: session.globSpecs,
@@ -215,7 +216,6 @@ function buildSessionPickItems(options?: {
       key: session.key,
       includeSessionKey: baseLabel !== session.key,
       routingInfo: isRoutedSession ? routingInfo : undefined,
-      isReplWindow: isRoutedSession && routingInfo?.reason.type === 'repl-window',
     });
 
     return {
@@ -325,7 +325,7 @@ function buildMenuItems(): SessionQuickPickItem[] {
   const pinnedSession = sessionRouting.getPinnedSessionKey();
   const cljcSessionKey = sessionRouting.getCljcSessionKey();
   const isAutoRouting = !pinnedSession;
-  const routingInfo = getRoutingInfo();
+  const routingInfo = replSession.getRoutingInfo();
 
   const items: SessionQuickPickItem[] = [];
 

@@ -1,13 +1,18 @@
 import * as vscode from 'vscode';
 import * as minimatchLib from 'minimatch';
 import { NReplSession } from '.';
-import { cljsLib, tryToGetDocument } from '../utilities';
+import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
 import * as outputWindow from '../repl-window/repl-doc';
 import * as sessionRegistry from './session-registry';
 import * as sessionRouting from './session-routing';
 import type { WorkspaceFolderInfo } from './glob-paths';
 import * as globPaths from './glob-paths';
 import type { SessionGlobTier } from './globs';
+import * as config from '../config';
+import * as sessionLabel from './session-label';
+
+// Re-export for consumers
+export { formatSessionLabel, type SessionLabelContext } from './session-label';
 
 /**
  * Describes why a particular session was selected by the routing algorithm.
@@ -253,6 +258,28 @@ function getReplSessionTypeFromState() {
   return cljsLib.getStateValue('current-session-type');
 }
 
+/**
+ * Determines the context prefix for a session label based on the current document.
+ * VS Code wrapper around the pure determineSessionLabelContext function.
+ *
+ * @param options.isPinned - Whether the session is pinned (pinned sessions don't get context prefixes)
+ * @param options.doc - The document to check for context (defaults to active document)
+ * @returns The context type for the session label
+ */
+function getSessionLabelContext(options?: {
+  isPinned?: boolean;
+  doc?: vscode.TextDocument;
+}): sessionLabel.SessionLabelContext {
+  const { isPinned = false, doc = tryToGetDocument({}) } = options ?? {};
+
+  return sessionLabel.determineSessionLabelContext({
+    isPinned,
+    isReplWindow: outputWindow.isResultsDoc(doc),
+    fileType: getFileType(doc),
+    fiddleFileExt: config.FIDDLE_FILE_EXT,
+  });
+}
+
 export {
   getSession,
   getReplSessionType,
@@ -260,4 +287,5 @@ export {
   getReplSessionTypeFromState,
   getSessionKey,
   getRoutingInfo,
+  getSessionLabelContext,
 };

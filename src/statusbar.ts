@@ -4,14 +4,15 @@ import * as util from './utilities';
 import * as config from './config';
 import * as shadowRuntimes from './shadow-cljs-runtime';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
-import { getReplSessionTypeFromState } from './nrepl/repl-session';
+import * as replSession from './nrepl/repl-session';
+import * as sessionLabel from './nrepl/session-label';
 import * as sessionRouting from './nrepl/session-routing';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as replWindow from './repl-window/repl-doc';
 
 // Helper to get connection state for the currently routed session
 function getConnectionStateForRoutedSession() {
-  const replType = getReplSessionTypeFromState();
+  const replType = replSession.getReplSessionTypeFromState();
   if (!replType) {
     return undefined;
   }
@@ -96,7 +97,7 @@ function update() {
     )} (Click to reset connection)`;
     connectionStatus.command = 'calva.showReplMenu';
     typeStatus.color = colorValue('typeStatusColor', currentConf);
-    const replType = getReplSessionTypeFromState();
+    const replType = replSession.getReplSessionTypeFromState();
     if (replType) {
       const pinnedSessionKey = sessionRouting.getPinnedSessionKey();
       const isPinned = sessionRouting.isPinned() && Boolean(pinnedSessionKey);
@@ -109,20 +110,9 @@ function update() {
           ? cljcSessionKey
           : replType;
 
-      const isInReplWindow = replWindow.isResultsDoc(doc);
-      const shouldShowReplWindowPrefix = !isPinned && isInReplWindow;
-      const shouldShowCljcPrefix = !isPinned && !isInReplWindow && fileType === 'cljc';
-      const shouldShowFiddlePrefix =
-        !isPinned && !isInReplWindow && fileType === config.FIDDLE_FILE_EXT;
-
-      let baseStatusText = displaySessionKey;
-      if (shouldShowReplWindowPrefix) {
-        baseStatusText = `repl-w/${displaySessionKey}`;
-      } else if (shouldShowCljcPrefix) {
-        baseStatusText = `cljc/${displaySessionKey}`;
-      } else if (shouldShowFiddlePrefix) {
-        baseStatusText = `fiddle/${displaySessionKey}`;
-      }
+      // Use shared session label formatting
+      const labelContext = replSession.getSessionLabelContext({ isPinned, doc });
+      const baseStatusText = sessionLabel.formatSessionLabel(displaySessionKey, labelContext);
 
       const pinIndicator = isPinned ? '$(pin) ' : '';
       typeStatus.text = `${pinIndicator}${baseStatusText}`;
@@ -201,7 +191,7 @@ function update() {
   }
 
   // Show shadow runtime status when the current routed session is a secondary session
-  const replType = getReplSessionTypeFromState();
+  const replType = replSession.getReplSessionTypeFromState();
   const isRoutedSessionSecondary = replType && sessionRegistry.isSessionSecondary(replType);
   const routedConnectionState = replType
     ? sessionRegistry.getConnectionStateForSession(replType)
