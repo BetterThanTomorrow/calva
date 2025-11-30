@@ -267,9 +267,10 @@ interface SessionMetadata {
 ```typescript
 // src/nrepl/globs/index.ts
 interface SessionGlobSpec {
-  pattern: string;                // Full glob pattern
+  pattern: string;                // Full glob pattern (absolute path)
+  displayPattern?: string;        // Human-readable pattern for UI (e.g., '**/*')
   normalizedPattern: string;      // POSIX-normalized pattern
-  tier: 'always-claim' | 'is-fallback-for';  // Routing priority tier
+  tier: 'always-claim' | 'is-fallback-for' | 'project-fallback';  // Routing priority tier
   score: number;                  // Pattern specificity score
 }
 ```
@@ -322,10 +323,7 @@ interface SessionRoleKeys {
 
 ```typescript
 // src/nrepl/session-role-utils.ts
-type SessionGlobMap = Map<string, {
-  globs: string[];
-  tier: 'always-claim' | 'is-fallback-for';
-}>;
+type SessionGlobMap = Record<string, SessionGlobSpec[]>;
 ```
 
 ---
@@ -586,7 +584,7 @@ The `getSessionKey()` function checks in this order:
    └─► findSessionKeyForDocument(doc)
        • Build candidate paths from document URI
        • Match against session globSpecs
-       • Prefer 'always-claim' over 'is-fallback-for'
+       • Priority: 'always-claim' > 'is-fallback-for' > 'project-fallback'
        • Higher score wins within same tier
 
 4. CLJC Session Preference (fallback for unclaimed files)
@@ -622,15 +620,17 @@ function findSessionKeyForDocument(doc: TextDocument): string | undefined {
         // 4. Track best match by tier and score
         if (spec.tier === 'always-claim') {
           updateBestAlwaysClaim(session, spec.score);
-        } else {
+        } else if (spec.tier === 'is-fallback-for') {
           updateBestFallback(session, spec.score);
+        } else {
+          updateBestProjectFallback(session, spec.score);
         }
       }
     }
   }
 
-  // 5. Return: always-claim wins, then fallback
-  return bestAlwaysClaim?.sessionKey ?? bestFallback?.sessionKey;
+  // 5. Return: always-claim wins, then fallback, then project-fallback
+  return bestAlwaysClaim?.sessionKey ?? bestFallback?.sessionKey ?? bestProjectFallback?.sessionKey;
 }
 ```
 
@@ -638,10 +638,13 @@ function findSessionKeyForDocument(doc: TextDocument): string | undefined {
 
 | Tier | Purpose | Priority |
 |------|---------|----------|
-| `always-claim` | Primary patterns that definitively claim files (e.g., `*.clj` → clj session) | Higher |
-| `is-fallback-for` | Fallback patterns used when no `always-claim` matches | Lower |
+| `always-claim` | Primary patterns that definitively claim files (e.g., `*.clj` → clj session) | Highest |
+| `is-fallback-for` | User-configured fallback patterns used when no `always-claim` matches | Middle |
+| `project-fallback` | Auto-generated catch-all (`**/*`) scoped to project root, hidden from UI | Lowest |
 
 **Score calculation:** More specific patterns (more path segments, literal characters) get higher scores.
+
+**Workspace-wide patterns:** By default, file patterns are scoped to the connect sequence's project root (e.g., `*.clj` becomes `/project/root/**/*.clj`). To create patterns that match files anywhere in the workspace, prefix with `**/` (e.g., `**/*.bb`). This is useful for REPLs like Babashka that should handle files outside their project directory.
 
 ### Routing Mode State
 

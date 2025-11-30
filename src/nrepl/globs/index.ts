@@ -1,6 +1,6 @@
 import * as globPaths from '../glob-paths';
 
-export type SessionGlobTier = 'always-claim' | 'is-fallback-for';
+export type SessionGlobTier = 'always-claim' | 'is-fallback-for' | 'project-fallback';
 
 export interface SessionGlobTiers {
   'always-claim': string[];
@@ -129,11 +129,13 @@ export function constructGlobsFromFilePatterns(
 /**
  * Creates a catch-all glob spec for a project root.
  *
- * This is used as a fallback tier to ensure all files in a project root can be
- * routed to a sequence, enabling per-sequence cljc routing.
+ * This is used as a third-tier fallback (after 'always-claim' and 'is-fallback-for')
+ * to ensure all files in a project root can be routed to a sequence when no other
+ * patterns match. This enables per-sequence routing for file types not explicitly
+ * covered by the config (like .cljc files).
  *
  * @param projectRootPath - The project root as an fsPath
- * @returns A glob spec matching all files under the project root
+ * @returns A glob spec matching all files under the project root with 'project-fallback' tier
  */
 export function createCatchAllGlobSpec(projectRootPath: string): SessionGlobSpec {
   const normalizedRoot = normalizeProjectRoot(projectRootPath);
@@ -142,7 +144,7 @@ export function createCatchAllGlobSpec(projectRootPath: string): SessionGlobSpec
     pattern: fullPattern,
     normalizedPattern: fullPattern,
     displayPattern: '**/*',
-    tier: 'is-fallback-for',
+    tier: 'project-fallback',
     score: computeGlobScore(fullPattern),
   };
 }

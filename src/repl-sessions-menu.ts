@@ -60,7 +60,7 @@ function formatSessionDescription({
   globSpecs?: Array<{
     displayPattern?: string;
     pattern: string;
-    tier: 'always-claim' | 'is-fallback-for';
+    tier: 'always-claim' | 'is-fallback-for' | 'project-fallback';
   }>;
 }): string | undefined {
   const parts: string[] = [];
@@ -93,7 +93,7 @@ function formatSessionDetail({
   globSpecs?: Array<{
     pattern: string;
     displayPattern?: string;
-    tier: 'always-claim' | 'is-fallback-for';
+    tier: 'always-claim' | 'is-fallback-for' | 'project-fallback';
   }>;
   lastActivity?: number;
   key: string;

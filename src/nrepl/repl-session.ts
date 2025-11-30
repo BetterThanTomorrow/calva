@@ -58,6 +58,7 @@ function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefine
 
   let bestAlwaysClaim: { sessionKey: string; score: number; order: number } | undefined;
   let bestFallback: { sessionKey: string; score: number; order: number } | undefined;
+  let bestProjectFallback: { sessionKey: string; score: number; order: number } | undefined;
 
   sessions.forEach((session, index) => {
     const specs = session.globSpecs ?? [];
@@ -78,20 +79,29 @@ function findSessionKeyForDocument(doc?: vscode.TextDocument): string | undefine
         if (isBetterMatch(bestAlwaysClaim, candidate)) {
           bestAlwaysClaim = candidate;
         }
-      } else {
+      } else if (spec.tier === 'is-fallback-for') {
         if (isBetterMatch(bestFallback, candidate)) {
           bestFallback = candidate;
+        }
+      } else if (spec.tier === 'project-fallback') {
+        if (isBetterMatch(bestProjectFallback, candidate)) {
+          bestProjectFallback = candidate;
         }
       }
     }
   });
 
+  // Priority: always-claim > is-fallback-for > project-fallback
   if (bestAlwaysClaim) {
     return bestAlwaysClaim.sessionKey;
   }
 
   if (bestFallback) {
     return bestFallback.sessionKey;
+  }
+
+  if (bestProjectFallback) {
+    return bestProjectFallback.sessionKey;
   }
 
   return undefined;

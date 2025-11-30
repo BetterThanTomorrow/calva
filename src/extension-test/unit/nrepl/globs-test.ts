@@ -157,7 +157,7 @@ describe('file pattern to glob construction', () => {
 
       expect(spec.pattern).toEqual('/workspace/my-app/**/*');
       expect(spec.displayPattern).toEqual('**/*');
-      expect(spec.tier).toEqual('is-fallback-for');
+      expect(spec.tier).toEqual('project-fallback');
     });
 
     it('handles trailing slash in project root', () => {
