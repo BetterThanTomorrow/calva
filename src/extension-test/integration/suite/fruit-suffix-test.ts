@@ -42,6 +42,15 @@ suite('Fruit Suffix suite', () => {
   });
 
   beforeEach(async () => {
+    // Clean up any stale clients from previous tests or failures
+    const existingClients = clientRegistry.listClients();
+    for (const client of existingClients) {
+      try {
+        await connector.disconnect({ clientKey: client.key });
+      } catch {
+        // Ignore errors during cleanup
+      }
+    }
     await vscode.workspace.fs.copy(settingsBackupUri, settingsUri, { overwrite: true });
     await outputWindow.clearResultsDoc();
     lastJackInDoneCount = 0;

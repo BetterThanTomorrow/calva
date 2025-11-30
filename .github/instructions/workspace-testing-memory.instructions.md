@@ -27,3 +27,13 @@ The 'Calva Watch Test TS' task continuously runs the full unit test suite on eve
 - The watcher output shows the authoritative, up-to-date test results
 
 **Pattern:** After making code changes, simply call `get_task_output` for 'Calva Watch Test TS' to see if tests pass. The watcher will have already re-run the suite.
+
+## Filtering Integration Tests
+
+To filter which integration tests to run, pass arguments directly to the npm script using `--`:
+
+```bash
+npm run integration-test -- cljc
+```
+
+This passes the filter as a command line argument accessible via `process.argv`, ensuring reliable configuration in the VS Code Extension Host environment.

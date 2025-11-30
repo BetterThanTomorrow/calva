@@ -221,9 +221,8 @@ describe(`${suiteName} suite`, () => {
       );
     });
 
-    it('files outside all project roots fall through to cljc session preference', async () => {
-      // When a file doesn't match any project's catch-all, it should fall back
-      // to the cljc session preference
+    it('files outside all project roots use first available session when no catch-all matches', async () => {
+      // When a file doesn't match any project's catch-all, it falls to first-available
       const projectRoot = path.join(testUtil.testDataDir, 'test-files');
 
       const sessionA = createSession('clj');
@@ -234,8 +233,6 @@ describe(`${suiteName} suite`, () => {
         globs: ['*.clj', '*.edn', '*.cljc', '**/*'],
       });
 
-      sessionRouting.setCljcSessionKey('project-clj');
-
       // Open a file that's outside the project root entirely
       // test.clj is in testDataDir, but our project root is testDataDir/test-files
       const outsideFile = path.join(testUtil.testDataDir, 'test.clj');
@@ -244,12 +241,12 @@ describe(`${suiteName} suite`, () => {
       // This file won't match any globs because:
       // - always-claim patterns are scoped to project-files
       // - project-fallback catch-all is scoped to test-files
-      // So it falls through to cljc session preference
+      // Falls through to first-available session
       const resolved = replSession.getSession();
       assert.strictEqual(
         resolved,
         sessionA,
-        'file outside all project roots should route via cljc session preference'
+        'file outside all project roots should route to first available session'
       );
     });
   });

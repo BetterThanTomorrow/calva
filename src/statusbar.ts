@@ -101,14 +101,11 @@ function update() {
     if (replType) {
       const pinnedSessionKey = sessionRouting.getPinnedSessionKey();
       const isPinned = sessionRouting.isPinned() && Boolean(pinnedSessionKey);
-      const cljcSessionKey = sessionRouting.getCljcSessionKey();
-      const shouldShowCljcSession = !isPinned && fileType === 'cljc' && cljcSessionKey;
+      const routingInfo = replSession.getRoutingInfo();
+      const isCljcRouting =
+        !isPinned && fileType === 'cljc' && routingInfo?.reason.type === 'cljc-within-connection';
       const displaySessionKey =
-        isPinned && pinnedSessionKey
-          ? pinnedSessionKey
-          : shouldShowCljcSession && cljcSessionKey
-          ? cljcSessionKey
-          : replType;
+        isPinned && pinnedSessionKey ? pinnedSessionKey : routingInfo?.sessionKey ?? replType;
 
       // Use shared session label formatting
       const labelContext = replSession.getSessionLabelContext({ isPinned, doc });
@@ -123,8 +120,8 @@ function update() {
           : `Auto-route session: ${displaySessionKey}`,
       ];
 
-      if (!isPinned && cljcSessionKey) {
-        tooltipParts.push(`cljc files use ${cljcSessionKey}`);
+      if (isCljcRouting) {
+        tooltipParts.push(`cljc files route to ${displaySessionKey}`);
       }
 
       tooltipParts.push('Click to show the REPL Sessions menu');

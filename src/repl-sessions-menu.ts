@@ -3,6 +3,7 @@ import * as sessionRegistry from './nrepl/session-registry';
 import * as sessionRouting from './nrepl/session-routing';
 import * as replSession from './nrepl/repl-session';
 import * as sessionLabel from './nrepl/session-label';
+import * as clientRegistry from './nrepl/client-registry';
 import status from './status';
 import { getPathRelativeToWorkspace } from './project-root';
 import * as utilities from './utilities';
@@ -10,12 +11,15 @@ import * as outputWindow from './repl-window/repl-doc';
 import * as output from './results-output/output';
 import * as state from './state';
 
-const MENU_SAVE_KEY = 'repl-sessions-menu';
-const CLJC_MENU_SAVE_KEY = 'repl-sessions-menu-cljc';
 const OUTPUT_SESSION_MENU_SAVE_KEY = 'repl-sessions-menu-output';
 
+const CLJC_TARGET_BUTTON: vscode.QuickInputButton = {
+  iconPath: new vscode.ThemeIcon('arrow-right'),
+  tooltip: 'Make cljc target',
+};
+
 interface SessionQuickPickItem extends vscode.QuickPickItem {
-  action: 'session' | 'auto' | 'cljc' | 'output-session';
+  action: 'session' | 'auto' | 'output-session';
   sessionKey?: string;
 }
 
@@ -161,7 +165,7 @@ function formatRoutingReasonPrefix(reason: replSession.RoutingReason): string {
       return '$(pin)';
     case 'repl-window':
     case 'glob-match':
-    case 'cljc-preference':
+    case 'cljc-within-connection':
     case 'first-available':
       return '$(circle-filled)';
   }
@@ -202,11 +206,34 @@ function buildSessionPickItems(options?: {
     const label = `${prefix}${baseLabel}`;
 
     // Build description with always-claim patterns marked with check if they matched
-    const description = formatSessionDescription({
+    // Also include cljc indicator for sessions in pairs
+    const clientKey = session.connectionOwnerId;
+    const hasSibling =
+      clientKey &&
+      sessionRegistry.getPrimarySessionKeyForClient(clientKey) &&
+      sessionRegistry.getSecondarySessionKeyForClient(clientKey);
+    const isCljcTarget = clientKey
+      ? clientRegistry.getCljcTargetForConnection(clientKey) ===
+        (session.isSecondary ? 'secondary' : 'primary')
+      : false;
+
+    const descriptionParts: string[] = [];
+    const baseDescription = formatSessionDescription({
       projectRoot: session.projectRoot,
       globSpecs: session.globSpecs,
       routingInfo: isRoutedSession ? routingInfo : undefined,
     });
+    if (baseDescription) {
+      descriptionParts.push(baseDescription);
+    }
+
+    // Add cljc indicator for sessions in pairs
+    if (hasSibling && isCljcTarget) {
+      const cljcIndicator = isRoutedSession ? '$(check) cljc' : 'cljc';
+      descriptionParts.push(cljcIndicator);
+    }
+
+    const description = descriptionParts.length > 0 ? descriptionParts.join(' — ') : undefined;
 
     // Build detail - REPL window indicator is already shown in label prefix (repl-w/)
     const detail = formatSessionDetail({
@@ -218,45 +245,21 @@ function buildSessionPickItems(options?: {
       routingInfo: isRoutedSession ? routingInfo : undefined,
     });
 
+    // Add button for non-target sessions to become cljc target
+    const buttons: vscode.QuickInputButton[] = [];
+    if (hasSibling && !isCljcTarget) {
+      buttons.push(CLJC_TARGET_BUTTON);
+    }
+
     return {
       label,
       description,
       detail,
       action: 'session',
       sessionKey: session.key,
+      buttons: buttons.length > 0 ? buttons : undefined,
     };
   });
-}
-
-async function promptForCljcSession(): Promise<void> {
-  const sessions = sessionRegistry.listSessions();
-  if (sessions.length === 0) {
-    void vscode.window.showInformationMessage('No REPL sessions available.');
-    return;
-  }
-
-  const currentCljcSession = sessionRouting.getCljcSessionKey();
-  const cljcItems: SessionQuickPickItem[] = buildSessionPickItems({
-    highlightedSessionKey: currentCljcSession,
-  });
-
-  const cljcSelection = (await utilities.quickPickSingle({
-    title: 'Route cljc files',
-    placeHolder: currentCljcSession
-      ? `Currently routing cljc files to ${currentCljcSession}`
-      : 'Select a session for cljc files',
-    values: cljcItems,
-    saveAs: CLJC_MENU_SAVE_KEY,
-  })) as SessionQuickPickItem | undefined;
-
-  if (!cljcSelection) {
-    return;
-  }
-
-  if (cljcSelection.action === 'session' && cljcSelection.sessionKey) {
-    sessionRouting.setCljcSessionKey(cljcSelection.sessionKey);
-    status.update();
-  }
 }
 
 async function promptForOutputWindowSession(): Promise<void> {
@@ -323,7 +326,6 @@ function isOutputWindowActive(): boolean {
 
 function buildMenuItems(): SessionQuickPickItem[] {
   const pinnedSession = sessionRouting.getPinnedSessionKey();
-  const cljcSessionKey = sessionRouting.getCljcSessionKey();
   const isAutoRouting = !pinnedSession;
   const routingInfo = replSession.getRoutingInfo();
 
@@ -339,20 +341,13 @@ function buildMenuItems(): SessionQuickPickItem[] {
     });
   }
 
-  items.push({
-    label: 'Select session for cljc files',
-    description: cljcSessionKey ? `$(arrow-right) ${cljcSessionKey}` : 'No override set',
-    detail: 'Specify how to route cljc files (when auto-routing is enabled).',
-    action: 'cljc',
-  });
-
   // Show auto-route status with filled/outline circle
   const autoRouteIcon = isAutoRouting ? '$(circle-filled)' : '$(circle-outline)';
   items.push({
     label: `${autoRouteIcon} Auto-route`,
     description: routingInfo ? `$(arrow-right) ${routingInfo.sessionKey}` : undefined,
     detail:
-      'Auto-selects repl session based on file path, using connect sequence globs, and CLJC overrides.',
+      'Auto-selects repl session based on file path, using connect sequence globs and per-connection CLJC target.',
     action: 'auto',
   });
 
@@ -386,35 +381,58 @@ export async function showReplSessionsMenu(): Promise<void> {
     : 'Selecting a session pins it';
 
   const menuItems = buildMenuItems();
-  const selection = (await utilities.quickPickSingle({
-    title: 'REPL Sessions',
-    placeHolder,
-    values: menuItems,
-    saveAs: MENU_SAVE_KEY,
-  })) as SessionQuickPickItem | undefined;
 
-  if (!selection) {
-    return;
-  }
+  // Use createQuickPick to support item buttons
+  const qp = vscode.window.createQuickPick<SessionQuickPickItem>();
+  qp.title = 'REPL Sessions';
+  qp.placeholder = placeHolder;
+  qp.items = menuItems;
+  qp.ignoreFocusOut = true;
 
-  switch (selection.action) {
-    case 'session':
-      if (selection.sessionKey) {
-        sessionRouting.pinSession(selection.sessionKey);
-        status.update();
+  return new Promise<void>((resolve) => {
+    qp.onDidTriggerItemButton((event) => {
+      const item = event.item;
+      if (event.button === CLJC_TARGET_BUTTON && item.sessionKey) {
+        const clientKey = sessionRegistry.getClientKeyForSession(item.sessionKey);
+        if (clientKey) {
+          const sessionMeta = sessionRegistry.getSessionMetadata(item.sessionKey);
+          const target = sessionMeta?.isSecondary ? 'secondary' : 'primary';
+          clientRegistry.setCljcTargetForConnection(clientKey, target);
+          status.update();
+          // Refresh the menu items to reflect the change
+          qp.items = buildMenuItems();
+        }
       }
-      break;
-    case 'auto':
-      sessionRouting.enableAutoRouting();
-      status.update();
-      break;
-    case 'cljc':
-      await promptForCljcSession();
-      break;
-    case 'output-session':
-      await promptForOutputWindowSession();
-      break;
-    default:
-      break;
-  }
+    });
+
+    qp.onDidAccept(() => {
+      const selection = qp.selectedItems[0];
+      if (selection) {
+        switch (selection.action) {
+          case 'session':
+            if (selection.sessionKey) {
+              sessionRouting.pinSession(selection.sessionKey);
+              status.update();
+            }
+            break;
+          case 'auto':
+            sessionRouting.enableAutoRouting();
+            status.update();
+            break;
+          case 'output-session':
+            qp.hide();
+            void promptForOutputWindowSession();
+            return;
+        }
+      }
+      qp.hide();
+    });
+
+    qp.onDidHide(() => {
+      qp.dispose();
+      resolve();
+    });
+
+    qp.show();
+  });
 }

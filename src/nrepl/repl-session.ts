@@ -5,6 +5,7 @@ import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
 import * as outputWindow from '../repl-window/repl-doc';
 import * as sessionRegistry from './session-registry';
 import * as sessionRouting from './session-routing';
+import * as clientRegistry from './client-registry';
 import type { WorkspaceFolderInfo } from './glob-paths';
 import * as globPaths from './glob-paths';
 import type { SessionGlobTier } from './globs';
@@ -21,7 +22,7 @@ export type RoutingReason =
   | { type: 'pinned' }
   | { type: 'repl-window' }
   | { type: 'glob-match'; tier: SessionGlobTier; matchingPattern?: string }
-  | { type: 'cljc-preference' }
+  | { type: 'cljc-within-connection' } // TODO: Find a better name
   | { type: 'first-available' };
 
 export interface RoutingResult {
@@ -157,6 +158,47 @@ function findSessionKeyForDocument(
 }
 
 /**
+ * Given a session key that won the routing via project-fallback tier,
+ * resolve the actual session to use based on the per-connection cljc target preference.
+ * Returns undefined if the session has no sibling or if cljc resolution isn't applicable.
+ *
+ * This applies to all project-fallback files (.cljc, .fiddle, and any other unclaimed types)
+ * since they all benefit from user-controlled routing between primary and secondary sessions.
+ */
+function resolveCljcWithinConnection(
+  winningSessionKey: string,
+  _doc?: vscode.TextDocument
+): string | undefined {
+  const clientKey = sessionRegistry.getClientKeyForSession(winningSessionKey);
+  if (!clientKey) {
+    return undefined;
+  }
+
+  const cljcTarget = clientRegistry.getCljcTargetForConnection(clientKey);
+  const sessionMeta = sessionRegistry.getSessionMetadata(winningSessionKey);
+
+  if (cljcTarget === 'secondary') {
+    if (sessionMeta?.isSecondary) {
+      return winningSessionKey;
+    }
+    const secondaryKey = sessionRegistry.getSecondarySessionKeyForClient(clientKey);
+    if (secondaryKey && sessionRegistry.getSession(secondaryKey)) {
+      return secondaryKey;
+    }
+    return winningSessionKey;
+  } else {
+    if (!sessionMeta?.isSecondary) {
+      return winningSessionKey;
+    }
+    const primaryKey = sessionRegistry.getPrimarySessionKeyForClient(clientKey);
+    if (primaryKey && sessionRegistry.getSession(primaryKey)) {
+      return primaryKey;
+    }
+    return winningSessionKey;
+  }
+}
+
+/**
  * Determines the appropriate session key and why it was selected.
  * Returns detailed routing information for UI display.
  */
@@ -180,6 +222,14 @@ function getRoutingInfo(): RoutingResult | undefined {
   // 3. Glob pattern matching
   const globMatch = findSessionKeyForDocument(doc);
   if (globMatch && sessionRegistry.getSession(globMatch.sessionKey)) {
+    // For files landing in project-fallback, apply per-connection cljc preference
+    // This includes .cljc, .fiddle, and any other unclaimed file types
+    if (globMatch.tier === 'project-fallback') {
+      const cljcResolved = resolveCljcWithinConnection(globMatch.sessionKey, doc);
+      if (cljcResolved) {
+        return { sessionKey: cljcResolved, reason: { type: 'cljc-within-connection' } };
+      }
+    }
     return {
       sessionKey: globMatch.sessionKey,
       reason: {
@@ -190,13 +240,7 @@ function getRoutingInfo(): RoutingResult | undefined {
     };
   }
 
-  // 4. CLJC session preference (fallback for unclaimed files)
-  const cljcPreference = sessionRouting.getCljcSessionKey();
-  if (cljcPreference && sessionRegistry.getSession(cljcPreference)) {
-    return { sessionKey: cljcPreference, reason: { type: 'cljc-preference' } };
-  }
-
-  // 5. First available session (defensive fallback, should rarely be reached)
+  // 4. First available session (defensive fallback, should rarely be reached)
   const sessions = sessionRegistry.listSessions();
   if (sessions[0]?.key) {
     return { sessionKey: sessions[0].key, reason: { type: 'first-available' } };

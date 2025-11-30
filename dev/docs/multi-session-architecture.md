@@ -227,10 +227,17 @@ Manages routing state (but not the routing logic itself—that's in `repl-sessio
 | `getRoutingMode()` | Returns `'auto'` or `'pinned'` |
 | `pinSession(key)` | Pin a specific session |
 | `enableAutoRouting()` | Switch back to auto |
-| `getCljcSessionKey()` | Get user's CLJC session preference (auto-initializes if not set) |
-| `setCljcSessionKey(key)` | Set user's CLJC session preference |
 | `resolvePinnedSession()` | Returns pinned session key if mode is 'pinned', else undefined |
 | `removeSessionKeyFromRouting(key)` | Clean up on disconnect |
+
+### Client Registry CLJC Helpers (`src/nrepl/client-registry.ts`)
+
+CLJC preference is now per-connection, stored in `ConnectionState`:
+
+| Function | Purpose |
+|----------|---------||
+| `getCljcTargetForConnection(clientKey)` | Get the cljc target ('primary' or 'secondary') for a connection |
+| `setCljcTargetForConnection(clientKey, target)` | Set the cljc target for a connection |
 
 ### Repl Session (`src/nrepl/repl-session.ts`)
 

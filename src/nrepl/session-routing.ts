@@ -5,12 +5,6 @@ export type SessionRoutingMode = 'auto' | 'pinned';
 
 const ROUTING_MODE_STATE_KEY = 'session-routing-mode';
 const PINNED_SESSION_STATE_KEY = 'session-routing-pinned-session-key';
-const CLJC_SESSION_STATE_KEY = 'session-routing-cljc-session-key';
-
-function selectFallbackSessionKey(): string | undefined {
-  const sessions = sessionRegistry.listSessions();
-  return sessions[0]?.key;
-}
 
 function readStoredKey(stateKey: string): string | undefined {
   const value = getStateValue(stateKey);
@@ -78,48 +72,6 @@ export function isPinned(): boolean {
   return getRoutingMode() === 'pinned' && Boolean(getPinnedSessionKey());
 }
 
-function ensureCljcSessionKey(): string | undefined {
-  const activeKey = ensureActiveSession(readStoredKey(CLJC_SESSION_STATE_KEY));
-  if (activeKey) {
-    return activeKey;
-  }
-
-  const fallback = selectFallbackSessionKey();
-  if (fallback) {
-    setStateValue(CLJC_SESSION_STATE_KEY, fallback);
-    return fallback;
-  }
-
-  clearStateKey(CLJC_SESSION_STATE_KEY);
-  return undefined;
-}
-
-export function getCljcSessionKey(): string | undefined {
-  return ensureCljcSessionKey();
-}
-
-export function setCljcSessionKey(sessionKey?: string): void {
-  if (!sessionKey || !ensureActiveSession(sessionKey)) {
-    const fallback = selectFallbackSessionKey();
-    if (fallback) {
-      setStateValue(CLJC_SESSION_STATE_KEY, fallback);
-    } else {
-      clearStateKey(CLJC_SESSION_STATE_KEY);
-    }
-    return;
-  }
-
-  setStateValue(CLJC_SESSION_STATE_KEY, sessionKey);
-}
-
-export function clearCljcSessionKey(): void {
-  clearStateKey(CLJC_SESSION_STATE_KEY);
-}
-
-export function hasCljcOverride(): boolean {
-  return Boolean(getCljcSessionKey());
-}
-
 /**
  * Returns the pinned session key if routing mode is 'pinned'.
  * Returns undefined for auto-routing mode (let caller handle glob matching and fallbacks).
@@ -135,7 +87,6 @@ export function resolvePinnedSession(): string | undefined {
 
 export function resetRouting(): void {
   enableAutoRouting();
-  clearStateKey(CLJC_SESSION_STATE_KEY);
 }
 
 export function removeSessionKeyFromRouting(sessionKey: string): void {
@@ -146,11 +97,6 @@ export function removeSessionKeyFromRouting(sessionKey: string): void {
   const pinnedKey = readStoredKey(PINNED_SESSION_STATE_KEY);
   if (pinnedKey === sessionKey) {
     clearPinnedSession();
-  }
-
-  const cljcKey = readStoredKey(CLJC_SESSION_STATE_KEY);
-  if (cljcKey === sessionKey) {
-    clearCljcSessionKey();
   }
 }
 

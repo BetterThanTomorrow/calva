@@ -1519,7 +1519,13 @@
       },
       {
         "command": "calva.toggleCLJCSession",
-        "title": "Toggle the REPL Connection (clj or cljs) used for CLJC Files",
+        "title": "Toggle the CLJC Target Session (clj or cljs) for the Current Connection",
+        "enablement": "calva:connected",
+        "category": "Calva"
+      },
+      {
+        "command": "calva.selectCljcTarget",
+        "title": "Select CLJC Target Session",
         "enablement": "calva:connected",
         "category": "Calva"
       },

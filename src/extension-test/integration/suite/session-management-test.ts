@@ -19,9 +19,10 @@ const suiteName = 'Session management';
 const serverSessionKey = 'session-management/server';
 const uiSessionKey = 'session-management/ui';
 
-const createSession = (replType: string): NReplSession =>
+const createSession = (replType: string, clientKey?: string): NReplSession =>
   ({
     replType,
+    client: clientKey ? { clientKey } : undefined,
   } as NReplSession);
 
 const resetOutputWindowSession = (sessionType: string, ns: string): void => {
@@ -80,24 +81,42 @@ describe(`${suiteName} suite`, () => {
     assert.deepStrictEqual(serverMeta.globs, ['apps/server/**']);
   });
 
-  it('toggle command cycles through registered session keys', () => {
-    sessionRegistry.registerSession(serverSessionKey, createSession('clj'), {
+  it('toggle command cycles cljc target within a connection', () => {
+    const clientKey = 'test-client';
+    const stubClient = {
+      clientKey,
+      close: () => Promise.resolve(undefined),
+      disconnect: () => undefined,
+      addOnCloseHandler: () => undefined,
+      removeOnCloseHandler: () => undefined,
+    } as unknown as NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection',
+    });
+
+    sessionRegistry.registerSession(serverSessionKey, createSession('clj', clientKey), {
       globs: ['**/*.clj'],
+      connectionOwnerId: clientKey,
+      isSecondary: false,
     });
-    sessionRegistry.registerSession(uiSessionKey, createSession('cljs'), {
+    sessionRegistry.registerSession(uiSessionKey, createSession('cljs', clientKey), {
       globs: ['**/*.cljs'],
+      connectionOwnerId: clientKey,
+      isSecondary: true,
     });
+
+    // Set initial cljc target to primary
+    clientRegistry.setCljcTargetForConnection(clientKey, 'primary');
+    assert.strictEqual(clientRegistry.getCljcTargetForConnection(clientKey), 'primary');
 
     cljsLib.setStateValue('current-session-type', serverSessionKey);
-    assert.strictEqual(sessionRouting.getCljcSessionKey(), serverSessionKey);
 
     connector.toggleCLJCSession();
-
-    assert.strictEqual(sessionRouting.getCljcSessionKey(), uiSessionKey);
+    assert.strictEqual(clientRegistry.getCljcTargetForConnection(clientKey), 'secondary');
 
     connector.toggleCLJCSession();
-
-    assert.strictEqual(sessionRouting.getCljcSessionKey(), serverSessionKey);
+    assert.strictEqual(clientRegistry.getCljcTargetForConnection(clientKey), 'primary');
   });
 
   it('honors session glob mappings when resolving active files', async () => {
@@ -134,80 +153,6 @@ describe(`${suiteName} suite`, () => {
 
     const resolved = replSession.getSession();
     assert.strictEqual(resolved, cljsSession);
-  });
-
-  it('routes cljc files using the cljc-specific override', async () => {
-    const cljSession = createSession('clj');
-    const cljsSession = createSession('cljs');
-    sessionRegistry.registerSession(serverSessionKey, cljSession, {
-      globs: ['**/*.clj'],
-    });
-    sessionRegistry.registerSession(uiSessionKey, cljsSession, {
-      globs: ['**/*.cljs'],
-    });
-
-    sessionRouting.setCljcSessionKey(serverSessionKey);
-
-    const cljcFilePath = path.join(testUtil.testDataDir, 'test.cljc');
-    await testUtil.openFile(cljcFilePath);
-
-    const resolved = replSession.getSession();
-    assert.strictEqual(resolved, cljSession);
-
-    const cljFilePath = path.join(testUtil.testDataDir, 'test.clj');
-    await testUtil.openFile(cljFilePath);
-    const resolvedClj = replSession.getSession();
-    assert.strictEqual(resolvedClj, cljSession);
-
-    sessionRouting.setCljcSessionKey(uiSessionKey);
-    await testUtil.openFile(cljcFilePath);
-    const resolvedCljc = replSession.getSession();
-    assert.strictEqual(resolvedCljc, cljsSession);
-  });
-
-  it('keeps pinned sessions active even when a cljc override is set', async () => {
-    const cljSession = createSession('clj');
-    const cljsSession = createSession('cljs');
-    sessionRegistry.registerSession(serverSessionKey, cljSession, {
-      globs: ['**/*.clj'],
-    });
-    sessionRegistry.registerSession(uiSessionKey, cljsSession, {
-      globs: ['**/*.cljs'],
-    });
-
-    sessionRouting.setCljcSessionKey(serverSessionKey);
-    sessionRouting.pinSession(uiSessionKey);
-
-    const cljcFilePath = path.join(testUtil.testDataDir, 'test.cljc');
-    await testUtil.openFile(cljcFilePath);
-
-    const resolvedPinned = replSession.getSession();
-    assert.strictEqual(resolvedPinned, cljsSession);
-  });
-
-  it('treats files without glob matches as cljc selections', async () => {
-    const cljSession = createSession('clj');
-    const cljsSession = createSession('cljs');
-    sessionRegistry.registerSession(serverSessionKey, cljSession, {
-      globs: ['**/*.clj'],
-    });
-    sessionRegistry.registerSession(uiSessionKey, cljsSession, {
-      globs: ['**/*.cljs'],
-    });
-
-    sessionRouting.setCljcSessionKey(serverSessionKey);
-
-    const unmatchedFilePath = path.join(testUtil.testDataDir, 'test-files', 'javascript-code.js');
-    await testUtil.openFile(unmatchedFilePath);
-
-    const resolvedUnmatched = replSession.getSession();
-    assert.strictEqual(resolvedUnmatched, cljSession);
-
-    sessionRouting.setCljcSessionKey(uiSessionKey);
-    await testUtil.openFile(unmatchedFilePath);
-
-    const rerouted = replSession.getSession();
-    assert.strictEqual(rerouted, cljsSession);
   });
 
   it('disconnect command tears down targeted clients without affecting others', async () => {

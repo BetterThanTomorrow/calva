@@ -3,6 +3,8 @@ import * as sessionRegistry from './session-registry';
 import type { SessionRoleKeys, SessionGlobMap } from './session-role-utils';
 import type { ReplConnectSequence } from './connectSequence';
 
+export type CljcTargetRole = 'primary' | 'secondary';
+
 /**
  * Connection state for CLJS-specific information.
  * Previously in a separate connection-state.ts module, now unified with client registry.
@@ -20,6 +22,8 @@ export interface ConnectionState {
   baseSessionNames?: SessionRoleKeys;
   /** The fruit suffix applied to this connection, if any */
   fruitSuffix?: string;
+  /** Which session role should handle .cljc files for this connection */
+  cljcTarget?: CljcTargetRole;
 }
 
 export interface RegisteredClient {
@@ -153,4 +157,22 @@ export function listConnectionStates(): (ConnectionState & { clientKey: string }
 export function clearAllClients(): void {
   registeredClients.clear();
   activeClientKey = undefined;
+}
+
+/**
+ * Get the cljc target role for a connection.
+ * Returns 'primary' as the default if not explicitly set.
+ */
+export function getCljcTargetForConnection(clientKey: string): CljcTargetRole {
+  return registeredClients.get(clientKey)?.connectionState.cljcTarget ?? 'primary';
+}
+
+/**
+ * Set the cljc target role for a connection.
+ */
+export function setCljcTargetForConnection(clientKey: string, target: CljcTargetRole): void {
+  const entry = registeredClients.get(clientKey);
+  if (entry) {
+    entry.connectionState.cljcTarget = target;
+  }
 }

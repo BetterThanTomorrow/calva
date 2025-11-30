@@ -90,13 +90,13 @@ For `.cljc` files (Clojure Common files that can run on both CLJ and CLJS), the 
 
 The indicator is always clickable when the REPL is connected. Clicking it opens the **REPL Sessions** menu, which provides:
 
-* A list of connected sessions – select one to pin it (the indicator will show `$(pin)` while pinned). When auto-routing is active, the currently selected session is marked with `$(check)` so you can see which REPL is in use at a glance.
+* A list of connected sessions – select one to pin it (the indicator will show `$(pin)` while pinned). When auto-routing is active, the currently selected session is marked with `$(check)` so you can see which REPL is in use at a glance. Sessions in pairs show a `cljc` indicator for the session that handles `.cljc` files, and non-target sessions have a button to become the cljc target.
 * **Auto-route** – return to Calva's default routing based on connect sequence globs.
-* **Select session for cljc files** – Set routing for `.cljc` files when auto-routing is active.
 * **Select session for REPL window** – (Only shown when the REPL window is focused) Override which session the REPL window uses for evaluations.
-Calva only applies the `.cljc` override when auto-routing is enabled. If you pin a session, that pin takes precedence for all files until you return to auto-route.
 
-These options make it easy to temporarily lock the routing, quickly inspect available sessions, or ensure `.cljc` files go exactly where you want. See [The REPL Window](repl-window.md#choose-clj-or-cljs-repl-connection) for more details.
+The cljc routing preference is per-connection. When you have multiple REPL connections, each connection remembers its own cljc target session independently. If you pin a session, that pin takes precedence for all files until you return to auto-route.
+
+These options make it easy to temporarily lock the routing, quickly inspect available sessions, or manage `.cljc` file routing per connection. See [The REPL Window](repl-window.md#choose-clj-or-cljs-repl-connection) for more details.
 
 ### REPL Window Session Command
 

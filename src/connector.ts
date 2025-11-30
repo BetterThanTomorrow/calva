@@ -46,6 +46,7 @@ import { ConflictingSessionsError } from './errors/conflicting-sessions';
 import type { SessionGlobSpec } from './nrepl/globs';
 import * as sessionNameResolver from './nrepl/session-name-resolver';
 import * as fruitSuffix from './nrepl/fruit-suffix';
+import { getPathRelativeToWorkspace } from './project-root';
 
 const CALVA_DOCS_BASE_URL = 'https://calva.io/';
 
@@ -243,6 +244,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       globs: mainGlobMetadata.globs,
       globSpecs: mainGlobMetadata.globSpecs,
     });
+    clientRegistry.setCljcTargetForConnection(nClient.clientKey, 'primary');
 
     status.update();
     output.appendLineOtherOut(`Connected session: ${mainKey}`);
@@ -310,7 +312,13 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         void state.analytics().logGA4Pageview('/connected-cljs-repl');
       }
       if (cljsSession && sessionRoleKeys.secondary) {
-        await setUpCljsRepl(cljsSession, cljsBuild, sessionRoleKeys.secondary, sessionGlobMap);
+        await setUpCljsRepl(
+          cljsSession,
+          cljsBuild,
+          sessionRoleKeys.secondary,
+          nClient.clientKey,
+          sessionGlobMap
+        );
       }
       if (useSecondarySession && isShadowCljsReplType(connectSequence.cljsType)) {
         await shadowCljsRuntime.initializeShadowRemoteNotifications();
@@ -370,6 +378,7 @@ async function setUpCljsRepl(
   session: NReplSession,
   build: string | null,
   cljsKey: string,
+  clientKey: string,
   globMap: SessionGlobMap
 ) {
   const globMetadata = getSessionGlobMetadata(cljsKey, globMap);
@@ -379,6 +388,7 @@ async function setUpCljsRepl(
     globSpecs: globMetadata.globSpecs,
     isSecondary: true,
   });
+  clientRegistry.setCljcTargetForConnection(clientKey, 'secondary');
 
   status.update();
   output.appendLineOtherOut(`Connected session: ${cljsKey}${build ? ', repl: ' + build : ''}`);
@@ -1419,19 +1429,91 @@ export default {
       return;
     }
 
-    const sessions = sessionRegistry.listSessions();
-    if (sessions.length === 0) {
+    const routingInfo = replSession.getRoutingInfo();
+    if (!routingInfo) {
       return;
     }
 
-    const currentOverride = sessionRouting.getCljcSessionKey();
-    const referenceKey = currentOverride ?? replSession.getReplSessionTypeFromState();
-    const currentIndex = referenceKey ? sessions.findIndex((s) => s.key === referenceKey) : -1;
-    const nextIndex = (currentIndex + 1) % sessions.length;
-    const nextSessionMeta = sessions[nextIndex];
+    const clientKey = sessionRegistry.getClientKeyForSession(routingInfo.sessionKey);
+    if (!clientKey) {
+      return;
+    }
 
-    sessionRouting.setCljcSessionKey(nextSessionMeta.key);
+    // Check if this connection has both primary and secondary sessions
+    const secondaryKey = sessionRegistry.getSecondarySessionKeyForClient(clientKey);
+    if (!secondaryKey) {
+      // No secondary session, nothing to toggle
+      return;
+    }
+
+    const currentTarget = clientRegistry.getCljcTargetForConnection(clientKey);
+    const newTarget = currentTarget === 'primary' ? 'secondary' : 'primary';
+    clientRegistry.setCljcTargetForConnection(clientKey, newTarget);
+    replSession.updateReplSessionType();
     status.update();
+  },
+  selectCljcTarget: async (target?: 'primary' | 'secondary') => {
+    if (!getStateValue('connected')) {
+      return;
+    }
+
+    const routingInfo = replSession.getRoutingInfo();
+    if (!routingInfo) {
+      return;
+    }
+
+    const clientKey = sessionRegistry.getClientKeyForSession(routingInfo.sessionKey);
+    if (!clientKey) {
+      return;
+    }
+
+    // Check if this connection has both primary and secondary sessions
+    const secondaryKey = sessionRegistry.getSecondarySessionKeyForClient(clientKey);
+    const primaryKey = sessionRegistry.getPrimarySessionKeyForClient(clientKey);
+    if (!secondaryKey || !primaryKey) {
+      void vscode.window.showInformationMessage(
+        'CLJC target selection requires both CLJ and CLJS sessions.'
+      );
+      return;
+    }
+
+    if (target === 'primary' || target === 'secondary') {
+      clientRegistry.setCljcTargetForConnection(clientKey, target);
+      replSession.updateReplSessionType();
+      status.update();
+      return;
+    }
+
+    // Show picker
+    const currentTarget = clientRegistry.getCljcTargetForConnection(clientKey);
+    const items = [
+      {
+        label: currentTarget === 'primary' ? `$(check) ${primaryKey}` : primaryKey,
+        description: 'Primary session (CLJ)',
+        target: 'primary' as const,
+      },
+      {
+        label: currentTarget === 'secondary' ? `$(check) ${secondaryKey}` : secondaryKey,
+        description: 'Secondary session (CLJS)',
+        target: 'secondary' as const,
+      },
+    ];
+
+    const activeDoc = vscode.window.activeTextEditor?.document;
+    const activeFilePath = activeDoc
+      ? getPathRelativeToWorkspace(activeDoc.uri)
+      : 'no file selected';
+
+    const selection = await vscode.window.showQuickPick(items, {
+      title: 'Select CLJC Target',
+      placeHolder: `Current file: ${activeFilePath}`,
+    });
+
+    if (selection) {
+      clientRegistry.setCljcTargetForConnection(clientKey, selection.target);
+      replSession.updateReplSessionType();
+      status.update();
+    }
   },
   switchCljsBuild: async () => {
     // Follow the same pattern as shadow-runtime: routed session → connection state → everything
@@ -1503,7 +1585,7 @@ export default {
       globMap
     );
     if (cljsSession) {
-      await setUpCljsRepl(cljsSession, build, roleKeys.secondary, globMap);
+      await setUpCljsRepl(cljsSession, build, roleKeys.secondary, clientKey, globMap);
     }
     status.update();
   },

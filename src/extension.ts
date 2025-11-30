@@ -341,6 +341,7 @@ async function activate(context: vscode.ExtensionContext) {
       return fileSwitcher.toggleBetweenImplAndTest();
     },
     toggleCLJCSession: connector.toggleCLJCSession,
+    selectCljcTarget: connector.selectCljcTarget,
     toggleEvaluationSendCodeToOutputWindow: eval.toggleEvaluationSendCodeToOutputWindow,
     toggleKeybindingsEnabled: () => {
       const keybindingsEnabled = vscode.workspace

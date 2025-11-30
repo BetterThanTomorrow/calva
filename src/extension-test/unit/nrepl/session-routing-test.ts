@@ -25,46 +25,6 @@ describe('session routing preferences', () => {
     expect(sessionRouting.resolvePinnedSession()).toBe('beta');
   });
 
-  it('stores cljc session preference', () => {
-    sessionRegistry.registerSession('alpha', createSession('clj'), {});
-    sessionRegistry.registerSession('beta', createSession('cljs'), {});
-
-    sessionRouting.setCljcSessionKey('beta');
-
-    expect(sessionRouting.getCljcSessionKey()).toBe('beta');
-    // resolvePinnedSession returns undefined when not pinned
-    expect(sessionRouting.resolvePinnedSession()).toBeUndefined();
-  });
-
-  it('selects a default cljc session when none is configured', () => {
-    sessionRegistry.registerSession('alpha', createSession('clj'), {});
-    sessionRegistry.registerSession('beta', createSession('cljs'), {});
-
-    expect(sessionRouting.getCljcSessionKey()).toBe('alpha');
-  });
-
-  it('falls back to the next available session when clearing the cljc selection', () => {
-    sessionRegistry.registerSession('alpha', createSession('clj'), {});
-    sessionRegistry.registerSession('beta', createSession('cljs'), {});
-
-    sessionRouting.setCljcSessionKey('beta');
-    sessionRouting.setCljcSessionKey(undefined);
-
-    expect(sessionRouting.getCljcSessionKey()).toBe('alpha');
-  });
-
-  it('pinned session takes precedence over cljc preference', () => {
-    sessionRegistry.registerSession('alpha', createSession('clj'), {});
-    sessionRegistry.registerSession('beta', createSession('cljs'), {});
-
-    sessionRouting.setCljcSessionKey('beta');
-    sessionRouting.pinSession('alpha');
-
-    expect(sessionRouting.isPinned()).toBe(true);
-    // When pinned, resolvePinnedSession returns the pinned session
-    expect(sessionRouting.resolvePinnedSession()).toBe('alpha');
-  });
-
   it('falls back to auto routing when the pinned session disappears', () => {
     sessionRegistry.registerSession('alpha', createSession('clj'), {});
     sessionRouting.pinSession('alpha');
@@ -104,20 +64,9 @@ describe('multi-client session routing', () => {
     expect(sessionRouting.resolvePinnedSession()).toBe('clj-a');
   });
 
-  it('cljc preference can target any registered session', () => {
-    sessionRegistry.registerSession('clj-a', createSession('clj', 'client-a'), {});
-    sessionRegistry.registerSession('cljs-b', createSession('cljs', 'client-b'), {});
-
-    sessionRouting.setCljcSessionKey('cljs-b');
-
-    expect(sessionRouting.getCljcSessionKey()).toBe('cljs-b');
-  });
-
   it('resolvePinnedSession returns undefined when not pinned', () => {
     sessionRegistry.registerSession('clj-a', createSession('clj', 'client-a'), {});
     sessionRegistry.registerSession('cljs-b', createSession('cljs', 'client-b'), {});
-
-    sessionRouting.setCljcSessionKey('cljs-b');
 
     expect(sessionRouting.resolvePinnedSession()).toBeUndefined();
   });

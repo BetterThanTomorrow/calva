@@ -37,11 +37,9 @@ describe('session teardown', () => {
     sessionRegistry.registerSession('beta', createSession('client'), {});
 
     sessionRouting.pinSession('alpha');
-    sessionRouting.setCljcSessionKey('beta');
 
     teardown.teardownSessionKeys(['alpha', 'beta']);
 
     expect(sessionRouting.getPinnedSessionKey()).toBeUndefined();
-    expect(sessionRouting.getCljcSessionKey()).toBeUndefined();
   });
 });

@@ -36,3 +36,51 @@ describe('client registry', () => {
     expect(clientRegistry.getActiveClient()?.clientKey).toBe('alpha-client');
   });
 });
+
+describe('cljc target for connection', () => {
+  afterEach(() => {
+    clientRegistry.clearAllClients();
+  });
+
+  it('returns primary as default when not explicitly set', () => {
+    const client = createClient('test-client');
+    clientRegistry.registerClient(client, { connectSequenceName: 'Test' });
+
+    expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('primary');
+  });
+
+  it('returns primary for non-existent client', () => {
+    expect(clientRegistry.getCljcTargetForConnection('non-existent')).toBe('primary');
+  });
+
+  it('sets and gets cljc target', () => {
+    const client = createClient('test-client');
+    clientRegistry.registerClient(client, { connectSequenceName: 'Test' });
+
+    clientRegistry.setCljcTargetForConnection('test-client', 'secondary');
+    expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('secondary');
+
+    clientRegistry.setCljcTargetForConnection('test-client', 'primary');
+    expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('primary');
+  });
+
+  it('preserves cljc target when updating other connection state', () => {
+    const client = createClient('test-client');
+    clientRegistry.registerClient(client, { connectSequenceName: 'Test' });
+
+    clientRegistry.setCljcTargetForConnection('test-client', 'secondary');
+    clientRegistry.setConnectionState('test-client', { cljsBuild: ':app' });
+
+    expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('secondary');
+  });
+
+  it('can set cljc target via connection state', () => {
+    const client = createClient('test-client');
+    clientRegistry.registerClient(client, {
+      connectSequenceName: 'Test',
+      connectionState: { cljcTarget: 'secondary' },
+    });
+
+    expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('secondary');
+  });
+});
