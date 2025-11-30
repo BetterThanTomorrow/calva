@@ -52,6 +52,36 @@ function formatLastUsed(lastActivity?: number): string | undefined {
   return `Last used: ${seconds} second${seconds === 1 ? '' : 's'} ago`;
 }
 
+function formatSessionDescription({
+  projectRoot,
+  globSpecs,
+}: {
+  projectRoot?: string;
+  globSpecs?: Array<{
+    displayPattern?: string;
+    pattern: string;
+    tier: 'always-claim' | 'is-fallback-for';
+  }>;
+}): string | undefined {
+  const parts: string[] = [];
+
+  const relativeRoot = formatRelativeProjectRoot(projectRoot);
+  if (relativeRoot) {
+    parts.push(relativeRoot);
+  }
+
+  if (globSpecs && globSpecs.length > 0) {
+    const alwaysClaim = globSpecs
+      .filter((s) => s.tier === 'always-claim')
+      .map((s) => s.displayPattern ?? s.pattern);
+    if (alwaysClaim.length > 0) {
+      parts.push(alwaysClaim.join(', '));
+    }
+  }
+
+  return parts.length > 0 ? parts.join(' — ') : undefined;
+}
+
 function formatSessionDetail({
   globs,
   globSpecs,
@@ -70,30 +100,31 @@ function formatSessionDetail({
   includeSessionKey: boolean;
 }): string | undefined {
   const detailParts: string[] = [];
+
+  // Fallback patterns
+  if (globSpecs && globSpecs.length > 0) {
+    const isFallbackFor = globSpecs
+      .filter((s) => s.tier === 'is-fallback-for')
+      .map((s) => s.displayPattern ?? s.pattern);
+    if (isFallbackFor.length > 0) {
+      detailParts.push(`Fallback for: ${isFallbackFor.join(', ')}`);
+    }
+  } else if (globs && globs.length > 0) {
+    detailParts.push(globs.join(', '));
+  }
+
+  // Session key if needed
+  if (includeSessionKey) {
+    detailParts.push(`Key: ${key}`);
+  }
+
+  // Timestamp last (least important)
   const lastUsed = formatLastUsed(lastActivity);
   if (lastUsed) {
     detailParts.push(lastUsed);
   }
-  if (globSpecs && globSpecs.length > 0) {
-    const byTier = (tier: string) =>
-      globSpecs.filter((s) => s.tier === tier).map((s) => s.displayPattern ?? s.pattern);
-    const alwaysClaim = byTier('always-claim');
-    const isFallbackFor = byTier('is-fallback-for');
-    const parts = [
-      'Used for:',
-      ...(alwaysClaim.length ? [`${alwaysClaim.join(', ')}`] : []),
-      ...(isFallbackFor.length ? [`(Is fallback for: ${isFallbackFor.join(', ')})`] : []),
-    ];
-    if (parts.length > 0) {
-      detailParts.push(parts.join(' '));
-    }
-  } else if (globs && globs.length > 0) {
-    detailParts.push(`Used for: ${globs.join(', ')}`);
-  }
-  if (includeSessionKey || detailParts.length === 0) {
-    detailParts.push(`Session key: ${key}`);
-  }
-  return detailParts.join(' — ');
+
+  return detailParts.length > 0 ? detailParts.join(' — ') : undefined;
 }
 
 function buildSessionPickItems(options?: {
@@ -114,7 +145,10 @@ function buildSessionPickItems(options?: {
       prefixes.push('$(check)');
     }
     const label = prefixes.length > 0 ? `${prefixes.join(' ')} ${baseLabel}` : baseLabel;
-    const description = formatRelativeProjectRoot(session.projectRoot);
+    const description = formatSessionDescription({
+      projectRoot: session.projectRoot,
+      globSpecs: session.globSpecs,
+    });
 
     return {
       label,
