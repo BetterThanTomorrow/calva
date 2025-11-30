@@ -6,7 +6,7 @@ This document describes the architecture of Calva's multi-session support. It is
 
 This multi-session system is **not yet released**. See the [Unreleased section in the changelog](../../CHANGELOG.md#unreleased) for details. This means we have significant freedom to reshape the architecture before it becomes a compatibility concern.
 
-**Backward Compatibility Constraint:** The primary compatibility requirement is that users who only use a single connect sequence (the current default behavior) should experience no breakage. This is largely already achieved, but the architecture has accumulated complexity that we want to clean up before release.
+**Backward Compatibility Constraint:** The primary compatibility requirement is that users who only use a single connect sequence (the current default behavior) should experience no breakage. This is already achieved.
 
 ## Document Structure
 
@@ -254,6 +254,8 @@ Primary entry point for session access:
 
 ## Data Structures
 
+*Note: See source files for authoritative type definitions. These may drift as the codebase evolves.*
+
 ### SessionMetadata
 
 ```typescript
@@ -449,12 +451,6 @@ This section describes how various Calva features interact with the session syst
 4. Code is sent to the resolved session via nREPL `eval` op
 5. Results displayed inline and/or in output destination
 
-```typescript
-// Simplified from evaluate.ts
-const session = replSession.getSession();
-const result = await session.eval(code, ns);
-```
-
 **Design principle:** The routing logic uses the current editor context (active document, results window state) to determine the appropriate session. Callers don't need to specify file types.
 
 ### ClojureDocs Lookup
@@ -468,17 +464,6 @@ const result = await session.eval(code, ns);
 2. Resolve session via `replSession.getSession()` (same as evaluation)
 3. Use that session to query via `cider-nrepl`
 4. Cache is initialized on the **primary session** at connect time
-
-```typescript
-// Cache initialization (called once at connect)
-export function init(cljSession: NReplSession) {
-  cljSession.clojureDocsRefreshCache();
-}
-
-// Lookup uses routed session
-const session = replSession.getSession();
-const docs = await clojureDocsCiderNReplLookup(session, symbol, ns);
-```
 
 ### Shadow-CLJS Runtime Management
 
@@ -548,12 +533,7 @@ const [newCljsSession, build] = await makeCljsSessionClone(...);
 
 **Mechanism:** Session Routing (same as evaluation)
 
-Tests are evaluated via the same routing mechanism as regular evaluation:
-
-```typescript
-const session = getSession();  // Uses routing to determine session
-await session.testAll();
-```
+Tests are evaluated via the same routing mechanism as regular evaluation.
 
 ### Debugging
 
@@ -562,12 +542,6 @@ await session.testAll();
 **Mechanism:** Session Routing
 
 The debugger uses the routed session for all debug operations (step, continue, quit, etc.). This allows debugging to work with whichever session is currently appropriate for the user's context.
-
-```typescript
-// From calva-debug.ts
-const session = replSession.getSession();
-void session.sendDebugInput(':continue', id, key);
-```
 
 **Note:** Debugging support depends on nREPL middleware (cider-nrepl). The session's `supports('debug')` capability can be checked, but in practice the routed session is used and errors are handled if debugging isn't available.
 
@@ -654,17 +628,6 @@ function findSessionKeyForDocument(doc: TextDocument): string | undefined {
 **Score calculation:** More specific patterns (more path segments, literal characters) get higher scores.
 
 **Workspace-wide patterns:** By default, file patterns are scoped to the connect sequence's project root (e.g., `*.clj` becomes `/project/root/**/*.clj`). To create patterns that match files anywhere in the workspace, prefix with `**/` (e.g., `**/*.bb`). This is useful for REPLs like Babashka that should handle files outside their project directory.
-
-### Routing Mode State
-
-```typescript
-// State keys in session-routing.ts
-'session-routing-mode'               // 'auto' | 'pinned'
-'session-routing-pinned-session-key' // e.g., 'cljs'
-
-// Per-connection CLJC target is stored in ConnectionState (client-registry.ts)
-// connectionState.cljcTarget: 'primary' | 'secondary'
-```
 
 ### Session Access Patterns
 
