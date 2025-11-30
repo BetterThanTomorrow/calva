@@ -60,7 +60,11 @@ function formatSessionDetail({
   includeSessionKey,
 }: {
   globs?: string[];
-  globSpecs?: Array<{ pattern: string; tier: 'always-claim' | 'is-fallback-for' }>;
+  globSpecs?: Array<{
+    pattern: string;
+    displayPattern?: string;
+    tier: 'always-claim' | 'is-fallback-for';
+  }>;
   lastActivity?: number;
   key: string;
   includeSessionKey: boolean;
@@ -71,7 +75,8 @@ function formatSessionDetail({
     detailParts.push(lastUsed);
   }
   if (globSpecs && globSpecs.length > 0) {
-    const byTier = (tier: string) => globSpecs.filter((s) => s.tier === tier).map((s) => s.pattern);
+    const byTier = (tier: string) =>
+      globSpecs.filter((s) => s.tier === tier).map((s) => s.displayPattern ?? s.pattern);
     const alwaysClaim = byTier('always-claim');
     const isFallbackFor = byTier('is-fallback-for');
     const parts = [
@@ -227,31 +232,7 @@ function buildMenuItems(): SessionQuickPickItem[] {
   const isAutoRouting = routingMode === 'auto' && !pinnedSession;
   const autoSessionKey = isAutoRouting ? getReplSessionTypeFromState() : undefined;
 
-  const items: SessionQuickPickItem[] = buildSessionPickItems({
-    isAutoRouting,
-    autoSessionKey,
-  });
-
-  items.push({
-    label: '',
-    kind: vscode.QuickPickItemKind.Separator,
-    action: 'session',
-  } as SessionQuickPickItem);
-
-  items.push({
-    label: `${isAutoRouting ? '$(check) ' : ''}Auto-route`,
-    description: autoSessionKey ? `Current: ${autoSessionKey}` : undefined,
-    detail:
-      'Auto-selects repl session based on file path, using connect sequence globs, and CLJC overrides.',
-    action: 'auto',
-  });
-
-  items.push({
-    label: 'Select session for cljc files',
-    description: cljcSessionKey ? `Current: ${cljcSessionKey}` : 'No override set',
-    detail: 'Specify how to route cljc files (when auto-routing is enabled).',
-    action: 'cljc',
-  });
+  const items: SessionQuickPickItem[] = [];
 
   if (isOutputWindowActive()) {
     const currentOutputSession = outputWindow.getSessionType();
@@ -262,6 +243,34 @@ function buildMenuItems(): SessionQuickPickItem[] {
       action: 'output-session',
     });
   }
+
+  items.push({
+    label: 'Select session for cljc files',
+    description: cljcSessionKey ? `Current: ${cljcSessionKey}` : 'No override set',
+    detail: 'Specify how to route cljc files (when auto-routing is enabled).',
+    action: 'cljc',
+  });
+
+  items.push({
+    label: `${isAutoRouting ? '$(check) ' : ''}Auto-route`,
+    description: autoSessionKey ? `Current: ${autoSessionKey}` : undefined,
+    detail:
+      'Auto-selects repl session based on file path, using connect sequence globs, and CLJC overrides.',
+    action: 'auto',
+  });
+
+  items.push({
+    label: '',
+    kind: vscode.QuickPickItemKind.Separator,
+    action: 'session',
+  } as SessionQuickPickItem);
+
+  items.push(
+    ...buildSessionPickItems({
+      isAutoRouting,
+      autoSessionKey,
+    })
+  );
 
   return items;
 }

@@ -3,7 +3,7 @@ import {
   SessionFilePatternsConfig,
   SessionFilePatternsRulesConfig,
 } from './connect-sequence-types';
-import type { SessionGlobTiers } from './globs';
+import type { SessionGlobTiers, SessionGlobSpec } from './globs';
 import * as globs from './globs';
 import * as secondarySession from './secondary-session';
 import { getProjectTypeForName } from './project-types';
@@ -15,7 +15,7 @@ export interface SessionRoleKeys {
   secondary?: string;
 }
 
-export type SessionGlobMap = Record<string, SessionGlobTiers>;
+export type SessionGlobMap = Record<string, SessionGlobSpec[]>;
 
 const DEFAULT_SESSION_ROLE_KEYS: SessionRoleKeys = {
   primary: 'clj',
@@ -73,21 +73,24 @@ export function deriveSessionRoleKeys(sequence?: ReplConnectSequence): SessionRo
 }
 
 /**
- * Converts file pattern tiers to full glob tiers by prepending project root.
+ * Converts file pattern tiers to SessionGlobSpecs by prepending project root.
  */
-function buildGlobTiersFromPatterns(
+function buildGlobSpecsFromPatterns(
   projectRootPath: string,
   patternTiers: SessionGlobTiers
-): SessionGlobTiers {
-  const buildFullGlobs = (patterns: string[]): string[] => {
-    const specs = globs.constructGlobsFromFilePatterns(projectRootPath, patterns, 'always-claim');
-    return specs.map((spec) => spec.pattern);
-  };
+): SessionGlobSpec[] {
+  const alwaysClaimSpecs = globs.constructGlobsFromFilePatterns(
+    projectRootPath,
+    patternTiers['always-claim'],
+    'always-claim'
+  );
+  const fallbackSpecs = globs.constructGlobsFromFilePatterns(
+    projectRootPath,
+    patternTiers['is-fallback-for'],
+    'is-fallback-for'
+  );
 
-  return {
-    'always-claim': buildFullGlobs(patternTiers['always-claim']),
-    'is-fallback-for': buildFullGlobs(patternTiers['is-fallback-for']),
-  };
+  return [...alwaysClaimSpecs, ...fallbackSpecs];
 }
 
 /**
@@ -154,29 +157,22 @@ export function deriveSessionGlobMap(
 
     const patternTiers = getFilePatternsForRole(role, sequence);
 
-    // Convert file patterns to full globs using project root
-    const fullGlobTiers = buildGlobTiersFromPatterns(projectRootPath, patternTiers);
+    // Convert file patterns to full glob specs using project root
+    const specs = buildGlobSpecsFromPatterns(projectRootPath, patternTiers);
 
-    // Add catch-all glob to is-fallback-for tier for cljc routing
+    // Add catch-all glob spec to fallback tier for cljc routing
     const catchAllSpec = globs.createCatchAllGlobSpec(projectRootPath);
-    fullGlobTiers['is-fallback-for'].push(catchAllSpec.pattern);
+    specs.push(catchAllSpec);
 
-    globMap[key] = fullGlobTiers;
+    globMap[key] = specs;
   });
 
   return globMap;
 }
 
 /**
- * Get glob tiers for a specific session key from a glob map.
+ * Get glob specs for a specific session key from a glob map.
  */
-export function getGlobTiersFromMap(globMap: SessionGlobMap, key: string): SessionGlobTiers {
-  const tiers = globMap[key];
-  if (!tiers) {
-    return { 'always-claim': [], 'is-fallback-for': [] };
-  }
-  return {
-    'always-claim': [...tiers['always-claim']],
-    'is-fallback-for': [...tiers['is-fallback-for']],
-  };
+export function getGlobSpecsFromMap(globMap: SessionGlobMap, key: string): SessionGlobSpec[] {
+  return globMap[key] ?? [];
 }

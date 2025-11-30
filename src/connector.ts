@@ -43,7 +43,7 @@ import * as clientRegistry from './nrepl/client-registry';
 import type { RegisteredClient } from './nrepl/client-registry';
 import * as sessionTeardown from './nrepl/session-teardown';
 import { ConflictingSessionsError } from './errors/conflicting-sessions';
-import { toGlobMetadata } from './nrepl/globs';
+import type { SessionGlobSpec } from './nrepl/globs';
 import * as sessionNameResolver from './nrepl/session-name-resolver';
 import * as fruitSuffix from './nrepl/fruit-suffix';
 
@@ -83,9 +83,15 @@ function formatConflictDetails(conflicts: SessionKeyStatus[]): string {
     .join('\n');
 }
 
-function getSessionGlobMetadata(sessionKey: string, globMap: SessionGlobMap) {
-  const tiers = sessionRoleUtils.getGlobTiersFromMap(globMap, sessionKey);
-  return toGlobMetadata(tiers);
+function getSessionGlobMetadata(
+  sessionKey: string,
+  globMap: SessionGlobMap
+): { globSpecs: SessionGlobSpec[]; globs: string[] } {
+  const globSpecs = sessionRoleUtils.getGlobSpecsFromMap(globMap, sessionKey);
+  return {
+    globSpecs,
+    globs: globSpecs.map((spec) => spec.pattern),
+  };
 }
 
 export function ensureSessionAssignmentsAvailable(

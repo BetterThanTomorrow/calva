@@ -10,6 +10,7 @@ export interface SessionGlobTiers {
 export interface SessionGlobSpec {
   pattern: string;
   normalizedPattern: string;
+  displayPattern: string;
   tier: SessionGlobTier;
   score: number;
 }
@@ -47,6 +48,7 @@ export function buildGlobSpecsFromTiers(tiers: SessionGlobTiers): SessionGlobSpe
     patterns.map((pattern) => ({
       pattern,
       normalizedPattern: globPaths.toPosixPath(pattern),
+      displayPattern: pattern,
       tier,
       score: computeGlobScore(pattern),
     }));
@@ -117,6 +119,7 @@ export function constructGlobsFromFilePatterns(
     return {
       pattern: fullPattern,
       normalizedPattern: fullPattern,
+      displayPattern: normalizedPattern,
       tier,
       score: computeGlobScore(fullPattern),
     };
@@ -138,6 +141,7 @@ export function createCatchAllGlobSpec(projectRootPath: string): SessionGlobSpec
   return {
     pattern: fullPattern,
     normalizedPattern: fullPattern,
+    displayPattern: '**/*',
     tier: 'is-fallback-for',
     score: computeGlobScore(fullPattern),
   };

@@ -28,12 +28,14 @@ describe('glob scoring utilities', () => {
       {
         pattern: 'src/.joyride/**/*.cljs',
         normalizedPattern: 'src/.joyride/**/*.cljs',
+        displayPattern: 'src/.joyride/**/*.cljs',
         tier: 'always-claim',
         score: computeGlobScore('src/.joyride/**/*.cljs'),
       },
       {
         pattern: '**/*.clj',
         normalizedPattern: '**/*.clj',
+        displayPattern: '**/*.clj',
         tier: 'is-fallback-for',
         score: computeGlobScore('**/*.clj'),
       },
@@ -62,6 +64,7 @@ describe('file pattern to glob construction', () => {
 
       expect(specs).toHaveLength(1);
       expect(specs[0].pattern).toEqual('/workspace/my-app/**/*.clj');
+      expect(specs[0].displayPattern).toEqual('*.clj');
       expect(specs[0].tier).toEqual('always-claim');
     });
 
@@ -153,6 +156,7 @@ describe('file pattern to glob construction', () => {
       const spec = createCatchAllGlobSpec('/workspace/my-app');
 
       expect(spec.pattern).toEqual('/workspace/my-app/**/*');
+      expect(spec.displayPattern).toEqual('**/*');
       expect(spec.tier).toEqual('is-fallback-for');
     });
 
