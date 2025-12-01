@@ -77,8 +77,21 @@ A **Client** (`NReplClient`) represents a TCP connection to an nREPL server. Key
 
 | Mode | Description |
 |------|-------------|
-| **Auto-routing** | Calva selects session based on: 1) Results doc session, 2) Glob patterns (from sequence config, project type defaults, or generic role defaults), 3) Per-connection CLJC target preference for project-fallback files and files outside any project. |
+| **Auto-routing** | Calva selects session based on: 1) REPL window session (when evaluating from REPL window), 2) Glob patterns (from sequence config, project type defaults, or generic role defaults), 3) Per-connection CLJC target preference for project-fallback files and files outside any project. |
 | **Pinned Session** | User forces a specific session for all evaluations, bypassing auto-routing. |
+
+### REPL Window
+
+The **REPL window** is a special `.calva-repl` file that serves as an interactive prompt. There is one global REPL window (not per-connection). It has its own **targeted session** that determines where evaluations from the REPL window are sent.
+
+**Terminology note:** In some parts of the codebase, the REPL window is referred to as "Results Doc" or "Output Window" (see `outputWindow.ts`). These terms are synonymous.
+
+| Concept | Description |
+|---------|-------------|
+| **REPL window targeting** | Which session the REPL window sends evaluations to. Changed via "Select REPL Window Session" command. |
+| **Session pinning** | User override that forces ALL evaluations (from any file) to use a specific session. Independent of REPL window targeting. |
+
+The REPL window's targeted session is used during routing only when the active editor is the REPL window itself.
 
 ### Session Name Resolution
 
@@ -559,8 +572,8 @@ The `getSessionKey()` function checks in this order:
 1. Pinned Session (user override)
    └─► sessionRouting.resolvePinnedSession() returns pinned key if mode is 'pinned'
 
-2. Results Doc Session (REPL output window)
-   └─► outputWindow.getSessionType() - guaranteed to be set when connected
+2. REPL Window Session (when active editor is REPL window)
+   └─► outputWindow.getSessionType() - the explicitly targeted session for the REPL window
 
 3. Glob Pattern Matching + CLJC Within Connection
    └─► findSessionKeyForDocument(doc)
@@ -579,7 +592,7 @@ The `getSessionKey()` function checks in this order:
 
 **System Guarantees:**
 - CLJC target is set to 'secondary' when CLJS session connects (most recently connected session)
-- Results Doc Session is always set when connected
+- REPL window session is always set when connected
 - CLJC preference is per-connection, stored in ConnectionState
 
 ### Glob Matching Algorithm
@@ -640,7 +653,7 @@ Use `replSession.getSession()` when you want the session appropriate for the cur
 ```typescript
 import * as replSession from './nrepl/repl-session';
 
-// Gets session based on: pinned > results doc > glob match (with cljc-within-connection)
+// Gets session based on: pinned > repl window > glob match (with cljc-within-connection)
 const session = replSession.getSession();
 await session.eval(code, ns);
 ```
@@ -873,8 +886,8 @@ sequenceDiagram
 flowchart TD
     A[Request Session for File] --> B{Pinned Session?}
     B -- Yes --> C[Return Pinned Session]
-    B -- No --> D{Results Doc / REPL Window?}
-    D -- Yes --> E[Return Results Doc Session]
+    B -- No --> D{Active Editor is REPL Window?}
+    D -- Yes --> E[Return REPL Window Session]
     D -- No --> F[Glob Pattern Match]
     F --> G{Found 'always-claim' match?}
     G -- Yes --> H[Return Best always-claim]
