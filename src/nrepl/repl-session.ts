@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as minimatchLib from 'minimatch';
 import { NReplSession } from '.';
-import { cljsLib, tryToGetDocument } from '../utilities';
+import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
 import * as outputWindow from '../repl-window/repl-doc';
 import * as sessionRegistry from './session-registry';
 import * as sessionRouting from './session-routing';
@@ -320,11 +320,13 @@ function getSessionLabelContext(options?: {
 }): sessionLabel.SessionLabelContext {
   const { isPinned = false, doc = tryToGetDocument({}) } = options ?? {};
   const routingInfo = getRoutingInfo();
+  const fileType = getFileType(doc);
 
   return sessionLabel.determineSessionLabelContext({
     isPinned,
     isReplWindow: outputWindow.isResultsDoc(doc),
     isCljcRouting: routingInfo?.reason.type === 'cljc-within-connection',
+    fileExtension: fileType,
   });
 }
 

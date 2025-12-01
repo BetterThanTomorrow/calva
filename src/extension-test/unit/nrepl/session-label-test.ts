@@ -12,6 +12,7 @@ describe('session-label', () => {
       isPinned: false,
       isReplWindow: false,
       isCljcRouting: false,
+      fileExtension: 'clj',
     };
 
     describe('pinned sessions', () => {
@@ -21,7 +22,7 @@ describe('session-label', () => {
           isPinned: true,
           isReplWindow: true, // Would normally return 'repl-window'
         });
-        expect(result).toBe('none');
+        expect(result).toEqual({ type: 'none' });
       });
 
       it('returns none for pinned sessions even with cljc routing', () => {
@@ -29,8 +30,9 @@ describe('session-label', () => {
           ...defaultOptions,
           isPinned: true,
           isCljcRouting: true,
+          fileExtension: 'cljc',
         });
-        expect(result).toBe('none');
+        expect(result).toEqual({ type: 'none' });
       });
     });
 
@@ -40,7 +42,7 @@ describe('session-label', () => {
           ...defaultOptions,
           isReplWindow: true,
         });
-        expect(result).toBe('repl-window');
+        expect(result).toEqual({ type: 'repl-window' });
       });
 
       it('prioritizes repl-window over cljc routing', () => {
@@ -48,18 +50,38 @@ describe('session-label', () => {
           ...defaultOptions,
           isReplWindow: true,
           isCljcRouting: true,
+          fileExtension: 'cljc',
         });
-        expect(result).toBe('repl-window');
+        expect(result).toEqual({ type: 'repl-window' });
       });
     });
 
     describe('cljc routing context', () => {
-      it('returns cljc when isCljcRouting is true', () => {
+      it('returns cljc-routing with file extension when isCljcRouting is true', () => {
         const result = determineSessionLabelContext({
           ...defaultOptions,
           isCljcRouting: true,
+          fileExtension: 'cljc',
         });
-        expect(result).toBe('cljc');
+        expect(result).toEqual({ type: 'cljc-routing', fileExtension: 'cljc' });
+      });
+
+      it('includes fiddle extension for fiddle files', () => {
+        const result = determineSessionLabelContext({
+          ...defaultOptions,
+          isCljcRouting: true,
+          fileExtension: 'fiddle',
+        });
+        expect(result).toEqual({ type: 'cljc-routing', fileExtension: 'fiddle' });
+      });
+
+      it('returns none if cljc routing but no file extension', () => {
+        const result = determineSessionLabelContext({
+          ...defaultOptions,
+          isCljcRouting: true,
+          fileExtension: undefined,
+        });
+        expect(result).toEqual({ type: 'none' });
       });
     });
 
@@ -68,7 +90,7 @@ describe('session-label', () => {
         const result = determineSessionLabelContext({
           ...defaultOptions,
         });
-        expect(result).toBe('none');
+        expect(result).toEqual({ type: 'none' });
       });
     });
   });
@@ -76,36 +98,50 @@ describe('session-label', () => {
   describe('formatSessionLabel', () => {
     describe('repl-window context', () => {
       it('prefixes with repl-w/', () => {
-        expect(formatSessionLabel('cljs', 'repl-window')).toBe('repl-w/cljs');
+        expect(formatSessionLabel('cljs', { type: 'repl-window' })).toBe('repl-w/cljs');
       });
 
       it('works with custom session keys', () => {
-        expect(formatSessionLabel('frontend', 'repl-window')).toBe('repl-w/frontend');
+        expect(formatSessionLabel('frontend', { type: 'repl-window' })).toBe('repl-w/frontend');
       });
     });
 
-    describe('cljc context', () => {
-      it('prefixes with cljc/', () => {
-        expect(formatSessionLabel('clj', 'cljc')).toBe('cljc/clj');
+    describe('cljc-routing context', () => {
+      it('formats as .ext → session for cljc files', () => {
+        expect(formatSessionLabel('clj', { type: 'cljc-routing', fileExtension: 'cljc' })).toBe(
+          '.cljc → clj'
+        );
       });
 
-      it('works with cljs session', () => {
-        expect(formatSessionLabel('cljs', 'cljc')).toBe('cljc/cljs');
+      it('formats as .ext → session for fiddle files', () => {
+        expect(formatSessionLabel('cljs', { type: 'cljc-routing', fileExtension: 'fiddle' })).toBe(
+          '.fiddle → cljs'
+        );
+      });
+
+      it('works with custom session keys', () => {
+        expect(
+          formatSessionLabel('frontend', { type: 'cljc-routing', fileExtension: 'cljc' })
+        ).toBe('.cljc → frontend');
       });
     });
 
     describe('no context', () => {
       it('returns session key unchanged', () => {
-        expect(formatSessionLabel('clj', 'none')).toBe('clj');
+        expect(formatSessionLabel('clj', { type: 'none' })).toBe('clj');
       });
 
       it('preserves custom session keys', () => {
-        expect(formatSessionLabel('backend', 'none')).toBe('backend');
+        expect(formatSessionLabel('backend', { type: 'none' })).toBe('backend');
       });
     });
 
     describe('various session key formats', () => {
-      const contexts: SessionLabelContext[] = ['repl-window', 'cljc', 'none'];
+      const contexts: SessionLabelContext[] = [
+        { type: 'repl-window' },
+        { type: 'cljc-routing', fileExtension: 'cljc' },
+        { type: 'none' },
+      ];
 
       it('handles standard session keys', () => {
         for (const key of ['clj', 'cljs', 'cljc']) {
@@ -120,7 +156,7 @@ describe('session-label', () => {
       it('handles custom session keys with special characters', () => {
         const customKeys = ['frontend-app', 'backend_api', 'my.namespace'];
         for (const key of customKeys) {
-          const result = formatSessionLabel(key, 'none');
+          const result = formatSessionLabel(key, { type: 'none' });
           expect(result).toBe(key);
         }
       });

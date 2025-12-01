@@ -8,10 +8,13 @@
 /**
  * Context prefix types for session labels.
  * - 'repl-window': For output window
- * - 'cljc': For files routed via cljc-within-connection (includes .cljc, .fiddle, etc.)
+ * - 'cljc-routing': For files routed via cljc-within-connection, includes file extension
  * - 'none': No prefix
  */
-export type SessionLabelContext = 'repl-window' | 'cljc' | 'none';
+export type SessionLabelContext =
+  | { type: 'repl-window' }
+  | { type: 'cljc-routing'; fileExtension: string }
+  | { type: 'none' };
 
 /**
  * Options for determining the session label context.
@@ -20,6 +23,7 @@ export interface SessionLabelContextOptions {
   isPinned: boolean;
   isReplWindow: boolean;
   isCljcRouting: boolean;
+  fileExtension?: string;
 }
 
 /**
@@ -38,24 +42,24 @@ export interface SessionLabelContextOptions {
 export function determineSessionLabelContext(
   options: SessionLabelContextOptions
 ): SessionLabelContext {
-  const { isPinned, isReplWindow, isCljcRouting } = options;
+  const { isPinned, isReplWindow, isCljcRouting, fileExtension } = options;
 
   // Pinned sessions don't get context prefixes
   if (isPinned) {
-    return 'none';
+    return { type: 'none' };
   }
 
   // REPL window takes precedence
   if (isReplWindow) {
-    return 'repl-window';
+    return { type: 'repl-window' };
   }
 
-  // Files routed via cljc-within-connection get cljc/ prefix
-  if (isCljcRouting) {
-    return 'cljc';
+  // Files routed via cljc-within-connection get file extension prefix
+  if (isCljcRouting && fileExtension) {
+    return { type: 'cljc-routing', fileExtension };
   }
 
-  return 'none';
+  return { type: 'none' };
 }
 
 /**
@@ -64,14 +68,14 @@ export function determineSessionLabelContext(
  *
  * @param sessionKey - The session key to format (e.g., 'clj', 'cljs', 'frontend')
  * @param context - The context type
- * @returns Formatted label (e.g., 'repl-w/cljs', 'cljc/clj', 'cljs')
+ * @returns Formatted label (e.g., 'repl-w/cljs', '.cljc → clj', 'cljs')
  */
 export function formatSessionLabel(sessionKey: string, context: SessionLabelContext): string {
-  switch (context) {
+  switch (context.type) {
     case 'repl-window':
       return `repl-w/${sessionKey}`;
-    case 'cljc':
-      return `cljc/${sessionKey}`;
+    case 'cljc-routing':
+      return `.${context.fileExtension} → ${sessionKey}`;
     case 'none':
       return sessionKey;
   }
