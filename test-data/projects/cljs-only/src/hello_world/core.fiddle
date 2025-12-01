@@ -2,6 +2,7 @@
 
 (comment
   #?(:cljs (js/console.log "cljc from js")
-     :clj (.println System/out "cljc from jvm"))
+     :clj (.println System/out "cljc from jvm")
+     :bb (.println System/out "cljc from bb"))
   :rcf)
 

@@ -104,6 +104,7 @@ function formatSessionDetail({
   globSpecs,
   lastActivity,
   routingInfo,
+  isReplWindowTarget,
 }: {
   globs?: string[];
   globSpecs?: Array<{
@@ -113,6 +114,7 @@ function formatSessionDetail({
   }>;
   lastActivity?: number;
   routingInfo?: replSession.RoutingResult;
+  isReplWindowTarget?: boolean;
 }): string | undefined {
   const detailParts: string[] = [];
 
@@ -134,6 +136,11 @@ function formatSessionDetail({
     }
   } else if (globs && globs.length > 0) {
     detailParts.push(globs.join(', '));
+  }
+
+  // REPL window target indicator - only shown when REPL window is active
+  if (isReplWindowTarget && outputWindow.isResultsDoc(vscode.window.activeTextEditor?.document)) {
+    detailParts.push('Targeted by $(check) repl-window');
   }
 
   // Timestamp
@@ -168,6 +175,7 @@ function buildSessionPickItems(options?: {
   const { routingInfo, highlightedSessionKey } = options || {};
   const pinnedKey = sessionRouting.getPinnedSessionKey();
   const isAutoRouting = !pinnedKey;
+  const replWindowSession = outputWindow.getSessionType();
 
   return sessionRegistry.listSessions().map((session) => {
     // Determine if this session is the currently routed one and why
@@ -211,20 +219,24 @@ function buildSessionPickItems(options?: {
       descriptionParts.push(baseDescription);
     }
 
-    // Add cljc indicator for sessions in pairs
+    // Add cljc indicator for sessions in pairs - only checkmark when cljc-within-connection is the routing reason
     if (hasSibling && isCljcTarget) {
-      const cljcIndicator = isRoutedSession ? '$(check) cljc' : 'cljc';
+      const isCljcRoutingReason =
+        isRoutedSession && routingInfo?.reason.type === 'cljc-within-connection';
+      const cljcIndicator = isCljcRoutingReason ? '$(check) cljc' : 'cljc';
       descriptionParts.push(cljcIndicator);
     }
 
     const description = descriptionParts.length > 0 ? descriptionParts.join(' — ') : undefined;
 
-    // Build detail - REPL window indicator is already shown in label prefix (repl-w/)
+    // Build detail with REPL window indicator for the targeted session
+    const isReplWindowTarget = session.key === replWindowSession;
     const detail = formatSessionDetail({
       globs: session.globs,
       globSpecs: session.globSpecs,
       lastActivity: session.lastActivity,
       routingInfo: isRoutedSession ? routingInfo : undefined,
+      isReplWindowTarget,
     });
 
     // Add button for non-target sessions to become cljc target
@@ -244,6 +256,67 @@ function buildSessionPickItems(options?: {
   });
 }
 
+/**
+ * Builds items for the REPL window session picker.
+ * Shows first tier patterns in description, second tier as "Fallback for:", no checkmarks.
+ */
+function buildReplWindowSessionItems(): SessionQuickPickItem[] {
+  const currentOutputSession = outputWindow.getSessionType();
+
+  return sessionRegistry.listSessions().map((session) => {
+    const isCurrentTarget = session.key === currentOutputSession;
+
+    // Label shows current target with arrow indicator
+    const label = isCurrentTarget ? `$(arrow-right) ${session.key}` : session.key;
+
+    // Description: first tier patterns (always-claim)
+    const descriptionParts: string[] = [];
+
+    const relativeRoot = formatRelativeProjectRoot(session.projectRoot);
+    if (relativeRoot) {
+      descriptionParts.push(relativeRoot);
+    }
+
+    if (session.globSpecs && session.globSpecs.length > 0) {
+      const alwaysClaim = session.globSpecs
+        .filter((s) => s.tier === 'always-claim')
+        .map((s) => s.displayPattern ?? s.pattern);
+      if (alwaysClaim.length > 0) {
+        descriptionParts.push(alwaysClaim.join(', '));
+      }
+    }
+
+    const description = descriptionParts.length > 0 ? descriptionParts.join(' — ') : undefined;
+
+    // Detail: "Fallback for:" with second tier patterns, then timestamp
+    const detailParts: string[] = [];
+
+    if (session.globSpecs && session.globSpecs.length > 0) {
+      const isFallbackFor = session.globSpecs
+        .filter((s) => s.tier === 'is-fallback-for')
+        .map((s) => s.displayPattern ?? s.pattern);
+      if (isFallbackFor.length > 0) {
+        detailParts.push(`Fallback for: ${isFallbackFor.join(', ')}`);
+      }
+    }
+
+    const lastUsed = formatLastUsed(session.lastActivity);
+    if (lastUsed) {
+      detailParts.push(lastUsed);
+    }
+
+    const detail = detailParts.length > 0 ? detailParts.join(' — ') : undefined;
+
+    return {
+      label,
+      description,
+      detail,
+      action: 'session' as const,
+      sessionKey: session.key,
+    };
+  });
+}
+
 async function promptForOutputWindowSession(): Promise<void> {
   const sessions = sessionRegistry.listSessions();
   if (sessions.length === 0) {
@@ -252,15 +325,23 @@ async function promptForOutputWindowSession(): Promise<void> {
   }
 
   const currentOutputSession = outputWindow.getSessionType();
-  const outputItems: SessionQuickPickItem[] = buildSessionPickItems({
-    highlightedSessionKey: currentOutputSession,
-  });
+  const outputItems = buildReplWindowSessionItems();
+
+  // Build placeholder with current target session and project root
+  let placeHolder: string;
+  if (currentOutputSession) {
+    const currentSessionMeta = sessionRegistry.getSessionMetadata(currentOutputSession);
+    const projectRoot = formatRelativeProjectRoot(currentSessionMeta?.projectRoot);
+    placeHolder = projectRoot
+      ? `Currently targeting ${currentOutputSession} in ${projectRoot}. Select a session to make it the target.`
+      : `Currently targeting ${currentOutputSession}. Select a session to make it the target.`;
+  } else {
+    placeHolder = 'Select a session to make it the target.';
+  }
 
   const outputSelection = (await utilities.quickPickSingle({
     title: 'REPL Window Session',
-    placeHolder: currentOutputSession
-      ? `Currently using ${currentOutputSession}`
-      : 'Select a session for the REPL window',
+    placeHolder,
     values: outputItems,
     saveAs: OUTPUT_SESSION_MENU_SAVE_KEY,
   })) as SessionQuickPickItem | undefined;
@@ -302,23 +383,35 @@ export async function selectReplWindowSession(sessionKey?: string): Promise<void
   }
 }
 
-function isOutputWindowActive(): boolean {
-  return !!state.extensionContext?.workspaceState.get('outputWindowActive');
-}
-
 function buildMenuItems(): SessionQuickPickItem[] {
   const pinnedSession = sessionRouting.getPinnedSessionKey();
   const isAutoRouting = !pinnedSession;
   const routingInfo = replSession.getRoutingInfo();
+  const currentOutputSession = outputWindow.getSessionType();
 
   const items: SessionQuickPickItem[] = [];
 
-  if (isOutputWindowActive()) {
-    const currentOutputSession = outputWindow.getSessionType();
+  // REPL window session selector - only shown when REPL window is active
+  const isReplWindowActive = outputWindow.isResultsDoc(vscode.window.activeTextEditor?.document);
+  if (isReplWindowActive) {
+    const outputSessionMeta = currentOutputSession
+      ? sessionRegistry.getSessionMetadata(currentOutputSession)
+      : undefined;
+    const outputSessionProjectRoot = formatRelativeProjectRoot(outputSessionMeta?.projectRoot);
+    const outputDescription =
+      currentOutputSession && outputSessionProjectRoot
+        ? `${currentOutputSession} in ${outputSessionProjectRoot}`
+        : currentOutputSession ?? undefined;
+    const outputDetail =
+      currentOutputSession && outputSessionProjectRoot
+        ? `The REPL Window uses the ${currentOutputSession} session in ${outputSessionProjectRoot} for evaluations`
+        : currentOutputSession
+        ? `The REPL Window uses the ${currentOutputSession} session for evaluations`
+        : 'Select a session for the REPL window';
     items.push({
       label: 'Select session for REPL window',
-      description: currentOutputSession ? `$(arrow-right) ${currentOutputSession}` : undefined,
-      detail: 'Override which session the REPL window uses for evaluations.',
+      description: outputDescription,
+      detail: outputDetail,
       action: 'output-session',
     });
   }
