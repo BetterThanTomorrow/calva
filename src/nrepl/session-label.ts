@@ -7,8 +7,11 @@
 
 /**
  * Context prefix types for session labels.
+ * - 'repl-window': For output window
+ * - 'cljc': For files routed via cljc-within-connection (includes .cljc, .fiddle, etc.)
+ * - 'none': No prefix
  */
-export type SessionLabelContext = 'repl-window' | 'cljc' | 'fiddle' | 'none';
+export type SessionLabelContext = 'repl-window' | 'cljc' | 'none';
 
 /**
  * Options for determining the session label context.
@@ -16,8 +19,7 @@ export type SessionLabelContext = 'repl-window' | 'cljc' | 'fiddle' | 'none';
 export interface SessionLabelContextOptions {
   isPinned: boolean;
   isReplWindow: boolean;
-  fileType: string;
-  fiddleFileExt: string;
+  isCljcRouting: boolean;
 }
 
 /**
@@ -27,9 +29,8 @@ export interface SessionLabelContextOptions {
  * Priority order:
  * 1. Pinned sessions never get context prefixes
  * 2. REPL window context takes precedence
- * 3. cljc file type
- * 4. fiddle file type
- * 5. No context prefix
+ * 3. cljc-within-connection routing (all files routed via cljc preference)
+ * 4. No context prefix
  *
  * @param options - Context determination options
  * @returns The context type for the session label
@@ -37,7 +38,7 @@ export interface SessionLabelContextOptions {
 export function determineSessionLabelContext(
   options: SessionLabelContextOptions
 ): SessionLabelContext {
-  const { isPinned, isReplWindow, fileType, fiddleFileExt } = options;
+  const { isPinned, isReplWindow, isCljcRouting } = options;
 
   // Pinned sessions don't get context prefixes
   if (isPinned) {
@@ -49,14 +50,9 @@ export function determineSessionLabelContext(
     return 'repl-window';
   }
 
-  // Check for cljc files
-  if (fileType === 'cljc') {
+  // Files routed via cljc-within-connection get cljc/ prefix
+  if (isCljcRouting) {
     return 'cljc';
-  }
-
-  // Check for fiddle files
-  if (fileType === fiddleFileExt) {
-    return 'fiddle';
   }
 
   return 'none';
@@ -76,8 +72,6 @@ export function formatSessionLabel(sessionKey: string, context: SessionLabelCont
       return `repl-w/${sessionKey}`;
     case 'cljc':
       return `cljc/${sessionKey}`;
-    case 'fiddle':
-      return `fiddle/${sessionKey}`;
     case 'none':
       return sessionKey;
   }

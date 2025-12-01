@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as minimatchLib from 'minimatch';
 import { NReplSession } from '.';
-import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
+import { cljsLib, tryToGetDocument } from '../utilities';
 import * as outputWindow from '../repl-window/repl-doc';
 import * as sessionRegistry from './session-registry';
 import * as sessionRouting from './session-routing';
@@ -9,7 +9,6 @@ import * as clientRegistry from './client-registry';
 import type { WorkspaceFolderInfo } from './glob-paths';
 import * as globPaths from './glob-paths';
 import type { SessionGlobTier } from './globs';
-import * as config from '../config';
 import * as sessionLabel from './session-label';
 
 // Re-export for consumers
@@ -308,7 +307,7 @@ function getReplSessionTypeFromState() {
 }
 
 /**
- * Determines the context prefix for a session label based on the current document.
+ * Determines the context prefix for a session label based on the current routing.
  * VS Code wrapper around the pure determineSessionLabelContext function.
  *
  * @param options.isPinned - Whether the session is pinned (pinned sessions don't get context prefixes)
@@ -320,12 +319,12 @@ function getSessionLabelContext(options?: {
   doc?: vscode.TextDocument;
 }): sessionLabel.SessionLabelContext {
   const { isPinned = false, doc = tryToGetDocument({}) } = options ?? {};
+  const routingInfo = getRoutingInfo();
 
   return sessionLabel.determineSessionLabelContext({
     isPinned,
     isReplWindow: outputWindow.isResultsDoc(doc),
-    fileType: getFileType(doc),
-    fiddleFileExt: config.FIDDLE_FILE_EXT,
+    isCljcRouting: routingInfo?.reason.type === 'cljc-within-connection',
   });
 }
 

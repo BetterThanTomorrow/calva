@@ -11,8 +11,7 @@ describe('session-label', () => {
     const defaultOptions: SessionLabelContextOptions = {
       isPinned: false,
       isReplWindow: false,
-      fileType: 'clj',
-      fiddleFileExt: 'fiddle',
+      isCljcRouting: false,
     };
 
     describe('pinned sessions', () => {
@@ -25,11 +24,11 @@ describe('session-label', () => {
         expect(result).toBe('none');
       });
 
-      it('returns none for pinned sessions with cljc file type', () => {
+      it('returns none for pinned sessions even with cljc routing', () => {
         const result = determineSessionLabelContext({
           ...defaultOptions,
           isPinned: true,
-          fileType: 'cljc',
+          isCljcRouting: true,
         });
         expect(result).toBe('none');
       });
@@ -44,76 +43,30 @@ describe('session-label', () => {
         expect(result).toBe('repl-window');
       });
 
-      it('prioritizes repl-window over cljc file type', () => {
+      it('prioritizes repl-window over cljc routing', () => {
         const result = determineSessionLabelContext({
           ...defaultOptions,
           isReplWindow: true,
-          fileType: 'cljc',
-        });
-        expect(result).toBe('repl-window');
-      });
-
-      it('prioritizes repl-window over fiddle file type', () => {
-        const result = determineSessionLabelContext({
-          ...defaultOptions,
-          isReplWindow: true,
-          fileType: 'fiddle',
+          isCljcRouting: true,
         });
         expect(result).toBe('repl-window');
       });
     });
 
-    describe('cljc file context', () => {
-      it('returns cljc for cljc file type', () => {
+    describe('cljc routing context', () => {
+      it('returns cljc when isCljcRouting is true', () => {
         const result = determineSessionLabelContext({
           ...defaultOptions,
-          fileType: 'cljc',
+          isCljcRouting: true,
         });
         expect(result).toBe('cljc');
       });
     });
 
-    describe('fiddle file context', () => {
-      it('returns fiddle for fiddle file type', () => {
-        const result = determineSessionLabelContext({
-          ...defaultOptions,
-          fileType: 'fiddle',
-          fiddleFileExt: 'fiddle',
-        });
-        expect(result).toBe('fiddle');
-      });
-
-      it('matches custom fiddle file extension', () => {
-        const result = determineSessionLabelContext({
-          ...defaultOptions,
-          fileType: 'custom-fiddle',
-          fiddleFileExt: 'custom-fiddle',
-        });
-        expect(result).toBe('fiddle');
-      });
-    });
-
     describe('no context', () => {
-      it('returns none for regular clj files', () => {
+      it('returns none when no special context applies', () => {
         const result = determineSessionLabelContext({
           ...defaultOptions,
-          fileType: 'clj',
-        });
-        expect(result).toBe('none');
-      });
-
-      it('returns none for regular cljs files', () => {
-        const result = determineSessionLabelContext({
-          ...defaultOptions,
-          fileType: 'cljs',
-        });
-        expect(result).toBe('none');
-      });
-
-      it('returns none for edn files', () => {
-        const result = determineSessionLabelContext({
-          ...defaultOptions,
-          fileType: 'edn',
         });
         expect(result).toBe('none');
       });
@@ -141,12 +94,6 @@ describe('session-label', () => {
       });
     });
 
-    describe('fiddle context', () => {
-      it('prefixes with fiddle/', () => {
-        expect(formatSessionLabel('cljs', 'fiddle')).toBe('fiddle/cljs');
-      });
-    });
-
     describe('no context', () => {
       it('returns session key unchanged', () => {
         expect(formatSessionLabel('clj', 'none')).toBe('clj');
@@ -158,7 +105,7 @@ describe('session-label', () => {
     });
 
     describe('various session key formats', () => {
-      const contexts: SessionLabelContext[] = ['repl-window', 'cljc', 'fiddle', 'none'];
+      const contexts: SessionLabelContext[] = ['repl-window', 'cljc', 'none'];
 
       it('handles standard session keys', () => {
         for (const key of ['clj', 'cljs', 'cljc']) {
