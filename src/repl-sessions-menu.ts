@@ -73,10 +73,14 @@ function formatSessionDescription({
 
   const relativeRoot = formatRelativeProjectRoot(projectRoot);
   if (relativeRoot) {
-    // Mark project root with checkmark if it's the winning reason (project-fallback)
-    const isProjectRootWinner =
-      routingInfo?.reason.type === 'glob-match' && routingInfo.reason.tier === 'project-fallback';
-    parts.push(isProjectRootWinner ? `$(check) ${relativeRoot}` : relativeRoot);
+    // Mark project root with checkmark if it was involved in routing decision:
+    // - project-fallback tier means the project root's catch-all pattern matched
+    // - cljc-within-connection means the connection (identified by project root) determined the target
+    const isProjectRootInvolved =
+      (routingInfo?.reason.type === 'glob-match' &&
+        routingInfo.reason.tier === 'project-fallback') ||
+      routingInfo?.reason.type === 'cljc-within-connection';
+    parts.push(isProjectRootInvolved ? `$(check) ${relativeRoot}` : relativeRoot);
   }
 
   if (globSpecs && globSpecs.length > 0) {
