@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as sessionRouting from './nrepl/session-routing';
 import * as replSession from './nrepl/repl-session';
-import * as sessionLabel from './nrepl/session-label';
 import * as clientRegistry from './nrepl/client-registry';
 import status from './status';
 import { getPathRelativeToWorkspace } from './project-root';
@@ -104,8 +103,6 @@ function formatSessionDetail({
   globs,
   globSpecs,
   lastActivity,
-  key,
-  includeSessionKey,
   routingInfo,
 }: {
   globs?: string[];
@@ -115,8 +112,6 @@ function formatSessionDetail({
     tier: 'always-claim' | 'is-fallback-for' | 'project-fallback';
   }>;
   lastActivity?: number;
-  key: string;
-  includeSessionKey: boolean;
   routingInfo?: replSession.RoutingResult;
 }): string | undefined {
   const detailParts: string[] = [];
@@ -139,11 +134,6 @@ function formatSessionDetail({
     }
   } else if (globs && globs.length > 0) {
     detailParts.push(globs.join(', '));
-  }
-
-  // Session key if needed
-  if (includeSessionKey) {
-    detailParts.push(`Key: ${key}`);
   }
 
   // Timestamp
@@ -179,19 +169,13 @@ function buildSessionPickItems(options?: {
   const pinnedKey = sessionRouting.getPinnedSessionKey();
   const isAutoRouting = !pinnedKey;
 
-  // Get label context for the routed session (e.g., 'repl-window', 'cljc', 'fiddle')
-  const labelContext = replSession.getSessionLabelContext({ isPinned: !!pinnedKey });
-
   return sessionRegistry.listSessions().map((session) => {
     // Determine if this session is the currently routed one and why
     const isRoutedSession = routingInfo?.sessionKey === session.key;
     const isPinned = session.key === pinnedKey;
 
-    // Format the session label - only the routed session gets the context prefix
-    const baseLabel =
-      isRoutedSession && isAutoRouting
-        ? sessionLabel.formatSessionLabel(session.key, labelContext)
-        : session.key;
+    // Menu always shows plain session key - no cljc prefix
+    const baseLabel = session.key;
 
     let prefix = '';
     if (isPinned) {
@@ -240,8 +224,6 @@ function buildSessionPickItems(options?: {
       globs: session.globs,
       globSpecs: session.globSpecs,
       lastActivity: session.lastActivity,
-      key: session.key,
-      includeSessionKey: baseLabel !== session.key,
       routingInfo: isRoutedSession ? routingInfo : undefined,
     });
 
