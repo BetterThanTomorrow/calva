@@ -1220,6 +1220,18 @@ interface DisconnectQuickPickItem extends vscode.QuickPickItem {
   disconnectAll?: boolean;
 }
 
+function formatRelativeProjectRoot(projectRoot?: string): string | undefined {
+  if (!projectRoot) {
+    return undefined;
+  }
+  try {
+    const uri = vscode.Uri.parse(projectRoot);
+    return getPathRelativeToWorkspace(uri);
+  } catch {
+    return projectRoot;
+  }
+}
+
 function buildDisconnectItemLabel(client: RegisteredClient): string {
   const label = client.connectSequenceName || client.key;
   return label;
@@ -1233,17 +1245,26 @@ async function promptForClientDisconnect(
     const sessionSummary = sessions.length
       ? sessions.map((s) => s.key).join(', ')
       : 'No sessions registered';
-    const detailSegments = [];
-    if (client.host) {
-      detailSegments.push(`${client.host}${client.port ? ':' + client.port : ''}`);
+
+    // Format project root as relative path for readability
+    const relativeProjectRoot = formatRelativeProjectRoot(client.projectRoot);
+
+    // Build description with sessions and project root
+    const descriptionParts: string[] = [sessionSummary];
+    if (relativeProjectRoot) {
+      descriptionParts.push(relativeProjectRoot);
     }
-    if (client.projectRoot) {
-      detailSegments.push(client.projectRoot);
-    }
+    const description = descriptionParts.join(' — ');
+
+    // Build detail with host:port
+    const detail = client.host
+      ? `${client.host}${client.port ? ':' + client.port : ''}`
+      : undefined;
+
     return {
       label: buildDisconnectItemLabel(client),
-      description: sessionSummary,
-      detail: detailSegments.join(' · ') || undefined,
+      description,
+      detail,
       clientKey: client.key,
     };
   });
