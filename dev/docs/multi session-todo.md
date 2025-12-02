@@ -8,7 +8,7 @@
 * [x] Default globs for second+ sequence could be prefixed with the project root
 * [x] bug shadow-cljs build switcher does work before showing the menu
 * [x] bug we show `fiddle/` in the statusbar for fiddle files (we should treat all non-globbed files as cljc and prefix `cljc/`)
-* [ ] Special session for clojuredocs
+* [x] Special session for clojuredocs
 * [x] Sessions menu, present non-session items first
 * [x] Sessions menu, use basename for "Used for" detail
 * [ ] Split connect-sequence.md info so that the advanced stuff is separate
