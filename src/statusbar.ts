@@ -8,7 +8,7 @@ import * as replSession from './nrepl/repl-session';
 import * as sessionLabel from './nrepl/session-label';
 import * as sessionRouting from './nrepl/session-routing';
 import * as sessionRegistry from './nrepl/session-registry';
-import * as replWindow from './repl-window/repl-doc';
+import * as replWindow from './repl-window/repl-window-doc';
 
 // Helper to get connection state for the currently routed session
 function getConnectionStateForRoutedSession() {

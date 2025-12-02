@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as minimatchLib from 'minimatch';
 import { NReplSession } from '.';
 import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
-import * as outputWindow from '../repl-window/repl-doc';
+import * as outputWindow from '../repl-window/repl-window-doc';
 import * as sessionRegistry from './session-registry';
 import * as sessionRouting from './session-routing';
 import * as clientRegistry from './client-registry';
@@ -210,11 +210,11 @@ function getRoutingInfo(): RoutingResult | undefined {
     return { sessionKey: pinnedSession, reason: { type: 'pinned' } };
   }
 
-  // 2. Results doc has its own session setting
-  if (outputWindow.isResultsDoc(doc)) {
-    const resultsDocType = outputWindow.getSessionType();
-    if (resultsDocType && sessionRegistry.getSession(resultsDocType)) {
-      return { sessionKey: resultsDocType, reason: { type: 'repl-window' } };
+  // 2. Repl window doc has its own session setting
+  if (outputWindow.isReplWindowDoc(doc)) {
+    const sessionKey = outputWindow.getSessionType();
+    if (sessionKey && sessionRegistry.getSession(sessionKey)) {
+      return { sessionKey, reason: { type: 'repl-window' } };
     }
   }
 
@@ -256,7 +256,7 @@ function getRoutingInfo(): RoutingResult | undefined {
 /**
  * Determines the appropriate session key using simplified routing:
  * 1. Pinned session (user override)
- * 2. Results doc session (REPL output window)
+ * 2. REPL Window session (REPL output window)
  * 3. Glob pattern matching
  * 4. CLJC session preference (fallback for unclaimed files)
  * 5. First available session (defensive fallback)
@@ -276,8 +276,8 @@ function getSession(): NReplSession {
     }
   }
 
-  // Fallback for results doc
-  if (outputWindow.isResultsDoc(tryToGetDocument({}))) {
+  // Fallback for REPL window session
+  if (outputWindow.isReplWindowDoc(tryToGetDocument({}))) {
     return outputWindow.getSession();
   }
 
@@ -324,7 +324,7 @@ function getSessionLabelContext(options?: {
 
   return sessionLabel.determineSessionLabelContext({
     isPinned,
-    isReplWindow: outputWindow.isResultsDoc(doc),
+    isReplWindow: outputWindow.isReplWindowDoc(doc),
     isCljcRouting: routingInfo?.reason.type === 'cljc-within-connection',
     fileExtension: fileType,
   });

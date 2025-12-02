@@ -84,7 +84,7 @@ A **Client** (`NReplClient`) represents a TCP connection to an nREPL server. Key
 
 The **REPL window** is a special `.calva-repl` file that serves as an interactive prompt. There is one global REPL window (not per-connection). It has its own **targeted session** that determines where evaluations from the REPL window are sent.
 
-**Terminology note:** In some parts of the codebase, the REPL window is referred to as "Results Doc" or "Output Window" (see `outputWindow.ts`). These terms are synonymous.
+**Terminology note:** The REPL Windoww is **not** the same as the "Output Window" (see `outputWindow.ts`). These are distinctly different things.
 
 | Concept | Description |
 |---------|-------------|

@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as Mocha from 'mocha';
 import * as path from 'path';
 import * as sessionRegistry from '../../../nrepl/session-registry';
-import * as outputWindow from '../../../repl-window/repl-doc';
+import * as outputWindow from '../../../repl-window/repl-window-doc';
 import connector from '../../../connector';
 import * as replApi from '../../../api/repl-v1';
 import * as replSession from '../../../nrepl/repl-session';
@@ -40,7 +40,7 @@ describe(`${suiteName} suite`, () => {
     initialCurrentSessionType = cljsLib.getStateValue('current-session-type');
     initialOutputSessionType = outputWindow.getSessionType();
     initialOutputNamespace = outputWindow.getNs();
-    await outputWindow.initResultsDoc();
+    await outputWindow.initReplWindowDoc();
   });
 
   beforeEach(() => {

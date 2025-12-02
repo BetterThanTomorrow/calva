@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as util from './utilities';
 import * as string from './util/string';
-import * as outputWindow from './repl-window/repl-doc';
+import * as outputWindow from './repl-window/repl-window-doc';
 import { NReplSession } from './nrepl';
 import * as cider from './nrepl/cider';
 import * as lsp from './lsp/definitions';
@@ -346,7 +346,7 @@ async function runNamespaceTestsImpl(
 
 async function runNamespaceTests(controller: vscode.TestController, document: vscode.TextDocument) {
   const doc = util.tryToGetDocument(document);
-  if (outputWindow.isResultsDoc(doc)) {
+  if (outputWindow.isReplWindowDoc(doc)) {
     return;
   }
   const [currentDocNs, _] = namespace.getNamespace(

@@ -8,7 +8,7 @@ import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as fruitSuffix from '../../../nrepl/fruit-suffix';
 import * as vscode from 'vscode';
 import { commands } from 'vscode';
-import * as outputWindow from '../../../repl-window/repl-doc';
+import * as outputWindow from '../../../repl-window/repl-window-doc';
 import { getDocument } from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
 import connector from '../../../connector';
@@ -52,7 +52,7 @@ suite('Fruit Suffix suite', () => {
       }
     }
     await vscode.workspace.fs.copy(settingsBackupUri, settingsUri, { overwrite: true });
-    await outputWindow.clearResultsDoc();
+    await outputWindow.clearReplWindowDoc();
     lastJackInDoneCount = 0;
     lastSeenClientConnectedAt = 0;
     fruitSuffix.resetPool();
@@ -257,7 +257,7 @@ suite('Fruit Suffix suite', () => {
     const timeoutMs = 60_000;
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
-      const resultsEditor = await outputWindow.openResultsDoc();
+      const resultsEditor = await outputWindow.openReplWindowDoc();
       const text = getDocument(resultsEditor).document.getText();
       const currentCount = (text.match(/Jack-in done\./g) || []).length;
       if (currentCount > lastJackInDoneCount) {

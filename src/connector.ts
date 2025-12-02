@@ -20,7 +20,7 @@ import * as secondarySession from './nrepl/secondary-session';
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
-import * as outputWindow from './repl-window/repl-doc';
+import * as outputWindow from './repl-window/repl-window-doc';
 import { formatAsLineComments } from './results-output/util';
 import evaluate from './evaluate';
 import * as liveShareSupport from './live-share';
@@ -1138,9 +1138,9 @@ async function standaloneConnect(
   hostname?: string,
   port?: string
 ) {
-  await outputWindow.initResultsDoc();
+  await outputWindow.initReplWindowDoc();
   inspector.revealOnConnect();
-  await outputWindow.openResultsDoc();
+  await outputWindow.openReplWindowDoc();
 
   if (connectSequence) {
     const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
@@ -1325,8 +1325,8 @@ export default {
       undefined
     );
     inspector.revealOnConnect();
-    await outputWindow.initResultsDoc();
-    await outputWindow.openResultsDoc();
+    await outputWindow.initReplWindowDoc();
+    await outputWindow.openReplWindowDoc();
 
     if (connectSequence) {
       const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);

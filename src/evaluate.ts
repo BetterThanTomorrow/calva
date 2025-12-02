@@ -6,7 +6,7 @@ import * as util from './utilities';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
-import * as outputWindow from './repl-window/repl-doc';
+import * as outputWindow from './repl-window/repl-window-doc';
 import * as namespace from './namespace';
 import * as replHistory from './repl-window/repl-history';
 import { formatAsLineComments } from './results-output/util';
@@ -213,7 +213,7 @@ async function evaluateCodeUpdatingUI(
                   options.commentStyle
                 );
               }
-              if (editor && !outputWindow.isResultsDoc(editor.document)) {
+              if (editor && !outputWindow.isReplWindowDoc(editor.document)) {
                 annotations.decorateSelection(
                   value,
                   selection,
@@ -262,7 +262,7 @@ async function evaluateCodeUpdatingUI(
                 options.commentStyle
               );
             }
-            if (editor && !outputWindow.isResultsDoc(editor.document)) {
+            if (editor && !outputWindow.isReplWindowDoc(editor.document)) {
               annotations.decorateSelection(
                 editorError,
                 selection,
@@ -589,7 +589,7 @@ async function loadDocument(
   const session = replSession.getSession();
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
-    const docUri = outputWindow.isResultsDoc(doc)
+    const docUri = outputWindow.isReplWindowDoc(doc)
       ? await namespace.getUriForNamespace(session, ns)
       : doc.uri;
     const filePath = docUri.path;
@@ -656,7 +656,7 @@ async function loadFile(
     }
     if (
       !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
-        outputWindow.isResultsDoc(editor.document)
+        outputWindow.isReplWindowDoc(editor.document)
       )
     ) {
       void vscode.window
@@ -777,7 +777,7 @@ function instrumentTopLevelForm() {
 }
 
 async function evaluateInOutputWindow(code: string, sessionType: string, ns: string, options) {
-  const outputDocument = await outputWindow.openResultsDoc();
+  const outputDocument = await outputWindow.openReplWindowDoc();
   const evalPos = outputDocument.positionAt(outputDocument.getText().length);
   try {
     // When sessionType is explicitly provided, use it directly without routing

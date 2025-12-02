@@ -5,7 +5,7 @@ import * as testUtil from './util';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as replSession from '../../../nrepl/repl-session';
-import * as outputWindow from '../../../repl-window/repl-doc';
+import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as replSessionsMenu from '../../../repl-sessions-menu';
 import * as vscode from 'vscode';
 import { commands } from 'vscode';
@@ -121,7 +121,7 @@ suite('REPL Window Targeting suite', function () {
     replSessionsMenu.setReplWindowSession('cljs');
 
     // Open and focus the REPL window
-    await outputWindow.revealResultsDoc(false);
+    await outputWindow.revealReplWindowDoc(false);
     await testUtil.sleep(100);
 
     // Get routing info - should show repl-window reason
@@ -150,7 +150,7 @@ suite('REPL Window Targeting suite', function () {
     replSessionsMenu.setReplWindowSession('cljs');
 
     // Open and focus the REPL window
-    await outputWindow.revealResultsDoc(false);
+    await outputWindow.revealReplWindowDoc(false);
     await testUtil.sleep(100);
 
     // Routing should use REPL window session, not cljc target
@@ -176,7 +176,7 @@ suite('REPL Window Targeting suite', function () {
     clientRegistry.setCljcTargetForConnection(clientKey, 'secondary');
 
     // Start in REPL window
-    await outputWindow.revealResultsDoc(false);
+    await outputWindow.revealReplWindowDoc(false);
     await testUtil.sleep(100);
 
     let routingInfo = replSession.getRoutingInfo();

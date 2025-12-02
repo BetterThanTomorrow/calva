@@ -162,7 +162,7 @@ export function setSession(session: NReplSession, newNs?: string, sessionKey?: s
   }
 }
 
-export function isResultsDoc(doc?: vscode.TextDocument): boolean {
+export function isReplWindowDoc(doc?: vscode.TextDocument): boolean {
   if (!doc || !_docUri) {
     return false;
   }
@@ -190,7 +190,7 @@ export function registerSubmitOnEnterHandler(context: vscode.ExtensionContext) {
       let submitOnEnter = false;
       if (event.textEditor) {
         const document = event.textEditor.document;
-        if (isResultsDoc(document)) {
+        if (isReplWindowDoc(document)) {
           const idx = document.offsetAt(event.selections[0].active);
           const mirrorDoc = docMirror.getDocument(document);
           const selectionCursor = mirrorDoc.getTokenCursor(idx);
@@ -219,7 +219,7 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
   state.extensionContext.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((event) => {
       if (event) {
-        const isReplWindow = isResultsDoc(event.document);
+        const isReplWindow = isReplWindowDoc(event.document);
         setContextForReplWindowActive(isReplWindow);
         if (isReplWindow) {
           void setViewColumn(event.viewColumn);
@@ -227,33 +227,33 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
       }
     })
   );
-  // If the repl window is active when initResultsDoc is run, these contexts won't be set properly without the below
+  // If the repl window is active when initReplWindowDoc is run, these contexts won't be set properly without the below
   // until the next time it's focused
   const activeTextEditor = util.tryToGetActiveTextEditor();
-  if (activeTextEditor && isResultsDoc(activeTextEditor.document)) {
+  if (activeTextEditor && isReplWindowDoc(activeTextEditor.document)) {
     setContextForReplWindowActive(true);
     replHistory.setReplHistoryCommandsActiveContext(activeTextEditor);
   }
 }
 
-export async function clearResultsDoc() {
+export async function clearReplWindowDoc() {
   await util.writeTextToFile(getDocUri(), '');
 }
 
-export async function initResultsDoc(): Promise<vscode.TextDocument> {
+export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
   const docUri = getDocUri();
   await vscode.workspace.fs.createDirectory(getDocDir());
-  let resultsDoc: vscode.TextDocument;
+  let doc: vscode.TextDocument;
   try {
-    resultsDoc = await vscode.workspace.openTextDocument(docUri);
+    doc = await vscode.workspace.openTextDocument(docUri);
   } catch (e) {
     await util.writeTextToFile(docUri, '');
-    resultsDoc = await vscode.workspace.openTextDocument(docUri);
+    doc = await vscode.workspace.openTextDocument(docUri);
   }
   if (config.getConfig().autoOpenREPLWindow) {
-    const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
+    const resultsEditor = await vscode.window.showTextDocument(doc, getViewColumn(), true);
     const firstPos = resultsEditor.document.positionAt(0);
-    const lastPos = resultsDoc.positionAt(Infinity);
+    const lastPos = doc.positionAt(Infinity);
     resultsEditor.selections = [new vscode.Selection(lastPos, lastPos)];
     resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
   }
@@ -261,19 +261,19 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     void output.showResultOutputDestination(true);
   }
   if (_docUri) {
-    return resultsDoc;
+    return doc;
   }
 
   const greetings = `${formatAsLineComments(START_GREETINGS)}\n\n${formatAsLineComments(
     CLJ_CONNECT_GREETINGS
   )}${outputDestinationSettingMessage()}\n\n`;
   const edit = new vscode.WorkspaceEdit();
-  const fullRange = new vscode.Range(resultsDoc.positionAt(0), resultsDoc.positionAt(Infinity));
+  const fullRange = new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity));
   edit.replace(docUri, fullRange, greetings);
   await vscode.workspace.applyEdit(edit);
-  void resultsDoc.save();
+  void doc.save();
 
-  registerResultDocSubscriptions();
+  registerReplWindowDocSubscriptions();
 
   vscode.languages.registerCodeLensProvider(
     config.documentSelector,
@@ -281,21 +281,21 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
   );
 
   replHistory.resetState();
-  return resultsDoc;
+  return doc;
 }
 
-export async function openResultsDoc(): Promise<vscode.TextDocument> {
-  const resultsDoc = await vscode.workspace.openTextDocument(getDocUri());
-  return resultsDoc;
+export async function openReplWindowDoc(): Promise<vscode.TextDocument> {
+  const doc = await vscode.workspace.openTextDocument(getDocUri());
+  return doc;
 }
 
-export function revealResultsDoc(preserveFocus = true) {
-  return openResultsDoc().then((doc) => {
+export function revealReplWindowDoc(preserveFocus = true) {
+  return openReplWindowDoc().then((doc) => {
     return vscode.window.showTextDocument(doc, getViewColumn(), preserveFocus);
   });
 }
 
-export async function revealDocForCurrentNS(preserveFocus = true) {
+export async function revealReplWindowDocForCurrentNS(preserveFocus = true) {
   const uri = await getUriForCurrentNamespace();
   return vscode.workspace.openTextDocument(uri).then((doc) =>
     vscode.window.showTextDocument(doc, {
@@ -333,7 +333,7 @@ function appendFormGrabbingSessionAndNS(topLevel: boolean): void {
   }
   if (code != '') {
     setSession(session, ns);
-    appendLine(code, (_) => revealResultsDoc(false));
+    appendLine(code, (_) => revealReplWindowDoc(false));
   }
 }
 
@@ -350,30 +350,30 @@ export async function lastLineIsEmpty(): Promise<boolean> {
     const doc = await vscode.workspace.openTextDocument(getDocUri());
     return util.lastLineIsEmpty(doc);
   } catch (error) {
-    console.error('Failed opening results doc', error);
+    console.error('Failed opening REPL window doc', error);
   }
 }
 
-function visibleResultsEditors(): vscode.TextEditor[] {
-  return vscode.window.visibleTextEditors.filter((editor) => isResultsDoc(editor.document));
+function visibleReplWindowEditors(): vscode.TextEditor[] {
+  return vscode.window.visibleTextEditors.filter((editor) => isReplWindowDoc(editor.document));
 }
 
-function handleResultDocEditorDidOpen(editor: vscode.TextEditor) {
+function handleReplWindowDocEditorDidOpen(editor: vscode.TextEditor) {
   util.scrollToBottom(editor);
 }
 
-function registerResultDocSubscriptions() {
-  let currentResultDocs = visibleResultsEditors();
+function registerReplWindowDocSubscriptions() {
+  let currentResultDocs = visibleReplWindowEditors();
   const subOpen = vscode.window.onDidChangeVisibleTextEditors((editors) => {
-    const current = editors.filter((editor) => isResultsDoc(editor.document));
+    const current = editors.filter((editor) => isReplWindowDoc(editor.document));
     const opened = current.filter((editor) => currentResultDocs.includes(editor));
     currentResultDocs = current;
-    opened.forEach(handleResultDocEditorDidOpen);
+    opened.forEach(handleReplWindowDocEditorDidOpen);
   });
   state.extensionContext.subscriptions.push(subOpen);
 }
 
-async function writeToResultsDoc({ text, onAppended }: ResultsBufferEntry): Promise<void> {
+async function writeToReplWindowDoc({ text, onAppended }: ResultsBufferEntry): Promise<void> {
   const docUri = getDocUri();
   const doc = await vscode.workspace.openTextDocument(docUri);
   const insertPosition = doc.positionAt(Infinity);
@@ -387,7 +387,7 @@ async function writeToResultsDoc({ text, onAppended }: ResultsBufferEntry): Prom
     new vscode.Location(docUri, insertPosition),
     new vscode.Location(docUri, doc.positionAt(Infinity))
   );
-  const editors = visibleResultsEditors();
+  const editors = visibleReplWindowEditors();
   editors.forEach((editor) => {
     util.scrollToBottom(editor);
     highlight(editor);
@@ -414,12 +414,12 @@ async function writeNextOutputBatch() {
   // Any entries that contain onAppended are not batched with other pending
   // entries to simplify providing the correct insert position to the callback.
   if (resultsBuffer[0].onAppended) {
-    return await writeToResultsDoc(resultsBuffer.shift());
+    return await writeToReplWindowDoc(resultsBuffer.shift());
   }
   // Batch all remaining entries up until another onAppended callback.
   const [nextText, remaining] = splitEditQueueForTextBatching(resultsBuffer);
   resultsBuffer = remaining;
-  await writeToResultsDoc({ text: nextText.join('') });
+  await writeToReplWindowDoc({ text: nextText.join('') });
 }
 
 // Ensures that writeNextOutputBatch is called on buffer sequentially.
@@ -434,7 +434,7 @@ async function flushOutput() {
       await writeNextOutputBatch();
     }
   } catch (err) {
-    console.error('Error writing to results doc:', err);
+    console.error('Error writing to REPL window doc:', err);
   } finally {
     outputPending = false;
   }

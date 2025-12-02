@@ -3,7 +3,7 @@ import * as Mocha from 'mocha';
 import * as vscode from 'vscode';
 import * as testUtil from './util';
 import * as state from '../../../state';
-import * as outputWindow from '../../../repl-window/repl-doc';
+import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as replHistory from '../../../repl-window/repl-history';
 import type { NReplSession } from '../../../nrepl';
 
@@ -28,7 +28,7 @@ function setSessionKey(sessionKey: string) {
 }
 
 async function focusReplWindow(): Promise<vscode.TextEditor> {
-  const editor = await outputWindow.revealResultsDoc(false);
+  const editor = await outputWindow.revealReplWindowDoc(false);
   await vscode.commands.executeCommand('cursorMove', { to: 'viewPortBottom' });
   return editor;
 }
@@ -58,7 +58,7 @@ const { before, after, beforeEach } = Mocha;
 suite(`${suiteName} suite`, () => {
   before(async () => {
     testUtil.showMessage(suiteName, 'suite starting!');
-    await outputWindow.initResultsDoc();
+    await outputWindow.initReplWindowDoc();
   });
 
   after(() => {

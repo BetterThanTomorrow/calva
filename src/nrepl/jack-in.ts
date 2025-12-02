@@ -12,7 +12,7 @@ import {
   getConnectSequences,
 } from './connectSequence';
 import * as projectTypes from './project-types';
-import * as outputWindow from '../repl-window/repl-doc';
+import * as outputWindow from '../repl-window/repl-window-doc';
 import {
   JackInPTY as JackInPTY,
   JackInPTYOptions as JackInPTYOptions,
@@ -483,9 +483,9 @@ async function executeJackIn(
     return;
   }
   inspector.revealOnConnect();
-  await outputWindow.initResultsDoc();
+  await outputWindow.initReplWindowDoc();
   output.appendLineOtherOut('Jacking in...');
-  await outputWindow.openResultsDoc();
+  await outputWindow.openReplWindowDoc();
 
   let projectConnectSequence: ReplConnectSequence = connectSequence;
   if (!projectConnectSequence) {

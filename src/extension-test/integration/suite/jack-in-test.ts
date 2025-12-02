@@ -8,7 +8,7 @@ import * as clientRegistry from '../../../nrepl/client-registry';
 
 import * as vscode from 'vscode';
 // import * as myExtension from '../extension';
-import * as outputWindow from '../../../repl-window/repl-doc';
+import * as outputWindow from '../../../repl-window/repl-window-doc';
 import { commands } from 'vscode';
 import { getDocument } from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
@@ -46,7 +46,7 @@ suite('Jack-in suite', () => {
 
   beforeEach(async () => {
     await vscode.workspace.fs.copy(settingsBackupUri, settingsUri, { overwrite: true });
-    await outputWindow.clearResultsDoc();
+    await outputWindow.clearReplWindowDoc();
     lastJackInDoneCount = 0;
   });
 
@@ -220,7 +220,7 @@ let lastSeenClientConnectedAt = 0;
 let lastJackInDoneCount = 0;
 
 async function loadAndAssert(suite: string, testFilePath: string, needle: string[]) {
-  const resultsDoc = await waitForResult(suite);
+  const replWindowDoc = await waitForResult(suite);
 
   // focus the clojure file
   await vscode.workspace.openTextDocument(testFilePath).then((doc) =>
@@ -231,7 +231,7 @@ async function loadAndAssert(suite: string, testFilePath: string, needle: string
   testUtil.log(suite, 'opened test.clj document again');
 
   await commands.executeCommand('calva.loadFile');
-  const haystack = resultsDoc.document.getText().split(/\r?\n/);
+  const haystack = replWindowDoc.document.getText().split(/\r?\n/);
   assert.ok(
     appearInOrder(needle, haystack),
     `Expected output to contain: ${JSON.stringify(needle)}\n, but got: ${JSON.stringify(
@@ -263,7 +263,7 @@ async function waitForResult(suite: string) {
   await testUtil.sleep(500);
   testUtil.log(suite, 'connected to repl');
 
-  return getDocument(await outputWindow.openResultsDoc());
+  return getDocument(await outputWindow.openReplWindowDoc());
 }
 
 async function waitForNextClient(suite: string) {
@@ -292,7 +292,7 @@ async function waitForJackInCompletion(suite: string) {
   const timeoutMs = 60_000;
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
-    const resultsEditor = await outputWindow.openResultsDoc();
+    const resultsEditor = await outputWindow.openReplWindowDoc();
     const text = getDocument(resultsEditor).document.getText();
     const currentCount = (text.match(/Jack-in done\./g) || []).length;
     if (currentCount > lastJackInDoneCount) {

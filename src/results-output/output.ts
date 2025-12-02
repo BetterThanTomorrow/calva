@@ -1,4 +1,4 @@
-import * as outputWindow from '../repl-window/repl-doc';
+import * as outputWindow from '../repl-window/repl-window-doc';
 import * as config from '../config';
 import * as vscode from 'vscode';
 import * as util from '../utilities';
@@ -173,7 +173,7 @@ export function showResultOutputDestination(preserveFocus = true) {
   if (getDestinationConfiguration().evalResults === 'output-view') {
     return showReplOutputWebviewPanel(preserveFocus);
   }
-  return outputWindow.revealResultsDoc(preserveFocus);
+  return outputWindow.revealReplWindowDoc(preserveFocus);
 }
 
 export function getDestinationConfiguration(): OutputDestinationConfiguration {

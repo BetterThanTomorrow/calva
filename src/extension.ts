@@ -26,7 +26,7 @@ import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
-import * as outputWindow from './repl-window/repl-doc';
+import * as outputWindow from './repl-window/repl-window-doc';
 import * as fileSwitcher from './file-switcher/file-switcher';
 import * as replHistory from './repl-window/repl-history';
 import * as config from './config';
@@ -300,10 +300,10 @@ async function activate(context: vscode.ExtensionContext) {
     openSourceFileForFiddle: fiddleFiles.openSourceFileForFiddle,
     sendCurrentTopLevelFormToOutputWindow: outputWindow.appendCurrentTopLevelForm,
     setOutputWindowNamespace: outputWindow.setNamespaceFromCurrentFile,
-    showFileForOutputWindowNS: outputWindow.revealDocForCurrentNS,
+    showFileForOutputWindowNS: outputWindow.revealReplWindowDocForCurrentNS,
     showNextReplHistoryEntry: replHistory.showNextReplHistoryEntry,
-    showReplWindow: outputWindow.revealResultsDoc,
-    showOutputWindow: outputWindow.revealResultsDoc, // backwards compatibility
+    showReplWindow: outputWindow.revealReplWindowDoc,
+    showOutputWindow: outputWindow.revealReplWindowDoc, // backwards compatibility
     showOutputChannel: output.showOutputChannel,
     showOutputTerminal: output.showOutputTerminal,
     showReplOutputView: showReplOutputWebviewPanel,
@@ -503,7 +503,7 @@ async function activate(context: vscode.ExtensionContext) {
         }
 
         if (evalOnSave) {
-          if (!outputWindow.isResultsDoc(document)) {
+          if (!outputWindow.isReplWindowDoc(document)) {
             await eval.loadDocument(document, config.getConfig().prettyPrintingOptions, false);
             output.replWindowAppendPrompt();
           }
@@ -518,7 +518,7 @@ async function activate(context: vscode.ExtensionContext) {
         contextSettingOnTextDocumentChangeEvent(e);
       },
       closeTextDocument: (document) => {
-        if (outputWindow.isResultsDoc(document)) {
+        if (outputWindow.isReplWindowDoc(document)) {
           outputWindow.setContextForReplWindowActive(false);
         }
       },
@@ -540,7 +540,7 @@ async function activate(context: vscode.ExtensionContext) {
         contextSettingOnChangeTextEditorSelection(event);
       },
       changeVisibleTextEditors: (editors) => {
-        if (!editors.some((editor) => outputWindow.isResultsDoc(editor.document))) {
+        if (!editors.some((editor) => outputWindow.isReplWindowDoc(editor.document))) {
           outputWindow.setContextForReplWindowActive(false);
         }
       },

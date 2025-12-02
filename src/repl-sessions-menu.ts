@@ -6,7 +6,7 @@ import * as clientRegistry from './nrepl/client-registry';
 import status from './status';
 import { getPathRelativeToWorkspace } from './project-root';
 import * as utilities from './utilities';
-import * as outputWindow from './repl-window/repl-doc';
+import * as outputWindow from './repl-window/repl-window-doc';
 import * as output from './results-output/output';
 import * as state from './state';
 
@@ -144,7 +144,10 @@ function formatSessionDetail({
   }
 
   // REPL window target indicator - only shown when REPL window is active
-  if (isReplWindowTarget && outputWindow.isResultsDoc(vscode.window.activeTextEditor?.document)) {
+  if (
+    isReplWindowTarget &&
+    outputWindow.isReplWindowDoc(vscode.window.activeTextEditor?.document)
+  ) {
     detailParts.push('Targeted by $(check) repl-window');
   }
 
@@ -400,7 +403,7 @@ function buildMenuItems(): SessionQuickPickItem[] {
   const items: SessionQuickPickItem[] = [];
 
   // REPL window session selector - only shown when REPL window is active
-  const isReplWindowActive = outputWindow.isResultsDoc(vscode.window.activeTextEditor?.document);
+  const isReplWindowActive = outputWindow.isReplWindowDoc(vscode.window.activeTextEditor?.document);
   if (isReplWindowActive) {
     const outputSessionMeta = currentOutputSession
       ? sessionRegistry.getSessionMetadata(currentOutputSession)
