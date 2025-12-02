@@ -324,3 +324,30 @@ export function getSecondarySessionKeyForClient(clientKey: string): string | und
   const secondaryMeta = sessions.find((m) => m.isSecondary);
   return secondaryMeta?.key;
 }
+
+// --- ClojureDocs dedicated session ---
+
+const CLOJUREDOCS_SESSION_KEY = 'clojuredocs-session-key';
+
+/**
+ * Set the session key to use for ClojureDocs lookups.
+ * Pass null to clear the dedicated session.
+ */
+export function setClojureDocsSessionKey(key: string | null): void {
+  cljsLib.setStateValue(CLOJUREDOCS_SESSION_KEY, key);
+}
+
+/**
+ * Get the session key currently designated for ClojureDocs lookups.
+ */
+export function getClojureDocsSessionKey(): string | null {
+  return cljsLib.getStateValue(CLOJUREDOCS_SESSION_KEY) ?? null;
+}
+
+/**
+ * Get the session currently designated for ClojureDocs lookups.
+ */
+export function getClojureDocsSession(): NReplSession | undefined {
+  const key = getClojureDocsSessionKey();
+  return key ? getSession(key) : undefined;
+}

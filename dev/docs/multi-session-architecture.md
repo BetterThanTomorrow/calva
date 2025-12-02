@@ -468,15 +468,36 @@ This section describes how various Calva features interact with the session syst
 
 ### ClojureDocs Lookup
 
-**Files involved:** `clojuredocs.ts`, `repl-session.ts`
+**Files involved:** `clojuredocs.ts`, `session-registry.ts`
 
-**Mechanism:** Session Routing + Primary Session for Cache
+**Mechanism:** Dedicated ClojureDocs Session
 
-**Flow:**
-1. User hovers or triggers lookup
-2. Resolve session via `replSession.getSession()` (same as evaluation)
-3. Use that session to query via `cider-nrepl`
-4. Cache is initialized on the **primary session** at connect time
+ClojureDocs lookups use a **dedicated session** that is probed for ClojureDocs support (`clojuredocs-lookup` op) when sessions connect. This decouples ClojureDocs from session routing.
+
+**On Connect:**
+1. When a session is registered, `clojureDocs.probeAndSetSession()` is called
+2. If no dedicated ClojureDocs session exists, the session is probed for support
+3. If supported, it becomes the dedicated session and cache is initialized
+
+**On Disconnect:**
+1. When a session is torn down, `clojureDocs.clearClojureDocsSession()` is called
+2. If the disconnected session was the dedicated ClojureDocs session:
+   - The dedicated session is cleared
+   - Remaining sessions are probed to find a new capable session
+
+**On Lookup:**
+1. Get dedicated ClojureDocs session via `sessionRegistry.getClojureDocsSession()`
+2. If available, use it for `clojuredocs-lookup` nREPL op
+3. If not available, fall back to clojure-lsp
+
+**Key functions:**
+| File | Function | Purpose |
+|------|----------|---------|
+| `session-registry.ts` | `getClojureDocsSession()` | Get the dedicated session |
+| `session-registry.ts` | `setClojureDocsSessionKey()` | Set/clear dedicated session key |
+| `clojuredocs.ts` | `probeAndSetSession()` | Probe session and set if capable |
+| `clojuredocs.ts` | `clearClojureDocsSession()` | Handle disconnect, find new session |
+| `clojuredocs.ts` | `findAndSetClojureDocsSession()` | Search remaining sessions for capable one |
 
 ### Shadow-CLJS Runtime Management
 

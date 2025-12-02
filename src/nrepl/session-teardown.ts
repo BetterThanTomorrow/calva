@@ -4,11 +4,17 @@ import status from '../status';
 import * as util from '../utilities';
 import { setStateValue } from '../../out/cljs-lib/cljs-lib';
 import * as teardownCore from './session-teardown-core';
+import * as clojureDocs from '../clojuredocs';
 
 function applySideEffects(removed: string[]): void {
   if (removed.length === 0) {
     return;
   }
+
+  // Handle ClojureDocs session cleanup
+  removed.forEach((key) => {
+    clojureDocs.clearClojureDocsSession(key);
+  });
 
   replSession.updateReplSessionType();
   status.update();

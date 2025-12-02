@@ -276,7 +276,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     }
     output.replWindowAppendPrompt();
 
-    clojureDocs.init(mainSession);
+    clojureDocs.probeAndSetSession(mainSession, mainKey);
 
     let cljsSession = null,
       cljsBuild = null;
@@ -389,6 +389,8 @@ async function setUpCljsRepl(
     isSecondary: true,
   });
   clientRegistry.setCljcTargetForConnection(clientKey, 'secondary');
+
+  clojureDocs.probeAndSetSession(session, cljsKey);
 
   status.update();
   output.appendLineOtherOut(`Connected session: ${cljsKey}${build ? ', repl: ' + build : ''}`);
