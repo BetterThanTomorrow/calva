@@ -60,6 +60,7 @@ function formatSessionDescription({
   projectRoot,
   globSpecs,
   routingInfo,
+  activeFilePath,
 }: {
   projectRoot?: string;
   globSpecs?: Array<{
@@ -68,18 +69,18 @@ function formatSessionDescription({
     tier: 'always-claim' | 'is-fallback-for' | 'project-fallback';
   }>;
   routingInfo?: replSession.RoutingResult;
+  activeFilePath?: string;
 }): string | undefined {
   const parts: string[] = [];
 
   const relativeRoot = formatRelativeProjectRoot(projectRoot);
   if (relativeRoot) {
-    // Mark project root with checkmark if it was involved in routing decision:
-    // - project-fallback tier means the project root's catch-all pattern matched
-    // - cljc-within-connection means the connection (identified by project root) determined the target
+    // Project root is involved in routing if the active file is inside it
     const isProjectRootInvolved =
-      (routingInfo?.reason.type === 'glob-match' &&
-        routingInfo.reason.tier === 'project-fallback') ||
-      routingInfo?.reason.type === 'cljc-within-connection';
+      routingInfo &&
+      activeFilePath &&
+      projectRoot &&
+      activeFilePath.startsWith(vscode.Uri.parse(projectRoot).fsPath);
     parts.push(isProjectRootInvolved ? `$(check) ${relativeRoot}` : relativeRoot);
   }
 
@@ -175,8 +176,9 @@ function formatRoutingReasonPrefix(reason: replSession.RoutingReason): string {
 function buildSessionPickItems(options?: {
   routingInfo?: replSession.RoutingResult;
   highlightedSessionKey?: string;
+  activeFilePath?: string;
 }): SessionQuickPickItem[] {
-  const { routingInfo, highlightedSessionKey } = options || {};
+  const { routingInfo, highlightedSessionKey, activeFilePath } = options || {};
   const pinnedKey = sessionRouting.getPinnedSessionKey();
   const isAutoRouting = !pinnedKey;
   const replWindowSession = outputWindow.getSessionType();
@@ -218,6 +220,7 @@ function buildSessionPickItems(options?: {
       projectRoot: session.projectRoot,
       globSpecs: session.globSpecs,
       routingInfo: isRoutedSession ? routingInfo : undefined,
+      activeFilePath,
     });
     if (baseDescription) {
       descriptionParts.push(baseDescription);
@@ -392,6 +395,7 @@ function buildMenuItems(): SessionQuickPickItem[] {
   const isAutoRouting = !pinnedSession;
   const routingInfo = replSession.getRoutingInfo();
   const currentOutputSession = outputWindow.getSessionType();
+  const activeFilePath = vscode.window.activeTextEditor?.document?.uri?.fsPath;
 
   const items: SessionQuickPickItem[] = [];
 
@@ -439,6 +443,7 @@ function buildMenuItems(): SessionQuickPickItem[] {
   items.push(
     ...buildSessionPickItems({
       routingInfo,
+      activeFilePath,
     })
   );
 
