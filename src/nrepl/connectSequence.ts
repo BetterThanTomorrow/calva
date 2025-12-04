@@ -8,6 +8,10 @@ import * as output from '../results-output/output';
 import * as projectRoot from '../project-root';
 import * as csTypes from './connect-sequence-types';
 
+// Project types that only support connect (not jack-in)
+// These have no commandLine and no startFunction in project-types.ts
+const connectOnlyProjectTypes = ['scittle'];
+
 const leiningenDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'Leiningen',
@@ -472,12 +476,27 @@ async function askForConnectSequence(
   let projectConnectSequenceName = defaultSequence?.name;
 
   if (!projectConnectSequenceName) {
+    const filteredSequences =
+      connectType === ConnectType.JackIn
+        ? sequences.filter((s) => {
+            // Allow sequences that define their own jack-in command
+            if (s.customJackInCommandLine) {
+              return true;
+            }
+            // Exclude connect-only project types (like scittle) that don't have a custom command
+            if (connectOnlyProjectTypes.includes(s.projectType)) {
+              return false;
+            }
+            // Exclude custom sequences without customJackInCommandLine
+            if (s.projectType === 'custom') {
+              return false;
+            }
+            return true;
+          })
+        : sequences;
     const pickedSequence = await utilities.quickPickSingle({
       title: `${menuTitleType}: Project Type/Connect Sequence`,
-      values: sequences
-        .filter((s) => !(s.projectType === 'custom' && !s.customJackInCommandLine))
-        .map((s) => s.name)
-        .map((a) => ({ label: a })),
+      values: filteredSequences.map((s) => s.name).map((a) => ({ label: a })),
       placeHolder: 'Please select a project type',
       saveAs: saveAsPath,
       autoSelect: true,

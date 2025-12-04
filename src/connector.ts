@@ -1040,9 +1040,8 @@ export async function connect(
       if (isAutoConnect) {
         setStateValue('hostname', hostname);
         setStateValue('port', port);
-        const connected = await connectToHost(hostname, parseInt(port), connectSequence);
+        const connected = await connectToHost(hostname, parseInt(port), connectSequence, true);
         if (!connected) {
-          // Connection failed, fall back to prompting with the attempted host:port pre-filled
           output.appendLineOtherOut('Prompting for nREPL connection...');
           await promptForNreplUrlAndConnect(hostname, port, connectSequence, 'connection-failed');
         }
