@@ -147,7 +147,9 @@ export class NReplClient {
    */
   static create(opts: { host: string; port: number; onError: (e) => void }) {
     return new Promise<NReplClient>((resolve, reject) => {
+      let connected = false;
       const socket = net.createConnection(opts, () => {
+        connected = true;
         const nsId = client.nextId;
         const cloneId = client.nextId;
         const describeId = client.nextId;
@@ -197,6 +199,12 @@ export class NReplClient {
         const msg = { op: 'eval', code: '*ns*', id: nsId };
         log(msg, Direction.ClientToServer);
         client.encoder.write(msg);
+      });
+      // Handle connection errors - reject the promise if not yet connected
+      socket.on('error', (e) => {
+        if (!connected) {
+          reject(e);
+        }
       });
       const client = new NReplClient(socket, opts.onError);
     });

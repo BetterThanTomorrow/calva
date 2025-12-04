@@ -703,6 +703,23 @@ const projectTypes: { [id: string]: ProjectType } = {
     commandLine: undefined,
     startFunction: () => void joyride.joyrideJackIn(state.getProjectRootLocal()),
   },
+  scittle: {
+    name: 'scittle',
+    cljsTypes: [],
+    cmd: [],
+    winCmd: [],
+    processShellUnix: false,
+    processShellWin: false,
+    useWhenExists: [],
+    nReplPortFile: ['.scittle-nrepl-port'],
+    defaultFilePatterns: {
+      primary: {
+        'always-claim': ['*.cljs'],
+        'is-fallback-for': ['**/*.cljs'],
+      },
+    },
+    commandLine: undefined,
+  },
 };
 
 async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: CljsTypes) {
@@ -948,6 +965,7 @@ export async function detectProjectTypes(): Promise<string[]> {
     'babashka',
     'nbb',
     'joyride',
+    'scittle',
   ];
   for (const clj in projectTypes) {
     for (const projectFileName of projectTypes[clj].useWhenExists) {

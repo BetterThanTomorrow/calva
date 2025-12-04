@@ -89,7 +89,12 @@ async function readRuntimeConfigs() {
   }
 }
 
-async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
+async function connectToHost(
+  hostname: string,
+  port: number,
+  connectSequence: ReplConnectSequence,
+  silent = false
+) {
   let mainSession: NReplSession;
   const baseSessionNames = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
   const projectRootPath = state.getProjectRootUri().fsPath;
@@ -284,7 +289,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
       }
       throw e;
     }
-    return cleanUpAfterError(e, nClient?.clientKey);
+    return cleanUpAfterError(e, nClient?.clientKey, silent);
   }
 
   void liveShareSupport.didConnectRepl(port);
@@ -294,7 +299,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
   return true;
 }
 
-function cleanUpAfterError(e: any, clientKeyToRemove?: string) {
+function cleanUpAfterError(e: any, clientKeyToRemove?: string, silent = false) {
   if (clientKeyToRemove) {
     clientRegistry.unregisterClient(clientKeyToRemove);
     sessionTeardown.teardownSessionsForClient(clientKeyToRemove);
@@ -304,7 +309,9 @@ function cleanUpAfterError(e: any, clientKeyToRemove?: string) {
   }
   util.setConnectingState(false);
   util.setConnectedState(sessionRegistry.listSessions().length > 0);
-  output.appendLineOtherErr('Failed connecting.');
+  if (!silent) {
+    output.appendLineOtherErr('Failed connecting.');
+  }
   console.error('Failed connecting:', e);
   status.update();
   return false;
@@ -930,31 +937,67 @@ async function makeCljsSessionClone(
   return [null, null];
 }
 
-async function promptForNreplUrlAndConnect(port, connectSequence: ReplConnectSequence) {
-  const url = await vscode.window.showInputBox({
-    placeHolder: 'Enter existing nREPL hostname:port here...',
-    prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",
-    value: 'localhost:' + (port ? port : ''),
-    ignoreFocusOut: true,
-  });
-  // state.reset(); TODO see if this should be done
-  if (url !== undefined) {
-    const [hostname, port] = url.split(':'),
-      parsedPort = parseFloat(port);
-    if (parsedPort && parsedPort > 0 && parsedPort < 65536) {
-      setStateValue('hostname', hostname);
-      setStateValue('port', parsedPort);
-      await connectToHost(hostname, parsedPort, connectSequence);
-    } else {
-      output.appendLineOtherErr('Bad url: ' + url);
+type PromptReason = 'connection-failed' | 'no-port-file' | 'manual';
+
+async function promptForNreplUrlAndConnect(
+  hostname: string | undefined,
+  port: string | undefined,
+  connectSequence: ReplConnectSequence,
+  reason: PromptReason = 'manual'
+) {
+  let currentHost = hostname ?? 'localhost';
+  let currentPort = port;
+  let currentReason = reason;
+
+  // Loop until user cancels or connection succeeds
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const promptMessages: Record<PromptReason, string> = {
+      'connection-failed': `Could not connect to ${currentHost}:${currentPort}. Enter a different host:port or retry.`,
+      'no-port-file': 'No nREPL port file found. Enter host:port for the nREPL server.',
+      manual: "Enter port if localhost, otherwise 'hostname:port'",
+    };
+    const url = await vscode.window.showInputBox({
+      title: 'nREPL Connect',
+      placeHolder: 'hostname:port',
+      prompt: promptMessages[currentReason],
+      value: currentHost + ':' + (currentPort ? currentPort : ''),
+      ignoreFocusOut: true,
+    });
+
+    if (url === undefined) {
+      // User dismissed the prompt
+      output.appendLineOtherOut('Connect aborted.');
       util.setConnectingState(false);
       status.update();
+      return true;
     }
-  } else {
-    util.setConnectingState(false);
-    status.update();
+
+    const [parsedHostname, parsedPortStr] = url.split(':');
+    const parsedPort = parseFloat(parsedPortStr);
+
+    if (!parsedPort || parsedPort <= 0 || parsedPort >= 65536) {
+      // Bad URL format - update message and re-prompt
+      currentHost = parsedHostname || currentHost;
+      currentPort = parsedPortStr || '';
+      currentReason = 'connection-failed';
+      continue;
+    }
+
+    // Try to connect (silently - we'll show our own message on retry)
+    setStateValue('hostname', parsedHostname);
+    setStateValue('port', parsedPort);
+    const connected = await connectToHost(parsedHostname, parsedPort, connectSequence, true);
+
+    if (connected) {
+      return true;
+    }
+
+    // Connection failed - update for next iteration
+    currentHost = parsedHostname;
+    currentPort = parsedPortStr;
+    currentReason = 'connection-failed';
   }
-  return true;
 }
 
 export let nClient: NReplClient;
@@ -981,7 +1024,14 @@ export async function connect(
         const bytes = await vscode.workspace.fs.readFile(portFile);
         port = new TextDecoder('utf-8').decode(bytes);
       } catch {
-        console.info('No nrepl port found');
+        if (connectSequence.defaultPort) {
+          output.appendLineOtherOut(
+            `No nrepl port file found, using default port: ${connectSequence.defaultPort}`
+          );
+          port = String(connectSequence.defaultPort);
+        } else {
+          console.info('No nrepl port found');
+        }
       }
     }
     if (port) {
@@ -990,13 +1040,18 @@ export async function connect(
       if (isAutoConnect) {
         setStateValue('hostname', hostname);
         setStateValue('port', port);
-        await connectToHost(hostname, parseInt(port), connectSequence);
+        const connected = await connectToHost(hostname, parseInt(port), connectSequence);
+        if (!connected) {
+          // Connection failed, fall back to prompting with the attempted host:port pre-filled
+          output.appendLineOtherOut('Prompting for nREPL connection...');
+          await promptForNreplUrlAndConnect(hostname, port, connectSequence, 'connection-failed');
+        }
       } else {
-        await promptForNreplUrlAndConnect(port, connectSequence);
+        await promptForNreplUrlAndConnect(undefined, port, connectSequence, 'manual');
       }
     } else {
       output.appendLineOtherOut('No nrepl port file found.');
-      await promptForNreplUrlAndConnect(port, connectSequence);
+      await promptForNreplUrlAndConnect(undefined, port, connectSequence, 'no-port-file');
     }
     status.update();
   } catch (e) {
@@ -1007,7 +1062,9 @@ export async function connect(
   }
   initializeDebugger(nClient.session);
   if (
-    !['babashka', 'nbb', 'joyride', 'basilisp', 'generic'].includes(connectSequence.projectType)
+    !['babashka', 'nbb', 'joyride', 'scittle', 'basilisp', 'generic'].includes(
+      connectSequence.projectType
+    )
   ) {
     if (!nClient.session.supports('info')) {
       void vscode.window
