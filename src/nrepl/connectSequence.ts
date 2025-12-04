@@ -157,6 +157,7 @@ const babashkaDefaults: csTypes.ReplConnectSequence[] = [
     cljsType: csTypes.CljsTypes.none,
     nReplPortFile: ['.bb-nrepl.port'],
     replSessionNames: { primary: 'bb' },
+    defaultPort: 1667,
   },
 ];
 
