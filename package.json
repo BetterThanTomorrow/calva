@@ -661,6 +661,10 @@
                     "type": "string"
                   }
                 },
+                "defaultPort": {
+                  "type": "number",
+                  "markdownDescription": "If the nREPL port file is not found, use this port as the default."
+                },
                 "customJackInCommandLine": {
                   "type": "string",
                   "markdownDescription": "A custom command line, completely up to you.",
@@ -953,7 +957,8 @@
                   "default": {},
                   "markdownDescription": "Environment variables that will be merged with any global `calva.jackInEnv` and then applied to the Jack-in process. The merge is very similar to how Clojure's `merge` works. So for any common keys between the global setting and this one, the ones from this setting will win."
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "calva.projectRootsSearchExclude": {

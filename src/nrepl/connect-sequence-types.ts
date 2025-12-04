@@ -8,6 +8,7 @@ enum ProjectTypes {
   'nbb' = 'nbb',
   'basilisp' = 'basilisp',
   'joyride' = 'joyride',
+  'scittle' = 'scittle',
   'generic' = 'generic',
   'clj-projectless' = 'clj-projectless',
   'custom' = 'custom',
@@ -80,6 +81,7 @@ interface ReplConnectSequence {
   jackInEnv?: Record<string, string>;
   replSessionNames?: SessionNamesConfig;
   replSessionFilePatterns?: SessionFilePatternsConfig;
+  defaultPort?: number;
 }
 
 export {

@@ -2,199 +2,198 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as state from '../state';
 import * as utilities from '../utilities';
-import { Config, getConfig } from '../config';
-import * as outputWindow from '../repl-window/repl-window-doc';
-import { formatAsLineComments } from '../results-output/util';
+import * as config from '../config';
 import { ConnectType } from './connect-types';
 import * as output from '../results-output/output';
 import * as projectRoot from '../project-root';
-import {
-  ProjectTypes,
-  CljsTypes,
-  CljsTypeConfig,
-  MenuSelections,
-  SessionNamesConfig,
-  SessionFilePatternsConfig,
-  SessionFilePatternsRulesConfig,
-  ReplConnectSequence,
-} from './connect-sequence-types';
+import * as csTypes from './connect-sequence-types';
 
-const leiningenDefaults: ReplConnectSequence[] = [
+const leiningenDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'Leiningen',
-    projectType: ProjectTypes.Leiningen,
-    cljsType: CljsTypes.none,
+    projectType: csTypes.ProjectTypes.Leiningen,
+    cljsType: csTypes.CljsTypes.none,
     nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + Figwheel Main',
-    projectType: ProjectTypes.Leiningen,
-    cljsType: CljsTypes['Figwheel Main'],
+    projectType: csTypes.ProjectTypes.Leiningen,
+    cljsType: csTypes.CljsTypes['Figwheel Main'],
     nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + shadow-cljs',
-    projectType: ProjectTypes.Leiningen,
-    cljsType: CljsTypes['shadow-cljs'],
+    projectType: csTypes.ProjectTypes.Leiningen,
+    cljsType: csTypes.CljsTypes['shadow-cljs'],
     nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + ClojureScript built-in for browser',
-    projectType: ProjectTypes.Leiningen,
-    cljsType: CljsTypes['ClojureScript built-in for browser'],
+    projectType: csTypes.ProjectTypes.Leiningen,
+    cljsType: csTypes.CljsTypes['ClojureScript built-in for browser'],
     nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + ClojureScript built-in for node',
-    projectType: ProjectTypes.Leiningen,
-    cljsType: CljsTypes['ClojureScript built-in for node'],
+    projectType: csTypes.ProjectTypes.Leiningen,
+    cljsType: csTypes.CljsTypes['ClojureScript built-in for node'],
     nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + Legacy Figwheel',
-    projectType: ProjectTypes.Leiningen,
-    cljsType: CljsTypes['lein-figwheel'],
+    projectType: csTypes.ProjectTypes.Leiningen,
+    cljsType: csTypes.CljsTypes['lein-figwheel'],
     nReplPortFile: ['.nrepl-port'],
   },
 ];
 
-const cljDefaults: ReplConnectSequence[] = [
+const cljDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'deps.edn',
-    projectType: ProjectTypes['deps.edn'],
-    cljsType: CljsTypes.none,
+    projectType: csTypes.ProjectTypes['deps.edn'],
+    cljsType: csTypes.CljsTypes.none,
     nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + Figwheel Main',
-    projectType: ProjectTypes['deps.edn'],
-    cljsType: CljsTypes['Figwheel Main'],
+    projectType: csTypes.ProjectTypes['deps.edn'],
+    cljsType: csTypes.CljsTypes['Figwheel Main'],
     nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + shadow-cljs',
-    projectType: ProjectTypes['deps.edn'],
-    cljsType: CljsTypes['shadow-cljs'],
+    projectType: csTypes.ProjectTypes['deps.edn'],
+    cljsType: csTypes.CljsTypes['shadow-cljs'],
     nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + ClojureScript built-in for browser',
-    projectType: ProjectTypes['deps.edn'],
-    cljsType: CljsTypes['ClojureScript built-in for browser'],
+    projectType: csTypes.ProjectTypes['deps.edn'],
+    cljsType: csTypes.CljsTypes['ClojureScript built-in for browser'],
     nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + ClojureScript built-in for node',
-    projectType: ProjectTypes['deps.edn'],
-    cljsType: CljsTypes['ClojureScript built-in for node'],
+    projectType: csTypes.ProjectTypes['deps.edn'],
+    cljsType: csTypes.CljsTypes['ClojureScript built-in for node'],
     nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + Legacy Figwheel',
-    projectType: ProjectTypes['deps.edn'],
-    cljsType: CljsTypes['lein-figwheel'],
+    projectType: csTypes.ProjectTypes['deps.edn'],
+    cljsType: csTypes.CljsTypes['lein-figwheel'],
     nReplPortFile: ['.nrepl-port'],
   },
 ];
 
-const shadowCljsDefaults: ReplConnectSequence[] = [
+const shadowCljsDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'shadow-cljs',
-    projectType: ProjectTypes['shadow-cljs'],
-    cljsType: CljsTypes['shadow-cljs'],
+    projectType: csTypes.ProjectTypes['shadow-cljs'],
+    cljsType: csTypes.CljsTypes['shadow-cljs'],
     nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
   },
 ];
 
-const leinShadowDefaults: ReplConnectSequence[] = [
+const leinShadowDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'Leiningen + lein-shadow',
-    projectType: ProjectTypes['lein-shadow'],
-    cljsType: CljsTypes['shadow-cljs'],
+    projectType: csTypes.ProjectTypes['lein-shadow'],
+    cljsType: csTypes.CljsTypes['shadow-cljs'],
     nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
   },
 ];
 
-const gradleDefaults: ReplConnectSequence[] = [
+const gradleDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'Gradle',
-    projectType: ProjectTypes.Gradle,
-    cljsType: CljsTypes.none,
+    projectType: csTypes.ProjectTypes.Gradle,
+    cljsType: csTypes.CljsTypes.none,
   },
 ];
 
-const genericDefaults: ReplConnectSequence[] = [
+const genericDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'Generic',
-    projectType: ProjectTypes['generic'],
-    cljsType: CljsTypes.none,
+    projectType: csTypes.ProjectTypes['generic'],
+    cljsType: csTypes.CljsTypes.none,
     nReplPortFile: ['.nrepl-port'],
   },
 ];
 
-const cljProjectlessDefaults: ReplConnectSequence[] = [
+const cljProjectlessDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'Clojure (projectless)',
-    projectType: ProjectTypes['clj-projectless'],
-    cljsType: CljsTypes.none,
+    projectType: csTypes.ProjectTypes['clj-projectless'],
+    cljsType: csTypes.CljsTypes.none,
     nReplPortFile: ['.nrepl-port'],
   },
 ];
 
-const customDefaults: ReplConnectSequence[] = [
+const customDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'Custom',
-    projectType: ProjectTypes['custom'],
-    cljsType: CljsTypes.none,
+    projectType: csTypes.ProjectTypes['custom'],
+    cljsType: csTypes.CljsTypes.none,
     nReplPortFile: ['.nrepl-port'],
   },
 ];
 
-const cljsOnlyDefaults: ReplConnectSequence[] = [
+const cljsOnlyDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'ClojureScript nREPL Server',
-    projectType: ProjectTypes['cljs-only'],
-    cljsType: CljsTypes['ClojureScript nREPL'],
+    projectType: csTypes.ProjectTypes['cljs-only'],
+    cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
     nReplPortFile: ['.nrepl-port'],
     replSessionNames: { primary: 'cljs' },
     replSessionFilePatterns: { primary: ['*.cljs'] },
   },
 ];
 
-const babashkaDefaults: ReplConnectSequence[] = [
+const babashkaDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'Babashka',
-    projectType: ProjectTypes['babashka'],
-    cljsType: CljsTypes.none,
+    projectType: csTypes.ProjectTypes['babashka'],
+    cljsType: csTypes.CljsTypes.none,
     nReplPortFile: ['.bb-nrepl.port'],
     replSessionNames: { primary: 'bb' },
   },
 ];
 
-const nbbDefaults: ReplConnectSequence[] = [
+const nbbDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'nbb',
-    projectType: ProjectTypes['nbb'],
-    cljsType: CljsTypes['ClojureScript nREPL'],
+    projectType: csTypes.ProjectTypes['nbb'],
+    cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
     nReplPortFile: ['.nrepl-port'],
     replSessionNames: { primary: 'nbb' },
   },
 ];
 
-const joyrideDefaults: ReplConnectSequence[] = [
+const joyrideDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'joyride',
-    projectType: ProjectTypes['joyride'],
-    cljsType: CljsTypes['ClojureScript nREPL'],
+    projectType: csTypes.ProjectTypes['joyride'],
+    cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
     replSessionNames: { primary: 'joyride' },
   },
 ];
 
-const basilispDefaults: ReplConnectSequence[] = [
+const scittleDefaults: csTypes.ReplConnectSequence[] = [
+  {
+    name: 'scittle',
+    projectType: csTypes.ProjectTypes['scittle'],
+    cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
+    replSessionNames: { primary: 'scittle' },
+    defaultPort: 1339,
+  },
+];
+
+const basilispDefaults: csTypes.ReplConnectSequence[] = [
   {
     name: 'basilisp',
-    projectType: ProjectTypes['basilisp'],
-    cljsType: CljsTypes.none,
+    projectType: csTypes.ProjectTypes['basilisp'],
+    cljsType: csTypes.CljsTypes.none,
     nReplPortFile: ['.nrepl-port'],
     replSessionNames: { primary: 'basilisp' },
   },
@@ -213,10 +212,11 @@ const defaultSequences = {
   nbb: nbbDefaults,
   basilisp: basilispDefaults,
   joyride: joyrideDefaults,
+  scittle: scittleDefaults,
   'cljs-only': cljsOnlyDefaults,
 };
 
-const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
+const defaultCljsTypes: { [id: string]: csTypes.CljsTypeConfig } = {
   'Figwheel Main': {
     name: 'Figwheel Main',
     buildsRequired: true,
@@ -290,8 +290,8 @@ const defaultProjectSettingMsg = (project: string) =>
   ].join('\n');
 
 /** Retrieve the replConnectSequences from the config */
-function getCustomConnectSequences(): ReplConnectSequence[] {
-  const sequences: ReplConnectSequence[] = getConfig().replConnectSequences;
+function getCustomConnectSequences(): csTypes.ReplConnectSequence[] {
+  const sequences: csTypes.ReplConnectSequence[] = config.getConfig().replConnectSequences;
 
   for (const sequence of sequences) {
     if (sequence.name == undefined || sequence.projectType == undefined) {
@@ -303,7 +303,7 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
       return [];
     }
     if ((sequence.projectType as string) === 'Clojure CLI') {
-      sequence.projectType = ProjectTypes['deps.edn'];
+      sequence.projectType = csTypes.ProjectTypes['deps.edn'];
     }
 
     if (sequence.replSessionNames) {
@@ -336,14 +336,14 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
         return false;
       };
 
-      const isTierConfig = (value: unknown): value is SessionFilePatternsRulesConfig =>
+      const isTierConfig = (value: unknown): value is csTypes.SessionFilePatternsRulesConfig =>
         typeof value === 'object' && value !== null && !Array.isArray(value);
 
       const isValidTierEntry = (tierValue?: string | string[]): boolean =>
         tierValue ? isPatternValue(tierValue) : false;
 
       const isValidPatternEntry = (
-        value: string | string[] | SessionFilePatternsRulesConfig
+        value: string | string[] | csTypes.SessionFilePatternsRulesConfig
       ): boolean => {
         if (isPatternValue(value)) {
           return true;
@@ -375,7 +375,7 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
  * User defined sequences will be combined with the default sequences.
  * @param projectType what default sequences would be used (leiningen, clj, shadow-cljs)
  */
-function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
+function getConnectSequences(projectTypes: string[]): csTypes.ReplConnectSequence[] {
   const customSequences = getCustomConnectSequences();
   const defSequences = projectTypes.reduce(
     (seqs, projectType) => seqs.concat(defaultSequences[projectType]),
@@ -396,17 +396,18 @@ function informAboutDefaultProjectForJackIn(project: string) {
  * Returns the CLJS-Type description of one of the build-in.
  * @param cljsType Build-in cljsType
  */
-function getDefaultCljsType(cljsType: string): CljsTypeConfig {
+function getDefaultCljsType(cljsType: string): csTypes.CljsTypeConfig {
   // TODO: Find a less hacky way to get dynamic config for lein-figwheel
-  defaultCljsTypes['lein-figwheel'].shouldOpenUrl = getConfig().openBrowserWhenFigwheelStarted;
+  defaultCljsTypes['lein-figwheel'].shouldOpenUrl =
+    config.getConfig().openBrowserWhenFigwheelStarted;
   return defaultCljsTypes[cljsType];
 }
 
 async function getUserSpecifiedSequence(
-  sequences: ReplConnectSequence[],
+  sequences: csTypes.ReplConnectSequence[],
   connectType: ConnectType,
   disableAutoSelect: boolean
-): Promise<ReplConnectSequence | undefined> {
+): Promise<csTypes.ReplConnectSequence | undefined> {
   const autoSelectedSequences = disableAutoSelect
     ? []
     : sequences.filter((s) =>
@@ -455,12 +456,12 @@ async function askForConnectSequence(
   cljTypes: string[],
   connectType: ConnectType,
   disableAutoSelect: boolean
-): Promise<ReplConnectSequence> {
+): Promise<csTypes.ReplConnectSequence> {
   const [saveAs, logLabel, menuTitleType] =
     connectType === ConnectType.Connect
       ? ['connect-type', 'ConnectInterrupted', 'Connect']
       : ['jack-in-type', 'JackInInterrupted', 'Jack-in'];
-  const sequences: ReplConnectSequence[] = getConnectSequences(cljTypes);
+  const sequences: csTypes.ReplConnectSequence[] = getConnectSequences(cljTypes);
 
   const projectRootUri = state.getProjectRootUri();
   const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
