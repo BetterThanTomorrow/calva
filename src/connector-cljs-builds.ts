@@ -1,5 +1,5 @@
 import type { CljsTypeConfig, CljsTypes } from './nrepl/connect-sequence-types';
-import { keywordize } from './util/string';
+import * as stringUtil from './util/string';
 
 /**
  * Checks if a CLJS type configuration represents a shadow-cljs REPL.
@@ -34,7 +34,7 @@ export function updateInitCode(
     if (['node-repl', 'browser-repl'].includes(build)) {
       return initCode.repl.replace('%REPL%', build);
     } else {
-      return initCode.build.replace('%BUILD%', keywordize(build));
+      return initCode.build.replace('%BUILD%', stringUtil.keywordize(build));
     }
   } else if (build && typeof initCode === 'string') {
     return initCode.replace('%BUILD%', `"${build}"`);

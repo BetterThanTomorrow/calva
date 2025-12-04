@@ -1,21 +1,21 @@
 import * as expect from 'expect';
 import * as cljsBuilds from '../../connector-cljs-builds';
-import { CljsTypes, CljsTypeConfig } from '../../nrepl/connect-sequence-types';
+import * as connectSeq from '../../nrepl/connect-sequence-types';
 
 describe('connector-cljs-builds', () => {
   describe('isShadowCljsReplType', () => {
     it('returns true for shadow-cljs enum type', () => {
-      expect(cljsBuilds.isShadowCljsReplType(CljsTypes['shadow-cljs'])).toBe(true);
+      expect(cljsBuilds.isShadowCljsReplType(connectSeq.CljsTypes['shadow-cljs'])).toBe(true);
     });
 
     it('returns false for other enum types', () => {
-      expect(cljsBuilds.isShadowCljsReplType(CljsTypes['Figwheel Main'])).toBe(false);
-      expect(cljsBuilds.isShadowCljsReplType(CljsTypes['lein-figwheel'])).toBe(false);
-      expect(cljsBuilds.isShadowCljsReplType(CljsTypes.none)).toBe(false);
+      expect(cljsBuilds.isShadowCljsReplType(connectSeq.CljsTypes['Figwheel Main'])).toBe(false);
+      expect(cljsBuilds.isShadowCljsReplType(connectSeq.CljsTypes['lein-figwheel'])).toBe(false);
+      expect(cljsBuilds.isShadowCljsReplType(connectSeq.CljsTypes.none)).toBe(false);
     });
 
     it('returns true for config object with name shadow-cljs', () => {
-      const config: CljsTypeConfig = {
+      const config: connectSeq.CljsTypeConfig = {
         name: 'shadow-cljs',
         isStarted: false,
         connectCode: '',
@@ -24,9 +24,9 @@ describe('connector-cljs-builds', () => {
     });
 
     it('returns true for config object with dependsOn shadow-cljs', () => {
-      const config: CljsTypeConfig = {
+      const config: connectSeq.CljsTypeConfig = {
         name: 'custom',
-        dependsOn: CljsTypes['shadow-cljs'],
+        dependsOn: connectSeq.CljsTypes['shadow-cljs'],
         isStarted: false,
         connectCode: '',
       };
@@ -34,7 +34,7 @@ describe('connector-cljs-builds', () => {
     });
 
     it('returns false for config object without shadow-cljs reference', () => {
-      const config: CljsTypeConfig = {
+      const config: connectSeq.CljsTypeConfig = {
         name: 'figwheel-main',
         isStarted: false,
         connectCode: '',
