@@ -10,7 +10,6 @@ import { NReplClient, NReplSession } from './nrepl';
 import * as shadowCljsRuntime from './shadow-cljs-runtime';
 import {
   CljsTypeConfig,
-  CljsTypes,
   ReplConnectSequence,
   getDefaultCljsType,
   askForConnectSequence,
@@ -18,7 +17,6 @@ import {
 } from './nrepl/connectSequence';
 import * as secondarySession from './nrepl/secondary-session';
 import { disabledPrettyPrinter } from './printer';
-import { keywordize } from './util/string';
 import { initializeDebugger } from './debugger/calva-debug';
 import * as outputWindow from './repl-window/repl-window-doc';
 import { formatAsLineComments } from './results-output/util';
@@ -28,14 +26,12 @@ import * as calvaDebug from './debugger/calva-debug';
 import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 import * as replSession from './nrepl/repl-session';
 import * as clojureDocs from './clojuredocs';
-import * as jszip from 'jszip';
 import { addEdnConfig, getConfig } from './config';
 import { getJarContents } from './utilities';
 import { ConnectType } from './nrepl/connect-types';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
 import * as sessionRegistry from './nrepl/session-registry';
-import type { SessionKeyStatus } from './nrepl/session-registry';
 import * as sessionRoleUtils from './nrepl/session-role-utils';
 import type { SessionRoleKeys, SessionGlobMap } from './nrepl/session-role-utils';
 import * as sessionRouting from './nrepl/session-routing';
@@ -47,42 +43,8 @@ import type { SessionGlobSpec } from './nrepl/globs';
 import * as sessionNameResolver from './nrepl/session-name-resolver';
 import * as fruitSuffix from './nrepl/fruit-suffix';
 import { getPathRelativeToWorkspace } from './project-root';
-
-const CALVA_DOCS_BASE_URL = 'https://calva.io/';
-
-export function deriveRequestedSessionKeys(
-  sessionRoleKeys: SessionRoleKeys,
-  connectSequence: ReplConnectSequence,
-  useSecondarySession: boolean
-): string[] {
-  const keys = [sessionRoleKeys.primary];
-  if (
-    useSecondarySession &&
-    sessionRoleKeys.secondary &&
-    connectSequence.cljsType &&
-    connectSequence.cljsType !== 'none'
-  ) {
-    keys.push(sessionRoleKeys.secondary);
-  }
-  return keys.filter((key): key is string => Boolean(key));
-}
-
-function formatConflictDetails(conflicts: SessionKeyStatus[]): string {
-  if (conflicts.length === 0) {
-    return '';
-  }
-
-  return conflicts
-    .map((conflict) => {
-      const label = conflict.key;
-      const project = conflict.metadata?.projectRoot ? ` – ${conflict.metadata.projectRoot}` : '';
-      const globInfo = conflict.metadata?.globs?.length
-        ? ` [globs: ${conflict.metadata.globs.join(', ')}]`
-        : '';
-      return `${label} (${conflict.key})${project}${globInfo}`;
-    })
-    .join('\n');
-}
+import * as cljsBuilds from './connector-cljs-builds';
+import * as connectorUtils from './connector-utilities';
 
 function getSessionGlobMetadata(
   sessionKey: string,
@@ -93,32 +55,6 @@ function getSessionGlobMetadata(
     globSpecs,
     globs: globSpecs.map((spec) => spec.pattern),
   };
-}
-
-export function ensureSessionAssignmentsAvailable(
-  requestedKeys: string[],
-  clientKey: string
-): void {
-  if (!clientKey || requestedKeys.length === 0) {
-    return;
-  }
-
-  const analysis = sessionRegistry.analyzeSessionAssignments(requestedKeys, clientKey);
-  if (analysis.summary !== 'conflict') {
-    return;
-  }
-
-  const conflicts = analysis.statuses.filter((status) => status.occupancy === 'conflict');
-  const detailText = formatConflictDetails(conflicts);
-  const message = [
-    'Cannot connect because these session names are already in use by another Calva connection.',
-    detailText,
-    'Update the connect sequence to use unique session names or disconnect the other REPL first.',
-  ]
-    .filter(Boolean)
-    .join('\n');
-
-  throw new ConflictingSessionsError(message, conflicts);
 }
 
 async function readRuntimeConfigs() {
@@ -436,9 +372,9 @@ async function getFigwheelMainBuilds() {
 /**
  * ! DO it later
  */
-function getFigwheelBuilds() {
-  // do nothing
-}
+// function getFigwheelBuilds() {
+//   // do nothing
+// }
 
 type checkConnectedFn = (value: string, out: any[], err: any[]) => Promise<boolean>;
 type processOutputFn = (output: string) => void;
@@ -451,7 +387,7 @@ type connectFn = (
 async function evalConnectCode(
   newCljsSession: NReplSession,
   code: string,
-  name: string,
+  name: string, // Unused, TOOD: Investigate callers
   checkSuccess: checkConnectedFn,
   secondaryKey: string,
   globMap: SessionGlobMap,
@@ -528,26 +464,14 @@ async function getActiveBuilds(
   session: NReplSession
 ): Promise<string[] | undefined> {
   try {
-    let code: string;
-    if (cljsTypeName.includes('shadow-cljs')) {
-      code = '(mapv str (shadow.cljs.devtools.api/active-builds))';
-    } else if (cljsTypeName.includes('Figwheel Main')) {
-      code = '(vec (keys @figwheel.main/build-registry))';
-    } else {
+    const code = cljsBuilds.getActiveBuildQueryCode(cljsTypeName);
+    if (!code) {
       return undefined;
     }
 
     const result = await session.eval(code, 'user').value;
     if (result) {
-      // Parse the Clojure vector result, e.g. '[:app :app-too]' or '[":app" ":app-too"]'
-      const parsed = result
-        .replace(/^\[/, '')
-        .replace(/\]$/, '')
-        .split(/\s+/)
-        .map((s) => s.trim())
-        .map((s) => s.replace(/^"|"$/g, '')) // Strip quotes from string results
-        .filter((s) => s.length > 0);
-      return parsed;
+      return cljsBuilds.parseClojureVectorResult(result);
     }
   } catch (e) {
     console.error('Error querying active builds:', e);
@@ -577,20 +501,9 @@ async function selectCljsBuild(
     activeBuilds = await getActiveBuilds(cljsTypeName, session);
   }
 
-  // Builds that don't require watchers (always available)
-  const noWatcherRequired = ['node-repl', 'browser-repl'];
-
-  // Helper to normalize build keys for comparison
-  const normalizeBuildKey = (build: string) => (build.startsWith(':') ? build.substring(1) : build);
-
-  // Create picker items with status information
+  // Create picker items with status information using extracted helpers
   const pickerItems: util.CalvaQuickPickItem[] = allBuilds.map((build) => {
-    const buildKey = normalizeBuildKey(build);
-    const isNoWatcherBuild = noWatcherRequired.includes(buildKey);
-    const isActive =
-      isNoWatcherBuild ||
-      !activeBuilds ||
-      activeBuilds.some((ab) => normalizeBuildKey(ab) === buildKey);
+    const isActive = cljsBuilds.isBuildActive(build, activeBuilds);
 
     return {
       label: build,
@@ -610,18 +523,8 @@ async function selectCljsBuild(
   return buildItem?.label ?? null;
 }
 
-function updateInitCode(build: string, initCode): string | undefined {
-  if (build && typeof initCode === 'object') {
-    if (['node-repl', 'browser-repl'].includes(build)) {
-      return initCode.repl.replace('%REPL%', build);
-    } else {
-      return initCode.build.replace('%BUILD%', keywordize(build));
-    }
-  } else if (build && typeof initCode === 'string') {
-    return initCode.replace('%BUILD%', `"${build}"`);
-  }
-  return undefined;
-}
+// Use the extracted pure function from connector-cljs-builds
+const updateInitCode = cljsBuilds.updateInitCode;
 
 function createCLJSReplType(
   cljsType: CljsTypeConfig,
@@ -824,7 +727,7 @@ function createCLJSReplType(
     });
   }
 
-  async function handleConnected(result, out, err): Promise<boolean> {
+  async function handleConnected(result, out, _err): Promise<boolean> {
     if (cljsType.isConnectedRegExp) {
       const isConnectCodeEvaluatedSuccessfully =
         [...out, result].find((x) => {
@@ -953,8 +856,8 @@ function createCLJSReplType(
     };
   }
 
-  replType.started = (result, out, err): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
+  replType.started = (_result, out, err): Promise<boolean> => {
+    return new Promise((resolve, _reject) => {
       if (cljsType.isReadyToStartRegExp && !hasStarted) {
         const started =
           [...out, ...err].find((x) => {
@@ -974,17 +877,8 @@ function createCLJSReplType(
   return replType;
 }
 
-function isShadowCljsReplType(cljsType: CljsTypeConfig | CljsTypes): boolean {
-  if (typeof cljsType === 'string') {
-    return cljsType === 'shadow-cljs';
-  }
-
-  if (typeof cljsType === 'object' && cljsType !== null) {
-    return cljsType.name === 'shadow-cljs' || cljsType.dependsOn === 'shadow-cljs';
-  }
-
-  return false;
-}
+// Use the extracted pure function from connector-cljs-builds
+const isShadowCljsReplType = cljsBuilds.isShadowCljsReplType;
 
 async function makeCljsSessionClone(
   session,
@@ -1145,7 +1039,6 @@ async function standaloneConnect(
   await outputWindow.openReplWindowDoc();
 
   if (connectSequence) {
-    const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
     output.appendLineOtherOut(`Connecting ...`);
     void state.analytics().logGA4Pageview('/connect-initiated');
     void state.analytics().logGA4Pageview('/connect-initiated/standalone-connect');
@@ -1173,13 +1066,8 @@ async function nReplPortFileExists() {
   return fileExists;
 }
 
-function buildDocsUrl(slug?: string): string {
-  if (!slug) {
-    return CALVA_DOCS_BASE_URL;
-  }
-  const normalizedSlug = slug.startsWith('/') ? slug.slice(1) : slug;
-  return `${CALVA_DOCS_BASE_URL}${normalizedSlug}`;
-}
+// Use extracted pure function
+const buildDocsUrl = connectorUtils.buildDocsUrl;
 
 function handleConnectError(error: unknown): boolean {
   if (error instanceof ConflictingSessionsError) {
@@ -1204,16 +1092,8 @@ function handleConnectError(error: unknown): boolean {
   return false;
 }
 
-interface DisconnectSelectionAll {
-  kind: 'all';
-}
-
-interface DisconnectSelectionSingle {
-  kind: 'single';
-  clientKey: string;
-}
-
-type DisconnectSelection = DisconnectSelectionAll | DisconnectSelectionSingle;
+// Re-export types from connector-utilities
+type DisconnectSelection = connectorUtils.DisconnectSelection;
 
 interface DisconnectQuickPickItem extends vscode.QuickPickItem {
   clientKey?: string;
@@ -1232,37 +1112,30 @@ function formatRelativeProjectRoot(projectRoot?: string): string | undefined {
   }
 }
 
-function buildDisconnectItemLabel(client: RegisteredClient): string {
-  const label = client.connectSequenceName || client.key;
-  return label;
-}
-
 async function promptForClientDisconnect(
   clients: RegisteredClient[]
 ): Promise<DisconnectSelection | undefined> {
   const items: DisconnectQuickPickItem[] = clients.map((client) => {
     const sessions = sessionRegistry.listSessionsByClient(client.key);
-    const sessionSummary = sessions.length
-      ? sessions.map((s) => s.key).join(', ')
-      : 'No sessions registered';
+    const sessionKeys = sessions.map((s) => s.key);
 
     // Format project root as relative path for readability
     const relativeProjectRoot = formatRelativeProjectRoot(client.projectRoot);
 
-    // Build description with sessions and project root
-    const descriptionParts: string[] = [sessionSummary];
-    if (relativeProjectRoot) {
-      descriptionParts.push(relativeProjectRoot);
-    }
-    const description = descriptionParts.join(' — ');
-
-    // Build detail with host:port
-    const detail = client.host
-      ? `${client.host}${client.port ? ':' + client.port : ''}`
-      : undefined;
+    // Use extracted pure functions for building display strings
+    const description = connectorUtils.buildDisconnectItemDescription(
+      sessionKeys,
+      relativeProjectRoot
+    );
+    const detail = connectorUtils.buildDisconnectItemDetail(client.host, client.port);
+    const label = connectorUtils.buildDisconnectItemLabel({
+      key: client.key,
+      connectSequenceName: client.connectSequenceName,
+      sessionKeys,
+    });
 
     return {
-      label: buildDisconnectItemLabel(client),
+      label,
       description,
       detail,
       clientKey: client.key,
@@ -1352,7 +1225,6 @@ export default {
     await outputWindow.openReplWindowDoc();
 
     if (connectSequence) {
-      const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
       output.appendLineOtherOut(`Connecting ...`);
       void state.analytics().logGA4Pageview('/connect-initiated');
       void state.analytics().logGA4Pageview('/connect-initiated/external-repl-connect');
