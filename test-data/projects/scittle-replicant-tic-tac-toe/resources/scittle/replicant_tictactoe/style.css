@@ -1,0 +1,50 @@
+/* COPIED from https://github.com/cjohansen/replicant-tic-tac-toe/blob/7a33fb12f0cd6658b2f555ff673dee031d4aa921/resources/public/styles.css */
+.cell {
+    aspect-ratio: 1 / 1;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 6%;
+    border: none;
+    display: block;
+    flex: 1 1 0%;
+    outline: none;
+    position: relative;
+    width: 100%;
+}
+
+.cell-content {
+    opacity: 1;
+    transition: opacity 0.25s;
+}
+
+.transparent {
+    opacity: 0;
+}
+
+.cell-dim {
+    background: rgba(249, 249, 240, 0.3);
+}
+
+.cell-highlight {
+    background: #fcfcf3;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.board {
+    --gap: 0.75rem;
+    background: #833ab4;
+    background: linear-gradient(90deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    padding: var(--gap);
+    max-width: 80vh;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap);
+}
