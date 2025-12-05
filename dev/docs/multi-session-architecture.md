@@ -209,18 +209,17 @@ Tracks active nREPL client connections.
 
 **Note on `activeClientKey`**: This tracks which client is "current" for connection lifecycle management in `connector.ts`. When a client disconnects or encounters an error, the module-level `nClient` reference is updated via `getActiveClient()`. This is an internal detail of client lifecycle management, not used for session routing (which uses `replSession.getSession()`).
 
-#### Connection State (`src/nrepl/connection-state.ts`)
+#### Connection State (embedded in `src/nrepl/client-registry.ts`)
 
-Per-connection state for CLJS-specific information.
+Per-connection state for CLJS-specific information. This used to live in a separate `connection-state.ts` module but is now stored on each `RegisteredClient` entry inside the client registry.
 
 | Function | Purpose |
 |----------|---------|
 | `getConnectionState(clientKey)` | Get state for a connection |
 | `setConnectionState(clientKey, state)` | Set/merge state |
-| `clearConnectionState(clientKey)` | Remove state on disconnect |
 | `listConnectionStates()` | Debug: list all states |
 
-**Storage mechanism**: Uses an in-memory `Map<string, ConnectionState>`.
+**Storage mechanism**: In-memory `Map<string, RegisteredClient>` inside `client-registry`, with the connection state embedded on each entry. Clearing happens when the client is unregistered.
 
 ### Connector (`src/connector.ts`)
 
@@ -596,14 +595,15 @@ The `getSessionKey()` function checks in this order:
 2. REPL Window Session (when active editor is REPL window)
    └─► outputWindow.getSessionType() - the explicitly targeted session for the REPL window
 
-3. Glob Pattern Matching + CLJC Within Connection
+3. Glob Pattern Matching (CLJC target only applied for project-fallback tier)
    └─► findSessionKeyForDocument(doc)
        • Build candidate paths from document URI
        • Match against session globSpecs
        • Priority: 'always-claim' > 'is-fallback-for' > 'project-fallback'
        • Higher score wins within same tier
-       • For 'project-fallback' matches: apply per-connection CLJC target preference
-         └─► resolveCljcWithinConnection() - redirects to primary/secondary based on cljcTarget
+             • For 'project-fallback' matches: apply per-connection CLJC target preference
+                 └─► resolveCljcWithinConnection() - redirects to primary/secondary based on cljcTarget
+             • For 'always-claim' and 'is-fallback-for' matches: use the matched session as-is (no CLJC redirection)
 
 4. First Available Session + CLJC Within Connection
    └─► sessionRegistry.listSessions()[0] with cljc preference applied
@@ -615,6 +615,7 @@ The `getSessionKey()` function checks in this order:
 - CLJC target is set to 'secondary' when CLJS session connects (most recently connected session)
 - REPL window session is always set when connected
 - CLJC preference is per-connection, stored in ConnectionState
+- CLJC preference is consulted only for project-fallback routing and the first-available fallback; direct glob matches (`always-claim`, `is-fallback-for`) are not redirected
 
 ### Glob Matching Algorithm
 
