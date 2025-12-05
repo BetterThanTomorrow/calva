@@ -237,7 +237,20 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
 }
 
 export async function clearReplWindowDoc() {
-  await util.writeTextToFile(getDocUri(), '');
+  const docUri = getDocUri();
+  await vscode.workspace.fs.createDirectory(getDocDir());
+  let doc: vscode.TextDocument;
+  try {
+    doc = await vscode.workspace.openTextDocument(docUri);
+  } catch {
+    await util.writeTextToFile(docUri, '');
+    doc = await vscode.workspace.openTextDocument(docUri);
+  }
+  const edit = new vscode.WorkspaceEdit();
+  const fullRange = new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity));
+  edit.replace(docUri, fullRange, '');
+  await vscode.workspace.applyEdit(edit);
+  await doc.save();
 }
 
 export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
