@@ -30,12 +30,13 @@ class InMemoryMemento implements vscode.Memento {
     return defaultValue;
   }
 
-  async update(key: string, value: unknown): Promise<void> {
+  update(key: string, value: unknown): Thenable<void> {
     if (value === undefined) {
       delete this.store[key];
-      return;
+      return Promise.resolve();
     }
     this.store[key] = value;
+    return Promise.resolve();
   }
 
   keys(): readonly string[] {
@@ -146,7 +147,10 @@ suite(SUITE, () => {
       'cider-nrepl': 'STORED-CIDER-2',
       'cider/piggieback': 'STORED-PIGGIE-3',
     };
-    await state.extensionContext?.globalState.update(GLOBAL_STATE_KEY, stored);
+    const ctx = state.extensionContext;
+    if (ctx) {
+      await ctx.globalState.update(GLOBAL_STATE_KEY, stored);
+    }
 
     await testUtil.sleep(20);
     await vscode.workspace
@@ -199,7 +203,10 @@ suite(SUITE, () => {
       .inspect<Record<JackInDependencyKey, string>>('jackInDependencyVersions');
     const defaults = (inspectedDefaults?.defaultValue ?? {}) as Record<JackInDependencyKey, string>;
 
-    await state.extensionContext?.globalState.update(GLOBAL_STATE_KEY, {});
+    const ctx = state.extensionContext;
+    if (ctx) {
+      await ctx.globalState.update(GLOBAL_STATE_KEY, {});
+    }
     await vscode.workspace
       .getConfiguration('calva')
       .update('jackInDependencyVersions', undefined, vscode.ConfigurationTarget.Workspace);
