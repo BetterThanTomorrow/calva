@@ -21,6 +21,7 @@ Changes to Calva.
   - Removed deprecated `calva.useLegacyReplWindowPath` setting. The REPL window is now always located at `.calva/repl.calva-repl`.
 - Adds a new connect sequence: **Clojure projectless**, for jack-in and connect without a `deps.edn`, etcetera needed.
 - Improve ClojureScript build selector UX: query REPL for active watchers, show status, and disable builds without running watchers
+- The `calva.copyJackInCommandToClipboard` command now accepts a connect sequence argument.
 
 ## [2.0.540] - 2025-11-06
 

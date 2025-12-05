@@ -327,9 +327,26 @@ export function revealJackInTerminal() {
   }
 }
 
-export async function copyJackInCommandToClipboard(): Promise<void> {
+export async function copyJackInCommandToClipboard(options?: {
+  connectSequence?: ReplConnectSequence | string;
+  disableAutoSelect?: boolean;
+}): Promise<void> {
+  let providedSequence: ReplConnectSequence | undefined;
+
+  if (options && typeof options.connectSequence === 'string') {
+    providedSequence = getConnectSequences(projectTypes.getAllProjectTypes()).find(
+      (s) => s.name === options.connectSequence
+    );
+  } else if (options?.connectSequence) {
+    providedSequence = options.connectSequence as ReplConnectSequence;
+  }
+
   try {
-    await state.initProjectDir(ConnectType.JackIn, undefined);
+    await state.initProjectDir(
+      ConnectType.JackIn,
+      providedSequence,
+      options?.disableAutoSelect ?? false
+    );
   } catch (e) {
     console.error('An error occurred while initializing project directory.', e);
     return;
@@ -337,7 +354,8 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
 
   let projectConnectSequence: ReplConnectSequence;
   try {
-    projectConnectSequence = await getProjectConnectSequence(false);
+    projectConnectSequence =
+      providedSequence ?? (await getProjectConnectSequence(options?.disableAutoSelect ?? false));
   } catch (e) {
     return;
   }

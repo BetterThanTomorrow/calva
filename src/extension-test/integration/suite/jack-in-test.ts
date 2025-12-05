@@ -322,6 +322,9 @@ async function startJackInProcedure(
   if (cmdId === 'calva.jackIn') {
     const connectSequence = buildConnectSequence(projectType, projectRootUri);
     await commands.executeCommand(cmdId, { connectSequence, disableAutoSelect: true });
+  } else if (cmdId === 'calva.copyJackInCommandToClipboard') {
+    const connectSequence = buildConnectSequence(projectType, projectRootUri);
+    await commands.executeCommand(cmdId, { connectSequence, disableAutoSelect: true });
   } else {
     // Seed the project type quick pick to avoid UI interaction
     const saveAs = `qps-${projectRootUri.toString()}/jack-in-type`;
