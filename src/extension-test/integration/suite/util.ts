@@ -3,6 +3,12 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as which from 'which';
 import * as screenshot from 'screenshot-desktop';
+import * as state from '../../../state';
+import * as projectRoot from '../../../project-root';
+import * as clientRegistry from '../../../nrepl/client-registry';
+import * as outputWindow from '../../../repl-window/repl-window-doc';
+import { getDocument } from '../../../doc-mirror';
+import connector from '../../../connector';
 
 export const testDataDir = path.join(
   __dirname,
@@ -68,7 +74,7 @@ export async function captureScreenshot(
 
     const imageBuffer = await screenshot();
 
-    fs.writeFileSync(outputPath, imageBuffer);
+    fs.writeFileSync(outputPath, new Uint8Array(imageBuffer));
     log(suite, `Screenshot saved to ${outputPath}`);
   } catch (error) {
     log(suite, 'Error capturing screenshot:', error);
@@ -128,5 +134,114 @@ export async function waitForCondition(
       throw new Error('Timed out waiting for condition');
     }
     await sleep(intervalMs);
+  }
+}
+
+export class JackInHarness {
+  private lastSeenClientConnectedAt = 0;
+  private lastJackInDoneCount = 0;
+
+  constructor(private readonly suiteName: string) {}
+
+  reset(): void {
+    this.lastSeenClientConnectedAt = 0;
+    this.lastJackInDoneCount = 0;
+  }
+
+  async disconnectAllClients(): Promise<void> {
+    const existingClients = clientRegistry.listClients();
+    for (const client of existingClients) {
+      try {
+        await connector.disconnect({ clientKey: client.key });
+      } catch {
+        // Ignore errors during cleanup
+      }
+    }
+  }
+
+  async jackInWithQuickPick(filePath: string, projectType: string): Promise<string> {
+    await openFile(filePath);
+    log(this.suiteName, `Opened file for jack-in: ${filePath}`);
+
+    const projectRootUri = projectRoot.findClosestParent(
+      vscode.window.activeTextEditor?.document.uri,
+      await projectRoot.findProjectRoots()
+    );
+    const saveAs = `qps-${projectRootUri?.toString() ?? 'unknown-root'}/jack-in-type`;
+    await state.extensionContext.workspaceState.update(saveAs, { label: projectType });
+
+    let resolved = false;
+    void vscode.commands.executeCommand('calva.jackIn').then(() => {
+      resolved = true;
+    });
+
+    while (!resolved) {
+      await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+      await sleep(100);
+    }
+
+    const clientKey = await this.waitForNextClient();
+    await this.waitForJackInCompletion();
+    await sleep(500);
+    log(this.suiteName, 'Jack-in complete for client', clientKey);
+    return clientKey;
+  }
+
+  async jackInWithConnectSequence(
+    filePath: string,
+    connectSequence: unknown,
+    disableAutoSelect = true
+  ): Promise<string> {
+    await openFile(filePath);
+    log(this.suiteName, `Opened file for jack-in: ${filePath}`);
+
+    await vscode.commands.executeCommand('calva.jackIn', {
+      connectSequence,
+      disableAutoSelect,
+    });
+
+    const clientKey = await this.waitForNextClient();
+    await this.waitForJackInCompletion();
+    await sleep(500);
+    log(this.suiteName, 'Jack-in complete for client', clientKey);
+    return clientKey;
+  }
+
+  async waitForNextClient(timeoutMs = 60_000): Promise<string> {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      const clients = clientRegistry.listClients();
+      const newest = clients[clients.length - 1];
+      if (newest && newest.connectedAt > this.lastSeenClientConnectedAt) {
+        this.lastSeenClientConnectedAt = newest.connectedAt;
+        log(
+          this.suiteName,
+          `Detected new client ${newest.connectSequenceName ?? newest.key} (${
+            newest.projectRoot ?? 'no-root'
+          })`
+        );
+        return newest.key;
+      }
+      log(this.suiteName, 'Waiting for new jack-in client...');
+      await sleep(250);
+    }
+    throw new Error('Timed out waiting for new jack-in client');
+  }
+
+  async waitForJackInCompletion(timeoutMs = 60_000): Promise<void> {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      const resultsEditor = await outputWindow.openReplWindowDoc();
+      const text = getDocument(resultsEditor).document.getText();
+      const currentCount = (text.match(/Jack-in done\./g) || []).length;
+      if (currentCount > this.lastJackInDoneCount) {
+        this.lastJackInDoneCount = currentCount;
+        log(this.suiteName, 'Jack-in completion detected');
+        return;
+      }
+      log(this.suiteName, 'Waiting for jack-in completion output...');
+      await sleep(250);
+    }
+    throw new Error('Timed out waiting for jack-in completion output');
   }
 }
