@@ -4,11 +4,13 @@ import * as path from 'path';
 import * as testUtil from './util';
 import * as util from '../../../utilities';
 import * as clientRegistry from '../../../nrepl/client-registry';
+import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as vscode from 'vscode';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import { commands } from 'vscode';
 import { getDocument } from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
+import connector, { connect as connectDirect } from '../../../connector';
 import { getConnectSequences } from '../../../nrepl/connectSequence';
 import {
   CljsTypes,
@@ -32,7 +34,8 @@ suite('Jack-in suite', () => {
 
   beforeEach(async () => {
     await outputWindow.clearReplWindowDoc();
-    lastJackInDoneCount = 0;
+    resetConnectionTracking();
+    await disconnectExistingClients();
   });
 
   test('start repl and connect (jack-in)', async function () {
@@ -77,20 +80,16 @@ suite('Jack-in suite', () => {
       projectType: ProjectTypes['deps.edn'],
       name: 'string-afterPrimaryReplConnectedCode',
       autoSelectForJackIn: true,
-      projectRootPath: ['.'],
       afterPrimaryReplConnectedCode: '(println :hello :world!)',
       cljsType: CljsTypes.none,
     };
-    const testFilePath = await startJackInProcedure(
+    await reconnectAndAssert(
       suite,
-      'calva.jackIn',
       'deps.edn',
       'test.clj',
+      ['; :hello :world!', '; bar', 'nil', 'clj꞉test꞉> '],
       connectSequence
     );
-    await loadAndAssert(suite, testFilePath, ['; :hello :world!', '; bar', 'nil', 'clj꞉test꞉> ']);
-    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-    testUtil.log(suite, 'test.clj closed');
   });
 
   test('Jack-in afterPrimaryReplConnectedCode can be an array', async () => {
@@ -99,26 +98,16 @@ suite('Jack-in suite', () => {
       projectType: ProjectTypes['deps.edn'],
       name: 'array-afterPrimaryReplConnectedCode',
       autoSelectForJackIn: true,
-      projectRootPath: ['.'],
       afterPrimaryReplConnectedCode: ['(println :hello)', '(println :world!)'].join('\n'),
       cljsType: CljsTypes.none,
     };
-    const testFilePath = await startJackInProcedure(
+    await reconnectAndAssert(
       suite,
-      'calva.jackIn',
       'deps.edn',
       'test.clj',
+      ['; :hello', '; :world!', '; bar', 'nil', 'clj꞉test꞉> '],
       connectSequence
     );
-    await loadAndAssert(suite, testFilePath, [
-      '; :hello',
-      '; :world!',
-      '; bar',
-      'nil',
-      'clj꞉test꞉> ',
-    ]);
-    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-    testUtil.log(suite, 'test.clj closed');
   });
 
   test('Jack-in still accepts afterCLJReplJackInCode', async () => {
@@ -127,20 +116,16 @@ suite('Jack-in suite', () => {
       projectType: ProjectTypes['deps.edn'],
       name: 'legacy-afterCLJReplJackInCode',
       autoSelectForJackIn: true,
-      projectRootPath: ['.'],
       afterCLJReplJackInCode: '(println :legacy :hook!)',
       cljsType: CljsTypes.none,
     };
-    const testFilePath = await startJackInProcedure(
+    await reconnectAndAssert(
       suite,
-      'calva.jackIn',
       'deps.edn',
       'test.clj',
+      ['; :legacy :hook!', '; bar', 'nil', 'clj꞉test꞉> '],
       connectSequence
     );
-    await loadAndAssert(suite, testFilePath, ['; :legacy :hook!', '; bar', 'nil', 'clj꞉test꞉> ']);
-    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-    testUtil.log(suite, 'test.clj closed');
   });
 
   test('Jack-in works with auto-selected project type', async () => {
@@ -150,20 +135,15 @@ suite('Jack-in suite', () => {
       projectType: ProjectTypes['deps.edn'],
       name: 'auto-select',
       autoSelectForJackIn: true,
-      projectRootPath: ['.'],
       cljsType: CljsTypes.none,
     };
-    const testFilePath = await startJackInProcedure(
+    await reconnectAndAssert(
       suite,
-      'calva.jackIn',
       'deps.edn',
       'test.clj',
+      ['; bar', 'nil', 'clj꞉test꞉> '],
       connectSequence
     );
-    await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
-
-    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-    testUtil.log(suite, 'test.clj closed');
   });
 
   test('Copy Jack-in command line', async function () {
@@ -200,8 +180,13 @@ function appearInOrder(needle: string[], haystack: string[]) {
 let lastSeenClientConnectedAt = 0;
 let lastJackInDoneCount = 0;
 
-async function loadAndAssert(suite: string, testFilePath: string, needle: string[]) {
-  const replWindowDoc = await waitForResult(suite);
+async function loadAndAssert(
+  suite: string,
+  testFilePath: string,
+  needle: string[],
+  options?: { waitForJackInOutput?: boolean }
+) {
+  const replWindowDoc = await waitForResult(suite, options);
 
   await vscode.workspace.openTextDocument(testFilePath).then((doc) =>
     vscode.window.showTextDocument(doc, {
@@ -220,16 +205,20 @@ async function loadAndAssert(suite: string, testFilePath: string, needle: string
   );
 }
 
-async function waitForResult(suite: string) {
-  await waitForNextClient(suite);
-  await waitForJackInCompletion(suite);
+async function waitForResult(suite: string, options?: { waitForJackInOutput?: boolean }) {
+  const clientKey = await waitForNextClient(suite);
+  if (options?.waitForJackInOutput ?? true) {
+    await waitForJackInCompletion(suite);
+  } else {
+    await waitForSessionsReady(clientKey);
+  }
   await testUtil.sleep(500);
   testUtil.log(suite, 'connected to repl');
 
   return getDocument(await outputWindow.openReplWindowDoc());
 }
 
-async function waitForNextClient(suite: string) {
+async function waitForNextClient(suite: string): Promise<string> {
   const timeoutMs = 60_000;
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
@@ -243,7 +232,7 @@ async function waitForNextClient(suite: string) {
           newest.projectRoot ?? 'no-root'
         })`
       );
-      return;
+      return newest.key;
     }
     testUtil.log(suite, 'waiting for new jack-in client...');
     await testUtil.sleep(250);
@@ -276,18 +265,11 @@ async function startJackInProcedure(
   testFile: string,
   connectSequenceOverride?: ReplConnectSequence
 ) {
-  const testFilePath = path.join(testUtil.testDataDir, testFile);
-  await testUtil.openFile(testFilePath);
-  testUtil.log(suite, `${testFile} opened for project type ${projectType}`);
-
-  const candidateRoots = await projectRoot.findProjectRoots();
-  const projectRootUri =
-    projectRoot.findClosestParent(vscode.window.activeTextEditor?.document.uri, candidateRoots) ??
-    vscode.workspace.workspaceFolders?.[0]?.uri ??
-    vscode.Uri.file(testUtil.testDataDir);
-
-  const connectSequence =
-    connectSequenceOverride ?? buildConnectSequence(projectType, projectRootUri);
+  const { testFilePath, connectSequence } = await openTestFileAndBuildSequence(
+    projectType,
+    testFile,
+    connectSequenceOverride
+  );
 
   if (cmdId === 'calva.jackIn' || cmdId === 'calva.copyJackInCommandToClipboard') {
     await commands.executeCommand(cmdId, { connectSequence, disableAutoSelect: true });
@@ -296,6 +278,52 @@ async function startJackInProcedure(
   }
 
   return testFilePath;
+}
+
+async function reconnectAndAssert(
+  suite: string,
+  projectType: string | undefined,
+  testFile: string,
+  needle: string[],
+  connectSequenceOverride?: ReplConnectSequence
+) {
+  await disconnectExistingClients();
+  resetConnectionTracking();
+
+  const { testFilePath, connectSequence } = await openTestFileAndBuildSequence(
+    projectType,
+    testFile,
+    connectSequenceOverride
+  );
+
+  await connectDirect(connectSequence, true);
+
+  await loadAndAssert(suite, testFilePath, needle, { waitForJackInOutput: false });
+  await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  testUtil.log(suite, `${path.basename(testFilePath)} closed after reconnect`);
+}
+
+async function openTestFileAndBuildSequence(
+  projectType: string | undefined,
+  testFile: string,
+  connectSequenceOverride?: ReplConnectSequence
+) {
+  const testFilePath = path.join(testUtil.testDataDir, testFile);
+  await testUtil.openFile(testFilePath);
+  testUtil.log('Jack-in', `${testFile} opened for project type ${projectType}`);
+
+  const candidateRoots = await projectRoot.findProjectRoots();
+  const projectRootUri =
+    projectRoot.findClosestParent(vscode.window.activeTextEditor?.document.uri, candidateRoots) ??
+    vscode.workspace.workspaceFolders?.[0]?.uri ??
+    vscode.Uri.file(testUtil.testDataDir);
+
+  const connectSequence =
+    connectSequenceOverride !== undefined
+      ? { ...connectSequenceOverride, projectRootPath: [projectRootUri.fsPath] }
+      : buildConnectSequence(projectType, projectRootUri);
+
+  return { testFilePath, connectSequence };
 }
 
 function buildConnectSequence(
@@ -328,4 +356,38 @@ function buildConnectSequence(
     projectRootPath: [projectRootUri.fsPath],
     cljsType: baseSequence.cljsType ?? CljsTypes.none,
   };
+}
+
+async function waitForSessionsReady(clientKey: string): Promise<void> {
+  const timeoutMs = 60_000;
+  const start = Date.now();
+
+  while (Date.now() - start < timeoutMs) {
+    const sessions = sessionRegistry.listSessionsByClient(clientKey);
+    const sessionKeys = sessions.map((s) => s.key);
+    if (sessionKeys.length > 0) {
+      testUtil.log('Jack-in', `sessions ready for client ${clientKey}: ${sessionKeys.join(', ')}`);
+      return;
+    }
+    testUtil.log('Jack-in', 'waiting for sessions to be ready...');
+    await testUtil.sleep(250);
+  }
+
+  throw new Error('Timed out waiting for sessions to be ready');
+}
+
+async function disconnectExistingClients(): Promise<void> {
+  const clients = clientRegistry.listClients();
+  for (const client of clients) {
+    try {
+      await connector.disconnect({ clientKey: client.key });
+    } catch {
+      // Ignore errors during cleanup
+    }
+  }
+}
+
+function resetConnectionTracking(): void {
+  lastSeenClientConnectedAt = 0;
+  lastJackInDoneCount = 0;
 }
