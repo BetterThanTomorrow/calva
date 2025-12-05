@@ -1,7 +1,6 @@
 import * as assert from 'assert';
-import { before, after, beforeEach, afterEach } from 'mocha';
+import { before, after, beforeEach } from 'mocha';
 import * as path from 'path';
-import * as vscode from 'vscode';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
@@ -10,16 +9,6 @@ import connector from '../../../connector';
 import * as testUtil from './util';
 
 const suiteName = 'Fruit Suffix';
-const settingsUri: vscode.Uri = vscode.Uri.joinPath(
-  vscode.workspace.workspaceFolders[0].uri,
-  '.vscode',
-  'settings.json'
-);
-const settingsBackupUri: vscode.Uri = vscode.Uri.joinPath(
-  vscode.workspace.workspaceFolders[0].uri,
-  '.vscode',
-  'settings.json.bak'
-);
 
 suite('Fruit Suffix suite', () => {
   const jackInHarness = new testUtil.JackInHarness(suiteName);
@@ -39,7 +28,6 @@ suite('Fruit Suffix suite', () => {
 
   before(async () => {
     testUtil.showMessage(suiteName, `suite starting!`);
-    await vscode.workspace.fs.copy(settingsUri, settingsBackupUri, { overwrite: true });
     await testUtil.ensureOutputDir(testUtil.testDataDir);
     await jackInHarness.disconnectAllClients();
     fruitSuffix.resetPool();
@@ -49,25 +37,17 @@ suite('Fruit Suffix suite', () => {
     testUtil.showMessage(suiteName, `suite done!`);
     await jackInHarness.disconnectAllClients();
     fruitSuffix.resetPool();
-    await vscode.workspace.fs.delete(settingsBackupUri);
   });
 
   beforeEach(async () => {
-    await vscode.workspace.fs.copy(settingsBackupUri, settingsUri, { overwrite: true });
     await outputWindow.clearReplWindowDoc();
     jackInHarness.reset();
     await ensureBaseConnection();
   });
 
-  afterEach(async () => {
-    // Keep base and second connections alive across tests
-  });
-
   test('Second project with same session names gets fruit suffix', async function () {
     this.timeout(120_000);
     testUtil.log(suiteName, 'Testing: Second project gets fruit suffix');
-
-    await writeSettings({});
 
     const firstClientKey = await ensureBaseConnection();
     const secondClientKey = await ensureSecondConnection();
@@ -102,7 +82,6 @@ suite('Fruit Suffix suite', () => {
     this.timeout(120_000);
     testUtil.log(suiteName, 'Testing: Disconnect releases fruit suffix');
 
-    await writeSettings({});
     await ensureBaseConnection();
     const secondClientKey = await ensureSecondConnection();
 
@@ -157,22 +136,6 @@ suite('Fruit Suffix suite', () => {
 
     secondClientKey = await jackInHarness.jackInWithQuickPick(secondProjectFile, 'deps.edn');
     return secondClientKey;
-  }
-
-  async function writeSettings(settings: Record<string, unknown>): Promise<void> {
-    const settingsData = JSON.stringify(settings, null, 2);
-    await vscode.workspace.fs.writeFile(settingsUri, new TextEncoder().encode(settingsData));
-
-    const config = vscode.workspace.getConfiguration();
-    const sections: Array<[string, unknown]> = Object.entries(settings);
-
-    if (!('calva.replConnectSequences' in settings)) {
-      sections.push(['calva.replConnectSequences', undefined]);
-    }
-
-    for (const [section, value] of sections) {
-      await config.update(section, value, vscode.ConfigurationTarget.Workspace);
-    }
   }
 
   async function getFruitSuffixForClient(clientKey: string): Promise<string | undefined> {
