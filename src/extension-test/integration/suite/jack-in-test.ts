@@ -4,60 +4,39 @@ import * as path from 'path';
 import * as testUtil from './util';
 import * as util from '../../../utilities';
 import * as clientRegistry from '../../../nrepl/client-registry';
-import * as state from '../../../state';
-
 import * as vscode from 'vscode';
-// import * as myExtension from '../extension';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import { commands } from 'vscode';
 import { getDocument } from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
 import { getConnectSequences } from '../../../nrepl/connectSequence';
-import { CljsTypes, ReplConnectSequence } from '../../../nrepl/connect-sequence-types';
+import {
+  CljsTypes,
+  ProjectTypes,
+  ReplConnectSequence,
+} from '../../../nrepl/connect-sequence-types';
 import * as projectTypes from '../../../nrepl/project-types';
 import { getConfig } from '../../../config';
-
-const settingsUri: vscode.Uri = vscode.Uri.joinPath(
-  vscode.workspace.workspaceFolders[0].uri,
-  '.vscode',
-  'settings.json'
-);
-const settingsBackupUri: vscode.Uri = vscode.Uri.joinPath(
-  vscode.workspace.workspaceFolders[0].uri,
-  '.vscode',
-  'settings.json.bak'
-);
-
-// TODO: Add more smoke tests for the extension
-// TODO: Start building integration test coverage
 
 suite('Jack-in suite', () => {
   const suite = 'Jack-in';
 
   before(async () => {
-    testUtil.showMessage(suite, `suite starting!`);
-    await vscode.workspace.fs.copy(settingsUri, settingsBackupUri, { overwrite: true });
-    // Add this line to ensure output directory exists
+    testUtil.showMessage(suite, 'suite starting!');
     await testUtil.ensureOutputDir(testUtil.testDataDir);
   });
 
-  after(async () => {
-    console.log(suite, 'workspaceRoot', vscode.workspace.workspaceFolders[0].uri.fsPath);
-    testUtil.showMessage(suite, `suite done!`);
-    await vscode.workspace.fs.delete(settingsBackupUri);
+  after(() => {
+    testUtil.showMessage(suite, 'suite done!');
   });
 
   beforeEach(async () => {
-    await vscode.workspace.fs.copy(settingsBackupUri, settingsUri, { overwrite: true });
     await outputWindow.clearReplWindowDoc();
     lastJackInDoneCount = 0;
   });
 
   test('start repl and connect (jack-in)', async function () {
     testUtil.log(suite, 'start repl and connect (jack-in)');
-
-    const settings = {};
-    await writeSettings(settings);
 
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn', 'test.clj');
 
@@ -78,9 +57,6 @@ suite('Jack-in suite', () => {
     } else {
       testUtil.log(suite, `Basilisp executable found at ${executablePath}`);
 
-      const settings = {};
-      await writeSettings(settings);
-
       const testFilePath = await startJackInProcedure(
         suite,
         'calva.jackIn',
@@ -97,19 +73,21 @@ suite('Jack-in suite', () => {
 
   test('Jack-in afterPrimaryReplConnectedCode can be a string', async () => {
     testUtil.log(suite, 'Jack-in afterPrimaryReplConnectedCode can be a string');
-    const settings = {
-      'calva.replConnectSequences': [
-        {
-          projectType: 'deps.edn',
-          name: 'string-afterPrimaryReplConnectedCode',
-          autoSelectForJackIn: true,
-          projectRootPath: ['.'],
-          afterPrimaryReplConnectedCode: '(println :hello :world!)',
-        },
-      ],
+    const connectSequence: ReplConnectSequence = {
+      projectType: ProjectTypes['deps.edn'],
+      name: 'string-afterPrimaryReplConnectedCode',
+      autoSelectForJackIn: true,
+      projectRootPath: ['.'],
+      afterPrimaryReplConnectedCode: '(println :hello :world!)',
+      cljsType: CljsTypes.none,
     };
-    await writeSettings(settings);
-    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn', 'test.clj');
+    const testFilePath = await startJackInProcedure(
+      suite,
+      'calva.jackIn',
+      'deps.edn',
+      'test.clj',
+      connectSequence
+    );
     await loadAndAssert(suite, testFilePath, ['; :hello :world!', '; bar', 'nil', 'clj꞉test꞉> ']);
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
@@ -117,19 +95,21 @@ suite('Jack-in suite', () => {
 
   test('Jack-in afterPrimaryReplConnectedCode can be an array', async () => {
     testUtil.log(suite, 'Jack-in afterPrimaryReplConnectedCode can be an array');
-    const settings = {
-      'calva.replConnectSequences': [
-        {
-          projectType: 'deps.edn',
-          name: 'array-afterPrimaryReplConnectedCode',
-          autoSelectForJackIn: true,
-          projectRootPath: ['.'],
-          afterPrimaryReplConnectedCode: ['(println :hello)', '(println :world!)'],
-        },
-      ],
+    const connectSequence: ReplConnectSequence = {
+      projectType: ProjectTypes['deps.edn'],
+      name: 'array-afterPrimaryReplConnectedCode',
+      autoSelectForJackIn: true,
+      projectRootPath: ['.'],
+      afterPrimaryReplConnectedCode: ['(println :hello)', '(println :world!)'].join('\n'),
+      cljsType: CljsTypes.none,
     };
-    await writeSettings(settings);
-    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn', 'test.clj');
+    const testFilePath = await startJackInProcedure(
+      suite,
+      'calva.jackIn',
+      'deps.edn',
+      'test.clj',
+      connectSequence
+    );
     await loadAndAssert(suite, testFilePath, [
       '; :hello',
       '; :world!',
@@ -143,19 +123,21 @@ suite('Jack-in suite', () => {
 
   test('Jack-in still accepts afterCLJReplJackInCode', async () => {
     testUtil.log(suite, 'Jack-in still accepts afterCLJReplJackInCode');
-    const settings = {
-      'calva.replConnectSequences': [
-        {
-          projectType: 'deps.edn',
-          name: 'legacy-afterCLJReplJackInCode',
-          autoSelectForJackIn: true,
-          projectRootPath: ['.'],
-          afterCLJReplJackInCode: '(println :legacy :hook!)',
-        },
-      ],
+    const connectSequence: ReplConnectSequence = {
+      projectType: ProjectTypes['deps.edn'],
+      name: 'legacy-afterCLJReplJackInCode',
+      autoSelectForJackIn: true,
+      projectRootPath: ['.'],
+      afterCLJReplJackInCode: '(println :legacy :hook!)',
+      cljsType: CljsTypes.none,
     };
-    await writeSettings(settings);
-    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn', 'test.clj');
+    const testFilePath = await startJackInProcedure(
+      suite,
+      'calva.jackIn',
+      'deps.edn',
+      'test.clj',
+      connectSequence
+    );
     await loadAndAssert(suite, testFilePath, ['; :legacy :hook!', '; bar', 'nil', 'clj꞉test꞉> ']);
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
@@ -164,18 +146,20 @@ suite('Jack-in suite', () => {
   test('Jack-in works with auto-selected project type', async () => {
     testUtil.log(suite, 'Jack-in works with auto-selected project type');
 
-    const settings = {
-      'calva.replConnectSequences': [
-        {
-          projectType: 'deps.edn',
-          name: 'auto-select',
-          autoSelectForJackIn: true,
-          projectRootPath: ['.'],
-        },
-      ],
+    const connectSequence: ReplConnectSequence = {
+      projectType: ProjectTypes['deps.edn'],
+      name: 'auto-select',
+      autoSelectForJackIn: true,
+      projectRootPath: ['.'],
+      cljsType: CljsTypes.none,
     };
-    await writeSettings(settings);
-    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', undefined, 'test.clj');
+    const testFilePath = await startJackInProcedure(
+      suite,
+      'calva.jackIn',
+      'deps.edn',
+      'test.clj',
+      connectSequence
+    );
     await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
@@ -219,7 +203,6 @@ let lastJackInDoneCount = 0;
 async function loadAndAssert(suite: string, testFilePath: string, needle: string[]) {
   const replWindowDoc = await waitForResult(suite);
 
-  // focus the clojure file
   await vscode.workspace.openTextDocument(testFilePath).then((doc) =>
     vscode.window.showTextDocument(doc, {
       preserveFocus: false,
@@ -235,23 +218,6 @@ async function loadAndAssert(suite: string, testFilePath: string, needle: string
       haystack
     )}\n`
   );
-}
-
-async function writeSettings(settings: Record<string, unknown>): Promise<void> {
-  const settingsData = JSON.stringify(settings, null, 2);
-  await vscode.workspace.fs.writeFile(settingsUri, new TextEncoder().encode(settingsData));
-  console.log(`Settings written to ${settingsUri.fsPath}`);
-
-  const config = vscode.workspace.getConfiguration();
-  const sections: Array<[string, unknown]> = Object.entries(settings);
-
-  if (!('calva.replConnectSequences' in settings)) {
-    sections.push(['calva.replConnectSequences', undefined]);
-  }
-
-  for (const [section, value] of sections) {
-    await config.update(section, value, vscode.ConfigurationTarget.Workspace);
-  }
 }
 
 async function waitForResult(suite: string) {
@@ -307,7 +273,8 @@ async function startJackInProcedure(
   suite: string,
   cmdId: string,
   projectType: string | undefined,
-  testFile: string
+  testFile: string,
+  connectSequenceOverride?: ReplConnectSequence
 ) {
   const testFilePath = path.join(testUtil.testDataDir, testFile);
   await testUtil.openFile(testFilePath);
@@ -319,29 +286,13 @@ async function startJackInProcedure(
     vscode.workspace.workspaceFolders?.[0]?.uri ??
     vscode.Uri.file(testUtil.testDataDir);
 
-  if (cmdId === 'calva.jackIn') {
-    const connectSequence = buildConnectSequence(projectType, projectRootUri);
-    await commands.executeCommand(cmdId, { connectSequence, disableAutoSelect: true });
-  } else if (cmdId === 'calva.copyJackInCommandToClipboard') {
-    const connectSequence = buildConnectSequence(projectType, projectRootUri);
+  const connectSequence =
+    connectSequenceOverride ?? buildConnectSequence(projectType, projectRootUri);
+
+  if (cmdId === 'calva.jackIn' || cmdId === 'calva.copyJackInCommandToClipboard') {
     await commands.executeCommand(cmdId, { connectSequence, disableAutoSelect: true });
   } else {
-    // Seed the project type quick pick to avoid UI interaction
-    const saveAs = `qps-${projectRootUri.toString()}/jack-in-type`;
-    if (projectType) {
-      await state.extensionContext.workspaceState.update(saveAs, { label: projectType });
-    }
-
-    let resolved = false;
-    void commands.executeCommand(cmdId).then(() => {
-      resolved = true;
-    });
-
-    // Auto-accept project root/connect-sequence QuickPick entries until the command resolves
-    while (!resolved) {
-      await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
-      await testUtil.sleep(100);
-    }
+    await commands.executeCommand(cmdId);
   }
 
   return testFilePath;

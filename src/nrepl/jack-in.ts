@@ -363,7 +363,7 @@ export async function copyJackInCommandToClipboard(options?: {
     try {
       const options = await getJackInTerminalOptions(projectConnectSequence);
       if (options) {
-        void vscode.env.clipboard.writeText(createCommandLine(options));
+        await vscode.env.clipboard.writeText(createCommandLine(options));
         const message = `Jack-in command line copied to the clipboard.${
           projectTypes.isWin ? ' It is tailored for cmd.exe and may not work in other shells.' : ''
         }`;
