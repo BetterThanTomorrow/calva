@@ -2,9 +2,9 @@ import * as assert from 'assert';
 import { before, after, beforeEach } from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
-import * as state from '../../../state';
 import * as util from '../../../utilities';
 import * as clientRegistry from '../../../nrepl/client-registry';
+import * as state from '../../../state';
 
 import * as vscode from 'vscode';
 // import * as myExtension from '../extension';
@@ -12,7 +12,10 @@ import * as outputWindow from '../../../repl-window/repl-window-doc';
 import { commands } from 'vscode';
 import { getDocument } from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
-import { getConfig, updateWorkspaceConfig } from '../../../config';
+import { getConnectSequences } from '../../../nrepl/connectSequence';
+import { CljsTypes, ReplConnectSequence } from '../../../nrepl/connect-sequence-types';
+import * as projectTypes from '../../../nrepl/project-types';
+import { getConfig } from '../../../config';
 
 const settingsUri: vscode.Uri = vscode.Uri.joinPath(
   vscode.workspace.workspaceFolders[0].uri,
@@ -172,13 +175,7 @@ suite('Jack-in suite', () => {
       ],
     };
     await writeSettings(settings);
-    const testFilePath = await startJackInProcedure(
-      suite,
-      'calva.jackIn',
-      undefined,
-      'test.clj',
-      true
-    );
+    const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', undefined, 'test.clj');
     await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
@@ -309,34 +306,72 @@ async function waitForJackInCompletion(suite: string) {
 async function startJackInProcedure(
   suite: string,
   cmdId: string,
-  projectType: string,
-  testFile: string,
-  autoSelectProjectRoot = false
+  projectType: string | undefined,
+  testFile: string
 ) {
   const testFilePath = path.join(testUtil.testDataDir, testFile);
   await testUtil.openFile(testFilePath);
   testUtil.log(suite, `${testFile} opened for project type ${projectType}`);
 
-  const projectRootUri = projectRoot.findClosestParent(
-    vscode.window.activeTextEditor?.document.uri,
-    await projectRoot.findProjectRoots()
-  );
-  // Project type pre-select, qps = quickPickSingle
-  const saveAs = `qps-${projectRootUri.toString()}/jack-in-type`;
-  await state.extensionContext.workspaceState.update(saveAs, { label: projectType });
+  const candidateRoots = await projectRoot.findProjectRoots();
+  const projectRootUri =
+    projectRoot.findClosestParent(vscode.window.activeTextEditor?.document.uri, candidateRoots) ??
+    vscode.workspace.workspaceFolders?.[0]?.uri ??
+    vscode.Uri.file(testUtil.testDataDir);
 
-  let resolved = false;
-  void commands.executeCommand(cmdId).then(() => {
-    resolved = true;
-  });
-
-  while (!resolved) {
-    if (!autoSelectProjectRoot) {
-      // Project root quick pick
-      await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+  if (cmdId === 'calva.jackIn') {
+    const connectSequence = buildConnectSequence(projectType, projectRootUri);
+    await commands.executeCommand(cmdId, { connectSequence, disableAutoSelect: true });
+  } else {
+    // Seed the project type quick pick to avoid UI interaction
+    const saveAs = `qps-${projectRootUri.toString()}/jack-in-type`;
+    if (projectType) {
+      await state.extensionContext.workspaceState.update(saveAs, { label: projectType });
     }
-    await testUtil.sleep(100);
+
+    let resolved = false;
+    void commands.executeCommand(cmdId).then(() => {
+      resolved = true;
+    });
+
+    // Auto-accept project root/connect-sequence QuickPick entries until the command resolves
+    while (!resolved) {
+      await commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+      await testUtil.sleep(100);
+    }
   }
 
   return testFilePath;
+}
+
+function buildConnectSequence(
+  projectType: string | undefined,
+  projectRootUri: vscode.Uri
+): ReplConnectSequence {
+  const configuredSequences = getConfig().replConnectSequences ?? [];
+  const defaultSequences = getConnectSequences(projectTypes.getAllProjectTypes());
+  const sequences = configuredSequences.concat(defaultSequences);
+
+  const sequenceFromProjectType = projectType
+    ? sequences.find(
+        (sequence) => sequence.projectType === projectType || sequence.name === projectType
+      )
+    : sequences[0];
+
+  const effectiveProjectType = (projectType ??
+    sequenceFromProjectType?.projectType ??
+    'deps.edn') as ReplConnectSequence['projectType'];
+  const baseSequence =
+    sequenceFromProjectType ??
+    ({
+      name: effectiveProjectType,
+      projectType: effectiveProjectType,
+      cljsType: CljsTypes.none,
+    } as ReplConnectSequence);
+
+  return {
+    ...baseSequence,
+    projectRootPath: [projectRootUri.fsPath],
+    cljsType: baseSequence.cljsType ?? CljsTypes.none,
+  };
 }
