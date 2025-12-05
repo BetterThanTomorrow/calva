@@ -20,8 +20,8 @@ import {
 import * as projectTypes from '../../../nrepl/project-types';
 import { getConfig } from '../../../config';
 
-suite('Jack-in suite', () => {
-  const suite = 'Jack-in';
+suite('Jack-in and Connect suite', () => {
+  const suite = 'Jack-in and Connect';
 
   before(async () => {
     testUtil.showMessage(suite, 'suite starting!');
@@ -75,7 +75,7 @@ suite('Jack-in suite', () => {
   });
 
   test('Jack-in afterPrimaryReplConnectedCode can be a string', async () => {
-    testUtil.log(suite, 'Jack-in afterPrimaryReplConnectedCode can be a string');
+    testUtil.log(suite, 'Reconnect: afterPrimaryReplConnectedCode (string)');
     const connectSequence: ReplConnectSequence = {
       projectType: ProjectTypes['deps.edn'],
       name: 'string-afterPrimaryReplConnectedCode',
@@ -93,7 +93,7 @@ suite('Jack-in suite', () => {
   });
 
   test('Jack-in afterPrimaryReplConnectedCode can be an array', async () => {
-    testUtil.log(suite, 'Jack-in afterPrimaryReplConnectedCode can be an array');
+    testUtil.log(suite, 'Reconnect: afterPrimaryReplConnectedCode (array)');
     const connectSequence: ReplConnectSequence = {
       projectType: ProjectTypes['deps.edn'],
       name: 'array-afterPrimaryReplConnectedCode',
@@ -111,7 +111,7 @@ suite('Jack-in suite', () => {
   });
 
   test('Jack-in still accepts afterCLJReplJackInCode', async () => {
-    testUtil.log(suite, 'Jack-in still accepts afterCLJReplJackInCode');
+    testUtil.log(suite, 'Reconnect: afterCLJReplJackInCode');
     const connectSequence: ReplConnectSequence = {
       projectType: ProjectTypes['deps.edn'],
       name: 'legacy-afterCLJReplJackInCode',
@@ -129,7 +129,7 @@ suite('Jack-in suite', () => {
   });
 
   test('Jack-in works with auto-selected project type', async () => {
-    testUtil.log(suite, 'Jack-in works with auto-selected project type');
+    testUtil.log(suite, 'Reconnect: auto-selected project type');
 
     const connectSequence: ReplConnectSequence = {
       projectType: ProjectTypes['deps.edn'],
@@ -210,7 +210,7 @@ async function waitForResult(suite: string, options?: { waitForJackInOutput?: bo
   if (options?.waitForJackInOutput ?? true) {
     await waitForJackInCompletion(suite);
   } else {
-    await waitForSessionsReady(clientKey);
+    await waitForSessionsReady(suite, clientKey);
   }
   await testUtil.sleep(500);
   testUtil.log(suite, 'connected to repl');
@@ -266,6 +266,7 @@ async function startJackInProcedure(
   connectSequenceOverride?: ReplConnectSequence
 ) {
   const { testFilePath, connectSequence } = await openTestFileAndBuildSequence(
+    suite,
     projectType,
     testFile,
     connectSequenceOverride
@@ -291,6 +292,7 @@ async function reconnectAndAssert(
   resetConnectionTracking();
 
   const { testFilePath, connectSequence } = await openTestFileAndBuildSequence(
+    suite,
     projectType,
     testFile,
     connectSequenceOverride
@@ -304,13 +306,14 @@ async function reconnectAndAssert(
 }
 
 async function openTestFileAndBuildSequence(
+  suite: string,
   projectType: string | undefined,
   testFile: string,
   connectSequenceOverride?: ReplConnectSequence
 ) {
   const testFilePath = path.join(testUtil.testDataDir, testFile);
   await testUtil.openFile(testFilePath);
-  testUtil.log('Jack-in', `${testFile} opened for project type ${projectType}`);
+  testUtil.log(suite, `${testFile} opened for project type ${projectType}`);
 
   const candidateRoots = await projectRoot.findProjectRoots();
   const projectRootUri =
@@ -358,7 +361,7 @@ function buildConnectSequence(
   };
 }
 
-async function waitForSessionsReady(clientKey: string): Promise<void> {
+async function waitForSessionsReady(suite: string, clientKey: string): Promise<void> {
   const timeoutMs = 60_000;
   const start = Date.now();
 
@@ -366,10 +369,10 @@ async function waitForSessionsReady(clientKey: string): Promise<void> {
     const sessions = sessionRegistry.listSessionsByClient(clientKey);
     const sessionKeys = sessions.map((s) => s.key);
     if (sessionKeys.length > 0) {
-      testUtil.log('Jack-in', `sessions ready for client ${clientKey}: ${sessionKeys.join(', ')}`);
+      testUtil.log(suite, `sessions ready for client ${clientKey}: ${sessionKeys.join(', ')}`);
       return;
     }
-    testUtil.log('Jack-in', 'waiting for sessions to be ready...');
+    testUtil.log(suite, 'waiting for sessions to be ready...');
     await testUtil.sleep(250);
   }
 
