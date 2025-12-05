@@ -183,6 +183,6 @@ suite('Fruit Suffix suite', () => {
 
     const sessions = sessionRegistry.listSessionsByClient(clientKey);
     const suffix = sessions.map((s) => fruitSuffix.extractFruitSuffix(s.key)).find(Boolean);
-    return suffix;
+    return await Promise.resolve(suffix);
   }
 });
