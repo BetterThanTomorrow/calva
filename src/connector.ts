@@ -96,6 +96,9 @@ async function connectToHost(
   silent = false
 ) {
   let mainSession: NReplSession;
+  // Track the client being created locally - don't rely on module-level nClient
+  // which may still hold a previous connection's client if this connection fails
+  let localClient: NReplClient | undefined;
   const baseSessionNames = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
   const projectRootPath = state.getProjectRootUri().fsPath;
   const projectRoot = state.getProjectRootUri().toString();
@@ -125,7 +128,7 @@ async function connectToHost(
   try {
     output.appendLineOtherOut('Hooking up nREPL sessions ...');
     // Create an nREPL client. waiting for the connection to be established.
-    nClient = await NReplClient.create({
+    localClient = await NReplClient.create({
       host: hostname,
       port: +port,
       onError: (e) => {
@@ -139,6 +142,8 @@ async function connectToHost(
         return cleanUpAfterError(e);
       },
     });
+    // Connection succeeded - now safe to update module-level nClient
+    nClient = localClient;
     clientRegistry.registerClient(nClient, {
       connectSequenceName: connectSequence.name,
       projectRoot,
@@ -274,22 +279,22 @@ async function connectToHost(
       util.setConnectingState(false);
       util.setConnectedState(false);
       status.update();
-      if (nClient) {
-        clientRegistry.unregisterClient(nClient.clientKey);
+      if (localClient) {
+        clientRegistry.unregisterClient(localClient.clientKey);
       }
-      if (nClient) {
+      if (localClient) {
         try {
-          await nClient.close();
+          await localClient.close();
         } catch (closeError) {
           console.warn('Failed closing nREPL client after conflict:', closeError);
-          nClient.disconnect();
+          localClient.disconnect();
         } finally {
           nClient = clientRegistry.getActiveClient();
         }
       }
       throw e;
     }
-    return cleanUpAfterError(e, nClient?.clientKey, silent);
+    return cleanUpAfterError(e, localClient?.clientKey, silent);
   }
 
   void liveShareSupport.didConnectRepl(port);
