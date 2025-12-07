@@ -4,7 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Display and edit Jack In Dependency Versions in the Settings UI [Manage REPL Injected Libraries](https://github.com/BetterThanTomorrow/calva/issues/2969)
+- Edit Jack In Dependency Versions in the Settings UI [Manage REPL Injected Libraries](https://github.com/BetterThanTomorrow/calva/issues/2969)
+- Log latest-available Jack In Dependency Versions (in Calva Says), but use only configured settings or Calva defaults [Manage REPL Injected Libraries](https://github.com/BetterThanTomorrow/calva/issues/2969)
 
 ## [2.0.540] - 2025-11-06
 

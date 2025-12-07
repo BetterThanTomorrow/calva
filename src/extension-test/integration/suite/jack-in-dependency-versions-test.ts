@@ -91,56 +91,6 @@ suite(SUITE, () => {
     );
   });
 
-  test('precedence: stored values are used when nothing is configured', async () => {
-    const stored: Record<JackInDependencyKey, string> = {
-      nrepl: 'STORED-NREPL-1',
-      'cider-nrepl': 'STORED-CIDER-2',
-      'cider/piggieback': 'STORED-PIGGIE-3',
-    };
-    await state.extensionContext?.globalState.update(GLOBAL_STATE_KEY, stored);
-
-    await vscode.workspace
-      .getConfiguration('calva')
-      .update('jackInDependencyVersions', undefined, vscode.ConfigurationTarget.Workspace);
-
-    const effective = getEffectiveJackInDependencyVersions();
-    assert.deepStrictEqual(
-      effective,
-      stored,
-      'When nothing is configured, stored values should be used'
-    );
-  });
-
-  test('precedence: configured overrides stored', async () => {
-    const stored: Record<JackInDependencyKey, string> = {
-      nrepl: 'STORED-NREPL-1',
-      'cider-nrepl': 'STORED-CIDER-2',
-      'cider/piggieback': 'STORED-PIGGIE-3',
-    };
-    await state.extensionContext?.globalState.update(GLOBAL_STATE_KEY, stored);
-
-    const configured: Versions = {
-      nrepl: 'CONFIG-NREPL-1',
-      'cider/piggieback': 'CONFIG-PIGGIE-3',
-    };
-    await vscode.workspace
-      .getConfiguration('calva')
-      .update('jackInDependencyVersions', configured, vscode.ConfigurationTarget.Workspace);
-
-    const effective = getEffectiveJackInDependencyVersions();
-    assert.strictEqual(effective.nrepl, 'CONFIG-NREPL-1', 'configured should override stored');
-    assert.strictEqual(
-      effective['cider/piggieback'],
-      'CONFIG-PIGGIE-3',
-      'configured should override stored'
-    );
-    assert.strictEqual(
-      effective['cider-nrepl'],
-      'STORED-CIDER-2',
-      'stored should be used when not configured'
-    );
-  });
-
   test('precedence: default is used when neither configured nor stored', async () => {
     const inspectedDefaults = vscode.workspace
       .getConfiguration('calva')
