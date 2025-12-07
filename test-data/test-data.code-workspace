@@ -160,7 +160,6 @@
 					"secondary": "cljs"
 				},
 				"afterPrimaryReplConnectedCode": [
-					"(require 'repl)",
 					"(println 1)",
 					"(println 2)"
 				],
