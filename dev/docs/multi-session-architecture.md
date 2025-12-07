@@ -63,6 +63,11 @@ Sessions have one of two roles within a connection:
 
 The term "secondary" reflects that this session is created as a companion to the primary session, typically by cloning the primary and upgrading it for ClojureScript via Piggieback or shadow-cljs middleware.
 
+**Non-CLJS connections:** Sessions like Babashka (`bb`) or Joyride are always **primary sessions** in their own connection—they have no secondary session. The `isSecondary` flag specifically means "spawned/cloned from the primary within the same nREPL connection." This distinction matters because:
+- Primary sessions represent independent entry points (each their own TCP connection)
+- Secondary sessions share the TCP connection with their primary and are created by cloning
+- The ecosystem may create more secondary session types in the future (beyond CLJS), but for now only the CLJ+CLJS case uses this pattern
+
 ### Clients
 
 A **Client** (`NReplClient`) represents a TCP connection to an nREPL server. Key properties:
@@ -104,6 +109,13 @@ Session names are resolved at connection time using the following rules:
 5. Fruit suffixes are released back to a global pool on disconnect
 
 This automatic conflict resolution allows multiple projects with the same session names to be connected simultaneously without manual configuration.
+
+**Reconnection criteria:** Two connections are considered "the same REPL" when they share both `projectRoot` AND `baseSessionNames`. When reconnecting to such a REPL, the existing connection is disconnected first and the session names are reused. This means:
+- Connecting to the same project with the same session names → reconnection (old connection replaced)
+- Connecting to a different project with the same session names → new connection with fruit suffix
+- Connecting to the same project with different session names → new connection (names don't conflict)
+
+**Note:** Port number is *not* part of the sameness criteria. A future enhancement could add port to the criteria to support multiple REPLs of the same type in one project root.
 
 ---
 
@@ -202,12 +214,8 @@ Tracks active nREPL client connections.
 | `listClients()` | Get all registered clients (sorted by connectedAt) |
 | `getClient(clientKey)` | Get client by key |
 | `getClientSessions(clientKey)` | Get sessions for a client (via session-registry) |
-| `setActiveClientKey(key)` | Set which client is "active" |
-| `getActiveClient()` | Get the active client |
 
 **Storage mechanism**: Uses an in-memory `Map<string, RegisteredClient>`.
-
-**Note on `activeClientKey`**: This tracks which client is "current" for connection lifecycle management in `connector.ts`. When a client disconnects or encounters an error, the module-level `nClient` reference is updated via `getActiveClient()`. This is an internal detail of client lifecycle management, not used for session routing (which uses `replSession.getSession()`).
 
 #### Connection State (embedded in `src/nrepl/client-registry.ts`)
 
