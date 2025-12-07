@@ -11,7 +11,7 @@
 * [x] Special session for clojuredocs
 * [x] Sessions menu, present non-session items first
 * [x] Sessions menu, use basename for "Used for" detail
-* [ ] Some issue with connecting to shadow projects
+* [x] Can't repro: Some issue with connecting to shadow projects
 * [ ] Split connect-sequence.md info so that the advanced stuff is separate
 * [ ] Add session menu screenshots to connect-sequence.md
 * [ ] Update/add screenshots to repl-ui.md
