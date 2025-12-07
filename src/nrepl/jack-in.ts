@@ -3,7 +3,6 @@ import * as utilities from '../utilities';
 import * as _ from 'lodash';
 import * as state from '../state';
 import * as connector from '../connector';
-import { nClient } from '../connector';
 import statusbar from '../statusbar';
 import {
   askForConnectSequence,
@@ -258,11 +257,11 @@ async function executeJackInTask(
             (_p, hostname: string, port: string) => {
               utilities.setLaunchingState(null);
               resolve();
-              void connector.connect(connectSequence, true, hostname, port).then(() => {
+              void connector.connect(connectSequence, true, hostname, port).then((result) => {
                 const entry = activeJackInProcesses.get(jackInProcess.id);
                 if (entry) {
-                  entry.connected = true;
-                  entry.clientKey = nClient?.clientKey;
+                  entry.connected = result.connected;
+                  entry.clientKey = result.clientKey;
                 }
                 refreshJackedInState();
                 output.appendLineOtherOut('Jack-in done.');

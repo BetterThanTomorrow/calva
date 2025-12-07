@@ -57,8 +57,8 @@ function getSessionGlobMetadata(
   };
 }
 
-async function readRuntimeConfigs() {
-  const classpath = await nClient.session.classpath().catch((e) => {
+async function readRuntimeConfigs(session: NReplSession) {
+  const classpath = await session.classpath().catch((e) => {
     console.error('readRuntimeConfigs:', e);
   });
   if (classpath) {
@@ -89,15 +89,18 @@ async function readRuntimeConfigs() {
   }
 }
 
+interface ConnectResult {
+  connected: boolean;
+  clientKey?: string;
+}
+
 async function connectToHost(
   hostname: string,
   port: number,
   connectSequence: ReplConnectSequence,
   silent = false
-) {
+): Promise<ConnectResult> {
   let mainSession: NReplSession;
-  // Track the client being created locally - don't rely on module-level nClient
-  // which may still hold a previous connection's client if this connection fails
   let localClient: NReplClient | undefined;
   const baseSessionNames = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
   const projectRootPath = state.getProjectRootUri().fsPath;
@@ -126,13 +129,13 @@ async function connectToHost(
   void vscode.commands.executeCommand('setContext', 'calva:connectSequence', connectSequence.name);
   status.update();
   try {
-    output.appendLineOtherOut('Hooking up nREPL sessions ...');
+    output.appendLineOtherOut(`Hooking up nREPL sessions on port ${port}...`);
     // Create an nREPL client. waiting for the connection to be established.
     localClient = await NReplClient.create({
       host: hostname,
       port: +port,
       onError: (e) => {
-        output.appendLineOtherErr(`nREPL connection failed: ${e}`);
+        output.appendLineOtherErr(`nREPL connection failed, port ${port}: ${e}`);
         const scheme = state.getProjectRootUri().scheme;
         if (scheme === 'vsls') {
           output.appendLineOtherOut('Did the host share the nREPL port?');
@@ -142,9 +145,7 @@ async function connectToHost(
         return cleanUpAfterError(e);
       },
     });
-    // Connection succeeded - now safe to update module-level nClient
-    nClient = localClient;
-    clientRegistry.registerClient(nClient, {
+    clientRegistry.registerClient(localClient, {
       connectSequenceName: connectSequence.name,
       projectRoot,
       host: hostname,
@@ -160,8 +161,7 @@ async function connectToHost(
         fruitSuffix: resolution.fruitSuffix,
       },
     });
-    clientRegistry.setActiveClientKey(nClient.clientKey);
-    nClient.addOnCloseHandler((c) => {
+    localClient.addOnCloseHandler((c) => {
       const wasRegistered = clientRegistry.unregisterClient(c.clientKey);
       if (wasRegistered) {
         sessionTeardown.teardownSessionsForClient(c.clientKey);
@@ -171,13 +171,14 @@ async function connectToHost(
       util.setConnectedState(remainingSessions > 0);
       util.setConnectingState(false);
       if (!c['silent']) {
-        output.appendLineOtherOut('nREPL Connection was closed');
+        output.appendLineOtherOut(
+          `nREPL Connection was closed for client: ${c.clientKey}, port: ${port}`
+        );
       }
-      nClient = clientRegistry.getActiveClient();
       status.update();
       calvaDebug.terminateDebugSession();
     });
-    mainSession = nClient.session;
+    mainSession = localClient.session;
     mainSession.replType = 'clj';
     util.setConnectingState(false);
     util.setConnectedState(true);
@@ -190,13 +191,13 @@ async function connectToHost(
       globs: mainGlobMetadata.globs,
       globSpecs: mainGlobMetadata.globSpecs,
     });
-    clientRegistry.setCljcTargetForConnection(nClient.clientKey, 'primary');
+    clientRegistry.setCljcTargetForConnection(localClient.clientKey, 'primary');
 
     status.update();
-    output.appendLineOtherOut(`Connected session: ${mainKey}`);
+    output.appendLineOtherOut(`Connected session: ${mainKey}, port: ${port}`);
     replSession.updateReplSessionType();
 
-    outputWindow.setSession(mainSession, nClient.ns, mainKey);
+    outputWindow.setSession(mainSession, localClient.ns, mainKey);
 
     if (getConfig().autoEvaluateCode.onConnect.clj) {
       output.appendLineOtherOut(
@@ -242,7 +243,7 @@ async function connectToHost(
           cljsType,
           projectTypes.getCljsTypeName(connectSequence),
           connectSequence,
-          nClient.clientKey,
+          localClient.clientKey,
           sessionRoleKeys,
           sessionGlobMap
         );
@@ -251,7 +252,7 @@ async function connectToHost(
           mainSession,
           translatedReplType,
           connectSequence.name,
-          nClient.clientKey,
+          localClient.clientKey,
           sessionRoleKeys.secondary,
           sessionGlobMap
         );
@@ -262,7 +263,7 @@ async function connectToHost(
           cljsSession,
           cljsBuild,
           sessionRoleKeys.secondary,
-          nClient.clientKey,
+          localClient.clientKey,
           sessionGlobMap
         );
       }
@@ -288,8 +289,6 @@ async function connectToHost(
         } catch (closeError) {
           console.warn('Failed closing nREPL client after conflict:', closeError);
           localClient.disconnect();
-        } finally {
-          nClient = clientRegistry.getActiveClient();
         }
       }
       throw e;
@@ -299,18 +298,40 @@ async function connectToHost(
 
   void liveShareSupport.didConnectRepl(port);
 
-  await readRuntimeConfigs();
+  await readRuntimeConfigs(mainSession);
 
-  return true;
+  // Post-connect initialization
+  initializeDebugger(mainSession);
+  if (
+    !['babashka', 'nbb', 'joyride', 'scittle', 'basilisp', 'generic'].includes(
+      connectSequence.projectType
+    )
+  ) {
+    if (!mainSession.supports('info')) {
+      void vscode.window
+        .showWarningMessage(
+          'The nREPL server does not support cider-nrepl `info` op, which indicates troubles ahead. You need to start the REPL with cider-nrepl dependencies met.',
+          'Show Calva Connect Docs'
+        )
+        .then((choice) => {
+          if (choice === 'Show Calva Connect Docs') {
+            void vscode.commands.executeCommand('simpleBrowser.show', 'https://calva.io/connect/');
+          }
+        });
+      console.error(`Basic cider-nrepl dependencies not met (no 'info' op)`);
+    }
+  }
+  if (getConfig().redirectServerOutputToRepl && mainSession.supports('out-subscribe')) {
+    void mainSession.outSubscribe();
+  }
+
+  return { connected: true, clientKey: localClient.clientKey };
 }
 
-function cleanUpAfterError(e: any, clientKeyToRemove?: string, silent = false) {
+function cleanUpAfterError(e: any, clientKeyToRemove?: string, silent = false): ConnectResult {
   if (clientKeyToRemove) {
     clientRegistry.unregisterClient(clientKeyToRemove);
     sessionTeardown.teardownSessionsForClient(clientKeyToRemove);
-    if (nClient && nClient.clientKey === clientKeyToRemove) {
-      nClient = clientRegistry.getActiveClient();
-    }
   }
   util.setConnectingState(false);
   util.setConnectedState(sessionRegistry.listSessions().length > 0);
@@ -319,7 +340,7 @@ function cleanUpAfterError(e: any, clientKeyToRemove?: string, silent = false) {
   }
   console.error('Failed connecting:', e);
   status.update();
-  return false;
+  return { connected: false };
 }
 
 async function setUpCljsRepl(
@@ -949,7 +970,7 @@ async function promptForNreplUrlAndConnect(
   port: string | undefined,
   connectSequence: ReplConnectSequence,
   reason: PromptReason = 'manual'
-) {
+): Promise<ConnectResult> {
   let currentHost = hostname ?? 'localhost';
   let currentPort = port;
   let currentReason = reason;
@@ -975,7 +996,7 @@ async function promptForNreplUrlAndConnect(
       output.appendLineOtherOut('Connect aborted.');
       util.setConnectingState(false);
       status.update();
-      return true;
+      return { connected: false };
     }
 
     const [parsedHostname, parsedPortStr] = url.split(':');
@@ -992,10 +1013,10 @@ async function promptForNreplUrlAndConnect(
     // Try to connect (silently - we'll show our own message on retry)
     setStateValue('hostname', parsedHostname);
     setStateValue('port', parsedPort);
-    const connected = await connectToHost(parsedHostname, parsedPort, connectSequence, true);
+    const result = await connectToHost(parsedHostname, parsedPort, connectSequence, true);
 
-    if (connected) {
-      return true;
+    if (result.connected) {
+      return result;
     }
 
     // Connection failed - update for next iteration
@@ -1005,7 +1026,6 @@ async function promptForNreplUrlAndConnect(
   }
 }
 
-export let nClient: NReplClient;
 export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
@@ -1014,13 +1034,14 @@ export async function connect(
   isAutoConnect: boolean,
   hostname?: string,
   port?: string
-) {
+): Promise<ConnectResult> {
   const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
 
   const portFile = projectTypes.nreplPortFileUri(connectSequence);
   void state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
   void state.extensionContext.workspaceState.update('selectedConnectSequence', connectSequence);
 
+  let result: ConnectResult = { connected: false };
   try {
     if (port === undefined) {
       try {
@@ -1045,49 +1066,31 @@ export async function connect(
       if (isAutoConnect) {
         setStateValue('hostname', hostname);
         setStateValue('port', port);
-        const connected = await connectToHost(hostname, parseInt(port), connectSequence, true);
-        if (!connected) {
+        result = await connectToHost(hostname, parseInt(port), connectSequence, true);
+        if (!result.connected) {
           output.appendLineOtherOut('Prompting for nREPL connection...');
-          await promptForNreplUrlAndConnect(hostname, port, connectSequence, 'connection-failed');
+          result = await promptForNreplUrlAndConnect(
+            hostname,
+            port,
+            connectSequence,
+            'connection-failed'
+          );
         }
       } else {
-        await promptForNreplUrlAndConnect(undefined, port, connectSequence, 'manual');
+        result = await promptForNreplUrlAndConnect(undefined, port, connectSequence, 'manual');
       }
     } else {
       output.appendLineOtherOut('No nrepl port file found.');
-      await promptForNreplUrlAndConnect(undefined, port, connectSequence, 'no-port-file');
+      result = await promptForNreplUrlAndConnect(undefined, port, connectSequence, 'no-port-file');
     }
     status.update();
   } catch (e) {
     if (!handleConnectError(e)) {
       console.error(e);
     }
-    return false;
+    return { connected: false };
   }
-  initializeDebugger(nClient.session);
-  if (
-    !['babashka', 'nbb', 'joyride', 'scittle', 'basilisp', 'generic'].includes(
-      connectSequence.projectType
-    )
-  ) {
-    if (!nClient.session.supports('info')) {
-      void vscode.window
-        .showWarningMessage(
-          'The nREPL server does not support cider-nrepl `info` op, which indicates troubles ahead. You need to start the REPL with cider-nrepl dependencies met.',
-          'Show Calva Connect Docs'
-        )
-        .then((choice) => {
-          if (choice === 'Show Calva Connect Docs') {
-            void vscode.commands.executeCommand('simpleBrowser.show', 'https://calva.io/connect/');
-          }
-        });
-      console.error(`Basic cider-nrepl dependencies not met (no 'info' op)`);
-    }
-  }
-  if (getConfig().redirectServerOutputToRepl && nClient.session.supports('out-subscribe')) {
-    void nClient.session.outSubscribe();
-  }
-  return true;
+  return result;
 }
 
 async function standaloneConnect(
@@ -1268,7 +1271,6 @@ async function disconnectClientByKey(clientKey: string): Promise<void> {
     util.setConnectedState(true);
   }
 
-  nClient = clientRegistry.getActiveClient();
   liveShareSupport.didDisconnectRepl();
   status.update();
 }

@@ -37,13 +37,7 @@ export interface RegisteredClient {
   connectionState: ConnectionState;
 }
 
-let activeClientKey: string | undefined;
 const registeredClients = new Map<string, RegisteredClient>();
-
-function selectFallbackActiveClient(): void {
-  const fallback = registeredClients.keys().next().value;
-  activeClientKey = fallback ?? undefined;
-}
 
 const defaultConnectionState: ConnectionState = {
   cljsBuild: null,
@@ -67,9 +61,6 @@ export function registerClient(
   };
 
   registeredClients.set(entry.key, entry);
-  if (!activeClientKey) {
-    activeClientKey = entry.key;
-  }
 
   return entry;
 }
@@ -81,9 +72,6 @@ export function unregisterClient(clientKey: string): RegisteredClient | undefine
   }
 
   registeredClients.delete(clientKey);
-  if (activeClientKey === clientKey) {
-    selectFallbackActiveClient();
-  }
 
   return entry;
 }
@@ -98,27 +86,6 @@ export function getClient(clientKey: string): NReplClient | undefined {
 
 export function getRegisteredClient(clientKey: string): RegisteredClient | undefined {
   return registeredClients.get(clientKey);
-}
-
-export function setActiveClientKey(clientKey: string | undefined): void {
-  if (!clientKey) {
-    selectFallbackActiveClient();
-    return;
-  }
-
-  if (registeredClients.has(clientKey)) {
-    activeClientKey = clientKey;
-  } else {
-    selectFallbackActiveClient();
-  }
-}
-
-export function getActiveClient(): NReplClient | undefined {
-  return activeClientKey ? registeredClients.get(activeClientKey)?.client : undefined;
-}
-
-export function getActiveClientKey(): string | undefined {
-  return activeClientKey;
 }
 
 export function getClientSessions(clientKey: string) {
@@ -156,7 +123,6 @@ export function listConnectionStates(): (ConnectionState & { clientKey: string }
 
 export function clearAllClients(): void {
   registeredClients.clear();
-  activeClientKey = undefined;
 }
 
 /**

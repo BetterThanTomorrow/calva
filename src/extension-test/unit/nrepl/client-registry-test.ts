@@ -23,17 +23,15 @@ describe('client registry', () => {
     expect(clients.map((c) => c.key)).toEqual(['alpha-client', 'beta-client']);
   });
 
-  it('tracks active client and falls back when the active one is removed', () => {
+  it('unregisters clients correctly', () => {
     const alpha = createClient('alpha-client');
     const beta = createClient('beta-client');
     clientRegistry.registerClient(alpha, { connectSequenceName: 'Alpha' });
     clientRegistry.registerClient(beta, { connectSequenceName: 'Beta' });
 
-    clientRegistry.setActiveClientKey('beta-client');
-    expect(clientRegistry.getActiveClient()?.clientKey).toBe('beta-client');
-
     clientRegistry.unregisterClient('beta-client');
-    expect(clientRegistry.getActiveClient()?.clientKey).toBe('alpha-client');
+    const clients = clientRegistry.listClients();
+    expect(clients.map((c) => c.key)).toEqual(['alpha-client']);
   });
 });
 
