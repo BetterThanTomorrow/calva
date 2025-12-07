@@ -20,6 +20,15 @@ const REPL_DOC_NAME = `repl.${config.REPL_FILE_EXT}`;
 
 const PROMPT_HINT = 'Use `alt+enter` to evaluate';
 
+const NOT_THE_REPL_WINDOW_WARNING = [
+  '',
+  '⚠️  This file is NOT the active Calva REPL Window.',
+  '',
+  'To open the active REPL Window, use the command:',
+  '> Calva: Show/Open REPL Window',
+  '',
+].join('\n');
+
 const START_GREETINGS = [
   'This is the Calva REPL Window.',
   "It's just a file, really, with some special treatment from Calva.",
@@ -169,6 +178,34 @@ export function isReplWindowDoc(doc?: vscode.TextDocument): boolean {
   return doc.uri.toString() === _docUri.toString();
 }
 
+function isCalvaReplFile(doc?: vscode.TextDocument): boolean {
+  if (!doc) {
+    return false;
+  }
+  return doc.fileName.endsWith(`.${config.REPL_FILE_EXT}`);
+}
+
+// Track which files have been warned to avoid repeated warnings
+const warnedFiles = new Set<string>();
+
+async function warnIfNotActiveReplWindow(doc: vscode.TextDocument): Promise<void> {
+  if (!isCalvaReplFile(doc) || isReplWindowDoc(doc)) {
+    return;
+  }
+
+  const fileKey = doc.uri.toString();
+  if (warnedFiles.has(fileKey)) {
+    return;
+  }
+  warnedFiles.add(fileKey);
+
+  // Append the warning to the file
+  const edit = new vscode.WorkspaceEdit();
+  const insertPosition = doc.positionAt(doc.getText().length);
+  edit.insert(doc.uri, insertPosition, formatAsLineComments(NOT_THE_REPL_WINDOW_WARNING));
+  await vscode.workspace.applyEdit(edit);
+}
+
 function getViewColumn(): vscode.ViewColumn {
   const column: vscode.ViewColumn | undefined =
     state.extensionContext.workspaceState.get(`replWindowViewColumn`);
@@ -223,6 +260,9 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
         setContextForReplWindowActive(isReplWindow);
         if (isReplWindow) {
           void setViewColumn(event.viewColumn);
+        } else {
+          // Warn if user opened a .calva-repl file that isn't the active REPL window
+          void warnIfNotActiveReplWindow(event.document);
         }
       }
     })
