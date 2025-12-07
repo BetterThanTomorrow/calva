@@ -30,6 +30,12 @@ When you are editing things in the REPL window, and want to open the file that d
 !!! Note
     This also works for Clojure core and library namespaces.
 
+## Which `.calve-repl` file is the REPL Window?
+
+The first repl connected will determine the location of the REPL Window file. This file will be created at `<project-root>/.calva/repl.calva-repl`.
+
+When opening/activating other `.calva/repl.calva-repl` files, potentially from earlier sessions when you have connected a different project first, Calva will pop up a message informing you about the possible mix-up. The message includes a button helping you find the real REPL Window.
+
 ## Evaluating Code
 
 The window will be automatically associated with the REPL and the namespace of any project Clojure/ClojureScript file you evaluate code in. So for instance if you evaluate this code in a `clj` file with the namespace `fresh-reagent.handler`:
