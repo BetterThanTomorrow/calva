@@ -174,7 +174,7 @@ async function evaluateCodeUpdatingUI(
     });
 
     try {
-      if (evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor.document)) {
+      if (evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document)) {
         replWindow.appendLine(code);
         if (output.getDestinationConfiguration().evalResults !== 'repl-window') {
           output.appendClojureEval(code, {
@@ -195,7 +195,7 @@ async function evaluateCodeUpdatingUI(
       if (showResult) {
         inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
         output.appendClojureEval(value, { ns, replSessionType: sessionKey }, async () => {
-          if (replWindow.isReplWindowDoc(editor.document)) {
+          if (editor && replWindow.isReplWindowDoc(editor.document)) {
             replWindow.maybePrintResultsInOtherDestinationMessage();
           }
           if (selection) {
@@ -216,7 +216,7 @@ async function evaluateCodeUpdatingUI(
                   options.commentStyle
                 );
               }
-              if (editor && !replWindow.isReplWindowDoc(editor.document)) {
+              if (editor && editor.document && !replWindow.isReplWindowDoc(editor.document)) {
                 annotations.decorateSelection(
                   value,
                   selection,
@@ -265,7 +265,7 @@ async function evaluateCodeUpdatingUI(
                 options.commentStyle
               );
             }
-            if (editor && !replWindow.isReplWindowDoc(editor.document)) {
+            if (editor && editor.document && !replWindow.isReplWindowDoc(editor.document)) {
               annotations.decorateSelection(
                 editorError,
                 selection,
