@@ -216,6 +216,38 @@ async function warnIfNotActiveReplWindow(doc: vscode.TextDocument): Promise<void
     });
 }
 
+// Track if we've already informed user about results going elsewhere
+let havePrintedResultsElsewhereMessage = false;
+
+/**
+ * When evaluating in the REPL window but results are configured to go elsewhere,
+ * prints a one-time informational message to the REPL window.
+ */
+export function maybePrintResultsInOtherDestinationMessage(): void {
+  if (output.getDestinationConfiguration().evalResults === 'repl-window') {
+    return;
+  }
+  if (havePrintedResultsElsewhereMessage) {
+    return;
+  }
+  havePrintedResultsElsewhereMessage = true;
+
+  const destination = output.getDestinationConfiguration().evalResults;
+  const destinationNames: Record<output.OutputDestination, string> = {
+    'repl-window': 'REPL Window',
+    'output-channel': 'Output Channel',
+    terminal: 'Output Terminal',
+    'output-view': 'Output View',
+  };
+  const destinationName = destinationNames[destination] || destination;
+
+  const message = `Results are configured to appear in the ${destinationName}.
+To reveal the output, use the command:
+> Calva: Show/Open the result output destination`;
+  appendLine();
+  appendLine(formatAsLineComments(message));
+}
+
 function getViewColumn(): vscode.ViewColumn {
   const column: vscode.ViewColumn | undefined =
     state.extensionContext.workspaceState.get(`replWindowViewColumn`);
