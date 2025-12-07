@@ -20,15 +20,6 @@ const REPL_DOC_NAME = `repl.${config.REPL_FILE_EXT}`;
 
 const PROMPT_HINT = 'Use `alt+enter` to evaluate';
 
-const NOT_THE_REPL_WINDOW_WARNING = [
-  '',
-  '⚠️  This file is NOT the active Calva REPL Window.',
-  '',
-  'To open the active REPL Window, use the command:',
-  '> Calva: Show/Open REPL Window',
-  '',
-].join('\n');
-
 const START_GREETINGS = [
   'This is the Calva REPL Window.',
   "It's just a file, really, with some special treatment from Calva.",
@@ -178,18 +169,32 @@ export function isReplWindowDoc(doc?: vscode.TextDocument): boolean {
   return doc.uri.toString() === _docUri.toString();
 }
 
-function isCalvaReplFile(doc?: vscode.TextDocument): boolean {
+/**
+ * Checks if a document looks like a Calva REPL window file.
+ * Must have `.calva-repl` extension AND be in a `.calva` directory.
+ */
+function looksLikeReplWindowFile(doc?: vscode.TextDocument): boolean {
   if (!doc) {
     return false;
   }
-  return doc.fileName.endsWith(`.${config.REPL_FILE_EXT}`);
+  const fileName = doc.fileName;
+  const looksLikeCurrentReplWindowFile = fileName.endsWith(`${path.sep}.calva/${REPL_DOC_NAME}`);
+  const looksLikeLegacyReplWindowFile = fileName.endsWith(
+    `${path.sep}.calva${path.sep}output-window${path.sep}output.calva-repl`
+  );
+  return looksLikeCurrentReplWindowFile || looksLikeLegacyReplWindowFile;
 }
 
 // Track which files have been warned to avoid repeated warnings
 const warnedFiles = new Set<string>();
 
 async function warnIfNotActiveReplWindow(doc: vscode.TextDocument): Promise<void> {
-  if (!isCalvaReplFile(doc) || isReplWindowDoc(doc)) {
+  // Only warn if the repl is connected and there IS an active REPL window to compare against
+  if (!util.getConnectedState() || !_docUri) {
+    return;
+  }
+
+  if (!looksLikeReplWindowFile(doc) || isReplWindowDoc(doc)) {
     return;
   }
 
@@ -199,11 +204,16 @@ async function warnIfNotActiveReplWindow(doc: vscode.TextDocument): Promise<void
   }
   warnedFiles.add(fileKey);
 
-  // Append the warning to the file
-  const edit = new vscode.WorkspaceEdit();
-  const insertPosition = doc.positionAt(doc.getText().length);
-  edit.insert(doc.uri, insertPosition, formatAsLineComments(NOT_THE_REPL_WINDOW_WARNING));
-  await vscode.workspace.applyEdit(edit);
+  return vscode.window
+    .showWarningMessage(
+      'This file is NOT the active Calva REPL Window. To open the active REPL Window, use the command: Calva: Show/Open REPL Window',
+      'Open REPL Window'
+    )
+    .then((selection) => {
+      if (selection === 'Open REPL Window') {
+        void revealReplWindowDoc(false);
+      }
+    });
 }
 
 function getViewColumn(): vscode.ViewColumn {
