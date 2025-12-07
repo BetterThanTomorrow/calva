@@ -100,3 +100,11 @@ When monitoring automated watchers like lint or test processes, focus on the mos
 - TS watcher shows "Found 0 errors" → Compilation passes. No need to run `tsc`.
 
 Running commands separately wastes time and duplicates what watchers continuously do. The watcher output after your changes reflects the current state.
+
+## Watcher Task Verification
+
+When development watchers (TypeScript, tests, lint, etc.) are not running, prompt the user to start the appropriate build task (e.g., Calva Dev or Calva Watchers) to establish continuous feedback loops. Then wait for the user to confirm the watcher is active before proceeding.
+
+## Watcher lag
+
+When making edits that trigger recompilation or retesting, account for potential lag in watcher updates. Especially the lint watcher can be very slow to update. If you suspect that the watcher gives stale results, consider running eslint in the terminal to confirm the current status.
