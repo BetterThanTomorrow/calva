@@ -476,6 +476,7 @@
           "calva.jackInDependencyVersions": {
             "type": "object",
             "description": "By default Calva Jack-in will inject the latest `nrepl`, etcetera versions when starting the repl. Override this default behaviour by declaring which versions to use here.",
+            "additionalProperties": false,
             "properties": {
               "nrepl": {
                 "type": "string",
