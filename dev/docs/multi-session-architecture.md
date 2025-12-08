@@ -510,7 +510,7 @@ ClojureDocs lookups use a **dedicated session** that is probed for ClojureDocs s
 **Flow:**
 1. User triggers "Select Runtime"
 2. Identify currently routed session (e.g., `cljs`)
-3. Find the **Primary Session** (`clj`) belonging to same client via `findPrimarySessionKeyForConnection()`
+3. Find the **Primary Session** (`clj`) belonging to same client via `findPrimarySessionForConnection()`
 4. Evaluate shadow-cljs API calls on the **Primary Session**:
    - `(shadow.cljs.devtools.api/repl-runtimes :build-id)`
    - `(shadow.cljs.devtools.api/repl-runtime-select :build-id runtime-id)`
@@ -521,7 +521,7 @@ ClojureDocs lookups use a **dedicated session** that is probed for ClojureDocs s
 ```typescript
 function getPrimarySessionForCurrentConnection() {
   const routedSessionKey = replSession.getReplSessionTypeFromState();
-  return sessionRegistry.findPrimarySessionKeyForConnection(routedSessionKey);
+  return sessionRegistry.findPrimarySessionForConnection(routedSessionKey);
 }
 ```
 
