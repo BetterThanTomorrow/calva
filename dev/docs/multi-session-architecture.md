@@ -37,6 +37,8 @@ A **Connect Sequence** describes how Calva should connect to a project. It defin
 
 A connect sequence typically results in one **Primary Session** (usually Clojure) and optionally one **Secondary Session** (usually ClojureScript).
 
+The terms **primary** and **secondary** session are used because many REPL runtimes are not Clojure. While the spawned session when there is a session pair in a sequence are always ClojureScript, semantically primary/secondary works better together.
+
 **Built-in sequences** are defined in `src/nrepl/connectSequence.ts`. User-defined sequences come from `calva.replConnectSequences` setting.
 
 ### Sessions
