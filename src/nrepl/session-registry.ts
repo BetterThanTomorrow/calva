@@ -128,20 +128,6 @@ export function findPrimarySessionForConnection(sessionKey: string): NReplSessio
 }
 
 /**
- * Find the primary session key for the same connection as the given session.
- */
-export function findPrimarySessionKeyForConnection(sessionKey: string): string | undefined {
-  const metadata = getSessionMetadata(sessionKey);
-  if (!metadata?.connectionOwnerId) {
-    return undefined;
-  }
-
-  const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
-  const primaryMeta = siblingMetas.find((m) => !m.isSecondary);
-  return primaryMeta?.key;
-}
-
-/**
  * Extended connection state that includes client info.
  * Used by code that needs both connection state AND client-level info.
  */
