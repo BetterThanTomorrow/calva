@@ -73,6 +73,10 @@ export const evaluateCode = async (
     pprintOptions: printer.disabledPrettyPrinter,
     ...nReplEvalOptions,
   });
+
+  // Update session activity timestamp for UI display
+  sessionRegistry.updateSessionActivity(effectiveSessionKey);
+
   // Honor the evaluationSendCodeToOutputWindow setting like manual evaluations do
   if (getConfig().evaluationSendCodeToOutputWindow) {
     if (resultOutput.getDestinationConfiguration().evalResults !== 'repl-window') {

@@ -173,6 +173,8 @@ async function evaluateCodeUpdatingUI(
       pprintOptions: pprintOptions,
     });
 
+    sessionRegistry.updateSessionActivity(sessionKey);
+
     try {
       if (evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document)) {
         replWindow.appendLine(code);
@@ -596,6 +598,7 @@ async function loadDocument(
       ? await namespace.getUriForNamespace(session, ns)
       : doc.uri;
     const filePath = docUri.path;
+    sessionRegistry.updateSessionActivity(session);
     return await loadFile(filePath, ns, nsForm, pprintOptions, fileType);
   }
 }

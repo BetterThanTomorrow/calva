@@ -74,6 +74,16 @@ export function getSessionMetadata(key: string): SessionMetadata | undefined {
   return (session as any)?._calvaSessionMetadata;
 }
 
+export function updateSessionActivity(sessionOrkey: string | NReplSession): void {
+  const session = typeof sessionOrkey === 'string' ? getSession(sessionOrkey) : sessionOrkey;
+  if (session) {
+    const metadata = (session as any)?._calvaSessionMetadata;
+    if (metadata) {
+      metadata.lastActivity = Date.now();
+    }
+  }
+}
+
 export function isSessionSecondary(key: string): boolean {
   const metadata = getSessionMetadata(key);
   return Boolean(metadata?.isSecondary);
