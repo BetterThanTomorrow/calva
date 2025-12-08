@@ -60,10 +60,3 @@ export function buildDisconnectItemDetail(host?: string, port?: number): string 
   }
   return port ? `${host}:${port}` : host;
 }
-
-/**
- * Formats a host:port string for display.
- */
-export function formatHostPort(host: string, port?: number): string {
-  return port ? `${host}:${port}` : host;
-}

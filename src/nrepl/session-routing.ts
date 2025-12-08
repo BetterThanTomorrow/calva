@@ -63,11 +63,6 @@ export function enableAutoRouting(): void {
   setRoutingMode('auto');
 }
 
-export function clearPinnedSession(): void {
-  clearStateKey(PINNED_SESSION_STATE_KEY);
-  setRoutingMode('auto');
-}
-
 export function isPinned(): boolean {
   return getRoutingMode() === 'pinned' && Boolean(getPinnedSessionKey());
 }
@@ -96,7 +91,7 @@ export function removeSessionKeyFromRouting(sessionKey: string): void {
 
   const pinnedKey = readStoredKey(PINNED_SESSION_STATE_KEY);
   if (pinnedKey === sessionKey) {
-    clearPinnedSession();
+    enableAutoRouting();
   }
 }
 

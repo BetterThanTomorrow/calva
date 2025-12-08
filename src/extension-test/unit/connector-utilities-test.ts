@@ -79,18 +79,4 @@ describe('connector-utilities', () => {
       expect(connectorUtils.buildDisconnectItemDetail('127.0.0.1', 8080)).toBe('127.0.0.1:8080');
     });
   });
-
-  describe('formatHostPort', () => {
-    it('returns host only when no port', () => {
-      expect(connectorUtils.formatHostPort('localhost')).toBe('localhost');
-    });
-
-    it('returns host:port when both provided', () => {
-      expect(connectorUtils.formatHostPort('localhost', 12345)).toBe('localhost:12345');
-    });
-
-    it('handles IP addresses', () => {
-      expect(connectorUtils.formatHostPort('192.168.1.1', 3000)).toBe('192.168.1.1:3000');
-    });
-  });
 });
