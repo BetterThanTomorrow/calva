@@ -66,12 +66,8 @@ export function isSessionSecondary(key: string): boolean {
   return Boolean(metadata?.isSecondary);
 }
 
-export function getSessionKeyFromSession(session?: NReplSession): string | undefined {
-  return (session as any)?._calvaSessionMetadata?.key || session?.replType;
-}
-
 export function resolveSessionKey(session?: NReplSession, fallback: string = 'clj'): string {
-  return getSessionKeyFromSession(session) || session?.replType || fallback;
+  return (session as any)?._calvaSessionMetadata?.key ?? fallback;
 }
 
 /**
