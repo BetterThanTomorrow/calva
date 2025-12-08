@@ -10,15 +10,6 @@ import * as sessionRouting from './nrepl/session-routing';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as replWindow from './repl-window/repl-window-doc';
 
-// Helper to get connection state for the currently routed session
-function getConnectionStateForRoutedSession() {
-  const replType = replSession.getReplSessionTypeFromState();
-  if (!replType) {
-    return undefined;
-  }
-  return sessionRegistry.getConnectionStateForSession(replType);
-}
-
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const cljsBuildStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
