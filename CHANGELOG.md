@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.541] - 2025-12-08
+
 - [Enable editing of Jack In Dependency Versions in the Settings UI](https://github.com/BetterThanTomorrow/calva/issues/2969)
 - [Jack In Dependency Versions: Use only configured settings or Calva defaults](https://github.com/BetterThanTomorrow/calva/issues/2969)
 
