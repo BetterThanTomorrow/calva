@@ -442,7 +442,6 @@ async function evalConnectCode(
       isSecondary: true,
     });
 
-    cljsSession = newCljsSession;
     return true;
   } else {
     return false;
@@ -929,8 +928,7 @@ async function makeCljsSessionClone(
         isSecondary: true,
       });
 
-      cljsSession = newCljsSession;
-      return [cljsSession, clientRegistry.getConnectionState(clientKey)?.cljsBuild ?? null];
+      return [newCljsSession, clientRegistry.getConnectionState(clientKey)?.cljsBuild ?? null];
     } else {
       const build = clientRegistry.getConnectionState(clientKey)?.cljsBuild ?? null;
       const failed =
@@ -1007,9 +1005,6 @@ async function promptForNreplUrlAndConnect(
     currentReason = 'connection-failed';
   }
 }
-
-export let cljSession: NReplSession;
-export let cljsSession: NReplSession;
 
 export async function connect(
   connectSequence: ReplConnectSequence,
