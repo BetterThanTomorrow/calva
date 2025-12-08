@@ -196,10 +196,7 @@ Central storage for all registered sessions across all connections.
 | `listSessions()` | Get all session metadata |
 | `listSessionsByClient(clientKey)` | Sessions owned by a specific client |
 | `findPrimarySessionForConnection(sessionKey)` | Find primary session for same connection |
-| `findSecondarySessionForConnection(sessionKey)` | Find secondary session for same connection |
 | `getConnectionStateForSession(sessionKey)` | Get per-connection state |
-| `analyzeSessionAssignments(keys, clientKey)` | Check for conflicts |
-| `findSingleOwnerForSessions(keys)` | Find reconnection scenario |
 
 **Storage mechanism**: Uses `cljs-lib.setStateValue/getStateValue` with prefixed keys.
 
@@ -213,7 +210,6 @@ Tracks active nREPL client connections.
 | `unregisterClient(clientKey)` | Remove client |
 | `listClients()` | Get all registered clients (sorted by connectedAt) |
 | `getClient(clientKey)` | Get client by key |
-| `getClientSessions(clientKey)` | Get sessions for a client (via session-registry) |
 
 **Storage mechanism**: Uses an in-memory `Map<string, RegisteredClient>`.
 
@@ -225,7 +221,6 @@ Per-connection state for CLJS-specific information. This used to live in a separ
 |----------|---------|
 | `getConnectionState(clientKey)` | Get state for a connection |
 | `setConnectionState(clientKey, state)` | Set/merge state |
-| `listConnectionStates()` | Debug: list all states |
 
 **Storage mechanism**: In-memory `Map<string, RegisteredClient>` inside `client-registry`, with the connection state embedded on each entry. Clearing happens when the client is unregistered.
 

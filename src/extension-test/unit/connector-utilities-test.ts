@@ -2,30 +2,6 @@ import * as expect from 'expect';
 import * as connectorUtils from '../../connector-utilities';
 
 describe('connector-utilities', () => {
-  describe('buildDocsUrl', () => {
-    it('returns base URL when no slug provided', () => {
-      expect(connectorUtils.buildDocsUrl()).toBe('https://calva.io/');
-    });
-
-    it('returns base URL for empty string', () => {
-      expect(connectorUtils.buildDocsUrl('')).toBe('https://calva.io/');
-    });
-
-    it('appends slug to base URL', () => {
-      expect(connectorUtils.buildDocsUrl('connect')).toBe('https://calva.io/connect');
-    });
-
-    it('handles slug with leading slash', () => {
-      expect(connectorUtils.buildDocsUrl('/connect')).toBe('https://calva.io/connect');
-    });
-
-    it('handles complex paths', () => {
-      expect(connectorUtils.buildDocsUrl('nrepl/connect-sequences')).toBe(
-        'https://calva.io/nrepl/connect-sequences'
-      );
-    });
-  });
-
   describe('buildDisconnectItemLabel', () => {
     it('uses connectSequenceName when available', () => {
       const client: connectorUtils.ClientDisplayInfo = {

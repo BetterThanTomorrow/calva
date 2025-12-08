@@ -1,5 +1,3 @@
-const CALVA_DOCS_BASE_URL = 'https://calva.io/';
-
 /**
  * Types for disconnect selection results.
  */
@@ -25,18 +23,6 @@ export interface ClientDisplayInfo {
   host?: string;
   port?: number;
   sessionKeys: string[];
-}
-
-/**
- * Builds the Calva docs URL for a given slug.
- * Returns the base URL if no slug is provided.
- */
-export function buildDocsUrl(slug?: string): string {
-  if (!slug) {
-    return CALVA_DOCS_BASE_URL;
-  }
-  const normalizedSlug = slug.startsWith('/') ? slug.slice(1) : slug;
-  return `${CALVA_DOCS_BASE_URL}${normalizedSlug}`;
 }
 
 /**

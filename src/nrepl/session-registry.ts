@@ -7,11 +7,11 @@ import type { ConnectionState } from './client-registry';
 export interface SessionMetadata {
   key: string;
   projectRoot?: string;
-  lastActivity?: number;
   globs?: string[];
   globSpecs?: SessionGlobSpec[];
   connectionOwnerId?: string;
   isSecondary?: boolean;
+  lastActivity?: number;
 }
 
 const SESSION_PREFIX = 'repl-session-';
@@ -23,12 +23,11 @@ function getStorageKey(key: string): string {
 export function registerSession(
   key: string,
   session: NReplSession,
-  metadata: Omit<SessionMetadata, 'key' | 'lastActivity'> = {}
+  metadata: Omit<SessionMetadata, 'key'> = {}
 ): void {
   const computedOwnerId = metadata.connectionOwnerId ?? session?.client?.clientKey;
   const fullMetadata: SessionMetadata = {
     key,
-    lastActivity: Date.now(),
     ...metadata,
     connectionOwnerId: computedOwnerId,
   };
@@ -88,13 +87,6 @@ export function resolveSessionKey(session?: NReplSession, fallback: string = 'cl
   return getSessionKeyFromSession(session) || session?.replType || fallback;
 }
 
-export function updateSessionActivity(key: string): void {
-  const session = getSession(key);
-  if (session && (session as any)._calvaSessionMetadata) {
-    (session as any)._calvaSessionMetadata.lastActivity = Date.now();
-  }
-}
-
 export function clearAllSessions(): void {
   const keys = cljsLib.getStateValue('registered-session-keys') || [];
   keys.forEach((key: string) => {
@@ -103,85 +95,11 @@ export function clearAllSessions(): void {
   cljsLib.setStateValue('registered-session-keys', []);
 }
 
-export type SessionKeyOccupancy = 'available' | 'same-client' | 'conflict';
-
-export interface SessionKeyStatus {
-  key: string;
-  occupancy: SessionKeyOccupancy;
-  metadata?: SessionMetadata;
-}
-
-export type SessionAssignmentSummary = 'available' | 'existing-client' | 'conflict';
-
-export interface SessionAssignmentAnalysis {
-  summary: SessionAssignmentSummary;
-  statuses: SessionKeyStatus[];
-}
-
-export function analyzeSessionAssignments(
-  requestedKeys: Array<string | undefined>,
-  clientKey?: string
-): SessionAssignmentAnalysis {
-  const uniqueKeys = Array.from(new Set(requestedKeys.filter(Boolean)));
-  const statuses: SessionKeyStatus[] = uniqueKeys.map((key) => {
-    const metadata = getSessionMetadata(key);
-    if (!metadata) {
-      return { key, occupancy: 'available' };
-    }
-
-    if (metadata.connectionOwnerId && clientKey && metadata.connectionOwnerId === clientKey) {
-      return { key, occupancy: 'same-client', metadata };
-    }
-
-    return { key, occupancy: 'conflict', metadata };
-  });
-
-  let summary: SessionAssignmentSummary = 'available';
-  if (statuses.some((status) => status.occupancy === 'conflict')) {
-    summary = 'conflict';
-  } else if (statuses.some((status) => status.occupancy === 'same-client')) {
-    summary = 'existing-client';
-  }
-
-  return { summary, statuses };
-}
-
 export function listSessionsByClient(targetClientKey: string): SessionMetadata[] {
   if (!targetClientKey) {
     return [];
   }
   return listSessions().filter((meta) => meta.connectionOwnerId === targetClientKey);
-}
-
-/**
- * Checks if all the requested session keys are either available or owned by a single client.
- * This is used to determine if a reconnection scenario is valid - where we can disconnect
- * the existing client and replace its sessions with new ones.
- *
- * Returns the clientKey that owns all the occupied sessions, or undefined if:
- * - All sessions are available (no existing owner)
- * - Sessions are owned by multiple different clients (true conflict)
- */
-export function findSingleOwnerForSessions(
-  requestedKeys: Array<string | undefined>
-): string | undefined {
-  const uniqueKeys = Array.from(new Set(requestedKeys.filter(Boolean)));
-  const ownerIds = new Set<string>();
-
-  for (const key of uniqueKeys) {
-    const metadata = getSessionMetadata(key);
-    if (metadata?.connectionOwnerId) {
-      ownerIds.add(metadata.connectionOwnerId);
-    }
-  }
-
-  // If all sessions have a single owner, return that owner's clientKey
-  if (ownerIds.size === 1) {
-    return Array.from(ownerIds)[0];
-  }
-
-  // Multiple owners or no owners
-  return undefined;
 }
 
 /**
@@ -211,34 +129,6 @@ export function findPrimarySessionKeyForConnection(sessionKey: string): string |
   const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
   const primaryMeta = siblingMetas.find((m) => !m.isSecondary);
   return primaryMeta?.key;
-}
-
-/**
- * Find the secondary session for the same connection as the given session.
- */
-export function findSecondarySessionForConnection(sessionKey: string): NReplSession | undefined {
-  const metadata = getSessionMetadata(sessionKey);
-  if (!metadata?.connectionOwnerId) {
-    return undefined;
-  }
-
-  const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
-  const secondaryMeta = siblingMetas.find((m) => m.isSecondary);
-  return secondaryMeta ? getSession(secondaryMeta.key) : undefined;
-}
-
-/**
- * Find the secondary session key for the same connection as the given session.
- */
-export function findSecondarySessionKeyForConnection(sessionKey: string): string | undefined {
-  const metadata = getSessionMetadata(sessionKey);
-  if (!metadata?.connectionOwnerId) {
-    return undefined;
-  }
-
-  const siblingMetas = listSessionsByClient(metadata.connectionOwnerId);
-  const secondaryMeta = siblingMetas.find((m) => m.isSecondary);
-  return secondaryMeta?.key;
 }
 
 /**
@@ -302,18 +192,6 @@ export function getPrimarySessionKeyForClient(clientKey: string): string | undef
   const sessions = listSessionsByClient(clientKey);
   const primaryMeta = sessions.find((m) => !m.isSecondary);
   return primaryMeta?.key;
-}
-
-/**
- * Get the secondary session for a given client.
- */
-export function getSecondarySessionForClient(clientKey: string): NReplSession | undefined {
-  const sessions = listSessionsByClient(clientKey);
-  const secondaryMeta = sessions.find((m) => m.isSecondary);
-  if (!secondaryMeta) {
-    return undefined;
-  }
-  return getSession(secondaryMeta.key);
 }
 
 /**

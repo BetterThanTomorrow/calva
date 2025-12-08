@@ -87,10 +87,6 @@ Every connection registers one or two session names (for example the default `cl
 
 Use **Calva: Disconnect from the REPL** whenever you need to tear down one connection without touching the others. The command opens a quick pick that lists every client along with its session names, host/port, and project root. When more than one client is active the picker also offers **Disconnect all sessions** as a fast way to clean the slate.
 
-### Avoiding session-name conflicts
-
-Because sessions act as routing keys, Calva prevents you from starting another connection that reuses a session name owned by a different client. If you hit a **Conflicting sessions** error you can either disconnect the other client via the command above or assign unique `replSessionNames` in your custom connect sequences. Pair each name with matching `replSessionGlobs` when you want Calva to auto-route different folders to specific sessions.
-
 ## shadow-cljs
 
 Please see the [shadow-cljs](shadow-cljs.md) page.

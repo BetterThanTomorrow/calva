@@ -1,5 +1,4 @@
 import type { NReplClient } from './index';
-import * as sessionRegistry from './session-registry';
 import type { SessionRoleKeys, SessionGlobMap } from './session-role-utils';
 import type { ReplConnectSequence } from './connectSequence';
 
@@ -88,10 +87,6 @@ export function getRegisteredClient(clientKey: string): RegisteredClient | undef
   return registeredClients.get(clientKey);
 }
 
-export function getClientSessions(clientKey: string) {
-  return sessionRegistry.listSessionsByClient(clientKey);
-}
-
 /**
  * Get the connection state for a given client key.
  */
@@ -108,17 +103,6 @@ export function setConnectionState(clientKey: string, state: Partial<ConnectionS
   if (entry) {
     entry.connectionState = { ...entry.connectionState, ...state };
   }
-}
-
-/**
- * List all connection states.
- * Useful for debugging and testing.
- */
-export function listConnectionStates(): (ConnectionState & { clientKey: string })[] {
-  return Array.from(registeredClients.values()).map((entry) => ({
-    ...entry.connectionState,
-    clientKey: entry.key,
-  }));
 }
 
 export function clearAllClients(): void {
