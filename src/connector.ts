@@ -333,8 +333,12 @@ async function setUpCljsRepl(
   globMap: SessionGlobMap
 ) {
   const globMetadata = getSessionGlobMetadata(cljsKey, globMap);
+  // Use project root from owning client to avoid stamping wrong root when multiple connections exist
+  const projectRoot =
+    clientRegistry.getRegisteredClient(clientKey)?.projectRoot ??
+    state.getProjectRootUri().toString();
   sessionRegistry.registerSession(cljsKey, session, {
-    projectRoot: state.getProjectRootUri().toString(),
+    projectRoot,
     globs: globMetadata.globs,
     globSpecs: globMetadata.globSpecs,
     isSecondary: true,
