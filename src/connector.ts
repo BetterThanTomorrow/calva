@@ -38,7 +38,6 @@ import * as sessionRouting from './nrepl/session-routing';
 import * as clientRegistry from './nrepl/client-registry';
 import type { RegisteredClient } from './nrepl/client-registry';
 import * as sessionTeardown from './nrepl/session-teardown';
-import { ConflictingSessionsError } from './errors/conflicting-sessions';
 import type { SessionGlobSpec } from './nrepl/globs';
 import * as sessionNameResolver from './nrepl/session-name-resolver';
 import * as fruitSuffix from './nrepl/fruit-suffix';
@@ -276,23 +275,6 @@ async function connectToHost(
 
     status.update();
   } catch (e) {
-    if (e instanceof ConflictingSessionsError) {
-      util.setConnectingState(false);
-      util.setConnectedState(false);
-      status.update();
-      if (localClient) {
-        clientRegistry.unregisterClient(localClient.clientKey);
-      }
-      if (localClient) {
-        try {
-          await localClient.close();
-        } catch (closeError) {
-          console.warn('Failed closing nREPL client after conflict:', closeError);
-          localClient.disconnect();
-        }
-      }
-      throw e;
-    }
     return cleanUpAfterError(e, localClient?.clientKey, silent);
   }
 
@@ -1130,22 +1112,7 @@ async function nReplPortFileExists() {
   return fileExists;
 }
 
-// Use extracted pure function
-const buildDocsUrl = connectorUtils.buildDocsUrl;
-
 function handleConnectError(error: unknown): boolean {
-  if (error instanceof ConflictingSessionsError) {
-    const docUrl = buildDocsUrl(error.docSlug);
-    const openDocsLabel = 'Open multi-session docs';
-    output.appendLineOtherErr(error.message);
-    void vscode.window.showErrorMessage(error.message, openDocsLabel).then((choice) => {
-      if (choice === openDocsLabel) {
-        void vscode.commands.executeCommand('simpleBrowser.show', docUrl);
-      }
-    });
-    return true;
-  }
-
   // Handle fruit pool exhaustion error
   if (error instanceof Error && error.message.includes('too many REPLs')) {
     output.appendLineOtherErr(error.message);
