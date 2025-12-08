@@ -7,7 +7,25 @@ description: Overview of Calva's REPL user interface components and how they wor
 
 When you connect Calva to a REPL, you gain access to a complete interactive development environment. The REPL UI consists of several components that work together to provide a seamless evaluation and feedback experience.
 
-## Components Overview
+## Managing Multiple Connections
+
+Definitions:
+
+- **REPL Connection**: An active nREPL connection to a running Clojure/ClojureScript environment. Each connection is associated with a project root and a host/port.
+- **REPL Session**: A logical session within a REPL connection. Connections have at least one session and at most two. Sessions are associated with a project root (via the connection) and file patterns (partial globs), these associations help the automatic evaluation routing: **file → session**.
+
+Calva keeps every nREPL connection alive until you explicitly disconnect it. This makes it possible to work with several apps (or the same app in multiple environments) at once from the same VS Code window. By default Calva will automatically route evaluations to a session based on file path and file type.
+
+- The REPL Sessions menu lists every registered session name, indicating which one is being targeted by the auto-router for the currently active file. You can bypass the auto-routing by pinning one of the sessions.
+- The command palette entry **Calva: Disconnect from the REPL** (also available from the REPL menu) opens a menu that shows all active connections, with their sessions names, host/port, and project root. Pick a single connection to disconnect only that REPL or choose **Close all REPL connections**.
+- Sessions names are defined by the [connect sequence](connect-sequences.md) used for connecting a REPL. Calva has built-in sequences for several Clojure dialects/runtimes, defining default session names. The session names are customizable via custom connect sequences.
+- When two or more sessions use the same session name, suffixes based on a list of fruits will be used to separate the sessions.
+
+  E.g. connect three Babashka repls and you will have one session named `bb` another named `bb:apple`, and a third named `bb:banana`. If you then connect two Clojure + ClojureScript repls using default session names, you will have four more sessions named: `clj`, `cljs`, `clj:cherry`, `cljs:cherry`.
+
+![REPL Sessions Menu](images/repl-ui/repl-sessions-menu.png)
+
+## UI Components Overview
 
 ### File Editors
 
@@ -111,17 +129,6 @@ vscode.commands.executeCommand('calva.selectReplWindowSession');
 ```
 
 This is useful for keyboard shortcuts or automation scripts that need to quickly switch the REPL window's session.
-
-## Managing Multiple Connections
-
-Calva keeps every connected nREPL connection alive until you explicitly disconnect it. This makes it possible to work with several apps (or the same app in multiple environments) at once from the same VS Code window. By default Calva will automatically route evaluations to a session based on file path and file type.
-
-- The REPL Sessions menu lists every registered session name, indicating which one is being targeted by the auto-router for the currently active file. You can bypass the auto-routing by pinning one of the sessions.
-- The command palette entry **Calva: Disconnect from the REPL** (also available from the REPL menu) opens a menu that shows all active connections, with their sessions names, host/port, and project root. Pick a single connection to disconnect only that REPL or choose **Close all REPL connections**.
-- Sessions names are defined by the [connect sequence](connect-sequences.md) used for connecting a REPL. Calva has built-in sequences for several Clojure dialects/runtimes, defining default session names. The session names are customizable via custom connect sequences.
-- When two or more sessions use the same session name, suffixes based on a list of fruits will be used to separate the sessions.
-
-  E.g. connect three Babashka repls and you will have one session named `bb` another named `bb:apple`, and a third named `bb:banana`. If you then connect two Clojure + ClojureScript repls using default session names, you will have four more sessions named: `clj`, `cljs`, `clj:cherry`, `cljs:cherry`.
 
 ### CLJS Build Selector
 
