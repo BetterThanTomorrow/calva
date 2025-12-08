@@ -106,7 +106,7 @@ Session names are resolved at connection time using the following rules:
 
 1. **Base names** come from the connect sequence's `replSessionNames` configuration, or project type defaults
 2. A connection is identified by the tuple `(baseNames, projectRoot)`
-3. If the base names conflict with an existing connection at a *different* project root, a **fruit suffix** is applied (e.g., `clj` → `clj-apple`)
+3. If the base names conflict with an existing connection at a *different* project root, a **fruit suffix** is applied (e.g., `clj` → `clj:apple`)
 4. If the base names match an existing connection at the *same* project root, this is a **reconnection** — the existing connection is disconnected and names are reused
 5. Fruit suffixes are released back to a global pool on disconnect
 
@@ -552,8 +552,7 @@ The build selector queries the REPL for active watchers to provide informed UX:
 7. Re-run CLJS setup:
    - Clone primary session
    - Evaluate connect code with new build
-   - Unregister old secondary session
-   - Register new secondary session
+   - Register new secondary session, overwriting the existing entry
 8. Update connection state with new build
 
 ```typescript
