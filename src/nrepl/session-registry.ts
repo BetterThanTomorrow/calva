@@ -1,6 +1,5 @@
 import { NReplSession } from './index';
-import * as cljsLib from '../../out/cljs-lib/cljs-lib';
-import type { SessionGlobSpec, SessionGlobTier } from './globs';
+import type { SessionGlobSpec } from './globs';
 import * as clientRegistry from './client-registry';
 import type { ConnectionState } from './client-registry';
 
@@ -14,11 +13,8 @@ export interface SessionMetadata {
   lastActivity?: number;
 }
 
-const SESSION_PREFIX = 'repl-session-';
-
-function getStorageKey(key: string): string {
-  return `${SESSION_PREFIX}${key}`;
-}
+// Internal storage for sessions - mirrors client-registry pattern
+const registeredSessions = new Map<string, NReplSession>();
 
 export function registerSession(
   key: string,
@@ -32,41 +28,23 @@ export function registerSession(
     connectionOwnerId: computedOwnerId,
   };
 
-  // Store the session object itself
-  cljsLib.setStateValue(getStorageKey(key), session);
+  registeredSessions.set(key, session);
 
-  // Store metadata on the session object for easy retrieval
-  // We cast to any here because we're dynamically adding properties to the session object
-  // which might not be strictly typed in NReplSession
   (session as any)._calvaSessionMetadata = fullMetadata;
-
-  // Maintain a list of registered session keys
-  const registeredKeys = cljsLib.getStateValue('registered-session-keys') || [];
-  if (!registeredKeys.includes(key)) {
-    cljsLib.setStateValue('registered-session-keys', [...registeredKeys, key]);
-  }
 }
 
 export function getSession(key: string): NReplSession | undefined {
-  return cljsLib.getStateValue(getStorageKey(key));
+  return registeredSessions.get(key);
 }
 
 export function unregisterSession(key: string): void {
-  cljsLib.setStateValue(getStorageKey(key), null);
-
-  const registeredKeys = cljsLib.getStateValue('registered-session-keys') || [];
-  const newKeys = registeredKeys.filter((k: string) => k !== key);
-  cljsLib.setStateValue('registered-session-keys', newKeys);
+  registeredSessions.delete(key);
 }
 
 export function listSessions(): SessionMetadata[] {
-  const keys = cljsLib.getStateValue('registered-session-keys') || [];
-  return keys
-    .map((key: string) => {
-      const session = getSession(key);
-      return (session as any)?._calvaSessionMetadata;
-    })
-    .filter((meta: SessionMetadata | undefined) => meta !== undefined);
+  return Array.from(registeredSessions.values())
+    .map((session) => (session as any)?._calvaSessionMetadata as SessionMetadata | undefined)
+    .filter((meta): meta is SessionMetadata => meta !== undefined);
 }
 
 export function getSessionMetadata(key: string): SessionMetadata | undefined {
@@ -98,11 +76,8 @@ export function resolveSessionKey(session?: NReplSession, fallback: string = 'cl
 }
 
 export function clearAllSessions(): void {
-  const keys = cljsLib.getStateValue('registered-session-keys') || [];
-  keys.forEach((key: string) => {
-    cljsLib.setStateValue(getStorageKey(key), null);
-  });
-  cljsLib.setStateValue('registered-session-keys', []);
+  registeredSessions.clear();
+  clojureDocsSessionKey = null;
 }
 
 export function listSessionsByClient(targetClientKey: string): SessionMetadata[] {
@@ -201,21 +176,21 @@ export function getSecondarySessionKeyForClient(clientKey: string): string | und
 
 // --- ClojureDocs dedicated session ---
 
-const CLOJUREDOCS_SESSION_KEY = 'clojuredocs-session-key';
+let clojureDocsSessionKey: string | null = null;
 
 /**
  * Set the session key to use for ClojureDocs lookups.
  * Pass null to clear the dedicated session.
  */
 export function setClojureDocsSessionKey(key: string | null): void {
-  cljsLib.setStateValue(CLOJUREDOCS_SESSION_KEY, key);
+  clojureDocsSessionKey = key;
 }
 
 /**
  * Get the session key currently designated for ClojureDocs lookups.
  */
 export function getClojureDocsSessionKey(): string | null {
-  return cljsLib.getStateValue(CLOJUREDOCS_SESSION_KEY) ?? null;
+  return clojureDocsSessionKey;
 }
 
 /**

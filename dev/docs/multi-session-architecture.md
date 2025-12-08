@@ -172,7 +172,7 @@ flowchart TB
     end
 
     subgraph GlobalState["Global State (cljs-lib)"]
-        STATE["• connected, connecting flags<br/>• current-session-type<br/>• registered-session-keys<br/>• repl-session-{key}<br/>• session-routing-mode<br/>• session-routing-pinned-session-key"]
+        STATE["• connected, connecting flags<br/>• current-session-type<br/>• session-routing-mode<br/>• session-routing-pinned-session-key"]
     end
 
     UserCommands --> CommandHandlers
@@ -198,7 +198,6 @@ Central storage for all registered sessions across all connections.
 | `findPrimarySessionForConnection(sessionKey)` | Find primary session for same connection |
 | `getConnectionStateForSession(sessionKey)` | Get per-connection state |
 
-**Storage mechanism**: Uses `cljs-lib.setStateValue/getStateValue` with prefixed keys.
 
 #### Client Registry (`src/nrepl/client-registry.ts`)
 
@@ -978,16 +977,4 @@ graph TB
 ---
 
 ## Simplification Considerations
-
-This section notes potential areas for architectural simplification, based on the current state of the codebase.
-
-### State Distribution
-
-Currently state is spread across:
-
-1. **cljs-lib** (global atom) - session objects (with `_calvaSessionMetadata` attached), routing state, flags
-2. **client-registry** (in-memory Map) - client instances and per-connection state
-
-**Future consideration:** The cljs-lib session storage could potentially be consolidated with the TypeScript client-registry, but this would require more significant changes to the session lifecycle.
-
 
