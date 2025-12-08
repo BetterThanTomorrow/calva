@@ -198,6 +198,27 @@ export function getEffectiveJackInDependencyVersions(): Record<JackInDependencyK
   return getJackInVersionsDetail().effective;
 }
 
+export function formatLatestVersionsReport(indent = ''): string {
+  const detail = getJackInVersionsDetail();
+  const lines = [`${indent}Latest available nREPL dependency versions found on Clojars:`];
+  for (const dep of JACK_IN_DEPENDENCY_KEYS) {
+    const latest = detail.storedLatest[dep] ?? 'unknown';
+    lines.push(`${indent}  ${dep}: ${latest}`);
+  }
+  return lines.join('\n');
+}
+
+export function formatEffectiveVersionsReport(indent = ''): string {
+  const detail = getJackInVersionsDetail();
+  const lines = [`${indent}Effective nREPL dependency versions:`];
+  for (const dep of JACK_IN_DEPENDENCY_KEYS) {
+    const source = detail.sources[dep];
+    const sourceLabel = source === 'configured' ? 'configured in settings' : 'Calva defaults';
+    lines.push(`${indent}  ${dep}: ${detail.effective[dep]} (${sourceLabel})`);
+  }
+  return lines.join('\n');
+}
+
 export async function refreshJackInDependencyVersions(): Promise<void> {
   const context = state.extensionContext;
   if (!context) {

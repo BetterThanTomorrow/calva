@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import * as utilities from '../utilities';
 import * as _ from 'lodash';
 import * as state from '../state';

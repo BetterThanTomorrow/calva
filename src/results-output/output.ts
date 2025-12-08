@@ -13,6 +13,7 @@ import {
   appendStackTraceToReplOutputWebview,
 } from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
+import * as jackInVersions from '../nrepl/jack-in-dependency-versions';
 
 const customChalk = new chalk.Instance({ level: 3 });
 
@@ -120,6 +121,10 @@ To reveal this terminal, use the command ${customChalk.bgWhiteBright.black(
       )}.
 
 See also the Calva Inspector: https://calva.io/inspector
+
+${jackInVersions.formatEffectiveVersionsReport()}
+
+${jackInVersions.formatLatestVersionsReport()}
 
 `
     );

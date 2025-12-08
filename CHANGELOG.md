@@ -4,8 +4,13 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Edit Jack In Dependency Versions in the Settings UI [Manage REPL Injected Libraries](https://github.com/BetterThanTomorrow/calva/issues/2969)
-- Log latest-available Jack In Dependency Versions (in Calva Says), but use only configured settings or Calva defaults [Manage REPL Injected Libraries](https://github.com/BetterThanTomorrow/calva/issues/2969)
+- [Enable editing of Jack In Dependency Versions in the Settings UI](https://github.com/BetterThanTomorrow/calva/issues/2969)
+- [Jack In Dependency Versions: Use only configured settings or Calva defaults](https://github.com/BetterThanTomorrow/calva/issues/2969)
+
+  Current Calva defaults:
+  - `nrepl`: 1.5.1
+  - `cider-nrepl`: 0.58.0
+  - `cider/piggieback`: 0.6.10
 
 ## [2.0.540] - 2025-11-06
 
