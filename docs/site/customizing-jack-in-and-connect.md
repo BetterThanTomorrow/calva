@@ -171,8 +171,7 @@ It may be helpful to view the messages sent between nREPL and Calva when trouble
 
 The versions used are configurable via the VS Code settings `calva.jackInDependencyVersions`.
 
-!!! Note "Latest versions by default"
-    By default, Calva resolves the latest available versions of `nrepl`, `cider-nrepl`, and `cider/piggieback` when Jacking in. If the latest version cannot be determined, Calva falls back to the default versions pinned in Calva's `package.json`. If you specify versions in `calva.jackInDependencyVersions`, those versions take precedence and will be used. You can specify just one; any unspecified dependencies still use the latest-or-fallback behavior.
+In case you might like to update jack-in dependencies, Calva checks for the latest versions and displays them in the activation message ("Calva Says").
 
 !!! Note "Java 1.8 compatible versions"
     The default dependency versions are not compatible with Java 1.8. If your project needs that version of Java you can use these settings in your Workspace `.vscode/settings.json`:

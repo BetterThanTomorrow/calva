@@ -27,6 +27,16 @@ Changes to Calva.
 - The `calva.copyJackInCommandToClipboard` command now accepts a connect sequence argument.
 - Add some messaging when using the REPL Window, and when potentially attempting to use it from the wrong `.calva-repl` file.
 
+## [2.0.541] - 2025-12-08
+
+- [Enable editing of Jack In Dependency Versions in the Settings UI](https://github.com/BetterThanTomorrow/calva/issues/2969)
+- [Jack In Dependency Versions: Use only configured settings or Calva defaults](https://github.com/BetterThanTomorrow/calva/issues/2969)
+
+  Current Calva defaults:
+  - `nrepl`: 1.5.1
+  - `cider-nrepl`: 0.58.0
+  - `cider/piggieback`: 0.6.10
+
 ## [2.0.540] - 2025-11-06
 
 - Fix: [Interrupting evaluations looks like it succeeds even when it is not supported by the host platform](https://github.com/BetterThanTomorrow/calva/issues/2961)

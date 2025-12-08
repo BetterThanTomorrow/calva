@@ -59,8 +59,6 @@ suite(SUITE, () => {
       originalGet = originalGlobalState.get.bind(originalGlobalState);
       originalUpdate = originalGlobalState.update.bind(originalGlobalState);
       originalKeys = originalGlobalState.keys?.bind(originalGlobalState);
-      // originalSetKeysForSync = originalGlobalState.setKeysForSync?.bind(originalGlobalState);
-
       memoryMemento = new InMemoryMemento();
       (originalGlobalState as any).get = memoryMemento.get.bind(memoryMemento);
       (originalGlobalState as any).update = memoryMemento.update.bind(memoryMemento);
@@ -85,7 +83,6 @@ suite(SUITE, () => {
       if (originalKeys) {
         (originalGlobalState as any).keys = originalKeys;
       }
-      // Removed handling for setKeysForSync
     }
   });
 
@@ -110,7 +107,7 @@ suite(SUITE, () => {
   });
 
   test('partial configuration: missing keys fall back while set keys are respected', async () => {
-    // Clear stored values to avoid influencing this test
+    // Clear global state to avoid influencing this test
     await state.extensionContext?.globalState.update(GLOBAL_STATE_KEY, {});
 
     const inspectedDefaults = vscode.workspace
@@ -126,6 +123,7 @@ suite(SUITE, () => {
       .getConfiguration('calva')
       .update('jackInDependencyVersions', configured, vscode.ConfigurationTarget.Workspace);
 
+    await testUtil.sleep(20);
     const effective = getEffectiveJackInDependencyVersions();
 
     assert.strictEqual(effective.nrepl, 'PARTIAL-NREPL-1', 'nrepl should use configured value');
@@ -141,63 +139,7 @@ suite(SUITE, () => {
     );
   });
 
-  test('precedence: stored values are used when nothing is configured', async () => {
-    const stored: Record<JackInDependencyKey, string> = {
-      nrepl: 'STORED-NREPL-1',
-      'cider-nrepl': 'STORED-CIDER-2',
-      'cider/piggieback': 'STORED-PIGGIE-3',
-    };
-    const ctx = state.extensionContext;
-    if (ctx) {
-      await ctx.globalState.update(GLOBAL_STATE_KEY, stored);
-    }
-
-    await testUtil.sleep(20);
-    await vscode.workspace
-      .getConfiguration('calva')
-      .update('jackInDependencyVersions', undefined, vscode.ConfigurationTarget.Workspace);
-
-    const effective = getEffectiveJackInDependencyVersions();
-    assert.deepStrictEqual(
-      effective,
-      stored,
-      'When nothing is configured, stored values should be used'
-    );
-  });
-
-  test('precedence: configured overrides stored', async () => {
-    const stored: Record<JackInDependencyKey, string> = {
-      nrepl: 'STORED-NREPL-1',
-      'cider-nrepl': 'STORED-CIDER-2',
-      'cider/piggieback': 'STORED-PIGGIE-3',
-    };
-    await state.extensionContext?.globalState.update(GLOBAL_STATE_KEY, stored);
-
-    const configured: Versions = {
-      nrepl: 'CONFIG-NREPL-1',
-      'cider/piggieback': 'CONFIG-PIGGIE-3',
-    };
-    await vscode.workspace
-      .getConfiguration('calva')
-      .update('jackInDependencyVersions', configured, vscode.ConfigurationTarget.Workspace);
-
-    await testUtil.sleep(20);
-
-    const effective = getEffectiveJackInDependencyVersions();
-    assert.strictEqual(effective.nrepl, 'CONFIG-NREPL-1', 'configured should override stored');
-    assert.strictEqual(
-      effective['cider/piggieback'],
-      'CONFIG-PIGGIE-3',
-      'configured should override stored'
-    );
-    assert.strictEqual(
-      effective['cider-nrepl'],
-      'STORED-CIDER-2',
-      'stored should be used when not configured'
-    );
-  });
-
-  test('precedence: default is used when neither configured nor stored', async () => {
+  test('precedence: default is used when nothing is configured', async () => {
     const inspectedDefaults = vscode.workspace
       .getConfiguration('calva')
       .inspect<Record<JackInDependencyKey, string>>('jackInDependencyVersions');
@@ -218,7 +160,7 @@ suite(SUITE, () => {
     assert.deepStrictEqual(
       effective,
       defaults,
-      'effective should equal defaults when nothing is configured or stored'
+      'effective should equal defaults when nothing is configured'
     );
   });
 });
