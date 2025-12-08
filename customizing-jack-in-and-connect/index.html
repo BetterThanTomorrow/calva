@@ -2572,10 +2572,7 @@
 <li><a href="https://github.com/nrepl/piggieback">cider/piggieback</a>: Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with <a href="http://shadow-cljs.org">shadow-cljs</a> projects though, which provides its own middleware for this.)</li>
 </ul>
 <p>The versions used are configurable via the VS Code settings <code>calva.jackInDependencyVersions</code>.</p>
-<div class="admonition note">
-<p class="admonition-title">Latest versions by default</p>
-<p>By default, Calva resolves the latest available versions of <code>nrepl</code>, <code>cider-nrepl</code>, and <code>cider/piggieback</code> when Jacking in. If the latest version cannot be determined, Calva falls back to the default versions pinned in Calva's <code>package.json</code>. If you specify versions in <code>calva.jackInDependencyVersions</code>, those versions take precedence and will be used. You can specify just one; any unspecified dependencies still use the latest-or-fallback behavior.</p>
-</div>
+<p>In case you might like to update jack-in dependencies, Calva checks for the latest versions and displays them in the activation message ("Calva Says").</p>
 <div class="admonition note">
 <p class="admonition-title">Java 1.8 compatible versions</p>
 <p>The default dependency versions are not compatible with Java 1.8. If your project needs that version of Java you can use these settings in your Workspace <code>.vscode/settings.json</code>:</p>
