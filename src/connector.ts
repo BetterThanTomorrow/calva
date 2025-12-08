@@ -368,8 +368,9 @@ async function setUpCljsRepl(
   replSession.updateReplSessionType();
 }
 
-async function getFigwheelMainBuilds() {
-  const res = await vscode.workspace.fs.readDirectory(state.getProjectRootUri());
+async function getFigwheelMainBuilds(projectRootUri?: vscode.Uri) {
+  const effectiveRoot = projectRootUri ?? state.getProjectRootUri();
+  const res = await vscode.workspace.fs.readDirectory(effectiveRoot);
   const builds = res
     .filter(([name, type]) => type !== vscode.FileType.Directory && name.match(/\.cljs\.edn/))
     .map(([name, _]) => name.replace(/\.cljs\.edn$/, ''));
@@ -447,7 +448,7 @@ async function figwheelOrShadowBuilds(
   projectRootUri?: vscode.Uri
 ): Promise<string[] | undefined> {
   if (cljsTypeName.includes('Figwheel Main')) {
-    return await getFigwheelMainBuilds();
+    return await getFigwheelMainBuilds(projectRootUri);
   } else if (cljsTypeName.includes('shadow-cljs')) {
     return await projectTypes.shadowBuilds(projectRootUri);
   }
@@ -545,6 +546,7 @@ function createCLJSReplType(
   const clientProjectRoot =
     clientRegistry.getRegisteredClient(clientKey)?.projectRoot ??
     state.getProjectRootUri().toString();
+  const clientProjectRootUri = vscode.Uri.parse(clientProjectRoot);
 
   const projectTypeName: string = connectSequence.name,
     menuSelections = connectSequence.menuSelections;
@@ -637,7 +639,7 @@ function createCLJSReplType(
         useDefaultBuild = false;
       } else {
         if (typeof initCode === 'object' || initCode.includes('%BUILD%')) {
-          const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
+          const allBuilds = await figwheelOrShadowBuilds(cljsTypeName, clientProjectRootUri);
           const availableBuilds = startedBuilds
             ? [
                 ...startedBuilds,
@@ -751,9 +753,9 @@ function createCLJSReplType(
       if (!hasStarted) {
         if (startCode.includes('%BUILDS')) {
           let builds: string[];
-          const allBuilds = (await figwheelOrShadowBuilds(cljsTypeName)).filter(
-            (build) => !['browser-repl', 'node-repl'].includes(build)
-          );
+          const allBuilds = (
+            await figwheelOrShadowBuilds(cljsTypeName, clientProjectRootUri)
+          ).filter((build) => !['browser-repl', 'node-repl'].includes(build));
 
           // Helper to normalize build keys for comparison
           const normalizeBuildKey = (build: string) =>
