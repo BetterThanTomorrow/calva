@@ -9,7 +9,7 @@ const createClient = (key: string): NReplClient =>
 
 describe('client registry', () => {
   afterEach(() => {
-    clientRegistry.clearAllClients();
+    clientRegistry._testUtility_registeredClients.clear();
   });
 
   it('registers clients and exposes them via listClients', () => {
@@ -37,7 +37,7 @@ describe('client registry', () => {
 
 describe('cljc target for connection', () => {
   afterEach(() => {
-    clientRegistry.clearAllClients();
+    clientRegistry._testUtility_registeredClients.clear();
   });
 
   it('returns primary as default when not explicitly set', () => {

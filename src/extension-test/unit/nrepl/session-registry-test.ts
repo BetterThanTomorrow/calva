@@ -5,8 +5,9 @@ import * as clientRegistry from '../../../../src/nrepl/client-registry';
 
 describe('session registry', () => {
   afterEach(() => {
-    sessionRegistry.clearAllSessions();
-    clientRegistry.clearAllClients();
+    sessionRegistry._testUtility_registeredSessions.clear();
+    sessionRegistry.setClojureDocsSessionKey(null);
+    clientRegistry._testUtility_registeredClients.clear();
   });
 
   describe('resolveSessionKey', () => {

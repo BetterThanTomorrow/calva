@@ -44,20 +44,22 @@ describe(`${suiteName} suite`, () => {
   });
 
   beforeEach(() => {
-    sessionRegistry.clearAllSessions();
+    sessionRegistry._testUtility_registeredSessions.clear();
+    sessionRegistry.setClojureDocsSessionKey(null);
     cljsLib.setStateValue('connected', true);
     cljsLib.setStateValue('current-session-type', undefined);
     sessionRouting.resetRouting();
-    clientRegistry.clearAllClients();
+    clientRegistry._testUtility_registeredClients.clear();
     resetOutputWindowSession('clj', 'user');
   });
 
   afterEach(() => {
-    sessionRegistry.clearAllSessions();
+    sessionRegistry._testUtility_registeredSessions.clear();
+    sessionRegistry.setClojureDocsSessionKey(null);
     cljsLib.setStateValue('connected', initialConnectionState);
     cljsLib.setStateValue('current-session-type', initialCurrentSessionType);
     sessionRouting.resetRouting();
-    clientRegistry.clearAllClients();
+    clientRegistry._testUtility_registeredClients.clear();
     const fallbackSessionType = initialOutputSessionType ?? 'clj';
     const fallbackNamespace = initialOutputNamespace ?? 'user';
     resetOutputWindowSession(fallbackSessionType, fallbackNamespace);

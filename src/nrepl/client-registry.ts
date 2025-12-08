@@ -105,9 +105,11 @@ export function setConnectionState(clientKey: string, state: Partial<ConnectionS
   }
 }
 
-export function clearAllClients(): void {
-  registeredClients.clear();
-}
+/**
+ * Test utility: direct access to internal clients map for test cleanup.
+ * Production code should use registerClient/unregisterClient.
+ */
+export const _testUtility_registeredClients = registeredClients;
 
 /**
  * Get the cljc target role for a connection.

@@ -57,7 +57,8 @@ describe('glob-based session routing', () => {
     ({ client: { clientKey } } as unknown as NReplSession);
 
   afterEach(() => {
-    sessionRegistry.clearAllSessions();
+    sessionRegistry._testUtility_registeredSessions.clear();
+    sessionRegistry.setClojureDocsSessionKey(null);
   });
 
   describe('single connection glob routing', () => {

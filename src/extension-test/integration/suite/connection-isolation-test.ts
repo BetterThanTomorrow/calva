@@ -40,11 +40,12 @@ describe(`${suiteName} suite`, () => {
   });
 
   beforeEach(async () => {
-    sessionRegistry.clearAllSessions();
+    sessionRegistry._testUtility_registeredSessions.clear();
+    sessionRegistry.setClojureDocsSessionKey(null);
     cljsLib.setStateValue('connected', true);
     cljsLib.setStateValue('current-session-type', undefined);
     sessionRouting.resetRouting();
-    clientRegistry.clearAllClients();
+    clientRegistry._testUtility_registeredClients.clear();
     resetOutputWindowSession('clj', 'user');
     // Open a test file to ensure there's an active editor (required by UI code paths)
     const testFilePath = path.join(testUtil.testDataDir, 'test.clj');
@@ -52,11 +53,12 @@ describe(`${suiteName} suite`, () => {
   });
 
   afterEach(() => {
-    sessionRegistry.clearAllSessions();
+    sessionRegistry._testUtility_registeredSessions.clear();
+    sessionRegistry.setClojureDocsSessionKey(null);
     cljsLib.setStateValue('connected', initialConnectionState);
     cljsLib.setStateValue('current-session-type', initialCurrentSessionType);
     sessionRouting.resetRouting();
-    clientRegistry.clearAllClients();
+    clientRegistry._testUtility_registeredClients.clear();
     const fallbackSessionType = initialOutputSessionType ?? 'clj';
     const fallbackNamespace = initialOutputNamespace ?? 'user';
     resetOutputWindowSession(fallbackSessionType, fallbackNamespace);

@@ -7,8 +7,9 @@ import * as fruitSuffix from '../../nrepl/fruit-suffix';
 
 describe('session-name-resolver', () => {
   afterEach(() => {
-    sessionRegistry.clearAllSessions();
-    clientRegistry.clearAllClients();
+    sessionRegistry._testUtility_registeredSessions.clear();
+    sessionRegistry.setClojureDocsSessionKey(null);
+    clientRegistry._testUtility_registeredClients.clear();
     fruitSuffix.resetPool();
   });
 

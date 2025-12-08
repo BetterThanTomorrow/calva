@@ -11,12 +11,14 @@ const createSession = (clientKey: string): NReplSession =>
 
 describe('session teardown', () => {
   beforeEach(() => {
-    sessionRegistry.clearAllSessions();
+    sessionRegistry._testUtility_registeredSessions.clear();
+    sessionRegistry.setClojureDocsSessionKey(null);
     sessionRouting.resetRouting();
   });
 
   afterEach(() => {
-    sessionRegistry.clearAllSessions();
+    sessionRegistry._testUtility_registeredSessions.clear();
+    sessionRegistry.setClojureDocsSessionKey(null);
     sessionRouting.resetRouting();
   });
 

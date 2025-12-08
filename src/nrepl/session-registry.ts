@@ -74,10 +74,11 @@ export function resolveSessionKey(session?: NReplSession, fallback: string = 'cl
   return getSessionKeyFromSession(session) || session?.replType || fallback;
 }
 
-export function clearAllSessions(): void {
-  registeredSessions.clear();
-  clojureDocsSessionKey = null;
-}
+/**
+ * Test utility: direct access to internal sessions map for test cleanup.
+ * Production code should use registerSession/unregisterSession.
+ */
+export const _testUtility_registeredSessions = registeredSessions;
 
 export function listSessionsByClient(targetClientKey: string): SessionMetadata[] {
   if (!targetClientKey) {

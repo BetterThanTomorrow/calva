@@ -11,7 +11,8 @@ const createSession = (replType: string, clientKey?: string): NReplSession =>
 
 describe('session routing preferences', () => {
   beforeEach(() => {
-    sessionRegistry.clearAllSessions();
+    sessionRegistry._testUtility_registeredSessions.clear();
+    sessionRegistry.setClojureDocsSessionKey(null);
     sessionRouting.resetRouting();
   });
 
@@ -38,7 +39,8 @@ describe('session routing preferences', () => {
 
 describe('multi-client session routing', () => {
   beforeEach(() => {
-    sessionRegistry.clearAllSessions();
+    sessionRegistry._testUtility_registeredSessions.clear();
+    sessionRegistry.setClojureDocsSessionKey(null);
     sessionRouting.resetRouting();
   });
 
