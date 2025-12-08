@@ -185,9 +185,6 @@ export function getJackInVersionsDetail(): JackInVersionsDetail {
     if (typeof configuredValue === 'string' && configuredValue.trim().length > 0) {
       effective[key] = configuredValue;
       sources[key] = 'configured';
-    } else if (typeof storedValue === 'string' && storedValue.trim().length > 0) {
-      effective[key] = storedValue;
-      sources[key] = 'stored';
     } else {
       effective[key] = defaultValue;
       sources[key] = 'default';

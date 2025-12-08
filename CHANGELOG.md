@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Edit Jack In Dependency Versions in the Settings UI [Manage REPL Injected Libraries](https://github.com/BetterThanTomorrow/calva/issues/2969)
+- Log latest-available Jack In Dependency Versions (in Calva Says), but use only configured settings or Calva defaults [Manage REPL Injected Libraries](https://github.com/BetterThanTomorrow/calva/issues/2969)
+
 ## [2.0.540] - 2025-11-06
 
 - Fix: [Interrupting evaluations looks like it succeeds even when it is not supported by the host platform](https://github.com/BetterThanTomorrow/calva/issues/2961)
