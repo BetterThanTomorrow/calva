@@ -1136,8 +1136,8 @@ async function promptForClientDisconnect(
 
   if (clients.length > 1) {
     items.push({
-      label: 'Disconnect all sessions',
-      description: 'Tear down every connected REPL client',
+      label: 'Close all',
+      description: 'Disconnect every connected REPL client',
       disconnectAll: true,
     });
   }

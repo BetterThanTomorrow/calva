@@ -39,7 +39,7 @@ All REPL commands are available through VS Code's Command Palette (<kbd>Ctrl</kb
 * **Toggle Pretty Printing**: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> <kbd>P</kbd> - Enable/disable pretty printing (also available via status bar)
 * **Interrupt Running Evaluation**: Available in REPL status bar menu when connected
 * **Show Output Destination**: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>O</kbd> <kbd>O</kbd> - Open the configured output destination
-* **Disconnect from the REPL**: Opens a quick pick listing every active connection so you can drop a single client or select **Disconnect all sessions** when you need a fresh slate
+* **Disconnect from the REPL**: Opens a quick pick listing every active connection so you can disconnect from a single connection or select **Close all REPL connections** when you need a fresh slate
 
 Search the command palette for `Calva evaluate` to find some more commands related to code evaluation at the REPL.
 
@@ -58,7 +58,7 @@ The "REPL" connection indicator shows the current state of your REPL connection:
 * **Disconnected** - `REPL $(zap)` (gray) - Click to open the REPL menu and start Jack-in or Connect
 * **Launching** - `Launching REPL using <method>` (orange/yellow) - Click to interrupt the launch process
 * **Connecting** - `REPL - trying to connect` - Click to interrupt the connection attempt
-* **Connected** - `REPL $(zap)` (green) - Click to open the REPL menu with commands for managing your connection. Calva keeps existing clients alive when you start another REPL, so the menu is the fastest way to jump between commands without tearing down the other sessions.
+* **Connected** - `REPL $(zap)` (green) - Click to open the REPL menu with commands for managing your connection. Calva keeps existing connections alive when you start another REPL
 
 When connected, the tooltip displays the connection details: `nrepl://hostname:port`
 
@@ -114,13 +114,14 @@ This is useful for keyboard shortcuts or automation scripts that need to quickly
 
 ## Managing Multiple Connections
 
-Calva keeps every connected nREPL client alive until you explicitly disconnect it. This makes it easy to work with several apps (or the same app in multiple environments) at once. When more than one client is running:
+Calva keeps every connected nREPL connection alive until you explicitly disconnect it. This makes it possible to work with several apps (or the same app in multiple environments) at once from the same VS Code window. By default Calva will automatically route evaluations to a session based on file path and file type.
 
-- The REPL Sessions menu lists every registered session name so you can pin the one that should receive evaluations from the current buffer.
-- The command palette entry **Calva: Disconnect from the REPL** (also available from the REPL menu) opens a quick pick that shows each client’s session names, host/port, and project root. Pick a single client to disconnect only that REPL or choose **Disconnect all sessions** to stop every client at once.
-- Custom session names defined via connect sequences show up throughout the UI, making it easy to tell which client you are routing to before you disconnect or pin it.
+- The REPL Sessions menu lists every registered session name, indicating which one is being targeted by the auto-router for the currently active file. You can bypass the auto-routing by pinning one of the sessions.
+- The command palette entry **Calva: Disconnect from the REPL** (also available from the REPL menu) opens a menu that shows all active connections, with their sessions names, host/port, and project root. Pick a single connection to disconnect only that REPL or choose **Close all REPL connections**.
+- Sessions names are defined by the [connect sequence](connect-sequences.md) used for connecting a REPL. Calva has built-in sequences for several Clojure dialects/runtimes, defining default session names. The session names are customizable via custom connect sequences.
+- When two or more sessions use the same session name, suffixes based on a list of fruits will be used to separate the sessions.
 
-Because each session name is treated as a routing key, Calva warns you if a new connection tries to reuse a name that is already owned by another client. Update the connect sequence to use unique `replSessionNames` or disconnect the conflicting client via the quick pick described above.
+  E.g. connect three Babashka repls and you will have one session named `bb` another named `bb:apple`, and a third named `bb:banana`. If you then connect two Clojure + ClojureScript repls using default session names, you will have four more sessions named: `clj`, `cljs`, `clj:cherry`, `cljs:cherry`.
 
 ### CLJS Build Selector
 

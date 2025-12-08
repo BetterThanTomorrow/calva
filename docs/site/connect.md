@@ -85,7 +85,7 @@ Every connection registers one or two session names (for example the default `cl
 
 ### Picking which connection to keep
 
-Use **Calva: Disconnect from the REPL** whenever you need to tear down one connection without touching the others. The command opens a quick pick that lists every client along with its session names, host/port, and project root. When more than one client is active the picker also offers **Disconnect all sessions** as a fast way to clean the slate.
+Use **Calva: Disconnect from the REPL** whenever you need to tear down one connection without touching the others. The command opens a quick pick that lists every connection along with its session names, host/port, and project root. When more than one connection is active the picker also offers **Close all REPL connections** as a fast way to clean the slate.
 
 ## shadow-cljs
 
