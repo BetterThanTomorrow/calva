@@ -100,7 +100,11 @@ function matchesConnectSequence(
   return matchesProjectRoot(entry, targetRootUri);
 }
 
-function findProcessesForSequence(connectSequence: ReplConnectSequence): JackInProcessEntry[] {
+/**
+ * Find jack-in processes that would be replaced by a new jack-in.
+ * Matches by both sequence name AND current project root.
+ */
+function findProcessesForReconnection(connectSequence: ReplConnectSequence): JackInProcessEntry[] {
   const targetRootUri = getProjectRootUriString();
   return listJackInProcesses().filter((entry) =>
     matchesConnectSequence(entry, connectSequence, targetRootUri)
@@ -138,8 +142,12 @@ async function stopJackInProcesses(entries: JackInProcessEntry[]): Promise<void>
   }
 }
 
-async function stopProcessesForSequence(connectSequence: ReplConnectSequence): Promise<void> {
-  const matching = findProcessesForSequence(connectSequence);
+/**
+ * Stop jack-in processes that would be replaced by a new jack-in.
+ * Only affects processes matching both sequence name AND current project root.
+ */
+async function stopProcessesForReconnection(connectSequence: ReplConnectSequence): Promise<void> {
+  const matching = findProcessesForReconnection(connectSequence);
   if (matching.length === 0) {
     return;
   }
@@ -147,13 +155,15 @@ async function stopProcessesForSequence(connectSequence: ReplConnectSequence): P
   await stopJackInProcesses(matching);
 }
 
-function findClientsForSequence(connectSequence: ReplConnectSequence): RegisteredClient[] {
+/**
+ * Find clients that would be replaced by a new connection.
+ * Matches by both sequence name AND current project root.
+ * Clients with the same sequence but different project roots are left alone
+ * (name conflicts are handled via fruit suffixes in connector.connectToHost()).
+ */
+function findClientsForReconnection(connectSequence: ReplConnectSequence): RegisteredClient[] {
   const targetRootUri = getProjectRootUriString();
 
-  // Only match clients with the same sequence name AND project root.
-  // This handles the reconnection case (jacking in to the same project again).
-  // Session name conflicts with *different* project roots are now handled
-  // via fruit suffixes in connector.connectToHost().
   return clientRegistry.listClients().filter((client) => {
     if (client.connectSequenceName !== connectSequence.name) {
       return false;
@@ -168,8 +178,12 @@ function findClientsForSequence(connectSequence: ReplConnectSequence): Registere
   });
 }
 
-async function stopClientsForSequence(connectSequence: ReplConnectSequence): Promise<void> {
-  const clients = findClientsForSequence(connectSequence);
+/**
+ * Disconnect clients that would be replaced by a new connection.
+ * Only affects clients matching both sequence name AND current project root.
+ */
+async function stopClientsForReconnection(connectSequence: ReplConnectSequence): Promise<void> {
+  const clients = findClientsForReconnection(connectSequence);
   for (const client of clients) {
     await connector.default.disconnect({ clientKey: client.key });
   }
@@ -524,8 +538,8 @@ async function executeJackIn(
   }
   if (projectConnectSequence) {
     const projectType = projectTypes.getProjectTypeForName(projectConnectSequence.projectType);
-    await stopProcessesForSequence(projectConnectSequence);
-    await stopClientsForSequence(projectConnectSequence);
+    await stopProcessesForReconnection(projectConnectSequence);
+    await stopClientsForReconnection(projectConnectSequence);
 
     if (projectType.startFunction) {
       void projectType.startFunction();

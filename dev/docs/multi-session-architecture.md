@@ -364,9 +364,9 @@ Jack-in starts a REPL process and connects to it.
 
 1.  **User Action**: Triggers Jack-in command
 2.  **Selection**: User selects a **Connect Sequence** (or auto-selected)
-3.  **Cleanup**: Stop existing jack-in processes and clients for this sequence
-    - `stopProcessesForSequence()` - terminates terminal processes
-    - `stopClientsForSequence()` - disconnects existing clients with same sequence
+3.  **Cleanup**: Stop existing jack-in processes and clients that would be replaced (same sequence + same project root)
+    - `stopProcessesForReconnection()` - terminates terminal processes for reconnection
+    - `stopClientsForReconnection()` - disconnects clients for reconnection
 4.  **Terminal**: Create jack-in terminal with `JackInPTY`
 5.  **Process**: Start the project command (lein, clj, shadow-cljs, etc.)
 6.  **Port Detection**: Wait for nREPL port file to appear
