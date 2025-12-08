@@ -13,7 +13,6 @@ export interface SessionMetadata {
   lastActivity?: number;
 }
 
-// Internal storage for sessions - mirrors client-registry pattern
 const registeredSessions = new Map<string, NReplSession>();
 
 export function registerSession(
