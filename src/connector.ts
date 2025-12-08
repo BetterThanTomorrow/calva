@@ -432,20 +432,7 @@ async function evalConnectCode(
   const valueResult = await result.value.catch((reason) => {
     console.error('Error evaluating connect form: ', reason);
   });
-  if (await checkSuccess(valueResult, out, err)) {
-    // Update the session in the registry
-    const globMetadata = getSessionGlobMetadata(secondaryKey, globMap);
-    sessionRegistry.registerSession(secondaryKey, newCljsSession, {
-      projectRoot: state.getProjectRootUri().toString(),
-      globs: globMetadata.globs,
-      globSpecs: globMetadata.globSpecs,
-      isSecondary: true,
-    });
-
-    return true;
-  } else {
-    return false;
-  }
+  return await checkSuccess(valueResult, out, err);
 }
 
 export interface ReplType {
@@ -919,15 +906,6 @@ async function makeCljsSessionClone(
       }
     }
     if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
-      // Update registry
-      const globMetadata = getSessionGlobMetadata(secondaryKey, globMap);
-      sessionRegistry.registerSession(secondaryKey, newCljsSession, {
-        projectRoot: state.getProjectRootUri().toString(),
-        globs: globMetadata.globs,
-        globSpecs: globMetadata.globSpecs,
-        isSecondary: true,
-      });
-
       return [newCljsSession, clientRegistry.getConnectionState(clientKey)?.cljsBuild ?? null];
     } else {
       const build = clientRegistry.getConnectionState(clientKey)?.cljsBuild ?? null;
