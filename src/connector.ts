@@ -402,10 +402,7 @@ type connectFn = (
 async function evalConnectCode(
   newCljsSession: NReplSession,
   code: string,
-  name: string, // Unused, TOOD: Investigate callers
   checkSuccess: checkConnectedFn,
-  secondaryKey: string,
-  globMap: SessionGlobMap,
   outputProcessors: processOutputFn[] = [],
   errorProcessors: processOutputFn[] = []
 ): Promise<boolean> {
@@ -675,10 +672,7 @@ function createCLJSReplType(
       return evalConnectCode(
         session,
         initCode,
-        name,
         checkFn,
-        secondaryKey,
-        globMap,
         [startAppNowProcessor, printThisPrinter],
         [allPrinter]
       );
@@ -823,10 +817,7 @@ function createCLJSReplType(
             const result = evalConnectCode(
               session,
               startCode,
-              name,
               checkFn,
-              secondaryKey,
-              globMap,
               [startAppNowProcessor, printThisPrinter],
               [allPrinter]
             );
@@ -843,10 +834,7 @@ function createCLJSReplType(
           return evalConnectCode(
             session,
             startCode,
-            name,
             checkFn,
-            secondaryKey,
-            globMap,
             [startAppNowProcessor, printThisPrinter],
             [allPrinter]
           );
