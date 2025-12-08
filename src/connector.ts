@@ -186,7 +186,7 @@ async function connectToHost(
     const mainKey = sessionRoleKeys.primary;
     const mainGlobMetadata = getSessionGlobMetadata(mainKey, sessionGlobMap);
     sessionRegistry.registerSession(mainKey, mainSession, {
-      projectRoot: state.getProjectRootUri().toString(),
+      projectRoot,
       globs: mainGlobMetadata.globs,
       globSpecs: mainGlobMetadata.globSpecs,
     });
@@ -251,9 +251,7 @@ async function connectToHost(
           mainSession,
           translatedReplType,
           connectSequence.name,
-          localClient.clientKey,
-          sessionRoleKeys.secondary,
-          sessionGlobMap
+          localClient.clientKey
         );
         void state.analytics().logGA4Pageview('/connected-cljs-repl');
       }
@@ -543,6 +541,11 @@ function createCLJSReplType(
     throw new Error('createCLJSReplType called without secondary session key');
   }
 
+  // Get project root from client registry to avoid using global state
+  const clientProjectRoot =
+    clientRegistry.getRegisteredClient(clientKey)?.projectRoot ??
+    state.getProjectRootUri().toString();
+
   const projectTypeName: string = connectSequence.name,
     menuSelections = connectSequence.menuSelections;
   let appURL: string;
@@ -644,10 +647,7 @@ function createCLJSReplType(
           const buildItem = await util.quickPickSingle({
             values: availableBuilds.map((a) => ({ label: a })),
             placeHolder: 'Select which build to connect to',
-            saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
-              ' ',
-              '-'
-            )}-build`,
+            saveAs: `${clientProjectRoot}/${cljsTypeName.replace(' ', '-')}-build`,
             autoSelect: true,
           });
           build = buildItem.label;
@@ -799,10 +799,7 @@ function createCLJSReplType(
               const selectedBuilds = await util.quickPickMulti({
                 values: allBuilds.map((a) => ({ label: a })),
                 placeHolder: 'Please select which builds to start',
-                saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(
-                  ' ',
-                  '-'
-                )}-builds`,
+                saveAs: `${clientProjectRoot}/${cljsTypeName.replace(' ', '-')}-builds`,
               });
               builds = selectedBuilds.map((build) => build.label);
             }
@@ -877,9 +874,7 @@ async function makeCljsSessionClone(
   session,
   repl: ReplType,
   projectTypeName: string,
-  clientKey: string,
-  secondaryKey: string,
-  globMap: SessionGlobMap
+  clientKey: string
 ): Promise<[NReplSession | null, string | null]> {
   output.appendLineOtherOut('Creating cljs repl session...');
   let newCljsSession = await session.clone();
@@ -1470,9 +1465,7 @@ export default {
       cljSession,
       replType,
       cljsTypeName,
-      clientKey,
-      roleKeys.secondary,
-      globMap
+      clientKey
     );
     if (cljsSession) {
       await setUpCljsRepl(cljsSession, build, roleKeys.secondary, clientKey, globMap);
