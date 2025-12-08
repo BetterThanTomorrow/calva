@@ -70,69 +70,6 @@ describe('shadow-cljs-runtime-core', () => {
     });
   });
 
-  describe('getRuntimeIdFromState / getRuntimeInfoFromState', () => {
-    it('extracts runtime ID from connection state', () => {
-      const state: ConnectionState = {
-        cljsBuild: ':app',
-        cljsTypeName: 'shadow-cljs',
-        hasBuilds: true,
-        shadowCljsRuntimeId: 42,
-      };
-
-      expect(shadowRuntimeCore.getRuntimeIdFromState(state)).toBe(42);
-    });
-
-    it('returns undefined when state is undefined', () => {
-      expect(shadowRuntimeCore.getRuntimeIdFromState(undefined)).toBeUndefined();
-    });
-
-    it('extracts runtime info from connection state', () => {
-      const runtimeInfo: shadowRuntimeCore.RuntimeInfo = {
-        clientId: 42,
-        description: 'Browser',
-        buildId: ':app',
-        host: 'localhost',
-        workerId: 1,
-        sinceInst: 0,
-        sinceDescription: 'Unknown time',
-      };
-      const state: ConnectionState = {
-        cljsBuild: ':app',
-        cljsTypeName: 'shadow-cljs',
-        hasBuilds: true,
-        shadowCljsRuntimeInfo: runtimeInfo,
-      };
-
-      expect(shadowRuntimeCore.getRuntimeInfoFromState(state)).toEqual(runtimeInfo);
-    });
-  });
-
-  describe('createRuntimeStateUpdate / createClearRuntimeStateUpdate', () => {
-    it('creates update with runtime ID and info', () => {
-      const runtimeInfo: shadowRuntimeCore.RuntimeInfo = {
-        clientId: 42,
-        description: 'Browser',
-        buildId: ':app',
-        host: 'localhost',
-        workerId: 1,
-        sinceInst: 0,
-        sinceDescription: 'Unknown time',
-      };
-
-      const update = shadowRuntimeCore.createRuntimeStateUpdate(42, runtimeInfo);
-
-      expect(update.shadowCljsRuntimeId).toBe(42);
-      expect(update.shadowCljsRuntimeInfo).toEqual(runtimeInfo);
-    });
-
-    it('creates clear update with undefined values', () => {
-      const update = shadowRuntimeCore.createClearRuntimeStateUpdate();
-
-      expect(update.shadowCljsRuntimeId).toBeUndefined();
-      expect(update.shadowCljsRuntimeInfo).toBeUndefined();
-    });
-  });
-
   describe('decideMessageAction', () => {
     it('returns no-action for non-notify messages', () => {
       const data: shadowRuntimeCore.NotifyMessageData = { op: 'other' };

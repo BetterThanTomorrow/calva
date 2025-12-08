@@ -68,46 +68,6 @@ export function normalizeRuntimeInfo(apiInfo: ShadowApiRuntimeInfo): RuntimeInfo
   };
 }
 
-/**
- * Extract runtime ID from connection state.
- */
-export function getRuntimeIdFromState(state: ConnectionState | undefined): number | undefined {
-  return state?.shadowCljsRuntimeId;
-}
-
-/**
- * Extract runtime info from connection state.
- */
-export function getRuntimeInfoFromState(
-  state: ConnectionState | undefined
-): RuntimeInfo | undefined {
-  return state?.shadowCljsRuntimeInfo;
-}
-
-/**
- * Create an updated connection state with new runtime values.
- * Returns the partial state update to be merged.
- */
-export function createRuntimeStateUpdate(
-  clientId: number,
-  runtimeInfo: RuntimeInfo
-): Partial<ConnectionState> {
-  return {
-    shadowCljsRuntimeId: clientId,
-    shadowCljsRuntimeInfo: runtimeInfo,
-  };
-}
-
-/**
- * Create a connection state update that clears runtime values.
- */
-export function createClearRuntimeStateUpdate(): Partial<ConnectionState> {
-  return {
-    shadowCljsRuntimeId: undefined,
-    shadowCljsRuntimeInfo: undefined,
-  };
-}
-
 export type MessageAction =
   | { type: 'runtime-disconnected'; clientId: number }
   | { type: 'runtime-connected'; clientId: number; runtimeInfo: RuntimeInfo }
