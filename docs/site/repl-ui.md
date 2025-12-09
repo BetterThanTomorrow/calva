@@ -69,14 +69,14 @@ The status bar displays REPL connection status and provides quick access to comm
 
 The "REPL" connection indicator shows the current state of your REPL connection:
 
-![Status Bar Disconnected](images/howto/status_not_connected.png)
+![Status Bar REPL Connected](images/howto/status-repl-connected.png)
 
 **States:**
 
 * **Disconnected** - `REPL $(zap)` (gray) - Click to open the REPL menu and start Jack-in or Connect
-* **Launching** - `Launching REPL using <method>` (orange/yellow) - Click to interrupt the launch process
+* **Launching** - `Launching REPL using <method>` (white) - Click to interrupt the launch process
 * **Connecting** - `REPL - trying to connect` - Click to interrupt the connection attempt
-* **Connected** - `REPL $(zap)` (green) - Click to open the REPL menu with commands for managing your connection. Calva keeps existing connections alive when you start another REPL
+* **Connected** - `REPL $(zap)` (ember) - Click to open the REPL menu with commands for managing your connection. Calva keeps existing connections alive when you start another REPL
 
 When connected, the tooltip displays the connection details: `nrepl://hostname:port`
 
@@ -100,11 +100,9 @@ You can customize the REPL indicator colors for different connection states usin
 
 Once connected, the session type indicator shows which REPL you're currently working with:
 
-![Status Bar CLJ](images/howto/status_clj.png)
+![Status Bar REPL Connected, session](images/howto/status-session-indicator.png)
 
-![Status Bar CLJS](images/howto/status_cljs.png)
-
-For `.cljc` files (Clojure Common files that can run on both CLJ and CLJS), the indicator shows `cljc/clj` or `cljc/cljs` depending on which REPL is active for that file.
+For `.cljc` files (Clojure Common files that can run on both CLJ and CLJS), the indicator shows `.cljc → clj` or `.cljc → cljs` depending on which session is active for that file.
 
 The indicator is always clickable when the REPL is connected. Clicking it opens the **REPL Sessions** menu, which provides:
 
