@@ -110,6 +110,8 @@ function formatSessionDetail({
   lastActivity,
   routingInfo,
   isReplWindowTarget,
+  isSecondary,
+  clientKey,
 }: {
   globs?: string[];
   globSpecs?: Array<{
@@ -120,8 +122,18 @@ function formatSessionDetail({
   lastActivity?: number;
   routingInfo?: replSession.RoutingResult;
   isReplWindowTarget?: boolean;
+  isSecondary?: boolean;
+  clientKey?: string;
 }): string | undefined {
   const detailParts: string[] = [];
+
+  // For primary sessions, show host:port first
+  if (!isSecondary && clientKey) {
+    const client = clientRegistry.getRegisteredClient(clientKey);
+    if (client?.host && client?.port) {
+      detailParts.push(`${client.host}:${client.port}`);
+    }
+  }
 
   // Fallback patterns - mark winning pattern if applicable
   if (globSpecs && globSpecs.length > 0) {
@@ -247,6 +259,8 @@ function buildSessionPickItems(options?: {
       lastActivity: session.lastActivity,
       routingInfo: isRoutedSession ? routingInfo : undefined,
       isReplWindowTarget,
+      isSecondary: session.isSecondary,
+      clientKey,
     });
 
     // Add button for non-target sessions to become cljc target
