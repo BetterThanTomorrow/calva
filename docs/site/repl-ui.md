@@ -21,7 +21,7 @@ Calva keeps every nREPL connection alive until you explicitly disconnect it. Thi
 - Sessions names are defined by the [connect sequence](connect-sequences.md) used for connecting a REPL. Calva has built-in sequences for several Clojure dialects/runtimes, defining default session names. The session names are customizable via custom connect sequences.
 - When two or more sessions use the same session name, numbered suffixes will be used to separate the sessions.
 
-  E.g. connect three Babashka repls and you will have one session named `bb` another named `bb:apple`, and a third named `bb:banana`. If you then connect two Clojure + ClojureScript repls using default session names, you will have four more sessions named: `clj`, `cljs`, `clj:cherry`, `cljs:cherry`.
+  E.g. connect three Babashka repls and you will have one session named `bb` another named `bb:2`, and a third named `bb:3`. If you then connect two Clojure + ClojureScript repls using default session names, you will have four more sessions named: `clj`, `cljs`, `clj:4`, `cljs:4`.
 
 ![REPL Sessions Menu](images/repl-ui/repl-sessions-menu.png)
 

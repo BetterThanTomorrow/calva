@@ -132,15 +132,15 @@ describe('session-name-resolver', () => {
           projectRoot,
           connectionState: {
             baseSessionNames: baseNames,
-            suffix: 'apple',
+            suffix: '2',
           },
         });
 
         const resolution = sessionNameResolver.resolveSessionNames(baseNames, projectRoot);
 
         expect(resolution.reconnectClientKey).toBe('client-a');
-        expect(resolution.finalNames).toEqual({ primary: 'clj:apple', secondary: 'cljs:apple' });
-        expect(resolution.suffix).toBe('apple');
+        expect(resolution.finalNames).toEqual({ primary: 'clj:2', secondary: 'cljs:2' });
+        expect(resolution.suffix).toBe('2');
       });
 
       it('does not detect reconnection when projectRoot differs', () => {

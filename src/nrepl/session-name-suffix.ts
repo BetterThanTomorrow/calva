@@ -54,13 +54,7 @@ export function isPoolExhausted(): boolean {
 
 /**
  * Extract the suffix from a session name, if present.
- * Returns undefined if no suffix from the pool is found.
- *
- * Examples:
- * - `clj:apple` → `apple`
- * - `cljs:banana` → `banana`
- * - `clj` → undefined
- * - `my-session` → undefined (no suffix)
+ * Returns `undefined` if no suffix from the pool is found.
  */
 export function extractSuffix(sessionName: string): string | undefined {
   for (const suffix of SUFFIX_POOL) {
@@ -73,10 +67,6 @@ export function extractSuffix(sessionName: string): string | undefined {
 
 /**
  * Apply a suffix to a base session name.
- *
- * Examples:
- * - `clj`, `apple` → `clj:apple`
- * - `cljs`, `banana` → `cljs:banana`
  */
 export function applySuffix(baseName: string, suffix: string): string {
   return `${baseName}:${suffix}`;
@@ -85,11 +75,6 @@ export function applySuffix(baseName: string, suffix: string): string {
 /**
  * Strip any suffix from a session name, returning the base name.
  * If no suffix from the pool is present, returns the name unchanged.
- *
- * Examples:
- * - `clj:apple` → `clj`
- * - `cljs:banana` → `cljs`
- * - `clj` → `clj`
  */
 export function stripSuffix(sessionName: string): string {
   const suffix = extractSuffix(sessionName);
