@@ -8,6 +8,14 @@ This multi-session system is **not yet released**. See the [Unreleased section i
 
 **Backward Compatibility Constraint:** The primary compatibility requirement is that users who only use a single connect sequence (the current default behavior) should experience no breakage. This is already achieved.
 
+## User facing documentation
+
+Familiarity with the most relevant documenation relating to this feature is a requirement to understanding this architecture document correctly:
+
+* [REPL-UI](../../docs/site/repl-ui.md)
+* [Connect](../../docs/site/connect.md)
+* [Connect Sequences](../../docs/site/connect-sequences.md)
+
 ## Document Structure
 
 - [Core Concepts](#core-concepts) - Key terminology and relationships
