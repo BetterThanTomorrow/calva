@@ -4,13 +4,13 @@ import * as path from 'path';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
-import * as fruitSuffix from '../../../nrepl/fruit-suffix';
+import * as nameSuffix from '../../../nrepl/name-suffix';
 import connector from '../../../connector';
 import * as testUtil from './util';
 
-const suiteName = 'Fruit Suffix';
+const suiteName = 'Name Suffix';
 
-suite('Fruit Suffix suite', () => {
+suite('Name Suffix suite', () => {
   const jackInHarness = new testUtil.JackInHarness(suiteName);
   const firstProjectFile = path.join(testUtil.testDataDir, 'test.clj');
   const secondProjectFile = path.join(
@@ -30,13 +30,13 @@ suite('Fruit Suffix suite', () => {
     testUtil.showMessage(suiteName, `suite starting!`);
     await testUtil.ensureOutputDir(testUtil.testDataDir);
     await jackInHarness.disconnectAllClients();
-    fruitSuffix.resetPool();
+    nameSuffix.resetPool();
   });
 
   after(async () => {
     testUtil.showMessage(suiteName, `suite done!`);
     await jackInHarness.disconnectAllClients();
-    fruitSuffix.resetPool();
+    nameSuffix.resetPool();
   });
 
   beforeEach(async () => {
@@ -45,9 +45,9 @@ suite('Fruit Suffix suite', () => {
     await ensureBaseConnection();
   });
 
-  test('Second project with same session names gets fruit suffix', async function () {
+  test('Second project with same session names gets suffix', async function () {
     this.timeout(120_000);
-    testUtil.log(suiteName, 'Testing: Second project gets fruit suffix');
+    testUtil.log(suiteName, 'Testing: Second project gets suffix');
 
     const firstClientKey = await ensureBaseConnection();
     const secondClientKey = await ensureSecondConnection();
@@ -67,20 +67,17 @@ suite('Fruit Suffix suite', () => {
     const secondSessionKeys = secondSessions.map((s) => s.key);
     testUtil.log(suiteName, 'Second project session keys:', secondSessionKeys);
 
-    const hasFruitSuffix = secondSessionKeys.some((key) => fruitSuffix.extractFruitSuffix(key));
-    assert.ok(
-      hasFruitSuffix,
-      `Second project should have fruit-suffixed sessions, got: ${secondSessionKeys}`
-    );
+    const hasSuffix = secondSessionKeys.some((key) => nameSuffix.extractSuffix(key));
+    assert.ok(hasSuffix, `Second project should have suffixed sessions, got: ${secondSessionKeys}`);
 
-    const usedFruit = await getFruitSuffixForClient(secondClientKey);
-    assert.ok(usedFruit, 'Second connection should have a fruit suffix');
-    testUtil.log(suiteName, 'Second project fruit suffix:', usedFruit);
+    const usedSuffix = await getSuffixForClient(secondClientKey);
+    assert.ok(usedSuffix, 'Second connection should have a suffix');
+    testUtil.log(suiteName, 'Second project suffix:', usedSuffix);
   });
 
-  test('Disconnecting releases fruit suffix back to pool', async function () {
+  test('Disconnecting releases suffix back to pool', async function () {
     this.timeout(120_000);
-    testUtil.log(suiteName, 'Testing: Disconnect releases fruit suffix');
+    testUtil.log(suiteName, 'Testing: Disconnect releases suffix');
 
     await ensureBaseConnection();
     const secondClientKey = await ensureSecondConnection();
@@ -91,27 +88,27 @@ suite('Fruit Suffix suite', () => {
       2,
       'Should have two clients before disconnect'
     );
-    const usedFruit = await getFruitSuffixForClient(secondClientKey);
+    const usedSuffix = await getSuffixForClient(secondClientKey);
 
-    testUtil.log(suiteName, 'Fruit used before disconnect:', usedFruit);
-    assert.ok(usedFruit, 'Second connection should have a fruit suffix');
+    testUtil.log(suiteName, 'Suffix used before disconnect:', usedSuffix);
+    assert.ok(usedSuffix, 'Second connection should have a suffix');
 
-    const availableBefore = fruitSuffix.getAvailableFruits();
+    const availableBefore = nameSuffix.getAvailableSuffixes();
     assert.ok(
-      !availableBefore.includes(usedFruit),
-      `Fruit '${usedFruit}' should not be available while in use`
+      !availableBefore.includes(usedSuffix),
+      `Suffix '${usedSuffix}' should not be available while in use`
     );
 
     await connector.disconnect({ clientKey: secondClientKey });
     await testUtil.sleep(500);
 
-    const availableAfter = fruitSuffix.getAvailableFruits();
+    const availableAfter = nameSuffix.getAvailableSuffixes();
     assert.ok(
-      availableAfter.includes(usedFruit),
-      `Fruit '${usedFruit}' should be available after disconnect`
+      availableAfter.includes(usedSuffix),
+      `Suffix '${usedSuffix}' should be available after disconnect`
     );
 
-    testUtil.log(suiteName, 'Fruit released successfully:', usedFruit);
+    testUtil.log(suiteName, 'Suffix released successfully:', usedSuffix);
   });
 
   async function ensureBaseConnection(): Promise<string> {
@@ -138,14 +135,14 @@ suite('Fruit Suffix suite', () => {
     return secondClientKey;
   }
 
-  async function getFruitSuffixForClient(clientKey: string): Promise<string | undefined> {
+  async function getSuffixForClient(clientKey: string): Promise<string | undefined> {
     const state = clientRegistry.getConnectionState(clientKey);
-    if (state?.fruitSuffix) {
-      return state.fruitSuffix;
+    if (state?.suffix) {
+      return state.suffix;
     }
 
     const sessions = sessionRegistry.listSessionsByClient(clientKey);
-    const suffix = sessions.map((s) => fruitSuffix.extractFruitSuffix(s.key)).find(Boolean);
+    const suffix = sessions.map((s) => nameSuffix.extractSuffix(s.key)).find(Boolean);
     return await Promise.resolve(suffix);
   }
 });

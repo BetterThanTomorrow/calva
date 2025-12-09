@@ -19,7 +19,7 @@ Calva keeps every nREPL connection alive until you explicitly disconnect it. Thi
 - The REPL Sessions menu lists every registered session name, indicating which one is being targeted by the auto-router for the currently active file. You can bypass the auto-routing by pinning one of the sessions.
 - The command palette entry **Calva: Disconnect from the REPL** (also available from the REPL menu) opens a menu that shows all active connections, with their sessions names, host/port, and project root. Pick a single connection to disconnect only that REPL or choose **Close all REPL connections**.
 - Sessions names are defined by the [connect sequence](connect-sequences.md) used for connecting a REPL. Calva has built-in sequences for several Clojure dialects/runtimes, defining default session names. The session names are customizable via custom connect sequences.
-- When two or more sessions use the same session name, suffixes based on a list of fruits will be used to separate the sessions.
+- When two or more sessions use the same session name, suffixes from the a pool (of fruit names) will be used to separate the sessions.
 
   E.g. connect three Babashka repls and you will have one session named `bb` another named `bb:apple`, and a third named `bb:banana`. If you then connect two Clojure + ClojureScript repls using default session names, you will have four more sessions named: `clj`, `cljs`, `clj:cherry`, `cljs:cherry`.
 

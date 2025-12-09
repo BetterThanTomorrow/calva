@@ -17,10 +17,10 @@ export interface ConnectionState {
   connectSequence?: ReplConnectSequence;
   shadowCljsRuntimeId?: number;
   shadowCljsRuntimeInfo?: any;
-  /** Base session names before any fruit suffix was applied */
+  /** Base session names before any suffix was applied */
   baseSessionNames?: SessionRoleKeys;
-  /** The fruit suffix applied to this connection, if any */
-  fruitSuffix?: string;
+  /** The suffix applied to this connection, if any */
+  suffix?: string;
   /** Which session role should handle .cljc files for this connection */
   cljcTarget?: CljcTargetRole;
 }

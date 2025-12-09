@@ -25,9 +25,6 @@ import * as output from '../results-output/output';
 import * as inspector from '../providers/inspector';
 import * as clientRegistry from './client-registry';
 import type { RegisteredClient } from './client-registry';
-import * as sessionRoleUtils from './session-role-utils';
-import * as secondarySession from './secondary-session';
-import * as sessionRegistry from './session-registry';
 
 function resolveEnvVariables(entry: any): any {
   if (typeof entry === 'string') {
@@ -159,7 +156,7 @@ async function stopProcessesForReconnection(connectSequence: ReplConnectSequence
  * Find clients that would be replaced by a new connection.
  * Matches by both sequence name AND current project root.
  * Clients with the same sequence but different project roots are left alone
- * (name conflicts are handled via fruit suffixes in connector.connectToHost()).
+ * (name conflicts are handled via suffixes in connector.connectToHost()).
  */
 function findClientsForReconnection(connectSequence: ReplConnectSequence): RegisteredClient[] {
   const targetRootUri = getProjectRootUriString();

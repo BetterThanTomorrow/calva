@@ -3,14 +3,14 @@ import type { NReplClient, NReplSession } from '../../nrepl';
 import * as sessionNameResolver from '../../nrepl/session-name-resolver';
 import * as sessionRegistry from '../../nrepl/session-registry';
 import * as clientRegistry from '../../nrepl/client-registry';
-import * as fruitSuffix from '../../nrepl/fruit-suffix';
+import * as nameSuffix from '../../nrepl/name-suffix';
 
 describe('session-name-resolver', () => {
   afterEach(() => {
     sessionRegistry._testUtility_registeredSessions.clear();
     sessionRegistry.setClojureDocsSessionKey(null);
     clientRegistry._testUtility_registeredClients.clear();
-    fruitSuffix.resetPool();
+    nameSuffix.resetPool();
   });
 
   const createSession = (clientKey: string): NReplSession =>
@@ -26,7 +26,7 @@ describe('session-name-resolver', () => {
         const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-a');
 
         expect(resolution.finalNames).toEqual(baseNames);
-        expect(resolution.fruitSuffix).toBeUndefined();
+        expect(resolution.suffix).toBeUndefined();
         expect(resolution.reconnectClientKey).toBeUndefined();
       });
 
@@ -37,7 +37,7 @@ describe('session-name-resolver', () => {
         const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-b');
 
         expect(resolution.finalNames).toEqual(baseNames);
-        expect(resolution.fruitSuffix).toBeUndefined();
+        expect(resolution.suffix).toBeUndefined();
       });
 
       it('handles primary-only sessions', () => {
@@ -46,12 +46,12 @@ describe('session-name-resolver', () => {
         const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-a');
 
         expect(resolution.finalNames).toEqual({ primary: 'bb' });
-        expect(resolution.fruitSuffix).toBeUndefined();
+        expect(resolution.suffix).toBeUndefined();
       });
     });
 
     describe('conflict scenario', () => {
-      it('applies fruit suffix when primary key conflicts', () => {
+      it('applies suffix when primary key conflicts', () => {
         sessionRegistry.registerSession('clj', createSession('client-a'), {});
 
         const baseNames = { primary: 'clj', secondary: 'cljs' };
@@ -59,10 +59,10 @@ describe('session-name-resolver', () => {
 
         expect(resolution.finalNames.primary).toMatch(/^clj:\w+$/);
         expect(resolution.finalNames.secondary).toMatch(/^cljs:\w+$/);
-        expect(resolution.fruitSuffix).toBeDefined();
+        expect(resolution.suffix).toBeDefined();
       });
 
-      it('applies fruit suffix when secondary key conflicts', () => {
+      it('applies suffix when secondary key conflicts', () => {
         sessionRegistry.registerSession('cljs', createSession('client-a'), {});
 
         const baseNames = { primary: 'clj', secondary: 'cljs' };
@@ -70,21 +70,21 @@ describe('session-name-resolver', () => {
 
         expect(resolution.finalNames.primary).toMatch(/^clj:\w+$/);
         expect(resolution.finalNames.secondary).toMatch(/^cljs:\w+$/);
-        expect(resolution.fruitSuffix).toBeDefined();
+        expect(resolution.suffix).toBeDefined();
       });
 
-      it('applies same fruit suffix to both primary and secondary', () => {
+      it('applies same suffix to both primary and secondary', () => {
         sessionRegistry.registerSession('clj', createSession('client-a'), {});
 
         const baseNames = { primary: 'clj', secondary: 'cljs' };
         const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-b');
 
-        const fruit = resolution.fruitSuffix;
-        expect(resolution.finalNames.primary).toBe(`clj:${fruit}`);
-        expect(resolution.finalNames.secondary).toBe(`cljs:${fruit}`);
+        const suffix = resolution.suffix;
+        expect(resolution.finalNames.primary).toBe(`clj:${suffix}`);
+        expect(resolution.finalNames.secondary).toBe(`cljs:${suffix}`);
       });
 
-      it('acquires different fruits for successive conflicts', () => {
+      it('acquires different suffixes for successive conflicts', () => {
         sessionRegistry.registerSession('clj', createSession('client-a'), {});
 
         const baseNames = { primary: 'clj', secondary: 'cljs' };
@@ -99,7 +99,7 @@ describe('session-name-resolver', () => {
 
         const resolution2 = sessionNameResolver.resolveSessionNames(baseNames, '/project-c');
 
-        expect(resolution1.fruitSuffix).not.toBe(resolution2.fruitSuffix);
+        expect(resolution1.suffix).not.toBe(resolution2.suffix);
       });
     });
 
@@ -120,19 +120,19 @@ describe('session-name-resolver', () => {
 
         expect(resolution.reconnectClientKey).toBe('client-a');
         expect(resolution.finalNames).toEqual(baseNames);
-        expect(resolution.fruitSuffix).toBeUndefined();
+        expect(resolution.suffix).toBeUndefined();
       });
 
-      it('preserves fruit suffix on reconnection', () => {
+      it('preserves suffix on reconnection', () => {
         const baseNames = { primary: 'clj', secondary: 'cljs' };
         const projectRoot = '/project-a';
 
-        // Register client with fruit suffix in connection state
+        // Register client with suffix in connection state
         clientRegistry.registerClient(createMockClient('client-a'), {
           projectRoot,
           connectionState: {
             baseSessionNames: baseNames,
-            fruitSuffix: 'apple',
+            suffix: 'apple',
           },
         });
 
@@ -140,7 +140,7 @@ describe('session-name-resolver', () => {
 
         expect(resolution.reconnectClientKey).toBe('client-a');
         expect(resolution.finalNames).toEqual({ primary: 'clj:apple', secondary: 'cljs:apple' });
-        expect(resolution.fruitSuffix).toBe('apple');
+        expect(resolution.suffix).toBe('apple');
       });
 
       it('does not detect reconnection when projectRoot differs', () => {
@@ -154,13 +154,13 @@ describe('session-name-resolver', () => {
         });
 
         // Different projectRoot but same baseNames - should NOT be reconnection
-        // But sessions exist, so should get fruit suffix
+        // But sessions exist, so should get suffix
         sessionRegistry.registerSession('clj', createSession('client-a'), {});
 
         const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-b');
 
         expect(resolution.reconnectClientKey).toBeUndefined();
-        expect(resolution.fruitSuffix).toBeDefined();
+        expect(resolution.suffix).toBeDefined();
       });
 
       it('does not detect reconnection when baseNames differ', () => {
@@ -178,28 +178,28 @@ describe('session-name-resolver', () => {
         expect(resolution.finalNames).toEqual({ primary: 'bb' });
       });
 
-      it('reserves fruit suffix on reconnection so other connections cannot steal it', () => {
+      it('reserves suffix on reconnection so other connections cannot steal it', () => {
         const baseNames = { primary: 'clj', secondary: 'cljs' };
         const projectRoot = '/project-a';
 
-        // Simulate a connection that has a fruit suffix
+        // Simulate a connection that has a suffix
         clientRegistry.registerClient(createMockClient('client-a'), {
           projectRoot,
           connectionState: {
             baseSessionNames: baseNames,
-            fruitSuffix: 'apple',
+            suffix: 'apple',
           },
         });
 
-        // Reconnection resolution - returns the existing fruit suffix
+        // Reconnection resolution - returns the existing suffix
         const resolution = sessionNameResolver.resolveSessionNames(baseNames, projectRoot);
 
         expect(resolution.reconnectClientKey).toBe('client-a');
-        expect(resolution.fruitSuffix).toBe('apple');
+        expect(resolution.suffix).toBe('apple');
 
-        // The fruit should be marked as in-use after resolution
+        // The suffix should be marked as in-use after resolution
         // so another connection cannot grab it between disconnect and re-register
-        expect(fruitSuffix.getUsedFruits()).toContain('apple');
+        expect(nameSuffix.getUsedSuffixes()).toContain('apple');
       });
     });
 
@@ -208,9 +208,9 @@ describe('session-name-resolver', () => {
         // Register a conflicting session
         sessionRegistry.registerSession('clj', createSession('client-a'), {});
 
-        // Exhaust the fruit pool
-        while (!fruitSuffix.isPoolExhausted()) {
-          fruitSuffix.acquireNextAvailableFruit();
+        // Exhaust the suffix pool
+        while (!nameSuffix.isPoolExhausted()) {
+          nameSuffix.acquireNextAvailableSuffix();
         }
 
         const baseNames = { primary: 'clj', secondary: 'cljs' };

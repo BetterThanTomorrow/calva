@@ -1,7 +1,7 @@
 import * as expect from 'expect';
 import * as clientRegistry from '../../nrepl/client-registry';
 import * as sessionRegistry from '../../nrepl/session-registry';
-import * as fruitSuffix from '../../nrepl/fruit-suffix';
+import * as nameSuffix from '../../nrepl/name-suffix';
 import * as clientTeardown from '../../nrepl/client-teardown';
 import type { NReplClient, NReplSession } from '../../nrepl';
 
@@ -18,21 +18,21 @@ describe('client-teardown', () => {
   beforeEach(() => {
     clientRegistry._testUtility_registeredClients.clear();
     sessionRegistry._testUtility_registeredSessions.clear();
-    fruitSuffix.resetPool();
+    nameSuffix.resetPool();
   });
 
   afterEach(() => {
     clientRegistry._testUtility_registeredClients.clear();
     sessionRegistry._testUtility_registeredSessions.clear();
-    fruitSuffix.resetPool();
+    nameSuffix.resetPool();
   });
 
-  describe('fruit suffix release on client teardown', () => {
-    it('releases fruit suffix when tearing down a client with a fruit suffix', () => {
-      // Setup: Register a client with a fruit suffix
+  describe('suffix release on client teardown', () => {
+    it('releases suffix when tearing down a client with a suffix', () => {
+      // Setup: Register a client with a suffix
       const client = createMockClient('client-a');
-      const fruit = fruitSuffix.acquireNextAvailableFruit();
-      expect(fruit).toBeDefined();
+      const suffix = nameSuffix.acquireNextAvailableSuffix();
+      expect(suffix).toBeDefined();
 
       clientRegistry.registerClient(client, {
         connectSequenceName: 'Test Connection',
@@ -41,28 +41,28 @@ describe('client-teardown', () => {
           cljsBuild: null,
           cljsTypeName: null,
           hasBuilds: false,
-          sessionRoleKeys: { primary: `clj:${fruit}` },
+          sessionRoleKeys: { primary: `clj:${suffix}` },
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'clj' },
-          fruitSuffix: fruit,
+          suffix: suffix,
         },
       });
 
-      // Verify fruit is in use
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+      // Verify suffix is in use
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
-      // Call the teardown helper that releases the fruit
-      clientTeardown.releaseClientFruit('client-a');
+      // Call the teardown helper that releases the suffix
+      clientTeardown.releaseClientSuffix('client-a');
       clientRegistry.unregisterClient('client-a');
 
-      // Verify fruit is released
-      expect(fruitSuffix.getUsedFruits()).not.toContain(fruit);
-      expect(fruitSuffix.getAvailableFruits()).toContain(fruit);
+      // Verify suffix is released
+      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
+      expect(nameSuffix.getAvailableSuffixes()).toContain(suffix);
     });
 
-    it('handles teardown of client without fruit suffix (no-op for fruit release)', () => {
-      // Setup: Register a client without a fruit suffix
+    it('handles teardown of client without suffix (no-op for suffix release)', () => {
+      // Setup: Register a client without a suffix
       const client = createMockClient('client-b');
 
       clientRegistry.registerClient(client, {
@@ -76,23 +76,23 @@ describe('client-teardown', () => {
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'bb' },
-          // No fruitSuffix
+          // No suffix
         },
       });
 
       // Should not throw when tearing down
-      clientTeardown.releaseClientFruit('client-b');
+      clientTeardown.releaseClientSuffix('client-b');
       clientRegistry.unregisterClient('client-b');
 
-      // Verify no fruits are used
-      expect(fruitSuffix.getUsedFruits()).toEqual([]);
+      // Verify no suffixes are used
+      expect(nameSuffix.getUsedSuffixes()).toEqual([]);
     });
 
-    it('does not release fruit when teardown is called with undefined clientKey', () => {
-      // Setup: Register a client with a fruit suffix
+    it('does not release suffix when teardown is called with undefined clientKey', () => {
+      // Setup: Register a client with a suffix
       const client = createMockClient('client-a');
-      const fruit = fruitSuffix.acquireNextAvailableFruit();
-      expect(fruit).toBeDefined();
+      const suffix = nameSuffix.acquireNextAvailableSuffix();
+      expect(suffix).toBeDefined();
 
       clientRegistry.registerClient(client, {
         connectSequenceName: 'Test Connection',
@@ -101,41 +101,41 @@ describe('client-teardown', () => {
           cljsBuild: null,
           cljsTypeName: null,
           hasBuilds: false,
-          sessionRoleKeys: { primary: `clj:${fruit}` },
+          sessionRoleKeys: { primary: `clj:${suffix}` },
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'clj' },
-          fruitSuffix: fruit,
+          suffix: suffix,
         },
       });
 
       // Simulate cleanup with undefined client key (as happens when connection fails early)
-      clientTeardown.releaseClientFruit(undefined as unknown as string);
+      clientTeardown.releaseClientSuffix(undefined as unknown as string);
 
-      // Fruit should still be in use because we didn't tear down client-a
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+      // Suffix should still be in use because we didn't tear down client-a
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
     });
 
-    it('releases fruit even when client has already been unregistered', () => {
-      // This tests the scenario where we need to track fruit separately
-      // because the client might be gone but we still have the fruit suffix stored
-      const fruit = fruitSuffix.acquireNextAvailableFruit();
-      expect(fruit).toBeDefined();
+    it('releases suffix even when client has already been unregistered', () => {
+      // This tests the scenario where we need to track suffix separately
+      // because the client might be gone but we still have the suffix stored
+      const suffix = nameSuffix.acquireNextAvailableSuffix();
+      expect(suffix).toBeDefined();
 
-      // Store fruit separately (simulating what happens if we track it before client registration)
+      // Store suffix separately (simulating what happens if we track it before client registration)
       // Then release it
-      fruitSuffix.releaseFruit(fruit);
+      nameSuffix.releaseSuffix(suffix);
 
-      expect(fruitSuffix.getUsedFruits()).not.toContain(fruit);
-      expect(fruitSuffix.getAvailableFruits()).toContain(fruit);
+      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
+      expect(nameSuffix.getAvailableSuffixes()).toContain(suffix);
     });
   });
 
-  describe('releaseClientFruit', () => {
-    it('releases fruit when client has fruitSuffix in connectionState', () => {
+  describe('releaseClientSuffix', () => {
+    it('releases suffix when client has nameSuffix in connectionState', () => {
       const client = createMockClient('client-x');
-      const fruit = fruitSuffix.acquireNextAvailableFruit();
-      expect(fruit).toBeDefined();
+      const suffix = nameSuffix.acquireNextAvailableSuffix();
+      expect(suffix).toBeDefined();
 
       clientRegistry.registerClient(client, {
         connectSequenceName: 'Test',
@@ -144,36 +144,36 @@ describe('client-teardown', () => {
           cljsBuild: null,
           cljsTypeName: null,
           hasBuilds: false,
-          sessionRoleKeys: { primary: `clj:${fruit}` },
+          sessionRoleKeys: { primary: `clj:${suffix}` },
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'clj' },
-          fruitSuffix: fruit,
+          suffix: suffix,
         },
       });
 
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
-      const released = clientTeardown.releaseClientFruit('client-x');
+      const released = clientTeardown.releaseClientSuffix('client-x');
 
-      expect(released).toBe(fruit);
-      expect(fruitSuffix.getUsedFruits()).not.toContain(fruit);
+      expect(released).toBe(suffix);
+      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
     });
 
     it('returns undefined when connectionState is undefined', () => {
-      const initialUsed = [...fruitSuffix.getUsedFruits()];
+      const initialUsed = [...nameSuffix.getUsedSuffixes()];
 
-      const released = clientTeardown.releaseClientFruit('nonexistent-client');
+      const released = clientTeardown.releaseClientSuffix('nonexistent-client');
 
       expect(released).toBeUndefined();
-      expect(fruitSuffix.getUsedFruits()).toEqual(initialUsed);
+      expect(nameSuffix.getUsedSuffixes()).toEqual(initialUsed);
     });
 
-    it('returns undefined when connectionState has no fruitSuffix', () => {
-      const client = createMockClient('client-no-fruit');
+    it('returns undefined when connectionState has no nameSuffix', () => {
+      const client = createMockClient('client-no-suffix');
 
       clientRegistry.registerClient(client, {
-        connectSequenceName: 'No Fruit',
+        connectSequenceName: 'No Suffix',
         projectRoot: 'file:///test',
         connectionState: {
           cljsBuild: null,
@@ -183,54 +183,54 @@ describe('client-teardown', () => {
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'bb' },
-          // No fruitSuffix
+          // No nameSuffix
         },
       });
 
-      const released = clientTeardown.releaseClientFruit('client-no-fruit');
+      const released = clientTeardown.releaseClientSuffix('client-no-suffix');
 
       expect(released).toBeUndefined();
     });
 
     it('returns undefined when clientKey is undefined', () => {
-      const released = clientTeardown.releaseClientFruit(undefined);
+      const released = clientTeardown.releaseClientSuffix(undefined);
 
       expect(released).toBeUndefined();
     });
   });
 
-  describe('releaseFruitDirectly', () => {
-    it('releases fruit when provided', () => {
-      const fruit = fruitSuffix.acquireNextAvailableFruit();
-      expect(fruit).toBeDefined();
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+  describe('releaseSuffixDirectly', () => {
+    it('releases suffix when provided', () => {
+      const suffix = nameSuffix.acquireNextAvailableSuffix();
+      expect(suffix).toBeDefined();
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
-      clientTeardown.releaseFruitDirectly(fruit);
+      clientTeardown.releaseSuffixDirectly(suffix);
 
-      expect(fruitSuffix.getUsedFruits()).not.toContain(fruit);
+      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
     });
 
-    it('does nothing when fruit is undefined', () => {
-      const fruit = fruitSuffix.acquireNextAvailableFruit();
-      expect(fruit).toBeDefined();
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+    it('does nothing when suffix is undefined', () => {
+      const suffix = nameSuffix.acquireNextAvailableSuffix();
+      expect(suffix).toBeDefined();
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
-      clientTeardown.releaseFruitDirectly(undefined);
+      clientTeardown.releaseSuffixDirectly(undefined);
 
-      // Original fruit should still be in use
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+      // Original suffix should still be in use
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
     });
   });
 
-  describe('multiple clients with fruit suffixes', () => {
-    it('releases only the fruit for the torn down client', () => {
-      // Setup: Two clients with different fruit suffixes
+  describe('multiple clients with suffixes', () => {
+    it('releases only the suffix for the torn down client', () => {
+      // Setup: Two clients with different suffixes
       const clientA = createMockClient('client-a');
       const clientB = createMockClient('client-b');
-      const fruitA = fruitSuffix.acquireNextAvailableFruit();
-      const fruitB = fruitSuffix.acquireNextAvailableFruit();
-      expect(fruitA).toBeDefined();
-      expect(fruitB).toBeDefined();
+      const suffixA = nameSuffix.acquireNextAvailableSuffix();
+      const suffixB = nameSuffix.acquireNextAvailableSuffix();
+      expect(suffixA).toBeDefined();
+      expect(suffixB).toBeDefined();
 
       clientRegistry.registerClient(clientA, {
         connectSequenceName: 'Connection A',
@@ -239,11 +239,11 @@ describe('client-teardown', () => {
           cljsBuild: null,
           cljsTypeName: null,
           hasBuilds: false,
-          sessionRoleKeys: { primary: `clj:${fruitA}` },
+          sessionRoleKeys: { primary: `clj:${suffixA}` },
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'clj' },
-          fruitSuffix: fruitA,
+          suffix: suffixA,
         },
       });
 
@@ -254,40 +254,40 @@ describe('client-teardown', () => {
           cljsBuild: null,
           cljsTypeName: null,
           hasBuilds: false,
-          sessionRoleKeys: { primary: `clj:${fruitB}` },
+          sessionRoleKeys: { primary: `clj:${suffixB}` },
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'clj' },
-          fruitSuffix: fruitB,
+          suffix: suffixB,
         },
       });
 
-      // Verify both fruits are in use
-      expect(fruitSuffix.getUsedFruits()).toContain(fruitA);
-      expect(fruitSuffix.getUsedFruits()).toContain(fruitB);
+      // Verify both suffixes are in use
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffixA);
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffixB);
 
       // Tear down only client A using the helper
-      clientTeardown.releaseClientFruit('client-a');
+      clientTeardown.releaseClientSuffix('client-a');
       clientRegistry.unregisterClient('client-a');
 
-      // Only fruitA should be released
-      expect(fruitSuffix.getUsedFruits()).not.toContain(fruitA);
-      expect(fruitSuffix.getUsedFruits()).toContain(fruitB);
+      // Only the suffix for client A should be released
+      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffixA);
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffixB);
     });
   });
 
-  describe('reconnection fruit preservation', () => {
-    it('fruit stays reserved when teardown skips release (reconnection scenario)', () => {
+  describe('reconnection suffix preservation', () => {
+    it('suffix stays reserved when teardown skips release (reconnection scenario)', () => {
       // This simulates the reconnection flow:
-      // 1. Client A exists with fruit 'apple'
+      // 1. Client A exists with suffix 'apple'
       // 2. Session name resolver reserves 'apple' for reconnection
-      // 3. Old client is torn down WITHOUT releasing fruit (preserveFruit: true)
-      // 4. New client registers with same fruit
-      // Throughout this, 'apple' should remain in usedFruits
+      // 3. Old client is torn down WITHOUT releasing suffix (preserveSuffix: true)
+      // 4. New client registers with same suffix
+      // Throughout this, 'apple' should remain in use
 
       const clientA = createMockClient('client-a');
-      const fruit = 'apple';
-      fruitSuffix.reserveFruit(fruit);
+      const suffix = 'apple';
+      nameSuffix.reserveSuffix(suffix);
 
       clientRegistry.registerClient(clientA, {
         connectSequenceName: 'Connection A',
@@ -296,29 +296,29 @@ describe('client-teardown', () => {
           cljsBuild: null,
           cljsTypeName: null,
           hasBuilds: false,
-          sessionRoleKeys: { primary: `clj:${fruit}` },
+          sessionRoleKeys: { primary: `clj:${suffix}` },
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'clj' },
-          fruitSuffix: fruit,
+          suffix: suffix,
         },
       });
 
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
-      // Simulate reconnection: resolver has already reserved the fruit again
+      // Simulate reconnection: resolver has already reserved the suffix again
       // (this happens before teardown in real code)
-      // In this test, the fruit is already reserved, so reserveFruit returns false
-      // but the fruit stays in usedFruits
+      // In this test, the suffix is already reserved, so reserveSuffix returns false
+      // but the suffix stays in use
 
-      // Simulate teardown that preserves fruit (as disconnectClientByKey does with preserveFruit: true)
-      // We just unregister without releasing fruit
+      // Simulate teardown that preserves suffix (as disconnectClientByKey does with preserveSuffix: true)
+      // We just unregister without releasing the suffix
       clientRegistry.unregisterClient('client-a');
 
-      // Fruit should STILL be reserved (not released)
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+      // Suffix should STILL be reserved (not released)
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
-      // Now a new client can be registered with the same fruit
+      // Now a new client can be registered with the same suffix
       const clientB = createMockClient('client-b');
       clientRegistry.registerClient(clientB, {
         connectSequenceName: 'Connection A (reconnected)',
@@ -327,25 +327,25 @@ describe('client-teardown', () => {
           cljsBuild: null,
           cljsTypeName: null,
           hasBuilds: false,
-          sessionRoleKeys: { primary: `clj:${fruit}` },
+          sessionRoleKeys: { primary: `clj:${suffix}` },
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'clj' },
-          fruitSuffix: fruit,
+          suffix: suffix,
         },
       });
 
-      // Fruit remains in use with new client
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+      // Suffix remains in use with new client
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
     });
 
-    it('fruit would be stolen without preservation (demonstrates the bug fix)', () => {
-      // This shows what WOULD happen without preserveFruit:
-      // If we release fruit during teardown, another connection could steal it
+    it('suffix would be stolen without preservation (demonstrates the bug fix)', () => {
+      // This shows what WOULD happen without preserveSuffix:
+      // If we release a suffix during teardown, another connection could steal it
 
       const clientA = createMockClient('client-a');
-      const fruit = 'banana';
-      fruitSuffix.reserveFruit(fruit);
+      const suffix = 'banana';
+      nameSuffix.reserveSuffix(suffix);
 
       clientRegistry.registerClient(clientA, {
         connectSequenceName: 'Connection A',
@@ -354,38 +354,38 @@ describe('client-teardown', () => {
           cljsBuild: null,
           cljsTypeName: null,
           hasBuilds: false,
-          sessionRoleKeys: { primary: `clj:${fruit}` },
+          sessionRoleKeys: { primary: `clj:${suffix}` },
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'clj' },
-          fruitSuffix: fruit,
+          suffix: suffix,
         },
       });
 
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
-      // If we DO release fruit during teardown (the old buggy behavior)
-      clientTeardown.releaseClientFruit('client-a');
+      // If we DO release the suffix during teardown (the old buggy behavior)
+      clientTeardown.releaseClientSuffix('client-a');
       clientRegistry.unregisterClient('client-a');
 
-      // Fruit is now available - another connection could grab it!
-      expect(fruitSuffix.getUsedFruits()).not.toContain(fruit);
-      expect(fruitSuffix.getAvailableFruits()).toContain(fruit);
+      // Suffix is now available - another connection could grab it!
+      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
+      expect(nameSuffix.getAvailableSuffixes()).toContain(suffix);
 
-      // Reserve the fruit again (simulating what another project might do)
-      const wasReserved = fruitSuffix.reserveFruit(fruit);
-      expect(wasReserved).toBe(true); // Demonstrates the vulnerability - fruit was available to steal
+      // Reserve the suffix again (simulating what another project might do)
+      const wasReserved = nameSuffix.reserveSuffix(suffix);
+      expect(wasReserved).toBe(true); // Demonstrates the vulnerability - suffix was available to steal
     });
 
-    it('markFruitPreserved prevents release by releaseClientFruit', () => {
+    it('markSuffixPreserved prevents release by releaseClientSuffix', () => {
       // Guards agaist regression for the on-close handler bug:
-      // When disconnectClientByKey specifies preserveFruit: true, it should mark
-      // the fruit as preserved so that the on-close handler (which calls
-      // releaseClientFruit) won't release it.
+      // When disconnectClientByKey specifies preserveSuffix: true, it should mark
+      // the suffix as preserved so that the on-close handler (which calls
+      // releaseClientSuffix) won't release it.
 
       const clientA = createMockClient('client-a');
-      const fruit = 'cherry';
-      fruitSuffix.reserveFruit(fruit);
+      const suffix = 'cherry';
+      nameSuffix.reserveSuffix(suffix);
 
       clientRegistry.registerClient(clientA, {
         connectSequenceName: 'Connection A',
@@ -394,34 +394,34 @@ describe('client-teardown', () => {
           cljsBuild: null,
           cljsTypeName: null,
           hasBuilds: false,
-          sessionRoleKeys: { primary: `clj:${fruit}` },
+          sessionRoleKeys: { primary: `clj:${suffix}` },
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'clj' },
-          fruitSuffix: fruit,
+          suffix: suffix,
         },
       });
 
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
-      // Mark fruit as preserved (simulating what disconnectClientByKey does with preserveFruit: true)
-      clientTeardown.markFruitPreserved('client-a');
+      // Mark suffix as preserved (simulating what disconnectClientByKey does with preserveSuffix: true)
+      clientTeardown.markSuffixPreserved('client-a');
 
-      // Now when the on-close handler fires, it calls releaseClientFruit,
-      // but the fruit should NOT be released because it's marked as preserved
-      const released = clientTeardown.releaseClientFruit('client-a');
+      // Now when the on-close handler fires, it calls releaseClientSuffix,
+      // but the suffix should NOT be released because it's marked as preserved
+      const released = clientTeardown.releaseClientSuffix('client-a');
 
-      // Fruit should NOT have been released
+      // Suffix should NOT have been released
       expect(released).toBeUndefined();
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
     });
 
-    it('clearFruitPreserved allows subsequent release', () => {
+    it('clearSuffixPreserved allows subsequent release', () => {
       // Test that we can clear the preserved flag if needed
 
       const clientA = createMockClient('client-a');
-      const fruit = 'date';
-      fruitSuffix.reserveFruit(fruit);
+      const suffix = 'date';
+      nameSuffix.reserveSuffix(suffix);
 
       clientRegistry.registerClient(clientA, {
         connectSequenceName: 'Connection A',
@@ -430,37 +430,37 @@ describe('client-teardown', () => {
           cljsBuild: null,
           cljsTypeName: null,
           hasBuilds: false,
-          sessionRoleKeys: { primary: `clj:${fruit}` },
+          sessionRoleKeys: { primary: `clj:${suffix}` },
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'clj' },
-          fruitSuffix: fruit,
+          suffix: suffix,
         },
       });
 
       // Mark then clear
-      clientTeardown.markFruitPreserved('client-a');
-      clientTeardown.clearFruitPreserved('client-a');
+      clientTeardown.markSuffixPreserved('client-a');
+      clientTeardown.clearSuffixPreserved('client-a');
 
       // Now release should work
-      const released = clientTeardown.releaseClientFruit('client-a');
-      expect(released).toBe(fruit);
-      expect(fruitSuffix.getUsedFruits()).not.toContain(fruit);
+      const released = clientTeardown.releaseClientSuffix('client-a');
+      expect(released).toBe(suffix);
+      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
     });
 
     it('simulates full reconnection flow with on-close handler', () => {
       // This test simulates the exact reconnection flow in connector.ts:
-      // 1. Existing client with fruit 'elderberry'
-      // 2. resolveSessionNames reserves the fruit for reconnection
-      // 3. disconnectClientByKey with preserveFruit: true
-      //    - marks fruit as preserved
+      // 1. Existing client with suffix 'elderberry'
+      // 2. resolveSessionNames reserves the suffix for reconnection
+      // 3. disconnectClientByKey with preserveSuffix: true
+      //    - marks suffix as preserved
       //    - unregisters client (connection state gone!)
       //    - calls client.close() which triggers on-close handler
-      // 4. on-close handler calls releaseClientFruit
-      // 5. Fruit should NOT be released because it's marked as preserved
+      // 4. on-close handler calls releaseClientSuffix
+      // 5. Suffix should NOT be released because it's marked as preserved
 
-      const fruit = 'elderberry';
-      fruitSuffix.reserveFruit(fruit);
+      const suffix = 'elderberry';
+      nameSuffix.reserveSuffix(suffix);
 
       const clientA = createMockClient('client-a');
       clientRegistry.registerClient(clientA, {
@@ -470,22 +470,22 @@ describe('client-teardown', () => {
           cljsBuild: null,
           cljsTypeName: null,
           hasBuilds: false,
-          sessionRoleKeys: { primary: `clj:${fruit}` },
+          sessionRoleKeys: { primary: `clj:${suffix}` },
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'clj' },
-          fruitSuffix: fruit,
+          suffix: suffix,
         },
       });
 
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
-      // Step 2: resolveSessionNames would reserve the fruit again (already reserved, but stays in set)
+      // Step 2: resolveSessionNames would reserve the suffix again (already reserved, but stays in set)
       // In real code, this happens before disconnectClientByKey
 
-      // Step 3: disconnectClientByKey with preserveFruit: true
-      // First, mark fruit as preserved
-      clientTeardown.markFruitPreserved('client-a');
+      // Step 3: disconnectClientByKey with preserveSuffix: true
+      // First, mark suffix as preserved
+      clientTeardown.markSuffixPreserved('client-a');
 
       // Then unregister the client (this removes connection state!)
       clientRegistry.unregisterClient('client-a');
@@ -493,15 +493,15 @@ describe('client-teardown', () => {
       // At this point, getConnectionState('client-a') would return undefined
       expect(clientRegistry.getConnectionState('client-a')).toBeUndefined();
 
-      // Step 4: on-close handler fires and calls releaseClientFruit
-      // This should NOT release the fruit because it's marked as preserved
-      const released = clientTeardown.releaseClientFruit('client-a');
+      // Step 4: on-close handler fires and calls releaseClientSuffix
+      // This should NOT release the suffix because it's marked as preserved
+      const released = clientTeardown.releaseClientSuffix('client-a');
 
-      // Fruit should NOT have been released
+      // Suffix should NOT have been released
       expect(released).toBeUndefined();
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
-      // Step 5: New client can now be registered with the same fruit
+      // Step 5: New client can now be registered with the same suffix
       const clientB = createMockClient('client-b');
       clientRegistry.registerClient(clientB, {
         connectSequenceName: 'Connection A (reconnected)',
@@ -510,16 +510,16 @@ describe('client-teardown', () => {
           cljsBuild: null,
           cljsTypeName: null,
           hasBuilds: false,
-          sessionRoleKeys: { primary: `clj:${fruit}` },
+          sessionRoleKeys: { primary: `clj:${suffix}` },
           sessionGlobMap: {},
           connectSequence: {} as any,
           baseSessionNames: { primary: 'clj' },
-          fruitSuffix: fruit,
+          suffix: suffix,
         },
       });
 
-      // Fruit remains in use with new client
-      expect(fruitSuffix.getUsedFruits()).toContain(fruit);
+      // Suffix remains in use with new client
+      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
     });
   });
 });

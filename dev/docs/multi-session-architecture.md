@@ -114,15 +114,15 @@ Session names are resolved at connection time using the following rules:
 
 1. **Base names** come from the connect sequence's `replSessionNames` configuration, or project type defaults
 2. A connection is identified by the tuple `(baseNames, projectRoot)`
-3. If the base names conflict with an existing connection at a *different* project root, a **fruit suffix** is applied (e.g., `clj` → `clj:apple`)
+3. If the base names conflict with an existing connection at a *different* project root, a **suffix** from the pool is applied. E.g., `clj` → `clj:apple`. (The pool currently consists of fruits.)
 4. If the base names match an existing connection at the *same* project root, this is a **reconnection** — the existing connection is disconnected and names are reused
-5. Fruit suffixes are released back to a global pool on disconnect
+5. Suffixes are released back to a global pool on disconnect
 
 This automatic conflict resolution allows multiple projects with the same session names to be connected simultaneously without manual configuration.
 
 **Reconnection criteria:** Two connections are considered "the same REPL" when they share both `projectRoot` AND `baseSessionNames`. When reconnecting to such a REPL, the existing connection is disconnected first and the session names are reused. This means:
 - Connecting to the same project with the same session names → reconnection (old connection replaced)
-- Connecting to a different project with the same session names → new connection with fruit suffix
+- Connecting to a different project with the same session names → new connection with suffix
 - Connecting to the same project with different session names → new connection (names don't conflict)
 
 **Note:** Port number is *not* part of the sameness criteria. A future enhancement could add port to the criteria to support multiple REPLs of the same type in one project root.
@@ -337,8 +337,8 @@ interface ConnectionState {
   connectSequence?: ReplConnectSequence;
   shadowCljsRuntimeId?: number;   // Selected shadow-cljs runtime
   shadowCljsRuntimeInfo?: any;    // Runtime metadata
-  baseSessionNames?: SessionRoleKeys;  // Names before fruit suffix
-  fruitSuffix?: string;                // Applied fruit suffix, if any
+  baseSessionNames?: SessionRoleKeys;  // Names before any suffix
+  suffix?: string;                     // Applied suffix, if any
   cljcTarget?: 'primary' | 'secondary'; // Per-connection CLJC target preference
 }
 ```
@@ -383,11 +383,11 @@ Jack-in starts a REPL process and connects to it.
     - Derive base session names from connect sequence
     - Resolve final names using `resolveSessionNames(baseNames, projectRoot)`
     - If reconnection detected, disconnect existing client
-    - If conflict detected, apply fruit suffix
+    - If conflict detected, apply suffix
     - Derive glob map from connect sequence
     - Create `NReplClient`
     - Register client in client-registry
-    - Initialize connection state (including baseSessionNames and fruitSuffix)
+    - Initialize connection state (including baseSessionNames and suffix)
     - Register **Primary Session**
 9.  **Secondary Session** (if CLJS configured):
     - Clone primary session
@@ -750,8 +750,8 @@ The system supports lookups in both directions, which is intentional:
 |------|---------|
 | `src/nrepl/project-types.ts` | Project type definitions including default file patterns |
 | `src/nrepl/session-role-utils.ts` | Derive session keys and glob maps from sequences (checks sequence config, project type defaults, then generic defaults) |
-| `src/nrepl/session-name-resolver.ts` | Session name conflict resolution with fruit suffixes |
-| `src/nrepl/fruit-suffix.ts` | Fruit pool management for automatic session name suffixing |
+| `src/nrepl/session-name-resolver.ts` | Session name conflict resolution with suffixes |
+| `src/nrepl/name-suffix.ts` | Suffix pool management for automatic session name suffixing |
 | `src/nrepl/globs/index.ts` | Glob spec construction, pattern scoring |
 | `src/nrepl/glob-paths.ts` | Path normalization, candidate path building |
 | `src/nrepl/secondary-session.ts` | Determine if CLJS type needs secondary session |
@@ -895,7 +895,7 @@ sequenceDiagram
         Resolver-->>Connector: {finalNames, reconnectClientKey}
         Connector->>Connector: disconnectClientByKey(reconnectClientKey)
     else Conflict (different projectRoot)
-        Resolver-->>Connector: {finalNames: suffixed, fruitSuffix}
+        Resolver-->>Connector: {finalNames: suffixed, suffix}
     else No Conflict
         Resolver-->>Connector: {finalNames: baseNames}
     end
@@ -986,4 +986,3 @@ graph TB
 ---
 
 ## Simplification Considerations
-

@@ -10,7 +10,7 @@ Changes to Calva.
     - Route files to sessions with `replSessionFilePatterns` using `primary`/`secondary` keys. Patterns like `*.clj` are automatically scoped to the sequence's project root.
     - Pattern tier properties `always-claim`/`is-fallback-for` control routing priority. The `always-claim` tier takes precedence in file routing.
     - Rename `afterCLJReplJackInCode` → `afterPrimaryReplConnectedCode` (the old name still works).
-  - Automatic session name conflict resolution: connecting multiple REPLs with the same session names (e.g., two deps.edn projects) now "just works"—Calva appends a fruit suffix (e.g., `clj:apple`, `cljs:apple`) to avoid conflicts, preserving names on reconnection.
+  - Automatic session name conflict resolution: connecting multiple REPLs with the same session names (e.g., two deps.edn projects) now "just works"—Calva appends a suffix from the pool (of fruit names) e.g., `clj:apple`, `cljs:apple`, to avoid conflicts, preserving names on reconnection.
   - Connecting an additional sequence no longer disconnects earlier ones unless they reuse the same `replSessionNames` (treated as a re-connect).
   - Jacking in to another connect sequence no longer closes the previous REPL; each jack-in keeps its own pseudo terminal unless the sessions share `replSessionNames`, in which case it becomes a restart.
   - Allows **Session pinning**—lock all evaluations to a specific session and override pattern-based routing.

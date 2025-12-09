@@ -1,21 +1,21 @@
 /**
  * Session name resolution for automatic conflict handling.
  *
- * Resolves session names at connection time, automatically applying fruit suffixes
+ * Resolves session names at connection time, automatically applying suffixes
  * when conflicts are detected, while preserving names for reconnection scenarios.
  */
 
 import type { SessionRoleKeys } from './session-role-utils';
 import * as clientRegistry from './client-registry';
 import * as sessionRegistry from './session-registry';
-import * as fruitSuffix from './fruit-suffix';
+import * as nameSuffix from './name-suffix';
 
 export interface SessionNameResolution {
   /** Final session names to use */
   finalNames: SessionRoleKeys;
 
-  /** Fruit suffix applied, if any */
-  fruitSuffix?: string;
+  /** Name suffix applied, if any */
+  suffix?: string;
 
   /** Client to disconnect for reconnection, if any */
   reconnectClientKey?: string;
@@ -73,14 +73,14 @@ function hasConflict(keys: SessionRoleKeys): boolean {
 }
 
 /**
- * Apply a fruit suffix to both primary and secondary session names.
+ * Apply a suffix to both primary and secondary session names.
  */
-function applyFruitToNames(baseNames: SessionRoleKeys, fruit: string): SessionRoleKeys {
+function applySuffixToNames(baseNames: SessionRoleKeys, suffix: string): SessionRoleKeys {
   const result: SessionRoleKeys = {
-    primary: fruitSuffix.applyFruitSuffix(baseNames.primary, fruit),
+    primary: nameSuffix.applySuffix(baseNames.primary, suffix),
   };
   if (baseNames.secondary) {
-    result.secondary = fruitSuffix.applyFruitSuffix(baseNames.secondary, fruit);
+    result.secondary = nameSuffix.applySuffix(baseNames.secondary, suffix);
   }
   return result;
 }
@@ -92,13 +92,13 @@ function applyFruitToNames(baseNames: SessionRoleKeys, fruit: string): SessionRo
  * 1. Check for reconnection scenario (same baseNames + projectRoot)
  *    → Return existing final names, mark client for disconnect
  * 2. Check for conflicts with base names
- *    → If conflict, acquire fruit suffix and apply to names
+ *    → If conflict, acquire suffix and apply to names
  * 3. Otherwise, use base names as-is
  *
  * @param baseNames - Session names from connect sequence (before any suffix)
  * @param projectRoot - Project root URI string
  * @returns Resolution with final names and any required actions
- * @throws Error if fruit pool is exhausted when suffix is needed
+ * @throws Error if suffix pool is exhausted when suffix is needed
  */
 export function resolveSessionNames(
   baseNames: SessionRoleKeys,
@@ -107,36 +107,36 @@ export function resolveSessionNames(
   const reconnectClientKey = findReconnectionCandidate(baseNames, projectRoot);
   if (reconnectClientKey) {
     const existingState = clientRegistry.getConnectionState(reconnectClientKey);
-    const existingFruit = existingState?.fruitSuffix;
-    const finalNames = existingFruit ? applyFruitToNames(baseNames, existingFruit) : baseNames;
+    const existingSuffix = existingState?.suffix;
+    const finalNames = existingSuffix ? applySuffixToNames(baseNames, existingSuffix) : baseNames;
 
-    if (existingFruit) {
-      fruitSuffix.reserveFruit(existingFruit);
+    if (existingSuffix) {
+      nameSuffix.reserveSuffix(existingSuffix);
     }
 
     return {
       finalNames,
-      fruitSuffix: existingFruit,
+      suffix: existingSuffix,
       reconnectClientKey,
     };
   }
 
   if (hasConflict(baseNames)) {
-    if (fruitSuffix.isPoolExhausted()) {
+    if (nameSuffix.isPoolExhausted()) {
       throw new Error(
         'Cannot connect: too many REPLs with the same session names. ' +
           'Disconnect some REPLs or use custom session names in your connect sequence.'
       );
     }
 
-    const fruit = fruitSuffix.acquireNextAvailableFruit();
-    if (!fruit) {
-      throw new Error('Cannot connect: failed to acquire fruit suffix.');
+    const suffix = nameSuffix.acquireNextAvailableSuffix();
+    if (!suffix) {
+      throw new Error('Cannot connect: failed to acquire name suffix.');
     }
 
     return {
-      finalNames: applyFruitToNames(baseNames, fruit),
-      fruitSuffix: fruit,
+      finalNames: applySuffixToNames(baseNames, suffix),
+      suffix,
     };
   }
 
