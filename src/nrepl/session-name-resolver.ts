@@ -110,6 +110,10 @@ export function resolveSessionNames(
     const existingFruit = existingState?.fruitSuffix;
     const finalNames = existingFruit ? applyFruitToNames(baseNames, existingFruit) : baseNames;
 
+    if (existingFruit) {
+      fruitSuffix.reserveFruit(existingFruit);
+    }
+
     return {
       finalNames,
       fruitSuffix: existingFruit,
@@ -125,7 +129,7 @@ export function resolveSessionNames(
       );
     }
 
-    const fruit = fruitSuffix.acquireFruit();
+    const fruit = fruitSuffix.acquireNextAvailableFruit();
     if (!fruit) {
       throw new Error('Cannot connect: failed to acquire fruit suffix.');
     }

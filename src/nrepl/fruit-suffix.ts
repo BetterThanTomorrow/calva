@@ -35,7 +35,7 @@ const usedFruits: Set<string> = new Set();
  * Acquire the next available fruit from the pool.
  * Returns undefined if the pool is exhausted.
  */
-export function acquireFruit(): string | undefined {
+export function acquireNextAvailableFruit(): string | undefined {
   for (const fruit of FRUIT_POOL) {
     if (!usedFruits.has(fruit)) {
       usedFruits.add(fruit);
@@ -50,6 +50,19 @@ export function acquireFruit(): string | undefined {
  */
 export function releaseFruit(fruit: string): void {
   usedFruits.delete(fruit);
+}
+
+/**
+ * Reserve a specific fruit, marking it as in use.
+ * Used during reconnection to ensure the fruit cannot be acquired by another connection.
+ * Returns true if the fruit was successfully reserved, false if already in use.
+ */
+export function reserveFruit(fruit: string): boolean {
+  if (usedFruits.has(fruit)) {
+    return false;
+  }
+  usedFruits.add(fruit);
+  return true;
 }
 
 /**

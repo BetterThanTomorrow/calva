@@ -177,6 +177,30 @@ describe('session-name-resolver', () => {
         expect(resolution.reconnectClientKey).toBeUndefined();
         expect(resolution.finalNames).toEqual({ primary: 'bb' });
       });
+
+      it('reserves fruit suffix on reconnection so other connections cannot steal it', () => {
+        const baseNames = { primary: 'clj', secondary: 'cljs' };
+        const projectRoot = '/project-a';
+
+        // Simulate a connection that has a fruit suffix
+        clientRegistry.registerClient(createMockClient('client-a'), {
+          projectRoot,
+          connectionState: {
+            baseSessionNames: baseNames,
+            fruitSuffix: 'apple',
+          },
+        });
+
+        // Reconnection resolution - returns the existing fruit suffix
+        const resolution = sessionNameResolver.resolveSessionNames(baseNames, projectRoot);
+
+        expect(resolution.reconnectClientKey).toBe('client-a');
+        expect(resolution.fruitSuffix).toBe('apple');
+
+        // The fruit should be marked as in-use after resolution
+        // so another connection cannot grab it between disconnect and re-register
+        expect(fruitSuffix.getUsedFruits()).toContain('apple');
+      });
     });
 
     describe('pool exhaustion', () => {
@@ -186,7 +210,7 @@ describe('session-name-resolver', () => {
 
         // Exhaust the fruit pool
         while (!fruitSuffix.isPoolExhausted()) {
-          fruitSuffix.acquireFruit();
+          fruitSuffix.acquireNextAvailableFruit();
         }
 
         const baseNames = { primary: 'clj', secondary: 'cljs' };

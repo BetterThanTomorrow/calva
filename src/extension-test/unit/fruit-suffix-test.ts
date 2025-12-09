@@ -6,23 +6,23 @@ describe('fruit-suffix', () => {
     fruitSuffix.resetPool();
   });
 
-  describe('acquireFruit', () => {
+  describe('acquireNextAvailableFruit', () => {
     it('returns an available fruit', () => {
-      const fruit = fruitSuffix.acquireFruit();
+      const fruit = fruitSuffix.acquireNextAvailableFruit();
 
       expect(fruit).toBeDefined();
       expect(typeof fruit).toBe('string');
     });
 
     it('returns different fruits on subsequent calls', () => {
-      const fruit1 = fruitSuffix.acquireFruit();
-      const fruit2 = fruitSuffix.acquireFruit();
+      const fruit1 = fruitSuffix.acquireNextAvailableFruit();
+      const fruit2 = fruitSuffix.acquireNextAvailableFruit();
 
       expect(fruit1).not.toBe(fruit2);
     });
 
     it('marks acquired fruit as used', () => {
-      const fruit = fruitSuffix.acquireFruit();
+      const fruit = fruitSuffix.acquireNextAvailableFruit();
 
       expect(fruitSuffix.getUsedFruits()).toContain(fruit);
       expect(fruitSuffix.getAvailableFruits()).not.toContain(fruit);
@@ -31,7 +31,7 @@ describe('fruit-suffix', () => {
 
   describe('releaseFruit', () => {
     it('makes a fruit available again', () => {
-      const fruit = fruitSuffix.acquireFruit();
+      const fruit = fruitSuffix.acquireNextAvailableFruit();
       expect(fruitSuffix.getUsedFruits()).toContain(fruit);
 
       fruitSuffix.releaseFruit(fruit);
@@ -48,6 +48,47 @@ describe('fruit-suffix', () => {
     });
   });
 
+  describe('reserveFruit', () => {
+    it('reserves a specific fruit, marking it as used', () => {
+      const result = fruitSuffix.reserveFruit('apple');
+
+      expect(result).toBe(true);
+      expect(fruitSuffix.getUsedFruits()).toContain('apple');
+      expect(fruitSuffix.getAvailableFruits()).not.toContain('apple');
+    });
+
+    it('returns false if the fruit is already in use', () => {
+      fruitSuffix.reserveFruit('apple');
+      const result = fruitSuffix.reserveFruit('apple');
+
+      expect(result).toBe(false);
+    });
+
+    it('prevents acquireFruit from returning the reserved fruit', () => {
+      fruitSuffix.reserveFruit('apple');
+
+      // Acquire all available fruits
+      const acquired: string[] = [];
+      while (!fruitSuffix.isPoolExhausted()) {
+        const fruit = fruitSuffix.acquireNextAvailableFruit();
+        if (fruit) {
+          acquired.push(fruit);
+        }
+      }
+
+      expect(acquired).not.toContain('apple');
+    });
+
+    it('allows re-reserving a fruit after it has been released', () => {
+      fruitSuffix.reserveFruit('apple');
+      fruitSuffix.releaseFruit('apple');
+      const result = fruitSuffix.reserveFruit('apple');
+
+      expect(result).toBe(true);
+      expect(fruitSuffix.getUsedFruits()).toContain('apple');
+    });
+  });
+
   describe('isPoolExhausted', () => {
     it('returns false when fruits are available', () => {
       expect(fruitSuffix.isPoolExhausted()).toBe(false);
@@ -56,7 +97,7 @@ describe('fruit-suffix', () => {
     it('returns true when all fruits are used', () => {
       const available = fruitSuffix.getAvailableFruits();
       for (const _ of available) {
-        fruitSuffix.acquireFruit();
+        fruitSuffix.acquireNextAvailableFruit();
       }
 
       expect(fruitSuffix.isPoolExhausted()).toBe(true);
@@ -65,7 +106,7 @@ describe('fruit-suffix', () => {
     it('returns false after releasing a fruit from exhausted pool', () => {
       const fruits: string[] = [];
       while (!fruitSuffix.isPoolExhausted()) {
-        const fruit = fruitSuffix.acquireFruit();
+        const fruit = fruitSuffix.acquireNextAvailableFruit();
         if (fruit) {
           fruits.push(fruit);
         }
@@ -130,9 +171,9 @@ describe('fruit-suffix', () => {
 
   describe('resetPool', () => {
     it('releases all used fruits', () => {
-      fruitSuffix.acquireFruit();
-      fruitSuffix.acquireFruit();
-      fruitSuffix.acquireFruit();
+      fruitSuffix.acquireNextAvailableFruit();
+      fruitSuffix.acquireNextAvailableFruit();
+      fruitSuffix.acquireNextAvailableFruit();
       expect(fruitSuffix.getUsedFruits().length).toBe(3);
 
       fruitSuffix.resetPool();
@@ -151,7 +192,7 @@ describe('fruit-suffix', () => {
     });
 
     it('excludes used fruits', () => {
-      const fruit = fruitSuffix.acquireFruit();
+      const fruit = fruitSuffix.acquireNextAvailableFruit();
       const available = fruitSuffix.getAvailableFruits();
 
       expect(available).not.toContain(fruit);
@@ -160,9 +201,9 @@ describe('fruit-suffix', () => {
 
   describe('integration: acquire and release cycle', () => {
     it('can acquire, release, and reacquire the same fruit', () => {
-      const fruit1 = fruitSuffix.acquireFruit();
+      const fruit1 = fruitSuffix.acquireNextAvailableFruit();
       fruitSuffix.releaseFruit(fruit1);
-      const fruit2 = fruitSuffix.acquireFruit();
+      const fruit2 = fruitSuffix.acquireNextAvailableFruit();
 
       expect(fruit2).toBe(fruit1);
     });
@@ -170,13 +211,13 @@ describe('fruit-suffix', () => {
     it('can exhaust and replenish the pool', () => {
       const acquired: string[] = [];
       while (!fruitSuffix.isPoolExhausted()) {
-        const fruit = fruitSuffix.acquireFruit();
+        const fruit = fruitSuffix.acquireNextAvailableFruit();
         if (fruit) {
           acquired.push(fruit);
         }
       }
 
-      expect(fruitSuffix.acquireFruit()).toBeUndefined();
+      expect(fruitSuffix.acquireNextAvailableFruit()).toBeUndefined();
 
       // Release all fruits
       for (const fruit of acquired) {
@@ -184,7 +225,7 @@ describe('fruit-suffix', () => {
       }
 
       expect(fruitSuffix.isPoolExhausted()).toBe(false);
-      expect(fruitSuffix.acquireFruit()).toBeDefined();
+      expect(fruitSuffix.acquireNextAvailableFruit()).toBeDefined();
     });
   });
 });
