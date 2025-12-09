@@ -38,9 +38,9 @@ import * as sessionRouting from './nrepl/session-routing';
 import * as clientRegistry from './nrepl/client-registry';
 import type { RegisteredClient } from './nrepl/client-registry';
 import * as sessionTeardown from './nrepl/session-teardown';
+import * as clientTeardown from './nrepl/client-teardown';
 import type { SessionGlobSpec } from './nrepl/globs';
 import * as sessionNameResolver from './nrepl/session-name-resolver';
-import * as fruitSuffix from './nrepl/fruit-suffix';
 import { getPathRelativeToWorkspace } from './project-root';
 import * as cljsBuilds from './connector-cljs-builds';
 import * as connectorUtils from './connector-utilities';
@@ -115,7 +115,7 @@ async function connectToHost(
         .filter(Boolean)
         .join(', ')}`
     );
-    await disconnectClientByKey(resolution.reconnectClientKey);
+    await disconnectClientByKey(resolution.reconnectClientKey, { preserveFruit: true });
   }
 
   const sessionGlobMap = sessionRoleUtils.deriveSessionGlobMap(
@@ -139,9 +139,8 @@ async function connectToHost(
         if (scheme === 'vsls') {
           output.appendLineOtherOut('Did the host share the nREPL port?');
         }
-        // TODO: Figure out why the program bails out after here.
-        // For now, we just clean up the connection state (even if we fail to return)
-        return cleanUpAfterError(e);
+        // Clean up acquired fruit suffix since client wasn't registered
+        return cleanUpAfterError(e, { fruitSuffix: resolution.fruitSuffix });
       },
     });
     clientRegistry.registerClient(localClient, {
@@ -161,6 +160,10 @@ async function connectToHost(
       },
     });
     localClient.addOnCloseHandler((c) => {
+      // Attempt to release fruit suffix. This will be a no-op if:
+      // 1. The fruit was marked as preserved (reconnection scenario)
+      // 2. The client was already unregistered (disconnectClientByKey flow)
+      clientTeardown.releaseClientFruit(c.clientKey);
       const wasRegistered = clientRegistry.unregisterClient(c.clientKey);
       if (wasRegistered) {
         sessionTeardown.teardownSessionsForClient(c.clientKey);
@@ -273,7 +276,12 @@ async function connectToHost(
 
     status.update();
   } catch (e) {
-    return cleanUpAfterError(e, localClient?.clientKey, silent);
+    return cleanUpAfterError(e, {
+      clientKey: localClient?.clientKey,
+      fruitSuffix: resolution.fruitSuffix,
+      client: localClient,
+      silent,
+    });
   }
 
   void liveShareSupport.didConnectRepl(port);
@@ -308,11 +316,51 @@ async function connectToHost(
   return { connected: true, clientKey: localClient.clientKey };
 }
 
-function cleanUpAfterError(e: any, clientKeyToRemove?: string, silent = false): ConnectResult {
-  if (clientKeyToRemove) {
-    clientRegistry.unregisterClient(clientKeyToRemove);
-    sessionTeardown.teardownSessionsForClient(clientKeyToRemove);
+/**
+ * Clean up connection state after a connection error.
+ *
+ * Handles three scenarios:
+ * 1. Error before client exists but after fruit suffix acquired (pass fruitSuffix)
+ * 2. Error after client registered (pass clientKey and client)
+ * 3. Error before any resources acquired (no params needed)
+ *
+ * @param e - The error that occurred
+ * @param options - Optional cleanup parameters
+ * @param options.clientKey - Client key to clean up (if client was registered)
+ * @param options.fruitSuffix - Fruit suffix to release (if acquired before client registration)
+ * @param options.client - NReplClient to close (always closed if provided)
+ * @param options.silent - Whether to suppress error message output
+ */
+function cleanUpAfterError(
+  e: any,
+  options: {
+    clientKey?: string;
+    fruitSuffix?: string;
+    client?: NReplClient;
+    silent?: boolean;
+  } = {}
+): ConnectResult {
+  const { clientKey, fruitSuffix: directFruit, client, silent = false } = options;
+
+  // Release fruit suffix - either via client connection state or directly
+  if (clientKey) {
+    clientTeardown.releaseClientFruit(clientKey);
+    clientRegistry.unregisterClient(clientKey);
+    sessionTeardown.teardownSessionsForClient(clientKey);
+  } else if (directFruit) {
+    // Fruit was acquired but client wasn't registered yet
+    clientTeardown.releaseFruitDirectly(directFruit);
   }
+
+  // Close socket if client exists (whether registered or not)
+  if (client) {
+    try {
+      client.disconnect();
+    } catch (closeError) {
+      console.warn('Failed to close client socket during error cleanup:', closeError);
+    }
+  }
+
   util.setConnectingState(false);
   util.setConnectedState(sessionRegistry.listSessions().length > 0);
   if (!silent) {
@@ -1163,14 +1211,27 @@ async function promptForClientDisconnect(
   return undefined;
 }
 
-async function disconnectClientByKey(clientKey: string): Promise<void> {
+interface DisconnectOptions {
+  preserveFruit?: boolean;
+}
+
+async function disconnectClientByKey(
+  clientKey: string,
+  options: DisconnectOptions = {}
+): Promise<void> {
   if (!clientKey) {
     return;
   }
 
-  const connectionState = clientRegistry.getConnectionState(clientKey);
-  if (connectionState?.fruitSuffix) {
-    fruitSuffix.releaseFruit(connectionState.fruitSuffix);
+  // Handle fruit suffix preservation for reconnection scenarios.
+  // When preserveFruit is true, we mark the fruit as preserved so that
+  // the on-close handler (which calls releaseClientFruit) won't release it.
+  // This is necessary because client.close() triggers the on-close handler.
+  if (options.preserveFruit) {
+    clientTeardown.markFruitPreserved(clientKey);
+  } else {
+    // Release fruit suffix BEFORE unregistering (need connection state)
+    clientTeardown.releaseClientFruit(clientKey);
   }
 
   const client = clientRegistry.getClient(clientKey);
