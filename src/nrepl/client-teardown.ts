@@ -3,7 +3,7 @@
  * These utilities are designed to be VS Code-independent for testability
  */
 
-import * as nameSuffix from './name-suffix';
+import * as nameSuffix from './session-name-suffix';
 import * as clientRegistry from './client-registry';
 
 /**

@@ -3,7 +3,7 @@ import type { NReplClient, NReplSession } from '../../nrepl';
 import * as sessionNameResolver from '../../nrepl/session-name-resolver';
 import * as sessionRegistry from '../../nrepl/session-registry';
 import * as clientRegistry from '../../nrepl/client-registry';
-import * as nameSuffix from '../../nrepl/name-suffix';
+import * as nameSuffix from '../../nrepl/session-name-suffix';
 
 describe('session-name-resolver', () => {
   afterEach(() => {

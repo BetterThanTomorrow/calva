@@ -1,5 +1,5 @@
 /**
- * Name suffix management for automatic session name conflict resolution.
+ * Session name suffix management for automatic session name conflict resolution.
  *
  * The suffix pool defaults to a list of fruits, but the rest of the code
  * treats these as opaque strings so the list can be swapped without further

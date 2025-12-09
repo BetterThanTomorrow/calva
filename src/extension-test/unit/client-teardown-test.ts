@@ -1,7 +1,7 @@
 import * as expect from 'expect';
 import * as clientRegistry from '../../nrepl/client-registry';
 import * as sessionRegistry from '../../nrepl/session-registry';
-import * as nameSuffix from '../../nrepl/name-suffix';
+import * as nameSuffix from '../../nrepl/session-name-suffix';
 import * as clientTeardown from '../../nrepl/client-teardown';
 import type { NReplClient, NReplSession } from '../../nrepl';
 

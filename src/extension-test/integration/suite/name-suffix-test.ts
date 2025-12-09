@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
-import * as nameSuffix from '../../../nrepl/name-suffix';
+import * as nameSuffix from '../../../nrepl/session-name-suffix';
 import connector from '../../../connector';
 import * as testUtil from './util';
 

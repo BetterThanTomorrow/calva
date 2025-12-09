@@ -8,7 +8,7 @@
 import type { SessionRoleKeys } from './session-role-utils';
 import * as clientRegistry from './client-registry';
 import * as sessionRegistry from './session-registry';
-import * as nameSuffix from './name-suffix';
+import * as nameSuffix from './session-name-suffix';
 
 export interface SessionNameResolution {
   /** Final session names to use */
