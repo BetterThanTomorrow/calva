@@ -1005,9 +1005,6 @@ async function promptForNreplUrlAndConnect(
       continue;
     }
 
-    // Try to connect (silently - we'll show our own message on retry)
-    setStateValue('hostname', parsedHostname);
-    setStateValue('port', parsedPort);
     const result = await connectToHost(parsedHostname, parsedPort, connectSequence, true);
 
     if (result.connected) {
@@ -1056,8 +1053,6 @@ export async function connect(
       hostname = hostname !== undefined ? hostname : 'localhost';
       output.appendLineOtherOut(`Using host:port ${hostname}:${port} ...`);
       if (isAutoConnect) {
-        setStateValue('hostname', hostname);
-        setStateValue('port', port);
         result = await connectToHost(hostname, parseInt(port), connectSequence, true);
         if (!result.connected) {
           output.appendLineOtherOut('Prompting for nREPL connection...');

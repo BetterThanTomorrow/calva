@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as state from './state';
 import * as util from './utilities';
 import * as config from './config';
 import * as shadowRuntimes from './shadow-cljs-runtime';
@@ -8,7 +7,7 @@ import * as replSession from './nrepl/repl-session';
 import * as sessionLabel from './nrepl/session-label';
 import * as sessionRouting from './nrepl/session-routing';
 import * as sessionRegistry from './nrepl/session-registry';
-import * as replWindow from './repl-window/repl-window-doc';
+import * as clientRegistry from './nrepl/client-registry';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
@@ -50,8 +49,7 @@ function update() {
     }`
   );
 
-  const doc = util.tryToGetDocument({}),
-    fileType = util.getFileType(doc);
+  const doc = util.tryToGetDocument({});
 
   //let disconnectedColor = "rgb(192,192,192)";
 
@@ -83,9 +81,16 @@ function update() {
   if (getStateValue('connected')) {
     connectionStatus.text = 'REPL $(zap)';
     connectionStatus.color = colorValue('connectedStatusColor', currentConf);
-    connectionStatus.tooltip = `nrepl://${getStateValue('hostname')}:${getStateValue(
-      'port'
-    )} (Click to reset connection)`;
+
+    // Build connection tooltip based on number of connected clients
+    const clients = clientRegistry.listClients();
+    if (clients.length === 1) {
+      const client = clients[0];
+      connectionStatus.tooltip = `nrepl://${client.host}:${client.port} (Click for REPL menu)`;
+    } else {
+      connectionStatus.tooltip = `${clients.length} REPL servers connected (Click for REPL menu)`;
+    }
+
     connectionStatus.command = 'calva.showReplMenu';
     typeStatus.color = colorValue('typeStatusColor', currentConf);
     const replType = replSession.getReplSessionTypeFromState();
