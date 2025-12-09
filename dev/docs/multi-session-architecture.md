@@ -114,7 +114,7 @@ Session names are resolved at connection time using the following rules:
 
 1. **Base names** come from the connect sequence's `replSessionNames` configuration, or project type defaults
 2. A connection is identified by the tuple `(baseNames, projectRoot)`
-3. If the base names conflict with an existing connection at a *different* project root, a **suffix** from the pool is applied. E.g., `clj` → `clj:apple`. (The pool currently consists of fruits.)
+3. If the base names conflict with an existing connection at a *different* project root, a **suffix** from the pool is applied. E.g., `clj` → `clj:2`.
 4. If the base names match an existing connection at the *same* project root, this is a **reconnection** — the existing connection is disconnected and names are reused
 5. Suffixes are released back to a global pool on disconnect
 

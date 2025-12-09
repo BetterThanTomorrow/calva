@@ -121,9 +121,9 @@ describe('name-suffix', () => {
 
   describe('extractSuffix', () => {
     it('extracts suffix from suffixed name', () => {
-      expect(nameSuffix.extractSuffix('clj:apple')).toBe('apple');
-      expect(nameSuffix.extractSuffix('cljs:banana')).toBe('banana');
-      expect(nameSuffix.extractSuffix('my-session:cherry')).toBe('cherry');
+      expect(nameSuffix.extractSuffix('clj:2')).toBe('2');
+      expect(nameSuffix.extractSuffix('cljs:3')).toBe('3');
+      expect(nameSuffix.extractSuffix('my-session:4')).toBe('4');
     });
 
     it('returns undefined for names without suffix', () => {
@@ -133,29 +133,29 @@ describe('name-suffix', () => {
     });
 
     it('returns undefined for names with non-pool suffix', () => {
-      expect(nameSuffix.extractSuffix('clj:pineapple')).toBeUndefined();
-      expect(nameSuffix.extractSuffix('clj:apples')).toBeUndefined();
+      expect(nameSuffix.extractSuffix('clj:a')).toBeUndefined();
+      expect(nameSuffix.extractSuffix('clj:b')).toBeUndefined();
     });
 
     it('only matches suffix, not prefix or middle', () => {
-      expect(nameSuffix.extractSuffix('apple:clj')).toBeUndefined();
-      expect(nameSuffix.extractSuffix('apple')).toBeUndefined();
+      expect(nameSuffix.extractSuffix('2:clj')).toBeUndefined();
+      expect(nameSuffix.extractSuffix('2')).toBeUndefined();
     });
   });
 
   describe('applySuffix', () => {
     it('applies suffix to base name', () => {
-      expect(nameSuffix.applySuffix('clj', 'apple')).toBe('clj:apple');
-      expect(nameSuffix.applySuffix('cljs', 'banana')).toBe('cljs:banana');
-      expect(nameSuffix.applySuffix('my-session', 'cherry')).toBe('my-session:cherry');
+      expect(nameSuffix.applySuffix('clj', '2')).toBe('clj:2');
+      expect(nameSuffix.applySuffix('cljs', '3')).toBe('cljs:3');
+      expect(nameSuffix.applySuffix('my-session', '4')).toBe('my-session:4');
     });
   });
 
   describe('stripSuffix', () => {
     it('strips suffix from suffixed name', () => {
-      expect(nameSuffix.stripSuffix('clj:apple')).toBe('clj');
-      expect(nameSuffix.stripSuffix('cljs:banana')).toBe('cljs');
-      expect(nameSuffix.stripSuffix('my-session:cherry')).toBe('my-session');
+      expect(nameSuffix.stripSuffix('clj:2')).toBe('clj');
+      expect(nameSuffix.stripSuffix('cljs:3')).toBe('cljs');
+      expect(nameSuffix.stripSuffix('my-session:4')).toBe('my-session');
     });
 
     it('returns name unchanged when no suffix', () => {
@@ -165,7 +165,7 @@ describe('name-suffix', () => {
     });
 
     it('returns name unchanged for non-pool suffixes', () => {
-      expect(nameSuffix.stripSuffix('clj:pineapple')).toBe('clj:pineapple');
+      expect(nameSuffix.stripSuffix('clj:tiger')).toBe('clj:tiger');
     });
   });
 
@@ -187,8 +187,8 @@ describe('name-suffix', () => {
       const available = nameSuffix.getAvailableSuffixes();
 
       expect(available.length).toBeGreaterThan(0);
-      expect(available).toContain('apple');
-      expect(available).toContain('banana');
+      expect(available).toContain('2');
+      expect(available).toContain('3');
     });
 
     it('excludes used suffixes', () => {

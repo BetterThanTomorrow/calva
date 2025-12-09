@@ -1,32 +1,12 @@
 /**
  * Session name suffix management for automatic session name conflict resolution.
- *
- * The suffix pool defaults to a list of fruits, but the rest of the code
- * treats these as opaque strings so the list can be swapped without further
- * changes.
  */
 
-const SUFFIX_POOL: readonly string[] = [
-  'apple',
-  'banana',
-  'cherry',
-  'date',
-  'elderberry',
-  'fig',
-  'grape',
-  'honeydew',
-  'kiwi',
-  'lemon',
-  'mango',
-  'nectarine',
-  'orange',
-  'papaya',
-  'quince',
-  'raspberry',
-  'strawberry',
-  'tangerine',
-  'watermelon',
-];
+const POOL_SIZE = 100;
+
+const SUFFIX_POOL: readonly string[] = Array.from({ length: POOL_SIZE }, (_, i) =>
+  (i + 2).toString()
+);
 
 /** Set of suffixes currently in use */
 const usedSuffixes: Set<string> = new Set();

@@ -344,7 +344,7 @@ describe('client-teardown', () => {
       // If we release a suffix during teardown, another connection could steal it
 
       const clientA = createMockClient('client-a');
-      const suffix = 'banana';
+      const suffix = '3';
       nameSuffix.reserveSuffix(suffix);
 
       clientRegistry.registerClient(clientA, {
