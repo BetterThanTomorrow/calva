@@ -532,7 +532,7 @@ async function fetchFromUrl(fullUrl: string): Promise<string> {
           }
         )
         .on('error', (err: any) => {
-          console.error(`Error downloading file from ${url}: ${err.message}`);
+          console.error(`Error downloading file from ${fullUrl}: ${err.message}`);
           reject(err);
         });
     }
