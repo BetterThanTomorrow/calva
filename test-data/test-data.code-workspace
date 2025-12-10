@@ -1,6 +1,10 @@
 {
 	"folders": [
 		{
+			"name": "test-data",
+			"path": "."
+		},
+		{
 			"name": "shadow-w-backend",
 			"path": "projects/shadow-w-backend"
 		},
@@ -23,10 +27,6 @@
 		{
 			"name": "minimal-shadow-only",
 			"path": "projects/minimal-shadow-only"
-		},
-		{
-			"name": "test-data",
-			"path": "."
 		}
 	],
 	"settings": {
