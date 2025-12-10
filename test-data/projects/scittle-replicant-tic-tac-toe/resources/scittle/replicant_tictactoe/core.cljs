@@ -11,14 +11,18 @@
 (defn main []
   ;; Set up the atom
   (let [store (atom nil)
+        event-handler (fn [_ [action & args]]
+                        (case action
+                          :tic (apply swap! store game/tic args)
+                          :reset (start-new-game store)))
         el (js/document.getElementById "app")]
 
     ;; Globally handle DOM events
     (r/set-dispatch!
-     (fn [_ [action & args]]
-       (case action
-         :tic (apply swap! store game/tic args)
-         :reset (start-new-game store))))
+     event-handler)
+
+    (def !store store)
+    (def event-handler! event-handler)
 
     ;; Render on every change
     (add-watch store ::render
@@ -31,3 +35,11 @@
     (start-new-game store)))
 
 (main)
+
+(comment
+  @!store
+  (event-handler! {} [:tic 0 0])
+  (event-handler! {} [:tic 2 2])
+  (event-handler! {} [:reset])
+  :rcf)
+

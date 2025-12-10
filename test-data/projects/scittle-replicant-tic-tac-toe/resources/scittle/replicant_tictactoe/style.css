@@ -1,4 +1,10 @@
 /* COPIED from https://github.com/cjohansen/replicant-tic-tac-toe/blob/7a33fb12f0cd6658b2f555ff673dee031d4aa921/resources/public/styles.css */
+
+body {
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+}
+
 .cell {
     aspect-ratio: 1 / 1;
     background: rgba(255, 255, 255, 0.8);
