@@ -73,9 +73,10 @@ junit/test-results.xml
 report.*
 
 # clojure-lsp
-.lsp
+**/.lsp/**
 .clj-kondo/*
 !.clj-kondo/config.edn
+!**/.lsp/config.edn
 /clojure-lsp*
 
 #Calva
