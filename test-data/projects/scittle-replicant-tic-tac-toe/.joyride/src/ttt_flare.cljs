@@ -13,8 +13,6 @@
                       var SCITTLE_NREPL_WEBSOCKET_HOST = '127.0.0.1';"]
             [:script {:src (project-path "resources/scittle/js/scittle.js")
                       :type "application/javascript"}]
-            #_[:script {:src "https://cdn.jsdelivr.net/npm/scittle@0.7.28/dist/scittle.nrepl.js"
-                        :type "application/javascript"}]
             [:script {:src (project-path "resources/scittle/js/scittle.nrepl.js")
                       :type "application/javascript"}]
             [:script {:src (project-path "resources/scittle/js/scittle.replicant.js")

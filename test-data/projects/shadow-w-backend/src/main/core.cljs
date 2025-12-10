@@ -7,6 +7,7 @@
 (defn hello-world [x]
   [:div
    [:h1 (:text @app-state) " " x "!"]
+   [:p "shadow-w-backend"]
    [:h3 "Edit this and watch it change!"]])
 
 (defn ^:dev/after-load start []
