@@ -21,6 +21,7 @@ export interface ReplSessionInfo {
   projectRoot?: string;
   lastActivity?: number;
   globs?: string[];
+  currentRoutedTarget?: boolean;
 }
 
 export const evaluateCode = async (
@@ -135,6 +136,7 @@ export const currentSessionKey = () => {
 };
 
 export const listSessions = (): ReplSessionInfo[] => {
+  const currentSessionKey = replSession.getSessionKey();
   return sessionRegistry.listSessions().map((session) => ({
     replSessionKey: session.key,
     projectRoot: session.projectRoot
@@ -142,6 +144,7 @@ export const listSessions = (): ReplSessionInfo[] => {
       : undefined,
     lastActivity: session.lastActivity,
     globs: session.globs,
+    currentRoutedTarget: session.key === currentSessionKey,
   }));
 };
 

@@ -161,6 +161,32 @@ describe(`${suiteName} suite`, () => {
     assert.strictEqual(resolved, cljSession);
   });
 
+  it('marks currently routed session in API response', async () => {
+    const cljSession = createSession('clj');
+    const cljsSession = createSession('cljs');
+    sessionRegistry.registerSession(serverSessionKey, cljSession, {
+      globs: ['**/*.clj'],
+    });
+    sessionRegistry.registerSession(uiSessionKey, cljsSession, {
+      globs: ['**/*.cljs'],
+    });
+
+    const testFilePath = path.join(testUtil.testDataDir, 'test.clj');
+    await testUtil.openFile(testFilePath);
+
+    const sessions = replApi.listSessions();
+    assert.strictEqual(sessions.length, 2);
+
+    // The clj session should be marked as current because test.clj routes to it
+    const currentSession = sessions.find((s) => s.currentRoutedTarget);
+    assert.ok(currentSession, 'Should have a current routed session');
+    assert.strictEqual(currentSession.replSessionKey, serverSessionKey);
+
+    // The cljs session should NOT be marked as current
+    const otherSession = sessions.find((s) => s.replSessionKey === uiSessionKey);
+    assert.strictEqual(otherSession.currentRoutedTarget, false);
+  });
+
   it('prefers pinned sessions over glob routing', async () => {
     const cljSession = createSession('clj');
     const cljsSession = createSession('cljs');
