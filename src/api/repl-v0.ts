@@ -50,5 +50,5 @@ export const evaluateCode = async (
 };
 
 export const currentSessionKey = () => {
-  return replSession.getReplSessionType(cljsLib.getStateValue('connected'));
+  return replSession.getSessionKey();
 };

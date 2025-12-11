@@ -132,7 +132,7 @@ export const evaluateCode = async (
 };
 
 export const currentSessionKey = () => {
-  return replSession.getReplSessionType(util.getConnectedState());
+  return replSession.getSessionKey();
 };
 
 export const listSessions = (): ReplSessionInfo[] => {

@@ -284,21 +284,8 @@ function getSession(): NReplSession {
   return null;
 }
 
-/**
- * Determines the session type for display/state purposes.
- * Uses same simplified routing as getSessionKey().
- */
-function getReplSessionType(connected: boolean): string | undefined {
-  if (!connected) {
-    return undefined;
-  }
-
-  return getSessionKey();
-}
-
 function updateReplSessionType() {
-  const connected = cljsLib.getStateValue('connected');
-  const replSessionType = getReplSessionType(connected);
+  const replSessionType = getSessionKey();
   cljsLib.setStateValue('current-session-type', replSessionType);
 }
 
@@ -332,7 +319,6 @@ function getSessionLabelContext(options?: {
 
 export {
   getSession,
-  getReplSessionType,
   updateReplSessionType,
   getReplSessionTypeFromState,
   getSessionKey,
