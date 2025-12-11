@@ -644,13 +644,13 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: [],
-    defaultNReplPortFile: ['.nrepl-port'],
+    defaultNReplPortFile: ['bb', '.nrepl-port'],
     defaultReplSessionNames: { primary: 'bb' },
     defaultFallbackPort: 1667,
     defaultFilePatterns: {
       primary: {
-        'always-claim': ['bb.edn', '*.bb'],
-        'is-fallback-for': ['**/*.clj', '**/bb.edn', '**/*.bb'],
+        'always-claim': ['*.bb', 'bb/*.clj', 'scripts/*.clj', 'bb.edn'],
+        'is-fallback-for': ['**/bb/*.clj', '**/scripts/*.clj', '**/*.clj', '**/bb.edn', '**/*.bb'],
       },
     },
     commandLine: async (
@@ -672,12 +672,18 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: [],
-    defaultNReplPortFile: ['.nrepl-port'],
+    defaultNReplPortFile: ['nbb', '.nrepl-port'],
     defaultReplSessionNames: { primary: 'nbb' },
     defaultFilePatterns: {
       primary: {
-        'always-claim': ['*.nbb'],
-        'is-fallback-for': ['**/*.cljs', '**/*.nbb'],
+        'always-claim': ['*.nbb', 'nbb/*.cljs', 'scripts/*.cljs', 'nbb.edn'],
+        'is-fallback-for': [
+          '**/nbb/*.cljs',
+          '**/scripts/*.cljs',
+          '**/*.cljs',
+          '**/*.nbb',
+          '**/nbb.edn',
+        ],
       },
     },
     commandLine: async (
