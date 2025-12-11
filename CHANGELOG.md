@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump default deps.clj to `v1.12.4.1582`
+
 ## [2.0.541] - 2025-12-08
 
 - [Enable editing of Jack In Dependency Versions in the Settings UI](https://github.com/BetterThanTomorrow/calva/issues/2969)
