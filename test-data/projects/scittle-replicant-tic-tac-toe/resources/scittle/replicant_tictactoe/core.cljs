@@ -38,6 +38,8 @@
 
 (comment
   @!store
+  ; Greetings, Professor Falken.
+  ; Shall we play a game?
   (event-handler! {} [:tic 0 0])
   (event-handler! {} [:tic 2 2])
   (event-handler! {} [:reset])
