@@ -1,4 +1,4 @@
-(ns hello-world.core)
+(ns hello-world2.core)
 
 ;; Evaluate these forms by placing the cursor in them
 ;; and press Alt+Enter.

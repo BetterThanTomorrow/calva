@@ -1,4 +1,4 @@
-(ns hello-world.core)
+(ns hello-world2.core)
 
 (comment
   #?(:cljs (js/console.log "cljc from js")
