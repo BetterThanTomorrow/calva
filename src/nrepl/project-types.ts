@@ -10,7 +10,7 @@ import {
   getEffectiveJackInDependencyVersions,
   type JackInDependencyKey,
 } from './jack-in-dependency-versions';
-import { CljsTypes, ReplConnectSequence, SessionFilePatternsConfig } from './connectSequence';
+import * as connectSequences from './connectSequence';
 import { getStateValue, parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
 import * as joyride from '../joyride';
 
@@ -35,16 +35,18 @@ export type ProjectType = {
   processShellWin?: boolean | string;
   processShellUnix?: boolean | string;
   commandLine?: (
-    connectSequence: ReplConnectSequence,
-    cljsType: CljsTypes
+    connectSequence: connectSequences.ReplConnectSequence,
+    cljsType: connectSequences.CljsTypes
   ) => Promise<CommandLineInfo>;
   useWhenExists: string[];
   nReplPortFile: string[];
   startFunction?: () => Thenable<boolean | void>;
-  defaultFilePatterns?: SessionFilePatternsConfig;
+  defaultFilePatterns?: connectSequences.SessionFilePatternsConfig;
+  replSessionNames?: connectSequences.SessionNamesConfig;
+  defaultPort?: number;
 };
 
-function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string {
+function nreplPortFileRelativePath(connectSequence: connectSequences.ReplConnectSequence): string {
   let subPath: string;
   if (connectSequence.nReplPortFile) {
     subPath = path.join(...connectSequence.nReplPortFile);
@@ -61,7 +63,9 @@ function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string
  * you may be dealing with a remote scenario (e.g. live share), you should use
  * `nreplPortFileUri()` instead.
  */
-export function nreplPortFileLocalPath(connectSequence: ReplConnectSequence): string {
+export function nreplPortFileLocalPath(
+  connectSequence: connectSequences.ReplConnectSequence
+): string {
   const relativePath = nreplPortFileRelativePath(connectSequence);
   const projectRoot = state.getProjectRootLocal();
   if (projectRoot) {
@@ -74,7 +78,9 @@ export function nreplPortFileLocalPath(connectSequence: ReplConnectSequence): st
   return relativePath;
 }
 
-export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.Uri {
+export function nreplPortFileUri(
+  connectSequence: connectSequences.ReplConnectSequence
+): vscode.Uri {
   const relativePath = nreplPortFileRelativePath(connectSequence);
   const projectRoot = state.getProjectRootUri();
   if (projectRoot) {
@@ -127,7 +133,7 @@ export function leinShadowBuilds(defproject: any): string[] {
 }
 
 async function selectShadowBuilds(
-  connectSequence: ReplConnectSequence,
+  connectSequence: connectSequences.ReplConnectSequence,
   foundBuilds: string[]
 ): Promise<{ selectedBuilds: string[]; args: string[] }> {
   const menuSelections = connectSequence.menuSelections;
@@ -206,7 +212,7 @@ async function leinDefProject(): Promise<any> {
 
 async function leinProfilesAndAlias(
   defproject: any,
-  connectSequence: ReplConnectSequence
+  connectSequence: connectSequences.ReplConnectSequence
 ): Promise<{ profiles: string[]; alias: string }> {
   let profiles: string[] = [],
     alias: string;
@@ -412,7 +418,10 @@ const projectTypes: { [id: string]: ProjectType } = {
      * 5. Add all profiles chosen by the user
      * 6. Use alias if selected otherwise repl :headless
      */
-    commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
+    commandLine: async (
+      connectSequence: connectSequences.ReplConnectSequence,
+      cljsType: connectSequences.CljsTypes
+    ) => {
       return await leinCommandLine(['repl', ':headless'], cljsType, connectSequence);
     },
   },
@@ -555,7 +564,10 @@ const projectTypes: { [id: string]: ProjectType } = {
      * Add needed middleware deps to args
      */
     /* eslint-disable @typescript-eslint/require-await */
-    commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
+    commandLine: async (
+      connectSequence: connectSequences.ReplConnectSequence,
+      cljsType: connectSequences.CljsTypes
+    ) => {
       return gradleCommandLine(['clojureRepl'], cljsType, connectSequence);
     },
   },
@@ -575,8 +587,11 @@ const projectTypes: { [id: string]: ProjectType } = {
       primary: ['*.clj', '*.edn'],
       secondary: ['*.cljs'],
     },
-    commandLine: async (connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
-      return cljCommandLine(connectSequence, CljsTypes.none);
+    commandLine: async (
+      connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
+      return cljCommandLine(connectSequence, connectSequences.CljsTypes.none);
     },
   },
   'clj-projectless': {
@@ -593,8 +608,11 @@ const projectTypes: { [id: string]: ProjectType } = {
       primary: ['*.clj', '*.edn'],
       secondary: ['*.cljs'],
     },
-    commandLine: async (connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
-      return cljCommandLine(connectSequence, CljsTypes.none);
+    commandLine: async (
+      connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
+      return cljCommandLine(connectSequence, connectSequences.CljsTypes.none);
     },
   },
   custom: {
@@ -607,7 +625,10 @@ const projectTypes: { [id: string]: ProjectType } = {
       primary: ['*.clj', '*.edn'],
       secondary: ['*.cljs'],
     },
-    commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+    commandLine: async (
+      _connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
       const port = await getPort();
       return {
         args: [],
@@ -623,14 +644,19 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: [],
-    nReplPortFile: ['.bb-nrepl-port'],
+    nReplPortFile: ['.bb-nrepl.port'],
+    replSessionNames: { primary: 'bb' },
+    defaultPort: 1667,
     defaultFilePatterns: {
       primary: {
         'always-claim': ['bb.edn', '*.bb'],
         'is-fallback-for': ['**/*.clj', '**/bb.edn', '**/*.bb'],
       },
     },
-    commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+    commandLine: async (
+      _connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
       const port = await getPort();
       return {
         args: ['--nrepl-server', port],
@@ -653,7 +679,10 @@ const projectTypes: { [id: string]: ProjectType } = {
         'is-fallback-for': ['**/*.cljs', '**/*.nbb'],
       },
     },
-    commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+    commandLine: async (
+      _connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
       const port = await getPort();
       return {
         args: ['nbb', 'nrepl-server', ':port', port],
@@ -677,7 +706,10 @@ const projectTypes: { [id: string]: ProjectType } = {
     defaultFilePatterns: {
       primary: ['*.lpy'],
     },
-    commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+    commandLine: async (
+      _connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
       const port = await getPort();
       return {
         args: ['nrepl-server', '--port', port],
@@ -722,7 +754,10 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
 };
 
-async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: CljsTypes) {
+async function cljCommandLine(
+  connectSequence: connectSequences.ReplConnectSequence,
+  cljsType: connectSequences.CljsTypes
+) {
   const out: string[] = [];
   let depsUri: vscode.Uri;
   try {
@@ -839,8 +874,8 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
 
 async function leinCommandLine(
   command: string[],
-  cljsType: CljsTypes,
-  connectSequence: ReplConnectSequence
+  cljsType: connectSequences.CljsTypes,
+  connectSequence: connectSequences.ReplConnectSequence
 ) {
   const args: string[] = [];
   const dependencies = {
@@ -909,8 +944,8 @@ async function leinCommandLine(
 
 function gradleCommandLine(
   command: string[],
-  cljsType: CljsTypes,
-  connectSequence: ReplConnectSequence
+  cljsType: connectSequences.CljsTypes,
+  connectSequence: connectSequences.ReplConnectSequence
 ) {
   const args: string[] = [];
   const dependencies = {
@@ -993,14 +1028,14 @@ export function getAllProjectTypes(): string[] {
   ];
 }
 
-export function getCljsTypeName(connectSequence: ReplConnectSequence) {
+export function getCljsTypeName(sequence: connectSequences.ReplConnectSequence) {
   let cljsTypeName: string;
-  if (connectSequence.cljsType == undefined) {
+  if (sequence.cljsType == undefined) {
     cljsTypeName = '';
-  } else if (typeof connectSequence.cljsType == 'string') {
-    cljsTypeName = connectSequence.cljsType;
-  } else if (connectSequence.cljsType.dependsOn != undefined) {
-    cljsTypeName = connectSequence.cljsType.dependsOn;
+  } else if (typeof sequence.cljsType == 'string') {
+    cljsTypeName = sequence.cljsType;
+  } else if (sequence.cljsType.dependsOn != undefined) {
+    cljsTypeName = sequence.cljsType.dependsOn;
   } else {
     cljsTypeName = 'custom';
   }
