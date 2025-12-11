@@ -59,16 +59,35 @@ function normalizePatternEntry(
 
 /**
  * Derive session role keys from a connect sequence configuration.
+ * Resolution priority:
+ * 1. Connect sequence's replSessionNames (explicit user/sequence config)
+ * 2. Project type's replSessionNames (project type defaults)
+ * 3. Generic role-based defaults (clj/cljs)
+ *
  * This is a pure function that does NOT set any global state.
  */
 export function deriveSessionRoleKeys(sequence?: ReplConnectSequence): SessionRoleKeys {
-  const config = sequence?.replSessionNames;
-  const keys: SessionRoleKeys = {
-    primary: config?.primary || DEFAULT_SESSION_ROLE_KEYS.primary,
-  };
-  if (secondarySession.shouldUseSecondarySession(sequence)) {
-    keys.secondary = config?.secondary || DEFAULT_SESSION_ROLE_KEYS.secondary;
+  // Check sequence config first
+  const sequenceConfig = sequence?.replSessionNames;
+
+  // Get project type defaults if available
+  let projectTypePrimary: string | undefined;
+  let projectTypeSecondary: string | undefined;
+  if (sequence?.projectType) {
+    const projectType = getProjectTypeForName(sequence.projectType);
+    projectTypePrimary = projectType?.replSessionNames?.primary;
+    projectTypeSecondary = projectType?.replSessionNames?.secondary;
   }
+
+  const keys: SessionRoleKeys = {
+    primary: sequenceConfig?.primary || projectTypePrimary || DEFAULT_SESSION_ROLE_KEYS.primary,
+  };
+
+  if (secondarySession.shouldUseSecondarySession(sequence)) {
+    keys.secondary =
+      sequenceConfig?.secondary || projectTypeSecondary || DEFAULT_SESSION_ROLE_KEYS.secondary;
+  }
+
   return keys;
 }
 

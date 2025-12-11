@@ -17,37 +17,31 @@ const leiningenDefaults: csTypes.ReplConnectSequence[] = [
     name: 'Leiningen',
     projectType: csTypes.ProjectTypes.Leiningen,
     cljsType: csTypes.CljsTypes.none,
-    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + Figwheel Main',
     projectType: csTypes.ProjectTypes.Leiningen,
     cljsType: csTypes.CljsTypes['Figwheel Main'],
-    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + shadow-cljs',
     projectType: csTypes.ProjectTypes.Leiningen,
     cljsType: csTypes.CljsTypes['shadow-cljs'],
-    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + ClojureScript built-in for browser',
     projectType: csTypes.ProjectTypes.Leiningen,
     cljsType: csTypes.CljsTypes['ClojureScript built-in for browser'],
-    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + ClojureScript built-in for node',
     projectType: csTypes.ProjectTypes.Leiningen,
     cljsType: csTypes.CljsTypes['ClojureScript built-in for node'],
-    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'Leiningen + Legacy Figwheel',
     projectType: csTypes.ProjectTypes.Leiningen,
     cljsType: csTypes.CljsTypes['lein-figwheel'],
-    nReplPortFile: ['.nrepl-port'],
   },
 ];
 
@@ -56,37 +50,31 @@ const cljDefaults: csTypes.ReplConnectSequence[] = [
     name: 'deps.edn',
     projectType: csTypes.ProjectTypes['deps.edn'],
     cljsType: csTypes.CljsTypes.none,
-    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + Figwheel Main',
     projectType: csTypes.ProjectTypes['deps.edn'],
     cljsType: csTypes.CljsTypes['Figwheel Main'],
-    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + shadow-cljs',
     projectType: csTypes.ProjectTypes['deps.edn'],
     cljsType: csTypes.CljsTypes['shadow-cljs'],
-    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + ClojureScript built-in for browser',
     projectType: csTypes.ProjectTypes['deps.edn'],
     cljsType: csTypes.CljsTypes['ClojureScript built-in for browser'],
-    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + ClojureScript built-in for node',
     projectType: csTypes.ProjectTypes['deps.edn'],
     cljsType: csTypes.CljsTypes['ClojureScript built-in for node'],
-    nReplPortFile: ['.nrepl-port'],
   },
   {
     name: 'deps.edn + Legacy Figwheel',
     projectType: csTypes.ProjectTypes['deps.edn'],
     cljsType: csTypes.CljsTypes['lein-figwheel'],
-    nReplPortFile: ['.nrepl-port'],
   },
 ];
 
@@ -95,7 +83,6 @@ const shadowCljsDefaults: csTypes.ReplConnectSequence[] = [
     name: 'shadow-cljs',
     projectType: csTypes.ProjectTypes['shadow-cljs'],
     cljsType: csTypes.CljsTypes['shadow-cljs'],
-    nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
   },
 ];
 
@@ -104,7 +91,6 @@ const leinShadowDefaults: csTypes.ReplConnectSequence[] = [
     name: 'Leiningen + lein-shadow',
     projectType: csTypes.ProjectTypes['lein-shadow'],
     cljsType: csTypes.CljsTypes['shadow-cljs'],
-    nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
   },
 ];
 
@@ -121,7 +107,6 @@ const genericDefaults: csTypes.ReplConnectSequence[] = [
     name: 'Generic',
     projectType: csTypes.ProjectTypes['generic'],
     cljsType: csTypes.CljsTypes.none,
-    nReplPortFile: ['.nrepl-port'],
   },
 ];
 
@@ -130,7 +115,6 @@ const cljProjectlessDefaults: csTypes.ReplConnectSequence[] = [
     name: 'Clojure (projectless)',
     projectType: csTypes.ProjectTypes['clj-projectless'],
     cljsType: csTypes.CljsTypes.none,
-    nReplPortFile: ['.nrepl-port'],
   },
 ];
 
@@ -139,7 +123,6 @@ const customDefaults: csTypes.ReplConnectSequence[] = [
     name: 'Custom',
     projectType: csTypes.ProjectTypes['custom'],
     cljsType: csTypes.CljsTypes.none,
-    nReplPortFile: ['.nrepl-port'],
   },
 ];
 
@@ -159,9 +142,6 @@ const babashkaDefaults: csTypes.ReplConnectSequence[] = [
     name: 'Babashka',
     projectType: csTypes.ProjectTypes['babashka'],
     cljsType: csTypes.CljsTypes.none,
-    nReplPortFile: ['.bb-nrepl.port'],
-    replSessionNames: { primary: 'bb' },
-    defaultPort: 1667,
   },
 ];
 
@@ -170,8 +150,6 @@ const nbbDefaults: csTypes.ReplConnectSequence[] = [
     name: 'nbb',
     projectType: csTypes.ProjectTypes['nbb'],
     cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
-    nReplPortFile: ['.nrepl-port'],
-    replSessionNames: { primary: 'nbb' },
   },
 ];
 
@@ -180,7 +158,6 @@ const joyrideDefaults: csTypes.ReplConnectSequence[] = [
     name: 'joyride',
     projectType: csTypes.ProjectTypes['joyride'],
     cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
-    replSessionNames: { primary: 'joyride' },
   },
 ];
 
@@ -189,8 +166,6 @@ const scittleDefaults: csTypes.ReplConnectSequence[] = [
     name: 'scittle',
     projectType: csTypes.ProjectTypes['scittle'],
     cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
-    replSessionNames: { primary: 'scittle' },
-    defaultPort: 1339,
   },
 ];
 
@@ -199,12 +174,10 @@ const basilispDefaults: csTypes.ReplConnectSequence[] = [
     name: 'basilisp',
     projectType: csTypes.ProjectTypes['basilisp'],
     cljsType: csTypes.CljsTypes.none,
-    nReplPortFile: ['.nrepl-port'],
-    replSessionNames: { primary: 'basilisp' },
   },
 ];
 
-const defaultSequences = {
+const builtInSequences = {
   lein: leiningenDefaults,
   clj: cljDefaults,
   'shadow-cljs': shadowCljsDefaults,
@@ -377,19 +350,19 @@ function getCustomConnectSequences(): csTypes.ReplConnectSequence[] {
 }
 
 /**
- * User defined sequences will be combined with the default sequences.
- * @param projectType what default sequences would be used (leiningen, clj, shadow-cljs)
+ * User defined sequences will be combined with the built-in sequences.
+ * @param projectType what built-in sequences would be used (leiningen, clj, shadow-cljs)
  */
 function getConnectSequences(projectTypes: string[]): csTypes.ReplConnectSequence[] {
   const customSequences = getCustomConnectSequences();
-  const defSequences = projectTypes.reduce(
-    (seqs, projectType) => seqs.concat(defaultSequences[projectType]),
+  const builtInSeqs = projectTypes.reduce(
+    (seqs, projectType) => seqs.concat(builtInSequences[projectType]),
     []
   );
-  const defSequenceProjectTypes = [...new Set(defSequences.map((s) => s.projectType))];
+  const builtInSeqProjectTypes = [...new Set(builtInSeqs.map((s) => s.projectType))];
   const sequences = customSequences
-    .filter((customSequence) => defSequenceProjectTypes.includes(customSequence.projectType))
-    .concat(defSequences);
+    .filter((customSequence) => builtInSeqProjectTypes.includes(customSequence.projectType))
+    .concat(builtInSeqs);
   return sequences;
 }
 
@@ -433,21 +406,21 @@ async function getUserSpecifiedSequence(
   const userSpecifiedProjectType = autoSelectedSequence?.name;
 
   if (userSpecifiedProjectType) {
-    const defaultSequence = sequences.find(
+    const builtInSequence = sequences.find(
       (s) => s.name.toLocaleLowerCase() === userSpecifiedProjectType.toLocaleLowerCase()
     );
 
-    if (defaultSequence) {
+    if (builtInSequence) {
       output.appendLineOtherOut(
         [
-          `Auto-selecting project type "${defaultSequence.name}".`,
+          `Auto-selecting project type "${builtInSequence.name}".`,
           `You can change this from settings:`,
           connectSequencesDocLink,
           '\n',
         ].join('\n')
       );
 
-      return defaultSequence;
+      return builtInSequence;
     } else {
       output.appendLineOtherErr(`Project type "${userSpecifiedProjectType}" not found.`);
       output.appendLineOtherOut(
@@ -471,9 +444,9 @@ async function askForConnectSequence(
   const projectRootUri = state.getProjectRootUri();
   const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
 
-  const defaultSequence = await getUserSpecifiedSequence(sequences, connectType, disableAutoSelect);
+  const builtInSequence = await getUserSpecifiedSequence(sequences, connectType, disableAutoSelect);
 
-  let projectConnectSequenceName = defaultSequence?.name;
+  let projectConnectSequenceName = builtInSequence?.name;
 
   if (!projectConnectSequenceName) {
     const filteredSequences =

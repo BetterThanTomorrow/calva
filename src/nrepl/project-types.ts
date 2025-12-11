@@ -644,7 +644,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: [],
-    nReplPortFile: ['.bb-nrepl.port'],
+    nReplPortFile: ['.nrepl-port'],
     replSessionNames: { primary: 'bb' },
     defaultPort: 1667,
     defaultFilePatterns: {
@@ -673,6 +673,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: true,
     useWhenExists: [],
     nReplPortFile: ['.nrepl-port'],
+    replSessionNames: { primary: 'nbb' },
     defaultFilePatterns: {
       primary: {
         'always-claim': ['*.nbb'],
@@ -703,6 +704,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: false,
     useWhenExists: ['basilisp.edn'],
     nReplPortFile: ['.nrepl-port'],
+    replSessionNames: { primary: 'basilisp' },
     defaultFilePatterns: {
       primary: ['*.lpy'],
     },
@@ -726,6 +728,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: false,
     useWhenExists: [],
     nReplPortFile: ['.joyride', '.nrepl-port'],
+    replSessionNames: { primary: 'joyride' },
     defaultFilePatterns: {
       primary: {
         'always-claim': ['.joyride/**/*.cljs'],
@@ -744,6 +747,8 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: false,
     useWhenExists: [],
     nReplPortFile: ['.scittle-nrepl-port'],
+    replSessionNames: { primary: 'scittle' },
+    defaultPort: 1339,
     defaultFilePatterns: {
       primary: {
         'always-claim': ['*.cljs'],

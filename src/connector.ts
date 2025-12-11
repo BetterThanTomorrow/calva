@@ -1039,11 +1039,13 @@ export async function connect(
         const bytes = await vscode.workspace.fs.readFile(portFile);
         port = new TextDecoder('utf-8').decode(bytes);
       } catch {
-        if (connectSequence.defaultPort) {
-          output.appendLineOtherOut(
-            `No nrepl port file found, using default port: ${connectSequence.defaultPort}`
-          );
-          port = String(connectSequence.defaultPort);
+        // Check sequence default port first, then project type default port
+        const defaultPort =
+          connectSequence.defaultPort ??
+          projectTypes.getProjectTypeForName(connectSequence.projectType)?.defaultPort;
+        if (defaultPort) {
+          output.appendLineOtherOut(`No nrepl port file found, using default port: ${defaultPort}`);
+          port = String(defaultPort);
         } else {
           console.info('No nrepl port found');
         }
