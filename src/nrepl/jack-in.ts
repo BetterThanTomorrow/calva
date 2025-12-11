@@ -444,7 +444,7 @@ async function getJackInTerminalOptions(
   } else {
     cmd = typeof projectType.cmd === 'function' ? projectType.cmd() : projectType.cmd;
   }
-  const nReplPortFile = projectConnectSequence.nReplPortFile ?? projectType.nReplPortFile;
+  const nReplPortFile = projectConnectSequence.nReplPortFile ?? projectType.defaultNReplPortFile;
   const substitutions = {
     'PROJECT-ROOT-PATH': state.getProjectRootLocal(),
     ...(nReplPortFile

@@ -81,7 +81,7 @@ interface ReplConnectSequence {
   jackInEnv?: Record<string, string>;
   replSessionNames?: SessionNamesConfig;
   replSessionFilePatterns?: SessionFilePatternsConfig;
-  defaultPort?: number;
+  fallbackPort?: number;
 }
 
 export {

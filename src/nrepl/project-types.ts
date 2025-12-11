@@ -39,11 +39,11 @@ export type ProjectType = {
     cljsType: connectSequences.CljsTypes
   ) => Promise<CommandLineInfo>;
   useWhenExists: string[];
-  nReplPortFile: string[];
+  defaultNReplPortFile: string[];
   startFunction?: () => Thenable<boolean | void>;
   defaultFilePatterns?: connectSequences.SessionFilePatternsConfig;
-  replSessionNames?: connectSequences.SessionNamesConfig;
-  defaultPort?: number;
+  defaultReplSessionNames?: connectSequences.SessionNamesConfig;
+  defaultFallbackPort?: number;
 };
 
 function nreplPortFileRelativePath(connectSequence: connectSequences.ReplConnectSequence): string {
@@ -52,7 +52,7 @@ function nreplPortFileRelativePath(connectSequence: connectSequences.ReplConnect
     subPath = path.join(...connectSequence.nReplPortFile);
   } else {
     const projectType: ProjectType | string = connectSequence.projectType;
-    subPath = path.join(...getProjectTypeForName(projectType).nReplPortFile);
+    subPath = path.join(...getProjectTypeForName(projectType).defaultNReplPortFile);
   }
   return subPath;
 }
@@ -405,7 +405,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: false,
     useWhenExists: ['project.clj'],
-    nReplPortFile: ['.nrepl-port'],
+    defaultNReplPortFile: ['.nrepl-port'],
     defaultFilePatterns: {
       primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': ['**/*.clj', '**/*.edn'] },
       secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': ['**/*.cljs'] },
@@ -439,7 +439,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: 'cmd.exe',
     useWhenExists: ['deps.edn'],
-    nReplPortFile: ['.nrepl-port'],
+    defaultNReplPortFile: ['.nrepl-port'],
     defaultFilePatterns: {
       primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': ['**/*.clj', '**/*.edn'] },
       secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': ['**/*.cljs'] },
@@ -464,7 +464,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: ['shadow-cljs.edn'],
-    nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
+    defaultNReplPortFile: ['.shadow-cljs', 'nrepl.port'],
     defaultFilePatterns: {
       primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': ['**/*.clj', '**/*.edn'] },
       secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': ['**/*.cljs'] },
@@ -512,7 +512,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: false,
     useWhenExists: ['project.clj'],
-    nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
+    defaultNReplPortFile: ['.shadow-cljs', 'nrepl.port'],
     defaultFilePatterns: {
       primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': ['**/*.clj', '**/*.edn'] },
       secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': ['**/*.cljs'] },
@@ -554,7 +554,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: false,
     useWhenExists: ['settings.gradle', 'settings.gradle.kts'],
-    nReplPortFile: ['.nrepl-port'],
+    defaultNReplPortFile: ['.nrepl-port'],
     defaultFilePatterns: {
       primary: ['*.clj', '*.edn'],
       secondary: ['*.cljs'],
@@ -582,7 +582,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: false,
     useWhenExists: [],
-    nReplPortFile: ['.nrepl-port'],
+    defaultNReplPortFile: ['.nrepl-port'],
     defaultFilePatterns: {
       primary: ['*.clj', '*.edn'],
       secondary: ['*.cljs'],
@@ -603,7 +603,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: 'cmd.exe',
     useWhenExists: [],
-    nReplPortFile: ['.nrepl-port'],
+    defaultNReplPortFile: ['.nrepl-port'],
     defaultFilePatterns: {
       primary: ['*.clj', '*.edn'],
       secondary: ['*.cljs'],
@@ -620,7 +620,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: [],
-    nReplPortFile: ['.nrepl-port'],
+    defaultNReplPortFile: ['.nrepl-port'],
     defaultFilePatterns: {
       primary: ['*.clj', '*.edn'],
       secondary: ['*.cljs'],
@@ -644,9 +644,9 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: [],
-    nReplPortFile: ['.nrepl-port'],
-    replSessionNames: { primary: 'bb' },
-    defaultPort: 1667,
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultReplSessionNames: { primary: 'bb' },
+    defaultFallbackPort: 1667,
     defaultFilePatterns: {
       primary: {
         'always-claim': ['bb.edn', '*.bb'],
@@ -672,8 +672,8 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: [],
-    nReplPortFile: ['.nrepl-port'],
-    replSessionNames: { primary: 'nbb' },
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultReplSessionNames: { primary: 'nbb' },
     defaultFilePatterns: {
       primary: {
         'always-claim': ['*.nbb'],
@@ -703,8 +703,8 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: false,
     useWhenExists: ['basilisp.edn'],
-    nReplPortFile: ['.nrepl-port'],
-    replSessionNames: { primary: 'basilisp' },
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultReplSessionNames: { primary: 'basilisp' },
     defaultFilePatterns: {
       primary: ['*.lpy'],
     },
@@ -727,8 +727,8 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: false,
     processShellWin: false,
     useWhenExists: [],
-    nReplPortFile: ['.joyride', '.nrepl-port'],
-    replSessionNames: { primary: 'joyride' },
+    defaultNReplPortFile: ['.joyride', '.nrepl-port'],
+    defaultReplSessionNames: { primary: 'joyride' },
     defaultFilePatterns: {
       primary: {
         'always-claim': ['.joyride/**/*.cljs'],
@@ -746,9 +746,9 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: false,
     processShellWin: false,
     useWhenExists: [],
-    nReplPortFile: ['.scittle-nrepl-port'],
-    replSessionNames: { primary: 'scittle' },
-    defaultPort: 1339,
+    defaultNReplPortFile: ['.scittle-nrepl-port'],
+    defaultReplSessionNames: { primary: 'scittle' },
+    defaultFallbackPort: 1339,
     defaultFilePatterns: {
       primary: {
         'always-claim': ['*.cljs'],
@@ -765,8 +765,8 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: false,
     processShellWin: false,
     useWhenExists: [],
-    nReplPortFile: ['.nrepl-port'],
-    replSessionNames: { primary: 'cljs' },
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultReplSessionNames: { primary: 'cljs' },
     defaultFilePatterns: {
       primary: ['*.cljs'],
     },

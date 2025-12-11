@@ -75,8 +75,8 @@ export function deriveSessionRoleKeys(sequence?: ReplConnectSequence): SessionRo
   let projectTypeSecondary: string | undefined;
   if (sequence?.projectType) {
     const projectType = getProjectTypeForName(sequence.projectType);
-    projectTypePrimary = projectType?.replSessionNames?.primary;
-    projectTypeSecondary = projectType?.replSessionNames?.secondary;
+    projectTypePrimary = projectType?.defaultReplSessionNames?.primary;
+    projectTypeSecondary = projectType?.defaultReplSessionNames?.secondary;
   }
 
   const keys: SessionRoleKeys = {

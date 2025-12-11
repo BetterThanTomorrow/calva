@@ -663,9 +663,9 @@
                     "type": "string"
                   }
                 },
-                "defaultPort": {
+                "fallbackPort": {
                   "type": "number",
-                  "markdownDescription": "If the nREPL port file is not found, use this port as the default."
+                  "markdownDescription": "If the nREPL port file is not found, fall back on this port."
                 },
                 "customJackInCommandLine": {
                   "type": "string",

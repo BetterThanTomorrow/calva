@@ -1041,8 +1041,8 @@ export async function connect(
       } catch {
         // Check sequence default port first, then project type default port
         const defaultPort =
-          connectSequence.defaultPort ??
-          projectTypes.getProjectTypeForName(connectSequence.projectType)?.defaultPort;
+          connectSequence.fallbackPort ??
+          projectTypes.getProjectTypeForName(connectSequence.projectType)?.defaultFallbackPort;
         if (defaultPort) {
           output.appendLineOtherOut(`No nrepl port file found, using default port: ${defaultPort}`);
           port = String(defaultPort);
