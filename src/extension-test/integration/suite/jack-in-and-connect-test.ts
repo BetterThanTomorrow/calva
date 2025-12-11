@@ -280,7 +280,7 @@ suite('Jack-in and Connect suite', () => {
       cljsType: CljsTypes['ClojureScript built-in for node'],
     };
 
-    const testFile2 = '../projects/cljs-only2/src/hello_world/core.cljs';
+    const testFile2 = '../projects/cljs-only2/src/hello_world2/core.cljs';
     await startJackInProcedure(suite, 'calva.jackIn', undefined, testFile2, sequence2);
     await waitForResult(suite);
     testUtil.log(suite, 'Second jack-in complete');
