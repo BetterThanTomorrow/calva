@@ -32,22 +32,45 @@ Familiarity with the most relevant documenation relating to this feature is a re
 
 ### Connect Sequences
 
-A **Connect Sequence** describes how Calva should connect to a project. It defines:
+A **Connect Sequence** describes how Calva should connect to a project. It references a **Project Type** and optionally overrides its defaults:
 
 | Property | Description |
 |----------|-------------|
 | `name` | Display name shown in menus |
-| `projectType` | e.g., `deps.edn`, `Leiningen`, `shadow-cljs` |
+| `projectType` | e.g., `deps.edn`, `Leiningen`, `shadow-cljs` - provides default configuration |
 | `cljsType` | e.g., `Figwheel Main`, `shadow-cljs`, `none` |
-| `replSessionNames` | Custom keys for sessions: `{ primary: "clj", secondary: "cljs" }` |
-| `replSessionFilePatterns` | File routing patterns for sessions (overrides project type defaults) |
-| `nReplPortFile` | Path segments to port file, e.g., `[".shadow-cljs", "nrepl.port"]` |
+| `replSessionNames` | Optional: Override project type's default session names |
+| `replSessionFilePatterns` | Optional: Override project type's default file routing patterns |
+| `nReplPortFile` | Optional: Override project type's default port file location |
+| `fallbackPort` | Optional: Override project type's default fallback port |
 
 A connect sequence typically results in one **Primary Session** (usually Clojure) and optionally one **Secondary Session** (usually ClojureScript).
 
 The terms **primary** and **secondary** session are used because many REPL runtimes are not Clojure. While the spawned session when there is a session pair in a sequence are always ClojureScript, semantically primary/secondary works better together.
 
-**Built-in sequences** are defined in `src/nrepl/connectSequence.ts`. User-defined sequences come from `calva.replConnectSequences` setting.
+**Built-in sequences** are defined in `src/nrepl/connectSequence.ts`. They are minimal, relying on their project type for default configuration. User-defined sequences come from `calva.replConnectSequences` setting and can override any project type defaults.
+
+### Project Types
+
+A **Project Type** provides default configuration for connect sequences:
+
+| Property | Description |
+|----------|-------------|
+| `name` | Project type identifier (e.g., `deps.edn`, `babashka`) |
+| `defaultReplSessionNames` | Default session names (e.g., `{ primary: "bb" }` for Babashka) |
+| `defaultFilePatterns` | Default glob patterns for session routing |
+| `defaultNReplPortFile` | Default location of nREPL port file |
+| `defaultFallbackPort` | Default port when no port file exists |
+| `commandLine` | Function to build jack-in command line |
+| `useWhenExists` | Files that identify this project type |
+
+**Configuration Resolution:** When a connect sequence doesn't specify a property, it falls back to the project type's default. This three-tier hierarchy applies to session names, file patterns, port files, and fallback ports:
+
+1. **Connect sequence** (highest priority) - user/sequence-specific overrides
+2. **Project type** - sensible defaults for the REPL runtime
+3. **Generic defaults** (lowest priority) - fallback when project type doesn't define a value
+
+This design keeps built-in sequences minimal while allowing complete customization when needed.
 
 ### Sessions
 
@@ -748,8 +771,8 @@ The system supports lookups in both directions, which is intentional:
 
 | File | Purpose |
 |------|---------|
-| `src/nrepl/project-types.ts` | Project type definitions including default file patterns |
-| `src/nrepl/session-role-utils.ts` | Derive session keys and glob maps from sequences (checks sequence config, project type defaults, then generic defaults) |
+| `src/nrepl/project-types.ts` | Project type definitions with default configuration (session names, file patterns, port files, fallback ports) |
+| `src/nrepl/session-role-utils.ts` | Derive session keys and glob maps using three-tier fallback: sequence config → project type defaults → generic defaults |
 | `src/nrepl/session-name-resolver.ts` | Session name conflict resolution with suffixes |
 | `src/nrepl/name-suffix.ts` | Suffix pool management for automatic session name suffixing |
 | `src/nrepl/globs/index.ts` | Glob spec construction, pattern scoring |
@@ -824,8 +847,17 @@ classDiagram
         +name: string
         +projectType: string
         +cljsType: string
-        +replSessionNames: map
-        +replSessionFilePatterns: map
+        +replSessionNames?: map
+        +replSessionFilePatterns?: map
+        +nReplPortFile?: string[]
+        +fallbackPort?: number
+    }
+    class ProjectType {
+        +name: string
+        +defaultReplSessionNames?: map
+        +defaultFilePatterns?: map
+        +defaultNReplPortFile: string[]
+        +defaultFallbackPort?: number
     }
 
     NReplClient "1" -- "*" NReplSession : owns
@@ -833,6 +865,7 @@ classDiagram
     RegisteredClient "1" -- "1" ConnectionState : contains
     SessionMetadata --> NReplSession : describes
     SessionMetadata --> NReplClient : references via connectionOwnerId
+    ConnectSequence --> ProjectType : references for defaults
     ConnectSequence --> SessionMetadata : defines config for
 ```
 
