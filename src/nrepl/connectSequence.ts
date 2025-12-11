@@ -131,9 +131,6 @@ const cljsOnlyDefaults: csTypes.ReplConnectSequence[] = [
     name: 'ClojureScript nREPL Server',
     projectType: csTypes.ProjectTypes['cljs-only'],
     cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
-    nReplPortFile: ['.nrepl-port'],
-    replSessionNames: { primary: 'cljs' },
-    replSessionFilePatterns: { primary: ['*.cljs'] },
   },
 ];
 

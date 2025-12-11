@@ -757,6 +757,21 @@ const projectTypes: { [id: string]: ProjectType } = {
     },
     commandLine: undefined,
   },
+  'cljs-only': {
+    name: 'cljs-only',
+    cljsTypes: [],
+    cmd: [],
+    winCmd: [],
+    processShellUnix: false,
+    processShellWin: false,
+    useWhenExists: [],
+    nReplPortFile: ['.nrepl-port'],
+    replSessionNames: { primary: 'cljs' },
+    defaultFilePatterns: {
+      primary: ['*.cljs'],
+    },
+    commandLine: undefined,
+  },
 };
 
 async function cljCommandLine(
