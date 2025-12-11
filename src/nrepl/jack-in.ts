@@ -496,7 +496,7 @@ async function getProjectConnectSequence(disableAutoSelect: boolean): Promise<Re
   if (joyride.isJoyrideExtensionActive() && joyride.isJoyrideNReplServerRunning()) {
     excludes.push('joyride');
   }
-  if (cljTypes.length > 1) {
+  if (cljTypes.length >= 1) {
     return askForConnectSequence(
       cljTypes.filter((t) => !excludes.includes(t)),
       ConnectType.JackIn,
