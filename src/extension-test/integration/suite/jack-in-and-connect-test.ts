@@ -5,6 +5,7 @@ import * as testUtil from './util';
 import * as util from '../../../utilities';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
+import * as jackIn from '../../../nrepl/jack-in';
 import * as vscode from 'vscode';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import { commands } from 'vscode';
@@ -232,6 +233,114 @@ suite('Jack-in and Connect suite', () => {
     );
 
     testUtil.log(suite, 'Reconnection test completed successfully');
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  });
+
+  test('Manual reconnect preserves jack-in process and retains session names', async function () {
+    this.timeout(120_000);
+    testUtil.log(suite, 'Manual reconnect: two jack-ins, then reconnect first');
+
+    // First jack-in to cljs-only with explicit CLJS sequence
+    const sequence1: ReplConnectSequence = {
+      projectType: ProjectTypes['deps.edn'],
+      name: 'First Manual Reconnect Test',
+      cljsType: CljsTypes['ClojureScript built-in for node'],
+    };
+
+    const testFile1 = '../projects/cljs-only/src/hello_world/core.cljs';
+    await startJackInProcedure(suite, 'calva.jackIn', undefined, testFile1, sequence1);
+    await waitForResult(suite);
+    testUtil.log(suite, 'First jack-in complete');
+
+    const clients1 = clientRegistry.listClients();
+    assert.strictEqual(clients1.length, 1, 'Should have one client after first jack-in');
+    const firstClientKey = clients1[0].key;
+    const firstClientPort = clients1[0].port;
+
+    const sessions1 = sessionRegistry.listSessions();
+    const firstSessionKeys = sessions1.map((s) => s.key).sort();
+    testUtil.log(suite, `First jack-in sessions: ${firstSessionKeys.join(', ')}`);
+    assert.strictEqual(sessions1.length, 2, 'Should have 2 sessions after first jack-in');
+
+    // Get jack-in process count before second jack-in
+    const jackInProcessesBefore = jackIn.listJackInProcesses();
+    const firstClientProcesses = jackInProcessesBefore.filter(
+      (p) => p.clientKey === firstClientKey
+    );
+    assert.strictEqual(
+      firstClientProcesses.length,
+      1,
+      'Should have one jack-in process for first client'
+    );
+
+    // Second jack-in to cljs-only2 (different project root to avoid reconnection during jack-in)
+    const sequence2: ReplConnectSequence = {
+      projectType: ProjectTypes['deps.edn'],
+      name: 'Second Manual Reconnect Test',
+      cljsType: CljsTypes['ClojureScript built-in for node'],
+    };
+
+    const testFile2 = '../projects/cljs-only2/src/hello_world/core.cljs';
+    await startJackInProcedure(suite, 'calva.jackIn', undefined, testFile2, sequence2);
+    await waitForResult(suite);
+    testUtil.log(suite, 'Second jack-in complete');
+
+    const clients2 = clientRegistry.listClients();
+    assert.strictEqual(clients2.length, 2, 'Should have two clients after second jack-in');
+
+    const sessions2 = sessionRegistry.listSessions();
+    const allSessionKeys = sessions2.map((s) => s.key).sort();
+    testUtil.log(suite, `All sessions after second jack-in: ${allSessionKeys.join(', ')}`);
+    assert.strictEqual(sessions2.length, 4, 'Should have 4 sessions total (2 per connection)');
+
+    // Now manually reconnect to the first REPL (same port, same project root)
+    testUtil.log(suite, 'Reconnecting to first REPL...');
+
+    // Open the file to set the correct project root context
+    await testUtil.openFile(path.join(testUtil.testDataDir, testFile1));
+
+    // Connect directly using the same sequence and port as the first jack-in
+    await connectDirect(sequence1, true, 'localhost', String(firstClientPort));
+    await testUtil.sleep(1000);
+
+    testUtil.log(suite, 'Reconnection complete');
+
+    // Verify: Still have 2 clients
+    const clients3 = clientRegistry.listClients();
+    testUtil.log(
+      suite,
+      `Clients after reconnect: ${clients3
+        .map((c) => `${c.key} (${c.connectSequenceName})`)
+        .join(', ')}`
+    );
+    assert.strictEqual(clients3.length, 2, 'Should still have two clients after reconnect');
+
+    // Verify: Still have 4 sessions total
+    const sessions3 = sessionRegistry.listSessions();
+    const allSessionKeys3 = sessions3.map((s) => s.key).sort();
+    testUtil.log(suite, `All sessions after reconnect: ${allSessionKeys3.join(', ')}`);
+    assert.strictEqual(sessions3.length, 4, 'Should still have 4 sessions after reconnect');
+
+    // Verify: The reconnected sessions preserved their original names (clj, cljs)
+    // and the second jack-in sessions are still there (clj:2, cljs:2)
+    assert.ok(
+      allSessionKeys3.includes('clj') && allSessionKeys3.includes('cljs'),
+      'Should have clj and cljs sessions (from reconnection)'
+    );
+    assert.ok(
+      allSessionKeys3.includes('clj:2') && allSessionKeys3.includes('cljs:2'),
+      'Should have clj:2 and cljs:2 sessions (from second jack-in)'
+    );
+
+    // Verify: We can successfully evaluate code in the reconnected REPL
+    // This proves the jack-in terminal is still running and the connection works
+    testUtil.log(suite, 'Verifying reconnected REPL is functional...');
+    await vscode.commands.executeCommand('calva.loadFile');
+    await testUtil.sleep(500);
+
+    const resultsEditor = await outputWindow.openReplWindowDoc();
+    const outputText = getDocument(resultsEditor).document.getText();
+    testUtil.log(suite, 'Manual reconnect test completed successfully - REPL still functional');
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 });

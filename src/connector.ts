@@ -98,7 +98,8 @@ async function connectToHost(
   hostname: string,
   port: number,
   connectSequence: ReplConnectSequence,
-  silent = false
+  silent = false,
+  isJackIn = false
 ): Promise<ConnectResult> {
   let mainSession: NReplSession;
   let localClient: NReplClient | undefined;
@@ -116,14 +117,16 @@ async function connectToHost(
         .filter(Boolean)
         .join(', ')}`
     );
-    // First, clean up any jack-in processes for this client
-    // (stopJackInProcessesByClientKey will also disconnect the client if processes exist)
-    await jackIn.stopJackInProcessesByClientKey(resolution.reconnectClientKey, {
-      preserveSuffix: true,
-    });
-    // Then ensure the client is disconnected even if there were no jack-in processes
-    // (e.g., for "Connect to running REPL" sessions)
-    // Check if client still exists before disconnecting (jack-in cleanup may have already done it)
+    // For jack-in reconnections: stop old jack-in processes to prevent orphaned REPLs
+    // (This handles the case where sequence names differ but sessions match)
+    // For manual reconnections: keep existing jack-in processes running
+    if (isJackIn) {
+      await jackIn.stopJackInProcessesByClientKey(resolution.reconnectClientKey, {
+        preserveSuffix: true,
+      });
+    }
+    // Disconnect the old client but preserve suffix for reuse
+    // Check if client still exists (jack-in cleanup may have already disconnected it)
     if (clientRegistry.getClient(resolution.reconnectClientKey)) {
       await disconnectClientByKey(resolution.reconnectClientKey, { preserveSuffix: true });
     }
@@ -1016,7 +1019,7 @@ async function promptForNreplUrlAndConnect(
       continue;
     }
 
-    const result = await connectToHost(parsedHostname, parsedPort, connectSequence, true);
+    const result = await connectToHost(parsedHostname, parsedPort, connectSequence, true, false);
 
     if (result.connected) {
       return result;
@@ -1033,7 +1036,8 @@ export async function connect(
   connectSequence: ReplConnectSequence,
   isAutoConnect: boolean,
   hostname?: string,
-  port?: string
+  port?: string,
+  isJackIn = false
 ): Promise<ConnectResult> {
   const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
 
@@ -1066,7 +1070,7 @@ export async function connect(
       hostname = hostname !== undefined ? hostname : 'localhost';
       output.appendLineOtherOut(`Using host:port ${hostname}:${port} ...`);
       if (isAutoConnect) {
-        result = await connectToHost(hostname, parseInt(port), connectSequence, true);
+        result = await connectToHost(hostname, parseInt(port), connectSequence, true, isJackIn);
         if (!result.connected) {
           output.appendLineOtherOut('Prompting for nREPL connection...');
           result = await promptForNreplUrlAndConnect(

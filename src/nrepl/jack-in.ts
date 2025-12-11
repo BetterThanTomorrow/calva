@@ -61,7 +61,7 @@ type JackInProcessEntry = {
 const activeJackInProcesses = new Map<number, JackInProcessEntry>();
 let nextJackInProcessId = 1;
 
-function listJackInProcesses(): JackInProcessEntry[] {
+export function listJackInProcesses(): JackInProcessEntry[] {
   return Array.from(activeJackInProcesses.values()).sort((a, b) => a.id - b.id);
 }
 
@@ -295,7 +295,7 @@ async function executeJackInTask(
             (_p, hostname: string, port: string) => {
               utilities.setLaunchingState(null);
               resolve();
-              void connector.connect(connectSequence, true, hostname, port).then((result) => {
+              void connector.connect(connectSequence, true, hostname, port, true).then((result) => {
                 const entry = activeJackInProcesses.get(jackInProcess.id);
                 if (entry) {
                   entry.connected = result.connected;
