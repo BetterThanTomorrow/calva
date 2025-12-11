@@ -177,7 +177,7 @@ suite('Jack-in and Connect suite', () => {
       afterPrimaryReplConnectedCode: '(println "First connection")',
     };
 
-    const testFile1 = '../bb-mini/test.clj';
+    const testFile1 = 'bb-mini/test.clj';
     await startJackInProcedure(suite, 'calva.jackIn', undefined, testFile1, sequence1);
 
     // Wait for connection to complete
@@ -244,7 +244,7 @@ suite('Jack-in and Connect suite', () => {
       cljsType: CljsTypes.none,
     };
 
-    const testFile1 = '../bb-mini/test.clj';
+    const testFile1 = 'bb-mini/test.clj';
     await startJackInProcedure(suite, 'calva.jackIn', undefined, testFile1, sequence1);
     await waitForResult(suite);
     testUtil.log(suite, 'First jack-in complete');
@@ -277,7 +277,7 @@ suite('Jack-in and Connect suite', () => {
       cljsType: CljsTypes.none,
     };
 
-    const testFile2 = '../bb-mini2/test.clj';
+    const testFile2 = 'bb-mini2/test.clj';
     await startJackInProcedure(suite, 'calva.jackIn', undefined, testFile2, sequence2);
     await waitForResult(suite);
     testUtil.log(suite, 'Second jack-in complete');
