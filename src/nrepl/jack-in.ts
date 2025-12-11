@@ -108,12 +108,18 @@ function findProcessesForReconnection(connectSequence: ReplConnectSequence): Jac
   );
 }
 
-async function stopJackInProcess(entry: JackInProcessEntry): Promise<void> {
+async function stopJackInProcess(
+  entry: JackInProcessEntry,
+  options: { preserveSuffix?: boolean } = {}
+): Promise<void> {
   requestWindowsJackOut(entry);
 
   if (entry.clientKey) {
     try {
-      await connector.default.disconnect({ clientKey: entry.clientKey });
+      await connector.default.disconnect({
+        clientKey: entry.clientKey,
+        preserveSuffix: options.preserveSuffix,
+      });
     } catch (err) {
       console.warn('Failed disconnecting jack-in client cleanly', err);
     }
@@ -133,22 +139,31 @@ async function stopJackInProcess(entry: JackInProcessEntry): Promise<void> {
   }
 }
 
-async function stopJackInProcesses(entries: JackInProcessEntry[]): Promise<void> {
+async function stopJackInProcesses(
+  entries: JackInProcessEntry[],
+  options: { preserveSuffix?: boolean } = {}
+): Promise<void> {
   for (const entry of entries) {
-    await stopJackInProcess(entry);
+    await stopJackInProcess(entry, options);
   }
 }
 
 /**
  * Stop jack-in processes owned by a specific client.
  * Used when reconnection is detected to clean up processes from the old connection.
+ *
+ * @param clientKey - The client key to stop processes for
+ * @param options.preserveSuffix - If true, preserve the client's suffix during disconnect
  */
-export async function stopJackInProcessesByClientKey(clientKey: string): Promise<void> {
+export async function stopJackInProcessesByClientKey(
+  clientKey: string,
+  options: { preserveSuffix?: boolean } = {}
+): Promise<void> {
   const matching = listJackInProcesses().filter((entry) => entry.clientKey === clientKey);
   if (matching.length === 0) {
     return;
   }
-  await stopJackInProcesses(matching);
+  await stopJackInProcesses(matching, options);
 }
 
 /**

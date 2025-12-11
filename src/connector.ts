@@ -116,9 +116,17 @@ async function connectToHost(
         .filter(Boolean)
         .join(', ')}`
     );
-    // Clean up any jack-in processes associated with the client being replaced
-    await jackIn.stopJackInProcessesByClientKey(resolution.reconnectClientKey);
-    await disconnectClientByKey(resolution.reconnectClientKey, { preserveSuffix: true });
+    // First, clean up any jack-in processes for this client
+    // (stopJackInProcessesByClientKey will also disconnect the client if processes exist)
+    await jackIn.stopJackInProcessesByClientKey(resolution.reconnectClientKey, {
+      preserveSuffix: true,
+    });
+    // Then ensure the client is disconnected even if there were no jack-in processes
+    // (e.g., for "Connect to running REPL" sessions)
+    // Check if client still exists before disconnecting (jack-in cleanup may have already done it)
+    if (clientRegistry.getClient(resolution.reconnectClientKey)) {
+      await disconnectClientByKey(resolution.reconnectClientKey, { preserveSuffix: true });
+    }
   }
 
   const sessionGlobMap = sessionRoleUtils.deriveSessionGlobMap(
@@ -1333,7 +1341,11 @@ export default {
     return getConfig().autoConnectRepl && nReplPortFileExists();
   },
   disconnect: (
-    options: { clientKey?: string; disconnectAll?: boolean } | null = null,
+    options: {
+      clientKey?: string;
+      disconnectAll?: boolean;
+      preserveSuffix?: boolean;
+    } | null = null,
     callback = () => {
       // do nothing
     }
@@ -1347,6 +1359,7 @@ export default {
 
       let disconnectAll = options?.disconnectAll === true;
       let targetClientKey = options?.clientKey;
+      const preserveSuffix = options?.preserveSuffix ?? false;
 
       if (!disconnectAll && !targetClientKey && clients.length > 1) {
         const selection = await promptForClientDisconnect(clients);
@@ -1362,11 +1375,11 @@ export default {
 
       if (disconnectAll) {
         for (const client of [...clients]) {
-          await disconnectClientByKey(client.key);
+          await disconnectClientByKey(client.key, { preserveSuffix });
         }
       } else {
         const keyToDisconnect = targetClientKey || clients[0].key;
-        await disconnectClientByKey(keyToDisconnect);
+        await disconnectClientByKey(keyToDisconnect, { preserveSuffix });
       }
 
       callback();
