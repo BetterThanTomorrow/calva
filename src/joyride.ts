@@ -65,7 +65,7 @@ export async function joyrideJackIn(projectDir: string) {
       .startNReplServer(projectDir)
       .then(async (port) => {
         utilities.setLaunchingState(null);
-        await connector.connect(connectSequences.joyrideDefaults[0], true, 'localhost', `${port}`);
+        await connector.connect(connectSequences.joyrideBuiltIns[0], true, 'localhost', `${port}`);
         output.appendLineOtherOut('Jack-in done.');
         output.replWindowAppendPrompt();
       })

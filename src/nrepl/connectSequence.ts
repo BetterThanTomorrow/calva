@@ -12,7 +12,7 @@ import * as csTypes from './connect-sequence-types';
 // These have no commandLine and no startFunction in project-types.ts
 const connectOnlyProjectTypes = ['scittle'];
 
-const leiningenDefaults: csTypes.ReplConnectSequence[] = [
+const leiningenBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'Leiningen',
     projectType: csTypes.ProjectTypes.Leiningen,
@@ -45,7 +45,7 @@ const leiningenDefaults: csTypes.ReplConnectSequence[] = [
   },
 ];
 
-const cljDefaults: csTypes.ReplConnectSequence[] = [
+const cljBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'deps.edn',
     projectType: csTypes.ProjectTypes['deps.edn'],
@@ -78,7 +78,7 @@ const cljDefaults: csTypes.ReplConnectSequence[] = [
   },
 ];
 
-const shadowCljsDefaults: csTypes.ReplConnectSequence[] = [
+const shadowCljsBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'shadow-cljs',
     projectType: csTypes.ProjectTypes['shadow-cljs'],
@@ -86,7 +86,7 @@ const shadowCljsDefaults: csTypes.ReplConnectSequence[] = [
   },
 ];
 
-const leinShadowDefaults: csTypes.ReplConnectSequence[] = [
+const leinShadowBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'Leiningen + lein-shadow',
     projectType: csTypes.ProjectTypes['lein-shadow'],
@@ -94,7 +94,7 @@ const leinShadowDefaults: csTypes.ReplConnectSequence[] = [
   },
 ];
 
-const gradleDefaults: csTypes.ReplConnectSequence[] = [
+const gradleBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'Gradle',
     projectType: csTypes.ProjectTypes.Gradle,
@@ -102,7 +102,7 @@ const gradleDefaults: csTypes.ReplConnectSequence[] = [
   },
 ];
 
-const genericDefaults: csTypes.ReplConnectSequence[] = [
+const genericBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'Generic',
     projectType: csTypes.ProjectTypes['generic'],
@@ -110,7 +110,7 @@ const genericDefaults: csTypes.ReplConnectSequence[] = [
   },
 ];
 
-const cljProjectlessDefaults: csTypes.ReplConnectSequence[] = [
+const cljProjectlessBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'Clojure (projectless)',
     projectType: csTypes.ProjectTypes['clj-projectless'],
@@ -118,7 +118,7 @@ const cljProjectlessDefaults: csTypes.ReplConnectSequence[] = [
   },
 ];
 
-const customDefaults: csTypes.ReplConnectSequence[] = [
+const customBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'Custom',
     projectType: csTypes.ProjectTypes['custom'],
@@ -126,7 +126,7 @@ const customDefaults: csTypes.ReplConnectSequence[] = [
   },
 ];
 
-const cljsOnlyDefaults: csTypes.ReplConnectSequence[] = [
+const cljsOnlyBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'ClojureScript nREPL Server',
     projectType: csTypes.ProjectTypes['cljs-only'],
@@ -134,7 +134,7 @@ const cljsOnlyDefaults: csTypes.ReplConnectSequence[] = [
   },
 ];
 
-const babashkaDefaults: csTypes.ReplConnectSequence[] = [
+const babashkaBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'Babashka',
     projectType: csTypes.ProjectTypes['babashka'],
@@ -142,7 +142,7 @@ const babashkaDefaults: csTypes.ReplConnectSequence[] = [
   },
 ];
 
-const nbbDefaults: csTypes.ReplConnectSequence[] = [
+const nbbBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'nbb',
     projectType: csTypes.ProjectTypes['nbb'],
@@ -150,7 +150,7 @@ const nbbDefaults: csTypes.ReplConnectSequence[] = [
   },
 ];
 
-const joyrideDefaults: csTypes.ReplConnectSequence[] = [
+const joyrideBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'joyride',
     projectType: csTypes.ProjectTypes['joyride'],
@@ -158,7 +158,7 @@ const joyrideDefaults: csTypes.ReplConnectSequence[] = [
   },
 ];
 
-const scittleDefaults: csTypes.ReplConnectSequence[] = [
+const scittleBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'scittle',
     projectType: csTypes.ProjectTypes['scittle'],
@@ -166,7 +166,7 @@ const scittleDefaults: csTypes.ReplConnectSequence[] = [
   },
 ];
 
-const basilispDefaults: csTypes.ReplConnectSequence[] = [
+const basilispBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'basilisp',
     projectType: csTypes.ProjectTypes['basilisp'],
@@ -175,20 +175,20 @@ const basilispDefaults: csTypes.ReplConnectSequence[] = [
 ];
 
 const builtInSequences = {
-  lein: leiningenDefaults,
-  clj: cljDefaults,
-  'shadow-cljs': shadowCljsDefaults,
-  'lein-shadow': leinShadowDefaults,
-  gradle: gradleDefaults,
-  generic: genericDefaults,
-  'clj-projectless': cljProjectlessDefaults,
-  custom: customDefaults,
-  babashka: babashkaDefaults,
-  nbb: nbbDefaults,
-  basilisp: basilispDefaults,
-  joyride: joyrideDefaults,
-  scittle: scittleDefaults,
-  'cljs-only': cljsOnlyDefaults,
+  lein: leiningenBuiltIns,
+  clj: cljBuiltIns,
+  'shadow-cljs': shadowCljsBuiltIns,
+  'lein-shadow': leinShadowBuiltIns,
+  gradle: gradleBuiltIns,
+  generic: genericBuiltIns,
+  'clj-projectless': cljProjectlessBuiltIns,
+  custom: customBuiltIns,
+  babashka: babashkaBuiltIns,
+  nbb: nbbBuiltIns,
+  basilisp: basilispBuiltIns,
+  joyride: joyrideBuiltIns,
+  scittle: scittleBuiltIns,
+  'cljs-only': cljsOnlyBuiltIns,
 };
 
 const defaultCljsTypes: { [id: string]: csTypes.CljsTypeConfig } = {
@@ -505,10 +505,10 @@ export {
   askForConnectSequence,
   getConnectSequences,
   getDefaultCljsType,
-  genericDefaults,
-  cljsOnlyDefaults,
-  cljDefaults,
-  joyrideDefaults,
+  genericBuiltIns,
+  cljsOnlyBuiltIns,
+  cljBuiltIns,
+  joyrideBuiltIns,
 };
 
 export * from './connect-sequence-types';
