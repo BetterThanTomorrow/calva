@@ -169,15 +169,15 @@ suite('Jack-in and Connect suite', () => {
     this.timeout(120_000);
     testUtil.log(suite, 'Reconnection: different sequence name, same session names');
 
-    // First jack-in with "deps.edn + ClojureScript built-in for node" sequence
+    // First jack-in with Babashka (fast, lightweight)
     const sequence1: ReplConnectSequence = {
-      projectType: ProjectTypes['deps.edn'],
-      name: 'First ClojureScript Node Sequence',
-      cljsType: CljsTypes['ClojureScript built-in for node'],
+      projectType: ProjectTypes['babashka'],
+      name: 'First Babashka Sequence',
+      cljsType: CljsTypes.none,
       afterPrimaryReplConnectedCode: '(println "First connection")',
     };
 
-    const testFile1 = '../projects/cljs-only/src/hello_world/core.cljs';
+    const testFile1 = '../bb-mini/test.clj';
     await startJackInProcedure(suite, 'calva.jackIn', undefined, testFile1, sequence1);
 
     // Wait for connection to complete
@@ -190,11 +190,11 @@ suite('Jack-in and Connect suite', () => {
     const firstClientKey = clients1[0].key;
     testUtil.log(suite, `First client key: ${firstClientKey}`);
 
-    // Second jack-in with different sequence name but same base session names (clj, cljs)
+    // Second jack-in with different sequence name but same base session name (bb)
     const sequence2: ReplConnectSequence = {
-      projectType: ProjectTypes['deps.edn'],
-      name: 'Second ClojureScript Node Sequence', // Different name!
-      cljsType: CljsTypes['ClojureScript built-in for node'],
+      projectType: ProjectTypes['babashka'],
+      name: 'Second Babashka Sequence', // Different name!
+      cljsType: CljsTypes.none,
       afterPrimaryReplConnectedCode: '(println "Second connection")',
     };
 
@@ -217,19 +217,16 @@ suite('Jack-in and Connect suite', () => {
       'Client key should be different (new client)'
     );
 
-    // Verify sessions exist and use the expected names
+    // Verify session exists with expected name
     const sessions = sessionRegistry.listSessions();
     const sessionKeys = sessions.map((s) => s.key).sort();
     testUtil.log(suite, `Active sessions: ${sessionKeys.join(', ')}`);
 
-    // Should have clj and cljs sessions (the base session names, possibly with suffix)
+    // Should have bb session (the base session name)
+    assert.strictEqual(sessions.length, 1, 'Should have exactly one session');
     assert.ok(
-      sessionKeys.some((k) => k.startsWith('clj')),
-      'Should have a clj session'
-    );
-    assert.ok(
-      sessionKeys.some((k) => k.startsWith('cljs')),
-      'Should have a cljs session'
+      sessionKeys.some((k) => k.startsWith('bb')),
+      'Should have a bb session'
     );
 
     testUtil.log(suite, 'Reconnection test completed successfully');
@@ -240,14 +237,14 @@ suite('Jack-in and Connect suite', () => {
     this.timeout(120_000);
     testUtil.log(suite, 'Manual reconnect: two jack-ins, then reconnect first');
 
-    // First jack-in to cljs-only with explicit CLJS sequence
+    // First jack-in with Babashka (fast, lightweight)
     const sequence1: ReplConnectSequence = {
-      projectType: ProjectTypes['deps.edn'],
+      projectType: ProjectTypes['babashka'],
       name: 'First Manual Reconnect Test',
-      cljsType: CljsTypes['ClojureScript built-in for node'],
+      cljsType: CljsTypes.none,
     };
 
-    const testFile1 = '../projects/cljs-only/src/hello_world/core.cljs';
+    const testFile1 = '../bb-mini/test.clj';
     await startJackInProcedure(suite, 'calva.jackIn', undefined, testFile1, sequence1);
     await waitForResult(suite);
     testUtil.log(suite, 'First jack-in complete');
@@ -260,7 +257,7 @@ suite('Jack-in and Connect suite', () => {
     const sessions1 = sessionRegistry.listSessions();
     const firstSessionKeys = sessions1.map((s) => s.key).sort();
     testUtil.log(suite, `First jack-in sessions: ${firstSessionKeys.join(', ')}`);
-    assert.strictEqual(sessions1.length, 2, 'Should have 2 sessions after first jack-in');
+    assert.strictEqual(sessions1.length, 1, 'Should have 1 session after first jack-in');
 
     // Get jack-in process count before second jack-in
     const jackInProcessesBefore = jackIn.listJackInProcesses();
@@ -273,14 +270,14 @@ suite('Jack-in and Connect suite', () => {
       'Should have one jack-in process for first client'
     );
 
-    // Second jack-in to cljs-only2 (different project root to avoid reconnection during jack-in)
+    // Second jack-in to bb-mini2 (different project root to avoid reconnection during jack-in)
     const sequence2: ReplConnectSequence = {
-      projectType: ProjectTypes['deps.edn'],
+      projectType: ProjectTypes['babashka'],
       name: 'Second Manual Reconnect Test',
-      cljsType: CljsTypes['ClojureScript built-in for node'],
+      cljsType: CljsTypes.none,
     };
 
-    const testFile2 = '../projects/cljs-only2/src/hello_world2/core.cljs';
+    const testFile2 = '../bb-mini2/test.clj';
     await startJackInProcedure(suite, 'calva.jackIn', undefined, testFile2, sequence2);
     await waitForResult(suite);
     testUtil.log(suite, 'Second jack-in complete');
@@ -291,7 +288,7 @@ suite('Jack-in and Connect suite', () => {
     const sessions2 = sessionRegistry.listSessions();
     const allSessionKeys = sessions2.map((s) => s.key).sort();
     testUtil.log(suite, `All sessions after second jack-in: ${allSessionKeys.join(', ')}`);
-    assert.strictEqual(sessions2.length, 4, 'Should have 4 sessions total (2 per connection)');
+    assert.strictEqual(sessions2.length, 2, 'Should have 2 sessions total (1 per connection)');
 
     // Now manually reconnect to the first REPL (same port, same project root)
     testUtil.log(suite, 'Reconnecting to first REPL...');
@@ -315,22 +312,16 @@ suite('Jack-in and Connect suite', () => {
     );
     assert.strictEqual(clients3.length, 2, 'Should still have two clients after reconnect');
 
-    // Verify: Still have 4 sessions total
+    // Verify: Still have 2 sessions total
     const sessions3 = sessionRegistry.listSessions();
     const allSessionKeys3 = sessions3.map((s) => s.key).sort();
     testUtil.log(suite, `All sessions after reconnect: ${allSessionKeys3.join(', ')}`);
-    assert.strictEqual(sessions3.length, 4, 'Should still have 4 sessions after reconnect');
+    assert.strictEqual(sessions3.length, 2, 'Should still have 2 sessions after reconnect');
 
-    // Verify: The reconnected sessions preserved their original names (clj, cljs)
-    // and the second jack-in sessions are still there (clj:2, cljs:2)
-    assert.ok(
-      allSessionKeys3.includes('clj') && allSessionKeys3.includes('cljs'),
-      'Should have clj and cljs sessions (from reconnection)'
-    );
-    assert.ok(
-      allSessionKeys3.includes('clj:2') && allSessionKeys3.includes('cljs:2'),
-      'Should have clj:2 and cljs:2 sessions (from second jack-in)'
-    );
+    // Verify: The reconnected sessions preserved their original names (bb)
+    // and the second jack-in session is still there (bb:2)
+    assert.ok(allSessionKeys3.includes('bb'), 'Should have bb session (from reconnection)');
+    assert.ok(allSessionKeys3.includes('bb:2'), 'Should have bb:2 session (from second jack-in)');
 
     // Verify: We can successfully evaluate code in the reconnected REPL
     // This proves the jack-in terminal is still running and the connection works
