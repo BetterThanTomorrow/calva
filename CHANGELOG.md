@@ -20,12 +20,15 @@ Changes to Calva.
   - Updates default connect sequences for *Joyride*, *Babashka*, *nbb*, and *Basilisp*, to use custom `replSessionNames`, and configured default routings with `replSessionFilePatterns`.
   - Removed deprecated `calva.useLegacyReplWindowPath` setting. The REPL window is now always located at `.calva/repl.calva-repl`.
   - Let the first session connected determine where the REPL Window file is created.
+
 - Adds a new connect sequence: **Clojure projectless**, for jack-in and connect without a `deps.edn`, etcetera needed.
 - Improve error messages around CLJS build configuration
 - Adds [scittle](https://github.com/babashka/scittle) connect sequence
 - Adds `defaultPort` to connect sequence settings.
 - The `calva.copyJackInCommandToClipboard` command now accepts a connect sequence argument.
 - Add some messaging when using the REPL Window, and when potentially attempting to use it from the wrong `.calva-repl` file.
+
+- Bump default deps.clj to `v1.12.4.1582`
 
 ## [2.0.541] - 2025-12-08
 

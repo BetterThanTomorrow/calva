@@ -51,6 +51,8 @@ lib/
 cljs-out/
 test-out/
 repl-output-ui/js
+.cljs_node_repl/
+.cljs_browser_repl/
 
 # This and that
 .nrepl-port
