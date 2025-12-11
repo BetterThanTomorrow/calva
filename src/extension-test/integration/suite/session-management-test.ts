@@ -83,6 +83,29 @@ describe(`${suiteName} suite`, () => {
     assert.deepStrictEqual(serverMeta.globs, ['apps/server/**']);
   });
 
+  it('returns workspace-relative project root paths through the API', () => {
+    const absoluteProjectRoot = path.join(testUtil.testDataDir, 'projects', 'deps.edn');
+    sessionRegistry.registerSession(serverSessionKey, createSession('clj'), {
+      projectRoot: absoluteProjectRoot,
+      globs: ['**/*.clj'],
+    });
+
+    const sessions = replApi.listSessions();
+    assert.strictEqual(sessions.length, 1);
+    const session = sessions[0];
+
+    // Should return workspace-relative path, not absolute
+    assert.ok(session.projectRoot);
+    assert.ok(
+      !path.isAbsolute(session.projectRoot),
+      `Expected workspace-relative path but got absolute: ${session.projectRoot}`
+    );
+    assert.ok(
+      session.projectRoot.includes('projects/deps.edn'),
+      `Expected path to include projects/deps.edn but got: ${session.projectRoot}`
+    );
+  });
+
   it('toggle command cycles cljc target within a connection', () => {
     const clientKey = 'test-client';
     const stubClient = {

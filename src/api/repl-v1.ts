@@ -137,7 +137,9 @@ export const currentSessionKey = () => {
 export const listSessions = (): ReplSessionInfo[] => {
   return sessionRegistry.listSessions().map((session) => ({
     replSessionKey: session.key,
-    projectRoot: session.projectRoot,
+    projectRoot: session.projectRoot
+      ? vscode.workspace.asRelativePath(session.projectRoot)
+      : undefined,
     lastActivity: session.lastActivity,
     globs: session.globs,
   }));
