@@ -12,16 +12,8 @@ const suiteName = 'Name Suffix';
 
 suite('Name Suffix suite', () => {
   const jackInHarness = new testUtil.JackInHarness(suiteName);
-  const firstProjectFile = path.join(testUtil.testDataDir, 'test.clj');
-  const secondProjectFile = path.join(
-    testUtil.testDataDir,
-    '..',
-    'projects',
-    'minimal-deps',
-    'src',
-    'minimal',
-    'hello.clj'
-  );
+  const firstProjectFile = path.join(testUtil.testDataDir, 'bb-mini', 'test.clj');
+  const secondProjectFile = path.join(testUtil.testDataDir, 'bb-mini2', 'test.clj');
 
   let baseClientKey: string | undefined;
   let secondClientKey: string | undefined;
@@ -56,8 +48,8 @@ suite('Name Suffix suite', () => {
     testUtil.log(suiteName, 'First project session keys:', firstSessionKeys);
 
     assert.ok(
-      firstSessionKeys.includes('clj'),
-      `First project should have 'clj' session, got: ${firstSessionKeys}`
+      firstSessionKeys.includes('bb'),
+      `First project should have 'bb' session, got: ${firstSessionKeys}`
     );
 
     const allClients = clientRegistry.listClients();
@@ -119,7 +111,13 @@ suite('Name Suffix suite', () => {
       }
     }
 
-    baseClientKey = await jackInHarness.jackInWithQuickPick(firstProjectFile, 'deps.edn');
+    const sequence = {
+      name: 'First Babashka Connection',
+      projectType: 'babashka',
+      cljsType: 'none',
+      projectRootPath: [path.dirname(firstProjectFile)],
+    };
+    baseClientKey = await jackInHarness.jackInWithConnectSequence(firstProjectFile, sequence);
     return baseClientKey;
   }
 
@@ -131,7 +129,13 @@ suite('Name Suffix suite', () => {
       }
     }
 
-    secondClientKey = await jackInHarness.jackInWithQuickPick(secondProjectFile, 'deps.edn');
+    const sequence = {
+      name: 'Second Babashka Connection',
+      projectType: 'babashka',
+      cljsType: 'none',
+      projectRootPath: [path.dirname(secondProjectFile)],
+    };
+    secondClientKey = await jackInHarness.jackInWithConnectSequence(secondProjectFile, sequence);
     return secondClientKey;
   }
 
