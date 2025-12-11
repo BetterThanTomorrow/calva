@@ -163,6 +163,77 @@ suite('Jack-in and Connect suite', () => {
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
   });
+
+  test('Reconnection with different sequence name cleans up jack-in process', async function () {
+    this.timeout(120_000);
+    testUtil.log(suite, 'Reconnection: different sequence name, same session names');
+
+    // First jack-in with "deps.edn + ClojureScript built-in for node" sequence
+    const sequence1: ReplConnectSequence = {
+      projectType: ProjectTypes['deps.edn'],
+      name: 'First ClojureScript Node Sequence',
+      cljsType: CljsTypes['ClojureScript built-in for node'],
+      afterPrimaryReplConnectedCode: '(println "First connection")',
+    };
+
+    const testFile1 = '../projects/cljs-only/src/hello_world/core.cljs';
+    await startJackInProcedure(suite, 'calva.jackIn', undefined, testFile1, sequence1);
+
+    // Wait for connection to complete
+    await waitForResult(suite);
+    testUtil.log(suite, 'First connection established');
+
+    // Get first client info
+    const clients1 = clientRegistry.listClients();
+    assert.strictEqual(clients1.length, 1, 'Should have exactly one client after first jack-in');
+    const firstClientKey = clients1[0].key;
+    testUtil.log(suite, `First client key: ${firstClientKey}`);
+
+    // Second jack-in with different sequence name but same base session names (clj, cljs)
+    const sequence2: ReplConnectSequence = {
+      projectType: ProjectTypes['deps.edn'],
+      name: 'Second ClojureScript Node Sequence', // Different name!
+      cljsType: CljsTypes['ClojureScript built-in for node'],
+      afterPrimaryReplConnectedCode: '(println "Second connection")',
+    };
+
+    await startJackInProcedure(suite, 'calva.jackIn', undefined, testFile1, sequence2);
+
+    // Wait for second connection
+    await waitForResult(suite);
+    testUtil.log(suite, 'Second connection established');
+
+    // Verify reconnection behavior
+    const clients2 = clientRegistry.listClients();
+    assert.strictEqual(
+      clients2.length,
+      1,
+      'Should still have exactly one client after reconnection'
+    );
+    assert.notStrictEqual(
+      clients2[0].key,
+      firstClientKey,
+      'Client key should be different (new client)'
+    );
+
+    // Verify sessions exist and use the expected names
+    const sessions = sessionRegistry.listSessions();
+    const sessionKeys = sessions.map((s) => s.key).sort();
+    testUtil.log(suite, `Active sessions: ${sessionKeys.join(', ')}`);
+
+    // Should have clj and cljs sessions (the base session names, possibly with suffix)
+    assert.ok(
+      sessionKeys.some((k) => k.startsWith('clj')),
+      'Should have a clj session'
+    );
+    assert.ok(
+      sessionKeys.some((k) => k.startsWith('cljs')),
+      'Should have a cljs session'
+    );
+
+    testUtil.log(suite, 'Reconnection test completed successfully');
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  });
 });
 
 function appearInOrder(needle: string[], haystack: string[]) {

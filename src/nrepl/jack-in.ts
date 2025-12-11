@@ -140,6 +140,18 @@ async function stopJackInProcesses(entries: JackInProcessEntry[]): Promise<void>
 }
 
 /**
+ * Stop jack-in processes owned by a specific client.
+ * Used when reconnection is detected to clean up processes from the old connection.
+ */
+export async function stopJackInProcessesByClientKey(clientKey: string): Promise<void> {
+  const matching = listJackInProcesses().filter((entry) => entry.clientKey === clientKey);
+  if (matching.length === 0) {
+    return;
+  }
+  await stopJackInProcesses(matching);
+}
+
+/**
  * Stop jack-in processes that would be replaced by a new jack-in.
  * Only affects processes matching both sequence name AND current project root.
  */

@@ -8,6 +8,7 @@ import status from './status';
 import * as projectTypes from './nrepl/project-types';
 import { NReplClient, NReplSession } from './nrepl';
 import * as shadowCljsRuntime from './shadow-cljs-runtime';
+import * as jackIn from './nrepl/jack-in';
 import {
   CljsTypeConfig,
   ReplConnectSequence,
@@ -115,6 +116,8 @@ async function connectToHost(
         .filter(Boolean)
         .join(', ')}`
     );
+    // Clean up any jack-in processes associated with the client being replaced
+    await jackIn.stopJackInProcessesByClientKey(resolution.reconnectClientKey);
     await disconnectClientByKey(resolution.reconnectClientKey, { preserveSuffix: true });
   }
 
