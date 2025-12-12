@@ -103,6 +103,7 @@
           ".bb",
           ".ly",
           ".lpy",
+          ".jank",
           ".calva-repl",
           ".fiddle"
         ],
