@@ -256,14 +256,6 @@ const defaultCljsTypes: { [id: string]: csTypes.CljsTypeConfig } = {
 
 const connectSequencesDocLink = `  - See https://calva.io/connect-sequences/`;
 
-const defaultProjectSettingMsg = (project: string) =>
-  [
-    `Connecting using "${project}" project type.`,
-    `You can make Calva auto-select this.`,
-    connectSequencesDocLink,
-    '\n',
-  ].join('\n');
-
 /** Retrieve the replConnectSequences from the config */
 function getCustomConnectSequences(): csTypes.ReplConnectSequence[] {
   const sequences: csTypes.ReplConnectSequence[] = config.getConfig().replConnectSequences;
@@ -361,10 +353,6 @@ function getConnectSequences(projectTypes: string[]): csTypes.ReplConnectSequenc
     .filter((customSequence) => builtInSeqProjectTypes.includes(customSequence.projectType))
     .concat(builtInSeqs);
   return sequences;
-}
-
-function informAboutDefaultProjectForJackIn(project: string) {
-  output.appendLineOtherOut(defaultProjectSettingMsg(project));
 }
 
 /**
@@ -475,7 +463,7 @@ async function askForConnectSequence(
     projectConnectSequenceName = pickedSequence.label;
 
     if (projectConnectSequenceName) {
-      informAboutDefaultProjectForJackIn(projectConnectSequenceName);
+      output.appendLineOtherOut(`Connecting using "${projectConnectSequenceName}" project type.`);
     }
   }
 

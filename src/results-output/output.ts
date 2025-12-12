@@ -126,6 +126,8 @@ ${jackInVersions.formatEffectiveVersionsReport()}
 
 ${jackInVersions.formatLatestVersionsReport()}
 
+Please consider sponsoring Calva: https://calva.io/sponsors ♥️
+
 `
     );
   }
