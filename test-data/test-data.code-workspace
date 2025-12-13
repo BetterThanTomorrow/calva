@@ -220,6 +220,18 @@
 				}
 			},
 			{
+				"name": "Acme shadow-cljs Fullstack",
+				"projectType": "deps.edn",
+				"cljsType": "shadow-cljs",
+				"menuSelections": {
+					"cljsDefaultBuild": "frontend",
+					"cljsLaunchBuilds": [
+						"frontend"
+					]
+				},
+				"afterPrimaryReplConnectedCode": "(shadow.cljs.devtools.server.runtime/get-instance)\n(require 'repl)\n(repl/go!)\n(println \"REPL started.\nWeb server started on http://localhost:3000\")"
+			},
+			{
 				"name": "Connect Sequence deps-main-opts",
 				"projectType": "deps.edn",
 				"projectRootPath": [
