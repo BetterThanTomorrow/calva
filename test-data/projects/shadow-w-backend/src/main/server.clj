@@ -9,5 +9,6 @@
 
 (comment
   (-main)
-  (System/getProperty  "user.dir")
+  (System/getProperty "user.dir")
+  (rand-int 100)
   )
