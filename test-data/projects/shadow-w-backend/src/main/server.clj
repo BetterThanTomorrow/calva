@@ -11,4 +11,12 @@
   (-main)
   (System/getProperty "user.dir")
   (rand-int 100)
-  )
+  (with-open [r (java.io.FileInputStream. "/dev/urandom")]
+    (mod (->> #(.read r)
+              repeatedly
+              (filter #(< % 200))
+              (take 1)
+              doall
+              first)
+         100))
+  :rcf)
