@@ -1,4 +1,4 @@
-(ns main.server
+(ns main2.server2
   #_(:require [babashka.fs :as fs])
   (:gen-class))
 

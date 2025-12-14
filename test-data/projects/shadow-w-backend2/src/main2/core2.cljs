@@ -1,4 +1,4 @@
-(ns main.core2
+(ns main2.core2
   (:require [reagent.core :as r]
             [reagent.dom :as rdom]))
 
@@ -6,7 +6,8 @@
 
 (defn hello-world [x]
   [:div
-   [:h1 (:text @app-state) " " x "!"]
+   [:h1 (:text @app-state) " " x "! 2"]
+   [:p "shadow-w-backend2"]
    [:h3 "Edit this and watch it change!"]])
 
 (defn ^:dev/after-load start []

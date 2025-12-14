@@ -1,4 +1,4 @@
-(ns main.common)
+(ns main2.common2)
 
 (defn hello [s]
   #?(:cljs (js/console.log "Hello" s)

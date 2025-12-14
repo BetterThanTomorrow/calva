@@ -7,8 +7,8 @@
  {:app {:target :browser
         :output-dir "public/js/compiled"
         :asset-path "/js/compiled"
-        :modules {:main {:init-fn main.core2/init}}}
+        :modules {:main {:init-fn main2.core2/init}}}
   :app-too {:target :browser
             :output-dir "public/js/compiled-too"
             :asset-path "/js/compiled-too"
-            :modules {:main {:init-fn main.core2/init}}}}}
+            :modules {:main {:init-fn main2.core2/init}}}}}
