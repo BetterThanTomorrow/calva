@@ -5,6 +5,10 @@
             [dataspex.core :as dataspex]
             [replicant.dom :as r]))
 
+(comment
+  (events/dispatch! {} [:client/increment])
+  :rcf)
+
 (defn ^:dev/after-load render! []
   (r/render (js/document.getElementById "root")
             (views/app @db/!state)))
