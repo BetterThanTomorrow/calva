@@ -21,7 +21,7 @@
    :justify-content "space-around"})
 
 (def ^:private counter-card-style
-  {:padding "1rem"
+  {:padding "0.3rem"
    :border-radius "8px"
    :width "200px"})
 

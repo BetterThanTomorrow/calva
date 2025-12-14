@@ -10,7 +10,7 @@
             (views/app @db/!state)))
 
 (defn ^:export init! []
-  (println "Hello World - Replicant Edition")
+  (println "Hello World")
   (dataspex/inspect "!db/client-state" db/!state)
   (r/set-dispatch! #'events/dispatch!)
   (add-watch db/!state :render
