@@ -1,9 +1,13 @@
 (ns acme.server
   (:require [acme.db :as db]
-   [ring.adapter.jetty :as jetty]
-   [ring.middleware.file :as ring-file]
-   [ring.middleware.file-info :as ring-file-info]
-   [clojure.string :as string]))
+            [ring.adapter.jetty :as jetty]
+            [ring.middleware.file :as ring-file]
+            [ring.middleware.file-info :as ring-file-info]
+            [clojure.string :as string]))
+
+(comment
+  (System/getProperty "java.version")
+  :rcf)
 
 (defn api-handler [req]
   (let [uri (:uri req)
