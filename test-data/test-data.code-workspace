@@ -224,9 +224,9 @@
 				"projectType": "deps.edn",
 				"cljsType": "shadow-cljs",
 				"menuSelections": {
-					"cljsDefaultBuild": "frontend",
+					"cljsDefaultBuild": "app",
 					"cljsLaunchBuilds": [
-						"frontend"
+						"app"
 					]
 				},
 				"afterPrimaryReplConnectedCode": "(shadow.cljs.devtools.server.runtime/get-instance)\n(require 'repl)\n(repl/go!)\n(println \"REPL started.\nWeb server started on http://localhost:3000\")"

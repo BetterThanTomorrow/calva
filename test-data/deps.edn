@@ -4,23 +4,15 @@
  :aliases
  {:test-data
   {:extra-deps
-   {projects/auto-jack-in-absolute {:local/root "projects/auto-jack-in-absolute"}
-    projects/auto-jack-in-relative {:local/root "projects/auto-jack-in-relative"}
+   {projects/basilisp-blender {:local/root "projects/basilisp-blender"}
     projects/cljs-only {:local/root "projects/cljs-only"}
     projects/cljs-only2 {:local/root "projects/cljs-only2"}
     projects/completions {:local/root "projects/completions"}
     projects/current-form {:local/root "projects/current-form"}
     projects/deps-main-opts {:local/root "projects/deps-main-opts"}
-    projects/devcontainer {:local/root "projects/devcontainer"}
-    projects/e2e-sub-projects {:local/root "projects/e2e-sub-projects"}
-    projects/e2e-sub-projects-joyride-scripts {:local/root "projects/e2e-sub-projects/.joyride/scripts"}
-    projects/e2e-sub-projects-joyride-src {:local/root "projects/e2e-sub-projects/.joyride/src"}
-    projects/empty {:local/root "projects/empty"}
     projects/frankenstein {:local/root "projects/frankenstein"}
     projects/kaocha-project {:local/root "projects/kaocha-project"}
-    projects/lein-project {:local/root "projects/lein-project"}
     projects/load-bar-requiring-foo {:local/root "projects/load-bar-requiring-foo"}
-    projects/mini-re {:local/root "projects/mini-re"}
     projects/minimal-basilisp {:local/root "projects/minimal-basilisp"}
     projects/minimal-deps {:local/root "projects/minimal-deps"}
     projects/minimal-figwheel-main {:local/root "projects/minimal-figwheel-main"}
@@ -28,13 +20,11 @@
     projects/minimal-shadow-only {:local/root "projects/minimal-shadow-only"}
     projects/mono-repo {:local/root "projects/mono-repo"}
     projects/mono-repo-2 {:local/root "projects/mono-repo-2"}
-    projects/my-gradle {:local/root "projects/my-gradle"}
     projects/pirate-lang-test {:local/root "projects/pirate-lang"}
     projects/repl-connected-code {:local/root "projects/repl-connected-code"}
     projects/scittle-replicant-tic-tac-toe {:local/root "projects/scittle-replicant-tic-tac-toe"}
-    projects/scittle-replicant-tic-tac-toe-joyride-src {:local/root "projects/scittle-replicant-tic-tac-toe/.joyride/src"}
     projects/shadow-w-backend {:local/root "projects/shadow-w-backend"}
-    projects/shadow-w-backend-joyride-scripts {:local/root "projects/shadow-w-backend/.joyride/scripts"}
+    projects/shadow-w-backend-joyride {:local/root "projects/shadow-w-backend/.joyride"}
     projects/shadow-w-backend2 {:local/root "projects/shadow-w-backend2"}
-    projects/shadow-w-backend2-joyride-scripts {:local/root "projects/shadow-w-backend2/.joyride/scripts"}
+    projects/shadow-w-backend2-joyride {:local/root "projects/shadow-w-backend2/.joyride"}
     projects/full-stack-w-dataspex {:local/root "projects/full-stack-w-dataspex"}}}}}
