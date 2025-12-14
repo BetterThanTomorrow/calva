@@ -9,8 +9,8 @@
    :cursor "pointer"
    :margin "0.5rem"})
 
-(defn app [{:client/keys [counter] :as state}]
-  (let [server-counter (get state :server/counter "Loading...")]
+(defn app [{:app/keys [client-counter] :as state}]
+  (let [server-counter (get state :app/last-known-server-counter "Loading...")]
     [:div {:style {:text-align "center"
                    :padding "2rem"
                    :font-family "Arial, sans-serif"}}
@@ -23,7 +23,7 @@
                      :border-radius "8px"
                      :min-width "200px"}}
        [:h4 "Client Counter"]
-       [:h2 counter]
+       [:h2 client-counter]
        [:button {:style (assoc button-style :background "#4CAF50")
                  :on {:click [:client/increment]}}
         "Increment"]]
