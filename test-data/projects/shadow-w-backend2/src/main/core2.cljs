@@ -1,4 +1,4 @@
-(ns main.core
+(ns main.core2
   (:require [reagent.core :as r]
             [reagent.dom :as rdom]))
 
