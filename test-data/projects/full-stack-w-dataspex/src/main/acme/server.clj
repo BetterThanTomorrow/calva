@@ -1,23 +1,9 @@
 (ns acme.server
-  (:require
+  (:require [acme.db :as db]
    [ring.adapter.jetty :as jetty]
    [ring.middleware.file :as ring-file]
    [ring.middleware.file-info :as ring-file-info]
    [clojure.string :as string]))
-
-(defonce !server-state (atom {:server/counter 0}))
-
-(comment
-  (swap! !server-state assoc :server/hello :world)
-  (swap! !server-state update :server/counter inc)
-  :rcf)
-
-(defn get-server-counter []
-  (:server/counter @!server-state))
-
-(defn sync-client-to-server [client-counter]
-  (swap! !server-state assoc :server/counter client-counter)
-  (:server/counter @!server-state))
 
 (defn api-handler [req]
   (let [uri (:uri req)
@@ -27,18 +13,18 @@
       {:status 200
        :headers {"content-type" "application/json"
                  "access-control-allow-origin" "*"}
-       :body (str "{\"server-counter\":" (get-server-counter) "}")}
+       :body (str "{\"server-counter\":" (:server/counter @db/!state) "}")}
 
-      (and (= method :post) (= uri "/api/sync"))
+      (and (= method :post) (= uri "/api/set-counter"))
       (let [body (slurp (:body req))
             client-counter (try
                              (-> body (string/replace #"[^0-9]" "") parse-long)
-                             (catch Exception _ 0))
-            new-server-counter (sync-client-to-server client-counter)]
+                             (catch Exception _ 0))]
+        (swap! db/!state assoc :server/counter client-counter)
         {:status 200
          :headers {"content-type" "application/json"
                    "access-control-allow-origin" "*"}
-         :body (str "{\"server-counter\":" new-server-counter "}")})
+         :body (str "{\"server-counter\":" (:server/counter @db/!state) "}")})
 
       :else
       {:status 404

@@ -25,23 +25,24 @@
    :border-radius "8px"
    :width "200px"})
 
-(defn app [{:app/keys [client-counter] :as state}]
+(defn app [{:app/keys [counter] :as state}]
   (let [server-counter (get state :app/last-known-server-counter "Loading...")]
     [:div {:style container-style}
      [:h3 "Acme Full-Stack Counter App"]
      [:div {:style counters-container-style}
       [:div {:style (assoc counter-card-style :border "2px solid #4CAF50")}
        [:h4 "Client Counter"]
-       [:h2 client-counter]
+       [:h2 counter]
        [:button {:style (assoc button-style :background "#4CAF50")
                  :on {:click [:client/increment]}}
-        "Increment"]]
+        "Increment"]
+       [:button {:style (assoc button-style :background "#2196F3")
+                 :on {:click [:server/set-counter]}}
+        "Send to Server"]]
       [:div {:style (assoc counter-card-style :border "2px solid #2196F3")}
        [:h4 "Server Counter"]
        [:h2 server-counter]
-       [:button {:style (assoc button-style :background "#2196F3")
-                 :on {:click [:server/sync]}}
-        "Sync to Server"]
+
        [:button {:style (assoc button-style :background "#FF9800")
                  :on {:click [:server/fetch]}}
-        "Refresh"]]]]))
+        "Refresh from Server"]]]]))
