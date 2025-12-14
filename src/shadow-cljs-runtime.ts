@@ -73,6 +73,50 @@ function getCurrentBuild() {
 }
 
 /**
+ * Get available shadow-cljs runtimes for a specific client connection.
+ * Use this when the clientKey is known (e.g., during initial connection setup).
+ */
+async function getShadowRuntimesForClient(
+  clientKey: string
+): Promise<shadowRuntimeCore.RuntimeInfo[] | null> {
+  try {
+    const cljSession = sessionRegistry.getPrimarySessionForClient(clientKey);
+    if (!cljSession) {
+      output.appendLineOtherErr('No Clojure session available for runtime detection');
+      return null;
+    }
+
+    const currentBuild = clientRegistry.getConnectionState(clientKey)?.cljsBuild;
+    if (!currentBuild) {
+      output.appendLineOtherErr('No shadow-cljs build currently connected');
+      return null;
+    }
+
+    const getRuntimesCode = `(shadow.cljs.devtools.api/repl-runtimes ${currentBuild})`;
+
+    const result = await cljSession.eval(getRuntimesCode, 'user').value;
+
+    if (!result || result === '()' || result === '[]') {
+      output.appendLineOtherOut('No runtimes currently connected to shadow-cljs');
+      return [];
+    }
+
+    // Parse the EDN data structure returned by shadow-cljs
+    try {
+      const apiRuntimes: shadowRuntimeCore.ShadowApiRuntimeInfo[] = parseEdnWithInst(result);
+      return apiRuntimes.map(shadowRuntimeCore.normalizeRuntimeInfo);
+    } catch (parseError) {
+      output.appendLineOtherErr(`Error parsing runtime information: ${parseError}`);
+      output.appendLineOtherOut(`Raw result: ${result}`);
+      return null;
+    }
+  } catch (error) {
+    output.appendLineOtherErr(`Error querying shadow-cljs runtimes: ${error}`);
+    return null;
+  }
+}
+
+/**
  * Get available shadow-cljs runtimes for the current build
  */
 export async function getShadowRuntimes(): Promise<shadowRuntimeCore.RuntimeInfo[] | null> {
@@ -245,21 +289,36 @@ export async function selectShadowCljsRuntimeCommand(): Promise<void> {
 }
 
 /**
- * Detect and store the initially connected runtime after CLJS REPL setup
- * This handles the case where shadow-cljs automatically connects to a runtime
+ * Detect and store the initially connected runtime after CLJS REPL setup.
+ * This handles the case where shadow-cljs automatically connects to a runtime.
+ *
+ * When called during initial connection (before session routing is set up),
+ * pass the clientKey explicitly to avoid relying on session routing lookup.
  */
-export async function detectInitialRuntime(): Promise<void> {
+export async function detectInitialRuntime(clientKey?: string): Promise<void> {
   try {
-    // Get connection context for the currently routed session
-    const ctx = getConnectionContextForCurrentSession();
-    if (!ctx) {
-      return;
+    let effectiveClientKey: string;
+    let connectionState;
+
+    if (clientKey) {
+      // Use the explicitly provided clientKey (during initial connection)
+      effectiveClientKey = clientKey;
+      connectionState = clientRegistry.getConnectionState(clientKey);
+    } else {
+      // Fall back to looking up via session routing (for later calls)
+      const ctx = getConnectionContextForCurrentSession();
+      if (!ctx) {
+        return;
+      }
+      effectiveClientKey = ctx.clientKey;
+      connectionState = ctx.connectionState;
     }
-    if (ctx.connectionState.cljsTypeName !== 'shadow-cljs') {
+
+    if (!connectionState || connectionState.cljsTypeName !== 'shadow-cljs') {
       return; // Only run for shadow-cljs projects
     }
 
-    const runtimes = await getShadowRuntimes();
+    const runtimes = await getShadowRuntimesForClient(effectiveClientKey);
     if (!runtimes || runtimes.length === 0) {
       output.appendLineOtherOut(`No shadow-cljs runtimes detected.`);
       return; // No runtimes available
@@ -268,7 +327,7 @@ export async function detectInitialRuntime(): Promise<void> {
     const runtime = runtimes[0];
     const clientId = runtime.clientId;
 
-    updateRuntimeState(clientId, runtime, ctx.clientKey);
+    updateRuntimeState(clientId, runtime, effectiveClientKey);
 
     status.update();
     if (runtimes.length > 1) {

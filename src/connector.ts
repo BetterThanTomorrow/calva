@@ -801,7 +801,7 @@ function createCLJSReplType(
       }
       const runtimesConnected = await waitForShadowCljsRuntimes();
       if (runtimesConnected) {
-        await shadowCljsRuntime.detectInitialRuntime();
+        await shadowCljsRuntime.detectInitialRuntime(clientKey);
       }
       return runtimesConnected;
     } else {
