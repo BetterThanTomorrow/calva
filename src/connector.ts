@@ -1365,7 +1365,7 @@ export default {
       let targetClientKey = options?.clientKey;
       const preserveSuffix = options?.preserveSuffix ?? false;
 
-      if (!disconnectAll && !targetClientKey && clients.length > 1) {
+      if (!disconnectAll && !targetClientKey) {
         const selection = await promptForClientDisconnect(clients);
         if (!selection) {
           return;
