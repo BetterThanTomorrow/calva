@@ -13,6 +13,8 @@
 * [x] Sessions menu, use basename for "Used for" detail
 * [x] Can't repro: Some issue with connecting to shadow projects
 * [ ] Split connect-sequence.md info so that the advanced stuff is separate
-* [ ] Add session menu screenshots to connect-sequence.md
-* [ ] Update/add screenshots to repl-ui.md
-* [ ] Update/add screenshots to connect.md
+* [x] Add session menu screenshots to connect-sequence.md
+* [x] Update/add screenshots to repl-ui.md
+* [x] Update/add screenshots to connect.md
+* [x] Fix REPL Menu
+* [ ] Challenge design of select cljc target
