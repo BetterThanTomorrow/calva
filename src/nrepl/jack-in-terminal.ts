@@ -34,7 +34,7 @@ export class JackInPTY implements vscode.Pseudoterminal {
   open(initialDimensions: vscode.TerminalDimensions | undefined): void {
     this.isOpen = true;
     this.writeEmitter.fire(
-      'This is a pseudo terminal, only used for hosting the Jack-in REPL process. It takes no input.\r\nPressing ctrl+c with this terminal focused, killing this terminal, or closing/reloading the VS Code window will all stop/kill the Jack-in REPL process.\r\n\r\n'
+      'This is a pseudo terminal, only used for hosting the Jack-in REPL process. It takes no input.\r\nPressing ctrl+c with this terminal focused, killing this terminal, or closing/reloading the VS Code window will all stop/kill the Jack-in REPL process.\r\n\r\nPlease consider sponsoring Calva: https://calva.io/sponsors ♥️\r\n\r\n'
     );
     // Flush any pending writes that happened before open()
     this.pendingWrites.forEach((msg) => this.writeEmitter.fire(msg));
