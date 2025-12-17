@@ -35,7 +35,8 @@
              [:li [:a {:href "https://github.com/babashka/scittle"} "Scittle"]]
              [:li [:a {:href "https://replicant.fun"} "Replicant"]]]
             [:div#app]]]
-    :key :sidebar-1}))
+    :key :sidebar-1
+    :title "Greetings, Professor Falken."}))
 
 (comment
   (replicant-ttt)
