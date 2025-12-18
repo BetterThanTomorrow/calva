@@ -55,7 +55,6 @@ export async function findProjectRootsWithReasons(params?: FindRootParams) {
     'deps.edn',
     'bb.edn',
     'basilisp.edn',
-    '.joyride/*',
   ];
   if (params?.include_lsp_directories) {
     projectFileNames.push(...lspDirectories);
