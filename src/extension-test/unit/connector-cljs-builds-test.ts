@@ -3,15 +3,15 @@ import * as cljsBuilds from '../../connector-cljs-builds';
 import * as connectSeq from '../../nrepl/connect-sequence-types';
 
 describe('connector-cljs-builds', () => {
-  describe('isShadowCljsReplType', () => {
+  describe('isShadowCljsConnector', () => {
     it('returns true for shadow-cljs enum type', () => {
-      expect(cljsBuilds.isShadowCljsReplType(connectSeq.CljsTypes['shadow-cljs'])).toBe(true);
+      expect(cljsBuilds.isShadowCljsConnector(connectSeq.CljsTypes['shadow-cljs'])).toBe(true);
     });
 
     it('returns false for other enum types', () => {
-      expect(cljsBuilds.isShadowCljsReplType(connectSeq.CljsTypes['Figwheel Main'])).toBe(false);
-      expect(cljsBuilds.isShadowCljsReplType(connectSeq.CljsTypes['lein-figwheel'])).toBe(false);
-      expect(cljsBuilds.isShadowCljsReplType(connectSeq.CljsTypes.none)).toBe(false);
+      expect(cljsBuilds.isShadowCljsConnector(connectSeq.CljsTypes['Figwheel Main'])).toBe(false);
+      expect(cljsBuilds.isShadowCljsConnector(connectSeq.CljsTypes['lein-figwheel'])).toBe(false);
+      expect(cljsBuilds.isShadowCljsConnector(connectSeq.CljsTypes.none)).toBe(false);
     });
 
     it('returns true for config object with name shadow-cljs', () => {
@@ -20,7 +20,7 @@ describe('connector-cljs-builds', () => {
         isStarted: false,
         connectCode: '',
       };
-      expect(cljsBuilds.isShadowCljsReplType(config)).toBe(true);
+      expect(cljsBuilds.isShadowCljsConnector(config)).toBe(true);
     });
 
     it('returns true for config object with dependsOn shadow-cljs', () => {
@@ -30,7 +30,7 @@ describe('connector-cljs-builds', () => {
         isStarted: false,
         connectCode: '',
       };
-      expect(cljsBuilds.isShadowCljsReplType(config)).toBe(true);
+      expect(cljsBuilds.isShadowCljsConnector(config)).toBe(true);
     });
 
     it('returns false for config object without shadow-cljs reference', () => {
@@ -39,12 +39,12 @@ describe('connector-cljs-builds', () => {
         isStarted: false,
         connectCode: '',
       };
-      expect(cljsBuilds.isShadowCljsReplType(config)).toBe(false);
+      expect(cljsBuilds.isShadowCljsConnector(config)).toBe(false);
     });
 
     it('handles null and undefined gracefully', () => {
-      expect(cljsBuilds.isShadowCljsReplType(null as any)).toBe(false);
-      expect(cljsBuilds.isShadowCljsReplType(undefined as any)).toBe(false);
+      expect(cljsBuilds.isShadowCljsConnector(null as any)).toBe(false);
+      expect(cljsBuilds.isShadowCljsConnector(undefined as any)).toBe(false);
     });
   });
 

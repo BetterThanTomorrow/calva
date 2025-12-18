@@ -255,7 +255,7 @@ async function connectToHost(
           ? getDefaultCljsType(connectSequence.cljsType as string)
           : (connectSequence.cljsType as CljsTypeConfig);
 
-        const translatedReplType = createCLJSReplType(
+        const connector = createCljsReplConnector(
           cljsType,
           projectTypes.getCljsTypeName(connectSequence),
           connectSequence,
@@ -266,7 +266,7 @@ async function connectToHost(
 
         [cljsSession, cljsBuild] = await makeCljsSessionClone(
           mainSession,
-          translatedReplType,
+          connector,
           connectSequence.name,
           localClient.clientKey
         );
@@ -281,7 +281,7 @@ async function connectToHost(
           sessionGlobMap
         );
       }
-      if (useSecondarySession && isShadowCljsReplType(connectSequence.cljsType)) {
+      if (useSecondarySession && isShadowCljsConnector(connectSequence.cljsType)) {
         await shadowCljsRuntime.initializeShadowRemoteNotifications();
       }
     } catch (e) {
@@ -497,7 +497,7 @@ async function evalConnectCode(
   return await checkSuccess(valueResult, out, err);
 }
 
-export interface ReplType {
+export interface CljsReplConnector {
   name: string;
   start?: connectFn;
   started?: (valueResult: string, out: string[], err: string[]) => Promise<boolean>;
@@ -589,19 +589,18 @@ async function selectCljsBuild(
 // Use the extracted pure function from connector-cljs-builds
 const updateInitCode = cljsBuilds.updateInitCode;
 
-function createCLJSReplType(
+function createCljsReplConnector(
   cljsType: CljsTypeConfig,
   cljsTypeName: string,
   connectSequence: ReplConnectSequence,
   clientKey: string,
   roleKeys: SessionRoleKeys,
-  globMap: SessionGlobMap,
   options: { useDefaultBuild?: boolean; preSelectedBuild?: string } = {}
-): ReplType {
+): CljsReplConnector {
   // This function is only called when a secondary session is expected
-  const secondaryKey = roleKeys.secondary;
-  if (!secondaryKey) {
-    throw new Error('createCLJSReplType called without secondary session key');
+  const cljsSessionKey = roleKeys.secondary;
+  if (!cljsSessionKey) {
+    throw new Error('createCljsReplConnector called without secondary session key');
   }
 
   // Get project root from client registry to avoid using global state
@@ -683,7 +682,7 @@ function createCLJSReplType(
       output.appendOtherOut(x);
     };
 
-  const replType: ReplType = {
+  const connector: CljsReplConnector = {
     name: cljsTypeName,
     connect: async (session, name, checkFn) => {
       // Store hasBuilds in per-connection state
@@ -796,7 +795,7 @@ function createCLJSReplType(
         [...out, result].find((x) => {
           return x?.search(cljsType.isConnectedRegExp) >= 0;
         }) != undefined;
-      if (!isConnectCodeEvaluatedSuccessfully || !isShadowCljsReplType(cljsType)) {
+      if (!isConnectCodeEvaluatedSuccessfully || !isShadowCljsConnector(cljsType)) {
         return isConnectCodeEvaluatedSuccessfully;
       }
       const runtimesConnected = await waitForShadowCljsRuntimes();
@@ -810,7 +809,7 @@ function createCLJSReplType(
   }
 
   if (cljsType.startCode && shouldRunStartCode) {
-    replType.start = async (session, name, checkFn) => {
+    connector.start = async (session, name, checkFn) => {
       let startCode = cljsType.startCode;
       if (!hasStarted) {
         if (startCode.includes('%BUILDS')) {
@@ -910,7 +909,7 @@ function createCLJSReplType(
     };
   }
 
-  replType.started = (_result, out, err): Promise<boolean> => {
+  connector.started = (_result, out, err): Promise<boolean> => {
     return new Promise((resolve, _reject) => {
       if (cljsType.isReadyToStartRegExp && !hasStarted) {
         const started =
@@ -928,15 +927,15 @@ function createCLJSReplType(
     });
   };
 
-  return replType;
+  return connector;
 }
 
 // Use the extracted pure function from connector-cljs-builds
-const isShadowCljsReplType = cljsBuilds.isShadowCljsReplType;
+const isShadowCljsConnector = cljsBuilds.isShadowCljsConnector;
 
 async function makeCljsSessionClone(
   session,
-  repl: ReplType,
+  connector: CljsReplConnector,
   projectTypeName: string,
   clientKey: string
 ): Promise<[NReplSession | null, string | null]> {
@@ -945,8 +944,8 @@ async function makeCljsSessionClone(
   newCljsSession.replType = 'cljs';
   if (newCljsSession) {
     output.appendLineOtherOut('Connecting cljs repl: ' + projectTypeName + '...');
-    if (repl.start != undefined) {
-      if (await repl.start(newCljsSession, repl.name, repl.started)) {
+    if (connector.start != undefined) {
+      if (await connector.start(newCljsSession, connector.name, connector.started)) {
         output.appendLineOtherOut('Cljs builds started');
         newCljsSession = await session.clone();
         newCljsSession.replType = 'cljs';
@@ -956,7 +955,7 @@ async function makeCljsSessionClone(
         return [null, null];
       }
     }
-    if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
+    if (await connector.connect(newCljsSession, connector.name, connector.connected)) {
       return [newCljsSession, clientRegistry.getConnectionState(clientKey)?.cljsBuild ?? null];
     } else {
       const build = clientRegistry.getConnectionState(clientKey)?.cljsBuild ?? null;
@@ -1531,19 +1530,18 @@ export default {
       ? getDefaultCljsType(connectSequence.cljsType as string)
       : (connectSequence.cljsType as CljsTypeConfig);
 
-    const replType = createCLJSReplType(
+    const connector = createCljsReplConnector(
       cljsType,
       projectTypes.getCljsTypeName(connectSequence),
       connectSequence,
       clientKey,
       roleKeys,
-      globMap,
       { useDefaultBuild: false, preSelectedBuild: selectedBuild }
     );
 
     const [cljsSession, build] = await makeCljsSessionClone(
       cljSession,
-      replType,
+      connector,
       cljsTypeName,
       clientKey
     );

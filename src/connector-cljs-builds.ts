@@ -4,7 +4,7 @@ import * as stringUtil from './util/string';
 /**
  * Checks if a CLJS type configuration represents a shadow-cljs REPL.
  */
-export function isShadowCljsReplType(cljsType: CljsTypeConfig | CljsTypes): boolean {
+export function isShadowCljsConnector(cljsType: CljsTypeConfig | CljsTypes): boolean {
   if (typeof cljsType === 'string') {
     return cljsType === 'shadow-cljs';
   }
