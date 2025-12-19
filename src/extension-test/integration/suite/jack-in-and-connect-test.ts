@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { before, after, beforeEach } from 'mocha';
+import { before, after, beforeEach, afterEach } from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as util from '../../../utilities';
@@ -29,7 +29,13 @@ suite('Jack-in and Connect suite', () => {
     await testUtil.ensureOutputDir(testUtil.testDataDir);
   });
 
-  after(() => {
+  after(async () => {
+    // Ensure all REPL processes are killed at suite end to prevent orphaned Java processes
+    // Use force=true because test harness shutdown is similar to VS Code deactivation
+    testUtil.log(suite, 'Suite cleanup: killing all jack-in processes');
+    await jackIn.calvaJackout({ force: true });
+    // Give processes time to terminate
+    await testUtil.sleep(500);
     testUtil.showMessage(suite, 'suite done!');
   });
 

@@ -646,7 +646,9 @@ async function activate(context: vscode.ExtensionContext) {
 }
 
 async function deactivate(): Promise<void> | undefined {
-  await jackIn.calvaJackout();
+  // Use force=true during deactivation because VS Code is shutting down
+  // and graceful shutdown callbacks may not fire in time
+  await jackIn.calvaJackout({ force: true });
   paredit.deactivate();
   await lsp.getClientProvider().shutdown();
 }

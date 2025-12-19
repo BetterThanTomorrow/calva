@@ -110,7 +110,7 @@ function findProcessesForReconnection(connectSequence: ReplConnectSequence): Jac
 
 async function stopJackInProcess(
   entry: JackInProcessEntry,
-  options: { preserveSuffix?: boolean } = {}
+  options: { preserveSuffix?: boolean; force?: boolean } = {}
 ): Promise<void> {
   requestWindowsJackOut(entry);
 
@@ -126,7 +126,7 @@ async function stopJackInProcess(
   }
 
   try {
-    entry.pty.killProcess();
+    entry.pty.killProcess(options.force);
   } catch (err) {
     console.warn('Failed killing Jack-in process', err);
   } finally {
@@ -141,7 +141,7 @@ async function stopJackInProcess(
 
 async function stopJackInProcesses(
   entries: JackInProcessEntry[],
-  options: { preserveSuffix?: boolean } = {}
+  options: { preserveSuffix?: boolean; force?: boolean } = {}
 ): Promise<void> {
   for (const entry of entries) {
     await stopJackInProcess(entry, options);
@@ -347,13 +347,18 @@ function requestWindowsJackOut(entry: JackInProcessEntry) {
   );
 }
 
-export async function calvaJackout() {
+/**
+ * Stop all jack-in processes.
+ * @param options.force - If true, kill processes immediately without waiting for graceful shutdown.
+ *                        Use force=true during VS Code deactivation.
+ */
+export async function calvaJackout(options: { force?: boolean } = {}) {
   const processes = listJackInProcesses();
   if (processes.length === 0) {
     return;
   }
 
-  await stopJackInProcesses(processes);
+  await stopJackInProcesses(processes, { force: options.force });
 }
 
 export function revealJackInTerminal() {

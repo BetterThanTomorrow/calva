@@ -5,6 +5,7 @@ import * as testUtil from './util';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as replSession from '../../../nrepl/repl-session';
+import * as jackIn from '../../../nrepl/jack-in';
 import * as vscode from 'vscode';
 import { commands } from 'vscode';
 import connector from '../../../connector';
@@ -60,6 +61,11 @@ suite('CLJC Routing suite', function () {
 
   after(async () => {
     testUtil.showMessage(suiteName, `suite done!`);
+
+    // Kill jack-in processes to prevent orphaned Java processes
+    testUtil.log(suiteName, 'Suite cleanup: killing all jack-in processes');
+    await jackIn.calvaJackout({ force: true });
+    await testUtil.sleep(500);
 
     // Disconnect after all tests
     const clients = clientRegistry.listClients();

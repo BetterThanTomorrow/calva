@@ -131,24 +131,56 @@ export class JackInPTY implements vscode.Pseudoterminal {
     });
   }
 
-  killProcess(): void {
-    console.log('Jack-in process kill requested');
+  /**
+   * Kill the jack-in process.
+   * @param force - If true, kill immediately without waiting for graceful shutdown.
+   *                Use force=true during VS Code deactivation when callbacks may not fire.
+   *                Default is false for graceful shutdown during normal jack-out.
+   */
+  killProcess(force = false): void {
+    console.log(`Jack-in process kill requested (force=${force})`);
     if (this.process && !this.process.killed) {
       this.writeEmitter.fire('🛑 Stopping/killing the Jacked-in REPL process... 🛑\r\n');
-      console.log('Jack-in terminal killProcess(): Closing any ongoing stdin event');
-      this.process.stdin.end(() => {
-        // On some machines we need to use tree-kill to kill the process, so we do it always
+      const pid = this.process.pid;
+
+      if (force) {
+        // Force kill: Don't wait for stdin.end() callback as it may never fire
+        // during VS Code shutdown. Kill immediately.
         // https://github.com/BetterThanTomorrow/calva/issues/2116
-        console.log('Jack-in terminal killProcess(): Killing process using tree-kill');
-        kill(this.process.pid, 'SIGTERM', (err) => {
+        console.log('Jack-in terminal killProcess(): Force killing process tree using tree-kill');
+        kill(pid, 'SIGTERM', (err) => {
           if (err) {
-            console.log('Jack-in terminal killProcess(): Error killing process', err);
+            console.log('Jack-in terminal killProcess(): Error killing process tree', err);
+            try {
+              this.process?.kill('SIGTERM');
+            } catch (e) {
+              console.log('Jack-in terminal killProcess(): Fallback kill also failed', e);
+            }
           } else {
-            // The test for this.process.killed above needs this to have happened too
-            this.process.kill();
+            console.log('Jack-in terminal killProcess(): Process tree killed successfully');
           }
         });
-      });
+        // Also end stdin, but don't block on it
+        try {
+          this.process.stdin.end();
+        } catch (e) {
+          console.log('Jack-in terminal killProcess(): Error ending stdin', e);
+        }
+      } else {
+        // Graceful shutdown: Wait for stdin to close before killing
+        console.log('Jack-in terminal killProcess(): Graceful shutdown - closing stdin first');
+        this.process.stdin.end(() => {
+          console.log('Jack-in terminal killProcess(): stdin closed, killing process tree');
+          kill(this.process.pid, 'SIGTERM', (err) => {
+            if (err) {
+              console.log('Jack-in terminal killProcess(): Error killing process', err);
+            } else {
+              // The test for this.process.killed above needs this to have happened too
+              this.process.kill();
+            }
+          });
+        });
+      }
     } else if (this.process && this.process.killed) {
       this.writeEmitter.fire(
         'The Jacked-in REPL process is already killed. Jack-in again to start a new REPL.\r\n'
