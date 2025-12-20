@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Bump default deps.clj to `v1.12.4.1582`
+- [Fixed nRepl unknown-session](https://github.com/BetterThanTomorrow/calva/issues/2974)
 
 ## [2.0.541] - 2025-12-08
 
