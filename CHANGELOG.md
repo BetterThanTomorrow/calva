@@ -28,7 +28,10 @@ Changes to Calva.
 - The `calva.copyJackInCommandToClipboard` command now accepts a connect sequence argument.
 - Add some messaging when using the REPL Window, and when potentially attempting to use it from the wrong `.calva-repl` file.
 
+## [2.0.542] - 2025-12-20
+
 - Bump default deps.clj to `v1.12.4.1582`
+- [Fixed nRepl unknown-session](https://github.com/BetterThanTomorrow/calva/issues/2974)
 
 ## [2.0.541] - 2025-12-08
 

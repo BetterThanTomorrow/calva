@@ -176,7 +176,7 @@ export class NReplClient {
               log(msg, Direction.ClientToServer);
               client.encoder.write(msg);
             }
-          } else if (data['id'] === cloneId) {
+          } else if (data['id'] === cloneId && data['new-session']) {
             client.session = new NReplSession(data['new-session'], client);
             const msg = {
               op: 'describe',
