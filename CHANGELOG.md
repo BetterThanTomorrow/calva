@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.542] - 2025-12-20
+
+- Bump default deps.clj to `v1.12.4.1582`
+- [Fixed nRepl unknown-session](https://github.com/BetterThanTomorrow/calva/issues/2974)
+
 ## [2.0.541] - 2025-12-08
 
 - [Enable editing of Jack In Dependency Versions in the Settings UI](https://github.com/BetterThanTomorrow/calva/issues/2969)
