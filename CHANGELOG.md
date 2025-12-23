@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.543] - 2025-12-23
+
 - [Add support for multiple concurrent nrepl connections](https://github.com/BetterThanTomorrow/calva/issues/76)
   - Updates to [Connect Sequences](https://calva.io/connect-sequences/):
     - Custom REPL session names via `replSessionNames`: `primary` (defaults to `clj`) and `secondary` (defaults to `cljs`).
