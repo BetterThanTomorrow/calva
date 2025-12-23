@@ -1,5 +1,5 @@
 import { takeWhile } from 'lodash';
-import type { ResultsBuffer } from '../repl-window/repl-doc';
+import type { ResultsBuffer } from '../repl-window/repl-window-doc';
 
 function addToHistory(history: string[], content?: string): string[] {
   if (content) {

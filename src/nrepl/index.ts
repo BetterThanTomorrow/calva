@@ -12,7 +12,7 @@ import {
 import * as debug from '../debugger/calva-debug';
 import * as vscode from 'vscode';
 import debugDecorations from '../debugger/decorations';
-import * as outputWindow from '../repl-window/repl-doc';
+import * as outputWindow from '../repl-window/repl-window-doc';
 import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
 import { getStateValue } from '../../out/cljs-lib/cljs-lib';
@@ -46,7 +46,10 @@ function resultHandler(resolve: any, reject: any) {
 
 /** An nREPL client */
 export class NReplClient {
+  private static ClientSequence = 0;
   private _nextId = 0;
+
+  public readonly clientKey: string = `nrepl-client-${++NReplClient.ClientSequence}`;
 
   /** Returns a new id unique to this client */
   get nextId() {
@@ -144,7 +147,9 @@ export class NReplClient {
    */
   static create(opts: { host: string; port: number; onError: (e) => void }) {
     return new Promise<NReplClient>((resolve, reject) => {
+      let connected = false;
       const socket = net.createConnection(opts, () => {
+        connected = true;
         const nsId = client.nextId;
         const cloneId = client.nextId;
         const describeId = client.nextId;
@@ -194,6 +199,12 @@ export class NReplClient {
         const msg = { op: 'eval', code: '*ns*', id: nsId };
         log(msg, Direction.ClientToServer);
         client.encoder.write(msg);
+      });
+      // Handle connection errors - reject the promise if not yet connected
+      socket.on('error', (e) => {
+        if (!connected) {
+          reject(e);
+        }
       });
       const client = new NReplClient(socket, opts.onError);
     });
@@ -295,7 +306,7 @@ export class NReplSession {
 
   _defaultMessageHandler(msgData: any) {
     if (msgData.op === 'shadow-remote-msg') {
-      void handleShadowRemoteMessage(msgData);
+      void handleShadowRemoteMessage(msgData, this.client.clientKey);
       return;
     }
 

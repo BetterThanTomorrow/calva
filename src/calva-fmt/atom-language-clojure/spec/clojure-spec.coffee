@@ -356,6 +356,16 @@ describe "Clojure grammar", ->
     it "does not tokenize repl prompt when not followed by hard space", ->
       {tokens} = grammar.tokenizeLine "foo꞉bar.baz-2꞉>"
       expect(tokens[0]).toEqual value: "foo", scopes: ["source.clojure", "entity.name.variable.clojure"]
+    it "tokenizes repl prompt with session suffix", ->
+      {tokens} = grammar.tokenizeLine "foo:s_u-f2fix꞉bar.baz-2꞉> "
+      expect(tokens[0]).toEqual value: "foo:s_u-f2fix", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
+      expect(tokens[1]).toEqual value: "꞉", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
+      expect(tokens[2]).toEqual value: "bar.baz-2", scopes: ["source.clojure", "entity.name.namespace.prompt.clojure"]
+      expect(tokens[3]).toEqual value: "꞉>", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
+    it "does not tokenize as repl prompt when suffix contains something outside letters, digits, colons, dashes, and underscores", ->
+      {tokens} = grammar.tokenizeLine "foo:suf%fix꞉bar.baz-2꞉> "
+      expect(tokens[0]).toEqual value: "foo:suf", scopes: ["source.clojure", "entity.name.variable.clojure"]
+
 
   describe "firstLineMatch", ->
     it "recognises interpreter directives", ->

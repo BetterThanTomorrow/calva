@@ -3,7 +3,6 @@ import * as utilities from '../utilities';
 import * as _ from 'lodash';
 import * as state from '../state';
 import * as connector from '../connector';
-import { nClient } from '../connector';
 import statusbar from '../statusbar';
 import {
   askForConnectSequence,
@@ -12,7 +11,7 @@ import {
   getConnectSequences,
 } from './connectSequence';
 import * as projectTypes from './project-types';
-import * as outputWindow from '../repl-window/repl-doc';
+import * as outputWindow from '../repl-window/repl-window-doc';
 import {
   JackInPTY as JackInPTY,
   JackInPTYOptions as JackInPTYOptions,
@@ -24,6 +23,8 @@ import * as joyride from '../joyride';
 import { ConnectType } from './connect-types';
 import * as output from '../results-output/output';
 import * as inspector from '../providers/inspector';
+import * as clientRegistry from './client-registry';
+import type { RegisteredClient } from './client-registry';
 
 function resolveEnvVariables(entry: any): any {
   if (typeof entry === 'string') {
@@ -45,8 +46,223 @@ function getGlobalJackInEnv() {
   };
 }
 
-let jackInPTY: JackInPTY = undefined;
-let jackInTerminal: vscode.Terminal = undefined;
+type JackInProcessEntry = {
+  id: number;
+  pty: JackInPTY;
+  terminal: vscode.Terminal;
+  connectSequence: ReplConnectSequence;
+  disposables: vscode.Disposable[];
+  connected: boolean;
+  clientKey?: string;
+  projectRootUri?: string;
+  connectSequenceName?: string;
+};
+
+const activeJackInProcesses = new Map<number, JackInProcessEntry>();
+let nextJackInProcessId = 1;
+
+export function listJackInProcesses(): JackInProcessEntry[] {
+  return Array.from(activeJackInProcesses.values()).sort((a, b) => a.id - b.id);
+}
+
+function getProjectRootUriString(): string | undefined {
+  return state.getProjectRootUri()?.toString();
+}
+
+function matchesProjectRoot(entry: JackInProcessEntry, targetRootUri: string | undefined): boolean {
+  if (!targetRootUri || !entry.projectRootUri) {
+    return true;
+  }
+
+  return entry.projectRootUri === targetRootUri;
+}
+
+function matchesConnectSequence(
+  entry: JackInProcessEntry,
+  connectSequence: ReplConnectSequence,
+  targetRootUri: string | undefined
+): boolean {
+  if (!connectSequence) {
+    return false;
+  }
+
+  if (entry.connectSequence.name !== connectSequence.name) {
+    return false;
+  }
+
+  if (entry.connectSequence.projectType !== connectSequence.projectType) {
+    return false;
+  }
+
+  return matchesProjectRoot(entry, targetRootUri);
+}
+
+/**
+ * Find jack-in processes that would be replaced by a new jack-in.
+ * Matches by both sequence name AND current project root.
+ */
+function findProcessesForReconnection(connectSequence: ReplConnectSequence): JackInProcessEntry[] {
+  const targetRootUri = getProjectRootUriString();
+  return listJackInProcesses().filter((entry) =>
+    matchesConnectSequence(entry, connectSequence, targetRootUri)
+  );
+}
+
+async function stopJackInProcess(
+  entry: JackInProcessEntry,
+  options: { preserveSuffix?: boolean; force?: boolean } = {}
+): Promise<void> {
+  requestWindowsJackOut(entry);
+
+  if (entry.clientKey) {
+    try {
+      await connector.default.disconnect({
+        clientKey: entry.clientKey,
+        preserveSuffix: options.preserveSuffix,
+      });
+    } catch (err) {
+      console.warn('Failed disconnecting jack-in client cleanly', err);
+    }
+  }
+
+  try {
+    entry.pty.killProcess(options.force);
+  } catch (err) {
+    console.warn('Failed killing Jack-in process', err);
+  } finally {
+    try {
+      entry.terminal.dispose();
+    } catch (err) {
+      console.warn('Failed disposing Jack-in terminal', err);
+    }
+    handleJackInProcessExit(entry.id);
+  }
+}
+
+async function stopJackInProcesses(
+  entries: JackInProcessEntry[],
+  options: { preserveSuffix?: boolean; force?: boolean } = {}
+): Promise<void> {
+  for (const entry of entries) {
+    await stopJackInProcess(entry, options);
+  }
+}
+
+/**
+ * Stop jack-in processes owned by a specific client.
+ * Used when reconnection is detected to clean up processes from the old connection.
+ *
+ * @param clientKey - The client key to stop processes for
+ * @param options.preserveSuffix - If true, preserve the client's suffix during disconnect
+ */
+export async function stopJackInProcessesByClientKey(
+  clientKey: string,
+  options: { preserveSuffix?: boolean } = {}
+): Promise<void> {
+  const matching = listJackInProcesses().filter((entry) => entry.clientKey === clientKey);
+  if (matching.length === 0) {
+    return;
+  }
+  await stopJackInProcesses(matching, options);
+}
+
+/**
+ * Stop jack-in processes that would be replaced by a new jack-in.
+ * Only affects processes matching both sequence name AND current project root.
+ */
+async function stopProcessesForReconnection(connectSequence: ReplConnectSequence): Promise<void> {
+  const matching = findProcessesForReconnection(connectSequence);
+  if (matching.length === 0) {
+    return;
+  }
+
+  await stopJackInProcesses(matching);
+}
+
+/**
+ * Find clients that would be replaced by a new connection.
+ * Matches by both sequence name AND current project root.
+ * Clients with the same sequence but different project roots are left alone
+ * (name conflicts are handled via suffixes in connector.connectToHost()).
+ */
+function findClientsForReconnection(connectSequence: ReplConnectSequence): RegisteredClient[] {
+  const targetRootUri = getProjectRootUriString();
+
+  return clientRegistry.listClients().filter((client) => {
+    if (client.connectSequenceName !== connectSequence.name) {
+      return false;
+    }
+    if (!targetRootUri) {
+      return true;
+    }
+    if (!client.projectRoot) {
+      return false;
+    }
+    return client.projectRoot === targetRootUri;
+  });
+}
+
+/**
+ * Disconnect clients that would be replaced by a new connection.
+ * Only affects clients matching both sequence name AND current project root.
+ */
+async function stopClientsForReconnection(connectSequence: ReplConnectSequence): Promise<void> {
+  const clients = findClientsForReconnection(connectSequence);
+  for (const client of clients) {
+    await connector.default.disconnect({ clientKey: client.key });
+  }
+}
+
+function refreshJackedInState() {
+  const hasConnectedProcess = Array.from(activeJackInProcesses.values()).some(
+    (entry) => entry.connected
+  );
+  utilities.setJackedInState(hasConnectedProcess);
+  statusbar.update();
+}
+
+function registerJackInProcess(connectSequence: ReplConnectSequence): JackInProcessEntry {
+  const pty = new JackInPTY();
+  const terminal = (<any>vscode.window).createTerminal({
+    name: `Calva Jack-in: ${connectSequence.name}`,
+    pty,
+  });
+  const selectedSequenceName =
+    state.extensionContext.workspaceState.get<ReplConnectSequence>('selectedConnectSequence')?.name;
+  const entry: JackInProcessEntry = {
+    id: nextJackInProcessId++,
+    pty,
+    terminal,
+    connectSequence,
+    disposables: [],
+    connected: false,
+    projectRootUri: getProjectRootUriString(),
+    connectSequenceName: selectedSequenceName ?? connectSequence.name,
+  };
+  let cleanedUp = false;
+  const handleExit = () => {
+    if (cleanedUp) {
+      return;
+    }
+    cleanedUp = true;
+    handleJackInProcessExit(entry.id);
+  };
+  entry.disposables.push(pty.onDidClose(handleExit));
+  entry.disposables.push(pty.onDidExit(handleExit));
+  activeJackInProcesses.set(entry.id, entry);
+  return entry;
+}
+
+function handleJackInProcessExit(processId: number) {
+  const entry = activeJackInProcesses.get(processId);
+  if (!entry) {
+    return;
+  }
+  activeJackInProcesses.delete(processId);
+  entry.disposables.forEach((d) => d.dispose());
+  refreshJackedInState();
+  liveShareSupport.didJackOut();
+}
 
 async function executeJackInTask(
   terminalOptions: JackInPTYOptions,
@@ -55,22 +271,10 @@ async function executeJackInTask(
 ) {
   utilities.setLaunchingState(connectSequence.name);
   statusbar.update();
-
-  if (!jackInPTY) {
-    jackInPTY = new JackInPTY();
-    jackInTerminal = (<any>vscode.window).createTerminal({
-      name: `Calva Jack-in: ${connectSequence.name}`,
-      pty: jackInPTY,
-    });
-    jackInPTY.onDidClose((e) => {
-      calvaJackout();
-    });
-  } else {
-    jackInPTY.clearTerminal();
-  }
+  const jackInProcess = registerJackInProcess(connectSequence);
 
   if (getConfig().autoOpenJackInTerminal) {
-    jackInTerminal.show();
+    jackInProcess.terminal.show();
   }
 
   return vscode.window.withProgress(
@@ -83,17 +287,21 @@ async function executeJackInTask(
       return new Promise<void>((resolve, reject) => {
         try {
           token.onCancellationRequested(() => {
-            calvaJackout();
+            jackInProcess.pty.killProcess();
             reject(new Error('Jack-in was cancelled by the user.'));
           });
-          void jackInPTY.startClojureProgram(
+          void jackInProcess.pty.startClojureProgram(
             terminalOptions,
             (_p, hostname: string, port: string) => {
               utilities.setLaunchingState(null);
               resolve();
-              void connector.connect(connectSequence, true, hostname, port).then(() => {
-                utilities.setJackedInState(true);
-                statusbar.update();
+              void connector.connect(connectSequence, true, hostname, port, true).then((result) => {
+                const entry = activeJackInProcesses.get(jackInProcess.id);
+                if (entry) {
+                  entry.connected = result.connected;
+                  entry.clientKey = result.clientKey;
+                }
+                refreshJackedInState();
                 output.appendLineOtherOut('Jack-in done.');
                 output.replWindowAppendPrompt();
                 if (cb) {
@@ -102,7 +310,7 @@ async function executeJackInTask(
               });
             },
             (status: number) => {
-              setJackedOutStatus();
+              utilities.setLaunchingState(null);
               void vscode.window
                 .showErrorMessage(
                   `Jack-in was interrupted. Exit code: ${status}`,
@@ -125,49 +333,62 @@ async function executeJackInTask(
   );
 }
 
-function setJackedOutStatus() {
-  utilities.setLaunchingState(null);
-  utilities.setJackedInState(false);
-  statusbar.update();
+function requestWindowsJackOut(entry: JackInProcessEntry) {
+  if (!projectTypes.isWin || !entry.clientKey) {
+    return;
+  }
+  const client = clientRegistry.getClient(entry.clientKey);
+  if (!client?.session) {
+    return;
+  }
+  client.session.eval(
+    '(do (.start (Thread. (fn [] (Thread/sleep 5000) (shutdown-agents) (System/exit 0)))) nil)',
+    'user'
+  );
 }
 
-export function calvaJackout() {
-  if (jackInPTY !== undefined) {
-    if (projectTypes.isWin) {
-      // this is a hack under Windows to terminate the
-      // repl process from the repl client because the
-      // ShellExecution under Windows will not terminate
-      // all child processes.
-      //
-      // the clojure code to terminate the repl process
-      // was taken from this comment on github:
-      //
-      // https://github.com/clojure-emacs/cider/issues/390#issuecomment-317791387
-      //
-      if (nClient && nClient.session) {
-        nClient.session.eval(
-          '(do (.start (Thread. (fn [] (Thread/sleep 5000) (shutdown-agents) (System/exit 0)))) nil)',
-          'user'
-        );
-      }
-    }
-    connector.default.disconnect();
-    jackInPTY.killProcess();
-    setJackedOutStatus();
+/**
+ * Stop all jack-in processes.
+ * @param options.force - If true, kill processes immediately without waiting for graceful shutdown.
+ *                        Use force=true during VS Code deactivation.
+ */
+export async function calvaJackout(options: { force?: boolean } = {}) {
+  const processes = listJackInProcesses();
+  if (processes.length === 0) {
+    return;
   }
 
-  liveShareSupport.didJackOut();
+  await stopJackInProcesses(processes, { force: options.force });
 }
 
 export function revealJackInTerminal() {
-  if (jackInTerminal) {
-    jackInTerminal.show();
+  const processes = listJackInProcesses();
+  const latest = processes[processes.length - 1];
+  if (latest) {
+    latest.terminal.show();
   }
 }
 
-export async function copyJackInCommandToClipboard(): Promise<void> {
+export async function copyJackInCommandToClipboard(options?: {
+  connectSequence?: ReplConnectSequence | string;
+  disableAutoSelect?: boolean;
+}): Promise<void> {
+  let providedSequence: ReplConnectSequence | undefined;
+
+  if (options && typeof options.connectSequence === 'string') {
+    providedSequence = getConnectSequences(projectTypes.getAllProjectTypes()).find(
+      (s) => s.name === options.connectSequence
+    );
+  } else if (options?.connectSequence) {
+    providedSequence = options.connectSequence as ReplConnectSequence;
+  }
+
   try {
-    await state.initProjectDir(ConnectType.JackIn, undefined);
+    await state.initProjectDir(
+      ConnectType.JackIn,
+      providedSequence,
+      options?.disableAutoSelect ?? false
+    );
   } catch (e) {
     console.error('An error occurred while initializing project directory.', e);
     return;
@@ -175,7 +396,8 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
 
   let projectConnectSequence: ReplConnectSequence;
   try {
-    projectConnectSequence = await getProjectConnectSequence(false);
+    projectConnectSequence =
+      providedSequence ?? (await getProjectConnectSequence(options?.disableAutoSelect ?? false));
   } catch (e) {
     return;
   }
@@ -183,7 +405,7 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
     try {
       const options = await getJackInTerminalOptions(projectConnectSequence);
       if (options) {
-        void vscode.env.clipboard.writeText(createCommandLine(options));
+        await vscode.env.clipboard.writeText(createCommandLine(options));
         const message = `Jack-in command line copied to the clipboard.${
           projectTypes.isWin ? ' It is tailored for cmd.exe and may not work in other shells.' : ''
         }`;
@@ -238,11 +460,14 @@ async function getJackInTerminalOptions(
 
   const projectType = projectTypes.getProjectTypeForName(projectTypeName);
 
-  if (!projectType?.commandLine) {
+  // Allow jack-in if either the project type has commandLine, or the sequence has customJackInCommandLine
+  if (!projectType?.commandLine && !projectConnectSequence.customJackInCommandLine) {
     throw new Error(`Project type ${projectTypeName} does not support Jack-in.`);
   }
 
-  const commandLineInfo = await projectType.commandLine(projectConnectSequence, selectedCljsType);
+  const commandLineInfo = projectType?.commandLine
+    ? await projectType.commandLine(projectConnectSequence, selectedCljsType)
+    : { args: [], substitutions: {} };
 
   let args: string[] = commandLineInfo.args;
   let cmd: string[];
@@ -251,7 +476,7 @@ async function getJackInTerminalOptions(
   } else {
     cmd = typeof projectType.cmd === 'function' ? projectType.cmd() : projectType.cmd;
   }
-  const nReplPortFile = projectConnectSequence.nReplPortFile ?? projectType.nReplPortFile;
+  const nReplPortFile = projectConnectSequence.nReplPortFile ?? projectType.defaultNReplPortFile;
   const substitutions = {
     'PROJECT-ROOT-PATH': state.getProjectRootLocal(),
     ...(nReplPortFile
@@ -291,7 +516,7 @@ async function getProjectConnectSequence(disableAutoSelect: boolean): Promise<Re
   if (joyride.isJoyrideExtensionActive() && joyride.isJoyrideNReplServerRunning()) {
     excludes.push('joyride');
   }
-  if (cljTypes.length > 1) {
+  if (cljTypes.length >= 1) {
     return askForConnectSequence(
       cljTypes.filter((t) => !excludes.includes(t)),
       ConnectType.JackIn,
@@ -321,9 +546,9 @@ async function executeJackIn(
     return;
   }
   inspector.revealOnConnect();
-  await outputWindow.initResultsDoc();
+  await outputWindow.initReplWindowDoc();
   output.appendLineOtherOut('Jacking in...');
-  await outputWindow.openResultsDoc();
+  await outputWindow.openReplWindowDoc();
 
   let projectConnectSequence: ReplConnectSequence = connectSequence;
   if (!projectConnectSequence) {
@@ -342,6 +567,9 @@ async function executeJackIn(
   }
   if (projectConnectSequence) {
     const projectType = projectTypes.getProjectTypeForName(projectConnectSequence.projectType);
+    await stopProcessesForReconnection(projectConnectSequence);
+    await stopClientsForReconnection(projectConnectSequence);
+
     if (projectType.startFunction) {
       void projectType.startFunction();
     } else {
@@ -364,25 +592,16 @@ async function executeJackIn(
   void liveShareSupport.didJackIn();
 }
 
-export async function jackIn(
+export function jackIn(
   connectSequence: ReplConnectSequence,
   disableAutoSelect: boolean,
   cb?: () => unknown
 ): Promise<unknown> {
-  return new Promise((resolve, reject) => {
-    if (jackInPTY && !jackInPTY.isProcessAlive()) {
-      resolve(executeJackIn(connectSequence, disableAutoSelect, cb));
-    } else {
-      calvaJackout();
-      setTimeout(() => {
-        resolve(executeJackIn(connectSequence, disableAutoSelect, cb));
-      }, 1000);
-    }
-  });
+  return executeJackIn(connectSequence, disableAutoSelect, cb);
 }
 
 export function jackOutCommand() {
-  calvaJackout();
+  return calvaJackout();
 }
 
 export async function jackInCommand(options: {
@@ -408,7 +627,7 @@ export async function jackInCommand(options: {
 
 export function calvaDisconnect() {
   if (utilities.getConnectedState()) {
-    connector.default.disconnect();
+    void connector.default.disconnect();
     return;
   } else if (utilities.getConnectingState() || utilities.getLaunchingState()) {
     void vscode.window
@@ -419,8 +638,8 @@ export function calvaDisconnect() {
       )
       .then((value) => {
         if (value == 'Ok') {
-          calvaJackout();
-          connector.default.disconnect();
+          void calvaJackout();
+          void connector.default.disconnect();
           utilities.setLaunchingState(null);
           utilities.setConnectingState(false);
           statusbar.update();

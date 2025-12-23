@@ -1,0 +1,8 @@
+{:paths ["src/main" "src/dev"]
+ :deps {org.clojure/clojure {:mvn/version "1.12.4"}
+        org.clojure/clojurescript {:mvn/version "1.12.134"}
+        ring/ring-jetty-adapter {:mvn/version "1.14.2"}
+        no.cjohansen/replicant {:mvn/version "2025.06.21"}
+        thheller/shadow-cljs {:mvn/version "3.2.1"}
+        io.github.tonsky/clj-reload {:mvn/version "0.9.7"}
+        no.cjohansen/dataspex {:mvn/version "2025.10.2"}}}

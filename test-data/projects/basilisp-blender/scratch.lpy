@@ -1,0 +1,8 @@
+(ns scratch
+  (:import bpy))
+
+(comment
+  (import sys)
+  sys/version
+  sys/executable
+  :rcf)

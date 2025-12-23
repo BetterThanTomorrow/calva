@@ -30,6 +30,12 @@ When you are editing things in the REPL window, and want to open the file that d
 !!! Note
     This also works for Clojure core and library namespaces.
 
+## Which `.calve-repl` file is the REPL Window?
+
+The first repl connected will determine the location of the REPL Window file. This file will be created at `<project-root>/.calva/repl.calva-repl`.
+
+When opening/activating other `.calva/repl.calva-repl` files, potentially from earlier sessions when you have connected a different project first, Calva will pop up a message informing you about the possible mix-up. The message includes a button helping you find the real REPL Window.
+
 ## Evaluating Code
 
 The window will be automatically associated with the REPL and the namespace of any project Clojure/ClojureScript file you evaluate code in. So for instance if you evaluate this code in a `clj` file with the namespace `fresh-reagent.handler`:
@@ -133,15 +139,13 @@ The repl window is mostly a regular... (you get it), which means you also have t
 
 ## It is Ephemeral
 
-The contents of the output/REPL window is written to a file named `output.repl` in the `.calva/output-window` directory of your project. The file is recreated every new session, so you should copy or save anything you want to preserve between sessions.
+The contents of the REPL window is written to a file named `repl.calva-repl` in the `.calva` directory of your project root. The file is recreated every new session, so you should copy or save anything you want to preserve between sessions.
 
-You probably want to add `.calva/output-window/` to your `.<something>ignore` files. (There are some more files in that directory that you shouldn't keep under source control.)
+You probably want to add `.calva/repl.calva-repl` to your `.<something>ignore` files.
 
 ## Choose CLJ or CLJS REPL Connection
 
-In full-stack projects, you will probably use the window as a REPL for both `clj` and `cljs`. You can toggle which REPL the window is connected to by using the command **Calva: Toggle REPL Connection for CLJC files**. There is also a button for this in the status bar:
-
-![Toggle CLJC](images/howto/cljc-toggle-button.png)
+In multi-repl projects, the REPL window is treated as `.cljc` file.
 
 
 ## Known Quirks and Caveats

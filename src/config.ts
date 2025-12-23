@@ -20,7 +20,7 @@ const FIDDLE_FILE_EXT = 'fiddle';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
 const KEYBINDINGS_ENABLED_CONTEXT_KEY = 'calva:keybindingsEnabled';
 
-type ReplSessionType = 'clj' | 'cljs';
+type ReplSessionType = string;
 
 // include the 'file' and 'untitled' to the
 // document selector. All other schemes are
@@ -183,19 +183,32 @@ function getConfig() {
 
   const replConnectSequencesConfig =
     configOptions.inspect<ReplConnectSequence[]>('replConnectSequences');
+  const normalizeAfterMainReplCode = (code: string | string[] | undefined): string | undefined => {
+    if (Array.isArray(code)) {
+      return code.join('\n');
+    }
+    return code;
+  };
+
   const replConnectSequences = [
     ...(replConnectSequencesConfig.workspaceFolderValue ?? []),
     ...(replConnectSequencesConfig.workspaceValue ?? []),
     ...(replConnectSequencesConfig.globalValue ?? []),
   ].map((sequence) => {
-    if (Array.isArray(sequence.afterCLJReplJackInCode)) {
+    const normalizedCode =
+      normalizeAfterMainReplCode(
+        sequence.afterPrimaryReplConnectedCode as string | string[] | undefined
+      ) ??
+      normalizeAfterMainReplCode(sequence.afterCLJReplJackInCode as string | string[] | undefined);
+
+    if (normalizedCode !== undefined) {
       return {
         ...sequence,
-        afterCLJReplJackInCode: sequence.afterCLJReplJackInCode.join('\n'),
+        afterPrimaryReplConnectedCode: normalizedCode,
       };
-    } else {
-      return sequence;
     }
+
+    return sequence;
   });
 
   return {
@@ -259,7 +272,6 @@ function getConfig() {
     fiddleFilePaths: configOptions.get<fiddleFilesUtil.FiddleFilePaths>('fiddleFilePaths'),
     outputDestinations:
       configOptions.get<output.OutputDestinationConfiguration>('outputDestinations'),
-    useLegacyReplWindowPath: configOptions.get<boolean>('useLegacyReplWindowPath'),
     legacyPrintBareReplWindowOutput: configOptions.get<boolean>('legacyPrintBareReplWindowOutput'),
     basilispPath: configOptions.get<string>('basilispPath'),
     refreshNssBeforeFn: configOptions.get<string>('refreshNssBeforeFn'),

@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
-import * as outputWindow from './repl-window/repl-doc';
+import * as outputWindow from './repl-window/repl-window-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
 import { isUndefined } from 'lodash';
@@ -15,6 +15,14 @@ import * as output from './results-output/output';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
+
+/**
+ * Extended QuickPickItem that supports a disabled state.
+ * Disabled items will re-show the picker when selected.
+ */
+export interface CalvaQuickPickItem extends vscode.QuickPickItem {
+  disabled?: boolean;
+}
 
 export function capitalize(str: string) {
   return str.length === 0 ? str : str[0].toUpperCase() + str.substring(1);
@@ -45,20 +53,21 @@ export function assertIsDefined<T>(
 
 async function quickPickSingle(opts: {
   title?: string;
-  values: vscode.QuickPickItem[];
+  values: CalvaQuickPickItem[];
   saveAs: string;
-  default?: vscode.QuickPickItem;
+  default?: CalvaQuickPickItem;
   placeHolder?: string;
   autoSelect?: boolean;
-}): Promise<vscode.QuickPickItem | undefined> {
+}): Promise<CalvaQuickPickItem | undefined> {
   if (opts.values.length == 0) {
     return;
   }
   const saveAs = `qps-${opts.saveAs}`;
   const selected =
-    opts.default ?? state.extensionContext.workspaceState.get<vscode.QuickPickItem>(saveAs);
+    opts.default ?? state.extensionContext.workspaceState.get<CalvaQuickPickItem>(saveAs);
 
-  const hasOnlyOneOption = opts.autoSelect && opts.values.length == 1;
+  // Don't auto-select if the only option is disabled
+  const hasOnlyOneOption = opts.autoSelect && opts.values.length == 1 && !opts.values[0].disabled;
 
   const result = hasOnlyOneOption
     ? opts.values[0]
@@ -68,17 +77,19 @@ async function quickPickSingle(opts: {
         ignoreFocusOut: true,
       });
 
-  void state.extensionContext.workspaceState.update(saveAs, result);
+  if (result && !result.disabled) {
+    void state.extensionContext.workspaceState.update(saveAs, result);
+  }
   return result;
 }
 
 async function quickPickMulti(opts: {
-  values: vscode.QuickPickItem[];
+  values: CalvaQuickPickItem[];
   saveAs: string;
   placeHolder: string;
 }) {
   const saveAs = `qps-${opts.saveAs}`;
-  const selected = state.extensionContext.workspaceState.get<vscode.QuickPickItem[]>(saveAs) || [];
+  const selected = state.extensionContext.workspaceState.get<CalvaQuickPickItem[]>(saveAs) || [];
   const result = await quickPick(opts.values, [], selected, {
     placeHolder: opts.placeHolder,
     canPickMany: true,
@@ -92,46 +103,74 @@ async function quickPickMulti(opts: {
 // Recreated every time we create a new quickPick
 let quickPickActive: Promise<void>;
 
+/**
+ * Prepare items for display, adding "disabled: " prefix to description for disabled items.
+ */
+function prepareItemsForDisplay(items: CalvaQuickPickItem[]): CalvaQuickPickItem[] {
+  return items.map((item) => {
+    if (item.disabled) {
+      return {
+        ...item,
+        description: item.description ? `disabled: ${item.description}` : 'disabled',
+      };
+    }
+    return item;
+  });
+}
+
 function quickPick(
-  itemsToPick: vscode.QuickPickItem[],
-  active: vscode.QuickPickItem[],
-  selected: vscode.QuickPickItem[],
+  itemsToPick: CalvaQuickPickItem[],
+  active: CalvaQuickPickItem[],
+  selected: CalvaQuickPickItem[],
   quickPickOptions: vscode.QuickPickOptions & { canPickMany: true }
-): Promise<vscode.QuickPickItem[]>;
+): Promise<CalvaQuickPickItem[]>;
 function quickPick(
-  itemsToPick: vscode.QuickPickItem[],
-  active: vscode.QuickPickItem[],
-  selected: vscode.QuickPickItem[],
+  itemsToPick: CalvaQuickPickItem[],
+  active: CalvaQuickPickItem[],
+  selected: CalvaQuickPickItem[],
   quickPickOptions: vscode.QuickPickOptions
-): Promise<vscode.QuickPickItem>;
+): Promise<CalvaQuickPickItem>;
 
 async function quickPick(
-  itemsToPick: vscode.QuickPickItem[],
-  active: vscode.QuickPickItem[],
-  selected: vscode.QuickPickItem[],
+  itemsToPick: CalvaQuickPickItem[],
+  active: CalvaQuickPickItem[],
+  selected: CalvaQuickPickItem[],
   quickPickOptions: vscode.QuickPickOptions
-): Promise<vscode.QuickPickItem[] | vscode.QuickPickItem | undefined> {
-  const items = itemsToPick; //.map((x) => ({ label: x }));
+): Promise<CalvaQuickPickItem[] | CalvaQuickPickItem | undefined> {
+  const displayItems = prepareItemsForDisplay(itemsToPick);
 
-  const qp = vscode.window.createQuickPick();
-  quickPickActive = new Promise<void>((resolve) => qp.onDidChangeActive((e) => resolve()));
-  qp.canSelectMany = !!quickPickOptions.canPickMany;
-  qp.title = quickPickOptions.title;
-  qp.placeholder = quickPickOptions.placeHolder;
-  qp.ignoreFocusOut = !!quickPickOptions.ignoreFocusOut;
-  qp.matchOnDescription = !!quickPickOptions.matchOnDescription;
-  qp.matchOnDetail = !!quickPickOptions.matchOnDetail;
-  qp.items = items;
-  qp.activeItems = items.filter((x) => active.some((item) => item.label === x.label));
-  qp.selectedItems = items.filter((x) => selected.some((item) => item.label === x.label));
-  return new Promise<vscode.QuickPickItem[] | vscode.QuickPickItem | undefined>(
-    (resolve, reject) => {
+  const showPicker = (): Promise<CalvaQuickPickItem[] | CalvaQuickPickItem | undefined> => {
+    const qp = vscode.window.createQuickPick<CalvaQuickPickItem>();
+    quickPickActive = new Promise<void>((resolve) => qp.onDidChangeActive((e) => resolve()));
+    qp.canSelectMany = !!quickPickOptions.canPickMany;
+    qp.title = quickPickOptions.title;
+    qp.placeholder = quickPickOptions.placeHolder;
+    qp.ignoreFocusOut = !!quickPickOptions.ignoreFocusOut;
+    qp.matchOnDescription = !!quickPickOptions.matchOnDescription;
+    qp.matchOnDetail = !!quickPickOptions.matchOnDetail;
+    qp.items = displayItems;
+    qp.activeItems = displayItems.filter((x) => active.some((item) => item.label === x.label));
+    qp.selectedItems = displayItems.filter((x) => selected.some((item) => item.label === x.label));
+
+    return new Promise<CalvaQuickPickItem[] | CalvaQuickPickItem | undefined>((resolve) => {
       qp.show();
-      qp.onDidAccept(() => {
+      qp.onDidAccept(async () => {
         if (qp.canSelectMany) {
-          resolve(qp.selectedItems.map((x) => x));
+          // For multi-select, filter out disabled items from selection
+          const enabledItems = qp.selectedItems.filter((x) => !x.disabled);
+          resolve(enabledItems);
         } else if (qp.selectedItems.length) {
-          resolve(qp.selectedItems[0]);
+          const selectedItem = qp.selectedItems[0];
+          // Find the original item to check disabled status
+          const originalItem = itemsToPick.find((item) => item.label === selectedItem.label);
+          if (originalItem?.disabled) {
+            // Re-show the picker for disabled items
+            qp.hide();
+            const retryResult = await showPicker();
+            resolve(retryResult);
+            return;
+          }
+          resolve(originalItem ?? selectedItem);
         } else {
           resolve(undefined);
         }
@@ -140,11 +179,12 @@ async function quickPick(
       });
       qp.onDidHide(() => {
         resolve(qp.canSelectMany ? [] : undefined);
-        qp.hide();
         quickPickActive = undefined;
       });
-    }
-  );
+    });
+  };
+
+  return showPicker();
 }
 
 function getCljsReplStartCode() {

@@ -1,4 +1,4 @@
-import * as outputWindow from '../repl-window/repl-doc';
+import * as outputWindow from '../repl-window/repl-window-doc';
 import * as config from '../config';
 import * as vscode from 'vscode';
 import * as util from '../utilities';
@@ -126,6 +126,8 @@ ${jackInVersions.formatEffectiveVersionsReport()}
 
 ${jackInVersions.formatLatestVersionsReport()}
 
+Please consider sponsoring Calva: https://calva.io/sponsors ♥️
+
 `
     );
   }
@@ -178,7 +180,7 @@ export function showResultOutputDestination(preserveFocus = true) {
   if (getDestinationConfiguration().evalResults === 'output-view') {
     return showReplOutputWebviewPanel(preserveFocus);
   }
-  return outputWindow.revealResultsDoc(preserveFocus);
+  return outputWindow.revealReplWindowDoc(preserveFocus);
 }
 
 export function getDestinationConfiguration(): OutputDestinationConfiguration {
@@ -522,8 +524,18 @@ export function appendLineOtherErr(message: string, after?: AfterAppendCallback)
  * @param onAppended Optional callback to run after the append
  */
 export function replWindowAppendPrompt(onAppended?: outputWindow.OnAppendedCallback) {
-  didLastOutputTerminateLine['output-window'] = true;
+  didLastOutputTerminateLine['repl-window'] = true;
   outputWindow.appendPrompt(onAppended);
+}
+
+/**
+ * Forces a prompt to be appended to the repl window, bypassing the duplicate check.
+ * Needs to be called via here, because we keep track of wether the last output ended with a newline or not.
+ * @param onAppended Optional callback to run after the append
+ */
+export function replWindowForceAppendPrompt(onAppended?: outputWindow.OnAppendedCallback) {
+  didLastOutputTerminateLine['repl-window'] = true;
+  outputWindow.forceAppendPrompt(onAppended);
 }
 
 function formatStacktrace(stacktrace: any[]) {

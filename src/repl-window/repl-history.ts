@@ -6,7 +6,7 @@ import {
   getTextAfterLastOccurrenceOfSubstring,
 } from '../util/string';
 import type { ReplSessionType } from '../config';
-import { isResultsDoc, getSessionType, getPrompt, append } from './repl-doc';
+import { isReplWindowDoc, getSessionType, getPrompt, append } from './repl-window-doc';
 import { addToHistory } from '../results-output/util';
 import { isUndefined } from 'lodash';
 
@@ -15,7 +15,7 @@ let historyIndex: number | undefined = undefined;
 let lastTextAtPrompt: string | undefined = undefined;
 
 function setReplHistoryCommandsActiveContext(editor: vscode.TextEditor): void {
-  if (editor && util.getConnectedState() && isResultsDoc(editor.document)) {
+  if (editor && util.getConnectedState() && isReplWindowDoc(editor.document)) {
     const document = editor.document;
     const selection = editor.selections[0];
     const positionAtEndOfContent = document.positionAt(
@@ -74,17 +74,17 @@ function showReplHistoryEntry(
   resultsEditor: vscode.TextEditor
 ): void {
   const prompt = promptLine();
-  const resultsDoc = resultsEditor.document;
-  const docText = resultsDoc.getText();
+  const replWindowDoc = resultsEditor.document;
+  const docText = replWindowDoc.getText();
   const indexOfLastPrompt = docText.lastIndexOf(prompt);
   const insertOffset = indexOfLastPrompt === -1 ? 0 : indexOfLastPrompt + prompt.length;
-  const startPosition = resultsDoc.positionAt(insertOffset);
-  const range = new vscode.Range(startPosition, resultsDoc.positionAt(Infinity));
+  const startPosition = replWindowDoc.positionAt(insertOffset);
+  const range = new vscode.Range(startPosition, replWindowDoc.positionAt(Infinity));
   const entry = historyEntry || '';
   const edit = new vscode.WorkspaceEdit();
-  edit.replace(resultsDoc.uri, range, entry);
+  edit.replace(replWindowDoc.uri, range, entry);
   void vscode.workspace.applyEdit(edit).then((_) => {
-    void resultsDoc.save();
+    void replWindowDoc.save();
     util.scrollToBottom(resultsEditor);
   });
 }
@@ -98,7 +98,7 @@ function showPreviousReplHistoryEntry(): void {
   const doc = editor.document;
   const replSessionType = getSessionType();
   const history = getHistory(replSessionType);
-  if (!isResultsDoc(doc) || historyIndex === 0 || history.length === 0) {
+  if (!isReplWindowDoc(doc) || historyIndex === 0 || history.length === 0) {
     return;
   }
   const textAtPrompt = getTextAfterLastOccurrenceOfSubstring(doc.getText(), promptLine());
@@ -118,7 +118,7 @@ function showNextReplHistoryEntry(): void {
   const doc = editor.document;
   const replSessionType = getSessionType();
   const history = getHistory(replSessionType);
-  if (!isResultsDoc(doc) || historyIndex === null) {
+  if (!isReplWindowDoc(doc) || historyIndex === null) {
     return;
   }
   if (historyIndex === history.length - 1) {

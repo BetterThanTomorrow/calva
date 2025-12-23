@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as docMirror from './doc-mirror/index';
-import * as outputWindow from './repl-window/repl-doc';
+import * as outputWindow from './repl-window/repl-window-doc';
 import * as utilities from './utilities';
 import * as replSession from './nrepl/repl-session';
 import { NReplSession } from './nrepl';
@@ -13,7 +13,7 @@ export function getNamespace(
   doc: vscode.TextDocument,
   position: vscode.Position = null
 ): NsAndNsForm {
-  if (outputWindow.isResultsDoc(doc)) {
+  if (outputWindow.isReplWindowDoc(doc)) {
     const outputWindowNs = outputWindow.getNs();
     if (outputWindowNs) {
       return [outputWindowNs, `(in-ns '${outputWindowNs})`];
@@ -56,7 +56,7 @@ export async function createNamespaceFromDocumentIfNotExists(doc) {
     const document = utilities.tryToGetDocument(doc);
     if (document) {
       const [ns, nsForm] = getNamespace(document);
-      const client = replSession.getSession(utilities.getFileType(document));
+      const client = replSession.getSession();
       if (client) {
         const nsList = await client.listNamespaces([]);
         if (nsList && nsList['ns-list'] && nsList['ns-list'].includes(ns)) {

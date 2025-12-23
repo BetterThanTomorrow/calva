@@ -3,7 +3,7 @@
     {
       "name": "Test broken jack-in code evaluation",
       "projectType": "deps.edn",
-      "afterCLJReplJackInCode": "\"afterCLJReplJackInCode evaluated\"",
+      "afterPrimaryReplConnectedCode": "\"afterPrimaryReplConnectedCode evaluated\"",
       "cljsType": "none"
     }
   ]

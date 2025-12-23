@@ -20,15 +20,21 @@ suite('Highlight suite', () => {
   test('activeEditor', async function () {
     testUtil.log(suite, 'activeEditor');
 
-    assert.strictEqual(highlight.activeEditor, undefined);
-
     const testFilePath = path.join(testUtil.testDataDir, 'test.clj');
+
     await testUtil.openFile(testFilePath);
     testUtil.log(suite, 'test.clj opened');
 
-    assert.notStrictEqual(highlight.activeEditor, undefined);
+    await testUtil.waitForCondition(
+      () => highlight.activeEditor?.document.uri.fsPath === testFilePath
+    );
+    assert.strictEqual(highlight.activeEditor?.document.uri.fsPath, testFilePath);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
+
+    await testUtil.waitForCondition(
+      () => highlight.activeEditor?.document.uri.fsPath !== testFilePath
+    );
   });
 });

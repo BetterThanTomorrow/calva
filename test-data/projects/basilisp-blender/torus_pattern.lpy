@@ -1,0 +1,124 @@
+(ns torus-pattern
+  "Creates a torus pattern with randomly colored materials."
+  (:import bpy
+           math))
+
+(defn clear-mesh-objects []
+  (.select-all     bpy.ops/object ** :action "DESELECT")
+  (.select-by-type bpy.ops/object ** :type "MESH")
+  (.delete         bpy.ops/object))
+
+(defn create-random-material []
+  (let [mat  (.new bpy.data/materials ** :name "RandomMaterial")
+        _    (set! (.-use-nodes mat) true)
+        bsdf (aget (.. mat -node-tree -nodes) "Principled BSDF")]
+
+    (set! (-> bsdf .-inputs (aget "Base Color") .-default-value)
+          [(rand) (rand) (rand) 1])
+    mat))
+
+(defn create-torus [radius tube-radius location segments]
+  (.primitive-torus-add bpy.ops/mesh **
+                        :major-radius radius
+                        :minor-radius tube-radius
+                        :location location
+                        :major-segments segments
+                        :minor-segments segments)
+  (let [material (create-random-material)]
+    (-> bpy.context/object .-data .-materials (.append material))))
+
+(defn create-torus-animated
+  "Creates a torus and returns the object for animation."
+  [radius tube-radius location segments]
+  (.primitive-torus-add bpy.ops/mesh **
+                        :major-radius radius
+                        :minor-radius tube-radius
+                        :location location
+                        :major-segments segments
+                        :minor-segments segments)
+  (let [obj bpy.context/object
+        material (create-random-material)]
+    (-> obj .-data .-materials (.append material))
+    obj))
+
+#_(create-torus 5, 5, [0 0 0] 48)
+
+(defn create-pattern [{:keys [layers-num radius tube-radius]
+                       :or {layers-num 2
+                            radius 2
+                            tube-radius 0.2}}]
+  (let [angle-step (/ math/pi 4)]
+    (dotimes [i layers-num]
+      (let [layer-radius (* radius (inc i))
+            objects-num (* 12 (inc i))]
+        (dotimes [j objects-num]
+          (let [angle (* j angle-step)
+                x (* layer-radius (math/cos angle))
+                y (* layer-radius (math/sin angle))
+                z (* i 0.5)]
+            (create-torus (/ radius 2) tube-radius [x y z] 48)))))))
+
+;; Animation Functions
+
+(defn set-viewport-shading [shading-type]
+  "Sets the viewport shading mode.
+   Options: 'WIREFRAME', 'SOLID', 'MATERIAL', 'RENDERED'"
+  (doseq [area (.-areas bpy.context/screen)]
+    (when (= (.-type area) "VIEW_3D")
+      (doseq [space (.-spaces area)]
+        (when (= (.-type space) "VIEW_3D")
+          (set! (.. space -shading -type) shading-type))))))
+
+(defn setup-animation
+  "Configure the animation timeline."
+  [end-frame]
+  (set! (.-frame-start bpy.context/scene) 1)
+  (set! (.-frame-end bpy.context/scene) end-frame)
+  (set! (.-frame-current bpy.context/scene) 1))
+
+(defn animate-rotation
+  "Animates continuous rotation around an axis.
+   axis: 0=X (flip), 1=Y (tilt), 2=Z (spin)"
+  [obj start-frame end-frame axis]
+  (set! (.-frame-current bpy.context/scene) start-frame)
+  (aset (.-rotation-euler obj) axis 0)
+  (.keyframe-insert obj ** :data-path "rotation_euler" :index axis)
+
+  (set! (.-frame-current bpy.context/scene) end-frame)
+  (aset (.-rotation-euler obj) axis (* 2 math/pi))
+  (.keyframe-insert obj ** :data-path "rotation_euler" :index axis))
+
+(defn create-animated-pattern
+  "Creates a pattern with animated rotating toruses.
+   rotation-axis: 0=X (flip), 1=Y (tilt), 2=Z (spin - invisible!)"
+  [{:keys [layers-num radius tube-radius rotation-axis objects-per-layer]
+    :or {layers-num 2
+         radius 2
+         tube-radius 0.5
+         rotation-axis 0
+         objects-per-layer 8}}]
+  (let [angle-step (/ (* 2 math/pi) objects-per-layer)]
+    (dotimes [i layers-num]
+      (let [layer-radius (* radius (inc i))]
+        (dotimes [j objects-per-layer]
+          (let [angle (* j angle-step)
+                x (* layer-radius (math/cos angle))
+                y (* layer-radius (math/sin angle))
+                z (* i 0.5)
+                obj (create-torus-animated (/ radius 2) tube-radius [x y z] 48)
+                offset (* j 2)]
+            (animate-rotation obj (+ 1 offset) (+ 120 offset) rotation-axis)))))))
+
+(comment
+  (do
+    (clear-mesh-objects)
+    (create-pattern {:layers-num 5}))
+  (set-viewport-shading "MATERIAL")
+
+  (do
+    (clear-mesh-objects)
+    (setup-animation 130)
+    (create-animated-pattern {:layers-num 3 :rotation-axis 0}))
+  (.animation-play bpy.ops/screen)
+  (.animation-cancel bpy.ops/screen)
+  :rcf)
