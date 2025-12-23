@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as outputWindow from '../repl-window/repl-doc';
+import * as outputWindow from '../repl-window/repl-window-doc';
 
 /**
  * CodelensProvider
@@ -19,7 +19,7 @@ export class PrintStackTraceCodelensProvider implements vscode.CodeLensProvider 
     document: vscode.TextDocument,
     token: vscode.CancellationToken
   ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
-    if (outputWindow.isResultsDoc(document)) {
+    if (outputWindow.isReplWindowDoc(document)) {
       this.codeLenses = [];
       const stackTraceRange = outputWindow.getLastStackTraceRange();
       if (stackTraceRange) {

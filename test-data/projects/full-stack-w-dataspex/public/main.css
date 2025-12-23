@@ -1,0 +1,9 @@
+body {
+  background-color: #222;
+  color: #fff;
+}
+
+h2, h3, h4, h5, h6 {
+  margin-block-end: 0;
+  margin-block-start: 0.5em;
+}

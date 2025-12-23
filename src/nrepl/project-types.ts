@@ -10,7 +10,7 @@ import {
   getEffectiveJackInDependencyVersions,
   type JackInDependencyKey,
 } from './jack-in-dependency-versions';
-import { CljsTypes, ReplConnectSequence } from './connectSequence';
+import * as connectSequences from './connectSequence';
 import { getStateValue, parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
 import * as joyride from '../joyride';
 
@@ -35,21 +35,24 @@ export type ProjectType = {
   processShellWin?: boolean | string;
   processShellUnix?: boolean | string;
   commandLine?: (
-    connectSequence: ReplConnectSequence,
-    cljsType: CljsTypes
+    connectSequence: connectSequences.ReplConnectSequence,
+    cljsType: connectSequences.CljsTypes
   ) => Promise<CommandLineInfo>;
   useWhenExists: string[];
-  nReplPortFile: string[];
+  defaultNReplPortFile: string[];
   startFunction?: () => Thenable<boolean | void>;
+  defaultFilePatterns?: connectSequences.SessionFilePatternsConfig;
+  defaultReplSessionNames?: connectSequences.SessionNamesConfig;
+  defaultFallbackPort?: number;
 };
 
-function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string {
+function nreplPortFileRelativePath(connectSequence: connectSequences.ReplConnectSequence): string {
   let subPath: string;
   if (connectSequence.nReplPortFile) {
     subPath = path.join(...connectSequence.nReplPortFile);
   } else {
     const projectType: ProjectType | string = connectSequence.projectType;
-    subPath = path.join(...getProjectTypeForName(projectType).nReplPortFile);
+    subPath = path.join(...getProjectTypeForName(projectType).defaultNReplPortFile);
   }
   return subPath;
 }
@@ -60,7 +63,9 @@ function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string
  * you may be dealing with a remote scenario (e.g. live share), you should use
  * `nreplPortFileUri()` instead.
  */
-export function nreplPortFileLocalPath(connectSequence: ReplConnectSequence): string {
+export function nreplPortFileLocalPath(
+  connectSequence: connectSequences.ReplConnectSequence
+): string {
   const relativePath = nreplPortFileRelativePath(connectSequence);
   const projectRoot = state.getProjectRootLocal();
   if (projectRoot) {
@@ -73,7 +78,9 @@ export function nreplPortFileLocalPath(connectSequence: ReplConnectSequence): st
   return relativePath;
 }
 
-export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.Uri {
+export function nreplPortFileUri(
+  connectSequence: connectSequences.ReplConnectSequence
+): vscode.Uri {
   const relativePath = nreplPortFileRelativePath(connectSequence);
   const projectRoot = state.getProjectRootUri();
   if (projectRoot) {
@@ -86,12 +93,13 @@ export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.U
   return vscode.Uri.file(relativePath);
 }
 
-export function shadowConfigFile(): vscode.Uri {
-  return vscode.Uri.joinPath(state.getProjectRootUri(), 'shadow-cljs.edn');
+export function shadowConfigFile(projectRootUri?: vscode.Uri): vscode.Uri {
+  const root = projectRootUri ?? state.getProjectRootUri();
+  return vscode.Uri.joinPath(root, 'shadow-cljs.edn');
 }
 
-export async function shadowBuilds(): Promise<string[]> {
-  const data = await vscode.workspace.fs.readFile(shadowConfigFile());
+export async function shadowBuilds(projectRootUri?: vscode.Uri): Promise<string[]> {
+  const data = await vscode.workspace.fs.readFile(shadowConfigFile(projectRootUri));
   const parsed = parseEdn(new TextDecoder('utf-8').decode(data));
   return [
     ...(parsed.builds
@@ -125,13 +133,46 @@ export function leinShadowBuilds(defproject: any): string[] {
 }
 
 async function selectShadowBuilds(
-  connectSequence: ReplConnectSequence,
+  connectSequence: connectSequences.ReplConnectSequence,
   foundBuilds: string[]
 ): Promise<{ selectedBuilds: string[]; args: string[] }> {
   const menuSelections = connectSequence.menuSelections;
   let selectedBuilds: string[];
+
+  // Helper to normalize build keys for comparison (handles : prefix)
+  const normalizeBuildKey = (build: string) => (build.startsWith(':') ? build.substring(1) : build);
+  const normalizedFoundBuilds = new Set(foundBuilds.map(normalizeBuildKey));
+
   if (menuSelections && menuSelections.cljsLaunchBuilds) {
     selectedBuilds = menuSelections.cljsLaunchBuilds;
+
+    // Validate that all specified builds exist in config
+    const invalidBuilds = selectedBuilds.filter(
+      (build) => !normalizedFoundBuilds.has(normalizeBuildKey(build))
+    );
+    if (invalidBuilds.length > 0) {
+      const invalidList = invalidBuilds.map((b) => `"${b}"`).join(', ');
+      const availableList = foundBuilds.filter((b) => b.startsWith(':')).join(', ');
+      throw new Error(
+        `Invalid cljsLaunchBuilds: ${invalidList} not found in shadow-cljs.edn. ` +
+          `Available builds: ${availableList}`
+      );
+    }
+
+    // Validate cljsDefaultBuild if specified
+    if (menuSelections.cljsDefaultBuild) {
+      const defaultBuild = menuSelections.cljsDefaultBuild;
+      const normalizedDefault = normalizeBuildKey(defaultBuild);
+      const normalizedSelected = new Set(selectedBuilds.map(normalizeBuildKey));
+
+      if (!normalizedSelected.has(normalizedDefault)) {
+        const selectedList = selectedBuilds.map((b) => `"${b}"`).join(', ');
+        throw new Error(
+          `Invalid cljsDefaultBuild: "${defaultBuild}" is not in cljsLaunchBuilds [${selectedList}]. ` +
+            `The default build must be one of the launched builds.`
+        );
+      }
+    }
   } else {
     const selectedBuildItems = await utilities.quickPickMulti({
       values: foundBuilds.filter((x) => x[0] == ':').map((a) => ({ label: a })),
@@ -171,7 +212,7 @@ async function leinDefProject(): Promise<any> {
 
 async function leinProfilesAndAlias(
   defproject: any,
-  connectSequence: ReplConnectSequence
+  connectSequence: connectSequences.ReplConnectSequence
 ): Promise<{ profiles: string[]; alias: string }> {
   let profiles: string[] = [],
     alias: string;
@@ -364,7 +405,11 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: false,
     useWhenExists: ['project.clj'],
-    nReplPortFile: ['.nrepl-port'],
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': ['**/*.clj', '**/*.edn'] },
+      secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': ['**/*.cljs'] },
+    },
     /** Build the command line args for a lein-project.
      * 1. Parsing the project.clj
      * 2. Let the user choose a alias
@@ -373,7 +418,10 @@ const projectTypes: { [id: string]: ProjectType } = {
      * 5. Add all profiles chosen by the user
      * 6. Use alias if selected otherwise repl :headless
      */
-    commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
+    commandLine: async (
+      connectSequence: connectSequences.ReplConnectSequence,
+      cljsType: connectSequences.CljsTypes
+    ) => {
       return await leinCommandLine(['repl', ':headless'], cljsType, connectSequence);
     },
   },
@@ -391,7 +439,11 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: 'cmd.exe',
     useWhenExists: ['deps.edn'],
-    nReplPortFile: ['.nrepl-port'],
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': ['**/*.clj', '**/*.edn'] },
+      secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': ['**/*.cljs'] },
+    },
     /** Build the command line args for a clj-project.
      * 1. Read the deps.edn and parsed it
      * 2. Present the user all found aliases
@@ -412,7 +464,11 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: ['shadow-cljs.edn'],
-    nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
+    defaultNReplPortFile: ['.shadow-cljs', 'nrepl.port'],
+    defaultFilePatterns: {
+      primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': ['**/*.clj', '**/*.edn'] },
+      secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': ['**/*.cljs'] },
+    },
     /**
      *  Build the command line args for a shadow-project.
      */
@@ -456,7 +512,11 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: false,
     useWhenExists: ['project.clj'],
-    nReplPortFile: ['.shadow-cljs', 'nrepl.port'],
+    defaultNReplPortFile: ['.shadow-cljs', 'nrepl.port'],
+    defaultFilePatterns: {
+      primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': ['**/*.clj', '**/*.edn'] },
+      secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': ['**/*.cljs'] },
+    },
     /**
      *  Build the command line args for a lein-shadow project.
      */
@@ -494,13 +554,20 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: false,
     useWhenExists: ['settings.gradle', 'settings.gradle.kts'],
-    nReplPortFile: ['.nrepl-port'],
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: ['*.clj', '*.edn'],
+      secondary: ['*.cljs'],
+    },
     /**
      * Build the command line args for a gradle.
      * Add needed middleware deps to args
      */
     /* eslint-disable @typescript-eslint/require-await */
-    commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
+    commandLine: async (
+      connectSequence: connectSequences.ReplConnectSequence,
+      cljsType: connectSequences.CljsTypes
+    ) => {
       return gradleCommandLine(['clojureRepl'], cljsType, connectSequence);
     },
   },
@@ -515,9 +582,37 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: false,
     useWhenExists: [],
-    nReplPortFile: ['.nrepl-port'],
-    commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
-      return cljCommandLine(connectSequence, CljsTypes.none);
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: ['*.clj', '*.edn'],
+      secondary: ['*.cljs'],
+    },
+    commandLine: async (
+      connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
+      return cljCommandLine(connectSequence, connectSequences.CljsTypes.none);
+    },
+  },
+  'clj-projectless': {
+    name: 'clj-projectless',
+    cljsTypes: [],
+    cmd: clojureCmdFn,
+    winCmd: clojureCmdWinFn,
+    resolveBundledPathWin: depsCljWindowsPath,
+    processShellUnix: true,
+    processShellWin: 'cmd.exe',
+    useWhenExists: [],
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: ['*.clj', '*.edn'],
+      secondary: ['*.cljs'],
+    },
+    commandLine: async (
+      connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
+      return cljCommandLine(connectSequence, connectSequences.CljsTypes.none);
     },
   },
   custom: {
@@ -525,8 +620,15 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: [],
-    nReplPortFile: ['.nrepl-port'],
-    commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultFilePatterns: {
+      primary: ['*.clj', '*.edn'],
+      secondary: ['*.cljs'],
+    },
+    commandLine: async (
+      _connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
       const port = await getPort();
       return {
         args: [],
@@ -542,8 +644,19 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: [],
-    nReplPortFile: ['.bb-nrepl-port'],
-    commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+    defaultNReplPortFile: ['bb', '.nrepl-port'],
+    defaultReplSessionNames: { primary: 'bb' },
+    defaultFallbackPort: 1667,
+    defaultFilePatterns: {
+      primary: {
+        'always-claim': ['*.bb', 'bb/*.clj', 'scripts/*.clj', 'bb.edn'],
+        'is-fallback-for': ['**/bb/*.clj', '**/scripts/*.clj', '**/*.clj', '**/bb.edn', '**/*.bb'],
+      },
+    },
+    commandLine: async (
+      _connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
       const port = await getPort();
       return {
         args: ['--nrepl-server', port],
@@ -559,8 +672,24 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: [],
-    nReplPortFile: ['.nrepl-port'],
-    commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+    defaultNReplPortFile: ['nbb', '.nrepl-port'],
+    defaultReplSessionNames: { primary: 'nbb' },
+    defaultFilePatterns: {
+      primary: {
+        'always-claim': ['*.nbb', 'nbb/*.cljs', 'scripts/*.cljs', 'nbb.edn'],
+        'is-fallback-for': [
+          '**/nbb/*.cljs',
+          '**/scripts/*.cljs',
+          '**/*.cljs',
+          '**/*.nbb',
+          '**/nbb.edn',
+        ],
+      },
+    },
+    commandLine: async (
+      _connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
       const port = await getPort();
       return {
         args: ['nbb', 'nrepl-server', ':port', port],
@@ -580,8 +709,15 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: false,
     useWhenExists: ['basilisp.edn'],
-    nReplPortFile: ['.nrepl-port'],
-    commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultReplSessionNames: { primary: 'basilisp' },
+    defaultFilePatterns: {
+      primary: ['*.lpy'],
+    },
+    commandLine: async (
+      _connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
       const port = await getPort();
       return {
         args: ['nrepl-server', '--port', port],
@@ -597,13 +733,57 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: false,
     processShellWin: false,
     useWhenExists: [],
-    nReplPortFile: ['.joyride', '.nrepl-port'],
+    defaultNReplPortFile: ['.joyride', '.nrepl-port'],
+    defaultReplSessionNames: { primary: 'joyride' },
+    defaultFilePatterns: {
+      primary: {
+        'always-claim': ['.joyride/**/*.cljs'],
+        'is-fallback-for': ['**/*.cljs'],
+      },
+    },
     commandLine: undefined,
     startFunction: () => void joyride.joyrideJackIn(state.getProjectRootLocal()),
   },
+  scittle: {
+    name: 'scittle',
+    cljsTypes: [],
+    cmd: [],
+    winCmd: [],
+    processShellUnix: false,
+    processShellWin: false,
+    useWhenExists: [],
+    defaultNReplPortFile: ['.scittle-nrepl-port'],
+    defaultReplSessionNames: { primary: 'scittle' },
+    defaultFallbackPort: 1339,
+    defaultFilePatterns: {
+      primary: {
+        'always-claim': ['*.cljs'],
+        'is-fallback-for': ['**/*.cljs'],
+      },
+    },
+    commandLine: undefined,
+  },
+  'cljs-only': {
+    name: 'cljs-only',
+    cljsTypes: [],
+    cmd: [],
+    winCmd: [],
+    processShellUnix: false,
+    processShellWin: false,
+    useWhenExists: [],
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultReplSessionNames: { primary: 'cljs' },
+    defaultFilePatterns: {
+      primary: ['*.cljs'],
+    },
+    commandLine: undefined,
+  },
 };
 
-async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: CljsTypes) {
+async function cljCommandLine(
+  connectSequence: connectSequences.ReplConnectSequence,
+  cljsType: connectSequences.CljsTypes
+) {
   const out: string[] = [];
   let depsUri: vscode.Uri;
   try {
@@ -720,8 +900,8 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
 
 async function leinCommandLine(
   command: string[],
-  cljsType: CljsTypes,
-  connectSequence: ReplConnectSequence
+  cljsType: connectSequences.CljsTypes,
+  connectSequence: connectSequences.ReplConnectSequence
 ) {
   const args: string[] = [];
   const dependencies = {
@@ -790,8 +970,8 @@ async function leinCommandLine(
 
 function gradleCommandLine(
   command: string[],
-  cljsType: CljsTypes,
-  connectSequence: ReplConnectSequence
+  cljsType: connectSequences.CljsTypes,
+  connectSequence: connectSequences.ReplConnectSequence
 ) {
   const args: string[] = [];
   const dependencies = {
@@ -838,7 +1018,16 @@ export function getProjectTypeForName(name: string) {
 
 export async function detectProjectTypes(): Promise<string[]> {
   const rootUri = state.getProjectRootUri();
-  const cljProjTypes = ['custom', 'generic', 'cljs-only', 'babashka', 'nbb', 'joyride'];
+  const cljProjTypes = [
+    'custom',
+    'generic',
+    'clj-projectless',
+    'cljs-only',
+    'babashka',
+    'nbb',
+    'joyride',
+    'scittle',
+  ];
   for (const clj in projectTypes) {
     for (const projectFileName of projectTypes[clj].useWhenExists) {
       try {
@@ -857,19 +1046,22 @@ export async function detectProjectTypes(): Promise<string[]> {
 export function getAllProjectTypes(): string[] {
   return [
     'generic',
+    'clj-projectless',
     'cljs-only',
-    ...Object.keys(projectTypes).filter((pt) => !['generic', 'cljs-only'].includes(pt)),
+    ...Object.keys(projectTypes).filter(
+      (pt) => !['generic', 'clj-projectless', 'cljs-only'].includes(pt)
+    ),
   ];
 }
 
-export function getCljsTypeName(connectSequence: ReplConnectSequence) {
+export function getCljsTypeName(sequence: connectSequences.ReplConnectSequence) {
   let cljsTypeName: string;
-  if (connectSequence.cljsType == undefined) {
+  if (sequence.cljsType == undefined) {
     cljsTypeName = '';
-  } else if (typeof connectSequence.cljsType == 'string') {
-    cljsTypeName = connectSequence.cljsType;
-  } else if (connectSequence.cljsType.dependsOn != undefined) {
-    cljsTypeName = connectSequence.cljsType.dependsOn;
+  } else if (typeof sequence.cljsType == 'string') {
+    cljsTypeName = sequence.cljsType;
+  } else if (sequence.cljsType.dependsOn != undefined) {
+    cljsTypeName = sequence.cljsType.dependsOn;
   } else {
     cljsTypeName = 'custom';
   }

@@ -34,7 +34,7 @@ export async function provideSignatureHelp(
       idx = document.offsetAt(position),
       symbol = getSymbol(document, idx);
     if (symbol) {
-      const client = replSession.getSession(util.getFileType(document));
+      const client = replSession.getSession();
       if (client) {
         await namespace.createNamespaceFromDocumentIfNotExists(document);
         const res = await client.info(ns, symbol),

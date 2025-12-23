@@ -1,7 +1,7 @@
 import * as messages from './messages';
 import { provideSignatureHelp } from '../../providers/signature';
 import { provideHover } from '../../providers/hover';
-import { isResultsDoc } from '../../repl-window/repl-doc';
+import { isReplWindowDoc } from '../../repl-window/repl-window-doc';
 import * as vscode_lsp from 'vscode-languageclient/node';
 import * as defs from '../definitions';
 import * as config from '../../config';
@@ -158,19 +158,19 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
       },
       middleware: {
         didOpen: (document, next) => {
-          if (isResultsDoc(document)) {
+          if (isReplWindowDoc(document)) {
             return Promise.resolve();
           }
           return next(document);
         },
         didSave: (document, next) => {
-          if (isResultsDoc(document)) {
+          if (isReplWindowDoc(document)) {
             return Promise.resolve();
           }
           return next(document);
         },
         didChange: (change, next) => {
-          if (isResultsDoc(change.document)) {
+          if (isReplWindowDoc(change.document)) {
             return Promise.resolve();
           }
           return next(change);

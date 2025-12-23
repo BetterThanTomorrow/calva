@@ -77,7 +77,6 @@ suite(SUITE, () => {
     await vscode.workspace
       .getConfiguration('calva')
       .update('jackInDependencyVersions', prevWorkspaceValue, vscode.ConfigurationTarget.Workspace);
-
     if (originalGlobalState && originalGet && originalUpdate) {
       (originalGlobalState as any).get = originalGet;
       (originalGlobalState as any).update = originalUpdate;
@@ -108,7 +107,7 @@ suite(SUITE, () => {
   });
 
   test('partial configuration: missing keys fall back while set keys are respected', async () => {
-    // Clear stored values to avoid influencing this test
+    // Clear global state to avoid influencing this test
     await state.extensionContext?.globalState.update(GLOBAL_STATE_KEY, {});
 
     const inspectedDefaults = vscode.workspace
@@ -140,24 +139,28 @@ suite(SUITE, () => {
     );
   });
 
-  test('precedence: default is used when neither configured nor stored', async () => {
+  test('precedence: default is used when nothing is configured', async () => {
     const inspectedDefaults = vscode.workspace
       .getConfiguration('calva')
       .inspect<Record<JackInDependencyKey, string>>('jackInDependencyVersions');
     const defaults = (inspectedDefaults?.defaultValue ?? {}) as Record<JackInDependencyKey, string>;
 
-    await state.extensionContext?.globalState.update(GLOBAL_STATE_KEY, {});
+    const ctx = state.extensionContext;
+    if (ctx) {
+      await ctx.globalState.update(GLOBAL_STATE_KEY, {});
+    }
     await vscode.workspace
       .getConfiguration('calva')
       .update('jackInDependencyVersions', undefined, vscode.ConfigurationTarget.Workspace);
 
     await testUtil.sleep(20);
+
     const effective = getEffectiveJackInDependencyVersions();
 
     assert.deepStrictEqual(
       effective,
       defaults,
-      'effective should equal defaults when nothing is configured or stored'
+      'effective should equal defaults when nothing is configured'
     );
   });
 });

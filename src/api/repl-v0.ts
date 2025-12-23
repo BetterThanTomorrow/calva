@@ -1,5 +1,6 @@
 import * as printer from '../printer';
 import * as replSession from '../nrepl/repl-session';
+import * as sessionRegistry from '../nrepl/session-registry';
 import { cljsLib } from '../utilities';
 
 type Result = {
@@ -18,7 +19,9 @@ export const evaluateCode = async (
   },
   opts = {}
 ): Promise<Result> => {
-  const session = replSession.getSession(sessionKey || undefined);
+  // When sessionKey is explicitly provided, use it directly without routing
+  // Otherwise, use the routing logic to determine the session
+  const session = sessionKey ? sessionRegistry.getSession(sessionKey) : replSession.getSession();
   if (!session) {
     throw new Error(`Can't retrieve REPL session for session key: ${sessionKey}.`);
   }
@@ -47,5 +50,5 @@ export const evaluateCode = async (
 };
 
 export const currentSessionKey = () => {
-  return replSession.getReplSessionType(cljsLib.getStateValue('connected'));
+  return replSession.getSessionKey();
 };

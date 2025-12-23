@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as config from '../../formatter-config';
-import * as outputWindow from '../../repl-window/repl-doc';
+import * as outputWindow from '../../repl-window/repl-window-doc';
 import {
   getIndent,
   getDocumentOffset,
@@ -130,7 +130,7 @@ export function formatRangeEdits(
   originalRange: vscode.Range
 ): vscode.TextEdit[] | undefined {
   // Output/REPL window holds prompts etc. The formatter cannot format it. Do not try.
-  if (outputWindow.isResultsDoc(document)) {
+  if (outputWindow.isReplWindowDoc(document)) {
     return [];
   }
   return rangeReformatChanges(document, originalRange, false).map((chg) =>
@@ -282,7 +282,7 @@ export async function formatPosition(
   let orderedChanges = undefined;
   if (isWholeDoc) {
     // Output/REPL window holds prompts etc. The formatter cannot format it. Do not try.
-    if (outputWindow.isResultsDoc(editor.document)) {
+    if (outputWindow.isReplWindowDoc(editor.document)) {
       return Promise.resolve(false);
     }
     orderedChanges = rangeReformatChanges(

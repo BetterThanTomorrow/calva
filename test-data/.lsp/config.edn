@@ -1,0 +1,2 @@
+{:cljfmt {:extra-indents {expecting [[:inner 0]]}}
+ :source-aliases #{:test-data}}

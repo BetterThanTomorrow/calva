@@ -166,6 +166,26 @@ export async function initProjectDir(
   connectSequence: ReplConnectSequence,
   disableAutoSelect = false
 ) {
+  // When a connectSequence with projectRootPath is explicitly provided, use it directly
+  // This supports programmatic multi-connection flows
+  if (connectSequence?.projectRootPath?.length > 0) {
+    let projectRootPath: vscode.Uri;
+    if (path.isAbsolute(connectSequence.projectRootPath[0])) {
+      projectRootPath = vscode.Uri.file(path.join(...connectSequence.projectRootPath));
+    } else {
+      projectRootPath = vscode.Uri.joinPath(
+        vscode.workspace.workspaceFolders[0].uri,
+        ...connectSequence.projectRootPath
+      );
+    }
+    console.log('Setting project root to: ', projectRootPath.fsPath);
+    void vscode.commands.executeCommand('setContext', 'calva:projectRoot', projectRootPath.fsPath);
+    setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
+    setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
+    return projectRootPath;
+  }
+
+  // Otherwise, use auto-selection logic
   const candidatePaths = await projectRoot.findProjectRoots();
   const active_uri = vscode.window.activeTextEditor?.document.uri;
   const closestRootPath: vscode.Uri = active_uri

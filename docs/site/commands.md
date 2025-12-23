@@ -52,6 +52,7 @@ Commands that establishes or needs a REPL connection.
 | :------ | :---- | :-------- | :---- |
 | `calva.refresh` | Refreshes changed namespaces | A JSON object with stuff from [cider-nrepl ops/refresh](https://github.com/clojure-emacs/cider-nrepl/blob/master/doc/modules/ROOT/pages/nrepl-api/ops.adoc#refresh) | Mostly meant for sending `:dirs`, `:after`, and `:before`. The print options may or may not work.
 | `calva.refreshAll` | Refreshes changed namespaces | A JSON object with stuff from [cider-nrepl ops/refresh-aa](https://github.com/clojure-emacs/cider-nrepl/blob/master/doc/modules/ROOT/pages/nrepl-api/ops.adoc#refresh-all) | Mostly meant for sending `:dirs`, `:after`, and `:before`. The print options may or may not work.
+| `calva.selectReplWindowSession` | Select REPL Window Session | `sessionKey?: string` | Sets the REPL window to use the specified session. If no argument is provided, shows a picker. Returns `void`. |
 
 
 ## Wait, where are all the commands?

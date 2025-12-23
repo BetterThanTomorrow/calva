@@ -17,9 +17,10 @@ export function activationGreetings(chan: vscode.OutputChannel) {
   chan.appendLine('  Calva Documentation: https://calva.io/');
   chan.appendLine('  #calva at the Clojurians Slack: https://clojurians.slack.com/messages/calva/');
   chan.appendLine('  Bug reports: https://github.com/BetterThanTomorrow/calva/issues');
+  chan.appendLine('  How to Sponsor Calva: https://calva.io/sponsors/');
   chan.appendLine('');
   chan.appendLine(
-    'If you like Calva, please consider how you can contribute: https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute'
+    'If you like Calva, please consider how you can contribute: https://calva.io/#how-to-contribute-to-calva'
   );
   chan.appendLine('');
   chan.appendLine(

@@ -53,7 +53,7 @@ Even better: Copying that command line gives you the command to start the REPL w
 All this said, I still recommend you challenge the conclusion that you can't use Jack-in.
 
 !!! Note "Copy the Jack-in command line"
-    There is a Calva command for copying the Jack-in command line to the clipboard. It will copy the command line including commands to change to the current REPL project root, avoiding hard-to-detect errors when starting the REPL in the wrong directory.
+    There is a Calva command for copying the Jack-in command line to the clipboard. It will copy the command line including commands to change to the current REPL project root, avoiding hard-to-detect errors when starting the REPL in the wrong directory. The command also accepts an optional connect sequence argument (by name or object) so automations and keybindings can copy the exact command for a particular sequence without prompts.
 
 !!! Note "The Generic Project Type"
     A reason to use the connect to a running REPL way, can be that Calva does not have a built in [connect sequence/project type](connect-sequences.md) for the particular REPL you want to connect to. Maybe it is something like [Lingy](https://github.com/ingydotnet/lingy) which doesn't yet have a built in Calva connect sequence. As long as there is an nREPL server to connect to, you can Connect with Calva, using the **Generic** connect sequence/project type. (You can also create a [connect sequence with a custom command line](connect-sequences.md#custom-command-line), and use Jack-in anyway.)
@@ -74,6 +74,18 @@ You can make both Jack-in and Connect stop prompting you for project type and pr
 If the workspace is a monorepo, Polylith repo or just a repository with more than one Clojure project, Calva will start the connect sequence with prompting for which project to start/connect to.
 
 ![The project roots menu](images/calva-monorepo-project-roots-menu.png)
+
+## Multiple REPL Connections
+
+Calva can keep several REPL connections alive at the same time. This is useful when you want to run a backend and frontend REPL concurrently, keep an nREPL connected to a remote server while also working locally, or maintain a scratch REPL that should not be restarted when another project reconnects.
+
+### How concurrent connections are organized
+
+Every connection registers one or two session names (for example the default `clj`/`cljs` pair or the custom names you define in a [connect sequence](connect-sequences.md#settings-for-adding-custom-sequences)). Calva routes evaluations to the session whose glob matches the active file so you can keep coding without rewiring buffers manually. Run jack-in or connect again at any point to add another repl session.
+
+### Picking which connection to keep
+
+Use **Calva: Disconnect from the REPL** whenever you need to tear down one connection without touching the others. The command opens a quick pick that lists every connection along with its session names, host/port, and project root. When more than one connection is active the picker also offers **Close all REPL connections** as a fast way to clean the slate.
 
 ## shadow-cljs
 

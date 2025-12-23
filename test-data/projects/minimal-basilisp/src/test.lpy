@@ -9,3 +9,10 @@
   (println "bar"))
 
 (foo)
+
+(comment
+  (import sys)
+  sys/version
+  sys/executable
+  :rcf)
+

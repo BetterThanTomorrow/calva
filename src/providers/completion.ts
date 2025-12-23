@@ -100,7 +100,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
 
       util.assertIsDefined(activeTextEditor, 'Expected window to have activeTextEditor defined!');
 
-      const client = replSession.getSession(util.getFileType(activeTextEditor.document));
+      const client = replSession.getSession();
       if (client) {
         await namespace.createNamespaceFromDocumentIfNotExists(activeTextEditor.document);
         const [ns, _] = namespace.getDocumentNamespace();
@@ -193,7 +193,7 @@ async function replCompletions(
     replContext = `${contextStart}__prefix__${contextEnd}`,
     toplevelIsValidForm = toplevelStartCursor.withinValidList() && replContext != '__prefix__',
     [ns, _] = namespace.getNamespace(document, position),
-    client = replSession.getSession(util.getFileType(document)),
+    client = replSession.getSession(),
     res = await client.complete(ns, text, toplevelIsValidForm ? replContext : undefined),
     results = res.completions || [];
 

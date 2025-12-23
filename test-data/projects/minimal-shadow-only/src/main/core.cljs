@@ -1,6 +1,7 @@
 (ns main.core
   (:require [reagent.core :as r]
-            [reagent.dom :as rdom]))
+            [reagent.dom :as rdom]
+            [clojure.string :as string]))
 
 (defonce app-state (r/atom {:text "Hello world!"}))
 
@@ -19,4 +20,5 @@
   (start))
 
 (defn ^:dev/before-load stop []
+  (println (string/join " " [1 2 3]))
   (js/console.log "stop"))

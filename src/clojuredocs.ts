@@ -4,6 +4,7 @@ import * as nrepl from './nrepl';
 import * as lsp from './lsp';
 import * as namespace from './namespace';
 import * as replSession from './nrepl/repl-session';
+import * as sessionRegistry from './nrepl/session-registry';
 import * as docMirror from './doc-mirror/index';
 import * as paredit from './cursor-doc/paredit';
 import * as output from './results-output/output';
@@ -24,10 +25,73 @@ export type DocsEntry = {
   fromServer: 'cider-nrepl' | 'clojure-lsp';
 };
 
-export function init(cljSession: nrepl.NReplSession) {
-  cljSession.clojureDocsRefreshCache().catch((reason) => {
+const CLOJUREDOCS_LOOKUP_OP = 'clojuredocs-lookup';
+
+/**
+ * Check if a session supports ClojureDocs operations.
+ */
+function supportsClojureDocs(session: nrepl.NReplSession): boolean {
+  return session.supports(CLOJUREDOCS_LOOKUP_OP);
+}
+
+/**
+ * Initialize the ClojureDocs cache on a session.
+ */
+function initClojureDocsCache(session: nrepl.NReplSession): void {
+  session.clojureDocsRefreshCache().catch((reason) => {
     console.error('Error refreshing ClojureDocs cache: ', reason);
   });
+}
+
+/**
+ * Probe a session for ClojureDocs support. If supported and no dedicated session exists,
+ * set this session as the dedicated ClojureDocs session and initialize the cache.
+ */
+export function probeAndSetSession(session: nrepl.NReplSession, sessionKey: string): void {
+  const existingKey = sessionRegistry.getClojureDocsSessionKey();
+  if (existingKey) {
+    return;
+  }
+  if (supportsClojureDocs(session)) {
+    sessionRegistry.setClojureDocsSessionKey(sessionKey);
+    initClojureDocsCache(session);
+  }
+}
+
+/**
+ * Find a ClojureDocs-capable session from the remaining registered sessions
+ * and set it as the dedicated session.
+ */
+export function findAndSetClojureDocsSession(): void {
+  const sessions = sessionRegistry.listSessions();
+  for (const meta of sessions) {
+    const session = sessionRegistry.getSession(meta.key);
+    if (session && supportsClojureDocs(session)) {
+      sessionRegistry.setClojureDocsSessionKey(meta.key);
+      initClojureDocsCache(session);
+      return;
+    }
+  }
+  // No capable session found, clear
+  sessionRegistry.setClojureDocsSessionKey(null);
+}
+
+/**
+ * Called when a session is being disconnected. If it's the dedicated ClojureDocs session,
+ * find a new one from the remaining sessions.
+ */
+export function clearClojureDocsSession(sessionKey: string): void {
+  if (sessionRegistry.getClojureDocsSessionKey() === sessionKey) {
+    sessionRegistry.setClojureDocsSessionKey(null);
+    findAndSetClojureDocsSession();
+  }
+}
+
+/**
+ * @deprecated Use probeAndSetSession instead. This is kept for backward compatibility.
+ */
+export function init(cljSession: nrepl.NReplSession) {
+  initClojureDocsCache(cljSession);
 }
 
 export async function printClojureDocsToOutput(clientProvider: lsp.ClientProvider) {
@@ -181,14 +245,33 @@ async function clojureDocsLookup(
   const position = p ? p : util.getActiveTextEditor().selections[0].active;
   const symbol = util.getWordAtPosition(doc, position);
   const [ns, _] = namespace.getNamespace(doc, p);
-  const session = replSession.getSession(util.getFileType(doc));
 
-  const docsFromCider = await clojureDocsCiderNReplLookup(session, symbol, ns);
-  if (docsFromCider) {
-    return docsFromCider;
-  } else {
-    return clojureDocsLspLookup(clientProvider, session, doc.uri, symbol, ns);
+  // Use the current session to resolve the symbol (handles aliases)
+  const currentSession = replSession.getSession();
+  const resolved = currentSession ? await currentSession.info(ns, symbol) : null;
+  const resolvedNs = resolved?.ns
+    ? typeof resolved.ns === 'string'
+      ? resolved.ns.replace(/^cljs\./, 'clojure.')
+      : ns
+    : ns;
+  const resolvedName = resolved?.name || symbol;
+
+  // Try dedicated ClojureDocs session with the resolved symbol
+  const clojureDocsSession = sessionRegistry.getClojureDocsSession();
+
+  if (clojureDocsSession) {
+    const docsFromCider = await clojureDocsCiderNReplLookup(
+      clojureDocsSession,
+      resolvedName,
+      resolvedNs
+    );
+    if (docsFromCider) {
+      return docsFromCider;
+    }
   }
+
+  // Fallback to LSP
+  return clojureDocsLspLookup(clientProvider, currentSession, doc.uri, symbol, ns);
 }
 
 export async function clojureDocsCiderNReplLookup(
@@ -200,9 +283,8 @@ export async function clojureDocsCiderNReplLookup(
   if (ciderNReplDocs) {
     ciderNReplDocs.fromServer = 'cider-nrepl';
     return rawDocs2DocsEntry(ciderNReplDocs, symbol, ns);
-  } else {
-    return undefined;
   }
+  return undefined;
 }
 
 async function clojureDocsLspLookup(

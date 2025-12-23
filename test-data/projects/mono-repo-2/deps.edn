@@ -1,0 +1,3 @@
+{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
+        a2/a {:local/root "project1"}
+        b2/b {:local/root "project2"}}}

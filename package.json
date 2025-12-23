@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.542",
+  "version": "2.0.543",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -103,6 +103,7 @@
           ".bb",
           ".ly",
           ".lpy",
+          ".jank",
           ".calva-repl",
           ".fiddle"
         ],
@@ -157,11 +158,6 @@
         "type": "object",
         "title": "Calva",
         "properties": {
-          "calva.useLegacyReplWindowPath": {
-            "type": "boolean",
-            "default": true,
-            "markdownDescription": "For legacy reasons, the REPL window used to be located in `${projectRootPath}/.calva/output-window/output.calva-repl`. The default directory will change to `${projectRootPath}/.calva/repl.calva-repl`. Disable this setting to start using the new path. And then add `**/.calva/repl.calva-repl` to your `.gitignore`."
-          },
           "calva.legacyPrintBareReplWindowOutput": {
             "type": "boolean",
             "default": false,
@@ -544,10 +540,7 @@
                 "repl": {
                   "type": "string",
                   "markDownDescription": "Choose which REPL should the code should be evaluated in. If omitted, the same REPL as for the current file will be used.",
-                  "enum": [
-                    "clj",
-                    "cljs"
-                  ]
+                  "pattern": "^[\\p{L}\\d_-]+$"
                 },
                 "evaluationSendCodeToOutputWindow": {
                   "type": "boolean",
@@ -592,10 +585,7 @@
                 "repl": {
                   "type": "string",
                   "description": "Choose which REPL should the code should be evaluated in. If omitted, the same REPL as for the current file will be used.",
-                  "enum": [
-                    "clj",
-                    "cljs"
-                  ]
+                  "pattern": "^[\\p{L}\\d_-]+$"
                 }
               },
               "required": [
@@ -643,9 +633,11 @@
                     "Gradle",
                     "babashka",
                     "nbb",
+                    "scittle",
                     "basilisp",
                     "joyride",
                     "generic",
+                    "clj-projectless",
                     "custom",
                     "cljs-only"
                   ]
@@ -672,12 +664,31 @@
                     "type": "string"
                   }
                 },
+                "fallbackPort": {
+                  "type": "number",
+                  "markdownDescription": "If the nREPL port file is not found, fall back on this port."
+                },
                 "customJackInCommandLine": {
                   "type": "string",
                   "markdownDescription": "A custom command line, completely up to you.",
                   "items": {
                     "type": "string"
                   }
+                },
+                "afterPrimaryReplConnectedCode": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ],
+                  "markdownDescription": "Code to evaluate in the main REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.",
+                  "required": false
                 },
                 "afterCLJReplJackInCode": {
                   "anyOf": [
@@ -691,8 +702,8 @@
                       }
                     }
                   ],
-                  "markdownDescription": "Code to evaluate in the CLJ REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.",
-                  "required": false
+                  "required": false,
+                  "deprecationMessage": "Deprecated. Renamed to `afterPrimaryReplConnectedCode`, which you should be using instead."
                 },
                 "menuSelections": {
                   "type": "object",
@@ -811,12 +822,146 @@
                     }
                   ]
                 },
+                "replSessionNames": {
+                  "type": "object",
+                  "markdownDescription": "Override the default repl session names that Calva registers for the primary and the secondary (if any) REPL sessions. Defaults are: primary: `clj`, secondary: `cljs`.",
+                  "properties": {
+                    "primary": {
+                      "type": "string",
+                      "markdownDescription": "Session name for the primary REPL. Must only contain letters, digits, underscores, or hyphens.",
+                      "pattern": "^[\\p{L}\\d_-]+$"
+                    },
+                    "secondary": {
+                      "type": "string",
+                      "markdownDescription": "Session name for the secondary REPL. Must only contain letters, digits, underscores, or hyphens.",
+                      "pattern": "^[\\p{L}\\d_-]+$"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "default": {
+                    "primary": "clj",
+                    "secondary": "cljs"
+                  }
+                },
+                "replSessionFilePatterns": {
+                  "type": "object",
+                  "markdownDescription": "Map REPL session roles to file patterns they should handle. Use `primary` and `secondary` keys to refer to the session roles. Values can be: a pattern string like `*.clj`, an array of patterns, or an object with `always-claim` and/or `is-fallback-for` properties (arrays of patterns) to control routing priority. Patterns are automatically scoped to the sequence's project root (e.g., `*.clj` becomes `/path/to/project/**/*.clj`). The `always-claim` tier takes precedence over `is-fallback-for`.",
+                  "properties": {
+                    "primary": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "always-claim": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              ],
+                              "markdownDescription": "High-priority file patterns for this session. Files matching these patterns will always route to this session, even if another session has a more specific pattern."
+                            },
+                            "is-fallback-for": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              ],
+                              "markdownDescription": "Lower-priority file patterns for this session. Files matching these patterns will route to this session only if no other session has a matching `always-claim` pattern."
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ],
+                      "markdownDescription": "File patterns for the primary REPL session (e.g., `*.clj`, `*.edn`)."
+                    },
+                    "secondary": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "always-claim": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              ],
+                              "markdownDescription": "High-priority file patterns for this session. Files matching these patterns will always route to this session, even if another session has a more specific pattern."
+                            },
+                            "is-fallback-for": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              ],
+                              "markdownDescription": "Lower-priority file patterns for this session. Files matching these patterns will route to this session only if no other session has a matching `always-claim` pattern."
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ],
+                      "markdownDescription": "File patterns for the secondary REPL session (e.g., `*.cljs`)."
+                    }
+                  },
+                  "additionalProperties": false,
+                  "default": {
+                    "primary": [
+                      "*.clj",
+                      "*.edn"
+                    ],
+                    "secondary": [
+                      "*.cljs"
+                    ]
+                  }
+                },
                 "jackInEnv": {
                   "type": "object",
                   "default": {},
                   "markdownDescription": "Environment variables that will be merged with any global `calva.jackInEnv` and then applied to the Jack-in process. The merge is very similar to how Clojure's `merge` works. So for any common keys between the global setting and this one, the ones from this setting will win."
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "calva.projectRootsSearchExclude": {
@@ -974,7 +1119,7 @@
                 "properties": {
                   "clj": {
                     "type": "string",
-                    "markdownDescription": "Code to evaluate when the **Clojure** REPL has been connected. The default is code that refer in the `repl-requires`/REPL utilities (like `source`, `doc`, etcetera). (Note that there is also a command to do this on demand.). The code will be evaluated *before* the `afterCLJReplJackInCode` in any [connect sequence](https://calva.io/connect-sequences/) used. Set to `null` to disable this feature."
+                    "markdownDescription": "Code to evaluate when the **Clojure** REPL has been connected. The default is code that refer in the `repl-requires`/REPL utilities (like `source`, `doc`, etcetera). (Note that there is also a command to do this on demand.). The code will be evaluated *before* the `afterPrimaryReplConnectedCode` in any [connect sequence](https://calva.io/connect-sequences/) used. Set to `null` to disable this feature."
                   },
                   "cljs": {
                     "type": "string",
@@ -1360,6 +1505,18 @@
         "category": "Calva"
       },
       {
+        "command": "calva.showReplSessionsMenu",
+        "title": "REPL Sessions",
+        "category": "Calva",
+        "enablement": "calva:connected"
+      },
+      {
+        "command": "calva.selectReplWindowSession",
+        "title": "Select REPL Window Session",
+        "category": "Calva",
+        "enablement": "calva:connected"
+      },
+      {
         "command": "calva.startStandaloneHelloRepl",
         "title": "Create a Getting Started REPL project",
         "category": "Calva"
@@ -1371,7 +1528,13 @@
       },
       {
         "command": "calva.toggleCLJCSession",
-        "title": "Toggle the REPL Connection (clj or cljs) used for CLJC Files",
+        "title": "Toggle the CLJC Target Session (clj or cljs) for the Current Connection",
+        "enablement": "calva:connected",
+        "category": "Calva"
+      },
+      {
+        "command": "calva.selectCljcTarget",
+        "title": "Select CLJC Target Session",
         "enablement": "calva:connected",
         "category": "Calva"
       },
@@ -3406,12 +3569,12 @@
     "pree2e-test": "cd ./src/extension-test/e2e-test/ && npm i",
     "e2e-test-containerized": "./src/extension-test/e2e-test/run-containerized.sh",
     "pree2e-test-containerized": "cd ./src/extension-test/e2e-test/ && npm i",
-    "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
-    "unit-test-watch": "npx mocha --watch --require ts-node/register --watch-extensions ts --watch-files src 'src/extension-test/unit/**/*-test.ts'",
-    "prettier-format": "npx prettier --write \"./**/*.{ts,js,json}\"",
-    "prettier-check": "npx prettier --check \"./**/*.{ts,js,json}\"",
-    "prettier-check-watch": "onchange \"./**/*.{ts,js,json}\" -- prettier --check {{changed}}",
-    "prettier-format-watch": "onchange \"./**/*.{ts,js,json}\" -- prettier --write {{changed}}",
+    "unit-test": "npx mocha --exit --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
+    "unit-test-watch": "npx mocha --exit --watch --require ts-node/register --watch-extensions ts --watch-files src 'src/extension-test/unit/**/*-test.ts'",
+    "prettier-format": "npx prettier --write \"src/**/*.{ts,js,json}\"",
+    "prettier-check": "npx prettier --check \"src/**/*.{ts,js,json}\"",
+    "prettier-check-watch": "onchange \"src/**/*.{ts,js,json}\" -- prettier --check {{changed}}",
+    "prettier-format-watch": "onchange \"src/**/*.{ts,js,json}\" -- prettier --write {{changed}}",
     "preprettier-format-watch": "npm run prettier-format",
     "eslint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
     "eslint-watch": "npx esw . --ext .js,.jsx,.ts,.tsx --watch",
@@ -3434,6 +3597,7 @@
     "jszip": "3.8.0",
     "lodash": "^4.17.19",
     "lodash.isequal": "4.5.0",
+    "minimatch": "^10.1.1",
     "net": "1.0.2",
     "open": "^6.3.0",
     "parinfer": "^3.12.0",
@@ -3448,7 +3612,6 @@
   "devDependencies": {
     "@types/chai": "^4.2.6",
     "@types/follow-redirects": "^1.13.0",
-    "@types/glob": "^7.1.1",
     "@types/lodash": "^4.14.167",
     "@types/mocha": "^9.1.0",
     "@types/node": "^18.6.3",
@@ -3467,7 +3630,7 @@
     "eslint-plugin-import": "^2.25.4",
     "eslint-watch": "^8.0.0",
     "fast-check": "^1.22.2",
-    "glob": "^7.1.6",
+    "glob": "^13.0.0",
     "jest": "^27.2.5",
     "json": "^10.0.0",
     "mocha": "^11.1.0",
