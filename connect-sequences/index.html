@@ -2430,12 +2430,13 @@
 <p>A connect sequence configures the following:</p>
 <ul>
 <li><code>name</code>: (required) This will show up in the Jack-in quick-pick menu when you start Jack-in (see above). This will be set the <a href="../when-clauses/">When Clause context</a> <code>calva:connectSequence</code>, so you can e.g. bind keyboard shortcuts depending on which sequence is selected.</li>
-<li><code>projectType</code>: (required) This is either "Leiningen”, "deps.edn", "shadow-cljs", "lein-shadow", "Gradle", "babashka", "nbb", "basilisp", "joyride", ”generic”, "custom", or "cljs-only".</li>
+<li><code>projectType</code>: (required) This is either "Leiningen", "deps.edn", "shadow-cljs", "lein-shadow", "Gradle", "babashka", "nbb", "basilisp", "joyride", "scittle", "generic", "clj-projectless", "custom", or "cljs-only".</li>
 <li><code>autoSelectForJackIn</code>: A boolean. If true, this sequence will be automatically selected at <strong>Jack-in</strong>, suppressing the Project Type. Use together with <code>projectRootPath</code> to also suppress the Project Root menu. Add usage of <code>menuSelections</code> to go for a prompt-less REPL Jack-in. If you have more than one sequence with <code>autoSelectForJackIn</code> set to true, Calva will use the sequence with its <code>projectRootPath</code> closest to the currently active editor file. And if there is no such closest file, the first sequence will be used.</li>
 <li><code>autoSelectForConnect</code>: A boolean. If true, this sequence will be automatically selected at <strong>Connect</strong>, suppressing the Project Type menu. Use together with <code>projectRootPath</code> to also suppress the Project Root menu. If you have more than one sequence with <code>autoSelectForConnect</code> set to true, Calva will use the sequence with its <code>projectRootPath</code> closest to the currently active editor file. And if there is no such closest file, the first sequence will be used.</li>
 <li><code>projectRootPath</code>: An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with <code>autoSelectForJackIn</code>/<code>autoSelectForConnect</code> to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder.</li>
 <li><code>nReplPortFile</code>: An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be <code>[".shadow-cljs", "nrepl.port"]</code>.</li>
-<li><code>afterCLJReplJackInCode</code>: Code to evaluate in the CLJ REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.</li>
+<li><code>defaultPort</code>: A fallback port number to use when the <code>nReplPortFile</code> is missing (for example the built-in Babashka sequence uses <code>1667</code>, and the Scittle sequence uses <code>1339</code>). This lets Calva attempt an immediate connection instead of prompting for host/port when the port file is not present.</li>
+<li><code>afterPrimaryReplConnectedCode</code>: Code to evaluate in the primary REPL once it has been created. You can use either a string or an array of strings. If you use an array, the strings will be joined with a newline character to form the resulting code.</li>
 <li><code>customJackInCommandLine</code>: A string with a command line that should be used to launch the REPL. See <a href="#custom-command-line">Custom Command Line</a>, below.</li>
 <li><code>cljsType</code>: This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", "none", or a dictionary configuring a custom type. If set to "none", Calva will skip connecting a ClojureScript repl. A custom type has the following fields:<ul>
 <li><code>dependsOn</code>: (required) Calva will use this to determine which dependencies it will add when starting the project (Jacking in). This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", or ”User provided”. If it is "User provided", then you need to provide the dependencies in the project or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed.</li>
@@ -2460,7 +2461,36 @@
 </li>
 <li><code>jackInEnv</code>: An object with environment variables that will be merged with the global <code>calva.jackInEnv</code> and then applied to the Jack-in process. The merge is very similar to how Clojure's <code>merge</code> works. So for any common keys between the global setting and this one, the ones from this setting will win.</li>
 <li><code>extraNReplMiddleware</code>: Array of strings of the fully qualified names of extra middleware that should be applied to the nREPL server when started.</li>
+<li><code>replSessionNames</code>: Override the default repl session names that Calva registers for the primary and the secondary (if any) REPL sessions. Use this to enable connecting more than one connect sequence in the same VS Code window.<ul>
+<li><code>primary</code>: the name of the primary repl session. Defaults to <code>clj</code></li>
+<li><code>secondary</code>: the name of the secondary repl session in the sequence. Defaults to <code>cljs</code>.</li>
 </ul>
+</li>
+<li><code>replSessionFilePatterns</code>: Map REPL session roles to the file patterns they should handle. Use <code>primary</code> and <code>secondary</code> as keys. Values can be a single pattern string, an array of patterns, or an object specifying <code>always-claim</code> and/or <code>is-fallback-for</code> patterns. Patterns are automatically scoped to the connect sequence's project root unless they start with <code>**/</code>, which makes them workspace-wide. Multi-root workspaces are supported. Defaults are <code>*.clj</code> for the primary session and <code>*.cljs</code> for the secondary session.</li>
+</ul>
+<details class="note">
+<summary>Session routing pattern competition resolution</summary>
+<p>When there are many repls connected at once, Calva lets you pin a repl to be used for evaluations. We've tried to make the auto-routing flexible so that you shouldn't need to resort to session pinning too often; this is why the <code>replSessionFilePatterns</code> setting is a bit elaborate.</p>
+<p>Your first line of defence is pattern "specificity". The routing will take a simple specificity into account in cases of routing conflict. More specific patterns will take precedence over less specific ones.</p>
+<p>When you want to stay unspecific with the pattern targeting, you can signal that a particular session is fallback using the object form for <code>replSessionFilePatterns</code>. Specifying that some patterns are <code>is-fallback-for</code> gives other repl sessions the chance to handle the evaluation with their <code>always-claim</code> patterns. The built-in <strong>Babashka</strong> project type uses patterns like so:</p>
+<div class="highlight"><pre><span></span><code>{
+    ...
+    &quot;replSessionNames&quot;: { &quot;primary&quot;: &quot;bb&quot; },
+    &quot;replSessionFilePatterns&quot;: {
+        &quot;primary&quot;: {
+            &quot;always-claim&quot;: [&quot;*.bb&quot;, &quot;bb.edn&quot;],
+            &quot;is-fallback-for&quot;: [&quot;**/*.clj&quot;, &quot;**/*.bb&quot;, &quot;**/bb.edn&quot;]
+        }
+    }
+    ...
+}
+</code></pre></div>
+<p>This will make the Babashka repl (if connected) get all evaluations from <code>.bb</code> files in its project, and if no other repl session is handling <code>.clj</code> files, the Babashka repl will handle those too. But if some other connected repl is specifying <code>*.clj</code> as an <code>always-claim</code> pattern, the Babashka repl will not compete for those files. Additionally, the <code>**/*.clj</code>, <code>**/*.bb</code>. and <code>**/bb.edn</code> patterns in the fallback tier will match <code>.bb</code> files <em>anywhere</em> in the workspace (not just within the project root), making the Babashka repl a workspace-wide fallback for orphan Babashka files (and Clojure files, to make another repl fallback for Clojure files, connect it before connecting the Babashka repl).</p>
+<p>NB: When a sequence is not using the object form of the specification all patterns are considered <code>always-claim</code>.</p>
+<p><strong>Workspace-wide patterns</strong>: By default, patterns are scoped to the connect sequence's project root. To match files anywhere in the workspace, prefix patterns with <code>**/</code>.</p>
+<p>Inside each tier, Calva scores patterns by specificity: literal path segments earn more points than wildcard-heavy ones, and <code>**</code> incurs a penalty. This keeps patterns such as <code>src/app/*.cljs</code> ahead of a broad <code>*.cljs</code> even if both live in the same tier.</p>
+<p>If tiering and specificity still leave more than one repl session competing, Calva falls back to connection order, so the first connected session wins. The same fallback applies when no session matches.</p>
+</details>
 <p>The <a href="https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts">Calva built-in sequences</a> also use this format, check them out to get a clearer picture of how these settings work.</p>
 <div class="admonition note">
 <p class="admonition-title">How sequence configurations are merged</p>
@@ -2584,7 +2614,7 @@
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deps.edn&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;afterCLJReplJackInCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[dev.server] :reload) (in-ns &#39;dev.server) (start! 6003)&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;afterPrimaryReplConnectedCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[dev.server] :reload) (in-ns &#39;dev.server) (start! 6003)&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Polylith RealWorld Server REPL (start)&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;autoSelectForJackIn&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;projectRootPath&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;.&quot;</span><span class="p">],</span>
@@ -2611,7 +2641,7 @@
 <span class="w">        </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Example Sequence&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Clojure-CLI&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;afterCLJReplJackInCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(go)&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;afterPrimaryReplConnectedCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(go)&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">&quot;cljsType&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">                </span><span class="nt">&quot;startCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(do (require &#39;[cljs-test.main :refer :all])(start-nrepl+fig))&quot;</span><span class="p">,</span>
 <span class="w">                </span><span class="nt">&quot;isReadyToStartRegExp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Prompt will show&quot;</span><span class="p">,</span>

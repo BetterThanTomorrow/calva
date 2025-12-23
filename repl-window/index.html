@@ -746,6 +746,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#which-calve-repl-file-is-the-repl-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      Which .calve-repl file is the REPL Window?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#evaluating-code" class="md-nav__link">
     <span class="md-ellipsis">
       Evaluating Code
@@ -2324,6 +2333,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#which-calve-repl-file-is-the-repl-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      Which .calve-repl file is the REPL Window?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#evaluating-code" class="md-nav__link">
     <span class="md-ellipsis">
       Evaluating Code
@@ -2477,6 +2495,9 @@
 <p class="admonition-title">Note</p>
 <p>This also works for Clojure core and library namespaces.</p>
 </div>
+<h2 id="which-calve-repl-file-is-the-repl-window">Which <code>.calve-repl</code> file is the REPL Window?<a class="headerlink" href="#which-calve-repl-file-is-the-repl-window" title="Permanent link">#</a></h2>
+<p>The first repl connected will determine the location of the REPL Window file. This file will be created at <code>&lt;project-root&gt;/.calva/repl.calva-repl</code>.</p>
+<p>When opening/activating other <code>.calva/repl.calva-repl</code> files, potentially from earlier sessions when you have connected a different project first, Calva will pop up a message informing you about the possible mix-up. The message includes a button helping you find the real REPL Window.</p>
 <h2 id="evaluating-code">Evaluating Code<a class="headerlink" href="#evaluating-code" title="Permanent link">#</a></h2>
 <p>The window will be automatically associated with the REPL and the namespace of any project Clojure/ClojureScript file you evaluate code in. So for instance if you evaluate this code in a <code>clj</code> file with the namespace <code>fresh-reagent.handler</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">mount-target</span>
@@ -2540,11 +2561,10 @@
 <p>The repl window is mostly a regular... (you get it), which means you also have the <a href="../debugger/">Calva debugger</a> at your command at the REPL prompt (only for <code>clj</code> sessions, for now). So instead of evaluating a function definition using <code>alt+enter</code>, you can evaluate it and instrument it for debugging using <code>ctrl+alt+c i</code>, and then call the function.</p>
 <p><img alt="repl-file debugger" src="../images/howto/output/repl-file-debugger.png" /></p>
 <h2 id="it-is-ephemeral">It is Ephemeral<a class="headerlink" href="#it-is-ephemeral" title="Permanent link">#</a></h2>
-<p>The contents of the output/REPL window is written to a file named <code>output.repl</code> in the <code>.calva/output-window</code> directory of your project. The file is recreated every new session, so you should copy or save anything you want to preserve between sessions.</p>
-<p>You probably want to add <code>.calva/output-window/</code> to your <code>.&lt;something&gt;ignore</code> files. (There are some more files in that directory that you shouldn't keep under source control.)</p>
+<p>The contents of the REPL window is written to a file named <code>repl.calva-repl</code> in the <code>.calva</code> directory of your project root. The file is recreated every new session, so you should copy or save anything you want to preserve between sessions.</p>
+<p>You probably want to add <code>.calva/repl.calva-repl</code> to your <code>.&lt;something&gt;ignore</code> files.</p>
 <h2 id="choose-clj-or-cljs-repl-connection">Choose CLJ or CLJS REPL Connection<a class="headerlink" href="#choose-clj-or-cljs-repl-connection" title="Permanent link">#</a></h2>
-<p>In full-stack projects, you will probably use the window as a REPL for both <code>clj</code> and <code>cljs</code>. You can toggle which REPL the window is connected to by using the command <strong>Calva: Toggle REPL Connection for CLJC files</strong>. There is also a button for this in the status bar:</p>
-<p><img alt="Toggle CLJC" src="../images/howto/cljc-toggle-button.png" /></p>
+<p>In multi-repl projects, the REPL window is treated as <code>.cljc</code> file.</p>
 <h2 id="known-quirks-and-caveats">Known Quirks and Caveats<a class="headerlink" href="#known-quirks-and-caveats" title="Permanent link">#</a></h2>
 <p>Due to limitations in the VS Code API it is hard for Calva to know if the REPL file is open, and if it was opened more than once. Therefore, we suggest you make it a habit to leave this window open, or even pinned. And if it is open in several tabs, expect evaluation printouts to be a bit unpredictable.</p>
 <p>If you save the REPL file (which most often does not make much sense, but anyway) you will sometimes be presented with a message about VS Code being confused about the file contents being out of sync. Just choose to <em>Overwrite</em> the currently saved version and you should be fine.</p>

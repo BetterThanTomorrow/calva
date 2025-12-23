@@ -1949,6 +1949,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#repllistsessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      repl.listSessions()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#replevaluatecode" class="md-nav__link">
     <span class="md-ellipsis">
       repl.evaluateCode()
@@ -2434,6 +2443,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#repllistsessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      repl.listSessions()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#replevaluatecode" class="md-nav__link">
     <span class="md-ellipsis">
       repl.evaluateCode()
@@ -2737,6 +2755,38 @@
 </div>
 </div>
 </div>
+<h3 id="repllistsessions"><code>repl.listSessions()</code><a class="headerlink" href="#repllistsessions" title="Permanent link">#</a></h3>
+<p>Use <code>repl.listSessions()</code> to inspect every registered Calva REPL session, including secondary or custom session roles. It returns a collection/array of metadata objects with the following shape:</p>
+<ul>
+<li><code>replSessionKey</code> (<code>string</code>, required): The session key you can pass to other Calva APIs such as <code>evaluateCode</code>.</li>
+<li><code>projectRoot</code> (<code>string</code>, optional): A URI string describing the project/workspace that owns the session.</li>
+<li><code>lastActivity</code> (<code>number</code>, optional): Milliseconds since Unix epoch for the latest known activity on the session.</li>
+<li><code>globs</code> (<code>string[]</code>, optional): The set of file globs that the session declared it can handle. Calva iterates sessions in connection order and picks the first one whose globs match the active file.</li>
+</ul>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Joyride</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block"></div>
+</div>
+</div>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">sessions</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/repl.listSessions</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">println </span><span class="s">&quot;Session keys:&quot;</span><span class="w"> </span><span class="p">(</span><span class="nb">map </span><span class="ss">:replSessionKey</span><span class="w"> </span><span class="nv">sessions</span><span class="p">))</span>
+</code></pre></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">ClojureScript</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block"></div>
+</div>
+</div>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">list-sessions</span><span class="w"> </span><span class="p">(</span><span class="nf">get-in</span><span class="w"> </span><span class="p">[</span><span class="ss">:repl</span><span class="w"> </span><span class="ss">:listSessions</span><span class="p">]</span><span class="w"> </span><span class="nv">calvaApi</span><span class="p">))</span>
+<span class="p">(</span><span class="k">def </span><span class="nv">session-keys</span><span class="w"> </span><span class="p">(</span><span class="nb">map </span><span class="ss">:replSessionKey</span><span class="w"> </span><span class="p">(</span><span class="nf">list-sessions</span><span class="p">)))</span>
+</code></pre></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:1"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">JavaScript</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block"></div>
+</div>
+</div>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">sessions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">calva</span><span class="p">.</span><span class="nx">repl</span><span class="p">.</span><span class="nx">listSessions</span><span class="p">();</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">secondary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">sessions</span><span class="p">.</span><span class="nx">find</span><span class="p">((</span><span class="nx">s</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">replSessionKey</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;cljs&#39;</span><span class="p">);</span>
+</code></pre></div>
 <h3 id="replevaluatecode"><code>repl.evaluateCode()</code><a class="headerlink" href="#replevaluatecode" title="Permanent link">#</a></h3>
 <p>This function lets you evaluate Clojure code through Calva's nREPL connection. Calling it returns a promise that resolves to a <code>Result</code> object. It's signature looks like so (TypeScript):</p>
 <div class="highlight"><pre><span></span><code><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">evaluateCode</span><span class="p">(</span>
@@ -2762,7 +2812,7 @@
 </code></pre></div>
 <p>As you can see, the required arguments to the function are <code>sessionKey</code> and <code>code</code>. <code>sessionKey</code> should be <code>"clj"</code>, <code>"cljs"</code>, <code>"cljc"</code>, or <code>undefined</code> depending on which of Calva's REPL sessions/connections that should be used. It will depend on your project, and how you connect to it, which session keys are valid. Use <code>cljc</code> to request whatever REPL session <code>"cljc"</code> files are connected to. Use <code>undefined</code> to use the current REPL connection Calva would use (depends on which file is active).</p>
 <p>An example:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="3:3"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Joyride</label><label for="__tabbed_3_2">ClojureScript</label><label for="__tabbed_3_3">JavaScript</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="6:3"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><input id="__tabbed_6_3" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">Joyride</label><label for="__tabbed_6_2">ClojureScript</label><label for="__tabbed_6_3">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">p/let</span><span class="w"> </span><span class="p">[</span><span class="nv">evaluation</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/repl.evaluateCode</span><span class="w"> </span><span class="s">&quot;clj&quot;</span><span class="w"> </span><span class="s">&quot;(+ 2 40)&quot;</span><span class="p">)]</span>
@@ -2794,7 +2844,7 @@
 <p>The <code>output</code> member on the <code>Result</code> object will have any output produced during evaluation. By default the stdout and stderr output is not printed anywhere.</p>
 <p>If you want to do something with either regular output or error output during, or after, evaluation, you'll need to provide the <code>output</code> argument to <code>evaluateCode()</code>.</p>
 <p>An example:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="4:3"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><input id="__tabbed_4_3" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Joyride</label><label for="__tabbed_4_2">ClojureScript</label><label for="__tabbed_4_3">JavaScript</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="7:3"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio" /><input id="__tabbed_7_2" name="__tabbed_7" type="radio" /><input id="__tabbed_7_3" name="__tabbed_7" type="radio" /><div class="tabbed-labels"><label for="__tabbed_7_1">Joyride</label><label for="__tabbed_7_2">ClojureScript</label><label for="__tabbed_7_3">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">oc</span><span class="w"> </span><span class="p">(</span><span class="nf">joyride.core/output-channel</span><span class="p">))</span><span class="w"> </span><span class="c1">;; Assuming Joyride is used</span>
@@ -2897,7 +2947,7 @@
 <p>The symbol being defined by the current top level form. NB: Will stupidly assume it is the second form. I.e. it does not check that it is an actual definition, and will often return nonsense if used in Rich comments.</p>
 <p><em>Corresponding <a href="../custom-commands/">REPL Snippet</a> variable: <code>$top-level-defined-symbol</code>.</em></p>
 <h3 id="example-rangescurrenttoplevelform">Example: <code>ranges.currentTopLevelForm()</code><a class="headerlink" href="#example-rangescurrenttoplevelform" title="Permanent link">#</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="5:3"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><input id="__tabbed_5_3" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Joyride</label><label for="__tabbed_5_2">ClojureScript</label><label for="__tabbed_5_3">JavaScript</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="8:3"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><input id="__tabbed_8_2" name="__tabbed_8" type="radio" /><input id="__tabbed_8_3" name="__tabbed_8" type="radio" /><div class="tabbed-labels"><label for="__tabbed_8_1">Joyride</label><label for="__tabbed_8_2">ClojureScript</label><label for="__tabbed_8_3">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[[</span><span class="nb">range </span><span class="nv">text</span><span class="p">]</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/ranges.currentTopLevelForm</span><span class="p">)]</span>
@@ -2924,7 +2974,7 @@
 <li><code>range</code>, a <code>vscode.Range</code></li>
 <li><code>newText</code>, a string</li>
 </ul>
-<div class="tabbed-set tabbed-alternate" data-tabs="6:2"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">Joyride</label><label for="__tabbed_6_2">JavaScript</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="9:2"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio" /><input id="__tabbed_9_2" name="__tabbed_9" type="radio" /><div class="tabbed-labels"><label for="__tabbed_9_1">Joyride</label><label for="__tabbed_9_2">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">p/let</span><span class="w"> </span><span class="p">[</span><span class="nv">top-level-form-range</span><span class="w"> </span><span class="p">(</span><span class="nb">first </span><span class="p">(</span><span class="nf">calva/ranges.currentTopLevelForm</span><span class="p">))</span>
@@ -2951,7 +3001,7 @@
 <li><code>document</code>, a <code>vscode.TextDocument</code> (defaults to the current active document)</li>
 </ul>
 <p>Example usage. To evaluate some code in the namespace of the current document:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="7:2"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio" /><input id="__tabbed_7_2" name="__tabbed_7" type="radio" /><div class="tabbed-labels"><label for="__tabbed_7_1">Joyride</label><label for="__tabbed_7_2">JavaScript</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="10:2"><input checked="checked" id="__tabbed_10_1" name="__tabbed_10" type="radio" /><input id="__tabbed_10_2" name="__tabbed_10" type="radio" /><div class="tabbed-labels"><label for="__tabbed_10_1">Joyride</label><label for="__tabbed_10_2">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">calva/repl.evaluateCode</span><span class="w"> </span><span class="s">&quot;clj&quot;</span><span class="w"> </span><span class="s">&quot;(+ 1 2 39)&quot;</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/document.getNamespace</span><span class="p">))</span>
@@ -2969,7 +3019,7 @@
 <li><code>document</code>, a <code>vscode.TextDocument</code> (defaults to the current active document)</li>
 </ul>
 <p>Example usage. To evaluate the <code>ns</code> form of the current document:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="8:2"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><input id="__tabbed_8_2" name="__tabbed_8" type="radio" /><div class="tabbed-labels"><label for="__tabbed_8_1">Joyride</label><label for="__tabbed_8_2">JavaScript</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="11:2"><input checked="checked" id="__tabbed_11_1" name="__tabbed_11" type="radio" /><input id="__tabbed_11_2" name="__tabbed_11" type="radio" /><div class="tabbed-labels"><label for="__tabbed_11_1">Joyride</label><label for="__tabbed_11_2">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">calva/repl.evaluateCode</span><span class="w"> </span><span class="s">&quot;clj&quot;</span><span class="w"> </span><span class="p">(</span><span class="nb">second </span><span class="p">(</span><span class="nf">calva/document.getNamespaceAndNsForm</span><span class="p">)))</span>
@@ -2990,7 +3040,7 @@
 <li><code>options</code>, a JavaScript object with <a href="../pprint/">pretty printing</a> options, this is optional and will default to the current settings.</li>
 </ul>
 <p>The function is synchronous and returns the prettified text.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="9:2"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio" /><input id="__tabbed_9_2" name="__tabbed_9" type="radio" /><div class="tabbed-labels"><label for="__tabbed_9_1">Joyride</label><label for="__tabbed_9_2">JavaScript</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="12:2"><input checked="checked" id="__tabbed_12_1" name="__tabbed_12" type="radio" /><input id="__tabbed_12_2" name="__tabbed_12" type="radio" /><div class="tabbed-labels"><label for="__tabbed_12_1">Joyride</label><label for="__tabbed_12_2">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">println </span><span class="p">(</span><span class="nf">calva/pprint.prettyPrint</span><span class="w"> </span><span class="s">&quot;Some text&quot;</span><span class="p">)))</span>
@@ -3008,7 +3058,7 @@
 <p>In the its <code>vscode</code> submodule, Calva exposes access to things from its own <code>vscode</code> module instance. It gets important in some situations.</p>
 <h3 id="vscoderegisterdocumentsymbolprovider"><code>vscode.registerDocumentSymbolProvider()</code><a class="headerlink" href="#vscoderegisterdocumentsymbolprovider" title="Permanent link">#</a></h3>
 <p>This is the <code>[vscode.languages](https://code.visualstudio.com/api/references/vscode-api#languages).registerDocumentSymbolProvider()</code> function from the Calva extension. Use it if you want to provide symbols for Clojure files together with the ones that Calva provides. (If you use the <code>vscode.languages.registerDocumentSymbolProvider()</code> function from your extension (or Joyride) you will provide a separate group.)</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="10:3"><input checked="checked" id="__tabbed_10_1" name="__tabbed_10" type="radio" /><input id="__tabbed_10_2" name="__tabbed_10" type="radio" /><input id="__tabbed_10_3" name="__tabbed_10" type="radio" /><div class="tabbed-labels"><label for="__tabbed_10_1">Joyride</label><label for="__tabbed_10_2">ClojureScript</label><label for="__tabbed_10_3">JavaScript</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="13:3"><input checked="checked" id="__tabbed_13_1" name="__tabbed_13" type="radio" /><input id="__tabbed_13_2" name="__tabbed_13" type="radio" /><input id="__tabbed_13_3" name="__tabbed_13" type="radio" /><div class="tabbed-labels"><label for="__tabbed_13_1">Joyride</label><label for="__tabbed_13_2">ClojureScript</label><label for="__tabbed_13_3">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">joyride/extension-context</span><span class="p">)</span>

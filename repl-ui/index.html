@@ -640,13 +640,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#components-overview" class="md-nav__link">
+  <a href="#managing-multiple-connections" class="md-nav__link">
     <span class="md-ellipsis">
-      Components Overview
+      Managing Multiple Connections
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Components Overview">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ui-components-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      UI Components Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UI Components Overview">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -737,6 +746,15 @@
   <a href="#session-type-status" class="md-nav__link">
     <span class="md-ellipsis">
       Session Type Status
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repl-window-session-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      REPL Window Session Command
     </span>
   </a>
   
@@ -2292,13 +2310,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#components-overview" class="md-nav__link">
+  <a href="#managing-multiple-connections" class="md-nav__link">
     <span class="md-ellipsis">
-      Components Overview
+      Managing Multiple Connections
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Components Overview">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ui-components-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      UI Components Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UI Components Overview">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2395,6 +2422,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#repl-window-session-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      REPL Window Session Command
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#cljs-build-selector" class="md-nav__link">
     <span class="md-ellipsis">
       CLJS Build Selector
@@ -2455,7 +2491,22 @@
 
 <h1 id="the-calva-repl-ui">The Calva REPL UI<a class="headerlink" href="#the-calva-repl-ui" title="Permanent link">#</a></h1>
 <p>When you connect Calva to a REPL, you gain access to a complete interactive development environment. The REPL UI consists of several components that work together to provide a seamless evaluation and feedback experience.</p>
-<h2 id="components-overview">Components Overview<a class="headerlink" href="#components-overview" title="Permanent link">#</a></h2>
+<h2 id="managing-multiple-connections">Managing Multiple Connections<a class="headerlink" href="#managing-multiple-connections" title="Permanent link">#</a></h2>
+<p>Definitions:</p>
+<ul>
+<li><strong>REPL Connection</strong>: An active nREPL connection to a running Clojure/ClojureScript environment. Each connection is associated with a project root and a host/port.</li>
+<li><strong>REPL Session</strong>: A logical session within a REPL connection. Connections have at least one session and at most two. Sessions are associated with a project root (via the connection) and file patterns (partial globs), these associations help the automatic evaluation routing: <strong>file → session</strong>.</li>
+</ul>
+<p>Calva keeps every nREPL connection alive until you explicitly disconnect it. This makes it possible to work with several apps (or the same app in multiple environments) at once from the same VS Code window. By default Calva will automatically route evaluations to a session based on file path and file type.</p>
+<ul>
+<li>The REPL Sessions menu lists every registered session name, indicating which one is being targeted by the auto-router for the currently active file. You can bypass the auto-routing by pinning one of the sessions.</li>
+<li>The command palette entry <strong>Calva: Disconnect from the REPL</strong> (also available from the REPL menu) opens a menu that shows all active connections, with their sessions names, host/port, and project root. Pick a single connection to disconnect only that REPL or choose <strong>Close all REPL connections</strong>.</li>
+<li>Sessions names are defined by the <a href="../connect-sequences/">connect sequence</a> used for connecting a REPL. Calva has built-in sequences for several Clojure dialects/runtimes, defining default session names. The session names are customizable via custom connect sequences.</li>
+<li>When two or more sessions use the same session name, numbered suffixes will be used to separate the sessions.</li>
+</ul>
+<p>E.g. connect three Babashka repls and you will have one session named <code>bb</code> another named <code>bb:2</code>, and a third named <code>bb:3</code>. If you then connect two Clojure + ClojureScript repls using default session names, you will have four more sessions named: <code>clj</code>, <code>cljs</code>, <code>clj:4</code>, <code>cljs:4</code>.</p>
+<p><img alt="REPL Sessions Menu" src="../images/repl-ui/repl-sessions-menu.png" /></p>
+<h2 id="ui-components-overview">UI Components Overview<a class="headerlink" href="#ui-components-overview" title="Permanent link">#</a></h2>
 <h3 id="file-editors">File Editors<a class="headerlink" href="#file-editors" title="Permanent link">#</a></h3>
 <p>Every Clojure/ClojureScript file you have open becomes a REPL-connected environment. You can evaluate code directly in your editor and see results displayed inline. The first line of evaluation results appears as an inline decoration, while complete output goes to your configured output destination.</p>
 <h3 id="output-destinations">Output Destinations<a class="headerlink" href="#output-destinations" title="Permanent link">#</a></h3>
@@ -2477,19 +2528,20 @@
 <li><strong>Toggle Pretty Printing</strong>: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> <kbd>P</kbd> - Enable/disable pretty printing (also available via status bar)</li>
 <li><strong>Interrupt Running Evaluation</strong>: Available in REPL status bar menu when connected</li>
 <li><strong>Show Output Destination</strong>: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>O</kbd> <kbd>O</kbd> - Open the configured output destination</li>
+<li><strong>Disconnect from the REPL</strong>: Opens a quick pick listing every active connection so you can disconnect from a single connection or select <strong>Close all REPL connections</strong> when you need a fresh slate</li>
 </ul>
 <p>Search the command palette for <code>Calva evaluate</code> to find some more commands related to code evaluation at the REPL.</p>
 <h2 id="the-status-bar">The Status Bar<a class="headerlink" href="#the-status-bar" title="Permanent link">#</a></h2>
 <p>The status bar displays REPL connection status and provides quick access to common REPL operations.</p>
 <h3 id="connection-status">Connection Status<a class="headerlink" href="#connection-status" title="Permanent link">#</a></h3>
-<p>The main REPL connection indicator shows the current state of your REPL connection:</p>
-<p><img alt="Status Bar Disconnected" src="../images/howto/status_not_connected.png" /></p>
+<p>The "REPL" connection indicator shows the current state of your REPL connection:</p>
+<p><img alt="Status Bar REPL Connected" src="../images/howto/status-repl-connected.png" /></p>
 <p><strong>States:</strong></p>
 <ul>
 <li><strong>Disconnected</strong> - <code>REPL $(zap)</code> (gray) - Click to open the REPL menu and start Jack-in or Connect</li>
-<li><strong>Launching</strong> - <code>Launching REPL using &lt;method&gt;</code> (orange/yellow) - Click to interrupt the launch process</li>
+<li><strong>Launching</strong> - <code>Launching REPL using &lt;method&gt;</code> (white) - Click to interrupt the launch process</li>
 <li><strong>Connecting</strong> - <code>REPL - trying to connect</code> - Click to interrupt the connection attempt</li>
-<li><strong>Connected</strong> - <code>REPL $(zap)</code> (green) - Click to open the REPL menu with commands for managing your connection</li>
+<li><strong>Connected</strong> - <code>REPL $(zap)</code> (ember) - Click to open the REPL menu with commands for managing your connection. Calva keeps existing connections alive when you start another REPL</li>
 </ul>
 <p>When connected, the tooltip displays the connection details: <code>nrepl://hostname:port</code></p>
 <h4 id="repl-status-colors">REPL Status Colors<a class="headerlink" href="#repl-status-colors" title="Permanent link">#</a></h4>
@@ -2506,12 +2558,25 @@
 * <code>calva.statusColor.light.typeStatusColor</code></p>
 <h3 id="session-type-status">Session Type Status<a class="headerlink" href="#session-type-status" title="Permanent link">#</a></h3>
 <p>Once connected, the session type indicator shows which REPL you're currently working with:</p>
-<p><img alt="Status Bar CLJ" src="../images/howto/status_clj.png" /></p>
-<p><img alt="Status Bar CLJS" src="../images/howto/status_cljs.png" /></p>
-<p>For <code>.cljc</code> files (Clojure Common files that can run on both CLJ and CLJS), the indicator shows <code>cljc/clj</code> or <code>cljc/cljs</code> depending on which REPL is active for that file.</p>
-<p><strong>When both CLJ and CLJS REPLs are connected</strong>, this indicator becomes clickable, allowing you to toggle which REPL is used for evaluating <code>.cljc</code> files:</p>
-<p><img alt="CLJC Toggle Button" src="../images/howto/cljc-toggle-button.png" /></p>
-<p>Click the indicator to switch between <code>clj</code> and <code>cljs</code> for your <code>.cljc</code> files. See <a href="../repl-window/#choose-clj-or-cljs-repl-connection">The REPL Window</a> for more details.</p>
+<p><img alt="Status Bar REPL Connected, session" src="../images/howto/status-session-indicator.png" /></p>
+<p>For <code>.cljc</code> files (Clojure Common files that can run on both CLJ and CLJS), the indicator shows <code>.cljc → clj</code> or <code>.cljc → cljs</code> depending on which session is active for that file.</p>
+<p>The indicator is always clickable when the REPL is connected. Clicking it opens the <strong>REPL Sessions</strong> menu, which provides:</p>
+<ul>
+<li>A list of connected sessions – select one to pin it (the indicator will show <code>$(pin)</code> while pinned). When auto-routing is active, the currently selected session is marked with <code>$(check)</code> so you can see which REPL is in use at a glance. Sessions in pairs show a <code>cljc</code> indicator for the session that handles <code>.cljc</code> files, and non-target sessions have a button to become the cljc target.</li>
+<li><strong>Auto-route</strong> – return to Calva's default routing based on connect sequence globs.</li>
+<li><strong>Select session for REPL window</strong> – (Only shown when the REPL window is focused) Override which session the REPL window uses for evaluations.</li>
+</ul>
+<p>The cljc routing preference is per-connection. When you have multiple REPL connections, each connection remembers its own cljc target session independently. If you pin a session, that pin takes precedence for all files until you return to auto-route.</p>
+<p>These options make it easy to temporarily lock the routing, quickly inspect available sessions, or manage <code>.cljc</code> file routing per connection. See <a href="../repl-window/#choose-clj-or-cljs-repl-connection">The REPL Window</a> for more details.</p>
+<h3 id="repl-window-session-command">REPL Window Session Command<a class="headerlink" href="#repl-window-session-command" title="Permanent link">#</a></h3>
+<p>The command <strong>Calva: Select REPL Window Session</strong> is also available from the command palette. It can be invoked programmatically with a session key argument to bypass the picker:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Via VS Code API</span>
+<span class="nx">vscode</span><span class="p">.</span><span class="nx">commands</span><span class="p">.</span><span class="nx">executeCommand</span><span class="p">(</span><span class="s1">&#39;calva.selectReplWindowSession&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;cljs&#39;</span><span class="p">);</span>
+
+<span class="c1">// Or without argument to show the picker</span>
+<span class="nx">vscode</span><span class="p">.</span><span class="nx">commands</span><span class="p">.</span><span class="nx">executeCommand</span><span class="p">(</span><span class="s1">&#39;calva.selectReplWindowSession&#39;</span><span class="p">);</span>
+</code></pre></div>
+<p>This is useful for keyboard shortcuts or automation scripts that need to quickly switch the REPL window's session.</p>
 <h3 id="cljs-build-selector">CLJS Build Selector<a class="headerlink" href="#cljs-build-selector" title="Permanent link">#</a></h3>
 <p>When connected to a ClojureScript REPL that supports builds (Figwheel or shadow-cljs), this indicator shows the currently connected build:</p>
 <ul>

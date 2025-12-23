@@ -2520,7 +2520,7 @@
 <li><code>clj</code>: "Code to evaluate when the <strong>Clojure</strong> REPL has been connected.<ul>
 <li>The default is code that refer in the <code>repl-requires</code>/REPL utilities (like <code>source</code>, <code>doc</code>, etcetera). (Note that there is also a command to do this on demand.).</li>
 <li>Overriding the default replaces it. If you want to add code to be evaluated on connect this way, and keep the behaviour of auto-refering REPL utilities, you need to provide code for the latter (copy/pasting the default code will do). See also note below about concatenation of configurations.</li>
-<li>The code will be evaluated <em>before</em> the <code>afterCLJReplJackInCode</code> in any <a href="https://calva.io/connect-sequences/">connect sequence</a> used.</li>
+<li>The code will be evaluated <em>before</em> the <code>afterPrimaryReplConnectedCode</code> in any <a href="https://calva.io/connect-sequences/">connect sequence</a> used.</li>
 </ul>
 </li>
 <li><code>cljs</code>: Code to evaluate when the <strong>ClojureScript</strong> REPL has been connected.<ul>
@@ -2531,9 +2531,9 @@
 </ul>
 <p>Set either of these to <code>null</code> to disable the feature for that REPL type. (The Settings linter will complain, but it works.)</p>
 <div class="admonition note">
-<p class="admonition-title">For Clojure this is in addition to <code>afterCLJReplJackInCode</code></p>
-<p>There are two mechanisms for evaluating code when a Clojure REPL is connected. The <code>afterCLJReplJackInCode</code> setting of custom connect sequences, and this <code>calva.autoEvaluateCode.onConnect.clj</code> setting. There is no <em>fundamental</em> difference between them. This one has a default function of auto-refering in the Clojure REPL utilities. And it will be run <em>before</em> the connect sequence after-Jack-in code.</p>
+<p class="admonition-title">For Clojure this is in addition to <code>afterPrimaryReplConnectedCode</code></p>
 </div>
+<p>There are two mechanisms for evaluating code when a Clojure REPL is connected. The <code>afterPrimaryReplConnectedCode</code> setting of custom connect sequences, and this <code>calva.autoEvaluateCode.onConnect.clj</code> setting. There is no <em>fundamental</em> difference between them. This one has a default function of auto-refering in the Clojure REPL utilities. And it will be run <em>before</em> the connect sequence after-Jack-in code.</p>
 <div class="admonition note">
 <p class="admonition-title">All configured code is concatenated</p>
 <p>If you configure this both in User/global settings and in a Workspace, the workspace configured code will be concatenated on the user level code. Meaning both code snippets will be evaluated, first the User level code, then the Workspace level code. Also <code>null</code> disables the feature:</p>

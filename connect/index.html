@@ -464,6 +464,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#multiple-repl-connections" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multiple REPL Connections
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multiple REPL Connections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-concurrent-connections-are-organized" class="md-nav__link">
+    <span class="md-ellipsis">
+      How concurrent connections are organized
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#picking-which-connection-to-keep" class="md-nav__link">
+    <span class="md-ellipsis">
+      Picking which connection to keep
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#shadow-cljs" class="md-nav__link">
     <span class="md-ellipsis">
       shadow-cljs
@@ -2367,6 +2400,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#multiple-repl-connections" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multiple REPL Connections
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multiple REPL Connections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-concurrent-connections-are-organized" class="md-nav__link">
+    <span class="md-ellipsis">
+      How concurrent connections are organized
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#picking-which-connection-to-keep" class="md-nav__link">
+    <span class="md-ellipsis">
+      Picking which connection to keep
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#shadow-cljs" class="md-nav__link">
     <span class="md-ellipsis">
       shadow-cljs
@@ -2484,7 +2550,7 @@
 <p>All this said, I still recommend you challenge the conclusion that you can't use Jack-in.</p>
 <div class="admonition note">
 <p class="admonition-title">Copy the Jack-in command line</p>
-<p>There is a Calva command for copying the Jack-in command line to the clipboard. It will copy the command line including commands to change to the current REPL project root, avoiding hard-to-detect errors when starting the REPL in the wrong directory.</p>
+<p>There is a Calva command for copying the Jack-in command line to the clipboard. It will copy the command line including commands to change to the current REPL project root, avoiding hard-to-detect errors when starting the REPL in the wrong directory. The command also accepts an optional connect sequence argument (by name or object) so automations and keybindings can copy the exact command for a particular sequence without prompts.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">The Generic Project Type</p>
@@ -2498,6 +2564,12 @@
 <h2 id="monorepos-multiple-clojure-projects-in-one-workspace">Monorepos / multiple Clojure projects in one workspace<a class="headerlink" href="#monorepos-multiple-clojure-projects-in-one-workspace" title="Permanent link">#</a></h2>
 <p>If the workspace is a monorepo, Polylith repo or just a repository with more than one Clojure project, Calva will start the connect sequence with prompting for which project to start/connect to.</p>
 <p><img alt="The project roots menu" src="../images/calva-monorepo-project-roots-menu.png" /></p>
+<h2 id="multiple-repl-connections">Multiple REPL Connections<a class="headerlink" href="#multiple-repl-connections" title="Permanent link">#</a></h2>
+<p>Calva can keep several REPL connections alive at the same time. This is useful when you want to run a backend and frontend REPL concurrently, keep an nREPL connected to a remote server while also working locally, or maintain a scratch REPL that should not be restarted when another project reconnects.</p>
+<h3 id="how-concurrent-connections-are-organized">How concurrent connections are organized<a class="headerlink" href="#how-concurrent-connections-are-organized" title="Permanent link">#</a></h3>
+<p>Every connection registers one or two session names (for example the default <code>clj</code>/<code>cljs</code> pair or the custom names you define in a <a href="../connect-sequences/#settings-for-adding-custom-sequences">connect sequence</a>). Calva routes evaluations to the session whose glob matches the active file so you can keep coding without rewiring buffers manually. Run jack-in or connect again at any point to add another repl session.</p>
+<h3 id="picking-which-connection-to-keep">Picking which connection to keep<a class="headerlink" href="#picking-which-connection-to-keep" title="Permanent link">#</a></h3>
+<p>Use <strong>Calva: Disconnect from the REPL</strong> whenever you need to tear down one connection without touching the others. The command opens a quick pick that lists every connection along with its session names, host/port, and project root. When more than one connection is active the picker also offers <strong>Close all REPL connections</strong> as a fast way to clean the slate.</p>
 <h2 id="shadow-cljs">shadow-cljs<a class="headerlink" href="#shadow-cljs" title="Permanent link">#</a></h2>
 <p>Please see the <a href="../shadow-cljs/">shadow-cljs</a> page.</p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
