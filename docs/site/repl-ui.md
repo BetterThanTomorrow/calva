@@ -9,6 +9,8 @@ When you connect Calva to a REPL, you gain access to a complete interactive deve
 
 ## Managing Multiple Connections
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/36dTtyfa_OY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 Definitions:
 
 - **REPL Connection**: An active nREPL connection to a running Clojure/ClojureScript environment. Each connection is associated with a project root and a host/port.
