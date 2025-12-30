@@ -681,12 +681,14 @@ export class NReplSession {
   }
 
   test(ns: string, test: string) {
+    const search = `\\b${string.escapeStringRegexp(test)}\\b`;
     return this.testVarQuery({
       'ns-query': {
         exactly: [ns],
       },
-      search: string.escapeStringRegexp(test),
+      search,
       'test?': true,
+      'search-property': 'name',
     });
   }
 
