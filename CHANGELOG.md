@@ -4,8 +4,6 @@ Changes to Calva.
 
 ## [Unreleased]
 
-## [2.0.544] - 2026-01-07
-
 - Fix: [Run current test is running all tests that start with the name of the current test](https://github.com/BetterThanTomorrow/calva/issues/2777)
 
 ## [2.0.543] - 2025-12-23
