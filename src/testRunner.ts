@@ -379,7 +379,8 @@ async function runTestUnderCursor(controller: vscode.TestController) {
   if (test) {
     output.appendLineOtherOut(`Running test: ${test}…`);
     try {
-      await reportTests(controller, session, [await session.test(ns, test)]);
+      const testResults = await session.test(ns, test);
+      await reportTests(controller, session, [testResults]);
     } catch (e) {
       output.appendLineOtherErr(e);
     }

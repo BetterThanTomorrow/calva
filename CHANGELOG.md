@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.544] - 2026-01-10
+
+- Fix: [Run current test is running all tests that start with the name of the current test](https://github.com/BetterThanTomorrow/calva/issues/2777)
+
 ## [2.0.543] - 2025-12-23
 
 - [Add support for multiple concurrent nrepl connections](https://github.com/BetterThanTomorrow/calva/issues/76)
