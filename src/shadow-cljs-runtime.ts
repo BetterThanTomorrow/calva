@@ -450,7 +450,7 @@ export async function initializeShadowRemoteNotifications(): Promise<void> {
       output.appendLineOtherOut('Initialized shadow-cljs runtime status notifications');
     } else {
       output.appendLineOtherOut(
-        'shadow-cljs remote notificatuons not supported with shadow-cljs version < 3.2.1'
+        'shadow-cljs remote notifications not supported with shadow-cljs version < 3.2.1'
       );
     }
   } catch (error) {
