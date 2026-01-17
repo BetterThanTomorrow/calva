@@ -1,13 +1,5 @@
 (ns tasks
-  (:require [babashka.http-server :as server]
-            [sci.nrepl.browser-server :as bp]))
-
-(defn serve
-  "Serve static assets"
-  [{:keys [port dir]
-    :or {port 1337
-         dir "."}}]
-  (server/exec {:port port :dir dir}))
+  (:require [sci.nrepl.browser-server :as bp]))
 
 (defn browser-nrepl
   "Start browser nREPL"
