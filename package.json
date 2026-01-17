@@ -3636,7 +3636,7 @@
     "mocha": "^11.1.0",
     "mocha-junit-reporter": "^2.0.2",
     "mocha-multi-reporters": "^1.5.1",
-    "node-gyp": "^8.4.1",
+    "node-gyp": "^12.1.0",
     "onchange": "^7.1.0",
     "ovsx": "^0.8.3",
     "prettier": "2.5.1",
