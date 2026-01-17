@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.545] - 2026-01-17
+
 - Fix: [Jack-in sometimes fails from quoting issues](https://github.com/BetterThanTomorrow/calva/issues/2549)
 
 ## [2.0.544] - 2026-01-10
