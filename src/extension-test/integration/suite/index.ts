@@ -1,8 +1,8 @@
 import * as path from 'path';
 import * as Mocha from 'mocha';
-import * as glob from 'glob';
 
-export function run(): Promise<void> {
+export async function run(): Promise<void> {
+  const { glob } = await import('glob');
   // Create the mocha test
   const mocha = new Mocha({
     ui: 'tdd',
@@ -17,28 +17,35 @@ export function run(): Promise<void> {
   });
 
   const testsRoot = path.resolve(__dirname, '..');
+  const filtersRaw = process.env.CALVA_INTEGRATION_SUITE_FILTER ?? '';
+  const filters = filtersRaw
+    .split(',')
+    .map((token) => token.trim())
+    .filter((token) => token.length > 0);
+  const files = await glob('**/**-test.js', { cwd: testsRoot });
+  const filteredFiles =
+    filters.length === 0
+      ? files
+      : files.filter((filePath) =>
+          filters.some((filterToken) => filePath.toLowerCase().includes(filterToken.toLowerCase()))
+        );
 
-  return new Promise((c, e) => {
-    glob('**/**-test.js', { cwd: testsRoot }, (err, files) => {
-      if (err) {
-        return e(err);
-      }
-      // Add files to the test suite
-      files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
+  filteredFiles.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
 
-      console.log(files);
-      try {
-        // Run the mocha test
-        mocha.run((failures) => {
-          if (failures > 0) {
-            e(new Error(`${failures} tests failed.`));
-          } else {
-            c();
-          }
-        });
-      } catch (err) {
-        e(err);
-      }
-    });
+  console.log('Integration suites selected:', filteredFiles);
+
+  return new Promise((resolve, reject) => {
+    try {
+      // Run the mocha test
+      mocha.run((failures) => {
+        if (failures > 0) {
+          reject(new Error(`${failures} tests failed.`));
+        } else {
+          resolve();
+        }
+      });
+    } catch (err) {
+      reject(err);
+    }
   });
 }

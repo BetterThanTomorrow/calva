@@ -6,6 +6,41 @@ Changes to Calva.
 
 - Fix: [Jack-in sometimes fails from quoting issues](https://github.com/BetterThanTomorrow/calva/issues/2549)
 
+## [2.0.544] - 2026-01-10
+
+- Fix: [Run current test is running all tests that start with the name of the current test](https://github.com/BetterThanTomorrow/calva/issues/2777)
+
+## [2.0.543] - 2025-12-23
+
+- [Add support for multiple concurrent nrepl connections](https://github.com/BetterThanTomorrow/calva/issues/76)
+  - Updates to [Connect Sequences](https://calva.io/connect-sequences/):
+    - Custom REPL session names via `replSessionNames`: `primary` (defaults to `clj`) and `secondary` (defaults to `cljs`).
+    - Route files to sessions with `replSessionFilePatterns` using `primary`/`secondary` keys. Patterns like `*.clj` are automatically scoped to the sequence's project root.
+    - Pattern tier properties `always-claim`/`is-fallback-for` control routing priority. The `always-claim` tier takes precedence in file routing.
+    - Rename `afterCLJReplJackInCode` → `afterPrimaryReplConnectedCode` (the old name still works).
+  - Automatic session name conflict resolution: connecting multiple REPLs with the same session names (e.g., two deps.edn projects) "just works". Calva appends a suffix from the pool e.g., `clj:2`, `cljs:2`, to avoid conflicts, preserving names on reconnection.
+  - Connecting an additional sequence no longer disconnects earlier ones unless they reuse the same `replSessionNames` (treated as a re-connect).
+  - Jacking in to another connect sequence no longer closes the previous REPL; each jack-in keeps its own pseudo terminal unless the sessions share `replSessionNames`, in which case it becomes a restart.
+  - Allows **Session pinning**—lock all evaluations to a specific session and override pattern-based routing.
+  - New command: **Calva: Repl Sessions**, listing sessions, enabling pinning, toggling auto-route, and selecting the CLJC evaluation session (also available from the status bar session indicator).
+  - Adds a REPL Sessions status bar menu for pinning sessions, toggling auto-route, and setting `.cljc` overrides.
+  - Adds API function `repl.listSessions()`
+  - Updates default connect sequences for *Joyride*, *Babashka*, *nbb*, and *Basilisp*, to use custom `replSessionNames`, and configured default routings with `replSessionFilePatterns`.
+  - Removed deprecated `calva.useLegacyReplWindowPath` setting. The REPL window is now always located at `.calva/repl.calva-repl`.
+  - Let the first session connected determine where the REPL Window file is created.
+
+- Adds a new connect sequence: **Clojure projectless**, for jack-in and connect without a `deps.edn`, etcetera needed.
+- Improve error messages around CLJS build configuration
+- Adds [scittle](https://github.com/babashka/scittle) connect sequence
+- Adds `defaultPort` to connect sequence settings.
+- The `calva.copyJackInCommandToClipboard` command now accepts a connect sequence argument.
+- Add some messaging when using the REPL Window, and when potentially attempting to use it from the wrong `.calva-repl` file.
+
+## [2.0.542] - 2025-12-20
+
+- Bump default deps.clj to `v1.12.4.1582`
+- [Fixed nRepl unknown-session](https://github.com/BetterThanTomorrow/calva/issues/2974)
+
 ## [2.0.541] - 2025-12-08
 
 - [Enable editing of Jack In Dependency Versions in the Settings UI](https://github.com/BetterThanTomorrow/calva/issues/2969)

@@ -6,13 +6,14 @@ import * as util from './utilities';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
-import * as outputWindow from './repl-window/repl-doc';
+import * as replWindow from './repl-window/repl-window-doc';
 import * as namespace from './namespace';
 import * as replHistory from './repl-window/repl-history';
 import { formatAsLineComments } from './results-output/util';
 import { getStateValue, appendStackTraceToReplOutputWebview } from '../out/cljs-lib/cljs-lib';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
+import * as sessionRegistry from './nrepl/session-registry';
 import * as getText from './util/get-text';
 import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
@@ -97,7 +98,7 @@ async function interruptAllEvaluations() {
   } else {
     void vscode.window.showInformationMessage('Interruption command finished (unknown results)');
   }
-  outputWindow.discardPendingPrints();
+  replWindow.discardPendingPrints();
 }
 
 async function addAsComment(
@@ -139,6 +140,7 @@ async function evaluateCodeUpdatingUI(
   const column = options.column;
   const filePath = options.filePath;
   const session: NReplSession = options.session;
+  const sessionKey = sessionRegistry.resolveSessionKey(session);
   const ns = options.ns;
   let editor: vscode.TextEditor;
   try {
@@ -150,14 +152,14 @@ async function evaluateCodeUpdatingUI(
 
   if (code.length > 0) {
     if (addToHistory) {
-      replHistory.addToReplHistory(session.replType, code);
+      replHistory.addToReplHistory(sessionKey, code);
       replHistory.resetState();
     }
 
     const err: string[] = [];
 
-    if (outputWindow.getNs() !== ns) {
-      await session.evaluateInNs(options.nsForm, outputWindow.getNs());
+    if (replWindow.getNs() !== ns) {
+      await session.evaluateInNs(options.nsForm, replWindow.getNs());
     }
 
     const context: NReplEvaluation = session.eval(code, ns, {
@@ -171,13 +173,15 @@ async function evaluateCodeUpdatingUI(
       pprintOptions: pprintOptions,
     });
 
+    sessionRegistry.updateSessionActivity(sessionKey);
+
     try {
-      if (evaluationSendCodeToOutputWindow) {
-        outputWindow.appendLine(code);
+      if (evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document)) {
+        replWindow.appendLine(code);
         if (output.getDestinationConfiguration().evalResults !== 'repl-window') {
           output.appendClojureEval(code, {
             ns,
-            replSessionType: session.replType,
+            replSessionType: sessionKey,
             outputCategory: 'evaluatedCode',
           });
         }
@@ -191,8 +195,11 @@ async function evaluateCodeUpdatingUI(
       flareHandler.inspect(value, (code) => evaluateCodeUpdatingUI(code, options, selection));
 
       if (showResult) {
-        inspectorDataProvider.addItem(value, false, `[${session.replType}] ${ns}`);
-        output.appendClojureEval(value, { ns, replSessionType: session.replType }, async () => {
+        inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
+        output.appendClojureEval(value, { ns, replSessionType: sessionKey }, async () => {
+          if (editor && replWindow.isReplWindowDoc(editor.document)) {
+            replWindow.maybePrintResultsInOtherDestinationMessage();
+          }
           if (selection) {
             const c = selection.start.character;
             if (editor && options.replace) {
@@ -211,7 +218,7 @@ async function evaluateCodeUpdatingUI(
                   options.commentStyle
                 );
               }
-              if (editor && !outputWindow.isResultsDoc(editor.document)) {
+              if (editor && editor.document && !replWindow.isReplWindowDoc(editor.document)) {
                 annotations.decorateSelection(
                   value,
                   selection,
@@ -230,15 +237,15 @@ async function evaluateCodeUpdatingUI(
         if (err.length > 0) {
           const errMsg = err.join('\n');
           if (context.stacktrace) {
-            outputWindow.saveStacktrace(context.stacktrace);
-            outputWindow.appendLine(formatAsLineComments(errMsg), (_, afterResultLocation) => {
-              outputWindow.markLastStacktraceRange(afterResultLocation);
+            replWindow.saveStacktrace(context.stacktrace);
+            replWindow.appendLine(formatAsLineComments(errMsg), (_, afterResultLocation) => {
+              replWindow.markLastStacktraceRange(afterResultLocation);
             });
             if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
-              output.appendEvalErr(errMsg, { ns, replSessionType: session.replType });
+              output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey });
             }
           } else {
-            output.appendEvalErr(errMsg, { ns, replSessionType: session.replType });
+            output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey });
           }
         }
       }
@@ -247,7 +254,7 @@ async function evaluateCodeUpdatingUI(
         const outputWindowError = err.length
           ? formatAsLineComments(err.join('\n'))
           : formatAsLineComments(e);
-        outputWindow.appendLine(outputWindowError, async (resultLocation, afterResultLocation) => {
+        replWindow.appendLine(outputWindowError, async (resultLocation, afterResultLocation) => {
           if (selection) {
             const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
             const currentCursorPos = editor.selections[0].active;
@@ -260,7 +267,7 @@ async function evaluateCodeUpdatingUI(
                 options.commentStyle
               );
             }
-            if (editor && !outputWindow.isResultsDoc(editor.document)) {
+            if (editor && editor.document && !replWindow.isReplWindowDoc(editor.document)) {
               annotations.decorateSelection(
                 editorError,
                 selection,
@@ -277,8 +284,8 @@ async function evaluateCodeUpdatingUI(
             .stacktrace()
             .then((stacktrace) => {
               if (stacktrace && stacktrace.stacktrace) {
-                outputWindow.markLastStacktraceRange(afterResultLocation);
-                outputWindow.saveStacktrace(stacktrace.stacktrace);
+                replWindow.markLastStacktraceRange(afterResultLocation);
+                replWindow.saveStacktrace(stacktrace.stacktrace);
               }
             })
             .catch((e) => {
@@ -288,7 +295,7 @@ async function evaluateCodeUpdatingUI(
         if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
           output.appendEvalErr(err.length ? err.join('\n') : e, {
             ns,
-            replSessionType: session.replType,
+            replSessionType: sessionKey,
           });
           if (output.getDestinationConfiguration().evalOutput === 'output-view') {
             session
@@ -305,7 +312,7 @@ async function evaluateCodeUpdatingUI(
         }
       }
     }
-    outputWindow.setSession(session, context.ns || ns);
+    replWindow.setSession(session, context.ns || ns);
     replSession.updateReplSessionType();
   }
 
@@ -333,7 +340,7 @@ async function evaluateSelection(document = {}, options) {
     const line = codeSelection.start.line;
     const column = codeSelection.start.character;
     const filePath = doc.fileName;
-    const session = replSession.getSession(util.getFileType(doc));
+    const session = replSession.getSession();
 
     if (code.length > 0) {
       if (options.debug) {
@@ -348,9 +355,9 @@ async function evaluateSelection(document = {}, options) {
       );
       if (
         state.extensionContext.workspaceState.get('outputWindowActive') &&
-        !(await outputWindow.lastLineIsEmpty())
+        !(await replWindow.lastLineIsEmpty())
       ) {
-        outputWindow.appendLine();
+        replWindow.appendLine();
       }
       await evaluateCodeUpdatingUI(
         code,
@@ -584,13 +591,14 @@ async function loadDocument(
   }
   const fileType = util.getFileType(doc);
   const [ns, nsForm] = namespace.getNamespace(doc, doc.positionAt(0));
-  const session = replSession.getSession(util.getFileType(doc));
+  const session = replSession.getSession();
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
-    const docUri = outputWindow.isResultsDoc(doc)
+    const docUri = replWindow.isReplWindowDoc(doc)
       ? await namespace.getUriForNamespace(session, ns)
       : doc.uri;
     const filePath = docUri.path;
+    sessionRegistry.updateSessionActivity(session);
     return await loadFile(filePath, ns, nsForm, pprintOptions, fileType);
   }
 }
@@ -615,7 +623,8 @@ async function loadFile(
 ) {
   const fileName = path.basename(filePath);
   const fileContents = await util.getFileContents(filePath);
-  const session = replSession.getSession(path.extname(fileName).replace(/^\./, ''));
+  const session = replSession.getSession();
+  const sessionKey = sessionRegistry.resolveSessionKey(session);
 
   output.appendLineOtherOut(`Evaluating file: ${fileName}`);
 
@@ -625,7 +634,7 @@ async function loadFile(
     filePath,
     stdout: (m) => output.appendEvalOut(m),
     stderr: (m) => {
-      output.appendEvalErr(m, { ns, replSessionType: session.replType });
+      output.appendEvalErr(m, { ns, replSessionType: sessionKey });
       errorMessages.push(m);
     },
     pprintOptions: pprintOptions,
@@ -633,18 +642,18 @@ async function loadFile(
   try {
     const value = await res.value;
     if (value) {
-      inspectorDataProvider.addItem(value, false, `[${session.replType}] ${ns}`);
-      output.appendClojureEval(value, { ns, replSessionType: session.replType });
+      inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
+      output.appendClojureEval(value, { ns, replSessionType: sessionKey });
     } else {
       output.appendLineEvalOut('No results from file evaluation.');
     }
   } catch (e) {
-    outputWindow.appendLine(
+    replWindow.appendLine(
       `; Evaluation of file ${fileName} failed: ${e}`,
       (_location, nextLocation) => {
         if (res.stacktrace) {
-          outputWindow.saveStacktrace(res.stacktrace.stacktrace);
-          outputWindow.markLastStacktraceRange(nextLocation);
+          replWindow.saveStacktrace(res.stacktrace.stacktrace);
+          replWindow.markLastStacktraceRange(nextLocation);
         }
       }
     );
@@ -653,7 +662,7 @@ async function loadFile(
     }
     if (
       !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
-        outputWindow.isResultsDoc(editor.document)
+        replWindow.isReplWindowDoc(editor.document)
       )
     ) {
       void vscode.window
@@ -668,7 +677,7 @@ async function loadFile(
         });
     }
   } finally {
-    outputWindow.setSession(session, ns);
+    replWindow.setSession(session, ns);
     replSession.updateReplSessionType();
     if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
       output.appendLineOtherOut(`Evaluating \`autoEvaluateCode.onFileLoaded.${fileType}\``);
@@ -690,8 +699,7 @@ async function loadFile(
 }
 
 async function evaluateUser(code: string) {
-  const fileType = util.getFileType(util.tryToGetDocument({})),
-    session = replSession.getSession(fileType);
+  const session = replSession.getSession();
   if (session) {
     try {
       await session.eval(code, session.client.ns).value;
@@ -708,8 +716,7 @@ async function requireREPLUtilitiesCommand() {
   if (util.getConnectedState()) {
     const chan = state.outputChannel(),
       [ns, _nsForm] = namespace.getDocumentNamespace(util.tryToGetDocument({})),
-      fileType = util.getFileType(util.tryToGetDocument({})),
-      session = replSession.getSession(fileType);
+      session = replSession.getSession();
 
     if (session) {
       try {
@@ -727,7 +734,7 @@ async function requireREPLUtilitiesCommand() {
 
 async function copyLastResultCommand() {
   const chan = state.outputChannel();
-  const session = replSession.getSession(util.getFileType(util.tryToGetDocument({})));
+  const session = replSession.getSession();
 
   const value = await session.eval('*1', session.client.ns).value;
   if (value !== null) {
@@ -776,13 +783,17 @@ function instrumentTopLevelForm() {
 }
 
 async function evaluateInOutputWindow(code: string, sessionType: string, ns: string, options) {
-  const outputDocument = await outputWindow.openResultsDoc();
+  const outputDocument = await replWindow.openReplWindowDoc();
   const evalPos = outputDocument.positionAt(outputDocument.getText().length);
   try {
-    const session = replSession.getSession(sessionType);
+    // When sessionType is explicitly provided, use it directly without routing
+    // Otherwise, use the routing logic to determine the session
+    const session = sessionType
+      ? sessionRegistry.getSession(sessionType)
+      : replSession.getSession();
     replSession.updateReplSessionType();
-    if (outputWindow.getNs() !== ns) {
-      outputWindow.setSession(session, ns);
+    if (replWindow.getNs() !== ns) {
+      replWindow.setSession(session, ns);
       if (options.evaluationSendCodeToOutputWindow !== false) {
         output.replWindowAppendPrompt();
       }
@@ -813,7 +824,11 @@ async function evaluateInCurrentEditor(
   if (document) {
     const evalPos = editor.selection.active;
     try {
-      const session = replSession.getSession(sessionType);
+      // When sessionType is explicitly provided, use it directly without routing
+      // Otherwise, use the routing logic to determine the session
+      const session = sessionType
+        ? sessionRegistry.getSession(sessionType)
+        : replSession.getSession();
       return await evaluateCodeUpdatingUI(code, {
         ...options,
         filePath: document.fileName,

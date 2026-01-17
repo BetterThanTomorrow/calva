@@ -5,6 +5,7 @@ import * as highlight from './highlight/src/extension';
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
 import * as replMenu from './nrepl/repl-menu';
+import * as replSessionsMenu from './repl-sessions-menu';
 import * as drams from './nrepl/drams';
 import * as util from './utilities';
 import { NotebookKernel, NotebookProvider } from './NotebookProvider';
@@ -25,7 +26,7 @@ import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
-import * as outputWindow from './repl-window/repl-doc';
+import * as outputWindow from './repl-window/repl-window-doc';
 import * as fileSwitcher from './file-switcher/file-switcher';
 import * as replHistory from './repl-window/repl-history';
 import * as config from './config';
@@ -142,7 +143,7 @@ async function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     new vscode.Disposable(() => {
-      connector.disconnect();
+      void connector.disconnect();
       chan.dispose();
     })
   );
@@ -299,10 +300,10 @@ async function activate(context: vscode.ExtensionContext) {
     openSourceFileForFiddle: fiddleFiles.openSourceFileForFiddle,
     sendCurrentTopLevelFormToOutputWindow: outputWindow.appendCurrentTopLevelForm,
     setOutputWindowNamespace: outputWindow.setNamespaceFromCurrentFile,
-    showFileForOutputWindowNS: outputWindow.revealDocForCurrentNS,
+    showFileForOutputWindowNS: outputWindow.revealReplWindowDocForCurrentNS,
     showNextReplHistoryEntry: replHistory.showNextReplHistoryEntry,
-    showReplWindow: outputWindow.revealResultsDoc,
-    showOutputWindow: outputWindow.revealResultsDoc, // backwards compatibility
+    showReplWindow: outputWindow.revealReplWindowDoc,
+    showOutputWindow: outputWindow.revealReplWindowDoc, // backwards compatibility
     showOutputChannel: output.showOutputChannel,
     showOutputTerminal: output.showOutputTerminal,
     showReplOutputView: showReplOutputWebviewPanel,
@@ -316,6 +317,8 @@ async function activate(context: vscode.ExtensionContext) {
     },
     startOrConnectRepl: replMenu.showReplMenu, // backwards compatibility
     showReplMenu: replMenu.showReplMenu,
+    showReplSessionsMenu: replSessionsMenu.showReplSessionsMenu,
+    selectReplWindowSession: replSessionsMenu.selectReplWindowSession,
     startStandaloneHelloRepl: () => {
       return drams.createAndOpenDram(
         context,
@@ -338,6 +341,7 @@ async function activate(context: vscode.ExtensionContext) {
       return fileSwitcher.toggleBetweenImplAndTest();
     },
     toggleCLJCSession: connector.toggleCLJCSession,
+    selectCljcTarget: connector.selectCljcTarget,
     toggleEvaluationSendCodeToOutputWindow: eval.toggleEvaluationSendCodeToOutputWindow,
     toggleKeybindingsEnabled: () => {
       const keybindingsEnabled = vscode.workspace
@@ -499,7 +503,7 @@ async function activate(context: vscode.ExtensionContext) {
         }
 
         if (evalOnSave) {
-          if (!outputWindow.isResultsDoc(document)) {
+          if (!outputWindow.isReplWindowDoc(document)) {
             await eval.loadDocument(document, config.getConfig().prettyPrintingOptions, false);
             output.replWindowAppendPrompt();
           }
@@ -514,7 +518,7 @@ async function activate(context: vscode.ExtensionContext) {
         contextSettingOnTextDocumentChangeEvent(e);
       },
       closeTextDocument: (document) => {
-        if (outputWindow.isResultsDoc(document)) {
+        if (outputWindow.isReplWindowDoc(document)) {
           outputWindow.setContextForReplWindowActive(false);
         }
       },
@@ -536,7 +540,7 @@ async function activate(context: vscode.ExtensionContext) {
         contextSettingOnChangeTextEditorSelection(event);
       },
       changeVisibleTextEditors: (editors) => {
-        if (!editors.some((editor) => outputWindow.isResultsDoc(editor.document))) {
+        if (!editors.some((editor) => outputWindow.isReplWindowDoc(editor.document))) {
           outputWindow.setContextForReplWindowActive(false);
         }
       },
@@ -642,7 +646,9 @@ async function activate(context: vscode.ExtensionContext) {
 }
 
 async function deactivate(): Promise<void> | undefined {
-  jackIn.calvaJackout();
+  // Use force=true during deactivation because VS Code is shutting down
+  // and graceful shutdown callbacks may not fire in time
+  await jackIn.calvaJackout({ force: true });
   paredit.deactivate();
   await lsp.getClientProvider().shutdown();
 }

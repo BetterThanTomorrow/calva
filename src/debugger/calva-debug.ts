@@ -54,7 +54,6 @@ const REQUESTS = {
 const NEED_DEBUG_INPUT_STATUS = 'need-debug-input';
 const DEBUG_RESPONSE_KEY = 'debug-response';
 const DEBUG_QUIT_VALUE = 'QUIT';
-const CLOJURE_SESSION_NAME = 'clj';
 const DEBUG_ANALYTICS = {
   CATEGORY: 'Debugger',
   EVENT_ACTIONS: {
@@ -108,7 +107,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     response: DebugProtocol.AttachResponse,
     args: DebugProtocol.AttachRequestArguments
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const session = replSession.getSession();
 
     this.sendResponse(response);
   }
@@ -118,11 +117,11 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.ContinueArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const session = replSession.getSession();
 
-    if (cljSession) {
+    if (session) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
-      void cljSession.sendDebugInput(':continue', id, key).then((response) => {
+      void session.sendDebugInput(':continue', id, key).then((response) => {
         this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
       });
     } else {
@@ -146,11 +145,11 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.NextArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const session = replSession.getSession();
 
-    if (cljSession) {
+    if (session) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
-      void cljSession.sendDebugInput(':next', id, key).then((_) => {
+      void session.sendDebugInput(':next', id, key).then((_) => {
         this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
       });
     } else {
@@ -165,11 +164,11 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.StepInArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const session = replSession.getSession();
 
-    if (cljSession) {
+    if (session) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
-      void cljSession.sendDebugInput(':in', id, key).then((_) => {
+      void session.sendDebugInput(':in', id, key).then((_) => {
         this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
       });
     } else {
@@ -184,11 +183,11 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.StepOutArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const session = replSession.getSession();
 
-    if (cljSession) {
+    if (session) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
-      void cljSession.sendDebugInput(':out', id, key).then((_) => {
+      void session.sendDebugInput(':out', id, key).then((_) => {
         this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
       });
     } else {
@@ -383,11 +382,11 @@ class CalvaDebugSession extends LoggingDebugSession {
     args: DebugProtocol.DisconnectArguments,
     request?: DebugProtocol.Request
   ): void {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+    const session = replSession.getSession();
 
-    if (cljSession) {
+    if (session) {
       const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
-      void cljSession.sendDebugInput(':quit', id, key);
+      void session.sendDebugInput(':quit', id, key);
     }
 
     this.sendResponse(response);
@@ -497,8 +496,8 @@ function handleNeedDebugInput(response: any): void {
       void debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
     }
   } else {
-    const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
-    void cljSession.sendDebugInput(':quit', response.id, response.key);
+    const session = replSession.getSession();
+    void session.sendDebugInput(':quit', response.id, response.key);
     void vscode.window.showInformationMessage(
       'Forms containing breakpoints that were not evaluated in the editor (such as if you evaluated a form in the REPL window) cannot be debugged. Evaluate the form in the editor in order to debug it.'
     );

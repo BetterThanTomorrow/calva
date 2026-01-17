@@ -4,7 +4,7 @@ import * as state from './state';
 import * as vscode from 'vscode';
 import * as connectSequences from './nrepl/connectSequence';
 import * as open from 'open';
-import * as outputWindow from './repl-window/repl-doc';
+import * as outputWindow from './repl-window/repl-window-doc';
 import * as utilities from './utilities';
 import { ConnectType } from './nrepl/connect-types';
 import * as output from './results-output/output';
@@ -51,8 +51,8 @@ export async function prepareForJackInOrConnect() {
     void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
   });
   inspector.revealOnConnect();
-  await outputWindow.initResultsDoc();
-  await outputWindow.openResultsDoc();
+  await outputWindow.initReplWindowDoc();
+  await outputWindow.openReplWindowDoc();
   return state.getProjectRootLocal();
 }
 
@@ -65,7 +65,7 @@ export async function joyrideJackIn(projectDir: string) {
       .startNReplServer(projectDir)
       .then(async (port) => {
         utilities.setLaunchingState(null);
-        await connector.connect(connectSequences.joyrideDefaults[0], true, 'localhost', `${port}`);
+        await connector.connect(connectSequences.joyrideBuiltIns[0], true, 'localhost', `${port}`);
         output.appendLineOtherOut('Jack-in done.');
         output.replWindowAppendPrompt();
       })

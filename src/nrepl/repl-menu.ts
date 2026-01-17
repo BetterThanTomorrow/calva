@@ -4,6 +4,7 @@ import * as utilities from '../utilities';
 import * as fiddleFiles from '../fiddle-files';
 import * as joyride from '../joyride';
 import * as drams from './drams';
+import * as replSessionsMenu from '../repl-sessions-menu';
 
 type MenuSlug = { prefix: string; suffix: string };
 
@@ -24,11 +25,11 @@ export type MenuItem = vscode.QuickPickItem & {
 
 const RE_JACK_IN_OPTION = 'Restart the Project REPL (a.k.a. Re-jack-in)';
 const RE_JACK_IN_COMMAND = 'calva.jackIn';
-const JACK_OUT_OPTION = 'Stop/Kill the Project REPL started by Calva (a.k.a. Jack-out)';
+const JACK_OUT_OPTION = 'Stop/Kill all Project REPLs started by Calva (a.k.a. Jack-out)';
 const JACK_OUT_COMMAND = 'calva.jackOut';
 const INTERRUPT_OPTION = 'Interrupt running Evaluations';
 const INTERRUPT_COMMAND = 'calva.interruptAllEvaluations';
-const DISCONNECT_OPTION = 'Disconnect from the REPL';
+const DISCONNECT_OPTION = 'Disconnect a REPL connection…';
 const DISCONNECT_COMMAND = 'calva.disconnect';
 const OPEN_REPL_WINDOW_OPTION = 'Show the REPL Window';
 const OPEN_REPL_WINDOW_COMMAND = 'calva.showReplWindow';
@@ -53,8 +54,24 @@ const CONNECT_PROJECT_COMMAND = 'calva.connect';
 const CONNECT_STANDALONE_OPTION = 'Connect to a running REPL, not in your project';
 const CONNECT_STANDALONE_COMMAND = 'calva.connectNonProjectREPL';
 
-async function connectedMenuItems(): Promise<MenuItem[]> {
+function connectedMenuItems(): MenuItem[] {
   return [
+    {
+      label: JACK_OUT_OPTION,
+      command: JACK_OUT_COMMAND,
+      condition: utilities.getJackedInState,
+    },
+    { label: DISCONNECT_OPTION, command: DISCONNECT_COMMAND },
+    { label: INTERRUPT_OPTION, command: INTERRUPT_COMMAND },
+    {
+      label: 'List Active REPL sessions…',
+      command: 'calva.showReplSessionsMenu',
+    },
+    {
+      label: '',
+      kind: vscode.QuickPickItemKind.Separator,
+    },
+    ...disconnectedMenuItems(),
     {
       label: OPEN_INSPECTOR_OPTION,
       command: OPEN_INSPECTOR_COMMAND,
@@ -63,18 +80,6 @@ async function connectedMenuItems(): Promise<MenuItem[]> {
       label: OPEN_OUTPUT_DESTINATION_OPTION,
       command: OPEN_OUTPUT_DESTINATION_COMMAND,
     },
-    { label: INTERRUPT_OPTION, command: INTERRUPT_COMMAND },
-    {
-      label: RE_JACK_IN_OPTION,
-      command: RE_JACK_IN_COMMAND,
-      condition: utilities.getJackedInState,
-    },
-    {
-      label: JACK_OUT_OPTION,
-      command: JACK_OUT_COMMAND,
-      condition: utilities.getJackedInState,
-    },
-    { label: DISCONNECT_OPTION, command: DISCONNECT_COMMAND },
     {
       label: OPEN_FIDDLE_OPTION,
       command: OPEN_FIDDLE_COMMAND,
@@ -98,14 +103,17 @@ async function connectedMenuItems(): Promise<MenuItem[]> {
       label: '',
       kind: vscode.QuickPickItemKind.Separator,
     },
-    ...(await drams.createProjectMenuItems()),
   ];
 }
 
-async function disconnectedMenuItems(): Promise<MenuItem[]> {
+function disconnectedMenuItems(): MenuItem[] {
   return [
     { label: JACK_IN_OPTION, command: JACK_IN_COMMAND },
     { label: CONNECT_PROJECT_OPTION, command: CONNECT_PROJECT_COMMAND },
+    {
+      label: CONNECT_STANDALONE_OPTION,
+      command: CONNECT_STANDALONE_COMMAND,
+    },
     {
       label: START_JOYRIDE_REPL_OPTION,
       command: START_JOYRIDE_REPL_COMMAND,
@@ -119,14 +127,9 @@ async function disconnectedMenuItems(): Promise<MenuItem[]> {
       condition: joyride.isJoyrideNReplServerRunning,
     },
     {
-      label: CONNECT_STANDALONE_OPTION,
-      command: CONNECT_STANDALONE_COMMAND,
-    },
-    {
       label: '',
       kind: vscode.QuickPickItemKind.Separator,
     },
-    ...(await drams.createProjectMenuItems()),
   ];
 }
 
@@ -136,8 +139,8 @@ function composeMenu(items: MenuItem[]): MenuItem[] {
 
 export async function showReplMenu() {
   const menuItems: MenuItem[] = shouldShowConnectedMenu()
-    ? composeMenu(await connectedMenuItems())
-    : composeMenu(await disconnectedMenuItems());
+    ? composeMenu([...connectedMenuItems(), ...(await drams.createProjectMenuItems())])
+    : composeMenu([...disconnectedMenuItems(), ...(await drams.createProjectMenuItems())]);
   const pickedItem = await utilities.quickPickSingle({
     title: 'Calva REPL commands',
     values: menuItems,

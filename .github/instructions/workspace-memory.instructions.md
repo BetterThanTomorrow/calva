@@ -63,3 +63,48 @@ This workflow ensures:
 - Consistent project history and release notes
 - Prevents forgotten changelog updates
 
+## Watcher Gate for Clean Edits
+
+### Watcher Gate for Clean Edits
+
+Before modifying any code files (including the extension manifest) in the Calva project, use a subagent inspect all VS Code watchers (TypeScript build, ClojureScript, lint, unit tests, formatter). If any report errors, halt and resolve them together with the user instead of building on a broken state. For unit test watchers, use a subagent to run the full test suite to confirm status. This ensures edits start and end with passing tooling, maintaining honest change sets and preventing compounded fixes.
+
+- **Proactive check**: Treat watchers as gates to avoid coding on failures.
+- **Unit test focus**: Immediate full suite run, using a subagent if watcher dies or fails.
+- **Outcome**: Clean builds helps with reliable development progress.
+
+## VS Code Task Output Access
+
+When checking output from running VS Code tasks like test watchers or build processes, use the `get_task_output` tool with the task label and workspace folder path. This provides direct access to the task's terminal output, ensuring consistency across platforms and respecting VS Code's architecture.
+
+Example:
+```typescript
+get_task_output({
+  id: "Watch Tests",
+  workspaceFolder: "/absolute/path/to/workspace"
+})
+```
+
+This approach is more reliable than shell commands for extracting output, as it accesses the actual terminal panel content without fragile process parsing or platform-specific dependencies.
+
+## Watcher Output Interpretation
+
+When monitoring automated watchers like lint or test processes, focus on the most recent status by examining the tail of the output. Watch tasks append new statuses at the end, so the latest line reflects the current state—treat earlier entries as historical and obsolete. For example, if the final line reports 'Clean' or 'Passed', the watcher is healthy, preventing unnecessary reruns and aligning with incremental compiler reporting patterns.
+
+## Trust Watcher Results—Don't Duplicate Work
+
+**Critical:** When watchers are running, their output IS the authoritative status. Do not run separate terminal commands to "verify" or "establish a baseline"—the watcher has already done it.
+
+- Test watcher shows "1076 passing" → Tests pass. No need to run `npm test`.
+- Lint watcher shows "✓ Clean" → Linting passes. No need to run `npm run lint`.
+- TS watcher shows "Found 0 errors" → Compilation passes. No need to run `tsc`.
+
+Running commands separately wastes time and duplicates what watchers continuously do. The watcher output after your changes reflects the current state.
+
+## Watcher Task Verification
+
+When development watchers (TypeScript, tests, lint, etc.) are not running, prompt the user to start the appropriate build task (e.g., Calva Dev or Calva Watchers) to establish continuous feedback loops. Then wait for the user to confirm the watcher is active before proceeding.
+
+## Watcher lag
+
+When making edits that trigger recompilation or retesting, account for potential lag in watcher updates. Especially the lint watcher can be very slow to update. If you suspect that the watcher gives stale results, consider running eslint in the terminal to confirm the current status.

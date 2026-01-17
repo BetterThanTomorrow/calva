@@ -13,3 +13,12 @@
 
 (when (= (joy/invoked-script) joy/*file*)
   (-main))
+
+(comment
+  (require '["vscode" :as vscode])
+  (def calva-ext (vscode/extensions.getExtension "betterthantomorrow.calva"))
+  (def calva-api (.-exports calva-ext))
+  (def v1-api (.-v1 calva-api))
+  (.listSessions (.-repl v1-api))
+  :rcf)
+

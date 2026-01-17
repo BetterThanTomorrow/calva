@@ -1,0 +1,2 @@
+(js/console.log "projects/shadow-w-backend/src/main/server.fiddle")
+(println "projects/shadow-w-backend/src/main/server.fiddle")

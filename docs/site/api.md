@@ -75,6 +75,36 @@ Use `repl.currentSessionKey()` find out which REPL/session Calva's REPL is curre
     const sessionKey = calva.repl.currentSessionKey()
     ```
 
+### `repl.listSessions()`
+
+Use `repl.listSessions()` to inspect every registered Calva REPL session, including secondary or custom session roles. It returns a collection/array of metadata objects with the following shape:
+
+* `replSessionKey` (`string`, required): The session key you can pass to other Calva APIs such as `evaluateCode`.
+* `projectRoot` (`string`, optional): A URI string describing the project/workspace that owns the session.
+* `lastActivity` (`number`, optional): Milliseconds since Unix epoch for the latest known activity on the session.
+* `globs` (`string[]`, optional): The set of file globs that the session declared it can handle. Calva iterates sessions in connection order and picks the first one whose globs match the active file.
+
+=== "Joyride"
+
+  ```clojure
+  (def sessions (calva/repl.listSessions))
+  (println "Session keys:" (map :replSessionKey sessions))
+  ```
+
+=== "ClojureScript"
+
+  ```clojure
+  (def list-sessions (get-in [:repl :listSessions] calvaApi))
+  (def session-keys (map :replSessionKey (list-sessions)))
+  ```
+
+=== "JavaScript"
+
+  ```javascript
+  const sessions = calva.repl.listSessions();
+  const secondary = sessions.find((s) => s.replSessionKey === 'cljs');
+  ```
+
 ### `repl.evaluateCode()`
 
 This function lets you evaluate Clojure code through Calva's nREPL connection. Calling it returns a promise that resolves to a `Result` object. It's signature looks like so (TypeScript):

@@ -1,10 +1,13 @@
 import * as vscode from 'vscode';
-import * as state from './state';
 import * as util from './utilities';
 import * as config from './config';
 import * as shadowRuntimes from './shadow-cljs-runtime';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
-import { getSession, getReplSessionTypeFromState } from './nrepl/repl-session';
+import * as replSession from './nrepl/repl-session';
+import * as sessionLabel from './nrepl/session-label';
+import * as sessionRouting from './nrepl/session-routing';
+import * as sessionRegistry from './nrepl/session-registry';
+import * as clientRegistry from './nrepl/client-registry';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
@@ -46,14 +49,7 @@ function update() {
     }`
   );
 
-  const doc = util.tryToGetDocument({}),
-    fileType = util.getFileType(doc),
-    cljsBuild = getStateValue('cljsBuild');
-
-  const replTypeNames = {
-    clj: 'Clojure',
-    cljs: 'ClojureScript',
-  };
+  const doc = util.tryToGetDocument({});
 
   //let disconnectedColor = "rgb(192,192,192)";
 
@@ -72,14 +68,12 @@ function update() {
   connectionStatus.tooltip = 'REPL connection status';
 
   cljsBuildStatus.text = '';
-  cljsBuildStatus.command = 'calva.switchCljsBuild';
+  cljsBuildStatus.command = undefined;
   cljsBuildStatus.tooltip = undefined;
 
   shadowRuntimeStatus.text = '';
   shadowRuntimeStatus.command = 'calva.selectShadowCljsRuntime';
   shadowRuntimeStatus.tooltip = undefined;
-
-  const cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
 
   if (!getStateValue('connected')) {
     typeStatus.hide();
@@ -87,37 +81,70 @@ function update() {
   if (getStateValue('connected')) {
     connectionStatus.text = 'REPL $(zap)';
     connectionStatus.color = colorValue('connectedStatusColor', currentConf);
-    connectionStatus.tooltip = `nrepl://${getStateValue('hostname')}:${getStateValue(
-      'port'
-    )} (Click to reset connection)`;
+
+    // Build connection tooltip based on number of connected clients
+    const clients = clientRegistry.listClients();
+    if (clients.length === 1) {
+      const client = clients[0];
+      connectionStatus.tooltip = `nrepl://${client.host}:${client.port} (Click for REPL menu)`;
+    } else {
+      connectionStatus.tooltip = `${clients.length} REPL servers connected (Click for REPL menu)`;
+    }
+
     connectionStatus.command = 'calva.showReplMenu';
     typeStatus.color = colorValue('typeStatusColor', currentConf);
-    const replType = getReplSessionTypeFromState();
-    if (replType !== null) {
-      const cljSession = getSession('clj');
-      const cljsSession = getSession('cljs');
-      typeStatus.text = ['cljc', config.REPL_FILE_EXT, config.FIDDLE_FILE_EXT].includes(fileType)
-        ? `cljc/${replType}`
-        : replType;
-      if (cljSession?.replType !== cljsSession?.replType) {
-        typeStatus.command = 'calva.toggleCLJCSession';
-        typeStatus.tooltip = `Click to use ${replType === 'clj' ? 'cljs' : 'clj'} REPL for cljc`;
-      } else {
-        typeStatus.command = undefined;
-        typeStatus.tooltip = `Connected to ${replTypeNames[replType]} REPL`;
+    const replType = replSession.getReplSessionTypeFromState();
+    if (replType) {
+      const pinnedSessionKey = sessionRouting.getPinnedSessionKey();
+      const isPinned = sessionRouting.isPinned() && Boolean(pinnedSessionKey);
+      const routingInfo = replSession.getRoutingInfo();
+      const isCljcRouting = routingInfo?.reason.type === 'cljc-within-connection';
+      const displaySessionKey =
+        isPinned && pinnedSessionKey ? pinnedSessionKey : routingInfo?.sessionKey ?? replType;
+
+      // Use shared session label formatting
+      const labelContext = replSession.getSessionLabelContext({ isPinned, doc });
+      const baseStatusText = sessionLabel.formatSessionLabel(displaySessionKey, labelContext);
+
+      const pinIndicator = isPinned ? '$(pin) ' : '';
+      typeStatus.text = `${pinIndicator}${baseStatusText}`;
+      typeStatus.command = 'calva.showReplSessionsMenu';
+      const tooltipParts = [
+        isPinned
+          ? `Pinned session: ${displaySessionKey}`
+          : `Auto-route session: ${displaySessionKey}`,
+      ];
+
+      if (isCljcRouting && !isPinned) {
+        tooltipParts.push(`File routes via cljc preference to ${displaySessionKey}`);
       }
+
+      tooltipParts.push('Click to show the REPL Sessions menu');
+      typeStatus.tooltip = tooltipParts.join('. ');
     }
-    if (replType === 'cljs' && state.extensionContext.workspaceState.get('cljsReplTypeHasBuilds')) {
-      if (cljsBuild !== null && replType === 'cljs') {
+    // Show build status when the current routed session is a secondary session
+    const isCurrentSessionSecondary = replType && sessionRegistry.isSessionSecondary(replType);
+    // Get connection state for the current routed session
+    const connectionState = replType
+      ? sessionRegistry.getConnectionStateForSession(replType)
+      : undefined;
+    const cljsBuild = connectionState?.cljsBuild ?? null;
+    const cljsTypeName = connectionState?.cljsTypeName;
+    const hasBuilds = connectionState?.hasBuilds ?? false;
+
+    if (isCurrentSessionSecondary && hasBuilds) {
+      cljsBuildStatus.command = 'calva.switchCljsBuild';
+      if (cljsBuild !== null) {
         cljsBuildStatus.text = cljsBuild;
         cljsBuildStatus.tooltip = 'Click to switch CLJS build REPL';
-      } else if (cljsBuild === null) {
+      } else {
         cljsBuildStatus.text = 'No build connected';
         cljsBuildStatus.tooltip = 'Click to connect to a CLJS build REPL';
       }
     }
 
-    if (replType === 'cljs' && cljsTypeName === 'shadow-cljs') {
+    // Show shadow runtime status when the current routed session is a secondary session
+    if (isCurrentSessionSecondary && cljsTypeName === 'shadow-cljs') {
       const selectedRuntime = shadowRuntimes.getSelectedRuntimeId();
       const runtimeInfo = shadowRuntimes.getSelectedRuntimeInfo();
 
@@ -155,11 +182,16 @@ function update() {
     cljsBuildStatus.hide();
   }
 
-  const replType = getReplSessionTypeFromState();
+  // Show shadow runtime status when the current routed session is a secondary session
+  const replType = replSession.getReplSessionTypeFromState();
+  const isRoutedSessionSecondary = replType && sessionRegistry.isSessionSecondary(replType);
+  const routedConnectionState = replType
+    ? sessionRegistry.getConnectionStateForSession(replType)
+    : undefined;
   if (
     getStateValue('connected') &&
-    replType === 'cljs' &&
-    cljsTypeName === 'shadow-cljs' &&
+    isRoutedSessionSecondary &&
+    routedConnectionState?.cljsTypeName === 'shadow-cljs' &&
     shadowRuntimeStatus.text
   ) {
     shadowRuntimeStatus.show();

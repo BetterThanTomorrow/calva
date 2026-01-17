@@ -5,7 +5,7 @@ description: "How to find Calva commands. TL;DR: VS Code's command palette, and 
 
 # Finding Calva Commands
 
-Calva relies a lot on that VS Code makes it really easy to find commands by opening the command palette: `ctrl+shift+p` (Windows/Linux), `cmd+shift+p` (Mac), and then start typing some words (or parts of words) that you think might be in the command.
+Calva relies heavily on VS Code's command palette, which makes it easy to find commands. Open it with `ctrl+shift+p` (Windows/Linux) or `cmd+shift+p` (Mac), then start typing words (or parts of words) that might appear in the command.
 
 To leverage this, all Calva commands are prefixed with `Calva`. As an example, say you want to find commands related to evaluating the top level form. Then you can do this:
 

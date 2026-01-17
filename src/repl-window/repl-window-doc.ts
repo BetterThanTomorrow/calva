@@ -16,11 +16,7 @@ import * as replSession from '../nrepl/repl-session';
 import { formatAsLineComments, splitEditQueueForTextBatching } from '../results-output/util';
 import * as output from '../results-output/output';
 
-function getReplDocName() {
-  return `${config.getConfig().useLegacyReplWindowPath ? 'output' : 'repl'}.${
-    config.REPL_FILE_EXT
-  }`;
-}
+const REPL_DOC_NAME = `repl.${config.REPL_FILE_EXT}`;
 
 const PROMPT_HINT = 'Use `alt+enter` to evaluate';
 
@@ -32,23 +28,6 @@ const START_GREETINGS = [
   'Please see https://calva.io/repl-window/ for more info.',
   'Happy coding! ♥️',
 ].join(`\n`);
-
-const REPL_WINDOW_PATH_CHANGE_MESSAGE = `
-
-PLEASE NOTE
-We will update the default location of this file.
-The new default location will be
-  "<projectRootPath>/.calva/repl.calva-repl"
-For now the legacy path is used by default.
-To give yourself a smooth transition, you can opt in
-to the change, by configuring this setting as false:
-  "calva.useLegacyReplWindowPath"
-and then add "**/.calva/repl.calva-repl" to your ".gitignore" file.
-`;
-
-function replFilePathChangeMessage() {
-  return config.getConfig().useLegacyReplWindowPath ? REPL_WINDOW_PATH_CHANGE_MESSAGE : '';
-}
 
 const OUTPUT_DESTINATION_SETTINGS_MESSAGE = `
 
@@ -80,41 +59,73 @@ export const CLJ_CONNECT_GREETINGS = [
 
 export const CLJS_CONNECT_GREETINGS = [
   'TIPS: You can choose which REPL to use (clj or cljs):',
-  '   *Calva: Toggle REPL connection*',
-  '   (There is a button in the status bar for this)',
+  '   *Calva: REPL Sessions*',
+  '   (Click the session indicator in the status bar to open it)',
 ].join(`\n`);
 
-function outputFileDir() {
+function computeDocUri(): vscode.Uri {
   const projectRoot = state.getProjectRootUri();
   util.assertIsDefined(projectRoot, 'Expected there to be a project root!');
   try {
-    return config.getConfig().useLegacyReplWindowPath
-      ? vscode.Uri.joinPath(projectRoot, '.calva', 'output-window')
-      : vscode.Uri.joinPath(projectRoot, '.calva');
+    return vscode.Uri.joinPath(projectRoot, '.calva', REPL_DOC_NAME);
   } catch {
-    return config.getConfig().useLegacyReplWindowPath
-      ? vscode.Uri.file(path.join(projectRoot.fsPath, '.calva', 'output-window'))
-      : vscode.Uri.file(path.join(projectRoot.fsPath, '.calva'));
+    return vscode.Uri.file(path.join(projectRoot.fsPath, '.calva', REPL_DOC_NAME));
   }
 }
 
-let isInitialized = false;
+let _docUri: vscode.Uri | undefined;
 
-const DOC_URI = () => {
-  return vscode.Uri.joinPath(outputFileDir(), getReplDocName());
+function getDocUri(): vscode.Uri {
+  if (!_docUri) {
+    _docUri = computeDocUri();
+  }
+  return _docUri;
+}
+
+function getDocDir(): vscode.Uri {
+  return vscode.Uri.joinPath(getDocUri(), '..');
+}
+
+type SessionInfo = {
+  ns?: string;
+  session?: NReplSession;
 };
 
 let _sessionType: ReplSessionType = 'clj';
-const _sessionInfo: { [id: string]: { ns?: string; session?: NReplSession } } = {
+const _sessionInfo: Record<string, SessionInfo> = {
   clj: {},
   cljs: {},
 };
-const showPrompt: { [id: string]: boolean } = {
+const showPrompt: Record<string, boolean> = {
   clj: true,
   cljs: true,
 };
 
+function ensureSessionEntries(sessionType: string) {
+  if (!_sessionInfo[sessionType]) {
+    _sessionInfo[sessionType] = {};
+  }
+  if (!Object.prototype.hasOwnProperty.call(showPrompt, sessionType)) {
+    showPrompt[sessionType] = true;
+  }
+}
+
+function resolveSessionType(session?: NReplSession, override?: string): ReplSessionType {
+  if (override) {
+    return override;
+  }
+  const metadataKey = (session as any)?._calvaSessionMetadata?.key;
+  if (metadataKey) {
+    return metadataKey;
+  }
+  if (session?.replType) {
+    return session.replType;
+  }
+  return _sessionType;
+}
+
 export function getPrompt(): string {
+  ensureSessionEntries(_sessionType);
   // eslint-disable-next-line no-irregular-whitespace
   let prompt = `${_sessionType}꞉${getNs()}꞉> `;
   if (showPrompt[_sessionType]) {
@@ -125,6 +136,7 @@ export function getPrompt(): string {
 }
 
 export function getNs(): string | undefined {
+  ensureSessionEntries(_sessionType);
   return _sessionInfo[_sessionType].ns;
 }
 
@@ -133,23 +145,107 @@ export function getSessionType(): ReplSessionType {
 }
 
 export function getSession(): NReplSession | undefined {
+  ensureSessionEntries(_sessionType);
   return _sessionInfo[_sessionType].session;
 }
 
-export function setSession(session: NReplSession, newNs?: string): void {
+export function setSession(session: NReplSession, newNs?: string, sessionKey?: string): void {
+  const resolvedType = resolveSessionType(session, sessionKey);
+  ensureSessionEntries(resolvedType);
+  _sessionType = resolvedType;
+
   if (session) {
-    if (session.replType) {
-      _sessionType = session.replType;
-    }
-    _sessionInfo[_sessionType].session = session;
+    _sessionInfo[resolvedType].session = session;
   }
   if (newNs) {
-    _sessionInfo[_sessionType].ns = newNs;
+    _sessionInfo[resolvedType].ns = newNs;
   }
 }
 
-export function isResultsDoc(doc?: vscode.TextDocument): boolean {
-  return !!doc && path.basename(doc.fileName) === getReplDocName();
+export function isReplWindowDoc(doc?: vscode.TextDocument): boolean {
+  if (!doc || !_docUri) {
+    return false;
+  }
+  return doc.uri.toString() === _docUri.toString();
+}
+
+/**
+ * Checks if a document looks like a Calva REPL window file.
+ * Must have `.calva-repl` extension AND be in a `.calva` directory.
+ */
+function looksLikeReplWindowFile(doc?: vscode.TextDocument): boolean {
+  if (!doc) {
+    return false;
+  }
+  const fileName = doc.fileName;
+  const looksLikeCurrentReplWindowFile = fileName.endsWith(`${path.sep}.calva/${REPL_DOC_NAME}`);
+  const looksLikeLegacyReplWindowFile = fileName.endsWith(
+    `${path.sep}.calva${path.sep}output-window${path.sep}output.calva-repl`
+  );
+  return looksLikeCurrentReplWindowFile || looksLikeLegacyReplWindowFile;
+}
+
+// Track which files have been warned to avoid repeated warnings
+const warnedFiles = new Set<string>();
+
+async function warnIfNotActiveReplWindow(doc: vscode.TextDocument): Promise<void> {
+  // Only warn if the repl is connected and there IS an active REPL window to compare against
+  if (!util.getConnectedState() || !_docUri) {
+    return;
+  }
+
+  if (!looksLikeReplWindowFile(doc) || isReplWindowDoc(doc)) {
+    return;
+  }
+
+  const fileKey = doc.uri.toString();
+  if (warnedFiles.has(fileKey)) {
+    return;
+  }
+  warnedFiles.add(fileKey);
+
+  return vscode.window
+    .showWarningMessage(
+      'This file is NOT the active Calva REPL Window. To open the active REPL Window, use the command: Calva: Show/Open REPL Window',
+      'Open REPL Window'
+    )
+    .then((selection) => {
+      if (selection === 'Open REPL Window') {
+        void revealReplWindowDoc(false);
+      }
+    });
+}
+
+// Track if we've already informed user about results going elsewhere
+let havePrintedResultsElsewhereMessage = false;
+
+/**
+ * When evaluating in the REPL window but results are configured to go elsewhere,
+ * prints a one-time informational message to the REPL window.
+ */
+export function maybePrintResultsInOtherDestinationMessage(): void {
+  if (output.getDestinationConfiguration().evalResults === 'repl-window') {
+    return;
+  }
+  if (havePrintedResultsElsewhereMessage) {
+    return;
+  }
+  havePrintedResultsElsewhereMessage = true;
+
+  const destination = output.getDestinationConfiguration().evalResults;
+  const destinationNames: Record<output.OutputDestination, string> = {
+    'repl-window': 'REPL Window',
+    'output-channel': 'Output Channel',
+    terminal: 'Output Terminal',
+    'output-view': 'Output View',
+  };
+  const destinationName = destinationNames[destination] || destination;
+
+  const message = `Results are configured to appear in the ${destinationName}.
+To reveal the output, use the command:
+> Calva: Show/Open the result output destination`;
+  appendLine();
+  appendLine(formatAsLineComments(message));
 }
 
 function getViewColumn(): vscode.ViewColumn {
@@ -173,7 +269,7 @@ export function registerSubmitOnEnterHandler(context: vscode.ExtensionContext) {
       let submitOnEnter = false;
       if (event.textEditor) {
         const document = event.textEditor.document;
-        if (isResultsDoc(document)) {
+        if (isReplWindowDoc(document)) {
           const idx = document.offsetAt(event.selections[0].active);
           const mirrorDoc = docMirror.getDocument(document);
           const selectionCursor = mirrorDoc.getTokenCursor(idx);
@@ -202,61 +298,77 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
   state.extensionContext.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((event) => {
       if (event) {
-        const isReplWindow = isResultsDoc(event.document);
+        const isReplWindow = isReplWindowDoc(event.document);
         setContextForReplWindowActive(isReplWindow);
         if (isReplWindow) {
           void setViewColumn(event.viewColumn);
+        } else {
+          // Warn if user opened a .calva-repl file that isn't the active REPL window
+          void warnIfNotActiveReplWindow(event.document);
         }
       }
     })
   );
-  // If the repl window is active when initResultsDoc is run, these contexts won't be set properly without the below
+  // If the repl window is active when initReplWindowDoc is run, these contexts won't be set properly without the below
   // until the next time it's focused
   const activeTextEditor = util.tryToGetActiveTextEditor();
-  if (activeTextEditor && isResultsDoc(activeTextEditor.document)) {
+  if (activeTextEditor && isReplWindowDoc(activeTextEditor.document)) {
     setContextForReplWindowActive(true);
     replHistory.setReplHistoryCommandsActiveContext(activeTextEditor);
   }
 }
 
-export async function clearResultsDoc() {
-  await util.writeTextToFile(DOC_URI(), '');
+export async function clearReplWindowDoc() {
+  const docUri = getDocUri();
+  await vscode.workspace.fs.createDirectory(getDocDir());
+  let doc: vscode.TextDocument;
+  try {
+    doc = await vscode.workspace.openTextDocument(docUri);
+  } catch {
+    await util.writeTextToFile(docUri, '');
+    doc = await vscode.workspace.openTextDocument(docUri);
+  }
+  const edit = new vscode.WorkspaceEdit();
+  const fullRange = new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity));
+  edit.replace(docUri, fullRange, '');
+  await vscode.workspace.applyEdit(edit);
+  await doc.save();
 }
 
-export async function initResultsDoc(): Promise<vscode.TextDocument> {
-  const docUri = DOC_URI();
-  await vscode.workspace.fs.createDirectory(outputFileDir());
-  let resultsDoc: vscode.TextDocument;
+export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
+  const docUri = getDocUri();
+  await vscode.workspace.fs.createDirectory(getDocDir());
+  let doc: vscode.TextDocument;
   try {
-    resultsDoc = await vscode.workspace.openTextDocument(docUri);
+    doc = await vscode.workspace.openTextDocument(docUri);
   } catch (e) {
     await util.writeTextToFile(docUri, '');
-    resultsDoc = await vscode.workspace.openTextDocument(docUri);
+    doc = await vscode.workspace.openTextDocument(docUri);
   }
   if (config.getConfig().autoOpenREPLWindow) {
-    const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
+    const resultsEditor = await vscode.window.showTextDocument(doc, getViewColumn(), true);
     const firstPos = resultsEditor.document.positionAt(0);
-    const lastPos = resultsDoc.positionAt(Infinity);
+    const lastPos = doc.positionAt(Infinity);
     resultsEditor.selections = [new vscode.Selection(lastPos, lastPos)];
     resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
   }
   if (config.getConfig().autoOpenResultOutputDestination) {
     void output.showResultOutputDestination(true);
   }
-  if (isInitialized) {
-    return resultsDoc;
+  if (_docUri) {
+    return doc;
   }
 
   const greetings = `${formatAsLineComments(START_GREETINGS)}\n\n${formatAsLineComments(
     CLJ_CONNECT_GREETINGS
-  )}${replFilePathChangeMessage()}${outputDestinationSettingMessage()}\n\n`;
+  )}${outputDestinationSettingMessage()}\n\n`;
   const edit = new vscode.WorkspaceEdit();
-  const fullRange = new vscode.Range(resultsDoc.positionAt(0), resultsDoc.positionAt(Infinity));
+  const fullRange = new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity));
   edit.replace(docUri, fullRange, greetings);
   await vscode.workspace.applyEdit(edit);
-  void resultsDoc.save();
+  void doc.save();
 
-  registerResultDocSubscriptions();
+  registerReplWindowDocSubscriptions();
 
   vscode.languages.registerCodeLensProvider(
     config.documentSelector,
@@ -264,22 +376,21 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
   );
 
   replHistory.resetState();
-  isInitialized = true;
-  return resultsDoc;
+  return doc;
 }
 
-export async function openResultsDoc(): Promise<vscode.TextDocument> {
-  const resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
-  return resultsDoc;
+export async function openReplWindowDoc(): Promise<vscode.TextDocument> {
+  const doc = await vscode.workspace.openTextDocument(getDocUri());
+  return doc;
 }
 
-export function revealResultsDoc(preserveFocus = true) {
-  return openResultsDoc().then((doc) => {
+export function revealReplWindowDoc(preserveFocus = true) {
+  return openReplWindowDoc().then((doc) => {
     return vscode.window.showTextDocument(doc, getViewColumn(), preserveFocus);
   });
 }
 
-export async function revealDocForCurrentNS(preserveFocus = true) {
+export async function revealReplWindowDocForCurrentNS(preserveFocus = true) {
   const uri = await getUriForCurrentNamespace();
   return vscode.workspace.openTextDocument(uri).then((doc) =>
     vscode.window.showTextDocument(doc, {
@@ -317,7 +428,7 @@ function appendFormGrabbingSessionAndNS(topLevel: boolean): void {
   }
   if (code != '') {
     setSession(session, ns);
-    appendLine(code, (_) => revealResultsDoc(false));
+    appendLine(code, (_) => revealReplWindowDoc(false));
   }
 }
 
@@ -331,34 +442,34 @@ export function appendCurrentTopLevelForm() {
 
 export async function lastLineIsEmpty(): Promise<boolean> {
   try {
-    const doc = await vscode.workspace.openTextDocument(DOC_URI());
+    const doc = await vscode.workspace.openTextDocument(getDocUri());
     return util.lastLineIsEmpty(doc);
   } catch (error) {
-    console.error('Failed opening results doc', error);
+    console.error('Failed opening REPL window doc', error);
   }
 }
 
-function visibleResultsEditors(): vscode.TextEditor[] {
-  return vscode.window.visibleTextEditors.filter((editor) => isResultsDoc(editor.document));
+function visibleReplWindowEditors(): vscode.TextEditor[] {
+  return vscode.window.visibleTextEditors.filter((editor) => isReplWindowDoc(editor.document));
 }
 
-function handleResultDocEditorDidOpen(editor: vscode.TextEditor) {
+function handleReplWindowDocEditorDidOpen(editor: vscode.TextEditor) {
   util.scrollToBottom(editor);
 }
 
-function registerResultDocSubscriptions() {
-  let currentResultDocs = visibleResultsEditors();
+function registerReplWindowDocSubscriptions() {
+  let currentResultDocs = visibleReplWindowEditors();
   const subOpen = vscode.window.onDidChangeVisibleTextEditors((editors) => {
-    const current = editors.filter((editor) => isResultsDoc(editor.document));
+    const current = editors.filter((editor) => isReplWindowDoc(editor.document));
     const opened = current.filter((editor) => currentResultDocs.includes(editor));
     currentResultDocs = current;
-    opened.forEach(handleResultDocEditorDidOpen);
+    opened.forEach(handleReplWindowDocEditorDidOpen);
   });
   state.extensionContext.subscriptions.push(subOpen);
 }
 
-async function writeToResultsDoc({ text, onAppended }: ResultsBufferEntry): Promise<void> {
-  const docUri = DOC_URI();
+async function writeToReplWindowDoc({ text, onAppended }: ResultsBufferEntry): Promise<void> {
+  const docUri = getDocUri();
   const doc = await vscode.workspace.openTextDocument(docUri);
   const insertPosition = doc.positionAt(Infinity);
   const edit = new vscode.WorkspaceEdit();
@@ -371,7 +482,7 @@ async function writeToResultsDoc({ text, onAppended }: ResultsBufferEntry): Prom
     new vscode.Location(docUri, insertPosition),
     new vscode.Location(docUri, doc.positionAt(Infinity))
   );
-  const editors = visibleResultsEditors();
+  const editors = visibleReplWindowEditors();
   editors.forEach((editor) => {
     util.scrollToBottom(editor);
     highlight(editor);
@@ -398,12 +509,12 @@ async function writeNextOutputBatch() {
   // Any entries that contain onAppended are not batched with other pending
   // entries to simplify providing the correct insert position to the callback.
   if (resultsBuffer[0].onAppended) {
-    return await writeToResultsDoc(resultsBuffer.shift());
+    return await writeToReplWindowDoc(resultsBuffer.shift());
   }
   // Batch all remaining entries up until another onAppended callback.
   const [nextText, remaining] = splitEditQueueForTextBatching(resultsBuffer);
   resultsBuffer = remaining;
-  await writeToResultsDoc({ text: nextText.join('') });
+  await writeToReplWindowDoc({ text: nextText.join('') });
 }
 
 // Ensures that writeNextOutputBatch is called on buffer sequentially.
@@ -418,7 +529,7 @@ async function flushOutput() {
       await writeNextOutputBatch();
     }
   } catch (err) {
-    console.error('Error writing to results doc:', err);
+    console.error('Error writing to REPL window doc:', err);
   } finally {
     outputPending = false;
   }
@@ -502,6 +613,10 @@ export function appendPrompt(onAppended?: OnAppendedCallback) {
   if (!lastAppended.trimEnd().endsWith(prompt.trimEnd())) {
     appendLine(getPrompt(), onAppended);
   }
+}
+
+export function forceAppendPrompt(onAppended?: OnAppendedCallback) {
+  appendLine(getPrompt(), onAppended);
 }
 
 function getUriForCurrentNamespace(): Promise<vscode.Uri> {

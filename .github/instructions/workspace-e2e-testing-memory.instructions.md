@@ -40,3 +40,7 @@ Follow the general debugging workflow for E2E issues:
 3. **Analyze data flow** - trace through launch.js and test setup
 4. **Apply targeted fix** - address root cause in environment/configuration
 5. **Validate thoroughly** - test with both development and CI scenarios
+
+## Targeted Test Suite Execution
+
+Implement CLI filters for selective test execution to accelerate debugging of flaky tests. Pass filters through an environment variable like `CALVA_INTEGRATION_SUITE_FILTER`, selecting only matching `*-test.js` files. This enables running specific suites (e.g., `session-management-test` or `jack-in-test`) on demand, avoiding full suite reruns and ensuring faster, more deterministic flake reproduction.

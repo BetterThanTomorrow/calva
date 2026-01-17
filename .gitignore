@@ -51,6 +51,8 @@ lib/
 cljs-out/
 test-out/
 repl-output-ui/js
+.cljs_node_repl/
+.cljs_browser_repl/
 
 # This and that
 .nrepl-port
@@ -73,9 +75,10 @@ junit/test-results.xml
 report.*
 
 # clojure-lsp
-.lsp
+**/.lsp/**
 .clj-kondo/*
 !.clj-kondo/config.edn
+!**/.lsp/config.edn
 /clojure-lsp*
 
 #Calva
@@ -105,3 +108,5 @@ src/calva-fmt/atom-language-clojure/.bash_history
 
 # Emacs
 *~
+
+**/.cljs_node_repl/

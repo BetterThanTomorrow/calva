@@ -7,7 +7,27 @@ description: Overview of Calva's REPL user interface components and how they wor
 
 When you connect Calva to a REPL, you gain access to a complete interactive development environment. The REPL UI consists of several components that work together to provide a seamless evaluation and feedback experience.
 
-## Components Overview
+## Managing Multiple Connections
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/36dTtyfa_OY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+Definitions:
+
+- **REPL Connection**: An active nREPL connection to a running Clojure/ClojureScript environment. Each connection is associated with a project root and a host/port.
+- **REPL Session**: A logical session within a REPL connection. Connections have at least one session and at most two. Sessions are associated with a project root (via the connection) and file patterns (partial globs), these associations help the automatic evaluation routing: **file → session**.
+
+Calva keeps every nREPL connection alive until you explicitly disconnect it. This makes it possible to work with several apps (or the same app in multiple environments) at once from the same VS Code window. By default Calva will automatically route evaluations to a session based on file path and file type.
+
+- The REPL Sessions menu lists every registered session name, indicating which one is being targeted by the auto-router for the currently active file. You can bypass the auto-routing by pinning one of the sessions.
+- The command palette entry **Calva: Disconnect from the REPL** (also available from the REPL menu) opens a menu that shows all active connections, with their sessions names, host/port, and project root. Pick a single connection to disconnect only that REPL or choose **Close all REPL connections**.
+- Sessions names are defined by the [connect sequence](connect-sequences.md) used for connecting a REPL. Calva has built-in sequences for several Clojure dialects/runtimes, defining default session names. The session names are customizable via custom connect sequences.
+- When two or more sessions use the same session name, numbered suffixes will be used to separate the sessions.
+
+  E.g. connect three Babashka repls and you will have one session named `bb` another named `bb:2`, and a third named `bb:3`. If you then connect two Clojure + ClojureScript repls using default session names, you will have four more sessions named: `clj`, `cljs`, `clj:4`, `cljs:4`.
+
+![REPL Sessions Menu](images/repl-ui/repl-sessions-menu.png)
+
+## UI Components Overview
 
 ### File Editors
 
@@ -39,6 +59,7 @@ All REPL commands are available through VS Code's Command Palette (<kbd>Ctrl</kb
 * **Toggle Pretty Printing**: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd> <kbd>P</kbd> - Enable/disable pretty printing (also available via status bar)
 * **Interrupt Running Evaluation**: Available in REPL status bar menu when connected
 * **Show Output Destination**: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>O</kbd> <kbd>O</kbd> - Open the configured output destination
+* **Disconnect from the REPL**: Opens a quick pick listing every active connection so you can disconnect from a single connection or select **Close all REPL connections** when you need a fresh slate
 
 Search the command palette for `Calva evaluate` to find some more commands related to code evaluation at the REPL.
 
@@ -48,16 +69,16 @@ The status bar displays REPL connection status and provides quick access to comm
 
 ### Connection Status
 
-The main REPL connection indicator shows the current state of your REPL connection:
+The "REPL" connection indicator shows the current state of your REPL connection:
 
-![Status Bar Disconnected](images/howto/status_not_connected.png)
+![Status Bar REPL Connected](images/howto/status-repl-connected.png)
 
 **States:**
 
 * **Disconnected** - `REPL $(zap)` (gray) - Click to open the REPL menu and start Jack-in or Connect
-* **Launching** - `Launching REPL using <method>` (orange/yellow) - Click to interrupt the launch process
+* **Launching** - `Launching REPL using <method>` (white) - Click to interrupt the launch process
 * **Connecting** - `REPL - trying to connect` - Click to interrupt the connection attempt
-* **Connected** - `REPL $(zap)` (green) - Click to open the REPL menu with commands for managing your connection
+* **Connected** - `REPL $(zap)` (ember) - Click to open the REPL menu with commands for managing your connection. Calva keeps existing connections alive when you start another REPL
 
 When connected, the tooltip displays the connection details: `nrepl://hostname:port`
 
@@ -81,17 +102,33 @@ You can customize the REPL indicator colors for different connection states usin
 
 Once connected, the session type indicator shows which REPL you're currently working with:
 
-![Status Bar CLJ](images/howto/status_clj.png)
+![Status Bar REPL Connected, session](images/howto/status-session-indicator.png)
 
-![Status Bar CLJS](images/howto/status_cljs.png)
+For `.cljc` files (Clojure Common files that can run on both CLJ and CLJS), the indicator shows `.cljc → clj` or `.cljc → cljs` depending on which session is active for that file.
 
-For `.cljc` files (Clojure Common files that can run on both CLJ and CLJS), the indicator shows `cljc/clj` or `cljc/cljs` depending on which REPL is active for that file.
+The indicator is always clickable when the REPL is connected. Clicking it opens the **REPL Sessions** menu, which provides:
 
-**When both CLJ and CLJS REPLs are connected**, this indicator becomes clickable, allowing you to toggle which REPL is used for evaluating `.cljc` files:
+* A list of connected sessions – select one to pin it (the indicator will show `$(pin)` while pinned). When auto-routing is active, the currently selected session is marked with `$(check)` so you can see which REPL is in use at a glance. Sessions in pairs show a `cljc` indicator for the session that handles `.cljc` files, and non-target sessions have a button to become the cljc target.
+* **Auto-route** – return to Calva's default routing based on connect sequence globs.
+* **Select session for REPL window** – (Only shown when the REPL window is focused) Override which session the REPL window uses for evaluations.
 
-![CLJC Toggle Button](images/howto/cljc-toggle-button.png)
+The cljc routing preference is per-connection. When you have multiple REPL connections, each connection remembers its own cljc target session independently. If you pin a session, that pin takes precedence for all files until you return to auto-route.
 
-Click the indicator to switch between `clj` and `cljs` for your `.cljc` files. See [The REPL Window](repl-window.md#choose-clj-or-cljs-repl-connection) for more details.
+These options make it easy to temporarily lock the routing, quickly inspect available sessions, or manage `.cljc` file routing per connection. See [The REPL Window](repl-window.md#choose-clj-or-cljs-repl-connection) for more details.
+
+### REPL Window Session Command
+
+The command **Calva: Select REPL Window Session** is also available from the command palette. It can be invoked programmatically with a session key argument to bypass the picker:
+
+```javascript
+// Via VS Code API
+vscode.commands.executeCommand('calva.selectReplWindowSession', 'cljs');
+
+// Or without argument to show the picker
+vscode.commands.executeCommand('calva.selectReplWindowSession');
+```
+
+This is useful for keyboard shortcuts or automation scripts that need to quickly switch the REPL window's session.
 
 ### CLJS Build Selector
 
