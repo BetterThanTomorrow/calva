@@ -383,12 +383,12 @@ const clojureCmdFn = () => {
       ? getStateValue('depsEdnJackInDefaultExecutable') ?? 'deps.clj'
       : getConfig().depsEdnJackInExecutable;
   return configuredCmd === 'deps.clj'
-    ? ['java', '-jar', `${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}`]
+    ? ['java', '-jar', `"${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}"`]
     : ['clojure'];
 };
 
 const clojureCmdWinFn = () => {
-  return ['java', '-jar', `${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}`];
+  return ['java', '-jar', `"${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}"`];
 };
 
 const projectTypes: { [id: string]: ProjectType } = {
