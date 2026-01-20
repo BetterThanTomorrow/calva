@@ -1253,20 +1253,26 @@ export function growSelection(doc: EditableDocument, selections = doc.selections
       // if there's not, do nothing, we will not be expanding this cursor
       return [start, end];
     } else {
+      // check if we need to handle binding pairs
+      if (isInPairsList(startC, bindingForms)) {
+        // Use the selection start to determine the pair
+        const pairRange = currentSexpsRange(doc, startC, start, true);
+        // Only expand to pair if current selection is smaller than the pair
+        // (i.e., we have a single form selected, not already a pair or larger)
+        const currentSelectionLength = end - start;
+        const pairLength = pairRange[1] - pairRange[0];
+        if (currentSelectionLength < pairLength) {
+          return pairRange;
+        }
+        // else, current selection is >= pair size, next section should handle whole list
+      }
+
       // check if there's a list containing the current form
       if (startC.getPrevToken().type == 'open' && endC.getToken().type == 'close') {
         startC.backwardList();
         startC.backwardUpList();
         endC.forwardList();
         return [startC.offsetStart, endC.offsetEnd];
-        // check if we need to handle binding pairs
-      } else if (isInPairsList(startC, bindingForms)) {
-        const pairRange = currentSexpsRange(doc, startC, start, true);
-        // if pair not already selected, expand to pair
-        if (!_.isEqual(pairRange, [start, end])) {
-          return pairRange;
-        }
-        // else, if pair already selected, next section should handle whole list
       }
 
       // expand to whole list contents, if appropriate
@@ -1491,6 +1497,13 @@ export const bindingForms = [
   'with-redefs',
 ];
 
+function isPrecededByLetVector(cursor: LispTokenCursor): boolean {
+  const testCursor = cursor.clone();
+  testCursor.previous();
+  testCursor.backwardWhitespace();
+  const precedingToken = testCursor.getPrevToken();
+  return precedingToken.raw === ':let';
+}
 export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
@@ -1499,6 +1512,12 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
       return true;
     }
     if (opening.endsWith('[')) {
+      // First, check if this vector is preceded by :let (e.g., in `for` loops)
+      if (isPrecededByLetVector(probeCursor)) {
+        return true;
+      }
+
+      // Otherwise, check if this is a binding form like (let [...] ...)
       probeCursor.backwardUpList();
       probeCursor.backwardList();
       if (!probeCursor.getPrevToken().raw.endsWith('(')) {
@@ -1526,7 +1545,9 @@ export function currentSexpsRange(
 ): [number, number] {
   const currentSingleRange = cursor.rangeForCurrentForm(offset);
   if (usePairs) {
-    const ranges = cursor.rangesForSexpsInList();
+    // Create a fresh cursor at the offset position to ensure correct list context
+    const listCursor = doc.getTokenCursor(offset);
+    const ranges = listCursor.rangesForSexpsInList();
     if (ranges.length > 1) {
       const indexOfCurrentSingle = ranges.findIndex(
         (r) => r[0] === currentSingleRange[0] && r[1] === currentSingleRange[1]

@@ -1327,6 +1327,34 @@ describe('paredit', () => {
       paredit.growSelection(a);
       expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
+    it('grows selection to binding pairs in :let within for (value selected first)', () => {
+      const a = docFromTextNotation('(for [x [1 2] :let [a |b| c d]] [a c])');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(for [x [1 2] :let [|a b| c d]] [a c])');
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+    it('grows selection from cursor to form to pair in :let within for', () => {
+      const a = docFromTextNotation('(for [x [1 2] :let [a |b c d]] [a c])');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(for [x [1 2] :let [a |b| c d]] [a c])');
+      const bSelection = b.selections[0];
+      const c = docFromTextNotation('(for [x [1 2] :let [|a b| c d]] [a c])');
+      const cSelection = c.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection], [cSelection]]);
+    });
+    it('grows selection to all of binding box in :let within for', () => {
+      const a = docFromTextNotation('(for [x [1 2] :let [a |b c| d]] [a c])');
+      const aSelection = new ModelEditSelection(a.selections[0].anchor, a.selections[0].active);
+      const b = docFromTextNotation('(for [x [1 2] :let [|a b c d|]] [a c])');
+      const bSelection = new ModelEditSelection(b.selections[0].anchor, b.selections[0].active);
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
   });
 
   describe('dragSexpr', () => {
