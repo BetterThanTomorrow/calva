@@ -1371,6 +1371,23 @@ describe('paredit', () => {
       paredit.growSelection(a);
       expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
+    it('grows selection to binding pairs in :let with diverse interspersed comments', () => {
+      // Comment inside the vector between pairs
+      const e = docFromTextNotation('(for [x xs :let [a b ; comment\n c |d|]])');
+      const eSelection = e.selections[0];
+      const f = docFromTextNotation('(for [x xs :let [a b ; comment\n |c d|]])');
+      const fSelection = f.selections[0];
+      paredit.growSelection(e);
+      expect(e.selectionsStack).toEqual([[eSelection], [fSelection]]);
+
+      // Comment inside a pair
+      const g = docFromTextNotation('(for [x xs :let [a ; comment\n |b| c d]])');
+      const gSelection = g.selections[0];
+      const h = docFromTextNotation('(for [x xs :let [|a ; comment\n b| c d]])');
+      const hSelection = h.selections[0];
+      paredit.growSelection(g);
+      expect(g.selectionsStack).toEqual([[gSelection], [hSelection]]);
+    });
   });
 
   describe('dragSexpr', () => {
