@@ -1497,13 +1497,22 @@ export const bindingForms = [
   'with-redefs',
 ];
 
-function isPrecededByLetVector(cursor: LispTokenCursor): boolean {
+function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
   const testCursor = cursor.clone();
-  testCursor.previous();
-  testCursor.backwardWhitespace();
-  const precedingToken = testCursor.getPrevToken();
-  return precedingToken.raw === ':let';
+  // helper: move one token left from current position and skip whitespace
+  function stepLeftAndSkipWs() {
+    testCursor.previous();
+    testCursor.backwardWhitespace();
+  }
+  stepLeftAndSkipWs();
+  let precedingToken = testCursor.getPrevToken();
+  while (precedingToken && precedingToken.type === 'comment') {
+    stepLeftAndSkipWs();
+    precedingToken = testCursor.getPrevToken();
+  }
+  return !!precedingToken && String(precedingToken.raw) === ':let';
 }
+
 export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
@@ -1512,8 +1521,7 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
       return true;
     }
     if (opening.endsWith('[')) {
-      // First, check if this vector is preceded by :let (e.g., in `for` loops)
-      if (isPrecededByLetVector(probeCursor)) {
+      if (isPrecededByLetKeyword(probeCursor)) {
         return true;
       }
 
