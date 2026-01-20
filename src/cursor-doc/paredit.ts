@@ -1253,7 +1253,7 @@ export function growSelection(doc: EditableDocument, selections = doc.selections
       // if there's not, do nothing, we will not be expanding this cursor
       return [start, end];
     } else {
-      // check if we need to handle binding pairs
+      // check if we need to handle pairs (binding forms, conditional forms, maps, etc.)
       if (isInPairsList(startC, bindingForms)) {
         // Use the selection start to determine the pair
         const pairRange = currentSexpsRange(doc, startC, start, true);
@@ -1511,6 +1511,28 @@ function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
     precedingToken = testCursor.getPrevToken();
   }
   return !!precedingToken && String(precedingToken.raw) === ':let';
+
+}
+
+export const conditionalForms = ['cond'];
+
+/**
+ * Returns the offset (number of initial forms that are not part of pairs)
+ * for conditional forms.
+ * - cond: pairs start after function name (offset 1 for 'cond' itself)
+ */
+function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
+  const probeCursor = cursor.clone();
+  if (probeCursor.backwardList()) {
+    const opening = probeCursor.getPrevToken().raw;
+    if (opening.endsWith('(')) {
+      const fn = probeCursor.getFunctionName();
+      if (fn === 'cond') {
+        return 1;
+      }
+    }
+  }
+  return 0;
 }
 
 export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
@@ -1533,6 +1555,13 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
       }
       const fn = probeCursor.getFunctionName();
       if (fn && pairForms.includes(fn)) {
+        return true;
+      }
+    }
+    if (opening.endsWith('(')) {
+      // Check if this is a conditional form like (cond test expr test expr ...)
+      const fn = probeCursor.getFunctionName();
+      if (fn && conditionalForms.includes(fn)) {
         return true;
       }
     }
@@ -1560,14 +1589,24 @@ export function currentSexpsRange(
       const indexOfCurrentSingle = ranges.findIndex(
         (r) => r[0] === currentSingleRange[0] && r[1] === currentSingleRange[1]
       );
-      if (indexOfCurrentSingle % 2 == 0) {
-        const pairCursor = doc.getTokenCursor(currentSingleRange[1]);
-        pairCursor.forwardSexp();
-        return [currentSingleRange[0], pairCursor.offsetStart];
-      } else {
-        const pairCursor = doc.getTokenCursor(currentSingleRange[0]);
-        pairCursor.backwardSexp();
-        return [pairCursor.offsetStart, currentSingleRange[1]];
+
+      // Get the offset for conditional forms (e.g., cond has 1 initial non-pair form)
+      const pairOffset = getConditionalFormPairOffset(listCursor);
+
+      // Adjust the index to account for non-pair forms at the start
+      const adjustedIndex = indexOfCurrentSingle - pairOffset;
+
+      // Only treat as pairs if we're past the offset
+      if (adjustedIndex >= 0) {
+        if (adjustedIndex % 2 == 0) {
+          const pairCursor = doc.getTokenCursor(currentSingleRange[1]);
+          pairCursor.forwardSexp();
+          return [currentSingleRange[0], pairCursor.offsetStart];
+        } else {
+          const pairCursor = doc.getTokenCursor(currentSingleRange[0]);
+          pairCursor.backwardSexp();
+          return [pairCursor.offsetStart, currentSingleRange[1]];
+        }
       }
     }
   }
