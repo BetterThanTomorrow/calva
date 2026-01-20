@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: Grow selection now considers "form pairs" in :let bindings, consistent with let behavior.
+- [Grow Selection Could Consider 'Form Pairs' in :let Bindings](https://github.com/BetterThanTomorrow/calva/issues/2988)
 
 ## [2.0.545] - 2026-01-17
 
