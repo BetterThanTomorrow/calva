@@ -1355,6 +1355,22 @@ describe('paredit', () => {
       paredit.growSelection(a);
       expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
+    it('grows selection to binding pairs in :let within doseq', () => {
+      const a = docFromTextNotation('(doseq [x xs] :let [a |b| c d] (println a))');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(doseq [x xs] :let [|a b| c d] (println a))');
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+    it('grows selection to all of binding box in :let within doseq', () => {
+      const a = docFromTextNotation('(doseq [x xs] :let [a |b c| d] (println a))');
+      const aSelection = new ModelEditSelection(a.selections[0].anchor, a.selections[0].active);
+      const b = docFromTextNotation('(doseq [x xs] :let [|a b c d|] (println a))');
+      const bSelection = new ModelEditSelection(b.selections[0].anchor, b.selections[0].active);
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
   });
 
   describe('dragSexpr', () => {
