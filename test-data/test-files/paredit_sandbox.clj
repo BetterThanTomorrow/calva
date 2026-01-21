@@ -8,8 +8,6 @@
 ;; Expressions starting on the current line past the cursor are killed
 ;;
 
-
-
 (a| b (c
        d) e)
 
@@ -68,8 +66,6 @@ string. "
 ;; | (23 34
 ;;   )
 
-
-
 ;; Example 11 -- Deleting should delete whole expr to closing ]
 | 24 [1]
 
@@ -84,11 +80,10 @@ string. "
 ;; Example 14 -- newline in string, deletes to end of string
 ["abc| def\n ghi" "this stays"]
 
-
 ;; Example 15 -- Heisenbug should delete up to and including g]
-#_|[a b (c d
-           e
-           f) g]
+#_| [a b (c d
+            e
+            f) g]
 :a
 
 ;; Kill right
@@ -96,12 +91,10 @@ string. "
 "This |
     needs to find the end of the string."
 
-
 (map inc (map inc|
               (range 3)))
 
-(map inc (map inc|
-              ))
+(map inc (map inc|))
 
 ; https://github.com/BetterThanTomorrow/calva/issues/2327
 ; Should delete `#`
@@ -109,6 +102,44 @@ string. "
 ; Should not delete `#`
 (#|())
 
+;; Pair selecting
+
+(cond
+  (= 1 1)  (println "one is one")
+  (= 2 2)  (println "two is two"))
+
+(cond->> []
+  true  (cons 1)
+  false (cons 2)
+  true  (cons 3))
+
+(cond-> {}
+  true  (assoc :a 1)
+  false (assoc :b 2)
+  true  (assoc :c 3))
+
+(case 1
+  1 "one"
+  2 "two"
+  3 "three"
+  "other")
+
+(condp = 2
+  1 "one"
+  2 "two"
+  3 "three"
+  "other")
+
+(condp some [1 2 3 4]
+  #{0 6 7} :>> inc
+  #{5 9}   :>> dec)
+
+;; Mixed pairs and triples
+(condp some [1 2 3 4]
+  #{0 6 7} :>> inc
+  #{1 2}   "found 1 or 2"
+  #{5 9}   :>> dec
+  "default")
 
 (comment
   (a b (c
