@@ -1328,9 +1328,17 @@ describe('paredit', () => {
       expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
     it('grows selection to value/result pairs in case (result selected first)', () => {
-      const a = docFromTextNotation('(case x 1 |"one"| 2 "two" "default")');
+      const a = docFromTextNotation('(case x "x" |"one"| "y" "two" "default")');
       const aSelection = a.selections[0];
-      const b = docFromTextNotation('(case x |01 "one"|0 2 "two" "default")');
+      const b = docFromTextNotation('(case x |"x" "one"| "y" "two" "default")');
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+    it('grows selection to value/result pairs in case (value selected first)', () => {
+      const a = docFromTextNotation('(case x |"x"| "one" "y" "two" "default")');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(case x |"x" "one"| "y" "two" "default")');
       const bSelection = b.selections[0];
       paredit.growSelection(a);
       expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
