@@ -8,6 +8,8 @@
 ;; Expressions starting on the current line past the cursor are killed
 ;;
 
+
+
 (a| b (c
        d) e)
 
@@ -66,6 +68,8 @@ string. "
 ;; | (23 34
 ;;   )
 
+
+
 ;; Example 11 -- Deleting should delete whole expr to closing ]
 | 24 [1]
 
@@ -80,10 +84,11 @@ string. "
 ;; Example 14 -- newline in string, deletes to end of string
 ["abc| def\n ghi" "this stays"]
 
+
 ;; Example 15 -- Heisenbug should delete up to and including g]
-#_| [a b (c d
-            e
-            f) g]
+#_|[a b (c d
+           e
+           f) g]
 :a
 
 ;; Kill right
@@ -91,10 +96,12 @@ string. "
 "This |
     needs to find the end of the string."
 
+
 (map inc (map inc|
               (range 3)))
 
-(map inc (map inc|))
+(map inc (map inc|
+              ))
 
 ; https://github.com/BetterThanTomorrow/calva/issues/2327
 ; Should delete `#`
