@@ -109,6 +109,37 @@ string. "
 ; Should not delete `#`
 (#|())
 
+;; Pair selecting
+
+(cond
+  (= 1 1)  (println "one is one")
+  (= 2 2)  (println "two is two"))
+
+(cond->> []
+ true  (cons 1)
+ false (cons 2)
+ true  (cons 3))
+
+(cond-> {}
+  true  (assoc :a 1)
+  false (assoc :b 2)
+  true  (assoc :c 3))
+
+(case 1
+  1 "one"
+  2 "two"
+  3 "three"
+  "other")
+
+(condp = 2
+  1 "one"
+  2 "two"
+  3 "three"
+  "other")
+
+(condp some [1 2 3 4]
+  #{0 6 7} :>> inc
+  #{5 9}   :>> dec)
 
 (comment
   (a b (c

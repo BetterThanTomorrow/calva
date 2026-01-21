@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Enhancement: [Grow selection now considers value/result pairs in `case` forms](https://github.com/BetterThanTomorrow/calva/issues/2993)
+
 ## [2.0.545] - 2026-01-17
 
 - Fix: [Jack-in sometimes fails from quoting issues](https://github.com/BetterThanTomorrow/calva/issues/2549)
