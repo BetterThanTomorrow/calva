@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Enhancement: [Grow selection now considers test/expr pairs in `cond->` and `cond->>` forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
+
 ## [2.0.545] - 2026-01-17
 
 - Fix: [Jack-in sometimes fails from quoting issues](https://github.com/BetterThanTomorrow/calva/issues/2549)

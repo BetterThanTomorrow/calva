@@ -1327,6 +1327,38 @@ describe('paredit', () => {
       paredit.growSelection(a);
       expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
+    it('grows selection to test/expr pairs in cond-> (expr selected first)', () => {
+      const a = docFromTextNotation('(cond-> x (> 0 x) |inc| (even? x) (* 2 x))');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(cond-> x |(> 0 x) inc| (even? x) (* 2 x))');
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+    it('grows selection to test/expr pairs in cond-> (test selected first)', () => {
+      const a = docFromTextNotation('(cond-> x |(> 0 x)| inc (even? x) (* 2 x))');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(cond-> x |(> 0 x) inc| (even? x) (* 2 x))');
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+    it('grows selection to test/expr pairs in cond->> (expr selected first)', () => {
+      const a = docFromTextNotation('(cond->> x (> 0 x) |inc| (even? x) (* 2 x))');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(cond->> x |(> 0 x) inc| (even? x) (* 2 x))');
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+    it('grows selection to test/expr pairs in cond->> (test selected first)', () => {
+      const a = docFromTextNotation('(cond->> x |(> 0 x)| inc (even? x) (* 2 x))');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(cond->> x |(> 0 x) inc| (even? x) (* 2 x))');
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
   });
 
   describe('dragSexpr', () => {
