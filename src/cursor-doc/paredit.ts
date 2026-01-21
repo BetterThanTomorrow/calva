@@ -1514,7 +1514,7 @@ function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
 
 }
 
-export const conditionalForms = ['cond'];
+const conditionalForms = ['cond'];
 
 /**
  * Returns the offset (number of initial forms that are not part of pairs)
