@@ -109,6 +109,24 @@ string. "
 ; Should not delete `#`
 (#|())
 
+;Should delete entire #() form with backspace and delete
+#()
+
+; Should not delete #  
+#{|21 2}
+
+; Should delete #
+#|{21}
+
+;; Backspace should delete the #
+[|#(prn "hello")]
+|#(prn "hello"|)
+
+;; Delete should delete space and #
+[# |(prn "hello")]
+
+; Delete should move before # without deleting it
+(#(|inc 2))
 
 (comment
   (a b (c
