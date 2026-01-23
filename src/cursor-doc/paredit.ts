@@ -1103,8 +1103,15 @@ export function backspace(
     const cursor = doc.getTokenCursor(start);
     const isTopLevel = doc.getTokenCursor(end).atTopLevel();
     const nextToken = cursor.getToken();
+    const JUMP_TOKEN_TYPES = new Set(['open', 'close', 'ignore', 'reader', 'junk']);
+
+    const isInsideReader =
+      start > cursor.offsetStart &&
+      JUMP_TOKEN_TYPES.has(nextToken.type) &&
+      nextToken.raw.startsWith('#') &&
+      start <= cursor.offsetStart + (nextToken.raw.match(/[([{"]/)?.index ?? nextToken.raw.length);
     const prevToken =
-      start > cursor.offsetStart && !['open', 'close'].includes(nextToken.type)
+      (start > cursor.offsetStart && !JUMP_TOKEN_TYPES.has(nextToken.type)) || isInsideReader
         ? nextToken // we are “in” a token
         : cursor.getPrevToken(); // we are “between” tokens
     if (prevToken.type == 'prompt') {
@@ -1133,8 +1140,57 @@ export function backspace(
       // we are at the beginning of a line, and not inside a string
       return backspaceOnWhitespaceEdit(builder, doc, cursor, config);
     } else {
-      if (['open', 'close'].includes(prevToken.type) && cursor.docIsBalanced()) {
-        doc.selections = [new ModelEditSelection(start - prevToken.raw.length)];
+      const isAtReaderPrefix =
+        (isInsideReader &&
+          start <=
+            cursor.offsetStart + (nextToken.raw.match(/[([{"]/)?.index ?? nextToken.raw.length)) ||
+        (!isInsideReader && prevToken.raw.startsWith('#') && start === cursor.offsetStart);
+
+      // Special check: if we're inside a reader macro token like #( or #{,
+      // we should not allow deletion only if it's empty (like #())
+      // Non empty forms like #(prn "hello") can have their # deleted when
+      //  cursor is inside the token
+      let shouldJumpOverReaderMacro = false;
+      if (prevToken.raw.startsWith('#') && prevToken.raw.match(/^#[({]/)) {
+        if (isInsideReader) {
+          // We're inside the #( token (between # and ()
+          // When it is empty, jump; if not, allow deletion
+          const nextCursor = doc.getTokenCursor(cursor.offsetStart);
+          nextCursor.next();
+          const tokenAfterOpen = nextCursor.getToken();
+          shouldJumpOverReaderMacro = tokenAfterOpen.type === 'close';
+        } else {
+          // We're AFTER the #( token - always jump
+          shouldJumpOverReaderMacro = true;
+        }
+      }
+
+      // Check if we're deleting whitespace after an invalid # (junk)
+      // In this case, delete both the whitespace and the junk #
+      if (prevToken.type === 'ws' && prevToken.raw.length === 1) {
+        const prevPrevCursor = doc.getTokenCursor(cursor.offsetStart - 1);
+        const prevPrevToken = prevPrevCursor.getPrevToken();
+        if (prevPrevToken.type === 'junk' && prevPrevToken.raw === '#') {
+          // Delete both the whitespace and the junk #
+          return doc.model.editNow([new ModelEdit('deleteRange', [start - 2, 2])], {
+            builder: builder,
+            skipFormat: true,
+          });
+        }
+      }
+
+      if (
+        JUMP_TOKEN_TYPES.has(prevToken.type) &&
+        cursor.docIsBalanced() &&
+        (!isAtReaderPrefix || shouldJumpOverReaderMacro)
+      ) {
+        // When jumping over a token, if we're inside a reader macro, jump to
+        // its start. Otherwise, jump to the start of the previous token
+        const jumpPosition =
+          isInsideReader && shouldJumpOverReaderMacro
+            ? cursor.offsetStart
+            : start - prevToken.raw.length;
+        doc.selections = [new ModelEditSelection(jumpPosition)];
         return;
       } else {
         const [left, right] = [Math.max(start - 1, 0), start];
@@ -1177,9 +1233,27 @@ export function deleteForward(
         }
       );
     } else {
-      if (['open', 'close'].includes(nextToken.type) && cursor.docIsBalanced()) {
-        doc.selections = [new ModelEditSelection(p + 1)];
-        return;
+      // Check if we're at an invalid reader prefix (junk #) or at the start of a reader macro
+      const isAtInvalidReaderPrefix = nextToken.type === 'junk' && nextToken.raw === '#';
+      const isAtReaderMacroStart =
+        nextToken.type === 'open' && nextToken.raw.match(/^#[({]/) && start === cursor.offsetStart;
+
+      if (
+        (['open', 'close'].includes(nextToken.type) &&
+          cursor.docIsBalanced() &&
+          !isAtReaderMacroStart) ||
+        isAtInvalidReaderPrefix
+      ) {
+        if (isAtInvalidReaderPrefix) {
+          // Delete the invalid # prefix
+          return doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
+            builder: builder,
+            skipFormat: true,
+          });
+        } else {
+          doc.selections = [new ModelEditSelection(p + 1)];
+          return;
+        }
       } else {
         return doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
           builder: builder,
