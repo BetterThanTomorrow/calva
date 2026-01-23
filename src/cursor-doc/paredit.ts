@@ -1105,9 +1105,11 @@ export function backspace(
     const nextToken = cursor.getToken();
     const JUMP_TOKEN_TYPES = new Set(['open', 'close', 'ignore', 'reader', 'junk']);
 
+    // Detect if cursor is inside the '#' prefix of a reader macro token (like #( or #{)
+    // before the opening delimiter. Example: in "#(prn)" at position 1, we're inside the reader.
+    // At position 2, we're no longer inside the reader prefix.
     const isInsideReader =
       start > cursor.offsetStart &&
-      JUMP_TOKEN_TYPES.has(nextToken.type) &&
       nextToken.raw.startsWith('#') &&
       start <= cursor.offsetStart + (nextToken.raw.match(/[([{"]/)?.index ?? nextToken.raw.length);
     const prevToken =
