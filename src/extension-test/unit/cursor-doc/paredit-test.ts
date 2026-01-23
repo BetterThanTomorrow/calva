@@ -2106,6 +2106,50 @@ describe('paredit', () => {
         paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
+      describe('Hash character deletion with non-empty reader macros', () => {
+        it('Deletes # inside non-empty anonymous function', () => {
+          const a = docFromTextNotation('[#|(prn "hello")]');
+          const b = docFromTextNotation('[|(prn "hello")]');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes # and space together after invalid # with space', () => {
+          const a = docFromTextNotation('[# |(prn "hello")]');
+          const b = docFromTextNotation('[|(prn "hello")]');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes # inside non-empty set', () => {
+          const a = docFromTextNotation('[#|{:foo :bar}]');
+          const b = docFromTextNotation('[|{:foo :bar}]');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Does not delete # inside empty anonymous function', () => {
+          const a = docFromTextNotation('(#|())');
+          const b = docFromTextNotation('(|#())');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Does not delete # inside empty set', () => {
+          const a = docFromTextNotation('(#|{})');
+          const b = docFromTextNotation('(|#{})');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Jumps over # when cursor is after opening paren', () => {
+          const a = docFromTextNotation('#(|foo)');
+          const b = docFromTextNotation('|#(foo)');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Jumps over # when cursor is after opening brace', () => {
+          const a = docFromTextNotation('#{|:foo}');
+          const b = docFromTextNotation('|#{:foo}');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
     });
 
     describe('Kill character forwards (delete)', () => {
@@ -2187,6 +2231,40 @@ describe('paredit', () => {
         const b = docFromTextNotation('{::foo |• ::bar :foo}');
         paredit.deleteForward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      // https://github.com/BetterThanTomorrow/calva/issues/2766
+      describe('Hash character deletion with reader macros', () => {
+        it('Deletes # before non-empty anonymous function', () => {
+          const a = docFromTextNotation('[|#(prn "hello")]');
+          const b = docFromTextNotation('[|(prn "hello")]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes # before non-empty set', () => {
+          const a = docFromTextNotation('[|#{:foo :bar}]');
+          const b = docFromTextNotation('[|{:foo :bar}]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes # with invalid syntax before vector', () => {
+          const a = docFromTextNotation('[|#[:foo]]');
+          const b = docFromTextNotation('[|[:foo]]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes # before empty anonymous function', () => {
+          const a = docFromTextNotation('[|#()]');
+          const b = docFromTextNotation('[|()]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes # before empty set', () => {
+          const a = docFromTextNotation('[|#{}]');
+          const b = docFromTextNotation('[|{}]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
     });
 
