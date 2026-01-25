@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Improve backspace and deleteForward functions for reader macro hash deletion](https://github.com/BetterThanTomorrow/calva/issues/2766)
+
 ## [2.0.545] - 2026-01-17
 
 - Fix: [Jack-in sometimes fails from quoting issues](https://github.com/BetterThanTomorrow/calva/issues/2549)
