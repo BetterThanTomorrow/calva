@@ -14,6 +14,8 @@ import _ = require('lodash');
 import { isEqual, last, property } from 'lodash';
 import { TextEditorEdit } from 'vscode';
 
+const OPEN_DELIMITERS_REGEX = /[([{"]/;
+
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
 // In the repl-console, compose commands just by performing them in succession, making sure
@@ -1110,7 +1112,9 @@ export function backspace(
     const isInsideReader =
       start > cursor.offsetStart &&
       nextToken.raw.startsWith('#') &&
-      start <= cursor.offsetStart + (nextToken.raw.match(/[([{"]/)?.index ?? nextToken.raw.length);
+      start <=
+        cursor.offsetStart +
+          (nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length);
     const prevToken =
       (start > cursor.offsetStart && !['open', 'close'].includes(nextToken.type)) || isInsideReader
         ? nextToken // we are “in” a token
@@ -1144,7 +1148,8 @@ export function backspace(
       const isAtReaderPrefix =
         (isInsideReader &&
           start <=
-            cursor.offsetStart + (nextToken.raw.match(/[([{"]/)?.index ?? nextToken.raw.length)) ||
+            cursor.offsetStart +
+              (nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length)) ||
         (!isInsideReader && prevToken.raw.startsWith('#') && start === cursor.offsetStart);
 
       // Special check: if we're inside a reader macro token like #( or #{,
