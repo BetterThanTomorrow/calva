@@ -1103,7 +1103,6 @@ export function backspace(
     const cursor = doc.getTokenCursor(start);
     const isTopLevel = doc.getTokenCursor(end).atTopLevel();
     const nextToken = cursor.getToken();
-    const JUMP_TOKEN_TYPES = new Set(['open', 'close', 'ignore', 'reader', 'junk']);
 
     // Detect if cursor is inside the '#' prefix of a reader macro token (like #( or #{)
     // before the opening delimiter. Example: in "#(prn)" at position 1, we're inside the reader.
@@ -1113,7 +1112,7 @@ export function backspace(
       nextToken.raw.startsWith('#') &&
       start <= cursor.offsetStart + (nextToken.raw.match(/[([{"]/)?.index ?? nextToken.raw.length);
     const prevToken =
-      (start > cursor.offsetStart && !JUMP_TOKEN_TYPES.has(nextToken.type)) || isInsideReader
+      (start > cursor.offsetStart && !['open', 'close'].includes(nextToken.type)) || isInsideReader
         ? nextToken // we are “in” a token
         : cursor.getPrevToken(); // we are “between” tokens
     if (prevToken.type == 'prompt') {
@@ -1181,8 +1180,9 @@ export function backspace(
         }
       }
 
+      const JUMP_TOKEN_TYPES = ['open', 'close', 'ignore', 'reader', 'junk'];
       if (
-        JUMP_TOKEN_TYPES.has(prevToken.type) &&
+        JUMP_TOKEN_TYPES.includes(prevToken.type) &&
         cursor.docIsBalanced() &&
         (!isAtReaderPrefix || shouldJumpOverReaderMacro)
       ) {
