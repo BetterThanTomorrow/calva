@@ -907,6 +907,8 @@ function forwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit<
     const wsInsideCursor = cursor.clone();
     wsInsideCursor.backwardWhitespace(false);
     const wsStartOffset = wsInsideCursor.offsetStart;
+    // Check if form is empty (only whitespace between open and close)
+    const isFormEmpty = wsInsideCursor.getPrevToken().type === 'open';
     cursor.upList();
     const wsOutSideCursor = cursor.clone();
     if (cursor.forwardSexp(true, true)) {
@@ -917,7 +919,9 @@ function forwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit<
       const changeArgs =
         replacedText.indexOf('\n') >= 0
           ? ([currentCloseOffset, currentCloseOffset + close.length, ''] as const)
-          : ([wsStartOffset, wsEndOffset, ' '] as const);
+          : isFormEmpty
+            ? ([wsStartOffset, wsEndOffset, ''] as const)
+            : ([wsStartOffset, wsEndOffset, ' '] as const);
       return [
         new ModelEdit('changeRange', [newCloseOffset, newCloseOffset, close]),
         new ModelEdit('changeRange', changeArgs),
