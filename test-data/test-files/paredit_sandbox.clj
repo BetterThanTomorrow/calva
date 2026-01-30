@@ -141,13 +141,6 @@ string. "
   #{0 6 7} :>> inc
   #{5 9}   :>> dec)
 
-;; Mixed pairs and triples
-(condp some [1 2 3 4]
-  #{0 6 7} :>> inc
-  #{1 2}   "found 1 or 2"
-  #{5 9}   :>> dec
-  "default")
-
 (comment
   (a b (c
         d) e)
