@@ -920,8 +920,8 @@ function forwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit<
         replacedText.indexOf('\n') >= 0
           ? ([currentCloseOffset, currentCloseOffset + close.length, ''] as const)
           : isFormEmpty
-            ? ([wsStartOffset, wsEndOffset, ''] as const)
-            : ([wsStartOffset, wsEndOffset, ' '] as const);
+          ? ([wsStartOffset, wsEndOffset, ''] as const)
+          : ([wsStartOffset, wsEndOffset, ' '] as const);
       return [
         new ModelEdit('changeRange', [newCloseOffset, newCloseOffset, close]),
         new ModelEdit('changeRange', changeArgs),
