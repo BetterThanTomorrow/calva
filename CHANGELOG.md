@@ -7,6 +7,7 @@ Changes to Calva.
 - [Grow Selection Could Consider 'Form Pairs' in :let Bindings](https://github.com/BetterThanTomorrow/calva/issues/2988)
 - Enhancement: [Grow selection now considers test/expr pairs in `cond` forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
 - Enhancement: [Grow selection now considers test/expr pairs in `cond->` and `cond->>` forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
+- Fix: Slurp Forward no longer adds leading space when slurping into empty forms
 
 ## [2.0.545] - 2026-01-17
 
