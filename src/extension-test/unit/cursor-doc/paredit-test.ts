@@ -1327,6 +1327,67 @@ describe('paredit', () => {
       paredit.growSelection(a);
       expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
+    it('grows selection to binding pairs in :let within for (value selected first)', () => {
+      const a = docFromTextNotation('(for [x [1 2] :let [a |b| c d]] [a c])');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(for [x [1 2] :let [|a b| c d]] [a c])');
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+    it('grows selection from cursor to form to pair in :let within for', () => {
+      const a = docFromTextNotation('(for [x [1 2] :let [a |b c d]] [a c])');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(for [x [1 2] :let [a |b| c d]] [a c])');
+      const bSelection = b.selections[0];
+      const c = docFromTextNotation('(for [x [1 2] :let [|a b| c d]] [a c])');
+      const cSelection = c.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection], [cSelection]]);
+    });
+    it('grows selection to all of binding box in :let within for', () => {
+      const a = docFromTextNotation('(for [x [1 2] :let [a |b c| d]] [a c])');
+      const aSelection = new ModelEditSelection(a.selections[0].anchor, a.selections[0].active);
+      const b = docFromTextNotation('(for [x [1 2] :let [|a b c d|]] [a c])');
+      const bSelection = new ModelEditSelection(b.selections[0].anchor, b.selections[0].active);
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+    it('grows selection to binding pairs in :let within doseq', () => {
+      const a = docFromTextNotation('(doseq [x xs] :let [a |b| c d] (println a))');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(doseq [x xs] :let [|a b| c d] (println a))');
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+    it('grows selection to all of binding box in :let within doseq', () => {
+      const a = docFromTextNotation('(doseq [x xs] :let [a |b c| d] (println a))');
+      const aSelection = new ModelEditSelection(a.selections[0].anchor, a.selections[0].active);
+      const b = docFromTextNotation('(doseq [x xs] :let [|a b c d|] (println a))');
+      const bSelection = new ModelEditSelection(b.selections[0].anchor, b.selections[0].active);
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+    it('grows selection to binding pairs in :let with diverse interspersed comments', () => {
+      // Comment inside the vector between pairs
+      const e = docFromTextNotation('(for [x xs :let [a b ; comment\n c |d|]])');
+      const eSelection = e.selections[0];
+      const f = docFromTextNotation('(for [x xs :let [a b ; comment\n |c d|]])');
+      const fSelection = f.selections[0];
+      paredit.growSelection(e);
+      expect(e.selectionsStack).toEqual([[eSelection], [fSelection]]);
+
+      // Comment inside a pair
+      const g = docFromTextNotation('(for [x xs :let [a ; comment\n |b| c d]])');
+      const gSelection = g.selections[0];
+      const h = docFromTextNotation('(for [x xs :let [|a ; comment\n b| c d]])');
+      const hSelection = h.selections[0];
+      paredit.growSelection(g);
+      expect(g.selectionsStack).toEqual([[gSelection], [hSelection]]);
+    });
   });
 
   describe('dragSexpr', () => {
