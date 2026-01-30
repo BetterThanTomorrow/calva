@@ -1839,6 +1839,30 @@ describe('paredit', () => {
       });
     });
   });
+  describe('Drag Sexp with pairs/triples', () => {
+    describe('cond forms', () => {
+      it('drags test/expr pair forward in cond', async () => {
+        const a = docFromTextNotation('(cond |:a 1 :b 2)');
+        const b = docFromTextNotation('(cond :b 2 |:a 1)');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags test/expr pair backward in cond', async () => {
+        const a = docFromTextNotation('(cond :a 1 |:b 2)');
+        const b = docFromTextNotation('(cond |:b 2 :a 1)');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags test/expr pair forward in cond when cursor on expr', async () => {
+        const a = docFromTextNotation('(cond :a |01 :b 2)');
+        const b = docFromTextNotation('(cond :b 2 :a |01)');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+  });
   describe('edits', () => {
     describe('Close lists', () => {
       it('Advances cursor if at end of list of the same type', async () => {
