@@ -1902,6 +1902,36 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
+
+    describe('condp forms', () => {
+      it('drags test/result pair forward in condp', async () => {
+        const a = docFromTextNotation('(condp = x |01 "one" 2 "two" "default")');
+        const b = docFromTextNotation('(condp = x 2 "two" |01 "one" "default")');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags test/result pair backward in condp', async () => {
+        const a = docFromTextNotation('(condp = x 1 "one" |02 "two" "default")');
+        const b = docFromTextNotation('(condp = x |02 "two" 1 "one" "default")');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags triple (:>> form) forward in condp', async () => {
+        const a = docFromTextNotation('(condp some [1 2] |#{1} :>> inc #{2} :>> dec)');
+        const b = docFromTextNotation('(condp some [1 2] #{2} :>> dec |#{1} :>> inc)');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags triple (:>> form) backward in condp', async () => {
+        const a = docFromTextNotation('(condp some [1 2] #{1} :>> inc |#{2} :>> dec)');
+        const b = docFromTextNotation('(condp some [1 2] |#{2} :>> dec #{1} :>> inc)');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
   });
   describe('edits', () => {
     describe('Close lists', () => {
