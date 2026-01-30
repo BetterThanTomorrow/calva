@@ -10,6 +10,7 @@ Changes to Calva.
 - [Consider value/result pairs in `case` forms when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2993)
 - [Consider test/result pairs and `:>>` function triples in `condp` forms when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2995)
 - [Improve backspace and deleteForward functions for reader macro hash deletion](https://github.com/BetterThanTomorrow/calva/issues/2766)
+- Bump deps.clj.jar to v1.12.4.1597
 
 ## [2.0.545] - 2026-01-17
 
