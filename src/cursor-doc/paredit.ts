@@ -1334,20 +1334,26 @@ export function growSelection(doc: EditableDocument, selections = doc.selections
       // if there's not, do nothing, we will not be expanding this cursor
       return [start, end];
     } else {
+      // check if we need to handle pairs (binding forms, conditional forms, maps, etc.)
+      if (isInPairsList(startC, bindingForms)) {
+        // Use the selection start to determine the pair
+        const pairRange = currentSexpsRange(doc, startC, start, true);
+        // Only expand to pair if current selection is smaller than the pair
+        // (i.e., we have a single form selected, not already a pair or larger)
+        const currentSelectionLength = end - start;
+        const pairLength = pairRange[1] - pairRange[0];
+        if (currentSelectionLength < pairLength) {
+          return pairRange;
+        }
+        // else, current selection is >= pair size, next section should handle whole list
+      }
+
       // check if there's a list containing the current form
       if (startC.getPrevToken().type == 'open' && endC.getToken().type == 'close') {
         startC.backwardList();
         startC.backwardUpList();
         endC.forwardList();
         return [startC.offsetStart, endC.offsetEnd];
-        // check if we need to handle binding pairs
-      } else if (isInPairsList(startC, bindingForms)) {
-        const pairRange = currentSexpsRange(doc, startC, start, true);
-        // if pair not already selected, expand to pair
-        if (!_.isEqual(pairRange, [start, end])) {
-          return pairRange;
-        }
-        // else, if pair already selected, next section should handle whole list
       }
 
       // expand to whole list contents, if appropriate
@@ -1572,6 +1578,49 @@ export const bindingForms = [
   'with-redefs',
 ];
 
+function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
+  const testCursor = cursor.clone();
+  // helper: move one token left from current position and skip whitespace
+  function stepLeftAndSkipWs() {
+    testCursor.previous();
+    testCursor.backwardWhitespace();
+  }
+  stepLeftAndSkipWs();
+  let precedingToken = testCursor.getPrevToken();
+  while (precedingToken && precedingToken.type === 'comment') {
+    stepLeftAndSkipWs();
+    precedingToken = testCursor.getPrevToken();
+  }
+  return !!precedingToken && String(precedingToken.raw) === ':let';
+}
+
+const conditionalForms = ['cond', 'cond->', 'cond->>', 'case'];
+
+/**
+ * Returns the offset (number of initial forms that are not part of pairs)
+ * for conditional forms.
+ * - cond: pairs start after function name (offset 1 for 'cond' itself)
+ * - cond->/cond->>: pairs start after function name and initial form (offset 2)
+ * - case: pairs start after function name and initial form (offset 2)
+
+ */
+function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
+  const probeCursor = cursor.clone();
+  if (probeCursor.backwardList()) {
+    const opening = probeCursor.getPrevToken().raw;
+    if (opening.endsWith('(')) {
+      const fn = probeCursor.getFunctionName();
+      if (fn === 'cond') {
+        return 1;
+      }
+      if (fn === 'cond->' || fn === 'cond->>' || fn === 'case') {
+        return 2;
+      }
+    }
+  }
+  return 0;
+}
+
 export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
@@ -1580,6 +1629,11 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
       return true;
     }
     if (opening.endsWith('[')) {
+      if (isPrecededByLetKeyword(probeCursor)) {
+        return true;
+      }
+
+      // Otherwise, check if this is a binding form like (let [...] ...)
       probeCursor.backwardUpList();
       probeCursor.backwardList();
       if (!probeCursor.getPrevToken().raw.endsWith('(')) {
@@ -1587,6 +1641,13 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
       }
       const fn = probeCursor.getFunctionName();
       if (fn && pairForms.includes(fn)) {
+        return true;
+      }
+    }
+    if (opening.endsWith('(')) {
+      // Check if this is a conditional form like (cond test expr test expr ...)
+      const fn = probeCursor.getFunctionName();
+      if (fn && conditionalForms.includes(fn)) {
         return true;
       }
     }
@@ -1607,19 +1668,40 @@ export function currentSexpsRange(
 ): [number, number] {
   const currentSingleRange = cursor.rangeForCurrentForm(offset);
   if (usePairs) {
-    const ranges = cursor.rangesForSexpsInList();
+    // Create a fresh cursor at the offset position to ensure correct list context
+    const listCursor = doc.getTokenCursor(offset);
+    const ranges = listCursor.rangesForSexpsInList();
     if (ranges.length > 1) {
       const indexOfCurrentSingle = ranges.findIndex(
         (r) => r[0] === currentSingleRange[0] && r[1] === currentSingleRange[1]
       );
-      if (indexOfCurrentSingle % 2 == 0) {
-        const pairCursor = doc.getTokenCursor(currentSingleRange[1]);
-        pairCursor.forwardSexp();
-        return [currentSingleRange[0], pairCursor.offsetStart];
-      } else {
-        const pairCursor = doc.getTokenCursor(currentSingleRange[0]);
-        pairCursor.backwardSexp();
-        return [pairCursor.offsetStart, currentSingleRange[1]];
+
+      // Get the offset for conditional forms (e.g., cond has 1 initial non-pair form)
+      const pairOffset = getConditionalFormPairOffset(listCursor);
+
+      // Adjust the index to account for non-pair forms at the start
+      const adjustedIndex = indexOfCurrentSingle - pairOffset;
+
+      // Only treat as pairs if we're past the offset
+      if (adjustedIndex >= 0) {
+        // For forms like `case`, if there's an odd number of pairable elements,
+        // the last element is the default and should NOT be treated as part of a pair
+        const pairableElementsCount = ranges.length - pairOffset;
+        const isOddElementCount = pairableElementsCount % 2 === 1;
+        const isLastElement = adjustedIndex === pairableElementsCount - 1;
+        const isConditionalDefault = isOddElementCount && isLastElement;
+        if (isConditionalDefault) {
+          return currentSingleRange;
+        }
+        if (adjustedIndex % 2 == 0) {
+          const pairCursor = doc.getTokenCursor(currentSingleRange[1]);
+          pairCursor.forwardSexp();
+          return [currentSingleRange[0], pairCursor.offsetStart];
+        } else {
+          const pairCursor = doc.getTokenCursor(currentSingleRange[0]);
+          pairCursor.backwardSexp();
+          return [pairCursor.offsetStart, currentSingleRange[1]];
+        }
       }
     }
   }
