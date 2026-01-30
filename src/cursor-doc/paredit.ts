@@ -942,13 +942,20 @@ function backwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit
   if (tk.type == 'open') {
     const offset = cursor.clone().previous().offsetStart;
     const open = cursor.getPrevToken().raw;
+    // Check if form is empty (only whitespace between open and close)
+    const checkCursor = cursor.clone();
+    checkCursor.forwardWhitespace(false);
+    const isFormEmpty = checkCursor.getToken().type === 'close';
     cursor.previous();
     cursor.backwardSexp(true, true);
+    const prevSexpEnd = cursor.offsetStart;
     cursor.forwardWhitespace(false);
     if (offset !== cursor.offsetStart) {
+      // If form is empty, don't leave trailing space
+      const openInsertOffset = isFormEmpty ? prevSexpEnd : cursor.offsetStart;
       return [
         new ModelEdit('changeRange', [offset, offset + tk.raw.length, '']),
-        new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, open]),
+        new ModelEdit('changeRange', [openInsertOffset, openInsertOffset, open]),
       ];
     } else {
       return backwardSlurpSexpEdits(doc, cursor.offsetStart);
