@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.546] - 2026-01-30
+
 - [Consider form pairs in `:let` bindings when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2988)
 - [Consider test/expr pairs in `cond` forms when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
 - [Consider test/expr pairs in `cond->` and `cond->>` forms when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
