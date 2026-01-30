@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Enhancement: [Grow selection now considers value/result pairs in `case` forms](https://github.com/BetterThanTomorrow/calva/issues/2993)
+- [Grow Selection Could Consider 'Form Pairs' in :let Bindings](https://github.com/BetterThanTomorrow/calva/issues/2988)
 
 ## [2.0.545] - 2026-01-17
 
