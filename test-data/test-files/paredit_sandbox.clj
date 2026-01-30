@@ -146,3 +146,61 @@ string. "
             e
             f) g]
   :a)
+
+;; === Forward Slurp
+;; Issue: Strings are treated as lists, causing unwanted space insertion
+
+;; Slurp Sexp Forward with string at cursor start
+;; Before: "|"somestuff
+;; Expected: "|somestuff"
+""somestuff
+
+;; Slurp Sexp Forward with string and following form
+;; Before: "|"  (some-form other-args)
+;; Expected: "|(some-form other-args)"
+"|"  (some-form other-args)
+
+
+;; Empty list slurp forward - should NOT add space
+;; Before: (|) "foo"
+;; Expected: (|"foo")
+(|) "foo"
+
+;; Whitespace-only list slurp forward
+;; Before: (|   ) "foo"
+;; Expected: (|"foo")
+(|   ) "foo"
+
+;; Non-empty list slurp forward - should add space
+;; Before: "aaa|" ccc
+;; Expected: "aaa| ccc"
+"aaa|" ccc
+
+;; === Slurp Forward with Data Structures
+
+;; Empty vector slurp forward
+;; Before: [|] 1
+;; Expected: [|1]
+[|] 1
+
+;; Empty map slurp forward
+;; Before: {|} :key
+;; Expected: {|:key}
+{} :key
+
+;; Empty set slurp forward
+;; Before: #{|} value
+;; Expected: #{|value}
+#{|} value
+
+;; Non-empty vector with space
+;; Before: [a|] b
+;; Expected: [a| b]
+[a] b
+
+;; Nested structure slurp forward
+;; Command: Paredit Slurp Forward (twice) 
+;; Before: ([|]) "nested"
+;; Expected: ([|"nested"])
+([|]) "nested" ;;->> ([|] "nested")->>([|] "nested")->>[(|"nested")] 
+_
