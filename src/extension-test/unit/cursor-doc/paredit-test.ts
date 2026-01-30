@@ -1839,6 +1839,116 @@ describe('paredit', () => {
       });
     });
   });
+  describe('Drag Sexp with pairs/triples', () => {
+    describe('cond forms', () => {
+      it('drags test/expr pair forward in cond', async () => {
+        const a = docFromTextNotation('(cond |:a 1 :b 2)');
+        const b = docFromTextNotation('(cond :b 2 |:a 1)');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags test/expr pair backward in cond', async () => {
+        const a = docFromTextNotation('(cond :a 1 |:b 2)');
+        const b = docFromTextNotation('(cond |:b 2 :a 1)');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags test/expr pair forward in cond when cursor on expr', async () => {
+        const a = docFromTextNotation('(cond :a |01 :b 2)');
+        const b = docFromTextNotation('(cond :b 2 :a |01)');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
+    describe('cond-> and cond->> forms', () => {
+      it('drags test/expr pair forward in cond->', async () => {
+        const a = docFromTextNotation('(cond-> x |:a (inc) :b (dec))');
+        const b = docFromTextNotation('(cond-> x :b (dec) |:a (inc))');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags test/expr pair backward in cond->>', async () => {
+        const a = docFromTextNotation('(cond->> x :a (inc) |:b (dec))');
+        const b = docFromTextNotation('(cond->> x |:b (dec) :a (inc))');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
+    describe('case forms', () => {
+      it('drags value/result pair forward in case', async () => {
+        const a = docFromTextNotation('(case x |01 "one" 2 "two" "default")');
+        const b = docFromTextNotation('(case x 2 "two" |01 "one" "default")');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags value/result pair backward in case', async () => {
+        const a = docFromTextNotation('(case x 1 "one" |02 "two" "default")');
+        const b = docFromTextNotation('(case x |02 "two" 1 "one" "default")');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('does not drag default value as pair in case', async () => {
+        const a = docFromTextNotation('(case x 1 "one" |"default")');
+        // Default is a single form, not a pair, so it should drag alone
+        const b = docFromTextNotation('(case x |"default" 1 "one")');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
+    describe('condp forms', () => {
+      it('drags test/result pair forward in condp', async () => {
+        const a = docFromTextNotation('(condp = x |01 "one" 2 "two" "default")');
+        const b = docFromTextNotation('(condp = x 2 "two" |01 "one" "default")');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags test/result pair backward in condp', async () => {
+        const a = docFromTextNotation('(condp = x 1 "one" |02 "two" "default")');
+        const b = docFromTextNotation('(condp = x |02 "two" 1 "one" "default")');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags triple (:>> form) forward in condp', async () => {
+        const a = docFromTextNotation('(condp some [1 2] |#{1} :>> inc #{2} :>> dec)');
+        const b = docFromTextNotation('(condp some [1 2] #{2} :>> dec |#{1} :>> inc)');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags triple (:>> form) backward in condp', async () => {
+        const a = docFromTextNotation('(condp some [1 2] #{1} :>> inc |#{2} :>> dec)');
+        const b = docFromTextNotation('(condp some [1 2] |#{2} :>> dec #{1} :>> inc)');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
+    describe(':let bindings in for/doseq', () => {
+      it('drags binding pair forward in :let within for', async () => {
+        const a = docFromTextNotation('(for [x xs :let [|a 1 b 2]] [a b])');
+        const b = docFromTextNotation('(for [x xs :let [b 2 |a 1]] [a b])');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags binding pair backward in :let within doseq', async () => {
+        const a = docFromTextNotation('(doseq [x xs :let [a 1 |b 2]] (println a b))');
+        const b = docFromTextNotation('(doseq [x xs :let [|b 2 a 1]] (println a b))');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+  });
   describe('edits', () => {
     describe('Close lists', () => {
       it('Advances cursor if at end of list of the same type', async () => {
