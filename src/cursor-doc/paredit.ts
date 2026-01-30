@@ -946,19 +946,30 @@ function backwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit
     const checkCursor = cursor.clone();
     checkCursor.forwardWhitespace(false);
     const isFormEmpty = checkCursor.getToken().type === 'close';
+    const closeOffset = checkCursor.offsetStart;
     cursor.previous();
     cursor.backwardSexp(true, true);
-    const prevSexpEnd = cursor.offsetStart;
+    const prevSexpStart = cursor.offsetStart;
+    // Find end of previous sexp using a cloned cursor
+    const endCursor = cursor.clone();
+    endCursor.forwardSexp(true, true);
+    const prevSexpEnd = endCursor.offsetStart;
     cursor.forwardWhitespace(false);
     if (offset !== cursor.offsetStart) {
-      // If form is empty, don't leave trailing space
-      const openInsertOffset = isFormEmpty ? prevSexpEnd : cursor.offsetStart;
-      return [
-        new ModelEdit('changeRange', [offset, offset + tk.raw.length, '']),
-        new ModelEdit('changeRange', [openInsertOffset, openInsertOffset, open]),
-      ];
+      if (isFormEmpty) {
+        // For empty forms, remove external whitespace AND internal whitespace
+        return [
+          new ModelEdit('changeRange', [prevSexpEnd, closeOffset, '']),
+          new ModelEdit('changeRange', [prevSexpStart, prevSexpStart, open]),
+        ];
+      } else {
+        return [
+          new ModelEdit('changeRange', [offset, offset + tk.raw.length, '']),
+          new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, open]),
+        ];
+      }
     } else {
-      return backwardSlurpSexpEdits(doc, cursor.offsetStart);
+      return backwardSlurpSexpEdits(doc, prevSexpStart);
     }
   } else {
     return [];
