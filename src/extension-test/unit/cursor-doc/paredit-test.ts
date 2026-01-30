@@ -1878,6 +1878,30 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
+
+    describe('case forms', () => {
+      it('drags value/result pair forward in case', async () => {
+        const a = docFromTextNotation('(case x |01 "one" 2 "two" "default")');
+        const b = docFromTextNotation('(case x 2 "two" |01 "one" "default")');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags value/result pair backward in case', async () => {
+        const a = docFromTextNotation('(case x 1 "one" |02 "two" "default")');
+        const b = docFromTextNotation('(case x |02 "two" 1 "one" "default")');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('does not drag default value as pair in case', async () => {
+        const a = docFromTextNotation('(case x 1 "one" |"default")');
+        // Default is a single form, not a pair, so it should drag alone
+        const b = docFromTextNotation('(case x |"default" 1 "one")');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
   });
   describe('edits', () => {
     describe('Close lists', () => {
