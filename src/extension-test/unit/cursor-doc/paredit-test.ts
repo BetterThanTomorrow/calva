@@ -1932,6 +1932,22 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
+
+    describe(':let bindings in for/doseq', () => {
+      it('drags binding pair forward in :let within for', async () => {
+        const a = docFromTextNotation('(for [x xs :let [|a 1 b 2]] [a b])');
+        const b = docFromTextNotation('(for [x xs :let [b 2 |a 1]] [a b])');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags binding pair backward in :let within doseq', async () => {
+        const a = docFromTextNotation('(doseq [x xs :let [a 1 |b 2]] (println a b))');
+        const b = docFromTextNotation('(doseq [x xs :let [|b 2 a 1]] (println a b))');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
   });
   describe('edits', () => {
     describe('Close lists', () => {
