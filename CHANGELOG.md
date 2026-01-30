@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: Slurp Backward no longer adds trailing space when slurping into empty forms
 - [Grow Selection Could Consider 'Form Pairs' in :let Bindings](https://github.com/BetterThanTomorrow/calva/issues/2988)
 - Enhancement: [Grow selection now considers test/expr pairs in `cond` forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
 - Enhancement: [Grow selection now considers test/expr pairs in `cond->` and `cond->>` forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
