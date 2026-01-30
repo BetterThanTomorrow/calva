@@ -1371,6 +1371,7 @@ describe('paredit', () => {
       paredit.growSelection(a);
       expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
+
     it('grows selection to binding pairs in :let with diverse interspersed comments', () => {
       // Comment inside the vector between pairs
       const e = docFromTextNotation('(for [x xs :let [a b ; comment\n c |d|]])');
@@ -1387,6 +1388,41 @@ describe('paredit', () => {
       const hSelection = h.selections[0];
       paredit.growSelection(g);
       expect(g.selectionsStack).toEqual([[gSelection], [hSelection]]);
+    });
+
+    describe('cond pairs', () => {
+      it('grows selection to test/expr pairs in cond (expr selected first)', () => {
+        const a = docFromTextNotation('(cond true |:yes| false :no)');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(cond |true :yes| false :no)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to test/expr pairs in cond (test selected first)', () => {
+        const a = docFromTextNotation('(cond |true| :yes false :no)');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(cond |true :yes| false :no)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to test/expr pairs in cond (second pair)', () => {
+        const a = docFromTextNotation('(cond (pos? x) :positive |(neg? x)| :negative :else :zero)');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(cond (pos? x) :positive |(neg? x) :negative| :else :zero)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to test/expr pairs in cond with comment between', () => {
+        const a = docFromTextNotation('(cond true ;; comment\n |:yes| false :no)');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(cond |true ;; comment\n :yes| false :no)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
     });
   });
 
