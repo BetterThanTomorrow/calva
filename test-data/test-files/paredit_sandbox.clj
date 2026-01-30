@@ -125,6 +125,15 @@ string. "
   false (assoc :b 2)
   true  (assoc :c 3))
 
+
+
+;; pairs
+
+(cond
+  (= 1 2) 1
+  (= 2 2) 2
+  :else 23)
+
 (case 1
   1 "one"
   2 "two"
@@ -140,6 +149,7 @@ string. "
 (condp some [1 2 3 4]
   #{0 6 7} :>> inc
   #{5 9}   :>> dec)
+
 
 (comment
   (a b (c

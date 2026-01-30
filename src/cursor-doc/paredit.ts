@@ -1497,27 +1497,6 @@ export const bindingForms = [
   'with-redefs',
 ];
 
-const conditionalForms = ['case'];
-
-/**
- * Returns the offset (number of initial forms that are not part of pairs)
- * for conditional forms.
- * - case: pairs start after function name and initial form (offset 2)
- */
-function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
-  const probeCursor = cursor.clone();
-  if (probeCursor.backwardList()) {
-    const opening = probeCursor.getPrevToken().raw;
-    if (opening.endsWith('(')) {
-      const fn = probeCursor.getFunctionName();
-      if (fn === 'case') {
-        return 2;
-      }
-    }
-  }
-  return 0;
-}
-
 function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
   const testCursor = cursor.clone();
   // helper: move one token left from current position and skip whitespace
@@ -1532,6 +1511,33 @@ function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
     precedingToken = testCursor.getPrevToken();
   }
   return !!precedingToken && String(precedingToken.raw) === ':let';
+}
+
+const conditionalForms = ['cond', 'cond->', 'cond->>', 'case'];
+
+/**
+ * Returns the offset (number of initial forms that are not part of pairs)
+ * for conditional forms.
+ * - cond: pairs start after function name (offset 1 for 'cond' itself)
+ * - cond->/cond->>: pairs start after function name and initial form (offset 2)
+ * - case: pairs start after function name and initial form (offset 2)
+
+ */
+function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
+  const probeCursor = cursor.clone();
+  if (probeCursor.backwardList()) {
+    const opening = probeCursor.getPrevToken().raw;
+    if (opening.endsWith('(')) {
+      const fn = probeCursor.getFunctionName();
+      if (fn === 'cond') {
+        return 1;
+      }
+      if (fn === 'cond->' || fn === 'cond->>' || fn === 'case') {
+        return 2;
+      }
+    }
+  }
+  return 0;
 }
 
 export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
