@@ -1371,6 +1371,7 @@ describe('paredit', () => {
       paredit.growSelection(a);
       expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
+
     it('grows selection to binding pairs in :let with diverse interspersed comments', () => {
       // Comment inside the vector between pairs
       const e = docFromTextNotation('(for [x xs :let [a b ; comment\n c |d|]])');
@@ -1389,92 +1390,162 @@ describe('paredit', () => {
       expect(g.selectionsStack).toEqual([[gSelection], [hSelection]]);
     });
 
-    describe('condp pair/triple selection tests'),
-      () => {
-        it('grows selection to test/result pairs in condp (result selected first)', () => {
-          const a = docFromTextNotation('(condp = x 1 |"one"| 2 "two" "default")');
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation('(condp = x |01 "one"|0 2 "two" "default")');
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-        it('grows selection to test/result pairs in condp (test selected first)', () => {
-          const a = docFromTextNotation('(condp = x |"x"| "one" "y" "two" "default")');
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation('(condp = x |"x" "one"| "y" "two" "default")');
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-        it('grows selection to test/result pairs in condp with set test', () => {
-          const a = docFromTextNotation('(condp = x #{1 2} |"one or two"| 3 "three" "default")');
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation('(condp = x |0#{1 2} "one or two"|0 3 "three" "default")');
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-        it('grows selection to triple in condp with :>> (test selected)', () => {
-          const a = docFromTextNotation('(condp some [1 2 3 4] |#{0 6 7}| :>> inc #{5 9} :>> dec)');
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation(
-            '(condp some [1 2 3 4] |0#{0 6 7} :>> inc|0 #{5 9} :>> dec)'
-          );
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-        it('grows selection to triple in condp with :>> (:>> selected)', () => {
-          const a = docFromTextNotation('(condp some [1 2 3 4] #{0 6 7} |:>>| inc #{5 9} :>> dec)');
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation(
-            '(condp some [1 2 3 4] |0#{0 6 7} :>> inc|0 #{5 9} :>> dec)'
-          );
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-        it('grows selection to triple in condp with :>> (function selected)', () => {
-          const a = docFromTextNotation('(condp some [1 2 3 4] #{0 6 7} :>> |inc| #{5 9} :>> dec)');
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation(
-            '(condp some [1 2 3 4] |0#{0 6 7} :>> inc|0 #{5 9} :>> dec)'
-          );
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-        it('grows selection to triple in condp with :>> and fn form', () => {
-          const a = docFromTextNotation(
-            '(condp some [1 2 3 4] #{1 2 3} :>> |#(+ % 3)| #{5 9} :>> dec)'
-          );
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation(
-            '(condp some [1 2 3 4] |0#{1 2 3} :>> #(+ % 3)|0 #{5 9} :>> dec)'
-          );
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-        it('does not treat default as pair when growing selection in condp', () => {
-          const a = docFromTextNotation('(condp = x 1 "one" 2 "two" |"default"|)');
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation('(|condp = x 1 "one" 2 "two" "default"|)');
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-        it('grows selection from condp keyword to list contents', () => {
-          const a = docFromTextNotation('(|condp| = x 1 "one" 2 "two" "default")');
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation('(|condp = x 1 "one" 2 "two" "default"|)');
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-      };
+    describe('cond pairs', () => {
+      it('grows selection to test/expr pairs in cond (expr selected first)', () => {
+        const a = docFromTextNotation('(cond true |:yes| false :no)');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(cond |true :yes| false :no)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to test/expr pairs in cond (test selected first)', () => {
+        const a = docFromTextNotation('(cond |true| :yes false :no)');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(cond |true :yes| false :no)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to test/expr pairs in cond (second pair)', () => {
+        const a = docFromTextNotation('(cond (pos? x) :positive |(neg? x)| :negative :else :zero)');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(cond (pos? x) :positive |(neg? x) :negative| :else :zero)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to test/expr pairs in cond with comment between', () => {
+        const a = docFromTextNotation('(cond true ;; comment\n |:yes| false :no)');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(cond |true ;; comment\n :yes| false :no)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+    });
+
+    describe('cond-> and cond->> pairs', () => {
+      it('grows selection to test/expr pairs in cond-> (expr selected first)', () => {
+        const a = docFromTextNotation('(cond-> x (> 0 x) |inc| (even? x) (* 2 x))');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(cond-> x |(> 0 x) inc| (even? x) (* 2 x))');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to test/expr pairs in cond-> (test selected first)', () => {
+        const a = docFromTextNotation('(cond-> x |(> 0 x)| inc (even? x) (* 2 x))');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(cond-> x |(> 0 x) inc| (even? x) (* 2 x))');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to test/expr pairs in cond->> (expr selected first)', () => {
+        const a = docFromTextNotation('(cond->> x (> 0 x) |inc| (even? x) (* 2 x))');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(cond->> x |(> 0 x) inc| (even? x) (* 2 x))');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to test/expr pairs in cond->> (test selected first)', () => {
+        const a = docFromTextNotation('(cond->> x |(> 0 x)| inc (even? x) (* 2 x))');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(cond->> x |(> 0 x) inc| (even? x) (* 2 x))');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+    });
   });
+
+   describe('condp pair/triple selection tests'),
+     () => {
+       it('grows selection to test/result pairs in condp (result selected first)', () => {
+         const a = docFromTextNotation('(condp = x 1 |"one"| 2 "two" "default")');
+         const aSelection = a.selections[0];
+         const b = docFromTextNotation('(condp = x |01 "one"|0 2 "two" "default")');
+         const bSelection = b.selections[0];
+         paredit.growSelection(a);
+         expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+       });
+       it('grows selection to test/result pairs in condp (test selected first)', () => {
+         const a = docFromTextNotation('(condp = x |"x"| "one" "y" "two" "default")');
+         const aSelection = a.selections[0];
+         const b = docFromTextNotation('(condp = x |"x" "one"| "y" "two" "default")');
+         const bSelection = b.selections[0];
+         paredit.growSelection(a);
+         expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+       });
+       it('grows selection to test/result pairs in condp with set test', () => {
+         const a = docFromTextNotation('(condp = x #{1 2} |"one or two"| 3 "three" "default")');
+         const aSelection = a.selections[0];
+         const b = docFromTextNotation('(condp = x |0#{1 2} "one or two"|0 3 "three" "default")');
+         const bSelection = b.selections[0];
+         paredit.growSelection(a);
+         expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+       });
+       it('grows selection to triple in condp with :>> (test selected)', () => {
+         const a = docFromTextNotation('(condp some [1 2 3 4] |#{0 6 7}| :>> inc #{5 9} :>> dec)');
+         const aSelection = a.selections[0];
+         const b = docFromTextNotation(
+           '(condp some [1 2 3 4] |0#{0 6 7} :>> inc|0 #{5 9} :>> dec)'
+         );
+         const bSelection = b.selections[0];
+         paredit.growSelection(a);
+         expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+       });
+       it('grows selection to triple in condp with :>> (:>> selected)', () => {
+         const a = docFromTextNotation('(condp some [1 2 3 4] #{0 6 7} |:>>| inc #{5 9} :>> dec)');
+         const aSelection = a.selections[0];
+         const b = docFromTextNotation(
+           '(condp some [1 2 3 4] |0#{0 6 7} :>> inc|0 #{5 9} :>> dec)'
+         );
+         const bSelection = b.selections[0];
+         paredit.growSelection(a);
+         expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+       });
+       it('grows selection to triple in condp with :>> (function selected)', () => {
+         const a = docFromTextNotation('(condp some [1 2 3 4] #{0 6 7} :>> |inc| #{5 9} :>> dec)');
+         const aSelection = a.selections[0];
+         const b = docFromTextNotation(
+           '(condp some [1 2 3 4] |0#{0 6 7} :>> inc|0 #{5 9} :>> dec)'
+         );
+         const bSelection = b.selections[0];
+         paredit.growSelection(a);
+         expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+       });
+       it('grows selection to triple in condp with :>> and fn form', () => {
+         const a = docFromTextNotation(
+           '(condp some [1 2 3 4] #{1 2 3} :>> |#(+ % 3)| #{5 9} :>> dec)'
+         );
+         const aSelection = a.selections[0];
+         const b = docFromTextNotation(
+           '(condp some [1 2 3 4] |0#{1 2 3} :>> #(+ % 3)|0 #{5 9} :>> dec)'
+         );
+         const bSelection = b.selections[0];
+         paredit.growSelection(a);
+         expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+       });
+       it('does not treat default as pair when growing selection in condp', () => {
+         const a = docFromTextNotation('(condp = x 1 "one" 2 "two" |"default"|)');
+         const aSelection = a.selections[0];
+         const b = docFromTextNotation('(|condp = x 1 "one" 2 "two" "default"|)');
+         const bSelection = b.selections[0];
+         paredit.growSelection(a);
+         expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+       });
+       it('grows selection from condp keyword to list contents', () => {
+         const a = docFromTextNotation('(|condp| = x 1 "one" 2 "two" "default")');
+         const aSelection = a.selections[0];
+         const b = docFromTextNotation('(|condp = x 1 "one" 2 "two" "default"|)');
+         const bSelection = b.selections[0];
+         paredit.growSelection(a);
+         expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+       });
+     };
 
   describe('dragSexpr', () => {
     describe('forwardAndBackwardSexpr', () => {

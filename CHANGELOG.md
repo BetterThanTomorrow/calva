@@ -6,6 +6,8 @@ Changes to Calva.
 
 - Enhancement: [Grow selection now considers test/result pairs and `:>>` function triples in `condp` forms](https://github.com/BetterThanTomorrow/calva/issues/2995)
 - [Grow Selection Could Consider 'Form Pairs' in :let Bindings](https://github.com/BetterThanTomorrow/calva/issues/2988)
+- Enhancement: [Grow selection now considers test/expr pairs in `cond` forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
+- Enhancement: [Grow selection now considers test/expr pairs in `cond->` and `cond->>` forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
 
 ## [2.0.545] - 2026-01-17
 

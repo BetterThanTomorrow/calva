@@ -116,9 +116,9 @@ string. "
   (= 2 2)  (println "two is two"))
 
 (cond->> []
-  true  (cons 1)
-  false (cons 2)
-  true  (cons 3))
+ true  (cons 1)
+ false (cons 2)
+ true  (cons 3))
 
 (cond-> {}
   true  (assoc :a 1)

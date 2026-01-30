@@ -1497,27 +1497,6 @@ export const bindingForms = [
   'with-redefs',
 ];
 
-const conditionalForms = ['condp'];
-
-/**
- * Returns the offset (number of initial forms that are not part of pairs)
- * for conditional forms.
- * - condp: pairs start after function name, predicate, and initial form (offset 3)
- */
-function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
-  const probeCursor = cursor.clone();
-  if (probeCursor.backwardList()) {
-    const opening = probeCursor.getPrevToken().raw;
-    if (opening.endsWith('(')) {
-      const fn = probeCursor.getFunctionName();
-      if (fn === 'condp') {
-        return 3;
-      }
-    }
-  }
-  return 0;
-}
-
 function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
   const testCursor = cursor.clone();
   // helper: move one token left from current position and skip whitespace
@@ -1532,6 +1511,35 @@ function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
     precedingToken = testCursor.getPrevToken();
   }
   return !!precedingToken && String(precedingToken.raw) === ':let';
+}
+
+const conditionalForms = ['cond', 'cond->', 'cond->>', 'condp'];
+
+/**
+ * Returns the offset (number of initial forms that are not part of pairs)
+ * for conditional forms.
+ * - cond: pairs start after function name (offset 1 for 'cond' itself)
+ * - cond->/cond->>: pairs start after function name and initial form (offset 2)
+ * - condp: pairs start after function name, predicate, and initial form (offset 3)
+ */
+function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
+  const probeCursor = cursor.clone();
+  if (probeCursor.backwardList()) {
+    const opening = probeCursor.getPrevToken().raw;
+    if (opening.endsWith('(')) {
+      const fn = probeCursor.getFunctionName();
+      if (fn === 'cond') {
+        return 1;
+      }
+      if (fn === 'cond->' || fn === 'cond->>') {
+        return 2;
+      }
+       if (fn === 'condp') {
+        return 3;
+      }
+    }
+  }
+  return 0;
 }
 
 export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
