@@ -1898,9 +1898,33 @@ describe('paredit', () => {
       });
 
       describe('Slurping backwards', () => {
-        it('slurps form before string', async () => {
+        it('slurps form before non-empty string', async () => {
           const a = docFromTextNotation('(str) "fo|o"');
           const b = docFromTextNotation('"(str) fo|o"');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before empty string without adding trailing space', async () => {
+          const a = docFromTextNotation('foo "|"');
+          const b = docFromTextNotation('"foo|"');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before empty list without adding trailing space', async () => {
+          const a = docFromTextNotation('foo (|)');
+          const b = docFromTextNotation('(foo|)');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before whitespace-only list without adding trailing space', async () => {
+          const a = docFromTextNotation('foo (|   )');
+          const b = docFromTextNotation('(foo|)');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before empty vector without adding trailing space', async () => {
+          const a = docFromTextNotation('foo [|]');
+          const b = docFromTextNotation('[foo|]');
           await paredit.backwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
