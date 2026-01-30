@@ -1497,11 +1497,28 @@ export const bindingForms = [
   'with-redefs',
 ];
 
+function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
+  const testCursor = cursor.clone();
+  // helper: move one token left from current position and skip whitespace
+  function stepLeftAndSkipWs() {
+    testCursor.previous();
+    testCursor.backwardWhitespace();
+  }
+  stepLeftAndSkipWs();
+  let precedingToken = testCursor.getPrevToken();
+  while (precedingToken && precedingToken.type === 'comment') {
+    stepLeftAndSkipWs();
+    precedingToken = testCursor.getPrevToken();
+  }
+  return !!precedingToken && String(precedingToken.raw) === ':let';
+}
+
 const conditionalForms = ['cond', 'cond->', 'cond->>'];
 
 /**
  * Returns the offset (number of initial forms that are not part of pairs)
  * for conditional forms.
+ * - cond: pairs start after function name (offset 1 for 'cond' itself)
  * - cond->/cond->>: pairs start after function name and initial form (offset 2)
  */
 function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
@@ -1519,22 +1536,6 @@ function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
     }
   }
   return 0;
-}
-
-function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
-  const testCursor = cursor.clone();
-  // helper: move one token left from current position and skip whitespace
-  function stepLeftAndSkipWs() {
-    testCursor.previous();
-    testCursor.backwardWhitespace();
-  }
-  stepLeftAndSkipWs();
-  let precedingToken = testCursor.getPrevToken();
-  while (precedingToken && precedingToken.type === 'comment') {
-    stepLeftAndSkipWs();
-    precedingToken = testCursor.getPrevToken();
-  }
-  return !!precedingToken && String(precedingToken.raw) === ':let';
 }
 
 export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
