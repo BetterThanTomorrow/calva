@@ -2133,9 +2133,21 @@ describe('paredit', () => {
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
-        it('slurps form after string without adding leading space', async () => {
+        it('slurps form after empty string without adding leading space', async () => {
           const a = docFromTextNotation('"|"somestuff');
           const b = docFromTextNotation('"|somestuff"');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form after non-empty list with leading space', async () => {
+          const a = docFromTextNotation('(bar|) foo');
+          const b = docFromTextNotation('(bar| foo)');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form after non-empty string with leading space', async () => {
+          const a = docFromTextNotation('"a|" b');
+          const b = docFromTextNotation('"a| b"');
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
