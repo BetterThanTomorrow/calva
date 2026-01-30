@@ -1907,6 +1907,18 @@ describe('paredit', () => {
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+        it('slurps into nested empty list - first slurp', async () => {
+          const a = docFromTextNotation('([|]) "nested"');
+          const b = docFromTextNotation('([|] "nested")');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps into nested empty list - second slurp', async () => {
+          const a = docFromTextNotation('([|] "nested")');
+          const b = docFromTextNotation('([|"nested"])');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
 
       describe('Slurping backwards', () => {
