@@ -1511,7 +1511,6 @@ function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
     precedingToken = testCursor.getPrevToken();
   }
   return !!precedingToken && String(precedingToken.raw) === ':let';
-
 }
 
 const conditionalForms = ['cond'];
