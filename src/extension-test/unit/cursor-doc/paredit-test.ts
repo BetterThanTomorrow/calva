@@ -1852,9 +1852,15 @@ describe('paredit', () => {
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
-        it('slurps form after empty list', async () => {
+        it('slurps form after empty list without adding leading space', async () => {
           const a = docFromTextNotation('(|) "foo"');
-          const b = docFromTextNotation('(| "foo")');
+          const b = docFromTextNotation('(|"foo")');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form after whitespace-only list without adding leading space', async () => {
+          const a = docFromTextNotation('(|   ) "foo"');
+          const b = docFromTextNotation('(|"foo")');
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
@@ -1871,9 +1877,9 @@ describe('paredit', () => {
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
-        it('slurps form including meta and readers', async () => {
+        it('slurps form including meta and readers into empty list', async () => {
           const a = docFromTextNotation('(|) ^{:a b} #c ^d "foo"');
-          const b = docFromTextNotation('(| ^{:a b} #c ^d "foo")');
+          const b = docFromTextNotation('(|^{:a b} #c ^d "foo")');
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
