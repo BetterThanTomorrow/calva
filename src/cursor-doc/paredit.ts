@@ -1513,13 +1513,15 @@ function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
   return !!precedingToken && String(precedingToken.raw) === ':let';
 }
 
-const conditionalForms = ['cond', 'cond->', 'cond->>'];
+const conditionalForms = ['cond', 'cond->', 'cond->>', 'case'];
 
 /**
  * Returns the offset (number of initial forms that are not part of pairs)
  * for conditional forms.
  * - cond: pairs start after function name (offset 1 for 'cond' itself)
  * - cond->/cond->>: pairs start after function name and initial form (offset 2)
+ * - case: pairs start after function name and initial form (offset 2)
+
  */
 function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
   const probeCursor = cursor.clone();
@@ -1530,7 +1532,7 @@ function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
       if (fn === 'cond') {
         return 1;
       }
-      if (fn === 'cond->' || fn === 'cond->>') {
+      if (fn === 'cond->' || fn === 'cond->>' || fn === 'case') {
         return 2;
       }
     }
@@ -1601,6 +1603,15 @@ export function currentSexpsRange(
 
       // Only treat as pairs if we're past the offset
       if (adjustedIndex >= 0) {
+        // For forms like `case`, if there's an odd number of pairable elements,
+        // the last element is the default and should NOT be treated as part of a pair
+        const pairableElementsCount = ranges.length - pairOffset;
+        const isOddElementCount = pairableElementsCount % 2 === 1;
+        const isLastElement = adjustedIndex === pairableElementsCount - 1;
+        const isConditionalDefault = isOddElementCount && isLastElement;
+        if (isConditionalDefault) {
+          return currentSingleRange;
+        }
         if (adjustedIndex % 2 == 0) {
           const pairCursor = doc.getTokenCursor(currentSingleRange[1]);
           pairCursor.forwardSexp();
