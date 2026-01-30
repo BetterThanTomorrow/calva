@@ -1534,7 +1534,7 @@ function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
       if (fn === 'cond->' || fn === 'cond->>') {
         return 2;
       }
-       if (fn === 'condp') {
+      if (fn === 'condp') {
         return 3;
       }
     }
