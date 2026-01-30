@@ -9,6 +9,7 @@ Changes to Calva.
 - [Grow selection now considers test/expr pairs in `cond->` and `cond->>` forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
 - [Grow selection now considers value/result pairs in `case` forms](https://github.com/BetterThanTomorrow/calva/issues/2993)
 - [Grow selection now considers test/result pairs and `:>>` function triples in `condp` forms](https://github.com/BetterThanTomorrow/calva/issues/2995)
+
 ## [2.0.545] - 2026-01-17
 
 - Fix: [Jack-in sometimes fails from quoting issues](https://github.com/BetterThanTomorrow/calva/issues/2549)
