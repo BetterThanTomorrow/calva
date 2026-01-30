@@ -1936,9 +1936,7 @@ describe('paredit', () => {
         });
         it('slurps form before list including meta and readers', async () => {
           const a = docFromTextNotation('^{:a b} #c ^d "foo" (|)');
-          // TODO: Figure out how to test result after format
-          //       (Because that last space is then removed)
-          const b = docFromTextNotation('(^{:a b} #c ^d "foo" |)');
+          const b = docFromTextNotation('(^{:a b} #c ^d "foo"|)');
           await paredit.backwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
