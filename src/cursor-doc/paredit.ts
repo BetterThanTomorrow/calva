@@ -1594,7 +1594,7 @@ function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
   return !!precedingToken && String(precedingToken.raw) === ':let';
 }
 
-const conditionalForms = ['cond', 'cond->', 'cond->>', 'case'];
+const conditionalForms = ['cond', 'cond->', 'cond->>', 'case', 'condp'];
 
 /**
  * Returns the offset (number of initial forms that are not part of pairs)
@@ -1602,7 +1602,7 @@ const conditionalForms = ['cond', 'cond->', 'cond->>', 'case'];
  * - cond: pairs start after function name (offset 1 for 'cond' itself)
  * - cond->/cond->>: pairs start after function name and initial form (offset 2)
  * - case: pairs start after function name and initial form (offset 2)
-
+ * - condp: pairs start after function name, predicate, and initial form (offset 3)
  */
 function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
   const probeCursor = cursor.clone();
@@ -1615,6 +1615,9 @@ function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
       }
       if (fn === 'cond->' || fn === 'cond->>' || fn === 'case') {
         return 2;
+      }
+      if (fn === 'condp') {
+        return 3;
       }
     }
   }
@@ -1657,6 +1660,172 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
 }
 
 /**
+ * Checks if the current index is part of a condp triple (test :>> function).
+ * Returns the range of the triple if found, otherwise null.
+ */
+function getCondpTripleRange(
+  doc: EditableDocument,
+  ranges: [number, number][],
+  currentIndex: number,
+  pairOffset: number
+): [number, number] | null {
+  const adjustedIndex = currentIndex - pairOffset;
+  if (adjustedIndex < 0) {
+    return null;
+  }
+
+  // Helper to get text for a range index
+  const getText = (idx: number) =>
+    idx >= 0 && idx < ranges.length ? doc.model.getText(ranges[idx][0], ranges[idx][1]) : '';
+
+  // If current is :>>, return test + :>> + fn
+  if (
+    getText(currentIndex) === ':>>' &&
+    currentIndex > pairOffset &&
+    currentIndex < ranges.length - 1
+  ) {
+    return [ranges[currentIndex - 1][0], ranges[currentIndex + 1][1]];
+  }
+
+  // If previous is :>>, return test + :>> + fn
+  if (getText(currentIndex - 1) === ':>>' && currentIndex > pairOffset + 1) {
+    return [ranges[currentIndex - 2][0], ranges[currentIndex][1]];
+  }
+
+  // If next is :>>, return test + :>> + fn
+  if (getText(currentIndex + 1) === ':>>' && currentIndex < ranges.length - 2) {
+    return [ranges[currentIndex][0], ranges[currentIndex + 2][1]];
+  }
+
+  return null;
+}
+
+/**
+ * Builds condp element groups (pairs and :>> triples) and returns the range
+ * containing the current selection, or currentSingleRange as a fallback.
+ */
+function getCondpElementGroupRange(
+  doc: EditableDocument,
+  ranges: [number, number][],
+  indexOfCurrentSingle: number,
+  pairOffset: number,
+  currentSingleRange: [number, number]
+): [number, number] {
+  const adjustedIndex = indexOfCurrentSingle - pairOffset;
+  if (adjustedIndex < 0) {
+    return currentSingleRange;
+  }
+
+  // Check for :>> triple first
+  const tripleRange = getCondpTripleRange(doc, ranges, indexOfCurrentSingle, pairOffset);
+  if (tripleRange) {
+    return tripleRange;
+  }
+
+  // Check for default (last element, odd count)
+  const pairableElementsCount = ranges.length - pairOffset;
+  const isOddElementCount = pairableElementsCount % 2 === 1;
+  const isLastElement = adjustedIndex === pairableElementsCount - 1;
+  if (isOddElementCount && isLastElement) {
+    return currentSingleRange;
+  }
+
+  // Handle regular pairs and :>> triples by grouping elements
+  const elementGroups: { start: number; end: number; groupStart: number }[] = [];
+  let i = pairOffset;
+
+  while (i < ranges.length) {
+    // Check if next element is :>>
+    if (i + 1 < ranges.length) {
+      const nextText = doc.model.getText(ranges[i + 1][0], ranges[i + 1][1]);
+      if (nextText === ':>>') {
+        if (i + 2 < ranges.length) {
+          elementGroups.push({
+            start: ranges[i][0],
+            end: ranges[i + 2][1],
+            groupStart: i,
+          });
+          i += 3;
+          continue;
+        }
+      }
+    }
+
+    // Regular pair (or default)
+    if (i + 1 < ranges.length) {
+      const remainingElements = ranges.length - i;
+      if (remainingElements === 1) {
+        // default
+        elementGroups.push({ start: ranges[i][0], end: ranges[i][1], groupStart: i });
+        i++;
+      } else {
+        // pair
+        elementGroups.push({
+          start: ranges[i][0],
+          end: ranges[i + 1][1],
+          groupStart: i,
+        });
+        i += 2;
+      }
+    } else {
+      // last element (default)
+      elementGroups.push({ start: ranges[i][0], end: ranges[i][1], groupStart: i });
+      i++;
+    }
+  }
+
+  // Find which group contains the current selection
+  for (const group of elementGroups) {
+    if (currentSingleRange[0] >= group.start && currentSingleRange[1] <= group.end) {
+      return [group.start, group.end];
+    }
+  }
+
+  return currentSingleRange;
+}
+
+/**
+ * Build paired element groups for non-conditional lists and return the group
+ * range that contains the provided currentSingleRange.
+ *
+ * Pairs are formed by consecutive elements starting at `pairOffset`. If the
+ * list has an odd trailing element that cannot be paired, it is treated as a
+ * single-element group (the "default" case).
+ */
+function getPairElementGroupRange(
+  ranges: [number, number][],
+  pairOffset: number,
+  currentSingleRange: [number, number]
+): [number, number] {
+  const elementGroups: { start: number; end: number }[] = [];
+  const rangesLength = ranges.length;
+  let i = pairOffset;
+
+  while (i < rangesLength) {
+    if (
+      i + 1 < rangesLength &&
+      !(i === rangesLength - 1 && (rangesLength - pairOffset) % 2 === 1)
+    ) {
+      // pair
+      elementGroups.push({ start: ranges[i][0], end: ranges[i + 1][1] });
+      i += 2;
+    } else {
+      // default (single element at the end)
+      elementGroups.push({ start: ranges[i][0], end: ranges[i][1] });
+      i++;
+    }
+  }
+
+  for (const group of elementGroups) {
+    if (currentSingleRange[0] >= group.start && currentSingleRange[1] <= group.end) {
+      return [group.start, group.end];
+    }
+  }
+
+  return currentSingleRange;
+}
+
+/**
  * Returns the range of the current form
  * or the current form pair, if usePairs is true
  */
@@ -1684,24 +1853,21 @@ export function currentSexpsRange(
 
       // Only treat as pairs if we're past the offset
       if (adjustedIndex >= 0) {
-        // For forms like `case`, if there's an odd number of pairable elements,
-        // the last element is the default and should NOT be treated as part of a pair
-        const pairableElementsCount = ranges.length - pairOffset;
-        const isOddElementCount = pairableElementsCount % 2 === 1;
-        const isLastElement = adjustedIndex === pairableElementsCount - 1;
-        const isConditionalDefault = isOddElementCount && isLastElement;
-        if (isConditionalDefault) {
-          return currentSingleRange;
+        // Check if we're in a condp form
+        const probeCursor = listCursor.clone();
+        if (probeCursor.backwardList()) {
+          const fn = probeCursor.getFunctionName();
+          if (fn === 'condp') {
+            return getCondpElementGroupRange(
+              doc,
+              ranges,
+              indexOfCurrentSingle,
+              pairOffset,
+              currentSingleRange
+            );
+          }
         }
-        if (adjustedIndex % 2 == 0) {
-          const pairCursor = doc.getTokenCursor(currentSingleRange[1]);
-          pairCursor.forwardSexp();
-          return [currentSingleRange[0], pairCursor.offsetStart];
-        } else {
-          const pairCursor = doc.getTokenCursor(currentSingleRange[0]);
-          pairCursor.backwardSexp();
-          return [pairCursor.offsetStart, currentSingleRange[1]];
-        }
+        return getPairElementGroupRange(ranges, pairOffset, currentSingleRange);
       }
     }
   }
