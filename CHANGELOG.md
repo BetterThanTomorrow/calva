@@ -4,12 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- [Grow Selection now considers form pairs in `:let` Bindings](https://github.com/BetterThanTomorrow/calva/issues/2988)
-- [Grow selection now considers test/expr pairs in `cond` forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
-- [Grow selection now considers test/expr pairs in `cond->` and `cond->>` forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
-- [Grow selection now considers value/result pairs in `case` forms](https://github.com/BetterThanTomorrow/calva/issues/2993)
-- [Grow selection now considers test/result pairs and `:>>` function triples in `condp` forms](https://github.com/BetterThanTomorrow/calva/issues/2995)
-- Drag Sexp commands now correctly move pairs/triples in `cond`, `cond->`, `cond->>`, `case`, `condp`, and `:let` bindings
+- [Consider form pairs in `:let` bindings when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2988)
+- [Consider test/expr pairs in `cond` forms when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
+- [Consider test/expr pairs in `cond->` and `cond->>` forms when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
+- [Consider value/result pairs in `case` forms when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2993)
+- [Consider test/result pairs and `:>>` function triples in `condp` forms when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2995)
 - [Improve backspace and deleteForward functions for reader macro hash deletion](https://github.com/BetterThanTomorrow/calva/issues/2766)
 
 ## [2.0.545] - 2026-01-17
