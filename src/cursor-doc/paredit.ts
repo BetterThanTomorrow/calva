@@ -1516,8 +1516,9 @@ function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
     }
   }
   return 0;
+}
 
-  function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
+function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
   const testCursor = cursor.clone();
   // helper: move one token left from current position and skip whitespace
   function stepLeftAndSkipWs() {
