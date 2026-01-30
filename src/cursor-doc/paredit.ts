@@ -1516,6 +1516,21 @@ function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
     }
   }
   return 0;
+
+  function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
+  const testCursor = cursor.clone();
+  // helper: move one token left from current position and skip whitespace
+  function stepLeftAndSkipWs() {
+    testCursor.previous();
+    testCursor.backwardWhitespace();
+  }
+  stepLeftAndSkipWs();
+  let precedingToken = testCursor.getPrevToken();
+  while (precedingToken && precedingToken.type === 'comment') {
+    stepLeftAndSkipWs();
+    precedingToken = testCursor.getPrevToken();
+  }
+  return !!precedingToken && String(precedingToken.raw) === ':let';
 }
 
 export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
@@ -1526,6 +1541,11 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
       return true;
     }
     if (opening.endsWith('[')) {
+      if (isPrecededByLetKeyword(probeCursor)) {
+        return true;
+      }
+
+      // Otherwise, check if this is a binding form like (let [...] ...)
       probeCursor.backwardUpList();
       probeCursor.backwardList();
       if (!probeCursor.getPrevToken().raw.endsWith('(')) {
