@@ -1390,7 +1390,7 @@ describe('paredit', () => {
       expect(g.selectionsStack).toEqual([[gSelection], [hSelection]]);
     });
 
-    it('cond pairs'),
+    describe('cond pairs'),
       () => {
         it('grows selection to test/expr pairs in cond (expr selected first)', () => {
           const a = docFromTextNotation('(cond true |:yes| false :no)');
