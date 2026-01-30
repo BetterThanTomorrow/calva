@@ -161,8 +161,6 @@ foo (|   )
 ;; Before: foo [|]
 ;; Expected: [foo|] (no trailing space)
 foo [|]
-_
-
 
 (comment
   (a b (c
