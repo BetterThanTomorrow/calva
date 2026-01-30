@@ -1389,49 +1389,48 @@ describe('paredit', () => {
       expect(g.selectionsStack).toEqual([[gSelection], [hSelection]]);
     });
 
-    it('pair selection with case'),
-      () => {
-        it('grows selection to value/result pairs in case (result selected first)', () => {
-          const a = docFromTextNotation('(case x "x" |"one"| "y" "two" "default")');
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation('(case x |"x" "one"| "y" "two" "default")');
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-        it('grows selection to value/result pairs in case (value selected first)', () => {
-          const a = docFromTextNotation('(case x |"x"| "one" "y" "two" "default")');
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation('(case x |"x" "one"| "y" "two" "default")');
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-        it('grows selection to value/result pairs in case with list value', () => {
-          const a = docFromTextNotation('(case x (2 3) |"two or three"| 4 "four" "default")');
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation('(case x |(2 3) "two or three"| 4 "four" "default")');
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-        it('does not treat default as pair when growing selection in case', () => {
-          const a = docFromTextNotation('(case x 1 "one" 2 "two" |"default"|)');
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation('(|case x 1 "one" 2 "two" "default"|)');
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-        it('grows selection from case keyword to list contents', () => {
-          const a = docFromTextNotation('(|case| x 1 "one" 2 "two" "default")');
-          const aSelection = a.selections[0];
-          const b = docFromTextNotation('(|case x 1 "one" 2 "two" "default"|)');
-          const bSelection = b.selections[0];
-          paredit.growSelection(a);
-          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-        });
-      };
+    describe('pair selection with case', () => {
+      it('grows selection to value/result pairs in case (result selected first)', () => {
+        const a = docFromTextNotation('(case x "x" |"one"| "y" "two" "default")');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(case x |"x" "one"| "y" "two" "default")');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to value/result pairs in case (value selected first)', () => {
+        const a = docFromTextNotation('(case x |"x"| "one" "y" "two" "default")');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(case x |"x" "one"| "y" "two" "default")');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to value/result pairs in case with list value', () => {
+        const a = docFromTextNotation('(case x (2 3) |"two or three"| 4 "four" "default")');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(case x |(2 3) "two or three"| 4 "four" "default")');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('does not treat default as pair when growing selection in case', () => {
+        const a = docFromTextNotation('(case x 1 "one" 2 "two" |"default"|)');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(|case x 1 "one" 2 "two" "default"|)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection from case keyword to list contents', () => {
+        const a = docFromTextNotation('(|case| x 1 "one" 2 "two" "default")');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(|case x 1 "one" 2 "two" "default"|)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+    });
   });
 
   describe('dragSexpr', () => {
