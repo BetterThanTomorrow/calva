@@ -127,6 +127,14 @@ string. "
 
 
 
+;; cond pair
+
+(cond
+  (= 1 2) 1
+  (= 2 2) 2
+  :else 23)
+
+
 (comment
   (a b (c
         d) e)
