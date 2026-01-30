@@ -1901,6 +1901,12 @@ describe('paredit', () => {
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+        it('slurps form after string without adding leading space', async () => {
+          const a = docFromTextNotation('"|"somestuff');
+          const b = docFromTextNotation('"|somestuff"');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
 
       describe('Slurping backwards', () => {
