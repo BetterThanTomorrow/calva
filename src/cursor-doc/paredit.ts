@@ -1513,12 +1513,13 @@ function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
   return !!precedingToken && String(precedingToken.raw) === ':let';
 }
 
-const conditionalForms = ['cond'];
+const conditionalForms = ['cond', 'cond->', 'cond->>'];
 
 /**
  * Returns the offset (number of initial forms that are not part of pairs)
  * for conditional forms.
  * - cond: pairs start after function name (offset 1 for 'cond' itself)
+ * - cond->/cond->>: pairs start after function name and initial form (offset 2)
  */
 function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
   const probeCursor = cursor.clone();
@@ -1528,6 +1529,9 @@ function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
       const fn = probeCursor.getFunctionName();
       if (fn === 'cond') {
         return 1;
+      }
+      if (fn === 'cond->' || fn === 'cond->>') {
+        return 2;
       }
     }
   }
