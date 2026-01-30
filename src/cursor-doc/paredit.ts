@@ -950,17 +950,11 @@ function backwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit
   const insideCursor = cursor.clone();
   insideCursor.forwardWhitespace(false);
   const isFormEmpty = insideCursor.getToken().type === 'close';
-  const closeOffset = insideCursor.offsetStart;
 
   // Navigate to previous sexp
   cursor.previous();
   cursor.backwardSexp(true, true);
   const prevSexpStart = cursor.offsetStart;
-
-  // Find end of previous sexp
-  const sexpEndCursor = cursor.clone();
-  sexpEndCursor.forwardSexp(true, true);
-  const prevSexpEnd = sexpEndCursor.offsetStart;
 
   // Skip whitespace to check if there's a previous sexp to slurp
   cursor.forwardWhitespace(false);
@@ -973,6 +967,14 @@ function backwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit
 
   if (isFormEmpty) {
     // Empty form: remove whitespace + open bracket + internal whitespace, insert open at sexp start
+
+    // Find end of previous sexp
+    const sexpEndCursor = cursor.clone();
+    sexpEndCursor.forwardSexp(true, true);
+    const prevSexpEnd = sexpEndCursor.offsetStart;
+
+    const closeOffset = insideCursor.offsetStart;
+
     return [
       new ModelEdit('changeRange', [prevSexpEnd, closeOffset, '']),
       new ModelEdit('changeRange', [prevSexpStart, prevSexpStart, open]),
