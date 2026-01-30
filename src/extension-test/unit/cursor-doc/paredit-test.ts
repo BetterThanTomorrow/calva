@@ -1862,6 +1862,22 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
+
+    describe('cond-> and cond->> forms', () => {
+      it('drags test/expr pair forward in cond->', async () => {
+        const a = docFromTextNotation('(cond-> x |:a (inc) :b (dec))');
+        const b = docFromTextNotation('(cond-> x :b (dec) |:a (inc))');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags test/expr pair backward in cond->>', async () => {
+        const a = docFromTextNotation('(cond->> x :a (inc) |:b (dec))');
+        const b = docFromTextNotation('(cond->> x |:b (dec) :a (inc))');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
   });
   describe('edits', () => {
     describe('Close lists', () => {
