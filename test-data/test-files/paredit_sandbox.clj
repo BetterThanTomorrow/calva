@@ -160,6 +160,8 @@ string. "
   #{0 6 7} :>> inc
   #{5 9}   :>> dec)
 
+(assoc {} :a 1 :b 2)
+
 (comment
   (a b (c
         d) e)
