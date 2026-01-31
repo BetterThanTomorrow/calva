@@ -1594,17 +1594,18 @@ function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
   return !!precedingToken && String(precedingToken.raw) === ':let';
 }
 
-const conditionalForms = ['cond', 'cond->', 'cond->>', 'case', 'condp'];
+const flatPairForms = ['cond', 'cond->', 'cond->>', 'case', 'condp', 'assoc'];
 
 /**
  * Returns the offset (number of initial forms that are not part of pairs)
- * for conditional forms.
+ * for flat pair forms (forms where pairs appear directly in the list).
  * - cond: pairs start after function name (offset 1 for 'cond' itself)
  * - cond->/cond->>: pairs start after function name and initial form (offset 2)
  * - case: pairs start after function name and initial form (offset 2)
  * - condp: pairs start after function name, predicate, and initial form (offset 3)
+ * - assoc: pairs start after function name and map (offset 2)
  */
-function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
+function getFlatPairFormOffset(cursor: LispTokenCursor): number {
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
@@ -1613,7 +1614,7 @@ function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
       if (fn === 'cond') {
         return 1;
       }
-      if (fn === 'cond->' || fn === 'cond->>' || fn === 'case') {
+      if (fn === 'cond->' || fn === 'cond->>' || fn === 'case' || fn === 'assoc') {
         return 2;
       }
       if (fn === 'condp') {
@@ -1648,9 +1649,9 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
       }
     }
     if (opening.endsWith('(')) {
-      // Check if this is a conditional form like (cond test expr test expr ...)
+      // Check if this is a flat pair form like (cond test expr ...) or (assoc m k v ...)
       const fn = probeCursor.getFunctionName();
-      if (fn && conditionalForms.includes(fn)) {
+      if (fn && flatPairForms.includes(fn)) {
         return true;
       }
     }
@@ -1845,8 +1846,8 @@ export function currentSexpsRange(
         (r) => r[0] === currentSingleRange[0] && r[1] === currentSingleRange[1]
       );
 
-      // Get the offset for conditional forms (e.g., cond has 1 initial non-pair form)
-      const pairOffset = getConditionalFormPairOffset(listCursor);
+      // Get the offset for flat pair forms (e.g., cond has 1, assoc has 2 initial non-pair forms)
+      const pairOffset = getFlatPairFormOffset(listCursor);
 
       // Adjust the index to account for non-pair forms at the start
       const adjustedIndex = indexOfCurrentSingle - pairOffset;
