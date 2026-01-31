@@ -2014,6 +2014,65 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
+
+    describe('threading macros with pairs', () => {
+      describe('assoc in -> macro', () => {
+        it('grows selection to key/value pairs in assoc inside ->', () => {
+          const a = docFromTextNotation('(-> m (assoc |:a| "one" :b "two"))');
+          const aSelection = a.selections[0];
+          const b = docFromTextNotation('(-> m (assoc |:a "one"| :b "two"))');
+          const bSelection = b.selections[0];
+          paredit.growSelection(a);
+          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+        });
+
+        it('drags key/value pair forward in assoc inside ->', async () => {
+          const a = docFromTextNotation('(-> m (assoc |:a "one" :b "two"))');
+          const b = docFromTextNotation('(-> m (assoc :b "two" |:a "one"))');
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+
+      describe('cond-> inside -> macro (nested threading)', () => {
+        it('grows selection to pair inside cond-> which is itself inside ->', () => {
+          const a = docFromTextNotation('(-> {} (cond-> |true| (assoc :a "one")))');
+          const aSelection = a.selections[0];
+          const b = docFromTextNotation('(-> {} (cond-> |true (assoc :a "one")|))');
+          const bSelection = b.selections[0];
+          paredit.growSelection(a);
+          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+        });
+
+        it('drags pair forward in cond-> which is inside ->', async () => {
+          const a = docFromTextNotation(
+            '(-> {} (cond-> |true (assoc :a "one") false (assoc :b "two")))'
+          );
+          const b = docFromTextNotation(
+            '(-> {} (cond-> false (assoc :b "two") |true (assoc :a "one")))'
+          );
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+
+      describe('case inside -> macro', () => {
+        it('grows selection to value/result pair inside case>', () => {
+          const a = docFromTextNotation('(-> x (case |"x"| "one" 2 "two" "default"))');
+          const aSelection = a.selections[0];
+          const b = docFromTextNotation('(-> x (case |"x" "one"| 2 "two" "default"))');
+          const bSelection = b.selections[0];
+          paredit.growSelection(a);
+          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+        });
+        it('drags value/result pair backward in case inside ->', async () => {
+          const a = docFromTextNotation('(-> x (case |"x" "one" 2 "two" "default"))');
+          const b = docFromTextNotation('(-> x (case 2 "two" |"x" "one" "default"))');
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+    });
   });
   describe('edits', () => {
     describe('Close lists', () => {
