@@ -946,11 +946,6 @@ function backwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit
   const openBracketOffset = cursor.clone().previous().offsetStart;
   const open = tk.raw;
 
-  // Check if form is empty/whitespace-only and find close bracket position
-  const insideCursor = cursor.clone();
-  insideCursor.forwardWhitespace(false);
-  const isFormEmpty = insideCursor.getToken().type === 'close';
-
   // Navigate to previous sexp
   cursor.previous();
   cursor.backwardSexp(true, true);
@@ -964,6 +959,11 @@ function backwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit
     // No previous sexp at this level, try enclosing form
     return backwardSlurpSexpEdits(doc, prevSexpStart);
   }
+
+  // Check if form is empty/whitespace-only and find close bracket position
+  const insideCursor = cursor.clone();
+  insideCursor.forwardWhitespace(false);
+  const isFormEmpty = insideCursor.getToken().type === 'close';
 
   if (isFormEmpty) {
     // Empty form: remove whitespace + open bracket + internal whitespace, insert open at sexp start
