@@ -2072,6 +2072,47 @@ describe('paredit', () => {
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
       });
+
+      describe('assoc in ->> macro', () => {
+        it('grows selection to key/value pairs with trailing unpaired key in assoc inside ->>', () => {
+          const a = docFromTextNotation('(->> "two" (assoc {} |:one| "one" :two))');
+          const aSelection = a.selections[0];
+          const b = docFromTextNotation('(->> "two" (assoc {} |:one "one"| :two))');
+          const bSelection = b.selections[0];
+          paredit.growSelection(a);
+          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+        });
+        it('grows selection to entire form because :two is trailing unpaired key', () => {
+          const a = docFromTextNotation('(->> "two" (assoc {} :one "one" |:two|))');
+          const aSelection = a.selections[0];
+          const b = docFromTextNotation('(->> "two" (|assoc {} :one "one" :two|))');
+          const bSelection = b.selections[0];
+          paredit.growSelection(a);
+          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+        });
+        it('drags key/value pair forward with trailing unpaired key in assoc inside ->>', async () => {
+          const a = docFromTextNotation('(->> "three" (assoc {} |:one "one" :two "two" :three))');
+          const b = docFromTextNotation('(->> "three" (assoc {} :two "two" |:one "one" :three))');
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+      describe('case inside ->> macro', () => {
+        it('grows selection to value/result pair inside case inside ->>', () => {
+          const a = docFromTextNotation('(->> "default" (case "x" :four "four" :five |"five"|))');
+          const aSelection = a.selections[0];
+          const b = docFromTextNotation('(->> "default" (case "x" :four "four" |:five "five"|))');
+          const bSelection = b.selections[0];
+          paredit.growSelection(a);
+          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+        });
+        it('drags value/result pair backward in case inside ->>', async () => {
+          const a = docFromTextNotation('(->> "default" (case "x" |:four "four" :five "five"))');
+          const b = docFromTextNotation('(->> "default" (case "x" :five "five" |:four "four"))');
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
     });
   });
   describe('edits', () => {
